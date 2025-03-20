@@ -26,7 +26,7 @@
             android:name="org.chimple.bahama.MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
-            android:launchMode="singleTask"
+            android:launchMode="singleTop"
             android:exported="true">
 
             <!-- ✅ App Launcher Intent -->

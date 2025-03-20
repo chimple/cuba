@@ -92,6 +92,7 @@ const CocosGame: React.FC = () => {
   const push = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
+    console.log("fromPath", fromPath);
     if (Capacitor.isNativePlatform()) {
       if (!!isDeviceAwake) {
         history.replace(fromPath + "&isReload=true");
@@ -127,6 +128,7 @@ const CocosGame: React.FC = () => {
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
     killGame(e);
+    console.log('game exit called');
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
     Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: api.currentStudent!.id,
@@ -136,14 +138,14 @@ const CocosGame: React.FC = () => {
       chapter_id: data.chapterId,
       chapter_name: chapterDetail ? chapterDetail.name : "",
       lesson_id: data.lessonId,
-      lesson_name: lessonDetail.name,
+      lesson_name: lessonDetail?.name,
       lesson_type: data.lessonType,
       lesson_session_id: data.lessonSessionId,
       ml_partner_id: data.mlPartnerId,
       ml_class_id: data.mlClassId,
       ml_student_id: data.mlStudentId,
       course_id: data.courseId,
-      course_name: courseDetail.name,
+      course_name: courseDetail?.name,
       time_spent: data.timeSpent,
       total_moves: data.totalMoves,
       total_games: data.totalGames,
@@ -156,6 +158,7 @@ const CocosGame: React.FC = () => {
       game_time_spent: data.gameTimeSpent,
       quiz_time_spent: data.quizTimeSpent,
     });
+    console.log("game exit called 2222");
     setShowDialogBox(false);
     push();
   };
@@ -205,8 +208,8 @@ const CocosGame: React.FC = () => {
     const lesson: Lesson = state.lesson ?  JSON.parse(state.lesson) : undefined;
     if (currentStudent != null) {
       const result = await api.updateFavoriteLesson(
-        currentStudent.id,
-        lesson.id
+        currentStudent?.id,
+        lesson?.id
       );
     }
   };
@@ -362,11 +365,11 @@ const CocosGame: React.FC = () => {
           <div>
             <ScoreCard
               title={t("🎉Congratulations🎊")}
-              score={gameResult.detail.score}
+              score={gameResult?.detail?.score}
               message={t("You Completed the Lesson:")}
               showDialogBox={showDialogBox}
               yesText={t("Like the Game")}
-              lessonName={lessonDetail.name ?? ""}
+              lessonName={lessonDetail?.name ?? ""}
               noText={t("Continue Playing")}
               handleClose={(e: any) => {
                 setShowDialogBox(true);
@@ -380,7 +383,7 @@ const CocosGame: React.FC = () => {
                 await updateLessonAsFavorite();
                 console.log(
                   "------------------the game result ",
-                  gameResult.detail.score
+                  gameResult?.detail?.score
                 );
                 if (initialCount >= 5) {
                   Util.showInAppReview();
@@ -398,7 +401,7 @@ const CocosGame: React.FC = () => {
                 // await saveTempData(gameResult.detail, undefined);
                 console.log(
                   "------------------the game result ",
-                  gameResult.detail.score
+                  gameResult?.detail?.score
                 );
                 push();
               }}

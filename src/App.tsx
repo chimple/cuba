@@ -453,7 +453,7 @@ const App: React.FC = () => {
   
       try {
         const learningUnitId = event.learningUnitId;
-  
+        console.log("learningUnitId", learningUnitId);
         if (learningUnitId) {
           const parts = learningUnitId.split("_");
           if (parts.length === 3) {
@@ -464,10 +464,11 @@ const App: React.FC = () => {
             const params = `?courseid=${courseId}&chapterid=${chapterId}&lessonid=${lessonId}`;
             history.replace(PAGES.GAME + params, {
               url: "chimple-lib/index.html" + params,
-              from: history.location.pathname + `?${CONTINUE}=true`,
+              from: PAGES.APP_UPDATE,
               lessonId: lessonId,
               courseDocId: courseId,
             });
+            console.log('history',history)
             window.location.href = PAGES.GAME + params;
   
           } else {
