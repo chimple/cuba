@@ -23,9 +23,12 @@ import java.util.ArrayList;
 
 public class MainActivity extends BridgeActivity {
     // private RespectClientManager respectClientManager; // Declare RespectClientManager
+    public static MainActivity instance;
+    private static final String TAG = "Logger001";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        
+
 
         // Handle global crash exceptions
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
@@ -59,6 +62,10 @@ public class MainActivity extends BridgeActivity {
 
         // ✅ Handle deep linking on cold start
         handleDeepLink(getIntent());
+        // ✅ Wait for Bridge to be ready before calling PortPlugin.sendLaunch()
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+//            PortPlugin.sendLaunch("test", "test", "test");
+        }, 10000); // Delayed by 2 seconds to ensure Capacitor is ready
     }
 
     @Override
@@ -89,12 +96,18 @@ public class MainActivity extends BridgeActivity {
     
         Log.d("MainActivity", "🚀 Extracted Parameters: " + deepLinkData.toString());
     
-        // Ensure WebView is ready before sending deep link
+//        // Ensure WebView is ready before sending deep link
+//        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+////            sendDeepLinkToCapacitor(deepLinkData);
+//        }, 1000); // Delay 1 second to ensure WebView is ready
+
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            sendDeepLinkToCapacitor(deepLinkData);
-        }, 1000); // Delay 1 second to ensure WebView is ready
+            PortPlugin.sendLaunch();
+        }, 5000); // Delayed by 2 seconds to ensure Capacitor is ready
     }
-    
+
+
+
     private void sendDeepLinkToCapacitor(JSONObject deepLinkData) {
         if (this.getBridge() == null || this.isDestroyed()) {
             Log.e("MainActivity", "❌ ERROR: Bridge is NULL or Activity is destroyed! Skipping event dispatch.");
@@ -119,6 +132,49 @@ public class MainActivity extends BridgeActivity {
         ArrayList<Class<? extends Plugin>> plugins = new ArrayList<>();
         return plugins;
     }
+
+    public void handleRequest() {
+
+        Intent curr_intent = getIntent();
+        Uri data = curr_intent.getData();
+
+//        if (data != null) {
+            Log.d(TAG, "call from deeplink");
+
+
+            if (data != null) {
+                String learningUnitId = data.getQueryParameter("learningUnitId");
+
+                if (learningUnitId != null && learningUnitId.contains("_")) {
+                    // Split the learningUnitId into course, chapter, and lesson
+                    String[] parts = learningUnitId.split("_");
+                    if (parts.length == 3) {
+                        String courseId = parts[0];   // "en" -- example
+                        String chapterId = parts[1];  // "en00" -- example
+                        String lessonId = parts[2];   // "en0005" -- example (updated)
+
+                        // Construct the URL dynamically
+                        String url = "https://chimple.cc/microlink/?courseid=" + courseId +
+                                "&chapterid=" + chapterId +
+                                "&lessonid=" + lessonId +
+                                "&app=eidu";
+
+                        PortPlugin.sendLaunch();
+//                        curr_intent.setData(Uri.parse(url));
+
+                        Log.d(TAG, "Generated URL: " + url);
+                    } else {
+                        Log.e(TAG, "Invalid learningUnitId format: " + learningUnitId);
+                    }
+                } else {
+                    Log.e(TAG, "learningUnitId is missing or not formatted correctly.");
+                }
+            } else {
+                Log.e(TAG, "No data URI found in the intent.");
+            }
+//        }
+    }
+
 
     @Override
     public void onDestroy() {

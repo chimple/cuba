@@ -27,6 +27,12 @@ import org.json.JSONObject;
 
 @CapacitorPlugin(name = "Port")
 public class PortPlugin extends Plugin {
+    private static String _otp;
+    private static PortPlugin instance;
+    public PortPlugin() {
+        instance = this; // Assign instance when PortPlugin is created
+    }
+    private static final String TAG = "Logger001";
 
 //  @PluginMethod
 //  public void getPort(PluginCall call) {
@@ -69,6 +75,10 @@ public class PortPlugin extends Plugin {
       notifyListeners("notificationOpened", eventData);
     }
   }
+
+    public static PortPlugin getInstance() {
+        return instance;
+    }
 
   @PluginMethod
   public void fetchNotificationData(PluginCall call) {
@@ -218,6 +228,85 @@ public void shareUserId(PluginCall call) {
         call.reject("Failed to share content: " + e.toString());
     }
 }
+
+    @PluginMethod
+    public void sendLaunchData(PluginCall call) {
+        JSObject result = new JSObject();
+        Intent curr_intent = instance.getActivity().getIntent();
+        Uri data = curr_intent.getData();
+
+        String learningUnitId = null;
+        if (data != null) {
+            learningUnitId = data.getQueryParameter("learningUnitId");
+        }
+
+        // Fallback: Try extracting from intent extras if the deep link is not available
+        if (learningUnitId == null) {
+            learningUnitId = curr_intent.getStringExtra("learningUnitId");
+        }
+
+        Log.d(TAG, "Received learningUnitId: " + learningUnitId);
+
+        if (learningUnitId != null && learningUnitId.contains("_")) {
+            String[] parts = learningUnitId.split("_");
+
+            if (parts.length == 6) {
+                // New format: sl_maths_sl_maths31_sl_maths3107
+                String courseId = parts[0] + "_" + parts[1];  // sl_maths
+                String chapterId = parts[2] + "_" + parts[3]; // sl_maths31
+                String lessonId = parts[4] + "_" + parts[5];  // sl_maths3107
+
+                result.put("courseId", courseId);
+                result.put("chapterId", chapterId);
+                result.put("lessonId", lessonId);
+
+            } else if (parts.length == 4) {
+                // New 4-part format: sl_en_sl_en01_sl_en0101
+                String courseId = parts[0] + "_" + parts[1];  // sl_en
+                String chapterId = parts[2];  // sl_en01
+                String lessonId = parts[3];  // sl_en0101
+
+                result.put("courseId", courseId);
+                result.put("chapterId", chapterId);
+                result.put("lessonId", lessonId);
+
+            } else if (parts.length == 3) {
+                // Old format: maths_maths13_maths1307
+                String courseId = parts[0];
+                String chapterId = parts[1];
+                String lessonId = parts[2];
+
+                result.put("courseId", courseId);
+                result.put("chapterId", chapterId);
+                result.put("lessonId", lessonId);
+
+            } else {
+                Log.e(TAG, "Invalid learningUnitId format: " + learningUnitId);
+                call.reject("Invalid learningUnitId format: " + learningUnitId);
+                return;
+            }
+
+            Log.d(TAG, "Extracted Course ID: " + result.getString("courseId"));
+            Log.d(TAG, "Extracted Chapter ID: " + result.getString("chapterId"));
+            Log.d(TAG, "Extracted Lesson ID: " + result.getString("lessonId"));
+            Log.d(TAG, "Result Data: " + result.toString());
+
+            call.resolve(result);
+        } else {
+            Log.e(TAG, "learningUnitId is missing or not formatted correctly.");
+            call.resolve(result);
+        }
+    }
+
+    @PluginMethod
+    public static void sendLaunch() {
+        if (getInstance().bridge != null) {
+            String jsonPayload = "{}"; // Empty JSON payload
+            getInstance().bridge.triggerDocumentJSEvent("sendLaunch", jsonPayload);
+        }
+    }
+
+
 
 
 }

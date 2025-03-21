@@ -117,6 +117,8 @@ import DisplayClasses from "./chimple-private/pages/DisplayClasses";
 import "./App.css";
 import ShowStudentsInAssignmentPage from "./chimple-private/pages/ShowStudentsInAssignmentPage";
 import { schoolUtil } from "./utility/schoolUtil";
+import { useHandleLessonClick } from "./utility/lessonUtils";
+
 
 setupIonicReact();
 interface ExtraData {
@@ -149,6 +151,30 @@ const App: React.FC = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
   const [isActive, setIsActive] = useState(true);
+  const handleLessonClick = useHandleLessonClick();
+
+
+  // Define sendLaunch function
+  const sendLaunch = async (event?: Event) => {
+    console.log("Calling received from Java:", event);
+    setTimeout(() => {
+      handleLessonClick(null, true, undefined, true, presentToast);
+    }, 5000);
+    
+  };
+
+  useEffect(() => {
+    // Attach sendLaunch globally
+    (window as any).sendLaunch = sendLaunch;
+
+    // Listen for the "sendLaunch" event triggered by Java
+    document.addEventListener("sendLaunch", sendLaunch);
+
+    return () => {
+      document.removeEventListener("sendLaunch", sendLaunch);
+    };
+  }, []);
+
   useEffect(() => {
     const handleOnline = () => {
       if (!online) {

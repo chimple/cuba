@@ -82,7 +82,16 @@ const CocosGame: React.FC = () => {
   };
   const killGame = (e: any) => {
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
-    setShowDialogBox(true);
+    if(Util.isDeepLink) {
+      setShowDialogBox(false);
+      console.log("deeplink", Util.isDeepLink);
+      Util.isDeepLink = false;
+    }
+    else{
+      console.log("deeplink", Util.isDeepLink);
+      setShowDialogBox(true);
+    }
+    
     Util.killCocosGame();
     initialCount++;
     localStorage.setItem(LESSONS_PLAYED_COUNT, initialCount.toString());
@@ -128,34 +137,34 @@ const CocosGame: React.FC = () => {
     const data = e.detail as CocosLessonData;
     killGame(e);
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
-    Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
-      user_id: api.currentStudent!.id,
-      // assignment_id: lessonDetail.assignment?.id,
-      left_game_no: data.currentGameNumber,
-      left_game_name: data.gameName,
-      chapter_id: data.chapterId,
-      chapter_name: chapterDetail ? chapterDetail.name : "",
-      lesson_id: data.lessonId,
-      lesson_name: lessonDetail.name,
-      lesson_type: data.lessonType,
-      lesson_session_id: data.lessonSessionId,
-      ml_partner_id: data.mlPartnerId,
-      ml_class_id: data.mlClassId,
-      ml_student_id: data.mlStudentId,
-      course_id: data.courseId,
-      course_name: courseDetail.name,
-      time_spent: data.timeSpent,
-      total_moves: data.totalMoves,
-      total_games: data.totalGames,
-      correct_moves: data.correctMoves,
-      wrong_moves: data.wrongMoves,
-      game_score: data.gameScore,
-      quiz_score: data.quizScore,
-      game_completed: data.gameCompleted,
-      quiz_completed: data.quizCompleted,
-      game_time_spent: data.gameTimeSpent,
-      quiz_time_spent: data.quizTimeSpent,
-    });
+    // Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
+    //   user_id: api.currentStudent!.id,
+    //   // assignment_id: lessonDetail.assignment?.id,
+    //   left_game_no: data.currentGameNumber,
+    //   left_game_name: data.gameName,
+    //   chapter_id: data.chapterId,
+    //   chapter_name: chapterDetail ? chapterDetail.name : "",
+    //   lesson_id: data.lessonId,
+    //   lesson_name: lessonDetail.name,
+    //   lesson_type: data.lessonType,
+    //   lesson_session_id: data.lessonSessionId,
+    //   ml_partner_id: data.mlPartnerId,
+    //   ml_class_id: data.mlClassId,
+    //   ml_student_id: data.mlStudentId,
+    //   course_id: data.courseId,
+    //   course_name: courseDetail.name,
+    //   time_spent: data.timeSpent,
+    //   total_moves: data.totalMoves,
+    //   total_games: data.totalGames,
+    //   correct_moves: data.correctMoves,
+    //   wrong_moves: data.wrongMoves,
+    //   game_score: data.gameScore,
+    //   quiz_score: data.quizScore,
+    //   game_completed: data.gameCompleted,
+    //   quiz_completed: data.quizCompleted,
+    //   game_time_spent: data.gameTimeSpent,
+    //   quiz_time_spent: data.quizTimeSpent,
+    // });
     setShowDialogBox(false);
     push();
   };
@@ -302,33 +311,33 @@ const CocosGame: React.FC = () => {
       //     JSON.stringify(res)
       //   );
       // }
-      Util.logEvent(EVENTS.LESSON_END, {
-        user_id: currentStudent.id,
-        // assignment_id: lesson.assignment?.id,
-        chapter_id: data.chapterId,
-        // chapter_name: ChapterDetail ? ChapterDetail.name : "",
-        lesson_id: data.lessonId,
-        // lesson_name: lesson.name,
-        lesson_type: data.lessonType,
-        lesson_session_id: data.lessonSessionId,
-        ml_partner_id: data.mlPartnerId,
-        ml_class_id: data.mlClassId,
-        ml_student_id: data.mlStudentId,
-        course_id: data.courseId,
-        course_name: courseDetail.name,
-        time_spent: data.timeSpent,
-        total_moves: data.totalMoves,
-        total_games: data.totalGames,
-        correct_moves: data.correctMoves,
-        wrong_moves: data.wrongMoves,
-        game_score: data.gameScore,
-        quiz_score: data.quizScore,
-        game_completed: data.gameCompleted,
-        quiz_completed: data.quizCompleted,
-        game_time_spent: data.gameTimeSpent,
-        quiz_time_spent: data.quizTimeSpent,
-        score: data.score,
-      });
+      // Util.logEvent(EVENTS.LESSON_END, {
+      //   user_id: currentStudent.id,
+      //   // assignment_id: lesson.assignment?.id,
+      //   chapter_id: data.chapterId,
+      //   // chapter_name: ChapterDetail ? ChapterDetail.name : "",
+      //   lesson_id: data.lessonId,
+      //   // lesson_name: lesson.name,
+      //   lesson_type: data.lessonType,
+      //   lesson_session_id: data.lessonSessionId,
+      //   ml_partner_id: data.mlPartnerId,
+      //   ml_class_id: data.mlClassId,
+      //   ml_student_id: data.mlStudentId,
+      //   course_id: data.courseId,
+      //   course_name: courseDetail.name,
+      //   time_spent: data.timeSpent,
+      //   total_moves: data.totalMoves,
+      //   total_games: data.totalGames,
+      //   correct_moves: data.correctMoves,
+      //   wrong_moves: data.wrongMoves,
+      //   game_score: data.gameScore,
+      //   quiz_score: data.quizScore,
+      //   game_completed: data.gameCompleted,
+      //   quiz_completed: data.quizCompleted,
+      //   game_time_spent: data.gameTimeSpent,
+      //   quiz_time_spent: data.quizTimeSpent,
+      //   score: data.score,
+      // });
       console.log(
         "🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:",
         result
