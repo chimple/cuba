@@ -46,6 +46,8 @@ import {
   HOMEHEADERLIST,
   NOTIFICATIONTYPE,
   CURRENT_SELECTED_COURSE,
+  QUIZ_POPUP_SHOWN,
+  ASSIGNMENT_POPUP_SHOWN,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1349,6 +1351,7 @@ export class Util {
           }
         }
     } else if (data && data.notificationType === NOTIFICATIONTYPE.ASSIGNMENT) {
+      sessionStorage.setItem(ASSIGNMENT_POPUP_SHOWN, "false");
       if (data.classId) {
         const classId = data.classId;
         if (!classId) return;
@@ -1382,6 +1385,7 @@ export class Util {
         }
       }
     } else if (data && data.notificationType === NOTIFICATIONTYPE.LIVEQUIZ) {
+      sessionStorage.setItem(QUIZ_POPUP_SHOWN, "false");
       if (data.classId) {
         const classId = data.classId;
         const studentsData = await api.getStudentsForClass(classId);
@@ -1393,7 +1397,9 @@ export class Util {
         for (let studentId of tempStudentIds) {
           if (currentStudent?.docId === studentId) {
             window.location.replace(
-              PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ
+              data.assignmentId 
+              ?PAGES.LIVE_QUIZ_JOIN +`?assignmentId=${data.assignmentId}`
+              :PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ
             );
             foundMatch = true;
             break;
