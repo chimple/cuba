@@ -533,7 +533,7 @@ const Leaderboard: React.FC = () => {
               <span className="hidden-text">Back</span>
               <BackButton
                 // iconSize={"8vh"}
-                aria-label="Back"
+                aria-label={t("Back")}
                 onClicked={() => {
                   Util.setPathToBackButton(PAGES.HOME, history);
                 }}

@@ -1,5 +1,5 @@
 import { IonPage, IonHeader } from "@ionic/react";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import {
   COURSES,
   HOMEHEADERLIST,
@@ -111,7 +111,8 @@ const Home: FC = () => {
   const [historySortIndex, setHistorySortIndex] = useState<number>(0);
   const [favLessonIndex, setFavLessonIndex] = useState<number>(0);
   let allPlayedLessonIds: string[] = [];
-  let tempPageNumber = 1;
+  // const [tempPageNumber, setTempPageNumber] = useState<number>(1);
+  const tempPageRef = useRef(1);
   let linked: boolean;
   const location = useLocation();
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
@@ -372,6 +373,7 @@ const Home: FC = () => {
     newValue: SUBTAB
   ) => {
     setValue(newValue);
+    setFavLessonIndex(0);
     if (newValue === SUBTAB.HISTORY) {
       // setIsLoading(true);
       setFavouriteLessons([]);
@@ -383,7 +385,7 @@ const Home: FC = () => {
         //   endIndex
         // );
         // setHistoryLessons(initialHistoryLessonsSlice);
-        tempPageNumber = 1;
+        tempPageRef.current = 1;
         await updateHistoryLessons(validLessonIds);
       }
       setIsLoading(false);
@@ -397,7 +399,7 @@ const Home: FC = () => {
         //   startIndex,
         //   endIndex
         // );
-        tempPageNumber = 1;
+        tempPageRef.current = 1;
         await updateFavouriteLessons(validLessonIds);
       }
     } else {
@@ -774,15 +776,15 @@ const Home: FC = () => {
   };
 
   const handleLoadMoreHistoryLessons = async () => {
-    if (currentHeader === HOMEHEADERLIST.SUGGESTIONS) {
-      tempPageNumber = tempPageNumber + 1;
+    if (currentHeader === HOMEHEADERLIST.SUGGESTIONS || HOMEHEADERLIST.HOME) {
+      tempPageRef.current = tempPageRef.current + 1;
       await updateHistoryLessons(validLessonIds);
     }
   };
 
   const handleLoadMoreLessons = async () => {
-    if (currentHeader === HOMEHEADERLIST.SUGGESTIONS) {
-      tempPageNumber = tempPageNumber + 1;
+    if (currentHeader === HOMEHEADERLIST.SUGGESTIONS || HOMEHEADERLIST.HOME) {
+      tempPageRef.current = tempPageRef.current + 1;
       setFavLessonIndex(favouriteLessons.length - 1);
       await updateFavouriteLessons(validLessonIds);
     }
@@ -796,22 +798,21 @@ const Home: FC = () => {
     }
     const totalLikedLessons = validLessonIds.filter(
       (lessonId) => lessonResultMap?.[lessonId]?.isLoved ?? false
-    ).length;
-    if (favouriteLessons.length >= totalLikedLessons) {
-      setFavLessonIndex(0);
+    );
+    if (favouriteLessons.length >= totalLikedLessons.length) {
       setIsLoading(false);
       return;
     }
-    const favouritesStartIndex = (tempPageNumber - 1) * favouritesPageSize;
+    const favouritesStartIndex = (tempPageRef.current - 1) * favouritesPageSize;
     const favouritesEndIndex = favouritesStartIndex + favouritesPageSize;
-    const slicedLessonIdsForFavourite = validLessonIds.slice(
+
+    const slicedLessonIdsForFavourite = totalLikedLessons.slice(
       favouritesStartIndex,
       favouritesEndIndex
     );
     const lessonPromisesForFavourite = slicedLessonIdsForFavourite.map(
       (lessonId) => api.getLesson(lessonId)
     );
-
     const lessonsForFavourite: (Lesson | undefined)[] = await Promise.all(
       lessonPromisesForFavourite
     );
@@ -823,7 +824,15 @@ const Home: FC = () => {
       }
     );
     setValidLessonIds(allLessonIds);
-    favouriteLessons.push(...validLessonsForFavourite);
+    const existingDocIds = new Set(
+      favouriteLessons.map((lesson) => lesson.docId)
+    );
+
+    const newLessons = validLessonsForFavourite.filter(
+      (lesson) => !existingDocIds.has(lesson.docId)
+    );
+
+    favouriteLessons.push(...newLessons);
     setIsLoading(false);
   };
 
@@ -837,7 +846,7 @@ const Home: FC = () => {
       return;
     }
 
-    const historyStartIndex = (tempPageNumber - 1) * favouritesPageSize;
+    const historyStartIndex = (tempPageRef.current - 1) * favouritesPageSize;
     const historyEndIndex = historyStartIndex + favouritesPageSize;
 
     const slicedLessonIdsForHistory = validLessonIds.slice(
