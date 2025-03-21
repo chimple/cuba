@@ -37,6 +37,8 @@ import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 import { OneRosterApi } from "../services/api/OneRosterApi";
+import { useHandleLessonClick } from "../utility/lessonUtils";
+import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -44,6 +46,10 @@ const Home: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isStudentLinked, setIsStudentLinked] = useState<boolean>();
   const [refreshKey, setRefreshKey] = useState(0);
+  const handleLessonClick = useHandleLessonClick();
+  // const { presentToast } = useOnlineOfflineErrorMessageHandler;
+
+  
   
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
@@ -109,6 +115,16 @@ const Home: FC = () => {
       appStateChange(isActive)
     );
   }, []);
+
+  // useEffect(() => {
+
+  //   // Listen for the "sendLaunch" event triggered by Java
+  //   document.addEventListener("sendLaunch", sendLaunch);
+
+  //   return () => {
+  //     document.removeEventListener("sendLaunch", sendLaunch);
+  //   };
+  // }, []);
 
   useEffect(() => {
     setCurrentHeader(
@@ -178,6 +194,15 @@ const Home: FC = () => {
       (await Util.getAllUnlockedRewards()) || [];
     setIsLoading(false);
   };
+
+    // Define sendLaunch function
+    const sendLaunch = async (event?: Event) => {
+      console.log("Calling received from Java:", event);
+      // setTimeout(() => {
+        handleLessonClick(null, true, undefined, true);
+      // }, 5000);
+      
+    };
 
   async function isLinked() {
     const student = Util.getCurrentStudent();

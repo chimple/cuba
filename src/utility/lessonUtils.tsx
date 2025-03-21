@@ -20,7 +20,6 @@ export const useHandleLessonClick = () => {
     isUnlocked: boolean,
     currentCourse: Course | undefined,
     online: boolean,
-    presentToast: (options: any) => void
   ) => {
     if (!isUnlocked) return;
 
@@ -44,15 +43,15 @@ export const useHandleLessonClick = () => {
       //   subjectDocID = updatedLesson.subject?.id ?? "";
       // }
 
-      const params = `?courseid=en&chapterid=en00&lessonid=en0000`;
+      const params = `?courseid=${data.courseId}&chapterid=${data.chapterId}&lessonid=${data.lessonId}`;
       // console.log("🚀 ~ Params:", params, Lesson.toJson(updatedLesson));
       Util.isDeepLink = true;
 
-      setTimeout(() => {
+      // setTimeout(() => {
         history.push(PAGES.GAME + params, {
           url: "chimple-lib/index.html" + params,
           lessonId: data.lessonId,
-          // courseDocId:
+          courseDocId: data.courseId,
           //   updatedLesson?.assignment?.course?.id ??
           //   updatedLesson.courseId ??
           //   updatedCourse?.docId,
@@ -60,7 +59,7 @@ export const useHandleLessonClick = () => {
           // lesson: JSON.stringify(Lesson.toJson(updatedLesson)),
           from: history.location.pathname + `?${CONTINUE}=true`,
         });
-      }, 5000);
+      // }, 5000);
 
       console.log("LessonCard course:", JSON.stringify(history));
 

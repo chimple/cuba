@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.JSObject;
@@ -25,10 +26,13 @@ public class MainActivity extends BridgeActivity {
     // private RespectClientManager respectClientManager; // Declare RespectClientManager
     public static MainActivity instance;
     private static final String TAG = "Logger001";
+    String activity_id = "";
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
+        instance = this;
 
         // Handle global crash exceptions
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
@@ -61,11 +65,8 @@ public class MainActivity extends BridgeActivity {
 //        respectClientManager.bindService(this); // Bind the service
 
         // ✅ Handle deep linking on cold start
+
         handleDeepLink(getIntent());
-        // ✅ Wait for Bridge to be ready before calling PortPlugin.sendLaunch()
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-//            PortPlugin.sendLaunch("test", "test", "test");
-        }, 10000); // Delayed by 2 seconds to ensure Capacitor is ready
     }
 
     @Override
@@ -75,27 +76,37 @@ public class MainActivity extends BridgeActivity {
     }
 
     private void handleDeepLink(Intent intent) {
+
         if (intent == null || intent.getData() == null) {
             Log.e("MainActivity", "❌ ERROR: No deep link data found in intent!");
             return;
         }
-    
+
         Uri data = intent.getData();
+        IntentLogger.logIntentDeeply(getIntent());
+
+
         Log.d("MainActivity", "🌍 Deep Link Received: " + data.toString());
-    
+
         // Extract all query parameters
         JSONObject deepLinkData = new JSONObject();
         try {
             for (String key : data.getQueryParameterNames()) {
+                Log.d("LoggerMain", key + " --> " + data.getQueryParameter(key));
+                if (key.equals("activity_id")) {
+                    Toast.makeText(this, "Please Wait, We are launching the Lesson...", Toast.LENGTH_LONG).show();
+                    activity_id = data.getQueryParameter(key);
+
+                }
                 deepLinkData.put(key, data.getQueryParameter(key));
             }
         } catch (Exception e) {
             Log.e("MainActivity", "❌ ERROR: Failed to parse query parameters!", e);
             return;
         }
-    
+
         Log.d("MainActivity", "🚀 Extracted Parameters: " + deepLinkData.toString());
-    
+
 //        // Ensure WebView is ready before sending deep link
 //        new Handler(Looper.getMainLooper()).postDelayed(() -> {
 ////            sendDeepLinkToCapacitor(deepLinkData);
@@ -107,72 +118,14 @@ public class MainActivity extends BridgeActivity {
     }
 
 
-
-    private void sendDeepLinkToCapacitor(JSONObject deepLinkData) {
-        if (this.getBridge() == null || this.isDestroyed()) {
-            Log.e("MainActivity", "❌ ERROR: Bridge is NULL or Activity is destroyed! Skipping event dispatch.");
-            return;
-        }
-    
-        try {
-            Log.d("MainActivity", "📡 Triggering 'appUrlOpen' Event with Data: " + deepLinkData.toString());
-    
-            this.getBridge().executeOnMainThread(() -> {
-                this.getBridge().triggerWindowJSEvent("appUrlOpen", deepLinkData.toString());
-                Log.d("MainActivity", "✅ Deep Link Event Sent Successfully.");
-            });
-        } catch (Exception e) {
-            Log.e("MainActivity", "❌ ERROR: Failed to send deep link event!", e);
-        }
-    }
-    
-
     //@Override
     public ArrayList<Class<? extends Plugin>> getPlugins() {
         ArrayList<Class<? extends Plugin>> plugins = new ArrayList<>();
         return plugins;
     }
 
-    public void handleRequest() {
-
-        Intent curr_intent = getIntent();
-        Uri data = curr_intent.getData();
-
-//        if (data != null) {
-            Log.d(TAG, "call from deeplink");
-
-
-            if (data != null) {
-                String learningUnitId = data.getQueryParameter("learningUnitId");
-
-                if (learningUnitId != null && learningUnitId.contains("_")) {
-                    // Split the learningUnitId into course, chapter, and lesson
-                    String[] parts = learningUnitId.split("_");
-                    if (parts.length == 3) {
-                        String courseId = parts[0];   // "en" -- example
-                        String chapterId = parts[1];  // "en00" -- example
-                        String lessonId = parts[2];   // "en0005" -- example (updated)
-
-                        // Construct the URL dynamically
-                        String url = "https://chimple.cc/microlink/?courseid=" + courseId +
-                                "&chapterid=" + chapterId +
-                                "&lessonid=" + lessonId +
-                                "&app=eidu";
-
-                        PortPlugin.sendLaunch();
-//                        curr_intent.setData(Uri.parse(url));
-
-                        Log.d(TAG, "Generated URL: " + url);
-                    } else {
-                        Log.e(TAG, "Invalid learningUnitId format: " + learningUnitId);
-                    }
-                } else {
-                    Log.e(TAG, "learningUnitId is missing or not formatted correctly.");
-                }
-            } else {
-                Log.e(TAG, "No data URI found in the intent.");
-            }
-//        }
+    public static String getLastDeepLinkData() {
+        return instance.activity_id;
     }
 
 

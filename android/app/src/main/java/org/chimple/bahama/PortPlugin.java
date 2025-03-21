@@ -1,6 +1,9 @@
 package org.chimple.bahama;
 
 import static android.content.Intent.getIntent;
+import static android.content.Intent.getIntentOld;
+
+import static org.chimple.bahama.MainActivity.getLastDeepLinkData;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -232,23 +235,15 @@ public void shareUserId(PluginCall call) {
     @PluginMethod
     public void sendLaunchData(PluginCall call) {
         JSObject result = new JSObject();
-        Intent curr_intent = instance.getActivity().getIntent();
-        Uri data = curr_intent.getData();
 
-        String learningUnitId = null;
-        if (data != null) {
-            learningUnitId = data.getQueryParameter("learningUnitId");
-        }
+        String activity_id = getLastDeepLinkData();
 
-        // Fallback: Try extracting from intent extras if the deep link is not available
-        if (learningUnitId == null) {
-            learningUnitId = curr_intent.getStringExtra("learningUnitId");
-        }
+//        IntentLogger.logIntentDeeply(instance.getActivity().getIntent());
 
-        Log.d(TAG, "Received learningUnitId: " + learningUnitId);
+        Log.d(TAG, "Received activity_id: " + activity_id);
 
-        if (learningUnitId != null && learningUnitId.contains("_")) {
-            String[] parts = learningUnitId.split("_");
+        if (activity_id != null && activity_id.contains("_")) {
+            String[] parts = activity_id.split("_");
 
             if (parts.length == 6) {
                 // New format: sl_maths_sl_maths31_sl_maths3107
@@ -281,8 +276,8 @@ public void shareUserId(PluginCall call) {
                 result.put("lessonId", lessonId);
 
             } else {
-                Log.e(TAG, "Invalid learningUnitId format: " + learningUnitId);
-                call.reject("Invalid learningUnitId format: " + learningUnitId);
+                Log.e(TAG, "Invalid activity_id format: " + activity_id);
+                call.reject("Invalid activity_id format: " + activity_id);
                 return;
             }
 
@@ -293,7 +288,7 @@ public void shareUserId(PluginCall call) {
 
             call.resolve(result);
         } else {
-            Log.e(TAG, "learningUnitId is missing or not formatted correctly.");
+            Log.e(TAG, "activity_id is missing or not formatted correctly.");
             call.resolve(result);
         }
     }
@@ -305,6 +300,8 @@ public void shareUserId(PluginCall call) {
             getInstance().bridge.triggerDocumentJSEvent("sendLaunch", jsonPayload);
         }
     }
+
+
 
 
 

@@ -154,27 +154,6 @@ const App: React.FC = () => {
   const handleLessonClick = useHandleLessonClick();
 
 
-  // Define sendLaunch function
-  const sendLaunch = async (event?: Event) => {
-    console.log("Calling received from Java:", event);
-    setTimeout(() => {
-      handleLessonClick(null, true, undefined, true, presentToast);
-    }, 5000);
-    
-  };
-
-  useEffect(() => {
-    // Attach sendLaunch globally
-    (window as any).sendLaunch = sendLaunch;
-
-    // Listen for the "sendLaunch" event triggered by Java
-    document.addEventListener("sendLaunch", sendLaunch);
-
-    return () => {
-      document.removeEventListener("sendLaunch", sendLaunch);
-    };
-  }, []);
-
   useEffect(() => {
     const handleOnline = () => {
       if (!online) {

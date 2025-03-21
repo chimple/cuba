@@ -82,15 +82,33 @@ const CocosGame: React.FC = () => {
   };
   const killGame = (e: any) => {
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
-    if(Util.isDeepLink) {
-      setShowDialogBox(false);
+    // if(Util.isDeepLink) {
+    //   setShowDialogBox(false);
+    //   console.log("deeplink", Util.isDeepLink);
+    //   Util.isDeepLink = false;
+    // }
+    // else{
       console.log("deeplink", Util.isDeepLink);
-      Util.isDeepLink = false;
-    }
-    else{
+      setShowDialogBox(false);
+    // }
+    
+    Util.killCocosGame();
+    initialCount++;
+    localStorage.setItem(LESSONS_PLAYED_COUNT, initialCount.toString());
+    console.log("---------count of LESSONS PLAYED", initialCount);
+  };
+
+  const gameEnd = (e: any) => {
+    document.body.removeEventListener(LESSON_END, handleLessonEndListner);
+    // if(Util.isDeepLink) {
+    //   setShowDialogBox(false);
+    //   console.log("deeplink", Util.isDeepLink);
+    //   Util.isDeepLink = false;
+    // }
+    // else{
       console.log("deeplink", Util.isDeepLink);
       setShowDialogBox(true);
-    }
+    // }
     
     Util.killCocosGame();
     initialCount++;
@@ -198,7 +216,7 @@ const CocosGame: React.FC = () => {
     document.body.addEventListener(LESSON_END, handleLessonEndListner, {
       once: true,
     });
-    document.body.addEventListener(GAME_END, killGame, { once: true });
+    document.body.addEventListener(GAME_END, gameEnd, { once: true });
     document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
 
     // document.body.addEventListener("problemEnd", onProblemEnd);
@@ -225,11 +243,11 @@ const CocosGame: React.FC = () => {
       const api = ServiceConfig.getI().apiHandler;
       const courseDocId: string | undefined = state.courseDocId;
       const lesson: Lesson =  state.lesson ?  JSON.parse(state.lesson) : undefined;
-      const assignment = state.assignment;
+      const assignment = state?.assignment;
       const currentStudent = api.currentStudent!;
       const data = lessonData;
-      let assignmentId = assignment ? assignment.id : null;
-      const isStudentLinked = await api.isStudentLinked(currentStudent.id);
+      let assignmentId = assignment ? assignment?.id : null;
+      const isStudentLinked = await api.isStudentLinked(currentStudent?.id);
       let classId;
       let schoolId;
       let chapter_id;
@@ -238,25 +256,25 @@ const CocosGame: React.FC = () => {
           currentStudent.id
         );
         if (!!studentResult && studentResult.classes.length > 0) {
-          classId = studentResult.classes[0].id;
-          schoolId = studentResult.schools[0].id;
+          classId = studentResult.classes[0]?.id;
+          schoolId = studentResult.schools[0]?.id;
         }
         if (!assignmentId) {
           const result = await api.getPendingAssignmentForLesson(
             lesson.id,
             classId,
-            currentStudent.id
+            currentStudent?.id
           );
           if (result) {
             assignmentId = result?.id;
           }
         }
-        chapter_id = await api.getChapterByLesson(lesson.id, classId);
+        chapter_id = await api.getChapterByLesson(lesson?.id, classId);
       } else {
         chapter_id = await api.getChapterByLesson(
-          lesson.id,
+          lesson?.id,
           undefined,
-          currentStudent.id
+          currentStudent?.id
         );
       }
       let avatarObj = AvatarObj.getInstance();
@@ -270,9 +288,9 @@ const CocosGame: React.FC = () => {
       avatarObj.weeklyTimeSpent["sec"] = computeSec;
       avatarObj.weeklyPlayedLesson++;
       const result = await api.updateResult(
-        currentStudent.id,
+        currentStudent?.id,
         courseDocId,
-        lesson.id,
+        lesson?.id,
         data.score!,
         data.correctMoves,
         data.wrongMoves,
@@ -375,7 +393,7 @@ const CocosGame: React.FC = () => {
               message={t("You Completed the Lesson:")}
               showDialogBox={showDialogBox}
               yesText={t("Like the Game")}
-              lessonName={lessonDetail.name ?? ""}
+              lessonName={lessonDetail?.name ?? ""}
               noText={t("Continue Playing")}
               handleClose={(e: any) => {
                 setShowDialogBox(true);
