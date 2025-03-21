@@ -38,6 +38,7 @@ import { v4 as uuidv4 } from "uuid";
 import { RoleType } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
 import { Table } from "@mui/material";
+import {PREVIOUS_USER_ID_KEY, CURRENT_USER_ID_KEY} from '../../common/constants'
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -62,6 +63,46 @@ export class SqliteApi implements ServiceApi {
       await SqliteApi.i.init();
     }
     return SqliteApi.i;
+  }
+
+  public async clearUserCache(): Promise<void> {
+    try {
+      if (this._db) {
+        await this._db.close();
+        this._db = undefined;
+      }
+  
+      if (Capacitor.isNativePlatform()) {
+        await CapacitorSQLite.deleteDatabase({ database: "jeepSqliteStore" });
+      } else {
+        await new Promise<void>((resolve, reject) => {
+          const deleteRequest = window.indexedDB.deleteDatabase("jeepSqliteStore");
+          deleteRequest.onsuccess = () => {
+            resolve();
+          };
+          deleteRequest.onerror = (event) => {
+            console.error("❌ Web: Error deleting jeepSqliteStore database.", event);
+            reject(event);
+          };
+        });
+      }
+  
+      if (!this._sqlite) {
+        throw new Error("SQLite connection is not initialized");
+      }
+      this._db = await this._sqlite.createConnection(
+        this.DB_NAME, 
+        false,
+        "no-encryption",
+        this.DB_VERSION,
+        false
+      );
+      await this._db.open();
+      await this.setUpDatabase();
+    } catch (error) {
+      console.error("❌ Error in clearUserCache:", error);
+      throw error;
+    }
   }
 
   private async init() {
@@ -399,18 +440,22 @@ export class SqliteApi implements ServiceApi {
     refreshTables: TABLES[] = []
   ) {
     if (!this._db) return;
-    const refresh_tables = "'" + refreshTables.join("', '") + "'";
-    await this.executeQuery(
-      `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`
-    );
+    
+    if (refreshTables.length > 0) {
+      const refresh_tables = "'" + refreshTables.join("', '") + "'";
+      await this.executeQuery(
+        `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`
+      );
+    }
+  
     await this.pullChanges(tableNames);
     const res = await this.pushChanges(tableNames);
-    const tables = "'" + tableNames.join("', '") + "'";
-    this.executeQuery(
-      `UPDATE pull_sync_info SET last_pulled = CURRENT_TIMESTAMP WHERE table_name IN (${tables})`
+    const tablesStr = "'" + tableNames.join("', '") + "'";
+    await this.executeQuery(
+      `UPDATE pull_sync_info SET last_pulled = CURRENT_TIMESTAMP WHERE table_name IN (${tablesStr})`
     );
     return res;
-  }
+  }  
 
   private async createSyncTables() {
     const createPullSyncInfoTable = `CREATE TABLE IF NOT EXISTS pull_sync_info (
