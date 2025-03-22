@@ -3827,6 +3827,31 @@ order by
     }
   }
 
+  async checkUserIsManagerOrDirector(
+    schoolId: string,
+    userId: string
+  ): Promise<boolean> {
+    // Check if user is PROGRAM_MANAGER, OPERATIONAL_DIRECTOR, or FIELD_COORDINATOR in school_user
+    const result = await this.executeQuery(
+      `SELECT * FROM school_user 
+     WHERE school_id = ? AND user_id = ?
+     AND role IN (?, ?, ?)  
+     AND is_deleted = false`,
+      [
+        schoolId,
+        userId,
+        RoleType.PROGRAM_MANAGER,
+        RoleType.OPERATIONAL_DIRECTOR,
+        RoleType.FIELD_COORDINATOR,
+      ]
+    );
+
+    if (result?.values && result.values.length > 0) {
+      return true;
+    }
+    return false;
+  }
+
   async checkUserExistInSchool(
     schoolId: string,
     userId: string

@@ -1056,6 +1056,17 @@ export interface ServiceApi {
   checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean>;
 
   /**
+   * Checks the user present in school or not.
+   * @param {string} schoolId school Id
+   * @param {string} userId user Id;
+   * @return returns boolean whether the user is Program-manager/Operational-director or not.
+   */
+  checkUserIsManagerOrDirector(
+    schoolId: string,
+    userId: string
+  ): Promise<boolean>;
+
+  /**
    * Gets the assignments by assigner and class.
    * @param {string} classId class Id
    * @param {string} userId user Id

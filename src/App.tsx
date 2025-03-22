@@ -118,6 +118,7 @@ import "./App.css";
 import ShowStudentsInAssignmentPage from "./chimple-private/pages/ShowStudentsInAssignmentPage";
 import { schoolUtil } from "./utility/schoolUtil";
 import LidoPlayer from "./pages/LidoPlayer";
+import UploadPage from "./ops-console/pages/UploadPage";
 import { initializeClickListener } from "./analytics/clickUtil";
 
 setupIonicReact();
@@ -685,6 +686,11 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.ADD_SPONSOR} exact={true}>
               <Suspense>
                 <AddSchoolUser />
+              </Suspense>
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.UPLOAD_PAGE} exact={true}>
+              <Suspense>
+                <UploadPage />
               </Suspense>
             </ProtectedRoute>
           </Switch>

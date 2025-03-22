@@ -63,4 +63,7 @@ export enum RoleType {
   SPONSOR = "sponsor",
   COORDINATOR = "coordinator",
   AUTOUSER = "autouser",
+  PROGRAM_MANAGER="program_manager",
+  OPERATIONAL_DIRECTOR = "operational_director",
+  FIELD_COORDINATOR = "field_coordinator",
 }
