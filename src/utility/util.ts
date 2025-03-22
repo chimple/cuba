@@ -98,6 +98,7 @@ export class Util {
   public static port: PortPlugin;
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = "lastModalShown";
+  static isDeepLink: boolean = false;
 
   // public static convertCourses(_courses: Course1[]): Course1[] {
   //   let courses: Course1[] = [];

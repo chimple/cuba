@@ -82,7 +82,34 @@ const CocosGame: React.FC = () => {
   };
   const killGame = (e: any) => {
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
+    // if(Util.isDeepLink) {
+    //   setShowDialogBox(false);
+    //   console.log("deeplink", Util.isDeepLink);
+    //   Util.isDeepLink = false;
+    // }
+    // else{
+    console.log("deeplink", Util.isDeepLink);
+    setShowDialogBox(false);
+    // }
+
+    Util.killCocosGame();
+    initialCount++;
+    localStorage.setItem(LESSONS_PLAYED_COUNT, initialCount.toString());
+    console.log("---------count of LESSONS PLAYED", initialCount);
+  };
+
+  const gameEnd = (e: any) => {
+    document.body.removeEventListener(LESSON_END, handleLessonEndListner);
+    // if(Util.isDeepLink) {
+    //   setShowDialogBox(false);
+    //   console.log("deeplink", Util.isDeepLink);
+    //   Util.isDeepLink = false;
+    // }
+    // else{
+    console.log("deeplink", Util.isDeepLink);
     setShowDialogBox(true);
+    // }
+
     Util.killCocosGame();
     initialCount++;
     localStorage.setItem(LESSONS_PLAYED_COUNT, initialCount.toString());
@@ -90,27 +117,50 @@ const CocosGame: React.FC = () => {
   };
 
   const push = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const fromPath: string = state?.from ?? PAGES.HOME;
-    if (Capacitor.isNativePlatform()) {
-      if (!!isDeviceAwake) {
-        history.replace(fromPath + "&isReload=true");
-        window.location.reload();
-      } else {
-        history.replace(fromPath + "&isReload=false");
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      let fromPath: string = state?.from ?? PAGES.HOME;
+
+      console.log("Checking fromPath conditions", fromPath);
+
+      // Reset to home if trying to go back to an unloaded game screen
+      if (fromPath === PAGES.GAME || fromPath.includes(PAGES.GAME)) {
+        fromPath = PAGES.HOME;
+        console.log("Resetting fromPath to:", fromPath);
       }
+
+      if (Capacitor.isNativePlatform()) {
+        console.log("Running on a native platform...");
+
+        // Ensure we don't reload multiple times
+        if (!urlParams.get("isReload") && Util.isDeepLink) {
+          Util.isDeepLink = false;
+          const newPath = `${fromPath}?isReload=true`;
+          history.replace(newPath);
+          window.location.reload();
+        } else {
+          history.replace(fromPath);
+        }
+      } else {
+        console.log("Running on a web platform...");
+
+        // Append query parameters safely
+        const newPath = new URL(fromPath, window.location.origin);
+        newPath.searchParams.set("isReload", "true");
+
+        history.replace(newPath.pathname + newPath.search);
+
+        // Reload only if not already done
+        if (!urlParams.get("isReload")) {
+          window.location.reload();
+        }
+      }
+
       setIsLoading(false);
-    } else {
-      if (!!urlParams.get("isReload")) {
-        if (fromPath.includes("?"))
-          history.replace(fromPath + "&isReload=true");
-        else history.replace(fromPath + "?isReload=true");
-        window.location.reload();
-      } else {
-        history.replace(fromPath);
-      }
+    } catch (error) {
+      console.error("Navigation error:", error);
+      history.replace(`${PAGES.APP_UPDATE}?isReload=true`);
     }
-    setIsLoading(false);
   };
 
   const gameExit = async (e: any) => {
@@ -128,34 +178,34 @@ const CocosGame: React.FC = () => {
     const data = e.detail as CocosLessonData;
     killGame(e);
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
-    Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
-      user_id: api.currentStudent!.id,
-      // assignment_id: lessonDetail.assignment?.id,
-      left_game_no: data.currentGameNumber,
-      left_game_name: data.gameName,
-      chapter_id: data.chapterId,
-      chapter_name: chapterDetail ? chapterDetail.name : "",
-      lesson_id: data.lessonId,
-      lesson_name: lessonDetail.name,
-      lesson_type: data.lessonType,
-      lesson_session_id: data.lessonSessionId,
-      ml_partner_id: data.mlPartnerId,
-      ml_class_id: data.mlClassId,
-      ml_student_id: data.mlStudentId,
-      course_id: data.courseId,
-      course_name: courseDetail.name,
-      time_spent: data.timeSpent,
-      total_moves: data.totalMoves,
-      total_games: data.totalGames,
-      correct_moves: data.correctMoves,
-      wrong_moves: data.wrongMoves,
-      game_score: data.gameScore,
-      quiz_score: data.quizScore,
-      game_completed: data.gameCompleted,
-      quiz_completed: data.quizCompleted,
-      game_time_spent: data.gameTimeSpent,
-      quiz_time_spent: data.quizTimeSpent,
-    });
+    // Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
+    //   user_id: api.currentStudent!.id,
+    //   // assignment_id: lessonDetail.assignment?.id,
+    //   left_game_no: data.currentGameNumber,
+    //   left_game_name: data.gameName,
+    //   chapter_id: data.chapterId,
+    //   chapter_name: chapterDetail ? chapterDetail.name : "",
+    //   lesson_id: data.lessonId,
+    //   lesson_name: lessonDetail.name,
+    //   lesson_type: data.lessonType,
+    //   lesson_session_id: data.lessonSessionId,
+    //   ml_partner_id: data.mlPartnerId,
+    //   ml_class_id: data.mlClassId,
+    //   ml_student_id: data.mlStudentId,
+    //   course_id: data.courseId,
+    //   course_name: courseDetail.name,
+    //   time_spent: data.timeSpent,
+    //   total_moves: data.totalMoves,
+    //   total_games: data.totalGames,
+    //   correct_moves: data.correctMoves,
+    //   wrong_moves: data.wrongMoves,
+    //   game_score: data.gameScore,
+    //   quiz_score: data.quizScore,
+    //   game_completed: data.gameCompleted,
+    //   quiz_completed: data.quizCompleted,
+    //   game_time_spent: data.gameTimeSpent,
+    //   quiz_time_spent: data.quizTimeSpent,
+    // });
     setShowDialogBox(false);
     push();
   };
@@ -189,7 +239,7 @@ const CocosGame: React.FC = () => {
     document.body.addEventListener(LESSON_END, handleLessonEndListner, {
       once: true,
     });
-    document.body.addEventListener(GAME_END, killGame, { once: true });
+    document.body.addEventListener(GAME_END, gameEnd, { once: true });
     document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
 
     // document.body.addEventListener("problemEnd", onProblemEnd);
@@ -198,11 +248,11 @@ const CocosGame: React.FC = () => {
 
   let ChapterDetail: Chapter | undefined;
   const api = ServiceConfig.getI().apiHandler;
-  const lesson: Lesson = state.lesson ?  JSON.parse(state.lesson) : undefined;
+  const lesson: Lesson = state.lesson ? JSON.parse(state.lesson) : undefined;
 
   const updateLessonAsFavorite = async () => {
     const currentStudent = Util.getCurrentStudent();
-    const lesson: Lesson = state.lesson ?  JSON.parse(state.lesson) : undefined;
+    const lesson: Lesson = state.lesson ? JSON.parse(state.lesson) : undefined;
     if (currentStudent != null) {
       const result = await api.updateFavoriteLesson(
         currentStudent.id,
@@ -215,12 +265,14 @@ const CocosGame: React.FC = () => {
     try {
       const api = ServiceConfig.getI().apiHandler;
       const courseDocId: string | undefined = state.courseDocId;
-      const lesson: Lesson =  state.lesson ?  JSON.parse(state.lesson) : undefined;
-      const assignment = state.assignment;
+      const lesson: Lesson = state.lesson
+        ? JSON.parse(state.lesson)
+        : undefined;
+      const assignment = state?.assignment;
       const currentStudent = api.currentStudent!;
       const data = lessonData;
-      let assignmentId = assignment ? assignment.id : null;
-      const isStudentLinked = await api.isStudentLinked(currentStudent.id);
+      let assignmentId = assignment ? assignment?.id : null;
+      const isStudentLinked = await api.isStudentLinked(currentStudent?.id);
       let classId;
       let schoolId;
       let chapter_id;
@@ -229,25 +281,25 @@ const CocosGame: React.FC = () => {
           currentStudent.id
         );
         if (!!studentResult && studentResult.classes.length > 0) {
-          classId = studentResult.classes[0].id;
-          schoolId = studentResult.schools[0].id;
+          classId = studentResult.classes[0]?.id;
+          schoolId = studentResult.schools[0]?.id;
         }
         if (!assignmentId) {
           const result = await api.getPendingAssignmentForLesson(
             lesson.id,
             classId,
-            currentStudent.id
+            currentStudent?.id
           );
           if (result) {
             assignmentId = result?.id;
           }
         }
-        chapter_id = await api.getChapterByLesson(lesson.id, classId);
+        chapter_id = await api.getChapterByLesson(lesson?.id, classId);
       } else {
         chapter_id = await api.getChapterByLesson(
-          lesson.id,
+          lesson?.id,
           undefined,
-          currentStudent.id
+          currentStudent?.id
         );
       }
       let avatarObj = AvatarObj.getInstance();
@@ -261,9 +313,9 @@ const CocosGame: React.FC = () => {
       avatarObj.weeklyTimeSpent["sec"] = computeSec;
       avatarObj.weeklyPlayedLesson++;
       const result = await api.updateResult(
-        currentStudent.id,
+        currentStudent?.id,
         courseDocId,
-        lesson.id,
+        lesson?.id,
         data.score!,
         data.correctMoves,
         data.wrongMoves,
@@ -302,33 +354,33 @@ const CocosGame: React.FC = () => {
       //     JSON.stringify(res)
       //   );
       // }
-      Util.logEvent(EVENTS.LESSON_END, {
-        user_id: currentStudent.id,
-        // assignment_id: lesson.assignment?.id,
-        chapter_id: data.chapterId,
-        // chapter_name: ChapterDetail ? ChapterDetail.name : "",
-        lesson_id: data.lessonId,
-        // lesson_name: lesson.name,
-        lesson_type: data.lessonType,
-        lesson_session_id: data.lessonSessionId,
-        ml_partner_id: data.mlPartnerId,
-        ml_class_id: data.mlClassId,
-        ml_student_id: data.mlStudentId,
-        course_id: data.courseId,
-        course_name: courseDetail.name,
-        time_spent: data.timeSpent,
-        total_moves: data.totalMoves,
-        total_games: data.totalGames,
-        correct_moves: data.correctMoves,
-        wrong_moves: data.wrongMoves,
-        game_score: data.gameScore,
-        quiz_score: data.quizScore,
-        game_completed: data.gameCompleted,
-        quiz_completed: data.quizCompleted,
-        game_time_spent: data.gameTimeSpent,
-        quiz_time_spent: data.quizTimeSpent,
-        score: data.score,
-      });
+      // Util.logEvent(EVENTS.LESSON_END, {
+      //   user_id: currentStudent.id,
+      //   // assignment_id: lesson.assignment?.id,
+      //   chapter_id: data.chapterId,
+      //   // chapter_name: ChapterDetail ? ChapterDetail.name : "",
+      //   lesson_id: data.lessonId,
+      //   // lesson_name: lesson.name,
+      //   lesson_type: data.lessonType,
+      //   lesson_session_id: data.lessonSessionId,
+      //   ml_partner_id: data.mlPartnerId,
+      //   ml_class_id: data.mlClassId,
+      //   ml_student_id: data.mlStudentId,
+      //   course_id: data.courseId,
+      //   course_name: courseDetail.name,
+      //   time_spent: data.timeSpent,
+      //   total_moves: data.totalMoves,
+      //   total_games: data.totalGames,
+      //   correct_moves: data.correctMoves,
+      //   wrong_moves: data.wrongMoves,
+      //   game_score: data.gameScore,
+      //   quiz_score: data.quizScore,
+      //   game_completed: data.gameCompleted,
+      //   quiz_completed: data.quizCompleted,
+      //   game_time_spent: data.gameTimeSpent,
+      //   quiz_time_spent: data.quizTimeSpent,
+      //   score: data.score,
+      // });
       console.log(
         "🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:",
         result
@@ -366,7 +418,7 @@ const CocosGame: React.FC = () => {
               message={t("You Completed the Lesson:")}
               showDialogBox={showDialogBox}
               yesText={t("Like the Game")}
-              lessonName={lessonDetail.name ?? ""}
+              lessonName={lessonDetail?.name ?? ""}
               noText={t("Continue Playing")}
               handleClose={(e: any) => {
                 setShowDialogBox(true);
