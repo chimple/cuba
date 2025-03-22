@@ -88,10 +88,10 @@ const CocosGame: React.FC = () => {
     //   Util.isDeepLink = false;
     // }
     // else{
-      console.log("deeplink", Util.isDeepLink);
-      setShowDialogBox(false);
+    console.log("deeplink", Util.isDeepLink);
+    setShowDialogBox(false);
     // }
-    
+
     Util.killCocosGame();
     initialCount++;
     localStorage.setItem(LESSONS_PLAYED_COUNT, initialCount.toString());
@@ -106,10 +106,10 @@ const CocosGame: React.FC = () => {
     //   Util.isDeepLink = false;
     // }
     // else{
-      console.log("deeplink", Util.isDeepLink);
-      setShowDialogBox(true);
+    console.log("deeplink", Util.isDeepLink);
+    setShowDialogBox(true);
     // }
-    
+
     Util.killCocosGame();
     initialCount++;
     localStorage.setItem(LESSONS_PLAYED_COUNT, initialCount.toString());
@@ -117,27 +117,50 @@ const CocosGame: React.FC = () => {
   };
 
   const push = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const fromPath: string = state?.from ?? PAGES.HOME;
-    if (Capacitor.isNativePlatform()) {
-      if (!!isDeviceAwake) {
-        history.replace(fromPath + "&isReload=true");
-        window.location.reload();
-      } else {
-        history.replace(fromPath + "&isReload=false");
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      let fromPath: string = state?.from ?? PAGES.HOME;
+
+      console.log("Checking fromPath conditions", fromPath);
+
+      // Reset to home if trying to go back to an unloaded game screen
+      if (fromPath === PAGES.GAME || fromPath.includes(PAGES.GAME)) {
+        fromPath = PAGES.HOME;
+        console.log("Resetting fromPath to:", fromPath);
       }
+
+      if (Capacitor.isNativePlatform()) {
+        console.log("Running on a native platform...");
+
+        // Ensure we don't reload multiple times
+        if (!urlParams.get("isReload") && Util.isDeepLink) {
+          Util.isDeepLink = false;
+          const newPath = `${fromPath}?isReload=true`;
+          history.replace(newPath);
+          window.location.reload();
+        } else {
+          history.replace(fromPath);
+        }
+      } else {
+        console.log("Running on a web platform...");
+
+        // Append query parameters safely
+        const newPath = new URL(fromPath, window.location.origin);
+        newPath.searchParams.set("isReload", "true");
+
+        history.replace(newPath.pathname + newPath.search);
+
+        // Reload only if not already done
+        if (!urlParams.get("isReload")) {
+          window.location.reload();
+        }
+      }
+
       setIsLoading(false);
-    } else {
-      if (!!urlParams.get("isReload")) {
-        if (fromPath.includes("?"))
-          history.replace(fromPath + "&isReload=true");
-        else history.replace(fromPath + "?isReload=true");
-        window.location.reload();
-      } else {
-        history.replace(fromPath);
-      }
+    } catch (error) {
+      console.error("Navigation error:", error);
+      history.replace(`${PAGES.APP_UPDATE}?isReload=true`);
     }
-    setIsLoading(false);
   };
 
   const gameExit = async (e: any) => {
@@ -225,11 +248,11 @@ const CocosGame: React.FC = () => {
 
   let ChapterDetail: Chapter | undefined;
   const api = ServiceConfig.getI().apiHandler;
-  const lesson: Lesson = state.lesson ?  JSON.parse(state.lesson) : undefined;
+  const lesson: Lesson = state.lesson ? JSON.parse(state.lesson) : undefined;
 
   const updateLessonAsFavorite = async () => {
     const currentStudent = Util.getCurrentStudent();
-    const lesson: Lesson = state.lesson ?  JSON.parse(state.lesson) : undefined;
+    const lesson: Lesson = state.lesson ? JSON.parse(state.lesson) : undefined;
     if (currentStudent != null) {
       const result = await api.updateFavoriteLesson(
         currentStudent.id,
@@ -242,7 +265,9 @@ const CocosGame: React.FC = () => {
     try {
       const api = ServiceConfig.getI().apiHandler;
       const courseDocId: string | undefined = state.courseDocId;
-      const lesson: Lesson =  state.lesson ?  JSON.parse(state.lesson) : undefined;
+      const lesson: Lesson = state.lesson
+        ? JSON.parse(state.lesson)
+        : undefined;
       const assignment = state?.assignment;
       const currentStudent = api.currentStudent!;
       const data = lessonData;
