@@ -156,3 +156,8 @@
   top: 40vh;
   left: 2vh;
 }
+
+.ignore {
+  visibility: none;
+  display: none;
+}
