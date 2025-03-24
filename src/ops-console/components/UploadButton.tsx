@@ -1,6 +1,7 @@
 import React from "react";
 import { Fab } from "@mui/material";
 import { FileUploadOutlined } from "@mui/icons-material";
+import "./UploadButton.css";
 
 const UploadButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
   const fabGreenStyle = {
@@ -16,7 +17,7 @@ const UploadButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
     },
   };
   return (
-    <Fab className="custom-fab" onClick={onClick} sx={fabGreenStyle}>
+    <Fab className="custom-fab-upload" onClick={onClick} sx={fabGreenStyle}>
       <FileUploadOutlined/>
     </Fab>
   );
