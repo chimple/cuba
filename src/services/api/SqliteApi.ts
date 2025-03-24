@@ -73,7 +73,7 @@ export class SqliteApi implements ServiceApi {
       }
   
       if (Capacitor.isNativePlatform()) {
-        await CapacitorSQLite.deleteDatabase({ database: "jeepSqliteStore" });
+        await CapacitorSQLite.deleteDatabase({ database: this.DB_NAME });
       } else {
         await new Promise<void>((resolve, reject) => {
           const deleteRequest = window.indexedDB.deleteDatabase("jeepSqliteStore");
