@@ -32,44 +32,59 @@ import { Util } from "../../utility/util";
 import ApiDataProcessor from "./ApiDataProcessor";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
 
-const searchLessonsQuery = async (query: string): Promise<TableTypes<"lesson">[]> => {
+const searchLessonsQuery = async (query: string, courseFiles?: string[]): Promise<TableTypes<"lesson">[]> => {
   try {
-    const response = await fetch("/assets/courses/en/res/course.json");
-    const jsonData = await response.json();
+    // Fetch and process all course files
+    const allLessons: TableTypes<"lesson">[] = [];
+    
+    for (const filePath of courseFiles) {
+      try {
+        const response = await fetch(filePath);
+        const jsonData = await response.json();
 
-    // Extract lessons
-    const lessons = jsonData.groups.flatMap((group: any) => group.navigation);
+        // Extract lessons from each file
+        const lessons = jsonData.groups.flatMap((group: any) => group.navigation);
 
-    // Case-insensitive search
-    const lowerQuery = query.toLowerCase();
-    const matchingLessons = lessons.filter(lesson => lesson.title.toLowerCase().includes(lowerQuery));
+        // Case-insensitive search
+        const lowerQuery = query.toLowerCase();
+        const matchingLessons = lessons.filter(lesson => 
+          lesson.title.toLowerCase().includes(lowerQuery)
+        );
 
-    // Transform JSON lesson objects into TableTypes<"lesson">
-    const lessonObjects: TableTypes<"lesson">[] = matchingLessons.map(lesson => ({
-      id: lesson.id,
-      name: lesson.title,
-      cocos_chapter_code: lesson.cocosChapterCode || null,
-      cocos_lesson_id: lesson.id,
-      cocos_subject_code: lesson.cocosSubjectCode || null,
-      color: null,
-      created_at: new Date().toISOString(),
-      created_by: null,
-      outcome: lesson.outcome,
-      status: lesson.status,
-      subject_id: lesson.subject,
-      plugin_type: lesson.pluginType,
-      updated_at: null,
-      is_deleted: null,
-      image: lesson.thumbnail || null,
-      language_id: lesson.language || null,
-      target_age_from: lesson.targetAgeFrom || null,
-      target_age_to: lesson.targetAgeTo || null
-    }));
+        // Transform and add matching lessons to results
+        const lessonObjects = matchingLessons.map(lesson => ({
+          id: lesson.id,
+          name: lesson.title,
+          cocos_chapter_code: lesson.cocosChapterCode || null,
+          cocos_lesson_id: lesson.id,
+          cocos_subject_code: lesson.cocosSubjectCode || null,
+          color: null,
+          created_at: new Date().toISOString(),
+          created_by: null,
+          outcome: lesson.outcome,
+          status: lesson.status,
+          subject_id: lesson.subject,
+          plugin_type: lesson.pluginType,
+          updated_at: null,
+          is_deleted: null,
+          image: lesson.thumbnail || null,
+          language_id: lesson.language || null,
+          target_age_from: lesson.targetAgeFrom || null,
+          target_age_to: lesson.targetAgeTo || null
+        }));
 
-    console.log("Matching Lessons:", lessonObjects);
-    return lessonObjects;
+        allLessons.push(...lessonObjects);
+      } catch (error) {
+        console.error(`Error processing file ${filePath}:`, error);
+        // Continue with next file even if one fails
+        continue;
+      }
+    }
+
+    console.log("All Matching Lessons:", allLessons);
+    return allLessons;
   } catch (error) {
-    console.error("Error searching lessons:", error);
+    console.error("Error in searchLessonsQuery:", error);
     return [];
   }
 };
@@ -1759,7 +1774,12 @@ export class OneRosterApi implements ServiceApi {
   async searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
     console.log("searchLessons called with:", searchString);
   
-    const matchingLessons = await searchLessonsQuery(searchString);
+    const courseFiles = [
+      "/assets/courses/en/res/course.json",
+      // Add other course JSON paths here
+    ];
+
+    const matchingLessons = await searchLessonsQuery(searchString, courseFiles);
     console.log("Matching Lessons:", matchingLessons);
   
     console.log("Final Lessons:", matchingLessons);
