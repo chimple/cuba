@@ -179,6 +179,7 @@ export class OneRosterApi implements ServiceApi {
   public currentChapter: TableTypes<"chapter">;
   public currentLesson: TableTypes<"lesson">;
   public allCoursesJson: { [key: string]: TableTypes<"course"> } = {};
+  private favoriteLessons: { [userId: string]: string[] } = {};
 
   private buildXapiQuery(currentUser: { name?: string }): { agentEmail: string; queryStatement: IGetStudentResultStatement } {
     const agentEmail = `mailto:${currentUser?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
@@ -903,11 +904,40 @@ export class OneRosterApi implements ServiceApi {
       return undefined;
     }
   }
-  updateFavoriteLesson(
+  async updateFavoriteLesson(
     studentId: string,
     lessonId: string
   ): Promise<TableTypes<"favorite_lesson">> {
-    throw new Error("Method not implemented.");
+    // Store the lessonId in the favoriteLessons array for this user
+    if (!this.favoriteLessons[studentId]) {
+      this.favoriteLessons[studentId] = [];
+    }
+
+    // Add lessonId if not already present
+    if (!this.favoriteLessons[studentId].includes(lessonId)) {
+      this.favoriteLessons[studentId].push(lessonId);
+    }
+
+    // Create and return the favorite_lesson object
+    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+    
+    const favLesson: TableTypes<"favorite_lesson"> = {
+      id: uuid,
+      student_id: studentId,
+      lesson_id: lessonId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false
+    };
+
+    console.log(`Added lesson ${lessonId} to favorites for student ${studentId}`);
+    console.log('Current favorite lessons:', this.favoriteLessons[studentId]);
+    
+    return favLesson;
   }
 
   formatDuration = (seconds: number): string => {
@@ -1427,7 +1457,6 @@ export class OneRosterApi implements ServiceApi {
     //   console.log(
     //     "🚀 ~ file: OneRosterApi.ts:216 ~ OneRosterApi ~ getLineItemForClassForLessonId ~ error:",
     //     JSON.stringify(error)
-    //   );
     return;
     // }
   }
@@ -2053,8 +2082,15 @@ export class OneRosterApi implements ServiceApi {
       console.error("Error fetching statements:", error);
     }
   };
-  getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
-    return [];
+  async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
+    const favoriteIds = this.favoriteLessons[userId] || [];
+    if (favoriteIds.length === 0) {
+      return [];
+    }
+
+    // Use existing getLessonsBylessonIds to get the full lesson objects
+    const lessons = await this.getLessonsBylessonIds(favoriteIds);
+    return lessons || [];
   }
   getRecommendedLessons(
     studentId: string,

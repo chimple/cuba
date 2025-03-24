@@ -258,6 +258,8 @@ const CocosGame: React.FC = () => {
         currentStudent.id,
         lesson.id
       );
+
+      console.log("the result is : " , result);
     }
   };
 
