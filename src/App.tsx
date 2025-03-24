@@ -94,8 +94,7 @@ const App: React.FC = () => {
 
 const growthbook = new GrowthBook({
   apiHost: "https://cdn.growthbook.io",
-  // clientKey: "sdk-aSuu3sthvOYihKqu",
-  clientKey: "sdk-8qjX5TWdnSyzgJLi",
+  clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
   enableDevMode: true,
   trackingCallback: (experiment, result) => {
     console.log("Viewed Experiment", {
@@ -104,20 +103,6 @@ const growthbook = new GrowthBook({
       experiment: experiment,
       result: result
     });
-
-    // if (window.gtag) {
-    //   window.gtag("event", "experiment_viewed", {
-    //     experiment_id: experiment.key,
-    //     variation_id: result.key,
-    //   });
-    // } else {
-    //   window.dataLayer = window.dataLayer || [];
-    //   window.dataLayer.push({
-    //     event: "experiment_viewed",
-    //     experiment_id: experiment.key,
-    //     variation_id: result.key,
-    //   });
-    // }
 
     Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
       user_id: student?.docId,
