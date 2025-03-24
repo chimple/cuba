@@ -556,7 +556,7 @@ export enum EVENTS {
   LESSON_INCOMPLETE = "lesson_incomplete",
   USER_PROFILE = "user_profile",
   User_Clicks = "user_clicks",
-  EXPERIMENT_VIEWED = 'experiment_viewed'
+  EXPERIMENT_VIEWED = 'experiment_viewed',
   SEARCH_TRENDS = "search_trends",
   CLICKS_ANALYTICS = "click_analytics",
 }
