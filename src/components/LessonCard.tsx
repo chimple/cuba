@@ -216,7 +216,7 @@ const LessonCard: React.FC<{
                 from: history.location.pathname + `?${CONTINUE}=true`,
               });
             } else if (
-              !!lesson?.assignment?.docId &&
+              // !!lesson?.assignment?.docId &&
               lesson.pluginType === LIVE_QUIZ
             ) {
               if (!online) {
@@ -235,12 +235,11 @@ const LessonCard: React.FC<{
                 return;
               }
               history.replace(
-                PAGES.LIVE_QUIZ_JOIN +
-                  `?assignmentId=${lesson?.assignment?.docId}`,
-                {
-                  assignment: JSON.stringify(lesson?.assignment),
-                }
-              );
+                lesson?.assignment
+                  ? PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${lesson.assignment.docId}`
+                  : PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson?.id}`,
+                lesson?.assignment ? { assignment: JSON.stringify(lesson.assignment) } :  {from: history.location.pathname + `?${CONTINUE}=true`},
+              );              
             }
           }
         }}

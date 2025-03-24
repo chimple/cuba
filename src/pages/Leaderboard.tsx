@@ -61,24 +61,38 @@ const Leaderboard: React.FC = () => {
   >([]);
   const [weeklySelectedValue, setWeeklySelectedValue] = useState<string>();
   const [currentClass, setCurrentClass] = useState<StudentProfile>();
+  const [tabIndex, setTabIndex] = useState(LEADERBOARDHEADERLIST.LEADERBOARD);
 
   useEffect(() => {
     setIsLoading(true);
-    inti();
+    init();
+
     const urlParams = new URLSearchParams(window.location.search);
     const rewardsTab = urlParams.get("tab");
     let currentTab = LEADERBOARDHEADERLIST.LEADERBOARD;
-    if (rewardsTab) {
-      if (rewardsTab === LEADERBOARDHEADERLIST.REWARDS.toLowerCase()) {
-        currentTab = LEADERBOARDHEADERLIST.REWARDS;
-      }
+
+    if (
+      rewardsTab &&
+      rewardsTab === LEADERBOARDHEADERLIST.REWARDS.toLowerCase()
+    ) {
+      currentTab = LEADERBOARDHEADERLIST.REWARDS;
     }
+
     setTabIndex(currentTab);
   }, []);
 
+  useEffect(() => {
+    // Update URL when tabIndex changes
+    if (tabIndex) {
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set("tab", tabIndex.toLowerCase());
+      window.history.replaceState({}, "", newUrl.toString());
+    }
+  }, [tabIndex]);
+
   useEffect(() => {}, []);
 
-  async function inti() {
+  async function init() {
     console.log("init method called");
     const weekOptions = [
       { text: t("Weekly"), type: LeaderboardDropdownList.WEEKLY },
@@ -482,8 +496,6 @@ const Leaderboard: React.FC = () => {
     );
   }
 
-  const [tabIndex, setTabIndex] = useState(LEADERBOARDHEADERLIST.LEADERBOARD);
-
   const handleChange = (
     event: React.SyntheticEvent,
     newValue: LEADERBOARDHEADERLIST
@@ -517,12 +529,16 @@ const Leaderboard: React.FC = () => {
       {!isLoading ? (
         <Box>
           <div id="LeaderBoard-Header">
-            <BackButton
-              // iconSize={"8vh"}
-              onClicked={() => {
-                Util.setPathToBackButton(PAGES.HOME, history);
-              }}
-            ></BackButton>
+            <div id="back-button-in-LeaderBoard-Header">
+              <span className="hidden-text">Back</span>
+              <BackButton
+                // iconSize={"8vh"}
+                aria-label={t("Back")}
+                onClicked={() => {
+                  Util.setPathToBackButton(PAGES.HOME, history);
+                }}
+              ></BackButton>
+            </div>
             <Box>
               <AppBar
                 id="LeaderBoard-AppBar"

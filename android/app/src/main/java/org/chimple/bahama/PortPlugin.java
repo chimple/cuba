@@ -81,9 +81,9 @@ public class PortPlugin extends Plugin {
   }
 
   @PluginMethod
-  public static void isPermissionAccepted() {
+  public static void isNumberSelected() {
     if (getInstance().bridge != null) {
-      getInstance().bridge.triggerDocumentJSEvent("permissionAccepted");
+      getInstance().bridge.triggerDocumentJSEvent("isPhoneNumberSelected");
     }
 
   }
@@ -99,20 +99,16 @@ public class PortPlugin extends Plugin {
     Context appContext = MainActivity.getAppContext();
     SmsRetrieverClient client = SmsRetriever.getClient(appContext /* context */);
     Task<Void> task = client.startSmsRetriever();
-    OTPReceiver.requestSmsPhonePermission().thenAccept(PhoneNumber -> {
-      JSObject result = new JSObject();
-      result.put("number", PhoneNumber);
-      call.resolve(result);
-    });
+    MainActivity.promptPhoneNumbers();
+    call.resolve(null);
   }
 
   @PluginMethod
   public void numberRetrieve(PluginCall call) {
-    OTPReceiver.getPhoneNumbers().thenAccept(PhoneNumber -> {
+     String phoneNumber =  MainActivity.getPhoneNumber();
       JSObject result = new JSObject();
-      result.put("number", PhoneNumber);
+      result.put("number", phoneNumber);
       call.resolve(result);
-    });
   }
   public static PortPlugin getInstance() {
     return instance;

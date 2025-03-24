@@ -1,5 +1,5 @@
 import { IonPage, IonHeader } from "@ionic/react";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import {
   COURSES,
   HOMEHEADERLIST,
@@ -22,6 +22,9 @@ import {
   LIVE_QUIZ,
   SHOW_DAILY_PROGRESS_FLAG,
   IS_CONECTED,
+  SUBTAB_MAPPINGS,
+  QUIZ_POPUP_SHOWN,
+  ASSIGNMENT_POPUP_SHOWN,
 } from "../common/constants";
 import CurriculumController from "../models/curriculumController";
 import "./Home.css";
@@ -68,6 +71,7 @@ import React from "react";
 import Dashboard from "./Malta/Dashboard";
 import PopupTemplate from "./PopupTemplate";
 import { useGrowthBook, useFeatureValue } from "@growthbook/growthbook-react";
+import { SUBTAB } from "../common/constants";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -109,11 +113,14 @@ const Home: FC = () => {
   const [historyLessons, setHistoryLessons] = useState<Lesson[]>([]);
   const [validLessonIds, setValidLessonIds] = useState<string[]>([]);
   const [historySortIndex, setHistorySortIndex] = useState<number>(0);
-  const assignmentCount = useFeatureValue('bvm-test', '50');
+  const assignmentCount = '50';
+  const [favLessonIndex, setFavLessonIndex] = useState<number>(0);
   let allPlayedLessonIds: string[] = [];
-  let tempPageNumber = 1;
+  // const [tempPageNumber, setTempPageNumber] = useState<number>(1);
+  const tempPageRef = useRef(1);
   let linked: boolean;
   const location = useLocation();
+  const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
   const getCanShowAvatar = async () => {
     const canShowAvatarValue = await Util.getCanShowAvatar();
     console.log("const canShowAvatarValue in home ", canShowAvatarValue);
@@ -122,7 +129,6 @@ const Home: FC = () => {
   };
 
   const urlParams = new URLSearchParams(location.search);
-  const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
   const [currentHeader, setCurrentHeader] = useState(() => {
     const currPage = urlParams.get("tab");
     if (
@@ -134,6 +140,9 @@ const Home: FC = () => {
       return localStorage.getItem("currentHeader") || HOMEHEADERLIST.HOME;
     }
   });
+  const [value, setValue] = useState(SUBTAB.SUGGESTIONS);
+
+  const currentMode = localStorage.getItem(CURRENT_MODE);
 
   useEffect(() => {
     const student = Util.getCurrentStudent();
@@ -143,6 +152,7 @@ const Home: FC = () => {
       return;
     }
     urlOpenListenerEvent();
+    fetchData();
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
     initData();
@@ -168,6 +178,7 @@ const Home: FC = () => {
     ) {
       fetchData();
     }
+    getAssignments();
   }, [currentHeader]);
   const initData = async () => {
     fetchData();
@@ -193,7 +204,11 @@ const Home: FC = () => {
     setIsLoading(true);
 
     const allLessonIds = await getHistory();
-    if (allLessonIds) setValidLessonIds(allLessonIds);
+    if (allLessonIds) {
+      setValidLessonIds(allLessonIds);
+      await updateFavouriteLessons(validLessonIds);
+      await updateHistoryLessons(validLessonIds);
+    }
     AvatarObj.getInstance().unlockedRewards =
       (await Util.getAllUnlockedRewards()) || [];
     setIsLoading(false);
@@ -225,14 +240,32 @@ const Home: FC = () => {
   function urlOpenListenerEvent() {
     App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
       const slug = event.url.split(".cc").pop();
-      if (slug === PAGES.LIVE_QUIZ && linked) {
-        setCurrentHeader(HOMEHEADERLIST.LIVEQUIZ);
-      } else {
-        setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
-      }
+      let subtabConfig = SUBTAB_MAPPINGS[HOMEHEADERLIST.HOME];
       if (slug) {
-        history.replace(slug);
+        console.log("setting subtabConfig slug with:", slug);
+        subtabConfig = SUBTAB_MAPPINGS[slug];
       }
+      if (subtabConfig) {
+        console.log("subtabConfig is:", subtabConfig);
+        if (subtabConfig.isLinked && !linked) {
+          // pageConfig.isLinked is true but student is not linked to any class, so redirect to join class
+          setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
+          return;
+        }
+
+        if (subtabConfig.redirect) {
+          history.replace(subtabConfig.redirect);
+        } else {
+          setCurrentHeader(subtabConfig.header);
+          if (subtabConfig.subtab) {
+            setValue(subtabConfig.subtab);
+            fetchData();
+          }
+        }
+      }
+      // if (slug) {
+      //   history.replace(slug);
+      // }
     });
   }
 
@@ -331,39 +364,34 @@ const Home: FC = () => {
         recommendationResult = recommendationResult.concat(tempRecommendations);
         console.log("Final RECOMMENDATION List ", recommendationResult);
         setDataCourse(recommendationResult);
+        setIsLoading(false);
         return recommendationResult;
       } catch (error) {
         console.error("Error fetching recommendation:", error);
       }
     }
   }
-  enum SUBTAB {
-    SUGGESTIONS,
-    FAVOURITES,
-    HISTORY,
-  }
-  const [value, setValue] = useState(SUBTAB.SUGGESTIONS);
 
   const handleChange = async (
     event: React.SyntheticEvent,
     newValue: SUBTAB
   ) => {
     setValue(newValue);
+    setFavLessonIndex(0);
     if (newValue === SUBTAB.HISTORY) {
       // setIsLoading(true);
+      setFavouriteLessons([]);
       if (lessonResultMap) {
         // const startIndex = (tempPageNumber - 1) * favouritesPageSize;
         // const endIndex = startIndex + favouritesPageSize;
-
         // const initialHistoryLessonsSlice = initialHistoryLessons.slice(
         //   startIndex,
         //   endIndex
         // );
         // setHistoryLessons(initialHistoryLessonsSlice);
-        setFavouriteLessons([]);
+        tempPageRef.current = 1;
+        await updateHistoryLessons(validLessonIds);
       }
-      tempPageNumber = 1;
-      await updateHistoryLessons(validLessonIds);
       setIsLoading(false);
     } else if (newValue === SUBTAB.FAVOURITES) {
       setHistoryLessons([]);
@@ -375,9 +403,9 @@ const Home: FC = () => {
         //   startIndex,
         //   endIndex
         // );
+        tempPageRef.current = 1;
         await updateFavouriteLessons(validLessonIds);
       }
-      tempPageNumber = 1;
     } else {
       setHistoryLessons([]);
       setFavouriteLessons([]);
@@ -752,54 +780,63 @@ const Home: FC = () => {
   };
 
   const handleLoadMoreHistoryLessons = async () => {
-    tempPageNumber = tempPageNumber + 1;
-    await updateHistoryLessons(validLessonIds);
-  };
-
-  const handleLoadMoreLessons = async () => {
-    if (currentHeader === HOMEHEADERLIST.FAVOURITES) {
-      tempPageNumber = tempPageNumber + 1;
-      await updateFavouriteLessons(validLessonIds);
+    if (currentHeader === HOMEHEADERLIST.SUGGESTIONS || HOMEHEADERLIST.HOME) {
+      tempPageRef.current = tempPageRef.current + 1;
+      await updateHistoryLessons(validLessonIds);
     }
   };
 
+  const handleLoadMoreLessons = async () => {
+    if (currentHeader === HOMEHEADERLIST.SUGGESTIONS || HOMEHEADERLIST.HOME) {
+      tempPageRef.current = tempPageRef.current + 1;
+      setFavLessonIndex(favouriteLessons.length - 1);
+      await updateFavouriteLessons(validLessonIds);
+    }
+  };
   const updateFavouriteLessons = async (allLessonIds) => {
     setIsLoading(true);
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent || !lessonResultMap) {
+      setIsLoading(false);
       return;
     }
-
-    const favouritesStartIndex = (tempPageNumber - 1) * favouritesPageSize;
+    const totalLikedLessons = validLessonIds.filter(
+      (lessonId) => lessonResultMap?.[lessonId]?.isLoved ?? false
+    );
+    if (favouriteLessons.length >= totalLikedLessons.length) {
+      setIsLoading(false);
+      return;
+    }
+    const favouritesStartIndex = (tempPageRef.current - 1) * favouritesPageSize;
     const favouritesEndIndex = favouritesStartIndex + favouritesPageSize;
 
-    const slicedLessonIdsForFavourite = validLessonIds.slice(
+    const slicedLessonIdsForFavourite = totalLikedLessons.slice(
       favouritesStartIndex,
       favouritesEndIndex
     );
-
     const lessonPromisesForFavourite = slicedLessonIdsForFavourite.map(
       (lessonId) => api.getLesson(lessonId)
     );
-
     const lessonsForFavourite: (Lesson | undefined)[] = await Promise.all(
       lessonPromisesForFavourite
     );
 
     const validLessonsForFavourite: Lesson[] = lessonsForFavourite.filter(
       (lesson): lesson is Lesson => {
-        if (lesson === undefined) {
-          return false;
-        }
-        const lessonResult = lessonResultMap?.[lesson.docId];
-        return lessonResult?.isLoved ?? false;
+        if (!lesson) return false;
+        return lessonResultMap?.[lesson.docId]?.isLoved ?? false;
       }
     );
-
-    const latestTenFavouriteLessons = favouriteLessons.slice(0, 10);
     setValidLessonIds(allLessonIds);
-    favouriteLessons.push(...validLessonsForFavourite);
-    setInitialFavoriteLessons(latestTenFavouriteLessons);
+    const existingDocIds = new Set(
+      favouriteLessons.map((lesson) => lesson.docId)
+    );
+
+    const newLessons = validLessonsForFavourite.filter(
+      (lesson) => !existingDocIds.has(lesson.docId)
+    );
+
+    favouriteLessons.push(...newLessons);
     setIsLoading(false);
   };
 
@@ -813,7 +850,7 @@ const Home: FC = () => {
       return;
     }
 
-    const historyStartIndex = (tempPageNumber - 1) * favouritesPageSize;
+    const historyStartIndex = (tempPageRef.current - 1) * favouritesPageSize;
     const historyEndIndex = historyStartIndex + favouritesPageSize;
 
     const slicedLessonIdsForHistory = validLessonIds.slice(
@@ -849,9 +886,18 @@ const Home: FC = () => {
   const [showAssignmentPopup, setShowAssignmentPopup] = useState(false);
 
   useEffect(() => {
-    if (pendingLiveQuizCount !== 0) {
+    const hasShownQuizPopup = sessionStorage.getItem(QUIZ_POPUP_SHOWN);
+    const hasShownAssignmentPopup = sessionStorage.getItem(
+      ASSIGNMENT_POPUP_SHOWN
+    );
+
+    if (!hasShownQuizPopup && pendingLiveQuizCount !== 0) {
       setShowQuizPopup(true);
-    } else if (pendingAssignmentsCount !== 0) {
+    } else if (
+      !hasShownAssignmentPopup &&
+      pendingAssignmentsCount !== 0 &&
+      currentMode !== MODES.SCHOOL
+    ) {
       setShowAssignmentPopup(true);
     }
   }, [pendingLiveQuizCount, pendingAssignmentsCount]);
@@ -868,8 +914,10 @@ const Home: FC = () => {
   };
 
   const handleJoinNowAssign = () => {
-    setShowAssignmentPopup(false);
-    setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
+    if (pendingAssignmentsCount > 0) {
+      setShowAssignmentPopup(false);
+      setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
+    }
   };
 
   return (
@@ -959,7 +1007,9 @@ const Home: FC = () => {
               value === SUBTAB.HISTORY) &&
               ((canShowAvatar &&
                 currentHeader === HOMEHEADERLIST.SUGGESTIONS) ||
-                (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME)) && (
+                (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME) ||
+                (!canShowAvatar &&
+                  currentHeader === HOMEHEADERLIST.SUGGESTIONS)) && (
                 <div>
                   {value === SUBTAB.SUGGESTIONS && (
                     <LessonSlider
@@ -982,7 +1032,7 @@ const Home: FC = () => {
                           isHome={true}
                           course={undefined}
                           lessonsScoreMap={lessonResultMap || {}}
-                          startIndex={0}
+                          startIndex={favLessonIndex}
                           showSubjectName={true}
                           showChapterName={true}
                           onEndReached={handleLoadMoreLessons}
@@ -1158,16 +1208,17 @@ const Home: FC = () => {
           <PopupTemplate
             onJoin={handleJoinNow}
             message={t("Live Quiz is Starting Soon!")}
-            buttonMessage={t("Play Now")}
-            imagePath="/assets/icons/quiz_icon.svg"
+            buttonMessage={t("Join Now")}
+            imagePath="/assets/icons/quiz_icon.gif"
           />
         )}
+        {/* To deal with assignments should not be shown to teachers */}
         {showAssignmentPopup && (
           <PopupTemplate
             onJoin={handleJoinNowAssign}
-            message={t("Assignment is Starting Soon!")}
+            message={t("You have pending homework.")}
             buttonMessage={t("Play Now")}
-            imagePath="/assets/icons/homeworkIcon.svg"
+            imagePath="/assets/icons/Homework_icon.gif"
           />
         )}
         <SkeltonLoading isLoading={isLoading} header={currentHeader} />

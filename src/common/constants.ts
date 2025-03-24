@@ -323,10 +323,16 @@ export enum PAGES {
   DISPLAY_STUDENT = "/display-students",
   DISPLAY_SUBJECTS = "/display-subjects",
   DISPLAY_CHAPTERS = "/display-chapters",
+  FAVOURITES = "/favourites",
+  HISTORY = "/history",
   ADD_SUBJECTS = "/add-subjects",
   APP_LANG_SELECTION = "/app-lang-selection",
+  REWARDS = "/rewards",
   STUDENT_PROGRESS = "/student-progress",
   SEARCH = "/search",
+  STICKERS = "/stickers",
+  SUBJECTS = "/subjects",
+  SUGGESTIONS = "/suggestions",
   LEADERBOARD = "/leaderboard",
   ASSIGNMENT = "/assignment",
   JOIN_CLASS = "/join-class",
@@ -340,8 +346,49 @@ export enum PAGES {
   TEACHER_PROFILE = "/teacher-profile",
   STUDENT_PROFILE = "/student-profile",
   ADD_STUDENT = "/add_student",
+  BONUS = "/bonus",
+  BADGES = "/badges",
 }
 
+export enum SUBTAB {
+  SUGGESTIONS,
+  FAVOURITES,
+  HISTORY,
+}
+
+export const SUBTAB_MAPPINGS = {
+  [PAGES.LIVE_QUIZ]: { header: HOMEHEADERLIST.LIVEQUIZ, isLinked: true },
+  [PAGES.ASSIGNMENT]: { header: HOMEHEADERLIST.ASSIGNMENT, isLinked: true },
+  [PAGES.APP_UPDATE]: { header: HOMEHEADERLIST.HOME },
+  [PAGES.HOME]: { header: HOMEHEADERLIST.HOME },
+  [PAGES.SEARCH]: { header: HOMEHEADERLIST.SEARCH },
+  [PAGES.SUBJECTS]: { header: HOMEHEADERLIST.SUBJECTS },
+  [PAGES.SUGGESTIONS]: {
+    header: HOMEHEADERLIST.SUGGESTIONS,
+    subtab: SUBTAB.SUGGESTIONS,
+  },
+  [PAGES.FAVOURITES]: {
+    header: HOMEHEADERLIST.SUGGESTIONS,
+    subtab: SUBTAB.FAVOURITES,
+  },
+  [PAGES.HISTORY]: {
+    header: HOMEHEADERLIST.SUGGESTIONS,
+    subtab: SUBTAB.HISTORY,
+  },
+  [PAGES.LEADERBOARD]: { redirect: PAGES.LEADERBOARD },
+  [PAGES.REWARDS]: {
+    redirect: `${PAGES.LEADERBOARD}?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${LEADERBOARD_REWARD_LIST.STICKER.toLowerCase()}`,
+  },
+  // [PAGES.STICKERS] : {
+  //   redirect: `${PAGES.LEADERBOARD}?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${LEADERBOARD_REWARD_LIST.STICKER.toLowerCase()}`
+  // },
+  // [PAGES.BONUS] : {
+  //   redirect: `${PAGES.LEADERBOARD}?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${LEADERBOARD_REWARD_LIST.BONUS.toLowerCase()}`
+  // },
+  // [PAGES.BADGES] : {
+  //   redirect: `${PAGES.LEADERBOARD}?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${LEADERBOARD_REWARD_LIST.BADGES.toLowerCase()}`
+  // }
+};
 export enum LANG {
   ENGLISH = "en",
   HINDI = "hi",
@@ -495,10 +542,12 @@ export enum ACTION {
   CREATE = "create",
   UPDATE = "update",
   DELETE = "delete",
+  SEARCH = "search",
 }
 export enum NOTIFICATIONTYPE {
   REWARD = "reward",
   ASSIGNMENT = "assignment",
+  LIVEQUIZ = "liveQuiz",
 }
 export const CURRENT_STUDENT = "currentStudent";
 export const CURRENT_USER = "currentUser";
@@ -508,6 +557,8 @@ export enum EVENTS {
   USER_PROFILE = "user_profile",
   User_Clicks = "user_clicks",
   EXPERIMENT_VIEWED = 'experiment_viewed'
+  SEARCH_TRENDS = "search_trends",
+  CLICKS_ANALYTICS = "click_analytics",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -587,3 +638,5 @@ export const CURRENT_SELECTED_COURSE = "currentSelectedCourse";
 export const CURRENT_SELECTED_CHAPTER = "currentSelectedChapter";
 export const CURRENT_STAGE = "currentStage";
 export const CURRENT_SELECTED_GRADE = "currentSelectedGrade";
+export const QUIZ_POPUP_SHOWN = "quizPopupShown";
+export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";

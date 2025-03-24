@@ -72,9 +72,8 @@ import { JailbreakRoot } from "@basecom-gmbh/capacitor-jailbreak-root-detection"
 import { useIonAlert } from "@ionic/react";
 import i18n from "./i18n";
 import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
-// import { thirdPartyTrackingPlugin, autoAttributesPlugin } from "@growthbook/growthbook/plugins";
-// import { thirdPartyTrackingPlugin }
 import { ServiceConfig } from "./services/ServiceConfig";
+import { initializeClickListener } from "./analytics/clickUtil";
 
 setupIonicReact();
 interface ExtraData {
@@ -85,6 +84,7 @@ interface ExtraData {
 
 
 const App: React.FC = () => {
+  const cleanup = initializeClickListener();
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
   const [student, setStudent] = useState(Util.getCurrentStudent());
@@ -169,6 +169,7 @@ growthbook.init({ streaming: true });
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      cleanup();
     };
   }, [online, presentToast]);
 
@@ -221,7 +222,12 @@ growthbook.init({ streaming: true });
       const portPlugin = registerPlugin<PortPlugin>("Port");
       portPlugin.addListener("notificationOpened", (data: any) => {
         if (data) {
-          processNotificationData(data);
+          if (data.fullPayload) {
+            const formattedPayload = JSON.parse(data.fullPayload);
+            processNotificationData(formattedPayload);
+          } else {
+            processNotificationData(data);
+          }
         }
       });
     }

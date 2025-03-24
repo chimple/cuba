@@ -46,6 +46,8 @@ import {
   HOMEHEADERLIST,
   NOTIFICATIONTYPE,
   CURRENT_SELECTED_COURSE,
+  QUIZ_POPUP_SHOWN,
+  ASSIGNMENT_POPUP_SHOWN,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1349,6 +1351,7 @@ export class Util {
           }
         }
     } else if (data && data.notificationType === NOTIFICATIONTYPE.ASSIGNMENT) {
+      sessionStorage.setItem(ASSIGNMENT_POPUP_SHOWN, "false");
       if (data.classId) {
         const classId = data.classId;
         if (!classId) return;
@@ -1380,6 +1383,44 @@ export class Util {
             );
           }
         }
+      }
+    } else if (data && data.notificationType === NOTIFICATIONTYPE.LIVEQUIZ) {
+      sessionStorage.setItem(QUIZ_POPUP_SHOWN, "false");
+      if (data.classId) {
+        const classId = data.classId;
+        const studentsData = await api.getStudentsForClass(classId);
+        let tempStudentIds: string[] = [];
+        for (let student of studentsData) {
+          tempStudentIds.push(student.docId);
+        }
+        let foundMatch = false;
+        for (let studentId of tempStudentIds) {
+          if (currentStudent?.docId === studentId) {
+            window.location.replace(
+              data.assignmentId 
+              ?PAGES.LIVE_QUIZ_JOIN +`?assignmentId=${data.assignmentId}`
+              :PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ
+            );
+            foundMatch = true;
+            break;
+          }
+        }
+        if (!foundMatch) {
+          await this.setCurrentStudent(null);
+          const students = await api.getParentStudentProfiles();
+          let matchingUser =
+            students.find((user) => tempStudentIds.includes(user.docId)) ||
+            students[0];
+          if (matchingUser) {
+            await this.setCurrentStudent(matchingUser, undefined, true);
+            window.location.replace(
+              PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ
+            );
+          }
+        }
+      }else{
+        window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ);
+        return;
       }
     }
   }

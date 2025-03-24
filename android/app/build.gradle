@@ -7,8 +7,8 @@ android {
         applicationId "org.chimple.bahama"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 68
-        versionName "5.0.4"
+        versionCode 73
+        versionName "6.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -65,8 +65,11 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:21.3.0'
     implementation 'com.google.android.gms:play-services-auth-api-phone:18.1.0'
 
+    implementation "androidx.work:work-runtime:2.8.1"
+    implementation 'com.google.firebase:firebase-messaging:23.3.1'
+    }
 
-}
+
 
 apply from: 'capacitor.build.gradle'
 

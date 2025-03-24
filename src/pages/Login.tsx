@@ -111,12 +111,12 @@ const Login: React.FC = () => {
   const [showStudentCredentialtLogin, setStudentCredentialLogin] =
     useState<boolean>(false);
   const [promptPhonNumbers, setPromptPhonNumbers] = useState<Array<string>>([]);
-  const [showPhoneNumberPopUp, setShowPhoneNumberPopUp] =
-    useState<boolean>(false);
+  // const [showPhoneNumberPopUp, setShowPhoneNumberPopUp] =
+  //   useState<boolean>(false);
   const PortPlugin = registerPlugin<any>("Port");
 
   useEffect(() => {
-    initPermissionListner();
+    initNumberSelectedListner();
   }, []);
   useEffect(() => {
     if (phoneNumber.length == 10) {
@@ -218,8 +218,9 @@ const Login: React.FC = () => {
   const retriewPhoneNumber = async () => {
     const phoneNumber = await PortPlugin.numberRetrieve();
     if (phoneNumber.number) {
-      setShowPhoneNumberPopUp(!showPhoneNumberPopUp);
-      setPromptPhonNumbers(JSON.parse(phoneNumber.number));
+      phoneNumberErrorRef.current.style.display = "none";
+      setPhoneNumber(phoneNumber.number.toString());
+      setCurrentButtonColor(Buttoncolors.Valid);
     }
   };
 
@@ -236,14 +237,21 @@ const Login: React.FC = () => {
     }
     document.removeEventListener("otpReceived", otpEventListener);
   };
-  const permissionEventListener = async (event: Event) => {
+  const isPhoneNumberEventListener = async (event: Event) => {
     retriewPhoneNumber();
-    document.removeEventListener("otpReceived", otpEventListener);
+    document.removeEventListener(
+      "isPhoneNumberSelected",
+      isPhoneNumberEventListener
+    );
   };
-  const initPermissionListner = async () => {
-    document.addEventListener("permissionAccepted", permissionEventListener, {
-      once: true,
-    });
+  const initNumberSelectedListner = async () => {
+    document.addEventListener(
+      "isPhoneNumberSelected",
+      isPhoneNumberEventListener,
+      {
+        once: true,
+      }
+    );
   };
   const initSmsListner = async () => {
     document.addEventListener("otpReceived", otpEventListener, { once: true });
@@ -272,9 +280,21 @@ const Login: React.FC = () => {
     try {
       if (currentPhone == phoneNumber) {
         if (allowSubmittingOtpCounter > 0) {
-          await Toast.show({
-            text: title,
-            duration: "long",
+          // await Toast.show({
+          //   text: title,
+          //   duration: "long",
+          // });
+          presentToast({
+            message: title,
+            color: "light",
+            duration: 3000,
+            position: "bottom",
+            buttons: [
+              {
+                text: "Dismiss",
+                role: "cancel",
+              },
+            ],
           });
           return;
         }
@@ -303,6 +323,21 @@ const Login: React.FC = () => {
         setSentOtpLoading(false);
         setCounter(59);
         setShowVerification(true);
+      } else {
+        presentToast({
+          message: t("Please wait 60 seconds before retrying"),
+          color: "light",
+          duration: 3000,
+          position: "bottom",
+          buttons: [
+            {
+              text: "Dismiss",
+              role: "cancel",
+            },
+          ],
+        });
+        setSpinnerLoading(false);
+        setSentOtpLoading(false);
       }
       // let authRes = await authInstance.phoneNumberSignIn(
       //   phoneNumberWithCountryCode,
@@ -570,16 +605,13 @@ const Login: React.FC = () => {
                         ref={inputRef}
                         inputText={t("Enter Mobile Number (10-digit)")}
                         inputType={"tel"}
+                        aria-label={t("Enter Mobile Number (10-digit)")}
                         onFocus={async () => {
                           if (
                             Capacitor.getPlatform() === "android" &&
                             !isPromptNumbers
                           ) {
                             const data = await PortPlugin.requestPermission();
-                            if (data.number) {
-                              setShowPhoneNumberPopUp(!showPhoneNumberPopUp);
-                              setPromptPhonNumbers(JSON.parse(data.number));
-                            }
                             setIsPromptNumbers(true);
                           }
                         }}
@@ -686,6 +718,7 @@ const Login: React.FC = () => {
                 <div className="login-with-google-or-student-credentials-container">
                   <img
                     id="login-google-icon"
+                    aria-label={String(t("Google Sign In"))}
                     alt="Google Icon"
                     src="assets/icons/Google Icon.png"
                     onClick={async () => {
@@ -740,6 +773,7 @@ const Login: React.FC = () => {
                   {!showVerification ? (
                     <div
                       className="login-with-student-credentials"
+                      aria-label={String(t("Student-credentials Sign In"))}
                       onClick={loinWithStudentCredentialsButton}
                     >
                       <IoSchool className="school-icon" />
@@ -1008,7 +1042,7 @@ const Login: React.FC = () => {
           </div>
         ) : null}
 
-        {showPhoneNumberPopUp ? (
+        {/* {showPhoneNumberPopUp ? (
           <PhoneNumberPopup
             showPopUp={showPhoneNumberPopUp}
             onPopUpClose={() => {
@@ -1027,7 +1061,7 @@ const Login: React.FC = () => {
             }}
             phoneNumbers={promptPhonNumbers}
           />
-        ) : null}
+        ) : null} */}
       </div>
       <Loading isLoading={isLoading || sentOtpLoading} />
     </IonPage>

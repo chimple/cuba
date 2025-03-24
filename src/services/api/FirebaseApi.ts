@@ -1801,6 +1801,7 @@ export class FirebaseApi implements ServiceApi {
     try {
       const now = new Date();
       const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
+
       let q1 = query(
         collection(this._db, CollectionIds.ASSIGNMENT),
         where("isClassWise", "==", true),
@@ -1810,7 +1811,6 @@ export class FirebaseApi implements ServiceApi {
         orderBy("startsAt", "desc")
       );
 
-      // Add the condition for when isClassWise is false
       let q2 = query(
         collection(this._db, CollectionIds.ASSIGNMENT),
         where("isClassWise", "==", false),
@@ -1820,49 +1820,59 @@ export class FirebaseApi implements ServiceApi {
         where("startsAt", "<=", now),
         orderBy("startsAt", "desc")
       );
-      const [snapshot1, snapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+
+      const [snapshot1, snapshot2] = await Promise.all([
+        getDocs(q1),
+        getDocs(q2),
+      ]);
+
       const queryResult = [...snapshot1.docs, ...snapshot2.docs];
+
       const sortedResult = queryResult.sort((a, b) => {
         const createdAtA = a.data().createdAt.toDate();
         const createdAtB = b.data().createdAt.toDate();
-      
         return createdAtB - createdAtA;
       });
+
+      console.log("sortedResult", sortedResult);
+
       const liveQuizLessons: Assignment[] = [];
-      const liveQuizDocs =sortedResult;
-      if (liveQuizDocs.length > 0) {
-        liveQuizDocs.forEach((_assignment) => {
-          const endsAt = _assignment.get("endsAt");
-          const endsAtDate = endsAt.toDate();
-          if (endsAtDate > now) {
-            const assignment = _assignment.data() as Assignment;
-            assignment.docId = _assignment.id;
+
+      if (sortedResult.length > 0) {
+        sortedResult.forEach((_assignment) => {
+          const endsAt = _assignment.get("endsAt").toDate();
+
+          if (endsAt > now) {
             const liveQuiz = _assignment.data() as Assignment;
             liveQuiz.docId = _assignment.id;
-            const doneLiveQuiz = liveQuiz.completedStudents?.find(
-              (data) => data === studentId
-            );
+
+            const doneLiveQuiz =
+              liveQuiz.completedStudents?.includes(studentId);
+            console.log("fdsfdsfdsfsdf 1", doneLiveQuiz);
+
             let tempLiveQuizCompletedIds = localStorage.getItem(
               ASSIGNMENT_COMPLETED_IDS
             );
             let liveQuizcompletedIds = JSON.parse(
               tempLiveQuizCompletedIds ?? "{}"
             );
-            console.log("liveQuizcompletedIds:", liveQuizcompletedIds);
 
-            const doneliveQuizLocally = liveQuizcompletedIds[studentId]?.find(
-              (assignmentId) => assignmentId === liveQuiz.docId
-            );
-            console.log("doneliveQuizLocally:", doneliveQuizLocally);
+            const doneLiveQuizLocally = liveQuizcompletedIds[
+              studentId
+            ]?.includes(liveQuiz.docId);
+            console.log("fdsfdsfdsfsdf 2", doneLiveQuiz);
 
-            if (!doneLiveQuiz && !doneliveQuizLocally)
+            if (!doneLiveQuiz && !doneLiveQuizLocally) {
+              console.log("Unplayed live quiz:", liveQuiz);
               liveQuizLessons.push(liveQuiz);
+            }
           }
         });
       } else {
         console.log("Live Quiz has ended. Skipping.");
       }
-      console.log("Live quiz lessons", liveQuizLessons);
+
+      console.log("Final live quiz lessons:", liveQuizLessons);
       return liveQuizLessons;
     } catch (error) {
       console.error("Error fetching live quiz lessons:", error);
