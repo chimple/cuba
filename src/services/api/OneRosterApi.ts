@@ -1882,31 +1882,31 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   async getLessonsBylessonIds(
-    lessonIds: string[] // Expect an array of strings
+    lessonIds: string[]
   ): Promise<TableTypes<"lesson">[] | undefined> {
     try {
-
       const courseJson = await this.loadCourseJson(OneRosterApi.currentCourse?.course_id || "en");
-
       console.log("getLessonsBylessonIds data:", courseJson.groups);
 
       if (!courseJson.groups) return [];
 
       const lessons: TableTypes<"lesson">[] = courseJson.groups.flatMap(group =>
-        group.navigation.filter(lesson => lessonIds.includes(lesson.id)).map((group: any) => ({
-          id: group.id,
-          name: group.title,
-          chapter_id: metadata.id,
-          subject_id: group.subject,
-          outcome: group.outcome,
-          status: group.status,
-          type: group.type,
-          thumbnail: group.thumbnail || null,
-          plugin_type: group.pluginType,
-          created_at: "null",
-          updated_at: "null",
-          is_deleted: null
-        }))
+        group.navigation
+          .filter(lesson => lessonIds.includes(lesson.id))
+          .map(lesson => ({
+            id: lesson.id,
+            name: lesson.title,
+            chapter_id: group.metadata.id, // Fixed: Using group.metadata.id instead of undefined metadata
+            subject_id: lesson.subject,
+            outcome: lesson.outcome,
+            status: lesson.status,
+            type: lesson.type,
+            thumbnail: lesson.thumbnail || null,
+            plugin_type: lesson.pluginType,
+            created_at: "null",
+            updated_at: "null",
+            is_deleted: null
+          }))
       );
 
       return lessons;
