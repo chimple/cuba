@@ -180,6 +180,7 @@ export class OneRosterApi implements ServiceApi {
   public currentLesson: TableTypes<"lesson">;
   public allCoursesJson: { [key: string]: TableTypes<"course"> } = {};
   private favoriteLessons: { [userId: string]: string[] } = {};
+  private FAVORITE_LESSONS_STORAGE_KEY = "favorite_lessons";
 
   private buildXapiQuery(currentUser: { name?: string }): { agentEmail: string; queryStatement: IGetStudentResultStatement } {
     const agentEmail = `mailto:${currentUser?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
@@ -908,7 +909,13 @@ export class OneRosterApi implements ServiceApi {
     studentId: string,
     lessonId: string
   ): Promise<TableTypes<"favorite_lesson">> {
-    // Store the lessonId in the favoriteLessons array for this user
+    // Initialize favorites from localStorage if not already loaded
+    if (!this.favoriteLessons[studentId]) {
+      const stored = localStorage.getItem(this.FAVORITE_LESSONS_STORAGE_KEY);
+      this.favoriteLessons = stored ? JSON.parse(stored) : {};
+    }
+
+    // Initialize array for this user if needed
     if (!this.favoriteLessons[studentId]) {
       this.favoriteLessons[studentId] = [];
     }
@@ -916,6 +923,11 @@ export class OneRosterApi implements ServiceApi {
     // Add lessonId if not already present
     if (!this.favoriteLessons[studentId].includes(lessonId)) {
       this.favoriteLessons[studentId].push(lessonId);
+      // Persist to localStorage
+      localStorage.setItem(
+        this.FAVORITE_LESSONS_STORAGE_KEY, 
+        JSON.stringify(this.favoriteLessons)
+      );
     }
 
     // Create and return the favorite_lesson object
@@ -1882,31 +1894,31 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   async getLessonsBylessonIds(
-    lessonIds: string[]
+    lessonIds: string[] // Expect an array of strings
   ): Promise<TableTypes<"lesson">[] | undefined> {
     try {
+
       const courseJson = await this.loadCourseJson(OneRosterApi.currentCourse?.course_id || "en");
+
       console.log("getLessonsBylessonIds data:", courseJson.groups);
 
       if (!courseJson.groups) return [];
 
       const lessons: TableTypes<"lesson">[] = courseJson.groups.flatMap(group =>
-        group.navigation
-          .filter(lesson => lessonIds.includes(lesson.id))
-          .map(lesson => ({
-            id: lesson.id,
-            name: lesson.title,
-            chapter_id: group.metadata.id, // Fixed: Using group.metadata.id instead of undefined metadata
-            subject_id: lesson.subject,
-            outcome: lesson.outcome,
-            status: lesson.status,
-            type: lesson.type,
-            thumbnail: lesson.thumbnail || null,
-            plugin_type: lesson.pluginType,
-            created_at: "null",
-            updated_at: "null",
-            is_deleted: null
-          }))
+        group.navigation.filter(lesson => lessonIds.includes(lesson.id)).map((lesson: any) => ({
+          id: lesson.id,
+          name: lesson.title,
+          chapter_id: group.metadata.id,
+          subject_id: group.subject,
+          outcome: lesson.outcome,
+          status: lesson.status,
+          type: lesson.type,
+          thumbnail: lesson.thumbnail || null,
+          plugin_type: lesson.pluginType,
+          created_at: "null",
+          updated_at: "null",
+          is_deleted: null
+        }))
       );
 
       return lessons;
@@ -2083,6 +2095,12 @@ export class OneRosterApi implements ServiceApi {
     }
   };
   async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
+    // Load favorites from localStorage if not already loaded
+    if (!this.favoriteLessons[userId]) {
+      const stored = localStorage.getItem(this.FAVORITE_LESSONS_STORAGE_KEY);
+      this.favoriteLessons = stored ? JSON.parse(stored) : {};
+    }
+
     const favoriteIds = this.favoriteLessons[userId] || [];
     if (favoriteIds.length === 0) {
       return [];
