@@ -1211,19 +1211,20 @@ export class FirebaseApi implements ServiceApi {
 
   async getPendingAssignments(
     classId: string,
-    studentId: string
+    studentId: string,
+    count: string
   ): Promise<Assignment[]> {
     try {
+      console.log('assignmentCount: ', count)
       const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
-
       let q1 = query(
         collection(this._db, CollectionIds.ASSIGNMENT),
         where("isClassWise", "==", true),
         where("class", "==", classDocRef),
         orderBy("createdAt", "desc"),
         limit(50)
+        // limit(count > 0 ? count : 50)
       );
-
       // Add the condition for when isClassWise is false
       let q2 = query(
         collection(this._db, CollectionIds.ASSIGNMENT),
@@ -1232,6 +1233,7 @@ export class FirebaseApi implements ServiceApi {
         where("assignedStudents", "array-contains", studentId),
         orderBy("createdAt", "desc"),
         limit(50)
+        // limit(count > 0 ? count : 50)
       );
       const [snapshot1, snapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);
       const queryResult = [...snapshot1.docs, ...snapshot2.docs];
@@ -1250,6 +1252,7 @@ export class FirebaseApi implements ServiceApi {
         let tempAssignmentCompletedIds = localStorage.getItem(
           ASSIGNMENT_COMPLETED_IDS
         );
+        console.warn("Get pending assignments hit: ", assignments)
         let assignmentCompletedIds = JSON.parse(
           tempAssignmentCompletedIds ?? "{}"
         );
@@ -1288,8 +1291,6 @@ export class FirebaseApi implements ServiceApi {
         }
         return true;
       });
-      console.log("Filtered assignments....", filteredAssignments);
-
       return filteredAssignments;
     } catch (error) {
       console.log(
