@@ -288,7 +288,7 @@ const LessonCard: React.FC<{
 
             {showSubjectName && currentCourse?.title ? (
               <div id="lesson-card-subject-name">
-                <p className="ignore">{lesson.title}_</p>
+                <p className="ignore">{lesson.title} </p>
                 <p>
                   {currentCourse?.title}
                   {/* {subject.title==="English"?subject.title:t(subject.title)} */}
