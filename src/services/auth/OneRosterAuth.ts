@@ -125,7 +125,7 @@ export class OneRosterAuth implements ServiceAuth {
       email: actor.mbox[0],
       fcm_token: null,
       gender: "male",
-      grade_id: null,
+      grade_id: "g1",
       id: registration,
       image: null,
       is_deleted: null,

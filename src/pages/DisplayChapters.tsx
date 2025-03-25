@@ -66,7 +66,11 @@ const DisplayChapters: FC<{}> = () => {
 
   const searchParams = new URLSearchParams(location.search);
   const courseDocId = searchParams.get("courseDocId");
-  const getCourseByUrl = localGradeMap?.courses.find(
+  console.log(
+    "const getCourseByUrl = localGradeMap?.courses?.find(",
+    localGradeMap
+  );
+  const getCourseByUrl = localGradeMap?.courses?.find(
     (course) => courseDocId == course.id
   );
   useEffect(() => {
