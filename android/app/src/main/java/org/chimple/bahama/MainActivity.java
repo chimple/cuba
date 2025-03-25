@@ -21,6 +21,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class MainActivity extends BridgeActivity {
+    // private RespectClientManager respectClientManager; // Declare RespectClientManager
     public static MainActivity instance;
     String activity_id = "";
 
@@ -42,6 +43,8 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(PortPlugin.class);
         registerPlugin(NativeSSOPlugin.class);
         super.onCreate(savedInstanceState);
+//        var respectClientManager = RespectClientManager();
+//        respectClientManager.bindService(this);
 
         // Hide navigation bar and set fullscreen mode
         View decorView = getWindow().getDecorView();
@@ -52,6 +55,9 @@ public class MainActivity extends BridgeActivity {
         FirebaseApp.initializeApp(this);
         FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();
         firebaseAppCheck.installAppCheckProviderFactory(DebugAppCheckProviderFactory.getInstance());
+        // Initialize and bind RespectClientManager
+//        respectClientManager = new RespectClientManager(); // Initialize RespectClientManager
+//        respectClientManager.bindService(this); // Bind the service
 
         // Handle deep linking on cold start
         handleDeepLink(getIntent());

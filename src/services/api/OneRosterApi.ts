@@ -945,9 +945,6 @@ export class OneRosterApi implements ServiceApi {
       updated_at: new Date().toISOString(),
       is_deleted: false
     };
-
-    console.log(`Added lesson ${lessonId} to favorites for student ${studentId}`);
-    console.log('Current favorite lessons:', this.favoriteLessons[studentId]);
     
     return favLesson;
   }

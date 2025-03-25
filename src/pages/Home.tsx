@@ -46,8 +46,6 @@ const Home: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isStudentLinked, setIsStudentLinked] = useState<boolean>();
   const [refreshKey, setRefreshKey] = useState(0);
-  const handleLessonClick = useHandleLessonClick();
-  // const { presentToast } = useOnlineOfflineErrorMessageHandler;
 
   
   
@@ -115,16 +113,6 @@ const Home: FC = () => {
       appStateChange(isActive)
     );
   }, []);
-
-  // useEffect(() => {
-
-  //   // Listen for the "sendLaunch" event triggered by Java
-  //   document.addEventListener("sendLaunch", sendLaunch);
-
-  //   return () => {
-  //     document.removeEventListener("sendLaunch", sendLaunch);
-  //   };
-  // }, []);
 
   useEffect(() => {
     setCurrentHeader(
@@ -194,15 +182,6 @@ const Home: FC = () => {
       (await Util.getAllUnlockedRewards()) || [];
     setIsLoading(false);
   };
-
-    // Define sendLaunch function
-    const sendLaunch = async (event?: Event) => {
-      console.log("Calling received from Java:", event);
-      // setTimeout(() => {
-        handleLessonClick(null, true, undefined, true);
-      // }, 5000);
-      
-    };
 
   async function isLinked() {
     const student = Util.getCurrentStudent();

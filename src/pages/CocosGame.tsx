@@ -82,15 +82,7 @@ const CocosGame: React.FC = () => {
   };
   const killGame = (e: any) => {
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
-    // if(Util.isDeepLink) {
-    //   setShowDialogBox(false);
-    //   console.log("deeplink", Util.isDeepLink);
-    //   Util.isDeepLink = false;
-    // }
-    // else{
-    console.log("deeplink", Util.isDeepLink);
     setShowDialogBox(false);
-    // }
 
     Util.killCocosGame();
     initialCount++;
@@ -100,15 +92,7 @@ const CocosGame: React.FC = () => {
 
   const gameEnd = (e: any) => {
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
-    // if(Util.isDeepLink) {
-    //   setShowDialogBox(false);
-    //   console.log("deeplink", Util.isDeepLink);
-    //   Util.isDeepLink = false;
-    // }
-    // else{
-    console.log("deeplink", Util.isDeepLink);
     setShowDialogBox(true);
-    // }
 
     Util.killCocosGame();
     initialCount++;
@@ -164,48 +148,11 @@ const CocosGame: React.FC = () => {
   };
 
   const gameExit = async (e: any) => {
-    // let chapterDetail: TableTypes<"chapter"> | undefined;
-    // if (!!lessonDetail.cocos_chapter_code) {
-    //   let cChap = courseDetail.chapters.find(
-    //     (chap) => lessonDetail.cocosChapterCode === chap.id
-    //   );
-    //   if (cChap) {
-    //     ChapterDetail = cChap;
-    //     console.log("Current Chapter ", ChapterDetail);
-    //   }
-    // }
+    
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
     killGame(e);
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
-    // Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
-    //   user_id: api.currentStudent!.id,
-    //   // assignment_id: lessonDetail.assignment?.id,
-    //   left_game_no: data.currentGameNumber,
-    //   left_game_name: data.gameName,
-    //   chapter_id: data.chapterId,
-    //   chapter_name: chapterDetail ? chapterDetail.name : "",
-    //   lesson_id: data.lessonId,
-    //   lesson_name: lessonDetail.name,
-    //   lesson_type: data.lessonType,
-    //   lesson_session_id: data.lessonSessionId,
-    //   ml_partner_id: data.mlPartnerId,
-    //   ml_class_id: data.mlClassId,
-    //   ml_student_id: data.mlStudentId,
-    //   course_id: data.courseId,
-    //   course_name: courseDetail.name,
-    //   time_spent: data.timeSpent,
-    //   total_moves: data.totalMoves,
-    //   total_games: data.totalGames,
-    //   correct_moves: data.correctMoves,
-    //   wrong_moves: data.wrongMoves,
-    //   game_score: data.gameScore,
-    //   quiz_score: data.quizScore,
-    //   game_completed: data.gameCompleted,
-    //   quiz_completed: data.quizCompleted,
-    //   game_time_spent: data.gameTimeSpent,
-    //   quiz_time_spent: data.quizTimeSpent,
-    // });
     setShowDialogBox(false);
     push();
   };
@@ -229,20 +176,12 @@ const CocosGame: React.FC = () => {
     setIsLoading(false);
     Util.launchCocosGame();
 
-    //Just fot Testing
-
-    // const onProblemEnd = async (e: any) => {
-    //   console.log("🚀 ~ file: CocosGame.tsx:73 ~ onProblemEnd ~ e:", e);
-    //   push();
-    // };
-
     document.body.addEventListener(LESSON_END, handleLessonEndListner, {
       once: true,
     });
     document.body.addEventListener(GAME_END, gameEnd, { once: true });
     document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
 
-    // document.body.addEventListener("problemEnd", onProblemEnd);
   }
   const currentStudentDocId: string = Util.getCurrentStudent()?.id || "";
 
@@ -258,8 +197,6 @@ const CocosGame: React.FC = () => {
         currentStudent.id,
         lesson.id
       );
-
-      console.log("the result is : " , result);
     }
   };
 
@@ -327,62 +264,7 @@ const CocosGame: React.FC = () => {
         classId,
         schoolId
       );
-      // if (!!lessonDetail.cocos_chapter_code) {
-      //   let cChap = courseDetail.chapters.find(
-      //     (chap) => lessonDetail.cocos_chapter_code === chap.id
-      //   );
-      //   if (cChap) {
-      //     ChapterDetail = cChap;
-      //     console.log("Current Chapter ", ChapterDetail);
-      //   }
-      //   let existing = new Map();
-      //   let res: { [key: string]: string } = JSON.parse(
-      //     localStorage.getItem(`${currentStudentDocId}-${RECOMMENDATIONS}`) ||
-      //       "{}"
-      //   );
-      //   const finalLesson = await Util.getNextLessonFromGivenChapter(
-      //     courseDetail.chapters,
-      //     lessonData.chapterId,
-      //     lesson.id,
-      //     ChapterDetail
-      //   );
-      //   console.log("final lesson", finalLesson);
-      //   existing.set(courseDetail.courseCode, finalLesson?.id);
-      //   for (let [key, value] of existing) {
-      //     res[key] = value;
-      //   }
-      //   localStorage.setItem(
-      //     `${currentStudentDocId}-${RECOMMENDATIONS}`,
-      //     JSON.stringify(res)
-      //   );
-      // }
-      // Util.logEvent(EVENTS.LESSON_END, {
-      //   user_id: currentStudent.id,
-      //   // assignment_id: lesson.assignment?.id,
-      //   chapter_id: data.chapterId,
-      //   // chapter_name: ChapterDetail ? ChapterDetail.name : "",
-      //   lesson_id: data.lessonId,
-      //   // lesson_name: lesson.name,
-      //   lesson_type: data.lessonType,
-      //   lesson_session_id: data.lessonSessionId,
-      //   ml_partner_id: data.mlPartnerId,
-      //   ml_class_id: data.mlClassId,
-      //   ml_student_id: data.mlStudentId,
-      //   course_id: data.courseId,
-      //   course_name: courseDetail.name,
-      //   time_spent: data.timeSpent,
-      //   total_moves: data.totalMoves,
-      //   total_games: data.totalGames,
-      //   correct_moves: data.correctMoves,
-      //   wrong_moves: data.wrongMoves,
-      //   game_score: data.gameScore,
-      //   quiz_score: data.quizScore,
-      //   game_completed: data.gameCompleted,
-      //   quiz_completed: data.quizCompleted,
-      //   game_time_spent: data.gameTimeSpent,
-      //   quiz_time_spent: data.quizTimeSpent,
-      //   score: data.score,
-      // });
+      
       console.log(
         "🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:",
         result
