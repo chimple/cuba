@@ -117,10 +117,11 @@ export class OneRosterApi implements ServiceApi {
   private preQuizMap: { [key: string]: { [key: string]: Result } } = {};
   private classes: { [key: string]: Class[] } = {};
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
-  public currentCourse: TableTypes<"course">;
-  public currentChapter: TableTypes<"chapter">;
-  public currentLesson: TableTypes<"lesson">;
+  public currentCourse: TableTypes<"course"> = {};
+  public currentChapter: TableTypes<"chapter"> = {};
+  public currentLesson: TableTypes<"lesson"> = {};
   public allCoursesJson: { [key: string]: TableTypes<"course"> } = {};
+  public allCourseIds = ["en_g1", "en_g2", "maths_g1", "maths_g2", "puzzle"]; //Later get all available courses
 
   private buildXapiQuery(currentUser: { name?: string }): { agentEmail: string; queryStatement: IGetStudentResultStatement } {
     const agentEmail = `mailto:${currentUser?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
@@ -156,9 +157,8 @@ export class OneRosterApi implements ServiceApi {
     studentId: string
   ): Promise<TableTypes<"course">[]> {
     try {
-      // console.log("OneRosterApi.currentCourse?.course_id", OneRosterApi.currentCourse, OneRosterApi.currentCourse?.course_id);
 
-      // const courseJson = await this.loadCourseJson(OneRosterApi.currentCourse?.course_id || "en");
+      // const courseJson = await this.loadCourseJson(this.currentCourse?.course_id || "en");
       // const metaC = courseJson.metadata;
 
       // console.log("getCourses data ", courseJson.metadata);
@@ -188,9 +188,8 @@ export class OneRosterApi implements ServiceApi {
   async getAdditionalCourses(studentId: string): Promise<TableTypes<"course">[]> {
     try {
       let res: TableTypes<"course">[] = [];
-      const allCourseIds = ["en"]; //Later get all available courses
-      for (let i = 0; i < allCourseIds.length; i++) {
-        const element = allCourseIds[i];
+      for (let i = 0; i < this.allCourseIds.length; i++) {
+        const element = this.allCourseIds[i];
         console.log("const element = allCourseIds[i]; ", element);
         const courseJson = await this.loadCourseJson(element);
         console.log("getCourses data ", courseJson.metadata);
@@ -202,7 +201,7 @@ export class OneRosterApi implements ServiceApi {
           curriculum_id: metaC.curriculum,
           description: null,
           grade_id: metaC.grade,
-          id: "en",
+          id: metaC.courseCode,
           image: metaC.thumbnail,
           is_deleted: null,
           name: metaC.title,
@@ -234,7 +233,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"lesson"> | null> {
     try {
 
-      const courseJson = await this.loadCourseJson(OneRosterApi.currentCourse?.course_id || "en");
+      const courseJson = await this.loadCourseJson(this.currentCourse?.course_id || "en");
       const lessonwithCocosLessonIds = courseJson.groups
 
       console.log("getLessonWithCocosLessonId :", lessonwithCocosLessonIds);
@@ -267,7 +266,7 @@ export class OneRosterApi implements ServiceApi {
   }
   async getLesson(id: string): Promise<Lesson | undefined> {
     try {
-      const courseJson = await this.loadCourseJson(OneRosterApi.currentCourse?.course_id || "en");
+      const courseJson = await this.loadCourseJson(this.currentCourse?.course_id || "en");
       const getLessonData = courseJson.groups
       console.log("getLesson : ", getLessonData);
 
@@ -311,7 +310,7 @@ export class OneRosterApi implements ServiceApi {
     courses: TableTypes<"course">[];
   }> {
     try {
-      // const courseJson = await this.loadCourseJson(OneRosterApi.currentCourse?.course_id || "en");
+      // const courseJson = await this.loadCourseJson(this.currentCourse?.course_id || "en");
       // console.log("const courseJson ", courseJson);
 
       // const metaC = courseJson.metadata;
@@ -337,18 +336,19 @@ export class OneRosterApi implements ServiceApi {
       let res = await this.getAllCourses();
       console.log("let res = this.getAllCourses(); ", res);
 
-      let gradeRes: TableTypes<"grade">[] = [
-        {
-          created_at: "null",
-          description: "",
-          id: "g1",
-          image: null,
-          is_deleted: null,
-          name: "Grade 1",
-          sort_index: 1,
-          updated_at: "null",
-        },
-      ];
+      let gradeRes: TableTypes<"grade">[] = this.getAllGrades()
+      // [
+      //   {
+      //     created_at: "null",
+      //     description: "",
+      //     id: "g1",
+      //     image: null,
+      //     is_deleted: null,
+      //     name: "Grade 1",
+      //     sort_index: 1,
+      //     updated_at: "null",
+      //   },
+      // ];
       console.log("async getDifferentGradesForCourse() ", { grades: gradeRes, courses: res });
 
       return { grades: gradeRes, courses: res };
@@ -414,6 +414,7 @@ export class OneRosterApi implements ServiceApi {
       const courseJson = await this.loadCourseJson(courseId);
 
       console.log("getChaptersForCourse data:", courseJson.groups);
+      this.currentCourse.course_id = courseJson.metadata.courseCode;
 
       if (!courseJson.groups) return [];
 
@@ -438,9 +439,8 @@ export class OneRosterApi implements ServiceApi {
     chapterId: string
   ): Promise<TableTypes<"lesson">[] | undefined> {
     try {
-      const courseJson = await this.loadCourseJson(OneRosterApi.currentCourse?.course_id || "en");
-      console.log("getLessonsForChapter data:", courseJson.groups);
-
+      const courseJson = await this.loadCourseJson(this.currentCourse?.course_id || "en");
+      console.log("getLessonsForChapter data: ", this.currentCourse?.course_id || "en", courseJson.groups);
       const chapter = courseJson.groups.find(
         (group: any) => group.metadata.id === chapterId
       );
@@ -531,9 +531,8 @@ export class OneRosterApi implements ServiceApi {
   async getAllCourses(): Promise<TableTypes<"course">[]> {
     try {
       let res: TableTypes<"course">[] = [];
-      const allCourseIds = ["en", "maths", "puzzle"]; //Later get all available courses
-      for (let i = 0; i < allCourseIds.length; i++) {
-        const element = allCourseIds[i];
+      for (let i = 0; i < this.allCourseIds.length; i++) {
+        const element = this.allCourseIds[i];
         console.log("const element = allCourseIds[i]; ", element);
         const courseJson = await this.loadCourseJson(element);
         console.log("getCourses data ", courseJson.metadata);
@@ -759,7 +758,7 @@ export class OneRosterApi implements ServiceApi {
         subject_id: metaC.subject,
         updated_at: null,
       };
-      OneRosterApi.currentCourse = tCourse
+      this.currentCourse = tCourse
       console.log("getCourses data ", tCourse);
       return tCourse;
     } catch (error) {
@@ -996,10 +995,21 @@ export class OneRosterApi implements ServiceApi {
     return undefined;
   }
   getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
-    throw new Error("Method not implemented.");
+    let cur: TableTypes<"curriculum">[] = [{
+      created_at: "", description: "", id: "chimple", name: "Chimple", image: "", sort_index: 1, is_deleted: false, updated_at: ""
+    }]
+
+    return cur
   }
   getAllGrades(): Promise<TableTypes<"grade">[]> {
-    throw new Error("Method not implemented.");
+    let grades: TableTypes<"grade">[] = [{
+      created_at: "", description: "", id: "g1", name: "Grade 1", image: "", sort_index: 1, is_deleted: false, updated_at: ""
+    }, {
+      created_at: "", description: "", id: "g2", name: "Grade 2", image: "", sort_index: 1, is_deleted: false, updated_at: ""
+    }, {
+      created_at: "", description: "", id: "below_g1", name: "Below Grade 1", image: "", sort_index: 1, is_deleted: false, updated_at: ""
+    }]
+    return grades
   }
   getAllLanguages(): Promise<TableTypes<"language">[]> {
     return []
@@ -1702,9 +1712,8 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"course">[]> {
     try {
       const courses: TableTypes<"course">[] = [];
-      const courseList = ["en"]; // Replace with actual list of course IDs if available
 
-      for (const courseId of courseList) {
+      for (const courseId of this.allCourseIds) {
         const courseJson = await this.loadCourseJson(courseId);
 
         // Check if any lesson in the course matches the given lesson ID
@@ -1759,9 +1768,8 @@ export class OneRosterApi implements ServiceApi {
     userId?: string
   ): Promise<string | undefined> {
     try {
-      const courseList = ["en"];
 
-      for (const courseId of courseList) {
+      for (const courseId of this.allCourseIds) {
         const courseJson = await this.loadCourseJson(courseId);
 
         for (const group of courseJson.groups) {
@@ -1813,7 +1821,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"lesson">[] | undefined> {
     try {
 
-      const courseJson = await this.loadCourseJson(OneRosterApi.currentCourse?.course_id || "en");
+      const courseJson = await this.loadCourseJson(this.currentCourse?.course_id || "en");
 
       console.log("getLessonsBylessonIds data:", courseJson.groups);
 
