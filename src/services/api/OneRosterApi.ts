@@ -32,6 +32,8 @@ import { Util } from "../../utility/util";
 import ApiDataProcessor from "./ApiDataProcessor";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
 
+
+
 interface IGetStudentResultStatement {
   agent: {
     mbox: string;
@@ -122,6 +124,8 @@ export class OneRosterApi implements ServiceApi {
   public currentLesson: TableTypes<"lesson"> = {};
   public allCoursesJson: { [key: string]: TableTypes<"course"> } = {};
   public allCourseIds = ["en_g1", "en_g2", "maths_g1", "maths_g2", "puzzle"]; //Later get all available courses
+  private favoriteLessons: { [userId: string]: string[] } = {};
+  private FAVORITE_LESSONS_STORAGE_KEY = "favorite_lessons";
 
   private buildXapiQuery(currentUser: { name?: string }): { agentEmail: string; queryStatement: IGetStudentResultStatement } {
     const agentEmail = `mailto:${currentUser?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
@@ -852,17 +856,48 @@ export class OneRosterApi implements ServiceApi {
       return undefined;
     }
   }
-  updateFavoriteLesson(
+  async updateFavoriteLesson(
     studentId: string,
     lessonId: string
   ): Promise<TableTypes<"favorite_lesson">> {
-    // throw new Error("Method not implemented.");
-    try {
-      return undefined;
-    } catch (error) {
-      console.error("Error in updateFavoriteLesson:", error);
-      return undefined;
+    // Initialize favorites from localStorage if not already loaded
+    if (!this.favoriteLessons[studentId]) {
+      const stored = localStorage.getItem(this.FAVORITE_LESSONS_STORAGE_KEY);
+      this.favoriteLessons = stored ? JSON.parse(stored) : {};
     }
+
+    // Initialize array for this user if needed
+    if (!this.favoriteLessons[studentId]) {
+      this.favoriteLessons[studentId] = [];
+    }
+
+    // Add lessonId if not already present
+    if (!this.favoriteLessons[studentId].includes(lessonId)) {
+      this.favoriteLessons[studentId].push(lessonId);
+      // Persist to localStorage
+      localStorage.setItem(
+        this.FAVORITE_LESSONS_STORAGE_KEY,
+        JSON.stringify(this.favoriteLessons)
+      );
+    }
+
+    // Create and return the favorite_lesson object
+    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+
+    const favLesson: TableTypes<"favorite_lesson"> = {
+      id: uuid,
+      student_id: studentId,
+      lesson_id: lessonId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false
+    };
+
+    return favLesson;
   }
 
   formatDuration = (seconds: number): string => {
@@ -1406,7 +1441,6 @@ export class OneRosterApi implements ServiceApi {
     //   console.log(
     //     "🚀 ~ file: OneRosterApi.ts:216 ~ OneRosterApi ~ getLineItemForClassForLessonId ~ error:",
     //     JSON.stringify(error)
-    //   );
     return;
     // }
   }
@@ -1748,8 +1782,64 @@ export class OneRosterApi implements ServiceApi {
     }
   }
 
-  searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
-    throw new Error("Method not implemented.");
+  async searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
+
+    try {
+      // Get all courses first
+      const courses = await this.getAllCourses();
+      const allLessons: TableTypes<"lesson">[] = [];
+
+      // Process each course
+      for (const course of courses) {
+        try {
+          // Load course JSON using existing method
+          const courseJson = await this.loadCourseJson(course.id);
+          if (!courseJson || !courseJson.groups) continue;
+
+          // Extract lessons from each group
+          const lessons = courseJson.groups.flatMap((group: any) => group.navigation);
+
+          // Case-insensitive search
+          const lowerQuery = searchString.toLowerCase();
+          const matchingLessons = lessons.filter(lesson =>
+            lesson.title.toLowerCase().includes(lowerQuery)
+          );
+
+          // Transform and add matching lessons to results
+          const lessonObjects = matchingLessons.map(lesson => ({
+            id: lesson.id,
+            name: lesson.title,
+            cocos_chapter_code: lesson.cocosChapterCode || null,
+            cocos_lesson_id: lesson.id,
+            cocos_subject_code: lesson.cocosSubjectCode || null,
+            color: null,
+            created_at: new Date().toISOString(),
+            created_by: null,
+            outcome: lesson.outcome,
+            status: lesson.status,
+            subject_id: lesson.subject,
+            plugin_type: lesson.pluginType,
+            updated_at: null,
+            is_deleted: null,
+            image: lesson.thumbnail || null,
+            language_id: lesson.language || null,
+            target_age_from: lesson.targetAgeFrom || null,
+            target_age_to: lesson.targetAgeTo || null
+          }));
+
+          allLessons.push(...lessonObjects);
+        } catch (error) {
+          console.error(`Error processing course ${course.id}:`, error);
+          // Continue with next course even if one fails
+          continue;
+        }
+      }
+
+      return allLessons;
+    } catch (error) {
+      console.error("Error in searchLessons:", error);
+      return [];
+    }
   }
   createOrUpdateAssignmentCart(
     userId: string,
@@ -1828,16 +1918,16 @@ export class OneRosterApi implements ServiceApi {
       if (!courseJson.groups) return [];
 
       const lessons: TableTypes<"lesson">[] = courseJson.groups.flatMap(group =>
-        group.navigation.filter(lesson => lessonIds.includes(lesson.id)).map((group: any) => ({
-          id: group.id,
-          name: group.title,
-          chapter_id: metadata.id,
+        group.navigation.filter(lesson => lessonIds.includes(lesson.id)).map((lesson: any) => ({
+          id: lesson.id,
+          name: lesson.title,
+          chapter_id: group.metadata.id,
           subject_id: group.subject,
-          outcome: group.outcome,
-          status: group.status,
-          type: group.type,
-          thumbnail: group.thumbnail || null,
-          plugin_type: group.pluginType,
+          outcome: lesson.outcome,
+          status: lesson.status,
+          type: lesson.type,
+          thumbnail: lesson.thumbnail || null,
+          plugin_type: lesson.pluginType,
           created_at: "null",
           updated_at: "null",
           is_deleted: null
@@ -2016,10 +2106,21 @@ export class OneRosterApi implements ServiceApi {
       return []; // Ensure function always returns an array
     }
   };
+  async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
+    // Load favorites from localStorage if not already loaded
+    if (!this.favoriteLessons[userId]) {
+      const stored = localStorage.getItem(this.FAVORITE_LESSONS_STORAGE_KEY);
+      this.favoriteLessons = stored ? JSON.parse(stored) : {};
+    }
 
+    const favoriteIds = this.favoriteLessons[userId] || [];
+    if (favoriteIds.length === 0) {
+      return [];
+    }
 
-  getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
-    return [];
+    // Use existing getLessonsBylessonIds to get the full lesson objects
+    const lessons = await this.getLessonsBylessonIds(favoriteIds);
+    return lessons || [];
   }
   getRecommendedLessons(
     studentId: string,
