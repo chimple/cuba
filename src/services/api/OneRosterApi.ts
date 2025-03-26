@@ -32,62 +32,6 @@ import { Util } from "../../utility/util";
 import ApiDataProcessor from "./ApiDataProcessor";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
 
-const searchLessonsQuery = async (query: string, courseFiles?: string[]): Promise<TableTypes<"lesson">[]> => {
-  try {
-    // Fetch and process all course files
-    const allLessons: TableTypes<"lesson">[] = [];
-    
-    for (const filePath of courseFiles) {
-      try {
-        const response = await fetch(filePath);
-        const jsonData = await response.json();
-
-        // Extract lessons from each file
-        const lessons = jsonData.groups.flatMap((group: any) => group.navigation);
-
-        // Case-insensitive search
-        const lowerQuery = query.toLowerCase();
-        const matchingLessons = lessons.filter(lesson => 
-          lesson.title.toLowerCase().includes(lowerQuery)
-        );
-
-        // Transform and add matching lessons to results
-        const lessonObjects = matchingLessons.map(lesson => ({
-          id: lesson.id,
-          name: lesson.title,
-          cocos_chapter_code: lesson.cocosChapterCode || null,
-          cocos_lesson_id: lesson.id,
-          cocos_subject_code: lesson.cocosSubjectCode || null,
-          color: null,
-          created_at: new Date().toISOString(),
-          created_by: null,
-          outcome: lesson.outcome,
-          status: lesson.status,
-          subject_id: lesson.subject,
-          plugin_type: lesson.pluginType,
-          updated_at: null,
-          is_deleted: null,
-          image: lesson.thumbnail || null,
-          language_id: lesson.language || null,
-          target_age_from: lesson.targetAgeFrom || null,
-          target_age_to: lesson.targetAgeTo || null
-        }));
-
-        allLessons.push(...lessonObjects);
-      } catch (error) {
-        console.error(`Error processing file ${filePath}:`, error);
-        // Continue with next file even if one fails
-        continue;
-      }
-    }
-
-    console.log("All Matching Lessons:", allLessons);
-    return allLessons;
-  } catch (error) {
-    console.error("Error in searchLessonsQuery:", error);
-    return [];
-  }
-};
 
 
 interface IGetStudentResultStatement {
@@ -1810,18 +1754,63 @@ export class OneRosterApi implements ServiceApi {
   }
 
   async searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
-    console.log("searchLessons called with:", searchString);
   
-    const courseFiles = [
-      "/assets/courses/en/res/course.json",
-      // Add other course JSON paths here
-    ];
-
-    const matchingLessons = await searchLessonsQuery(searchString, courseFiles);
-    console.log("Matching Lessons:", matchingLessons);
+    try {
+      // Get all courses first
+      const courses = await this.getAllCourses();
+      const allLessons: TableTypes<"lesson">[] = [];
   
-    console.log("Final Lessons:", matchingLessons);
-    return matchingLessons;
+      // Process each course
+      for (const course of courses) {
+        try {
+          // Load course JSON using existing method
+          const courseJson = await this.loadCourseJson(course.id);
+          if (!courseJson || !courseJson.groups) continue;
+  
+          // Extract lessons from each group
+          const lessons = courseJson.groups.flatMap((group: any) => group.navigation);
+  
+          // Case-insensitive search
+          const lowerQuery = searchString.toLowerCase();
+          const matchingLessons = lessons.filter(lesson => 
+            lesson.title.toLowerCase().includes(lowerQuery)
+          );
+  
+          // Transform and add matching lessons to results
+          const lessonObjects = matchingLessons.map(lesson => ({
+            id: lesson.id,
+            name: lesson.title,
+            cocos_chapter_code: lesson.cocosChapterCode || null,
+            cocos_lesson_id: lesson.id,
+            cocos_subject_code: lesson.cocosSubjectCode || null,
+            color: null,
+            created_at: new Date().toISOString(),
+            created_by: null,
+            outcome: lesson.outcome,
+            status: lesson.status,
+            subject_id: lesson.subject,
+            plugin_type: lesson.pluginType,
+            updated_at: null,
+            is_deleted: null,
+            image: lesson.thumbnail || null,
+            language_id: lesson.language || null,
+            target_age_from: lesson.targetAgeFrom || null,
+            target_age_to: lesson.targetAgeTo || null
+          }));
+  
+          allLessons.push(...lessonObjects);
+        } catch (error) {
+          console.error(`Error processing course ${course.id}:`, error);
+          // Continue with next course even if one fails
+          continue;
+        }
+      }
+  
+      return allLessons;
+    } catch (error) {
+      console.error("Error in searchLessons:", error);
+      return [];
+    }
   }
   createOrUpdateAssignmentCart(
     userId: string,
