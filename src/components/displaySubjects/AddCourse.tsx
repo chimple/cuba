@@ -17,6 +17,7 @@ import "../LessonSlider.css";
 import "../../pages/DisplayChapters.css";
 import Curriculum from "../../models/curriculum";
 import Grade from "../../models/grade";
+import { node } from "prop-types";
 
 const AddCourse: FC<{
   courses: Course[];
@@ -99,7 +100,7 @@ const AddCourse: FC<{
     }
   };
 
-  const renderSubjectCard = (curr) => {
+  const renderSubjectCard = (curr, currt) => {
     return (
       <div className="Subject-slider-content">
         <Splide
@@ -171,6 +172,13 @@ const AddCourse: FC<{
                     </div>
                     {t(course?.course.title)}
                     {/* {course.title === "English" ? course.title : course.title} */}
+                    {currt ? (
+                      <div id="ignore">
+                        <div id="ignore">
+                          <p id="ignore">{currt} Curriculum</p>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 </SplideSlide>
               );
@@ -197,7 +205,7 @@ const AddCourse: FC<{
                   <div className="subject-header">
                     {t(curriculum.title + " " + "Curriculum")}
                   </div>
-                  {renderSubjectCard(curriculum.docId)}
+                  {renderSubjectCard(curriculum.docId, curriculum.title)}
                 </div>
               );
             }

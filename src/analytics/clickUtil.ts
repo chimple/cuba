@@ -1,7 +1,6 @@
 import { Util } from "../utility/util";
-import { EVENTS, MODES, PAGES } from "../common/constants";
+import { EVENTS, PAGES } from "../common/constants";
 import { RoleType } from "../interface/modelInterfaces";
-import { ServiceConfig } from "../services/ServiceConfig";
 
 let storedStudent: {
   id?: string;
@@ -21,11 +20,36 @@ const handleClick = async (event: MouseEvent) => {
   storedStudent.type = RoleType.STUDENT;
 
   let target = event.target as HTMLElement;
-  const getTextContent = (element: HTMLElement): any => {
+  const getTextContent = (element: HTMLElement | null): string | undefined => {
+    if (!element) return undefined;
+    //Handle Texts
     let textContent;
-    textContent =
-      target.innerText?.trim() || target.getAttribute("aria-label")?.trim();
+    const cards = document.getElementById("#first-p");
+    if (cards) {
+      textContent = cards?.innerText.trim();
+      return textContent;
+    }
+    if (element) {
+      const textIn =
+        element.innerText?.trim() || element.getAttribute("aria-label")?.trim();
+      textContent = textIn;
+    } else {
+      textContent = target.getAttribute("aria-label")?.trim();
+    }
     if (!textContent) {
+      let currentElement: HTMLElement | null = element;
+      while (
+        !textContent &&
+        currentElement &&
+        currentElement !== document.body
+      ) {
+        textContent =
+          target.innerText?.replace(/\s+/g, " ").trim() ||
+          target.getAttribute("aria-label") ||
+          target.getAttribute("placeholder")?.trim();
+        if (textContent) break;
+        target = target.parentElement as HTMLElement;
+      }
       if (PAGES.EDIT_STUDENT === window.location.pathname) {
         textContent = target
           .getAttribute("src")
@@ -35,14 +59,6 @@ const handleClick = async (event: MouseEvent) => {
           ?.split(".")[0];
         return textContent;
       }
-      while (target && target !== document.body) {
-        textContent = target.innerText?.trim();
-        if (textContent) break;
-        target = target.parentElement as HTMLElement;
-      }
-      textContent =
-        target.innerText?.replace(/\s+/g, " ").trim() ||
-        target.getAttribute("aria-label");
     }
     return textContent;
   };
