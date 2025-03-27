@@ -7,6 +7,7 @@ import {
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
+  RESPECT_GRADES,
   TableTypes,
 } from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
@@ -533,12 +534,6 @@ export class OneRosterApi implements ServiceApi {
   }
   async getAllCourses(): Promise<TableTypes<"course">[]> {
     try {
-      this.studentAvailableCourseIds
-      localStorage.getItem("")
-      if (condition) {
-        
-      }
-      studentAvailableCourseIds = ["en_g1", "en_g2", "maths_g1", "maths_g2", "puzzle"];
       let res: TableTypes<"course">[] = [];
       for (let i = 0; i < this.studentAvailableCourseIds.length; i++) {
         const element = this.studentAvailableCourseIds[i];
@@ -1043,14 +1038,13 @@ export class OneRosterApi implements ServiceApi {
     return []
   }
   getAllGrades(): Promise<TableTypes<"grade">[]> {
-    let grades: TableTypes<"grade">[] = [{
-      created_at: "", description: "", id: "g1", name: "Grade 1", image: "", sort_index: 1, is_deleted: false, updated_at: ""
-    }, {
-      created_at: "", description: "", id: "g2", name: "Grade 2", image: "", sort_index: 1, is_deleted: false, updated_at: ""
-    }, {
-      created_at: "", description: "", id: "below_g1", name: "Below Grade 1", image: "", sort_index: 1, is_deleted: false, updated_at: ""
-    }]
-    return grades
+    let res: TableTypes<"grade">[] = []
+    RESPECT_GRADES.forEach(grade => {
+      res.push({
+        created_at: "", description: "", id: grade.id, name: grade.name, image: "", sort_index: grade.sort_index, is_deleted: false, updated_at: ""
+      })
+    });
+    return res
   }
   getAllLanguages(): Promise<TableTypes<"language">[]> {
     return []

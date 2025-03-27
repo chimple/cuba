@@ -61,12 +61,19 @@ export enum SCHOOL_USERS {
   COORDINATORS = "Coordinators",
   SPONSORS = "Sponsors",
 }
-export enum RESPECT_GRADES {
-  belowGrade1 = "30ecb762-8e63-45b3-a22a-62c1a9f71641",
-  grade1 = "c802dce7-0840-4baf-b374-ef6cb4272a76",
-  grade2 = "36e7ff1f-34d6-42ac-9294-3192433ace40",
-  grade3 = "d8cf7700-e00c-4bf8-a082-222b1ecfe1f7",
-  aboveGrade3 = "d05cb75a-adc2-4365-8548-30b2ac65b321",
+export const RESPECT_GRADES = {
+  grade1: {
+    id: "c802dce7-0840-4baf-b374-ef6cb4272a76", name: "Grade 1", sort_index: 2
+  }, grade2: {
+    id: "36e7ff1f-34d6-42ac-9294-3192433ace40", name: "Grade 2", sort_index: 3
+  }, belowGrade1: {
+    id: "30ecb762-8e63-45b3-a22a-62c1a9f71641", name: "Below Grade 1", sort_index: 1
+  }
+  // belowGrade1 = "30ecb762-8e63-45b3-a22a-62c1a9f71641",
+  // grade1 = "c802dce7-0840-4baf-b374-ef6cb4272a76",
+  // grade2 = "36e7ff1f-34d6-42ac-9294-3192433ace40",
+  // // grade3 = "d8cf7700-e00c-4bf8-a082-222b1ecfe1f7",
+  // // aboveGrade3 = "d05cb75a-adc2-4365-8548-30b2ac65b321",
 }
 
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
