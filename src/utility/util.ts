@@ -83,6 +83,7 @@ import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { URLOpenListenerEvent } from "@capacitor/app";
 import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
+import { Url } from "url";
 
 declare global {
   interface Window {
@@ -1905,5 +1906,18 @@ export class Util {
 
   public static setGameUrl(path: string) {
     localStorage.setItem(GAME_URL, path);
+  }
+  public static async triggerSaveProceesedXlsxFile(data: { fileData: string }) {
+    try {
+      if (!Util.port) {
+        Util.port = registerPlugin<PortPlugin>("Port");
+      }
+      await Util.port.saveProceesedXlsxFile({
+        fileData: data.fileData,
+      });
+      console.log("Download triggered:", data);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
   }
 }

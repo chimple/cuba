@@ -3,6 +3,7 @@ package org.chimple.bahama;
 import static android.content.Intent.getIntent;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,29 +11,35 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
-
+import android.widget.Toast;
+import androidx.activity.result.ActivityResult;
 import androidx.core.content.FileProvider;
-
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
 import com.google.android.gms.auth.api.phone.SmsRetriever;
-
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+
 @CapacitorPlugin(name = "Port")
 public class PortPlugin extends Plugin {
   private static String _otp;
   private static PortPlugin instance;
+  private String fileDataStorage = null;
   public PortPlugin() {
     instance = this; // Assign instance when PortPlugin is created
   }
@@ -270,4 +277,59 @@ public void shareContentWithAndroidShare(PluginCall call) {
     }
 
 
+    @PluginMethod
+    public void saveProceesedXlsxFile(PluginCall call) {
+        String fileData = call.getString("fileData"); // Base64 encoded file data
+        if (fileData == null || fileData.isEmpty()) {
+            call.reject("No file data provided");
+            return;
+        }
+
+        // ✅ Store file data for later use
+        fileDataStorage = fileData;
+
+        // ✅ Open system file picker to save the file
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        intent.putExtra(Intent.EXTRA_TITLE, "ProcessedFile.xlsx");
+
+        call.setKeepAlive(true);
+        startActivityForResult(call, intent, "handleFileSaveResult");
+    }
+
+    @ActivityCallback
+    private void handleFileSaveResult(PluginCall call, ActivityResult result) {
+        if (call == null || result.getResultCode() != Activity.RESULT_OK || result.getData() == null) {
+            call.reject("File save cancelled");
+            return;
+        }
+
+        Uri uri = result.getData().getData();
+        if (uri == null) {
+            call.reject("Invalid file URI");
+            return;
+        }
+
+        if (fileDataStorage == null) {
+            call.reject("File data is missing");
+            return;
+        }
+
+        try (OutputStream outputStream = getContext().getContentResolver().openOutputStream(uri);
+             BufferedOutputStream bos = new BufferedOutputStream(outputStream)) {
+
+            byte[] fileBytes = Base64.decode(fileDataStorage, Base64.NO_WRAP);
+            bos.write(fileBytes);
+            bos.flush();
+
+            fileDataStorage = null; // ✅ Clear stored data after writing
+            Toast.makeText(getContext(), "File saved successfully", Toast.LENGTH_SHORT).show();
+            call.resolve();
+        } catch (IOException e) {
+            call.reject("Error saving file: " + e.getMessage());
+        }
+    }
 }
+
+
