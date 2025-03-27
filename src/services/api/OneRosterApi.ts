@@ -280,7 +280,7 @@ export class OneRosterApi implements ServiceApi {
             if (lesson.id === id) {
               return {
                 id: lesson.id,
-                title: lesson.title,
+                name: lesson.title,
                 chapter_id: group.metadata.id,
                 chapter_title: group.metadata.title,
                 subject_id: lesson.subject,
@@ -340,7 +340,7 @@ export class OneRosterApi implements ServiceApi {
       let res = await this.getAllCourses();
       console.log("let res = this.getAllCourses(); ", res);
 
-      let gradeRes: TableTypes<"grade">[] = this.getAllGrades()
+      let gradeRes: TableTypes<"grade">[] = await this.getAllGrades()
       // [
       //   {
       //     created_at: "null",
@@ -1037,15 +1037,26 @@ export class OneRosterApi implements ServiceApi {
 
     return []
   }
-  getAllGrades(): Promise<TableTypes<"grade">[]> {
-    let res: TableTypes<"grade">[] = []
-    RESPECT_GRADES.forEach(grade => {
-      res.push({
-        created_at: "", description: "", id: grade.id, name: grade.name, image: "", sort_index: grade.sort_index, is_deleted: false, updated_at: ""
-      })
+  async getAllGrades(): Promise<TableTypes<"grade">[]> {
+    let res: TableTypes<"grade">[] = [];
+
+    Object.values(RESPECT_GRADES).forEach((grade) => {
+      let g: TableTypes<"grade"> = {
+        created_at: "",
+        description: "",
+        id: grade.id,
+        name: grade.name,
+        image: "",
+        sort_index: grade.sort_index,
+        is_deleted: false,
+        updated_at: "",
+      };
+      res.push(g);
     });
-    return res
+
+    return Promise.resolve(res);
   }
+
   getAllLanguages(): Promise<TableTypes<"language">[]> {
     return []
     // throw new Error("Method not implemented.");
@@ -2057,17 +2068,12 @@ export class OneRosterApi implements ServiceApi {
         (statement) =>
           statement.object?.definition?.extensions?.["http://example.com/xapi/lessonId"]
       );
-      const testLes = await this.getLesson("YFLWYfx5qpMi1qj3L7TA");
-      console.log("this.getLesson(id)", lessonIds, testLes);
-
 
       const lessonPromises = lessonIds.map(async (id) => (id ? await this.getLesson(id) : Promise.resolve(null)));
       const lessonResults = await Promise.all(lessonPromises);
-      console.log("getStatements const lessonResults ", lessonPromises, lessonResults);
       // Process statements
       const parsedStatements = statements.map((statement, index) => {
         const lesson = lessonResults[index];
-        console.log("getStatements const lesson ", lesson);
 
 
         return {

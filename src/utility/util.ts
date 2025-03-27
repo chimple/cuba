@@ -740,11 +740,9 @@ export class Util {
     let selectedGrade = localStorage.getItem(SELECTED_GRADE());
     let gradeMap = {};
     if (!selectedGrade) {
-      gradeMap = { en: RESPECT_GRADES.grade1, maths: RESPECT_GRADES.grade1 };
-      console.log("in util if (!selectedGrade) {", gradeMap);
+      // gradeMap = { en: RESPECT_GRADES.grade1, maths: RESPECT_GRADES.grade1 };
     } else {
       gradeMap = JSON.parse(selectedGrade);
-      console.log("else (selectedGrade) {", gradeMap);
     }
 
     return courseId;
