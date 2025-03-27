@@ -1304,4 +1304,13 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
+  async updateSchoolLastModified(id: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  async updateClassLastModified(id: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  async updateUserLastModified(id: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
 }
