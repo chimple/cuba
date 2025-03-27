@@ -61,7 +61,7 @@ export enum SCHOOL_USERS {
   COORDINATORS = "Coordinators",
   SPONSORS = "Sponsors",
 }
-export const RESPECT_GRADES = {
+export const RESPECT_GRADES: {} = {
   grade1: {
     id: "c802dce7-0840-4baf-b374-ef6cb4272a76", name: "Grade 1", sort_index: 2
   }, grade2: {
