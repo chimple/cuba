@@ -83,7 +83,6 @@ import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { URLOpenListenerEvent } from "@capacitor/app";
 import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
-import { Url } from "url";
 
 declare global {
   interface Window {
