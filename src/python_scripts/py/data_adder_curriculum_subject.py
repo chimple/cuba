@@ -21,8 +21,18 @@ if supabase:
 
 print("**--------------------------------**")
 
+cm = "Curriculum"
+st = "Subject"
+val = input(f"Choose {cm} or {st} to add, type cm for Curriculum or st for Subject")
+if cm == val:
+    name = cm
+elif st == val:
+    name = st
+else:
+    print("None")
+
 # Firebase table
-collection_name = "Curriculum"
+collection_name = name
 firebase_docs = db.collection(collection_name).stream()
 data_list = []
 for doc in firebase_docs:
@@ -35,7 +45,7 @@ if data_list:
 
 # Supabase table
 print()
-response = supabase.table("curriculum").select("*").execute()
+response = supabase.table(name.lower()).select("*").execute()
 for i in response.data:
     supabase_list.append(i['name'])
 
@@ -45,6 +55,6 @@ print("Existed vales from tables:",matches)
 print("Non-Existed vales from tables:",non_matches)
 
 #Inserting into supabase table
-for name in non_matches:
-    response = supabase.table("curriculum").insert({"name": name}).execute()
-    print(f"Inserted: {name}, Response: {response}")
+for value in non_matches:
+    response = supabase.table(name.lower()).insert({"name": value}).execute()
+    print(f"Inserted: {value}, Response: {response}")

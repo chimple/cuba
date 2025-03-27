@@ -11,40 +11,36 @@ def get_subject_id(doc_data, supabase):
     def normalize(text):
         return unicodedata.normalize('NFC', text.strip()) if text else ''
     title = normalize(get_the_doc(doc_data.get("subject")).get("title"))
-    response = supabase.table("subject").select("id", "name").execute()
-    for row in response.data:
-        if normalize(row["name"]) == title:
-            return row["id"]
+    response = supabase.table("subject").select("id").eq("name", title).execute()
+    if response.data:
+        return response.data[0]["id"]
     return None
 
 def get_grade_id(doc_data, supabase):
     def normalize(text):
         return unicodedata.normalize('NFC', text.strip()) if text else ''
     title = normalize(get_the_doc(doc_data.get("grade")).get("title"))
-    response = supabase.table("grade").select("id", "name").execute()
-    for row in response.data:
-        if normalize(row["name"]) == title:
-            return row["id"]
+    response = supabase.table("grade").select("id").eq("name", title).execute()
+    if response.data:
+        return response.data[0]["id"]
     return None
 
 def get_curriculum_id(doc_data, supabase):
     def normalize(text):
         return unicodedata.normalize('NFC', text.strip()) if text else ''
     title = normalize(get_the_doc(doc_data.get("curriculum")).get("title"))
-    response = supabase.table("curriculum").select("id", "name").execute()
-    for row in response.data:
-        if normalize(row["name"]) == title:
-            return row["id"]
+    response = supabase.table("curriculum").select("id").eq("name", title).execute()
+    if response.data:
+        return response.data[0]["id"]
     return None
 
 def get_language_id(doc_data, supabase):
     def normalize(text):
         return unicodedata.normalize('NFC', text.strip()) if text else ''
     title = normalize(get_the_doc(doc_data.get("language")).get("title"))
-    response = supabase.table("language").select("id", "name").execute()
-    for row in response.data:
-        if normalize(row["name"]) == title:
-            return row["id"]
+    response = supabase.table("language").select("id").eq("name", title).execute()
+    if response.data:
+        return response.data[0]["id"]
     return None
 
 def get_the_doc(ref):
@@ -68,9 +64,6 @@ def fetch_documents_by_id_one_by_one(doc_ids):
             yield doc.to_dict()
         else:
             print(f"Document with ID {doc_id} not found.")
-        print("**Sleep Started**")
-        time.sleep(180)
-        print("**Started Document**")
 
 def get_the_doc(ref):
     if isinstance(ref, firestore.DocumentReference):
@@ -161,4 +154,7 @@ for doc_data in fetch_documents_by_id_one_by_one(document_ids):
                     "is_deleted": False,
                 }).execute()
                 print(f"✅ Inserted in chapter_lesson: {cl.data[0]['id']}")
+                print("**Sleep Started**")
+                time.sleep(180)
+                print("**Started Document**")
     
