@@ -88,7 +88,6 @@ export default class ApiDataProcessor {
     if (response && response.length > 0) {
       response.forEach((result) => {
         const courseId = result.course_id;
-        console.log("response.forEach((result) => { ", result);
 
         if (!resultMap[courseId]) {
           resultMap[courseId] = [];
@@ -96,6 +95,7 @@ export default class ApiDataProcessor {
         resultMap[courseId].push(result);
       });
     }
+    
     return resultMap;
   }
 

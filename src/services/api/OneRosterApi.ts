@@ -144,16 +144,12 @@ export class OneRosterApi implements ServiceApi {
 
   public async loadCourseJson(courseId: string) {
     try {
-      console.log("loadCourseJson ", this.allCoursesJson, this.allCoursesJson[courseId] != undefined, this.allCoursesJson[courseId] != undefined);
-
       if (this.allCoursesJson[courseId] != undefined) return this.allCoursesJson[courseId]
       const jsonFile = "assets/courses/" + courseId + ".json";
       const res = await Util.loadJson(jsonFile)
-      console.log("const jsonFile ", jsonFile, res);
       return res;
     } catch (error) {
       console.error(`Failed to load ${courseId}:`, error);
-      // throw error;
     }
   }
 
@@ -270,30 +266,33 @@ export class OneRosterApi implements ServiceApi {
   }
   async getLesson(id: string): Promise<Lesson | undefined> {
     try {
-      const courseJson = await this.loadCourseJson(this.currentCourse?.course_id || this.allCourseIds[0]);
-      const getLessonData = courseJson.groups
-      console.log("getLesson : ", getLessonData);
+      for (let i = 0; i < this.allCourseIds.length; i++) {
+        const element = this.allCourseIds[i];
+        console.log("const element = allCourseIds[i]; ", element);
+        const courseJson = await this.loadCourseJson(element);
 
-      for (const group of getLessonData) {
-        for (const lesson of group.navigation) {
-          if (lesson.id === id) {
-            console.log("lesson:", lesson);
+        const getLessonData = courseJson.groups
+        console.log("getLesson : ", getLessonData);
 
-            return {
-              id: lesson.id,
-              title: lesson.title,
-              chapter_id: group.metadata.id,
-              chapter_title: group.metadata.title,
-              subject_id: lesson.subject,
-              outcome: lesson.outcome,
-              status: lesson.status,
-              type: lesson.type,
-              thumbnail: lesson.thumbnail || null,
-              plugin_type: lesson.pluginType,
-              created_at: "null",
-              updated_at: "null",
-              is_deleted: null
-            };
+        for (const group of getLessonData) {
+          for (const lesson of group.navigation) {
+            if (lesson.id === id) {
+              return {
+                id: lesson.id,
+                title: lesson.title,
+                chapter_id: group.metadata.id,
+                chapter_title: group.metadata.title,
+                subject_id: lesson.subject,
+                outcome: lesson.outcome,
+                status: lesson.status,
+                type: lesson.type,
+                thumbnail: lesson.thumbnail || null,
+                plugin_type: lesson.pluginType,
+                created_at: "null",
+                updated_at: "null",
+                is_deleted: null
+              };
+            }
           }
         }
       }
@@ -453,7 +452,7 @@ export class OneRosterApi implements ServiceApi {
       const lessons: TableTypes<"lesson">[] = chapter.navigation.map(
         (lesson: any) => ({
           cocos_chapter_code: lesson.cocosChapterCode,
-          cocos_lesson_id: lesson.id,
+          cocos_lesson_id: lesson.cocosLessonCode,
           cocos_subject_code: lesson.cocosSubjectCode,
           color: lesson.color,
           created_at: null,
@@ -641,7 +640,7 @@ export class OneRosterApi implements ServiceApi {
   async getStudentProgress(): Promise<Map<string, string>> {
     try {
       const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();;
-      if (!loggedStudent || !loggedStudent.name) {
+      if (!loggedStudent) {
         throw new Error("No logged-in student found");
       }
 
@@ -654,8 +653,9 @@ export class OneRosterApi implements ServiceApi {
 
       const statements = await this.getStatements(agentEmail, queryStatement);
 
-      return ApiDataProcessor.dataProcessorGetStudentProgress(statements);
-      // return statements;
+      const res = ApiDataProcessor.dataProcessorGetStudentProgress(statements);
+      console.log("async getStudentProgress(): statements ", res);
+      return res;
     } catch (error) {
       console.error("Error in getStudentProgress:", error);
       return new Map();
@@ -940,7 +940,7 @@ export class OneRosterApi implements ServiceApi {
     const agentEmail = `mailto:${loggedStudent?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
 
     const statement = {
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       actor: {
         mbox: agentEmail,
         name: student.name ?? "John Doe",
@@ -1030,11 +1030,11 @@ export class OneRosterApi implements ServiceApi {
     return undefined;
   }
   getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
-    let cur: TableTypes<"curriculum">[] = [{
-      created_at: "", description: "", id: "chimple", name: "Chimple", image: "", sort_index: 1, is_deleted: false, updated_at: ""
-    }]
+    // let cur: TableTypes<"curriculum">[] = [{
+    //   created_at: "", description: "", id: "chimple", name: "Chimple", image: "", sort_index: 1, is_deleted: false, updated_at: ""
+    // }]
 
-    return cur
+    return []
   }
   getAllGrades(): Promise<TableTypes<"grade">[]> {
     let grades: TableTypes<"grade">[] = [{
@@ -2057,28 +2057,33 @@ export class OneRosterApi implements ServiceApi {
         (statement) =>
           statement.object?.definition?.extensions?.["http://example.com/xapi/lessonId"]
       );
+      const testLes = await this.getLesson("YFLWYfx5qpMi1qj3L7TA");
+      console.log("this.getLesson(id)", lessonIds, testLes);
 
-      const lessonPromises = lessonIds.map((id) => (id ? this.getLesson(id) : Promise.resolve(null)));
+
+      const lessonPromises = lessonIds.map(async (id) => (id ? await this.getLesson(id) : Promise.resolve(null)));
       const lessonResults = await Promise.all(lessonPromises);
-
+      console.log("getStatements const lessonResults ", lessonPromises, lessonResults);
       // Process statements
       const parsedStatements = statements.map((statement, index) => {
         const lesson = lessonResults[index];
+        console.log("getStatements const lesson ", lesson);
+
 
         return {
           id: statement.id ?? null,
           studentId:
             statement.context?.extensions?.["http://example.com/xapi/studentId"] ?? null,
-          courseId:
+          course_id:
             statement.object?.definition?.extensions?.["http://example.com/xapi/courseId"] ?? "",
-          lessonId:
+          lesson_id:
             statement.object?.definition?.extensions?.["http://example.com/xapi/lessonId"] ?? null,
-          lessonName: lesson?.title ?? null,
+          lesson_name: lesson?.title ?? null,
           assignmentId:
             statement.result?.extensions?.["http://example.com/xapi/assignmentId"] ?? null,
           chapterId:
             statement.context?.extensions?.["http://example.com/xapi/chapterId"] ?? null,
-          chapterName: lesson?.chapterTitle ?? null,
+          chapter_name: lesson?.chapter_title ?? null,
           schoolId:
             statement.context?.extensions?.["http://example.com/xapi/schoolId"] ?? null,
           createdAt:
@@ -2090,7 +2095,7 @@ export class OneRosterApi implements ServiceApi {
             statement.result?.extensions?.["http://example.com/xapi/correctMoves"] ?? null,
           wrongMoves:
             statement.result?.extensions?.["http://example.com/xapi/wrongMoves"] ?? null,
-          timeSpent: this.parseFormattedDuration(statement.result?.duration) ?? null,
+          time_spent: this.parseFormattedDuration(statement.result?.duration) ?? null,
           success:
             statement.result?.extensions?.["http://example.com/xapi/success"] ?? null,
           compileFunction:
