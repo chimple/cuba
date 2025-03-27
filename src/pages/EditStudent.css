@@ -66,3 +66,8 @@
   margin-bottom: 1.5vh;
   color: #05342f;
 }
+
+.back-button-ignore {
+  visibility: none;
+  display: none;
+}

@@ -56,6 +56,11 @@ def normalize_datetimes(data):
             data[key] = value.isoformat()
     return data
 
+def run_timer():
+    print("**Timer Started**")
+    time.sleep(180)
+    print("**Adding Document..**")
+
 def fetch_documents_by_id_one_by_one(doc_ids):
     for doc_id in doc_ids:
         doc_ref = docs.document(doc_id)
@@ -64,6 +69,7 @@ def fetch_documents_by_id_one_by_one(doc_ids):
             yield doc.to_dict()
         else:
             print(f"Document with ID {doc_id} not found.")
+        run_timer()
 
 def get_the_doc(ref):
     if isinstance(ref, firestore.DocumentReference):
@@ -73,7 +79,7 @@ def get_the_doc(ref):
             return val
 
 # Firebase setup
-FIREBASE_CREDENTIALS_PATH = "serviceAccountKey.json"  # Replace with your Firebase credentials
+FIREBASE_CREDENTIALS_PATH = "serviceAccountKey.json"  
 firebase_admin.initialize_app(credentials.Certificate(FIREBASE_CREDENTIALS_PATH))
 db = firestore.client()
 if db:
@@ -110,7 +116,7 @@ for doc_data in fetch_documents_by_id_one_by_one(document_ids):
     }
     response = supabase.table("course").insert(insert_data).execute()
     if response:
-        print(f"✅ Inserted in course: {response.data[0]['id']}")
+        print(f"✅ Inserted in course: {response}")
         course_id = response.data[0]['id']
         chapter = doc_data['chapters']
         for idx, ch_data in enumerate(chapter):
@@ -123,7 +129,7 @@ for doc_data in fetch_documents_by_id_one_by_one(document_ids):
                 "is_deleted": False
             }
             cr = supabase.table("chapter").insert(chapter_resp).execute()
-            print(f"✅ Inserted in chapter: {cr.data[0]['id']}")
+            print(f"✅ Inserted in chapter: {cr}")
             chapter_id = cr.data[0]['id']
             for idx, lesson_doc in enumerate(ch_data['lessons']):
                 ln_data = lesson_doc.get().to_dict()
@@ -145,7 +151,7 @@ for doc_data in fetch_documents_by_id_one_by_one(document_ids):
                 }
                 lesson_resp = normalize_datetimes(lesson_resp)
                 lr = supabase.table("lesson").insert(lesson_resp).execute()
-                print(f"✅ Inserted in lesson: {lr.data[0]['id']}")
+                print(f"✅ Inserted in lesson: {lr}")
                 lesson_id = lr.data[0]['id']
                 cl = supabase.table("chapter_lesson").insert({ 
                     "lesson_id": lesson_id,
@@ -153,8 +159,5 @@ for doc_data in fetch_documents_by_id_one_by_one(document_ids):
                     "sort_index": idx,
                     "is_deleted": False,
                 }).execute()
-                print(f"✅ Inserted in chapter_lesson: {cl.data[0]['id']}")
-                print("**Sleep Started**")
-                time.sleep(180)
-                print("**Started Document**")
-    
+                print(f"✅ Inserted in chapter_lesson: {cl}")
+                time.sleep(5)
