@@ -2127,11 +2127,90 @@ export class OneRosterApi implements ServiceApi {
     const lessons = await this.getLessonsBylessonIds(favoriteIds);
     return lessons || [];
   }
-  getRecommendedLessons(
+  async getRecommendedLessons(
     studentId: string,
     classId?: string
   ): Promise<TableTypes<"lesson">[]> {
-    return [];
+    try {
+      // Get student's result history
+      const studentResults = await this.getStudentResult(studentId, false);
+      const recommendedLessons: TableTypes<"lesson">[] = [];
+      
+      // Get all available courses
+      const allCourses = await this.getAllCourses();
+      
+      // Create a map of played lessons by course
+      const playedLessonsByCourse = new Map<string, TableTypes<"result">[]>();
+      
+      if (studentResults && studentResults.length > 0) {
+        // Group results by course
+        for (const result of studentResults) {
+          const courseId = result.course_id;
+          if (courseId) {
+            if (!playedLessonsByCourse.has(courseId)) {
+              playedLessonsByCourse.set(courseId, []);
+            }
+            playedLessonsByCourse.get(courseId)?.push(result);
+          }
+        }
+        
+        // For each course with played lessons, get the next lesson
+        for (const [courseId, results] of playedLessonsByCourse.entries()) {
+          // Sort results by date to get the most recently played lesson
+          const sortedResults = results.sort((a, b) => 
+            new Date(b.updated_at ?? "").getTime() - new Date(a.updated_at ?? "").getTime()
+          );
+          
+          const lastPlayedLesson = sortedResults[0];
+          if (lastPlayedLesson) {
+            // Get all lessons for this course
+            const chapters = await this.getChaptersForCourse(courseId);
+            for (const chapter of chapters) {
+              const lessons = await this.getLessonsForChapter(chapter.id);
+              if (lessons) {
+                // Find the index of the last played lesson
+                const lastPlayedIndex = lessons.findIndex(l => l.id === lastPlayedLesson.lesson_id);
+                if (lastPlayedIndex !== -1 && lastPlayedIndex + 1 < lessons.length) {
+                  // Add the next lesson as recommendation
+                  recommendedLessons.push(lessons[lastPlayedIndex + 1]);
+                  // Also add the last played lesson
+                  recommendedLessons.push(lessons[lastPlayedIndex]);
+                }
+              }
+            }
+          }
+        }
+        
+        // For courses with no played lessons, add their first lessons
+        for (const course of allCourses) {
+          if (!playedLessonsByCourse.has(course.id)) {
+            const chapters = await this.getChaptersForCourse(course.id);
+            if (chapters && chapters.length > 0) {
+              const firstChapterLessons = await this.getLessonsForChapter(chapters[0].id);
+              if (firstChapterLessons && firstChapterLessons.length > 0) {
+                recommendedLessons.push(firstChapterLessons[0]);
+              }
+            }
+          }
+        }
+      } else {
+        // If no lessons played at all, get first lesson from each course
+        for (const course of allCourses) {
+          const chapters = await this.getChaptersForCourse(course.id);
+          if (chapters && chapters.length > 0) {
+            const firstChapterLessons = await this.getLessonsForChapter(chapters[0].id);
+            if (firstChapterLessons && firstChapterLessons.length > 0) {
+              recommendedLessons.push(firstChapterLessons[0]);
+            }
+          }
+        }
+      }
+      
+      return recommendedLessons;
+    } catch (error) {
+      console.error("Error in getRecommendedLessons:", error);
+      return [];
+    }
   }
   async getGradeById(id: string): Promise<TableTypes<"grade"> | undefined> {
     return undefined;
