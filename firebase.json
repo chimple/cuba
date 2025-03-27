@@ -2,6 +2,12 @@
   "hosting": [
     {
       "public": "build",
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
       "site": "cuba-stage-dev",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
     },
