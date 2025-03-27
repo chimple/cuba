@@ -61,9 +61,12 @@ export enum SCHOOL_USERS {
   COORDINATORS = "Coordinators",
   SPONSORS = "Sponsors",
 }
-export enum SL_GRADES {
-  GRADE1 = "Grade 1",
-  GRADE2 = "Grade 2",
+export enum RESPECT_GRADES {
+  belowGrade1 = "30ecb762-8e63-45b3-a22a-62c1a9f71641",
+  grade1 = "c802dce7-0840-4baf-b374-ef6cb4272a76",
+  grade2 = "36e7ff1f-34d6-42ac-9294-3192433ace40",
+  grade3 = "d8cf7700-e00c-4bf8-a082-222b1ecfe1f7",
+  aboveGrade3 = "d05cb75a-adc2-4365-8548-30b2ac65b321",
 }
 
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
@@ -551,6 +554,8 @@ export const DEFAULT_SUBJECT_IDS = [
   "c2dfd745-e7f2-4614-8890-f983d04155b2", //Digital Skills
 ];
 
+export const CHIMPLE_CURRICULUM =
+  "7d560737-746a-4931-a49f-02de1ca526bd";
 export const KARNATAKA_STATE_BOARD_CURRICULUM =
   "feec6f59-b8bc-41e8-81aa-2b2689a9fc40";
 export const NCERT_CURRICULUM = "e1629739-5421-4996-a1f7-61225443bd04";

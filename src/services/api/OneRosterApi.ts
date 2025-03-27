@@ -123,7 +123,7 @@ export class OneRosterApi implements ServiceApi {
   public currentChapter: TableTypes<"chapter"> = {};
   public currentLesson: TableTypes<"lesson"> = {};
   public allCoursesJson: { [key: string]: TableTypes<"course"> } = {};
-  public allCourseIds = ["en_g1", "en_g2", "maths_g1", "maths_g2", "puzzle"]; //Later get all available courses
+  public studentAvailableCourseIds = ["en_g1", "en_g2", "maths_g1", "maths_g2", "puzzle"]; //Later get all available courses
   private favoriteLessons: { [userId: string]: string[] } = {};
   private FAVORITE_LESSONS_STORAGE_KEY = "favorite_lessons";
 
@@ -188,8 +188,8 @@ export class OneRosterApi implements ServiceApi {
   async getAdditionalCourses(studentId: string): Promise<TableTypes<"course">[]> {
     try {
       let res: TableTypes<"course">[] = [];
-      for (let i = 0; i < this.allCourseIds.length; i++) {
-        const element = this.allCourseIds[i];
+      for (let i = 0; i < this.studentAvailableCourseIds.length; i++) {
+        const element = this.studentAvailableCourseIds[i];
         console.log("const element = allCourseIds[i]; ", element);
         const courseJson = await this.loadCourseJson(element);
         console.log("getCourses data ", courseJson.metadata);
@@ -233,7 +233,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"lesson"> | null> {
     try {
 
-      const courseJson = await this.loadCourseJson(this.currentCourse?.course_id || this.allCourseIds[0]);
+      const courseJson = await this.loadCourseJson(this.currentCourse?.course_id || this.studentAvailableCourseIds[0]);
       const lessonwithCocosLessonIds = courseJson.groups
 
       console.log("getLessonWithCocosLessonId :", lessonwithCocosLessonIds);
@@ -266,8 +266,8 @@ export class OneRosterApi implements ServiceApi {
   }
   async getLesson(id: string): Promise<Lesson | undefined> {
     try {
-      for (let i = 0; i < this.allCourseIds.length; i++) {
-        const element = this.allCourseIds[i];
+      for (let i = 0; i < this.studentAvailableCourseIds.length; i++) {
+        const element = this.studentAvailableCourseIds[i];
         console.log("const element = allCourseIds[i]; ", element);
         const courseJson = await this.loadCourseJson(element);
 
@@ -442,8 +442,8 @@ export class OneRosterApi implements ServiceApi {
     chapterId: string
   ): Promise<TableTypes<"lesson">[] | undefined> {
     try {
-      const courseJson = await this.loadCourseJson(this.currentCourse?.course_id || this.allCourseIds[0]);
-      console.log("getLessonsForChapter data: ", this.currentCourse?.course_id || this.allCourseIds[0], courseJson.groups);
+      const courseJson = await this.loadCourseJson(this.currentCourse?.course_id || this.studentAvailableCourseIds[0]);
+      console.log("getLessonsForChapter data: ", this.currentCourse?.course_id || this.studentAvailableCourseIds[0], courseJson.groups);
       const chapter = courseJson.groups.find(
         (group: any) => group.metadata.id === chapterId
       );
@@ -533,9 +533,15 @@ export class OneRosterApi implements ServiceApi {
   }
   async getAllCourses(): Promise<TableTypes<"course">[]> {
     try {
+      this.studentAvailableCourseIds
+      localStorage.getItem("")
+      if (condition) {
+        
+      }
+      studentAvailableCourseIds = ["en_g1", "en_g2", "maths_g1", "maths_g2", "puzzle"];
       let res: TableTypes<"course">[] = [];
-      for (let i = 0; i < this.allCourseIds.length; i++) {
-        const element = this.allCourseIds[i];
+      for (let i = 0; i < this.studentAvailableCourseIds.length; i++) {
+        const element = this.studentAvailableCourseIds[i];
         console.log("const element = allCourseIds[i]; ", element);
         const courseJson = await this.loadCourseJson(element);
         console.log("getCourses data ", courseJson.metadata);
@@ -1747,7 +1753,7 @@ export class OneRosterApi implements ServiceApi {
     try {
       const courses: TableTypes<"course">[] = [];
 
-      for (const courseId of this.allCourseIds) {
+      for (const courseId of this.studentAvailableCourseIds) {
         const courseJson = await this.loadCourseJson(courseId);
 
         // Check if any lesson in the course matches the given lesson ID
@@ -1859,7 +1865,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<string | undefined> {
     try {
 
-      for (const courseId of this.allCourseIds) {
+      for (const courseId of this.studentAvailableCourseIds) {
         const courseJson = await this.loadCourseJson(courseId);
 
         for (const group of courseJson.groups) {
@@ -1911,7 +1917,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"lesson">[] | undefined> {
     try {
 
-      const courseJson = await this.loadCourseJson(this.currentCourse?.course_id || this.allCourseIds[0]);
+      const courseJson = await this.loadCourseJson(this.currentCourse?.course_id || this.studentAvailableCourseIds[0]);
 
       console.log("getLessonsBylessonIds data:", courseJson.groups);
 
