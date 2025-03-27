@@ -280,7 +280,7 @@ export class OneRosterApi implements ServiceApi {
             if (lesson.id === id) {
               return {
                 id: lesson.id,
-                name: lesson.title,
+                title: lesson.title,
                 chapter_id: group.metadata.id,
                 chapter_title: group.metadata.title,
                 subject_id: lesson.subject,
@@ -340,7 +340,7 @@ export class OneRosterApi implements ServiceApi {
       let res = await this.getAllCourses();
       console.log("let res = this.getAllCourses(); ", res);
 
-      let gradeRes: TableTypes<"grade">[] = await this.getAllGrades()
+      let gradeRes: TableTypes<"grade">[] = this.getAllGrades()
       // [
       //   {
       //     created_at: "null",
@@ -1037,26 +1037,15 @@ export class OneRosterApi implements ServiceApi {
 
     return []
   }
-  async getAllGrades(): Promise<TableTypes<"grade">[]> {
-    let res: TableTypes<"grade">[] = [];
-
-    Object.values(RESPECT_GRADES).forEach((grade) => {
-      let g: TableTypes<"grade"> = {
-        created_at: "",
-        description: "",
-        id: grade.id,
-        name: grade.name,
-        image: "",
-        sort_index: grade.sort_index,
-        is_deleted: false,
-        updated_at: "",
-      };
-      res.push(g);
+  getAllGrades(): Promise<TableTypes<"grade">[]> {
+    let res: TableTypes<"grade">[] = []
+    RESPECT_GRADES.forEach(grade => {
+      res.push({
+        created_at: "", description: "", id: grade.id, name: grade.name, image: "", sort_index: grade.sort_index, is_deleted: false, updated_at: ""
+      })
     });
-
-    return Promise.resolve(res);
+    return res
   }
-
   getAllLanguages(): Promise<TableTypes<"language">[]> {
     return []
     // throw new Error("Method not implemented.");
@@ -2068,12 +2057,17 @@ export class OneRosterApi implements ServiceApi {
         (statement) =>
           statement.object?.definition?.extensions?.["http://example.com/xapi/lessonId"]
       );
+      const testLes = await this.getLesson("YFLWYfx5qpMi1qj3L7TA");
+      console.log("this.getLesson(id)", lessonIds, testLes);
+
 
       const lessonPromises = lessonIds.map(async (id) => (id ? await this.getLesson(id) : Promise.resolve(null)));
       const lessonResults = await Promise.all(lessonPromises);
+      console.log("getStatements const lessonResults ", lessonPromises, lessonResults);
       // Process statements
       const parsedStatements = statements.map((statement, index) => {
         const lesson = lessonResults[index];
+        console.log("getStatements const lesson ", lesson);
 
 
         return {
@@ -2123,16 +2117,22 @@ export class OneRosterApi implements ServiceApi {
       const stored = localStorage.getItem(this.FAVORITE_LESSONS_STORAGE_KEY);
       this.favoriteLessons = stored ? JSON.parse(stored) : {};
     }
-
+  
     const favoriteIds = this.favoriteLessons[userId] || [];
     if (favoriteIds.length === 0) {
       return [];
     }
-
-    // Use existing getLessonsBylessonIds to get the full lesson objects
-    const lessons = await this.getLessonsBylessonIds(favoriteIds);
-    return lessons || [];
+  
+    console.log("fav lessons : ", favoriteIds);
+    // Use getLesson to retrieve each favorite lesson
+    const lessons = await Promise.all(
+      favoriteIds.map(async (id) => this.getLesson(id))
+    );
+    
+    // Filter out any undefined lessons
+    return lessons.filter((lesson): lesson is TableTypes<"lesson"> => lesson !== undefined);
   }
+  
   async getRecommendedLessons(
     studentId: string,
     classId?: string
@@ -2176,11 +2176,14 @@ export class OneRosterApi implements ServiceApi {
               if (lessons) {
                 // Find the index of the last played lesson
                 const lastPlayedIndex = lessons.findIndex(l => l.id === lastPlayedLesson.lesson_id);
-                if (lastPlayedIndex !== -1 && lastPlayedIndex + 1 < lessons.length) {
-                  // Add the next lesson as recommendation
-                  recommendedLessons.push(lessons[lastPlayedIndex + 1]);
-                  // Also add the last played lesson
+                if (lastPlayedIndex !== -1) {
+                  // Add the last played lesson
                   recommendedLessons.push(lessons[lastPlayedIndex]);
+                  // Check if there is a next lesson
+                  if (lastPlayedIndex + 1 < lessons.length) {
+                    // Add the next lesson as recommendation
+                    recommendedLessons.push(lessons[lastPlayedIndex + 1]);
+                  }
                 }
               }
             }
