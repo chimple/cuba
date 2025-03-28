@@ -383,7 +383,7 @@ const EditStudent = () => {
         {stage === STAGES.GENDER_AND_AGE && (
           <>
             <div id="Edit-student-back-button">
-              <span className="back-button">Back</span>
+              <span className="back-button-ignore">Back</span>
               <BackButton
                 aria-label={t("Back")}
                 onClicked={() => {
