@@ -1906,4 +1906,17 @@ export class Util {
   public static setGameUrl(path: string) {
     localStorage.setItem(GAME_URL, path);
   }
+  public static async triggerSaveProceesedXlsxFile(data: { fileData: string }) {
+    try {
+      if (!Util.port) {
+        Util.port = registerPlugin<PortPlugin>("Port");
+      }
+      await Util.port.saveProceesedXlsxFile({
+        fileData: data.fileData,
+      });
+      console.log("Download triggered:", data);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  }
 }

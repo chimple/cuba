@@ -1018,10 +1018,9 @@ export class SqliteApi implements ServiceApi {
           : null;
       if (localClassId) {
         // Remove the student's connection to the class
-        await this.executeQuery(
-          `DELETE FROM class_user WHERE user_id = ? AND is_deleted = 0`,
-          [studentId]
-        );
+        await this.executeQuery(`DELETE FROM class_user WHERE user_id = ?`, [
+          studentId,
+        ]);
 
         // Check if any other child of the parent is connected to the same class
         const otherChildrenConnected = await this._db.query(
@@ -1254,7 +1253,7 @@ export class SqliteApi implements ServiceApi {
   SELECT *
   FROM ${TABLES.ParentUser} AS parent
   JOIN ${TABLES.User} AS student ON parent.student_id = student.id
-  WHERE parent.parent_id = "${currentUser.id}";
+  WHERE parent.parent_id = "${currentUser.id}" AND parent.is_deleted = 0 AND student.is_deleted = 0; 
 `;
     const res = await this._db.query(query);
     return res.values ?? [];
@@ -1626,12 +1625,13 @@ export class SqliteApi implements ServiceApi {
       is_deleted: false,
       chapter_id: chapterId,
       course_id: courseId ?? "",
+      class_id: classId ?? "",
     };
 
     const res = await this.executeQuery(
       `
-    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id , class_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `,
       [
         newResult.id,
@@ -1648,6 +1648,7 @@ export class SqliteApi implements ServiceApi {
         newResult.is_deleted,
         newResult.course_id,
         newResult.chapter_id,
+        newResult.class_id,
       ]
     );
     console.log("🚀 ~ SqliteApi ~ res:", res);
@@ -2292,10 +2293,11 @@ export class SqliteApi implements ServiceApi {
     }
   }
   async deleteUserFromClass(userId: string): Promise<void> {
+    const updatedAt = new Date().toISOString();
     try {
       await this.executeQuery(
-        `UPDATE class_user SET is_deleted = 1 WHERE user_id = ?`,
-        [userId]
+        `UPDATE class_user SET is_deleted = 1 , updated_at = ? WHERE user_id = ?`,
+        [updatedAt, userId]
       );
       const query = `
       SELECT * 
@@ -3196,6 +3198,7 @@ export class SqliteApi implements ServiceApi {
         is_deleted: false,
         chapter_id: chapter_id,
         course_id: course_id,
+        source: null,
       };
 
       console.log("Assignment data:", assignment_data);
@@ -3870,6 +3873,31 @@ order by
     }
   }
 
+  async checkUserIsManagerOrDirector(
+    schoolId: string,
+    userId: string
+  ): Promise<boolean> {
+    // Check if user is PROGRAM_MANAGER, OPERATIONAL_DIRECTOR, or FIELD_COORDINATOR in school_user
+    const result = await this.executeQuery(
+      `SELECT * FROM school_user 
+     WHERE school_id = ? AND user_id = ?
+     AND role IN (?, ?, ?)  
+     AND is_deleted = false`,
+      [
+        schoolId,
+        userId,
+        RoleType.PROGRAM_MANAGER,
+        RoleType.OPERATIONAL_DIRECTOR,
+        RoleType.FIELD_COORDINATOR,
+      ]
+    );
+
+    if (result?.values && result.values.length > 0) {
+      return true;
+    }
+    return false;
+  }
+
   async checkUserExistInSchool(
     schoolId: string,
     userId: string
@@ -4208,11 +4236,12 @@ order by
       AND role = '${role}' AND is_deleted = 0
     `;
       const res = await this._db?.query(query, [userId, schoolId]);
+      const updatedAt = new Date().toISOString();
 
       await this.executeQuery(
-        `UPDATE school_user SET is_deleted = 1 WHERE user_id = ? 
+        `UPDATE school_user SET is_deleted = 1 , updated_at = ? WHERE user_id = ? 
         AND school_id = ? AND role = '${role}' AND is_deleted = 0`,
-        [userId, schoolId]
+        [updatedAt, userId, schoolId]
       );
 
       let userData;
@@ -4229,4 +4258,40 @@ order by
       console.log("🚀 ~ SqliteApi ~ deleteUserFromSchool ~ error:", error);
     }
   }
+  async updateSchoolLastModified(schoolId: string): Promise<void> {
+    const updatedAt = new Date().toISOString();
+    await this.executeQuery(`UPDATE school SET updated_at = ? WHERE id = ?;`, [
+      updatedAt,
+      schoolId,
+    ]);
+    this.updatePushChanges(TABLES.School, MUTATE_TYPES.UPDATE, {
+      id: schoolId,
+      updated_at: updatedAt,
+    });
+  }
+
+  async updateClassLastModified(classId: string): Promise<void> {
+    const updatedAt = new Date().toISOString();
+    await this.executeQuery(`UPDATE class SET updated_at = ? WHERE id = ?;`, [
+      updatedAt,
+      classId,
+    ]);
+    this.updatePushChanges(TABLES.Class, MUTATE_TYPES.UPDATE, {
+      id: classId,
+      updated_at: updatedAt,
+    });
+  }
+
+  async updateUserLastModified(userId: string): Promise<void> {
+    const updatedAt = new Date().toISOString();
+    await this.executeQuery(`UPDATE user SET updated_at = ? WHERE id = ?;`, [
+      updatedAt,
+      userId,
+    ]);
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      id: userId,
+      updated_at: updatedAt,
+    });
+  }
+
 }

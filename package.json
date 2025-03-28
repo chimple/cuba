@@ -33,6 +33,7 @@
     "@codetrix-studio/capacitor-google-auth": "^3.3.6",
     "@emotion/react": "^11.10.8",
     "@emotion/styled": "^11.10.8",
+    "@growthbook/growthbook-react": "^1.4.1",
     "@ionic/react": "^6.0.0",
     "@ionic/react-router": "^6.0.0",
     "@mui/icons-material": "^5.15.15",
@@ -96,6 +97,7 @@
     "workbox-routing": "^5.1.4",
     "workbox-strategies": "^5.1.4",
     "workbox-streams": "^5.1.4",
+    "xlsx": "^0.18.5",
     "zip2": "^0.0.4"
   },
   "scripts": {

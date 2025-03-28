@@ -300,6 +300,7 @@ const EditStudent = () => {
       <div id="Edit-student-back-button">
         {!isEdit && !state?.showBackButton ? null : (
           <BackButton
+            aria-label={t("Back")}
             onClicked={() => {
               localStorage.removeItem(EDIT_STUDENT_STORE);
               history.replace(PAGES.DISPLAY_STUDENT);
@@ -360,6 +361,7 @@ const EditStudent = () => {
           <>
             <div id="Edit-student-back-button">
               <BackButton
+                aria-label={t("Back")}
                 onClicked={() => {
                   localStoreData.stage = STAGES.GENDER_AND_AGE;
                   addDataToLocalStorage();
@@ -381,7 +383,9 @@ const EditStudent = () => {
         {stage === STAGES.GENDER_AND_AGE && (
           <>
             <div id="Edit-student-back-button">
+              <span className="back-button-ignore">Back</span>
               <BackButton
+                aria-label={t("Back")}
                 onClicked={() => {
                   localStoreData.stage = STAGES.NAME;
                   addDataToLocalStorage();
@@ -419,6 +423,7 @@ const EditStudent = () => {
             <>
               <div id="Edit-student-back-button">
                 <BackButton
+                  aria-label={t("Back")}
                   onClicked={() => {
                     localStoreData.stage = STAGES.AVATAR;
                     addDataToLocalStorage();

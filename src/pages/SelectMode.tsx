@@ -335,6 +335,7 @@ const SelectMode: FC = () => {
               <div className="class-main">
                 <div className="class-header">
                   <BackButton
+                    aria-label={t("Back")}
                     onClicked={() => {
                       //  history.replace(PAGES.SELECT_SCHOOL);
                       setStage(STAGES.SCHOOL);
@@ -378,6 +379,7 @@ const SelectMode: FC = () => {
               <div>
                 <div className="class-header">
                   <BackButton
+                    aria-label={t("Back")}
                     onClicked={() => {
                       //  history.replace(PAGES.SELECT_SCHOOL);
                       setStage(STAGES.CLASS);

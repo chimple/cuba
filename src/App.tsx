@@ -118,6 +118,10 @@ import "./App.css";
 import ShowStudentsInAssignmentPage from "./chimple-private/pages/ShowStudentsInAssignmentPage";
 import { schoolUtil } from "./utility/schoolUtil";
 import LidoPlayer from "./pages/LidoPlayer";
+import UploadPage from "./ops-console/pages/UploadPage";
+import { initializeClickListener } from "./analytics/clickUtil";
+import { EVENTS } from "./common/constants";
+import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 
 setupIonicReact();
 interface ExtraData {
@@ -135,6 +139,25 @@ const LAST_ACCESS_DATE_KEY = "lastAccessDate";
 const IS_INITIALIZED = "isInitialized";
 let timeoutId: NodeJS.Timeout;
 
+const gb = new GrowthBook({
+  apiHost: "https://cdn.growthbook.io",
+  clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
+  enableDevMode: true,
+  trackingCallback: (experiment, result) => {
+    console.log("Experiment Viewed", {
+      experimentId: experiment.key,
+      variationId: result.key,
+    });
+    Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
+      experimentId: experiment.key,
+      variationId: result.key,
+    })
+  },
+});
+gb.init({
+  streaming: true
+})
+
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
@@ -151,6 +174,7 @@ const App: React.FC = () => {
   const [showToast, setShowToast] = useState<boolean>(false);
   const [isActive, setIsActive] = useState(true);
   useEffect(() => {
+    const cleanup = initializeClickListener();
     const handleOnline = () => {
       if (!online) {
         setOnline(true);
@@ -191,6 +215,7 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      cleanup();
     };
   }, [online, presentToast]);
   useEffect(() => {
@@ -443,6 +468,7 @@ const App: React.FC = () => {
     }
   }
   return (
+    <GrowthBookProvider growthbook={gb}>
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>
         <IonRouterOutlet>
@@ -684,6 +710,11 @@ const App: React.FC = () => {
                 <AddSchoolUser />
               </Suspense>
             </ProtectedRoute>
+            <ProtectedRoute path={PAGES.UPLOAD_PAGE} exact={true}>
+              <Suspense>
+                <UploadPage />
+              </Suspense>
+            </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
         <IonAlert
@@ -715,6 +746,7 @@ const App: React.FC = () => {
         />
       </IonReactRouter>
     </IonApp>
+    </GrowthBookProvider>
   );
 };
 

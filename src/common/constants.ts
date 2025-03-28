@@ -450,8 +450,13 @@ export enum PAGES {
   ADD_PRINCIPAL = "/add-principal",
   ADD_COORDINATOR = "/add-coordinator",
   ADD_SPONSOR = "/add-sponsor",
+  UPLOAD_PAGE = "/upload-page",
 }
 
+export const enum ASSIGNMENT_TYPE {
+  ASSIGNMENT = "assignment",
+  LIVEQUIZ = "liveQuiz",
+}
 export enum LANG {
   ENGLISH = "en",
   HINDI = "hi",
@@ -554,6 +559,7 @@ export interface PortPlugin {
     imageFile?: File[];
   }): Promise<void>;
   shareUserId(options: { userId: string }): Promise<void>;
+  saveProceesedXlsxFile(options: { fileData: string }): Promise<void>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [
@@ -662,6 +668,8 @@ export enum EVENTS {
   LESSON_END = "lesson_end",
   LESSON_INCOMPLETE = "lesson_incomplete",
   USER_PROFILE = "user_profile",
+  CLICKS_ANALYTICS = "clicks_analytics",
+  EXPERIMENT_VIEWED = "experiment_viewed",
 }
 
 export const FCM_TOKENS = "fcmTokens";

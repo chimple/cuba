@@ -56802,6 +56802,10 @@
         {
           "column": "chapter_id",
           "value": "TEXT"
+        },
+        {
+          "column": "class_id",
+          "value": "TEXT"
         }
       ]
     },
