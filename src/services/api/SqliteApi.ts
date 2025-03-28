@@ -1603,7 +1603,7 @@ export class SqliteApi implements ServiceApi {
         newResult.is_deleted,
         newResult.course_id,
         newResult.chapter_id,
-        newResult.class_id
+        newResult.class_id,
       ]
     );
     console.log("🚀 ~ SqliteApi ~ res:", res);
@@ -2248,10 +2248,11 @@ export class SqliteApi implements ServiceApi {
     }
   }
   async deleteUserFromClass(userId: string): Promise<void> {
+    const updatedAt = new Date().toISOString();
     try {
       await this.executeQuery(
-        `UPDATE class_user SET is_deleted = 1 WHERE user_id = ?`,
-        [userId]
+        `UPDATE class_user SET is_deleted = 1 , updated_at = ? WHERE user_id = ?`,
+        [updatedAt, userId]
       );
       const query = `
       SELECT * 
@@ -4190,11 +4191,12 @@ order by
       AND role = '${role}' AND is_deleted = 0
     `;
       const res = await this._db?.query(query, [userId, schoolId]);
+      const updatedAt = new Date().toISOString();
 
       await this.executeQuery(
-        `UPDATE school_user SET is_deleted = 1 WHERE user_id = ? 
+        `UPDATE school_user SET is_deleted = 1 , updated_at = ? WHERE user_id = ? 
         AND school_id = ? AND role = '${role}' AND is_deleted = 0`,
-        [userId, schoolId]
+        [updatedAt, userId, schoolId]
       );
 
       let userData;
@@ -4211,4 +4213,40 @@ order by
       console.log("🚀 ~ SqliteApi ~ deleteUserFromSchool ~ error:", error);
     }
   }
+  async updateSchoolLastModified(schoolId: string): Promise<void> {
+    const updatedAt = new Date().toISOString();
+    await this.executeQuery(`UPDATE school SET updated_at = ? WHERE id = ?;`, [
+      updatedAt,
+      schoolId,
+    ]);
+    this.updatePushChanges(TABLES.School, MUTATE_TYPES.UPDATE, {
+      id: schoolId,
+      updated_at: updatedAt,
+    });
+  }
+
+  async updateClassLastModified(classId: string): Promise<void> {
+    const updatedAt = new Date().toISOString();
+    await this.executeQuery(`UPDATE class SET updated_at = ? WHERE id = ?;`, [
+      updatedAt,
+      classId,
+    ]);
+    this.updatePushChanges(TABLES.Class, MUTATE_TYPES.UPDATE, {
+      id: classId,
+      updated_at: updatedAt,
+    });
+  }
+
+  async updateUserLastModified(userId: string): Promise<void> {
+    const updatedAt = new Date().toISOString();
+    await this.executeQuery(`UPDATE user SET updated_at = ? WHERE id = ?;`, [
+      updatedAt,
+      userId,
+    ]);
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      id: userId,
+      updated_at: updatedAt,
+    });
+  }
+
 }
