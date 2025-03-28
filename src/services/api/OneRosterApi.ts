@@ -2165,7 +2165,6 @@ export class OneRosterApi implements ServiceApi {
       if (studentResults && studentResults.length > 0) {
         // Group results by course
         const playedLessonsByCourse = Util.groupResultsByCourse(studentResults);
-
         
         // For each course with played lessons, get recommendations
         for (const [courseId, results] of playedLessonsByCourse.entries()) {
@@ -2190,7 +2189,7 @@ export class OneRosterApi implements ServiceApi {
         recommendedLessons.push(...firstLessons);
       }
       
-      return recommendedLessons;
+      return recommendedLessons.reverse();
     } catch (error) {
       console.error("Error in getRecommendedLessons:", error);
       return [];
