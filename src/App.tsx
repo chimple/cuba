@@ -140,7 +140,7 @@ let timeoutId: NodeJS.Timeout;
 
 const gb = new GrowthBook({
   apiHost: "https://cdn.growthbook.io",
-  clientKey: "sdk-8qjX5TWdnSyzgJLi",
+  clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
   enableDevMode: true,
   trackingCallback: (experiment, result) => {
     console.log("Experiment Viewed", {
