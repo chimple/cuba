@@ -200,9 +200,13 @@ export class Util {
         playedLessonsByCourse.get(courseId)?.push(result);
       }
     }
-    
-    return playedLessonsByCourse;
+  
+    const sortEntries = Array.from(playedLessonsByCourse.entries()).reverse();
+    const sortedMap = new Map<string, TableTypes<"result">[]>(sortEntries);
+  
+    return sortedMap;
   }
+  
 
   public static getMostRecentResult(results: TableTypes<"result">[]): TableTypes<"result"> | undefined {
     if (results.length === 0) return undefined;

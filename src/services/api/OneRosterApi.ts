@@ -2189,7 +2189,7 @@ export class OneRosterApi implements ServiceApi {
         recommendedLessons.push(...firstLessons);
       }
       
-      return recommendedLessons.reverse();
+      return recommendedLessons;
     } catch (error) {
       console.error("Error in getRecommendedLessons:", error);
       return [];
