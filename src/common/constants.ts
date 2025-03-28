@@ -51,6 +51,7 @@ export enum TABLES {
   Result = "result",
   Assignment_cart = "assignment_cart",
   // Chatbot = "chatbot",
+  ReqNewSchool = "req_new_school",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",

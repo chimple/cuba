@@ -910,6 +910,59 @@ export type Database = {
           },
         ]
       }
+      req_new_school: {
+        Row: {
+          city: string
+          created_at: string | null
+          district: string
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          is_resolved: boolean | null
+          name: string
+          state: string
+          udise_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          city: string
+          created_at?: string | null
+          district: string
+          id?: string
+          image?: string | null
+          is_deleted?: boolean | null
+          is_resolved?: boolean | null
+          name: string
+          state: string
+          udise_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          city?: string
+          created_at?: string | null
+          district?: string
+          id?: string
+          image?: string | null
+          is_deleted?: boolean | null
+          is_resolved?: boolean | null
+          name?: string
+          state?: string
+          udise_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "req_new_school_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       result: {
         Row: {
           assignment_id: string | null

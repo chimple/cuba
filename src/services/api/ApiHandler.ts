@@ -165,6 +165,20 @@ export class ApiHandler implements ServiceApi {
       image
     );
   }
+  public async requestNewSchool(
+    name: string,
+    state: string,
+    district: string,
+    city: string,
+    image: File | null,
+    udise_id?: string
+  ): Promise<TableTypes<"req_new_school"> | null> {
+    return await this.s.requestNewSchool(name, state, district, city, image, udise_id);
+  }
+  public async getExistingSchoolRequest(userId: string): Promise<TableTypes<"req_new_school"> | null> {
+    return await this.s.getExistingSchoolRequest(userId);
+  }
+  
   public async getSchoolsForUser(
     userId: string
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
