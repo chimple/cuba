@@ -32,7 +32,7 @@ import tincan from "../../tincan";
 import { Util } from "../../utility/util";
 import ApiDataProcessor from "./ApiDataProcessor";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
-
+import { v4 as uuidv4 } from "uuid";
 
 
 interface IGetStudentResultStatement {
@@ -158,32 +158,37 @@ export class OneRosterApi implements ServiceApi {
     studentId: string
   ): Promise<TableTypes<"course">[]> {
     try {
+      // First get all available courses
+      const allCourses = await this.getAllCourses();
+      const student = await Util.getCurrentStudent(); 
+      
+      // If student doesn't have curriculum_id or grade_id, return all courses
+      if (!student.curriculum_id && !student.grade_id) {
+        console.log("Student missing curriculum_id or grade_id, returning all courses");
+        return allCourses;
+      }
+      
+      // Filter courses based on student's curriculum_id and grade_id
+      const filteredCourses = allCourses.filter(course => {
+        // Match either curriculum_id or grade_id (if they exist)
+        const curriculumMatch = !student.curriculum_id || course.curriculum_id === student.curriculum_id;
+        const gradeMatch = !student.grade_id || course.grade_id === student.grade_id;
+        
+        // Return true if both curriculum and grade match
+        return curriculumMatch && gradeMatch;
+      });
 
-      // const courseJson = await this.loadCourseJson(this.currentCourse?.course_id || this.allCourseIds[0]);
-      // const metaC = courseJson.metadata;
-
-      // console.log("getCourses data ", courseJson.metadata);
-      // let tCourse: TableTypes<"course"> = {
-      //   code: metaC.courseCode,
-      //   color: metaC.color,
-      //   created_at: "null",
-      //   curriculum_id: metaC.curriculum,
-      //   description: null,
-      //   grade_id: metaC.grade,
-      //   id: this.allCourseIds[0],
-      //   image: metaC.thumbnail,
-      //   is_deleted: null,
-      //   name: metaC.title,
-      //   sort_index: metaC.sortIndex,
-      //   subject_id: metaC.subject,
-      //   updated_at: null,
-      // };
-      // let res = [];
-      // res.push(tCourse);
-
-      return this.getAllCourses()
+      allCourses.forEach((course) => {
+        if(course.id == "puzzle") {
+          filteredCourses.push(course);
+        }
+      });
+      
+      console.log(`Filtered courses for student ${student.name}:`, filteredCourses);
+      return filteredCourses;
     } catch (error) {
       console.error("Error fetching JSON:", error);
+      return [];
     }
   }
   async getAdditionalCourses(studentId: string): Promise<TableTypes<"course">[]> {
@@ -278,11 +283,12 @@ export class OneRosterApi implements ServiceApi {
         for (const group of getLessonData) {
           for (const lesson of group.navigation) {
             if (lesson.id === id) {
+              console.log("cocos lesson a --->", lesson);
               return {
                 id: lesson.id,
                 name: lesson.title,
                 cocos_chapter_code: lesson.cocosChapterCode,
-                cocos_lesson_id: lesson.id,
+                cocos_lesson_id: lesson.cocosLessonCode,
                 cocos_subject_code: lesson.cocosSubjectCode,
                 chapter_id: group.metadata.id,
                 chapter_title: group.metadata.title,
@@ -456,7 +462,7 @@ export class OneRosterApi implements ServiceApi {
       const lessons: TableTypes<"lesson">[] = chapter.navigation.map(
         (lesson: any) => ({
           cocos_chapter_code: lesson.cocosChapterCode,
-          cocos_lesson_id: lesson.id,
+          cocos_lesson_id: lesson.cocosLessonCode,
           cocos_subject_code: lesson.cocosSubjectCode,
           color: lesson.color,
           created_at: null,
@@ -1823,9 +1829,9 @@ export class OneRosterApi implements ServiceApi {
           const lessonObjects = matchingLessons.map(lesson => ({
             id: lesson.id,
             name: lesson.title,
-            cocos_chapter_code: lesson.cocosChapterCode || null,
-            cocos_lesson_id: lesson.id,
-            cocos_subject_code: lesson.cocosSubjectCode || null,
+            cocos_chapter_code: lesson.cocosChapterCode,
+            cocos_lesson_id: lesson.cocosLessonCode ?? lesson.id,
+            cocos_subject_code: lesson.cocosSubjectCode,
             color: null,
             created_at: new Date().toISOString(),
             created_by: null,
@@ -2141,84 +2147,47 @@ export class OneRosterApi implements ServiceApi {
     // Filter out any undefined lessons
     return lessons.filter((lesson): lesson is TableTypes<"lesson"> => lesson !== undefined);
   }
-  
+
   async getRecommendedLessons(
     studentId: string,
     classId?: string
   ): Promise<TableTypes<"lesson">[]> {
     try {
-      // Get student's result history
-      const studentResults = await this.getStudentResult(studentId, false);
       const recommendedLessons: TableTypes<"lesson">[] = [];
       
-      // Get all available courses
-      const allCourses = await this.getAllCourses();
-      
-      // Create a map of played lessons by course
-      const playedLessonsByCourse = new Map<string, TableTypes<"result">[]>();
-      
+      // Get student's result history and all available courses
+      const studentResults = await this.getStudentResult(studentId, false);
+      const currentStudent = await Util.getCurrentStudent(); 
+      console.log("current student details : ", currentStudent);
+      const allCourses = await this.getCoursesForParentsStudent(currentStudent?.id);
+
+      // If student has played lessons before
       if (studentResults && studentResults.length > 0) {
         // Group results by course
-        for (const result of studentResults) {
-          const courseId = result.course_id;
-          if (courseId) {
-            if (!playedLessonsByCourse.has(courseId)) {
-              playedLessonsByCourse.set(courseId, []);
-            }
-            playedLessonsByCourse.get(courseId)?.push(result);
-          }
-        }
+        const playedLessonsByCourse = Util.groupResultsByCourse(studentResults);
+
         
-        // For each course with played lessons, get the next lesson
+        // For each course with played lessons, get recommendations
         for (const [courseId, results] of playedLessonsByCourse.entries()) {
-          // Sort results by date to get the most recently played lesson
-          const sortedResults = results.sort((a, b) => 
-            new Date(b.updated_at ?? "").getTime() - new Date(a.updated_at ?? "").getTime()
-          );
-          
-          const lastPlayedLesson = sortedResults[0];
+          const lastPlayedLesson = Util.getMostRecentResult(results);
+
           if (lastPlayedLesson) {
-            // Get all lessons for this course
-            const chapters = await this.getChaptersForCourse(courseId);
-            for (const chapter of chapters) {
-              const lessons = await this.getLessonsForChapter(chapter.id);
-              if (lessons) {
-                // Find the index of the last played lesson
-                const lastPlayedIndex = lessons.findIndex(l => l.id === lastPlayedLesson.lesson_id);
-                if (lastPlayedIndex !== -1 && lastPlayedIndex + 1 < lessons.length) {
-                  // Add the next lesson as recommendation
-                  recommendedLessons.push(lessons[lastPlayedIndex + 1]);
-                  // Also add the last played lesson
-                  recommendedLessons.push(lessons[lastPlayedIndex]);
-                }
-              }
-            }
+            const courseRecommendations = await Util.getNextLessonsForCourse(courseId, lastPlayedLesson);
+
+            recommendedLessons.push(...courseRecommendations);
           }
         }
         
-        // For courses with no played lessons, add their first lessons
-        for (const course of allCourses) {
-          if (!playedLessonsByCourse.has(course.id)) {
-            const chapters = await this.getChaptersForCourse(course.id);
-            if (chapters && chapters.length > 0) {
-              const firstChapterLessons = await this.getLessonsForChapter(chapters[0].id);
-              if (firstChapterLessons && firstChapterLessons.length > 0) {
-                recommendedLessons.push(firstChapterLessons[0]);
-              }
-            }
-          }
-        }
+        // Get recommendations for courses that haven't been played
+        const unplayedRecommendations = await Util.getRecommendationsForUnplayedCourses(
+          allCourses,
+          new Set(playedLessonsByCourse.keys())
+        );
+        recommendedLessons.push(...unplayedRecommendations);
       } else {
         // If no lessons played at all, get first lesson from each course
-        for (const course of allCourses) {
-          const chapters = await this.getChaptersForCourse(course.id);
-          if (chapters && chapters.length > 0) {
-            const firstChapterLessons = await this.getLessonsForChapter(chapters[0].id);
-            if (firstChapterLessons && firstChapterLessons.length > 0) {
-              recommendedLessons.push(firstChapterLessons[0]);
-            }
-          }
-        }
+        const firstLessons = await Util.getFirstLessonsFromAllCourses(allCourses);
+        recommendedLessons.push(...firstLessons);
       }
       
       return recommendedLessons;
