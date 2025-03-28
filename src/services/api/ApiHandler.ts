@@ -832,7 +832,10 @@ export class ApiHandler implements ServiceApi {
   checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean> {
     return this.s.checkUserExistInSchool(schoolId, userId);
   }
-  checkUserIsManagerOrDirector(schoolId: string, userId: string):  Promise<boolean> {
+  checkUserIsManagerOrDirector(
+    schoolId: string,
+    userId: string
+  ): Promise<boolean> {
     return this.s.checkUserIsManagerOrDirector(schoolId, userId);
   }
   async getAssignmentsByAssignerAndClass(
@@ -934,5 +937,14 @@ export class ApiHandler implements ServiceApi {
     role: RoleType
   ): Promise<void> {
     return this.s.deleteUserFromSchool(schoolId, userId, role);
+  }
+  async updateSchoolLastModified(schoolId: string): Promise<void> {
+    return await this.s.updateSchoolLastModified(schoolId);
+  }
+  async updateClassLastModified(classId: string): Promise<void> {
+    return await this.s.updateSchoolLastModified(classId);
+  }
+  async updateUserLastModified(userId: string): Promise<void> {
+    return await this.s.updateUserLastModified(userId);
   }
 }

@@ -1207,4 +1207,22 @@ export interface ServiceApi {
     userId: string,
     role: RoleType
   ): Promise<void>;
+
+  /**
+   * updates a school LastModified time and Date
+   * @param {string} id - The unique identifier of the school.
+   */
+  updateSchoolLastModified(id: string): Promise<void>;
+
+  /**
+   * updates a Class LastModified time and Date
+   * @param {string} id - The unique identifier of the Class.
+   */
+  updateClassLastModified(id: string): Promise<void>;
+
+  /**
+   * updates a User LastModified time and Date
+   * @param {string} id - The unique identifier of the User.
+   */
+  updateUserLastModified(id: string): Promise<void>;
 }
