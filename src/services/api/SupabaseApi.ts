@@ -311,6 +311,19 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+  requestNewSchool(
+    name: string,
+    state: string,
+    district: string,
+    city: string,
+    image: File | null,
+    udise_id?: string): Promise<TableTypes<"req_new_school"> | null> {
+    throw new Error("Method not implemented.");
+  }
+  getExistingSchoolRequest(userId: string): Promise<TableTypes<"req_new_school"> | null> {
+    throw new Error("Method not implemented.");
+  }
+
   createProfile(
     name: string,
     age: number | undefined,
