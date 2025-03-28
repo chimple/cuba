@@ -77,10 +77,13 @@ const JoinClass: FC<{
     setShowDialogBox(false);
     setLoading(true);
     const student = Util.getCurrentStudent();
+  
     try {
-      if (student != null && inviteCode != null) {
-        const result = await api.linkStudent(inviteCode, student.id);
+      if (!student || inviteCode == null) {
+        throw new Error("Student or invite code is missing.");
       }
+      await api.linkStudent(inviteCode, student.id);
+  
       if (!!codeResult) {
         Util.subscribeToClassTopic(
           codeResult["class_id"],
@@ -93,18 +96,19 @@ const JoinClass: FC<{
           console.error("Class data not found.");
           throw new Error("Class data could not be fetched.");
         }
+        await api.updateSchoolLastModified(codeResult["school_id"]);
+        await api.updateClassLastModified(codeResult["class_id"]);
+        await api.updateUserLastModified(student.id);
       }
       onClassJoin();
       const event = new CustomEvent("JoinClassListner", { detail: "Joined" });
       window.dispatchEvent(event);
-      // history.replace("/");
-      // window.location.reload();
     } catch (error) {
       if (error instanceof Object) setError(error.toString());
     }
-
     setLoading(false);
   };
+  
   const location = useLocation();
 
   useEffect(() => {

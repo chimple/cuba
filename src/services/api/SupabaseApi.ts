@@ -28,6 +28,10 @@ export class SupabaseApi implements ServiceApi {
   private _assignmetRealTime?: RealtimeChannel;
   private _assignmentUserRealTime?: RealtimeChannel;
   private _liveQuizRealTime?: RealtimeChannel;
+  public async clearUserCache(): Promise<void> {
+    console.log("SupabaseApi.clearUserCache: No local cache to clear.");
+    return;
+  }
   getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;
