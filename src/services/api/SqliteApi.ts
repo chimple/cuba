@@ -4219,7 +4219,7 @@ order by
       updatedAt,
       schoolId,
     ]);
-    await this.updatePushChanges(TABLES.School, MUTATE_TYPES.UPDATE, {
+    this.updatePushChanges(TABLES.School, MUTATE_TYPES.UPDATE, {
       id: schoolId,
       updated_at: updatedAt,
     });
@@ -4231,7 +4231,7 @@ order by
       updatedAt,
       classId,
     ]);
-    await this.updatePushChanges(TABLES.Class, MUTATE_TYPES.UPDATE, {
+    this.updatePushChanges(TABLES.Class, MUTATE_TYPES.UPDATE, {
       id: classId,
       updated_at: updatedAt,
     });
@@ -4243,7 +4243,7 @@ order by
       updatedAt,
       userId,
     ]);
-    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       id: userId,
       updated_at: updatedAt,
     });
