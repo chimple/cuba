@@ -36,6 +36,7 @@ import Subjects from "./Subjects";
 import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
+import { useGrowthBook } from "@growthbook/growthbook-react";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -68,6 +69,7 @@ const Home: FC = () => {
   const [recommendedLessonCourseMap, setRecommendedLessonCourseMap] = useState<{
     [lessonId: string]: { course_id: string };
   }>({});
+  const growthbook = useGrowthBook();
 
   let tempPageNumber = 1;
   const location = useLocation();
@@ -220,7 +222,7 @@ const Home: FC = () => {
     let reqLes: TableTypes<"lesson">[] = [];
     // setIsLoading(true);
     const student = Util.getCurrentStudent();
-
+    setGrowthbookAttributes(student);
     // const studentResult = await api.getStudentResult(student.id, false);
     const linkedData =
       student != null
@@ -278,6 +280,14 @@ const Home: FC = () => {
       // setIsLoading(false);
       return [];
     }
+  }
+
+  const setGrowthbookAttributes = (student: any) => {
+    console.log('currentStudent: ', student)
+    growthbook.setAttributes({
+      id: student.id,
+      curriculum_id: student.curriculum_id
+    })
   }
 
   async function getRecommendeds(
