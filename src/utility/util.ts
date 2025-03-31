@@ -1919,4 +1919,16 @@ export class Util {
       console.error("Download failed:", error);
     }
   }
+  public static handleMissingEntities(
+    history: any,
+    redirectPage: string,
+    origin: PAGES,
+    classId?: string
+  ) {
+    history.replace(redirectPage, {
+      classId: classId,
+      origin: origin,
+      isSelect: true,
+    });
+  }
 }
