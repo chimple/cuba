@@ -7,8 +7,10 @@ import { FaCloudDownloadAlt } from "react-icons/fa";
 import { t } from "i18next";
 import { Util } from "../../utility/util";
 import { CiRedo } from "react-icons/ci";
+import { ServiceConfig } from "../../services/ServiceConfig";
 
 const FileUpload: React.FC = () => {
+  const api = ServiceConfig.getI()?.apiHandler;
   const [file, setFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -38,36 +40,268 @@ const FileUpload: React.FC = () => {
       setIsProcessing(false);
     };
   };
+  const validateEmailOrPhone = (value: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\d{10}$/; // Assuming 10-digit phone numbers
+    console.log("fsdfscsf", emailRegex.test(value), phoneRegex.test(value));
+    return emailRegex.test(value) || phoneRegex.test(value);
+  };
   const processFile = async () => {
     if (!fileBuffer) return;
     progressRef.current = 40;
     setVerifyingProgressState(progressRef.current);
+    const workbook = XLSX.read(fileBuffer, { type: "array" });
 
-    try {
-      const workbook = XLSX.read(fileBuffer, { type: "array" });
-      workbook.SheetNames.forEach((sheet) => {
-        const worksheet = workbook.Sheets[sheet];
-        const data: Record<string, any>[] = XLSX.utils.sheet_to_json(worksheet);
-        data.forEach((row) => (row["Updated"] = "✅ Processed"));
-        const updatedSheet = XLSX.utils.json_to_sheet(data);
-        progressRef.current = 70;
-        setVerifyingProgressState(progressRef.current);
+    let validatedSchoolIds: Set<string> = new Set(); // Store valid school IDs
 
-        workbook.Sheets[sheet] = updatedSheet;
-      });
-
-      const processedData = XLSX.write(workbook, {
-        bookType: "xlsx",
-        type: "array",
-      });
-      progressRef.current = 80;
+    for (const sheet of workbook.SheetNames) {
+      const worksheet = workbook.Sheets[sheet];
+      let data: Record<string, any>[] = XLSX.utils.sheet_to_json(worksheet);
+      progressRef.current = 70;
       setVerifyingProgressState(progressRef.current);
-      setIsProcessing(false);
-      handleDownload(processedData);
-    } catch (error) {
-      console.error("Processing failed:", error);
-      setIsProcessing(false);
+
+      // **Check if it's a School Sheet**
+      if (sheet.toLowerCase().includes("school")) {
+        for (let row of data) {
+          let errors: string[] = [];
+
+          const schoolId = row["SCHOOL ID"]?.toString().trim();
+          const schoolName = row["SCHOOL NAME"]?.toString().trim();
+          const state = row["STATE"]?.toString().trim();
+          const district = row["DISTRICT"]?.toString().trim();
+          const block = row["BLOCK"]?.toString().trim();
+          const cluster = row["CLUSTER"]?.toString().trim();
+          const academicYear = row["SCHOOL ACADEMIC YEAR"]?.toString().trim();
+          const programName = row["PROGRAM NAME"]?.toString().trim();
+          const programModel = row["PROGRAM MODEL"]?.toString().trim();
+          const programManagerPhone = row[
+            "PROGRAM MANAGER EMAIL OR PHONE NUMBER"
+          ]
+            ?.toString()
+            .trim();
+          const fieldCoordinatorPhone = row[
+            "FIELD COORDINATOR EMAIL OR PHONE NUMBER"
+          ]
+            ?.toString()
+            .trim();
+          const schoolInstructionLanguage = row["SCHOOL INSTRUCTION LANGUAGE"]
+            ?.toString()
+            .trim();
+          const principalName = row["PRINCIPAL NAME"]?.toString().trim();
+          const principalPhone = row["PRINCIPAL PHONE NUMBER OR EMAIL ID"]
+            ?.toString()
+            .trim();
+          const schoolCoordinatorName = row["SCHOOL COORDINATOR NAME"]
+            ?.toString()
+            .trim();
+          const schoolCoordinatorPhone = row[
+            "SCHOOL COORDINATOR PHONE NUMBER OR EMAIL ID"
+          ]
+            ?.toString()
+            .trim();
+          const studentLoginType = row["STUDENT LOGIN TYPE"]?.toString().trim();
+
+          // Validate format
+          if (
+            programManagerPhone &&
+            !validateEmailOrPhone(programManagerPhone)
+          ) {
+            errors.push("Invalid PROGRAM MANAGER EMAIL OR PHONE NUMBER format");
+          }
+
+          if (
+            fieldCoordinatorPhone &&
+            !validateEmailOrPhone(fieldCoordinatorPhone)
+          ) {
+            errors.push(
+              "Invalid FIELD COORDINATOR EMAIL OR PHONE NUMBER format"
+            );
+          }
+
+          // **Condition 1: If SCHOOL ID (UDISE Code) is present**
+          if (schoolId) {
+            // Validate only required fields
+            if (!schoolName) errors.push("Missing SCHOOL NAME");
+            if (!schoolInstructionLanguage)
+              errors.push("Missing SCHOOL INSTRUCTION LANGUAGE");
+
+            // Call API for validation if all required fields are filled
+            if (errors.length === 0) {
+              const validationResponse = await api.validateSchoolData(
+                schoolId,
+                schoolName,
+                schoolInstructionLanguage
+              );
+              if (validationResponse.status === "error") {
+                errors.push(...(validationResponse.errors || []));
+              } else {
+                validatedSchoolIds.add(schoolId); // ✅ Store valid school IDs
+              }
+            }
+          }
+          // **Condition 2: If SCHOOL ID (UDISE Code) is missing**
+          else {
+            // Validate all required fields
+            if (!schoolName) errors.push("Missing SCHOOL NAME");
+            if (!state) errors.push("Missing STATE");
+            if (!district) errors.push("Missing DISTRICT");
+            if (!block) errors.push("Missing BLOCK");
+            if (!cluster) errors.push("Missing CLUSTER");
+            if (!academicYear) errors.push("Missing SCHOOL ACADEMIC YEAR");
+            if (!programName) errors.push("Missing PROGRAM NAME");
+            if (!programModel) errors.push("Missing PROGRAM MODEL");
+            if (!programManagerPhone)
+              errors.push("Missing PROGRAM MANAGER EMAIL OR PHONE NUMBER");
+            if (!fieldCoordinatorPhone)
+              errors.push("Missing FIELD COORDINATOR EMAIL OR PHONE NUMBER");
+            if (!schoolInstructionLanguage)
+              errors.push("Missing SCHOOL INSTRUCTION LANGUAGE");
+            if (!principalName) errors.push("Missing PRINCIPAL NAME");
+            if (!principalPhone)
+              errors.push("Missing PRINCIPAL PHONE NUMBER OR EMAIL ID");
+            if (!studentLoginType) errors.push("Missing STUDENT LOGIN TYPE");
+          }
+          row["Updated"] =
+            errors.length > 0
+              ? `❌ Errors: ${errors.join(", ")}`
+              : "✅ School Validated";
+        }
+      }
+
+      // **Check if it's a Class Sheet**
+      if (sheet.toLowerCase().includes("class")) {
+        for (let row of data) {
+          let errors: string[] = [];
+          const schoolId = row["SCHOOL ID"]?.toString().trim();
+          const grade = row["GRADE"]?.toString().trim();
+          const classSection = row["CLASS SECTION"]?.toString().trim();
+          const subjectGrade = row["SUBJECT GRADE"]?.toString().trim();
+          const curriculum = row["CURICULLUM"]?.toString().trim();
+          const subject = row["SUBJECT"]?.toString().trim();
+          const studentCount = row["STUDENTS COUNT IN CLASS"]
+            ?.toString()
+            .trim();
+          const className = `${grade} ${classSection}`.trim();
+          if (
+            !schoolId ||
+            !grade ||
+            !subjectGrade ||
+            !curriculum ||
+            !subject ||
+            !studentCount
+          ) {
+            errors.push("Missing required class details.");
+          } else {
+            if (!validatedSchoolIds.has(schoolId)) {
+              errors.push("SCHOOL ID does not match any validated school.");
+            }
+          }
+          const validationResponse =
+            await api.validateClassCurriculumAndSubject(curriculum, subject);
+          if (validationResponse.status === "error") {
+            errors.push(...(validationResponse.errors || []));
+          }
+          row["Updated"] =
+            errors.length > 0
+              ? `❌ Errors: ${errors.join(", ")}`
+              : "✅ Class Validated";
+        }
+      }
+      // **Teacher Sheet Validation**
+      if (sheet.toLowerCase().includes("teacher")) {
+        for (let row of data) {
+          let errors: string[] = [];
+          const schoolId = row["SCHOOL ID"]?.toString().trim();
+          const grade = row["GRADE"]?.toString().trim();
+          const classSection = row["CLASS SECTION"]
+            ? row["CLASS SECTION"].toString().trim()
+            : "";
+          const teacherName = row["TEACHER NAME"]?.toString().trim();
+          const teacherContact = row["TEACHER PHONE NUMBER OR EMAIL"]
+            ?.toString()
+            .trim();
+          const className = `${grade} ${classSection}`.trim();
+          if (!schoolId || !grade || !teacherName || !teacherContact) {
+            errors.push("Missing required teacher details.");
+          } else {
+            if (!validatedSchoolIds.has(schoolId)) {
+              errors.push("SCHOOL ID does not match any validated school.");
+            }
+          }
+          if (teacherContact && !validateEmailOrPhone(teacherContact)) {
+            errors.push("Invalid TEACHER PHONE NUMBER OR EMAIL format.");
+          }
+          const validationResponse = await api.validateClassExistence(
+            schoolId,
+            className
+          );
+          if (validationResponse.status === "error") {
+            errors.push(...(validationResponse.errors || []));
+          }
+          row["Updated"] =
+            errors.length > 0
+              ? `❌ Errors: ${errors.join(", ")}`
+              : "✅ Teacher Validated";
+        }
+      }
+
+      // **Student Sheet Validation**
+      if (sheet.toLowerCase().includes("student")) {
+        for (let row of data) {
+          let errors: string[] = [];
+          const schoolId = row["SCHOOL ID"]?.toString().trim();
+          const studentId = row["STUDENT ID"]?.toString().trim();
+          const studentName = row["STUDENT NAME"]?.toString().trim();
+          const gender = row["GENDER"]?.toString().trim();
+          const age = row["AGE"]?.toString().trim();
+          const grade = row["GRADE"]?.toString().trim();
+          const classSection = row["CLASS SECTION"]
+            ? row["CLASS SECTION"].toString().trim()
+            : "";
+          const parentContact = row["PARENT PHONE NUMBER OR LOGIN ID"]
+            ?.toString()
+            .trim();
+          const className = `${grade} ${classSection}`.trim();
+
+          if (!schoolId || !studentName || !age || !grade || !parentContact) {
+            errors.push("Missing required student details.");
+          } else {
+            if (!validatedSchoolIds.has(schoolId)) {
+              errors.push("SCHOOL ID does not match any validated school.");
+            }
+          }
+          if (parentContact && !validateEmailOrPhone(parentContact)) {
+            errors.push("Invalid PARENT PHONE NUMBER OR LOGIN ID format.");
+          }
+
+          const validationResponse = await api.validateClassExistence(
+            schoolId,
+            className
+          );
+          if (validationResponse.status === "error") {
+            errors.push(...(validationResponse.errors || []));
+          }
+
+          row["Updated"] =
+            errors.length > 0
+              ? `❌ Errors: ${errors.join(", ")}`
+              : "✅ Student Validated";
+        }
+      }
+
+      // **Update sheet with validation messages**
+      const updatedSheet = XLSX.utils.json_to_sheet(data);
+      workbook.Sheets[sheet] = updatedSheet;
     }
+    const processedData = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    progressRef.current = 80;
+    setVerifyingProgressState(progressRef.current);
+    setIsProcessing(false);
+    handleDownload(processedData);
+    return XLSX.write(workbook, { bookType: "xlsx", type: "array" });
   };
 
   const handleDownload = async (processedData: ArrayBuffer) => {

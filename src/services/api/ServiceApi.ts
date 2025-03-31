@@ -1225,4 +1225,18 @@ export interface ServiceApi {
    * @param {string} id - The unique identifier of the User.
    */
   updateUserLastModified(id: string): Promise<void>;
+
+  validateSchoolData(
+    schoolId: string,
+    schoolName: string,
+    instructionMedium: string
+  ): Promise<{ status: string; errors?: string[] }>;
+  validateClassCurriculumAndSubject(
+    curriculumName: string,
+    subjectName: string
+  ): Promise<{ status: string; errors?: string[] }>;
+  validateClassExistence(
+    schoolId: string,
+    className: string
+  ): Promise<{ status: string; errors?: string[] }>;
 }

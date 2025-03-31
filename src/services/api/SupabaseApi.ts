@@ -836,7 +836,7 @@ export class SupabaseApi implements ServiceApi {
         this._assignmentUserRealTime.unsubscribe();
         this._assignmentUserRealTime = undefined;
       }
-  
+
       this._assignmentUserRealTime = this.supabase?.channel("assignment_user");
       if (!this._assignmentUserRealTime) {
         throw new Error("Failed to establish channel for assignment_user");
@@ -866,7 +866,7 @@ export class SupabaseApi implements ServiceApi {
       console.error("🛑 Error in Supabase assignment_user listener:", error);
     }
   }
-  
+
   async assignmentListner(
     classId: string,
     onDataChange: (assignment: TableTypes<"assignment"> | undefined) => void
@@ -1312,5 +1312,122 @@ export class SupabaseApi implements ServiceApi {
   }
   async updateUserLastModified(id: string): Promise<void> {
     throw new Error("Method not implemented.");
+  }
+
+  async validateSchoolData(
+    schoolId: string,
+    schoolName: string,
+    instructionMedium: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    const { data, error } = await this.supabase
+      .from("school_data")
+      .select("udise_code, school_name, instruction_medium") // Select only required fields
+      .eq("udise_code", schoolId)
+      .single();
+    if (error || !data) {
+      return { status: "error", errors: ["Invalid SCHOOL ID (UDISE Code)"] };
+    }
+
+    let errors: string[] = [];
+
+    if (data.school_name !== schoolName) {
+      errors.push("SCHOOL NAME does not match the database record");
+    }
+    console.log("kjgfkjdsjfs", data.instruction_medium, instructionMedium);
+    if (data.instruction_medium !== instructionMedium) {
+      errors.push(
+        "SCHOOL INSTRUCTION LANGUAGE does not match the database record"
+      );
+    }
+    const result =
+      errors.length > 0 ? { status: "error", errors } : { status: "success" };
+
+    console.log("Returning:", result); // ✅ Logs what is being returned
+
+    return result;
+  }
+
+  async validateClassCurriculumAndSubject(
+    curriculumName: string,
+    subjectName: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    // Step 1: Fetch curriculum ID based on the provided curriculum name
+    const { data: curriculumData, error: curriculumError } = await this.supabase
+      .from("curriculum")
+      .select("id")
+      .eq("name", curriculumName)
+      .single();
+
+    if (curriculumError || !curriculumData) {
+      return {
+        status: "error",
+        errors: ["Invalid curriculum name"],
+      };
+    }
+    const curriculumId = curriculumData.id;
+    // Step 2: Check if the subject exists for the curriculum
+    const { data: courseData, error: courseError } = await this.supabase
+      .from("course")
+      .select("id")
+      .eq("curriculum_id", curriculumId)
+      .eq("name", subjectName)
+      .single();
+    console.log("fsdfsd", courseData);
+
+    if (courseError || !courseData) {
+      return {
+        status: "error",
+        errors: [
+          `Subject '${subjectName}' not found in the '${curriculumName}' curriculum.`,
+        ],
+      };
+    }
+
+    // If both checks pass, return success
+    return { status: "success" };
+  }
+  async validateClassExistence(
+    schoolId: string,
+    className: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+    console.log("Class Data: 122", schoolId, className);
+    className = className.trim();
+    const { data, error } = await this.supabase
+      .from("class")
+      .select("school_id") // Select only required fields
+      .eq("school_id", schoolId)
+      .eq("class_name", className)
+      .single();
+
+    console.log("Class Data: 121", data);
+
+    if (error || !data) {
+      return {
+        status: "error",
+        errors: ["Class does not exist for the given SCHOOL ID"],
+      };
+    }
+
+    return { status: "success" };
   }
 }

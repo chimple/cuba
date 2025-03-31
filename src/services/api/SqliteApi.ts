@@ -4249,4 +4249,39 @@ order by
     });
   }
 
+  async validateSchoolData(
+    schoolId: string,
+    schoolName: string,
+    instructionMedium: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const schoolData = await this._serverApi.validateSchoolData(schoolId, schoolName, instructionMedium);
+    console.log("fdsfdsfs", schoolData);
+    if (!schoolData) {
+      return { status: "error", errors: ["Invalid SCHOOL ID (UDISE Code)"] };
+    }
+    return { status: "success" };
+  }
+  
+  async validateClassCurriculumAndSubject(
+    curriculumName: string,
+    subjectName: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const ClassCurriculum = await this._serverApi.validateClassCurriculumAndSubject(curriculumName, subjectName);
+    console.log("fdsfdsfs", ClassCurriculum);
+    if (ClassCurriculum.status === "error") {
+      return { status: "error", errors: ClassCurriculum.errors || ["Invalid class curriculum"] };
+    }
+    return { status: "success" };
+  }
+  
+  async validateClassExistence(
+    schoolId: string,
+    className: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const classExistence = await this._serverApi.validateClassExistence(schoolId, className);
+    if (classExistence.status === "error") {
+      return { status: "error", errors: classExistence.errors || ["Invalid class curriculum"] };
+    }
+    return { status: "success" };
+  }
 }
