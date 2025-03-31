@@ -100,6 +100,9 @@ export class Util {
   static LAST_MODAL_SHOWN_KEY = "lastModalShown";
   static isDeepLink: boolean = false;
 
+  public api = ServiceConfig.getI().apiHandler;
+
+
   // public static convertCourses(_courses: Course1[]): Course1[] {
   //   let courses: Course1[] = [];
   //   _courses.forEach((course) => {
@@ -183,6 +186,137 @@ export class Util {
       // }
       return undefined;
     }
+  }
+
+  public static groupResultsByCourse(studentResults: TableTypes<"result">[]): Map<string, TableTypes<"result">[]> {
+    const playedLessonsByCourse = new Map<string, TableTypes<"result">[]>();
+    
+    for (const result of studentResults) {
+      const courseId = result.course_id;
+      if (courseId) {
+        if (!playedLessonsByCourse.has(courseId)) {
+          playedLessonsByCourse.set(courseId, []);
+        }
+        playedLessonsByCourse.get(courseId)?.push(result);
+      }
+    }
+  
+    const sortEntries = Array.from(playedLessonsByCourse.entries()).reverse();
+    const sortedMap = new Map<string, TableTypes<"result">[]>(sortEntries);
+  
+    return sortedMap;
+  }
+  
+
+  public static getMostRecentResult(results: TableTypes<"result">[]): TableTypes<"result"> | undefined {
+    if (results.length === 0) return undefined;
+    
+    // Sort results by date to get the most recently played lesson
+    const sortedResults = results.sort((a, b) => 
+      new Date(b.updated_at ?? "").getTime() - new Date(a.updated_at ?? "").getTime()
+    );
+    
+    return sortedResults[0];
+  }
+
+  public static async getNextLessonsForCourse(
+    courseId: string, 
+    lastPlayedLesson: TableTypes<"result">
+  ): Promise<TableTypes<"lesson">[]> {
+    const recommendations: TableTypes<"lesson">[] = [];
+    
+    // Get all chapters for this course
+    const api = ServiceConfig.getI().apiHandler;
+    const chapters = await api.getChaptersForCourse(courseId);
+    
+    // Find which chapter contains the last played lesson
+    let foundChapterIndex = -1;
+    let lastPlayedLessonIndex = -1;
+    let foundLessons: TableTypes<"lesson">[] | undefined;
+    
+    // Search for the lesson in all chapters
+    for (let i = 0; i < chapters.length; i++) {
+      const api = ServiceConfig.getI().apiHandler;
+      const lessons = await api.getLessonsForChapter(chapters[i].id);
+      if (lessons) {
+        const lessonIndex = lessons.findIndex(l => l.id === lastPlayedLesson.lesson_id);
+        if (lessonIndex !== -1) {
+          foundChapterIndex = i;
+          lastPlayedLessonIndex = lessonIndex;
+          foundLessons = lessons;
+          break;
+        }
+      }
+    }
+    
+    // If we found the chapter and lesson
+    if (foundChapterIndex !== -1 && foundLessons) {
+
+      // If there's a next lesson in the same chapter
+      if (lastPlayedLessonIndex + 1 < foundLessons.length) {
+        recommendations.push(foundLessons[lastPlayedLessonIndex + 1]);
+      } 
+      // If this is the last lesson in the chapter, but there's another chapter
+      else if (foundChapterIndex + 1 < chapters.length) {
+        // Try to get the first lesson from the next chapter
+        const api = ServiceConfig.getI().apiHandler;
+        const nextChapterLessons = await api.getLessonsForChapter(chapters[foundChapterIndex + 1].id);
+        if (nextChapterLessons && nextChapterLessons.length > 0) {
+          recommendations.push(nextChapterLessons[0]);
+        }
+      }
+
+      // Always add the last played lesson
+      recommendations.push(foundLessons[lastPlayedLessonIndex]);
+    }
+    
+    return recommendations;
+  }
+
+
+  public static async getRecommendationsForUnplayedCourses(
+    allCourses: TableTypes<"course">[], 
+    playedCourseIds: Set<string>
+  ): Promise<TableTypes<"lesson">[]> {
+    const recommendations: TableTypes<"lesson">[] = [];
+    
+    for (const course of allCourses) {
+      if (!playedCourseIds.has(course.id)) {
+        const firstLesson = await this.getFirstLessonForCourse(course.id);
+        if (firstLesson) {
+          recommendations.push(firstLesson);
+        }
+      }
+    }
+    
+    return recommendations;
+  }
+
+  public static async getFirstLessonsFromAllCourses(
+    courses: TableTypes<"course">[]
+  ): Promise<TableTypes<"lesson">[]> {
+    const recommendations: TableTypes<"lesson">[] = [];
+    
+    for (const course of courses) {
+      const firstLesson = await this.getFirstLessonForCourse(course.id);
+      if (firstLesson) {
+        recommendations.push(firstLesson);
+      }
+    }
+    
+    return recommendations;
+  }
+
+  public static async getFirstLessonForCourse(courseId: string): Promise<TableTypes<"lesson"> | undefined> {
+    const api = ServiceConfig.getI().apiHandler;
+    const chapters = await api.getChaptersForCourse(courseId);
+    if (chapters && chapters.length > 0) {
+      const firstChapterLessons = await api.getLessonsForChapter(chapters[0].id);
+      if (firstChapterLessons && firstChapterLessons.length > 0) {
+        return firstChapterLessons[0];
+      }
+    }
+    return undefined;
   }
 
   public static handleAppStateChange = (state: any) => {

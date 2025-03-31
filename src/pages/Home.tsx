@@ -36,9 +36,6 @@ import Subjects from "./Subjects";
 import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
-import { OneRosterApi } from "../services/api/OneRosterApi";
-import { useHandleLessonClick } from "../utility/lessonUtils";
-import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 
 const localData: any = {};
 const Home: FC = () => {
