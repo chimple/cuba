@@ -76,6 +76,22 @@ export const RESPECT_GRADES: {} = {
   // // aboveGrade3 = "d05cb75a-adc2-4365-8548-30b2ac65b321",
 }
 
+export const ALL_CURRICULUM: {} = {
+  CHIMPLE_BOARD: {
+    id: "7d560737-746a-4931-a49f-02de1ca526bd", name: "Chimple", sort_index: 1
+  }, KARNATAKA_STATE_BOARD: {
+    id: "feec6f59-b8bc-41e8-81aa-2b2689a9fc40", name: "Karnataka", sort_index: 2
+  }, NCERT_BOARD: {
+    id: "e1629739-5421-4996-a1f7-61225443bd04", name: "NCERT", sort_index: 3
+  },
+  // OTHER_CURRICULUM: {
+  //   id: "7d560737-746a-4931-a49f-02de1ca526bd", name: "Other Curriculum", sort_index: 4
+  // },
+}
+
+export const OTHER_CURRICULUM = "7d560737-746a-4931-a49f-02de1ca526bd";
+
+
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
 export enum LeaderboardDropdownList {
@@ -524,6 +540,7 @@ export const USER_ROLE = "userRole";
 export const CURRENT_TEACHER = "currentTeacher";
 export const CURRENT_COURSE = "currentCourse";
 export const NAVIGATION_STATE = "navigationState";
+export const USER_COURSES = "userCourses"
 
 export enum IconType {
   SCHOOL = "school",
@@ -561,12 +578,6 @@ export const DEFAULT_SUBJECT_IDS = [
   "c2dfd745-e7f2-4614-8890-f983d04155b2", //Digital Skills
 ];
 
-export const CHIMPLE_CURRICULUM =
-  "7d560737-746a-4931-a49f-02de1ca526bd";
-export const KARNATAKA_STATE_BOARD_CURRICULUM =
-  "feec6f59-b8bc-41e8-81aa-2b2689a9fc40";
-export const NCERT_CURRICULUM = "e1629739-5421-4996-a1f7-61225443bd04";
-export const OTHER_CURRICULUM = "7d560737-746a-4931-a49f-02de1ca526bd";
 export const LANGUAGE_COURSE_MAP = {
   sju2ne9JwNE1TZgo9M4G: "WUfGFSqcW8cIyl8yiqcR", //Hindi
   zvmpksodSkr8bmhGAFaT: "jZp8NfR84MILMEazPSK7", //Kannada

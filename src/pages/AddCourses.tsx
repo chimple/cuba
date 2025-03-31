@@ -142,7 +142,7 @@ const AddCourses: React.FC = () => {
         </div>
         <div id="next-button">
           <NextButton
-            disabled={selectedCourses === (null || undefined) ? true : false}
+            disabled={selectedCourses === (undefined) ? true : false}
             onClicked={() => {
               if (!online) {
                 presentToast({
@@ -171,9 +171,9 @@ const AddCourses: React.FC = () => {
           header={HOMEHEADERLIST.SUBJECTS}
         />
         {!isLoading &&
-        stage === STAGES.SUBJECTS &&
-        courses &&
-        courses.length > 0 ? (
+          stage === STAGES.SUBJECTS &&
+          courses &&
+          courses.length > 0 ? (
           <div className="add-subjects-content">
             <AddCourse
               courses={courses}

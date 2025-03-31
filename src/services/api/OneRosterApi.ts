@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { HttpHeaders } from "@capacitor-community/http";
 import {
+  ALL_CURRICULUM,
   COURSES,
   CURRENT_STUDENT,
   CURRENT_USER,
@@ -9,6 +10,7 @@ import {
   MODES,
   RESPECT_GRADES,
   TableTypes,
+  USER_COURSES,
 } from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
 import Assignment from "../../models/assignment";
@@ -154,81 +156,144 @@ export class OneRosterApi implements ServiceApi {
     }
   }
 
-  async getCoursesForParentsStudent(
-    studentId: string
-  ): Promise<TableTypes<"course">[]> {
+  async getCoursesForParentsStudent(studentId: string): Promise<TableTypes<"course">[]> {
     try {
-      // First get all available courses
+      const getStudentCourseFromLocalStorage = localStorage.getItem(USER_COURSES);
+      // Fetch all available courses
       const allCourses = await this.getAllCourses();
-      const student = await Util.getCurrentStudent(); 
-      
-      // If student doesn't have curriculum_id or grade_id, return all courses
-      if (!student.curriculum_id && !student.grade_id) {
-        console.log("Student missing curriculum_id or grade_id, returning all courses");
-        return allCourses;
-      }
-      
-      // Filter courses based on student's curriculum_id and grade_id
-      const filteredCourses = allCourses.filter(course => {
-        // Match either curriculum_id or grade_id (if they exist)
-        const curriculumMatch = !student.curriculum_id || course.curriculum_id === student.curriculum_id;
-        const gradeMatch = !student.grade_id || course.grade_id === student.grade_id;
-        
-        // Return true if both curriculum and grade match
-        return curriculumMatch && gradeMatch;
-      });
+      const student = await Util.getCurrentStudent();
 
-      allCourses.forEach((course) => {
-        if(course.id == "puzzle") {
-          filteredCourses.push(course);
+      console.log("getCoursesForParentsStudent called ", getStudentCourseFromLocalStorage, !getStudentCourseFromLocalStorage);
+
+      if (!getStudentCourseFromLocalStorage) {
+        // If localStorage doesn't have any course data, filter based on student's curriculum_id and grade_id
+
+        // If student doesn't have curriculum_id or grade_id, return all courses
+        if (!student.curriculum_id && !student.grade_id) {
+          console.log("Student missing curriculum_id or grade_id, returning all courses");
+          return allCourses;
         }
-      });
-      
-      console.log(`Filtered courses for student ${student.name}:`, filteredCourses);
-      return filteredCourses;
+
+        // Filter courses based on student's curriculum_id and grade_id
+        const filteredCourses = allCourses.filter(course => {
+          // Match either curriculum_id or grade_id (if they exist)
+          const curriculumMatch = !student.curriculum_id || course.curriculum_id === student.curriculum_id;
+          const gradeMatch = !student.grade_id || course.grade_id === student.grade_id;
+
+          // Return true if both curriculum and grade match
+          return curriculumMatch && gradeMatch;
+        });
+
+        // Add the "puzzle" course explicitly if it exists
+        allCourses.forEach(course => {
+          if (course.id === "puzzle") {
+            filteredCourses.push(course);
+          }
+        });
+
+        // Save the first two course IDs to setUserCourses
+        let setUserCourses: string[] = [];
+        filteredCourses.forEach(element => {
+          setUserCourses.push(element.id);
+        });
+
+        // Update localStorage with the list of course IDs (make sure it's in valid JSON format)
+        localStorage.setItem(USER_COURSES, JSON.stringify(setUserCourses));
+
+        // Log the courses
+        console.log(`Filtered courses for student ${student.name}:`, filteredCourses);
+        return filteredCourses;
+      } else {
+        // Check if the stored value is a valid JSON array or a plain comma-separated string
+        let storedCourseIds: string[];
+
+        try {
+          // Try to parse it as JSON (array of course IDs)
+          storedCourseIds = JSON.parse(getStudentCourseFromLocalStorage);
+        } catch (e) {
+          // If parsing fails, assume it's a plain comma-separated string and split it into an array
+          console.log("Stored course data is not valid JSON, splitting string into array.");
+          storedCourseIds = getStudentCourseFromLocalStorage.split(',');
+        }
+
+        // Filter courses by matching IDs from localStorage
+        const filteredCourses = allCourses.filter(course =>
+          storedCourseIds.includes(course.id)
+        );
+
+        console.log("Filtered courses based on stored course IDs:", filteredCourses);
+        return filteredCourses;
+      }
     } catch (error) {
-      console.error("Error fetching JSON:", error);
+      console.error("Error fetching courses:", error);
       return [];
     }
   }
+
+
+
+
   async getAdditionalCourses(studentId: string): Promise<TableTypes<"course">[]> {
     try {
-      let res: TableTypes<"course">[] = [];
-      for (let i = 0; i < this.studentAvailableCourseIds.length; i++) {
-        const element = this.studentAvailableCourseIds[i];
-        console.log("const element = allCourseIds[i]; ", element);
-        const courseJson = await this.loadCourseJson(element);
-        console.log("getCourses data ", courseJson.metadata);
-        const metaC = courseJson.metadata;
-        let tCourse: TableTypes<"course"> = {
-          code: metaC.courseCode,
-          color: metaC.color,
-          created_at: "null",
-          curriculum_id: metaC.curriculum,
-          description: null,
-          grade_id: metaC.grade,
-          id: metaC.courseCode,
-          image: metaC.thumbnail,
-          is_deleted: null,
-          name: metaC.title,
-          sort_index: metaC.sortIndex,
-          subject_id: metaC.subject,
-          updated_at: null,
-        };
-        res.push(tCourse);
-      }
-      return res;
+      const allCourses = await this.getAllCourses(); // Get all available courses
+      const studentCourses = await this.getCoursesForParentsStudent(studentId); // Get student's courses
+      console.log("getAdditionalCourses ", allCourses, studentCourses);
+
+
+      // Create a set of student course IDs for quick lookup
+      const studentCourseIds = new Set(studentCourses.map(course => course.id));
+
+      // Filter out courses that the student is already enrolled in
+      const additionalCourses = allCourses.filter(course => !studentCourseIds.has(course.id));
+
+      return additionalCourses;
     } catch (error) {
-      console.error("Error fetching JSON:", error);
+      console.error("Error fetching courses:", error);
+      return []; // Return empty array in case of error
     }
   }
 
-  addCourseForParentsStudent(
-    courses: Course[],
-    student: User
-  ): Promise<TableTypes<"course">[]> {
-    throw new Error("Method not implemented.");
+
+  async addCourseForParentsStudent(courses: Course[], student: User) {
+    try {
+      // Get the existing courses from localStorage
+      const getStudentCourseFromLocalStorage = localStorage.getItem(USER_COURSES);
+
+      // Check if the stored courses are in valid JSON format (array)
+      let storedCourseIds: string[] = [];
+      if (getStudentCourseFromLocalStorage) {
+        try {
+          // Attempt to parse it as JSON (array of course IDs)
+          storedCourseIds = JSON.parse(getStudentCourseFromLocalStorage);
+        } catch (e) {
+          // If parsing fails, handle the case where it's a comma-separated string
+          console.log("Stored course data is not valid JSON, splitting string into array.");
+          storedCourseIds = getStudentCourseFromLocalStorage.split(',');
+        }
+      }
+
+      console.log("Current courses in localStorage:", storedCourseIds);
+
+      // Add the courses to the stored list, ensuring no duplicates
+      courses.forEach(course => {
+        // Check if the course is not already in the list
+        if (!storedCourseIds.includes(course.id)) {
+          storedCourseIds.push(course.id);
+        }
+      });
+
+      // Update localStorage with the new course list
+      localStorage.setItem(USER_COURSES, JSON.stringify(storedCourseIds));
+
+      // Log the updated courses in localStorage
+      console.log("Updated courses in localStorage:", storedCourseIds);
+
+    } catch (error) {
+      console.error("Error adding courses:", error);
+    }
   }
+
+
 
   getCoursesForClassStudent(classId: string): Promise<TableTypes<"course">[]> {
     throw new Error("Method not implemented.");
@@ -1040,11 +1105,16 @@ export class OneRosterApi implements ServiceApi {
     return undefined;
   }
   getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
-    // let cur: TableTypes<"curriculum">[] = [{
-    //   created_at: "", description: "", id: "chimple", name: "Chimple", image: "", sort_index: 1, is_deleted: false, updated_at: ""
-    // }]
+    let res: TableTypes<"curriculum">[] = [];
 
-    return []
+    Object.values(ALL_CURRICULUM).forEach((curr) => {
+      let g: TableTypes<"curriculum"> = {
+        created_at: "", description: "", id: curr.id, name: curr.name, image: "", sort_index: curr.sort_index, is_deleted: false, updated_at: ""
+      };
+      res.push(g);
+    });
+
+    return res
   }
   async getAllGrades(): Promise<TableTypes<"grade">[]> {
     let res: TableTypes<"grade">[] = [];
@@ -2132,18 +2202,18 @@ export class OneRosterApi implements ServiceApi {
       const stored = localStorage.getItem(this.FAVORITE_LESSONS_STORAGE_KEY);
       this.favoriteLessons = stored ? JSON.parse(stored) : {};
     }
-  
+
     const favoriteIds = this.favoriteLessons[userId] || [];
     if (favoriteIds.length === 0) {
       return [];
     }
-  
+
     console.log("fav lessons : ", favoriteIds);
     // Use getLesson to retrieve each favorite lesson
     const lessons = await Promise.all(
       favoriteIds.map(async (id) => this.getLesson(id))
     );
-    
+
     // Filter out any undefined lessons
     return lessons.filter((lesson): lesson is TableTypes<"lesson"> => lesson !== undefined);
   }
@@ -2154,10 +2224,10 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"lesson">[]> {
     try {
       const recommendedLessons: TableTypes<"lesson">[] = [];
-      
+
       // Get student's result history and all available courses
       const studentResults = await this.getStudentResult(studentId, false);
-      const currentStudent = await Util.getCurrentStudent(); 
+      const currentStudent = await Util.getCurrentStudent();
       console.log("current student details : ", currentStudent);
       const allCourses = await this.getCoursesForParentsStudent(currentStudent?.id);
 
@@ -2165,7 +2235,7 @@ export class OneRosterApi implements ServiceApi {
       if (studentResults && studentResults.length > 0) {
         // Group results by course
         const playedLessonsByCourse = Util.groupResultsByCourse(studentResults);
-        
+
         // For each course with played lessons, get recommendations
         for (const [courseId, results] of playedLessonsByCourse.entries()) {
           const lastPlayedLesson = Util.getMostRecentResult(results);
@@ -2176,7 +2246,7 @@ export class OneRosterApi implements ServiceApi {
             recommendedLessons.push(...courseRecommendations);
           }
         }
-        
+
         // Get recommendations for courses that haven't been played
         const unplayedRecommendations = await Util.getRecommendationsForUnplayedCourses(
           allCourses,
@@ -2188,7 +2258,7 @@ export class OneRosterApi implements ServiceApi {
         const firstLessons = await Util.getFirstLessonsFromAllCourses(allCourses);
         recommendedLessons.push(...firstLessons);
       }
-      
+
       return recommendedLessons;
     } catch (error) {
       console.error("Error in getRecommendedLessons:", error);
