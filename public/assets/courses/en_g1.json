@@ -4,6 +4,7 @@
     "courseCode": "en_g1",
     "lang": "en",
     "type": "literacy",
+    "color": "#0090D3",
     "curriculum": "7d560737-746a-4931-a49f-02de1ca526bd",
     "grade": "c802dce7-0840-4baf-b374-ef6cb4272a76",
     "sortIndex": 1,
@@ -27,8 +28,9 @@
       },
       "navigation": [
         {
-          "id": "en0000",
+          "id": "5QlQ1fGOchP2gAL1dho3",
           "title": "a",
+          "cocosLessonCode": "en0000",
           "cocosChapterCode": "en00",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -42,8 +44,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0001",
+          "id": "P3Lfezrti7DbPcvFVFZC",
           "title": "b",
+          "cocosLessonCode": "en0001",
           "cocosChapterCode": "en00",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -57,8 +60,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0002",
+          "id": "7ZCLZYLysGhpkfimLwy5",
           "title": "c",
+          "cocosLessonCode": "en0002",
           "cocosChapterCode": "en00",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -72,8 +76,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0003",
+          "id": "V6eZcCAomgF75Pzk7MIZ",
           "title": "d",
+          "cocosLessonCode": "en0003",
           "cocosChapterCode": "en00",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -87,8 +92,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0004",
+          "id": "3ULnlvBlEnBpbaxFRmSa",
           "title": "e",
+          "cocosLessonCode": "en0004",
           "cocosChapterCode": "en00",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -102,8 +108,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0005",
+          "id": "G2I2DneiM6FgNBvMn0xe",
           "title": "f",
+          "cocosLessonCode": "en0005",
           "cocosChapterCode": "en00",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -117,8 +124,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0006",
+          "id": "d4OYtGy5HojUFNraFYTo",
           "title": "Revision a - f",
+          "cocosLessonCode": "en0006",
           "cocosChapterCode": "en00",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -141,8 +149,9 @@
       },
       "navigation": [
         {
-          "id": "en0100",
+          "id": "BSvzuImHomY3B1kc0Gla",
           "title": "g",
+          "cocosLessonCode": "en0100",
           "cocosChapterCode": "en01",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -156,8 +165,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0101",
+          "id": "Do6HXQP2AzHkYJMdgAcl",
           "title": "h",
+          "cocosLessonCode": "en0101",
           "cocosChapterCode": "en01",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -171,8 +181,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0102",
+          "id": "qXXxMuK5fUQxEZGwrfwu",
           "title": "i",
+          "cocosLessonCode": "en0102",
           "cocosChapterCode": "en01",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -186,8 +197,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0103",
+          "id": "O9s7QrMBHqXdoY1LoJhm",
           "title": "j",
+          "cocosLessonCode": "en0103",
           "cocosChapterCode": "en01",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -201,8 +213,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0104",
+          "id": "Xq9yBasRwgVjIT4fKizw",
           "title": "k",
+          "cocosLessonCode": "en0104",
           "cocosChapterCode": "en01",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -216,8 +229,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0105",
+          "id": "3H63cC6tC3NtHnxn8yfO",
           "title": "l",
+          "cocosLessonCode": "en0105",
           "cocosChapterCode": "en01",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -231,8 +245,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0106",
+          "id": "6nSsD4GoTa4wMdX5EkLt",
           "title": "Revision a - l",
+          "cocosLessonCode": "en0106",
           "cocosChapterCode": "en01",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -255,8 +270,9 @@
       },
       "navigation": [
         {
-          "id": "en0200",
+          "id": "3HyGRw2y4eNI0FBTig6f",
           "title": "m",
+          "cocosLessonCode": "en0200",
           "cocosChapterCode": "en02",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -270,8 +286,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0201",
+          "id": "WCJ5aQ4dSNsBby8grQpq",
           "title": "n",
+          "cocosLessonCode": "en0201",
           "cocosChapterCode": "en02",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -285,8 +302,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0202",
+          "id": "G8zkZx2jI0amWN51EstR",
           "title": "o",
+          "cocosLessonCode": "en0202",
           "cocosChapterCode": "en02",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -300,8 +318,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0203",
+          "id": "gNffYVl3GmgGPklRlV3v",
           "title": "p",
+          "cocosLessonCode": "en0203",
           "cocosChapterCode": "en02",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -315,8 +334,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0204",
+          "id": "nGUKKntllEZcdM1XikeD",
           "title": "q",
+          "cocosLessonCode": "en0204",
           "cocosChapterCode": "en02",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -330,8 +350,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0205",
+          "id": "UcM9DfyhrbbbTaVpEyL6",
           "title": "r",
+          "cocosLessonCode": "en0205",
           "cocosChapterCode": "en02",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -345,8 +366,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0206",
+          "id": "oicUJAMY2FIIof1CMv3s",
           "title": "s",
+          "cocosLessonCode": "en0206",
           "cocosChapterCode": "en02",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -360,8 +382,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0207",
+          "id": "1AuiZGrDVVxnITHaitRV",
           "title": "Revision a - s",
+          "cocosLessonCode": "en0207",
           "cocosChapterCode": "en02",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -384,8 +407,9 @@
       },
       "navigation": [
         {
-          "id": "en0300",
+          "id": "s5BHs62I9iV5MGC3aNIQ",
           "title": "t",
+          "cocosLessonCode": "en0300",
           "cocosChapterCode": "en03",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -399,8 +423,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0301",
+          "id": "x5xSWY7D4glj1ODroTVd",
           "title": "u",
+          "cocosLessonCode": "en0301",
           "cocosChapterCode": "en03",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -414,8 +439,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0302",
+          "id": "ogVZVlraBAkMWfEEXdBY",
           "title": "v",
+          "cocosLessonCode": "en0302",
           "cocosChapterCode": "en03",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -429,8 +455,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0303",
+          "id": "IRMXkfLAjT5u7whAgW7e",
           "title": "w",
+          "cocosLessonCode": "en0303",
           "cocosChapterCode": "en03",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -444,8 +471,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0304",
+          "id": "1qHf3UINnN4qHSzdxRFZ",
           "title": "x",
+          "cocosLessonCode": "en0304",
           "cocosChapterCode": "en03",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -459,8 +487,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0305",
+          "id": "FJaW1xFuykiviijl1NRI",
           "title": "y",
+          "cocosLessonCode": "en0305",
           "cocosChapterCode": "en03",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -474,8 +503,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0306",
+          "id": "qP5tdUr84boaMvImBetw",
           "title": "z",
+          "cocosLessonCode": "en0306",
           "cocosChapterCode": "en03",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -489,8 +519,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0307",
-          "title": "Revision a - z",
+          "id": "78UmUiFPrDZ0WvPTDT4P",
+          "title": "Revision  a - z",
+          "cocosLessonCode": "en0307",
           "cocosChapterCode": "en03",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -513,8 +544,25 @@
       },
       "navigation": [
         {
-          "id": "en0401",
+          "id": "jTYap0FaVIWikqwkMBlE",
+          "title": "Alphabet A - F",
+          "cocosLessonCode": "en0400",
+          "cocosChapterCode": "en04",
+          "cocosSubjectCode": "en",
+          "language": "/Language/en",
+          "type": "lesson",
+          "outcome": "Read and write uppercase alphabet A - F and the words associated with it.",
+          "pluginType": "cocos",
+          "status": "approved",
+          "subject": "/Subject/en",
+          "targetAgeFrom": 3,
+          "targetAgeTo": 8,
+          "thumbnail": ""
+        },
+        {
+          "id": "ZDqq4biehj6PvP3u4hbt",
           "title": "Revision A - F",
+          "cocosLessonCode": "en0401",
           "cocosChapterCode": "en04",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -528,8 +576,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0402",
+          "id": "cDrhpuTtctV6pwBtbAnr",
           "title": "Alphabet G - L",
+          "cocosLessonCode": "en0402",
           "cocosChapterCode": "en04",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -543,8 +592,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0403",
+          "id": "WdQtgjLwN0khoANb2QJi",
           "title": "Revision G - L",
+          "cocosLessonCode": "en0403",
           "cocosChapterCode": "en04",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -558,8 +608,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0404",
+          "id": "RH6C12Dr5cezRYtVv89i",
           "title": "Alphabet M - S",
+          "cocosLessonCode": "en0404",
           "cocosChapterCode": "en04",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -573,8 +624,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0405",
+          "id": "avv0RE6Sb5ydpQk4KSaW",
           "title": "Revision M - S",
+          "cocosLessonCode": "en0405",
           "cocosChapterCode": "en04",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -588,8 +640,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0406",
+          "id": "DST0fCmDhSRcjPq4ZJjE",
           "title": "Alphabet T - Z",
+          "cocosLessonCode": "en0406",
           "cocosChapterCode": "en04",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -603,8 +656,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0407",
+          "id": "CQpxMVwCYYjinzfs9aGQ",
           "title": "Revision T - Z",
+          "cocosLessonCode": "en0407",
           "cocosChapterCode": "en04",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -618,8 +672,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0408",
+          "id": "xdVEUuU5WVggqSttjyrZ",
           "title": "Revision Aa-Zz",
+          "cocosLessonCode": "en0408",
           "cocosChapterCode": "en04",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -642,8 +697,9 @@
       },
       "navigation": [
         {
-          "id": "en0600",
+          "id": "CpX1882TXpyszSwSrfvw",
           "title": "A-E",
+          "cocosLessonCode": "en0600",
           "cocosChapterCode": "en06",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -657,8 +713,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0601",
+          "id": "WFtJrE8H78kWAEdk7R8S",
           "title": "F-J",
+          "cocosLessonCode": "en0601",
           "cocosChapterCode": "en06",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -672,8 +729,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0602",
+          "id": "CI43vfBowMLchFqU31GD",
           "title": "K- O",
+          "cocosLessonCode": "en0602",
           "cocosChapterCode": "en06",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -687,8 +745,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0603",
+          "id": "IL4YOO9gPSlAif9oZn6L",
           "title": "P - T",
+          "cocosLessonCode": "en0603",
           "cocosChapterCode": "en06",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -702,8 +761,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0604",
+          "id": "wwiP1vy0wbIMyX8dQVvY",
           "title": "U - Z",
+          "cocosLessonCode": "en0604",
           "cocosChapterCode": "en06",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -717,13 +777,14 @@
           "thumbnail": ""
         },
         {
-          "id": "en0605",
+          "id": "JqY2aaumqjZi7CkCobj4",
           "title": "Type Alphabet",
+          "cocosLessonCode": "en0605",
           "cocosChapterCode": "en06",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
           "type": "lesson",
-          "outcome": "It is time for the students to practice typing letters and common words to increase their proficiency in digital skills. The child will learn typing on a qwerty keyboard which is important in our contemporary digital world. As children hear the sound read out-loud, see it on the screen and then type the corresponding key, the activity reinforces sound letter mapping skill in them.",
+          "outcome": "It is time for the  students to practice typing letters and  common words to increase their proficiency in digital skills. The child will learn typing on a qwerty  keyboard which is important in our contemporary digital world. As children hear the sound read out-loud, see it on the screen and then type the corresponding key, the activity reinforces sound letter mapping skill in them.",
           "pluginType": "cocos",
           "status": "approved",
           "subject": "/Subject/en",
@@ -741,8 +802,9 @@
       },
       "navigation": [
         {
-          "id": "en0500",
+          "id": "7xyfctUvDYA5dAK25MEP",
           "title": "Vowel Sounds",
+          "cocosLessonCode": "en0500",
           "cocosChapterCode": "en05",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -756,8 +818,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0501",
+          "id": "nVNZpGovh6ppCN3bvxsm",
           "title": "Write Vowels",
+          "cocosLessonCode": "en0501",
           "cocosChapterCode": "en05",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -771,8 +834,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0502",
+          "id": "mC9ZqLcnoxZRErPKJ9mH",
           "title": "Vowel words",
+          "cocosLessonCode": "en0502",
           "cocosChapterCode": "en05",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -786,8 +850,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0505",
+          "id": "1y2bV6MdsbTPIkERCd9f",
           "title": "Long Vowels",
+          "cocosLessonCode": "en0505",
           "cocosChapterCode": "en05",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -810,8 +875,9 @@
       },
       "navigation": [
         {
-          "id": "en0700",
+          "id": "5Rv4OXSb6H1H35aAL8j8",
           "title": "Ending 'a'",
+          "cocosLessonCode": "en0700",
           "cocosChapterCode": "en07",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -825,8 +891,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0701",
+          "id": "aVVBFGfNWjgn7roDHcvF",
           "title": "Ending 'e'",
+          "cocosLessonCode": "en0701",
           "cocosChapterCode": "en07",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -840,8 +907,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0702",
+          "id": "7lEIsOvmyYxoIuUHVBgv",
           "title": "Ending 'i'",
+          "cocosLessonCode": "en0702",
           "cocosChapterCode": "en07",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -855,8 +923,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0703",
+          "id": "WO1eiH7W1qwZaZxuObhi",
           "title": "Ending 'o'",
+          "cocosLessonCode": "en0703",
           "cocosChapterCode": "en07",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -870,8 +939,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0704",
+          "id": "PMMfoCcAuDElcefy7XXh",
           "title": "Ending 'u'",
+          "cocosLessonCode": "en0704",
           "cocosChapterCode": "en07",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -885,8 +955,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0705",
+          "id": "mipmFlTxgyevJbYXbSoP",
           "title": "Medial Vowels -1",
+          "cocosLessonCode": "en0705",
           "cocosChapterCode": "en07",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -900,8 +971,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0706",
+          "id": "w6PivWkLz8RoST6NuCa8",
           "title": "Medial vowels -2",
+          "cocosLessonCode": "en0706",
           "cocosChapterCode": "en07",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -915,8 +987,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0707",
+          "id": "6ejhjiijxdf4L7h1oVxh",
           "title": "Beginning Vowel Sounds",
+          "cocosLessonCode": "en0707",
           "cocosChapterCode": "en07",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -939,8 +1012,9 @@
       },
       "navigation": [
         {
-          "id": "en0800",
+          "id": "4MyfjYZOBySS9c8heDYh",
           "title": "Beginning Sounds - 1",
+          "cocosLessonCode": "en0800",
           "cocosChapterCode": "en08",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -954,8 +1028,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0801",
+          "id": "cGthoUnhTKmXqgCI7EKK",
           "title": "Beginning Sounds - 2",
+          "cocosLessonCode": "en0801",
           "cocosChapterCode": "en08",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -969,8 +1044,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0802",
+          "id": "etEZnQxStys2vP6qKvxZ",
           "title": "Beginning Sounds - 3",
+          "cocosLessonCode": "en0802",
           "cocosChapterCode": "en08",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -984,8 +1060,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0803",
+          "id": "e06LCZY3WxgVDZvOEzYm",
           "title": "Beginning Sounds - 4",
+          "cocosLessonCode": "en0803",
           "cocosChapterCode": "en08",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -999,8 +1076,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0804",
+          "id": "N2LOrtfYI7oZnsn6VrCI",
           "title": "Beginning Sounds - 5",
+          "cocosLessonCode": "en0804",
           "cocosChapterCode": "en08",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1014,8 +1092,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0805",
+          "id": "T2c2R5HLMBRGeVTJbuwn",
           "title": "Medial Sounds",
+          "cocosLessonCode": "en0805",
           "cocosChapterCode": "en08",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1029,8 +1108,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0806",
+          "id": "OhSTxg9T9TuI1Ijdqpfn",
           "title": "Medial Sounds II",
+          "cocosLessonCode": "en0806",
           "cocosChapterCode": "en08",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1044,8 +1124,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0807",
+          "id": "vj1rQwOZqdGi4GTEZdqG",
           "title": "Ending Sounds",
+          "cocosLessonCode": "en0807",
           "cocosChapterCode": "en08",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1068,8 +1149,9 @@
       },
       "navigation": [
         {
-          "id": "en0900",
+          "id": "Jwx2FabXLC3o0GVCNpxa",
           "title": "Word Sounds -1",
+          "cocosLessonCode": "en0900",
           "cocosChapterCode": "en09",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1083,8 +1165,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0901",
+          "id": "0ei3aCPvg7j2JQy9mQ9n",
           "title": "Word Sounds - 2",
+          "cocosLessonCode": "en0901",
           "cocosChapterCode": "en09",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1098,8 +1181,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0902",
+          "id": "atP0B4VMm29xuiyvgg7L",
           "title": "Word sounds - 3",
+          "cocosLessonCode": "en0902",
           "cocosChapterCode": "en09",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1113,8 +1197,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0903",
+          "id": "m6SGleepVdGHhYkJVF1b",
           "title": "Word Sounds - 4",
+          "cocosLessonCode": "en0903",
           "cocosChapterCode": "en09",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1128,8 +1213,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0904",
+          "id": "IVRajUwhYhnwd86vopez",
           "title": "Word Sounds - 5",
+          "cocosLessonCode": "en0904",
           "cocosChapterCode": "en09",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1143,8 +1229,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0905",
+          "id": "oDRkYyTCZYYbPt3KgbHf",
           "title": "Word Sounds - 6",
+          "cocosLessonCode": "en0905",
           "cocosChapterCode": "en09",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1158,8 +1245,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0906",
+          "id": "TcuK93PGCTp0y1Q12MlL",
           "title": "Word Sounds - 7",
+          "cocosLessonCode": "en0906",
           "cocosChapterCode": "en09",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1173,8 +1261,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0907",
+          "id": "U2davGmh48fG4Xdkl1TZ",
           "title": "Word Sounds - 8",
+          "cocosLessonCode": "en0907",
           "cocosChapterCode": "en09",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1188,8 +1277,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0908",
+          "id": "4vD7khZBm9W5lbRC2tdE",
           "title": "Word Sounds - 9",
+          "cocosLessonCode": "en0908",
           "cocosChapterCode": "en09",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1203,8 +1293,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0909",
+          "id": "F2cm6eCLt3IsyxCv9FFi",
           "title": "Word Sounds - 10",
+          "cocosLessonCode": "en0909",
           "cocosChapterCode": "en09",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1218,8 +1309,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en0910",
+          "id": "5gCG4PRlHfrk32hsWnrO",
           "title": "Word Sounds - 11",
+          "cocosLessonCode": "en0910",
           "cocosChapterCode": "en09",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1242,8 +1334,9 @@
       },
       "navigation": [
         {
-          "id": "en1000",
+          "id": "J55u0W74gfWeFWYLyrAM",
           "title": "ad",
+          "cocosLessonCode": "en1000",
           "cocosChapterCode": "en10",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1257,8 +1350,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1001",
+          "id": "9du9pXBr1UxC82tdLmoo",
           "title": "at",
+          "cocosLessonCode": "en1001",
           "cocosChapterCode": "en10",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1272,8 +1366,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1002",
+          "id": "XjeWs9zAT1gG4TlRKLBm",
           "title": "an",
+          "cocosLessonCode": "en1002",
           "cocosChapterCode": "en10",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1287,8 +1382,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1003",
+          "id": "F2DjKbcW0y32amNZvd1D",
           "title": "am",
+          "cocosLessonCode": "en1003",
           "cocosChapterCode": "en10",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1302,8 +1398,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1004",
+          "id": "6WLE1Gyk0k9muANurUO3",
           "title": "ap",
+          "cocosLessonCode": "en1004",
           "cocosChapterCode": "en10",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1317,8 +1414,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1005",
+          "id": "GWWq3THfLamaWWDqNLJM",
           "title": "ag, ay",
+          "cocosLessonCode": "en1005",
           "cocosChapterCode": "en10",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1332,8 +1430,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1100",
+          "id": "Ggv3bFbPTa9bdzWPJkKG",
           "title": "ain",
+          "cocosLessonCode": "en1100",
           "cocosChapterCode": "en10",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1347,8 +1446,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1101",
+          "id": "Lbq9dBApaV4V99GCg2OP",
           "title": "art, air, are",
+          "cocosLessonCode": "en1101",
           "cocosChapterCode": "en10",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1362,8 +1462,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1102",
+          "id": "FI7r1pTvVo6HbhHRYF9w",
           "title": "ake",
+          "cocosLessonCode": "en1102",
           "cocosChapterCode": "en10",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1377,8 +1478,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1103",
+          "id": "r64Vv7f0aIkHezIURyTN",
           "title": "ane, ave",
+          "cocosLessonCode": "en1103",
           "cocosChapterCode": "en10",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1392,8 +1494,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1104",
+          "id": "aQnG7fKe4crzabkNfcBh",
           "title": "ale, ate, ade",
+          "cocosLessonCode": "en1104",
           "cocosChapterCode": "en10",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1407,8 +1510,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1105",
+          "id": "O88Ysbow3FQxWKfk7sPJ",
           "title": "ace, ase, ape",
+          "cocosLessonCode": "en1105",
           "cocosChapterCode": "en10",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1422,8 +1526,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1106",
+          "id": "CWQ0WTlJ2UNVHG0w6FDv",
           "title": "amp, ank, ail",
+          "cocosLessonCode": "en1106",
           "cocosChapterCode": "en10",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1437,8 +1542,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1107",
+          "id": "1duA5EU3jSfCRp9y1I50",
           "title": "ark, all",
+          "cocosLessonCode": "en1107",
           "cocosChapterCode": "en10",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1461,8 +1567,9 @@
       },
       "navigation": [
         {
-          "id": "en1200",
+          "id": "oRA3KD30otxUKelSC9Y7",
           "title": "en,ed",
+          "cocosLessonCode": "en1200",
           "cocosChapterCode": "en12",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1476,8 +1583,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1201",
+          "id": "ZFo1iaFoccqxRBVqCFwj",
           "title": "et",
+          "cocosLessonCode": "en1201",
           "cocosChapterCode": "en12",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1491,8 +1599,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1202",
+          "id": "Hye0QgP7erqCsazOQk0K",
           "title": "eg, ea, ean",
+          "cocosLessonCode": "en1202",
           "cocosChapterCode": "en12",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1506,8 +1615,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1203",
+          "id": "oQirgi1aZEZlDnvu9t6Q",
           "title": "eese, eat",
+          "cocosLessonCode": "en1203",
           "cocosChapterCode": "en12",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1530,8 +1640,9 @@
       },
       "navigation": [
         {
-          "id": "en1300",
+          "id": "9REan3hd08G0j1VxNpiv",
           "title": "id, ide",
+          "cocosLessonCode": "en1300",
           "cocosChapterCode": "en13",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1545,8 +1656,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1301",
+          "id": "ZAhW6sBXk0KR7zpJ9Fm0",
           "title": "it, ite",
+          "cocosLessonCode": "en1301",
           "cocosChapterCode": "en13",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1560,8 +1672,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1302",
+          "id": "ZJHERcvPihtddRROaLFa",
           "title": "in, ing, ink",
+          "cocosLessonCode": "en1302",
           "cocosChapterCode": "en13",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1575,8 +1688,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1303",
+          "id": "yyh9WrNCKsNvUDECkYED",
           "title": "int, ine, irt",
+          "cocosLessonCode": "en1303",
           "cocosChapterCode": "en13",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1590,8 +1704,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1304",
+          "id": "lwqtFdqOEVjxFCQLicfL",
           "title": "ig, ix",
+          "cocosLessonCode": "en1304",
           "cocosChapterCode": "en13",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1605,8 +1720,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1305",
+          "id": "VoR8OcqC7HO3eGJaQxQA",
           "title": "ip",
+          "cocosLessonCode": "en1305",
           "cocosChapterCode": "en13",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1620,8 +1736,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1306",
+          "id": "FvCTK5u1l6oHHRBEMT0W",
           "title": "ie, ick, ill, ime",
+          "cocosLessonCode": "en1306",
           "cocosChapterCode": "en13",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1635,8 +1752,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1307",
+          "id": "zjzS2myaUfinpMZPaJRG",
           "title": "ire, ile, ive, ike",
+          "cocosLessonCode": "en1307",
           "cocosChapterCode": "en13",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1659,8 +1777,9 @@
       },
       "navigation": [
         {
-          "id": "en1400",
+          "id": "AaVt2RETmhH6SMDjuccD",
           "title": "og, ox",
+          "cocosLessonCode": "en1400",
           "cocosChapterCode": "en14",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1674,8 +1793,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1401",
+          "id": "AFO1OQfaPLP8hzbMd8F7",
           "title": "ot",
+          "cocosLessonCode": "en1401",
           "cocosChapterCode": "en14",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1689,8 +1809,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1402",
+          "id": "UZvMRu7CaxEgonBb3WTk",
           "title": "op",
+          "cocosLessonCode": "en1402",
           "cocosChapterCode": "en14",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1704,8 +1825,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1403",
+          "id": "JGXgvwdgtk46ApbrEBNF",
           "title": "om, oom, ome, one",
+          "cocosLessonCode": "en1403",
           "cocosChapterCode": "en14",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1719,8 +1841,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1404",
+          "id": "jX2bDWlM6Jhipq0zXW7e",
           "title": "ool, own, ouse",
+          "cocosLessonCode": "en1404",
           "cocosChapterCode": "en14",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1734,8 +1857,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1405",
+          "id": "u6rK8jRo2GdlT9He3Hcd",
           "title": "oil, orn",
+          "cocosLessonCode": "en1405",
           "cocosChapterCode": "en14",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1758,13 +1882,14 @@
       },
       "navigation": [
         {
-          "id": "en1500",
+          "id": "0cPuT5WEzug882Cf7zwv",
           "title": "un",
+          "cocosLessonCode": "en1500",
           "cocosChapterCode": "en15",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
           "type": "lesson",
-          "outcome": "Teaches children words that rhyme and end with letters 'un' like bun, fun, sun etc",
+          "outcome": "Teaches children words that rhyme and end with letters 'un'  like bun, fun, sun etc",
           "pluginType": "cocos",
           "status": "approved",
           "subject": "/Subject/en",
@@ -1773,8 +1898,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1501",
+          "id": "REVAMvJDvAXhCoF07iL9",
           "title": "us, ust, use, uck",
+          "cocosLessonCode": "en1501",
           "cocosChapterCode": "en15",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1788,8 +1914,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1502",
+          "id": "LOpByNBHbvlshMP5LNzQ",
           "title": "ug",
+          "cocosLessonCode": "en1502",
           "cocosChapterCode": "en15",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1803,8 +1930,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1503",
+          "id": "gee5vbSyGpoiC1BK8FKo",
           "title": "ut, ute",
+          "cocosLessonCode": "en1503",
           "cocosChapterCode": "en15",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1818,8 +1946,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1504",
+          "id": "jdFxPY6mHURnidqFWtoY",
           "title": "ub, ube, ud",
+          "cocosLessonCode": "en1504",
           "cocosChapterCode": "en15",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1833,8 +1962,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1505",
+          "id": "Fp4Bi80opkWtxaKsfBcd",
           "title": "um, ume, ule",
+          "cocosLessonCode": "en1505",
           "cocosChapterCode": "en15",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1857,8 +1987,9 @@
       },
       "navigation": [
         {
-          "id": "en1600",
+          "id": "Ov3Y2zurwWDcP0Lb0126",
           "title": "Blend - ch",
+          "cocosLessonCode": "en1600",
           "cocosChapterCode": "en16",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1872,8 +2003,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1601",
+          "id": "BdfoS4F65Dyxm15dIRMS",
           "title": "Blend - ch- 2",
+          "cocosLessonCode": "en1601",
           "cocosChapterCode": "en16",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1887,8 +2019,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1602",
+          "id": "E5jKBU8Ofs4ffAwlAq6P",
           "title": "Blend - th",
+          "cocosLessonCode": "en1602",
           "cocosChapterCode": "en16",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1902,8 +2035,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1603",
+          "id": "gq2ch4ZrhttkpTNLqhz3",
           "title": "Blend - th - 2",
+          "cocosLessonCode": "en1603",
           "cocosChapterCode": "en16",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1917,8 +2051,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1604",
+          "id": "qKzWJK9EFJPRAs7ioa5t",
           "title": "Blend - sh",
+          "cocosLessonCode": "en1604",
           "cocosChapterCode": "en16",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1932,8 +2067,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1605",
+          "id": "p8W8Nkz2E6uXnmXgh6lt",
           "title": "Blend - sh 2",
+          "cocosLessonCode": "en1605",
           "cocosChapterCode": "en16",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1947,8 +2083,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1606",
+          "id": "BdVAN60qVinY65BxEhTz",
           "title": "Blend - sh - 3",
+          "cocosLessonCode": "en1606",
           "cocosChapterCode": "en16",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1962,8 +2099,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1607",
+          "id": "OkVQBsPUYyKYImcWCzPB",
           "title": "Blend - wh",
+          "cocosLessonCode": "en1607",
           "cocosChapterCode": "en16",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1977,8 +2115,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1608",
+          "id": "BMJv2BEOxjT2pQ0JCnQ5",
           "title": "Blend - ck",
+          "cocosLessonCode": "en1608",
           "cocosChapterCode": "en16",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -1992,8 +2131,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1609",
+          "id": "FCeNimlXHpd8VY9ufBty",
           "title": "Blend - ck- 2",
+          "cocosLessonCode": "en1609",
           "cocosChapterCode": "en16",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2007,8 +2147,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1610",
+          "id": "io98djmMmUG76Se9d1Ny",
           "title": "Blend - gr",
+          "cocosLessonCode": "en1610",
           "cocosChapterCode": "en16",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2022,8 +2163,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1611",
+          "id": "lS4GHKQw0QTbH2HkmQlB",
           "title": "Blend - cr",
+          "cocosLessonCode": "en1611",
           "cocosChapterCode": "en16",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2037,8 +2179,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1700",
+          "id": "RAjrjZst0U4diWLwai3O",
           "title": "Blend - st",
+          "cocosLessonCode": "en1700",
           "cocosChapterCode": "en16",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2052,8 +2195,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1701",
+          "id": "Hhylqy8DaB5bRA1K7Sua",
           "title": "Blend - oi",
+          "cocosLessonCode": "en1701",
           "cocosChapterCode": "en16",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2067,8 +2211,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1702",
+          "id": "KPdkQ0PDrgaIC1Xdjdts",
           "title": "Blend - pl",
+          "cocosLessonCode": "en1702",
           "cocosChapterCode": "en16",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2091,8 +2236,9 @@
       },
       "navigation": [
         {
-          "id": "en1703",
+          "id": "dwMlxQ5Cn5rBa3g13A7y",
           "title": "Blend - tr",
+          "cocosLessonCode": "en1703",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2106,8 +2252,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1704",
+          "id": "ODTY7pyI9xREyH8J7w2q",
           "title": "Blend - sk",
+          "cocosLessonCode": "en1704",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2121,8 +2268,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1705",
+          "id": "9CQpCMqE1A1Yil81NMjA",
           "title": "Blend - ue",
+          "cocosLessonCode": "en1705",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2136,8 +2284,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1706",
+          "id": "jPwvCfD3pBSrJF63KuTW",
           "title": "Blend - ow",
+          "cocosLessonCode": "en1706",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2151,8 +2300,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1707",
+          "id": "oc2YrRXU82f95XiJBNdc",
           "title": "Blend - ar",
+          "cocosLessonCode": "en1707",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2166,8 +2316,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1708",
+          "id": "sKi9FVg7tOh0bLs75sUE",
           "title": "Blend - ar - 2",
+          "cocosLessonCode": "en1708",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2181,8 +2332,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1709",
+          "id": "DGQOvOaQbAeZMOqtBbhR",
           "title": "Blend - dr",
+          "cocosLessonCode": "en1709",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2196,8 +2348,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1800",
+          "id": "nQ7K79ZB4KOshKEJTWXE",
           "title": "Blend - bl",
+          "cocosLessonCode": "en1800",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2211,8 +2364,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1801",
+          "id": "1rEDplaCL5XwganwrtrY",
           "title": "Blend - fl",
+          "cocosLessonCode": "en1801",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2226,8 +2380,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1802",
+          "id": "B6gPf3mkPlxfG3XeKz6P",
           "title": "Blend - cl",
+          "cocosLessonCode": "en1802",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2241,8 +2396,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1803",
+          "id": "mnA7RDISJznTMSX2G95j",
           "title": "Blend - oa",
+          "cocosLessonCode": "en1803",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2256,8 +2412,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1804",
+          "id": "7ux6HASte8dKez4jLh0j",
           "title": "Blend - ea",
+          "cocosLessonCode": "en1804",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2271,8 +2428,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1805",
+          "id": "3aa6oJymhdf2k3RX3Nep",
           "title": "Blend - ea - 2",
+          "cocosLessonCode": "en1805",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2286,8 +2444,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1808",
+          "id": "9xkubCMSyOPSBDR56NqO",
           "title": "Blend 'ee'",
+          "cocosLessonCode": "en1808",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2301,8 +2460,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1809",
+          "id": "LHVBVzDpOAsAqx6ZAJEP",
           "title": "Blend 'ee' 1",
+          "cocosLessonCode": "en1809",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2316,8 +2476,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1810",
+          "id": "uVLyzS97RGFHbssQWiIu",
           "title": "Blend 'oo'",
+          "cocosLessonCode": "en1810",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2331,8 +2492,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1811",
+          "id": "jQucurLE2WqGHrQygodr",
           "title": "Blend 'oo' 1",
+          "cocosLessonCode": "en1811",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2346,8 +2508,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1806",
+          "id": "3AXnXANJ3cuQIO1Pamd5",
           "title": "Blend - ou",
+          "cocosLessonCode": "en1806",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2361,8 +2524,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1807",
+          "id": "TY3HJFZq2nuhWnG22m3I",
           "title": "Blend - ai",
+          "cocosLessonCode": "en1807",
           "cocosChapterCode": "en17",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2385,8 +2549,9 @@
       },
       "navigation": [
         {
-          "id": "en1900",
+          "id": "xbiFWZdS3qkU1FHNmvVc",
           "title": "Animal Names -1",
+          "cocosLessonCode": "en1900",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2400,8 +2565,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1901",
+          "id": "NCaTmWxGNvRw9mKOaktm",
           "title": "Animal Names -2",
+          "cocosLessonCode": "en1901",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2415,8 +2581,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1902",
+          "id": "qkZEsDvfkyAMpVd5NACF",
           "title": "Animals",
+          "cocosLessonCode": "en1902",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2430,8 +2597,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1914",
+          "id": "58PBuLUY091hwa3pks0S",
           "title": "Wild Animals",
+          "cocosLessonCode": "en1914",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2445,8 +2613,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1915",
+          "id": "WrFDIqR8J7tOL3FYGkm3",
           "title": "Farm Animals",
+          "cocosLessonCode": "en1915",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2460,8 +2629,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1916",
+          "id": "i9DlAI8bxTxZOgisRunV",
           "title": "Pet Animals",
+          "cocosLessonCode": "en1916",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2475,8 +2645,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1917",
+          "id": "qvIXKM5fLTEDz97gZVTZ",
           "title": "Birds",
+          "cocosLessonCode": "en1917",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2490,8 +2661,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1918",
+          "id": "T5WMeG9vSfO7ZNISti4Y",
           "title": "Insects",
+          "cocosLessonCode": "en1918",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2505,8 +2677,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1919",
+          "id": "8PKv6atGeHSowVGzXvAz",
           "title": "Reptiles",
+          "cocosLessonCode": "en1919",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2520,8 +2693,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1920",
+          "id": "OlX8uhvunGygvxY2FA1Y",
           "title": "Clothes We Wear",
+          "cocosLessonCode": "en1920",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2535,8 +2709,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1921",
+          "id": "tzEZp1kUXTZu63sSHgRB",
           "title": "Clothes We Wear 2",
+          "cocosLessonCode": "en1921",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2550,8 +2725,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1903",
+          "id": "4FoXzNzoRhHjWEYjxGlL",
           "title": "Food",
+          "cocosLessonCode": "en1903",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2565,8 +2741,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1904",
+          "id": "xx3hDJTAv01wZsGzB2U8",
           "title": "Fruits and Vegetables",
+          "cocosLessonCode": "en1904",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2580,8 +2757,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1905",
+          "id": "ujJbPRaTTR91ebqB0URs",
           "title": "Playing",
+          "cocosLessonCode": "en1905",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2595,8 +2773,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1906",
+          "id": "ij2my9ilJjHeuO5PA342",
           "title": "Transport",
+          "cocosLessonCode": "en1906",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2610,8 +2789,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1907",
+          "id": "YpZU9yt0WBe2zZXpos5O",
           "title": "World",
+          "cocosLessonCode": "en1907",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2625,8 +2805,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1908",
+          "id": "n3sRVyGVyFbt9cVLBbQV",
           "title": "Places",
+          "cocosLessonCode": "en1908",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2640,8 +2821,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1909",
+          "id": "pyBSpkjpTFbnUQJgf9sg",
           "title": "Day to day",
+          "cocosLessonCode": "en1909",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2655,8 +2837,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1910",
+          "id": "fMdQPaNGazaJ1wA88kJl",
           "title": "Activities",
+          "cocosLessonCode": "en1910",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2670,8 +2853,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1911",
+          "id": "5AqfQPVvK4eY6peYcqJc",
           "title": "Nature",
+          "cocosLessonCode": "en1911",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2685,8 +2869,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1912",
+          "id": "D8IBCvErU4x0ng99nBLe",
           "title": "Maths",
+          "cocosLessonCode": "en1912",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2700,8 +2885,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en1913",
+          "id": "2BtKp4qEMZMCOHXGvQNq",
           "title": "Practice More Words",
+          "cocosLessonCode": "en1913",
           "cocosChapterCode": "en19",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2724,8 +2910,9 @@
       },
       "navigation": [
         {
-          "id": "en2001",
+          "id": "spROciCj7wqQm7vujCcl",
           "title": "Describe",
+          "cocosLessonCode": "en2001",
           "cocosChapterCode": "en20",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2739,8 +2926,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en2002",
+          "id": "ljlRUEJ9RamOOAr8zOzp",
           "title": "Colours",
+          "cocosLessonCode": "en2002",
           "cocosChapterCode": "en20",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2754,8 +2942,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en2003",
+          "id": "z2Gs25jdauACTaSvDQsZ",
           "title": "Profession",
+          "cocosLessonCode": "en2003",
           "cocosChapterCode": "en20",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2769,8 +2958,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en2008",
+          "id": "RMp3Y0jcZATDvwjQL76C",
           "title": "Community Helpers 2",
+          "cocosLessonCode": "en2008",
           "cocosChapterCode": "en20",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2784,8 +2974,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en2009",
+          "id": "hKkqGVszlQatuGPanM5R",
           "title": "Community Helpers 3",
+          "cocosLessonCode": "en2009",
           "cocosChapterCode": "en20",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2799,8 +2990,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en2004",
+          "id": "leNFZ3ozZyXYUIVpYExG",
           "title": "Activities",
+          "cocosLessonCode": "en2004",
           "cocosChapterCode": "en20",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2814,8 +3006,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en2010",
+          "id": "Reb2fDikzKAZC9uP4XRh",
           "title": "Good Manners",
+          "cocosLessonCode": "en2010",
           "cocosChapterCode": "en20",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2829,8 +3022,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en2005",
+          "id": "DUHMx9MKIXcH7KFkHdDG",
           "title": "Simple Sentences",
+          "cocosLessonCode": "en2005",
           "cocosChapterCode": "en20",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2844,8 +3038,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en2006",
+          "id": "9kwzlGYl5f3ozDUkCWQk",
           "title": "Simple sentences = 2",
+          "cocosLessonCode": "en2006",
           "cocosChapterCode": "en20",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2868,8 +3063,9 @@
       },
       "navigation": [
         {
-          "id": "en2100",
+          "id": "V7Eg9xwl8JYRTSyTARAr",
           "title": "3 Letters",
+          "cocosLessonCode": "en2100",
           "cocosChapterCode": "en21",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2883,8 +3079,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en2101",
+          "id": "4XbdVnmOtlfYOV5tSFK6",
           "title": "4 letters",
+          "cocosLessonCode": "en2101",
           "cocosChapterCode": "en21",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2898,8 +3095,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en2102",
+          "id": "ktgOKyavURdKJLFvdxKU",
           "title": "5 letters",
+          "cocosLessonCode": "en2102",
           "cocosChapterCode": "en21",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2913,8 +3111,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en2103",
+          "id": "sAGhyDOm1Nn66wBI4ZfU",
           "title": "6 letters",
+          "cocosLessonCode": "en2103",
           "cocosChapterCode": "en21",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2937,13 +3136,14 @@
       },
       "navigation": [
         {
-          "id": "en2200",
+          "id": "XdmByOaXnaO9DmVjNRwZ",
           "title": "Type Alpahbet",
+          "cocosLessonCode": "en2200",
           "cocosChapterCode": "en22",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
           "type": "lesson",
-          "outcome": "The speed of typing is tested for children here as they recognize the letter and type them. It is time for the students to practice typing letters and common words to increase their proficiency in digital skills. The child will learn typing on a qwerty keyboard which is important in our contemporary digital world. As children hear the sound read out-loud, see it on the screen and then type the corresponding key, the activity reinforces sound letter mapping skill in them.",
+          "outcome": "The speed of typing is tested for children here as they recognize the letter and type them. It is time for the  students to practice typing letters and  common words to increase their proficiency in digital skills. The child will learn typing on a qwerty  keyboard which is important in our contemporary digital world. As children hear the sound read out-loud, see it on the screen and then type the corresponding key, the activity reinforces sound letter mapping skill in them.",
           "pluginType": "cocos",
           "status": "approved",
           "subject": "/Subject/en",
@@ -2952,13 +3152,14 @@
           "thumbnail": ""
         },
         {
-          "id": "en2201",
+          "id": "Cpr0iWf8LhXbhvmmorj4",
           "title": "Type Words",
+          "cocosLessonCode": "en2201",
           "cocosChapterCode": "en22",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
           "type": "lesson",
-          "outcome": "The speed of typing is tested for children here as they recognize the word and type them. It is time for the students to practice typing letters and common words to increase their proficiency in digital skills. The child will learn typing on a qwerty keyboard which is important in our contemporary digital world. As children hear the sound read out-loud, see it on the screen and then type the corresponding key, the activity reinforces sound letter mapping skill in them.",
+          "outcome": "The speed of typing is tested for children here as they recognize the word and type them. It is time for the  students to practice typing letters and  common words to increase their proficiency in digital skills. The child will learn typing on a qwerty  keyboard which is important in our contemporary digital world. As children hear the sound read out-loud, see it on the screen and then type the corresponding key, the activity reinforces sound letter mapping skill in them.",
           "pluginType": "cocos",
           "status": "approved",
           "subject": "/Subject/en",
@@ -2976,8 +3177,9 @@
       },
       "navigation": [
         {
-          "id": "en2300",
+          "id": "CoenZe7GQuvokkKslumr",
           "title": "Tiny Words - 1",
+          "cocosLessonCode": "en2300",
           "cocosChapterCode": "en23",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -2991,8 +3193,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en2301",
+          "id": "iaEkWNExVgyTPHgcAwBb",
           "title": "Tiny Words - 2",
+          "cocosLessonCode": "en2301",
           "cocosChapterCode": "en23",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -3006,8 +3209,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en2302",
+          "id": "i5i8sv2PK1dlMAItDerg",
           "title": "Big words",
+          "cocosLessonCode": "en2302",
           "cocosChapterCode": "en23",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -3021,8 +3225,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en2303",
+          "id": "CmtqwoImeEThIbsznB8u",
           "title": "Big Words - 2",
+          "cocosLessonCode": "en2303",
           "cocosChapterCode": "en23",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -3036,8 +3241,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en2304",
+          "id": "ceSbs9P6zG9BZtP3UE4l",
           "title": "Bigger words",
+          "cocosLessonCode": "en2304",
           "cocosChapterCode": "en23",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -3060,8 +3266,9 @@
       },
       "navigation": [
         {
-          "id": "en3200",
+          "id": "dXIdpMFGJ7AZBGsHzzO7",
           "title": "Simple sentence - 2 words",
+          "cocosLessonCode": "en3200",
           "cocosChapterCode": "en32",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -3075,8 +3282,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en3201",
+          "id": "ZTPMb9o5i8ZS8BHkWPds",
           "title": "Simple Sentence - 3 words",
+          "cocosLessonCode": "en3201",
           "cocosChapterCode": "en32",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -3090,8 +3298,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en3202",
+          "id": "8nVI1OiLJrrnA2u9neRM",
           "title": "Simple sentence - 4 words",
+          "cocosLessonCode": "en3202",
           "cocosChapterCode": "en32",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -3105,8 +3314,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en3203",
+          "id": "3B8ZAUq4phSbmgzVVTzf",
           "title": "About people",
+          "cocosLessonCode": "en3203",
           "cocosChapterCode": "en32",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -3120,8 +3330,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en3204",
+          "id": "oiRXl8l8BTk3qo3BdEF5",
           "title": "Day to day life",
+          "cocosLessonCode": "en3204",
           "cocosChapterCode": "en32",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
@@ -3135,8 +3346,9 @@
           "thumbnail": ""
         },
         {
-          "id": "en3205",
+          "id": "SU6GCxQnIIQnEm5rWYnz",
           "title": "About things",
+          "cocosLessonCode": "en3205",
           "cocosChapterCode": "en32",
           "cocosSubjectCode": "en",
           "language": "/Language/en",
