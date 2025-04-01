@@ -110,7 +110,7 @@ export enum HOMEHEADERLIST {
   SUGGESTIONS = "SUGGESTIONS",
   SUBJECTS = "SUBJECTS",
   HOME = "HOME",
-  ASSIGNMENT = "ASSIGNMENT",
+  // ASSIGNMENT = "ASSIGNMENT",
   CHALLENGES = "CHALLENGES",
   SEARCH = "SEARCH",
   LIVEQUIZ = "LIVE-QUIZ",
@@ -248,14 +248,14 @@ export const ACTIVE_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
         headerList: HOMEHEADERLIST.SUBJECTS,
       },
     ],
-    [
-      HOMEHEADERLIST.ASSIGNMENT,
-      {
-        displayName: "Home work",
-        iconSrc: "/assets/icons/homeworkIcon.svg",
-        headerList: HOMEHEADERLIST.ASSIGNMENT,
-      },
-    ],
+    // [
+    //   HOMEHEADERLIST.ASSIGNMENT,
+    //   {
+    //     displayName: "Home work",
+    //     iconSrc: "/assets/icons/homeworkIcon.svg",
+    //     headerList: HOMEHEADERLIST.ASSIGNMENT,
+    //   },
+    // ],
     // [
     //   HOMEHEADERLIST.CHALLENGES,
     //   {
@@ -302,14 +302,14 @@ export const DEFAULT_HEADER_ICON_CONFIGS: Map<
       headerList: HOMEHEADERLIST.SUBJECTS,
     },
   ],
-  [
-    HOMEHEADERLIST.ASSIGNMENT,
-    {
-      displayName: "Home work",
-      iconSrc: "/assets/icons/homeworkInactiveIcon.svg",
-      headerList: HOMEHEADERLIST.ASSIGNMENT,
-    },
-  ],
+  // [
+  // HOMEHEADERLIST.ASSIGNMENT,
+  // {
+  //   displayName: "Home work",
+  //   iconSrc: "/assets/icons/homeworkInactiveIcon.svg",
+  //   headerList: HOMEHEADERLIST.ASSIGNMENT,
+  // },
+  // ],
   // [
   //   HOMEHEADERLIST.CHALLENGES,
   //   {
@@ -355,14 +355,14 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
         headerList: HOMEHEADERLIST.SUBJECTS,
       },
     ],
-    [
-      HOMEHEADERLIST.ASSIGNMENT,
-      {
-        displayName: "Home work",
-        iconSrc: "/assets/icons/homework_icon.svg",
-        headerList: HOMEHEADERLIST.ASSIGNMENT,
-      },
-    ],
+    // [
+    //   HOMEHEADERLIST.ASSIGNMENT,
+    //   {
+    //     displayName: "Home work",
+    //     iconSrc: "/assets/icons/homework_icon.svg",
+    //     headerList: HOMEHEADERLIST.ASSIGNMENT,
+    //   },
+    // ],
     // [
     //   HOMEHEADERLIST.CHALLENGES,
     //   {
