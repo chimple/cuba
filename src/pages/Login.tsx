@@ -702,6 +702,7 @@ const Login: React.FC = () => {
                   />
                   <button
                     id="login-respect-icon"
+                    style={{ backgroundColor: 'transparent', border: 'none' }}
                     onClick={async () => {
                       if (!online) {
                         presentToast({
@@ -750,9 +751,13 @@ const Login: React.FC = () => {
                       }
                     }}
                   >
-                    Respect Login
+                    <img
+                      src="assets/icons/respect-logo.png"
+                      alt="Respect Logo"
+                      style={{ width: '10vw', height: '4vw' }}
+                    />
                   </button>
-                  <div className="google-or-student-credentials-button">OR</div>
+                  {/*<div className="google-or-student-credentials-button">OR</div>*/}
                   {!showVerification ? (
                     <div
                       className="login-with-student-credentials"

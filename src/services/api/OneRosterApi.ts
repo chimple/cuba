@@ -1897,7 +1897,7 @@ export class OneRosterApi implements ServiceApi {
             id: lesson.id,
             name: lesson.title,
             cocos_chapter_code: lesson.cocosChapterCode,
-            cocos_lesson_id: lesson.cocosLessonCode ?? lesson.id,
+            cocos_lesson_id: lesson.cocosLessonCode,
             cocos_subject_code: lesson.cocosSubjectCode,
             color: null,
             created_at: new Date().toISOString(),
@@ -2160,7 +2160,7 @@ export class OneRosterApi implements ServiceApi {
             statement.object?.definition?.extensions?.["http://example.com/xapi/courseId"] ?? "",
           lesson_id:
             statement.object?.definition?.extensions?.["http://example.com/xapi/lessonId"] ?? null,
-          lesson_name: lesson?.title ?? null,
+          lesson_name: lesson?.name ?? null,
           assignmentId:
             statement.result?.extensions?.["http://example.com/xapi/assignmentId"] ?? null,
           chapterId:

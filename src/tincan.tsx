@@ -7,8 +7,8 @@ interface IRecordStoreCfg {
 }
 
 const lrs:IRecordStoreCfg  = {
-  endpoint: 'https://mahvish-test-lrs.lrs.io/xapi/', // LRS endpoint
-    auth: 'Basic ' + btoa('jeevlu:wugkem'), // Replace with your LRS credentials
+  endpoint: 'https://chimple.lrs.io/xapi/', // LRS endpoint
+    auth: 'Basic ' + btoa('chimp:chimpoo'), // Replace with your LRS credentials
 };
 
 // Create the tincan instance
