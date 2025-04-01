@@ -2510,6 +2510,7 @@ export class SqliteApi implements ServiceApi {
       TABLES.Assignment,
       TABLES.Class,
       TABLES.School,
+      TABLES.ClassCourse,
     ]);
     return linkData;
   }

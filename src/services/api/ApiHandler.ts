@@ -956,7 +956,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.updateSchoolLastModified(schoolId);
   }
   async updateClassLastModified(classId: string): Promise<void> {
-    return await this.s.updateSchoolLastModified(classId);
+    return await this.s.updateClassLastModified(classId);
   }
   async updateUserLastModified(userId: string): Promise<void> {
     return await this.s.updateUserLastModified(userId);
