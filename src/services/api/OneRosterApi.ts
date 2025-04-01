@@ -387,52 +387,48 @@ export class OneRosterApi implements ServiceApi {
     grades: TableTypes<"grade">[];
     courses: TableTypes<"course">[];
   }> {
-    try {
-      // const courseJson = await this.loadCourseJson(this.currentCourse?.course_id || this.allCourseIds[0]);
-      // console.log("const courseJson ", courseJson);
+    console.log("Fetching different grades for course:", course);
+    
+    const allCourses: Course[] = await this.getAllCourses(); 
+    console.log("All courses fetched:", allCourses);
 
-      // const metaC = courseJson.metadata;
+    const allGrades: Grade[] = await this.getAllGrades(); 
+    console.log("All grades fetched:", allGrades);
 
-      // console.log("getCourses data ", courseJson.metadata);
-      // let tCourse: TableTypes<"course"> = {
-      //   code: metaC.courseCode,
-      //   color: metaC.color,
-      //   created_at: "null",
-      //   curriculum_id: metaC.curriculum,
-      //   description: null,
-      //   grade_id: metaC.grade,
-      //   id: this.allCourseIds[0],
-      //   image: metaC.thumbnail,
-      //   is_deleted: null,
-      //   name: metaC.title,
-      //   sort_index: metaC.sortIndex,
-      //   subject_id: metaC.subject,
-      //   updated_at: null,
-      // };
-      // let res = [];
-      // res.push(tCourse);
-      let res = await this.getAllCourses();
-      console.log("let res = this.getAllCourses(); ", res);
+    const gradeMap: {
+        grades: Grade[];
+        courses: Course[];
+    } = { grades: [], courses: [] };
 
-      let gradeRes: TableTypes<"grade">[] = await this.getAllGrades()
-      // [
-      //   {
-      //     created_at: "null",
-      //     description: "",
-      //     id: "g1",
-      //     image: null,
-      //     is_deleted: null,
-      //     name: "Grade 1",
-      //     sort_index: 1,
-      //     updated_at: "null",
-      //   },
-      // ];
-      console.log("async getDifferentGradesForCourse() ", { grades: gradeRes, courses: res });
+    const filteredCourses = allCourses.filter(c => c.subject_id === course.subject_id && c.curriculum_id === course.curriculum_id);
+    console.log("Filtered courses based on subject and curriculum:", filteredCourses);
 
-      return { grades: gradeRes, courses: res };
-    } catch (error) {
-      console.error("Error fetching JSON:", error);
+    for (const course of filteredCourses) {
+        const grade = allGrades.find(g => g.id === course.grade_id);
+        console.log(`Checking course: ${course.name}, found grade:`, grade);
+
+        if (grade) {
+            const gradeAlreadyExists = gradeMap.grades.find(_grade => _grade.id === grade.id);
+            if (!gradeAlreadyExists) {
+                gradeMap.grades.push(grade);
+                gradeMap.courses.push(course);
+                console.log(`Added grade: ${grade.name} for course: ${course.name}`);
+            } else {
+                console.log(`Grade: ${grade.name} already exists in the map.`);
+            }
+        } else {
+            console.log(`No grade found for course: ${course.name}`);
+        }
     }
+
+    gradeMap.grades.sort((a, b) => {
+        const sortIndexA = a.sort_index || Number.MAX_SAFE_INTEGER;
+        const sortIndexB = b.sort_index || Number.MAX_SAFE_INTEGER;
+        return sortIndexA - sortIndexB;
+    });
+    console.log("Sorted grades:", gradeMap.grades);
+
+    return gradeMap;
   }
   getAssignmentById(id: string): Promise<TableTypes<"assignment"> | undefined> {
     throw new Error("Method not implemented.");
@@ -490,6 +486,7 @@ export class OneRosterApi implements ServiceApi {
   > {
     try {
       const courseJson = await this.loadCourseJson(courseId);
+      console.log("courseId id ---> ", courseId);
 
       console.log("getChaptersForCourse data:", courseJson.groups);
       this.currentCourse.course_id = courseJson.metadata.courseCode;
