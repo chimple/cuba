@@ -48,6 +48,7 @@ import {
   NAVIGATION_STATE,
   GAME_URL,
   LOCAL_BUNDLES_PATH,
+  Class_Creation_Stages,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1930,5 +1931,46 @@ export class Util {
       origin: origin,
       isSelect: true,
     });
+  }
+  public static async handleClassAndSubjects(
+    schoolId: string,
+    userId: string,
+    history: any,
+    originPage: PAGES
+  ) {
+    const api = ServiceConfig.getI().apiHandler;
+
+    const fetchedClasses = await api.getClassesForSchool(schoolId, userId);
+    if (fetchedClasses.length === 0) {
+      history.replace(PAGES.ADD_CLASS, {
+        school: { id: schoolId },
+        origin: originPage,
+      });
+      return;
+    }
+
+    const classCoursesData = await Promise.all(
+      fetchedClasses.map((classItem) =>
+        api.getCoursesByClassId(classItem.id).then((courses) => ({
+          classId: classItem.id,
+          courses,
+        }))
+      )
+    );
+
+    const classWithoutSubjects = classCoursesData.find(
+      (data) => data.courses.length === 0
+    );
+
+    if (classWithoutSubjects) {
+      this.setNavigationState(Class_Creation_Stages.CLASS_COURSE);
+      this.handleMissingEntities(
+        history,
+        PAGES.SUBJECTS_PAGE,
+        originPage,
+        classWithoutSubjects.classId
+      );
+      return;
+    }
   }
 }
