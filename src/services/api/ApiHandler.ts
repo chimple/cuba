@@ -965,8 +965,15 @@ export class ApiHandler implements ServiceApi {
   }
   async validateClassExistence(
     schoolId: string,
-    className: string
+    className: string,
+    studentName?: string
   ): Promise<{ status: string; errors?: string[] }> {
-    return this.s.validateClassExistence(schoolId, className);
+    return this.s.validateClassExistence(schoolId, className, studentName);
+  }
+  async validateUserContacts(
+    programManagerPhone: string,
+    fieldCoordinatorPhone: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateUserContacts(programManagerPhone, fieldCoordinatorPhone);
   }
 }

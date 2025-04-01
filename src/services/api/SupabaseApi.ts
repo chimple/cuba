@@ -1329,19 +1329,22 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from("school_data")
       .select("udise_code, school_name, instruction_medium") // Select only required fields
-      .eq("udise_code", schoolId)
-      .single();
+      .eq("udise_code", schoolId);
     if (error || !data) {
       return { status: "error", errors: ["Invalid SCHOOL ID (UDISE Code)"] };
     }
 
     let errors: string[] = [];
+    // Check for duplicate UDISE codes
+  if (data.length > 1) {
+    errors.push("Duplicate SCHOOL ID (UDISE Code) found in database");
+  }
 
-    if (data.school_name !== schoolName) {
+    if (data[0].school_name !== schoolName) {
       errors.push("SCHOOL NAME does not match the database record");
     }
-    console.log("kjgfkjdsjfs", data.instruction_medium, instructionMedium);
-    if (data.instruction_medium !== instructionMedium) {
+    console.log("kjgfkjdsjfs", data[0].instruction_medium, instructionMedium);
+    if (data[0].instruction_medium !== instructionMedium) {
       errors.push(
         "SCHOOL INSTRUCTION LANGUAGE does not match the database record"
       );
@@ -1402,7 +1405,8 @@ export class SupabaseApi implements ServiceApi {
   }
   async validateClassExistence(
     schoolId: string,
-    className: string
+    className: string,
+    studentName?: string // Optional parameter
   ): Promise<{ status: string; errors?: string[] }> {
     if (!this.supabase) {
       return {
@@ -1410,24 +1414,87 @@ export class SupabaseApi implements ServiceApi {
         errors: ["Supabase client is not initialized"],
       };
     }
+  
     console.log("Class Data: 122", schoolId, className);
     className = className.trim();
-    const { data, error } = await this.supabase
+  
+    // Step 1: Check if the class exists for the given school ID
+    const { data: classData, error: classError } = await this.supabase
       .from("class")
-      .select("school_id") // Select only required fields
+      .select("id") // We only need the class ID to verify existence
       .eq("school_id", schoolId)
       .eq("class_name", className)
       .single();
-
-    console.log("Class Data: 121", data);
-
-    if (error || !data) {
+  
+    if (classError || !classData) {
       return {
         status: "error",
         errors: ["Class does not exist for the given SCHOOL ID"],
       };
     }
-
+  
+    // If studentName is not provided, return success immediately
+    if (!studentName) {
+      return { status: "success" };
+    }
+  
+    // Step 2: Check if the studentName already exists in the 'name' column of the class table
+    studentName = studentName.trim();
+  
+    const { data: duplicateStudent, error: studentError } = await this.supabase
+      .from("class")
+      .select("id")
+      .eq("school_id", schoolId)
+      .eq("class_name", className)
+      .eq("name", studentName)
+      .single();
+  
+    if (duplicateStudent) {
+      return {
+        status: "error",
+        errors: [`Student name '${studentName}' already exists in this class.`],
+      };
+    }
+  
     return { status: "success" };
   }
+  
+  async validateUserContacts(
+    programManagerPhone: string,
+    fieldCoordinatorPhone?: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+    let errors: string[] = [];
+    // Query user table to check if Program Manager exists
+    const { data: pmData, error: pmError } = await this.supabase
+      .from("user")
+      .select("id")
+      .or(`email.eq.${programManagerPhone},phone_number.eq.${programManagerPhone}`)
+      .single();
+  
+    if (pmError || !pmData) {
+      errors.push("PROGRAM MANAGER EMAIL OR PHONE NUMBER does not exist in the system");
+    }
+  
+    // If Field Coordinator Phone exists, validate it in user table
+    if (fieldCoordinatorPhone) {
+      const { data: fcData, error: fcError } = await this.supabase
+        .from("user")
+        .select("id")
+        .or(`email.eq.${fieldCoordinatorPhone},phone_number.eq.${fieldCoordinatorPhone}`)
+        .single();
+  
+      if (fcError || !fcData) {
+        errors.push("FIELD COORDINATOR EMAIL OR PHONE NUMBER does not exist in the system");
+      }
+    }
+  
+    return errors.length > 0 ? { status: "error", errors } : { status: "success" };
+  }
+  
 }

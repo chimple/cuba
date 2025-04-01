@@ -117,6 +117,12 @@ const FileUpload: React.FC = () => {
               "Invalid FIELD COORDINATOR EMAIL OR PHONE NUMBER format"
             );
           }
+          const validationResponse = await api.validateUserContacts(programManagerPhone, fieldCoordinatorPhone );
+          console.log(validationResponse); 
+          if (validationResponse.status === "error") {
+            errors.push(...(validationResponse.errors || []));
+          }
+
 
           // **Condition 1: If SCHOOL ID (UDISE Code) is present**
           if (schoolId) {
@@ -276,7 +282,8 @@ const FileUpload: React.FC = () => {
 
           const validationResponse = await api.validateClassExistence(
             schoolId,
-            className
+            className,
+            studentName
           );
           if (validationResponse.status === "error") {
             errors.push(...(validationResponse.errors || []));

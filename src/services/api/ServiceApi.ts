@@ -1237,6 +1237,11 @@ export interface ServiceApi {
   ): Promise<{ status: string; errors?: string[] }>;
   validateClassExistence(
     schoolId: string,
-    className: string
+    className: string,
+    studentName?: string
+  ): Promise<{ status: string; errors?: string[] }>;
+  validateUserContacts(
+    programManagerPhone: string,
+    fieldCoordinatorPhone: string
   ): Promise<{ status: string; errors?: string[] }>;
 }

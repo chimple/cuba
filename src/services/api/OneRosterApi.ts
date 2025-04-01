@@ -1155,7 +1155,14 @@ export class OneRosterApi implements ServiceApi {
   }
   validateClassExistence(
     schoolId: string,
-    className: string
+    className: string,
+    studentName?: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    throw new Error("Method not implemented.");
+  }
+  validateUserContacts(
+    programManagerPhone: string,
+    fieldCoordinatorPhone: string
   ): Promise<{ status: string; errors?: string[] }> {
     throw new Error("Method not implemented.");
   }
