@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.Logger;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.appcheck.FirebaseAppCheck;
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory;
@@ -18,6 +19,7 @@ import android.content.pm.PackageManager;
 
 import android.util.Base64;
 import android.util.Log;
+import android.webkit.WebView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
@@ -117,6 +119,29 @@ public  class MainActivity extends BridgeActivity {
                     }
                 })
                 .addOnFailureListener(e -> Log.e("TAG", "Phone Number Hint Request failed", e));
+    }
+
+    // For the gray screen when devices goes to offline or sleep
+    private void refreshWebViewIfNeeded() {
+        Logger.debug("User defined onResume!");
+        WebView webView = bridge.getWebView();
+        if (webView != null) {
+            webView.post(() -> {
+                webView.invalidate();
+                webView.requestLayout();
+                webView.setVisibility(View.INVISIBLE);
+                webView.postDelayed(() -> webView.setVisibility(View.VISIBLE), 100);
+            });
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        bridge.getApp().fireStatusChange(true);
+        this.bridge.onResume();
+        Logger.debug("App resumed");
+        refreshWebViewIfNeeded();
     }
 
     @Override
