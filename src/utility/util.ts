@@ -48,7 +48,7 @@ import {
   NAVIGATION_STATE,
   GAME_URL,
   LOCAL_BUNDLES_PATH,
-  Class_Creation_Stages,
+  School_Creation_Stages,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1939,7 +1939,16 @@ export class Util {
     originPage: PAGES
   ) {
     const api = ServiceConfig.getI().apiHandler;
-
+    const schoolCourses = await api.getCoursesBySchoolId(schoolId);
+    if (schoolCourses.length === 0) {
+      this.setNavigationState(School_Creation_Stages.SCHOOL_COURSE);
+      history.replace(PAGES.SUBJECTS_PAGE, {
+        schoolId: schoolId,
+        origin: originPage,
+        isSelect: true,
+      });
+      return;
+    }
     const fetchedClasses = await api.getClassesForSchool(schoolId, userId);
     if (fetchedClasses.length === 0) {
       history.replace(PAGES.ADD_CLASS, {
@@ -1963,7 +1972,7 @@ export class Util {
     );
 
     if (classWithoutSubjects) {
-      this.setNavigationState(Class_Creation_Stages.CLASS_COURSE);
+      this.setNavigationState(School_Creation_Stages.CLASS_COURSE);
       this.handleMissingEntities(
         history,
         PAGES.SUBJECTS_PAGE,
