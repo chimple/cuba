@@ -300,63 +300,58 @@ export class SqliteApi implements ServiceApi {
 
   private async pullChanges(tableNames: TABLES[]) {
     if (!this._db) return;
-    const tables = "'" + tableNames.join("', '") + "'";
 
+    const tables = tableNames.map((t) => `'${t}'`).join(", ");
     const tablePullSync = `SELECT * FROM pull_sync_info WHERE table_name IN (${tables});`;
-    let res: any[] = [];
+  
+    let lastPullTables = new Map<string, string>();
     try {
-      res = (await this._db.query(tablePullSync)).values ?? [];
+      const res = (await this._db.query(tablePullSync)).values ?? [];
+      res.forEach((row) => lastPullTables.set(row.table_name, row.last_pulled));
     } catch (error) {
-      console.log("🚀 ~ Api ~ syncDB ~ error:", error);
+      console.error("🚀 ~ Api ~ syncDB ~ error:", error);
       await this.createSyncTables();
     }
-    const lastPullTables = new Map();
-    if (res?.length) {
-      res.forEach((row) => {
-        lastPullTables.set(row.table_name, row.last_pulled);
+  
+    const data = await SupabaseApi.i.getTablesData(tableNames, lastPullTables);
+    const lastPulled = new Date().toISOString();
+    let batchQueries: { statement: string; values: any[] }[] = [];
+  
+    for (const tableName of tableNames) {
+      const tableData = data.get(tableName) ?? [];
+      if (tableData.length === 0) continue;
+  
+      const existingColumns = await this.getTableColumns(tableName);
+      if (!existingColumns || existingColumns.length === 0) continue;
+  
+      for (const row of tableData) {
+        const fieldNames = Object.keys(row).filter((f) => existingColumns.includes(f));
+        if (fieldNames.length === 0) continue;
+  
+        const fieldValues = fieldNames.map((f) => row[f]);
+        const placeholders = fieldNames.map(() => "?").join(", ");
+        const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(", ")}) VALUES (${placeholders})`;
+           
+        batchQueries.push({ statement: stmt, values: fieldValues });
+      }
+  
+      // Update sync timestamp
+      batchQueries.push({
+        statement: `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
+        values: [tableName, lastPulled],
       });
     }
-    const data = await SupabaseApi.i.getTablesData(tableNames, lastPullTables);
-    for (const tableName of tableNames) {
-      if (data.get(tableName)) {
-        const tableData = data.get(tableName) ?? [];
-        const existingColumns = await this.getTableColumns(tableName);
-        console.log(
-          "🚀 ~ SqliteApi ~ pullChanges ~ tableInfo:",
-          existingColumns
-        );
-        if (existingColumns) {
-          for (const row of tableData) {
-            const fieldNames = Object.keys(row).filter((fieldName) =>
-              existingColumns.includes(fieldName)
-            );
-            const fieldValues = fieldNames.map((fieldName) => row[fieldName]);
-            const fieldPlaceholders = fieldNames.map(() => "?").join(", ");
-
-            if (fieldNames.length === 0) continue; // Skip if no valid columns
-
-            const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(", ")}) VALUES (${fieldPlaceholders})`;
-            console.log(
-              "🚀 ~ pullChanges ~ stmt, fieldValues:",
-              stmt,
-              fieldValues,
-              fieldValues.length
-            );
-
-            try {
-              await this.executeQuery(stmt, fieldValues);
-            } catch (error) {
-              console.log("🚀 ~ pullChanges ~ Error:", error);
-            }
-          }
-        }
-
-        const lastPulled = new Date().toISOString();
-        const stmt = `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`;
-        await this.executeQuery(stmt, [tableName, lastPulled]);
+  
+    // Execute batch queries efficiently
+    if (batchQueries.length > 0) {
+      try {
+        await this._db.executeSet(batchQueries);
+      } catch (error) {
+        console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
       }
     }
   }
+  
   async getTableColumns(tableName: string): Promise<string[] | undefined> {
     const query = `PRAGMA table_info(${tableName})`;
     const result = await this._db?.query(query);
