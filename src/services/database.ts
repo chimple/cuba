@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -17,9 +17,11 @@ export type Database = {
           created_at: string
           created_by: string | null
           ends_at: string | null
+          firebase_id: string | null
           id: string
           is_class_wise: boolean
           is_deleted: boolean | null
+          is_firebase: boolean | null
           lesson_id: string
           school_id: string
           source: string | null
@@ -34,9 +36,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           ends_at?: string | null
+          firebase_id?: string | null
           id?: string
           is_class_wise?: boolean
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           lesson_id: string
           school_id: string
           source?: string | null
@@ -51,9 +55,11 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           ends_at?: string | null
+          firebase_id?: string | null
           id?: string
           is_class_wise?: boolean
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           lesson_id?: string
           school_id?: string
           source?: string | null
@@ -111,6 +117,7 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
+          is_firebase: boolean | null
           lessons: string | null
           updated_at: string | null
         }
@@ -118,6 +125,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           lessons?: string | null
           updated_at?: string | null
         }
@@ -125,6 +133,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           lessons?: string | null
           updated_at?: string | null
         }
@@ -144,6 +153,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_deleted: boolean | null
+          is_firebase: boolean | null
           updated_at: string | null
           user_id: string
         }
@@ -152,6 +162,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           updated_at?: string | null
           user_id: string
         }
@@ -160,6 +171,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           updated_at?: string | null
           user_id?: string
         }
@@ -176,6 +188,41 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auto_chatbot: {
+        Row: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          school_id: string
+          task_data: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          school_id: string
+          task_data?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          school_id?: string
+          task_data?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_auto_chatbot_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school"
             referencedColumns: ["id"]
           },
         ]
@@ -329,27 +376,33 @@ export type Database = {
       class: {
         Row: {
           created_at: string
+          firebase_id: string | null
           id: string
           image: string | null
           is_deleted: boolean | null
+          is_firebase: boolean | null
           name: string
           school_id: string
           updated_at: string | null
         }
         Insert: {
           created_at?: string
+          firebase_id?: string | null
           id?: string
           image?: string | null
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           name: string
           school_id: string
           updated_at?: string | null
         }
         Update: {
           created_at?: string
+          firebase_id?: string | null
           id?: string
           image?: string | null
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           name?: string
           school_id?: string
           updated_at?: string | null
@@ -371,6 +424,7 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
+          is_firebase: boolean | null
           updated_at: string | null
         }
         Insert: {
@@ -379,6 +433,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           updated_at?: string | null
         }
         Update: {
@@ -387,6 +442,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           updated_at?: string | null
         }
         Relationships: [
@@ -415,6 +471,7 @@ export type Database = {
           id: string
           is_class_code: boolean | null
           is_deleted: boolean | null
+          is_firebase: boolean | null
           updated_at: string | null
         }
         Insert: {
@@ -425,6 +482,7 @@ export type Database = {
           id?: string
           is_class_code?: boolean | null
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           updated_at?: string | null
         }
         Update: {
@@ -435,6 +493,7 @@ export type Database = {
           id?: string
           is_class_code?: boolean | null
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           updated_at?: string | null
         }
         Relationships: [
@@ -453,6 +512,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_deleted: boolean | null
+          is_firebase: boolean | null
           role: Database["public"]["Enums"]["role"]
           updated_at: string | null
           user_id: string
@@ -462,6 +522,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           role: Database["public"]["Enums"]["role"]
           updated_at?: string | null
           user_id: string
@@ -471,6 +532,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           role?: Database["public"]["Enums"]["role"]
           updated_at?: string | null
           user_id?: string
@@ -600,6 +662,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_deleted: boolean | null
+          is_firebase: boolean | null
           lesson_id: string
           updated_at: string | null
           user_id: string
@@ -608,6 +671,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           lesson_id: string
           updated_at?: string | null
           user_id: string
@@ -616,6 +680,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           lesson_id?: string
           updated_at?: string | null
           user_id?: string
@@ -873,6 +938,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_deleted: boolean | null
+          is_firebase: boolean | null
           parent_id: string
           student_id: string
           updated_at: string | null
@@ -881,6 +947,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           parent_id: string
           student_id: string
           updated_at?: string | null
@@ -889,6 +956,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           parent_id?: string
           student_id?: string
           updated_at?: string | null
@@ -910,6 +978,59 @@ export type Database = {
           },
         ]
       }
+      req_new_school: {
+        Row: {
+          city: string
+          created_at: string | null
+          district: string
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          is_resolved: boolean | null
+          name: string
+          state: string
+          udise_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          city: string
+          created_at?: string | null
+          district: string
+          id?: string
+          image?: string | null
+          is_deleted?: boolean | null
+          is_resolved?: boolean | null
+          name: string
+          state: string
+          udise_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          city?: string
+          created_at?: string | null
+          district?: string
+          id?: string
+          image?: string | null
+          is_deleted?: boolean | null
+          is_resolved?: boolean | null
+          name?: string
+          state?: string
+          udise_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "req_new_school_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       result: {
         Row: {
           assignment_id: string | null
@@ -918,8 +1039,10 @@ export type Database = {
           correct_moves: number | null
           course_id: string | null
           created_at: string
+          firebase_id: string | null
           id: string
           is_deleted: boolean | null
+          is_firebase: boolean | null
           lesson_id: string | null
           school_id: string | null
           score: number | null
@@ -935,8 +1058,10 @@ export type Database = {
           correct_moves?: number | null
           course_id?: string | null
           created_at?: string
+          firebase_id?: string | null
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           lesson_id?: string | null
           school_id?: string | null
           score?: number | null
@@ -952,8 +1077,10 @@ export type Database = {
           correct_moves?: number | null
           course_id?: string | null
           created_at?: string
+          firebase_id?: string | null
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           lesson_id?: string | null
           school_id?: string | null
           score?: number | null
@@ -1050,34 +1177,40 @@ export type Database = {
       school: {
         Row: {
           created_at: string
+          firebase_id: string | null
           group1: string | null
           group2: string | null
           group3: string | null
           id: string
           image: string | null
           is_deleted: boolean | null
+          is_firebase: boolean | null
           name: string
           updated_at: string | null
         }
         Insert: {
           created_at?: string
+          firebase_id?: string | null
           group1?: string | null
           group2?: string | null
           group3?: string | null
           id?: string
           image?: string | null
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           name: string
           updated_at?: string | null
         }
         Update: {
           created_at?: string
+          firebase_id?: string | null
           group1?: string | null
           group2?: string | null
           group3?: string | null
           id?: string
           image?: string | null
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           name?: string
           updated_at?: string | null
         }
@@ -1089,6 +1222,7 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
+          is_firebase: boolean | null
           school_id: string
           updated_at: string | null
         }
@@ -1097,6 +1231,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           school_id: string
           updated_at?: string | null
         }
@@ -1105,6 +1240,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           school_id?: string
           updated_at?: string | null
         }
@@ -1125,11 +1261,75 @@ export type Database = {
           },
         ]
       }
+      school_data: {
+        Row: {
+          block: string | null
+          classes: string | null
+          cluster: string | null
+          country: string | null
+          created_at: string
+          district: string | null
+          head_teacher: string | null
+          head_teachers: string | null
+          id: string
+          instruction_medium: string | null
+          pre_primary_section_available: boolean | null
+          school_name: string | null
+          school_type: string | null
+          state: string | null
+          total_teachers: number | null
+          udise_code: string | null
+          updated_at: string | null
+          village: string | null
+        }
+        Insert: {
+          block?: string | null
+          classes?: string | null
+          cluster?: string | null
+          country?: string | null
+          created_at?: string
+          district?: string | null
+          head_teacher?: string | null
+          head_teachers?: string | null
+          id?: string
+          instruction_medium?: string | null
+          pre_primary_section_available?: boolean | null
+          school_name?: string | null
+          school_type?: string | null
+          state?: string | null
+          total_teachers?: number | null
+          udise_code?: string | null
+          updated_at?: string | null
+          village?: string | null
+        }
+        Update: {
+          block?: string | null
+          classes?: string | null
+          cluster?: string | null
+          country?: string | null
+          created_at?: string
+          district?: string | null
+          head_teacher?: string | null
+          head_teachers?: string | null
+          id?: string
+          instruction_medium?: string | null
+          pre_primary_section_available?: boolean | null
+          school_name?: string | null
+          school_type?: string | null
+          state?: string | null
+          total_teachers?: number | null
+          udise_code?: string | null
+          updated_at?: string | null
+          village?: string | null
+        }
+        Relationships: []
+      }
       school_user: {
         Row: {
           created_at: string
           id: string
           is_deleted: boolean | null
+          is_firebase: boolean | null
           role: Database["public"]["Enums"]["role"]
           school_id: string
           updated_at: string | null
@@ -1139,6 +1339,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           role: Database["public"]["Enums"]["role"]
           school_id: string
           updated_at?: string | null
@@ -1148,6 +1349,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           role?: Database["public"]["Enums"]["role"]
           school_id?: string
           updated_at?: string | null
@@ -1241,11 +1443,13 @@ export type Database = {
           curriculum_id: string | null
           email: string | null
           fcm_token: string | null
+          firebase_id: string | null
           gender: string | null
           grade_id: string | null
           id: string
           image: string | null
           is_deleted: boolean | null
+          is_firebase: boolean | null
           is_tc_accepted: boolean | null
           language_id: string | null
           music_off: boolean | null
@@ -1262,11 +1466,13 @@ export type Database = {
           curriculum_id?: string | null
           email?: string | null
           fcm_token?: string | null
+          firebase_id?: string | null
           gender?: string | null
           grade_id?: string | null
           id?: string
           image?: string | null
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           is_tc_accepted?: boolean | null
           language_id?: string | null
           music_off?: boolean | null
@@ -1283,11 +1489,13 @@ export type Database = {
           curriculum_id?: string | null
           email?: string | null
           fcm_token?: string | null
+          firebase_id?: string | null
           gender?: string | null
           grade_id?: string | null
           id?: string
           image?: string | null
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           is_tc_accepted?: boolean | null
           language_id?: string | null
           music_off?: boolean | null
@@ -1327,6 +1535,7 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
+          is_firebase: boolean | null
           is_seen: boolean | null
           updated_at: string | null
           user_id: string
@@ -1336,6 +1545,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           is_seen?: boolean | null
           updated_at?: string | null
           user_id: string
@@ -1345,6 +1555,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           is_seen?: boolean | null
           updated_at?: string | null
           user_id?: string
@@ -1372,6 +1583,7 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
+          is_firebase: boolean | null
           is_seen: boolean | null
           updated_at: string | null
           user_id: string
@@ -1381,6 +1593,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           is_seen?: boolean | null
           updated_at?: string | null
           user_id: string
@@ -1390,6 +1603,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           is_seen?: boolean | null
           updated_at?: string | null
           user_id?: string
@@ -1417,6 +1631,7 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
+          is_firebase: boolean | null
           updated_at: string | null
           user_id: string
         }
@@ -1425,6 +1640,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           updated_at?: string | null
           user_id: string
         }
@@ -1433,6 +1649,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           updated_at?: string | null
           user_id?: string
         }
@@ -1458,6 +1675,7 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
+          is_firebase: boolean | null
           is_seen: boolean | null
           sticker_id: string
           updated_at: string | null
@@ -1467,6 +1685,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           is_seen?: boolean | null
           sticker_id: string
           updated_at?: string | null
@@ -1476,6 +1695,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          is_firebase?: boolean | null
           is_seen?: boolean | null
           sticker_id?: string
           updated_at?: string | null
@@ -1750,6 +1970,9 @@ export type Database = {
         | "parent"
         | "student"
         | "autouser"
+        | "program_manager"
+        | "operational_director"
+        | "field_coordinator"
     }
     CompositeTypes: {
       [_ in never]: never
