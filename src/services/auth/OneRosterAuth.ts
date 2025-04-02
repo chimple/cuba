@@ -4,7 +4,7 @@ import { CURRENT_USER, TableTypes } from "../../common/constants";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
-  private static _currentUser: OneRosterUser;
+  private _currentUser: TableTypes<"user">;
 
   private static NativeSSOPlugin = registerPlugin("NativeSSOPlugin");
 
@@ -35,7 +35,7 @@ export class OneRosterAuth implements ServiceAuth {
           }
         });
 
-        OneRosterAuth._currentUser = json;
+        // this._currentUser = json;
         return json;
       } else {
         const mockWebResult = {
@@ -54,7 +54,7 @@ export class OneRosterAuth implements ServiceAuth {
           activity_id: "activity-67890",
         };
 
-        OneRosterAuth._currentUser = mockWebResult;
+        // this._currentUser = mockWebResult;
         return mockWebResult;
       }
     } catch (error) {
@@ -69,9 +69,9 @@ export class OneRosterAuth implements ServiceAuth {
   async isUserLoggedIn(): Promise<boolean> {
     console.log(
       "OneRosterAuth ~ isUserLoggedIn ~ this._currentUser",
-      OneRosterAuth._currentUser
+      this._currentUser
     );
-    if (OneRosterAuth._currentUser) return true;
+    if (this._currentUser) return true;
     const isUser = localStorage.getItem(CURRENT_USER);
     return !!isUser;
   }
@@ -84,7 +84,7 @@ export class OneRosterAuth implements ServiceAuth {
   }
 
   public set currentUser(user: TableTypes<"user">) {
-    throw new Error("Method not implemented.");
+    this._currentUser = user
   }
 
   googleSign(): Promise<any> {

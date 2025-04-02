@@ -2,13 +2,17 @@
 import { HttpHeaders } from "@capacitor-community/http";
 import {
   ALL_CURRICULUM,
+  APP_LANGUAGES,
   COURSES,
   CURRENT_STUDENT,
   CURRENT_USER,
+  LANGUAGE,
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
+  MUSIC,
   RESPECT_GRADES,
+  SOUND,
   TableTypes,
   USER_COURSES,
 } from "../../common/constants";
@@ -35,6 +39,7 @@ import { Util } from "../../utility/util";
 import ApiDataProcessor from "./ApiDataProcessor";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
 import { v4 as uuidv4 } from "uuid";
+import i18n from "../../i18n";
 
 
 interface IGetStudentResultStatement {
@@ -388,43 +393,43 @@ export class OneRosterApi implements ServiceApi {
     courses: TableTypes<"course">[];
   }> {
     console.log("Fetching different grades for course:", course);
-    
-    const allCourses: Course[] = await this.getAllCourses(); 
+
+    const allCourses: Course[] = await this.getAllCourses();
     console.log("All courses fetched:", allCourses);
 
-    const allGrades: Grade[] = await this.getAllGrades(); 
+    const allGrades: Grade[] = await this.getAllGrades();
     console.log("All grades fetched:", allGrades);
 
     const gradeMap: {
-        grades: Grade[];
-        courses: Course[];
+      grades: Grade[];
+      courses: Course[];
     } = { grades: [], courses: [] };
 
     const filteredCourses = allCourses.filter(c => c.subject_id === course.subject_id && c.curriculum_id === course.curriculum_id);
     console.log("Filtered courses based on subject and curriculum:", filteredCourses);
 
     for (const course of filteredCourses) {
-        const grade = allGrades.find(g => g.id === course.grade_id);
-        console.log(`Checking course: ${course.name}, found grade:`, grade);
+      const grade = allGrades.find(g => g.id === course.grade_id);
+      console.log(`Checking course: ${course.name}, found grade:`, grade);
 
-        if (grade) {
-            const gradeAlreadyExists = gradeMap.grades.find(_grade => _grade.id === grade.id);
-            if (!gradeAlreadyExists) {
-                gradeMap.grades.push(grade);
-                gradeMap.courses.push(course);
-                console.log(`Added grade: ${grade.name} for course: ${course.name}`);
-            } else {
-                console.log(`Grade: ${grade.name} already exists in the map.`);
-            }
+      if (grade) {
+        const gradeAlreadyExists = gradeMap.grades.find(_grade => _grade.id === grade.id);
+        if (!gradeAlreadyExists) {
+          gradeMap.grades.push(grade);
+          gradeMap.courses.push(course);
+          console.log(`Added grade: ${grade.name} for course: ${course.name}`);
         } else {
-            console.log(`No grade found for course: ${course.name}`);
+          console.log(`Grade: ${grade.name} already exists in the map.`);
         }
+      } else {
+        console.log(`No grade found for course: ${course.name}`);
+      }
     }
 
     gradeMap.grades.sort((a, b) => {
-        const sortIndexA = a.sort_index || Number.MAX_SAFE_INTEGER;
-        const sortIndexB = b.sort_index || Number.MAX_SAFE_INTEGER;
-        return sortIndexA - sortIndexB;
+      const sortIndexA = a.sort_index || Number.MAX_SAFE_INTEGER;
+      const sortIndexB = b.sort_index || Number.MAX_SAFE_INTEGER;
+      return sortIndexA - sortIndexB;
     });
     console.log("Sorted grades:", gradeMap.grades);
 
@@ -1134,8 +1139,23 @@ export class OneRosterApi implements ServiceApi {
   }
 
   getAllLanguages(): Promise<TableTypes<"language">[]> {
-    return []
-    // throw new Error("Method not implemented.");
+    let res: TableTypes<"language">[] = [];
+
+    Object.keys(APP_LANGUAGES).forEach((key) => {
+      let g: TableTypes<"language"> = {
+        created_at: "",
+        description: "",
+        id: key,
+        name: APP_LANGUAGES[key],
+        image: "",
+        sort_index: 1,
+        is_deleted: false,
+        updated_at: "",
+      };
+      res.push(g);
+    });
+
+    return Promise.resolve(res);
   }
   async getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -1157,14 +1177,27 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  updateSoundFlag(userId: string, value: boolean) {
-    throw new Error("Method not implemented.");
+  async updateSoundFlag(userId: string, value: boolean) {
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (currentUser) {
+      Util.setCurrentSound(value === true)
+    }
   }
-  updateMusicFlag(userId: string, value: boolean) {
-    throw new Error("Method not implemented.");
+  async updateMusicFlag(userId: string, value: boolean) {
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (currentUser) {
+      Util.setCurrentMusic(value === true)
+      // currentUser.music_off = value
+      // localStorage.setItem(MUSIC, value)
+    }
   }
-  updateLanguage(userId: string, value: string) {
-    throw new Error("Method not implemented.");
+  async updateLanguage(userId: string, value: string) {
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (currentUser) {
+      currentUser.language_id = value
+      localStorage.setItem(LANGUAGE, value);
+      await i18n.changeLanguage(value);
+    }
   }
   updateFcmToken(userId: string) {
     throw new Error("Method not implemented.");
