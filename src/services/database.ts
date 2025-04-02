@@ -17,11 +17,9 @@ export type Database = {
           created_at: string
           created_by: string | null
           ends_at: string | null
-          firebase_id: string | null
           id: string
           is_class_wise: boolean
           is_deleted: boolean | null
-          is_firebase: boolean | null
           lesson_id: string
           school_id: string
           source: string | null
@@ -36,11 +34,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           ends_at?: string | null
-          firebase_id?: string | null
           id?: string
           is_class_wise?: boolean
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           lesson_id: string
           school_id: string
           source?: string | null
@@ -55,11 +51,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           ends_at?: string | null
-          firebase_id?: string | null
           id?: string
           is_class_wise?: boolean
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           lesson_id?: string
           school_id?: string
           source?: string | null
@@ -117,7 +111,6 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
-          is_firebase: boolean | null
           lessons: string | null
           updated_at: string | null
         }
@@ -125,7 +118,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           lessons?: string | null
           updated_at?: string | null
         }
@@ -133,7 +125,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           lessons?: string | null
           updated_at?: string | null
         }
@@ -153,7 +144,6 @@ export type Database = {
           created_at: string | null
           id: string
           is_deleted: boolean | null
-          is_firebase: boolean | null
           updated_at: string | null
           user_id: string
         }
@@ -162,7 +152,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           updated_at?: string | null
           user_id: string
         }
@@ -171,7 +160,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           updated_at?: string | null
           user_id?: string
         }
@@ -376,33 +364,27 @@ export type Database = {
       class: {
         Row: {
           created_at: string
-          firebase_id: string | null
           id: string
           image: string | null
           is_deleted: boolean | null
-          is_firebase: boolean | null
           name: string
           school_id: string
           updated_at: string | null
         }
         Insert: {
           created_at?: string
-          firebase_id?: string | null
           id?: string
           image?: string | null
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           name: string
           school_id: string
           updated_at?: string | null
         }
         Update: {
           created_at?: string
-          firebase_id?: string | null
           id?: string
           image?: string | null
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           name?: string
           school_id?: string
           updated_at?: string | null
@@ -424,7 +406,6 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
-          is_firebase: boolean | null
           updated_at: string | null
         }
         Insert: {
@@ -433,7 +414,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           updated_at?: string | null
         }
         Update: {
@@ -442,7 +422,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           updated_at?: string | null
         }
         Relationships: [
@@ -471,7 +450,6 @@ export type Database = {
           id: string
           is_class_code: boolean | null
           is_deleted: boolean | null
-          is_firebase: boolean | null
           updated_at: string | null
         }
         Insert: {
@@ -482,7 +460,6 @@ export type Database = {
           id?: string
           is_class_code?: boolean | null
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           updated_at?: string | null
         }
         Update: {
@@ -493,7 +470,6 @@ export type Database = {
           id?: string
           is_class_code?: boolean | null
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           updated_at?: string | null
         }
         Relationships: [
@@ -512,7 +488,6 @@ export type Database = {
           created_at: string | null
           id: string
           is_deleted: boolean | null
-          is_firebase: boolean | null
           role: Database["public"]["Enums"]["role"]
           updated_at: string | null
           user_id: string
@@ -522,7 +497,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           role: Database["public"]["Enums"]["role"]
           updated_at?: string | null
           user_id: string
@@ -532,7 +506,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           role?: Database["public"]["Enums"]["role"]
           updated_at?: string | null
           user_id?: string
@@ -662,7 +635,6 @@ export type Database = {
           created_at: string | null
           id: string
           is_deleted: boolean | null
-          is_firebase: boolean | null
           lesson_id: string
           updated_at: string | null
           user_id: string
@@ -671,7 +643,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           lesson_id: string
           updated_at?: string | null
           user_id: string
@@ -680,7 +651,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           lesson_id?: string
           updated_at?: string | null
           user_id?: string
@@ -938,7 +908,6 @@ export type Database = {
           created_at: string | null
           id: string
           is_deleted: boolean | null
-          is_firebase: boolean | null
           parent_id: string
           student_id: string
           updated_at: string | null
@@ -947,7 +916,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           parent_id: string
           student_id: string
           updated_at?: string | null
@@ -956,7 +924,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           parent_id?: string
           student_id?: string
           updated_at?: string | null
@@ -1039,10 +1006,8 @@ export type Database = {
           correct_moves: number | null
           course_id: string | null
           created_at: string
-          firebase_id: string | null
           id: string
           is_deleted: boolean | null
-          is_firebase: boolean | null
           lesson_id: string | null
           school_id: string | null
           score: number | null
@@ -1058,10 +1023,8 @@ export type Database = {
           correct_moves?: number | null
           course_id?: string | null
           created_at?: string
-          firebase_id?: string | null
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           lesson_id?: string | null
           school_id?: string | null
           score?: number | null
@@ -1077,10 +1040,8 @@ export type Database = {
           correct_moves?: number | null
           course_id?: string | null
           created_at?: string
-          firebase_id?: string | null
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           lesson_id?: string | null
           school_id?: string | null
           score?: number | null
@@ -1177,40 +1138,34 @@ export type Database = {
       school: {
         Row: {
           created_at: string
-          firebase_id: string | null
           group1: string | null
           group2: string | null
           group3: string | null
           id: string
           image: string | null
           is_deleted: boolean | null
-          is_firebase: boolean | null
           name: string
           updated_at: string | null
         }
         Insert: {
           created_at?: string
-          firebase_id?: string | null
           group1?: string | null
           group2?: string | null
           group3?: string | null
           id?: string
           image?: string | null
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           name: string
           updated_at?: string | null
         }
         Update: {
           created_at?: string
-          firebase_id?: string | null
           group1?: string | null
           group2?: string | null
           group3?: string | null
           id?: string
           image?: string | null
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           name?: string
           updated_at?: string | null
         }
@@ -1222,7 +1177,6 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
-          is_firebase: boolean | null
           school_id: string
           updated_at: string | null
         }
@@ -1231,7 +1185,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           school_id: string
           updated_at?: string | null
         }
@@ -1240,7 +1193,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           school_id?: string
           updated_at?: string | null
         }
@@ -1329,7 +1281,6 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
-          is_firebase: boolean | null
           role: Database["public"]["Enums"]["role"]
           school_id: string
           updated_at: string | null
@@ -1339,7 +1290,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           role: Database["public"]["Enums"]["role"]
           school_id: string
           updated_at?: string | null
@@ -1349,7 +1299,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           role?: Database["public"]["Enums"]["role"]
           school_id?: string
           updated_at?: string | null
@@ -1443,13 +1392,11 @@ export type Database = {
           curriculum_id: string | null
           email: string | null
           fcm_token: string | null
-          firebase_id: string | null
           gender: string | null
           grade_id: string | null
           id: string
           image: string | null
           is_deleted: boolean | null
-          is_firebase: boolean | null
           is_tc_accepted: boolean | null
           language_id: string | null
           music_off: boolean | null
@@ -1466,13 +1413,11 @@ export type Database = {
           curriculum_id?: string | null
           email?: string | null
           fcm_token?: string | null
-          firebase_id?: string | null
           gender?: string | null
           grade_id?: string | null
           id?: string
           image?: string | null
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           is_tc_accepted?: boolean | null
           language_id?: string | null
           music_off?: boolean | null
@@ -1489,13 +1434,11 @@ export type Database = {
           curriculum_id?: string | null
           email?: string | null
           fcm_token?: string | null
-          firebase_id?: string | null
           gender?: string | null
           grade_id?: string | null
           id?: string
           image?: string | null
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           is_tc_accepted?: boolean | null
           language_id?: string | null
           music_off?: boolean | null
@@ -1535,7 +1478,6 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
-          is_firebase: boolean | null
           is_seen: boolean | null
           updated_at: string | null
           user_id: string
@@ -1545,7 +1487,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           is_seen?: boolean | null
           updated_at?: string | null
           user_id: string
@@ -1555,7 +1496,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           is_seen?: boolean | null
           updated_at?: string | null
           user_id?: string
@@ -1583,7 +1523,6 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
-          is_firebase: boolean | null
           is_seen: boolean | null
           updated_at: string | null
           user_id: string
@@ -1593,7 +1532,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           is_seen?: boolean | null
           updated_at?: string | null
           user_id: string
@@ -1603,7 +1541,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           is_seen?: boolean | null
           updated_at?: string | null
           user_id?: string
@@ -1631,7 +1568,6 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
-          is_firebase: boolean | null
           updated_at: string | null
           user_id: string
         }
@@ -1640,7 +1576,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           updated_at?: string | null
           user_id: string
         }
@@ -1649,7 +1584,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           updated_at?: string | null
           user_id?: string
         }
@@ -1675,7 +1609,6 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
-          is_firebase: boolean | null
           is_seen: boolean | null
           sticker_id: string
           updated_at: string | null
@@ -1685,7 +1618,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           is_seen?: boolean | null
           sticker_id: string
           updated_at?: string | null
@@ -1695,7 +1627,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          is_firebase?: boolean | null
           is_seen?: boolean | null
           sticker_id?: string
           updated_at?: string | null
