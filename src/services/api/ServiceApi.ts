@@ -85,6 +85,16 @@ export interface ServiceApi {
     image: File | null
   ): Promise<TableTypes<"school">>;
 
+  requestNewSchool(
+    name: string,
+    state: string,
+    district: string,
+    city: string,
+    image: File | null,
+    udise_id?: string
+  ): Promise<TableTypes<"req_new_school"> | null>;  
+
+  getExistingSchoolRequest(userId: string): Promise<TableTypes<"req_new_school"> | null>;
   /**
    * Adds a school profile image and returns the school profile image URL.
    * @param {string} id - The unique identifier of the school.
@@ -1230,4 +1240,46 @@ export interface ServiceApi {
    * @param {string} id - The unique identifier of the User.
    */
   updateUserLastModified(id: string): Promise<void>;
+
+  /**
+   * To validate a school for given school id, school name and instruction medium
+   * @param {string } schoolId - school Id
+   * @param {string } schoolName - school Name
+   * @param {string } instructionMedium - school instruction Medium
+   */
+  validateSchoolData(
+    schoolId: string,
+    schoolName: string,
+    instructionMedium: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate that the given subject belongs to that curriculum or not
+   * @param {string } curriculumName - curriculum Name
+   * @param {string } subjectName - subject Name
+   */
+  validateClassCurriculumAndSubject(
+    curriculumName: string,
+    subjectName: string
+  ): Promise<{ status: string; errors?: string[] }>;
+  /**
+   * To validate that the given class is exist or not through the class name and school id
+   * @param {string } schoolId - school Id
+   * @param {string } className - class Name
+   * @param {string } studentName - student Name
+   */
+  validateClassExistence(
+    schoolId: string,
+    className: string,
+    studentName?: string
+  ): Promise<{ status: string; errors?: string[] }>;
+  /**
+   * To validate that the given user phone or mail is exist or not
+   * @param {string } programManagerPhone - programManager Phone
+   * @param {string } fieldCoordinatorPhone - fieldCoordinator Phone
+   */
+  validateUserContacts(
+    programManagerPhone: string,
+    fieldCoordinatorPhone: string
+  ): Promise<{ status: string; errors?: string[] }>;
 }

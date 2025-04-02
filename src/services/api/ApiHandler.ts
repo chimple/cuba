@@ -169,6 +169,20 @@ export class ApiHandler implements ServiceApi {
       image
     );
   }
+  public async requestNewSchool(
+    name: string,
+    state: string,
+    district: string,
+    city: string,
+    image: File | null,
+    udise_id?: string
+  ): Promise<TableTypes<"req_new_school"> | null> {
+    return await this.s.requestNewSchool(name, state, district, city, image, udise_id);
+  }
+  public async getExistingSchoolRequest(userId: string): Promise<TableTypes<"req_new_school"> | null> {
+    return await this.s.getExistingSchoolRequest(userId);
+  }
+  
   public async getSchoolsForUser(
     userId: string
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
@@ -957,9 +971,38 @@ export class ApiHandler implements ServiceApi {
     return await this.s.updateSchoolLastModified(schoolId);
   }
   async updateClassLastModified(classId: string): Promise<void> {
-    return await this.s.updateSchoolLastModified(classId);
+    return await this.s.updateClassLastModified(classId);
   }
   async updateUserLastModified(userId: string): Promise<void> {
     return await this.s.updateUserLastModified(userId);
+  }
+  async validateSchoolData(
+    schoolId: string,
+    schoolName: string,
+    instructionMedium: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateSchoolData(schoolId, schoolName, instructionMedium);
+  }
+  async validateClassCurriculumAndSubject(
+    curriculumName: string,
+    subjectName: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateClassCurriculumAndSubject(
+      curriculumName,
+      subjectName
+    );
+  }
+  async validateClassExistence(
+    schoolId: string,
+    className: string,
+    studentName?: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateClassExistence(schoolId, className, studentName);
+  }
+  async validateUserContacts(
+    programManagerPhone: string,
+    fieldCoordinatorPhone: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateUserContacts(programManagerPhone, fieldCoordinatorPhone);
   }
 }

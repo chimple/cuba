@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -176,6 +176,41 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auto_chatbot: {
+        Row: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          school_id: string
+          task_data: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          school_id: string
+          task_data?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          school_id?: string
+          task_data?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_auto_chatbot_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school"
             referencedColumns: ["id"]
           },
         ]
@@ -910,6 +945,59 @@ export type Database = {
           },
         ]
       }
+      req_new_school: {
+        Row: {
+          city: string
+          created_at: string | null
+          district: string
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          is_resolved: boolean | null
+          name: string
+          state: string
+          udise_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          city: string
+          created_at?: string | null
+          district: string
+          id?: string
+          image?: string | null
+          is_deleted?: boolean | null
+          is_resolved?: boolean | null
+          name: string
+          state: string
+          udise_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          city?: string
+          created_at?: string | null
+          district?: string
+          id?: string
+          image?: string | null
+          is_deleted?: boolean | null
+          is_resolved?: boolean | null
+          name?: string
+          state?: string
+          udise_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "req_new_school_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       result: {
         Row: {
           assignment_id: string | null
@@ -1124,6 +1212,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      school_data: {
+        Row: {
+          block: string | null
+          classes: string | null
+          cluster: string | null
+          country: string | null
+          created_at: string
+          district: string | null
+          head_teacher: string | null
+          head_teachers: string | null
+          id: string
+          instruction_medium: string | null
+          pre_primary_section_available: boolean | null
+          school_name: string | null
+          school_type: string | null
+          state: string | null
+          total_teachers: number | null
+          udise_code: string | null
+          updated_at: string | null
+          village: string | null
+        }
+        Insert: {
+          block?: string | null
+          classes?: string | null
+          cluster?: string | null
+          country?: string | null
+          created_at?: string
+          district?: string | null
+          head_teacher?: string | null
+          head_teachers?: string | null
+          id?: string
+          instruction_medium?: string | null
+          pre_primary_section_available?: boolean | null
+          school_name?: string | null
+          school_type?: string | null
+          state?: string | null
+          total_teachers?: number | null
+          udise_code?: string | null
+          updated_at?: string | null
+          village?: string | null
+        }
+        Update: {
+          block?: string | null
+          classes?: string | null
+          cluster?: string | null
+          country?: string | null
+          created_at?: string
+          district?: string | null
+          head_teacher?: string | null
+          head_teachers?: string | null
+          id?: string
+          instruction_medium?: string | null
+          pre_primary_section_available?: boolean | null
+          school_name?: string | null
+          school_type?: string | null
+          state?: string | null
+          total_teachers?: number | null
+          udise_code?: string | null
+          updated_at?: string | null
+          village?: string | null
+        }
+        Relationships: []
       }
       school_user: {
         Row: {
@@ -1750,6 +1901,9 @@ export type Database = {
         | "parent"
         | "student"
         | "autouser"
+        | "program_manager"
+        | "operational_director"
+        | "field_coordinator"
     }
     CompositeTypes: {
       [_ in never]: never

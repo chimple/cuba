@@ -111,6 +111,7 @@ import {
   StudentReport,
   SchoolUsers,
   AddSchoolUser,
+  ReqEditSchool
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 import DisplayClasses from "./chimple-private/pages/DisplayClasses";
@@ -607,9 +608,14 @@ const App: React.FC = () => {
                 <SchoolProfile />
               </Suspense>
             </ProtectedRoute>
-            <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
+            {/* <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
               <Suspense>
                 <EditSchool />
+              </Suspense>
+            </ProtectedRoute> */}
+            <ProtectedRoute path={PAGES.REQ_ADD_SCHOOL} exact={true}>
+              <Suspense>
+                <ReqEditSchool />
               </Suspense>
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.MANAGE_CLASS} exact={true}>
@@ -617,9 +623,14 @@ const App: React.FC = () => {
                 <ManageClass />
               </Suspense>
             </ProtectedRoute>
-            <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
+            {/* <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
               <Suspense>
                 <EditSchool />
+              </Suspense>
+            </ProtectedRoute> */}
+            <ProtectedRoute path={PAGES.REQ_EDIT_SCHOOL} exact={true}>
+              <Suspense>
+                <ReqEditSchool />
               </Suspense>
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.DASHBOARD_DETAILS} exact={true}>

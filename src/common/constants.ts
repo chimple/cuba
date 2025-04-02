@@ -54,6 +54,7 @@ export enum TABLES {
   Result = "result",
   Assignment_cart = "assignment_cart",
   // Chatbot = "chatbot",
+  ReqNewSchool = "req_new_school",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -437,8 +438,10 @@ export enum PAGES {
   MANAGE_SCHOOL = "/manage-schools",
   SCHOOL_PROFILE = "/school-profile",
   ADD_SCHOOL = "/add-school",
+  REQ_ADD_SCHOOL = "/req-add-school",
   MANAGE_CLASS = "/manage-class",
   EDIT_SCHOOL = "/edit-school",
+  REQ_EDIT_SCHOOL = "/req-edit-school",
   EDIT_CLASS = "/edit-class",
   ADD_CLASS = "/add-class",
   CLASS_PROFILE = "/class-profile",
@@ -481,7 +484,7 @@ export interface SchoolWithRole {
   role: RoleType;
 }
 export enum School_Creation_Stages {
-  CREATE_SCHOOL = "create_school",
+  // CREATE_SCHOOL = "create_school",
   SCHOOL_COURSE = "school_course",
   CREATE_CLASS = "create_class",
   CLASS_COURSE = "class_course",

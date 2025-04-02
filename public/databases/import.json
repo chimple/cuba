@@ -56876,6 +56876,59 @@
           "value": "TEXT NOT NULL"
         }
       ]
-    }
+    },
+    {
+      "name": "req_new_school",
+      "schema": [
+        {
+          "column": "id",
+          "value": "TEXT PRIMARY KEY"
+        },
+        {
+          "column": "user_id",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "name",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "state",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "district",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "city",
+          "value": "TEXT NOT NULL"
+        },
+        {
+          "column": "image",
+          "value": "TEXT"
+        },
+        {
+          "column": "udise_id",
+          "value": "TEXT"
+        },
+        {
+          "column": "is_resolved",
+          "value": "INTEGER DEFAULT 0"
+        },
+        {
+          "column": "created_at",
+          "value": "TEXT DEFAULT (datetime('now'))"
+        },
+        {
+          "column": "updated_at",
+          "value": "TEXT DEFAULT (datetime('now'))"
+        },
+        {
+          "column": "is_deleted",
+          "value": "INTEGER DEFAULT 0"
+        }
+      ]
+    }    
   ]
 }
