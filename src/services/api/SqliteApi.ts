@@ -300,63 +300,58 @@ export class SqliteApi implements ServiceApi {
 
   private async pullChanges(tableNames: TABLES[]) {
     if (!this._db) return;
-    const tables = "'" + tableNames.join("', '") + "'";
 
+    const tables = tableNames.map((t) => `'${t}'`).join(", ");
     const tablePullSync = `SELECT * FROM pull_sync_info WHERE table_name IN (${tables});`;
-    let res: any[] = [];
+  
+    let lastPullTables = new Map<string, string>();
     try {
-      res = (await this._db.query(tablePullSync)).values ?? [];
+      const res = (await this._db.query(tablePullSync)).values ?? [];
+      res.forEach((row) => lastPullTables.set(row.table_name, row.last_pulled));
     } catch (error) {
-      console.log("🚀 ~ Api ~ syncDB ~ error:", error);
+      console.error("🚀 ~ Api ~ syncDB ~ error:", error);
       await this.createSyncTables();
     }
-    const lastPullTables = new Map();
-    if (res?.length) {
-      res.forEach((row) => {
-        lastPullTables.set(row.table_name, row.last_pulled);
+  
+    const data = await SupabaseApi.i.getTablesData(tableNames, lastPullTables);
+    const lastPulled = new Date().toISOString();
+    let batchQueries: { statement: string; values: any[] }[] = [];
+  
+    for (const tableName of tableNames) {
+      const tableData = data.get(tableName) ?? [];
+      if (tableData.length === 0) continue;
+  
+      const existingColumns = await this.getTableColumns(tableName);
+      if (!existingColumns || existingColumns.length === 0) continue;
+  
+      for (const row of tableData) {
+        const fieldNames = Object.keys(row).filter((f) => existingColumns.includes(f));
+        if (fieldNames.length === 0) continue;
+  
+        const fieldValues = fieldNames.map((f) => row[f]);
+        const placeholders = fieldNames.map(() => "?").join(", ");
+        const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(", ")}) VALUES (${placeholders})`;
+           
+        batchQueries.push({ statement: stmt, values: fieldValues });
+      }
+  
+      // Update sync timestamp
+      batchQueries.push({
+        statement: `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
+        values: [tableName, lastPulled],
       });
     }
-    const data = await SupabaseApi.i.getTablesData(tableNames, lastPullTables);
-    for (const tableName of tableNames) {
-      if (data.get(tableName)) {
-        const tableData = data.get(tableName) ?? [];
-        const existingColumns = await this.getTableColumns(tableName);
-        console.log(
-          "🚀 ~ SqliteApi ~ pullChanges ~ tableInfo:",
-          existingColumns
-        );
-        if (existingColumns) {
-          for (const row of tableData) {
-            const fieldNames = Object.keys(row).filter((fieldName) =>
-              existingColumns.includes(fieldName)
-            );
-            const fieldValues = fieldNames.map((fieldName) => row[fieldName]);
-            const fieldPlaceholders = fieldNames.map(() => "?").join(", ");
-
-            if (fieldNames.length === 0) continue; // Skip if no valid columns
-
-            const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(", ")}) VALUES (${fieldPlaceholders})`;
-            console.log(
-              "🚀 ~ pullChanges ~ stmt, fieldValues:",
-              stmt,
-              fieldValues,
-              fieldValues.length
-            );
-
-            try {
-              await this.executeQuery(stmt, fieldValues);
-            } catch (error) {
-              console.log("🚀 ~ pullChanges ~ Error:", error);
-            }
-          }
-        }
-
-        const lastPulled = new Date().toISOString();
-        const stmt = `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`;
-        await this.executeQuery(stmt, [tableName, lastPulled]);
+  
+    // Execute batch queries efficiently
+    if (batchQueries.length > 0) {
+      try {
+        await this._db.executeSet(batchQueries);
+      } catch (error) {
+        console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
       }
     }
   }
+  
   async getTableColumns(tableName: string): Promise<string[] | undefined> {
     const query = `PRAGMA table_info(${tableName})`;
     const result = await this._db?.query(query);
@@ -706,6 +701,80 @@ export class SqliteApi implements ServiceApi {
     this.updatePushChanges(TABLES.School, MUTATE_TYPES.UPDATE, updatedSchool);
 
     return updatedSchool;
+  }
+
+  // add request for creating new school
+  async requestNewSchool(
+    name: string,
+    state: string,
+    district: string,
+    city: string,
+    image: File | null,
+    udise_id?: string
+  ): Promise<TableTypes<"req_new_school"> | null> {
+    const _currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+
+    // Check if request already exists for the user
+    const res = await this.executeQuery(
+      `SELECT * FROM req_new_school WHERE user_id = ?`,
+      [_currentUser.id]
+    );
+    const existingRequests = res?.values ?? [];
+
+    if (existingRequests.length > 0) {
+      return existingRequests[0];
+    }
+
+    const requestId = uuidv4();
+    const imageUrl = image
+      ? await this.addProfileImages(requestId, image, PROFILETYPE.SCHOOL)
+      : null;
+
+    const newRequest: TableTypes<"req_new_school"> = {
+      id: requestId,
+      user_id: _currentUser.id,
+      name,
+      state,
+      district,
+      city,
+      image: imageUrl ?? null,
+      udise_id: udise_id ?? null,
+      is_resolved: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    };
+    await this.executeQuery(
+      `INSERT INTO req_new_school (id, user_id, name, state, district, city, image, udise_id, is_resolved, created_at, updated_at, is_deleted)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        newRequest.id,
+        newRequest.user_id,
+        newRequest.name,
+        newRequest.state,
+        newRequest.district,
+        newRequest.city,
+        newRequest.image,
+        newRequest.udise_id,
+        newRequest.is_resolved,
+        newRequest.created_at,
+        newRequest.updated_at,
+        newRequest.is_deleted,
+      ]
+    );
+
+    await this.updatePushChanges(TABLES.ReqNewSchool, MUTATE_TYPES.INSERT, newRequest);
+
+    return newRequest;
+  }
+  // Add this new function to check if a create school request already exists
+  async getExistingSchoolRequest(userId: string): Promise<TableTypes<"req_new_school"> | null> {
+    const res = await this.executeQuery(
+      `SELECT * FROM req_new_school WHERE user_id = ?`,
+      [userId]
+    );
+    return res?.values?.length ? res.values[0] : null;
   }
 
   async createStudentProfile(
@@ -2443,6 +2512,7 @@ export class SqliteApi implements ServiceApi {
       TABLES.Assignment,
       TABLES.Class,
       TABLES.School,
+      TABLES.ClassCourse,
     ]);
     return linkData;
   }

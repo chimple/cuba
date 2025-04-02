@@ -51,6 +51,7 @@ export enum TABLES {
   Result = "result",
   Assignment_cart = "assignment_cart",
   // Chatbot = "chatbot",
+  ReqNewSchool = "req_new_school",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -434,8 +435,10 @@ export enum PAGES {
   MANAGE_SCHOOL = "/manage-schools",
   SCHOOL_PROFILE = "/school-profile",
   ADD_SCHOOL = "/add-school",
+  REQ_ADD_SCHOOL = "/req-add-school",
   MANAGE_CLASS = "/manage-class",
   EDIT_SCHOOL = "/edit-school",
+  REQ_EDIT_SCHOOL = "/req-edit-school",
   EDIT_CLASS = "/edit-class",
   ADD_CLASS = "/add-class",
   CLASS_PROFILE = "/class-profile",
