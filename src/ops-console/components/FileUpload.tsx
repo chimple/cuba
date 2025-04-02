@@ -53,16 +53,18 @@ const FileUpload: React.FC = () => {
     const workbook = XLSX.read(fileBuffer, { type: "array" });
 
     let validatedSchoolIds: Set<string> = new Set(); // Store valid school IDs
+    let validatedClassIds: Map<string, string> = new Map(); // Store valid school IDs
 
     for (const sheet of workbook.SheetNames) {
       const worksheet = workbook.Sheets[sheet];
-      let data: Record<string, any>[] = XLSX.utils.sheet_to_json(worksheet);
+      let processedData: Record<string, any>[] =
+        XLSX.utils.sheet_to_json(worksheet);
       progressRef.current = 70;
       setVerifyingProgressState(progressRef.current);
 
       // **Check if it's a School Sheet**
       if (sheet.toLowerCase().includes("school")) {
-        for (let row of data) {
+        for (let row of processedData) {
           let errors: string[] = [];
 
           const schoolId = row["SCHOOL ID"]?.toString().trim();
@@ -117,12 +119,14 @@ const FileUpload: React.FC = () => {
               "Invalid FIELD COORDINATOR EMAIL OR PHONE NUMBER format"
             );
           }
-          const validationResponse = await api.validateUserContacts(programManagerPhone, fieldCoordinatorPhone );
-          console.log(validationResponse); 
+          const validationResponse = await api.validateUserContacts(
+            programManagerPhone,
+            fieldCoordinatorPhone
+          );
+          console.log(validationResponse);
           if (validationResponse.status === "error") {
             errors.push(...(validationResponse.errors || []));
           }
-
 
           // **Condition 1: If SCHOOL ID (UDISE Code) is present**
           if (schoolId) {
@@ -176,7 +180,7 @@ const FileUpload: React.FC = () => {
 
       // **Check if it's a Class Sheet**
       if (sheet.toLowerCase().includes("class")) {
-        for (let row of data) {
+        for (let row of processedData) {
           let errors: string[] = [];
           const schoolId = row["SCHOOL ID"]?.toString().trim();
           const grade = row["GRADE"]?.toString().trim();
@@ -215,7 +219,7 @@ const FileUpload: React.FC = () => {
       }
       // **Teacher Sheet Validation**
       if (sheet.toLowerCase().includes("teacher")) {
-        for (let row of data) {
+        for (let row of processedData) {
           let errors: string[] = [];
           const schoolId = row["SCHOOL ID"]?.toString().trim();
           const grade = row["GRADE"]?.toString().trim();
@@ -226,7 +230,9 @@ const FileUpload: React.FC = () => {
           const teacherContact = row["TEACHER PHONE NUMBER OR EMAIL"]
             ?.toString()
             .trim();
+          const classId = `${schoolId}_${grade}_${classSection}`;
           const className = `${grade} ${classSection}`.trim();
+
           if (!schoolId || !grade || !teacherName || !teacherContact) {
             errors.push("Missing required teacher details.");
           } else {
@@ -234,16 +240,31 @@ const FileUpload: React.FC = () => {
               errors.push("SCHOOL ID does not match any validated school.");
             }
           }
+
           if (teacherContact && !validateEmailOrPhone(teacherContact)) {
             errors.push("Invalid TEACHER PHONE NUMBER OR EMAIL format.");
           }
-          const validationResponse = await api.validateClassExistence(
-            schoolId,
-            className
-          );
-          if (validationResponse.status === "error") {
-            errors.push(...(validationResponse.errors || []));
+
+          // Check if classId exists and className matches
+          if (
+            validatedClassIds.has(classId) &&
+            validatedClassIds.get(classId) === className
+          ) {
+            console.log(
+              `Skipping API call for class ${classId} as it's already validated.`
+            );
+          } else {
+            const validationResponse = await api.validateClassExistence(
+              schoolId,
+              className
+            );
+            if (validationResponse.status === "error") {
+              errors.push(...(validationResponse.errors || []));
+            } else {
+              validatedClassIds.set(classId, className); // ✅ Store valid class ID and name
+            }
           }
+
           row["Updated"] =
             errors.length > 0
               ? `❌ Errors: ${errors.join(", ")}`
@@ -253,7 +274,7 @@ const FileUpload: React.FC = () => {
 
       // **Student Sheet Validation**
       if (sheet.toLowerCase().includes("student")) {
-        for (let row of data) {
+        for (let row of processedData) {
           let errors: string[] = [];
           const schoolId = row["SCHOOL ID"]?.toString().trim();
           const studentId = row["STUDENT ID"]?.toString().trim();
@@ -267,6 +288,7 @@ const FileUpload: React.FC = () => {
           const parentContact = row["PARENT PHONE NUMBER OR LOGIN ID"]
             ?.toString()
             .trim();
+          const classId = `${schoolId}_${grade}_${classSection}`; // Unique class identifier
           const className = `${grade} ${classSection}`.trim();
 
           if (!schoolId || !studentName || !age || !grade || !parentContact) {
@@ -276,17 +298,30 @@ const FileUpload: React.FC = () => {
               errors.push("SCHOOL ID does not match any validated school.");
             }
           }
+
           if (parentContact && !validateEmailOrPhone(parentContact)) {
             errors.push("Invalid PARENT PHONE NUMBER OR LOGIN ID format.");
           }
 
-          const validationResponse = await api.validateClassExistence(
-            schoolId,
-            className,
-            studentName
-          );
-          if (validationResponse.status === "error") {
-            errors.push(...(validationResponse.errors || []));
+          // Check if classId exists and className matches
+          if (
+            validatedClassIds.has(classId) &&
+            validatedClassIds.get(classId) === className
+          ) {
+            console.log(
+              `Skipping API call for class ${classId} as it's already validated.`
+            );
+          } else {
+            const validationResponse = await api.validateClassExistence(
+              schoolId,
+              className,
+              studentName
+            );
+            if (validationResponse.status === "error") {
+              errors.push(...(validationResponse.errors || []));
+            } else {
+              validatedClassIds.set(classId, className); // ✅ Store valid class ID and name
+            }
           }
 
           row["Updated"] =
@@ -295,9 +330,8 @@ const FileUpload: React.FC = () => {
               : "✅ Student Validated";
         }
       }
-
       // **Update sheet with validation messages**
-      const updatedSheet = XLSX.utils.json_to_sheet(data);
+      const updatedSheet = XLSX.utils.json_to_sheet(processedData);
       workbook.Sheets[sheet] = updatedSheet;
     }
     const processedData = XLSX.write(workbook, {

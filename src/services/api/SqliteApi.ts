@@ -289,8 +289,6 @@ export class SqliteApi implements ServiceApi {
     console.log("logs to check synced tables5.1");
 
     if (!this._db || !this._sqlite) return;
-    console.log("logs to check synced tables5");
-
     const res = await this._db.query(statement, values, isSQL92);
     if (!Capacitor.isNativePlatform())
       await this._sqlite?.saveToStore(this.DB_NAME);
@@ -381,7 +379,6 @@ export class SqliteApi implements ServiceApi {
     if (res && res.length) {
       for (const data of res) {
         const newData = JSON.parse(data.data);
-        console.log("🚀 ~ SqliteApi ~ pushChanges ~ newData:", newData);
         const isMutated = await this._serverApi.mutate(
           data.change_type,
           data.table_name,
@@ -1617,7 +1614,6 @@ export class SqliteApi implements ServiceApi {
         newResult.class_id,
       ]
     );
-    console.log("🚀 ~ SqliteApi ~ res:", JSON.stringify(res));
     this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
     return newResult;
   }

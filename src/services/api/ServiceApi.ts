@@ -1226,20 +1226,43 @@ export interface ServiceApi {
    */
   updateUserLastModified(id: string): Promise<void>;
 
+  /**
+   * To validate a school for given school id, school name and instruction medium
+   * @param {string } schoolId - school Id
+   * @param {string } schoolName - school Name
+   * @param {string } instructionMedium - school instruction Medium
+   */
   validateSchoolData(
     schoolId: string,
     schoolName: string,
     instructionMedium: string
   ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate that the given subject belongs to that curriculum or not
+   * @param {string } curriculumName - curriculum Name
+   * @param {string } subjectName - subject Name
+   */
   validateClassCurriculumAndSubject(
     curriculumName: string,
     subjectName: string
   ): Promise<{ status: string; errors?: string[] }>;
+  /**
+   * To validate that the given class is exist or not through the class name and school id
+   * @param {string } schoolId - school Id
+   * @param {string } className - class Name
+   * @param {string } studentName - student Name
+   */
   validateClassExistence(
     schoolId: string,
     className: string,
     studentName?: string
   ): Promise<{ status: string; errors?: string[] }>;
+  /**
+   * To validate that the given user phone or mail is exist or not
+   * @param {string } programManagerPhone - programManager Phone
+   * @param {string } fieldCoordinatorPhone - fieldCoordinator Phone
+   */
   validateUserContacts(
     programManagerPhone: string,
     fieldCoordinatorPhone: string

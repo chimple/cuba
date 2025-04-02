@@ -239,7 +239,7 @@ export class SupabaseApi implements ServiceApi {
 
       case MUTATE_TYPES.UPDATE:
         delete data.id;
-        console.log("🚀 ~ SupabaseApi ~ data:", data);
+        console.log("🚀 ~ SupabaseApi ~ data:", JSON.stringify(data));
         console.log(typeof data);
         res = await this.supabase.from(tableName).update(data).eq("id", id);
         break;
@@ -251,7 +251,7 @@ export class SupabaseApi implements ServiceApi {
       default:
         break;
     }
-    console.log("🚀 ~ SupabaseApi ~ res:", res);
+    console.log("🚀 ~ SupabaseApi ~ res:", JSON.stringify(res));
 
     return !!res && !res.error;
   }
@@ -1493,6 +1493,8 @@ export class SupabaseApi implements ServiceApi {
         errors.push("FIELD COORDINATOR EMAIL OR PHONE NUMBER does not exist in the system");
       }
     }
+
+    console.log("fdsfsf")
   
     return errors.length > 0 ? { status: "error", errors } : { status: "success" };
   }
