@@ -286,10 +286,15 @@ export class SqliteApi implements ServiceApi {
     values?: any[] | undefined,
     isSQL92?: boolean | undefined
   ) {
+    console.log("logs to check synced tables5.1");
+
     if (!this._db || !this._sqlite) return;
     const res = await this._db.query(statement, values, isSQL92);
     if (!Capacitor.isNativePlatform())
       await this._sqlite?.saveToStore(this.DB_NAME);
+    
+      console.log("logs to check synced tables6", JSON.stringify(res));
+
     return res;
   }
 
@@ -374,7 +379,6 @@ export class SqliteApi implements ServiceApi {
     if (res && res.length) {
       for (const data of res) {
         const newData = JSON.parse(data.data);
-        console.log("🚀 ~ SqliteApi ~ pushChanges ~ newData:", newData);
         const isMutated = await this._serverApi.mutate(
           data.change_type,
           data.table_name,
@@ -400,15 +404,19 @@ export class SqliteApi implements ServiceApi {
   ) {
     if (!this._db) return;
     const refresh_tables = "'" + refreshTables.join("', '") + "'";
+    console.log("logs to check synced tables", JSON.stringify(refresh_tables));
     await this.executeQuery(
       `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`
     );
     await this.pullChanges(tableNames);
     const res = await this.pushChanges(tableNames);
     const tables = "'" + tableNames.join("', '") + "'";
+    console.log("logs to check synced tables1", JSON.stringify(tables));
+
     this.executeQuery(
       `UPDATE pull_sync_info SET last_pulled = CURRENT_TIMESTAMP WHERE table_name IN (${tables})`
     );
+    console.log("logs to check synced tables2", JSON.stringify(tables));
     return res;
   }
 
@@ -1680,7 +1688,6 @@ export class SqliteApi implements ServiceApi {
         newResult.class_id,
       ]
     );
-    console.log("🚀 ~ SqliteApi ~ res:", res);
     this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
     return newResult;
   }
@@ -4324,4 +4331,50 @@ order by
     });
   }
 
+  async validateSchoolData(
+    schoolId: string,
+    schoolName: string,
+    instructionMedium: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const schoolData = await this._serverApi.validateSchoolData(schoolId, schoolName, instructionMedium);
+    console.log("fdsfdsfs", schoolData);
+    if (!schoolData) {
+      return { status: "error", errors: ["Invalid SCHOOL ID (UDISE Code)"] };
+    }
+    return { status: "success" };
+  }
+  
+  async validateClassCurriculumAndSubject(
+    curriculumName: string,
+    subjectName: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const ClassCurriculum = await this._serverApi.validateClassCurriculumAndSubject(curriculumName, subjectName);
+    console.log("fdsfdsfs", ClassCurriculum);
+    if (ClassCurriculum.status === "error") {
+      return { status: "error", errors: ClassCurriculum.errors || ["Invalid class curriculum"] };
+    }
+    return { status: "success" };
+  }
+  
+  async validateClassExistence(
+    schoolId: string,
+    className: string,
+    studentName?: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const classExistence = await this._serverApi.validateClassExistence(schoolId, className, studentName);
+    if (classExistence.status === "error") {
+      return { status: "error", errors: classExistence.errors || ["Invalid class curriculum"] };
+    }
+    return { status: "success" };
+  }
+  async validateUserContacts(
+    programManagerPhone: string,
+    fieldCoordinatorPhone: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const response = await this._serverApi.validateClassExistence(programManagerPhone, fieldCoordinatorPhone);
+    if (response.status === "error") {
+      return { status: "error", errors: response.errors || ["Invalid class curriculum"] };
+    }
+    return { status: "success" };
+  }
 }

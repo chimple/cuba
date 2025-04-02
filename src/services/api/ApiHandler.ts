@@ -961,4 +961,33 @@ export class ApiHandler implements ServiceApi {
   async updateUserLastModified(userId: string): Promise<void> {
     return await this.s.updateUserLastModified(userId);
   }
+  async validateSchoolData(
+    schoolId: string,
+    schoolName: string,
+    instructionMedium: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateSchoolData(schoolId, schoolName, instructionMedium);
+  }
+  async validateClassCurriculumAndSubject(
+    curriculumName: string,
+    subjectName: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateClassCurriculumAndSubject(
+      curriculumName,
+      subjectName
+    );
+  }
+  async validateClassExistence(
+    schoolId: string,
+    className: string,
+    studentName?: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateClassExistence(schoolId, className, studentName);
+  }
+  async validateUserContacts(
+    programManagerPhone: string,
+    fieldCoordinatorPhone: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateUserContacts(programManagerPhone, fieldCoordinatorPhone);
+  }
 }
