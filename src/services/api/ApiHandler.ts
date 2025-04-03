@@ -626,6 +626,17 @@ export class ApiHandler implements ServiceApi {
     }
   }
 
+  public async dropAllTables(): Promise<void> {
+    try {
+      const sqliteApi = await SqliteApi.getInstance();
+      await sqliteApi.dropAllTables();
+      console.log("All DB tables dropped via ApiHandler.");
+    } catch (error) {
+      console.error("Error dropping tables via ApiHandler:", error);
+      throw error;
+    }
+  }  
+
   public async updateSchoolCourseSelection(
     schoolId: string,
     selectedCourseIds: string[]

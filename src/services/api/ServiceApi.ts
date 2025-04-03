@@ -148,6 +148,7 @@ export interface ServiceApi {
    * Clears all user-specific cached data from the local database.
    */
   clearUserCache(): Promise<void>;
+  dropAllTables(): Promise<void>;
 
   /**
    * To delete 'courses' with given school IDs from the school_course table.

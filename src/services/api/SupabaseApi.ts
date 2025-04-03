@@ -32,6 +32,10 @@ export class SupabaseApi implements ServiceApi {
     console.log("SupabaseApi.clearUserCache: No local cache to clear.");
     return;
   }
+  public async dropAllTables(): Promise<void> {
+    console.log("SupabaseApi.clearUserCache: No local cache to clear.");
+    return;
+  }
   getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;

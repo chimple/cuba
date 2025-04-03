@@ -65,6 +65,35 @@ export class SqliteApi implements ServiceApi {
     return SqliteApi.i;
   }
 
+  async dropAllTables(): Promise<void> {
+    try {
+      console.log("🧹 dropAllTables: Dropping all tables...");
+  
+      if (!this._sqlite) throw new Error("SQLite not initialized");
+  
+      const isConn = await this._sqlite.isConnection(this.DB_NAME, false);
+      const db = isConn.result
+        ? await this._sqlite.retrieveConnection(this.DB_NAME, false)
+        : await this._sqlite.createConnection(this.DB_NAME, false, "no-encryption", this.DB_VERSION, false);
+  
+      await db.open();
+  
+      const res = await db.getTableList();
+      const tables = res.values?.map((row) => row.name).filter((name: string) => name !== "__sync_table") || [];
+
+  
+      for (const table of tables) {
+        console.log(`Dropping table: ${table}`);
+        await db.execute(`DROP TABLE IF EXISTS ${table};`);
+      }
+  
+      console.log("✅ dropAllTables: All user tables dropped.");
+    } catch (err) {
+      console.error("❌ dropAllTables: Error dropping tables", err);
+    }
+  }
+  
+
   public async clearUserCache(): Promise<void> {
     try {
       if (this._db) {
