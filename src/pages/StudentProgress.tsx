@@ -182,7 +182,7 @@ const StudentProgress: React.FC = () => {
             result.lesson_name,
             result.chapter_name,
             Math.floor(result.score).toString(),
-            `${computeMinutes}:${computeSeconds}`,
+            `${computeMinutes.toString().padStart(2, "0")}:${computeSeconds.toString().padStart(2, "0")}`,
           ]);
         });
       }

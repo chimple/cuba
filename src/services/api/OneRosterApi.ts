@@ -1143,6 +1143,7 @@ export class OneRosterApi implements ServiceApi {
 
     Object.keys(APP_LANGUAGES).forEach((key) => {
       let g: TableTypes<"language"> = {
+        code: key,
         created_at: "",
         description: "",
         id: key,

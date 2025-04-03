@@ -4,7 +4,7 @@ import { CURRENT_USER, TableTypes } from "../../common/constants";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
-  private _currentUser: TableTypes<"user">;
+  private _currentUser: TableTypes<"user"> | undefined;
 
   private static NativeSSOPlugin = registerPlugin("NativeSSOPlugin");
 
@@ -62,8 +62,9 @@ export class OneRosterAuth implements ServiceAuth {
     }
   }
 
-  logOut(): Promise<void> {
-    throw new Error("Method not implemented.");
+  async logOut(): Promise<void> {
+    localStorage.removeItem(CURRENT_USER)
+    this._currentUser = undefined;
   }
 
   async isUserLoggedIn(): Promise<boolean> {
