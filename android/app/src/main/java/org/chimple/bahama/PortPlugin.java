@@ -242,6 +242,9 @@ public void shareUserId(PluginCall call) {
 
         Log.d(TAG, "Received activity_id: " + activity_id);
 
+        result.put("lessonId", activity_id);
+        call.resolve(result);
+
         if (activity_id != null && activity_id.contains("_")) {
             String[] parts = activity_id.split("_");
 
