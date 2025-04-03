@@ -188,22 +188,42 @@ export class Util {
     }
   }
 
-  public static groupResultsByCourse(studentResults: TableTypes<"result">[]): Map<string, TableTypes<"result">[]> {
+  public static async groupResultsByCourse(studentResults: TableTypes<"result">[]): Promise<Map<string, TableTypes<"result">[]>> {
     const playedLessonsByCourse = new Map<string, TableTypes<"result">[]>();
     
     for (const result of studentResults) {
-      const courseId = result.course_id;
-      if (courseId) {
-        if (!playedLessonsByCourse.has(courseId)) {
-          playedLessonsByCourse.set(courseId, []);
+        const courseId = result.course_id;
+        if (courseId) {
+            if (!playedLessonsByCourse.has(courseId)) {
+                playedLessonsByCourse.set(courseId, []);
+            }
+            playedLessonsByCourse.get(courseId)?.push(result);
+            console.log(`Added result to course ID: ${courseId}`); 
+        } else {
+            console.warn("Result has no course ID:", result); 
         }
-        playedLessonsByCourse.get(courseId)?.push(result);
-      }
     }
-  
-    const sortEntries = Array.from(playedLessonsByCourse.entries()).reverse();
-    const sortedMap = new Map<string, TableTypes<"result">[]>(sortEntries);
-  
+
+    // Sort the courses based on their sort_index
+    const sortedEntries = await Promise.all(
+        Array.from(playedLessonsByCourse.entries()).map(async ([courseId, lessons]) => {
+            const currentCourse = await ServiceConfig.getI().apiHandler.getCourse(courseId);
+            return [courseId, lessons, currentCourse?.sort_index ?? Number.MAX_SAFE_INTEGER];
+        })
+    );
+
+    // Sort by sort_index
+    sortedEntries.sort((a, b) => {
+        const sortIndexA = a[2] as number; 
+        const sortIndexB = b[2] as number; 
+        return sortIndexA - sortIndexB;
+    });
+
+    // Create a new sorted map
+    const sortedMap = new Map<string, TableTypes<"result">[]>(
+        sortedEntries.map(([courseId, lessons]) => [courseId, lessons] as [string, TableTypes<"result">[]]) // Ensure correct tuple type
+    );
+
     return sortedMap;
   }
   
