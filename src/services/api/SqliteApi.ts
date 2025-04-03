@@ -2070,7 +2070,8 @@ export class SqliteApi implements ServiceApi {
     FROM ${TABLES.Assignment} a
     LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
     LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
-    WHERE a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL and a.type !='liveQuiz';
+    WHERE a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL and a.type !='liveQuiz'
+    ORDER BY a.created_at DESC;
     `;
     const res = await this._db?.query(query);
     if (!res || !res.values || res.values.length < 1) return [];
