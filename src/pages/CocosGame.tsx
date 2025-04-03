@@ -18,6 +18,7 @@ import {
   Chapter,
   CocosLessonData,
 } from "../common/courseConstants";
+import { registerPlugin } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
 import ScoreCard from "../components/parent/ScoreCard";
 import { t } from "i18next";
@@ -61,6 +62,8 @@ const CocosGame: React.FC = () => {
       ],
     });
   };
+  const PortPlugin = registerPlugin<any>("Port");
+
   useEffect(() => {
     window.console.log("cocos game useEffect");
     init();
@@ -191,12 +194,29 @@ const CocosGame: React.FC = () => {
 
   const updateLessonAsFavorite = async () => {
     const currentStudent = Util.getCurrentStudent();
-    const lesson: Lesson = state.lesson ? JSON.parse(state.lesson) : undefined;
-    if (currentStudent != null) {
+    let lesson;
+    const lessonNormal: Lesson = state.lesson ? JSON.parse(state.lesson) : undefined;
+    
+    if(Util.isDeepLink) {
+      const deeplinkdata = await PortPlugin.sendLaunchData();
+      const deeplinkLesson = await api.getLesson(deeplinkdata.lessonId);
+      lesson = deeplinkLesson;
+    
+    }       
+    else {
+      lesson = lessonNormal;
+    }
+    
+    console.log("upating fav lesson --> ", lesson);
+
+    if (currentStudent != null && lesson && lesson.id) {
+      console.log("calling the fav api");
       const result = await api.updateFavoriteLesson(
         currentStudent.id,
         lesson.id
       );
+    } else {
+      console.warn("Cannot update favorite lesson: Invalid lesson or student.");
     }
   };
 
@@ -204,9 +224,20 @@ const CocosGame: React.FC = () => {
     try {
       const api = ServiceConfig.getI().apiHandler;
       const courseDocId: string | undefined = state.courseDocId;
-      const lesson: Lesson = state.lesson
+      let lesson;
+      const lessonNormal: Lesson = state.lesson
         ? JSON.parse(state.lesson)
         : undefined;
+
+      if(Util.isDeepLink) {
+        const deeplinkdata = await PortPlugin.sendLaunchData();
+        const deeplinkLesson = await api.getLesson(deeplinkdata.lessonId);
+        lesson = deeplinkLesson;
+      }
+      else {
+        lesson = lessonNormal;
+      }
+
       const assignment = state?.assignment;
       const currentStudent = api.currentStudent!;
       const data = lessonData;
@@ -225,7 +256,7 @@ const CocosGame: React.FC = () => {
         }
         if (!assignmentId) {
           const result = await api.getPendingAssignmentForLesson(
-            lesson.id,
+            lesson?.id || "",
             classId,
             currentStudent?.id
           );
@@ -233,10 +264,10 @@ const CocosGame: React.FC = () => {
             assignmentId = result?.id;
           }
         }
-        chapter_id = await api.getChapterByLesson(lesson?.id, classId);
+        chapter_id = await api.getChapterByLesson(lesson?.id || "", classId);
       } else {
         chapter_id = await api.getChapterByLesson(
-          lesson?.id,
+          lesson?.id || "",
           undefined,
           currentStudent?.id
         );

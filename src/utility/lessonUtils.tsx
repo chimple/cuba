@@ -28,6 +28,7 @@ export const useHandleLessonClick = () => {
   
     if (true) {
       const lesson = await api.getLesson(data.lessonId);
+      console.log("lesson object --> ", JSON.stringify(lesson, null, 2));
 
       const params = `?courseid=${lesson?.cocos_subject_code}&chapterid=${lesson?.cocos_chapter_code}&lessonid=${lesson?.cocos_lesson_id}`;
       Util.isDeepLink = true;
@@ -35,7 +36,7 @@ export const useHandleLessonClick = () => {
         history.push(PAGES.GAME + params, {
           url: "chimple-lib/index.html" + params,
           lessonId: lesson?.cocos_lesson_id,
-          courseDocId: lesson?.cocos_subject_code,
+          courseDocId: lesson?.subject_id,
           from: history.location.pathname + `?${CONTINUE}=true`,
         });
 
