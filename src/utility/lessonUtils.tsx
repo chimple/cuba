@@ -4,6 +4,7 @@ import Course from "../models/course";
 import { Util } from "../utility/util";
 import { useHistory } from "react-router-dom";
 import { registerPlugin } from "@capacitor/core";
+import { ServiceConfig } from "../services/ServiceConfig";
 
 const PortPlugin = registerPlugin<any>("Port");
 
@@ -21,19 +22,21 @@ export const useHandleLessonClick = () => {
     if (!isUnlocked) return;
 
     const data = await PortPlugin.sendLaunchData();
+    const api = ServiceConfig.getI().apiHandler;    
 
     console.log("LessonCard course:", JSON.stringify(data));
   
     if (true) {
-      let subjectDocID: string;
+      const lesson = await api.getLesson(data.lessonId);
+      console.log("lesson object --> ", JSON.stringify(lesson, null, 2));
 
-      const params = `?courseid=${data.courseId}&chapterid=${data.chapterId}&lessonid=${data.lessonId}`;
+      const params = `?courseid=${lesson?.cocos_subject_code}&chapterid=${lesson?.cocos_chapter_code}&lessonid=${lesson?.cocos_lesson_id}`;
       Util.isDeepLink = true;
 
         history.push(PAGES.GAME + params, {
           url: "chimple-lib/index.html" + params,
-          lessonId: data.lessonId,
-          courseDocId: data.courseId,
+          lessonId: lesson?.cocos_lesson_id,
+          courseDocId: lesson?.subject_id,
           from: history.location.pathname + `?${CONTINUE}=true`,
         });
 
