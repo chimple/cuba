@@ -357,7 +357,7 @@ export class OneRosterApi implements ServiceApi {
                 cocos_subject_code: lesson.cocosSubjectCode,
                 chapter_id: group.metadata.id,
                 chapter_title: group.metadata.title,
-                subject_id: lesson.subject,
+                subject_id: courseJson.metadata.courseCode,
                 outcome: lesson.outcome,
                 status: lesson.status,
                 type: lesson.type,
@@ -2231,7 +2231,7 @@ export class OneRosterApi implements ServiceApi {
       // If student has played lessons before
       if (studentResults && studentResults.length > 0) {
         // Group results by course
-        const playedLessonsByCourse = Util.groupResultsByCourse(studentResults);
+        const playedLessonsByCourse = await Util.groupResultsByCourse(studentResults);
 
         // For each course with played lessons, get recommendations
         for (const [courseId, results] of playedLessonsByCourse.entries()) {
