@@ -113,7 +113,7 @@ const Home: FC = () => {
   const [historyLessons, setHistoryLessons] = useState<Lesson[]>([]);
   const [validLessonIds, setValidLessonIds] = useState<string[]>([]);
   const [historySortIndex, setHistorySortIndex] = useState<number>(0);
-  const assignmentCount = '50';
+  const assignmentCount = 50;
   const [favLessonIndex, setFavLessonIndex] = useState<number>(0);
   let allPlayedLessonIds: string[] = [];
   // const [tempPageNumber, setTempPageNumber] = useState<number>(1);

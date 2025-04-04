@@ -1212,7 +1212,7 @@ export class FirebaseApi implements ServiceApi {
   async getPendingAssignments(
     classId: string,
     studentId: string,
-    count: string
+    count: number
   ): Promise<Assignment[]> {
     try {
       const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
@@ -1221,7 +1221,7 @@ export class FirebaseApi implements ServiceApi {
         where("isClassWise", "==", true),
         where("class", "==", classDocRef),
         orderBy("createdAt", "desc"),
-        limit(+count)
+        limit(count || 50)
       );
       // Add the condition for when isClassWise is false
       let q2 = query(
@@ -1230,7 +1230,7 @@ export class FirebaseApi implements ServiceApi {
         where("class", "==", classDocRef),
         where("assignedStudents", "array-contains", studentId),
         orderBy("createdAt", "desc"),
-        limit(+count)
+        limit(count || 50)
       );
       const [snapshot1, snapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);
       const queryResult = [...snapshot1.docs, ...snapshot2.docs];
