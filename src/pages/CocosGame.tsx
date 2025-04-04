@@ -111,7 +111,8 @@ const CocosGame: React.FC = () => {
       console.log("Checking fromPath conditions", fromPath);
 
       // Reset to home if trying to go back to an unloaded game screen
-      if (fromPath === PAGES.GAME || fromPath.includes(PAGES.GAME)) {
+      if (Util.isDeepLink || (fromPath === PAGES.GAME || fromPath.includes(PAGES.GAME))) {
+        Util.isDeepLink = false;
         fromPath = PAGES.HOME;
         console.log("Resetting fromPath to:", fromPath);
       }
