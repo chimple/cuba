@@ -1221,8 +1221,7 @@ export class FirebaseApi implements ServiceApi {
         where("isClassWise", "==", true),
         where("class", "==", classDocRef),
         orderBy("createdAt", "desc"),
-        limit(50)
-        // limit(count > 0 ? count : 50)
+        limit(+count)
       );
       // Add the condition for when isClassWise is false
       let q2 = query(
@@ -1231,8 +1230,7 @@ export class FirebaseApi implements ServiceApi {
         where("class", "==", classDocRef),
         where("assignedStudents", "array-contains", studentId),
         orderBy("createdAt", "desc"),
-        limit(50)
-        // limit(count > 0 ? count : 50)
+        limit(+count)
       );
       const [snapshot1, snapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);
       const queryResult = [...snapshot1.docs, ...snapshot2.docs];
