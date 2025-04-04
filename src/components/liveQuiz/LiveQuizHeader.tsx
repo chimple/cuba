@@ -11,6 +11,7 @@ import {
   LIVE_QUIZ_QUESTION_TIME,
   LiveQuizQuestion,
 } from "../../models/liveQuiz";
+import { useFeatureValue } from "@growthbook/growthbook-react";
 
 const LiveQuizHeader: FC<{
   roomDoc: LiveQuizRoomObject;
@@ -33,6 +34,7 @@ const LiveQuizHeader: FC<{
       rank: number;
     }[]
   >();
+  const questionTime = useFeatureValue('live-quiz-time', 30)
 
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
@@ -141,8 +143,8 @@ const LiveQuizHeader: FC<{
                     currentQuestion.id === lastAnswer?.id ||
                     !remainingTime
                       ? undefined
-                      : ((LIVE_QUIZ_QUESTION_TIME - remainingTime) /
-                          LIVE_QUIZ_QUESTION_TIME) *
+                      : ((questionTime - remainingTime) /
+                          questionTime) *
                         100
                   }
                 />
