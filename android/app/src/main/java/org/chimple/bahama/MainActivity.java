@@ -23,7 +23,7 @@ import java.util.ArrayList;
 public class MainActivity extends BridgeActivity {
     // private RespectClientManager respectClientManager; // Declare RespectClientManager
     public static MainActivity instance;
-    String activity_id = "";
+    static String activity_id = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
