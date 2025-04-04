@@ -1,10 +1,7 @@
 import { Timestamp } from "firebase/firestore";
 import BaseObject from "./baseObject";
-import { useFeatureValue } from "@growthbook/growthbook-react";
 
-const questionTime = useFeatureValue('live-quiz-time', 30)
-
-export const LIVE_QUIZ_QUESTION_TIME = questionTime;
+export const LIVE_QUIZ_QUESTION_TIME = 30;
 
 export enum OptionOrQuestionType {
   AUDIO = "audio",

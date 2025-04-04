@@ -14,6 +14,7 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { HiSpeakerWave } from "react-icons/hi2";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import LiveQuizNavigationDots from "./LiveQuizNavigationDots";
+import { useFeatureValue } from "@growthbook/growthbook-react";
 
 let questionInterval;
 let audiosMap: { [key: string]: HTMLAudioElement } = {};
@@ -50,13 +51,14 @@ const LiveQuizQuestion: FC<{
 
   const [liveQuizConfig, setLiveQuizConfig] = useState<LiveQuiz>();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
-  const [remainingTime, setRemainingTime] = useState(LIVE_QUIZ_QUESTION_TIME);
+  const [remainingTime, setRemainingTime] = useState(useFeatureValue('live-quiz-time', 30));
   const [canAnswer, setCanAnswer] = useState(true);
   const [showAnswer, setShowAnswer] = useState(false);
   const [selectedAnswerIndex, setSelectedAnswerIndex] = useState<number>();
   const [audio, setAudio] = useState<boolean>(false);
   const [correctAnswers, setCorrectAnswers] = useState<number[]>([]);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
+  const questionTime = useFeatureValue('live-quiz-time', 30);
   const history = useHistory();
   const student = Util.getCurrentStudent();
   const api = ServiceConfig.getI().apiHandler;
@@ -121,7 +123,7 @@ const LiveQuizQuestion: FC<{
         totalLessonScore += calculateScoreForQuestion(
           true,
           liveQuizConfig?.data.length || 0,
-          LIVE_QUIZ_QUESTION_TIME - remainingTime
+          questionTime - remainingTime
         );
         lessonCorrectMoves++;
       }
@@ -394,8 +396,8 @@ const LiveQuizQuestion: FC<{
     setShowAnswer(false);
     if (onShowAnswer) onShowAnswer(false);
     setSelectedAnswerIndex(undefined);
-    setRemainingTime(LIVE_QUIZ_QUESTION_TIME);
-    if (onRemainingTimeChange) onRemainingTimeChange(LIVE_QUIZ_QUESTION_TIME);
+    setRemainingTime(questionTime);
+    if (onRemainingTimeChange) onRemainingTimeChange(questionTime);
     console.log(
       "🚀 ~ file: LiveQuizQuestion.tsx:380 ~ onQuestionChange ~ questionInterval:",
       questionInterval
@@ -412,7 +414,7 @@ const LiveQuizQuestion: FC<{
         return newTime;
       });
     }, 1000);
-    totalLessonTimeSpent += LIVE_QUIZ_QUESTION_TIME - remainingTime;
+    totalLessonTimeSpent += questionTime - remainingTime;
   };
 
   function calculateScoreForQuestion(
@@ -427,7 +429,7 @@ const LiveQuizQuestion: FC<{
     const timeScore = Math.max(
       0,
       maxScoreForQuestion / 2 -
-        (maxScoreForQuestion / 2) * (timeSpent / LIVE_QUIZ_QUESTION_TIME)
+        (maxScoreForQuestion / 2) * (timeSpent / questionTime)
     );
     const totalScoreForQuestion = baseScoreForQuestion + timeScore;
     return totalScoreForQuestion;
@@ -629,13 +631,13 @@ const LiveQuizQuestion: FC<{
                       const score = calculateScoreForQuestion(
                         option.isCorrect === true,
                         liveQuizConfig.data.length,
-                        LIVE_QUIZ_QUESTION_TIME - remainingTime
+                        questionTime - remainingTime
                       );
                       await api.updateLiveQuiz(
                         lessonId ?? roomDoc?.docId ?? "",
                         student?.docId!,
                         liveQuizConfig.data[currentQuestionIndex].question.id,
-                        LIVE_QUIZ_QUESTION_TIME - remainingTime,
+                        questionTime - remainingTime,
                         score
                       );
                     }}
