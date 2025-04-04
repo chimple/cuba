@@ -28,6 +28,7 @@ import { StudentLessonResult } from "../common/courseConstants";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { TfiDownload } from "react-icons/tfi";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
+import { useFeatureValue } from "@growthbook/growthbook-react";
 
 const AssignmentPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -45,7 +46,7 @@ const AssignmentPage: React.FC = () => {
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [showDownloadHomeworkButton, setShowDownloadHomeworkButton] =
     useState(true);
-
+    const assignmentCount: number = 50;
   useEffect(() => {
     const initialLoadingState = JSON.parse(
       localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) || "false"
@@ -146,13 +147,13 @@ const AssignmentPage: React.FC = () => {
     ) {
       const classId = studentResult.classes[0];
       const classDoc = await api.getClassById(classId);
-
       const allAssignments: Assignment[] = [];
       await Promise.all(
         studentResult.classes.map(async (_class) => {
           const assignments = await api.getPendingAssignments(
             _class,
-            student.docId
+            student.docId,
+            assignmentCount
           );
           const filteredAssignments = assignments.filter((assignment) => {
             //filtering the assignments without live quiz

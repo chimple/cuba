@@ -70,10 +70,14 @@ import { AvatarObj } from "../components/animation/Avatar";
 import React from "react";
 import Dashboard from "./Malta/Dashboard";
 import PopupTemplate from "./PopupTemplate";
+import { useGrowthBook, useFeatureValue } from "@growthbook/growthbook-react";
 import { SUBTAB } from "../common/constants";
 
 const localData: any = {};
 const Home: FC = () => {
+
+  const growthbook = useGrowthBook();
+
   const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentStudent, setCurrentStudent] = useState<User>();
@@ -109,6 +113,7 @@ const Home: FC = () => {
   const [historyLessons, setHistoryLessons] = useState<Lesson[]>([]);
   const [validLessonIds, setValidLessonIds] = useState<string[]>([]);
   const [historySortIndex, setHistorySortIndex] = useState<number>(0);
+  const assignmentCount = 50;
   const [favLessonIndex, setFavLessonIndex] = useState<number>(0);
   let allPlayedLessonIds: string[] = [];
   // const [tempPageNumber, setTempPageNumber] = useState<number>(1);
@@ -279,10 +284,9 @@ const Home: FC = () => {
       studentResult.classes.length > 0
     ) {
       const allAssignments: Assignment[] = [];
-
       await Promise.all(
         studentResult.classes.map(async (_class) => {
-          const res = await api.getPendingAssignments(_class, student.docId);
+          const res = await api.getPendingAssignments(_class, student.docId, assignmentCount);
           allAssignments.push(...res);
         })
       );

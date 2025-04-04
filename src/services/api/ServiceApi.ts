@@ -323,7 +323,8 @@ export interface ServiceApi {
    */
   getPendingAssignments(
     classId: string,
-    studentId: string
+    studentId: string,
+    count: number
   ): Promise<Assignment[]>;
   /**
    * This function gets all the schools for the teacher or principal
