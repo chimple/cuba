@@ -232,20 +232,23 @@ growthbook.init({ streaming: true });
     updateAvatarSuggestionJson();
   }, []);
 
-  const growthBookAttributes = async (docId: string) => {
-    const studentResult = await api.getStudentResult(docId);
+  const growthBookAttributes = async (student: any) => {
+    const studentResult = await api.getStudentResult(student.docId);
+    console.log("StudentGrowthbook: ", student)
     studentResult &&
       growthbook.setAttributes({
         school_ids:studentResult.schools,
         id: studentResult.docId,
-        class_ids: studentResult.classes
+        class_ids: studentResult.classes,
+        gender: student.gender,
+        age: student.age,
       });
     console.log("growthbookConfig: ", growthbook);
   };
 
   useEffect(() => {
     student
-      ? growthBookAttributes(student.docId)
+      ? growthBookAttributes(student)
       : console.log("Student not found...");
   }, [student]);
 
