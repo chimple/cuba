@@ -97,13 +97,6 @@ const growthbook = new GrowthBook({
   clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
   enableDevMode: true,
   trackingCallback: (experiment, result) => {
-    console.log("Viewed Experiment", {
-      experimentId: experiment.key,
-      variationId: result.key,
-      experiment: experiment,
-      result: result
-    });
-
     Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
       user_id: student?.docId,
       experiment_id: experiment.key,
@@ -234,7 +227,6 @@ growthbook.init({ streaming: true });
 
   const growthBookAttributes = async (student: any) => {
     const studentResult = await api.getStudentResult(student.docId);
-    console.log("StudentGrowthbook: ", student)
     studentResult &&
       growthbook.setAttributes({
         school_ids:studentResult.schools,
@@ -243,7 +235,6 @@ growthbook.init({ streaming: true });
         gender: student.gender,
         age: student.age,
       });
-    console.log("growthbookConfig: ", growthbook);
   };
 
   useEffect(() => {

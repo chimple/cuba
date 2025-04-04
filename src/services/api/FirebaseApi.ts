@@ -1215,7 +1215,6 @@ export class FirebaseApi implements ServiceApi {
     count: string
   ): Promise<Assignment[]> {
     try {
-      console.log('assignmentCount: ', count)
       const classDocRef = doc(this._db, CollectionIds.CLASS, classId);
       let q1 = query(
         collection(this._db, CollectionIds.ASSIGNMENT),
@@ -1252,7 +1251,6 @@ export class FirebaseApi implements ServiceApi {
         let tempAssignmentCompletedIds = localStorage.getItem(
           ASSIGNMENT_COMPLETED_IDS
         );
-        console.warn("Get pending assignments hit: ", assignments)
         let assignmentCompletedIds = JSON.parse(
           tempAssignmentCompletedIds ?? "{}"
         );
