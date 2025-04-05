@@ -78,7 +78,6 @@ const JoinClass: FC<{
     setLoading(true);
     const student = Util.getCurrentStudent();
     try {
-
       if (!student || inviteCode == null) {
         throw new Error("Student or invite code is missing.");
       }
@@ -134,11 +133,12 @@ const JoinClass: FC<{
 
   return (
     <div className="join-class-main-header">
-      <div className="join-class-header">
+      <div className="join-class-header" aria-label="Join Class Header">
         {/* <div className="join-class-title">
           {t("Enter the 6 digit code your teacher has given to join the class")}
         </div> */}
         <input
+          aria-label="Join Class Header"
           onChange={(evt) => {
             const inviteCode = evt.target.value.slice(0, 6);
             if (!inviteCode) {

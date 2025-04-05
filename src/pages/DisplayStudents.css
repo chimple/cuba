@@ -56,6 +56,16 @@
   overflow: hidden;
 }
 
+.display-student-name-profile {
+  white-space: nowrap;
+  display: block;
+  max-width: 20vh;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  visibility: none;
+  display: none;
+}
+
 .avatar-container {
   margin: 0.4vh;
   gap: 10vh;

@@ -32,6 +32,7 @@ const TextField: React.FC<{
   return (
     <div>
       <input
+        aria-label="Name Text Box"
         className={"text-box "}
         type="text"
         value={value}
