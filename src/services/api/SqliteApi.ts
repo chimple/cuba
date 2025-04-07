@@ -1656,8 +1656,8 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
       is_deleted: false,
       chapter_id: chapterId,
-      course_id: courseId ?? "",
-      class_id: classId ?? "",
+      course_id: courseId ?? null,
+      class_id: classId ?? null,
     };
 
     const res = await this.executeQuery(
