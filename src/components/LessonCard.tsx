@@ -254,6 +254,7 @@ const LessonCard: React.FC<{
 
             {showSubjectName && currentCourse?.name ? (
               <div id="lesson-card-subject-name">
+                <p className="ignore">{lesson.name} </p>
                 <p>
                   {currentCourse?.name}
                   {/* {subject.title==="English"?subject.title:t(subject.title)} */}
@@ -322,6 +323,7 @@ const LessonCard: React.FC<{
           <div className="lesson-download-button-container">
             {lesson.cocos_lesson_id && (
               <DownloadLesson
+                aria-label="Download-button"
                 lessonId={lesson.cocos_lesson_id}
                 downloadButtonLoading={downloadButtonLoading}
                 onDownloadOrDelete={onDownloadOrDelete}

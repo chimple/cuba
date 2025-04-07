@@ -222,16 +222,17 @@ const Home: FC = () => {
     let reqLes: TableTypes<"lesson">[] = [];
     // setIsLoading(true);
     const student = Util.getCurrentStudent();
-    setGrowthbookAttributes(student);
     // const studentResult = await api.getStudentResult(student.id, false);
     const linkedData =
       student != null
         ? await api.getStudentClassesAndSchools(student.id)
         : null;
+    console.log('linkedData: ', linkedData)
     const classDoc = linkedData?.classes[0];
     if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
     if (student) await api.assignmentUserListner(student.id, () => {});
 
+    setGrowthbookAttributes([student, linkedData]);
     if (
       student != null &&
       !!linkedData &&
@@ -282,11 +283,20 @@ const Home: FC = () => {
     }
   }
 
-  const setGrowthbookAttributes = (student: any) => {
-    console.log('currentStudent: ', student)
+  const setGrowthbookAttributes = (student: any )=> {
+    const studentDetails = student[0]
+    const studentClasses = student[1].classes.map((item: any) => item.id);
+    const studentSchools = student[1].schools.map((item: any) => item.id)
+    
     growthbook.setAttributes({
-      id: student.id,
-      curriculum_id: student.curriculum_id
+      id: studentDetails.id,
+      curriculum_id: studentDetails.curriculum_id,
+      grade_id: studentDetails.grade_id,
+      gender: studentDetails.gender,
+      parent_id: studentDetails.parent_id,
+      subject_id: studentDetails.subject_id,
+      school_ids: studentSchools,
+      class_ids: studentClasses
     })
   }
 
