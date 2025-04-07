@@ -38,10 +38,10 @@ const handleClick = async (event: MouseEvent) => {
     //Handle Texts
     let textContent;
     if (element) {
-      const textIn =
-        element.innerText?.trim() || element.getAttribute("aria-label")?.trim();
+      const textIn = element.innerText?.trim();
       textContent = textIn;
     } else {
+      console.log("Clicked entering");
       textContent = target.getAttribute("aria-label")?.trim();
     }
     if (!textContent) {
