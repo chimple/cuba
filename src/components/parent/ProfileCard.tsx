@@ -63,6 +63,7 @@ const ProfileCard: React.FC<{
         {userType ? (
           <MdModeEditOutline
             id="profile-card-edit-icon"
+            aria-label="Edit"
             size={"5%"}
             onClick={() => {
               if (!online) {
