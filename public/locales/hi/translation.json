@@ -734,5 +734,7 @@
   "Your profile is not registered to any school.": "आपका प्रोफ़ाइल किसी भी विद्यालय में पंजीकृत नहीं है|",
   "Your data has been successfully checked, and no errors were found.": "आपका डेटा सफलतापूर्वक जांचा गया है, और कोई त्रुटि नहीं मिली।",
   "Zebra": "ज़ेबरा",
-  "The Subject you have chosen is the last one left and cannot be deleted": "आपके द्वारा चुना गया विषय आखिरी बचा है और उसे हटाया नहीं जा सकता"
+  "The Subject you have chosen is the last one left and cannot be deleted": "आपके द्वारा चुना गया विषय आखिरी बचा है और उसे हटाया नहीं जा सकता", 
+  "Search School" : "स्कूल खोजें",
+  "School is not Available" : "स्कूल उपलब्ध नहीं है"
 }
