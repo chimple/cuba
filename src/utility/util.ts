@@ -48,6 +48,7 @@ import {
   NAVIGATION_STATE,
   GAME_URL,
   LOCAL_BUNDLES_PATH,
+  School_Creation_Stages,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1905,5 +1906,80 @@ export class Util {
 
   public static setGameUrl(path: string) {
     localStorage.setItem(GAME_URL, path);
+  }
+  public static async triggerSaveProceesedXlsxFile(data: { fileData: string }) {
+    try {
+      if (!Util.port) {
+        Util.port = registerPlugin<PortPlugin>("Port");
+      }
+      await Util.port.saveProceesedXlsxFile({
+        fileData: data.fileData,
+      });
+      console.log("Download triggered:", data);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  }
+  public static handleMissingEntities(
+    history: any,
+    redirectPage: string,
+    origin: PAGES,
+    classId?: string
+  ) {
+    history.replace(redirectPage, {
+      classId: classId,
+      origin: origin,
+      isSelect: true,
+    });
+  }
+  public static async handleClassAndSubjects(
+    schoolId: string,
+    userId: string,
+    history: any,
+    originPage: PAGES
+  ) {
+    const api = ServiceConfig.getI().apiHandler;
+    const schoolCourses = await api.getCoursesBySchoolId(schoolId);
+    if (schoolCourses.length === 0) {
+      this.setNavigationState(School_Creation_Stages.SCHOOL_COURSE);
+      history.replace(PAGES.SUBJECTS_PAGE, {
+        schoolId: schoolId,
+        origin: originPage,
+        isSelect: true,
+      });
+      return;
+    }
+    const fetchedClasses = await api.getClassesForSchool(schoolId, userId);
+    if (fetchedClasses.length === 0) {
+      history.replace(PAGES.ADD_CLASS, {
+        school: { id: schoolId },
+        origin: originPage,
+      });
+      return;
+    }
+
+    const classCoursesData = await Promise.all(
+      fetchedClasses.map((classItem) =>
+        api.getCoursesByClassId(classItem.id).then((courses) => ({
+          classId: classItem.id,
+          courses,
+        }))
+      )
+    );
+
+    const classWithoutSubjects = classCoursesData.find(
+      (data) => data.courses.length === 0
+    );
+
+    if (classWithoutSubjects) {
+      this.setNavigationState(School_Creation_Stages.CLASS_COURSE);
+      this.handleMissingEntities(
+        history,
+        PAGES.SUBJECTS_PAGE,
+        originPage,
+        classWithoutSubjects.classId
+      );
+      return;
+    }
   }
 }

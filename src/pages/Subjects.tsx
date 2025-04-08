@@ -162,8 +162,8 @@ const Subjects: React.FC<{}> = ({}) => {
       //   console.log("🚀 ~ file: Subjects.tsx:161 ~ init ~ getCourses:");
       // }
     } else {
-      await getCourses();
-      console.log("🚀 ~ file: Subjects.tsx:165 ~ init ~ getCourses:");
+      let result = await getCourses();
+      console.log("🚀 ~ file: Subjects.tsx:165 ~ init ~ getCourses:", result);
     }
     let map = localStorage.getItem(GRADE_MAP);
     if (!!map) {
@@ -187,7 +187,13 @@ const Subjects: React.FC<{}> = ({}) => {
     }
 
     // const currClass = localStorage.getItem(CURRENT_CLASS);
-    const currClass = schoolUtil.getCurrentClass();
+    let currClass;
+    const result = await api.getStudentResult(currentStudent.id, true);
+    if (result) {
+      currClass = schoolUtil.getCurrentClass();
+    } else {
+      console.log("No classes found for the student.");
+    }
     if (!!currClass) setCurrentClass(currClass);
 
     const res = await api.getStudentResultInMap(currentStudent.id);
@@ -205,11 +211,12 @@ const Subjects: React.FC<{}> = ({}) => {
     setUserMode(
       ((currMode === MODES.PARENT) == true && !studentLinked) ?? true
     );
+
     const courses = await (!!currClass
       ? api.getCoursesForClassStudent(currClass.id)
       : api.getCoursesForParentsStudent(currentStudent.id));
     localData.courses = courses;
-    localStorageData.courses = courses;
+    // localStorageData.courses = courses;
     setCourses(courses);
     // addDataToLocalStorage();
     setIsLoading(false);

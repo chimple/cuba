@@ -30,7 +30,7 @@ const ToggleButton: React.FC<{
           <IonToggle
             checked={flag === 0 ? true : false}
             onIonChange={onIonChangeClick}
-            aria-label="Enable Notifications"
+            //aria-label="Enable Notifications"
             className="common-toggle"
           ></IonToggle>
         </div>
@@ -39,7 +39,7 @@ const ToggleButton: React.FC<{
           <IonToggle
             checked={flag === 0 ? true : false}
             onIonChange={onIonChangeClick}
-            aria-label="Enable Notifications"
+            //aria-label="Enable Notifications"
             className="common-toggle"
           ></IonToggle>
           <p className="toggle-text">

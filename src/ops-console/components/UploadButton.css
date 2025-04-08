@@ -1,0 +1,8 @@
+.custom-fab-upload {
+    background: #7c5db0;
+    color: white;
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    z-index: 1000;
+  }
