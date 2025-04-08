@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { t } from "i18next";
 import { FaCloudUploadAlt } from "react-icons/fa";
-import "./ErrorPage.css";
+import "./FileVerifiedComponent.css";
 import ErrorIcon from "../assets/icons/error_icon.png";
 import { Link } from "react-router-dom";
 import { PAGES } from "../../common/constants";

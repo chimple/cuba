@@ -1,6 +1,6 @@
 import React from "react";
 import VerifyIcon from "../assets/icons/verifiedicon.svg";
-import "./VerifiedPage.css";
+import "./FileVerifiedComponent.css";
 import { t } from "i18next";
 
 const VerifiedPage = () => {
