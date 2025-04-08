@@ -1,6 +1,6 @@
 .live-quiz-question-box {
   width: 80vw;
-  height: 25vh;
+  height: 33vh;
   background-color: #eae8e8;
   display: flex;
   justify-content: center;
@@ -8,9 +8,11 @@
   color: var(--text-color);
   border-radius: 4vh;
   font-size: var(--font-size);
-  padding: max(10px, 2%) 1%;
+  padding: max(6px, 2%) 1%;
   position: relative;
   flex-direction: column;
+  overflow: auto; /* allows scrolling if content overflows */
+  word-wrap: break-word; /* ensures long text wraps */
 }
 
 .PiSpeakerHighBold {
@@ -31,10 +33,12 @@
   flex-wrap: wrap;
   justify-content: space-between;
   padding-top: 1%;
+  position: sticky;
+  bottom: 0;
 }
 
 .live-quiz-option-text {
-  font-size: clamp(14px, 5vh, 40px);
+  font-size: clamp(12px, 4vh, 35px);
 }
 .live-quiz-option-box {
   background-color: #faf5f8;
@@ -42,15 +46,17 @@
   justify-content: center;
   align-items: center;
   width: 16vw;
-  height: 22vh;
+  height: 23vh;
   border-radius: 2vh;
   color: var(--text-color);
   font-size: var(--font-size);
   box-shadow: 2px 10px lightgray;
   margin: 1%;
-  padding: 2px max(45px, 2%);
+  padding: 1px max(30px, 1%);
   position: relative;
   flex-direction: column;
+  overflow: auto;
+  word-wrap: break-word;
 }
 #question-text {
   font-weight: bold;
@@ -108,8 +114,10 @@
   height: 3vh;
 }
 .live-quiz-question-image {
-  height: 30vh;
-  padding-top: 5px;
+  max-height: 20vh; /* limit height to keep space for text */
+  width: auto;
+  object-fit: contain;
+  padding-top: 1px;
 }
 .audio-playing {
   transition: transform 0.5s ease-in-out;
@@ -119,7 +127,9 @@
   transform: scale(1.4);
 }
 .live-quiz-option-image {
-  height: 30vh;
+  max-height: 20vh; /* reduce to fit inside 22vh option box */
+  width: auto;
+  object-fit: contain;
 }
 
 .selected-option {
