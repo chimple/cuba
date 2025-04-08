@@ -13,11 +13,16 @@ const AddButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
     zIndex: "1000",
     "&:hover": {
       transform: "scale(1.1)",
-      bgcolor: "#7c5db0"
+      bgcolor: "#7c5db0",
     },
   };
   return (
-    <Fab className="custom-fab" onClick={onClick} sx={fabGreenStyle}>
+    <Fab
+      aria-label="Add"
+      className="custom-fab"
+      onClick={onClick}
+      sx={fabGreenStyle}
+    >
       <AddIcon />
     </Fab>
   );
