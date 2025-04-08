@@ -626,6 +626,114 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   private constructor() { }
+  createSchool(name: string, group1: string, group2: string, group3: string): Promise<TableTypes<"school">> {
+    throw new Error("Method not implemented.");
+  }
+  updateSchoolProfile(school: TableTypes<"school">, name: string, group1: string, group2: string, group3: string): Promise<TableTypes<"school">> {
+    throw new Error("Method not implemented.");
+  }
+  getCoursesBySchoolId(schoolId: string): Promise<TableTypes<"school_course">[]> {
+    throw new Error("Method not implemented.");
+  }
+  removeCoursesFromClass(ids: string[]): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  removeCoursesFromSchool(ids: string[]): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  checkCourseInClasses(classIds: string[], courseId: string): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  getGradesByIds(ids: string[]): Promise<TableTypes<"grade">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getCurriculumsByIds(ids: string[]): Promise<TableTypes<"curriculum">[]> {
+    throw new Error("Method not implemented.");
+  }
+  updateStudentFromSchoolMode(student: TableTypes<"user">, name: string, age: number, gender: string, avatar: string, image: string | undefined, boardDocId: string, gradeDocId: string, languageDocId: string, student_id: string, newClassId: string): Promise<TableTypes<"user">> {
+    throw new Error("Method not implemented.");
+  }
+  getLessonFromChapter(chapterId: string, lessonId: string): Promise<{ lesson: TableTypes<"lesson">[]; course: TableTypes<"course">[]; }> {
+    throw new Error("Method not implemented.");
+  }
+  removeLiveQuizChannel() {
+    throw new Error("Method not implemented.");
+  }
+  getStudentResultsByAssignmentId(assignmentId: string): Promise<{ result_data: TableTypes<"result">[]; user_data: TableTypes<"user">[]; }[]> {
+    throw new Error("Method not implemented.");
+  }
+  getPendingAssignmentForLesson(lessonId: string, classId: string, studentId: string): Promise<TableTypes<"assignment"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  createUserDoc(user: TableTypes<"user">): Promise<TableTypes<"user"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  syncDB(): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  createClass(schoolId: string, className: string): Promise<TableTypes<"class">> {
+    throw new Error("Method not implemented.");
+  }
+  updateClass(classId: string, className: string) {
+    throw new Error("Method not implemented.");
+  }
+  deleteClass(classId: string) {
+    throw new Error("Method not implemented.");
+  }
+  getLastAssignmentsForRecommendations(classId: string): Promise<TableTypes<"assignment">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  createAssignment(student_list: string[], userId: string, starts_at: string, ends_at: string, is_class_wise: boolean, class_id: string, school_id: string, lesson_id: string, chapter_id: string, course_id: string, type: string): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  getTeachersForClass(classId: string): Promise<TableTypes<"user">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getUserByEmail(email: string): Promise<TableTypes<"user"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getUserByPhoneNumber(phone: string): Promise<TableTypes<"user"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  addTeacherToClass(classId: string, userId: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  getAssignmentsByAssignerAndClass(userId: string, classId: string, startDate: string, endDate: string): Promise<{ classWiseAssignments: TableTypes<"assignment">[]; individualAssignments: TableTypes<"assignment">[]; }> {
+    throw new Error("Method not implemented.");
+  }
+  getTeacherJoinedDate(userId: string, classId: string): Promise<TableTypes<"class_user"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getAssignedStudents(assignmentId: string): Promise<string[]> {
+    throw new Error("Method not implemented.");
+  }
+  deleteTeacher(classId: string, teacherId: string) {
+    throw new Error("Method not implemented.");
+  }
+  getClassCodeById(class_id: string): Promise<number | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  createClassCode(classId: string): Promise<number> {
+    throw new Error("Method not implemented.");
+  }
+  getPrincipalsForSchool(schoolId: string): Promise<TableTypes<"user">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getCoordinatorsForSchool(schoolId: string): Promise<TableTypes<"user">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getSponsorsForSchool(schoolId: string): Promise<TableTypes<"user">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  addUserToSchool(schoolId: string, userId: string, role: RoleType): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  deleteUserFromSchool(schoolId: string, userId: string, role: RoleType): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
   async getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;
@@ -2318,16 +2426,14 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"result">[]> => {
     try {
       const query = {
-        ...queryStatement,
-        agent: { mbox: `mailto:${agentEmail}` },
-        ascending: true,
-        limit: 100,
-        since: queryStatement?.since,
-        until: queryStatement?.until,
-        verb: queryStatement?.verb?.id ? { id: queryStatement.verb.id } : undefined,
-        activity: queryStatement?.activity?.id ? { id: queryStatement.activity.id } : undefined,
+        params: {
+          agent: new Agent({ mbox: `mailto:${agentEmail}` }),
+          ascending: true,
+          limit: 100,
+          since: queryStatement?.since,
+        }
       };
-
+      
       const result = await tincan.getStatements(query);
       const statements = result?.statements ?? [];
 
