@@ -39,6 +39,8 @@ import ApiDataProcessor from "./ApiDataProcessor";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
 import { v4 as uuidv4 } from "uuid";
 import i18n from "../../i18n";
+import { Statement } from "tincants";
+import { Agent, Verb, Activity, ActivityDefinition, Context, ContextActivities, Score } from "tincants";
 
 
 interface IGetStudentResultStatement {
@@ -1182,9 +1184,10 @@ export class OneRosterApi implements ServiceApi {
     const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();
     const agentEmail = `mailto:${loggedStudent?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
 
-    const statement = {
+    const statement = new Statement({
       id: uuidv4(),
       actor: {
+        objectType: "Agent",
         mbox: agentEmail,
         name: loggedStudent?.name ?? "John Doe",
       },
@@ -1193,6 +1196,7 @@ export class OneRosterApi implements ServiceApi {
         display: { "en-US": "completed" },
       },
       object: {
+        objectType: "Activity",
         id: `http://example.com/activity/${lessonId}`,
         definition: {
           name: { "en-US": `Lesson ${lessonId}` },
@@ -1203,7 +1207,7 @@ export class OneRosterApi implements ServiceApi {
         },
       },
       result: {
-        score: { raw: score },
+        score: { raw: score, scaled: score / 100 },
         success: score > 35,
         completion: true,
         response: `Correct: ${correctMoves}, Wrong: ${wrongMoves}`,
@@ -1227,36 +1231,36 @@ export class OneRosterApi implements ServiceApi {
         },
         contextActivities: {
           grouping: [
-            { id: `http://example.com/course/${courseId}` },
-            { id: `http://example.com/class/${classId}` },
-            { id: `http://example.com/school/${schoolId}` },
-            { id: `http://example.com/assignment/${assignmentId}` },
-            { id: `http://example.com/chapter/${chapterId}` },
+            { objectType: "Activity", id: `http://example.com/course/${courseId}` },
+            { objectType: "Activity", id: `http://example.com/class/${classId}` },
+            { objectType: "Activity", id: `http://example.com/school/${schoolId}` },
+            { objectType: "Activity", id: `http://example.com/assignment/${assignmentId}` },
+            { objectType: "Activity", id: `http://example.com/chapter/${chapterId}` },
           ],
         },
       },
       timestamp: new Date().toISOString(),
-    };
+    });
 
     try {
       await tincan.sendStatement(statement);
       console.log("updateResult ~ statement Success", statement);
 
       const newResult: TableTypes<"result"> = {
-        id: statement.id,
-        assignment_id: assignmentId ?? null,
-        correct_moves: correctMoves,
-        lesson_id: lessonId,
-        school_id: schoolId ?? null,
-        score: score,
-        student_id: studentId,
-        time_spent: timeSpent,
-        wrong_moves: wrongMoves,
-        created_at: statement.context.extensions["http://example.com/xapi/createdAt"],
-        updated_at: statement.context.extensions["http://example.com/xapi/updatedAt"],
-        is_deleted: false,
-        chapter_id: chapterId,
-        course_id: courseId ?? "",
+        id: statement.id || "",
+        assignment_id: statement.result?.extensions?.["http://example.com/xapi/assignmentId"] || null,
+        correct_moves: statement.result?.extensions?.["http://example.com/xapi/correctMoves"] || 0,
+        lesson_id: (statement.object as Activity)?.id || "",
+        school_id: statement.context?.extensions?.["http://example.com/xapi/schoolId"] || null,
+        score: statement.result?.score?.raw || 0,
+        student_id: statement.actor?.mbox || "",
+        time_spent: statement.result?.extensions?.["http://example.com/xapi/timeSpent"] || 0,
+        wrong_moves: statement.result?.extensions?.["http://example.com/xapi/wrongMoves"] || 0,
+        created_at: statement.context?.extensions?.["http://example.com/xapi/createdAt"] || "",
+        updated_at: statement.context?.extensions?.["http://example.com/xapi/updatedAt"] || "",
+        is_deleted: statement.context?.extensions?.["http://example.com/xapi/isDeleted"] || false,
+        chapter_id: statement.context?.extensions?.["http://example.com/xapi/chapterId"] || "",
+        course_id: (statement.object as Activity)?.id || "",
       };
 
       return newResult;
@@ -2316,6 +2320,12 @@ export class OneRosterApi implements ServiceApi {
       const query = {
         ...queryStatement,
         agent: { mbox: `mailto:${agentEmail}` },
+        ascending: true,
+        limit: 100,
+        since: queryStatement?.since,
+        until: queryStatement?.until,
+        verb: queryStatement?.verb?.id ? { id: queryStatement.verb.id } : undefined,
+        activity: queryStatement?.activity?.id ? { id: queryStatement.activity.id } : undefined,
       };
 
       const result = await tincan.getStatements(query);
@@ -2326,14 +2336,14 @@ export class OneRosterApi implements ServiceApi {
       // Process statements and map to TableTypes<"result">
       const parsedStatements: TableTypes<"result">[] = statements.map((statement) => {
         // Ensure required fields are always strings, not null
-        const lessonId = statement.object?.definition?.extensions?.["http://example.com/xapi/lessonId"] || "";
-        const courseId = statement.object?.definition?.extensions?.["http://example.com/xapi/courseId"] || "";
+        const lessonId = statement.object && 'definition' in statement.object ? statement.object.definition?.extensions?.["http://example.com/xapi/lessonId"] || "" : "";
+        const courseId = statement.object && 'definition' in statement.object ? statement.object.definition?.extensions?.["http://example.com/xapi/courseId"] || "" : "";
         const studentId = statement.context?.extensions?.["http://example.com/xapi/studentId"] || "";
         const chapterId = statement.context?.extensions?.["http://example.com/xapi/chapterId"] || null;
         const assignmentId = statement.result?.extensions?.["http://example.com/xapi/assignmentId"] || null;
         const correctMoves = statement.result?.extensions?.["http://example.com/xapi/correctMoves"] || null;
         const wrongMoves = statement.result?.extensions?.["http://example.com/xapi/wrongMoves"] || null;
-        const timeSpent = this.parseFormattedDuration(statement.result?.duration) || null;
+        const timeSpent = this.parseFormattedDuration(statement.result?.duration || "") || null;
 
         return {
           id: statement.id || "",
