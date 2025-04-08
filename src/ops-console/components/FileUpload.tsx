@@ -8,6 +8,7 @@ import { t } from "i18next";
 import { Util } from "../../utility/util";
 import { CiRedo } from "react-icons/ci";
 import { ServiceConfig } from "../../services/ServiceConfig";
+import { useLocation } from "react-router-dom";
 
 const FileUpload: React.FC = () => {
   const api = ServiceConfig.getI()?.apiHandler;
@@ -18,6 +19,8 @@ const FileUpload: React.FC = () => {
   const [fileBuffer, setFileBuffer] = useState<ArrayBuffer | null>(null);
   const progressRef = useRef(10);
   const [verifyingProgressState, setVerifyingProgressState] = useState(10);
+  const isReupload =
+    new URLSearchParams(useLocation().search).get("reupload") === "true";
 
   useEffect(() => {
     setVerifyingProgressState(progressRef.current);
@@ -504,9 +507,11 @@ const FileUpload: React.FC = () => {
             )}
           </div>
         </div>
-        <a href="#" className="download-upload-template">
-          <FaCloudDownloadAlt /> {t("Download Bulk Upload Template")}
-        </a>
+        {!isReupload && (
+          <a href="#" className="download-upload-template">
+            <FaCloudDownloadAlt /> {t("Download Bulk Upload Template")}
+          </a>
+        )}
       </div>
     );
 };
