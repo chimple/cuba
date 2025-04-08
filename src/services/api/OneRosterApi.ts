@@ -189,6 +189,8 @@ export class OneRosterApi implements ServiceApi {
   private preQuizMap: { [key: string]: { [key: string]: Result } } = {};
   private classes: { [key: string]: Class[] } = {};
   private lessonMap: { [key: string]: { [key: string]: Result } } = {};
+  private _currentStudent: TableTypes<"user"> | undefined;
+  private _currentClass: TableTypes<"class"> | undefined;
   public currentCourse: Map<string, TableTypes<"course"> | undefined> = new Map();
   public currentChapter: TableTypes<"chapter"> = {
     course_id: null,
@@ -1266,26 +1268,24 @@ export class OneRosterApi implements ServiceApi {
 
 
   getLanguageWithId(id: string): Promise<TableTypes<"language"> | undefined> {
-    // throw new Error("Method not implemented.");
-    // console.log("hello");
-    return undefined;
+    return Promise.resolve(undefined);
   }
   getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
     let res: TableTypes<"curriculum">[] = [];
 
-    Object.values(ALL_CURRICULUM).forEach((curr) => {
+    (Object.values(ALL_CURRICULUM) as { id: string; name: string; sort_index: number }[]).forEach((curr) => {
       let g: TableTypes<"curriculum"> = {
         created_at: "", description: "", id: curr.id, name: curr.name, image: "", sort_index: curr.sort_index, is_deleted: false, updated_at: ""
       };
       res.push(g);
     });
 
-    return res
+    return Promise.resolve(res);
   }
   async getAllGrades(): Promise<TableTypes<"grade">[]> {
     let res: TableTypes<"grade">[] = [];
 
-    Object.values(RESPECT_GRADES).forEach((grade) => {
+    (Object.values(RESPECT_GRADES) as { id: string; name: string; sort_index: number }[]).forEach((grade) => {
       let g: TableTypes<"grade"> = {
         created_at: "",
         description: "",
@@ -1295,6 +1295,7 @@ export class OneRosterApi implements ServiceApi {
         sort_index: grade.sort_index,
         is_deleted: false,
         updated_at: "",
+        test: null
       };
       res.push(g);
     });
@@ -1329,7 +1330,9 @@ export class OneRosterApi implements ServiceApi {
       currentUser
     );
     let profile: TableTypes<"user">[] = []
-    profile.push(currentUser)
+    if (currentUser) {
+      profile.push(currentUser)
+    }
     console.log("return profile; ", profile);
 
     return profile;
@@ -1345,13 +1348,13 @@ export class OneRosterApi implements ServiceApi {
   async updateSoundFlag(userId: string, value: boolean) {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {
-      Util.setCurrentSound(value === true)
+      Util.setCurrentSound(value ? 1 : 0)
     }
   }
   async updateMusicFlag(userId: string, value: boolean) {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {
-      Util.setCurrentMusic(value === true)
+      Util.setCurrentMusic(value ? 1 : 0)
       // currentUser.music_off = value
       // localStorage.setItem(MUSIC, value)
     }
@@ -1369,7 +1372,7 @@ export class OneRosterApi implements ServiceApi {
   }
 
   getStudentClassesAndSchools(studentId: string): Promise<any> {
-    return undefined;
+    return Promise.resolve([]);
   }
 
   get currentStudent(): TableTypes<"user"> | undefined {
@@ -1424,8 +1427,8 @@ export class OneRosterApi implements ServiceApi {
     name: string,
     age: number | undefined,
     gender: string | undefined,
-    avatar: string | undefined,
-    image: string | undefined,
+    avatar: string | null,
+    image: string | null,
     boardDocId: string | null,
     gradeDocId: string | null,
     languageDocId: string | null,
@@ -2045,7 +2048,7 @@ export class OneRosterApi implements ServiceApi {
           courses.push({
             code: metaC.courseCode,
             color: metaC.color,
-            created_at: null,
+            created_at: "",
             curriculum_id: metaC.curriculum,
             description: null,
             grade_id: metaC.grade,
@@ -2174,6 +2177,7 @@ export class OneRosterApi implements ServiceApi {
   }
   getStudentLastTenResults(
     studentId: string,
+    courseId: string,
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
@@ -2389,7 +2393,7 @@ export class OneRosterApi implements ServiceApi {
       const studentResults = await this.getStudentResult(studentId, false);
       const currentStudent = await Util.getCurrentStudent();
       console.log("current student details : ", currentStudent);
-      const allCourses = await this.getCoursesForParentsStudent(currentStudent?.id);
+      const allCourses = await this.getCoursesForParentsStudent(currentStudent?.id || "");
 
       // If student has played lessons before
       if (studentResults && studentResults.length > 0) {
