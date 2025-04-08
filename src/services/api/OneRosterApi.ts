@@ -28,7 +28,7 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import { StudentLessonResult } from "../../common/courseConstants";
 import StudentProfile from "../../models/studentProfile";
-import { Unsubscribe } from "@firebase/firestore";
+import { Timestamp, Unsubscribe } from "@firebase/firestore";
 import { AvatarObj } from "../../components/animation/Avatar";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { DocumentData } from "firebase/firestore";
@@ -119,6 +119,69 @@ interface course {
   sort_index: number | null;
   subject_id: string | null;
   updated_at: string | null;
+}
+
+interface IStatement {
+  id?: string;
+  actor?: {
+    name: string;
+    mbox: string;
+  };
+  verb?: {
+    id: string;
+    display?: {
+      "en-US": string;
+    };
+  };
+  object?: {
+    id?: string;
+    objectType?: string;
+    definition?: {
+      name?: {
+        "en-US": string;
+      };
+      extensions?: {
+        "http://example.com/xapi/lessonId"?: string;
+        "http://example.com/xapi/courseId"?: string;
+      };
+    };
+  };
+  result?: {
+    score?: {
+      raw?: number;
+      scaled?: number;
+    };
+    success?: boolean;
+    completion?: boolean;
+    response?: string;
+    timeSpent?: number;
+    lastAttemptDate?: string;
+    duration?: string;
+    extensions?: {
+      "http://example.com/xapi/correctMoves"?: number;
+      "http://example.com/xapi/wrongMoves"?: number;
+      "http://example.com/xapi/assignmentId"?: string;
+    };
+  };
+  context?: {
+    extensions?: {
+      "http://example.com/xapi/studentId"?: string;
+      "http://example.com/xapi/schoolId"?: string;
+      "http://example.com/xapi/chapterId"?: string;
+      "http://example.com/xapi/isDeleted"?: boolean;
+      "http://example.com/xapi/createdAt"?: string;
+      "http://example.com/xapi/updatedAt"?: string;
+    };
+  };
+}
+
+interface LessonResult {
+  lessonId: string;
+  score: number;
+  success: boolean | null;
+  completion: boolean | null;
+  timeSpent: number;
+  lastAttemptDate: string | null;
 }
 
 export class OneRosterApi implements ServiceApi {
@@ -1012,17 +1075,16 @@ export class OneRosterApi implements ServiceApi {
       const statements = await this.getStatements(agentEmail, queryStatement);
       const resultMap = new Map<string, StudentLessonResult>();
 
-      statements.forEach((statement: TableTypes<"result">) => {
-        const lessonId = statement.object?.id || ""; // Assuming lesson ID is inside 'object.id'
+      statements.forEach((statement: IStatement) => {
+        const lessonId = statement.object?.id || "";
 
         if (lessonId) {
           const lessonResult: StudentLessonResult = {
-            lessonId,
-            score: statement.result?.score?.scaled ?? null,
-            success: statement.result?.success ?? null,
-            completion: statement.result?.completion ?? null,
-            timeSpent: statement.result?.timeSpent,
-            lastAttemptDate: tatement.result?.lastAttemptDate,
+            date: Timestamp.now(),
+            course: null as any,
+            score: statement.result?.score?.scaled ?? 0,
+            timeSpent: statement.result?.timeSpent ?? 0,
+            isLoved: false,
           };
 
           resultMap.set(lessonId, lessonResult);
@@ -1069,7 +1131,7 @@ export class OneRosterApi implements ServiceApi {
 
     const favLesson: TableTypes<"favorite_lesson"> = {
       id: uuid,
-      student_id: studentId,
+      user_id: studentId,  // Changed from student_id to user_id
       lesson_id: lessonId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -1099,30 +1161,30 @@ export class OneRosterApi implements ServiceApi {
   };
 
   async updateResult(
-    student: User,
-    courseId: string,
+    studentId: string,
+    courseId: string | undefined,
     lessonId: string,
     score: number,
     correctMoves: number,
     wrongMoves: number,
-    timeSpent: number, // in seconds
-    assignmentId: string,
+    timeSpent: number,
+    assignmentId: string | undefined,
     chapterId: string,
-    classId: string,
-    schoolId: string
-  ): Promise<Result> {
-    if (!student) {
+    classId: string | undefined,
+    schoolId: string | undefined
+  ): Promise<TableTypes<"result">> {
+    if (!studentId) {
       throw new Error("Student information is missing.");
     }
 
-    const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();;
+    const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();
     const agentEmail = `mailto:${loggedStudent?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
 
     const statement = {
       id: uuidv4(),
       actor: {
         mbox: agentEmail,
-        name: student.name ?? "John Doe",
+        name: loggedStudent?.name ?? "John Doe",
       },
       verb: {
         id: "http://adlnet.gov/expapi/verbs/completed",
@@ -1153,7 +1215,7 @@ export class OneRosterApi implements ServiceApi {
       },
       context: {
         extensions: {
-          "http://example.com/xapi/studentId": student.id,
+          "http://example.com/xapi/studentId": studentId,
           "http://example.com/xapi/classId": classId,
           "http://example.com/xapi/schoolId": schoolId,
           "http://example.com/xapi/chapterId": chapterId,
@@ -1185,7 +1247,7 @@ export class OneRosterApi implements ServiceApi {
         lesson_id: lessonId,
         school_id: schoolId ?? null,
         score: score,
-        student_id: student.id,
+        student_id: studentId,
         time_spent: timeSpent,
         wrong_moves: wrongMoves,
         created_at: statement.context.extensions["http://example.com/xapi/createdAt"],
