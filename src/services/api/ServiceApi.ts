@@ -905,6 +905,10 @@ export interface ServiceApi {
     userId?: string
   ): Promise<String | undefined>;
 
+  getChapterByLessonID(
+    lessonId: string,
+  ): Promise<TableTypes<"chapter"> | undefined>;
+
   /**
    * Get Assignments by classId and datewise
    * @param classId

@@ -2304,6 +2304,38 @@ export class OneRosterApi implements ServiceApi {
       return undefined;
     }
   }
+  public async getChapterByLessonID(
+    lessonId: string
+  ): Promise<TableTypes<"chapter"> | undefined> {
+    try {
+      for (const courseId of this.studentAvailableCourseIds) {
+        const courseJson = await this.loadCourseJson(courseId);
+
+        for (const group of courseJson.groups) {
+          for (const lesson of group.navigation) {
+            if (lesson.id === lessonId) {
+              return {
+                id: group.metadata.id,
+                name: group.metadata.title,
+                image: group.metadata.thumbnail || null,
+                course_id: courseId,
+                created_at: "",
+                updated_at: null,
+                is_deleted: null,
+                sort_index: null,
+                sub_topics: null
+              };
+            }
+          }
+        }
+      }
+
+      return undefined;
+    } catch (error) {
+      console.error("Error fetching chapter by lesson:", error);
+      return undefined;
+    }
+  }
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
     courseId: string,

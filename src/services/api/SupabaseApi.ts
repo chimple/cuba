@@ -24,6 +24,9 @@ import {
 import { RoleType } from "../../interface/modelInterfaces";
 
 export class SupabaseApi implements ServiceApi {
+  getChapterByLessonID(lessonId: string): Promise<TableTypes<"chapter"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
   private _assignmetRealTime?: RealtimeChannel;
   private _assignmentUserRealTime?: RealtimeChannel;
   private _liveQuizRealTime?: RealtimeChannel;
