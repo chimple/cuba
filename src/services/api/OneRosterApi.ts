@@ -521,7 +521,30 @@ export class OneRosterApi implements ServiceApi {
       courses: TableTypes<"course">[];
     } = { grades: [], courses: [] };
 
-    const filteredCourses = allCourses.filter(c => c.subject_id === course.subject_id && c.curriculum_id === course.curriculum_id);
+    // Get the current course's metadata to use for filtering
+    const currentCourseJson = await this.loadCourseJson(course.id);
+    const currentSubject = currentCourseJson.metadata.subject;
+    const currentCurriculum = currentCourseJson.metadata.curriculum;
+
+    console.log("Current course metadata:", {
+      subject: currentSubject,
+      curriculum: currentCurriculum
+    });
+
+    // Filter courses by matching subject and curriculum in their metadata
+    const filteredCourses: TableTypes<"course">[] = [];
+    for (const c of allCourses) {
+      try {
+        const courseJson = await this.loadCourseJson(c.id);
+        if (courseJson.metadata.subject === currentSubject && 
+            courseJson.metadata.curriculum === currentCurriculum) {
+          filteredCourses.push(c);
+        }
+      } catch (error) {
+        console.error(`Error loading course JSON for ${c.id}:`, error);
+      }
+    }
+
     console.log("Filtered courses based on subject and curriculum:", filteredCourses);
 
     for (const course of filteredCourses) {
