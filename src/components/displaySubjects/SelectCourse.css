@@ -84,6 +84,8 @@
   background: transparent !important;
   color: transparent !important;
   position: absolute;
-  justify-self: bottom;
+  display: grid;
+  align-self: center !important;
+  justify-self: center !important;
   width: fit-content;
 }

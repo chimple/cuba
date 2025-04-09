@@ -2,6 +2,7 @@ import React from "react";
 import { Fab } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import "./AddButton.css";
+import { t } from "i18next";
 
 const AddButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
   const fabGreenStyle = {
@@ -13,11 +14,16 @@ const AddButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
     zIndex: "1000",
     "&:hover": {
       transform: "scale(1.1)",
-      bgcolor: "#7c5db0"
+      bgcolor: "#7c5db0",
     },
   };
   return (
-    <Fab className="custom-fab" onClick={onClick} sx={fabGreenStyle}>
+    <Fab
+      aria-label={String(t("Add"))}
+      className="custom-fab"
+      onClick={onClick}
+      sx={fabGreenStyle}
+    >
       <AddIcon />
     </Fab>
   );
