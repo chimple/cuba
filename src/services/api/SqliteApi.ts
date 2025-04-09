@@ -292,8 +292,7 @@ export class SqliteApi implements ServiceApi {
     const res = await this._db.query(statement, values, isSQL92);
     if (!Capacitor.isNativePlatform())
       await this._sqlite?.saveToStore(this.DB_NAME);
-    
-      console.log("logs to check synced tables6", JSON.stringify(res));
+    console.log("logs to check synced tables6", JSON.stringify(res));
 
     return res;
   }
@@ -303,7 +302,6 @@ export class SqliteApi implements ServiceApi {
 
     const tables = tableNames.map((t) => `'${t}'`).join(", ");
     const tablePullSync = `SELECT * FROM pull_sync_info WHERE table_name IN (${tables});`;
-  
     let lastPullTables = new Map<string, string>();
     try {
       const res = (await this._db.query(tablePullSync)).values ?? [];
@@ -312,36 +310,38 @@ export class SqliteApi implements ServiceApi {
       console.error("🚀 ~ Api ~ syncDB ~ error:", error);
       await this.createSyncTables();
     }
-  
+
     const data = await SupabaseApi.i.getTablesData(tableNames, lastPullTables);
     const lastPulled = new Date().toISOString();
     let batchQueries: { statement: string; values: any[] }[] = [];
-  
+
     for (const tableName of tableNames) {
       const tableData = data.get(tableName) ?? [];
       if (tableData.length === 0) continue;
-  
+
       const existingColumns = await this.getTableColumns(tableName);
       if (!existingColumns || existingColumns.length === 0) continue;
-  
+
       for (const row of tableData) {
-        const fieldNames = Object.keys(row).filter((f) => existingColumns.includes(f));
+        const fieldNames = Object.keys(row).filter((f) =>
+          existingColumns.includes(f)
+        );
         if (fieldNames.length === 0) continue;
-  
+
         const fieldValues = fieldNames.map((f) => row[f]);
         const placeholders = fieldNames.map(() => "?").join(", ");
         const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(", ")}) VALUES (${placeholders})`;
-           
+
         batchQueries.push({ statement: stmt, values: fieldValues });
       }
-  
+
       // Update sync timestamp
       batchQueries.push({
         statement: `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
         values: [tableName, lastPulled],
       });
     }
-  
+
     // Execute batch queries efficiently
     if (batchQueries.length > 0) {
       try {
@@ -351,7 +351,7 @@ export class SqliteApi implements ServiceApi {
       }
     }
   }
-  
+
   async getTableColumns(tableName: string): Promise<string[] | undefined> {
     const query = `PRAGMA table_info(${tableName})`;
     const result = await this._db?.query(query);
@@ -712,7 +712,8 @@ export class SqliteApi implements ServiceApi {
     image: File | null,
     udise_id?: string
   ): Promise<TableTypes<"req_new_school"> | null> {
-    const _currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
 
     // Check if request already exists for the user
@@ -764,12 +765,18 @@ export class SqliteApi implements ServiceApi {
       ]
     );
 
-    await this.updatePushChanges(TABLES.ReqNewSchool, MUTATE_TYPES.INSERT, newRequest);
+    await this.updatePushChanges(
+      TABLES.ReqNewSchool,
+      MUTATE_TYPES.INSERT,
+      newRequest
+    );
 
     return newRequest;
   }
   // Add this new function to check if a create school request already exists
-  async getExistingSchoolRequest(userId: string): Promise<TableTypes<"req_new_school"> | null> {
+  async getExistingSchoolRequest(
+    userId: string
+  ): Promise<TableTypes<"req_new_school"> | null> {
     const res = await this.executeQuery(
       `SELECT * FROM req_new_school WHERE user_id = ?`,
       [userId]
@@ -3071,11 +3078,12 @@ export class SqliteApi implements ServiceApi {
   }
   async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
     const query = `
-    SELECT DISTINCT l.*
-    FROM ${TABLES.FavoriteLesson} fl
-    JOIN ${TABLES.Lesson} l 
-    ON fl.lesson_id = l.id
-    WHERE fl.user_id = '${userId}'
+      SELECT DISTINCT l.*
+      FROM ${TABLES.FavoriteLesson} fl
+      JOIN ${TABLES.Lesson} l 
+        ON fl.lesson_id = l.id
+      WHERE fl.user_id = '${userId}'
+      ORDER BY fl.created_at DESC
     `;
     const res = await this._db?.query(query);
     if (!res || !res.values || res.values.length < 1) return [];
@@ -4332,34 +4340,52 @@ order by
     schoolName: string,
     instructionMedium: string
   ): Promise<{ status: string; errors?: string[] }> {
-    const schoolData = await this._serverApi.validateSchoolData(schoolId, schoolName, instructionMedium);
+    const schoolData = await this._serverApi.validateSchoolData(
+      schoolId,
+      schoolName,
+      instructionMedium
+    );
     console.log("fdsfdsfs", schoolData);
     if (!schoolData) {
       return { status: "error", errors: ["Invalid SCHOOL ID (UDISE Code)"] };
     }
     return { status: "success" };
   }
-  
+
   async validateClassCurriculumAndSubject(
     curriculumName: string,
     subjectName: string
   ): Promise<{ status: string; errors?: string[] }> {
-    const ClassCurriculum = await this._serverApi.validateClassCurriculumAndSubject(curriculumName, subjectName);
+    const ClassCurriculum =
+      await this._serverApi.validateClassCurriculumAndSubject(
+        curriculumName,
+        subjectName
+      );
     console.log("fdsfdsfs", ClassCurriculum);
     if (ClassCurriculum.status === "error") {
-      return { status: "error", errors: ClassCurriculum.errors || ["Invalid class curriculum"] };
+      return {
+        status: "error",
+        errors: ClassCurriculum.errors || ["Invalid class curriculum"],
+      };
     }
     return { status: "success" };
   }
-  
+
   async validateClassExistence(
     schoolId: string,
     className: string,
     studentName?: string
   ): Promise<{ status: string; errors?: string[] }> {
-    const classExistence = await this._serverApi.validateClassExistence(schoolId, className, studentName);
+    const classExistence = await this._serverApi.validateClassExistence(
+      schoolId,
+      className,
+      studentName
+    );
     if (classExistence.status === "error") {
-      return { status: "error", errors: classExistence.errors || ["Invalid class curriculum"] };
+      return {
+        status: "error",
+        errors: classExistence.errors || ["Invalid class curriculum"],
+      };
     }
     return { status: "success" };
   }
@@ -4367,9 +4393,15 @@ order by
     programManagerPhone: string,
     fieldCoordinatorPhone: string
   ): Promise<{ status: string; errors?: string[] }> {
-    const response = await this._serverApi.validateClassExistence(programManagerPhone, fieldCoordinatorPhone);
+    const response = await this._serverApi.validateClassExistence(
+      programManagerPhone,
+      fieldCoordinatorPhone
+    );
     if (response.status === "error") {
-      return { status: "error", errors: response.errors || ["Invalid class curriculum"] };
+      return {
+        status: "error",
+        errors: response.errors || ["Invalid class curriculum"],
+      };
     }
     return { status: "success" };
   }
