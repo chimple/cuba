@@ -54,8 +54,6 @@ const Home: FC = () => {
     TableTypes<"assignment">[]
   >([]);
   const [pendingLiveQuizCount, setPendingLiveQuizCount] = useState<number>(0);
-  const [pendingAssignmentCount, setPendingAssignmentCount] =
-    useState<number>(0);
   const history = useHistory();
   const [favouriteLessons, setFavouriteLessons] = useState<
     TableTypes<"lesson">[]
@@ -229,7 +227,7 @@ const Home: FC = () => {
       student != null
         ? await api.getStudentClassesAndSchools(student.id)
         : null;
-    console.log("linkedData: ", linkedData);
+    console.log('linkedData: ', linkedData)
     const classDoc = linkedData?.classes[0];
     if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
     if (student) await api.assignmentUserListner(student.id, () => {});
@@ -249,7 +247,7 @@ const Home: FC = () => {
           allAssignments.push(...res);
         })
       );
-      let assignmentCount = 0;
+      let count = 0;
       let liveQuizCount = 0;
       await Promise.all(
         allAssignments.map(async (_assignment) => {
@@ -257,7 +255,7 @@ const Home: FC = () => {
           const now = new Date().toISOString();
           console.log(res);
           if (_assignment.type !== LIVE_QUIZ) {
-            assignmentCount++;
+            count++;
           } else {
             if (_assignment.ends_at && _assignment.starts_at) {
               if (_assignment.starts_at <= now && _assignment.ends_at > now) {
@@ -273,7 +271,6 @@ const Home: FC = () => {
         })
       );
       setPendingLiveQuizCount(liveQuizCount);
-      setPendingAssignmentCount(assignmentCount);
       setPendingAssignments(allAssignments);
 
       setDataCourse(reqLes);
@@ -286,11 +283,11 @@ const Home: FC = () => {
     }
   }
 
-  const setGrowthbookAttributes = (student: any) => {
-    const studentDetails = student[0];
+  const setGrowthbookAttributes = (student: any )=> {
+    const studentDetails = student[0]
     const studentClasses = student[1].classes.map((item: any) => item.id);
-    const studentSchools = student[1].schools.map((item: any) => item.id);
-
+    const studentSchools = student[1].schools.map((item: any) => item.id)
+    
     growthbook.setAttributes({
       id: studentDetails.id,
       curriculum_id: studentDetails.curriculum_id,
@@ -299,9 +296,9 @@ const Home: FC = () => {
       parent_id: studentDetails.parent_id,
       subject_id: studentDetails.subject_id,
       school_ids: studentSchools,
-      class_ids: studentClasses,
-    });
-  };
+      class_ids: studentClasses
+    })
+  }
 
   async function getRecommendeds(
     subjectCode: string
@@ -590,13 +587,13 @@ const Home: FC = () => {
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">
-        <HomeHeader
-          key={refreshKey}
-          currentHeader={currentHeader}
-          onHeaderIconClick={onHeaderIconClick}
-          pendingAssignmentCount={pendingAssignmentCount}
-          pendingLiveQuizCount={pendingLiveQuizCount}
-        />
+      <HomeHeader
+      key={refreshKey}
+      currentHeader={currentHeader}
+      onHeaderIconClick={onHeaderIconClick}
+      pendingAssignmentCount={pendingAssignments.length}
+      pendingLiveQuizCount={pendingLiveQuizCount}
+      />
       </IonHeader>
       <div className="slider-content">
         {!isLoading ? (
@@ -618,15 +615,15 @@ const Home: FC = () => {
             {currentHeader === HOMEHEADERLIST.ASSIGNMENT && (
               <AssignmentPage
                 onNewAssignment={(newAssignment) => {
-                  setPendingAssignments((prev) => {
-                    if (!prev.some((a) => a.id === newAssignment.id)) {
-                      return [...prev, newAssignment];
-                    }
-                    return prev;
-                  });
-                }}
-              />
-            )}
+                setPendingAssignments((prev) => {
+                if (!prev.some((a) => a.id === newAssignment.id)) {
+                return [...prev, newAssignment];
+            }
+            return prev;
+      });
+    }}
+  />
+)}
 
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
             {currentHeader === HOMEHEADERLIST.LIVEQUIZ && <LiveQuiz />}
