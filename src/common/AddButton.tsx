@@ -2,6 +2,7 @@ import React from "react";
 import { Fab } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import "./AddButton.css";
+import { t } from "i18next";
 
 const AddButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
   const fabGreenStyle = {
@@ -18,7 +19,7 @@ const AddButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
   };
   return (
     <Fab
-      aria-label="Add"
+      aria-label={String(t("Add"))}
       className="custom-fab"
       onClick={onClick}
       sx={fabGreenStyle}
