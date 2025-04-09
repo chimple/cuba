@@ -234,7 +234,8 @@ export class OneRosterApi implements ServiceApi {
   private _currentModeValue: MODES;
 
   private buildXapiQuery(currentUser: { name?: string }): { agentEmail: string; queryStatement: IGetStudentResultStatement } {
-    const agentEmail = `mailto:${currentUser?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
+    // Format the email address correctly - we'll add the mailto: prefix in getStatements
+    const agentEmail = `${currentUser?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
 
     const queryStatement: IGetStudentResultStatement = {
       agent: {
@@ -1290,7 +1291,9 @@ export class OneRosterApi implements ServiceApi {
     }
 
     const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();
-    const agentEmail = `mailto:${loggedStudent?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
+    // Format the email address consistently with our other methods
+    const userEmail = `${loggedStudent?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
+    const agentEmail = `mailto:${userEmail}`;
 
     const statement = new Statement({
       id: uuidv4(),
@@ -2373,10 +2376,13 @@ export class OneRosterApi implements ServiceApi {
       response?: string;
     }
   ): ICreateStudentResultStatement => {
+    // Format email consistently with our other methods
+    const userEmail = `${name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
+    
     return {
       actor: {
         name: name,
-        mbox: `mailto:${name?.toLowerCase().replace(/\s+/g, "")}@example.com`,
+        mbox: `mailto:${userEmail}`,
       },
       verb: {
         id: "http://adlnet.gov/expapi/verbs/completed",
@@ -2425,9 +2431,13 @@ export class OneRosterApi implements ServiceApi {
     queryStatement?: IGetStudentResultStatement
   ): Promise<TableTypes<"result">[]> => {
     try {
+      // Fix the agent construction to prevent double mailto:
+      // If agentEmail already includes 'mailto:', use it directly
+      // Otherwise, add 'mailto:' prefix
+      const mbox = agentEmail.includes('mailto:') ? agentEmail : `mailto:${agentEmail}`;
       const query = {
         params: {
-          agent: new Agent({ mbox: `mailto:${agentEmail}` }),
+          agent: new Agent({ mbox }),
           ascending: true,
           limit: 100,
           since: queryStatement?.since,
@@ -2437,7 +2447,7 @@ export class OneRosterApi implements ServiceApi {
       const result = await tincan.getStatements(query);
       const statements = result?.statements ?? [];
 
-      console.log(`Retrieved Statements for agent: ${agentEmail}`, statements);
+      console.log(`Retrieved Statements for agent: ${mbox}`, statements);
 
       // Process statements and map to TableTypes<"result">
       const parsedStatements: TableTypes<"result">[] = statements.map((statement) => {
