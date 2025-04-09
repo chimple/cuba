@@ -16,7 +16,7 @@ import { IonLoading } from "@ionic/react";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
-import { defineCustomElements, JSX as LocalJSX } from "lido-player/loader";
+import { defineCustomElements, JSX as LocalJSX } from "lido-standalone/loader";
 import {
   SpeechSynthesis,
   SpeechSynthesisUtterance,

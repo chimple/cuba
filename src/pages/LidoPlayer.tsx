@@ -227,7 +227,7 @@ const LidoPlayer: FC = () => {
     <IonPage>
       <Loading isLoading={isLoading} />
       {(xmlPath || basePath) && (
-        <lido-root xml-path={xmlPath} base-url={basePath} />
+        <lido-standalone xml-path={xmlPath} base-url={basePath} />
       )}
     </IonPage>
   );
