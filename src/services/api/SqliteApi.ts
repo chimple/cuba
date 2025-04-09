@@ -2093,7 +2093,7 @@ export class SqliteApi implements ServiceApi {
     FROM ${TABLES.Assignment} a
     LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
     LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
-    WHERE a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL and a.type !='liveQuiz'
+    WHERE a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL
     ORDER BY a.created_at DESC;
     `;
     const res = await this._db?.query(query);
@@ -3094,11 +3094,12 @@ export class SqliteApi implements ServiceApi {
   }
   async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
     const query = `
-    SELECT DISTINCT l.*
-    FROM ${TABLES.FavoriteLesson} fl
-    JOIN ${TABLES.Lesson} l
-    ON fl.lesson_id = l.id
-    WHERE fl.user_id = '${userId}'
+      SELECT DISTINCT l.*
+      FROM ${TABLES.FavoriteLesson} fl
+      JOIN ${TABLES.Lesson} l 
+        ON fl.lesson_id = l.id
+      WHERE fl.user_id = '${userId}'
+      ORDER BY fl.created_at DESC
     `;
     const res = await this._db?.query(query);
     if (!res || !res.values || res.values.length < 1) return [];
@@ -3242,8 +3243,8 @@ export class SqliteApi implements ServiceApi {
       const assignment_data: TableTypes<"assignment"> = {
         id: assignmentUUid,
         created_by: userId,
-        starts_at: timestamp,
-        ends_at: timestamp,
+        starts_at: starts_at,
+        ends_at: ends_at,
         is_class_wise: is_class_wise,
         class_id: class_id,
         school_id: school_id,
