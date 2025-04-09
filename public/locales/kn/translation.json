@@ -729,5 +729,7 @@
   "Your profile is not registered to any school.": "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಯಾವುದೇ ಶಾಲೆಯಲ್ಲಿ ನೋಂದಾಯಿಸಿಲ್ಲ.",
   "Your data has been successfully checked, and no errors were found.": "ನಿಮ್ಮ ಡೇಟಾವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ ಮತ್ತು ಯಾವುದೇ ದೋಷಗಳು ಕಂಡುಬಂದಿಲ್ಲ.",
   "Zebra": "ಜೀಬ್ರಾ",
-  "The Subject you have chosen is the last one left and cannot be deleted": "ನೀವು ಆಯ್ಕೆ ಮಾಡಿದ ವಿಷಯವು ಕೊನೆಯದಾಗಿ ಉಳಿದಿದೆ ಮತ್ತು ಅದನ್ನು ಅಳಿಸಲಾಗುವುದಿಲ್ಲ"
+  "The Subject you have chosen is the last one left and cannot be deleted": "ನೀವು ಆಯ್ಕೆ ಮಾಡಿದ ವಿಷಯವು ಕೊನೆಯದಾಗಿ ಉಳಿದಿದೆ ಮತ್ತು ಅದನ್ನು ಅಳಿಸಲಾಗುವುದಿಲ್ಲ",
+  "Search School" : "ಶಾಲೆಯನ್ನು ಹುಡುಕಿ", 
+  "School is not Available" : "ಶಾಲೆ ಲಭ್ಯವಿಲ್ಲ"
 }

@@ -302,7 +302,6 @@ export class SqliteApi implements ServiceApi {
 
     const tables = tableNames.map((t) => `'${t}'`).join(", ");
     const tablePullSync = `SELECT * FROM pull_sync_info WHERE table_name IN (${tables});`;
-
     let lastPullTables = new Map<string, string>();
     try {
       const res = (await this._db.query(tablePullSync)).values ?? [];
@@ -3079,11 +3078,12 @@ export class SqliteApi implements ServiceApi {
   }
   async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
     const query = `
-    SELECT DISTINCT l.*
-    FROM ${TABLES.FavoriteLesson} fl
-    JOIN ${TABLES.Lesson} l 
-    ON fl.lesson_id = l.id
-    WHERE fl.user_id = '${userId}'
+      SELECT DISTINCT l.*
+      FROM ${TABLES.FavoriteLesson} fl
+      JOIN ${TABLES.Lesson} l 
+        ON fl.lesson_id = l.id
+      WHERE fl.user_id = '${userId}'
+      ORDER BY fl.created_at DESC
     `;
     const res = await this._db?.query(query);
     if (!res || !res.values || res.values.length < 1) return [];
