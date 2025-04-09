@@ -899,7 +899,7 @@ export interface ServiceApi {
    * Get the chapter by lessonId
    * @param lessonId
    */
-  getChapterByLesson(
+  getChapterIDByLessonID(
     lessonId: string,
     classId?: string,
     userId?: string

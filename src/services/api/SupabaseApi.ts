@@ -1029,7 +1029,7 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getChapterByLesson(
+  getChapterIDByLessonID(
     lessonId: string,
     classId: string,
     userId?: string

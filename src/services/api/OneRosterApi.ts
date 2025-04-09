@@ -2279,7 +2279,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"assignment_cart"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  public async getChapterByLesson(
+  public async getChapterIDByLessonID(
     lessonId: string,
     classId?: string,
     userId?: string

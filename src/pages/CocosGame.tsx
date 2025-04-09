@@ -208,10 +208,7 @@ const CocosGame: React.FC = () => {
       lesson = lessonNormal;
     }
     
-    console.log("upating fav lesson --> ", lesson);
-
     if (currentStudent != null && lesson && lesson.id) {
-      console.log("calling the fav api");
       const result = await api.updateFavoriteLesson(
         currentStudent.id,
         lesson.id
@@ -265,9 +262,9 @@ const CocosGame: React.FC = () => {
             assignmentId = result?.id;
           }
         }
-        chapter_id = await api.getChapterByLesson(lesson?.id || "", classId);
+        chapter_id = await api.getChapterIDByLessonID(lesson?.id || "", classId);
       } else {
-        chapter_id = await api.getChapterByLesson(
+        chapter_id = await api.getChapterIDByLessonID(
           lesson?.id || "",
           undefined,
           currentStudent?.id

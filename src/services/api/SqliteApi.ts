@@ -3494,7 +3494,7 @@ order by
     return res;
   }
 
-  async getChapterByLesson(
+  async getChapterIDByLessonID(
     lessonId: string,
     classId?: string,
     userId?: string
