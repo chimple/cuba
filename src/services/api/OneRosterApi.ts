@@ -901,7 +901,7 @@ export class OneRosterApi implements ServiceApi {
             const metaC = courseJson.metadata;
             const localCourse = {
               id: metaC.courseId || courseId,
-              name: metaC.name || courseId,
+              name: metaC.title || courseId,
               code: metaC.courseCode,
               color: metaC.color,
               created_at: "",
@@ -914,6 +914,7 @@ export class OneRosterApi implements ServiceApi {
               subject_id: metaC.subjectId,
               updated_at: null,
             };
+            console.log("localCourse ---> ", localCourse);
             res.push(localCourse);
           }
         } catch (e) {
