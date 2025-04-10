@@ -15,6 +15,7 @@ import ScoreCard from "../components/parent/ScoreCard";
 import { t } from "i18next";
 import { Capacitor } from "@capacitor/core";
 import { Util } from "../utility/util";
+import { App } from "@capacitor/app";
 
 const LiveQuizGame: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -35,7 +36,7 @@ const LiveQuizGame: FC = () => {
   const [lessonName, setLessonName] = useState<string>("");
   const [scoreData, setScoreData] = useState<any>();
   let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
-  
+
   useEffect(() => {
     if (!paramLiveRoomId && !paramLessonId) {
       history.replace(PAGES.HOME);
@@ -61,6 +62,20 @@ const LiveQuizGame: FC = () => {
     };
     fetchLessonName();
   }, [paramLessonId]);
+
+  useEffect(() => {
+    const listener = App.addListener("appStateChange", ({ isActive }) => {
+      if (!isActive) {
+        handleQuizEnd();
+        window.location.reload();
+        window.location.replace(window.location.origin);
+        history.replace("/");
+      }
+    });
+    return () => {
+      listener.then((l) => l.remove());
+    };
+  }, []);
 
   const handleRoomChange = async (roomDoc: LiveQuizRoomObject | undefined) => {
     if (!roomDoc) {
@@ -104,7 +119,7 @@ const LiveQuizGame: FC = () => {
   };
 
   const saveLikedStatus = async (scoreData: any, isLoved?: boolean) => {
-    const api = ServiceConfig.getI().apiHandler;
+    // const api = ServiceConfig.getI().apiHandler;
     const currentStudent = api.currentStudent!;
 
     api.updateResult(
@@ -180,7 +195,10 @@ const LiveQuizGame: FC = () => {
                   push();
                 }}
                 onContinueButtonClicked={() => {
-                  console.log("User continues playing, score:",scoreData.totalScore);
+                  console.log(
+                    "User continues playing, score:",
+                    scoreData.totalScore
+                  );
                   setShowDialogBox(false);
                   saveLikedStatus(scoreData);
                   if (initialCount >= 5) {
