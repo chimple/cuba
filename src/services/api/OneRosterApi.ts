@@ -2217,11 +2217,50 @@ export class OneRosterApi implements ServiceApi {
           // Extract lessons from each group
           const lessons = courseJson.groups.flatMap((group: any) => group.navigation);
 
-          // Case-insensitive search
+          // Case-insensitive search with improved matching logic
           const lowerQuery = searchString.toLowerCase();
-          const matchingLessons = lessons.filter(lesson =>
-            lesson.title.toLowerCase().includes(lowerQuery)
-          );
+          
+          // Score each lesson based on match quality
+          const scoredLessons = lessons.map(lesson => {
+            const title = lesson.title;
+            const lowerTitle = title.toLowerCase();
+            
+            // Calculate match score (higher is better)
+            let score = 0;
+            
+            // Exact match gets highest priority
+            if (lowerTitle === lowerQuery) {
+              score += 1000;
+            }
+            
+            // Starts with query gets high priority
+            if (lowerTitle.startsWith(lowerQuery)) {
+              score += 500;
+            }
+            
+            // Contains query as a word gets medium priority
+            if (lowerTitle.includes(` ${lowerQuery} `) || 
+                lowerTitle.startsWith(`${lowerQuery} `) || 
+                lowerTitle.endsWith(` ${lowerQuery}`)) {
+              score += 300;
+            }
+            
+            // Contains query gets lower priority
+            if (lowerTitle.includes(lowerQuery)) {
+              score += 100;
+            }
+            
+            // Shorter titles get slightly higher priority
+            score += (100 - Math.min(title.length, 100));
+            
+            return { lesson, score };
+          });
+          
+          // Filter out non-matching lessons and sort by score
+          const matchingLessons = scoredLessons
+            .filter(item => item.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .map(item => item.lesson);
 
           // Transform and add matching lessons to results
           const lessonObjects = matchingLessons.map(lesson => ({
