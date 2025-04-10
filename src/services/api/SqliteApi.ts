@@ -4409,14 +4409,14 @@ order by
     programManagerPhone: string,
     fieldCoordinatorPhone: string
   ): Promise<{ status: string; errors?: string[] }> {
-    const response = await this._serverApi.validateClassExistence(
+    const response = await this._serverApi.validateUserContacts(
       programManagerPhone,
       fieldCoordinatorPhone
     );
     if (response.status === "error") {
       return {
         status: "error",
-        errors: response.errors || ["Invalid class curriculum"],
+        errors: response.errors || ["Invalid user contacts"],
       };
     }
     return { status: "success" };
