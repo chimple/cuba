@@ -1555,7 +1555,7 @@ export class SqliteApi implements ServiceApi {
     FROM ${TABLES.Assignment} a
     LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
     LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
-   WHERE a.class_id = '${classId}' and type = "${LIVE_QUIZ}" and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL
+   WHERE a.class_id = '${classId}' and a.type = "${LIVE_QUIZ}" and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL
     and a.starts_at <= '${now}'
     and a.ends_at > '${now}'
     order by a.created_at desc;
@@ -4409,14 +4409,14 @@ order by
     programManagerPhone: string,
     fieldCoordinatorPhone: string
   ): Promise<{ status: string; errors?: string[] }> {
-    const response = await this._serverApi.validateClassExistence(
+    const response = await this._serverApi.validateUserContacts(
       programManagerPhone,
       fieldCoordinatorPhone
     );
     if (response.status === "error") {
       return {
         status: "error",
-        errors: response.errors || ["Invalid class curriculum"],
+        errors: response.errors || ["Invalid user contacts"],
       };
     }
     return { status: "success" };

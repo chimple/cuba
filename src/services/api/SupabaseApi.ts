@@ -317,10 +317,13 @@ export class SupabaseApi implements ServiceApi {
     district: string,
     city: string,
     image: File | null,
-    udise_id?: string): Promise<TableTypes<"req_new_school"> | null> {
+    udise_id?: string
+  ): Promise<TableTypes<"req_new_school"> | null> {
     throw new Error("Method not implemented.");
   }
-  getExistingSchoolRequest(userId: string): Promise<TableTypes<"req_new_school"> | null> {
+  getExistingSchoolRequest(
+    userId: string
+  ): Promise<TableTypes<"req_new_school"> | null> {
     throw new Error("Method not implemented.");
   }
 
@@ -1349,9 +1352,9 @@ export class SupabaseApi implements ServiceApi {
 
     let errors: string[] = [];
     // Check for duplicate UDISE codes
-  if (data.length > 1) {
-    errors.push("Duplicate SCHOOL ID (UDISE Code) found in database");
-  }
+    if (data.length > 1) {
+      errors.push("Duplicate SCHOOL ID (UDISE Code) found in database");
+    }
 
     if (data[0].school_name !== schoolName) {
       errors.push("SCHOOL NAME does not match the database record");
@@ -1427,51 +1430,49 @@ export class SupabaseApi implements ServiceApi {
         errors: ["Supabase client is not initialized"],
       };
     }
-  
+
     console.log("Class Data: 122", schoolId, className);
     className = className.trim();
-  
+
     // Step 1: Check if the class exists for the given school ID
     const { data: classData, error: classError } = await this.supabase
       .from("class")
       .select("id") // We only need the class ID to verify existence
       .eq("school_id", schoolId)
-      .eq("class_name", className)
-      .single();
-  
+      .eq("name", className);
+
     if (classError || !classData) {
       return {
         status: "error",
         errors: ["Class does not exist for the given SCHOOL ID"],
       };
     }
-  
+
     // If studentName is not provided, return success immediately
     if (!studentName) {
       return { status: "success" };
     }
-  
+
     // Step 2: Check if the studentName already exists in the 'name' column of the class table
     studentName = studentName.trim();
-  
+
     const { data: duplicateStudent, error: studentError } = await this.supabase
       .from("class")
       .select("id")
       .eq("school_id", schoolId)
-      .eq("class_name", className)
+      .eq("name", className)
       .eq("name", studentName)
       .single();
-  
+
     if (duplicateStudent) {
       return {
         status: "error",
         errors: [`Student name '${studentName}' already exists in this class.`],
       };
     }
-  
+
     return { status: "success" };
   }
-  
   async validateUserContacts(
     programManagerPhone: string,
     fieldCoordinatorPhone?: string
@@ -1482,34 +1483,52 @@ export class SupabaseApi implements ServiceApi {
         errors: ["Supabase client is not initialized"],
       };
     }
-    let errors: string[] = [];
-    // Query user table to check if Program Manager exists
+
+    const errors: string[] = [];
+    console.log(
+      "check data for validateUserContacts",
+      programManagerPhone,
+      fieldCoordinatorPhone
+    );
+
+    // Ensure values are strings and properly quoted
+    const pmQueryValue = programManagerPhone.includes("@")
+      ? `email.eq.${programManagerPhone}`
+      : `phone.eq.${programManagerPhone}`;
+
     const { data: pmData, error: pmError } = await this.supabase
       .from("user")
       .select("id")
-      .or(`email.eq.${programManagerPhone},phone_number.eq.${programManagerPhone}`)
+      .or(pmQueryValue)
       .single();
-  
+
     if (pmError || !pmData) {
-      errors.push("PROGRAM MANAGER EMAIL OR PHONE NUMBER does not exist in the system");
+      errors.push(
+        "PROGRAM MANAGER EMAIL OR PHONE NUMBER does not exist in the system"
+      );
     }
-  
-    // If Field Coordinator Phone exists, validate it in user table
+
     if (fieldCoordinatorPhone) {
+      const fcQueryValue = fieldCoordinatorPhone.includes("@")
+        ? `email.eq.${fieldCoordinatorPhone}`
+        : `phone.eq.${fieldCoordinatorPhone}`;
+
       const { data: fcData, error: fcError } = await this.supabase
         .from("user")
         .select("id")
-        .or(`email.eq.${fieldCoordinatorPhone},phone_number.eq.${fieldCoordinatorPhone}`)
+        .or(fcQueryValue)
         .single();
-  
+
       if (fcError || !fcData) {
-        errors.push("FIELD COORDINATOR EMAIL OR PHONE NUMBER does not exist in the system");
+        errors.push(
+          "FIELD COORDINATOR EMAIL OR PHONE NUMBER does not exist in the system"
+        );
       }
     }
 
-    console.log("fdsfsf")
-  
-    return errors.length > 0 ? { status: "error", errors } : { status: "success" };
+    return errors.length > 0
+      ? { status: "error", errors }
+      : { status: "success" };
   }
-  
+
 }
