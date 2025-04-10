@@ -151,7 +151,6 @@ interface IStatement {
   result?: {
     score?: {
       raw?: number;
-      scaled?: number;
     };
     success?: boolean;
     completion?: boolean;
@@ -177,14 +176,6 @@ interface IStatement {
   };
 }
 
-interface LessonResult {
-  lessonId: string;
-  score: number;
-  success: boolean | null;
-  completion: boolean | null;
-  timeSpent: number;
-  lastAttemptDate: string | null;
-}
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -1219,7 +1210,7 @@ export class OneRosterApi implements ServiceApi {
           const lessonResult: StudentLessonResult = {
             date: Timestamp.now(),
             course: null as any,
-            score: statement.result?.score?.scaled ?? 0,
+            score: statement.result?.score?.raw ?? 0,
             timeSpent: statement.result?.timeSpent ?? 0,
             isLoved: false,
           };
@@ -1342,7 +1333,7 @@ export class OneRosterApi implements ServiceApi {
         },
       },
       result: {
-        score: { raw: score, scaled: score / 100 },
+        score: { raw: score },
         success: score > 35,
         completion: true,
         response: `Correct: ${correctMoves}, Wrong: ${wrongMoves}`,
