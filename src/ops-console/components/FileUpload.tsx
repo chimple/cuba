@@ -126,7 +126,7 @@ const FileUpload: React.FC = () => {
             programManagerPhone,
             fieldCoordinatorPhone
           );
-          console.log(validationResponse);
+          console.log("fdfsdfsf",validationResponse);
           if (validationResponse.status === "error") {
             errors.push(...(validationResponse.errors || []));
           }
