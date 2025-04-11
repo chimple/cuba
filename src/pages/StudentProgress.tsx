@@ -85,6 +85,7 @@ const StudentProgress: React.FC = () => {
       const res = await api.getStudentProgress(currentStudent.id);
 
       if (res) {
+        console.log("res", res);
         setLessonsResults(res);
 
         await getResultsForStudentForSelectedHeader(courses[0].id, res);
@@ -175,16 +176,23 @@ const StudentProgress: React.FC = () => {
       const lessonResultsForCourse = lessonsResults[selectedCourseId];
       if (lessonResultsForCourse) {
         isDataAvailable = true;
-        lessonResultsForCourse.forEach((result) => {
+        for (const result of lessonResultsForCourse) {
           const computeMinutes = Math.floor(result.time_spent / 60);
           const computeSeconds = result.time_spent % 60;
-          tempDataContent.push([
-            result.lesson_name,
-            result.chapter_name,
-            Math.floor(result.score).toString(),
-            `${computeMinutes.toString().padStart(2, "0")}:${computeSeconds.toString().padStart(2, "0")}`,
-          ]);
-        });
+          console.log("result -->", result);
+          const lessonDetails = await api.getLesson(result.lesson_id);
+          const chapterDetails = await api.getChapterByLessonID(result.lesson_id);
+          console.log("chapterDetails -->", chapterDetails);
+          
+          if (chapterDetails) {
+            tempDataContent.push([
+              lessonDetails?.name || '',
+              chapterDetails.name || '',
+              Math.floor(result.score).toString(),
+              `${computeMinutes.toString().padStart(2, "0")}:${computeSeconds.toString().padStart(2, "0")}`,
+            ]);
+          }
+        }
       }
     }
 

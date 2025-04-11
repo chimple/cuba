@@ -34,7 +34,7 @@ public class NativeSSOPlugin extends Plugin {
     @PluginMethod
     public void requestLogin(com.getcapacitor.PluginCall call) {
         // Get parameters from the JavaScript side
-        String givenName = call.getString("givenName", "John"); // Default to "John" if not provided
+        String givenName = call.getString("givenName", "John Doe"); // Default to "John" if not provided
         String locale = call.getString("locale", "en-US"); // Default to "en-US" if not provided
 
         // Construct the URL with dynamic parameters
