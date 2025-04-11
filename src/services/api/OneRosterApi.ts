@@ -1096,7 +1096,7 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   get currentMode(): MODES {
-    return this._currentModeValue;
+    return MODES.PARENT;
   }
 
   set currentMode(value: MODES) {
