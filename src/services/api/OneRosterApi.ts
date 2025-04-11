@@ -1111,13 +1111,17 @@ export class OneRosterApi implements ServiceApi {
 
   async getCourse(id: string): Promise<TableTypes<"course"> | undefined> {
     try {
+      const courseJson = await this.loadCourseJson(id);
+      const metaC = courseJson.metadata;
+
       console.log(id);
+      console.log("metaC --> " ,metaC);
       
       let tCourse: TableTypes<"course"> = {
-        code: null,
-        color: null,
+        code: metaC.courseCode,
+        color: metaC.color,
         created_at: "",
-        curriculum_id: null,
+        curriculum_id: metaC.curriculum,
         description: null,
         grade_id: null,
         id: id,
