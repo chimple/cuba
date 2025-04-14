@@ -2,6 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <queries>
+        <package android:name="com.whatsapp" />
+        <!-- You can add additional packages here -->
+    </queries>
+
     <application
         android:name=".RespectHttpClient"
         android:allowBackup="false"

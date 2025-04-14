@@ -103,6 +103,7 @@ const Login: React.FC = () => {
   const [schoolCode, setSchoolCode] = useState<string>("");
   const [showStudentCredentialtLogin, setStudentCredentialLogin] =
     useState<boolean>(false);
+  const [isRespectApp, setIsRespectApp] = useState<boolean>(false);
 
   useEffect(() => {
     // init();
@@ -127,8 +128,15 @@ const Login: React.FC = () => {
       });
     }
 
+    const checkRespectApp = async () => {
+      const data = await Util.checkRespectApp();
+      console.log("data isRespect data--> ", JSON.stringify(data));
+      setIsRespectApp(data);
+    }
+
     const authHandler = ServiceConfig.getI().authHandler;
     authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
+      checkRespectApp();
       const apiHandler = ServiceConfig.getI().apiHandler;
       const appLang = localStorage.getItem(LANGUAGE);
       console.log(
@@ -631,142 +639,146 @@ const Login: React.FC = () => {
                   isOpen={spinnerLoading}
                 />
 
-                <div id="Google-horizontal-line-main-container">
-                  <div id="Google-horizontal-line"></div>
-                  <div id="login-google-icon-text">
-                    {t("Continue with Google or Student ID")}
-                  </div>
-                  <div id="Google-horizontal-line2"></div>
-                </div>
-                <div className="login-with-google-or-student-credentials-container">
-                  <img
-                    id="login-google-icon"
-                    alt="Google Icon"
-                    src="assets/icons/Google Icon.png"
-                    onClick={async () => {
-                      if (!online) {
-                        presentToast({
-                          message: t(
-                            `Device is offline. Login requires an internet connection`
-                          ),
-                          color: "danger",
-                          duration: 3000,
-                          position: "bottom",
-                          buttons: [
-                            {
-                              text: "Dismiss",
-                              role: "cancel",
-                            },
-                          ],
-                        });
-                        return;
-                      }
-                      try {
-                        setIsLoading(true);
-                        setIsInitialLoading(true);
-                        console.log("isLoading ", isLoading);
-                        const _authHandler = ServiceConfig.getI().authHandler;
-                        const result: boolean = await _authHandler.googleSign();
-                        console.log(
-                          "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
-                          result
-                        );
-                        if (result) {
-                          setIsLoading(false);
-                          setIsInitialLoading(false);
-                          // history.replace(PAGES.DISPLAY_STUDENT);
-                          history.replace(PAGES.SELECT_MODE);
-                          localStorage.setItem(
-                            CURRENT_USER,
-                            JSON.stringify(result)
-                          );
-                          console.log(
-                            "google...",
-                            localStorage.getItem(CURRENT_USER)
-                          );
-                          Util.logEvent(EVENTS.USER_PROFILE, {
-                            user_type: RoleType.PARENT,
-                            action_type: ACTION.LOGIN,
-                            login_type: "google-signin",
-                          });
-                        } else {
-                          setIsLoading(false);
-                          setIsInitialLoading(false);
-                        }
-                      } catch (error) {
-                        setIsLoading(false);
-                        setIsInitialLoading(false);
-                        console.log("error", error);
-                      }
-                    }}
-                  />
-                  <button
-                    id="login-respect-icon"
-                    style={{ backgroundColor: 'transparent', border: 'none' }}
-                    onClick={async () => {
-                      if (!online) {
-                        presentToast({
-                          message: t(
-                            `Device is offline. Login requires an internet connection`
-                          ),
-                          color: "danger",
-                          duration: 3000,
-                          position: "bottom",
-                          buttons: [
-                            {
-                              text: "Dismiss",
-                              role: "cancel",
-                            },
-                          ],
-                        });
-                        return;
-                      }
-                      try {
-                        setIsLoading(true);
-                        setIsInitialLoading(true);
-                        const result: any =
-                          await ServiceConfig.getI().authHandler.loginWithRespect();
-                        console.log(
-                          "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
-                          result
-                        );
-
-                        if (!!result) {
-                          setIsLoading(false);
-                          setIsInitialLoading(false);
-                          // history.replace(PAGES.SELECT_MODE);
-                          localStorage.setItem(
-                            CURRENT_USER,
-                            JSON.stringify(result)
-                          );
-                          history.replace(PAGES.DISPLAY_STUDENT);
-                        } else {
-                          setIsLoading(false);
-                          setIsInitialLoading(false);
-                        }
-                      } catch (error) {
-                        setIsLoading(false);
-                        setIsInitialLoading(false);
-                        console.error("Login Failed:", error);
-                      }
-                    }}
-                  >
-                    <img
-                      src="assets/icons/respect-logo.png"
-                      alt="Respect Logo"
-                      style={{ width: '10vw', height: '4vw' }}
-                    />
-                  </button>
-                  {/*<div className="google-or-student-credentials-button">OR</div>*/}
-                  {!showVerification ? (
-                    <div
-                      className="login-with-student-credentials"
-                      onClick={loinWithStudentCredentialsButton}
-                    >
-                      <IoSchool className="school-icon" />
+                {!isRespectApp ? (
+                  <>
+                    <div id="Google-horizontal-line-main-container">
+                      <div id="Google-horizontal-line"></div>
+                      <div id="login-google-icon-text">
+                        {t("Continue with Google or Student ID")}
+                      </div>
+                      <div id="Google-horizontal-line2"></div>
                     </div>
-                  ) : null}
-                </div>
+                    <div className="login-with-google-or-student-credentials-container">
+                      <img
+                        id="login-google-icon"
+                        alt="Google Icon"
+                        src="assets/icons/Google Icon.png"
+                        onClick={async () => {
+                          if (!online) {
+                            presentToast({
+                              message: t(
+                                `Device is offline. Login requires an internet connection`
+                              ),
+                              color: "danger",
+                              duration: 3000,
+                              position: "bottom",
+                              buttons: [
+                                {
+                                  text: "Dismiss",
+                                  role: "cancel",
+                                },
+                              ],
+                            });
+                            return;
+                          }
+                          try {
+                            setIsLoading(true);
+                            setIsInitialLoading(true);
+                            console.log("isLoading ", isLoading);
+                            const _authHandler = ServiceConfig.getI().authHandler;
+                            const result: boolean = await _authHandler.googleSign();
+                            console.log(
+                              "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
+                              result
+                            );
+                            if (result) {
+                              setIsLoading(false);
+                              setIsInitialLoading(false);
+                              history.replace(PAGES.SELECT_MODE);
+                              localStorage.setItem(
+                                CURRENT_USER,
+                                JSON.stringify(result)
+                              );
+                              console.log(
+                                "google...",
+                                localStorage.getItem(CURRENT_USER)
+                              );
+                              Util.logEvent(EVENTS.USER_PROFILE, {
+                                user_type: RoleType.PARENT,
+                                action_type: ACTION.LOGIN,
+                                login_type: "google-signin",
+                              });
+                            } else {
+                              setIsLoading(false);
+                              setIsInitialLoading(false);
+                            }
+                          } catch (error) {
+                            setIsLoading(false);
+                            setIsInitialLoading(false);
+                            console.log("error", error);
+                          }
+                        }}
+                      />
+                      {!showVerification ? (
+                        <div
+                          className="login-with-student-credentials"
+                          onClick={loinWithStudentCredentialsButton}
+                        >
+                          <IoSchool className="school-icon" />
+                        </div>
+                      ) : null}
+                    </div>
+                  </>
+                ) : (
+                  <div className="login-with-google-or-student-credentials-container">
+                    <button
+                      id="login-respect-icon"
+                      style={{ backgroundColor: 'transparent', border: 'none' }}
+                      onClick={async () => {
+                        if (!online) {
+                          presentToast({
+                            message: t(
+                              `Device is offline. Login requires an internet connection`
+                            ),
+                            color: "danger",
+                            duration: 3000,
+                            position: "bottom",
+                            buttons: [
+                              {
+                                text: "Dismiss",
+                                role: "cancel",
+                              },
+                            ],
+                          });
+                          return;
+                        }
+                        try {
+                          setIsLoading(true);
+                          setIsInitialLoading(true);
+                          const result: any =
+                            await ServiceConfig.getI().authHandler.loginWithRespect();
+                          console.log(
+                            "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
+                            result
+                          );
+
+                          if (!!result) {
+                            setIsLoading(false);
+                            setIsInitialLoading(false);
+                            localStorage.setItem(
+                              CURRENT_USER,
+                              JSON.stringify(result)
+                            );
+                            history.replace(PAGES.DISPLAY_STUDENT);
+                          } else {
+                            setIsLoading(false);
+                            setIsInitialLoading(false);
+                          }
+                        } catch (error) {
+                          setIsLoading(false);
+                          setIsInitialLoading(false);
+                          console.error("Login Failed:", error);
+                        }
+                      }}
+                    >
+                      <img
+                        src="assets/icons/respect-logo.png"
+                        alt="Respect Logo"
+                        style={{ width: '10vw', height: '4vw' }}
+                      />
+                    </button>
+                  </div>
+                )}
               </div>
             ) : !showNameInput && startResendOtpCounter() ? (
               <div>
