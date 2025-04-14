@@ -84,6 +84,7 @@ import { URLOpenListenerEvent } from "@capacitor/app";
 import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 
+
 declare global {
   interface Window {
     cc: any;
@@ -2070,5 +2071,17 @@ export class Util {
     }
     const courseJson = await response.json();
     return courseJson
+  }
+
+  public static async checkRespectApp() {
+    try {
+      const PortPlugin = registerPlugin<any>("Port");
+      const data = await PortPlugin.isAppInstalledCheck();
+      console.log("data isRespect data--> ", JSON.stringify(data));
+      return data.isRespect;
+    } catch (error) {
+      console.log("error isRespect data--> ", JSON.stringify(error));
+      return false;
+    }
   }
 }
