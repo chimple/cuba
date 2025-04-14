@@ -3,14 +3,12 @@ package org.chimple.bahama;
 import static android.content.Intent.getIntent;
 import static android.content.Intent.getIntentOld;
 
-import static org.chimple.bahama.MainActivity.activity_id;
-import static org.chimple.bahama.MainActivity.isRespect;
+import static org.chimple.bahama.MainActivity.getLastDeepLinkData;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -238,6 +236,10 @@ public void shareUserId(PluginCall call) {
     public void sendLaunchData(PluginCall call) {
         JSObject result = new JSObject();
 
+        String activity_id = getLastDeepLinkData();
+
+        IntentLogger.logIntentDeeply(instance.getActivity().getIntent());
+
         Log.d(TAG, "Received activity_id: " + activity_id);
 
         result.put("lessonId", activity_id);
@@ -252,15 +254,6 @@ public void shareUserId(PluginCall call) {
         }
     }
 
-    @PluginMethod
-    public void isAppInstalledCheck(PluginCall call) {
-        JSObject result = new JSObject();
-
-        Log.d(TAG, "Received isRespect_value: " + isRespect);
-
-        result.put("isRespect", isRespect);
-        call.resolve(result);
-    }
 
 
 

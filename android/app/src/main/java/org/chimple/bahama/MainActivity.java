@@ -2,12 +2,10 @@ package org.chimple.bahama;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -26,7 +24,6 @@ public class MainActivity extends BridgeActivity {
     // private RespectClientManager respectClientManager; // Declare RespectClientManager
     public static MainActivity instance;
     static String activity_id = "";
-    static boolean isRespect = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,8 +61,6 @@ public class MainActivity extends BridgeActivity {
 
         // Handle deep linking on cold start
         handleDeepLink(getIntent());
-        isRespect = isAppInstalled("com.whatsapp");
-        Log.d("TAG ---> ", isRespect + " : " + "Respect is Installed");
     }
 
     @Override
@@ -101,15 +96,7 @@ public class MainActivity extends BridgeActivity {
         return new ArrayList<>();
     }
 
-
-    public boolean isAppInstalled(String packageName) {
-        PackageManager pm = getPackageManager();
-        try {
-            // Attempt to get package info for the given package name.
-            pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
-            return true;
-        } catch (PackageManager.NameNotFoundException e) {
-            return false;
-        }
+    public static String getLastDeepLinkData() {
+        return instance.activity_id;
     }
 }
