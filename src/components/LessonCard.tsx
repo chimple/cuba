@@ -21,6 +21,7 @@ import { Util } from "../utility/util";
 import DownloadLesson from "./DownloadChapterAndLesson";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 
+let isRespectApp = false;
 const LessonCard: React.FC<{
   width: string;
   height: string;
@@ -72,6 +73,7 @@ const LessonCard: React.FC<{
   useEffect(() => {
     getCurrentCourse();
     getDate();
+    checkRespectApp();
   }, [lesson]);
 
   const getDate = () => {
@@ -112,6 +114,13 @@ const LessonCard: React.FC<{
   //   LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
 
   const [lessonCardColor, setLessonCardColor] = useState("");
+
+  const checkRespectApp = async () => {
+    const data = await Util.checkRespectApp();
+    console.log("data isRespect data--> ", JSON.stringify(data));
+    isRespectApp = data;
+    console.log("isRespectApp--> ", isRespectApp);
+  }
 
   useEffect(() => {
     setLessonCardColor(
@@ -278,8 +287,8 @@ const LessonCard: React.FC<{
                   "assets/courses/" +
                   lesson.cocos_subject_code +
                   "/icons/" +
-                  lesson.cocos_lesson_id +
-                  ".png"
+                  (isRespectApp ? lesson.cocos_lesson_id : lesson.id) +
+                  (isRespectApp ? ".png" : ".webp")
                 }
                 defaultSrc={"assets/icons/DefaultIcon.png"}
                 webSrc={lesson.image || "assets/icons/DefaultIcon.png"}
