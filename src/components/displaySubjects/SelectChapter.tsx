@@ -47,7 +47,7 @@ const SelectChapter: FC<{
               <div className="chapter-icon-and-chapter-download-container">
                 <div className="chapter-icon">
                   <SelectIconImage
-                    localSrc={`courses/${course.code}/icons/${chapter.id}.webp`}
+                    localSrc={`assets/courses/${course.code}/icons/${chapter.id}.png`}
                     defaultSrc={"assets/icons/DefaultIcon.png"}
                     webSrc={chapter.image || "assets/icons/DefaultIcon.png"}
                     imageWidth={"100%"}

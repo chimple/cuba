@@ -25,6 +25,7 @@ const SelectIconImage: FC<{
     const preloadImage = (src: string): Promise<boolean> =>
       new Promise((resolve) => {
         const img = new Image();
+        console.log("preloadImage", src);
         img.src = src;
         img.onload = () => resolve(true);
         img.onerror = () => resolve(false);

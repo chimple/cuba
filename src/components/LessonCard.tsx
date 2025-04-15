@@ -58,6 +58,7 @@ const LessonCard: React.FC<{
   chapter,
   assignment,
 }) => {
+  console.log("lesson-->", lesson);
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
   const [subject, setSubject] = useState<TableTypes<"subject">>();
@@ -274,11 +275,11 @@ const LessonCard: React.FC<{
             <div id="lesson-card-image">
               <SelectIconImage
                 localSrc={
-                  "courses/" +
+                  "assets/courses/" +
                   lesson.cocos_subject_code +
                   "/icons/" +
-                  lesson.id +
-                  ".webp"
+                  lesson.cocos_lesson_id +
+                  ".png"
                 }
                 defaultSrc={"assets/icons/DefaultIcon.png"}
                 webSrc={lesson.image || "assets/icons/DefaultIcon.png"}
