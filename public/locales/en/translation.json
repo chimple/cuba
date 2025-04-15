@@ -755,5 +755,6 @@
   "Zebra": "Zebra",
   "The Subject you have chosen is the last one left and cannot be deleted": "The Subject you have chosen is the last one left and cannot be deleted",
   "Search School" : "Search School", 
-  "School is not Available" : "School is not Available"
+  "School is not Available" : "School is not Available", 
+  "Delete Student": "Delete Student"
 }
