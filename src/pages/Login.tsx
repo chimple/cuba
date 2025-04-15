@@ -794,21 +794,21 @@ const Login: React.FC = () => {
                         style={{ backgroundColor: 'transparent', border: 'none' }}
                         onClick={async () => {
                           if (!online) {
-                            presentToast({
-                              message: t(
-                                `Device is offline. Login requires an internet connection`
-                              ),
-                              color: "danger",
-                              duration: 3000,
-                              position: "bottom",
-                              buttons: [
-                                {
-                                  text: "Dismiss",
-                                  role: "cancel",
-                                },
-                              ],
-                            });
-                            return;
+                            // presentToast({
+                            //   message: t(
+                            //     `Device is offline. Login requires an internet connection`
+                            //   ),
+                            //   color: "danger",
+                            //   duration: 3000,
+                            //   position: "bottom",
+                            //   buttons: [
+                            //     {
+                            //       text: "Dismiss",
+                            //       role: "cancel",
+                            //     },
+                            //   ],
+                            // });
+                            // return;
                           }
                           try {
                             setIsLoading(true);
