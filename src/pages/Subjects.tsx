@@ -187,12 +187,14 @@ const Subjects: React.FC<{}> = ({}) => {
     }
 
     // const currClass = localStorage.getItem(CURRENT_CLASS);
-    const currClass = schoolUtil.getCurrentClass();
-    if (currClass) {
-      setCurrentClass(currClass);
+    let currClass;
+    const result = await api.getStudentResult(currentStudent.id, true);
+    if (result) {
+      currClass = schoolUtil.getCurrentClass();
     } else {
       console.log("No classes found for the student.");
     }
+    if (!!currClass) setCurrentClass(currClass);
 
     const res = await api.getStudentResultInMap(currentStudent.id);
     console.log("tempResultLessonMap = res;", res);
@@ -209,6 +211,7 @@ const Subjects: React.FC<{}> = ({}) => {
     setUserMode(
       ((currMode === MODES.PARENT) == true && !studentLinked) ?? true
     );
+
     const courses = await (!!currClass
       ? api.getCoursesForClassStudent(currClass.id)
       : api.getCoursesForParentsStudent(currentStudent.id));

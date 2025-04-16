@@ -297,9 +297,10 @@ const EditStudent = () => {
 
   return (
     <IonPage id="Edit-student-page">
-      <div id="Edit-student-back-button">
+      <div id="Edit-student-back-button" aria-label={String(t("Back"))}>
         {!isEdit && !state?.showBackButton ? null : (
           <BackButton
+            aria-label={t("Back")}
             onClicked={() => {
               localStorage.removeItem(EDIT_STUDENT_STORE);
               history.replace(PAGES.DISPLAY_STUDENT);
@@ -358,8 +359,9 @@ const EditStudent = () => {
       {stage === STAGES.AVATAR && (
         <>
           <>
-            <div id="Edit-student-back-button">
+            <div id="Edit-student-back-button" aria-label={String(t("Back"))}>
               <BackButton
+                aria-label={t("Back")}
                 onClicked={() => {
                   localStoreData.stage = STAGES.GENDER_AND_AGE;
                   addDataToLocalStorage();
@@ -380,8 +382,10 @@ const EditStudent = () => {
       <div className="content">
         {stage === STAGES.GENDER_AND_AGE && (
           <>
-            <div id="Edit-student-back-button">
+            <div id="Edit-student-back-button" aria-label={String(t("Back"))}>
+              <span className="back-button-ignore">Back</span>
               <BackButton
+                aria-label={t("Back")}
                 onClicked={() => {
                   localStoreData.stage = STAGES.NAME;
                   addDataToLocalStorage();
@@ -417,8 +421,9 @@ const EditStudent = () => {
         {stage === STAGES.GRADE && (
           <>
             <>
-              <div id="Edit-student-back-button">
+              <div id="Edit-student-back-button" aria-label={String(t("Back"))}>
                 <BackButton
+                  aria-label={t("Back")}
                   onClicked={() => {
                     localStoreData.stage = STAGES.AVATAR;
                     addDataToLocalStorage();

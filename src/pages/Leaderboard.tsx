@@ -69,6 +69,7 @@ const Leaderboard: React.FC = () => {
     classes: TableTypes<"class">[];
     schools: TableTypes<"school">[];
   }>();
+  const [tabIndex, setTabIndex] = useState(LEADERBOARDHEADERLIST.LEADERBOARD);
 
   useEffect(() => {
     setIsLoading(true);
@@ -83,6 +84,15 @@ const Leaderboard: React.FC = () => {
     }
     setTabIndex(currentTab);
   }, []);
+
+  useEffect(() => {
+    // Update URL when tabIndex changes
+    if (tabIndex) {
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set("tab", tabIndex.toLowerCase());
+      window.history.replaceState({}, "", newUrl.toString());
+    }
+  }, [tabIndex]);
 
   useEffect(() => {}, []);
   const urlOpen = () => {
@@ -507,8 +517,6 @@ const Leaderboard: React.FC = () => {
     );
   }
 
-  const [tabIndex, setTabIndex] = useState(LEADERBOARDHEADERLIST.LEADERBOARD);
-
   const handleChange = (
     event: React.SyntheticEvent,
     newValue: LEADERBOARDHEADERLIST
@@ -542,12 +550,15 @@ const Leaderboard: React.FC = () => {
       {!isLoading ? (
         <Box>
           <div id="LeaderBoard-Header">
-            <BackButton
-              // iconSize={"8vh"}
-              onClicked={() => {
-                Util.setPathToBackButton(PAGES.HOME, history);
-              }}
-            ></BackButton>
+            <div id="back-button-in-LeaderBoard-Header">
+              <BackButton
+                // iconSize={"8vh"}
+                aria-label={t("Back")}
+                onClicked={() => {
+                  Util.setPathToBackButton(PAGES.HOME, history);
+                }}
+              ></BackButton>
+            </div>
             <Box>
               <AppBar
                 id="LeaderBoard-AppBar"
@@ -607,9 +618,10 @@ const Leaderboard: React.FC = () => {
               onClick={async () => {
                 Util.setCurrentStudent(null);
                 localStorage.removeItem(CURRENT_STUDENT);
-                // if (studentMode !== MODES.SCHOOL) {
-                //   schoolUtil.removeCurrentClass();
-                // }
+                if (studentMode !== MODES.SCHOOL) {
+                  console.log("Sometimes this block works..");
+                  schoolUtil.removeCurrentClass();
+                }
                 // await Util.setCurrentStudent(null);
                 AvatarObj.destroyInstance();
                 const user = await auth.getCurrentUser();

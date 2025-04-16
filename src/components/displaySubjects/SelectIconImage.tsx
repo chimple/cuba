@@ -65,7 +65,7 @@ const SelectIconImage: FC<{
       <img
         src={activeSrc}
         alt=""
-        className={`image ${!isLoading ? 'imageLoaded' : ''}`}
+        className={`select-icon-image ${!isLoading ? 'imageLoaded' : ''}`} 
         style={{
           width: imageWidth,
           height: imageHeight,

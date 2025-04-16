@@ -239,7 +239,7 @@ export class SupabaseApi implements ServiceApi {
 
       case MUTATE_TYPES.UPDATE:
         delete data.id;
-        console.log("🚀 ~ SupabaseApi ~ data:", data);
+        console.log("🚀 ~ SupabaseApi ~ data:", JSON.stringify(data));
         console.log(typeof data);
         res = await this.supabase.from(tableName).update(data).eq("id", id);
         break;
@@ -251,7 +251,7 @@ export class SupabaseApi implements ServiceApi {
       default:
         break;
     }
-    console.log("🚀 ~ SupabaseApi ~ res:", res);
+    console.log("🚀 ~ SupabaseApi ~ res:", JSON.stringify(res));
 
     return !!res && !res.error;
   }
@@ -308,6 +308,22 @@ export class SupabaseApi implements ServiceApi {
     group3: string,
     image: File | null
   ): Promise<TableTypes<"school">> {
+    throw new Error("Method not implemented.");
+  }
+
+  requestNewSchool(
+    name: string,
+    state: string,
+    district: string,
+    city: string,
+    image: File | null,
+    udise_id?: string
+  ): Promise<TableTypes<"req_new_school"> | null> {
+    throw new Error("Method not implemented.");
+  }
+  getExistingSchoolRequest(
+    userId: string
+  ): Promise<TableTypes<"req_new_school"> | null> {
     throw new Error("Method not implemented.");
   }
 
@@ -827,40 +843,46 @@ export class SupabaseApi implements ServiceApi {
   }
   async assignmentUserListner(
     studentId: string,
-    onDataChange: (assignment_user: TableTypes<"assignment_user"> | undefined) => void
+    onDataChange: (
+      assignment_user: TableTypes<"assignment_user"> | undefined
+    ) => void
   ) {
     try {
       if (this._assignmentUserRealTime) {
         this._assignmentUserRealTime.unsubscribe();
         this._assignmentUserRealTime = undefined;
       }
-  
+
       this._assignmentUserRealTime = this.supabase?.channel("assignment_user");
       if (!this._assignmentUserRealTime) {
         throw new Error("Failed to establish channel for assignment_user");
       }
-  
-      this._assignmentUserRealTime.on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "assignment_user",
-          filter: `user_id=eq.${studentId}`,
-        },
-        (payload) => {
-          if (onDataChange) {
-            onDataChange(payload.new as TableTypes<"assignment_user">);
-          } else {
-            console.error("🛑 onDataChange is undefined for assignment_user!");
+
+      this._assignmentUserRealTime
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "assignment_user",
+            filter: `user_id=eq.${studentId}`,
+          },
+          (payload) => {
+            if (onDataChange) {
+              onDataChange(payload.new as TableTypes<"assignment_user">);
+            } else {
+              console.error(
+                "🛑 onDataChange is undefined for assignment_user!"
+              );
+            }
           }
-        }
-      ).subscribe();
+        )
+        .subscribe();
     } catch (error) {
       console.error("🛑 Error in Supabase assignment_user listener:", error);
     }
   }
-  
+
   async assignmentListner(
     classId: string,
     onDataChange: (assignment: TableTypes<"assignment"> | undefined) => void
@@ -870,31 +892,33 @@ export class SupabaseApi implements ServiceApi {
         this._assignmetRealTime.unsubscribe();
         this._assignmetRealTime = undefined;
       }
-  
+
       this._assignmetRealTime = this.supabase?.channel("assignment");
       if (!this._assignmetRealTime) {
         throw new Error("Failed to establish channel for assignment");
       }
-      this._assignmetRealTime.on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "assignment",
-          filter: `class_id=eq.${classId}`,
-        },
-        (payload) => {
-          if (onDataChange) {
-            onDataChange(payload.new as TableTypes<"assignment">);
-          } else {
-            console.error("🛑 onDataChange is undefined!");
+      this._assignmetRealTime
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "assignment",
+            filter: `class_id=eq.${classId}`,
+          },
+          (payload) => {
+            if (onDataChange) {
+              onDataChange(payload.new as TableTypes<"assignment">);
+            } else {
+              console.error("🛑 onDataChange is undefined!");
+            }
           }
-        }
-      ).subscribe();
+        )
+        .subscribe();
     } catch (error) {
       console.error("🛑 Error in Supabase listener:", error);
     }
-  }    
+  }
   async removeAssignmentChannel() {
     try {
       if (this._assignmentUserRealTime)
@@ -1188,6 +1212,9 @@ export class SupabaseApi implements ServiceApi {
   checkUserExistInSchool(schoolId, userId): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
+  checkUserIsManagerOrDirector(schoolId, userId): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
   getAssignmentsByAssignerAndClass(
     userId: string,
     classId: string,
@@ -1293,4 +1320,215 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
+  async updateSchoolLastModified(id: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  async updateClassLastModified(id: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  async updateUserLastModified(id: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  async validateSchoolData(
+    schoolId: string,
+    schoolName: string,
+    instructionMedium: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    const { data, error } = await this.supabase
+      .from("school_data")
+      .select("udise_code, school_name, instruction_medium") // Select only required fields
+      .eq("udise_code", schoolId);
+    if (error || !data) {
+      return { status: "error", errors: ["Invalid SCHOOL ID (UDISE Code)"] };
+    }
+
+    let errors: string[] = [];
+    // Check for duplicate UDISE codes
+    if (data.length > 1) {
+      errors.push("Duplicate SCHOOL ID (UDISE Code) found in database");
+    }
+
+    if (data[0].school_name !== schoolName) {
+      errors.push("SCHOOL NAME does not match the database record");
+    }
+    console.log("kjgfkjdsjfs", data[0].instruction_medium, instructionMedium);
+    if (data[0].instruction_medium !== instructionMedium) {
+      errors.push(
+        "SCHOOL INSTRUCTION LANGUAGE does not match the database record"
+      );
+    }
+    const result =
+      errors.length > 0 ? { status: "error", errors } : { status: "success" };
+
+    console.log("Returning:", result); // ✅ Logs what is being returned
+
+    return result;
+  }
+
+  async validateClassCurriculumAndSubject(
+    curriculumName: string,
+    subjectName: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    // Step 1: Fetch curriculum ID based on the provided curriculum name
+    const { data: curriculumData, error: curriculumError } = await this.supabase
+      .from("curriculum")
+      .select("id")
+      .eq("name", curriculumName)
+      .single();
+
+    if (curriculumError || !curriculumData) {
+      return {
+        status: "error",
+        errors: ["Invalid curriculum name"],
+      };
+    }
+    const curriculumId = curriculumData.id;
+    // Step 2: Check if the subject exists for the curriculum
+    const { data: courseData, error: courseError } = await this.supabase
+      .from("course")
+      .select("id")
+      .eq("curriculum_id", curriculumId)
+      .eq("name", subjectName)
+      .single();
+    console.log("fsdfsd", courseData);
+
+    if (courseError || !courseData) {
+      return {
+        status: "error",
+        errors: [
+          `Subject '${subjectName}' not found in the '${curriculumName}' curriculum.`,
+        ],
+      };
+    }
+
+    // If both checks pass, return success
+    return { status: "success" };
+  }
+  async validateClassExistence(
+    schoolId: string,
+    className: string,
+    studentName?: string // Optional parameter
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    console.log("Class Data: 122", schoolId, className);
+    className = className.trim();
+
+    // Step 1: Check if the class exists for the given school ID
+    const { data: classData, error: classError } = await this.supabase
+      .from("class")
+      .select("id") // We only need the class ID to verify existence
+      .eq("school_id", schoolId)
+      .eq("name", className);
+
+    if (classError || !classData) {
+      return {
+        status: "error",
+        errors: ["Class does not exist for the given SCHOOL ID"],
+      };
+    }
+
+    // If studentName is not provided, return success immediately
+    if (!studentName) {
+      return { status: "success" };
+    }
+
+    // Step 2: Check if the studentName already exists in the 'name' column of the class table
+    studentName = studentName.trim();
+
+    const { data: duplicateStudent, error: studentError } = await this.supabase
+      .from("class")
+      .select("id")
+      .eq("school_id", schoolId)
+      .eq("name", className)
+      .eq("name", studentName)
+      .single();
+
+    if (duplicateStudent) {
+      return {
+        status: "error",
+        errors: [`Student name '${studentName}' already exists in this class.`],
+      };
+    }
+
+    return { status: "success" };
+  }
+  async validateUserContacts(
+    programManagerPhone: string,
+    fieldCoordinatorPhone?: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    const errors: string[] = [];
+    console.log(
+      "check data for validateUserContacts",
+      programManagerPhone,
+      fieldCoordinatorPhone
+    );
+
+    // Ensure values are strings and properly quoted
+    const pmQueryValue = programManagerPhone.includes("@")
+      ? `email.eq.${programManagerPhone}`
+      : `phone.eq.${programManagerPhone}`;
+
+    const { data: pmData, error: pmError } = await this.supabase
+      .from("user")
+      .select("id")
+      .or(pmQueryValue)
+      .single();
+
+    if (pmError || !pmData) {
+      errors.push(
+        "PROGRAM MANAGER EMAIL OR PHONE NUMBER does not exist in the system"
+      );
+    }
+
+    if (fieldCoordinatorPhone) {
+      const fcQueryValue = fieldCoordinatorPhone.includes("@")
+        ? `email.eq.${fieldCoordinatorPhone}`
+        : `phone.eq.${fieldCoordinatorPhone}`;
+
+      const { data: fcData, error: fcError } = await this.supabase
+        .from("user")
+        .select("id")
+        .or(fcQueryValue)
+        .single();
+
+      if (fcError || !fcData) {
+        errors.push(
+          "FIELD COORDINATOR EMAIL OR PHONE NUMBER does not exist in the system"
+        );
+      }
+    }
+
+    return errors.length > 0
+      ? { status: "error", errors }
+      : { status: "success" };
+  }
+
 }

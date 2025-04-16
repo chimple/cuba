@@ -1,0 +1,96 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.error-page {
+  background: #f8f9fa;
+  display: flex;
+  min-height: 90vh;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.error-page-container {
+  width: 90%;
+  max-width: 400px;
+  height: auto;
+  padding: clamp(1rem, 5vmin, 2rem);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.7rem, 2vmin, 1.2rem);
+}
+
+.error-icon {
+  width: 100%;
+  max-width: clamp(90px, 9vmin, 110px);
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.error-page-header {
+  width: 100%;
+  text-align: center;
+  font-size: clamp(1.2rem, 2.5vmin, 2rem);
+  font-weight: bolder;
+  line-height: 1.3;
+}
+
+.error-page-info {
+  width: 100%;
+  text-align: center;
+  font-size: clamp(0.9rem, 3vmin, 1rem); /* Use vmin */
+  line-height: 1.5;
+}
+
+.error-page-actions {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: auto;
+}
+
+.error-page-btn {
+  background-color: #7c5db0;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s ease;
+  width: 50%;
+}
+
+.error-page-btn:hover {
+  background-color: #7c5db0;
+}
+
+.download-template {
+  display: inline-flex;
+  align-items: center;
+  color: #7c5db0;
+  text-decoration: none;
+  font-size: 1em;
+  transition: color 0.3s ease;
+  margin-top: 10px;
+}
+
+.download-upload-template svg {
+  margin-right: 5px;
+}
+
+.download-upload-template:hover {
+  color: #7c5db0;
+}

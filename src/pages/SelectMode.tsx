@@ -335,6 +335,7 @@ const SelectMode: FC = () => {
               <div className="class-main">
                 <div className="class-header">
                   <BackButton
+                    aria-label={t("Back")}
                     onClicked={() => {
                       //  history.replace(PAGES.SELECT_SCHOOL);
                       setStage(STAGES.SCHOOL);
@@ -364,7 +365,7 @@ const SelectMode: FC = () => {
                       }}
                       className="class-avatar"
                     >
-                      <div className="class-avatar-counter">{count++}</div>
+                      <div className="class-avatar-counter">{tempClass.name}</div>
                       <span className="class-name">{tempClass.name}</span>
                     </div>
                   ))}
@@ -378,6 +379,7 @@ const SelectMode: FC = () => {
               <div>
                 <div className="class-header">
                   <BackButton
+                    aria-label={t("Back")}
                     onClicked={() => {
                       //  history.replace(PAGES.SELECT_SCHOOL);
                       setStage(STAGES.CLASS);

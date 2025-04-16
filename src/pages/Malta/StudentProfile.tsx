@@ -36,7 +36,7 @@ const StudentProfile: React.FC<{
       <hr className="horizontal-line-for-view-button-container" />
       <div className="view-button-container">
         <div className="view-button-info">
-          {t("Click below to view Student's progress")}
+          {t("Click below to view student's progress")}
         </div>
         <button className="view-button-in-student-profile">
           {t("View Progress")}

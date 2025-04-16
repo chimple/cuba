@@ -51,6 +51,7 @@ export enum TABLES {
   Result = "result",
   Assignment_cart = "assignment_cart",
   // Chatbot = "chatbot",
+  ReqNewSchool = "req_new_school",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -393,6 +394,7 @@ export enum PAGES {
   HOME = "/home",
   LOGIN = "/login",
   GAME = "/game",
+  LIDO_PLAYER = "/lido-player",
   END = "/end",
   PROFILE = "/profile",
   PARENT = "/parent",
@@ -433,8 +435,10 @@ export enum PAGES {
   MANAGE_SCHOOL = "/manage-schools",
   SCHOOL_PROFILE = "/school-profile",
   ADD_SCHOOL = "/add-school",
+  REQ_ADD_SCHOOL = "/req-add-school",
   MANAGE_CLASS = "/manage-class",
   EDIT_SCHOOL = "/edit-school",
+  REQ_EDIT_SCHOOL = "/req-edit-school",
   EDIT_CLASS = "/edit-class",
   ADD_CLASS = "/add-class",
   CLASS_PROFILE = "/class-profile",
@@ -446,8 +450,14 @@ export enum PAGES {
   ADD_PRINCIPAL = "/add-principal",
   ADD_COORDINATOR = "/add-coordinator",
   ADD_SPONSOR = "/add-sponsor",
+  UPLOAD_PAGE = "/upload-page",
 }
 
+export const enum ASSIGNMENT_TYPE {
+  ASSIGNMENT = "assignment",
+  LIVEQUIZ = "liveQuiz",
+  REWARD = "reward",
+}
 export enum LANG {
   ENGLISH = "en",
   HINDI = "hi",
@@ -472,7 +482,7 @@ export interface SchoolWithRole {
   role: RoleType;
 }
 export enum School_Creation_Stages {
-  CREATE_SCHOOL = "create_school",
+  // CREATE_SCHOOL = "create_school",
   SCHOOL_COURSE = "school_course",
   CREATE_CLASS = "create_class",
   CLASS_COURSE = "class_course",
@@ -512,6 +522,7 @@ export const TC_ACCEPT = "tcAccept";
 export const RECOMMENDATIONS = "recommendations";
 export const LIVE_QUIZ = "liveQuiz";
 export const COCOS = "cocos";
+export const LIDO = "lido";
 export const TYPE = "type";
 export const APP_NAME = "Kids";
 export const SCHOOL = "school";
@@ -541,6 +552,7 @@ export interface PortPlugin {
   fetchNotificationData(): Promise<{
     notificationType: string;
     rewardProfileId: string;
+    classId?: string;
   }>;
   shareContentWithAndroidShare(options: {
     text: string;
@@ -549,6 +561,7 @@ export interface PortPlugin {
     imageFile?: File[];
   }): Promise<void>;
   shareUserId(options: { userId: string }): Promise<void>;
+  saveProceesedXlsxFile(options: { fileData: string }): Promise<void>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [
@@ -657,6 +670,8 @@ export enum EVENTS {
   LESSON_END = "lesson_end",
   LESSON_INCOMPLETE = "lesson_incomplete",
   USER_PROFILE = "user_profile",
+  CLICKS_ANALYTICS = "clicks_analytics",
+  EXPERIMENT_VIEWED = "experiment_viewed",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -756,3 +771,12 @@ export interface HomeWeeklySummary {
   timeSpent: number;
   averageScore: number;
 }
+
+export const LidoActivityEndKey = "lidoActivityEnd";
+export const LidoLessonEndKey = "lidoLessonEnd";
+export const LidoNextContainerKey = "lidoNextContainer";
+export const LidoActivityChangeKey = "lidoActivityChange";
+export const LidoGameCompletedKey = "lidoGameCompleted";
+export const LidoGameExitKey = "lidoGameExit";
+export const QUIZ_POPUP_SHOWN = "quizPopupShown";
+export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
