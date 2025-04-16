@@ -14,6 +14,8 @@ import {
 import ProfileCard from "../components/parent/ProfileCard";
 import User from "../models/user";
 import ToggleButton from "../components/parent/ToggleButton";
+import DeleteIcon from '@mui/icons-material/Delete';
+import { Browser } from "@capacitor/browser";
 
 // import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import {
@@ -90,6 +92,12 @@ const Parent: React.FC = () => {
     init();
     getStudentProfile();
   }, [reloadProfiles]);
+
+  const handleDeleteParent = async () => {
+    await Browser.open({
+      url: "https://docs.google.com/forms/d/e/1FAIpQLSd0q3StMO49k_MvBQ68F_Ygdytpmxv-vNuF5jqsk6dY-4N0BA/viewform?pli=1",
+    });
+  };
 
   async function getStudentProfile() {
     console.log("getStudentProfile");
@@ -283,6 +291,11 @@ const Parent: React.FC = () => {
         <div id="logout-delete-button">
           <div id="parent-logout">
             <ParentLogout />
+          </div>
+          <div onClick={handleDeleteParent}
+          className="parent_logout-btn">
+            <DeleteIcon />
+            <span>Delete Account</span>
           </div>
           <div className="parent-teachermode-toggle">
             <ToggleButton

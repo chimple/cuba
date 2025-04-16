@@ -175,7 +175,6 @@
 
 #parent-logout {
   text-align: -webkit-center;
-  margin-top: 5vh;
 }
 
 #parent-delete {
@@ -203,8 +202,11 @@
 #logout-delete-button {
   position: relative;
   display: flex;
-  justify-content: space-around;
+  align-items: center;
+  justify-content: center;
+  gap: 4rem;
   top: 17vh;
+  flex-direction: row;
 }
 
 #parent-page-help-title-container {
@@ -216,4 +218,46 @@
 
 #help {
   padding: 1vh;
+}
+
+.parent_logout-btn {
+  color: var(--text-color);
+  width: 20vw;
+  height: 10vh;
+  background-color: white;
+  border-radius: min(20px,5vh);
+  display: flex;
+  padding: 0% min(20px, 2%);
+  justify-content: space-evenly;
+  align-items: center;
+  cursor: pointer;
+  min-width: 170px;
+  max-width: 250px;
+  min-height: 50px;
+  max-height: 65px;
+}
+
+@media (max-width: 680px) {
+  #logout-delete-button {
+    flex-direction: column;
+    align-items: center;
+    gap: 2vh;
+  }
+
+  #parent-logout,
+  .parent_logout-btn,
+  .parent-teachermode-toggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+  }
+
+  .parent_logout-btn {
+    width: 70vw;
+    max-width: none;
+  }
+
+  .parent-teachermode-toggle {
+    margin-top: 2vh;
+  }
 }
