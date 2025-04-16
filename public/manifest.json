@@ -4,8 +4,8 @@
     "hi-IN": "चिम्पल किड्स लर्निंग"
   },
   "license": "AGPL-3.0",
-  "learningUnits": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/courses/en/res/course.json",
-  "defaultLaunchUri": "https://chimple.org/",
+  "learningUnits": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/courses/en_g1.json",
+  "defaultLaunchUri": "https://chimple.cc/topic/learningUnit1/?respectLaunchVersion=1&activity_id=d4OYtGy5HojUFNraFYTo",
 
   "android": {
     "packageId": "org.chimple.bahama",
