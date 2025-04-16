@@ -111,7 +111,7 @@ import {
   StudentReport,
   SchoolUsers,
   AddSchoolUser,
-  ReqEditSchool
+  ReqEditSchool,
 } from "./common/chimplePrivatePages";
 import LessonDetails from "./chimple-private/pages/LessonDetails";
 import DisplayClasses from "./chimple-private/pages/DisplayClasses";
@@ -128,6 +128,7 @@ setupIonicReact();
 interface ExtraData {
   notificationType?: string;
   rewardProfileId?: string;
+  classId?: string;
 }
 interface WindowEventMap {
   shouldShowModal: CustomEvent<boolean>;
@@ -152,12 +153,12 @@ const gb = new GrowthBook({
     Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
       experimentId: experiment.key,
       variationId: result.key,
-    })
+    });
   },
 });
 gb.init({
-  streaming: true
-})
+  streaming: true,
+});
 
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
@@ -234,7 +235,10 @@ const App: React.FC = () => {
 
       const portPlugin = registerPlugin<PortPlugin>("Port");
       portPlugin.addListener("notificationOpened", (data: any) => {
-        if (data) {
+        if (data.fullPayload) {
+          const formattedPayload = JSON.parse(data.fullPayload);
+          processNotificationData(formattedPayload);
+        } else {
           processNotificationData(data);
         }
       });
@@ -254,29 +258,8 @@ const App: React.FC = () => {
     fetchData();
 
     Util.notificationListener(async (extraData: ExtraData | undefined) => {
-      if (extraData && extraData.notificationType === "reward") {
-        const currentStudent = Util.getCurrentStudent();
-        const data = extraData as ExtraData;
-        const rewardProfileId = data.rewardProfileId;
-        if (rewardProfileId)
-          if (currentStudent?.id === rewardProfileId) {
-            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
-          } else {
-            await Util.setCurrentStudent(null);
-            const students =
-              await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-            let matchingUser =
-              students.find((user) => user.id === rewardProfileId) ||
-              students[0];
-            if (matchingUser) {
-              await Util.setCurrentStudent(matchingUser, undefined, true);
-              window.location.replace(
-                PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME
-              );
-            } else {
-              return;
-            }
-          }
+      if (extraData) {
+        Util.navigateTabByNotificationData(extraData);
       }
     });
     updateAvatarSuggestionJson();
@@ -405,43 +388,23 @@ const App: React.FC = () => {
     localStorage.setItem(START_TIME_KEY, Date.now().toString());
   };
   const processNotificationData = async (data) => {
-    const currentStudent = Util.getCurrentStudent();
-    if (data && data.notificationType === "reward") {
-      if (data.rewardProfileId) {
-        if (currentStudent?.id === data.rewardProfileId) {
-          window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
-          return;
-        } else {
-          await Util.setCurrentStudent(null);
-          const students =
-            await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-          let matchingUser =
-            students.find((user) => user.id === data.rewardProfileId) ||
-            students[0];
-          if (matchingUser) {
-            await Util.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
-            return;
-          } else {
-            return;
-          }
-        }
-      }
-    }
+    Util.navigateTabByNotificationData(data);
   };
   const getNotificationData = async () => {
-    if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
-    if (Util.port && typeof Util.port.fetchNotificationData === "function") {
-      try {
-        const data = await Util.port.fetchNotificationData();
-        if (data && data.notificationType && data.rewardProfileId) {
-          processNotificationData(data);
+    if (Capacitor.isNativePlatform()) {
+      if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+      if (Util.port && typeof Util.port.fetchNotificationData === "function") {
+        try {
+          const data = await Util.port.fetchNotificationData();
+          if (data) {
+            processNotificationData(data);
+          }
+        } catch (error) {
+          console.error("Error retrieving notification data:", error);
         }
-      } catch (error) {
-        console.error("Error retrieving notification data:", error);
+      } else {
+        console.warn("Util.port or fetchNotificationData is not available.");
       }
-    } else {
-      console.warn("Util.port or fetchNotificationData is not available.");
     }
   };
   const fetchData = async () => {
@@ -470,293 +433,293 @@ const App: React.FC = () => {
   }
   return (
     <GrowthBookProvider growthbook={gb}>
-    <IonApp>
-      <IonReactRouter basename={BASE_NAME}>
-        <IonRouterOutlet>
-          <Switch>
-            <Route path={PAGES.APP_UPDATE} exact={true}>
-              <HotUpdate />
-            </Route>
-            <ProtectedRoute path={PAGES.HOME} exact={true}>
-              <Home />
-            </ProtectedRoute>
-            <Route path={PAGES.LOGIN} exact={true}>
-              <Login />
-            </Route>
-            <ProtectedRoute path={PAGES.GAME} exact={true}>
-              <CocosGame />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.LIDO_PLAYER} exact={true}>
-              <LidoPlayer />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.END} exact={true}>
-              <End />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.PROFILE} exact={true}>
-              <Profile />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.PARENT} exact={true}>
-              <Parent />
-            </ProtectedRoute>
-            <Route path={PAGES.APP_LANG_SELECTION} exact={true}>
-              <AppLangSelection />
-            </Route>
-            <ProtectedRoute path={PAGES.CREATE_STUDENT} exact={true}>
-              <EditStudent />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.EDIT_STUDENT} exact={true}>
-              <EditStudent />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.DISPLAY_STUDENT} exact={true}>
-              <DisplayStudents />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.DISPLAY_SUBJECTS} exact={true}>
-              <DisplaySubjects />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.ADD_SUBJECTS} exact={true}>
-              <AddCourses />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.DISPLAY_CHAPTERS} exact={true}>
-              <DisplayChapters />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.STUDENT_PROGRESS} exact={true}>
-              <StudentProgress />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.SEARCH} exact={true}>
-              <SearchLesson />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.LEADERBOARD} exact={true}>
-              <Leaderboard />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.ASSIGNMENT} exact={true}>
-              <Home />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.LIVE_QUIZ} exact={true}>
-              <Home />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.JOIN_CLASS} exact={true}>
-              <Home />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
-              <SelectMode />
-            </ProtectedRoute>
-            {/* <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
+      <IonApp>
+        <IonReactRouter basename={BASE_NAME}>
+          <IonRouterOutlet>
+            <Switch>
+              <Route path={PAGES.APP_UPDATE} exact={true}>
+                <HotUpdate />
+              </Route>
+              <ProtectedRoute path={PAGES.HOME} exact={true}>
+                <Home />
+              </ProtectedRoute>
+              <Route path={PAGES.LOGIN} exact={true}>
+                <Login />
+              </Route>
+              <ProtectedRoute path={PAGES.GAME} exact={true}>
+                <CocosGame />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.LIDO_PLAYER} exact={true}>
+                <LidoPlayer />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.END} exact={true}>
+                <End />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.PROFILE} exact={true}>
+                <Profile />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.PARENT} exact={true}>
+                <Parent />
+              </ProtectedRoute>
+              <Route path={PAGES.APP_LANG_SELECTION} exact={true}>
+                <AppLangSelection />
+              </Route>
+              <ProtectedRoute path={PAGES.CREATE_STUDENT} exact={true}>
+                <EditStudent />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.EDIT_STUDENT} exact={true}>
+                <EditStudent />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.DISPLAY_STUDENT} exact={true}>
+                <DisplayStudents />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.DISPLAY_SUBJECTS} exact={true}>
+                <DisplaySubjects />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.ADD_SUBJECTS} exact={true}>
+                <AddCourses />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.DISPLAY_CHAPTERS} exact={true}>
+                <DisplayChapters />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.STUDENT_PROGRESS} exact={true}>
+                <StudentProgress />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.SEARCH} exact={true}>
+                <SearchLesson />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.LEADERBOARD} exact={true}>
+                <Leaderboard />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.ASSIGNMENT} exact={true}>
+                <Home />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.LIVE_QUIZ} exact={true}>
+                <Home />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.JOIN_CLASS} exact={true}>
+                <Home />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
+                <SelectMode />
+              </ProtectedRoute>
+              {/* <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
               <TeacherProfile />
             </ProtectedRoute> */}
-            <ProtectedRoute path={PAGES.STUDENT_PROFILE} exact={true}>
-              <Suspense>
-                <StudentProfile />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.ADD_STUDENT} exact={true}>
-              <Suspense>
-                <AddStudent />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.USER_PROFILE} exact={true}>
-              <Suspense>
-                <UserProfile />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.SUBJECTS_PAGE} exact={true}>
-              <Suspense>
-                <SubjectSelection />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
-              <LiveQuizRoom />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.LIVE_QUIZ_GAME} exact={true}>
-              <LiveQuizGame />
-            </ProtectedRoute>
-            <Route path={PAGES.TERMS_AND_CONDITIONS} exact={true}>
-              <TermsAndConditions />
-            </Route>
-            <ProtectedRoute path={PAGES.LIVE_QUIZ_ROOM_RESULT} exact={true}>
-              <LiveQuizRoomResult />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.LIVE_QUIZ_LEADERBOARD} exact={true}>
-              <LiveQuizLeaderBoard />
-            </ProtectedRoute>
-            <Route path={PAGES.TEST_PAGE} exact={true}>
-              <Suspense>
-                <TestPage1 />
-              </Suspense>
-            </Route>
-            <Route path={PAGES.DISPLAY_SCHOOLS} exact={true}>
-              <Suspense>
-                <DisplaySchools />
-              </Suspense>
-            </Route>
-            <Route path={PAGES.STUDENT_REPORT} exact={true}>
-              <Suspense>
-                <StudentReport />
-              </Suspense>
-            </Route>
-            <Route path={PAGES.DISPLAY_CLASSES} exact={true}>
-              <Suspense>
-                <DisplayClasses />
-              </Suspense>
-            </Route>
-            <ProtectedRoute path={PAGES.MANAGE_SCHOOL} exact={true}>
-              <Suspense>
-                <ManageSchools />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.SCHOOL_PROFILE} exact={true}>
-              <Suspense>
-                <SchoolProfile />
-              </Suspense>
-            </ProtectedRoute>
-            {/* <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
-              <Suspense>
-                <EditSchool />
-              </Suspense>
-            </ProtectedRoute> */}
-            <ProtectedRoute path={PAGES.REQ_ADD_SCHOOL} exact={true}>
-              <Suspense>
-                <ReqEditSchool />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.MANAGE_CLASS} exact={true}>
-              <Suspense>
-                <ManageClass />
-              </Suspense>
-            </ProtectedRoute>
-            {/* <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
+              <ProtectedRoute path={PAGES.STUDENT_PROFILE} exact={true}>
+                <Suspense>
+                  <StudentProfile />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.ADD_STUDENT} exact={true}>
+                <Suspense>
+                  <AddStudent />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.USER_PROFILE} exact={true}>
+                <Suspense>
+                  <UserProfile />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.SUBJECTS_PAGE} exact={true}>
+                <Suspense>
+                  <SubjectSelection />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
+                <LiveQuizRoom />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.LIVE_QUIZ_GAME} exact={true}>
+                <LiveQuizGame />
+              </ProtectedRoute>
+              <Route path={PAGES.TERMS_AND_CONDITIONS} exact={true}>
+                <TermsAndConditions />
+              </Route>
+              <ProtectedRoute path={PAGES.LIVE_QUIZ_ROOM_RESULT} exact={true}>
+                <LiveQuizRoomResult />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.LIVE_QUIZ_LEADERBOARD} exact={true}>
+                <LiveQuizLeaderBoard />
+              </ProtectedRoute>
+              <Route path={PAGES.TEST_PAGE} exact={true}>
+                <Suspense>
+                  <TestPage1 />
+                </Suspense>
+              </Route>
+              <Route path={PAGES.DISPLAY_SCHOOLS} exact={true}>
+                <Suspense>
+                  <DisplaySchools />
+                </Suspense>
+              </Route>
+              <Route path={PAGES.STUDENT_REPORT} exact={true}>
+                <Suspense>
+                  <StudentReport />
+                </Suspense>
+              </Route>
+              <Route path={PAGES.DISPLAY_CLASSES} exact={true}>
+                <Suspense>
+                  <DisplayClasses />
+                </Suspense>
+              </Route>
+              <ProtectedRoute path={PAGES.MANAGE_SCHOOL} exact={true}>
+                <Suspense>
+                  <ManageSchools />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.SCHOOL_PROFILE} exact={true}>
+                <Suspense>
+                  <SchoolProfile />
+                </Suspense>
+              </ProtectedRoute>
+              {/* <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
               <Suspense>
                 <EditSchool />
               </Suspense>
             </ProtectedRoute> */}
-            <ProtectedRoute path={PAGES.REQ_EDIT_SCHOOL} exact={true}>
+              <ProtectedRoute path={PAGES.REQ_ADD_SCHOOL} exact={true}>
+                <Suspense>
+                  <ReqEditSchool />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.MANAGE_CLASS} exact={true}>
+                <Suspense>
+                  <ManageClass />
+                </Suspense>
+              </ProtectedRoute>
+              {/* <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
               <Suspense>
-                <ReqEditSchool />
+                <EditSchool />
               </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.DASHBOARD_DETAILS} exact={true}>
-              <Suspense>
-                <DashBoardDetails />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.ADD_CLASS} exact={true}>
-              <Suspense>
-                <EditClass />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.CLASS_PROFILE} exact={true}>
-              <Suspense>
-                <ClassProfile />
-              </Suspense>
-            </ProtectedRoute>
-            <Route path={PAGES.SHOW_CHAPTERS} exact={true}>
-              <Suspense>
-                <ShowChapters />
-              </Suspense>
-            </Route>
+            </ProtectedRoute> */}
+              <ProtectedRoute path={PAGES.REQ_EDIT_SCHOOL} exact={true}>
+                <Suspense>
+                  <ReqEditSchool />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.DASHBOARD_DETAILS} exact={true}>
+                <Suspense>
+                  <DashBoardDetails />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.ADD_CLASS} exact={true}>
+                <Suspense>
+                  <EditClass />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.CLASS_PROFILE} exact={true}>
+                <Suspense>
+                  <ClassProfile />
+                </Suspense>
+              </ProtectedRoute>
+              <Route path={PAGES.SHOW_CHAPTERS} exact={true}>
+                <Suspense>
+                  <ShowChapters />
+                </Suspense>
+              </Route>
 
-            <Route path={PAGES.SEARCH_LESSON} exact={true}>
-              <Suspense>
-                <SearchLessons />
-              </Suspense>
-            </Route>
+              <Route path={PAGES.SEARCH_LESSON} exact={true}>
+                <Suspense>
+                  <SearchLessons />
+                </Suspense>
+              </Route>
 
-            <Route path={PAGES.LESSON_DETAILS} exact={true}>
-              <LessonDetails />
-            </Route>
-            <Route path={PAGES.TEST_PAGE1} exact={true}>
-              <Suspense>
-                <TestPage2 />
-              </Suspense>
-            </Route>
-            <ProtectedRoute path={PAGES.HOME_PAGE} exact={true}>
-              <Suspense>
-                <HomePage />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.CLASS_USERS} exact={true}>
-              <Suspense>
-                <ClassUsers />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.EDIT_CLASS} exact={true}>
-              <Suspense>
-                <EditClass />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE}
-              exact={true}
-            >
-              <Suspense>
-                <ShowStudentsInAssignmentPage />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.ADD_TEACHER} exact={true}>
-              <Suspense>
-                <AddTeacher />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
-              <Suspense>
-                <TeacherProfile />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.SCHOOL_USERS} exact={true}>
-              <Suspense>
-                <SchoolUsers />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.ADD_PRINCIPAL} exact={true}>
-              <Suspense>
-                <AddSchoolUser />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.ADD_COORDINATOR} exact={true}>
-              <Suspense>
-                <AddSchoolUser />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.ADD_SPONSOR} exact={true}>
-              <Suspense>
-                <AddSchoolUser />
-              </Suspense>
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.UPLOAD_PAGE} exact={true}>
-              <Suspense>
-                <UploadPage />
-              </Suspense>
-            </ProtectedRoute>
-          </Switch>
-        </IonRouterOutlet>
-        <IonAlert
-          isOpen={showModal}
-          onDidDismiss={() => setShowModal(false)}
-          header={t("Time for a break!") || ""}
-          message={
-            t(
-              "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
-            ) || ""
-          }
-          cssClass="custom-alert"
-          buttons={[
-            {
-              text: t("Continue"),
-              role: "cancel",
-              cssClass: "time-exceed-continue",
-              handler: handleContinue,
-            },
-          ]}
-          backdropDismiss={false}
-        />
-        {/*Toast notification for acknowledgment */}
-        <IonToast
-          isOpen={showToast}
-          onDidDismiss={() => setShowToast(false)}
-          message="You have resumed after exceeding the time limit."
-          duration={3000}
-        />
-      </IonReactRouter>
-    </IonApp>
+              <Route path={PAGES.LESSON_DETAILS} exact={true}>
+                <LessonDetails />
+              </Route>
+              <Route path={PAGES.TEST_PAGE1} exact={true}>
+                <Suspense>
+                  <TestPage2 />
+                </Suspense>
+              </Route>
+              <ProtectedRoute path={PAGES.HOME_PAGE} exact={true}>
+                <Suspense>
+                  <HomePage />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.CLASS_USERS} exact={true}>
+                <Suspense>
+                  <ClassUsers />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.EDIT_CLASS} exact={true}>
+                <Suspense>
+                  <EditClass />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute
+                path={PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE}
+                exact={true}
+              >
+                <Suspense>
+                  <ShowStudentsInAssignmentPage />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.ADD_TEACHER} exact={true}>
+                <Suspense>
+                  <AddTeacher />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
+                <Suspense>
+                  <TeacherProfile />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.SCHOOL_USERS} exact={true}>
+                <Suspense>
+                  <SchoolUsers />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.ADD_PRINCIPAL} exact={true}>
+                <Suspense>
+                  <AddSchoolUser />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.ADD_COORDINATOR} exact={true}>
+                <Suspense>
+                  <AddSchoolUser />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.ADD_SPONSOR} exact={true}>
+                <Suspense>
+                  <AddSchoolUser />
+                </Suspense>
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.UPLOAD_PAGE} exact={true}>
+                <Suspense>
+                  <UploadPage />
+                </Suspense>
+              </ProtectedRoute>
+            </Switch>
+          </IonRouterOutlet>
+          <IonAlert
+            isOpen={showModal}
+            onDidDismiss={() => setShowModal(false)}
+            header={t("Time for a break!") || ""}
+            message={
+              t(
+                "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
+              ) || ""
+            }
+            cssClass="custom-alert"
+            buttons={[
+              {
+                text: t("Continue"),
+                role: "cancel",
+                cssClass: "time-exceed-continue",
+                handler: handleContinue,
+              },
+            ]}
+            backdropDismiss={false}
+          />
+          {/*Toast notification for acknowledgment */}
+          <IonToast
+            isOpen={showToast}
+            onDidDismiss={() => setShowToast(false)}
+            message="You have resumed after exceeding the time limit."
+            duration={3000}
+          />
+        </IonReactRouter>
+      </IonApp>
     </GrowthBookProvider>
   );
 };

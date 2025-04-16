@@ -456,6 +456,7 @@ export enum PAGES {
 export const enum ASSIGNMENT_TYPE {
   ASSIGNMENT = "assignment",
   LIVEQUIZ = "liveQuiz",
+  REWARD = "reward",
 }
 export enum LANG {
   ENGLISH = "en",
@@ -551,6 +552,7 @@ export interface PortPlugin {
   fetchNotificationData(): Promise<{
     notificationType: string;
     rewardProfileId: string;
+    classId?: string;
   }>;
   shareContentWithAndroidShare(options: {
     text: string;
@@ -776,3 +778,5 @@ export const LidoNextContainerKey = "lidoNextContainer";
 export const LidoActivityChangeKey = "lidoActivityChange";
 export const LidoGameCompletedKey = "lidoGameCompleted";
 export const LidoGameExitKey = "lidoGameExit";
+export const QUIZ_POPUP_SHOWN = "quizPopupShown";
+export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
