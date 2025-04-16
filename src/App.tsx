@@ -396,8 +396,6 @@ const App: React.FC = () => {
       if (Util.port && typeof Util.port.fetchNotificationData === "function") {
         try {
           const data = await Util.port.fetchNotificationData();
-          console.log("Notify data", data.notificationType);
-          console.log("Class id data", data.classId);
           if (data) {
             processNotificationData(data);
           }
