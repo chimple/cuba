@@ -5,7 +5,7 @@
   },
   "license": "AGPL-3.0",
   "learningUnits": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/courses/en_g1.json",
-  "defaultLaunchUri": "https://chimple.cc/topic/learningUnit1/?respectLaunchVersion=1&activity_id=d4OYtGy5HojUFNraFYTo",
+  "defaultLaunchUri": "https://chimple.cc/",
 
   "android": {
     "packageId": "org.chimple.bahama",
