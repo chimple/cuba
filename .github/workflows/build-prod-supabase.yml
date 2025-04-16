@@ -82,12 +82,12 @@ jobs:
       - name: Deploy apk
         working-directory: .
         run: |
-          cd android/app/build/outputs/bundle/release/
+          cd android/app/build/outputs/apk/release/
           git init
           git config --global user.email vinay@sutara.org
           git config --global user.name  vinaypanduga
           git remote add origin https://${{ secrets.ACCESS_TOKEN }}@github.com/chimple/cuba.git
           git checkout -b supabase-prod-apk
-          git add app-release.aab
+          git add app-release.apk
           git commit -m "created apk"
           git push origin supabase-prod-apk -f
