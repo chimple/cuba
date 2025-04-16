@@ -295,7 +295,7 @@ const Parent: React.FC = () => {
           <div onClick={handleDeleteParent}
           className="parent_logout-btn">
             <DeleteIcon />
-            <span>Delete Account</span>
+            <span>{t("Delete Account")}</span>
           </div>
           <div className="parent-teachermode-toggle">
             <ToggleButton
