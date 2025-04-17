@@ -31,7 +31,7 @@ const LiveQuizGame: FC = () => {
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [showScoreCard, setShowScoreCard] = useState<boolean>(false);
   const state = history.location.state as any;
-  const [lessonName, setLessonName] = useState<string>("");
+  const [quizData, setQuizData] = useState<any>();
   const [scoreData, setScoreData] = useState<any>();
   let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
 
@@ -49,13 +49,18 @@ const LiveQuizGame: FC = () => {
   }, []);
 
   useEffect(() => {
-    const fetchLessonName = async () => {
-      if (paramLessonId) {
-        const lessonData = await api.getLessonWithCocosLessonId(paramLessonId);
-        setLessonName(lessonData?.name ?? "");
-      }
-    };
-    fetchLessonName();
+    const courseId = state?.courseId;
+    const lessonData = state?.lesson ? JSON.parse(state.lesson) : undefined;
+    setLesson(lessonData);
+
+    if (lessonData && courseId) {
+      const quizData = {
+        lessonid: lessonData.id,
+        chapterId: lessonData.chapter_id,
+        courseId: courseId,
+      };
+      setQuizData(quizData);
+    }
   }, [paramLessonId]);
 
   const handleRoomChange = async (
@@ -113,8 +118,6 @@ const LiveQuizGame: FC = () => {
   const saveLikedStatus = async () => {
     const api = ServiceConfig.getI().apiHandler;
     const currentStudent = api.currentStudent!;
-    const lesson = await api.getLessonWithCocosLessonId(paramLessonId ?? "");
-
     await api.updateFavoriteLesson(currentStudent.id, lesson?.id ?? "");
   };
 
@@ -123,9 +126,10 @@ const LiveQuizGame: FC = () => {
       {paramLessonId ? (
         <div className="live-quiz-container">
           <div className="live-quiz-center-div">
-            {paramLessonId && (
+            {paramLessonId && quizData && (
               <LiveQuizQuestion
                 lessonId={paramLessonId}
+                quizData={quizData}
                 isTimeOut={true}
                 onNewQuestionChange={(newQuestionIndex) => {
                   console.log(
@@ -155,7 +159,7 @@ const LiveQuizGame: FC = () => {
                 message={t("You Completed the Lesson:")}
                 showDialogBox={showDialogBox}
                 yesText={t("Like the Game")}
-                lessonName={lessonName}
+                lessonName={lesson?.name ?? ""}
                 noText={t("Continue Playing")}
                 handleClose={() => setShowDialogBox(true)}
                 onYesButtonClicked={() => {

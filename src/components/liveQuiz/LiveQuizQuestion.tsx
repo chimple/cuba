@@ -14,6 +14,7 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { HiSpeakerWave } from "react-icons/hi2";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import LiveQuizNavigationDots from "./LiveQuizNavigationDots";
+import { schoolUtil } from "../../utility/schoolUtil";
 
 let questionInterval;
 let audiosMap: { [key: string]: HTMLAudioElement } = {};
@@ -31,6 +32,7 @@ const LiveQuizQuestion: FC<{
   onRemainingTimeChange?: (remainingTime: number) => void;
   onShowAnswer?: (canShow: boolean) => void;
   lessonId?: string;
+  quizData?: any;
   onTotalScoreChange?;
 }> = ({
   roomDoc,
@@ -43,6 +45,7 @@ const LiveQuizQuestion: FC<{
   onShowAnswer,
   isTimeOut,
   lessonId,
+  quizData,
   onTotalScoreChange,
 }) => {
   const quizPath =
@@ -299,7 +302,7 @@ const LiveQuizQuestion: FC<{
         console.log("Config file not found, triggering downloadQuiz...");
 
         if (lessonId) await downloadQuiz(lessonId); // Trigger the downloadQuiz function if the file is missing
-        
+
         response = await fetch(quizPath + "/config.json");
         if (!response.ok) {
           throw new Error(
@@ -439,22 +442,20 @@ const LiveQuizQuestion: FC<{
     let correctMoves = 0;
     if (lessonId) {
       onTotalScoreChange(totalLessonScore);
-
-      const lesson = await api.getLessonWithCocosLessonId(lessonId); //lessonId is cocos_lesson_id
-      const chapterId = (await api.getChapterByLesson(lesson?.id ?? "")) ?? "";
+      const classData = schoolUtil.getCurrentClass();
 
       await api.updateResult(
         student!.id,
-        undefined,
-        lesson?.id ?? "",
+        quizData.courseId,
+        quizData.lessonid,
         Math.round(totalLessonScore),
         lessonCorrectMoves,
         totalQuestions - lessonCorrectMoves,
         totalLessonTimeSpent,
         undefined,
-        chapterId.toString(),
-        undefined,
-        undefined
+        quizData.chapterId,
+        classData?.id,
+        classData?.school_id
       );
       totalLessonScore = 0;
       totalLessonTimeSpent = 0;

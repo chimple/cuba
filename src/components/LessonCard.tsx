@@ -204,6 +204,8 @@ const LessonCard: React.FC<{
                 history.replace(
                   PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
                   {
+                    courseId: course?.id ?? currentCourse?.id,
+                    lesson: JSON.stringify(lesson),
                     from: history.location.pathname + `?${CONTINUE}=true`,
                   }
                 );
