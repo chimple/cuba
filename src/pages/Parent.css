@@ -203,8 +203,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 4rem;
+  justify-content: space-evenly;
   top: 17vh;
   flex-direction: row;
 }
