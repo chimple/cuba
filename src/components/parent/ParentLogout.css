@@ -1,15 +1,16 @@
 .parent-logout-btn {
   color: var(--text-color);
-  width: 35vw;
+  width: 20vw;
   height: 10vh;
+  gap: 1rem;
   background-color: white;
   border-radius: min(20px,5vh);
   display: flex;
   padding: 0% min(20px, 2%);
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   cursor: pointer;
-  min-width: 170px;
+  min-width: 250px;
   max-width: 250px;
   min-height: 50px;
   max-height: 65px;
