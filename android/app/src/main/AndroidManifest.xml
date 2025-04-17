@@ -35,9 +35,10 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="chimple.cc" android:path="/join-class" />
+                <!-- <data android:scheme="https" android:host="chimple.cc" android:path="/join-class" />
                 <data android:scheme="https" android:host="chimple.cc" android:path="/assignment" />
-                <data android:scheme="https" android:host="chimple.cc" android:path="/live-quiz" />
+                <data android:scheme="https" android:host="chimple.cc" android:path="/live-quiz" /> -->
+                <data android:scheme="https" android:host="chimple.cc" android:pathPattern="/.*" />
             </intent-filter>
 
         </activity>
@@ -56,12 +57,22 @@
                  <action android:name="com.google.android.gms.auth.api.phone.SMS_RETRIEVED" />
               </intent-filter>
         </receiver>
+
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false"
+            android:directBootAware="true">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
     </application>
 
     <!-- Permissions -->
 
-    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 

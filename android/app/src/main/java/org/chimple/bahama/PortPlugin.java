@@ -69,19 +69,21 @@ public class PortPlugin extends Plugin {
 //    }
 //  }
 
-  private String notificationType;
-  private String rewardProfileId;
+  private Bundle notificationExtras;
 
   @Override
   protected void handleOnNewIntent(Intent data) {
     super.handleOnNewIntent(data);
     Bundle extras = data.getExtras();
     if (extras != null) {
-      this.notificationType = extras.getString("notificationType");
-      this.rewardProfileId = extras.getString("rewardProfileId");
+      notificationExtras = new Bundle(extras);
       JSObject eventData = new JSObject();
-      eventData.put("notificationType", notificationType);
-      eventData.put("rewardProfileId", rewardProfileId);
+      for (String key : extras.keySet()) {
+        Object value = extras.get(key);
+        if (value != null) {
+          eventData.put(key, value.toString());
+        }
+      }
       notifyListeners("notificationOpened", eventData);
     }
   }
@@ -130,28 +132,23 @@ public class PortPlugin extends Plugin {
 
   @PluginMethod
   public void fetchNotificationData(PluginCall call) {
-    String notificationType = this.notificationType;
-    String rewardProfileId = this.rewardProfileId;
-    Log.d("MainActivity", "logs of fetchNotificationData" + rewardProfileId);
-    if (notificationType != null && rewardProfileId != null) {
-      String jsonData =
-        "{\"notificationType\": \"" +
-        notificationType +
-        "\", \"rewardProfileId\": \"" +
-        rewardProfileId +
-        "\"}";
-    } else {
-      Log.d("MainActivity", "Notification data not found");
+    JSObject result = new JSObject();
+
+    if (notificationExtras != null) {
+      for (String key : notificationExtras.keySet()) {
+        Object value = notificationExtras.get(key);
+        if (value != null) {
+          result.put(key, value.toString());
+          Log.d("fetchNotificationData", "Added to result: " + key + " = " + value.toString());
+        }
+      }
+      notificationExtras.clear();
     }
-    if (notificationType != null && rewardProfileId != null) {
-      JSObject result = new JSObject();
-      result.put("notificationType", notificationType);
-      result.put("rewardProfileId", rewardProfileId);
+
+    if (result.length() > 0) {
       call.resolve(result);
-      this.notificationType = null;
-      this.rewardProfileId = null;
     } else {
-      call.reject("Data not found in Java code");
+      call.resolve(new JSObject());
     }
   }
 

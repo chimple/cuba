@@ -365,7 +365,7 @@ const SelectMode: FC = () => {
                       }}
                       className="class-avatar"
                     >
-                      <div className="class-avatar-counter">{count++}</div>
+                      <div className="class-avatar-counter">{tempClass.name}</div>
                       <span className="class-name">{tempClass.name}</span>
                     </div>
                   ))}
