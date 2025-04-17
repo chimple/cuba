@@ -14,8 +14,6 @@ import {
 import ProfileCard from "../components/parent/ProfileCard";
 import User from "../models/user";
 import ToggleButton from "../components/parent/ToggleButton";
-import DeleteIcon from '@mui/icons-material/Delete';
-import { Browser } from "@capacitor/browser";
 
 // import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import {
@@ -38,6 +36,7 @@ import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
 import { RoleType } from "../interface/modelInterfaces";
+import DeleteParentAccount from "../components/parent/DeleteParentAccount";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
@@ -92,12 +91,6 @@ const Parent: React.FC = () => {
     init();
     getStudentProfile();
   }, [reloadProfiles]);
-
-  const handleDeleteParent = async () => {
-    await Browser.open({
-      url: "https://docs.google.com/forms/d/e/1FAIpQLSd0q3StMO49k_MvBQ68F_Ygdytpmxv-vNuF5jqsk6dY-4N0BA/viewform?pli=1",
-    });
-  };
 
   async function getStudentProfile() {
     console.log("getStudentProfile");
@@ -292,10 +285,8 @@ const Parent: React.FC = () => {
           <div id="parent-logout">
             <ParentLogout />
           </div>
-          <div onClick={handleDeleteParent}
-          className="parent_logout-btn">
-            <DeleteIcon />
-            <span>{t("Delete Account")}</span>
+          <div id="parent_logout-btn">
+            <DeleteParentAccount />
           </div>
           <div className="parent-teachermode-toggle">
             <ToggleButton
@@ -328,9 +319,6 @@ const Parent: React.FC = () => {
               }}
             />
           </div>
-          {/* <div id="parent-delete">
-            <DeleteParentAccount />
-          </div> */}
         </div>
       </div>
     );
