@@ -76,7 +76,7 @@ jobs:
 
       - name: Generate the Android App assembleDebug
         working-directory: ./android/
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleRelease
 
 
       - name: Deploy apk
