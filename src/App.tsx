@@ -227,6 +227,7 @@ growthbook.init({ streaming: true });
 
   const growthBookAttributes = async (student: any) => {
     const studentResult = await api.getStudentResult(student.docId);
+    const language = localStorage.getItem('language') || 'en';
     studentResult &&
       growthbook.setAttributes({
         school_ids:studentResult.schools,
@@ -234,6 +235,7 @@ growthbook.init({ streaming: true });
         class_ids: studentResult.classes,
         gender: student.gender,
         age: student.age,
+        language: language
       });
   };
 
