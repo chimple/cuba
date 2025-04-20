@@ -7,8 +7,14 @@ assignees: ''
 
 ---
 
-Description: 
-PRD Link:
-Comparative study:
-Goal:
-Release Date:
+### Description: 
+[Provide a Short description about the epic]
+
+### PRD Link:
+[PRD Links to be attached here ]
+
+### Comparative study:
+
+### Goal:
+
+### Release Date:
