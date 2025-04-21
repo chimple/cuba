@@ -2,7 +2,7 @@
   "name": "cuba",
   "version": "0.0.1",
   "private": true,
-  "homepage": ".",
+  "homepage": "http://.",
   "dependencies": {
     "@algolia/autocomplete-js": "^1.9.2",
     "@algolia/autocomplete-plugin-query-suggestions": "^1.9.2",
@@ -59,7 +59,6 @@
     "cordova-support-android-plugin": "^2.0.4",
     "cuba": "file:",
     "date-fns": "^4.1.0",
-    "dotenv": "^16.5.0",
     "firebase": "^9.19.1",
     "html2canvas": "^1.4.1",
     "i18next": "^22.4.1",
@@ -68,7 +67,6 @@
     "ionicons": "^6.0.3",
     "jeep-sqlite": "^2.6.2",
     "libphonenumber-js": "^1.12.6",
-    "lido-player": "^0.0.2-alpha-11",
     "lido-standalone": "^0.0.0-alpha-3",
     "qrcode.react": "^3.1.0",
     "react": "^18.2.0",
@@ -107,6 +105,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "build": "react-scripts build && npm run copy-build && npm run create-check-sum && cap sync && npm run build-storybook",
     "create-check-sum": "node scripts/check_sum_generator.js",
     "copy-build": "shx cp chimple-lib/*.js build/ && shx cp -r chimple-lib/src build/src && shx cp -r chimple-lib/assets/* build/assets/",
     "serve-build": "http-server build",
@@ -153,7 +152,12 @@
     "shx": "^0.3.4",
     "storybook": "^8.0.8",
     "storybook-react-i18next": "^3.0.1",
+    "ts-node": "^10.9.2",
     "webpack": "^5.91.0"
   },
-  "description": "An Ionic project"
+  "description": "An Ionic project",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
