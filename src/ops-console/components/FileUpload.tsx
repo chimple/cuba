@@ -46,15 +46,12 @@ const FileUpload: React.FC = () => {
   };
   const validateEmailOrPhone = (value: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^\d{10}$/; // Assuming 10-digit phone numbers
     if (emailRegex.test(value)) {
       return true;
     }
-    if (phoneRegex.test(value)) {
-      const phoneValidation = OpsUtil.validateAndFormatPhoneNumber(value, "IN");
-      return phoneValidation.valid;
-    }
-    return false;
+    const phoneValidation = OpsUtil.validateAndFormatPhoneNumber(value, "IN");
+    return phoneValidation.valid;
+    // const phoneRegex = /^\d{10}$/; // Assuming 10-digit phone numbers
     // return emailRegex.test(value) || phoneRegex.test(value);
   };
   const processFile = async () => {
