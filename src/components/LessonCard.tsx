@@ -161,7 +161,7 @@ const LessonCard: React.FC<{
             // } else {
             // console.log("LessonCard course: subject,", subject);
             if (!course && !currentCourse) {
-              await getCurrentCourse(); // this might fetch it if not already
+              await getCurrentCourse();
             }
 
             if (lesson.plugin_type === COCOS) {
