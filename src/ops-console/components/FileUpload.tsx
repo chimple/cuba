@@ -9,6 +9,7 @@ import { Util } from "../../utility/util";
 import { CiRedo } from "react-icons/ci";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { useLocation } from "react-router-dom";
+import { OpsUtil } from "../OpsUtility/OpsUtil";
 
 const FileUpload: React.FC = () => {
   const api = ServiceConfig.getI()?.apiHandler;
@@ -45,9 +46,13 @@ const FileUpload: React.FC = () => {
   };
   const validateEmailOrPhone = (value: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^\d{10}$/; // Assuming 10-digit phone numbers
-    console.log("fsdfscsf", emailRegex.test(value), phoneRegex.test(value));
-    return emailRegex.test(value) || phoneRegex.test(value);
+    if (emailRegex.test(value)) {
+      return true;
+    }
+    const phoneValidation = OpsUtil.validateAndFormatPhoneNumber(value, "IN");
+    return phoneValidation.valid;
+    // const phoneRegex = /^\d{10}$/; // Assuming 10-digit phone numbers
+    // return emailRegex.test(value) || phoneRegex.test(value);
   };
   const processFile = async () => {
     if (!fileBuffer) return;
@@ -126,7 +131,7 @@ const FileUpload: React.FC = () => {
             programManagerPhone,
             fieldCoordinatorPhone
           );
-          console.log("fdfsdfsf",validationResponse);
+          console.log("fdfsdfsf", validationResponse);
           if (validationResponse.status === "error") {
             errors.push(...(validationResponse.errors || []));
           }
