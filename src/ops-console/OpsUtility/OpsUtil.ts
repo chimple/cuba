@@ -1,4 +1,3 @@
-// import { validateWhatsappNumbers } from "./CheckWhatsapp";
 import {
   parsePhoneNumberFromString,
   CountryCode,
