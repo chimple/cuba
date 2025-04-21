@@ -2,7 +2,7 @@
   "name": "cuba",
   "version": "0.0.1",
   "private": true,
-  "homepage": "http://.",
+  "homepage": ".",
   "dependencies": {
     "@algolia/autocomplete-js": "^1.9.2",
     "@algolia/autocomplete-plugin-query-suggestions": "^1.9.2",
@@ -152,12 +152,7 @@
     "shx": "^0.3.4",
     "storybook": "^8.0.8",
     "storybook-react-i18next": "^3.0.1",
-    "ts-node": "^10.9.2",
     "webpack": "^5.91.0"
   },
-  "description": "An Ionic project",
-  "main": "index.js",
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "description": "An Ionic project"
 }
