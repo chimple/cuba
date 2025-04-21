@@ -160,6 +160,10 @@ const LessonCard: React.FC<{
             //   });
             // } else {
             // console.log("LessonCard course: subject,", subject);
+            if (!course && !currentCourse) {
+              await getCurrentCourse();
+            }
+
             if (lesson.plugin_type === COCOS) {
               const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
               history.replace(PAGES.GAME + parmas, {
