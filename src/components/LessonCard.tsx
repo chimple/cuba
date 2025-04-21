@@ -176,7 +176,10 @@ const LessonCard: React.FC<{
                 chapter: JSON.stringify(chapter),
                 from: history.location.pathname + `?${CONTINUE}=true`,
               });
-            } else if (!!assignment?.id && lesson.plugin_type === LIVE_QUIZ) {
+            } else if (
+              // !!assignment?.id &&
+              lesson.plugin_type === LIVE_QUIZ
+            ) {
               if (!online) {
                 presentToast({
                   message: t(`Device is offline`),
@@ -192,12 +195,21 @@ const LessonCard: React.FC<{
                 });
                 return;
               }
-              history.replace(
-                PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${assignment?.id}`,
-                {
-                  assignment: JSON.stringify(assignment),
-                }
-              );
+              if (assignment) {
+                history.replace(
+                  PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${assignment?.id}`,
+                  { assignment: JSON.stringify(assignment) }
+                );
+              } else {
+                history.replace(
+                  PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
+                  {
+                    courseId: course?.id ?? currentCourse?.id,
+                    lesson: JSON.stringify(lesson),
+                    from: history.location.pathname + `?${CONTINUE}=true`,
+                  }
+                );
+              }
             } else if (lesson.plugin_type === LIDO) {
               const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
               history.replace(PAGES.LIDO_PLAYER + parmas, {
