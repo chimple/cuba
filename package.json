@@ -51,7 +51,6 @@
     "@types/react-router": "^5.1.11",
     "@types/react-router-dom": "^5.1.7",
     "algoliasearch": "^4.17.0",
-    "axios": "^1.8.4",
     "capacitor-fs": "^0.0.41-b5",
     "capacitor-rate-app": "^4.0.3",
     "cordova-plugin-background-mode": "^0.7.3",
@@ -105,7 +104,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build && npm run copy-build && npm run create-check-sum && cap sync && npm run build-storybook",
+    "build": "GENERATE_SOURCEMAP=false react-scripts build && npm run copy-build && npm run create-check-sum && cap sync && npm run build-storybook",
     "create-check-sum": "node scripts/check_sum_generator.js",
     "copy-build": "shx cp chimple-lib/*.js build/ && shx cp -r chimple-lib/src build/src && shx cp -r chimple-lib/assets/* build/assets/",
     "serve-build": "http-server build",
