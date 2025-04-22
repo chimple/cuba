@@ -1337,6 +1337,7 @@ export class Util {
     const currentStudent = this.getCurrentStudent();
     const api = ServiceConfig.getI().apiHandler;
     if (data && data.notificationType === ASSIGNMENT_TYPE.REWARD) {
+      const currentStudent = Util.getCurrentStudent();
       const rewardProfileId = data.rewardProfileId;
       if (rewardProfileId)
         if (currentStudent?.id === rewardProfileId) {
@@ -1385,6 +1386,11 @@ export class Util {
               PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
             );
           }
+        } else {
+          window.location.replace(
+            PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
+          );
+          return;
         }
       }
     } else if (data && data.notificationType === ASSIGNMENT_TYPE.LIVEQUIZ) {
