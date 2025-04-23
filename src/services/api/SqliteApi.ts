@@ -1450,11 +1450,12 @@ export class SqliteApi implements ServiceApi {
       SELECT course.*
       FROM ${TABLES.ClassCourse} AS cc
       JOIN ${TABLES.Course} AS course ON cc.course_id = course.id
-      WHERE cc.class_id = ? AND cc.is_deleted = 0;
+      WHERE cc.class_id = ? AND cc.is_deleted = 0
+      ORDER BY course.sort_index ASC;
     `;
     const res = await this._db?.query(query, [classId]);
     return res?.values ?? [];
-  }
+  }  
 
   async getLesson(id: string): Promise<TableTypes<"lesson"> | undefined> {
     const res = await this._db?.query(
