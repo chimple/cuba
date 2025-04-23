@@ -1385,6 +1385,11 @@ export class Util {
               PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
             );
           }
+        } else {
+          window.location.replace(
+            PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
+          );
+          return;
         }
       }
     } else if (data && data.notificationType === ASSIGNMENT_TYPE.LIVEQUIZ) {
