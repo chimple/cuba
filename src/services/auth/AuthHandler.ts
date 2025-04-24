@@ -1,5 +1,6 @@
 import { ServiceAuth } from "./ServiceAuth";
 import { TableTypes } from "../../common/constants";
+import { UserAttributes } from "@supabase/supabase-js";
 
 export class AuthHandler implements ServiceAuth {
   public static i: AuthHandler;
@@ -67,5 +68,17 @@ export class AuthHandler implements ServiceAuth {
 
   async refreshSession(): Promise<void> {
     return await this.s.refreshSession();
+  }
+  public async signInWithEmail(
+    email: string,
+    password: string
+  ): Promise<boolean> {
+    return await this.s.signInWithEmail(email, password);
+  }
+  public async sendResetPasswordEmail(email: string): Promise<boolean> {
+    return await this.s.sendResetPasswordEmail(email);
+  }
+  public async updateUser(attributes: UserAttributes): Promise<boolean> {
+    return await this.s.updateUser(attributes);
   }
 }

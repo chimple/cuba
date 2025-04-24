@@ -1,3 +1,4 @@
+import { UserAttributes } from "@supabase/supabase-js";
 import { TableTypes } from "../../common/constants";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 
@@ -28,4 +29,10 @@ export interface ServiceAuth {
 
   logOut(): Promise<void>;
   refreshSession(): Promise<void>;
+
+  signInWithEmail(email, password): Promise<boolean>;
+
+  sendResetPasswordEmail(email: string): Promise<boolean>;
+
+  updateUser(attributes: UserAttributes): Promise<boolean>;
 }

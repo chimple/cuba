@@ -123,6 +123,7 @@ import UploadPage from "./ops-console/pages/UploadPage";
 import { initializeClickListener } from "./analytics/clickUtil";
 import { EVENTS } from "./common/constants";
 import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
+import ResetPassword from "./pages/ResetPassword";
 
 setupIonicReact();
 interface ExtraData {
@@ -439,6 +440,9 @@ const App: React.FC = () => {
             <Switch>
               <Route path={PAGES.APP_UPDATE} exact={true}>
                 <HotUpdate />
+              </Route>
+              <Route path={PAGES.RESET_PASSWORD} exact={true}>
+                <ResetPassword />
               </Route>
               <ProtectedRoute path={PAGES.HOME} exact={true}>
                 <Home />

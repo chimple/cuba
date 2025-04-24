@@ -1,0 +1,128 @@
+.login-form {
+  margin-top: 1vh;
+}
+
+#login-with-email-chimple-logo {
+  text-align: center;
+  width: 11vw;
+  height: 15vh;
+  margin-bottom: 3px;
+}
+.login-with-email-text-box {
+  outline: solid 0.1px;
+  color: var(--text-color);
+  width: 26vw;
+  --height: 5.5vh !important;
+  border-radius: 3px;
+  padding-left: 0.5vw;
+  font-size: var(--text-sizeM);
+  text-align: start;
+  --padding-start: 12px;
+  --padding-end: 12px;
+}
+.login-with-email-password-text-box {
+  outline: solid 0.1px;
+  color: var(--text-color);
+  width: 26vw;
+  border-radius: 3px;
+  padding-left: 0.5vw;
+  font-size: var(--text-sizeM);
+  text-align: start;
+  padding: 0 8px !important;
+  --height: 5.5vh;
+}
+
+.login-with-email-text-box-div {
+  color: var(--text-color);
+  font-size: var(--text-sizeL);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 1vw;
+}
+
+.login-with-email-label {
+  margin-left: 0.2vw;
+  margin-bottom: 0.5vw;
+}
+.login-with-email-text-box-main-div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.login-with-email-button {
+  width: 20vw;
+  height: 9vh;
+  box-shadow: 0;
+  display: flex;
+  justify-content: center;
+  outline: solid 0.1px;
+}
+#login-with-email-button-inner {
+  display: flex;
+  position: relative;
+  flex-flow: row;
+  flex-shrink: 0;
+  font-size: var(--text-sizeM);
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  color: var(--text-color);
+  width: 26vw;
+  --background: #CFEC91;
+  height: 3.5vw;
+  border-radius: 1vh;
+  text-align: center;
+  font-weight: bold;
+}
+.email-password-reset-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 5vh;
+}
+.login-with-email-text-box,
+.login-with-email-password-text-box {
+  padding: 8px 12px;
+  box-sizing: border-box;
+}
+.forgot-password-div {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  width: 26vw;
+}
+.forgot-password-text {
+  font-size: 10px;
+  color: var(--text-color);
+  cursor: pointer;
+}
+.login-with-email-eye-icon{
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  cursor: pointer;
+  color: black;
+  z-index: 10;
+  pointer-events: auto;
+}
+.login-with-email-password{
+  position: relative;
+}
+.login-with-email-forgot-password{
+  height: calc(100vh - 150px);
+  display: flex;
+  color: var(--text-color);
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+}
+.login-link-text{
+  color: #FF5500;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: underline;
+}
