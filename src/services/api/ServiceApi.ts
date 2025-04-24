@@ -899,11 +899,15 @@ export interface ServiceApi {
    * Get the chapter by lessonId
    * @param lessonId
    */
-  getChapterByLesson(
+  getChapterIDByLessonID(
     lessonId: string,
     classId?: string,
     userId?: string
   ): Promise<String | undefined>;
+
+  getChapterByLessonID(
+    lessonId: string,
+  ): Promise<TableTypes<"chapter"> | undefined>;
 
   /**
    * Get Assignments by classId and datewise

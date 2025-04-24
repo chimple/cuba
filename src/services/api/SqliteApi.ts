@@ -3494,7 +3494,7 @@ order by
     return res;
   }
 
-  async getChapterByLesson(
+  async getChapterIDByLessonID(
     lessonId: string,
     classId?: string,
     userId?: string
@@ -3516,6 +3516,43 @@ order by
     } catch (error) {
       console.error("Error fetching chapter by IDs:", error);
       return;
+    }
+  }
+
+  async getChapterByLessonID(
+    lessonId: string,
+    classId?: string,
+    userId?: string
+  ): Promise<TableTypes<"chapter"> | undefined> {
+    try {
+      const class_course = classId
+        ? await this.getCoursesForClassStudent(classId)
+        : await this.getCoursesForParentsStudent(userId ?? "");
+      const res = await this._db?.query(
+        `SELECT c.id, c.name, c.image, c.course_id, c.created_at, c.updated_at, c.is_deleted, c.sort_index, c.sub_topics
+         FROM ${TABLES.ChapterLesson} cl
+         JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
+         WHERE cl.lesson_id = "${lessonId}"`
+      );
+      
+      if (res?.values && res.values.length > 0) {
+        const chapterData = res.values[0];
+        return {
+          id: chapterData[0],
+          name: chapterData[1],
+          image: chapterData[2],
+          course_id: chapterData[3],
+          created_at: chapterData[4],
+          updated_at: chapterData[5],
+          is_deleted: chapterData[6],
+          sort_index: chapterData[7],
+          sub_topics: chapterData[8]
+        };
+      }
+      return undefined;
+    } catch (error) {
+      console.error("Error fetching chapter by IDs:", error);
+      return undefined;
     }
   }
 

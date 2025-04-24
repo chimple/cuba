@@ -719,12 +719,17 @@ export class ApiHandler implements ServiceApi {
     return this.s.getUserAssignmentCart(userId);
   }
 
-  getChapterByLesson(
+  getChapterIDByLessonID(
     lessonId: string,
     classId?: string,
     userId?: string
   ): Promise<String | undefined> {
-    return this.s.getChapterByLesson(lessonId, classId, userId);
+    return this.s.getChapterIDByLessonID(lessonId, classId, userId);
+  }
+  getChapterByLessonID(
+    lessonId: string
+  ): Promise<TableTypes<"chapter"> | undefined> {
+    return this.s.getChapterByLessonID(lessonId);
   }
   createClass(
     schoolId: string,

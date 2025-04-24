@@ -218,8 +218,13 @@ const Home: FC = () => {
       student != null
         ? await api.getStudentClassesAndSchools(student.id)
         : null;
-    const classDoc = linkedData?.classes[0];
-    if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
+    
+    // Add a proper null check on linkedData and the classes array
+    const classDoc = linkedData?.classes && linkedData.classes.length > 0 
+      ? linkedData.classes[0] 
+      : undefined;
+      
+    if (classDoc?.id) await api.assignmentListner(classDoc.id, () => {});
     if (student) await api.assignmentUserListner(student.id, () => {});
 
     if (
@@ -280,7 +285,8 @@ const Home: FC = () => {
 
     if (!currentStudent) {
       // history.replace(PAGES.SELECT_MODE);
-      return;
+      setIsLoading(false);
+      return [];
     }
     const currClass = schoolUtil.getCurrentClass();
     if (
@@ -288,21 +294,41 @@ const Home: FC = () => {
       subjectCode === HOMEHEADERLIST.SUGGESTIONS
     ) {
       if (!localData.allCourses) {
-        let tempAllCourses = await api.getAllCourses();
-        localData.allCourses = tempAllCourses;
+        try {
+          let tempAllCourses = await api.getAllCourses();
+          localData.allCourses = tempAllCourses || [];
+        } catch (error) {
+          console.error("Error fetching courses:", error);
+          localData.allCourses = [];
+        }
       }
       try {
-        recommendationResult = await getAssignments();
-        let tempRecommendations =
-          await getCourseRecommendationLessons(currentStudent,currClass);
+        // Get assignments safely with a default empty array if undefined is returned
+        const assignments = await getAssignments() || [];
+        recommendationResult = assignments;
+        
+        // Get course recommendations safely
+        let tempRecommendations: TableTypes<"lesson">[] = [];
+        try {
+          tempRecommendations = await getCourseRecommendationLessons(currentStudent, currClass) || [];
+        } catch (recError) {
+          console.error("Error fetching course recommendations:", recError);
+        }
+        
+        // Combine recommendations
         recommendationResult = recommendationResult.concat(tempRecommendations);
         console.log("Final RECOMMENDATION List ", recommendationResult);
         setDataCourse(recommendationResult);
+        setIsLoading(false);
         return recommendationResult;
       } catch (error) {
         console.error("Error fetching recommendation:", error);
+        setIsLoading(false);
+        return [];
       }
     }
+    setIsLoading(false);
+    return [];
   }
   enum SUBTAB {
     SUGGESTIONS,
