@@ -213,14 +213,6 @@ export const ACTIVE_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
         headerList: HOMEHEADERLIST.HOME,
       },
     ],
-    // [
-    //   HOMEHEADERLIST.SUGGESTIONS,
-    //   {
-    //     displayName: "Suggestion",
-    //     iconSrc: "/assets/icons/suggestionIcon_icon.svg",
-    //     headerList: HOMEHEADERLIST.SUGGESTIONS,
-    //   },
-    // ],
     [
       HOMEHEADERLIST.ASSIGNMENT,
       {
@@ -237,22 +229,6 @@ export const ACTIVE_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
         headerList: HOMEHEADERLIST.SUBJECTS,
       },
     ],
-    // [
-    //   HOMEHEADERLIST.CHALLENGES,
-    //   {
-    //     displayName: "Challenges",
-    //     iconSrc: "/assets/icons/MathsIcon.svg",
-    //     headerList: HOMEHEADERLIST.CHALLENGES,
-    //   },
-    // ],
-    // [
-    //   HOMEHEADERLIST.SEARCH,
-    //   {
-    //     displayName: "Search",
-    //     iconSrc: "/assets/icons/searchIcon.svg",
-    //     headerList: HOMEHEADERLIST.SEARCH,
-    //   },
-    // ],
     [
       HOMEHEADERLIST.LIVEQUIZ,
       {
@@ -267,14 +243,6 @@ export const DEFAULT_HEADER_ICON_CONFIGS: Map<
   HOMEHEADERLIST,
   HeaderIconConfig
 > = new Map<HOMEHEADERLIST, HeaderIconConfig>([
-  // [
-  //   HOMEHEADERLIST.SUGGESTIONS,
-  //   {
-  //     displayName: "Suggestion",
-  //     iconSrc: "/assets/icons/suggestionInactiveIcon.svg",
-  //     headerList: HOMEHEADERLIST.SUGGESTIONS,
-  //   },
-  // ],
   [
     HOMEHEADERLIST.ASSIGNMENT,
     {
@@ -291,22 +259,6 @@ export const DEFAULT_HEADER_ICON_CONFIGS: Map<
       headerList: HOMEHEADERLIST.SUBJECTS,
     },
   ],
-  // [
-  //   HOMEHEADERLIST.CHALLENGES,
-  //   {
-  //     displayName: "Challenges",
-  //     iconSrc: "/assets/icons/MathsIcon.svg",
-  //     headerList: HOMEHEADERLIST.CHALLENGES,
-  //   },
-  // ],
-  // [
-  //   HOMEHEADERLIST.SEARCH,
-  //   {
-  //     displayName: "Search",
-  //     iconSrc: "/assets/icons/searchInactiveIcon.svg",
-  //     headerList: HOMEHEADERLIST.SEARCH,
-  //   },
-  // ],
   [
     HOMEHEADERLIST.LIVEQUIZ,
     {
