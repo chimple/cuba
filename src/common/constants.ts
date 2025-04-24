@@ -209,55 +209,31 @@ export const ACTIVE_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
       HOMEHEADERLIST.HOME,
       {
         displayName: "Home",
-        iconSrc: "/assets/icons/homeIcon.svg",
+        iconSrc: "/assets/icons/HomeIconActive.svg",
         headerList: HOMEHEADERLIST.HOME,
-      },
-    ],
-    [
-      HOMEHEADERLIST.SUGGESTIONS,
-      {
-        displayName: "Suggestion",
-        iconSrc: "/assets/icons/suggestionIcon_icon.svg",
-        headerList: HOMEHEADERLIST.SUGGESTIONS,
-      },
-    ],
-    [
-      HOMEHEADERLIST.SUBJECTS,
-      {
-        displayName: "Subjects",
-        iconSrc: "/assets/icons/subjectIcon.svg",
-        headerList: HOMEHEADERLIST.SUBJECTS,
       },
     ],
     [
       HOMEHEADERLIST.ASSIGNMENT,
       {
         displayName: "Home work",
-        iconSrc: "/assets/icons/homeworkIcon.svg",
+        iconSrc: "/assets/icons/HomeworkIconActive.svg",
         headerList: HOMEHEADERLIST.ASSIGNMENT,
       },
     ],
-    // [
-    //   HOMEHEADERLIST.CHALLENGES,
-    //   {
-    //     displayName: "Challenges",
-    //     iconSrc: "/assets/icons/MathsIcon.svg",
-    //     headerList: HOMEHEADERLIST.CHALLENGES,
-    //   },
-    // ],
     [
-      HOMEHEADERLIST.SEARCH,
+      HOMEHEADERLIST.SUBJECTS,
       {
-        displayName: "Search",
-        iconSrc: "/assets/icons/searchIcon.svg",
-        headerList: HOMEHEADERLIST.SEARCH,
+        displayName: "Subjects",
+        iconSrc: "/assets/icons/SubjectsIconActive.svg",
+        headerList: HOMEHEADERLIST.SUBJECTS,
       },
     ],
     [
       HOMEHEADERLIST.LIVEQUIZ,
       {
-        displayName: "Live Quiz",
-        iconSrc: "/assets/icons/quiz_icon.svg",
+        displayName: "Specials",
+        iconSrc: "/assets/icons/SpecialsIconActive.svg",
         headerList: HOMEHEADERLIST.LIVEQUIZ,
       },
     ],
@@ -268,50 +244,26 @@ export const DEFAULT_HEADER_ICON_CONFIGS: Map<
   HeaderIconConfig
 > = new Map<HOMEHEADERLIST, HeaderIconConfig>([
   [
-    HOMEHEADERLIST.SUGGESTIONS,
+    HOMEHEADERLIST.ASSIGNMENT,
     {
-      displayName: "Suggestion",
-      iconSrc: "/assets/icons/suggestionInactiveIcon.svg",
-      headerList: HOMEHEADERLIST.SUGGESTIONS,
+      displayName: "Home work",
+      iconSrc: "/assets/icons/HomeworkIconInactive.svg",
+      headerList: HOMEHEADERLIST.ASSIGNMENT,
     },
   ],
   [
     HOMEHEADERLIST.SUBJECTS,
     {
       displayName: "Subjects",
-      iconSrc: "/assets/icons/subjectInactiveIcon.svg",
+      iconSrc: "/assets/icons/SubjectsIcon.svg",
       headerList: HOMEHEADERLIST.SUBJECTS,
-    },
-  ],
-  [
-    HOMEHEADERLIST.ASSIGNMENT,
-    {
-      displayName: "Home work",
-      iconSrc: "/assets/icons/homeworkInactiveIcon.svg",
-      headerList: HOMEHEADERLIST.ASSIGNMENT,
-    },
-  ],
-  // [
-  //   HOMEHEADERLIST.CHALLENGES,
-  //   {
-  //     displayName: "Challenges",
-  //     iconSrc: "/assets/icons/MathsIcon.svg",
-  //     headerList: HOMEHEADERLIST.CHALLENGES,
-  //   },
-  // ],
-  [
-    HOMEHEADERLIST.SEARCH,
-    {
-      displayName: "Search",
-      iconSrc: "/assets/icons/searchInactiveIcon.svg",
-      headerList: HOMEHEADERLIST.SEARCH,
     },
   ],
   [
     HOMEHEADERLIST.LIVEQUIZ,
     {
-      displayName: "Live Quiz",
-      iconSrc: "/assets/icons/quizInactiveIcon.svg",
+      displayName: "Specials",
+      iconSrc: "/assets/icons/SpecialsIcon.svg",
       headerList: HOMEHEADERLIST.LIVEQUIZ,
     },
   ],
