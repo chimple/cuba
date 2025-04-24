@@ -10,12 +10,17 @@
   padding: 0%;
 }
 
-#LeaderBoard-Header {
+#LeaderBoard-Header,
+back-button-in-custom-app-bar {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   margin: var(--margin);
   margin-bottom: 0;
+}
+
+.hidden-text {
+  display: none; /* Completely removes the text */
 }
 
 #leaderboard-UI {

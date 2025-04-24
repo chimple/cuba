@@ -347,7 +347,7 @@ export enum PAGES {
   STUDENT_PROFILE = "/student-profile",
   ADD_STUDENT = "/add_student",
   BONUS = "/bonus",
-  BADGES = "/badges"
+  BADGES = "/badges",
 }
 
 export enum SUBTAB {
@@ -363,12 +363,21 @@ export const SUBTAB_MAPPINGS = {
   [PAGES.HOME]: { header: HOMEHEADERLIST.HOME },
   [PAGES.SEARCH]: { header: HOMEHEADERLIST.SEARCH },
   [PAGES.SUBJECTS]: { header: HOMEHEADERLIST.SUBJECTS },
-  [PAGES.SUGGESTIONS]: { header: HOMEHEADERLIST.SUGGESTIONS, subtab: SUBTAB.SUGGESTIONS },
-  [PAGES.FAVOURITES]: { header: HOMEHEADERLIST.SUGGESTIONS, subtab: SUBTAB.FAVOURITES },
-  [PAGES.HISTORY]: { header: HOMEHEADERLIST.SUGGESTIONS, subtab: SUBTAB.HISTORY },
+  [PAGES.SUGGESTIONS]: {
+    header: HOMEHEADERLIST.SUGGESTIONS,
+    subtab: SUBTAB.SUGGESTIONS,
+  },
+  [PAGES.FAVOURITES]: {
+    header: HOMEHEADERLIST.SUGGESTIONS,
+    subtab: SUBTAB.FAVOURITES,
+  },
+  [PAGES.HISTORY]: {
+    header: HOMEHEADERLIST.SUGGESTIONS,
+    subtab: SUBTAB.HISTORY,
+  },
   [PAGES.LEADERBOARD]: { redirect: PAGES.LEADERBOARD },
   [PAGES.REWARDS]: {
-    redirect: `${PAGES.LEADERBOARD}?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${LEADERBOARD_REWARD_LIST.STICKER.toLowerCase()}`
+    redirect: `${PAGES.LEADERBOARD}?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${LEADERBOARD_REWARD_LIST.STICKER.toLowerCase()}`,
   },
   // [PAGES.STICKERS] : {
   //   redirect: `${PAGES.LEADERBOARD}?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${LEADERBOARD_REWARD_LIST.STICKER.toLowerCase()}`
@@ -379,7 +388,7 @@ export const SUBTAB_MAPPINGS = {
   // [PAGES.BADGES] : {
   //   redirect: `${PAGES.LEADERBOARD}?tab=${LEADERBOARDHEADERLIST.REWARDS.toLowerCase()}&rewards=${LEADERBOARD_REWARD_LIST.BADGES.toLowerCase()}`
   // }
-}
+};
 export enum LANG {
   ENGLISH = "en",
   HINDI = "hi",
@@ -533,12 +542,12 @@ export enum ACTION {
   CREATE = "create",
   UPDATE = "update",
   DELETE = "delete",
-  SEARCH = "search"
+  SEARCH = "search",
 }
 export enum NOTIFICATIONTYPE {
   REWARD = "reward",
   ASSIGNMENT = "assignment",
-  LIVEQUIZ = "liveQuiz"
+  LIVEQUIZ = "liveQuiz",
 }
 export const CURRENT_STUDENT = "currentStudent";
 export const CURRENT_USER = "currentUser";
@@ -547,7 +556,9 @@ export enum EVENTS {
   LESSON_INCOMPLETE = "lesson_incomplete",
   USER_PROFILE = "user_profile",
   User_Clicks = "user_clicks",
-  SEARCH_TRENDS = "search_trends"
+  EXPERIMENT_VIEWED = 'experiment_viewed',
+  SEARCH_TRENDS = "search_trends",
+  CLICKS_ANALYTICS = "click_analytics",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -627,5 +638,5 @@ export const CURRENT_SELECTED_COURSE = "currentSelectedCourse";
 export const CURRENT_SELECTED_CHAPTER = "currentSelectedChapter";
 export const CURRENT_STAGE = "currentStage";
 export const CURRENT_SELECTED_GRADE = "currentSelectedGrade";
-export const QUIZ_POPUP_SHOWN = "quizPopupShown"
-export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown"
+export const QUIZ_POPUP_SHOWN = "quizPopupShown";
+export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";

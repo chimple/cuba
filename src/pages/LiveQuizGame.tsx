@@ -35,7 +35,7 @@ const LiveQuizGame: FC = () => {
   const [lessonName, setLessonName] = useState<string>("");
   const [scoreData, setScoreData] = useState<any>();
   let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
-
+  
   useEffect(() => {
     if (!paramLiveRoomId && !paramLessonId) {
       history.replace(PAGES.HOME);

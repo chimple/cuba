@@ -235,10 +235,13 @@ const LessonCard: React.FC<{
               }
               history.replace(
                 lesson?.assignment
-                  ? PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${lesson.assignment.docId}`
+                  ? PAGES.LIVE_QUIZ_JOIN +
+                      `?assignmentId=${lesson.assignment.docId}`
                   : PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson?.id}`,
-                lesson?.assignment ? { assignment: JSON.stringify(lesson.assignment) } :  {from: history.location.pathname + `?${CONTINUE}=true`},
-              );              
+                lesson?.assignment
+                  ? { assignment: JSON.stringify(lesson.assignment) }
+                  : { from: history.location.pathname + `?${CONTINUE}=true` }
+              );
             }
           }
         }}
@@ -285,6 +288,7 @@ const LessonCard: React.FC<{
 
             {showSubjectName && currentCourse?.title ? (
               <div id="lesson-card-subject-name">
+                <p className="ignore">{lesson.title} </p>
                 <p>
                   {currentCourse?.title}
                   {/* {subject.title==="English"?subject.title:t(subject.title)} */}

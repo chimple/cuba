@@ -96,10 +96,10 @@ const JoinClass: FC<{
 
   useEffect(() => {
     const handleVisibilityChange = () => {
-      setVisiabilityChange(!visiabilityChange)
+      setVisiabilityChange(!visiabilityChange);
     };
     //Util.isTextFieldFocus(scollToRef, setIsInputFocus);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     const urlParams = new URLSearchParams(location.search);
     const joinClassParam = urlParams.get("join-class");
     const classCode = urlParams.get("classCode");
@@ -115,13 +115,13 @@ const JoinClass: FC<{
       }
     }
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [visiabilityChange]);
 
   return (
     <div className="join-class-main-header">
-      <div className="join-class-header">
+      <div className="join-class-header" aria-label="Join Class Header">
         {/* <div className="join-class-title">
           {t("Enter the 6 digit code your teacher has given to join the class")}
         </div> */}
@@ -170,12 +170,12 @@ const JoinClass: FC<{
           t("You are Joining ") +
           (!!codeResult
             ? t("School") +
-            ": " +
-            codeResult["schoolName"] +
-            ", " +
-            t("Class") +
-            ": " +
-            (codeResult["data"]["name"] ?? "")
+              ": " +
+              codeResult["schoolName"] +
+              ", " +
+              t("Class") +
+              ": " +
+              (codeResult["data"]["name"] ?? "")
             : "")
         }
         showDialogBox={showDialogBox}

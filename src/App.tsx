@@ -35,6 +35,7 @@ import {
   BASE_NAME,
   CACHE_IMAGE,
   DOWNLOAD_BUTTON_LOADING_STATUS,
+  EVENTS,
   GAME_URL,
   IS_CUBA,
   PAGES,
@@ -70,6 +71,9 @@ import AddStudent from "./pages/Malta/AddStudent";
 import { JailbreakRoot } from "@basecom-gmbh/capacitor-jailbreak-root-detection";
 import { useIonAlert } from "@ionic/react";
 import i18n from "./i18n";
+import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
+import { ServiceConfig } from "./services/ServiceConfig";
+import { initializeClickListener } from "./analytics/clickUtil";
 
 setupIonicReact();
 interface ExtraData {
@@ -77,10 +81,30 @@ interface ExtraData {
   rewardProfileId?: string;
   classId?: string;
 }
+
+
 const App: React.FC = () => {
+  const cleanup = initializeClickListener();
   const [online, setOnline] = useState(navigator.onLine);
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
+  const [student, setStudent] = useState(Util.getCurrentStudent());
   const [presentAlert] = useIonAlert();
+
+  const api = ServiceConfig.getI().apiHandler;
+
+const growthbook = new GrowthBook({
+  apiHost: "https://cdn.growthbook.io",
+  clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
+  enableDevMode: true,
+  trackingCallback: (experiment, result) => {
+    Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
+      user_id: student?.docId,
+      experiment_id: experiment.key,
+      variation_id: result.key,
+    })
+  },
+});
+growthbook.init({ streaming: true });
 
   useEffect(() => {
     const handleOnline = () => {
@@ -123,8 +147,10 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      cleanup();
     };
   }, [online, presentToast]);
+
   useEffect(() => {
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(false));
     console.log("fetching...");
@@ -135,7 +161,9 @@ const App: React.FC = () => {
         if (value.result) {
           presentAlert({
             header: i18n.t("Device Not Supported"),
-            message: i18n.t("We're sorry, but it appears that your device is rooted. For security and stability reasons, this application cannot be used on rooted devices. Please unroot your device to continue using the app. If you need assistance, please contact our support team."),
+            message: i18n.t(
+              "We're sorry, but it appears that your device is rooted. For security and stability reasons, this application cannot be used on rooted devices. Please unroot your device to continue using the app. If you need assistance, please contact our support team."
+            ),
             buttons: [i18n.t("Okay")],
             onDidDismiss: () => {
               CapApp.exitApp();
@@ -175,7 +203,7 @@ const App: React.FC = () => {
           if (data.fullPayload) {
             const formattedPayload = JSON.parse(data.fullPayload);
             processNotificationData(formattedPayload);
-          }else{
+          } else {
             processNotificationData(data);
           }
         }
@@ -196,6 +224,25 @@ const App: React.FC = () => {
     });
     updateAvatarSuggestionJson();
   }, []);
+
+  const growthBookAttributes = async (student: any) => {
+    const studentResult = await api.getStudentResult(student.docId);
+    studentResult &&
+      growthbook.setAttributes({
+        school_ids:studentResult.schools,
+        id: studentResult.docId,
+        class_ids: studentResult.classes,
+        gender: student.gender,
+        age: student.age,
+      });
+  };
+
+  useEffect(() => {
+    student
+      ? growthBookAttributes(student)
+      : console.log("Student not found...");
+  }, [student]);
+
   const processNotificationData = async (data) => {
     Util.navigateTabByNotificationData(data);
   };
@@ -243,101 +290,103 @@ const App: React.FC = () => {
     }
   }
   return (
-    <IonApp>
-      <IonReactRouter basename={BASE_NAME}>
-        <IonRouterOutlet>
-          <Switch>
-            <Route path={PAGES.APP_UPDATE} exact={true}>
-              <HotUpdate />
-            </Route>
-            <ProtectedRoute path={PAGES.HOME} exact={true}>
-              <Home />
-            </ProtectedRoute>
-            <Route path={PAGES.LOGIN} exact={true}>
-              <Login />
-            </Route>
-            <ProtectedRoute path={PAGES.GAME} exact={true}>
-              <CocosGame />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.END} exact={true}>
-              <End />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.PROFILE} exact={true}>
-              <Profile />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.PARENT} exact={true}>
-              <Parent />
-            </ProtectedRoute>
-            <Route path={PAGES.APP_LANG_SELECTION} exact={true}>
-              <AppLangSelection />
-            </Route>
-            <ProtectedRoute path={PAGES.CREATE_STUDENT} exact={true}>
-              <EditStudent />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.EDIT_STUDENT} exact={true}>
-              <EditStudent />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.DISPLAY_STUDENT} exact={true}>
-              <DisplayStudents />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.DISPLAY_SUBJECTS} exact={true}>
-              <DisplaySubjects />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.ADD_SUBJECTS} exact={true}>
-              <AddCourses />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.DISPLAY_CHAPTERS} exact={true}>
-              <DisplayChapters />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.STUDENT_PROGRESS} exact={true}>
-              <StudentProgress />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.SEARCH} exact={true}>
-              <SearchLesson />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.LEADERBOARD} exact={true}>
-              <Leaderboard />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.ASSIGNMENT} exact={true}>
-              <Home />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.LIVE_QUIZ} exact={true}>
-              <Home />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.JOIN_CLASS} exact={true}>
-              <Home />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
-              <SelectMode />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
-              <TeacherProfile />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.STUDENT_PROFILE} exact={true}>
-              <StudentProfile />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.ADD_STUDENT} exact={true}>
-              <AddStudent />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
-              <LiveQuizRoom />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.LIVE_QUIZ_GAME} exact={true}>
-              <LiveQuizGame />
-            </ProtectedRoute>
-            <Route path={PAGES.TERMS_AND_CONDITIONS} exact={true}>
-              <TermsAndConditions />
-            </Route>
-            <ProtectedRoute path={PAGES.LIVE_QUIZ_ROOM_RESULT} exact={true}>
-              <LiveQuizRoomResult />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.LIVE_QUIZ_LEADERBOARD} exact={true}>
-              <LiveQuizLeaderBoard />
-            </ProtectedRoute>
-          </Switch>
-        </IonRouterOutlet>
-      </IonReactRouter>
-    </IonApp>
+    <GrowthBookProvider growthbook={growthbook}>
+      <IonApp>
+        <IonReactRouter basename={BASE_NAME}>
+          <IonRouterOutlet>
+            <Switch>
+              <Route path={PAGES.APP_UPDATE} exact={true}>
+                <HotUpdate />
+              </Route>
+              <ProtectedRoute path={PAGES.HOME} exact={true}>
+                <Home />
+              </ProtectedRoute>
+              <Route path={PAGES.LOGIN} exact={true}>
+                <Login />
+              </Route>
+              <ProtectedRoute path={PAGES.GAME} exact={true}>
+                <CocosGame />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.END} exact={true}>
+                <End />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.PROFILE} exact={true}>
+                <Profile />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.PARENT} exact={true}>
+                <Parent />
+              </ProtectedRoute>
+              <Route path={PAGES.APP_LANG_SELECTION} exact={true}>
+                <AppLangSelection />
+              </Route>
+              <ProtectedRoute path={PAGES.CREATE_STUDENT} exact={true}>
+                <EditStudent />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.EDIT_STUDENT} exact={true}>
+                <EditStudent />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.DISPLAY_STUDENT} exact={true}>
+                <DisplayStudents />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.DISPLAY_SUBJECTS} exact={true}>
+                <DisplaySubjects />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.ADD_SUBJECTS} exact={true}>
+                <AddCourses />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.DISPLAY_CHAPTERS} exact={true}>
+                <DisplayChapters />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.STUDENT_PROGRESS} exact={true}>
+                <StudentProgress />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.SEARCH} exact={true}>
+                <SearchLesson />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.LEADERBOARD} exact={true}>
+                <Leaderboard />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.ASSIGNMENT} exact={true}>
+                <Home />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.LIVE_QUIZ} exact={true}>
+                <Home />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.JOIN_CLASS} exact={true}>
+                <Home />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
+                <SelectMode />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
+                <TeacherProfile />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.STUDENT_PROFILE} exact={true}>
+                <StudentProfile />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.ADD_STUDENT} exact={true}>
+                <AddStudent />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
+                <LiveQuizRoom />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.LIVE_QUIZ_GAME} exact={true}>
+                <LiveQuizGame />
+              </ProtectedRoute>
+              <Route path={PAGES.TERMS_AND_CONDITIONS} exact={true}>
+                <TermsAndConditions />
+              </Route>
+              <ProtectedRoute path={PAGES.LIVE_QUIZ_ROOM_RESULT} exact={true}>
+                <LiveQuizRoomResult />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.LIVE_QUIZ_LEADERBOARD} exact={true}>
+                <LiveQuizLeaderBoard />
+              </ProtectedRoute>
+            </Switch>
+          </IonRouterOutlet>
+        </IonReactRouter>
+      </IonApp>
+    </GrowthBookProvider>
   );
 };
 

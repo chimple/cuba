@@ -19,6 +19,7 @@ const LeaderboardRewards: FC = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const rewardsTab = urlParams.get("rewards");
     let currentTab = LEADERBOARD_REWARD_LIST.STICKER;
+
     if (rewardsTab) {
       if (rewardsTab === LEADERBOARD_REWARD_LIST.BONUS.toLowerCase()) {
         currentTab = LEADERBOARD_REWARD_LIST.BONUS;
@@ -26,8 +27,19 @@ const LeaderboardRewards: FC = () => {
         currentTab = LEADERBOARD_REWARD_LIST.BADGES;
       }
     }
+
     setTabIndex(currentTab);
   }, []);
+
+  useEffect(() => {
+    // Update URL when tabIndex changes
+    if (tabIndex) {
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set("rewards", tabIndex.toLowerCase());
+      window.history.replaceState({}, "", newUrl.toString());
+    }
+  }, [tabIndex]);
+
   return (
     <div className="leaderboard-rewards-container">
       <Tabs

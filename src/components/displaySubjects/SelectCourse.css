@@ -78,3 +78,11 @@
 .slide {
   max-width: fit-content;
 }
+
+#ignore {
+  background: transparent !important;
+  color: transparent !important;
+  position: absolute;
+  justify-self: bottom;
+  width: fit-content;
+}
