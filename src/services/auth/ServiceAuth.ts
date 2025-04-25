@@ -29,10 +29,26 @@ export interface ServiceAuth {
 
   logOut(): Promise<void>;
   refreshSession(): Promise<void>;
-
+/**
+ * Authenticates a user using their email and password.
+ *
+ * @param email - The user's email address.
+ * @param password - The user's password.
+ * @returns A promise that resolves to `true` if sign-in is successful, otherwise `false`.
+ */
   signInWithEmail(email, password): Promise<boolean>;
-
+/**
+ * Sends a password reset email to the given address.
+ *
+ * @param email - The email address to which the reset password link will be sent.
+ * @returns A promise that resolves to `true` if the email was sent successfully, otherwise `false`.
+ */
   sendResetPasswordEmail(email: string): Promise<boolean>;
-
+/**
+ * Updates the attributes of the currently authenticated user.
+ *
+ * @param attributes - An object containing user attributes to be updated (e.g., password).
+ * @returns A promise that resolves to `true` if the update was successful, otherwise `false`.
+ */
   updateUser(attributes: UserAttributes): Promise<boolean>;
 }

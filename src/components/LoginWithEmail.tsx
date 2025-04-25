@@ -79,9 +79,7 @@ const LoginWithEmail: React.FC<LoginProps> = ({
         alt="Chimple Brand Logo"
         src="assets/icons/ChimpleBrandLogo.svg"
       />
-      <p id="chimple-brand-text2">
-        {t("Discovering the joy of learning")}
-      </p>
+      <p id="chimple-brand-text2">{t("Discovering the joy of learning")}</p>
 
       {!showForgotPassword ? (
         <div className="login-with-email-text-box-main-div">
@@ -90,7 +88,7 @@ const LoginWithEmail: React.FC<LoginProps> = ({
             <IonInput
               type="email"
               value={email}
-              placeholder="Enter your email"
+              placeholder={t("Enter your email") || ""}
               className="login-with-email-text-box"
               onIonChange={(e) => setEmail(e.detail.value!)}
             />
@@ -98,11 +96,11 @@ const LoginWithEmail: React.FC<LoginProps> = ({
 
           <div className="login-with-email-text-box-div">
             <p className="login-with-email-label">{t("Password")}</p>
-            <div className="login-with-email-password" >
+            <div className="login-with-email-password">
               <IonInput
                 type={showPassword ? "text" : "password"}
                 value={password}
-                placeholder="Enter your password"
+                placeholder={t("Enter your password") || ""}
                 className="login-with-email-password-text-box"
                 onIonChange={(e) => setPassword(e.detail.value!)}
               />
@@ -135,13 +133,11 @@ const LoginWithEmail: React.FC<LoginProps> = ({
       ) : (
         <>
           {forgotMessage ? (
-            <div
-              className="login-with-email-forgot-password"
-            >
+            <div className="login-with-email-forgot-password">
               <p>
                 {forgotMessage} {t("Go to")}{" "}
                 <span
-                 className="login-link-text"
+                  className="login-link-text"
                   onClick={() => {
                     setShowForgotPassword(false);
                     setForgotEmail("");
@@ -162,7 +158,7 @@ const LoginWithEmail: React.FC<LoginProps> = ({
                 <IonInput
                   type="email"
                   value={forgotEmail}
-                  placeholder="Enter your email"
+                  placeholder={t("Enter your email") || ""}
                   className="login-with-email-text-box"
                   onIonChange={(e) => setForgotEmail(e.detail.value!)}
                 />
@@ -174,7 +170,7 @@ const LoginWithEmail: React.FC<LoginProps> = ({
                 id="login-with-email-button-inner"
                 disabled={forgotLoading || !forgotEmail}
               >
-                {forgotLoading ? t("sending")+"..." : t("Send")}
+                {forgotLoading ? t("sending") + "..." : t("Send")}
               </IonButton>
 
               {forgotError && (
