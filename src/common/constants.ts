@@ -342,6 +342,7 @@ export const CHAPTER_CARD_COLOURS = [
 export const DEFUALT_SUBJECT_CARD_COLOUR = "#009948";
 
 export enum PAGES {
+  RESET_PASSWORD = "/reset-password",
   APP_UPDATE = "/",
   HOME = "/home",
   LOGIN = "/login",
