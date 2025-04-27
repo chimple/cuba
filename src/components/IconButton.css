@@ -41,14 +41,12 @@
   height: 4vh;
   width: 4vh;
   font-size: 2vh;
+  margin-left: 7vh;
   margin-bottom: -3vh;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: -1vh;
-  position: relative;
-  top: 1vh;
-  left: 2vh;
 }
 #homework-notification {
   display: flex;
