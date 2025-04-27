@@ -49,6 +49,10 @@ import {
   GAME_URL,
   LOCAL_BUNDLES_PATH,
   School_Creation_Stages,
+  HOMEHEADERLIST,
+  ASSIGNMENT_TYPE,
+  ASSIGNMENT_POPUP_SHOWN,
+  QUIZ_POPUP_SHOWN,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1278,13 +1282,6 @@ export class Util {
       FirebaseMessaging.addListener(
         "notificationReceived",
         async ({ notification }) => {
-          if (
-            notification.data &&
-            notification.data["notificationType"] === TABLES.Assignment
-          ) {
-            const api = ServiceConfig.getI().apiHandler;
-            await api.syncDB();
-          }
           console.log("notificationReceived", JSON.stringify(notification));
           try {
             const res = await LocalNotifications.schedule({
@@ -1333,6 +1330,106 @@ export class Util {
         "🚀 ~ file: util.ts:514 ~ checkNotificationPermissionsAndType ~ error:",
         JSON.stringify(error)
       );
+    }
+  }
+
+  public static async navigateTabByNotificationData(data: any) {
+    const currentStudent = this.getCurrentStudent();
+    const api = ServiceConfig.getI().apiHandler;
+    if (data && data.notificationType === ASSIGNMENT_TYPE.REWARD) {
+      const rewardProfileId = data.rewardProfileId;
+      if (rewardProfileId)
+        if (currentStudent?.id === rewardProfileId) {
+          window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+        } else {
+          await this.setCurrentStudent(null);
+          const students = await api.getParentStudentProfiles();
+          let matchingUser =
+            students.find((user) => user.id === rewardProfileId) || students[0];
+          if (matchingUser) {
+            await this.setCurrentStudent(matchingUser, undefined, true);
+            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+          } else {
+            return;
+          }
+        }
+    } else if (data && data.notificationType === ASSIGNMENT_TYPE.ASSIGNMENT) {
+      sessionStorage.setItem(ASSIGNMENT_POPUP_SHOWN, "false");
+      if (data.classId) {
+        const classId = data.classId;
+        if (!classId) return;
+        const studentsData = await api.getStudentsForClass(classId);
+        let tempStudentIds: string[] = [];
+        for (let student of studentsData) {
+          tempStudentIds.push(student.id);
+        }
+        let foundMatch = false;
+        for (let studentId of tempStudentIds) {
+          if (currentStudent?.id === studentId) {
+            window.location.replace(
+              PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
+            );
+            foundMatch = true;
+            break;
+          }
+        }
+        if (!foundMatch) {
+          await this.setCurrentStudent(null);
+          const students = await api.getParentStudentProfiles();
+          let matchingUser =
+            students.find((user) => tempStudentIds.includes(user.id)) ||
+            students[0];
+          if (matchingUser) {
+            await this.setCurrentStudent(matchingUser, undefined, true);
+            window.location.replace(
+              PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
+            );
+          }
+        } else {
+          window.location.replace(
+            PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
+          );
+          return;
+        }
+      }
+    } else if (data && data.notificationType === ASSIGNMENT_TYPE.LIVEQUIZ) {
+      sessionStorage.setItem(QUIZ_POPUP_SHOWN, "false");
+      if (data.classId) {
+        const classId = data.classId;
+        const studentsData = await api.getStudentsForClass(classId);
+        let tempStudentIds: string[] = [];
+        for (let student of studentsData) {
+          tempStudentIds.push(student.id);
+        }
+        let foundMatch = false;
+        for (let studentId of tempStudentIds) {
+          if (currentStudent?.id === studentId) {
+            window.location.replace(
+              data.assignmentId
+                ? PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${data.assignmentId}`
+                : PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ
+            );
+            foundMatch = true;
+            break;
+          }
+        }
+        if (!foundMatch) {
+          await this.setCurrentStudent(null);
+          const students = await api.getParentStudentProfiles();
+          let matchingUser =
+            students.find((user) => tempStudentIds.includes(user.id)) ||
+            students[0];
+          if (matchingUser) {
+            await this.setCurrentStudent(matchingUser, undefined, true);
+            window.location.replace(
+              PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ
+            );
+          }
+        }
+      } else {
+        window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ);
+        return;
+      }
     }
   }
 

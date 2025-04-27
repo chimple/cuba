@@ -55,6 +55,7 @@ jobs:
           REACT_APP_SUPABASE_URL: ${{ secrets.REACT_APP_PROD_SUPABASE_URL}}
           REACT_APP_SUPABASE_KEY: ${{ secrets.REACT_APP_PROD_SUPABASE_KEY}}
           REACT_APP_CLIENT_ID: ${{ secrets.REACT_APP_PROD_CLIENT_ID}}
+          REACT_APP_RAPIDAPI_KEY: ${{ secrets.REACT_APP_RAPIDAPI_KEY }}
 
         run: npm run build
 

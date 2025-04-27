@@ -36,6 +36,7 @@ import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
 import { RoleType } from "../interface/modelInterfaces";
+import DeleteParentAccount from "../components/parent/DeleteParentAccount";
 
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
@@ -284,6 +285,9 @@ const Parent: React.FC = () => {
           <div id="parent-logout">
             <ParentLogout />
           </div>
+          <div id="parent_logout-btn">
+            <DeleteParentAccount />
+          </div>
           <div className="parent-teachermode-toggle">
             <ToggleButton
               title={"Switch to Teacher's Mode"}
@@ -315,9 +319,6 @@ const Parent: React.FC = () => {
               }}
             />
           </div>
-          {/* <div id="parent-delete">
-            <DeleteParentAccount />
-          </div> */}
         </div>
       </div>
     );

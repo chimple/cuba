@@ -292,7 +292,6 @@ export class SqliteApi implements ServiceApi {
     const res = await this._db.query(statement, values, isSQL92);
     if (!Capacitor.isNativePlatform())
       await this._sqlite?.saveToStore(this.DB_NAME);
-    console.log("logs to check synced tables6", JSON.stringify(res));
 
     return res;
   }
@@ -310,11 +309,9 @@ export class SqliteApi implements ServiceApi {
       console.error("🚀 ~ Api ~ syncDB ~ error:", error);
       await this.createSyncTables();
     }
-
     const data = await SupabaseApi.i.getTablesData(tableNames, lastPullTables);
     const lastPulled = new Date().toISOString();
     let batchQueries: { statement: string; values: any[] }[] = [];
-
     for (const tableName of tableNames) {
       const tableData = data.get(tableName) ?? [];
       if (tableData.length === 0) continue;
@@ -408,8 +405,13 @@ export class SqliteApi implements ServiceApi {
     const tables = "'" + tableNames.join("', '") + "'";
     console.log("logs to check synced tables1", JSON.stringify(tables));
 
+    const currentTimestamp = new Date();
+    const reducedTimestamp = new Date(currentTimestamp); // clone it
+    reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
+    const formattedTimestamp = reducedTimestamp.toISOString();
+
     this.executeQuery(
-      `UPDATE pull_sync_info SET last_pulled = CURRENT_TIMESTAMP WHERE table_name IN (${tables})`
+      `UPDATE pull_sync_info SET last_pulled = '${formattedTimestamp}'  WHERE table_name IN (${tables})`
     );
     console.log("logs to check synced tables2", JSON.stringify(tables));
     return res;
@@ -1292,7 +1294,7 @@ export class SqliteApi implements ServiceApi {
   SELECT *
   FROM ${TABLES.ParentUser} AS parent
   JOIN ${TABLES.User} AS student ON parent.student_id = student.id
-  WHERE parent.parent_id = "${currentUser.id}" AND parent.is_deleted = 0 AND student.is_deleted = 0; 
+  WHERE parent.parent_id = "${currentUser.id}" AND parent.is_deleted = 0 AND student.is_deleted = 0;
 `;
     const res = await this._db.query(query);
     return res.values ?? [];
@@ -1448,11 +1450,12 @@ export class SqliteApi implements ServiceApi {
       SELECT course.*
       FROM ${TABLES.ClassCourse} AS cc
       JOIN ${TABLES.Course} AS course ON cc.course_id = course.id
-      WHERE cc.class_id = ? AND cc.is_deleted = 0;
+      WHERE cc.class_id = ? AND cc.is_deleted = 0
+      ORDER BY course.sort_index ASC;
     `;
     const res = await this._db?.query(query, [classId]);
     return res?.values ?? [];
-  }
+  }  
 
   async getLesson(id: string): Promise<TableTypes<"lesson"> | undefined> {
     const res = await this._db?.query(
@@ -1489,7 +1492,7 @@ export class SqliteApi implements ServiceApi {
     courses: TableTypes<"course">[];
   }> {
     const query = `
-    SELECT c.*, 
+    SELECT c.*,
     JSON_OBJECT(
       'id',g.id,
       'name',g.name,
@@ -1502,7 +1505,7 @@ export class SqliteApi implements ServiceApi {
     ) AS grade
     FROM ${TABLES.Course} c
     JOIN ${TABLES.Grade} g ON c.grade_id = g.id
-    WHERE c.subject_id = "${course.subject_id}" 
+    WHERE c.subject_id = "${course.subject_id}"
     AND c.curriculum_id = "${course.curriculum_id}";
 
   `;
@@ -1553,7 +1556,7 @@ export class SqliteApi implements ServiceApi {
     FROM ${TABLES.Assignment} a
     LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
     LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
-   WHERE a.class_id = '${classId}' and type = "${LIVE_QUIZ}" and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL  
+   WHERE a.class_id = '${classId}' and a.type = "${LIVE_QUIZ}" and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL
     and a.starts_at <= '${now}'
     and a.ends_at > '${now}'
     order by a.created_at desc;
@@ -1578,7 +1581,7 @@ export class SqliteApi implements ServiceApi {
     const favoriteId = uuidv4();
     var favoriteLesson: TableTypes<"favorite_lesson">;
     const isExist = await this._db?.query(
-      `SELECT * FROM ${TABLES.FavoriteLesson} 
+      `SELECT * FROM ${TABLES.FavoriteLesson}
        WHERE user_id= '${studentId}' and lesson_id = '${lessonId}';`
     );
     if (!isExist || !isExist.values || isExist.values.length < 1) {
@@ -1647,7 +1650,21 @@ export class SqliteApi implements ServiceApi {
     classId: string | undefined,
     schoolId: string | undefined
   ): Promise<TableTypes<"result">> {
-    const resultId = uuidv4();
+    let resultId = uuidv4();
+
+    // Ensure unique ID
+    let isDuplicate = true;
+    while (isDuplicate) {
+      const check = await this.executeQuery(
+        `SELECT id FROM result WHERE id = ? LIMIT 1`,
+        [resultId]
+      );
+      if (!check?.values || check.values.length === 0) {
+        isDuplicate = false;
+      } else {
+        resultId = uuidv4(); // now this won't throw error
+      }
+    }
     console.log("🚀 ~ SqliteApi ~ id:", studentId);
     const newResult: TableTypes<"result"> = {
       id: resultId,
@@ -1704,7 +1721,7 @@ export class SqliteApi implements ServiceApi {
   ): Promise<TableTypes<"user">> {
     const updateUserProfileQuery = `
       UPDATE "user"
-      SET 
+      SET
         name = ?,
         email = ?,
         phone = ?,
@@ -1754,7 +1771,7 @@ export class SqliteApi implements ServiceApi {
   ): Promise<TableTypes<"user">> {
     const updateUserQuery = `
       UPDATE "user"
-      SET 
+      SET
         name = ?,
         age = ?,
         gender = ?,
@@ -1848,8 +1865,8 @@ export class SqliteApi implements ServiceApi {
 
   async getCurrentClassIdForStudent(studentId: string): Promise<string | null> {
     const query = `
-      SELECT class_id 
-      FROM class_user 
+      SELECT class_id
+      FROM class_user
       WHERE user_id = ? AND is_deleted = false
       ORDER BY updated_at DESC
       LIMIT 1;
@@ -1878,7 +1895,7 @@ export class SqliteApi implements ServiceApi {
     console.log("fsgdgdfg", name, newClassId);
     const updateUserQuery = `
       UPDATE "user"
-      SET 
+      SET
         name = ?,
         age = ?,
         gender = ?,
@@ -2060,8 +2077,8 @@ export class SqliteApi implements ServiceApi {
     fromCache: boolean
   ): Promise<boolean> {
     const res = await this._db?.query(
-      `select * from ${TABLES.ClassUser} 
-      where user_id = "${studentId}" 
+      `select * from ${TABLES.ClassUser}
+      where user_id = "${studentId}"
       and role = "${RoleType.STUDENT}"`
     );
     console.log("🚀 ~ SqliteApi ~ isStudentLinked ~ res:", res);
@@ -2077,7 +2094,7 @@ export class SqliteApi implements ServiceApi {
     FROM ${TABLES.Assignment} a
     LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
     LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
-    WHERE a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL and a.type !='liveQuiz'
+    WHERE a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL
     ORDER BY a.created_at DESC;
     `;
     const res = await this._db?.query(query);
@@ -2120,7 +2137,7 @@ export class SqliteApi implements ServiceApi {
           ) AS school
           FROM ${TABLES.School} s
           WHERE s.id = "${schoolId}" AND s.is_deleted = 0
-          ORDER BY s.name ASC; 
+          ORDER BY s.name ASC;
         `;
           const schoolRes = await this._db?.query(query);
           if (schoolRes && schoolRes.values && schoolRes.values.length > 0) {
@@ -2134,7 +2151,7 @@ export class SqliteApi implements ServiceApi {
     }
 
     query = `
-    SELECT su.*, 
+    SELECT su.*,
     JSON_OBJECT(
       'id', s.id,
       'name', s.name,
@@ -2148,11 +2165,11 @@ export class SqliteApi implements ServiceApi {
     ) AS school
     FROM ${TABLES.SchoolUser} su
     JOIN ${TABLES.School} s ON su.school_id = s.id
-    WHERE su.user_id = "${userId}" 
-    AND su.role != "${RoleType.PARENT}" 
-    AND su.is_deleted = 0 
-    AND s.is_deleted = 0 
-    ORDER BY s.name ASC; 
+    WHERE su.user_id = "${userId}"
+    AND su.role != "${RoleType.PARENT}"
+    AND su.is_deleted = 0
+    AND s.is_deleted = 0
+    ORDER BY s.name ASC;
   `;
     const schoolUserRes = await this._db?.query(query);
 
@@ -2204,8 +2221,8 @@ export class SqliteApi implements ServiceApi {
     SELECT DISTINCT cu.class_id, cu.role, c.*
     FROM ${TABLES.ClassUser} cu
     JOIN ${TABLES.Class} c ON cu.class_id = c.id
-    WHERE cu.user_id = '${userId}' 
-    AND c.school_id = '${schoolId}' 
+    WHERE cu.user_id = '${userId}'
+    AND c.school_id = '${schoolId}'
     AND cu.role != '${RoleType.PARENT}'
     AND cu.is_deleted = 0
     AND c.is_deleted = 0
@@ -2239,7 +2256,7 @@ export class SqliteApi implements ServiceApi {
     classId: string
   ): Promise<TableTypes<"class_course">[]> {
     const query = `
-    SELECT * 
+    SELECT *
     FROM ${TABLES.ClassCourse}
     WHERE class_id = ? AND is_deleted = 0
   `;
@@ -2250,7 +2267,7 @@ export class SqliteApi implements ServiceApi {
     schoolId: string
   ): Promise<TableTypes<"school_course">[]> {
     const query = `
-      SELECT * 
+      SELECT *
       FROM ${TABLES.SchoolCourse}
       WHERE school_id = ? AND is_deleted = 0
     `;
@@ -2270,8 +2287,8 @@ export class SqliteApi implements ServiceApi {
 
       const placeholders = classIds.map(() => "?").join(", ");
       const result = await this.executeQuery(
-        `SELECT 1 FROM class_course 
-         WHERE class_id IN (${placeholders}) AND course_id = ? AND is_deleted = 0 
+        `SELECT 1 FROM class_course
+         WHERE class_id IN (${placeholders}) AND course_id = ? AND is_deleted = 0
          LIMIT 1`,
         [...classIds, courseId]
       );
@@ -2339,7 +2356,7 @@ export class SqliteApi implements ServiceApi {
         [updatedAt, userId]
       );
       const query = `
-      SELECT * 
+      SELECT *
       FROM ${TABLES.ClassUser}
       WHERE user_id = ?
     `;
@@ -2362,9 +2379,9 @@ export class SqliteApi implements ServiceApi {
       SELECT user.*
       FROM ${TABLES.ClassUser} AS cu
       JOIN ${TABLES.User} AS user ON cu.user_id = user.id
-      WHERE cu.class_id = ? 
-        AND cu.role = ? 
-        AND cu.is_deleted = 0; 
+      WHERE cu.class_id = ?
+        AND cu.role = ?
+        AND cu.is_deleted = 0;
     `;
     const res = await this._db?.query(query, [classId, RoleType.STUDENT]);
     return res?.values ?? [];
@@ -2424,7 +2441,7 @@ export class SqliteApi implements ServiceApi {
 
       // Retrieve the ids of the affected class_user rows
       const classUserQuery = `
-      SELECT id 
+      SELECT id
       FROM ${TABLES.ClassUser}
       WHERE class_id = ? AND role = ? AND is_deleted = 1
     `;
@@ -2457,7 +2474,7 @@ export class SqliteApi implements ServiceApi {
 
       // Retrieve the ids of the affected class_course rows
       const classCourseQuery = `
-      SELECT id 
+      SELECT id
       FROM ${TABLES.ClassCourse}
       WHERE class_id = ? AND is_deleted = 1
     `;
@@ -2556,32 +2573,32 @@ export class SqliteApi implements ServiceApi {
 
       // Define the query to fetch the leaderboard data for the given student
       const currentStudentQuery = `
-        SELECT 'allTime' as type, student_id, name, 
-               count(res.id) as lessons_played, 
-               sum(score) as total_score, 
+        SELECT 'allTime' as type, student_id, name,
+               count(res.id) as lessons_played,
+               sum(score) as total_score,
                sum(time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
         WHERE res.student_id = '${studentId}'
         GROUP BY student_id, u.name
         UNION ALL
-        SELECT 'monthly' as type, student_id, u.name, 
-               count(res.id) as lessons_played, 
-               sum(score) as total_score, 
+        SELECT 'monthly' as type, student_id, u.name,
+               count(res.id) as lessons_played,
+               sum(score) as total_score,
                sum(time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
-        WHERE res.student_id = '${studentId}' 
+        WHERE res.student_id = '${studentId}'
         AND strftime('%m', res.created_at) = strftime('%m', datetime('now'))
         GROUP BY student_id, u.name
         UNION ALL
-        SELECT 'weekly' as type, student_id, u.name, 
-               count(res.id) as lessons_played, 
-               sum(score) as total_score, 
+        SELECT 'weekly' as type, student_id, u.name,
+               count(res.id) as lessons_played,
+               sum(score) as total_score,
                sum(time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
-        WHERE res.student_id = '${studentId}' 
+        WHERE res.student_id = '${studentId}'
         AND strftime('%W', res.created_at) = strftime('%W', datetime('now'))
         GROUP BY student_id, u.name
       `;
@@ -3051,7 +3068,7 @@ export class SqliteApi implements ServiceApi {
     courseId: string
   ): Promise<TableTypes<"chapter">[]> {
     const query = `
-    SELECT * FROM ${TABLES.Chapter} 
+    SELECT * FROM ${TABLES.Chapter}
     WHERE course_id = "${courseId}"
     ORDER BY sort_index ASC;
     `;
@@ -3102,7 +3119,7 @@ export class SqliteApi implements ServiceApi {
       schools: [],
     };
     const res = await this._db?.query(
-      `select c.*,     
+      `select c.*,
       JSON_OBJECT(
         'id',s.id,
         'name',s.name,
@@ -3114,7 +3131,7 @@ export class SqliteApi implements ServiceApi {
         'updated_at',s.updated_at,
         'is_deleted',s.is_deleted
       ) AS school
-       from ${TABLES.ClassUser} cu 
+       from ${TABLES.ClassUser} cu
       join ${TABLES.Class} c
       ON cu.class_id = c.id
       join ${TABLES.School} s
@@ -3202,7 +3219,7 @@ export class SqliteApi implements ServiceApi {
     try {
       // Insert into assignment table
       await this.executeQuery(
-        `INSERT INTO assignment 
+        `INSERT INTO assignment
           (id, created_by, starts_at, ends_at, is_class_wise, class_id, school_id, lesson_id, type, created_at, updated_at, is_deleted, chapter_id, course_id)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
@@ -3227,8 +3244,8 @@ export class SqliteApi implements ServiceApi {
       const assignment_data: TableTypes<"assignment"> = {
         id: assignmentUUid,
         created_by: userId,
-        starts_at: timestamp,
-        ends_at: timestamp,
+        starts_at: starts_at,
+        ends_at: ends_at,
         is_class_wise: is_class_wise,
         class_id: class_id,
         school_id: school_id,
@@ -3377,7 +3394,7 @@ export class SqliteApi implements ServiceApi {
     from
       ${classId ? TABLES.ClassCourse : TABLES.UserCourse} as u
       join ${TABLES.Course} as c
-    on 
+    on
       course_id=c.id
       and ${classId ? `class_id = '${classId}'` : `user_id = '${studentId}'`}
   ),
@@ -3618,9 +3635,9 @@ order by
     if (res.length > 0) return res;
     const limit = 20;
     const nameSearchQuery = `
-        SELECT * 
-        FROM lesson 
-        WHERE name LIKE ? 
+        SELECT *
+        FROM lesson
+        WHERE name LIKE ?
         LIMIT ?;
 `;
     const nameResults = await this._db.query(nameSearchQuery, [
@@ -3630,9 +3647,9 @@ order by
     if (nameResults.values) res.push(...nameResults.values);
     console.log("🚀 ~ SqliteApi ~ searchLessons ~ dat:", nameResults);
     const outcomeSearchQuery = `
-    SELECT * 
-    FROM lesson 
-    WHERE outcome LIKE ? 
+    SELECT *
+    FROM lesson
+    WHERE outcome LIKE ?
     LIMIT ?;
 `;
     const outcomeLength = limit - res.length;
@@ -3681,8 +3698,8 @@ order by
     if (!assignmentIds || assignmentIds.length === 0) return;
 
     const placeholders = assignmentIds.map(() => "?").join(", ");
-    const query = `SELECT * 
-      FROM ${TABLES.Result} 
+    const query = `SELECT *
+      FROM ${TABLES.Result}
       WHERE assignment_id IN (${placeholders});`;
 
     const res = await this._db?.query(query, assignmentIds);
@@ -3725,8 +3742,8 @@ order by
     if (!lessonIds || lessonIds.length === 0) return;
 
     const placeholders = lessonIds.map(() => "?").join(", ");
-    const query = `SELECT * 
-      FROM ${TABLES.Lesson} 
+    const query = `SELECT *
+      FROM ${TABLES.Lesson}
       WHERE id IN (${placeholders});`;
 
     const res = await this._db?.query(query, lessonIds);
@@ -3743,27 +3760,27 @@ order by
     const assignmentholders = assignmentIds.map(() => "?").join(", ");
     const res = await this._db?.query(
       `WITH null_assignments AS (
-         SELECT * 
-         FROM ${TABLES.Result} 
-         WHERE student_id = ? 
+         SELECT *
+         FROM ${TABLES.Result}
+         WHERE student_id = ?
          AND course_id = ?
-         AND assignment_id IS NULL 
-         ORDER BY created_at DESC 
+         AND assignment_id IS NULL
+         ORDER BY created_at DESC
          LIMIT 5
        ),
        non_null_assignments AS (
-         SELECT * 
-         FROM ${TABLES.Result} 
-         WHERE student_id = ? 
+         SELECT *
+         FROM ${TABLES.Result}
+         WHERE student_id = ?
          AND course_id = ?
-         AND assignment_id IN (${assignmentholders}) 
-         ORDER BY created_at DESC 
+         AND assignment_id IN (${assignmentholders})
+         ORDER BY created_at DESC
          LIMIT 5
        )
-       SELECT * 
+       SELECT *
        FROM null_assignments
        UNION ALL
-       SELECT * 
+       SELECT *
        FROM non_null_assignments
        ORDER BY created_at DESC
        LIMIT 10;`,
@@ -3780,8 +3797,8 @@ order by
     isClassWise: boolean,
     isLiveQuiz: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
-    let query = `SELECT * 
-       FROM ${TABLES.Assignment} 
+    let query = `SELECT *
+       FROM ${TABLES.Assignment}
        WHERE class_id = '${classId}'
        AND course_id = '${courseId}'
        AND created_at BETWEEN '${endDate}' AND '${startDate}'`;
@@ -3805,8 +3822,8 @@ order by
     startDate: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined> {
-    const query = `SELECT * 
-       FROM ${TABLES.Result} 
+    const query = `SELECT *
+       FROM ${TABLES.Result}
        WHERE student_id = '${studentId}'
        AND course_id = '${course_id}'
        AND created_at BETWEEN '${startDate}' AND '${endDate}'
@@ -3824,7 +3841,7 @@ order by
     const query = `WITH RankedAssignments AS (
     SELECT *,
            ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY created_at DESC) AS rn
-    FROM ${TABLES.Assignment} 
+    FROM ${TABLES.Assignment}
     WHERE class_id = '${classId}'
     )
     SELECT *
@@ -3920,9 +3937,9 @@ order by
   ): Promise<boolean> {
     // Check if user is PROGRAM_MANAGER, OPERATIONAL_DIRECTOR, or FIELD_COORDINATOR in school_user
     const result = await this.executeQuery(
-      `SELECT * FROM school_user 
+      `SELECT * FROM school_user
      WHERE school_id = ? AND user_id = ?
-     AND role IN (?, ?, ?)  
+     AND role IN (?, ?, ?)
      AND is_deleted = false`,
       [
         schoolId,
@@ -3945,9 +3962,9 @@ order by
   ): Promise<boolean> {
     // Check if the user is present in school_user but not as a parent
     const schoolUserResult = await this.executeQuery(
-      `SELECT * FROM school_user 
-     WHERE school_id = ? AND user_id = ? 
-     AND role != ?  
+      `SELECT * FROM school_user
+     WHERE school_id = ? AND user_id = ?
+     AND role != ?
      AND is_deleted = false`,
       [schoolId, userId, RoleType.PARENT]
     );
@@ -3958,8 +3975,8 @@ order by
 
     // Step 2: Fetch all classes for the given school
     const classResult = await this.executeQuery(
-      `SELECT id FROM class 
-     WHERE school_id = ? 
+      `SELECT id FROM class
+     WHERE school_id = ?
      AND is_deleted = false`,
       [schoolId]
     );
@@ -3971,10 +3988,10 @@ order by
     // Step 3: Check if the user is a teacher in any of these classes
     const placeholders = classIds.map(() => "?").join(", ");
     const teacherResult = await this.executeQuery(
-      `SELECT * FROM class_user 
-       WHERE class_id IN (${placeholders}) 
-       AND user_id = ? 
-       AND role = ? 
+      `SELECT * FROM class_user
+       WHERE class_id IN (${placeholders})
+       AND user_id = ?
+       AND role = ?
        AND is_deleted = false`,
       [...classIds, userId, RoleType.TEACHER]
     );
@@ -3994,12 +4011,12 @@ order by
     individualAssignments: TableTypes<"assignment">[];
   }> {
     const query = `
-    SELECT * 
+    SELECT *
     FROM ${TABLES.Assignment}
-    WHERE created_by = '${userId}'  
-      AND (class_id = '${classId}' OR is_class_wise = 1)  
-      AND created_at >= '${startDate}'  
-      AND created_at <= '${endDate}'  
+    WHERE created_by = '${userId}'
+      AND (class_id = '${classId}' OR is_class_wise = 1)
+      AND created_at >= '${startDate}'
+      AND created_at <= '${endDate}'
     ORDER BY is_class_wise DESC, created_at ASC;
   `;
 
@@ -4023,7 +4040,7 @@ order by
     classId: string
   ): Promise<TableTypes<"class_user"> | undefined> {
     const query = `
-    SELECT * 
+    SELECT *
     FROM ${TABLES.ClassUser}
     WHERE user_id = $1
     AND role = $2 AND class_id = $3 AND is_deleted = 0
@@ -4045,8 +4062,8 @@ order by
   async getAssignedStudents(assignmentId: string): Promise<string[]> {
     //getting the student ids for the individual assignments
     const query = `
-    SELECT user_id 
-    FROM assignment_user 
+    SELECT user_id
+    FROM assignment_user
     WHERE assignment_id = '${assignmentId}';
   `;
 
@@ -4068,7 +4085,7 @@ order by
   async deleteTeacher(classId: string, teacherId: string) {
     try {
       const query = `
-      SELECT * 
+      SELECT *
       FROM ${TABLES.ClassUser}
       WHERE user_id = ? AND class_id = ?
       AND role = 'teacher' AND is_deleted = 0
@@ -4099,10 +4116,10 @@ order by
   async getClassCodeById(class_id: string): Promise<number | undefined> {
     if (!class_id) return;
     const currentDate = new Date().toISOString(); // Convert to a proper format for SQL (ISO 8601)
-    const query = `SELECT code 
-    FROM ${TABLES.ClassInvite_code} 
-    WHERE class_id='${class_id}' 
-    AND is_deleted = FALSE 
+    const query = `SELECT code
+    FROM ${TABLES.ClassInvite_code}
+    WHERE class_id='${class_id}'
+    AND is_deleted = FALSE
     AND (expires_at >= '${currentDate}')`;
 
     try {
@@ -4136,8 +4153,8 @@ order by
     startDate: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined> {
-    const query = `SELECT * 
-       FROM ${TABLES.Result} 
+    const query = `SELECT *
+       FROM ${TABLES.Result}
        WHERE chapter_id = '${chapter_id}'
        AND course_id = '${course_id}'
        AND created_at BETWEEN '${startDate}' AND '${endDate}'
@@ -4271,7 +4288,7 @@ order by
   ): Promise<void> {
     try {
       const query = `
-      SELECT * 
+      SELECT *
       FROM ${TABLES.SchoolUser}
       WHERE user_id = ? AND school_id = ?
       AND role = '${role}' AND is_deleted = 0
@@ -4280,7 +4297,7 @@ order by
       const updatedAt = new Date().toISOString();
 
       await this.executeQuery(
-        `UPDATE school_user SET is_deleted = 1 , updated_at = ? WHERE user_id = ? 
+        `UPDATE school_user SET is_deleted = 1 , updated_at = ? WHERE user_id = ?
         AND school_id = ? AND role = '${role}' AND is_deleted = 0`,
         [updatedAt, userId, schoolId]
       );
@@ -4393,14 +4410,14 @@ order by
     programManagerPhone: string,
     fieldCoordinatorPhone: string
   ): Promise<{ status: string; errors?: string[] }> {
-    const response = await this._serverApi.validateClassExistence(
+    const response = await this._serverApi.validateUserContacts(
       programManagerPhone,
       fieldCoordinatorPhone
     );
     if (response.status === "error") {
       return {
         status: "error",
-        errors: response.errors || ["Invalid class curriculum"],
+        errors: response.errors || ["Invalid user contacts"],
       };
     }
     return { status: "success" };
