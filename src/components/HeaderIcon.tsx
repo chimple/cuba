@@ -24,14 +24,14 @@ const HeaderIcon: React.FC<{
   const isCurrentHeaderActive = currentHeader === headerConfig.headerList;
 
   return (
-    <div style={{textAlign: "center", display: "flex", alignItems: "center", flexDirection:"column", justifyContent: "center"}}>
-      <div className="home-header-indicator">
+    <div style={{textAlign: "center", display: "flex", alignItems: "center", flexDirection:"column", justifyContent: "center", margin: "10px"}}>
+      {/* <div className="home-header-indicator">
       {isCurrentHeaderActive ? (
         <p>&#9679;</p>
       ) : (
         <p>&nbsp;</p>
       )}
-      </div>
+      </div> */}
       {headerConfig.headerList === HOMEHEADERLIST.ASSIGNMENT &&
         pendingAssignmentCount !== undefined &&
         pendingAssignmentCount > 0 && (

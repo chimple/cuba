@@ -1,7 +1,3 @@
-.dropdown-wrapper {
-  /* position: relative; */
-}
-
 .dropdown-container {
   width: 75px;
   height: 45px;
@@ -45,21 +41,20 @@
 }
 
 .dropdown-arrow {
-  min-width: 2vw;
+  width: 4vw;
   background-color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   border-top-right-radius: 2.5vh;
   border-bottom-right-radius: 2.5vh;
-  flex-grow: 1;
 }
 
 .dropdown-arrow.expanded-arrow {
   align-items: flex-start;
   padding-top: 20px;
   padding-right: 0.1vw;
-  max-width: 30px;
+  width: 4vw;
 }
 
 .icon-img {
@@ -98,10 +93,4 @@
   text-align: center;
   color: #182A4F;
   font-weight: 400;
-}
-
-@media (min-width: 600px) {
-  .dropdown-arrow.expanded-arrow {
-    max-width: 70vw;
-  }
 }
