@@ -147,7 +147,7 @@ const PathwayStructure: React.FC = () => {
     loadSVG();
   }, []);
 
-  return <div ref={containerRef} />;
+  return <div ref={containerRef} style={{marginTop: "-14vh"}} />;
 };
 
 export default PathwayStructure;
