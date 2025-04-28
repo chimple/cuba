@@ -1,6 +1,5 @@
 .dropdown-container {
-  width: 75px;
-  height: 45px;
+  max-width: 8vw;
   border: 2px solid #F35908;
   border-radius: 20px;
   background-color: #FFF9CF;
@@ -12,7 +11,6 @@
 }
 
 .dropdown-container.expanded {
-  max-height: 100vh;
   height: auto;
 }
 
