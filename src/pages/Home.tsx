@@ -29,7 +29,7 @@ import { schoolUtil } from "../utility/schoolUtil";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import { t } from "i18next";
 import { App } from "@capacitor/app";
-import ChimpleAvatar from "../components/animation/ChimpleAvatar";
+// import ChimpleAvatar from "../components/animation/ChimpleAvatar";
 import SearchLesson from "./SearchLesson";
 import AssignmentPage from "./Assignment";
 import Subjects from "./Subjects";
@@ -37,6 +37,7 @@ import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 import { useGrowthBook } from "@growthbook/growthbook-react";
+import LearningPathway from "../components/LearningPathway";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -129,6 +130,18 @@ const Home: FC = () => {
       fetchData();
     }
   }, [currentHeader]);
+  // adding background image for learning-pathway
+  useEffect(() => {
+    const body = document.querySelector("body");
+    if (currentHeader === HOMEHEADERLIST.HOME && !!canShowAvatar) {
+      body?.style.setProperty(
+        "background-image",
+        "url(/pathwayAssets/pathwayBackground.svg)"
+      );
+    } else {
+      body?.style.setProperty("background-image", "none");
+    }
+  }, [currentHeader, canShowAvatar]);
   const handleJoinClassEvent = async (event) => {
     await getAssignments();
     setCanShowAvatar(true);
@@ -602,15 +615,16 @@ const Home: FC = () => {
         {!isLoading ? (
           <div className="space-between">
             {currentHeader === HOMEHEADERLIST.HOME && !!canShowAvatar ? (
-              <ChimpleAvatar
-                recommadedSuggestion={dataCourse}
-                assignments={pendingAssignments}
-                style={{
-                  marginBottom: "2vh",
-                  display: "flex",
-                  justifyContent: "space-around",
-                }}
-              ></ChimpleAvatar>
+              // <ChimpleAvatar
+              //   recommadedSuggestion={dataCourse}
+              //   assignments={pendingAssignments}
+              //   style={{
+              //     marginBottom: "2vh",
+              //     display: "flex",
+              //     justifyContent: "space-around",
+              //   }}
+              // ></ChimpleAvatar>
+              <LearningPathway />
             ) : null}
 
             {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
