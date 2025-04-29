@@ -484,6 +484,7 @@ export const USER_ROLE = "userRole";
 export const CURRENT_TEACHER = "currentTeacher";
 export const CURRENT_COURSE = "currentCourse";
 export const NAVIGATION_STATE = "navigationState";
+export const STARS_COUNT = "starsCount";
 
 export enum IconType {
   SCHOOL = "school",

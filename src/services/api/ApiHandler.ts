@@ -173,12 +173,21 @@ export class ApiHandler implements ServiceApi {
     image: File | null,
     udise_id?: string
   ): Promise<TableTypes<"req_new_school"> | null> {
-    return await this.s.requestNewSchool(name, state, district, city, image, udise_id);
+    return await this.s.requestNewSchool(
+      name,
+      state,
+      district,
+      city,
+      image,
+      udise_id
+    );
   }
-  public async getExistingSchoolRequest(userId: string): Promise<TableTypes<"req_new_school"> | null> {
+  public async getExistingSchoolRequest(
+    userId: string
+  ): Promise<TableTypes<"req_new_school"> | null> {
     return await this.s.getExistingSchoolRequest(userId);
   }
-  
+
   public async getSchoolsForUser(
     userId: string
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
@@ -988,6 +997,15 @@ export class ApiHandler implements ServiceApi {
     programManagerPhone: string,
     fieldCoordinatorPhone: string
   ): Promise<{ status: string; errors?: string[] }> {
-    return this.s.validateUserContacts(programManagerPhone, fieldCoordinatorPhone);
+    return this.s.validateUserContacts(
+      programManagerPhone,
+      fieldCoordinatorPhone
+    );
+  }
+  public async setStarsForStudents(
+    studentId: string,
+    starsCount: number
+  ): Promise<void> {
+    return this.s.setStarsForStudents(studentId, starsCount);
   }
 }

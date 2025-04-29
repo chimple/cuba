@@ -1,16 +1,27 @@
 import ChapterLessonBox from "./learningPathway/chapterLessonBox";
 import PathwayStructure from "./learningPathway/PathwayStructure";
+import "./LearningPathway.css";
+import TressureBox from "./learningPathway/TressureBox";
 
-const LearningPathway: React.FC = () => {
+interface LearningPathwayProps {
+  from: number;
+  to: number;
+}
+
+const LearningPathway: React.FC<LearningPathwayProps> = ({ from, to }) => {
   return (
-    <div>
+    <div className="learning-pathway-container">
       <PathwayStructure />
-      <ChapterLessonBox
-        text="English: a-d"
-        containerStyle={{
-          width: "27vw",
-        }}
-      />
+
+      <div className="chapter-egg-container">
+        <ChapterLessonBox
+          text="English: a-d"
+          containerStyle={{
+            width: "27vw",
+          }}
+        />
+        <TressureBox startNumber={from ?? 0} endNumber={to ?? 0} />
+      </div>
     </div>
   );
 };

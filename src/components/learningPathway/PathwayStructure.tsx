@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-
+import "./PathwayStructure.css";
 const PathwayStructure: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -147,7 +147,7 @@ const PathwayStructure: React.FC = () => {
     loadSVG();
   }, []);
 
-  return <div ref={containerRef} />;
+  return <div className="pathway-structure-div" ref={containerRef} />;
 };
 
 export default PathwayStructure;

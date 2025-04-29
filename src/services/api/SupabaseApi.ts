@@ -1530,5 +1530,10 @@ export class SupabaseApi implements ServiceApi {
       ? { status: "error", errors }
       : { status: "success" };
   }
-
+  async setStarsForStudents(
+    studentId: string,
+    starsCount: number
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
 }
