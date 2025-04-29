@@ -96,14 +96,12 @@ const TressureBox: React.FC<TressureBoxProps> = ({
           />
         )}
 
-        {!isUpdating && (
-          <div className="number-inside-box">{currentNumber}</div>
-        )}
-
-        {isUpdating && (
+        {isUpdating ? (
           <div className="scroll-container" ref={containerRef}>
             {items}
           </div>
+        ) : (
+          <div className="number-inside-box">{currentNumber}</div>
         )}
       </div>
     </div>
