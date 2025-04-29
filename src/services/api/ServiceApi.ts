@@ -92,9 +92,11 @@ export interface ServiceApi {
     city: string,
     image: File | null,
     udise_id?: string
-  ): Promise<TableTypes<"req_new_school"> | null>;  
+  ): Promise<TableTypes<"req_new_school"> | null>;
 
-  getExistingSchoolRequest(userId: string): Promise<TableTypes<"req_new_school"> | null>;
+  getExistingSchoolRequest(
+    userId: string
+  ): Promise<TableTypes<"req_new_school"> | null>;
   /**
    * Adds a school profile image and returns the school profile image URL.
    * @param {string} id - The unique identifier of the school.
@@ -1277,4 +1279,10 @@ export interface ServiceApi {
     programManagerPhone: string,
     fieldCoordinatorPhone: string
   ): Promise<{ status: string; errors?: string[] }>;
+  /**
+   * setting a stars for the student
+   * @param {string } studentId - student id
+   * @param {string } starsCount - count of stars
+   */
+  setStarsForStudents(studentId: string, starsCount: number): Promise<void>;
 }

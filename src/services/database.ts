@@ -1403,6 +1403,7 @@ export type Database = {
           name: string | null
           phone: string | null
           sfx_off: boolean | null
+          stars?: number | null
           student_id: string | null
           updated_at: string | null
         }
@@ -1424,6 +1425,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           sfx_off?: boolean | null
+          stars?: number | null
           student_id?: string | null
           updated_at?: string | null
         }
@@ -1445,6 +1447,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           sfx_off?: boolean | null
+          stars?: number | null
           student_id?: string | null
           updated_at?: string | null
         }

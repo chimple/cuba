@@ -13,6 +13,7 @@ import {
   IS_CONECTED,
   TableTypes,
   RECOMMENDATIONS,
+  STARS_COUNT,
 } from "../common/constants";
 import "./Home.css";
 import LessonSlider from "../components/LessonSlider";
@@ -72,6 +73,7 @@ const Home: FC = () => {
   const [recommendedLessonCourseMap, setRecommendedLessonCourseMap] = useState<{
     [lessonId: string]: { course_id: string };
   }>({});
+  let currentStudent: TableTypes<"user"> | undefined;
   const growthbook = useGrowthBook();
 
   let tempPageNumber = 1;
@@ -98,12 +100,15 @@ const Home: FC = () => {
   const appStateChange = (isActive) => {
     Util.onAppStateChange({ isActive });
   };
+  const [from, setFrom] = useState<number>(0);
+  const [to, setTo] = useState<number>(0);
   useEffect(() => {
     const student = Util.getCurrentStudent();
     if (!student) {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
+    currentStudent = student;
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
     initData();
@@ -118,6 +123,28 @@ const Home: FC = () => {
       appStateChange(isActive)
     );
   }, []);
+  useEffect(() => {
+    if (currentStudent?.id) {
+      const storedStarsJson = localStorage.getItem(STARS_COUNT);
+      const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
+
+      const localStorageStars = parseInt(
+        storedStarsMap[currentStudent.id] || "0",
+        10
+      );
+      const studentStars = currentStudent.stars || 0;
+
+      if (localStorageStars < studentStars) {
+        storedStarsMap[currentStudent.id] = studentStars;
+        localStorage.setItem(STARS_COUNT, JSON.stringify(storedStarsMap));
+        setFrom(localStorageStars);
+        setTo(studentStars);
+      } else {
+        setFrom(studentStars);
+        setTo(studentStars);
+      }
+    }
+  }, [currentStudent]);
 
   useEffect(() => {
     setCurrentHeader(
@@ -624,7 +651,7 @@ const Home: FC = () => {
               //     justifyContent: "space-around",
               //   }}
               // ></ChimpleAvatar>
-              <LearningPathway />
+              <LearningPathway from={from} to={to} />
             ) : null}
 
             {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}

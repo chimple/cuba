@@ -16,6 +16,7 @@ import {
   grade2,
   grade3,
   PROFILETYPE,
+  STARS_COUNT,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -1455,7 +1456,7 @@ export class SqliteApi implements ServiceApi {
     `;
     const res = await this._db?.query(query, [classId]);
     return res?.values ?? [];
-  }  
+  }
 
   async getLesson(id: string): Promise<TableTypes<"lesson"> | undefined> {
     const res = await this._db?.query(
@@ -1707,7 +1708,27 @@ export class SqliteApi implements ServiceApi {
         newResult.class_id,
       ]
     );
+    let starsEarned = 0;
+    if (score > 25) starsEarned++;
+    if (score > 50) starsEarned++;
+    if (score > 75) starsEarned++;
+
+    const previousStars = localStorage.getItem(STARS_COUNT);
+    let currentStars = previousStars ? JSON.parse(previousStars)[studentId] : 0;
+
+    let totalStars = currentStars + starsEarned;
+
+    await this.executeQuery(
+      `UPDATE ${TABLES.User} SET stars = ? WHERE id = ?;`,
+      [totalStars, studentId]
+    );
+
     this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      id: studentId,
+      stars: totalStars,
+    });
+
     return newResult;
   }
 
@@ -4421,5 +4442,32 @@ order by
       };
     }
     return { status: "success" };
+  }
+  async setStarsForStudents(
+    studentId: string,
+    starsCount: number
+  ): Promise<void> {
+    if (!studentId) return;
+
+    const previousStars = localStorage.getItem(STARS_COUNT);
+    let currentStars = previousStars ? JSON.parse(previousStars)[studentId] : 0;
+
+    let totalStars = currentStars + starsCount;
+
+    const query = `
+      UPDATE ${TABLES.User}
+      SET stars = ${totalStars}
+      WHERE id = '${studentId}';
+    `;
+
+    try {
+      await this._db?.execute(query);
+      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+        id: studentId,
+        stars: totalStars,
+      });
+    } catch (error) {
+      console.error("Error setting stars for student:", error);
+    }
   }
 }
