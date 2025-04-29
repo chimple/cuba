@@ -57,6 +57,11 @@
                  <action android:name="com.google.android.gms.auth.api.phone.SMS_RETRIEVED" />
               </intent-filter>
         </receiver>
+        <receiver android:name=".FileReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="org.copy.chimple.SHARE_FOLDER" />
+            </intent-filter>
+        </receiver>
 
         <service
             android:name=".MyFirebaseMessagingService"
