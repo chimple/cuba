@@ -69,7 +69,7 @@ const SelectIconImage: FC<{
         style={{
           width: imageWidth,
           height: imageHeight,
-          objectFit: 'cover' // Ensures that the image covers the container without distortion
+          objectFit: 'contain' // Ensures that the image covers the container without distortion
         }}
         onLoad={() => setIsLoading(false)}
       />

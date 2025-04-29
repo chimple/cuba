@@ -24,6 +24,8 @@
 }
 
 .selected-icon {
+  position: relative;
+  top: 4px;
   height: auto;
   width: auto;
   display: flex;
@@ -32,10 +34,11 @@
 }
 
 .dropdown-items {
+  max-height: 40vh; 
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  padding: 8px 0px;
+  gap: 2px;
 }
 
 .dropdown-arrow {
@@ -75,7 +78,7 @@
 .menu-item {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 1vh;
   padding: 0 0.6vw;
   flex-direction: column;
   cursor: pointer;
@@ -84,6 +87,12 @@
 .menu-ItemIcon {
   width: auto;
   height: auto;
+}
+
+.menu-item.selected-expanded {
+  background-color: #FFB792;
+  width: auto;
+  height: 12vh;
 }
 
 .menu-label {

@@ -1,92 +1,130 @@
-import React, { useState } from 'react';
+import { FC, useEffect, useRef, useState } from "react";
 import './DropdownMenu.css';
+import { TableTypes } from '../../common/constants';
+import SelectIconImage from '../displaySubjects/SelectIconImage';
+import { ServiceConfig } from "../../services/ServiceConfig";
 
-interface MenuItemProps {
-  icon: string;
-  label: string;
-  isSelected?: boolean;
-  onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
+interface CourseDetails {
+  course: TableTypes<"course">;
+  grade?: TableTypes<"grade"> | null;
+  curriculum?: TableTypes<"curriculum"> | null;
 }
 
-const MenuItem: React.FC<MenuItemProps> = ({ icon, label, isSelected, onClick }) => (
-  <div className="menu-item" onClick={onClick}>
-    <img
-      src={icon}
-      alt={label}
-      className={`menu-ItemIcon ${isSelected ? 'icon-img' : ''}`}
-    />
-    <span className="menu-label">{label}</span>
-  </div>
-);
-
-const subjects = [
-  { label: 'English', icon: '/assets/icons/English.svg' },
-  { label: 'Maths', icon: '/assets/icons/Maths.svg' },
-  { label: 'Kannada', icon: '/assets/icons/Kannada.svg' },
-  { label: 'Hindi', icon: '/assets/icons/Hindi.svg' },
-];
-
-const DropdownMenu: React.FC = () => {
+const DropdownMenu: FC<{ courses: TableTypes<"course">[] }> = ({ courses }) => {
   const [expanded, setExpanded] = useState<boolean>(false);
-  const [selected, setSelected] = useState(subjects[0]);
+  const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
+  console.log("My courses", courseDetails)
+  const [selected, setSelected] = useState<CourseDetails | null>(null);
+  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const api = ServiceConfig.getI().apiHandler;
 
-  const handleSelect = (subject: typeof subjects[0]) => {
+  useEffect(() => {
+    fetchCourseDetails();
+  }, [courses]);
+
+  const fetchCourseDetails = async () => {
+    const detailedCourses: CourseDetails[] = await Promise.all(
+      courses.map(async (course) => {
+        const gradeDoc = await api.getGradeById(course.grade_id!);
+        const curriculumDoc = await api.getCurriculumById(course.curriculum_id!);
+        return {
+          course,
+          grade: gradeDoc,
+          curriculum: curriculumDoc,
+        };
+      })
+    );
+    setCourseDetails(detailedCourses);
+    if (detailedCourses.length > 0) {
+      setSelected(detailedCourses[0]);
+    }
+  };
+
+  const handleSelect = (subject: CourseDetails) => {
     setSelected(subject);
     setExpanded(false);
   };
 
   const getSortedSubjects = () => {
-    return [
-      selected,
-      ...subjects.filter(subject => subject.label !== selected.label),
-    ];
+    return [...courseDetails].sort((a, b) => (a.course.sort_index ?? 0) - (b.course.sort_index ?? 0));
   };
 
+  const truncateName = (name: string) => {
+    // return name.length > maxLength ? name.slice(0, maxLength) + "..." : name;
+    if(name.split(" ").length > 1) {
+      return name.split(" ")[1]
+      } else return name
+  };
+
+  useEffect(() => {
+    if (expanded && selected) {
+      const selectedRef = itemRefs.current[selected.course.id];
+      selectedRef?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [expanded, selected]);
+
   return (
-    <div style={{display: "flex", gap: '0.5vh', flexDirection: "column"}}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1vh" }}>
       <div
-        className={`dropdown-container ${expanded ? 'expanded' : ''}`}
+        className={`dropdown-container ${expanded ? "expanded" : ""}`}
         onClick={() => setExpanded(prev => !prev)}
       >
         <div className="dropdown-left">
-          {!expanded && (
+          {!expanded && selected && (
             <div className="selected-icon">
-              <img src={selected.icon} alt={selected.label} className="icon-img" />
+              <SelectIconImage
+                localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
+                defaultSrc={"assets/icons/DefaultIcon.png"}
+                webSrc={selected.course.image || "assets/icons/DefaultIcon.png"}
+                imageWidth="80%"
+                imageHeight="auto"
+              />
             </div>
           )}
 
           {expanded && (
             <div className="dropdown-items">
-              {getSortedSubjects().map(subject => (
-                <MenuItem
-                  key={subject.label}
-                  icon={subject.icon}
-                  label={subject.label}
-                  isSelected={subject.label === selected.label}
+              {getSortedSubjects().map((detail, index) => (
+                <div
+                  ref={(el) => (itemRefs.current[detail.course.id] = el)}
+                  className={`menu-item ${expanded && selected?.course.id === detail.course.id ? "selected-expanded" : ""}`}
+                  key={index}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleSelect(subject);
+                    handleSelect(detail);
                   }}
-                />
+                >
+                  <SelectIconImage
+                    localSrc={`courses/chapter_icons/${detail.course.code}.webp`}
+                    defaultSrc={"assets/icons/DefaultIcon.png"}
+                    webSrc={detail.course.image || "assets/icons/DefaultIcon.png"}
+                    imageWidth="90%"
+                  />
+                  <div style={{ fontSize: "10px", marginTop: "-6px" }}>
+                    {truncateName(detail.course.name)}
+                  </div>
+                </div>
               ))}
             </div>
           )}
         </div>
 
-        <div className={`dropdown-arrow ${expanded ? 'expanded-arrow' : ''}`}>
+        <div className={`dropdown-arrow ${expanded ? "expanded-arrow" : ""}`}>
           <img
             src={expanded ? '/assets/icons/ArrowDropUp.svg' : '/assets/icons/ArrowDropDown.svg'}
-            alt="Toggle Arrow"
+            alt="Toggle Dropdown"
             className="expand-icon"
           />
         </div>
       </div>
 
-      {!expanded && (
-        <div className="dropdown-label">
-          {selected.label}
-        </div>
-      )}
+      <div>
+        {!expanded && selected && (
+          <div className="dropdown-label">
+            {selected.course.name}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
