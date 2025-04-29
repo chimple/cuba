@@ -50,7 +50,6 @@ const DropdownMenu: FC<{ courses: TableTypes<"course">[] }> = ({ courses }) => {
   };
 
   const truncateName = (name: string) => {
-    // return name.length > maxLength ? name.slice(0, maxLength) + "..." : name;
     if(name.split(" ").length > 1) {
       return name.split(" ")[1]
       } else return name
