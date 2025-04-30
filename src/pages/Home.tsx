@@ -534,6 +534,8 @@ const Home: FC = () => {
         break;
       case HOMEHEADERLIST.PROFILE:
         Util.setPathToBackButton(PAGES.LEADERBOARD, history);
+        const body = document.querySelector("body");
+        body?.style.removeProperty("background-image");
         break;
       // case HOMEHEADERLIST.SEARCH:
       //   history.replace(PAGES.SEARCH);
