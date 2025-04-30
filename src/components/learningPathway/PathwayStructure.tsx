@@ -148,7 +148,7 @@ const PathwayStructure: React.FC = () => {
     loadSVG();
   }, []);
 
-  return <div ref={containerRef} className="pathway" />;
+  return <div ref={containerRef} />;
 };
 
 export default PathwayStructure;

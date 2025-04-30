@@ -4,7 +4,6 @@ import ChapterLessonBox from "./learningPathway/chapterLessonBox";
 import PathwayStructure from "./learningPathway/PathwayStructure";
 import { TableTypes } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
-import './LearningPathway.css'
 
 const LearningPathway: React.FC = () => {
   const [courses, setCourses] = useState<TableTypes<"course">[]>([]);
@@ -20,8 +19,8 @@ const LearningPathway: React.FC = () => {
   };
 
   return (
-    <div className="path-container">
-      <div className="path-structure">
+    <div>
+      <div>
         <DropdownMenu courses={courses} />
         <PathwayStructure />
       </div>
