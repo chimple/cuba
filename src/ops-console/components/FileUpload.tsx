@@ -65,6 +65,8 @@ const FileUpload: React.FC = () => {
 
     for (const sheet of workbook.SheetNames) {
       const worksheet = workbook.Sheets[sheet];
+      // Define this at the top of your processing function or scope
+      const seenSchoolIds = new Set<string>();
       let processedData: Record<string, any>[] =
         XLSX.utils.sheet_to_json(worksheet);
       progressRef.current = 70;
@@ -74,7 +76,6 @@ const FileUpload: React.FC = () => {
       if (sheet.toLowerCase().includes("school")) {
         for (let row of processedData) {
           let errors: string[] = [];
-
           const schoolId = row["SCHOOL ID"]?.toString().trim();
           const schoolName = row["SCHOOL NAME"]?.toString().trim();
           const state = row["STATE"]?.toString().trim();
@@ -111,6 +112,16 @@ const FileUpload: React.FC = () => {
             .trim();
           const studentLoginType = row["STUDENT LOGIN TYPE"]?.toString().trim();
 
+          // ✅ Check for duplicate SCHOOL ID
+          if (schoolId) {
+            if (seenSchoolIds.has(schoolId)) {
+              row["Updated"] = `❌ Duplicate SCHOOL ID found: ${schoolId}`;
+              continue;
+            } else {
+              seenSchoolIds.add(schoolId);
+            }
+          }
+
           // Validate format
           if (
             programManagerPhone &&
@@ -127,31 +138,66 @@ const FileUpload: React.FC = () => {
               "Invalid FIELD COORDINATOR EMAIL OR PHONE NUMBER format"
             );
           }
-          const validationResponse = await api.validateUserContacts(
-            programManagerPhone,
-            fieldCoordinatorPhone
-          );
-          console.log("fdfsdfsf", validationResponse);
-          if (validationResponse.status === "error") {
-            errors.push(...(validationResponse.errors || []));
+          if (principalPhone && !validateEmailOrPhone(principalPhone)) {
+            errors.push("Invalid PRINCIPAL PHONE EMAIL OR PHONE NUMBER format");
+          }
+
+          // ✅ Only call validateUserContacts if at least one contact is present
+          const hasProgramManagerContact = !!programManagerPhone?.trim();
+          const hasFieldCoordinatorContact = !!fieldCoordinatorPhone?.trim();
+
+          if (!hasProgramManagerContact && !hasFieldCoordinatorContact) {
+            errors.push(
+              "Missing both PROGRAM MANAGER and FIELD COORDINATOR contact information"
+            );
+          } else {
+            if (!hasProgramManagerContact) {
+              errors.push("Missing PROGRAM MANAGER contact information");
+            }
+            if (!hasFieldCoordinatorContact) {
+              errors.push("Missing FIELD COORDINATOR contact information");
+            }
+
+            if (hasProgramManagerContact && hasFieldCoordinatorContact) {
+              const contactValidation = await api.validateUserContacts(
+                programManagerPhone.trim(),
+                fieldCoordinatorPhone.trim()
+              );
+              if (contactValidation.status === "error") {
+                errors.push(...(contactValidation.errors || []));
+              }
+            }
           }
 
           // **Condition 1: If SCHOOL ID (UDISE Code) is present**
           if (schoolId) {
             // Validate only required fields
             if (!schoolName) errors.push("Missing SCHOOL NAME");
+            if (!programManagerPhone)
+              errors.push("Missing PROGRAM MANAGER EMAIL OR PHONE NUMBER");
+            if (!fieldCoordinatorPhone)
+              errors.push("Missing FIELD COORDINATOR EMAIL OR PHONE NUMBER");
             if (!schoolInstructionLanguage)
-              errors.push("Missing SCHOOL INSTRUCTION LANGUAGE");
+              errors.push(
+                "Missing SCHOOL INSTRUCTION LANGUAGE or Invalid format"
+              );
+            if (!principalName) errors.push("Missing PRINCIPAL NAME");
+            if (!principalPhone)
+              errors.push("Missing PRINCIPAL PHONE NUMBER OR EMAIL ID");
+            if (!studentLoginType?.trim())
+              errors.push("Missing STUDENT LOGIN TYPE");
 
             // Call API for validation if all required fields are filled
             if (errors.length === 0) {
-              const validationResponse = await api.validateSchoolData(
+              const schoolValidation = await api.validateSchoolData(
                 schoolId,
                 schoolName,
                 schoolInstructionLanguage
               );
-              if (validationResponse.status === "error") {
-                errors.push(...(validationResponse.errors || []));
+              console.log("fsdfdsfs", schoolValidation.status);
+
+              if (schoolValidation.status === "error") {
+                errors.push(...(schoolValidation.errors || []));
               } else {
                 validatedSchoolIds.add(schoolId); // ✅ Store valid school IDs
               }
@@ -177,8 +223,10 @@ const FileUpload: React.FC = () => {
             if (!principalName) errors.push("Missing PRINCIPAL NAME");
             if (!principalPhone)
               errors.push("Missing PRINCIPAL PHONE NUMBER OR EMAIL ID");
-            if (!studentLoginType) errors.push("Missing STUDENT LOGIN TYPE");
+            if (!studentLoginType?.trim())
+              errors.push("Missing STUDENT LOGIN TYPE");
           }
+          console.log("fddfdsgfdgdg", errors);
           row["Updated"] =
             errors.length > 0
               ? `❌ Errors: ${errors.join(", ")}`
@@ -200,12 +248,19 @@ const FileUpload: React.FC = () => {
             ?.toString()
             .trim();
           const className = `${grade} ${classSection}`.trim();
+          console.log("fddfdsgfdgdg23", validatedSchoolIds);
+          if (!grade) errors.push("Missing grade");
+          if (!subjectGrade) errors.push("Missing subjectGrade");
+          if (!curriculum) errors.push("Missing curriculum");
+          if (!subject) errors.push("Missing subject");
+          if (!studentCount) errors.push("Missing studentCount");
+
           if (
-            !schoolId ||
-            !grade ||
-            !subjectGrade ||
-            !curriculum ||
-            !subject ||
+            !schoolId &&
+            !grade &&
+            !subjectGrade &&
+            !curriculum &&
+            !subject &&
             !studentCount
           ) {
             errors.push("Missing required class details.");
@@ -240,6 +295,7 @@ const FileUpload: React.FC = () => {
             .trim();
           const classId = `${schoolId}_${grade}_${classSection}`;
           const className = `${grade} ${classSection}`.trim();
+          if (!grade) errors.push("Missing grade");
 
           if (!schoolId || !grade || !teacherName || !teacherContact) {
             errors.push("Missing required teacher details.");
@@ -298,6 +354,7 @@ const FileUpload: React.FC = () => {
             .trim();
           const classId = `${schoolId}_${grade}_${classSection}`; // Unique class identifier
           const className = `${grade} ${classSection}`.trim();
+          if (!grade) errors.push("Missing grade");
 
           if (!schoolId || !studentName || !age || !grade || !parentContact) {
             errors.push("Missing required student details.");
