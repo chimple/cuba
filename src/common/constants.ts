@@ -216,7 +216,7 @@ export const ACTIVE_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
     [
       HOMEHEADERLIST.ASSIGNMENT,
       {
-        displayName: "Home work",
+        displayName: "Homework",
         iconSrc: "/assets/icons/HomeworkIconActive.svg",
         headerList: HOMEHEADERLIST.ASSIGNMENT,
       },
@@ -246,7 +246,7 @@ export const DEFAULT_HEADER_ICON_CONFIGS: Map<
   [
     HOMEHEADERLIST.ASSIGNMENT,
     {
-      displayName: "Home work",
+      displayName: "Homework",
       iconSrc: "/assets/icons/HomeworkIconInactive.svg",
       headerList: HOMEHEADERLIST.ASSIGNMENT,
     },
@@ -291,7 +291,7 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
     [
       HOMEHEADERLIST.ASSIGNMENT,
       {
-        displayName: "Home work",
+        displayName: "Homework",
         iconSrc: "/assets/icons/homework_icon.svg",
         headerList: HOMEHEADERLIST.ASSIGNMENT,
       },
