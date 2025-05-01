@@ -1351,19 +1351,24 @@ export class SupabaseApi implements ServiceApi {
     }
 
     let errors: string[] = [];
-    // Check for duplicate UDISE codes
-    if (data.length > 1) {
-      errors.push("Duplicate SCHOOL ID (UDISE Code) found in database");
-    }
 
-    if (data[0].school_name !== schoolName) {
-      errors.push("SCHOOL NAME does not match the database record");
-    }
-    console.log("kjgfkjdsjfs", data[0].instruction_medium, instructionMedium);
-    if (data[0].instruction_medium !== instructionMedium) {
-      errors.push(
-        "SCHOOL INSTRUCTION LANGUAGE does not match the database record"
-      );
+    if (data.length === 0) {
+      errors.push("No matching SCHOOL ID (UDISE Code) found in database");
+    } else {
+      if (data.length > 1) {
+        errors.push("Duplicate SCHOOL ID (UDISE Code) found in database");
+      }
+      const school = data[0];
+      if (school) {
+        if (school.school_name !== schoolName) {
+          errors.push("SCHOOL NAME does not match the database record");
+        }
+        if (school.instruction_medium !== instructionMedium) {
+          errors.push(
+            "SCHOOL INSTRUCTION LANGUAGE does not match the database record all letters should be capital"
+          );
+        }
+      }
     }
     const result =
       errors.length > 0 ? { status: "error", errors } : { status: "success" };

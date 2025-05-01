@@ -4389,8 +4389,8 @@ order by
       instructionMedium
     );
     console.log("fdsfdsfs", schoolData);
-    if (!schoolData) {
-      return { status: "error", errors: ["Invalid SCHOOL ID (UDISE Code)"] };
+    if (schoolData.status === "error") {
+      return { status: "error", errors: schoolData.errors };
     }
     return { status: "success" };
   }
