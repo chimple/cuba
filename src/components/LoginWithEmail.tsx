@@ -5,18 +5,23 @@ import { eye, eyeOff } from "ionicons/icons";
 import "./LoginWithEmail.css";
 
 import { ServiceConfig } from "../services/ServiceConfig";
+import BackButton from "./common/BackButton";
 
 interface LoginProps {
   onLogin: (email: string, password: string) => void;
   onForgotPasswordChange?: (show: boolean) => void;
   showIcons?: boolean;
   onLoginClick?: (loginClick: boolean) => void;
+  errorOccurred?: boolean;
+  onEmailClick?: (loginClick: boolean) => void;
 }
 
 const LoginWithEmail: React.FC<LoginProps> = ({
   onLogin,
   onForgotPasswordChange,
   onLoginClick,
+  errorOccurred = false,
+  onEmailClick,
 }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -74,11 +79,30 @@ const LoginWithEmail: React.FC<LoginProps> = ({
 
   return (
     <div className="login-form">
-      <img
-        id="login-with-email-chimple-logo"
-        alt="Chimple Brand Logo"
-        src="assets/icons/ChimpleBrandLogo.svg"
-      />
+      <div className={showForgotPassword ? "login-header" : ""}>
+        <div className="login-header-left">
+          {showForgotPassword && (
+            <BackButton
+              onClicked={() => {
+                setShowForgotPassword(false);
+                setForgotEmail("");
+                setForgotError("");
+                setForgotMessage("");
+                onForgotPasswordChange?.(false);
+                errorOccurred = false;
+              }}
+            />
+          )}
+        </div>
+        <div className="login-header-center">
+          <img
+            id="login-with-email-chimple-logo"
+            alt="Chimple Brand Logo"
+            src="assets/icons/ChimpleBrandLogo.svg"
+          />
+        </div>
+        <div className="login-header-right" />
+      </div>
       <p id="chimple-brand-text2">{t("Discovering the joy of learning")}</p>
 
       {!showForgotPassword ? (
@@ -89,6 +113,7 @@ const LoginWithEmail: React.FC<LoginProps> = ({
               type="email"
               value={email}
               placeholder={t("Enter your email") || ""}
+              aria-label={t("Enter your email") || ""}
               className="login-with-email-text-box"
               onIonChange={(e) => setEmail(e.detail.value!)}
             />
@@ -126,6 +151,7 @@ const LoginWithEmail: React.FC<LoginProps> = ({
             onClick={handleLogin}
             className="login-with-email-button"
             id="login-with-email-button-inner"
+            disabled={!email || !password}
           >
             {t("login")}
           </IonButton>
@@ -145,6 +171,7 @@ const LoginWithEmail: React.FC<LoginProps> = ({
                     setForgotMessage("");
                     onForgotPasswordChange?.(false);
                     onLoginClick?.(true);
+                    onEmailClick?.(true);
                   }}
                 >
                   {t("login")}
@@ -153,7 +180,7 @@ const LoginWithEmail: React.FC<LoginProps> = ({
             </div>
           ) : (
             <div className="email-password-reset-link">
-              <div className="login-with-email-text-box-div">
+              <div className="login-with-email-forgot-password-text-box ">
                 <p className="login-with-email-label">{t("Email")}</p>
                 <IonInput
                   type="email"
@@ -170,7 +197,7 @@ const LoginWithEmail: React.FC<LoginProps> = ({
                 id="login-with-email-button-inner"
                 disabled={forgotLoading || !forgotEmail}
               >
-                {forgotLoading ? t("sending") + "..." : t("Send")}
+                {forgotLoading ? t("sending") + "..." : t("send")}
               </IonButton>
 
               {forgotError && (
@@ -184,12 +211,19 @@ const LoginWithEmail: React.FC<LoginProps> = ({
       )}
       {error && !showForgotPassword && (
         <IonText color="danger">
-          <p>{t(error)}</p>
+          <p className="login-with-email-error-text">{t(error)}</p>
         </IonText>
       )}
       {message && !showForgotPassword && (
         <IonText color="success">
-          <p>{t(message)}</p>
+          <p className="login-with-email-error-text">{t(message)}</p>
+        </IonText>
+      )}
+      {errorOccurred && !showForgotPassword && !error && (
+        <IonText color="danger">
+          <p className="login-with-email-error-text">
+            {t("User not Found. Please verify your credentials.")}
+          </p>
         </IonText>
       )}
     </div>

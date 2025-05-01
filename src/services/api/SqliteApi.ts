@@ -1723,6 +1723,11 @@ export class SqliteApi implements ServiceApi {
       [totalStars, studentId]
     );
 
+    const updatedStudent = await this.getUserByDocId(studentId);
+    if (updatedStudent) {
+      Util.setCurrentStudent(updatedStudent);
+    }
+
     this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       id: studentId,

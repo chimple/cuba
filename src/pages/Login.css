@@ -101,12 +101,15 @@ p {
     top: 83%;
     left: 50%;
     transform: translateY(-5%) translateX(-50%); */
-  margin: -2% 1% 0% 1%;
-  font-size: var(--text-size);
+  font-size: var(--text-sizeM);
   color: var(--text-color);
-  font-size: 1.4vw;
 }
 
+#login-google-icon-2 {
+  height: 6vh;
+  width: auto;
+  margin-top: 0%;
+}
 #login-google-icon {
   /* position: absolute;
     top: 89%;
@@ -117,11 +120,9 @@ p {
   /* transform: translateY(-5%) translateX(-50%); */
   margin-top: 0%;
 }
-
 #Google-horizontal-line {
   flex: auto;
   height: 0.1vh;
-  margin-top: 2%;
   background-color: gray;
 }
 
@@ -130,12 +131,12 @@ p {
   width: 30vw;
   margin-left: 36.9%;
   margin-top: -2%;
+  align-items: center;
 }
 
 #Google-horizontal-line2 {
   flex: auto;
   height: 0.1vh;
-  margin-top: 2%;
   background-color: gray;
 }
 
@@ -230,11 +231,15 @@ p {
 .student-credentials-container {
   margin-top: 1vh;
 }
+.school-icon-2 {
+  height: 6vh;
+  width: auto;
+  margin-top: 0%;
+  color: #565656;
+}
 .school-icon {
   height: 9vh;
   width: auto;
-  /* text-align: center; */
-  /* transform: translateY(-5%) translateX(-50%); */
   margin-top: 0%;
   color: #565656;
 }
@@ -305,22 +310,20 @@ p {
 }
 .login-icons-div {
   display: flex;
-  flex-direction: row;
   justify-content: center;
-  gap: 2vw;
-  align-items: center;
-  padding-bottom: 1vh;
+  gap: 4vw;
+  margin-top: 1vh;
 }
 .login-call-icon {
   background: #0076be;
-  height: 8vh;
-  width: 8vh;
+  height: 5.5vh;
+  width: 5.5vh;
   display: flex;
   border-radius: 50%;
   flex-direction: column;
-  font-size: 1rem;
+  font-size: 0.7rem;
   align-items: center;
-  margin-bottom: 2.5vh;
+  margin-bottom: 2.3vh;
   justify-content: center;
 }
 #login-horizontal-line {
