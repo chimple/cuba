@@ -320,8 +320,8 @@ p {
   background: #0076be;
   max-height: 6.5vh;
   min-height: 5.5vh;
-  max-width: 4vw;
-  min-width: 2.8vw;
+  max-width: 6.5vh;
+  min-width: 5.5vh;
   display: flex;
   border-radius: 50%;
   flex-direction: column;

@@ -54,7 +54,6 @@
   height: clamp(25px, 4vh, 35px);
   min-height: 25px;
   max-height: 35px;
-  width: 100%;
   overflow: hidden;
   z-index: 2;
 }
