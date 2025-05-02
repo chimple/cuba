@@ -70,7 +70,7 @@ const DropdownMenu: FC<{ courses: TableTypes<"course">[] }> = ({ courses }) => {
                 localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
                 defaultSrc={"assets/icons/DefaultIcon.png"}
                 webSrc={selected.course.image || "assets/icons/DefaultIcon.png"}
-                imageWidth="80%"
+                imageWidth="75%"
                 imageHeight="auto"
               />
             </div>
@@ -92,7 +92,7 @@ const DropdownMenu: FC<{ courses: TableTypes<"course">[] }> = ({ courses }) => {
                     localSrc={`courses/chapter_icons/${detail.course.code}.webp`}
                     defaultSrc={"assets/icons/DefaultIcon.png"}
                     webSrc={detail.course.image || "assets/icons/DefaultIcon.png"}
-                    imageWidth="90%"
+                    imageWidth="85%"
                   />
                   <div className="trucate-style">
                     {truncateName(detail.course.name)}

@@ -13,7 +13,7 @@
 }
 
 .dropdown-container {
-  max-width: 8vw;
+  max-width: 8.3vw;
   border: 2px solid #F35908;
   border-radius: 20px;
   background-color: #FFF9CF;
@@ -84,7 +84,7 @@
   font-size: 12px;
   font-weight: 400;
   color: black;
-  width: 6vw;
+  width: 8vw;
   height: 2vh;
   color: #182A4F;
 }
@@ -106,7 +106,7 @@
 .menu-item.selected-expanded {
   background-color: #FFB792;
   width: auto;
-  height: 13vh;
+  height: auto;
 }
 
 .menu-label {
