@@ -106,11 +106,13 @@ p {
 }
 
 #login-google-icon-2 {
-  max-height: 6vh;
-  min-height: 4vh;
+  max-height: 50px;
+  min-height: 25px;
+  height: 6vh;
   width: auto;
   margin-top: 0%;
 }
+
 #login-google-icon {
   /* position: absolute;
     top: 89%;
@@ -233,12 +235,14 @@ p {
   margin-top: 1vh;
 }
 .school-icon-2 {
-  max-height: 8vh;
-  min-height: 6vh;
+  max-height: 50px;
+  min-height: 25px;
+  height: 6vh;
   width: auto;
   margin-top: 0%;
   color: #565656;
 }
+
 .school-icon {
   height: 9vh;
   width: auto;
@@ -318,10 +322,12 @@ p {
 }
 .login-call-icon {
   background: #0076be;
-  max-height: 6.5vh;
-  min-height: 5.5vh;
-  max-width: 6.5vh;
-  min-width: 5.5vh;
+  max-height: 50px;
+  min-height: 25px;
+  max-width: 50px;
+  min-width: 25px;
+  height: 5vh;
+  width: 6vh;
   display: flex;
   border-radius: 50%;
   flex-direction: column;

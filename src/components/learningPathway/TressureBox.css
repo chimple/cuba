@@ -7,6 +7,8 @@
 
 .treasure-box-wrapper {
   position: relative;
+  width: clamp(10vw, 12.5vw, 15vw);
+  height: clamp(15vh, 20vh, 25vh);
   min-width: 100px;
   max-width: 150px;
   min-height: 150px;
@@ -25,9 +27,12 @@
 
 .treasure-box-svg {
   width: auto;
-  height: 17vh;
+  height: clamp(17vh, 3vh, 25vh);
+  min-height: 50px;
+  max-height: 100px;
   object-fit: contain;
 }
+
 .treasure-box-gif {
   width: auto;
   height: 40vh;
@@ -51,7 +56,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -10%);
-  height: clamp(25px, 4vh, 35px);
+  height: clamp(2vh, 1vh, 4vh);
   min-height: 25px;
   max-height: 35px;
   overflow: hidden;
@@ -64,6 +69,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  height: clamp(2vh, 1vh, 4vh);
   font-size: clamp(20px, 5vh, 24px);
   color: var(--text-color);
   font-family: "BalooRegular2";
