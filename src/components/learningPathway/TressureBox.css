@@ -7,8 +7,8 @@
 
 .treasure-box-wrapper {
   position: relative;
-  width: clamp(10vw, 12.5vw, 15vw);
-  height: clamp(15vh, 20vh, 25vh);
+  width: clamp(10vw, 5vw, 15vw);
+  height: clamp(15vh, 5vh, 25vh);
   min-width: 100px;
   max-width: 150px;
   min-height: 150px;
