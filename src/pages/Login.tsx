@@ -66,6 +66,7 @@ const Login: React.FC = () => {
   //const [parentName, setParentName] = useState<any>("");
   const api = ServiceConfig.getI().apiHandler;
   const [emailClick, setEmailClick] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
 
   const [recaptchaVerifier, setRecaptchaVerifier] =
     useState<RecaptchaVerifier>();
@@ -603,6 +604,8 @@ const Login: React.FC = () => {
         setIsInitialLoading(true);
         history.replace(PAGES.SELECT_MODE);
       } else {
+        setEmailClick(true);
+        setError(true);
         setIsLoading(false);
         setIsInitialLoading(false);
       }
@@ -665,6 +668,8 @@ const Login: React.FC = () => {
             onLogin={handleLogin}
             onForgotPasswordChange={(show) => setShowForgotPasswordScreen(show)}
             onLoginClick={(onLoginClick) => setEmailClick(!onLoginClick)}
+            errorOccurred={error}
+            onEmailClick={(onEmailClick) => setEmailClick(onEmailClick)}
           />
 
           {!showForgotPasswordScreen && (
@@ -679,7 +684,6 @@ const Login: React.FC = () => {
               </div>
               <div className="login-icons-div">
                 <div className="login-call-icon-div">
-                  {" "}
                   <div className="login-call-icon">
                     <IoCall
                       id="login-call-icon-button-inner"
@@ -691,7 +695,7 @@ const Login: React.FC = () => {
 
                 <div className="login-google-icon">
                   <img
-                    id="login-google-icon"
+                    id="login-google-icon-2"
                     aria-label={String(t("Google Sign In"))}
                     alt="Google Icon"
                     src="assets/icons/Google Icon.png"
@@ -755,7 +759,7 @@ const Login: React.FC = () => {
                   >
                     <IoSchool
                       aria-label={String(t("Student-credentials Sign In"))}
-                      className="school-icon"
+                      className="school-icon-2"
                     />
                     <p className="login-icon-label">{t("student id")}</p>
                   </div>

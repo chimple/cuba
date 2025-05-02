@@ -1,6 +1,31 @@
 .login-form {
   margin-top: 1vh;
 }
+.login-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: var(--margin);
+  margin-bottom: 0;
+}
+
+.login-header-left,
+.login-header-right {
+  max-width: 60px;
+  min-width: 40px;
+  width: 3vw;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.login-header-center {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2vh;
+}
 
 #login-with-email-chimple-logo {
   text-align: center;
@@ -38,7 +63,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  margin-bottom: 1vw;
+  /* margin-bottom: 1vw; */
 }
 
 .login-with-email-label {
@@ -63,13 +88,14 @@
   position: relative;
   flex-flow: row;
   flex-shrink: 0;
-  font-size: var(--text-sizeM);
+  font-size: var(--text-sizeL);
+  text-transform: none;
   align-items: center;
   justify-content: center;
   z-index: 1;
   color: var(--text-color);
   width: 26vw;
-  --background: #CFEC91;
+  --background: #cfec91;
   height: 3.5vw;
   border-radius: 1vh;
   text-align: center;
@@ -79,7 +105,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 5vh;
+  margin-top: 8vh;
 }
 .login-with-email-text-box,
 .login-with-email-password-text-box {
@@ -97,7 +123,7 @@
   color: var(--text-color);
   cursor: pointer;
 }
-.login-with-email-eye-icon{
+.login-with-email-eye-icon {
   position: absolute;
   right: 10px;
   top: 50%;
@@ -108,10 +134,10 @@
   z-index: 10;
   pointer-events: auto;
 }
-.login-with-email-password{
+.login-with-email-password {
   position: relative;
 }
-.login-with-email-forgot-password{
+.login-with-email-forgot-password {
   height: calc(100vh - 150px);
   display: flex;
   color: var(--text-color);
@@ -120,9 +146,21 @@
   flex-direction: column;
   text-align: center;
 }
-.login-link-text{
-  color: #FF5500;
+.login-link-text {
+  color: #ff5500;
   font-weight: bold;
   cursor: pointer;
   text-decoration: underline;
+}
+.login-with-email-error-text {
+  font-size: var(--text-sizeM);
+  color: red;
+}
+.login-with-email-forgot-password-text-box {
+  color: var(--text-color);
+  font-size: var(--text-sizeL);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 1vw;
 }

@@ -456,7 +456,7 @@
   "Parts and whole": "भाग आणि पूर्ण",
   "Passwords do not match.": "पासवर्ड जुळत नाहीत.",
   "Password is too short.": "पासवर्ड खूप छोटा आहे.",
-  "Password must be at least 6 characters.": "संकेतशब्द किमान 6 अक्षरांचा असावा.",
+  "Password must be at least 6 characters": "संकेतशब्द किमान 6 अक्षरांचा असावा",
   "Password reset successful. Redirecting to login": "संकेतशब्द यशस्वीपणे रीसेट झाला. लॉगिनकडे वळवत आहे",
   "Password": "संकेतशब्द",
   "Penguin": "पेंग्विन",

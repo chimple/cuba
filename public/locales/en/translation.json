@@ -462,7 +462,7 @@
   "Parts and whole": "Parts and whole",
   "Passwords do not match.": "Passwords do not match.",
   "Password is too short.": "Password is too short.",
-  "Password must be at least 6 characters.": "Password must be at least 6 characters.",
+  "Password must be at least 6 characters": "Password must be at least 6 characters",
   "Password reset successful. Redirecting to login": "Password reset successful. Redirecting to login",
   "Password": "Password",
   "Penguin": "Penguin",

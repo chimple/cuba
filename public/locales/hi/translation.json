@@ -470,7 +470,7 @@
   "Parts and whole": "भाग और संपूर्ण",
   "Passwords do not match.": "पासवर्ड मेल नहीं खाते हैं।",
   "Password is too short.": "पारण शब्द बहुत छोटा है।",
-  "Password must be at least 6 characters.": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।",
+  "Password must be at least 6 characters": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।",
   "Password reset successful. Redirecting to login": "पासवर्ड रीसेट सफल। लॉगिन पर पुनः निर्देशित किया जा रहा है",
   "Password": "पासवर्ड",
   "Penguin": "पेंगुइन",

@@ -7,22 +7,15 @@
 
 .treasure-box-wrapper {
   position: relative;
-  width: 200px;
-  height: 200px;
+  width: 12.5vw;
+  height: 20vh;
+  min-width: 100px;
+  max-width: 150px;
+  min-height: 150px;
+  max-height: 250px;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.treasure-box-svg {
-  width: auto;
-  height: 20vh;
-  object-fit: contain;
-}
-.treasure-box-gif {
-  width: auto;
-  height: 40vh;
-  object-fit: contain;
 }
 
 .treasure-box-container {
@@ -32,20 +25,14 @@
   position: relative;
 }
 
-.treasure-box-wrapper {
-  position: relative;
-  width: 200px;
-  height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .treasure-box-svg {
   width: auto;
-  height: 20vh;
+  height: 17vh;
+  min-height: 50px;
+  max-height: 100px;
   object-fit: contain;
 }
+
 .treasure-box-gif {
   width: auto;
   height: 40vh;
@@ -56,40 +43,36 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, 5%);
+  transform: translate(-50%, -13%);
   font-size: clamp(20px, 5vh, 24px);
   font-weight: bold;
   color: var(--text-color);
-  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
   z-index: 2;
-}
-
-.stars-animation {
-  position: absolute;
-  top: -20px;
-  left: -20px;
-  width: 240px;
-  height: 240px;
-  z-index: 1;
-  pointer-events: none;
+  font-family: "BalooRegular2";
 }
 
 .scroll-container {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, 5%);
-  height: var(--text-sizeXL);
+  transform: translate(-50%, -10%);
+  height: 4vh;
+  min-height: 25px;
+  max-height: 35px;
   overflow: hidden;
+  z-index: 2;
 }
 
 .scroll-item {
-  height: 50px;
+  min-height: 25px;
+  max-height: 35px;
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 4vh;
   font-size: clamp(20px, 5vh, 24px);
   color: var(--text-color);
+  font-family: "BalooRegular2";
   font-weight: bold;
 }
 
@@ -101,16 +84,6 @@
   height: 240px;
   z-index: 1;
   pointer-events: none;
-}
-
-.scroll-item {
-  height: 50px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: clamp(20px, 5vh, 24px);
-  color: var(--text-color);
-  font-weight: bold;
 }
 
 .highlight {
