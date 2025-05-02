@@ -7,8 +7,10 @@
 
 .treasure-box-wrapper {
   position: relative;
-  width: 125px;
-  height: 200px;
+  min-width: 100px;
+  max-width: 150px;
+  min-height: 150px;
+  max-height: 250px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -49,14 +51,17 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -10%);
-  height: 30px;
+  height: clamp(25px, 4vh, 35px);
+  min-height: 25px;
+  max-height: 35px;
   width: 100%;
   overflow: hidden;
   z-index: 2;
 }
 
 .scroll-item {
-  height: 30px;
+  min-height: 25px;
+  max-height: 35px;
   display: flex;
   justify-content: center;
   align-items: center;

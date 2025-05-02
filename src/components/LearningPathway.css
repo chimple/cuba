@@ -6,12 +6,13 @@
 .chapter-egg-container {
   display: flex;
   width: 100vw;
-  height: 20vh;
+  min-height: 15vh;
+  max-height: 20vh;
   flex-direction: row;
   align-items: center;
   justify-content: flex-end;
 }
-  
+
 .pathway_section {
   display: flex;
   justify-content: center;
