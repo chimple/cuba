@@ -1,9 +1,13 @@
 import React from "react";
 import VerifyIcon from "../assets/icons/verifiedicon.svg";
 import "./FileVerifiedComponent.css";
-import { t } from "i18next";
 
-const VerifiedPage = () => {
+interface VerifiedPageProps {
+  title: string;
+  message: string;
+}
+
+const VerifiedPage: React.FC<VerifiedPageProps> = ({ title, message }) => {
   return (
     <div className="verified-page">
       <div className="verified-page-main">
@@ -13,14 +17,10 @@ const VerifiedPage = () => {
               <img src={VerifyIcon} alt="Verification" />
             </div>
             <div className="verified-text">
-              <p>{t("Verified")}</p>
+              <p>{title}</p>
             </div>
             <div className="verified-message">
-              <p>
-                {t(
-                  "Your data has been successfully checked, and no errors were found."
-                )}
-              </p>
+              <p>{message}</p>
             </div>
           </div>
         </div>
