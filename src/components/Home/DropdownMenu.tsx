@@ -11,10 +11,8 @@ interface CourseDetails {
 }
 
 const DropdownMenu: FC<{ courses: TableTypes<"course">[] }> = ({ courses }) => {
-  console.log("ABC", courses)
   const [expanded, setExpanded] = useState<boolean>(false);
   const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
-  console.log("My selected course data", courseDetails)
   const [selected, setSelected] = useState<CourseDetails | null>(null);
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const api = ServiceConfig.getI().apiHandler;
