@@ -1,9 +1,18 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./PathwayStructure.css";
-const PathwayStructure: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
+import { Util } from "../../utility/util";
+import { ServiceConfig } from "../../services/ServiceConfig";
+import { useHistory } from "react-router";
+import { PAGES } from "../../common/constants";
+import PathwayModal from "./PathwayModal";
 
-  // Fetch and wrap SVG as a <g> element
+const PathwayStructure: React.FC = () => {
+  const api = ServiceConfig.getI().apiHandler;
+  const history = useHistory();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState("");
+
   const fetchSVGGroup = async (
     url: string,
     className?: string
@@ -12,13 +21,10 @@ const PathwayStructure: React.FC = () => {
     const svgContent = await res.text();
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
     group.innerHTML = svgContent;
-    if (className) {
-      group.setAttribute("class", className);
-    }
+    if (className) group.setAttribute("class", className);
     return group;
   };
 
-  // Create an SVG <image> element
   const createSVGImage = (
     href: string,
     width?: number,
@@ -32,13 +38,12 @@ const PathwayStructure: React.FC = () => {
       "image"
     );
     image.setAttribute("href", href);
-    image.setAttribute("width", `${width}`);
-    image.setAttribute("height", `${height}`);
-    image.setAttribute("x", `${x}`);
-    image.setAttribute("y", `${y}`);
-    if (opacity !== undefined) {
+    if (width) image.setAttribute("width", `${width}`);
+    if (height) image.setAttribute("height", `${height}`);
+    if (x) image.setAttribute("x", `${x}`);
+    if (y) image.setAttribute("y", `${y}`);
+    if (opacity !== undefined)
       image.setAttribute("opacity", opacity.toString());
-    }
     return image;
   };
 
@@ -53,101 +58,308 @@ const PathwayStructure: React.FC = () => {
   };
 
   useEffect(() => {
-    const loadSVG = async () => {
+    const loadSVG = async (updatedStudent?: any) => {
       if (!containerRef.current) return;
 
       try {
-        const res = await fetch("/pathwayAssets/Pathway.svg");
+        const currentStudent =
+          updatedStudent || (await Util.getCurrentStudent());
+        const learningPath = currentStudent?.learning_path
+          ? JSON.parse(currentStudent.learning_path)
+          : null;
+        if (!learningPath) return;
+
+        const currentCourseIndex = learningPath?.courses.currentCourseIndex;
+        const course = learningPath?.courses.courseList[currentCourseIndex];
+        const { startIndex, currentIndex, pathEndIndex } = course;
+
+        const lessons = await Promise.all(
+          course.path
+            .slice(startIndex, pathEndIndex + 1)
+            .map(async (lesson) => {
+              return await api.getLesson(lesson.lesson_id);
+            })
+        );
+
+        const res = await fetch("/pathwayAssets/English/Pathway.svg");
         const svgContent = await res.text();
         containerRef.current.innerHTML = svgContent;
 
         const svg = containerRef.current.querySelector("svg") as SVGSVGElement;
         if (!svg) return;
 
-        svg.setAttribute("style", "max-width: 75dvw; max-height: 65dvh");
-
-        const pathGroups = svg.querySelectorAll("g > g > path");
+        const pathGroups = svg.querySelectorAll("g > path");
         const paths = Array.from(pathGroups) as SVGPathElement[];
 
-        const [flowerActive, flowerInactive, giftSVG] = await Promise.all([
-          fetchSVGGroup(
-            "/pathwayAssets/FlowerActive.svg",
-            "flowerActive isSelected"
-          ),
-          fetchSVGGroup("/pathwayAssets/FlowerInactive.svg", "flowerInactive"),
-          fetchSVGGroup("/pathwayAssets/StarGift1.svg", "giftSVG"),
-        ]);
+        const [flowerActive, flowerInactive, playedLessonSVG, giftSVG] =
+          await Promise.all([
+            fetchSVGGroup(
+              "/pathwayAssets/English/FlowerActive.svg",
+              "flowerActive isSelected"
+            ),
+            fetchSVGGroup(
+              "/pathwayAssets/FlowerInactive.svg",
+              "flowerInactive"
+            ),
+            fetchSVGGroup(
+              "/pathwayAssets/English/PlayedLesson.svg",
+              "playedLessonSVG"
+            ),
+            fetchSVGGroup("/pathwayAssets/English/pathGift1.svg", "giftSVG"),
+          ]);
 
-        // Add start group with halo and flower
         const startPoint = paths[0].getPointAtLength(0);
-        const startGroup = document.createElementNS(
+        const xValues = [21, 150, 270, 382, 490];
+
+        lessons.forEach((lesson, idx) => {
+          const path = paths[idx];
+          const point = path.getPointAtLength(0);
+          const flowerX = point.x - 40;
+          const flowerY = point.y - 40;
+          const x = xValues[idx] ?? 0;
+
+          // Define x and y mappings for playedLesson positioning
+          const playedLessonXValues = [
+            flowerX - 5,
+            flowerX - 10,
+            flowerX - 7,
+            flowerX,
+            flowerX,
+          ];
+          const playedLessonYValues = [
+            flowerY - 4,
+            flowerY - 7,
+            flowerY - 10,
+            flowerY - 5,
+            flowerY,
+          ];
+
+          // Use the mappings to determine x and y
+          const playedLessonX = playedLessonXValues[idx] ?? flowerX - 20;
+          const playedLessonY = playedLessonYValues[idx] ?? flowerY - 20;
+
+          if (startIndex + idx < currentIndex) {
+            const playedLesson = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "g"
+            );
+            const lessonImage = createSVGImage(
+              lesson.image ||
+                "courses/" +
+                  lesson.cocos_subject_code +
+                  "/icons/" +
+                  lesson.id +
+                  ".webp",
+              17,
+              17,
+              34,
+              35
+            );
+            playedLesson.appendChild(
+              playedLessonSVG.cloneNode(true) as SVGGElement
+            );
+            playedLesson.appendChild(lessonImage);
+
+            // Place the playedLesson element using the mapped x and y values
+            placeElement(
+              svg,
+              playedLesson as SVGGElement,
+              playedLessonX,
+              playedLessonY
+            );
+          } else if (startIndex + idx === currentIndex) {
+            const activeGroup = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "g"
+            );
+
+            // Define x and y mappings for activeGroup positioning
+            const activeGroupXValues = [
+              flowerX - 20,
+              flowerX - 20,
+              260,
+              flowerX - 10,
+              flowerX - 15,
+            ];
+            const activeGroupYValues = [flowerY - 23, 5, 10, 5, 10];
+
+            // Use the mappings to determine x and y
+            const activeGroupX = activeGroupXValues[idx] ?? flowerX - 20;
+            const activeGroupY = activeGroupYValues[idx] ?? flowerY - 20;
+
+            activeGroup.setAttribute(
+              "transform",
+              `translate(${activeGroupX}, ${activeGroupY})`
+            );
+            const halo = createSVGImage(
+              "/pathwayAssets/English/halo.svg",
+              140,
+              140,
+              -15,
+              -12
+            );
+            const pointer = createSVGImage(
+              "/pathwayAssets/touchPointer.gif",
+              130,
+              130,
+              60,
+              30
+            );
+            const lessonImage = createSVGImage(
+              lesson.image ||
+                "courses/" +
+                  lesson.cocos_subject_code +
+                  "/icons/" +
+                  lesson.id +
+                  ".webp",
+              23,
+              23,
+              43,
+              43
+            );
+            activeGroup.appendChild(halo);
+            activeGroup.appendChild(
+              flowerActive.cloneNode(true) as SVGGElement
+            );
+            activeGroup.appendChild(lessonImage);
+            activeGroup.appendChild(pointer);
+            activeGroup.setAttribute("style", "cursor: pointer;");
+            // Add click handler for active lesson
+            activeGroup.addEventListener("click", () => {
+              if (lesson.plugin_type === "cocos") {
+                const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+                history.replace(PAGES.GAME + params, {
+                  url: "chimple-lib/index.html" + params,
+                  lessonId: lesson.cocos_lesson_id,
+                  courseDocId: course?.id,
+                  course: JSON.stringify(course),
+                  lesson: JSON.stringify(lesson),
+                  chapter: JSON.stringify({ chapter_id: lesson.chapter_id }),
+                  from: history.location.pathname + `?continue=true`,
+                });
+              }
+            });
+            const chimple = createSVGImage(
+              "/pathwayAssets/mascot.svg",
+              90,
+              90,
+              x,
+              startPoint.y + 55
+            );
+
+            svg.appendChild(activeGroup);
+            svg.appendChild(chimple);
+          } else {
+            const flower_Inactive = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "g"
+            );
+            const lessonImage = createSVGImage(
+              lesson.image ||
+                "courses/" +
+                  lesson.cocos_subject_code +
+                  "/icons/" +
+                  lesson.id +
+                  ".webp",
+              20,
+              20,
+              26,
+              28
+            );
+            flower_Inactive.appendChild(
+              flowerInactive.cloneNode(true) as SVGGElement
+            );
+            flower_Inactive.appendChild(lessonImage);
+            if (startIndex + idx == currentIndex + 1) {
+              flower_Inactive.addEventListener("click", () => {
+                setModalOpen(true);
+                setModalText("Lesson inactive, play the nearest active lesson");
+              });
+              flower_Inactive.setAttribute("style", "cursor: pointer;");
+            }
+
+            // Define x and y mappings for flower_Inactive positioning
+            const flowerInactiveXValues = [
+              flowerX - 20,
+              flowerX,
+              flowerX,
+              flowerX + 5,
+              flowerX + 10,
+            ];
+            const flowerInactiveYValues = [
+              flowerY - 20,
+              flowerY + 5,
+              flowerY - 6,
+              flowerY + 3,
+              flowerY - 5,
+            ];
+
+            // Use the mappings to determine x and y
+            const flowerInactiveX = flowerInactiveXValues[idx] ?? flowerX - 20;
+            const flowerInactiveY = flowerInactiveYValues[idx] ?? flowerY - 20;
+
+            // Place the flower_Inactive element
+            placeElement(
+              svg,
+              flower_Inactive as SVGGElement,
+              flowerInactiveX,
+              flowerInactiveY
+            );
+          }
+        });
+
+        const Gift_Svg = document.createElementNS(
           "http://www.w3.org/2000/svg",
           "g"
         );
-        startGroup.setAttribute(
-          "transform",
-          `translate(${startPoint.x - 60}, ${startPoint.y - 20})`
-        );
-
-        const halo = createSVGImage(
-          "/pathwayAssets/halo.svg",
-          150,
-          150,
-          -22,
-          -20
-        );
-        const pointer = createSVGImage(
-          "/pathwayAssets/touchPointer.gif",
-          150,
-          150,
-          60,
-          30
-        );
-
-        startGroup.appendChild(halo);
-        startGroup.appendChild(flowerActive.cloneNode(true));
-        startGroup.appendChild(pointer);
-        svg.appendChild(startGroup);
-
-        // Add chimple character
-        const chimple = createSVGImage(
-          "/pathwayAssets/chimple.svg",
-          125,
-          125,
-          startPoint.x - 70,
-          startPoint.y + 85
-        );
-        svg.appendChild(chimple);
-
-        // Place inactive flowers
-        paths.slice(1, 5).forEach((path, idx) => {
-          const point = path.getPointAtLength(0);
-          const xOffsets = [-40, -20, 0, +5];
-          placeElement(
-            svg,
-            flowerInactive.cloneNode(true) as SVGGElement,
-            point.x + xOffsets[idx],
-            point.y - 20
-          );
-        });
-
-        // Place gift at end of path 5
-        const endPoint = paths[4].getPointAtLength(paths[4].getTotalLength());
+        if (currentIndex < pathEndIndex + 1) {
+          Gift_Svg.addEventListener("click", () => {
+            setModalOpen(true);
+            setModalText("Complete these 5 lessons to earn rewards");
+          });
+          Gift_Svg.setAttribute("style", "cursor: pointer;");
+        }
+        const endPath = paths[paths.length - 1];
+        const endPoint = endPath.getPointAtLength(endPath.getTotalLength());
+        Gift_Svg.appendChild(giftSVG.cloneNode(true) as SVGGElement);
         placeElement(
           svg,
-          giftSVG.cloneNode(true) as SVGGElement,
-          endPoint.x + 20,
-          endPoint.y - 20
+          Gift_Svg as SVGGElement,
+          endPoint.x - 25,
+          endPoint.y - 40
         );
       } catch (error) {
         console.error("Failed to load SVG:", error);
       }
     };
 
+    // Initial load
     loadSVG();
+
+    // Listen for course changes
+    const handleCourseChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      loadSVG(customEvent.detail.currentStudent);
+    };
+
+    window.addEventListener(
+      "courseChanged",
+      handleCourseChange as EventListener
+    );
+
+    return () => {
+      window.removeEventListener("courseChanged", handleCourseChange);
+    };
   }, []);
 
-  return <div className="pathway-structure-div" ref={containerRef} />;
+  return (
+    <>
+      {isModalOpen && (
+        <PathwayModal text={modalText} onClose={() => setModalOpen(false)} />
+      )}
+      <div className="pathway-structure-div" ref={containerRef}></div>
+    </>
+  );
 };
 
 export default PathwayStructure;

@@ -1,0 +1,21 @@
+/* CSS for ChapterLessonBox component */
+.chapter-lesson-box {
+  position: fixed;
+  bottom: 1.5vh;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  min-height: 7vh;
+}
+
+.chapter-lesson-text {
+  margin: 0;
+  color: var(--text-color);
+  text-align: center;
+  font-size: var(--text-sizeL);
+}

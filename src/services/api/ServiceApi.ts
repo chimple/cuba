@@ -1285,4 +1285,18 @@ export interface ServiceApi {
    * @param {string } starsCount - count of stars
    */
   setStarsForStudents(studentId: string, starsCount: number): Promise<void>;
+  /**
+   * getting courses for the student sorted with sort_index
+   * @param {string } studentId - student id
+   */
+  getCoursesForPathway(studentId: string): Promise<TableTypes<"course">[]>;
+  /**
+   * Updates the learning path for a student.
+   * @param {string} learningPath - The new learning path to be set.
+   * @returns {User} Updated Student User Object
+   */
+  updateLearningPath(
+    student: TableTypes<"user">,
+    learning_path: string
+  ): Promise<TableTypes<"user">>;
 }

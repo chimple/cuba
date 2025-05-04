@@ -1008,4 +1008,15 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return this.s.setStarsForStudents(studentId, starsCount);
   }
+  public async getCoursesForPathway(
+    studentId: string
+  ): Promise<TableTypes<"course">[]> {
+    return await this.s.getCoursesForPathway(studentId);
+  }
+  public async updateLearningPath(
+    student: TableTypes<"user">,
+    learning_path: string // New parameter for learning_path
+  ): Promise<TableTypes<"user">> {
+    return await this.s.updateLearningPath(student, learning_path);
+  }
 }

@@ -1,75 +1,93 @@
 import { FC, useEffect, useRef, useState } from "react";
 import './DropdownMenu.css';
-import { TableTypes } from '../../common/constants';
 import SelectIconImage from '../displaySubjects/SelectIconImage';
 import { ServiceConfig } from "../../services/ServiceConfig";
+import { Util } from "../../utility/util";
 
 interface CourseDetails {
-  course: TableTypes<"course">;
-  grade?: TableTypes<"grade"> | null;
-  curriculum?: TableTypes<"curriculum"> | null;
+  id: string;
+  name: string;
+  image: string | null;
 }
 
-const DropdownMenu: FC<{ courses: TableTypes<"course">[] }> = ({ courses }) => {
+const DropdownMenu: FC = () => {
   const [expanded, setExpanded] = useState<boolean>(false);
-  const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
-  const [selected, setSelected] = useState<CourseDetails | null>(null);
+  const [courses, setCourses] = useState<CourseDetails[]>([]);
+  const [currentCourseIndex, setCurrentCourseIndex] = useState<number>(0);
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
-    fetchCourseDetails();
-  }, [courses]);
+    fetchLearningPathCourses();
+  }, []);
 
-  const fetchCourseDetails = async () => {
-    const detailedCourses: CourseDetails[] = await Promise.all(
-      courses.map(async (course) => {
-        const gradeDoc = await api.getGradeById(course.grade_id!);
-        const curriculumDoc = await api.getCurriculumById(course.curriculum_id!);
+  const fetchLearningPathCourses = async () => {
+    const currentStudent = await Util.getCurrentStudent();
+
+    if (!currentStudent || !currentStudent.learning_path) {
+      console.error("No learning path found for the user");
+      return;
+    }
+
+    const learningPath = JSON.parse(currentStudent.learning_path);
+    const courseList = learningPath.courses.courseList;
+    setCurrentCourseIndex(learningPath.courses.currentCourseIndex);
+
+    const detailedCourses = await Promise.all(
+      courseList.map(async (course: { course_id: string }) => {
+        const courseData = await api.getCourse(course.course_id);
+        if (!courseData) {
+          console.error(`Course data not found for course ID: ${course.course_id}`);
+          return null;
+        }
         return {
-          course,
-          grade: gradeDoc,
-          curriculum: curriculumDoc,
+          id: courseData.id,
+          name: courseData.name,
+          image: courseData.image,
         };
       })
     );
-    setCourseDetails(detailedCourses);
-    if (detailedCourses.length > 0) {
-      setSelected(detailedCourses[0]);
-    }
+
+    setCourses(detailedCourses);
   };
 
-  const handleSelect = (subject: CourseDetails) => {
-    setSelected(subject);
+  const handleSelect = async (index: number) => {
+    setCurrentCourseIndex(index);
     setExpanded(false);
-  };
 
-  const truncateName = (name: string) => {
-    if(name.split(" ").length > 1) {
-      return name.split(" ")[1]
-      } else return name
+    const currentStudent = await Util.getCurrentStudent();
+    if (!currentStudent || !currentStudent.learning_path) return;
+
+    const learningPath = JSON.parse(currentStudent.learning_path);
+    learningPath.courses.currentCourseIndex = index;
+
+    await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
+    await Util.setCurrentStudent({ ...currentStudent, learning_path: JSON.stringify(learningPath) }, undefined);
+
+    // Dispatch a custom event to notify about the course change
+    const event = new CustomEvent("courseChanged", { detail: { currentStudent } });
+    window.dispatchEvent(event);
   };
 
   useEffect(() => {
-    if (expanded && selected) {
-      const selectedRef = itemRefs.current[selected.course.id];
+    if (expanded) {
+      const selectedRef = itemRefs.current[courses[currentCourseIndex]?.id];
       selectedRef?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-  }, [expanded, selected]);
+  }, [expanded, currentCourseIndex]);
 
   return (
     <div className="dropdown-main">
       <div
         className={`dropdown-container ${expanded ? "expanded" : ""}`}
-        onClick={() => setExpanded(prev => !prev)}
+        onClick={() => setExpanded((prev) => !prev)}
       >
         <div className="dropdown-left">
-          {!expanded && selected && (
+          {!expanded && courses[currentCourseIndex] && (
             <div className="selected-icon">
               <SelectIconImage
-                localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
                 defaultSrc={"assets/icons/DefaultIcon.png"}
-                webSrc={selected.course.image || "assets/icons/DefaultIcon.png"}
+                webSrc={courses[currentCourseIndex].image || "assets/icons/DefaultIcon.png"}
                 imageWidth="80%"
                 imageHeight="auto"
               />
@@ -78,24 +96,23 @@ const DropdownMenu: FC<{ courses: TableTypes<"course">[] }> = ({ courses }) => {
 
           {expanded && (
             <div className="dropdown-items">
-              {courseDetails.map((detail, index) => (
+              {courses.map((course, index) => (
                 <div
-                  ref={(el) => (itemRefs.current[detail.course.id] = el)}
-                  className={`menu-item ${expanded && selected?.course.id === detail.course.id ? "selected-expanded" : ""}`}
-                  key={index}
+                  ref={(el) => (itemRefs.current[course.id] = el)}
+                  className={`menu-item ${expanded && currentCourseIndex === index ? "selected-expanded" : ""}`}
+                  key={course.id}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleSelect(detail);
+                    handleSelect(index);
                   }}
                 >
                   <SelectIconImage
-                    localSrc={`courses/chapter_icons/${detail.course.code}.webp`}
                     defaultSrc={"assets/icons/DefaultIcon.png"}
-                    webSrc={detail.course.image || "assets/icons/DefaultIcon.png"}
-                    imageWidth="90%"
+                    webSrc={course.image || "assets/icons/DefaultIcon.png"}
+                    imageWidth="80%"
                   />
-                  <div className="trucate-style">
-                    {truncateName(detail.course.name)}
+                  <div className="truncate-style">
+                    {course.name}
                   </div>
                 </div>
               ))}
@@ -110,13 +127,11 @@ const DropdownMenu: FC<{ courses: TableTypes<"course">[] }> = ({ courses }) => {
         </div>
       </div>
 
-      <div>
-        {!expanded && selected && (
+        {!expanded && courses[currentCourseIndex] && (
           <div className="dropdown-label">
-            {selected.course.name}
+            {courses[currentCourseIndex].name}
           </div>
         )}
-      </div>
     </div>
   );
 };

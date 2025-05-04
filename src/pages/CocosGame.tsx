@@ -163,6 +163,49 @@ const CocosGame: React.FC = () => {
     saveTempData(event.detail);
     setGameResult(event);
   };
+  
+  const updateLearningPath = async () => {
+    if (!currentStudent) return;
+    const learningPath = currentStudent.learning_path
+      ? JSON.parse(currentStudent.learning_path)
+      : null;
+
+    if (!learningPath) return;
+
+    const { courses } = learningPath;
+    const currentCourse = courses.courseList[courses.currentCourseIndex];
+
+    // Update currentIndex
+    currentCourse.currentIndex += 1;
+
+    // Check if currentIndex exceeds pathEndIndex
+    if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
+      currentCourse.startIndex = currentCourse.currentIndex;
+      currentCourse.pathEndIndex += 5;
+
+      // Ensure pathEndIndex does not exceed the path length
+      if (currentCourse.pathEndIndex > currentCourse.path.length) {
+        currentCourse.pathEndIndex = currentCourse.path.length - 1;
+      }
+
+      // Move to the next course
+      courses.currentCourseIndex += 1;
+
+      // Loop back to the first course if at the last course
+      if (courses.currentCourseIndex >= courses.courseList.length) {
+        courses.currentCourseIndex = 0;
+      }
+    }
+
+    // Update the learning path in the database
+    await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
+    // Update the current student object
+    await Util.setCurrentStudent(
+      { ...currentStudent, learning_path: JSON.stringify(learningPath) },
+      undefined
+    );
+  };
+
   async function init() {
     const currentStudent = Util.getCurrentStudent();
     setIsLoading(true);
@@ -250,6 +293,11 @@ const CocosGame: React.FC = () => {
         currentStudent.id
       );
     }
+    // Check if the game was played from `/home` and the user is connected to a class
+    const fromPath: string = state?.from ?? PAGES.HOME;
+    if (fromPath.includes("/home") && isStudentLinked) {
+      assignmentId = null; // Set assignmentId to null if the condition is true, lesson played from learning_pathway will not have assignmentId
+    }
     let avatarObj = AvatarObj.getInstance();
     let finalProgressTimespent =
       avatarObj.weeklyTimeSpent["min"] * 60 + avatarObj.weeklyTimeSpent["sec"];
@@ -272,6 +320,10 @@ const CocosGame: React.FC = () => {
       classId,
       schoolId
     );
+    // Check if the game was played from the `/home` URL and if the user is connected to a class, Update the learning path only if the conditions are met
+    if (fromPath.includes("/home") && isStudentLinked) {
+      await updateLearningPath();
+    }
     // if (!!lessonDetail.cocos_chapter_code) {
     //   let cChap = courseDetail.chapters.find(
     //     (chap) => lessonDetail.cocos_chapter_code === chap.id
