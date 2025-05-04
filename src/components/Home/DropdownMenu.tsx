@@ -11,38 +11,44 @@ interface CourseDetails {
 }
 
 const DropdownMenu: FC<{ courses: TableTypes<"course">[] }> = ({ courses }) => {
+  console.log("ABC", courses)
   const [expanded, setExpanded] = useState<boolean>(false);
   const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
+  console.log("My selected course data", courseDetails)
   const [selected, setSelected] = useState<CourseDetails | null>(null);
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
-    fetchCourseDetails();
-  }, [courses]);
-
+    if (courses.length > 0) {
+      fetchCourseDetails();
+    }
+  }, [courses]); 
+  
   const fetchCourseDetails = async () => {
     const detailedCourses: CourseDetails[] = await Promise.all(
       courses.map(async (course) => {
-        const gradeDoc = await api.getGradeById(course.grade_id!);
-        const curriculumDoc = await api.getCurriculumById(course.curriculum_id!);
-        return {
-          course,
-          grade: gradeDoc,
-          curriculum: curriculumDoc,
-        };
+        const [gradeDoc, curriculumDoc] = await Promise.all([
+          api.getGradeById(course.grade_id!),
+          api.getCurriculumById(course.curriculum_id!)
+        ]);
+        return { course, grade: gradeDoc, curriculum: curriculumDoc };
       })
     );
     setCourseDetails(detailedCourses);
     if (detailedCourses.length > 0) {
-      setSelected(detailedCourses[0]);
+      setSelected(prev => prev || detailedCourses[0]); 
     }
   };
-
+  
   const handleSelect = (subject: CourseDetails) => {
     setSelected(subject);
-    setExpanded(false);
-  };
+  
+    // Prevent closing and immediately reopening due to re-renders
+    requestAnimationFrame(() => {
+      setExpanded(false);
+    });
+  };  
 
   const truncateName = (name: string) => {
     if(name.split(" ").length > 1) {
