@@ -1,0 +1,108 @@
+.table-container {
+  height: 100%;
+  width: 100%;
+  padding: 10px;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+}
+.type-dropdown {
+  align-content: center;
+}
+.no-students-container {
+  height: 100%;
+  width: 100%;
+  background-color: white;
+  color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.table {
+  width: 100%;
+  display: flex;
+  background-color: white;
+  overflow: auto;
+}
+
+.square-cell {
+  height: 50px;
+  width: 50px;
+  min-width: 40px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+thead {
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 3;
+
+  /* border: 1px solid grey; */
+}
+
+tbody {
+  z-index: 1;
+}
+.reports-dropdown {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px;
+}
+.table-container-body {
+  display: flex;
+  flex: 1;
+  height: 0;
+  border: 2px solid black;
+}
+
+th:first-child,
+td:first-child {
+  position: sticky;
+  left: 0;
+  min-width: 140px;
+  /* max-width: 120px; */
+  writing-mode: horizontal-tb;
+  transform: inherit;
+  background-color: white;
+  z-index: 2;
+}
+
+table {
+  width: 100%;
+  flex: 1;
+}
+.no-report-found {
+  color: black;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 3;
+}
+
+th {
+  /* border-bottom: 1px solid grey; */
+  border: 1px solid grey;
+  height: 20vh;
+  transform: rotate(180deg);
+  /* writing-mode: vertical-rl; */
+  font-size: 16px;
+  color: #707070;
+}
+
+td {
+  border: 1px solid grey;
+  height: 20px;
+  width: 20px;
+  text-align: center;
+  color: black;
+}
+.library-button {
+  font-size: medium;
+  background-color: transparent;
+  color: #4b79f0;
+  border: 0;
+}

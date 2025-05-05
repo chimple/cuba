@@ -1,0 +1,16 @@
+.school-dropdown {
+  display: grid;
+  justify-content: center;
+}
+.school-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.manage-school {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 26px;
+  padding-right: 40px;
+}

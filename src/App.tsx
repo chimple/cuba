@@ -86,37 +86,7 @@ import User from "./models/user";
 import React from "react";
 import Dashboard from "./pages/Malta/Dashboard";
 import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
-import {
-  HomePage,
-  TestPage1,
-  TestPage2,
-  DisplaySchools,
-  ShowChapters,
-  SearchLessons,
-  AddStudent,
-  UserProfile,
-  ClassUsers,
-  StudentProfile,
-  ManageSchools,
-  SchoolProfile,
-  AddSchool,
-  ManageClass,
-  EditSchool,
-  SubjectSelection,
-  EditClass,
-  ClassProfile,
-  DashBoardDetails,
-  AddTeacher,
-  TeacherProfile,
-  StudentReport,
-  SchoolUsers,
-  AddSchoolUser,
-  ReqEditSchool,
-} from "./common/chimplePrivatePages";
-import LessonDetails from "./chimple-private/pages/LessonDetails";
-import DisplayClasses from "./chimple-private/pages/DisplayClasses";
 import "./App.css";
-import ShowStudentsInAssignmentPage from "./chimple-private/pages/ShowStudentsInAssignmentPage";
 import { schoolUtil } from "./utility/schoolUtil";
 import LidoPlayer from "./pages/LidoPlayer";
 import UploadPage from "./ops-console/pages/UploadPage";
@@ -124,6 +94,30 @@ import { initializeClickListener } from "./analytics/clickUtil";
 import { EVENTS } from "./common/constants";
 import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 import ResetPassword from "./pages/ResetPassword";
+import DisplayClasses from "./teachers-module/pages/DisplayClasses";
+import LessonDetails from "./teachers-module/pages/LessonDetails";
+import ShowStudentsInAssignmentPage from "./teachers-module/pages/ShowStudentsInAssignmentPage";
+import ReqEditSchool from "./teachers-module/pages/ReqEditSchool";
+import StudentProfile from "./teachers-module/pages/StudentProfile";
+import AddStudent from "./teachers-module/pages/AddStudent";
+import UserProfile from "./teachers-module/pages/UserProfile";
+import SubjectSelection from "./teachers-module/pages/SubjectSelection";
+import DisplaySchools from "./teachers-module/pages/DisplaySchools";
+import StudentReport from "./teachers-module/pages/StudentReport";
+import ManageSchools from "./teachers-module/pages/ManageSchools";
+import SchoolProfile from "./teachers-module/pages/SchoolProfile";
+import ManageClass from "./teachers-module/pages/ManageClass";
+import DashBoardDetails from "./teachers-module/pages/DashBoardDetails";
+import EditClass from "./teachers-module/pages/EditClass";
+import ClassProfile from "./teachers-module/pages/ClassProfile";
+import ShowChapters from "./teachers-module/pages/ShowChapters";
+import SearchLessons from "./teachers-module/pages/SearchLessons";
+import HomePage from "./teachers-module/pages/HomePage";
+import ClassUsers from "./teachers-module/pages/ClassUsers";
+import AddTeacher from "./teachers-module/pages/AddTeacher";
+import TeacherProfile from "./teachers-module/pages/TeacherProfile";
+import SchoolUsers from "./teachers-module/pages/SchoolUsers";
+import AddSchoolUser from "./teachers-module/pages/AddSchoolUser";
 
 setupIonicReact();
 interface ExtraData {
@@ -545,11 +539,11 @@ const App: React.FC = () => {
               <ProtectedRoute path={PAGES.LIVE_QUIZ_LEADERBOARD} exact={true}>
                 <LiveQuizLeaderBoard />
               </ProtectedRoute>
-              <Route path={PAGES.TEST_PAGE} exact={true}>
+              {/* <Route path={PAGES.TEST_PAGE} exact={true}>
                 <Suspense>
                   <TestPage1 />
                 </Suspense>
-              </Route>
+              </Route> */}
               <Route path={PAGES.DISPLAY_SCHOOLS} exact={true}>
                 <Suspense>
                   <DisplaySchools />
@@ -630,11 +624,11 @@ const App: React.FC = () => {
               <Route path={PAGES.LESSON_DETAILS} exact={true}>
                 <LessonDetails />
               </Route>
-              <Route path={PAGES.TEST_PAGE1} exact={true}>
+              {/* <Route path={PAGES.TEST_PAGE1} exact={true}>
                 <Suspense>
                   <TestPage2 />
                 </Suspense>
-              </Route>
+              </Route> */}
               <ProtectedRoute path={PAGES.HOME_PAGE} exact={true}>
                 <Suspense>
                   <HomePage />

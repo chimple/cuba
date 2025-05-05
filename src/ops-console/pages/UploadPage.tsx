@@ -1,8 +1,8 @@
 import { useHistory } from "react-router-dom";
-import Header from "../../chimple-private/components/homePage/Header";
 import { PAGES } from "../../common/constants";
 import FileUpload from "../components/FileUpload";
 import { IonPage } from "@ionic/react";
+import Header from "../../teachers-module/components/homePage/Header";
 
 const UploadPage: React.FC = () => {
   const history = useHistory();

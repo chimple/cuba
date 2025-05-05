@@ -1,0 +1,65 @@
+.group-wise-container {
+  border: 2px solid;
+  border-radius: 12px;
+  margin-top: 10px;
+  width: 90vw;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-family: 'Arial', sans-serif;
+  display: flex;
+  flex: 2.5;
+  min-height: 80px;
+  flex-direction: column;
+  overflow: hidden; /* Ensures that the content stays within the rounded corners */
+}
+
+.group-wise-header { /* Light pink background */
+  font-weight: bold;
+  padding-left: 10px;
+  border-bottom: 1px solid #ddd; /* Divider line */
+  display: flex;
+  align-items: center;
+  flex: 1;
+  color: #7B7676;
+  min-height: 20px;
+  font-size: 2vh;
+}
+
+.group-wise-content {
+  display: flex;
+  align-items: center;
+  padding: 1px;
+  padding-left: 10px;
+  gap: 8px; 
+  overflow-x: scroll;
+  flex: 5;
+}
+.student-avatar-container {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: max-content; 
+  margin-right: 10px;
+}
+
+
+.student-avatar-container .avatar {
+  width: auto;  
+  height: 75%; 
+  border-radius: 50%;
+  border: 2px solid #ddd;
+  aspect-ratio: 1;
+}
+
+.avatar-name {
+  color: #333;
+  width: 100%; 
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis; 
+  font-size: 1.8vh;
+}
+
+
