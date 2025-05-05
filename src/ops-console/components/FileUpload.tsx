@@ -66,6 +66,7 @@ const FileUpload: React.FC = () => {
 
     let validatedSchoolIds: Set<string> = new Set(); // Store valid school IDs
     let validatedClassIds: Map<string, string> = new Map(); // Store valid school IDs
+    let studentLoginType;
 
     for (const sheet of workbook.SheetNames) {
       const worksheet = workbook.Sheets[sheet];
@@ -114,7 +115,7 @@ const FileUpload: React.FC = () => {
           ]
             ?.toString()
             .trim();
-          const studentLoginType = row["STUDENT LOGIN TYPE"]?.toString().trim();
+          studentLoginType = row["STUDENT LOGIN TYPE"]?.toString().trim();
 
           // ✅ Check for duplicate SCHOOL ID
           if (schoolId) {
@@ -145,6 +146,14 @@ const FileUpload: React.FC = () => {
           if (principalPhone && !validateEmailOrPhone(principalPhone)) {
             errors.push("Invalid PRINCIPAL PHONE EMAIL OR PHONE NUMBER format");
           }
+          if (
+            schoolCoordinatorPhone &&
+            !validateEmailOrPhone(schoolCoordinatorPhone)
+          ) {
+            errors.push(
+              "Invalid School Coordinator EMAIL OR PHONE NUMBER format"
+            );
+          }
 
           // ✅ Only call validateUserContacts if at least one contact is present
           const hasProgramManagerContact = !!programManagerPhone?.trim();
@@ -172,7 +181,7 @@ const FileUpload: React.FC = () => {
               }
             }
           }
-
+          console.log("errors list 1", errors);
           // **Condition 1: If SCHOOL ID (UDISE Code) is present**
           if (schoolId) {
             // Validate only required fields
@@ -192,20 +201,20 @@ const FileUpload: React.FC = () => {
               errors.push("Missing STUDENT LOGIN TYPE");
 
             // Call API for validation if all required fields are filled
-            if (errors.length === 0) {
-              const schoolValidation = await api.validateSchoolData(
-                schoolId,
-                schoolName,
-                schoolInstructionLanguage
-              );
-              console.log("fsdfdsfs", schoolValidation.status);
+            // if (errors.length === 0) {
+            const schoolValidation = await api.validateSchoolData(
+              schoolId,
+              schoolName,
+              schoolInstructionLanguage
+            );
+            console.log("fsdfdsfs", schoolValidation.status);
 
-              if (schoolValidation.status === "error") {
-                errors.push(...(schoolValidation.errors || []));
-              } else {
-                validatedSchoolIds.add(schoolId); // ✅ Store valid school IDs
-              }
+            if (schoolValidation.status === "error") {
+              errors.push(...(schoolValidation.errors || []));
+            } else {
+              validatedSchoolIds.add(schoolId); // ✅ Store valid school IDs
             }
+            // }
           }
           // **Condition 2: If SCHOOL ID (UDISE Code) is missing**
           else {
@@ -358,7 +367,22 @@ const FileUpload: React.FC = () => {
           const studentId = row["STUDENT ID"]?.toString().trim();
           const studentName = row["STUDENT NAME"]?.toString().trim();
           const gender = row["GENDER"]?.toString().trim();
-          const age = row["AGE"]?.toString().trim();
+          let age = row["AGE"]?.toString().trim();
+          // Validate age
+          if (!/^\d+$/.test(age)) {
+            errors.push(
+              "AGE must be a whole number without letters or special characters."
+            );
+          } else {
+            const numericAge = parseInt(age, 10);
+            if (numericAge < 0) {
+              errors.push("AGE cannot be negative.");
+            } else if (numericAge > 10) {
+              age = "10"; // Cap the age at 10
+            } else {
+              age = numericAge.toString();
+            }
+          }
           const grade = row["GRADE"]?.toString().trim();
           const classSection = row["CLASS SECTION"]
             ? row["CLASS SECTION"].toString().trim()
@@ -369,17 +393,19 @@ const FileUpload: React.FC = () => {
           const classId = `${schoolId}_${grade}_${classSection}`; // Unique class identifier
           const className = `${grade} ${classSection}`.trim();
           if (!grade) errors.push("Missing grade");
-
+          
           if (!schoolId || !studentName || !age || !grade || !parentContact) {
             errors.push("Missing required student details.");
           } else {
             if (!validatedSchoolIds.has(schoolId)) {
               errors.push("SCHOOL ID does not match any validated school.");
             }
-          }
+          } 
 
-          if (parentContact && !validateEmailOrPhone(parentContact)) {
-            errors.push("Invalid PARENT PHONE NUMBER OR LOGIN ID format.");
+          if(studentLoginType === "PARENT PHONE NUMBER"){
+            if (parentContact && !validateEmailOrPhone(parentContact)) {
+              errors.push("Invalid PARENT PHONE NUMBER OR LOGIN ID format.");
+            }
           }
 
           // Check if classId exists and className matches
