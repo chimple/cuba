@@ -52,7 +52,28 @@ export class SupabaseAuth implements ServiceAuth {
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
       }
       await api.updateFcmToken(data?.user?.id ?? "");
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(Object.values(TABLES),[
+        TABLES.School,
+        TABLES.Live_quiz_room,
+        TABLES.Class,
+        TABLES.User,
+        TABLES.ClassInvite_code,
+        TABLES.ClassUser,
+        TABLES.FavoriteLesson,
+        TABLES.ClassCourse,
+        TABLES.ParentUser,
+        TABLES.SchoolCourse,
+        TABLES.SchoolUser,
+        TABLES.UserBadge,
+        TABLES.UserBonus,
+        TABLES.UserCourse,
+        TABLES.UserSticker,
+        TABLES.Assignment,
+        TABLES.Assignment_user,
+        TABLES.Result,
+        TABLES.Assignment_cart,
+        TABLES.ReqNewSchool
+      ]);
       await api.subscribeToClassTopic();
       return true;
     } catch (error) {
@@ -78,7 +99,28 @@ export class SupabaseAuth implements ServiceAuth {
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
       }
       await api.updateFcmToken(data?.user?.id ?? "");
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(Object.values(TABLES),[
+        TABLES.School,
+        TABLES.Live_quiz_room,
+        TABLES.Class,
+        TABLES.User,
+        TABLES.ClassInvite_code,
+        TABLES.ClassUser,
+        TABLES.FavoriteLesson,
+        TABLES.ClassCourse,
+        TABLES.ParentUser,
+        TABLES.SchoolCourse,
+        TABLES.SchoolUser,
+        TABLES.UserBadge,
+        TABLES.UserBonus,
+        TABLES.UserCourse,
+        TABLES.UserSticker,
+        TABLES.Assignment,
+        TABLES.Assignment_user,
+        TABLES.Result,
+        TABLES.Assignment_cart,
+        TABLES.ReqNewSchool
+      ]);
       return true;
     } catch (error) {
       console.log(
@@ -170,7 +212,28 @@ export class SupabaseAuth implements ServiceAuth {
         this._currentUser = createdUser;
       }
       await api.updateFcmToken(data.user?.id ?? authUser.id);
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(Object.values(TABLES),[
+        TABLES.School,
+        TABLES.Live_quiz_room,
+        TABLES.Class,
+        TABLES.User,
+        TABLES.ClassInvite_code,
+        TABLES.ClassUser,
+        TABLES.FavoriteLesson,
+        TABLES.ClassCourse,
+        TABLES.ParentUser,
+        TABLES.SchoolCourse,
+        TABLES.SchoolUser,
+        TABLES.UserBadge,
+        TABLES.UserBonus,
+        TABLES.UserCourse,
+        TABLES.UserSticker,
+        TABLES.Assignment,
+        TABLES.Assignment_user,
+        TABLES.Result,
+        TABLES.Assignment_cart,
+        TABLES.ReqNewSchool
+      ]);
       if (rpcRes?.data) {
         await api.subscribeToClassTopic();
       }
@@ -327,7 +390,28 @@ export class SupabaseAuth implements ServiceAuth {
         this._currentUser = createdUser;
       }
       await api.updateFcmToken(user?.user?.id ?? "");
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(Object.values(TABLES),[
+        TABLES.School,
+        TABLES.Live_quiz_room,
+        TABLES.Class,
+        TABLES.User,
+        TABLES.ClassInvite_code,
+        TABLES.ClassUser,
+        TABLES.FavoriteLesson,
+        TABLES.ClassCourse,
+        TABLES.ParentUser,
+        TABLES.SchoolCourse,
+        TABLES.SchoolUser,
+        TABLES.UserBadge,
+        TABLES.UserBonus,
+        TABLES.UserCourse,
+        TABLES.UserSticker,
+        TABLES.Assignment,
+        TABLES.Assignment_user,
+        TABLES.Result,
+        TABLES.Assignment_cart,
+        TABLES.ReqNewSchool
+      ]);
       if (rpcRes?.data) {
         await api.subscribeToClassTopic();
       }

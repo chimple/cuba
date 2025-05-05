@@ -730,8 +730,9 @@ export class ApiHandler implements ServiceApi {
     return this.s.createUserDoc(user);
   }
 
-  syncDB(): Promise<boolean> {
-    return this.s.syncDB();
+  syncDB(    tableNames: TABLES[] = Object.values(TABLES),
+  refreshTables: TABLES[] = []): Promise<boolean> {
+    return this.s.syncDB(tableNames,refreshTables);
   }
 
   async getRecommendedLessons(

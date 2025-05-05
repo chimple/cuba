@@ -3183,7 +3183,7 @@ export class SqliteApi implements ServiceApi {
   `;
     const res = await this.executeQuery(query);
     console.log("🚀 ~ SqliteApi ~ updateFCM Token:", res);
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       fcm_token: token,
       id: userId,
     });
@@ -3365,14 +3365,15 @@ export class SqliteApi implements ServiceApi {
         user.language_id,
       ]
     );
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, user);
+    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, user);
 
     return user;
   }
 
-  async syncDB(): Promise<boolean> {
+  async syncDB(tableNames: TABLES[] = Object.values(TABLES),
+  refreshTables: TABLES[] = []): Promise<boolean> {
     try {
-      await this.syncDbNow();
+      await this.syncDbNow(tableNames,refreshTables);
       return true;
     } catch (error) {
       console.log("🚀 ~ SqliteApi ~ syncDB ~ error:", error);
