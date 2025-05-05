@@ -99,21 +99,23 @@ const DropdownMenu: FC = () => {
                 localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
                 defaultSrc={"assets/icons/DefaultIcon.png"}
                 webSrc={selected.course.image || "assets/icons/DefaultIcon.png"}
-                imageWidth="75%"
+                imageWidth="10vh"
                 imageHeight="auto"
               />
             </div>
           )}
 
           {expanded && (
-            <div className="dropdown-items">
+            <div className="dropdown-items"
+            onClick={(e) => e.stopPropagation()}
+            >
               {courseDetails.map((detail, index) => (
                 <div
                   ref={(el) => (itemRefs.current[detail.course.id] = el)}
                   className={`menu-item ${expanded && selected?.course.id === detail.course.id ? "selected-expanded" : ""}`}
                   key={detail.course.id}
                   onClick={(e) => {
-                    e.stopPropagation();
+                    // e.stopPropagation();
                     handleSelect(detail, index);
                   }}
                 >
