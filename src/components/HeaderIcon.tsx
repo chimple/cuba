@@ -24,7 +24,7 @@ const HeaderIcon: React.FC<{
   const isCurrentHeaderActive = currentHeader === headerConfig.headerList;
 
   return (
-    <div style={{textAlign: "center", display: "flex", alignItems: "center", flexDirection:"column", justifyContent: "center", margin: "3vh"}}>
+    <div style={{textAlign: "center", display: "flex", alignItems: "center", flexDirection:"column", justifyContent: "center"}}>
       {/* <div className="home-header-indicator">
       {isCurrentHeaderActive ? (
         <p>&#9679;</p>

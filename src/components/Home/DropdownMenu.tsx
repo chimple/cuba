@@ -18,31 +18,35 @@ const DropdownMenu: FC<{ courses: TableTypes<"course">[] }> = ({ courses }) => {
   const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
-    fetchCourseDetails();
-  }, [courses]);
-
+    if (courses.length > 0) {
+      fetchCourseDetails();
+    }
+  }, [courses]); 
+  
   const fetchCourseDetails = async () => {
     const detailedCourses: CourseDetails[] = await Promise.all(
       courses.map(async (course) => {
-        const gradeDoc = await api.getGradeById(course.grade_id!);
-        const curriculumDoc = await api.getCurriculumById(course.curriculum_id!);
-        return {
-          course,
-          grade: gradeDoc,
-          curriculum: curriculumDoc,
-        };
+        const [gradeDoc, curriculumDoc] = await Promise.all([
+          api.getGradeById(course.grade_id!),
+          api.getCurriculumById(course.curriculum_id!)
+        ]);
+        return { course, grade: gradeDoc, curriculum: curriculumDoc };
       })
     );
     setCourseDetails(detailedCourses);
     if (detailedCourses.length > 0) {
-      setSelected(detailedCourses[0]);
+      setSelected(prev => prev || detailedCourses[0]); 
     }
   };
-
+  
   const handleSelect = (subject: CourseDetails) => {
     setSelected(subject);
-    setExpanded(false);
-  };
+  
+    // Prevent closing and immediately reopening due to re-renders
+    requestAnimationFrame(() => {
+      setExpanded(false);
+    });
+  };  
 
   const truncateName = (name: string) => {
     if(name.split(" ").length > 1) {
@@ -70,7 +74,7 @@ const DropdownMenu: FC<{ courses: TableTypes<"course">[] }> = ({ courses }) => {
                 localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
                 defaultSrc={"assets/icons/DefaultIcon.png"}
                 webSrc={selected.course.image || "assets/icons/DefaultIcon.png"}
-                imageWidth="80%"
+                imageWidth="75%"
                 imageHeight="auto"
               />
             </div>
@@ -92,7 +96,7 @@ const DropdownMenu: FC<{ courses: TableTypes<"course">[] }> = ({ courses }) => {
                     localSrc={`courses/chapter_icons/${detail.course.code}.webp`}
                     defaultSrc={"assets/icons/DefaultIcon.png"}
                     webSrc={detail.course.image || "assets/icons/DefaultIcon.png"}
-                    imageWidth="90%"
+                    imageWidth="85%"
                   />
                   <div className="trucate-style">
                     {truncateName(detail.course.name)}

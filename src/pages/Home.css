@@ -8,6 +8,18 @@ div p {
   text-align: center;
 }
 
+.no-lesson {
+  color: var(--text-color);
+  position: relative;
+  top: 25vh;
+}
+
+.no-played {
+  color: var(--text-color);
+  position: relative;
+  top: 25vh;
+}
+
 .slider-content {
   height: 100%;
 }
