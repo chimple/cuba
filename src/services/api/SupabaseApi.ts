@@ -1533,4 +1533,15 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
+  async getCoursesForPathway(
+    studentId: string
+  ): Promise<TableTypes<"course">[]> {
+    throw new Error("Method not implemented in SupabaseApi.");
+  }
+  async updateLearningPath(
+    student: TableTypes<"user">,
+    learning_path: string
+  ): Promise<TableTypes<"user">> {
+    throw new Error("Method not implemented.");
+  }
 }

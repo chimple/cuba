@@ -1,4 +1,10 @@
 .pathway-structure-div {
-  height: 53vh;
+  position: absolute;
+  top: 40%;
+  left: 10%;
+  height: 51vh;
   width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

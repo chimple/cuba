@@ -1,14 +1,15 @@
 .dropdown-main {
-  position: relative;
+  position: absolute;
   display: flex;
   flex-direction: column;
   gap: 1vh;
-  left: 4vh;
-  top: 15vh;
+  left: 3vh;
+  top: 42%;
+  z-index: 10;
 }
 
-.trucate-style {
-  font-size: 10px;
+.truncate-style {
+  font-size: 13px;
   margin-top: -6px;
 }
 
