@@ -5,6 +5,7 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory } from "react-router";
 import { PAGES } from "../../common/constants";
 import PathwayModal from "./PathwayModal";
+import { t } from "i18next";
 
 const PathwayStructure: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -272,8 +273,9 @@ const PathwayStructure: React.FC = () => {
             flower_Inactive.appendChild(lessonImage);
             if (startIndex + idx == currentIndex + 1) {
               flower_Inactive.addEventListener("click", () => {
+                const text = t("Lesson inactive, play the nearest active lesson");
                 setModalOpen(true);
-                setModalText("Lesson inactive, play the nearest active lesson");
+                setModalText(text);
               });
               flower_Inactive.setAttribute("style", "cursor: pointer;");
             }
@@ -314,8 +316,9 @@ const PathwayStructure: React.FC = () => {
         );
         if (currentIndex < pathEndIndex + 1) {
           Gift_Svg.addEventListener("click", () => {
+            const text = t("Complete these 5 lessons to earn rewards");
             setModalOpen(true);
-            setModalText("Complete these 5 lessons to earn rewards");
+            setModalText(text);
           });
           Gift_Svg.setAttribute("style", "cursor: pointer;");
         }

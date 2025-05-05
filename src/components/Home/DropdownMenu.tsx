@@ -1,76 +1,102 @@
 import { FC, useEffect, useRef, useState } from "react";
 import './DropdownMenu.css';
+import { TableTypes } from '../../common/constants';
 import SelectIconImage from '../displaySubjects/SelectIconImage';
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
 
 interface CourseDetails {
-  id: string;
-  name: string;
-  image: string | null;
+  course: TableTypes<"course">;
+  grade?: TableTypes<"grade"> | null;
+  curriculum?: TableTypes<"curriculum"> | null;
 }
 
 const DropdownMenu: FC = () => {
   const [expanded, setExpanded] = useState<boolean>(false);
-  const [courses, setCourses] = useState<CourseDetails[]>([]);
-  const [currentCourseIndex, setCurrentCourseIndex] = useState<number>(0);
+  const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
+  const [selected, setSelected] = useState<CourseDetails | null>(null);
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
-    if (courses.length > 0) {
-      fetchCourseDetails();
+    fetchLearningPathCourseDetails();
+  }, []);
+
+  const fetchLearningPathCourseDetails = async () => {
+    const currentStudent = await Util.getCurrentStudent();
+
+    if (!currentStudent || !currentStudent.learning_path) {
+      console.error("No learning path found for the user");
+      return;
     }
-  }, [courses]); 
-  
-  const fetchCourseDetails = async () => {
+
+    const learningPath = JSON.parse(currentStudent.learning_path);
+    const courseList = learningPath.courses.courseList;
+    const currentIndex = learningPath.courses.currentCourseIndex ?? 0;
+
     const detailedCourses: CourseDetails[] = await Promise.all(
-      courses.map(async (course) => {
+      courseList.map(async (entry: { course_id: string }) => {
+        const course = await api.getCourse(entry.course_id);
+        if (!course) return null;
+
         const [gradeDoc, curriculumDoc] = await Promise.all([
           api.getGradeById(course.grade_id!),
           api.getCurriculumById(course.curriculum_id!)
         ]);
-        return { course, grade: gradeDoc, curriculum: curriculumDoc };
+
+        return {
+          course,
+          grade: gradeDoc,
+          curriculum: curriculumDoc
+        };
       })
-    );
+    ).then(results => results.filter(Boolean) as CourseDetails[]);
+
     setCourseDetails(detailedCourses);
-    if (detailedCourses.length > 0) {
-      setSelected(prev => prev || detailedCourses[0]); 
-    }
+    setSelected(prev => prev || detailedCourses[currentIndex] || null);
   };
-  
-  const handleSelect = (subject: CourseDetails) => {
+
+  const handleSelect = async (subject: CourseDetails, index: number) => {
     setSelected(subject);
-  
-    // Prevent closing and immediately reopening due to re-renders
-    requestAnimationFrame(() => {
-      setExpanded(false);
-    });
-  };  
+    setExpanded(false);
+
+    const currentStudent = await Util.getCurrentStudent();
+    if (!currentStudent || !currentStudent.learning_path) return;
+
+    const learningPath = JSON.parse(currentStudent.learning_path);
+    learningPath.courses.currentCourseIndex = index;
+
+    await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
+    await Util.setCurrentStudent({ ...currentStudent, learning_path: JSON.stringify(learningPath) }, undefined);
+
+    // Dispatch event
+    const event = new CustomEvent("courseChanged", { detail: { currentStudent } });
+    window.dispatchEvent(event);
+  };
 
   const truncateName = (name: string) => {
-    if(name.split(" ").length > 1) {
-      return name.split(" ")[1]
-      } else return name
+    const parts = name.split(" ");
+    return parts.length > 1 ? parts[1] : name;
   };
 
   useEffect(() => {
-    if (expanded) {
-      const selectedRef = itemRefs.current[courses[currentCourseIndex]?.id];
+    if (expanded && selected) {
+      const selectedRef = itemRefs.current[selected.course.id];
       selectedRef?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-  }, [expanded, currentCourseIndex]);
+  }, [expanded, selected]);
 
   return (
     <div className="dropdown-main">
       <div
         className={`dropdown-container ${expanded ? "expanded" : ""}`}
-        onClick={() => setExpanded((prev) => !prev)}
+        onClick={() => setExpanded(prev => !prev)}
       >
         <div className="dropdown-left">
-          {!expanded && courses[currentCourseIndex] && (
+          {!expanded && selected && (
             <div className="selected-icon">
               <SelectIconImage
+                localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
                 defaultSrc={"assets/icons/DefaultIcon.png"}
                 webSrc={selected.course.image || "assets/icons/DefaultIcon.png"}
                 imageWidth="75%"
@@ -81,23 +107,24 @@ const DropdownMenu: FC = () => {
 
           {expanded && (
             <div className="dropdown-items">
-              {courses.map((course, index) => (
+              {courseDetails.map((detail, index) => (
                 <div
-                  ref={(el) => (itemRefs.current[course.id] = el)}
-                  className={`menu-item ${expanded && currentCourseIndex === index ? "selected-expanded" : ""}`}
-                  key={course.id}
+                  ref={(el) => (itemRefs.current[detail.course.id] = el)}
+                  className={`menu-item ${expanded && selected?.course.id === detail.course.id ? "selected-expanded" : ""}`}
+                  key={detail.course.id}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleSelect(index);
+                    handleSelect(detail, index);
                   }}
                 >
                   <SelectIconImage
+                    localSrc={`courses/chapter_icons/${detail.course.code}.webp`}
                     defaultSrc={"assets/icons/DefaultIcon.png"}
                     webSrc={detail.course.image || "assets/icons/DefaultIcon.png"}
                     imageWidth="85%"
                   />
                   <div className="truncate-style">
-                    {course.name}
+                    {truncateName(detail.course.name)}
                   </div>
                 </div>
               ))}
@@ -112,11 +139,13 @@ const DropdownMenu: FC = () => {
         </div>
       </div>
 
-        {!expanded && courses[currentCourseIndex] && (
+      <div>
+        {!expanded && selected && (
           <div className="dropdown-label">
-            {courses[currentCourseIndex].name}
+            {selected.course.name}
           </div>
         )}
+      </div>
     </div>
   );
 };
