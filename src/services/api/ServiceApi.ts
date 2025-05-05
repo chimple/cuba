@@ -7,7 +7,6 @@ import {
   LeaderboardRewards,
   MODES,
   PROFILETYPE,
-  TABLES,
   TableTypes,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -1287,11 +1286,4 @@ export interface ServiceApi {
    * @param {string } starsCount - count of stars
    */
   setStarsForStudents(studentId: string, starsCount: number): Promise<void>;
-
-
-  /**
-   * Updating the UpdateAt for required table
-   * @param {TABLES[]} tableNames 
-   */
-  updateRequiredTablesUpdatedAt(tableNames:TABLES[]) : Promise<void>
 }

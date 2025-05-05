@@ -391,17 +391,6 @@ export class SqliteApi implements ServiceApi {
     return true;
   }
 
-
-  async updateRequiredTablesUpdatedAt(
-    tableNames: TABLES[] = Object.values(TABLES),
-  ) {
-    if (!this._db) return;
-    const refresh_tables = "'" + tableNames.join("', '") + "'";
-    await this.executeQuery(
-      `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`
-    );
-  }
-
   async syncDbNow(
     tableNames: TABLES[] = Object.values(TABLES),
     refreshTables: TABLES[] = []
@@ -1663,6 +1652,7 @@ export class SqliteApi implements ServiceApi {
     schoolId: string | undefined
   ): Promise<TableTypes<"result">> {
     let resultId = uuidv4();
+
     // Ensure unique ID
     let isDuplicate = true;
     while (isDuplicate) {

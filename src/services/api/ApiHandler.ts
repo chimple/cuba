@@ -8,7 +8,6 @@ import {
   LeaderboardRewards,
   MODES,
   PROFILETYPE,
-  TABLES,
   TableTypes,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -1009,11 +1008,5 @@ export class ApiHandler implements ServiceApi {
     starsCount: number
   ): Promise<void> {
     return this.s.setStarsForStudents(studentId, starsCount);
-  }
- public async updateRequiredTablesUpdatedAt(
-    tableNames:TABLES[]
-  ): Promise<void>{
-    return this.s.updateRequiredTablesUpdatedAt(tableNames);
-   
   }
 }

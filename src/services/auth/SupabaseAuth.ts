@@ -5,7 +5,6 @@ import { Database } from "../database";
 import {
   CURRENT_USER,
   REFRESH_TOKEN,
-  TABLES,
   TableTypes,
   USER_DATA,
 } from "../../common/constants";
@@ -14,7 +13,6 @@ import { ServiceConfig } from "../ServiceConfig";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Util } from "../../utility/util";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
-import { SqliteApi } from "../api/SqliteApi";
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -425,23 +423,5 @@ export class SupabaseAuth implements ServiceAuth {
     // throw new Error("Method not implemented.");
     await this._auth?.signOut();
     this._currentUser = undefined;
-    const api = ServiceConfig.getI().apiHandler;
-    const tablesToIgnore: TABLES[] = [
-      TABLES.Curriculum,
-      TABLES.Subject,
-      TABLES.Grade,
-      TABLES.Language,
-      TABLES.Badge,
-      TABLES.Course,
-      TABLES.Sticker,
-      TABLES.Reward,
-      TABLES.Chapter,
-      TABLES.Lesson,
-      TABLES.ChapterLesson
-    ];
-    const filteredTables = Object.values(TABLES).filter(
-      (table) => !tablesToIgnore.includes(table)
-    );
-   await api.updateRequiredTablesUpdatedAt(filteredTables)
   }
 }

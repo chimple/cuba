@@ -1537,9 +1537,4 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
-    async updateRequiredTablesUpdatedAt(
-      tableNames:TABLES[]
-    ): Promise<void>{
-      throw new Error("Method not implemented.");
-    }
 }
