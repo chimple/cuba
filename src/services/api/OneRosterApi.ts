@@ -1166,4 +1166,9 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<{ status: string; errors?: string[] }> {
     throw new Error("Method not implemented.");
   }
+  updateRequiredTablesUpdatedAt(
+    tableNames:TABLES[]
+  ): Promise<void>{
+    throw new Error("Method not implemented.");
+  }
 }
