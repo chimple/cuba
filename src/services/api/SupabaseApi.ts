@@ -183,7 +183,6 @@ export class SupabaseApi implements ServiceApi {
         console.error("No access token found.");
         return false;
       }
-      const startTime = Date.now();
       const res = await fetch(this.supabaseOpsDataUrl, {
         method: "POST",
         headers: {
@@ -192,10 +191,8 @@ export class SupabaseApi implements ServiceApi {
         },
         body: JSON.stringify(payload),
       });
-      const endTime = Date.now();
       const result = await res.json();
       console.log(result);
-      console.log(`Time taken: ${endTime - startTime} ms`);
       return true;
     } catch (error) {
       console.error("Upload failed:", error);
