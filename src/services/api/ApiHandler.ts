@@ -139,6 +139,9 @@ export class ApiHandler implements ServiceApi {
   ): Promise<string | null> {
     return await this.s.addProfileImages(id, file, profileType);
   }
+  public async uploadData(payload: any): Promise<boolean | null> {
+    return await this.s.uploadData(payload);
+  }
   public async createSchool(
     name: string,
     group1: string,

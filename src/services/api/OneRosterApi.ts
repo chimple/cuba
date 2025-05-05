@@ -1,4 +1,3 @@
-
 // @ts-nocheck
 import { HttpHeaders } from "@capacitor-community/http";
 import {
@@ -1164,6 +1163,9 @@ export class OneRosterApi implements ServiceApi {
     programManagerPhone: string,
     fieldCoordinatorPhone: string
   ): Promise<{ status: string; errors?: string[] }> {
+    throw new Error("Method not implemented.");
+  }
+  uploadData(payload: any): Promise<boolean | any> {
     throw new Error("Method not implemented.");
   }
 }

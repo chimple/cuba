@@ -170,6 +170,30 @@ export class SupabaseApi implements ServiceApi {
     return imageUrl || null;
   }
 
+  async uploadData(payload: any): Promise<boolean> {
+    try {
+      if (!this.supabase) {
+        console.error("Supabase client is not initialized.");
+        return false;
+      }
+      const { data, error } = await this.supabase.functions.invoke(
+        "ops-data-insert",
+        {
+          body: payload,
+        }
+      );
+      if (error) {
+        console.error("Function error:", error);
+        return false;
+      }
+      console.log("Function response:", data);
+      return true;
+    } catch (error) {
+      console.error("Upload failed:", error);
+      return false;
+    }
+  }
+
   async getTablesData(
     tableNames: TABLES[] = Object.values(TABLES),
     tablesLastModifiedTime: Map<string, string> = new Map()

@@ -574,6 +574,10 @@ export class SqliteApi implements ServiceApi {
     return await this._serverApi.addProfileImages(id, file, profileType);
   }
 
+  async uploadData(payload: any): Promise<boolean | null> {
+    return await this._serverApi.uploadData(payload);
+  }
+
   async createSchool(
     name: string,
     group1: string,
@@ -2764,7 +2768,9 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getAllCourses(): Promise<TableTypes<"course">[]> {
-    const res = await this._db?.query(`select * from ${TABLES.Course} ORDER BY sort_index ASC`);
+    const res = await this._db?.query(
+      `select * from ${TABLES.Course} ORDER BY sort_index ASC`
+    );
     return res?.values ?? [];
   }
   deleteAllUserData(): Promise<void> {
@@ -4475,7 +4481,9 @@ order by
       console.error("Error setting stars for student:", error);
     }
   }
-  async getCoursesForPathway(studentId: string): Promise<TableTypes<"course">[]> {
+  async getCoursesForPathway(
+    studentId: string
+  ): Promise<TableTypes<"course">[]> {
     const query = `
       SELECT *
       FROM ${TABLES.UserCourse} AS uc
@@ -4488,21 +4496,17 @@ order by
   }
   async updateLearningPath(
     student: TableTypes<"user">,
-    learningPath: string 
+    learningPath: string
   ): Promise<TableTypes<"user">> {
     try {
-      const updateUserQuery = 
-      `UPDATE ${TABLES.User}
+      const updateUserQuery = `UPDATE ${TABLES.User}
       SET learning_path = ?
       WHERE id = ?;`;
-      await this.executeQuery(updateUserQuery, [
-        learningPath, 
-        student.id,
-      ]);
-      student.learning_path = learningPath; 
+      await this.executeQuery(updateUserQuery, [learningPath, student.id]);
+      student.learning_path = learningPath;
       this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
         id: student.id,
-        learning_path: learningPath, 
+        learning_path: learningPath,
       });
     } catch (error) {
       console.error("Error updating learning path:", error);
