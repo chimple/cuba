@@ -109,7 +109,9 @@ export class SupabaseApi implements ServiceApi {
   public static i: SupabaseApi;
   public supabase: SupabaseClient<Database> | undefined;
   private supabaseUrl: string;
+  private supabaseOpsDataUrl: string;
   private supabaseKey: string;
+  private supabaseServiceKey: string;
   private _currentStudent: TableTypes<"user"> | undefined;
 
   public static getInstance(): SupabaseApi {
@@ -122,7 +124,10 @@ export class SupabaseApi implements ServiceApi {
 
   private init() {
     this.supabaseUrl = process.env.REACT_APP_SUPABASE_URL ?? "";
+    this.supabaseOpsDataUrl =
+      process.env.REACT_APP_SUPABASE_OPS_DATA_INSERT_URL ?? "";
     this.supabaseKey = process.env.REACT_APP_SUPABASE_KEY ?? "";
+    this.supabaseServiceKey = process.env.REACT_APP_SUPABASE_SERVICE_KEY ?? "";
     this.supabase = createClient<Database>(this.supabaseUrl, this.supabaseKey);
     console.log("🚀 ~ supabase:", this.supabase);
   }
@@ -168,6 +173,34 @@ export class SupabaseApi implements ServiceApi {
     const imageUrl = urlData?.data.publicUrl;
     console.log("Public Image URL:", imageUrl);
     return imageUrl || null;
+  }
+
+  async uploadData(payload: any): Promise<boolean> {
+    try {
+      const session = await this.supabase?.auth.getSession();
+      const token = session?.data?.session?.access_token;
+      if (!token) {
+        console.error("No access token found.");
+        return false;
+      }
+      const startTime = Date.now();
+      const res = await fetch(this.supabaseOpsDataUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const endTime = Date.now();
+      const result = await res.json();
+      console.log(result);
+      console.log(`Time taken: ${endTime - startTime} ms`);
+      return true;
+    } catch (error) {
+      console.error("Upload failed:", error);
+      return false;
+    }
   }
 
   async getTablesData(
