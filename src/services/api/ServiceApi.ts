@@ -110,6 +110,13 @@ export interface ServiceApi {
     profileType: PROFILETYPE
   ): Promise<string | null>;
 
+  /**
+   * Adds a school profile image and returns the school profile image URL.
+   * @param {payload} any - Mapped data in the json format.
+   * @returns {Promise<boolean | null>} Returns if the upload is success or upload fails.
+   */
+  uploadData(payload: any): Promise<boolean | null>;
+
   createStudentProfile(
     name: string,
     age: number | undefined,
