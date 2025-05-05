@@ -1,0 +1,66 @@
+.collapsable-container {
+  text-align: center;
+}
+.collapsable-container .toggle-button {
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  width: 95%;
+  border: 0px solid #000;
+  border-radius: 10px;
+  background-color: #EFE8F8;
+  height: 6vh;
+  min-height: 50px;
+}
+.collapsable-container button:hover {
+  background-color: #EFE8F8;
+}
+.chapter-details {
+  display: flex;
+  width: 90%;
+  text-align: left;
+}
+.chapter-name {
+  color: #707070;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.selected-count {
+  width: 22px;
+  height: 22px;
+  margin: auto 10px;
+  border-radius: 5px;
+  background-color: #E38F98;
+  font-size: 16px;
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  font-weight: bold;
+  min-width: 22px;
+}
+.colladable-header {
+  display: flex;
+  justify-content: space-between;
+}
+.icon-style {
+  color: #707070;
+}
+.grid-container {
+  display: grid;
+  padding: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(14vh, 1fr));
+}
+@media (orientation: landscape) {
+  .grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(15vw, 1fr));
+  }
+}
+.bottom-border {
+  border-bottom: 0.5px solid #838181;
+}
+.grid-item {
+  /* padding: 20px; */
+  text-align: center;
+}

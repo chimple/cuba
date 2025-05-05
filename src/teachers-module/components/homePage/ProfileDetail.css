@@ -1,0 +1,16 @@
+.side-menu-header ion-toolbar {
+  --background: #7c5db0 !important;
+  --color: white;
+}
+.side-menu-header {
+  height: 10vh;
+  background-color: #7c5db0;
+  display: flex;
+  align-items: center;
+}
+.profile-details {
+  margin-left: 1.5vw;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+}

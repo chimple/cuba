@@ -1,0 +1,77 @@
+.subject-selection-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background-color: white;
+}
+
+.fab-button {
+  position: fixed;
+  bottom: 3vh;
+  right: 3vh;
+  background-color: #7c5db0;
+}
+
+.custom-fab-button {
+  --background: #7c5db0 !important;
+  --background-activated: #7c5db0;
+}
+
+.custom-fab-button :hover {
+  --background: #7c5db0 !important;
+}
+
+.custom-alert-in-subject-selection-page .alert-okay-button {
+  text-transform: none;
+  background-color: #83c327;
+  font-size: var(--text-size);
+  opacity: 0.9;
+  color: white;
+  border-radius: 8px;
+  padding: 15px 30px;
+}
+
+.custom-alert-in-subject-selection-page .alert-button {
+  flex: 1;
+  margin: 2vh 8vh;
+}
+
+.custom-alert-in-subject-selection-page .scrollable-alert {
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 10px;
+  scrollbar-width: thin;
+}
+
+.custom-alert-in-subject-selection-page .scrollable-alert::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-alert-in-subject-selection-page .scrollable-alert::-webkit-scrollbar-thumb {
+  background: #d1d1d1;
+  border-radius: 4px;
+}
+
+.custom-alert-in-subject-selection-page .scrollable-alert::-webkit-scrollbar-thumb:hover {
+  background: #b0b0b0;
+}
+
+
+/* styles.css */
+.course-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.course-item img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+}
+
+.course-item span {
+  font-size: 14px;
+  color: #333;
+}

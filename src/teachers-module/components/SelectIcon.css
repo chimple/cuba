@@ -1,0 +1,17 @@
+.select-icon-container {
+  width: fit-content;
+}
+.select-icon {
+  height: auto;
+  border: 1px solid #7c5db0;
+  border-radius: 7px;
+  padding-left: 10px;
+  padding-right: 10px;
+  display: flex;
+  justify-content: space-around;
+}
+.select-text {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+}

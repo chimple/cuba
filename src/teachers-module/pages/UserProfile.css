@@ -1,0 +1,88 @@
+.add-student-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  color: black;
+  padding: 2vw;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 0;
+  background-color: #ffffff;
+}
+
+.header-for-add-student {
+  background-color: #fffbec;
+  width: 100%;
+  margin-top: 0;
+  /* padding-bottom: 3vh; */
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.save-button {
+  padding: 10px 20px;
+  background-color: #bcd589;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: white;
+}
+
+.save-button:hover {
+  background-color: #bcd589;
+}
+.profile-details-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.login-user-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 30vh;
+  font-size: clamp(15px, 5vh, 30px);
+  color: var(--text-color);
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+.main-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  margin: 0;
+  background-color: white;
+}
+.form-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 2vh;
+}
+
+.form-actions button {
+  padding: 1.5vh 3vw;
+  border: none;
+  border-radius: 0.5vh;
+  background-color: #7c5db0;
+  color: white;
+  font-size: 3vh;
+  font-weight: bold;
+  cursor: pointer;
+}
+.edit-icon {
+  cursor: pointer;
+  margin-left: 10px;
+  color: black;
+}

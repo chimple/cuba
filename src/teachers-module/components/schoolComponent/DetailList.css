@@ -1,0 +1,82 @@
+.detail-list__header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.detail-list__icon-container {
+  display: flex;
+  align-items: center;
+  gap: 4vw;
+  color: var(--text-color);
+}
+
+.header-text {
+  margin-bottom: 4px;
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.class-icons {
+  display: flex;
+  align-items: center;
+  gap: 4vw;
+  margin: 0 19px;
+  justify-content: flex-start;
+}
+
+.class-user-icon{
+  font-size: 1.5rem;
+  margin-left: 8px;
+  color: black;
+  margin-right: 8px;
+}
+
+.class-subjects-icon{
+  font-size: 1.5rem;
+  margin-left: 8px;
+  color: black;
+  margin-right: 8px;
+  transform: translateX(6px);
+}
+
+.horizontal-line {
+  height: 0.6px;
+  border-width: 0;
+  box-sizing: border-box;
+  background: lightgrey;
+  margin: 8px 15px 0 15px;
+}
+.detail-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin: 0 10px;
+}
+.name-div span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 150px;
+}
+.list-icon {
+  color: black !important;
+}
+.name-div {
+  color: var(--text-color);
+}
+.detail-list-div {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.main-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-bottom: 70px;
+}
+
+.no-school-available {
+  text-align: center;
+}
