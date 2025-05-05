@@ -36,7 +36,7 @@ const TressureBox: React.FC<TressureBoxProps> = ({
         setIsConfettiVisible(false);
         setIsUpdating(false);
       }
-    }, 700);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [startNumber, endNumber]);
