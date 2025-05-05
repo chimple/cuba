@@ -18,55 +18,40 @@ const DropdownMenu: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
-    fetchLearningPathCourses();
-  }, []);
-
-  const fetchLearningPathCourses = async () => {
-    const currentStudent = await Util.getCurrentStudent();
-
-    if (!currentStudent || !currentStudent.learning_path) {
-      console.error("No learning path found for the user");
-      return;
+    if (courses.length > 0) {
+      fetchCourseDetails();
     }
-
-    const learningPath = JSON.parse(currentStudent.learning_path);
-    const courseList = learningPath.courses.courseList;
-    setCurrentCourseIndex(learningPath.courses.currentCourseIndex);
-
-    const detailedCourses = await Promise.all(
-      courseList.map(async (course: { course_id: string }) => {
-        const courseData = await api.getCourse(course.course_id);
-        if (!courseData) {
-          console.error(`Course data not found for course ID: ${course.course_id}`);
-          return null;
-        }
-        return {
-          id: courseData.id,
-          name: courseData.name,
-          image: courseData.image,
-        };
+  }, [courses]); 
+  
+  const fetchCourseDetails = async () => {
+    const detailedCourses: CourseDetails[] = await Promise.all(
+      courses.map(async (course) => {
+        const [gradeDoc, curriculumDoc] = await Promise.all([
+          api.getGradeById(course.grade_id!),
+          api.getCurriculumById(course.curriculum_id!)
+        ]);
+        return { course, grade: gradeDoc, curriculum: curriculumDoc };
       })
     );
-
-    setCourses(detailedCourses);
+    setCourseDetails(detailedCourses);
+    if (detailedCourses.length > 0) {
+      setSelected(prev => prev || detailedCourses[0]); 
+    }
   };
+  
+  const handleSelect = (subject: CourseDetails) => {
+    setSelected(subject);
+  
+    // Prevent closing and immediately reopening due to re-renders
+    requestAnimationFrame(() => {
+      setExpanded(false);
+    });
+  };  
 
-  const handleSelect = async (index: number) => {
-    setCurrentCourseIndex(index);
-    setExpanded(false);
-
-    const currentStudent = await Util.getCurrentStudent();
-    if (!currentStudent || !currentStudent.learning_path) return;
-
-    const learningPath = JSON.parse(currentStudent.learning_path);
-    learningPath.courses.currentCourseIndex = index;
-
-    await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
-    await Util.setCurrentStudent({ ...currentStudent, learning_path: JSON.stringify(learningPath) }, undefined);
-
-    // Dispatch a custom event to notify about the course change
-    const event = new CustomEvent("courseChanged", { detail: { currentStudent } });
-    window.dispatchEvent(event);
+  const truncateName = (name: string) => {
+    if(name.split(" ").length > 1) {
+      return name.split(" ")[1]
+      } else return name
   };
 
   useEffect(() => {
@@ -87,8 +72,8 @@ const DropdownMenu: FC = () => {
             <div className="selected-icon">
               <SelectIconImage
                 defaultSrc={"assets/icons/DefaultIcon.png"}
-                webSrc={courses[currentCourseIndex].image || "assets/icons/DefaultIcon.png"}
-                imageWidth="80%"
+                webSrc={selected.course.image || "assets/icons/DefaultIcon.png"}
+                imageWidth="75%"
                 imageHeight="auto"
               />
             </div>
@@ -108,8 +93,8 @@ const DropdownMenu: FC = () => {
                 >
                   <SelectIconImage
                     defaultSrc={"assets/icons/DefaultIcon.png"}
-                    webSrc={course.image || "assets/icons/DefaultIcon.png"}
-                    imageWidth="80%"
+                    webSrc={detail.course.image || "assets/icons/DefaultIcon.png"}
+                    imageWidth="85%"
                   />
                   <div className="truncate-style">
                     {course.name}

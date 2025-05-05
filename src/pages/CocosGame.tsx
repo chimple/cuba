@@ -27,6 +27,9 @@ import { App as CapApp } from "@capacitor/app";
 const CocosGame: React.FC = () => {
   const history = useHistory();
   console.log("cocos game", history.location.state);
+  const location = history.location.state as { from?: string, assignment?: any }; 
+  const playedFrom = location?.from?.split('/')[1].split('?')[0] 
+  const assignmentType = location?.assignment?.type || 'self-played';
   const state = history.location.state as any;
   const iFrameUrl = state?.url;
   console.log("iFrameUrl", state?.url, iFrameUrl);
@@ -155,6 +158,8 @@ const CocosGame: React.FC = () => {
       quiz_completed: data.quizCompleted,
       game_time_spent: data.gameTimeSpent,
       quiz_time_spent: data.quizTimeSpent,
+      played_from: playedFrom,
+      assignment_type: assignmentType,
     });
     setShowDialogBox(false);
     push();
@@ -379,6 +384,8 @@ const CocosGame: React.FC = () => {
       game_time_spent: data.gameTimeSpent,
       quiz_time_spent: data.quizTimeSpent,
       score: data.score,
+      played_from: playedFrom,
+      assignment_type: assignmentType,
     });
     console.log("🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:", result);
     let tempAssignmentCompletedIds = localStorage.getItem(

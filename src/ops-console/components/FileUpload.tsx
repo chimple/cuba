@@ -6,22 +6,26 @@ import UploadIcon from "../assets/icons/upload_icon.png";
 import { FaCloudDownloadAlt } from "react-icons/fa";
 import { t } from "i18next";
 import { Util } from "../../utility/util";
-import { CiRedo } from "react-icons/ci";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { useLocation } from "react-router-dom";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
+import VerifiedPage from "./FileVerifiedComponent";
+import ErrorPage from "./FileErrorComponent";
+import VerificationInProgress from "./VerificationInProgress";
 
 const FileUpload: React.FC = () => {
   const api = ServiceConfig.getI()?.apiHandler;
   const [file, setFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const validSheetCountRef = useRef<number | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [fileBuffer, setFileBuffer] = useState<ArrayBuffer | null>(null);
   const progressRef = useRef(10);
   const [verifyingProgressState, setVerifyingProgressState] = useState(10);
   const isReupload =
     new URLSearchParams(useLocation().search).get("reupload") === "true";
+  const processedDataRef = useRef();
 
   useEffect(() => {
     setVerifyingProgressState(progressRef.current);
@@ -62,6 +66,7 @@ const FileUpload: React.FC = () => {
 
     let validatedSchoolIds: Set<string> = new Set(); // Store valid school IDs
     let validatedClassIds: Map<string, string> = new Map(); // Store valid school IDs
+    let studentLoginType;
 
     for (const sheet of workbook.SheetNames) {
       const worksheet = workbook.Sheets[sheet];
@@ -110,7 +115,7 @@ const FileUpload: React.FC = () => {
           ]
             ?.toString()
             .trim();
-          const studentLoginType = row["STUDENT LOGIN TYPE"]?.toString().trim();
+          studentLoginType = row["STUDENT LOGIN TYPE"]?.toString().trim();
 
           // ✅ Check for duplicate SCHOOL ID
           if (schoolId) {
@@ -141,6 +146,14 @@ const FileUpload: React.FC = () => {
           if (principalPhone && !validateEmailOrPhone(principalPhone)) {
             errors.push("Invalid PRINCIPAL PHONE EMAIL OR PHONE NUMBER format");
           }
+          if (
+            schoolCoordinatorPhone &&
+            !validateEmailOrPhone(schoolCoordinatorPhone)
+          ) {
+            errors.push(
+              "Invalid School Coordinator EMAIL OR PHONE NUMBER format"
+            );
+          }
 
           // ✅ Only call validateUserContacts if at least one contact is present
           const hasProgramManagerContact = !!programManagerPhone?.trim();
@@ -168,7 +181,7 @@ const FileUpload: React.FC = () => {
               }
             }
           }
-
+          console.log("errors list 1", errors);
           // **Condition 1: If SCHOOL ID (UDISE Code) is present**
           if (schoolId) {
             // Validate only required fields
@@ -188,20 +201,20 @@ const FileUpload: React.FC = () => {
               errors.push("Missing STUDENT LOGIN TYPE");
 
             // Call API for validation if all required fields are filled
-            if (errors.length === 0) {
-              const schoolValidation = await api.validateSchoolData(
-                schoolId,
-                schoolName,
-                schoolInstructionLanguage
-              );
-              console.log("fsdfdsfs", schoolValidation.status);
+            // if (errors.length === 0) {
+            const schoolValidation = await api.validateSchoolData(
+              schoolId,
+              schoolName,
+              schoolInstructionLanguage
+            );
+            console.log("fsdfdsfs", schoolValidation.status);
 
-              if (schoolValidation.status === "error") {
-                errors.push(...(schoolValidation.errors || []));
-              } else {
-                validatedSchoolIds.add(schoolId); // ✅ Store valid school IDs
-              }
+            if (schoolValidation.status === "error") {
+              errors.push(...(schoolValidation.errors || []));
+            } else {
+              validatedSchoolIds.add(schoolId); // ✅ Store valid school IDs
             }
+            // }
           }
           // **Condition 2: If SCHOOL ID (UDISE Code) is missing**
           else {
@@ -227,10 +240,14 @@ const FileUpload: React.FC = () => {
               errors.push("Missing STUDENT LOGIN TYPE");
           }
           console.log("fddfdsgfdgdg", errors);
+
           row["Updated"] =
             errors.length > 0
               ? `❌ Errors: ${errors.join(", ")}`
               : "✅ School Validated";
+          if (errors.length > 0) {
+            validSheetCountRef.current = 1;
+          }
         }
       }
 
@@ -278,6 +295,9 @@ const FileUpload: React.FC = () => {
             errors.length > 0
               ? `❌ Errors: ${errors.join(", ")}`
               : "✅ Class Validated";
+          if (errors.length > 0) {
+            validSheetCountRef.current = 2;
+          }
         }
       }
       // **Teacher Sheet Validation**
@@ -333,6 +353,9 @@ const FileUpload: React.FC = () => {
             errors.length > 0
               ? `❌ Errors: ${errors.join(", ")}`
               : "✅ Teacher Validated";
+          if (errors.length > 0) {
+            validSheetCountRef.current = 3;
+          }
         }
       }
 
@@ -344,7 +367,22 @@ const FileUpload: React.FC = () => {
           const studentId = row["STUDENT ID"]?.toString().trim();
           const studentName = row["STUDENT NAME"]?.toString().trim();
           const gender = row["GENDER"]?.toString().trim();
-          const age = row["AGE"]?.toString().trim();
+          let age = row["AGE"]?.toString().trim();
+          // Validate age
+          if (!/^\d+$/.test(age)) {
+            errors.push(
+              "AGE must be a whole number without letters or special characters."
+            );
+          } else {
+            const numericAge = parseInt(age, 10);
+            if (numericAge < 0) {
+              errors.push("AGE cannot be negative.");
+            } else if (numericAge > 10) {
+              age = "10"; // Cap the age at 10
+            } else {
+              age = numericAge.toString();
+            }
+          }
           const grade = row["GRADE"]?.toString().trim();
           const classSection = row["CLASS SECTION"]
             ? row["CLASS SECTION"].toString().trim()
@@ -355,17 +393,19 @@ const FileUpload: React.FC = () => {
           const classId = `${schoolId}_${grade}_${classSection}`; // Unique class identifier
           const className = `${grade} ${classSection}`.trim();
           if (!grade) errors.push("Missing grade");
-
+          
           if (!schoolId || !studentName || !age || !grade || !parentContact) {
             errors.push("Missing required student details.");
           } else {
             if (!validatedSchoolIds.has(schoolId)) {
               errors.push("SCHOOL ID does not match any validated school.");
             }
-          }
+          } 
 
-          if (parentContact && !validateEmailOrPhone(parentContact)) {
-            errors.push("Invalid PARENT PHONE NUMBER OR LOGIN ID format.");
+          if(studentLoginType === "PARENT PHONE NUMBER"){
+            if (parentContact && !validateEmailOrPhone(parentContact)) {
+              errors.push("Invalid PARENT PHONE NUMBER OR LOGIN ID format.");
+            }
           }
 
           // Check if classId exists and className matches
@@ -393,27 +433,39 @@ const FileUpload: React.FC = () => {
             errors.length > 0
               ? `❌ Errors: ${errors.join(", ")}`
               : "✅ Student Validated";
+          if (errors.length > 0) {
+            validSheetCountRef.current = 4;
+          }
         }
       }
       // **Update sheet with validation messages**
       const updatedSheet = XLSX.utils.json_to_sheet(processedData);
       workbook.Sheets[sheet] = updatedSheet;
     }
-    const processedData = XLSX.write(workbook, {
+    const output = XLSX.write(workbook, {
       bookType: "xlsx",
       type: "array",
     });
+    processedDataRef.current = output;
     progressRef.current = 80;
     setVerifyingProgressState(progressRef.current);
+
+    const isValidSheetCount =
+      validSheetCountRef.current !== null && validSheetCountRef.current > 0;
+    if (!isValidSheetCount) {
+      setIsProcessing(false);
+      validSheetCountRef.current = 0;
+    }
+
     setIsProcessing(false);
-    handleDownload(processedData);
+    setIsVerifying(false);
     return XLSX.write(workbook, { bookType: "xlsx", type: "array" });
   };
 
-  const handleDownload = async (processedData: ArrayBuffer) => {
-    if (!processedData) return;
+  const handleDownload = async () => {
+    if (!processedDataRef.current) return;
     try {
-      const blob = new Blob([processedData], {
+      const blob = new Blob([processedDataRef.current], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
 
@@ -422,9 +474,6 @@ const FileUpload: React.FC = () => {
         await Util.triggerSaveProceesedXlsxFile({ fileData: fileDataBase64 });
         progressRef.current = 100;
         setVerifyingProgressState(progressRef.current);
-        setTimeout(() => {
-          setIsVerifying(false);
-        }, 8000);
       } else {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -435,9 +484,6 @@ const FileUpload: React.FC = () => {
         URL.revokeObjectURL(url);
         progressRef.current = 100;
         setVerifyingProgressState(progressRef.current);
-        setTimeout(() => {
-          setIsVerifying(false);
-        }, 8000);
       }
     } catch (error) {
       console.error("Download failed:", error);
@@ -461,121 +507,126 @@ const FileUpload: React.FC = () => {
     await processFile();
   };
 
-  if (isVerifying) {
-    return (
-      <div className="verification-page">
-        <div className="verification-container">
-          <div className="verification-main">
-            <div className="verification-icon">
-              <CiRedo className="rotating-icon" />
-            </div>
-            <div className="verification-progress-bar">
-              <div
-                className="verification-progress"
-                style={{ width: `${verifyingProgressState}%` }}
-              ></div>
-            </div>
-            <p className="verification-title">{t("Verifying Data...")}</p>
-            <p>
-              {t(
-                "We are checking your uploaded data for any errors. Please wait a moment."
-              )}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  } else
-    return (
-      <div className="file-upload-page">
-        <div className="file-upload-container">
-          <div className="file-upload-header">{t("Upload a new file")}</div>
-          <p className="file-upload-info">
-            {t("Supported file type")} <strong>.xlsx</strong>
+  const renderUploadPage = () => (
+    <div className="file-upload-page">
+      <div className="file-upload-container">
+        <div className="file-upload-header">{t("Upload a new file")}</div>
+        <p className="file-upload-info">
+          {t("Supported file type")} <strong>.xlsx</strong>
+        </p>
+
+        <label className="file-upload-box">
+          <img src={UploadIcon} alt="Upload Icon" />
+          <input
+            type="file"
+            className="file_upload_input_file"
+            accept=".xlsx"
+            onChange={handleFileUpload}
+          />
+          <p className="file-upload-text">
+            <span>{t("Click to upload")}</span> {t("Student Data")}
           </p>
+          <p className="upload-file-size">{t("Maximum file size")} 50MB</p>
+        </label>
 
-          <label className="file-upload-box">
-            <img src={UploadIcon} alt="Upload Icon" />
-            <input
-              type="file"
-              className="file_upload_input_file"
-              accept=".xlsx"
-              onChange={handleFileUpload}
-            />
-            <p className="file-upload-text">
-              <span>{t("Click to upload")}</span> {t("Student Data")}
-            </p>
-            <p className="upload-file-size">{t("Maximum file size")} 50MB</p>
-          </label>
+        {file && (
+          <div className="file-upload-preview">
+            <div className="file-uploading-icon">📄</div>
+            <div className="file-upload-view">
+              <div className="file-uploading-header">
+                <p className="file-upload-name">{file.name}</p>
+                <button
+                  onClick={() => setFile(null)}
+                  className="file-upload-remove-btn"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="file-upload-size">
+                {(file.size / (1024 * 1024)).toFixed(2)} MB
+              </p>
 
-          {file && (
-            <div className="file-upload-preview">
-              <div className="file-uploading-icon">📄</div>
-              <div className="file-upload-view">
-                <div className="file-uploading-header">
-                  <p className="file-upload-name">{file.name}</p>
-                  <button
-                    onClick={() => setFile(null)}
-                    className="file-upload-remove-btn"
-                  >
-                    ✕
-                  </button>
+              <div className="file-upload-progress-container">
+                <div className="file-upload-progress-bar">
+                  <div
+                    className="file-upload-progress"
+                    style={{ width: `${progress}%` }}
+                  ></div>
                 </div>
-                <p className="file-upload-size">
-                  {(file.size / (1024 * 1024)).toFixed(2)} MB
-                </p>
-
-                <div className="file-upload-progress-container">
-                  <div className="file-upload-progress-bar">
-                    <div
-                      className="file-upload-progress"
-                      style={{ width: `${progress}%` }}
-                    ></div>
-                  </div>
-                  <span className="file-upload-progress-text">{progress}%</span>
-                </div>
+                <span className="file-upload-progress-text">{progress}%</span>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          <div className="file-upload-button-group">
-            {isProcessing ? (
-              <button
-                disabled
-                className="file-upload-btn file-upload-disabled-btn"
-              >
-                {t("Processing...")}
-              </button>
-            ) : progress === 100 ? (
-              <div className="file-upload-actions">
-                <button className="file-upload-btn file-upload-cancel-btn">
-                  {t("Cancel")}
-                </button>
-                <div className="spacer"></div>
-                <button
-                  onClick={handleNext}
-                  className="file-upload-btn file-upload-next-btn"
-                >
-                  {t("Next")}
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setFile(null)}
-                className="file-upload-btn file-upload-long-cancel-btn"
-              >
+        <div className="file-upload-button-group">
+          {isProcessing ? (
+            <button
+              disabled
+              className="file-upload-btn file-upload-disabled-btn"
+            >
+              {t("Processing...")}
+            </button>
+          ) : progress === 100 ? (
+            <div className="file-upload-actions">
+              <button className="file-upload-btn file-upload-cancel-btn">
                 {t("Cancel")}
               </button>
-            )}
-          </div>
+              <div className="spacer"></div>
+              <button
+                onClick={handleNext}
+                className="file-upload-btn file-upload-next-btn"
+              >
+                {t("Next")}
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setFile(null)}
+              className="file-upload-btn file-upload-long-cancel-btn"
+            >
+              {t("Cancel")}
+            </button>
+          )}
         </div>
-        {!isReupload && (
-          <a href="#" className="download-upload-template">
-            <FaCloudDownloadAlt /> {t("Download Bulk Upload Template")}
-          </a>
-        )}
       </div>
+
+      {!isReupload && (
+        <a href="#" className="download-upload-template">
+          <FaCloudDownloadAlt /> {t("Download Bulk Upload Template")}
+        </a>
+      )}
+    </div>
+  );
+
+  // Render conditions at the end
+  if (isVerifying && !isProcessing) {
+    return (
+      <VerificationInProgress
+        progress={verifyingProgressState}
+        title={t("Verifying Data...")}
+        message={t(
+          "We are checking your uploaded data for any errors. Please wait a moment."
+        )}
+      />
     );
+  }
+  if (validSheetCountRef.current == 0 && validSheetCountRef.current !== null) {
+    return (
+      <VerifiedPage
+        title={t("Verified")}
+        message={t(
+          "Your data has been successfully checked, and no errors were found."
+        )}
+      />
+    );
+  }
+
+  if (validSheetCountRef.current !== 0 && validSheetCountRef.current !== null) {
+    return <ErrorPage handleDownload={() => handleDownload()} />;
+  }
+
+  return renderUploadPage();
 };
 
 export default FileUpload;

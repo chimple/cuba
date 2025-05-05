@@ -2764,7 +2764,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getAllCourses(): Promise<TableTypes<"course">[]> {
-    const res = await this._db?.query(`select * from ${TABLES.Course}`);
+    const res = await this._db?.query(`select * from ${TABLES.Course} ORDER BY sort_index ASC`);
     return res?.values ?? [];
   }
   deleteAllUserData(): Promise<void> {

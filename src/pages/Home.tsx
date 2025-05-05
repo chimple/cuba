@@ -770,7 +770,7 @@ const Home: FC = () => {
                           lessonCourseMap={lessonCourseMap}
                         />
                       ) : (
-                        <p>{t("No liked lessons available.")}</p>
+                        <p className="no-lesson">{t("No liked lessons available.")}</p>
                       )}
                     </>
                   )}
@@ -790,7 +790,7 @@ const Home: FC = () => {
                           lessonCourseMap={lessonCourseMap}
                         />
                       ) : (
-                        <p>{t("No played lessons available.")}</p>
+                        <p className="no-played">{t("No played lessons available.")}</p>
                       )}
                     </>
                   )}

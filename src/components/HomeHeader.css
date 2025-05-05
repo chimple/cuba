@@ -1,6 +1,6 @@
 #home-header-icons {
     display: flex;
-    margin: 0 0vw 0 0.5vw;
+    margin: 1.5vw 0vw 0 0.5vw;
     justify-content: space-between;
     align-items: center;
 }
@@ -15,7 +15,7 @@
 }
 
 #home-header-middle-icons div {
-    padding-right: 5px
+    /* padding-right: 5px */
 }
 
 #home-header-puzzle-icon {

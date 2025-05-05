@@ -4,5 +4,5 @@
     justify-content: center;
     color: var(--text-color);
     position: relative;
-    bottom: 2%;
+    top: 25vh;
 }
