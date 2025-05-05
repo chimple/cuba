@@ -476,23 +476,6 @@ const FileUpload: React.FC = () => {
       else if (sheet === "Teacher") validatedSheets.teacher = processedData;
       else if (sheet === "Student") validatedSheets.student = processedData;
     }
-    // const uploaddata = await SupabaseApi.i.uploadData(finalPayload);
-    // if (uploaddata) {
-    //   console.log("Upload successful.");
-    // } else {
-    //   console.log("Upload failed.");
-    // }
-
-    // const payloadBlob = new Blob([JSON.stringify(finalPayload, null, 2)], {
-    //   type: "text/plain",
-    // });
-    // const payloadUrl = URL.createObjectURL(payloadBlob);
-    // const a = document.createElement("a");
-    // a.href = payloadUrl;
-    // a.download = "final_payload.txt";
-    // document.body.appendChild(a);
-    // a.click();
-    // URL.revokeObjectURL(payloadUrl);
 
     const output = XLSX.write(workbook, {
       bookType: "xlsx",
