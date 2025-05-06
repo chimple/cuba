@@ -539,6 +539,29 @@ export enum GENDER {
   OTHER = "unspecified",
 }
 
+export const REFRESHTABLES :TABLES[] =[
+  TABLES.School,
+  TABLES.Live_quiz_room,
+  TABLES.Class,
+  TABLES.User,
+  TABLES.ClassInvite_code,
+  TABLES.ClassUser,
+  TABLES.FavoriteLesson,
+  TABLES.ClassCourse,
+  TABLES.ParentUser,
+  TABLES.SchoolCourse,
+  TABLES.SchoolUser,
+  TABLES.UserBadge,
+  TABLES.UserBonus,
+  TABLES.UserCourse,
+  TABLES.UserSticker,
+  TABLES.Assignment,
+  TABLES.Assignment_user,
+  TABLES.Result,
+  TABLES.Assignment_cart,
+  TABLES.ReqNewSchool
+]
+
 export const AVATARS: string[] = [
   "Aligator",
   "armydog",

@@ -7,6 +7,7 @@ import {
   LeaderboardRewards,
   MODES,
   PROFILETYPE,
+  TABLES,
   TableTypes,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
