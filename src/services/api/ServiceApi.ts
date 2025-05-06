@@ -7,6 +7,7 @@ import {
   LeaderboardRewards,
   MODES,
   PROFILETYPE,
+  TABLES,
   TableTypes,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -881,7 +882,8 @@ export interface ServiceApi {
    *          - `false` if there were any errors or if no synchronization was necessary.
    */
 
-  syncDB(): Promise<boolean>;
+  syncDB(tableNames: TABLES[],
+  refreshTables: TABLES[]): Promise<boolean>;
 
   /**
    * Function to get Recommended Lessons.

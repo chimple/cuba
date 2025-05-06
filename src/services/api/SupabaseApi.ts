@@ -103,7 +103,8 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"user"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  syncDB(): Promise<boolean> {
+  syncDB(tableNames: TABLES[] = Object.values(TABLES),
+      refreshTables: TABLES[] = []): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
   public static i: SupabaseApi;

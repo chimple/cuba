@@ -321,7 +321,7 @@ const CocosGame: React.FC = () => {
       data.wrongMoves,
       data.timeSpent,
       assignmentId,
-      chapterDetail?.id ?? chapter_id?.toString() ?? "",
+      chapterDetail?.id ?? chapter_id?.toString() ?? undefined,
       classId,
       schoolId
     );
