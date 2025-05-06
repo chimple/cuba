@@ -1,0 +1,184 @@
+.assignments-container {
+  padding: 0px 20px 20px 20px;
+  font-family: Arial, sans-serif;
+  overflow-y: scroll;
+}
+
+.assignments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #6200ea;
+  color: white;
+  padding: 10px;
+}
+
+.assignments-dates {
+  padding: 15px;
+  border: 2px solid gray;
+  border-radius: 8px;
+  margin-top: 20px;
+  box-shadow: 1px 1px 3px gray;
+}
+
+.date-selection {
+  background-color: #f3edff;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-radius: 10px;
+  color: black;
+}
+
+.date-input {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.select-all {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  color: black;
+  gap: 2vw;
+}
+
+.assignments-list {
+  margin-top: 20px;
+}
+
+.assignment-category {
+  margin-bottom: 15px;
+  padding: 10px;
+  /* border: 1px solid #ddd; */
+  border-radius: 8px;
+  color: black;
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 0px 10px;
+  border-radius: 12px;
+}
+
+.students-list {
+  margin-top: 10px;
+  list-style-type: none;
+  padding: 0;
+  width: 75vw;
+  margin-left: 10vw;
+}
+
+.student-item {
+  color: black;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+}
+
+.students-list-styled-line {
+  border: none;
+  height: 0.1px;
+  background-color: gray;
+  width: 100%;
+  margin: 10px 0;
+}
+
+.assign-selected-button {
+  position: absolute;
+  top: 90vh;
+  left: 15vw;
+  width: 70vw;
+  padding: 10px;
+  background-color: #7a5aaf;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 20px;
+  font-size: 25px;
+  font-weight: bolder;
+}
+.assign-selected-button:hover:not(:disabled) {
+  background-color: #6b4c9f;
+  color: white;
+}
+.vertical-line {
+  border-left: 1px solid gray;
+}
+
+#create-assignment-heading {
+  color: black;
+  font-size: 30px;
+  text-align: start;
+  padding: 20px 20px 0px 20px;
+}
+
+.select-all-checkbox {
+  width: 20px;
+  height: 20px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: #fff;
+  border: 2px solid #cddc39; /* Light green border */
+  border-radius: 5px; /* Rounded corners */
+  outline: none;
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.select-all-checkbox:checked {
+  background-color: #cddc39; /* Light green fill for checked */
+  border-color: #cddc39;
+  position: relative;
+}
+
+.select-all-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 6px;
+  border: solid white;
+  border-width: 0px 0px 2px 2px;
+  transform: translate(-50%, -50%) rotate(320deg);
+}
+
+.student-item-checkbox {
+  -webkit-appearance: none; /* Remove default styles */
+  -moz-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 26px;
+  border: 2px solid #4caf50;
+  border-radius: 50%; /* Circular shape */
+  background-color: white;
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+}
+
+.student-item-checkbox:checked {
+  background-color: #4caf50; /* Green fill when checked */
+}
+
+.student-item-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 16px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  transform: translate(-50%, -50%) rotate(45deg); /* Draw checkmark */
+}

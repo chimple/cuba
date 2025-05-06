@@ -27,6 +27,9 @@ import { App as CapApp } from "@capacitor/app";
 const CocosGame: React.FC = () => {
   const history = useHistory();
   console.log("cocos game", history.location.state);
+  const location = history.location.state as { from?: string, assignment?: any }; 
+  const playedFrom = location?.from?.split('/')[1].split('?')[0] 
+  const assignmentType = location?.assignment?.type || 'self-played';
   const state = history.location.state as any;
   const iFrameUrl = state?.url;
   console.log("iFrameUrl", state?.url, iFrameUrl);
@@ -155,6 +158,8 @@ const CocosGame: React.FC = () => {
       quiz_completed: data.quizCompleted,
       game_time_spent: data.gameTimeSpent,
       quiz_time_spent: data.quizTimeSpent,
+      played_from: playedFrom,
+      assignment_type: assignmentType,
     });
     setShowDialogBox(false);
     push();
@@ -163,6 +168,49 @@ const CocosGame: React.FC = () => {
     saveTempData(event.detail);
     setGameResult(event);
   };
+  
+  const updateLearningPath = async () => {
+    if (!currentStudent) return;
+    const learningPath = currentStudent.learning_path
+      ? JSON.parse(currentStudent.learning_path)
+      : null;
+
+    if (!learningPath) return;
+
+    const { courses } = learningPath;
+    const currentCourse = courses.courseList[courses.currentCourseIndex];
+
+    // Update currentIndex
+    currentCourse.currentIndex += 1;
+
+    // Check if currentIndex exceeds pathEndIndex
+    if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
+      currentCourse.startIndex = currentCourse.currentIndex;
+      currentCourse.pathEndIndex += 5;
+
+      // Ensure pathEndIndex does not exceed the path length
+      if (currentCourse.pathEndIndex > currentCourse.path.length) {
+        currentCourse.pathEndIndex = currentCourse.path.length - 1;
+      }
+
+      // Move to the next course
+      courses.currentCourseIndex += 1;
+
+      // Loop back to the first course if at the last course
+      if (courses.currentCourseIndex >= courses.courseList.length) {
+        courses.currentCourseIndex = 0;
+      }
+    }
+
+    // Update the learning path in the database
+    await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
+    // Update the current student object
+    await Util.setCurrentStudent(
+      { ...currentStudent, learning_path: JSON.stringify(learningPath) },
+      undefined
+    );
+  };
+
   async function init() {
     const currentStudent = Util.getCurrentStudent();
     setIsLoading(true);
@@ -250,6 +298,11 @@ const CocosGame: React.FC = () => {
         currentStudent.id
       );
     }
+    // Check if the game was played from `learning_pathway`
+    const learning_path: string = state?.learning_path ?? false;
+    if (learning_path) {
+      assignmentId = null; // Set assignmentId to null if the condition is true, lesson played from learning_pathway will not have assignmentId
+    }
     let avatarObj = AvatarObj.getInstance();
     let finalProgressTimespent =
       avatarObj.weeklyTimeSpent["min"] * 60 + avatarObj.weeklyTimeSpent["sec"];
@@ -268,10 +321,14 @@ const CocosGame: React.FC = () => {
       data.wrongMoves,
       data.timeSpent,
       assignmentId,
-      chapterDetail?.id ?? chapter_id?.toString() ?? "",
+      chapterDetail?.id ?? chapter_id?.toString() ?? undefined,
       classId,
       schoolId
     );
+    // Check if the game was played from the `/home` URL and if the user is connected to a class, Update the learning path only if the conditions are met
+    if (learning_path) {
+      await updateLearningPath();
+    }
     // if (!!lessonDetail.cocos_chapter_code) {
     //   let cChap = courseDetail.chapters.find(
     //     (chap) => lessonDetail.cocos_chapter_code === chap.id
@@ -327,6 +384,8 @@ const CocosGame: React.FC = () => {
       game_time_spent: data.gameTimeSpent,
       quiz_time_spent: data.quizTimeSpent,
       score: data.score,
+      played_from: playedFrom,
+      assignment_type: assignmentType,
     });
     console.log("🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:", result);
     let tempAssignmentCompletedIds = localStorage.getItem(

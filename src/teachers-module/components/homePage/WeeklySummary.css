@@ -1,0 +1,67 @@
+.weekly-summary-container {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  width: 90%; 
+  background-color: #ffffff;
+  box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.05);
+  font-family: 'Arial', sans-serif;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 100px;
+  height: auto; 
+}
+
+.weekly-summary-header {
+  font-size: 2vh; 
+  font-weight: bold;
+  margin: 0 0 5px 0;
+  padding-left: 10px;
+  padding-top: 2px;
+  color: #7B7676;
+}
+
+.weekly-summary {
+  display: flex;
+  justify-content: space-around;
+  height: auto; /* Let it expand based on content */
+  flex-wrap: wrap;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 25%;
+  
+}
+
+.summary-item .CircularProgressbar {
+  margin-bottom: 5px;
+  width: 6vh;
+  height: 6vh;
+  min-height: 40px;
+  min-width: 40px;
+}
+
+.summary-item .CircularProgressbar .CircularProgressbar-text {
+  font-size: 25px;
+  alignment-baseline: ideographic;
+}
+
+.time-spent-icon{
+  margin-bottom: 5px;
+  width: 6vh;
+  height: 6vh;
+  min-height: 40px;
+  min-width: 40px;
+}
+
+.summary-label {
+  text-align: center;
+  font-size: var(--text-sizeM);
+  color: #666;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

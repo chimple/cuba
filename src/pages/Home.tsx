@@ -122,6 +122,14 @@ const Home: FC = () => {
     App.addListener("appStateChange", ({ isActive }) =>
       appStateChange(isActive)
     );
+    const handlePathwayCreated = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      console.log("Analytics Event: Pathway Created", customEvent.detail);
+    };
+    window.addEventListener("PathwayCreated", handlePathwayCreated);
+    return () => {
+      window.removeEventListener("PathwayCreated", handlePathwayCreated);
+    };
   }, []);
   useEffect(() => {
     if (currentStudent?.id) {
@@ -762,7 +770,7 @@ const Home: FC = () => {
                           lessonCourseMap={lessonCourseMap}
                         />
                       ) : (
-                        <p>{t("No liked lessons available.")}</p>
+                        <p className="no-lesson">{t("No liked lessons available.")}</p>
                       )}
                     </>
                   )}
@@ -782,7 +790,7 @@ const Home: FC = () => {
                           lessonCourseMap={lessonCourseMap}
                         />
                       ) : (
-                        <p>{t("No played lessons available.")}</p>
+                        <p className="no-played">{t("No played lessons available.")}</p>
                       )}
                     </>
                   )}

@@ -5,6 +5,8 @@ import { Database } from "../database";
 import {
   CURRENT_USER,
   REFRESH_TOKEN,
+  REFRESH_TABLES_ON_LOGIN,
+  TABLES,
   TableTypes,
   USER_DATA,
 } from "../../common/constants";
@@ -50,7 +52,7 @@ export class SupabaseAuth implements ServiceAuth {
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
       }
       await api.updateFcmToken(data?.user?.id ?? "");
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(Object.values(TABLES),REFRESH_TABLES_ON_LOGIN);
       await api.subscribeToClassTopic();
       return true;
     } catch (error) {
@@ -76,7 +78,7 @@ export class SupabaseAuth implements ServiceAuth {
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
       }
       await api.updateFcmToken(data?.user?.id ?? "");
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(Object.values(TABLES),REFRESH_TABLES_ON_LOGIN);
       return true;
     } catch (error) {
       console.log(
@@ -168,7 +170,7 @@ export class SupabaseAuth implements ServiceAuth {
         this._currentUser = createdUser;
       }
       await api.updateFcmToken(data.user?.id ?? authUser.id);
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(Object.values(TABLES),REFRESH_TABLES_ON_LOGIN);
       if (rpcRes?.data) {
         await api.subscribeToClassTopic();
       }
@@ -325,7 +327,7 @@ export class SupabaseAuth implements ServiceAuth {
         this._currentUser = createdUser;
       }
       await api.updateFcmToken(user?.user?.id ?? "");
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(Object.values(TABLES),REFRESH_TABLES_ON_LOGIN);
       if (rpcRes?.data) {
         await api.subscribeToClassTopic();
       }

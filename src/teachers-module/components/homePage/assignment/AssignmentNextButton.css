@@ -1,0 +1,27 @@
+.assign-button {
+  position: absolute;
+  top: 77vh;
+  left: 5vw;
+  width: 90vw;
+  padding: 10px;
+  background-color: #7a5aaf;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 20px;
+  font-size: 25px;
+  font-weight: bolder;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.assign-button-text {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  --text-color: white;
+  align-items: center;
+  font-size: clamp(20px, 4vw, 25px);
+}

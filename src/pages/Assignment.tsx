@@ -104,25 +104,8 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
       newAssignment: TableTypes<"assignment"> | undefined
     ) => {
       if (!newAssignment || newAssignment.type === LIVE_QUIZ) return;
-
-      setAssignments((prevAssignments) => {
-        if (!prevAssignments.some((a) => a.id === newAssignment.id)) {
-          const updated = [...prevAssignments, newAssignment];
-          onNewAssignment && onNewAssignment(newAssignment);
-          return updated;
-        }
-        return prevAssignments;
-      });
-
-      const lesson = await api.getLesson(newAssignment.lesson_id);
-      if (lesson) {
-        setLessons((prevLessons) => {
-          if (!prevLessons.some((l) => l.id === lesson.id)) {
-            return [...prevLessons, lesson];
-          }
-          return prevLessons;
-        });
-      }
+      handleNewAssignmentS(newAssignment)
+     
     };
 
     const updateAssignmentUserAndLessons = async (
@@ -133,25 +116,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
         newAssignmentUser.assignment_id
       );
       if (assignment) {
-        setAssignments((prevAssignments) => {
-          if (!prevAssignments.some((a) => a.id === assignment.id)) {
-            console.log(
-              "[AssignmentPage] 🟢 Adding new assignment from assignmentUser:",
-              assignment
-            );
-            return [...prevAssignments, assignment];
-          }
-          return prevAssignments;
-        });
-        const lesson = await api.getLesson(assignment.lesson_id);
-        if (lesson) {
-          setLessons((prevLessons) => {
-            if (!prevLessons.some((l) => l.id === lesson.id)) {
-              return [...prevLessons, lesson];
-            }
-            return prevLessons;
-          });
-        }
+        handleNewAssignmentS(assignment)
       }
     };
 
@@ -185,6 +150,46 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
       checkAllHomeworkDownloaded
     );
   };
+
+  const handleNewAssignmentS = async(newAssignment)=>{
+    setAssignments((prevAssignments) => {
+      if (!prevAssignments.some((a) => a.id === newAssignment.id)) {
+        const updated = [...prevAssignments, newAssignment];
+        onNewAssignment && onNewAssignment(newAssignment);
+        return updated;
+      }
+      return prevAssignments;
+    });
+    if (newAssignment.chapter_id) {
+      const chapter = await api.getChapterById(newAssignment.chapter_id);
+      if (chapter) {
+        setLessonChapterMap((prevMap) => {
+        return {  ...prevMap,
+          [newAssignment.lesson_id]:  chapter };
+        });
+      }
+    }
+    setAssignmentLessonCourseMap((prevMap) => {
+      if (newAssignment.course_id) {
+        return {
+          ...prevMap,
+          [newAssignment.lesson_id]: { course_id: newAssignment.course_id },
+        };
+      }
+      return prevMap;
+    });
+   
+
+    const lesson = await api.getLesson(newAssignment.lesson_id);
+    if (lesson) {
+      setLessons((prevLessons) => {
+        if (!prevLessons.some((l) => l.id === lesson.id)) {
+          return [...prevLessons, lesson];
+        }
+        return prevLessons;
+      });
+    }
+  }
 
   async function downloadAllHomeWork(lessons: TableTypes<"lesson">[]) {
     setDownloadButtonLoading(true);

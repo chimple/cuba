@@ -1,0 +1,132 @@
+.display-page {
+  background-color: white;
+  min-block-size: fit-content;
+  height: -webkit-fill-available;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-bar-title {
+  font-size: 3vh;
+  color: black;
+}
+
+.school-details {
+  background-color: black;
+}
+
+.all-school-display-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.all-school-display {
+  display: grid;
+  gap: min(10px, 1vh);
+  justify-items: center;
+  align-items: center;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: minmax(100px, auto);
+  padding-bottom: 70px;
+}
+
+.display-school-single-school {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.display-school-image {
+  width: 100%;
+  max-width: 120px;
+  min-width: 40px;
+  height: auto;
+  max-height: 120px;
+  min-height: 40px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.display-school-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-color);
+  text-align: center;
+  width: 150px;
+}
+
+.display-school-horizontal-line {
+  height: 0.6px;
+  border-width: 0;
+  box-sizing: border-box;
+  background: #7c5db0;
+  margin: 8px 15px 0 15px;
+}
+
+.display-school-select-text {
+  font-size: var(--text-sizeXL);
+  color: grey;
+  padding: 10px 20px 0 20px;
+}
+
+.display-user-switch-user-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 2vh;
+  padding: 8px 15px 0 15px;
+}
+
+.display-user-user-switch-icon {
+  font-size: 2rem;
+  color: #7c5db0;
+}
+
+.display-school-switch-text {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-color);
+  font-size: var(--text-sizeL);
+}
+.no-schools-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 75vh;
+  text-align: center;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+}
+
+.create-school-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.create-new-school-text {
+  font-size: var(--text-sizeL);
+  color: var(--text-color);
+}
+
+.create-school-button ion-fab-button {
+  --ion-color-primary: #7c5db0;
+  --ion-color-primary-contrast: white;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+}
+
+.school-image-p {
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+}

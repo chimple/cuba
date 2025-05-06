@@ -56,6 +56,7 @@
   "All activities": "सर्व क्रियाकलाप",
   "ALL Time": "संपूर्ण वेळ",
   "Already on the latest version": "आधीच नवीनतम आवृत्तीवर",
+  "AI-driven workspace designed for teachers to simplify classroom tasks": "वर्गातील कार्ये सुलभ करण्यासाठी शिक्षकांसाठी डिझाइन केलेले AI-चालित कार्यक्षेत्र",
   "Already Played": "आधीच खेळलेले",
   "Angry": "राग",
   "Animals and Babies": "प्राणी आणि पिल्ले",
@@ -146,9 +147,11 @@
   "Compare With 10": "१० च्या बरोबरीत तुलना करा",
   "Comparison 100-999": "तुलना १००-९९९",
   "Comparison by Subtraction": "वजाबाकीने तुलना",
+  "COMING SOON" : "लवकरच येत आहे",
   "Comparison Of Numbers": "संख्यांची तुलना",
   "Comparison": "तुलना",
   "Completion Score": "पूर्णत्व गुण",
+  "Complete these 5 lessons to earn rewards": "हे पाच धडे पूर्ण करा आणि बक्षिसे मिळवा",
   "Confirm": "पुष्टी करा",
   "Congratulations on earning the x1!": "x1 मिळवल्याबद्दल अभिनंदन!",
   "Congratulations!": "अभिनंदन!",
@@ -338,6 +341,7 @@
   "Lesson Name": "धड्याचे नाव",
   "Lesson": "धडा",
   "Lessons Played": "खेळलेले धडे",
+  "Lesson inactive, play the nearest active lesson":"धडा निष्क्रिय आहे, जवळचा सक्रिय धडा सुरू करा",
   "Let's Play": "चला खेळूया",
   "Library": "ग्रंथालय",
   "Like the Game": "खेळ आवडला",
@@ -627,6 +631,7 @@
   "Students": "विद्यार्थी",
   "Subject": "विषय",
   "Subjects": "विषय",
+  "Stay Connected ...": "कनेक्टेड रहा...",
   "Subtract - 1": "वजा करा - 1",
   "Subtract - 2": "वजा करा - 2",
   "Subtract - 3": "वजा करा - 3",
@@ -761,4 +766,7 @@
   "Your data has been successfully checked, and no errors were found.": "तुमच्या डेटाची यशस्वीरित्या तपासणी केली गेली आहे, आणि कोणतीही त्रुटी आढळली नाही.",
   "Your profile is not registered to any school.": "तुमची प्रोफाइल कोणत्याही शाळेत नोंदणीकृत नाही.",
   "Zebra": "झेब्रा"
+  "Your progress stays synced and consistent across all devices.": "तुमची प्रगती सर्व डिव्हाइस वर समक्रमित आणि सातत्यपूर्ण राहते.",
+  "Zebra": "झेब्रा", 
+  "Specials" : "विशेष"
 }

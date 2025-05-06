@@ -3,6 +3,7 @@ import './DropdownMenu.css';
 import { TableTypes } from '../../common/constants';
 import SelectIconImage from '../displaySubjects/SelectIconImage';
 import { ServiceConfig } from "../../services/ServiceConfig";
+import { Util } from "../../utility/util";
 
 interface CourseDetails {
   course: TableTypes<"course">;
@@ -10,7 +11,7 @@ interface CourseDetails {
   curriculum?: TableTypes<"curriculum"> | null;
 }
 
-const DropdownMenu: FC<{ courses: TableTypes<"course">[] }> = ({ courses }) => {
+const DropdownMenu: FC = () => {
   const [expanded, setExpanded] = useState<boolean>(false);
   const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
   const [selected, setSelected] = useState<CourseDetails | null>(null);
@@ -18,36 +19,64 @@ const DropdownMenu: FC<{ courses: TableTypes<"course">[] }> = ({ courses }) => {
   const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
-    fetchCourseDetails();
-  }, [courses]);
+    fetchLearningPathCourseDetails();
+  }, []);
 
-  const fetchCourseDetails = async () => {
+  const fetchLearningPathCourseDetails = async () => {
+    const currentStudent = await Util.getCurrentStudent();
+
+    if (!currentStudent || !currentStudent.learning_path) {
+      console.error("No learning path found for the user");
+      return;
+    }
+
+    const learningPath = JSON.parse(currentStudent.learning_path);
+    const courseList = learningPath.courses.courseList;
+    const currentIndex = learningPath.courses.currentCourseIndex ?? 0;
+
     const detailedCourses: CourseDetails[] = await Promise.all(
-      courses.map(async (course) => {
-        const gradeDoc = await api.getGradeById(course.grade_id!);
-        const curriculumDoc = await api.getCurriculumById(course.curriculum_id!);
+      courseList.map(async (entry: { course_id: string }) => {
+        const course = await api.getCourse(entry.course_id);
+        if (!course) return null;
+
+        const [gradeDoc, curriculumDoc] = await Promise.all([
+          api.getGradeById(course.grade_id!),
+          api.getCurriculumById(course.curriculum_id!)
+        ]);
+
         return {
           course,
           grade: gradeDoc,
-          curriculum: curriculumDoc,
+          curriculum: curriculumDoc
         };
       })
-    );
+    ).then(results => results.filter(Boolean) as CourseDetails[]);
+
     setCourseDetails(detailedCourses);
-    if (detailedCourses.length > 0) {
-      setSelected(detailedCourses[0]);
-    }
+    setSelected(prev => prev || detailedCourses[currentIndex] || null);
   };
 
-  const handleSelect = (subject: CourseDetails) => {
+  const handleSelect = async (subject: CourseDetails, index: number) => {
     setSelected(subject);
     setExpanded(false);
+
+    const currentStudent = await Util.getCurrentStudent();
+    if (!currentStudent || !currentStudent.learning_path) return;
+
+    const learningPath = JSON.parse(currentStudent.learning_path);
+    learningPath.courses.currentCourseIndex = index;
+
+    await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
+    await Util.setCurrentStudent({ ...currentStudent, learning_path: JSON.stringify(learningPath) }, undefined);
+
+    // Dispatch event
+    const event = new CustomEvent("courseChanged", { detail: { currentStudent } });
+    window.dispatchEvent(event);
   };
 
   const truncateName = (name: string) => {
-    if(name.split(" ").length > 1) {
-      return name.split(" ")[1]
-      } else return name
+    const parts = name.split(" ");
+    return parts.length > 1 ? parts[1] : name;
   };
 
   useEffect(() => {
@@ -70,31 +99,33 @@ const DropdownMenu: FC<{ courses: TableTypes<"course">[] }> = ({ courses }) => {
                 localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
                 defaultSrc={"assets/icons/DefaultIcon.png"}
                 webSrc={selected.course.image || "assets/icons/DefaultIcon.png"}
-                imageWidth="80%"
+                imageWidth="10vh"
                 imageHeight="auto"
               />
             </div>
           )}
 
           {expanded && (
-            <div className="dropdown-items">
+            <div className="dropdown-items"
+            onClick={(e) => e.stopPropagation()}
+            >
               {courseDetails.map((detail, index) => (
                 <div
                   ref={(el) => (itemRefs.current[detail.course.id] = el)}
                   className={`menu-item ${expanded && selected?.course.id === detail.course.id ? "selected-expanded" : ""}`}
-                  key={index}
+                  key={detail.course.id}
                   onClick={(e) => {
-                    e.stopPropagation();
-                    handleSelect(detail);
+                    // e.stopPropagation();
+                    handleSelect(detail, index);
                   }}
                 >
                   <SelectIconImage
                     localSrc={`courses/chapter_icons/${detail.course.code}.webp`}
                     defaultSrc={"assets/icons/DefaultIcon.png"}
                     webSrc={detail.course.image || "assets/icons/DefaultIcon.png"}
-                    imageWidth="90%"
+                    imageWidth="85%"
                   />
-                  <div className="trucate-style">
+                  <div className="truncate-style">
                     {truncateName(detail.course.name)}
                   </div>
                 </div>

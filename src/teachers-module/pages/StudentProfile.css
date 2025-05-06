@@ -1,0 +1,16 @@
+.student-profile-page {
+  background: white;
+}
+.student-profile {
+  text-align: center;
+}
+
+.view-progress-btn {
+  background-color: #7c5db0;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 2vh;
+}

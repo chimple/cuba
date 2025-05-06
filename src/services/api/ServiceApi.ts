@@ -7,6 +7,7 @@ import {
   LeaderboardRewards,
   MODES,
   PROFILETYPE,
+  TABLES,
   TableTypes,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -109,6 +110,13 @@ export interface ServiceApi {
     file: File,
     profileType: PROFILETYPE
   ): Promise<string | null>;
+
+  /**
+   * Adds a school profile image and returns the school profile image URL.
+   * @param {payload} any - Mapped data in the json format.
+   * @returns {Promise<boolean | null>} Returns if the upload is success or upload fails.
+   */
+  uploadData(payload: any): Promise<boolean | null>;
 
   createStudentProfile(
     name: string,
@@ -874,7 +882,8 @@ export interface ServiceApi {
    *          - `false` if there were any errors or if no synchronization was necessary.
    */
 
-  syncDB(): Promise<boolean>;
+  syncDB(tableNames: TABLES[],
+  refreshTables: TABLES[]): Promise<boolean>;
 
   /**
    * Function to get Recommended Lessons.
@@ -1285,4 +1294,18 @@ export interface ServiceApi {
    * @param {string } starsCount - count of stars
    */
   setStarsForStudents(studentId: string, starsCount: number): Promise<void>;
+  /**
+   * getting courses for the student sorted with sort_index
+   * @param {string } studentId - student id
+   */
+  getCoursesForPathway(studentId: string): Promise<TableTypes<"course">[]>;
+  /**
+   * Updates the learning path for a student.
+   * @param {string} learningPath - The new learning path to be set.
+   * @returns {User} Updated Student User Object
+   */
+  updateLearningPath(
+    student: TableTypes<"user">,
+    learning_path: string
+  ): Promise<TableTypes<"user">>;
 }

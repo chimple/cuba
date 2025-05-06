@@ -103,7 +103,8 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"user"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  syncDB(): Promise<boolean> {
+  syncDB(tableNames: TABLES[] = Object.values(TABLES),
+      refreshTables: TABLES[] = []): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
   public static i: SupabaseApi;
@@ -168,6 +169,30 @@ export class SupabaseApi implements ServiceApi {
     const imageUrl = urlData?.data.publicUrl;
     console.log("Public Image URL:", imageUrl);
     return imageUrl || null;
+  }
+
+  async uploadData(payload: any): Promise<boolean> {
+    try {
+      if (!this.supabase) {
+        console.error("Supabase client is not initialized.");
+        return false;
+      }
+      const { data, error } = await this.supabase.functions.invoke(
+        "ops-data-insert",
+        {
+          body: payload,
+        }
+      );
+      if (error) {
+        console.error("Function error:", error);
+        return false;
+      }
+      console.log("Function response:", data);
+      return true;
+    } catch (error) {
+      console.error("Upload failed:", error);
+      return false;
+    }
   }
 
   async getTablesData(
@@ -1408,8 +1433,7 @@ export class SupabaseApi implements ServiceApi {
       .from("course")
       .select("id")
       .eq("curriculum_id", curriculumId)
-      .eq("name", subjectName)
-      .single();
+      .eq("name", subjectName.trim());
     console.log("fsdfsd", courseData);
 
     if (courseError || !courseData) {
@@ -1496,16 +1520,11 @@ export class SupabaseApi implements ServiceApi {
       fieldCoordinatorPhone
     );
 
-    // Ensure values are strings and properly quoted
-    const pmQueryValue = programManagerPhone.includes("@")
-      ? `email.eq.${programManagerPhone}`
-      : `phone.eq.${programManagerPhone}`;
-
+    const queryKey = programManagerPhone.includes("@") ? "email" : "phone";
     const { data: pmData, error: pmError } = await this.supabase
       .from("user")
       .select("id")
-      .or(pmQueryValue)
-      .single();
+      .eq(queryKey, programManagerPhone.trim());
 
     if (pmError || !pmData) {
       errors.push(
@@ -1514,15 +1533,13 @@ export class SupabaseApi implements ServiceApi {
     }
 
     if (fieldCoordinatorPhone) {
-      const fcQueryValue = fieldCoordinatorPhone.includes("@")
-        ? `email.eq.${fieldCoordinatorPhone}`
-        : `phone.eq.${fieldCoordinatorPhone}`;
-
+      const fCqueryKey = fieldCoordinatorPhone.includes("@")
+        ? "email"
+        : "phone";
       const { data: fcData, error: fcError } = await this.supabase
         .from("user")
         .select("id")
-        .or(fcQueryValue)
-        .single();
+        .eq(fCqueryKey, fieldCoordinatorPhone);
 
       if (fcError || !fcData) {
         errors.push(
@@ -1539,6 +1556,17 @@ export class SupabaseApi implements ServiceApi {
     studentId: string,
     starsCount: number
   ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  async getCoursesForPathway(
+    studentId: string
+  ): Promise<TableTypes<"course">[]> {
+    throw new Error("Method not implemented in SupabaseApi.");
+  }
+  async updateLearningPath(
+    student: TableTypes<"user">,
+    learning_path: string
+  ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }
 }

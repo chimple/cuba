@@ -1,0 +1,54 @@
+.edit-delete-section {
+  font-size: clamp(18px, 4vh, 25px);
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 8vw;
+  margin-top: 6vh;
+  color: #4c7af0;
+  font-weight: bold;
+}
+.class-name-div {
+  font-size: clamp(20px, 5vh, 30px);
+  color: grey;
+  padding: 20px 20px 0 20px;
+  margin-bottom: 5vh;
+}
+.horizontal-line {
+  height: 0.6px;
+  border-width: 0;
+  box-sizing: border-box;
+  background: lightgrey;
+  margin: 5px 0;
+}
+.class-profile-page {
+  background: white;
+  height: 100%;
+}
+.vertical-line {
+  color: grey;
+  height: 5vh;
+  background: lightgray;
+  width: 0.6px;
+  display: flex;
+  margin: 5px 0;
+}
+.name-div {
+  font-size: clamp(18px, 5vh, 22px);
+  color: var(--text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 150px;
+}
+.class-profile-header {
+  font-size: clamp(18px, 5vh, 22px);
+  color: var(--text-color);
+}
+.profile-div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5vw;
+  justify-content: center;
+}

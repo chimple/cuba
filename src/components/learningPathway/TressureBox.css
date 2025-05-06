@@ -2,27 +2,23 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  position: relative;
+  position: absolute;
+  bottom: 0%;
+  right: 0%;
+  z-index: 5;
 }
 
 .treasure-box-wrapper {
   position: relative;
-  width: 12.5vw;
+  width: 17.5vw;
   height: 20vh;
   min-width: 100px;
   max-width: 150px;
-  min-height: 150px;
+  min-height: 105px;
   max-height: 250px;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.treasure-box-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
 }
 
 .treasure-box-svg {
@@ -35,7 +31,7 @@
 
 .treasure-box-gif {
   width: auto;
-  height: 40vh;
+  height: 42vh;
   object-fit: contain;
 }
 
@@ -55,24 +51,22 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -10%);
+  transform: translate(-50%, 5%);
   height: 4vh;
-  min-height: 25px;
+  min-height: 28px;
   max-height: 35px;
   overflow: hidden;
   z-index: 2;
 }
 
 .scroll-item {
-  min-height: 25px;
-  max-height: 35px;
+  height: clamp(50px, 3vh, 60px);
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 4vh;
+  font-family: "BalooRegular2";
   font-size: clamp(20px, 5vh, 24px);
   color: var(--text-color);
-  font-family: "BalooRegular2";
   font-weight: bold;
 }
 

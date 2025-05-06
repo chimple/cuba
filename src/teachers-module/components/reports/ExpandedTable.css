@@ -1,0 +1,52 @@
+.square-cell {
+  height: 50px;
+  width: 50px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+td:first-child {
+  text-align: center;
+  min-width: 120px;
+  max-width: 120px;
+  writing-mode: horizontal-tb;
+  transform: inherit;
+  align-content: center;
+  height: 50px;
+}
+
+.lesson-name-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.expanded-table-lesson-details{
+  display: flex;
+  justify-content: space-between;
+  margin: 10px;
+}
+
+.assignment-icon {
+  width: 15px;
+  height: 15px;
+  margin-left: 5px;
+  margin: auto 0;
+}
+
+td {
+  background-color: white;
+  border: 1px solid grey;
+  height: 20px;
+  width: 20px;
+  text-align: center;
+  color: black;
+}
+
+.border-divide {
+  border: 2px solid;
+}
+
+tr:last-child {
+  /* position:sticky; */
+  border-bottom: 2px solid gray;
+}

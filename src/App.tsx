@@ -31,7 +31,7 @@ import "./theme/variables.css";
 import Home from "./pages/Home";
 import CocosGame from "./pages/CocosGame";
 import { End } from "./pages/End";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import Profile from "./pages/Profile";
@@ -86,37 +86,7 @@ import User from "./models/user";
 import React from "react";
 import Dashboard from "./pages/Malta/Dashboard";
 import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
-import {
-  HomePage,
-  TestPage1,
-  TestPage2,
-  DisplaySchools,
-  ShowChapters,
-  SearchLessons,
-  AddStudent,
-  UserProfile,
-  ClassUsers,
-  StudentProfile,
-  ManageSchools,
-  SchoolProfile,
-  AddSchool,
-  ManageClass,
-  EditSchool,
-  SubjectSelection,
-  EditClass,
-  ClassProfile,
-  DashBoardDetails,
-  AddTeacher,
-  TeacherProfile,
-  StudentReport,
-  SchoolUsers,
-  AddSchoolUser,
-  ReqEditSchool,
-} from "./common/chimplePrivatePages";
-import LessonDetails from "./chimple-private/pages/LessonDetails";
-import DisplayClasses from "./chimple-private/pages/DisplayClasses";
 import "./App.css";
-import ShowStudentsInAssignmentPage from "./chimple-private/pages/ShowStudentsInAssignmentPage";
 import { schoolUtil } from "./utility/schoolUtil";
 import LidoPlayer from "./pages/LidoPlayer";
 import UploadPage from "./ops-console/pages/UploadPage";
@@ -124,6 +94,30 @@ import { initializeClickListener } from "./analytics/clickUtil";
 import { EVENTS } from "./common/constants";
 import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 import ResetPassword from "./pages/ResetPassword";
+import DisplayClasses from "./teachers-module/pages/DisplayClasses";
+import LessonDetails from "./teachers-module/pages/LessonDetails";
+import ShowStudentsInAssignmentPage from "./teachers-module/pages/ShowStudentsInAssignmentPage";
+import ReqEditSchool from "./teachers-module/pages/ReqEditSchool";
+import StudentProfile from "./teachers-module/pages/StudentProfile";
+import AddStudent from "./teachers-module/pages/AddStudent";
+import UserProfile from "./teachers-module/pages/UserProfile";
+import SubjectSelection from "./teachers-module/pages/SubjectSelection";
+import DisplaySchools from "./teachers-module/pages/DisplaySchools";
+import StudentReport from "./teachers-module/pages/StudentReport";
+import ManageSchools from "./teachers-module/pages/ManageSchools";
+import SchoolProfile from "./teachers-module/pages/SchoolProfile";
+import ManageClass from "./teachers-module/pages/ManageClass";
+import DashBoardDetails from "./teachers-module/pages/DashBoardDetails";
+import EditClass from "./teachers-module/pages/EditClass";
+import ClassProfile from "./teachers-module/pages/ClassProfile";
+import ShowChapters from "./teachers-module/pages/ShowChapters";
+import SearchLessons from "./teachers-module/pages/SearchLessons";
+import HomePage from "./teachers-module/pages/HomePage";
+import ClassUsers from "./teachers-module/pages/ClassUsers";
+import AddTeacher from "./teachers-module/pages/AddTeacher";
+import TeacherProfile from "./teachers-module/pages/TeacherProfile";
+import SchoolUsers from "./teachers-module/pages/SchoolUsers";
+import AddSchoolUser from "./teachers-module/pages/AddSchoolUser";
 
 setupIonicReact();
 interface ExtraData {
@@ -511,24 +505,16 @@ const App: React.FC = () => {
               <TeacherProfile />
             </ProtectedRoute> */}
               <ProtectedRoute path={PAGES.STUDENT_PROFILE} exact={true}>
-                <Suspense>
-                  <StudentProfile />
-                </Suspense>
+                <StudentProfile />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.ADD_STUDENT} exact={true}>
-                <Suspense>
-                  <AddStudent />
-                </Suspense>
+                <AddStudent />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.USER_PROFILE} exact={true}>
-                <Suspense>
-                  <UserProfile />
-                </Suspense>
+                <UserProfile />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.SUBJECTS_PAGE} exact={true}>
-                <Suspense>
-                  <SubjectSelection />
-                </Suspense>
+                <SubjectSelection />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
                 <LiveQuizRoom />
@@ -545,153 +531,95 @@ const App: React.FC = () => {
               <ProtectedRoute path={PAGES.LIVE_QUIZ_LEADERBOARD} exact={true}>
                 <LiveQuizLeaderBoard />
               </ProtectedRoute>
-              <Route path={PAGES.TEST_PAGE} exact={true}>
-                <Suspense>
-                  <TestPage1 />
-                </Suspense>
-              </Route>
-              <Route path={PAGES.DISPLAY_SCHOOLS} exact={true}>
-                <Suspense>
-                  <DisplaySchools />
-                </Suspense>
-              </Route>
-              <Route path={PAGES.STUDENT_REPORT} exact={true}>
-                <Suspense>
-                  <StudentReport />
-                </Suspense>
-              </Route>
-              <Route path={PAGES.DISPLAY_CLASSES} exact={true}>
-                <Suspense>
-                  <DisplayClasses />
-                </Suspense>
-              </Route>
+              <ProtectedRoute path={PAGES.DISPLAY_SCHOOLS} exact={true}>
+                <DisplaySchools />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.STUDENT_REPORT} exact={true}>
+                <StudentReport />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.DISPLAY_CLASSES} exact={true}>
+                <DisplayClasses />
+              </ProtectedRoute>
               <ProtectedRoute path={PAGES.MANAGE_SCHOOL} exact={true}>
-                <Suspense>
-                  <ManageSchools />
-                </Suspense>
+                <ManageSchools />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.SCHOOL_PROFILE} exact={true}>
-                <Suspense>
-                  <SchoolProfile />
-                </Suspense>
+                <SchoolProfile />
               </ProtectedRoute>
               {/* <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
-              <Suspense>
+              
                 <EditSchool />
-              </Suspense>
+              
             </ProtectedRoute> */}
               <ProtectedRoute path={PAGES.REQ_ADD_SCHOOL} exact={true}>
-                <Suspense>
-                  <ReqEditSchool />
-                </Suspense>
+                <ReqEditSchool />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.MANAGE_CLASS} exact={true}>
-                <Suspense>
-                  <ManageClass />
-                </Suspense>
+                <ManageClass />
               </ProtectedRoute>
               {/* <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
-              <Suspense>
+              
                 <EditSchool />
-              </Suspense>
+              
             </ProtectedRoute> */}
               <ProtectedRoute path={PAGES.REQ_EDIT_SCHOOL} exact={true}>
-                <Suspense>
-                  <ReqEditSchool />
-                </Suspense>
+                <ReqEditSchool />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.DASHBOARD_DETAILS} exact={true}>
-                <Suspense>
-                  <DashBoardDetails />
-                </Suspense>
+                <DashBoardDetails />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.ADD_CLASS} exact={true}>
-                <Suspense>
-                  <EditClass />
-                </Suspense>
+                <EditClass />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.CLASS_PROFILE} exact={true}>
-                <Suspense>
-                  <ClassProfile />
-                </Suspense>
+                <ClassProfile />
               </ProtectedRoute>
-              <Route path={PAGES.SHOW_CHAPTERS} exact={true}>
-                <Suspense>
-                  <ShowChapters />
-                </Suspense>
-              </Route>
+              <ProtectedRoute path={PAGES.SHOW_CHAPTERS} exact={true}>
+                <ShowChapters />
+              </ProtectedRoute>
 
-              <Route path={PAGES.SEARCH_LESSON} exact={true}>
-                <Suspense>
-                  <SearchLessons />
-                </Suspense>
-              </Route>
+              <ProtectedRoute path={PAGES.SEARCH_LESSON} exact={true}>
+                <SearchLessons />
+              </ProtectedRoute>
 
-              <Route path={PAGES.LESSON_DETAILS} exact={true}>
+              <ProtectedRoute path={PAGES.LESSON_DETAILS} exact={true}>
                 <LessonDetails />
-              </Route>
-              <Route path={PAGES.TEST_PAGE1} exact={true}>
-                <Suspense>
-                  <TestPage2 />
-                </Suspense>
-              </Route>
+              </ProtectedRoute>
               <ProtectedRoute path={PAGES.HOME_PAGE} exact={true}>
-                <Suspense>
-                  <HomePage />
-                </Suspense>
+                <HomePage />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.CLASS_USERS} exact={true}>
-                <Suspense>
-                  <ClassUsers />
-                </Suspense>
+                <ClassUsers />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.EDIT_CLASS} exact={true}>
-                <Suspense>
-                  <EditClass />
-                </Suspense>
+                <EditClass />
               </ProtectedRoute>
               <ProtectedRoute
                 path={PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE}
                 exact={true}
               >
-                <Suspense>
-                  <ShowStudentsInAssignmentPage />
-                </Suspense>
+                <ShowStudentsInAssignmentPage />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.ADD_TEACHER} exact={true}>
-                <Suspense>
-                  <AddTeacher />
-                </Suspense>
+                <AddTeacher />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
-                <Suspense>
-                  <TeacherProfile />
-                </Suspense>
+                <TeacherProfile />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.SCHOOL_USERS} exact={true}>
-                <Suspense>
-                  <SchoolUsers />
-                </Suspense>
+                <SchoolUsers />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.ADD_PRINCIPAL} exact={true}>
-                <Suspense>
-                  <AddSchoolUser />
-                </Suspense>
+                <AddSchoolUser />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.ADD_COORDINATOR} exact={true}>
-                <Suspense>
-                  <AddSchoolUser />
-                </Suspense>
+                <AddSchoolUser />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.ADD_SPONSOR} exact={true}>
-                <Suspense>
-                  <AddSchoolUser />
-                </Suspense>
+                <AddSchoolUser />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.UPLOAD_PAGE} exact={true}>
-                <Suspense>
-                  <UploadPage />
-                </Suspense>
+                <UploadPage />
               </ProtectedRoute>
             </Switch>
           </IonRouterOutlet>

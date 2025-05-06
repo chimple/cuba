@@ -54,6 +54,7 @@
   "After creating the account, please open the app and click the 'Homework' icon from the top header and enter this code": "After creating the account, please open the app and click the 'Homework' icon from the top header and enter this code",
   "Age": "Age",
   "Agree": "Agree",
+  "AI-driven workspace designed for teachers to simplify classroom tasks": "AI-driven workspace designed for teachers to simplify classroom tasks",
   "All activities": "All activities",
   "ALL Time": "ALL Time",
   "Already on the latest version": "Already on the latest version",
@@ -143,6 +144,7 @@
   "Click to upload": "Click to upload",
   "Click x1 times on number x2": "Click x1 times on number x2",
   "Collect your reward": "Collect your reward",
+  "COMING SOON" : "COMING SOON",
   "Compare and Add": "Compare and Add",
   "Compare With 10": "Compare With 10",
   "Comparison 100-999": "Comparison 100-999",
@@ -150,6 +152,7 @@
   "Comparison Of Numbers": "Comparison Of Number",
   "Comparison": "Comparison",
   "Completion Score": "Completion Score",
+  "Complete these 5 lessons to earn rewards": "Complete these 5 lessons to earn rewards",
   "Confirm": "Confirm",
   "Congratulations on earning the x1!": "Congratulations on earning the x1!",
   "Congratulations!": "Congratulations!",
@@ -340,6 +343,7 @@
   "Lesson Name": "Lesson Name",
   "Lesson": "Lesson",
   "Lessons Played": "Lessons Played",
+  "Lesson inactive, play the nearest active lesson":"Lesson inactive, play the nearest active lesson",
   "Let's Play": "Let's Play",
   "Library": "Library",
   "Like the Game": "Like the Game",
@@ -623,6 +627,7 @@
   "Statement Sums 1": "Statement Sums 1",
   "sticker": "sticker",
   "STICKERS": "STICKERS",
+  "Stay Connected ...": "Stay Connected ...",
   "Still Learning": "Still Learning",
   "Stringed objects": "Stringed objects",
   "Student Data": "Student Data",
@@ -768,4 +773,7 @@
   "Your data has been successfully checked, and no errors were found.": "Your data has been successfully checked, and no errors were found.",
   "Your profile is not registered to any school.": "Your profile is not registered to any school.",
   "Zebra": "Zebra"
+  "Your progress stays synced and consistent across all devices.": "Your progress stays synced and consistent across all devices.",
+  "Zebra": "Zebra",
+  "Specials": "Specials"
 }

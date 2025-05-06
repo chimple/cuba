@@ -574,6 +574,10 @@ export class SqliteApi implements ServiceApi {
     return await this._serverApi.addProfileImages(id, file, profileType);
   }
 
+  async uploadData(payload: any): Promise<boolean | null> {
+    return await this._serverApi.uploadData(payload);
+  }
+
   async createSchool(
     name: string,
     group1: string,
@@ -2764,7 +2768,9 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getAllCourses(): Promise<TableTypes<"course">[]> {
-    const res = await this._db?.query(`select * from ${TABLES.Course}`);
+    const res = await this._db?.query(
+      `select * from ${TABLES.Course} ORDER BY sort_index ASC`
+    );
     return res?.values ?? [];
   }
   deleteAllUserData(): Promise<void> {
@@ -3178,7 +3184,7 @@ export class SqliteApi implements ServiceApi {
   `;
     const res = await this.executeQuery(query);
     console.log("🚀 ~ SqliteApi ~ updateFCM Token:", res);
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       fcm_token: token,
       id: userId,
     });
@@ -3360,14 +3366,15 @@ export class SqliteApi implements ServiceApi {
         user.language_id,
       ]
     );
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, user);
+    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, user);
 
     return user;
   }
 
-  async syncDB(): Promise<boolean> {
+  async syncDB(tableNames: TABLES[] = Object.values(TABLES),
+  refreshTables: TABLES[] = []): Promise<boolean> {
     try {
-      await this.syncDbNow();
+      await this.syncDbNow(tableNames,refreshTables);
       return true;
     } catch (error) {
       console.log("🚀 ~ SqliteApi ~ syncDB ~ error:", error);
@@ -4474,5 +4481,37 @@ order by
     } catch (error) {
       console.error("Error setting stars for student:", error);
     }
+  }
+  async getCoursesForPathway(
+    studentId: string
+  ): Promise<TableTypes<"course">[]> {
+    const query = `
+      SELECT *
+      FROM ${TABLES.UserCourse} AS uc
+      JOIN ${TABLES.Course} AS course ON uc.course_id = course.id
+      WHERE uc.user_id = "${studentId}"
+      ORDER BY course.sort_index ASC;
+    `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
+  async updateLearningPath(
+    student: TableTypes<"user">,
+    learningPath: string
+  ): Promise<TableTypes<"user">> {
+    try {
+      const updateUserQuery = `UPDATE ${TABLES.User}
+      SET learning_path = ?
+      WHERE id = ?;`;
+      await this.executeQuery(updateUserQuery, [learningPath, student.id]);
+      student.learning_path = learningPath;
+      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+        id: student.id,
+        learning_path: learningPath,
+      });
+    } catch (error) {
+      console.error("Error updating learning path:", error);
+    }
+    return student;
   }
 }
