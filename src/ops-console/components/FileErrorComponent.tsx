@@ -4,14 +4,13 @@ import { t } from "i18next";
 import { FaCloudUploadAlt } from "react-icons/fa";
 import "./FileErrorComponent.css";
 import ErrorIcon from "../assets/icons/error_icon.png";
-import { Link } from "react-router-dom";
-import { PAGES } from "../../common/constants";
 
 interface ErrorPageProps {
   handleDownload: () => void;
+  reUplod: () => void;
 }
 
-const ErrorPage: React.FC<ErrorPageProps> = ({ handleDownload }) => {
+const ErrorPage: React.FC<ErrorPageProps> = ({ handleDownload, reUplod }) => {
   return (
     <div className="error-page">
       <div className="error-page-container">
@@ -32,14 +31,11 @@ const ErrorPage: React.FC<ErrorPageProps> = ({ handleDownload }) => {
             {t("Download File")}
           </button>
         </div>
-        <Link
-          to={`${PAGES.UPLOAD_PAGE}?reupload=true`}
-          className="download-template"
-        >
+        <button className="download-template" onClick={reUplod}>
           <FaCloudUploadAlt />
           &nbsp; &nbsp;
           {t("Re-Upload")}
-        </Link>
+        </button>
       </div>
     </div>
   );
