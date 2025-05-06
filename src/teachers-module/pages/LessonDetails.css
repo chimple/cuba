@@ -1,0 +1,63 @@
+.lesson-details-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  margin: 0;
+  background-color: #7c5db0;
+}
+.lesson-details-body {
+  background-color: white;
+  height: 90vh;
+}
+.lesson-card {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 40vw;
+  max-height: 200px;
+  max-width: 200px;
+  height: 40vw;
+  text-align: center;
+  padding: 10px;
+  margin: 20px;
+}
+.play-ion{
+  display: flex;
+  justify-content: center;
+}
+.lesson-info-image{
+  width: calc(40vw - 20px);
+  max-height: 120px;
+  max-width: 180px;
+  height: 25vw;
+  background-color: burlywood;
+
+}
+.learning-outcome-text{
+  color: black;
+  padding: 5%;
+  font-size: 2vh;
+}
+.lesson-card-info {
+  margin-top: 6vh;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+}
+.lesson-info {
+  background-color: #fff;
+  border-radius: 10px;
+  width: 40vw;
+  max-height: 200px;
+  max-width: 200px;
+  height: 40vw;
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size: 1.7vh;
+}
+
+.lesson-info-text{
+  color: black;
+}

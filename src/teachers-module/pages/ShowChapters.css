@@ -1,0 +1,17 @@
+.lesson-grid {
+    max-height: 90%; 
+    overflow-y: auto; 
+  }
+  .container-body {
+    background-color: white;
+    height: 90vh;
+    display: block;
+    padding: 10px;
+  }
+  .chapter-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+    background-color: white;
+  }

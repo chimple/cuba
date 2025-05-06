@@ -1,0 +1,117 @@
+.date-range-selector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: Arial, sans-serif;
+  height: 100%;
+  justify-content: space-around;
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
+  
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 20px;
+  transition: 0.4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background-color: white;
+  transition: 0.4s;
+  left: 2px;
+  bottom: 2px;
+}
+
+input:checked + .slider {
+  background-color: #7c5db0;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.toggle-label {
+  margin-left: 5px;
+  font-weight: bold;
+  color: #666;
+  font-size: var(--text-sizeS);
+}
+
+.date-range-container {
+  text-align: center;
+  font-size: var(--text-sizeM);
+  font-weight: 100;
+  margin: 0 5px 0 5px;
+}
+.table-choice-header-toggle{
+  display: flex;
+  justify-content: flex-start;
+  width: 18vh;
+  align-items: center;
+}
+
+.date-range-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f3ebff;
+  border-radius: 12px;
+  padding: 2px;
+  font-weight: bold;
+  color: #7c5db0;
+}
+nav-btn:hover {
+  background-color: #7c5db0;
+}
+.nav-btn {
+  background-color: #7c5db0;
+  /* color: white; */
+  border: none;
+  border-radius: 50%;
+  width: clamp(20px, 2.4vh, 30px);
+  height: clamp(20px, 2.6vh, 30px);
+  font-size: clamp(20px, 1.5vh, 30px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.date-range {
+  padding: 0 6px;
+  font-size: 1.5vh;
+}
+.table-sort-divider {
+  width: 100%;
+  border-top: 1px black solid;
+}

@@ -1,0 +1,29 @@
+.student-list {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.student-name-div {
+  display: flex;
+  align-items: center;
+}
+.avatar-img {
+  border-radius: 50%;
+  height: 8vh;
+  width: 8vh;
+}
+.user-img {
+  max-width: 9vw;
+  max-height: 6vh;
+}
+.student-item {
+  margin-right: 10px;
+}
+.student-profile-name {
+  padding: 5px 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+  color: var(--text-color);
+}
