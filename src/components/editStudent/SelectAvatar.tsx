@@ -21,7 +21,7 @@ const SelectAvatar: FC<{
               >
                 <img
                   aria-label={_avatar}
-                  className="avatar-img"
+                  className="edit-avatar-img"
                   src={"assets/avatars/" + _avatar + ".png"}
                   alt=""
                 />

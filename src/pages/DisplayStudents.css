@@ -46,6 +46,7 @@
   cursor: pointer;
   font-size: var(--text-size);
   color: #05342f;
+  width: 20vh;
 }
 
 .display-student-name {
