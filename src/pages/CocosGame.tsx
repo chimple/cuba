@@ -298,9 +298,9 @@ const CocosGame: React.FC = () => {
         currentStudent.id
       );
     }
-    // Check if the game was played from `/home` and the user is connected to a class
-    const fromPath: string = state?.from ?? PAGES.HOME;
-    if (fromPath.includes("/home") && isStudentLinked) {
+    // Check if the game was played from `learning_pathway`
+    const learning_path: string = state?.learning_path ?? false;
+    if (learning_path) {
       assignmentId = null; // Set assignmentId to null if the condition is true, lesson played from learning_pathway will not have assignmentId
     }
     let avatarObj = AvatarObj.getInstance();
@@ -326,7 +326,7 @@ const CocosGame: React.FC = () => {
       schoolId
     );
     // Check if the game was played from the `/home` URL and if the user is connected to a class, Update the learning path only if the conditions are met
-    if (fromPath.includes("/home") && isStudentLinked) {
+    if (learning_path) {
       await updateLearningPath();
     }
     // if (!!lessonDetail.cocos_chapter_code) {

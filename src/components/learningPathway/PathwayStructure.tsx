@@ -242,6 +242,7 @@ const PathwayStructure: React.FC = () => {
                   lesson: JSON.stringify(lesson),
                   chapter: JSON.stringify({ chapter_id: lesson.chapter_id }),
                   from: history.location.pathname + `?continue=true`,
+                  learning_path:true
                 });
               }
             });
