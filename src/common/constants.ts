@@ -539,7 +539,7 @@ export enum GENDER {
   OTHER = "unspecified",
 }
 
-export const REFRESHTABLES :TABLES[] =[
+export const REFRESH_TABLES_ON_LOGIN :TABLES[] =[
   TABLES.School,
   TABLES.Live_quiz_room,
   TABLES.Class,
