@@ -92,25 +92,30 @@ const PathwayStructure: React.FC = () => {
         const pathGroups = svg.querySelectorAll("g > path");
         const paths = Array.from(pathGroups) as SVGPathElement[];
 
-        const [flowerActive, flowerInactive, playedLessonSVG, giftSVG] =
-          await Promise.all([
-            fetchSVGGroup(
-              "/pathwayAssets/English/FlowerActive.svg",
-              "flowerActive isSelected"
-            ),
-            fetchSVGGroup(
-              "/pathwayAssets/FlowerInactive.svg",
-              "flowerInactive"
-            ),
-            fetchSVGGroup(
-              "/pathwayAssets/English/PlayedLesson.svg",
-              "playedLessonSVG"
-            ),
-            fetchSVGGroup("/pathwayAssets/English/pathGift1.svg", "giftSVG"),
-          ]);
+        const [
+          flowerActive,
+          flowerInactive,
+          playedLessonSVG,
+          giftSVG,
+          giftSVG2,
+          giftSVG3,
+        ] = await Promise.all([
+          fetchSVGGroup(
+            "/pathwayAssets/English/FlowerActive.svg",
+            "flowerActive isSelected"
+          ),
+          fetchSVGGroup("/pathwayAssets/FlowerInactive.svg", "flowerInactive"),
+          fetchSVGGroup(
+            "/pathwayAssets/English/PlayedLesson.svg",
+            "playedLessonSVG"
+          ),
+          fetchSVGGroup("/pathwayAssets/English/pathGift1.svg", "giftSVG"),
+          fetchSVGGroup("/pathwayAssets/English/pathGift2.svg", "giftSVG2"),
+          fetchSVGGroup("/pathwayAssets/English/pathGift3.svg", "giftSVG3"),
+        ]);
 
         const startPoint = paths[0].getPointAtLength(0);
-        const xValues = [21, 150, 270, 382, 490];
+        const xValues = [27, 155, 276, 387, 496];
 
         lessons.forEach((lesson, idx) => {
           const path = paths[idx];
@@ -242,10 +247,10 @@ const PathwayStructure: React.FC = () => {
             });
             const chimple = createSVGImage(
               "/pathwayAssets/mascot.svg",
-              90,
-              90,
+              75,
+              81,
               x,
-              startPoint.y + 55
+              startPoint.y + 65
             );
 
             svg.appendChild(activeGroup);
@@ -271,14 +276,15 @@ const PathwayStructure: React.FC = () => {
               flowerInactive.cloneNode(true) as SVGGElement
             );
             flower_Inactive.appendChild(lessonImage);
-            if (startIndex + idx == currentIndex + 1) {
-              flower_Inactive.addEventListener("click", () => {
-                const text = t("Lesson inactive, play the nearest active lesson");
-                setModalOpen(true);
-                setModalText(text);
-              });
-              flower_Inactive.setAttribute("style", "cursor: pointer;");
-            }
+            flower_Inactive.addEventListener("click", () => {
+              const text = t("Lesson inactive, play the nearest active lesson");
+              setModalOpen(true);
+              setModalText(text);
+            });
+            flower_Inactive.setAttribute(
+              "style",
+              "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
+            );
 
             // Define x and y mappings for flower_Inactive positioning
             const flowerInactiveXValues = [
@@ -314,23 +320,47 @@ const PathwayStructure: React.FC = () => {
           "http://www.w3.org/2000/svg",
           "g"
         );
-        if (currentIndex < pathEndIndex + 1) {
-          Gift_Svg.addEventListener("click", () => {
-            const text = t("Complete these 5 lessons to earn rewards");
-            setModalOpen(true);
-            setModalText(text);
-          });
-          Gift_Svg.setAttribute("style", "cursor: pointer;");
-        }
+
         const endPath = paths[paths.length - 1];
         const endPoint = endPath.getPointAtLength(endPath.getTotalLength());
-        Gift_Svg.appendChild(giftSVG.cloneNode(true) as SVGGElement);
-        placeElement(
-          svg,
-          Gift_Svg as SVGGElement,
-          endPoint.x - 25,
-          endPoint.y - 40
-        );
+
+        Gift_Svg.setAttribute("style", "cursor: pointer;");
+        Gift_Svg.appendChild(giftSVG.cloneNode(true));
+        placeElement(svg, Gift_Svg, endPoint.x - 25, endPoint.y - 40);
+
+        if (currentIndex < pathEndIndex + 1) {
+          Gift_Svg.addEventListener("click", () => {
+            const replaceGiftContent = (newContent: SVGElement) => {
+              while (Gift_Svg.firstChild) {
+                Gift_Svg.removeChild(Gift_Svg.firstChild);
+              }
+              Gift_Svg.appendChild(newContent.cloneNode(true));
+            };
+
+            setTimeout(() => {
+              replaceGiftContent(giftSVG2);
+            }, 300);
+
+            setTimeout(() => {
+              replaceGiftContent(giftSVG3);
+            }, 500);
+
+            setTimeout(() => {
+              replaceGiftContent(giftSVG2);
+            }, 700);
+
+            setTimeout(() => {
+              replaceGiftContent(giftSVG3);
+            }, 900);
+
+            setTimeout(() => {
+              const text = t("Complete these 5 lessons to earn rewards");
+              setModalText(text);
+              setModalOpen(true);
+              replaceGiftContent(giftSVG);
+            }, 1100);
+          });
+        }
       } catch (error) {
         console.error("Failed to load SVG:", error);
       }
