@@ -7,7 +7,6 @@ import { FaCloudDownloadAlt } from "react-icons/fa";
 import { t } from "i18next";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { useLocation } from "react-router-dom";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
 import { SupabaseApi } from "../../services/api/SupabaseApi";
 import { generateFinalPayload } from "../OpsUtility/OpsDataMapper";
@@ -25,14 +24,22 @@ const FileUpload: React.FC = () => {
   const [fileBuffer, setFileBuffer] = useState<ArrayBuffer | null>(null);
   const progressRef = useRef(10);
   const [verifyingProgressState, setVerifyingProgressState] = useState(10);
-  const isReupload =
-    new URLSearchParams(useLocation().search).get("reupload") === "true";
+  const [isReupload, setIsReupload] = useState(false);
   const processedDataRef = useRef();
   const [finalPayload, setFinalPayload] = useState<any[] | null>(null);
   const [isVerified, setIsVerified] = useState(false);
   const [step, setStep] = useState<
     "idle" | "verifying" | "verified" | "uploading" | "uploaded" | "error"
   >("idle");
+
+  function onReuploadTriggered() {
+    setFile(null);
+    setProgress(0);
+    setFileBuffer(null);
+    validSheetCountRef.current = null;
+    setStep("idle");
+    setIsReupload(true);
+  }
 
   useEffect(() => {
     setVerifyingProgressState(progressRef.current);
@@ -69,6 +76,7 @@ const FileUpload: React.FC = () => {
       setProgress(100);
       setIsProcessing(false);
     };
+    event.target.value = "";
   };
   const validateEmailOrPhone = (value: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -619,7 +627,10 @@ const FileUpload: React.FC = () => {
             </button>
           ) : progress === 100 ? (
             <div className="file-upload-actions">
-              <button className="file-upload-btn file-upload-cancel-btn">
+              <button
+                onClick={() => setFile(null)}
+                className="file-upload-btn file-upload-cancel-btn"
+              >
                 {t("Cancel")}
               </button>
               <div className="spacer"></div>
@@ -642,7 +653,7 @@ const FileUpload: React.FC = () => {
       </div>
 
       {!isReupload && (
-        <a href="#" className="download-upload-template">
+        <a className="download-upload-template">
           <FaCloudDownloadAlt /> {t("Download Bulk Upload Template")}
         </a>
       )}
@@ -693,7 +704,12 @@ const FileUpload: React.FC = () => {
   }
 
   if (validSheetCountRef.current !== 0 && validSheetCountRef.current !== null) {
-    return <ErrorPage handleDownload={() => handleDownload()} />;
+    return (
+      <ErrorPage
+        handleDownload={() => handleDownload()}
+        reUplod={() => onReuploadTriggered()}
+      />
+    );
   }
 
   return renderUploadPage();
