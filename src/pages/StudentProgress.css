@@ -11,7 +11,8 @@
 #student-progress-display-progress-content {
   margin: 3vw 1vw 1vw 8vw;
   height: 80vh;
-  overflow-y: scroll;
+  max-height: 400px;
+  overflow-y: auto;
 }
 .course-detail-div {
   display: flex;
