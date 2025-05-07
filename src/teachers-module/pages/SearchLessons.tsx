@@ -71,7 +71,7 @@ const SearchLesson: React.FC = ({}) => {
     }
   };
   return (
-    <div className="chapter-container">
+    <div className="chapter-container-in-search-lesson">
       <Header
         isBackButton={true}
         onButtonClick={() => {
