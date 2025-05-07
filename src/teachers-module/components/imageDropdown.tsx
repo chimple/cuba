@@ -100,7 +100,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
         }}
       >
         {options.map((option) => (
-          <MenuItem key={option.id} value={option.id} className="menu-item">
+          <MenuItem key={option.id} value={option.id} className="menu-item-in-image-dropdown">
             {option.icon && (
               <img
                 src={option.icon}
