@@ -2,8 +2,9 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: var(--ion-background-color);
+  /* background: var(--ion-background-color); */
 }
+
 .assignment-loading {
   height: 100%;
 }
