@@ -882,8 +882,7 @@ export interface ServiceApi {
    *          - `false` if there were any errors or if no synchronization was necessary.
    */
 
-  syncDB(tableNames: TABLES[],
-  refreshTables: TABLES[]): Promise<boolean>;
+  syncDB(tableNames: TABLES[], refreshTables: TABLES[]): Promise<boolean>;
 
   /**
    * Function to get Recommended Lessons.
@@ -1294,6 +1293,22 @@ export interface ServiceApi {
    * @param {string } starsCount - count of stars
    */
   setStarsForStudents(studentId: string, starsCount: number): Promise<void>;
+
+  /**
+   * count all pending row changes to be pushed in the sqlite
+   */
+  countAllPendingChanges(): Promise<number>;
+  /**
+   * getting the push, pull changes information for the last 30 days
+   * @param {string } parentId - parent id
+   */
+  getDebugInfoLast30Days(parentId: string): Promise<any[]>;
+  /**
+   * getting class for the user id
+   * @param {string } userId - user id
+   */
+  getClassByUserId(userId: string): Promise<TableTypes<"class"> | undefined>;
+
   /**
    * getting courses for the student sorted with sort_index
    * @param {string } studentId - student id
