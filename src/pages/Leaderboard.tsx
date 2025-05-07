@@ -73,6 +73,12 @@ const Leaderboard: React.FC = () => {
 
   useEffect(() => {
     setIsLoading(true);
+    const body = document.querySelector("body");
+    // console.log("current headerfsf4", currentHeader);
+    body?.style.setProperty(
+      "background-image",
+      "url(/pathwayAssets/pathwayBackground.svg)"
+    );
     inti();
     const urlParams = new URLSearchParams(window.location.search);
     const rewardsTab = urlParams.get("tab");

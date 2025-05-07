@@ -60,6 +60,12 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
       localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) || "false"
     );
     setDownloadButtonLoading(initialLoadingState);
+    const body = document.querySelector("body");
+    // console.log("current headerfsf4", currentHeader);
+    body?.style.setProperty(
+      "background-image",
+      "url(/pathwayAssets/pathwayBackground.svg)"
+    );
     init();
   }, []);
 
