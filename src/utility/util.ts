@@ -88,7 +88,6 @@ import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { URLOpenListenerEvent } from "@capacitor/app";
 import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
-
 declare global {
   interface Window {
     cc: any;
@@ -459,6 +458,23 @@ export class Util {
                 const buffer = Uint8Array.from(atob(zip.data), (c) =>
                   c.charCodeAt(0)
                 );
+
+                // Store the size and lesson data in a single object
+                const lessonData = JSON.parse(
+                  localStorage.getItem("downloaded_lessons_size") || "{}"
+                );
+                lessonData[lessonId] = {
+                  size: buffer.byteLength,
+                };
+                localStorage.setItem(
+                  "downloaded_lessons_size",
+                  JSON.stringify(lessonData)
+                );
+
+                const lessonData1 = JSON.parse(
+                  localStorage.getItem("downloaded_lessons_size") || "{}"
+                ) as { [lessonId: string]: { size: number } };
+
                 await unzip({
                   fs: fs,
                   extractTo: lessonId,
@@ -523,6 +539,9 @@ export class Util {
     lessonIds: string[]
   ): Promise<boolean> {
     try {
+      const lessonData = JSON.parse(
+        localStorage.getItem("downloaded_lessons_size") || "{}"
+      );
       for (const lessonId of lessonIds) {
         const lessonPath = `${lessonId}`;
         await Filesystem.rmdir({
@@ -531,12 +550,44 @@ export class Util {
           recursive: true,
         });
         console.log("Lesson deleted successfully:", lessonId);
+
+        // Remove the lesson and size from the single object in localStorage
+        delete lessonData[lessonId];
+        localStorage.setItem(
+          "downloaded_lessons_size",
+          JSON.stringify(lessonData)
+        );
+
         this.removeLessonIdFromLocalStorage(lessonId, DOWNLOADED_LESSON_ID);
       }
     } catch (error) {
       console.error("Error deleting lesson:", error);
     }
     return false;
+  }
+
+  public static async deleteAllDownloadedLessons(): Promise<boolean> {
+    try {
+      // Retrieve all lesson data stored in localStorage
+      const lessonData = JSON.parse(
+        localStorage.getItem("downloaded_lessons_size") || "{}"
+      );
+
+      await Filesystem.rmdir({
+        path: "/",
+        directory: Directory.External,
+        recursive: true,
+      });
+
+      // Clear the lessons data from localStorage
+      localStorage.removeItem("downloaded_lessons_size");
+      localStorage.removeItem(DOWNLOADED_LESSON_ID);
+      console.log("All lesson files deleted successfully.");
+      return true;
+    } catch (error) {
+      console.error("Error deleting all lessons:", error);
+      return false;
+    }
   }
 
   public static async checkDownloadedLessonsFromLocal() {

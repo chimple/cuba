@@ -188,6 +188,7 @@
   "Curriculum": "अभ्यासक्रम",
   "Customize your profiles.": "तुमचे प्रोफाइल स्थापित करा.",
   "Date": "तारीख",
+  "debugMode": "डिबग मोड",
   "Delete Account": "खाते हटवा",
   "Delete all students to delete class": "वर्ग हटवण्यासाठी सर्व विद्यार्थ्यांना हटवा",
   "Delete Parent's Account": "पालकांचे खाते हटवा",
@@ -214,6 +215,7 @@
   "Do you want to play 'x2' chapter?": "आपल्याला 'x2' पाठ खेळायचा आहे का?",
   "Do you want to play 'x3' lesson?": "आपल्याला 'x3' धडा खेळायचा आहे का?",
   "Do you want to sign out": "आपल्याला साइन आउट करायचे आहे का",
+  "Do you want to Open Debug Mode?":"तुम्हाला डीबग मोड उघडायचा आहे का?",
   "Dog": "कुत्रा",
   "Doing Good": "चांगले करत आहे",
   "Double Digits - 1": "दोन अंकी - १",
@@ -765,7 +767,6 @@
   "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!": "तुम्ही आज Chimple 25 मिनिटे वापरले आहे. तुमच्या डोळ्यांना विश्रांती देण्यासाठी थोडा विराम घ्या!",
   "Your data has been successfully checked, and no errors were found.": "तुमच्या डेटाची यशस्वीरित्या तपासणी केली गेली आहे, आणि कोणतीही त्रुटी आढळली नाही.",
   "Your profile is not registered to any school.": "तुमची प्रोफाइल कोणत्याही शाळेत नोंदणीकृत नाही.",
-  "Zebra": "झेब्रा"
   "Your progress stays synced and consistent across all devices.": "तुमची प्रगती सर्व डिव्हाइस वर समक्रमित आणि सातत्यपूर्ण राहते.",
   "Zebra": "झेब्रा", 
   "Specials" : "विशेष"

@@ -733,9 +733,11 @@ export class ApiHandler implements ServiceApi {
     return this.s.createUserDoc(user);
   }
 
-  syncDB(tableNames: TABLES[] = Object.values(TABLES),
-  refreshTables: TABLES[] = []): Promise<boolean> {
-    return this.s.syncDB(tableNames,refreshTables);
+  syncDB(
+    tableNames: TABLES[] = Object.values(TABLES),
+    refreshTables: TABLES[] = []
+  ): Promise<boolean> {
+    return this.s.syncDB(tableNames, refreshTables);
   }
 
   async getRecommendedLessons(
@@ -1013,6 +1015,18 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return this.s.setStarsForStudents(studentId, starsCount);
   }
+  public async countAllPendingChanges(): Promise<number> {
+    return this.s.countAllPendingChanges();
+  }
+  public async getDebugInfoLast30Days(parentId: string): Promise<any[]> {
+    return this.s.getDebugInfoLast30Days(parentId);
+  }
+  public async getClassByUserId(
+    userId: string
+  ): Promise<TableTypes<"class"> | undefined> {
+    return this.s.getClassByUserId(userId);
+  }
+
   public async getCoursesForPathway(
     studentId: string
   ): Promise<TableTypes<"course">[]> {

@@ -189,6 +189,7 @@
   "Curriculum": "Curriculum",
   "Customize your profiles.": "Customize your profiles.",
   "Date": "Date",
+  "debugMode": "Debug Mode",
   "Delete Account": "Delete Account",
   "Delete all students to delete class": "Delete all students to delete class",
   "Delete Parent's Account": "Delete Parent's Account",
@@ -215,6 +216,7 @@
   "Do you want to play 'x2' chapter?": "Do you want to play 'x2' chapter?",
   "Do you want to play 'x3' lesson?": "Do you want to play 'x3' lesson?",
   "Do you want to sign out": "Do you want to sign out",
+  "Do you want to Open Debug Mode?":"Do you want to Open Debug Mode?",
   "Dog": "Dog",
   "Doing Good": "Doing Good",
   "Double Digits - 1": "Double Digits - 1",
@@ -772,7 +774,6 @@
   "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!": "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!",
   "Your data has been successfully checked, and no errors were found.": "Your data has been successfully checked, and no errors were found.",
   "Your profile is not registered to any school.": "Your profile is not registered to any school.",
-  "Zebra": "Zebra"
   "Your progress stays synced and consistent across all devices.": "Your progress stays synced and consistent across all devices.",
   "Zebra": "Zebra",
   "Specials": "Specials"

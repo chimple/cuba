@@ -103,8 +103,10 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"user"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  syncDB(tableNames: TABLES[] = Object.values(TABLES),
-      refreshTables: TABLES[] = []): Promise<boolean> {
+  syncDB(
+    tableNames: TABLES[] = Object.values(TABLES),
+    refreshTables: TABLES[] = []
+  ): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
   public static i: SupabaseApi;
@@ -1558,6 +1560,16 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
+  async countAllPendingChanges(): Promise<number> {
+    throw new Error("Method not implemented.");
+  }
+  async getDebugInfoLast30Days(parentId: string): Promise<any[]> {
+    throw new Error("Method not implemented.");
+  }
+  async getClassByUserId(userId: string): Promise<TableTypes<"class">> {
+    throw new Error("Method not implemented.");
+  }
+
   async getCoursesForPathway(
     studentId: string
   ): Promise<TableTypes<"course">[]> {
