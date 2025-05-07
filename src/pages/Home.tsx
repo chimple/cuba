@@ -168,14 +168,10 @@ const Home: FC = () => {
   // adding background image for learning-pathway
   useEffect(() => {
     const body = document.querySelector("body");
-    if (currentHeader === HOMEHEADERLIST.HOME && !!canShowAvatar) {
-      body?.style.setProperty(
-        "background-image",
-        "url(/pathwayAssets/pathwayBackground.svg)"
-      );
-    } else {
-      body?.style.setProperty("background-image", "none");
-    }
+    body?.style.setProperty(
+      "background-image",
+      "url(/pathwayAssets/pathwayBackground.svg)"
+    );
   }, [currentHeader, canShowAvatar]);
   const handleJoinClassEvent = async (event) => {
     await getAssignments();
@@ -677,6 +673,7 @@ const Home: FC = () => {
                   });
                 }}
               />
+              
             )}
 
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}

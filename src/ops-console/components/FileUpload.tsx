@@ -412,15 +412,29 @@ const FileUpload: React.FC = () => {
             );
           } else {
             const numericAge = parseInt(age, 10);
-            if (numericAge < 0) {
-              errors.push("AGE cannot be negative.");
+            if (numericAge < 2) {
+              errors.push("AGE cannot be negative or less than 2.");
             } else if (numericAge > 10) {
-              age = "10"; // Cap the age at 10
+              errors.push("AGE cannot be more than 10.");
             } else {
               age = numericAge.toString();
             }
           }
-          const grade = row["GRADE"]?.toString().trim();
+          let grade = row["GRADE"]?.toString().trim();
+          if (!/^\d+$/.test(grade)) {
+            errors.push(
+              "Grade must be a whole number without letters or special characters."
+            );
+          } else {
+            const numericGrade = parseInt(grade, 10);
+            if (numericGrade < 0) {
+              errors.push("grade cannot be negative.");
+            } else if (numericGrade > 5) {
+              errors.push("grade cannot be more than 5.");
+            } else {
+              grade = numericGrade.toString();
+            }
+          }
           const classSection = row["CLASS SECTION"]
             ? row["CLASS SECTION"].toString().trim()
             : "";

@@ -51,7 +51,7 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, 5%);
+  transform: translate(-50%, -10%);
   height: 4vh;
   min-height: 28px;
   max-height: 35px;

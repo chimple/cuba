@@ -1368,7 +1368,6 @@ export class SupabaseApi implements ServiceApi {
         errors: ["Supabase client is not initialized"],
       };
     }
-
     const { data, error } = await this.supabase
       .from("school_data")
       .select("udise_code, school_name, instruction_medium") // Select only required fields
@@ -1378,6 +1377,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     let errors: string[] = [];
+    console.log("fdsfdss 3rd33", data);
 
     if (data.length === 0) {
       errors.push("No matching SCHOOL ID (UDISE Code) found in database");
@@ -1438,7 +1438,7 @@ export class SupabaseApi implements ServiceApi {
       .eq("name", subjectName.trim());
     console.log("fsdfsd", courseData);
 
-    if (courseError || !courseData) {
+    if (courseError || !courseData || courseData.length === 0) {
       return {
         status: "error",
         errors: [

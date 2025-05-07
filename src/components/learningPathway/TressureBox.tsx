@@ -27,7 +27,7 @@ const TressureBox: React.FC<TressureBoxProps> = ({
 
     let current = startNumber;
     const direction = endNumber > startNumber ? 1 : -1;
-    const interval = setInterval(() => {
+    const updateNumber = () => {
       current += direction;
       setCurrentNumber(current);
 
@@ -36,7 +36,9 @@ const TressureBox: React.FC<TressureBoxProps> = ({
         setIsConfettiVisible(false);
         setIsUpdating(false);
       }
-    }, 3000);
+    };
+    updateNumber();
+    const interval = setInterval(updateNumber, 3000);
 
     return () => clearInterval(interval);
   }, [startNumber, endNumber]);
