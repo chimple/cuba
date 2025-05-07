@@ -88,7 +88,7 @@ const DebugPage: React.FC = () => {
     );
     const lessonsSize = lessonsSizeInByte / (1024 * 1024);
 
-    const rowsPending = await api.countAllPendingChanges();
+    const rowsPending = await api.countAllPendingPushes();
 
     setTotals((prev) => ({
       ...prev,
