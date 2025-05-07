@@ -1,9 +1,15 @@
 import { t } from "i18next";
 import React, { useState } from "react";
-import { IonInput, IonButton, IonText, IonIcon } from "@ionic/react";
+import {
+  IonInput,
+  IonButton,
+  IonText,
+  IonIcon,
+  IonItem,
+  IonLabel,
+} from "@ionic/react";
 import { eye, eyeOff } from "ionicons/icons";
 import "./LoginWithEmail.css";
-
 import { ServiceConfig } from "../services/ServiceConfig";
 import BackButton from "./common/BackButton";
 
@@ -109,31 +115,40 @@ const LoginWithEmail: React.FC<LoginProps> = ({
         <div className="login-with-email-text-box-main-div">
           <div className="login-with-email-text-box-div">
             <p className="login-with-email-label">{t("Email")}</p>
-            <IonInput
-              type="email"
-              value={email}
-              placeholder={t("Enter your email") || ""}
-              aria-label={t("Enter your email") || ""}
-              className="login-with-email-text-box"
-              onIonChange={(e) => setEmail(e.detail.value!)}
-            />
+            <IonItem className="custom-email-input" lines="none">
+              <IonLabel position="floating" className="label-floating">
+                {t("Enter your email")}
+              </IonLabel>
+              <IonInput
+                type="email"
+                value={email}
+                className="login-with-email-input"
+                aria-label={t("Enter your email") || ""}
+                onIonChange={(e) => setEmail(e.detail.value!)}
+              />
+            </IonItem>
           </div>
 
           <div className="login-with-email-text-box-div">
             <p className="login-with-email-label">{t("Password")}</p>
             <div className="login-with-email-password">
-              <IonInput
-                type={showPassword ? "text" : "password"}
-                value={password}
-                placeholder={t("Enter your password") || ""}
-                className="login-with-email-password-text-box"
-                onIonChange={(e) => setPassword(e.detail.value!)}
-              />
-              <IonIcon
-                icon={showPassword ? eye : eyeOff}
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="login-with-email-eye-icon"
-              />
+              <IonItem className="custom-email-input" lines="none">
+                <IonLabel position="floating" className="label-floating">
+                  {t("Enter your password")}
+                </IonLabel>
+                <IonInput
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  className="login-with-email-input"
+                  onIonChange={(e) => setPassword(e.detail.value!)}
+                />
+                <IonIcon
+                  slot="end"
+                  icon={showPassword ? eye : eyeOff}
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="login-with-email-eye-icon"
+                />
+              </IonItem>
             </div>
           </div>
           <div className="forgot-password-div">
@@ -182,13 +197,17 @@ const LoginWithEmail: React.FC<LoginProps> = ({
             <div className="email-password-reset-link">
               <div className="login-with-email-forgot-password-text-box ">
                 <p className="login-with-email-label">{t("Email")}</p>
-                <IonInput
-                  type="email"
-                  value={forgotEmail}
-                  placeholder={t("Enter your email") || ""}
-                  className="login-with-email-text-box"
-                  onIonChange={(e) => setForgotEmail(e.detail.value!)}
-                />
+                <IonItem className="custom-email-input" lines="none">
+                  <IonLabel position="floating" className="label-floating">
+                    {t("Enter your email")}
+                  </IonLabel>
+                  <IonInput
+                    type="email"
+                    className="login-with-email-input"
+                    value={forgotEmail}
+                    onIonChange={(e) => setForgotEmail(e.detail.value!)}
+                  />
+                </IonItem>
               </div>
 
               <IonButton
