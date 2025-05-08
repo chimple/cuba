@@ -1285,14 +1285,14 @@ export interface ServiceApi {
   /**
    * count all pending row changes to be pushed in the sqlite
    */
-  countAllPendingChanges(): Promise<number>;
+  countAllPendingPushes(): Promise<number>;
   /**
    * getting the push, pull changes information for the last 30 days
    * @param {string } parentId - parent id
    */
   getDebugInfoLast30Days(parentId: string): Promise<any[]>;
   /**
-   * getting class for the user id
+   * getting class for the user, user id can be Student id or teacher id
    * @param {string } userId - user id
    */
   getClassByUserId(userId: string): Promise<TableTypes<"class"> | undefined>;

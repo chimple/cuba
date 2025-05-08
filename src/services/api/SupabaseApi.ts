@@ -1488,7 +1488,7 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  async countAllPendingChanges(): Promise<number> {
+  async countAllPendingPushes(): Promise<number> {
     throw new Error("Method not implemented.");
   }
   async getDebugInfoLast30Days(parentId: string): Promise<any[]> {
