@@ -28,7 +28,8 @@ const CocosGame: React.FC = () => {
   const history = useHistory();
   console.log("cocos game", history.location.state);
   const location = history.location.state as { from?: string, assignment?: any }; 
-  const playedFrom = location?.from?.split('/')[1].split('?')[0] 
+  // const playedFrom = location?.from?.split('/')[1].split('?')[0] 
+  const playedFrom = localStorage.getItem("currentHeader")
   const assignmentType = location?.assignment?.type || 'self-played';
   const state = history.location.state as any;
   const iFrameUrl = state?.url;
