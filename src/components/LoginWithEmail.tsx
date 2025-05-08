@@ -72,8 +72,13 @@ const LoginWithEmail: React.FC<LoginProps> = ({
     setForgotError("");
     setForgotMessage("");
 
+    const redirectUrl =
+      "https://chimple.github.io/malta-custom-email-handlers/#action?mode=recovery";
     const authInstance = ServiceConfig.getI().authHandler;
-    const res = await authInstance.sendResetPasswordEmail(forgotEmail);
+    const res = await authInstance.sendResetPasswordEmail(
+      forgotEmail,
+      redirectUrl
+    );
 
     if (res) {
       setForgotMessage("Please check your mail and confirm.");

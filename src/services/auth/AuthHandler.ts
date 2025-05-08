@@ -75,8 +75,11 @@ export class AuthHandler implements ServiceAuth {
   ): Promise<boolean> {
     return await this.s.signInWithEmail(email, password);
   }
-  public async sendResetPasswordEmail(email: string): Promise<boolean> {
-    return await this.s.sendResetPasswordEmail(email);
+  public async sendResetPasswordEmail(
+    email: string,
+    url: string
+  ): Promise<boolean> {
+    return await this.s.sendResetPasswordEmail(email, url);
   }
   public async updateUser(attributes: UserAttributes): Promise<boolean> {
     return await this.s.updateUser(attributes);

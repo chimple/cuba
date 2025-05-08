@@ -52,7 +52,10 @@ export class SupabaseAuth implements ServiceAuth {
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
       }
       await api.updateFcmToken(data?.user?.id ?? "");
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(Object.values(TABLES),REFRESH_TABLES_ON_LOGIN);
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(
+        Object.values(TABLES),
+        REFRESH_TABLES_ON_LOGIN
+      );
       await api.subscribeToClassTopic();
       return true;
     } catch (error) {
@@ -78,7 +81,10 @@ export class SupabaseAuth implements ServiceAuth {
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
       }
       await api.updateFcmToken(data?.user?.id ?? "");
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(Object.values(TABLES),REFRESH_TABLES_ON_LOGIN);
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(
+        Object.values(TABLES),
+        REFRESH_TABLES_ON_LOGIN
+      );
       return true;
     } catch (error) {
       console.log(
@@ -88,10 +94,12 @@ export class SupabaseAuth implements ServiceAuth {
       return false;
     }
   }
-  async sendResetPasswordEmail(email: string): Promise<boolean> {
+  async sendResetPasswordEmail(email: string, url: string): Promise<boolean> {
     try {
       if (!this._auth) return false;
-      const { data, error } = await this._auth.resetPasswordForEmail(email);
+      const { data, error } = await this._auth.resetPasswordForEmail(email, {
+        redirectTo: url,
+      });
 
       if (error) {
         console.error("Reset password error:", error.message);
@@ -170,7 +178,10 @@ export class SupabaseAuth implements ServiceAuth {
         this._currentUser = createdUser;
       }
       await api.updateFcmToken(data.user?.id ?? authUser.id);
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(Object.values(TABLES),REFRESH_TABLES_ON_LOGIN);
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(
+        Object.values(TABLES),
+        REFRESH_TABLES_ON_LOGIN
+      );
       if (rpcRes?.data) {
         await api.subscribeToClassTopic();
       }
@@ -327,7 +338,10 @@ export class SupabaseAuth implements ServiceAuth {
         this._currentUser = createdUser;
       }
       await api.updateFcmToken(user?.user?.id ?? "");
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(Object.values(TABLES),REFRESH_TABLES_ON_LOGIN);
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(
+        Object.values(TABLES),
+        REFRESH_TABLES_ON_LOGIN
+      );
       if (rpcRes?.data) {
         await api.subscribeToClassTopic();
       }
