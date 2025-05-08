@@ -1015,8 +1015,8 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return this.s.setStarsForStudents(studentId, starsCount);
   }
-  public async countAllPendingChanges(): Promise<number> {
-    return this.s.countAllPendingChanges();
+  public async countAllPendingPushes(): Promise<number> {
+    return this.s.countAllPendingPushes();
   }
   public async getDebugInfoLast30Days(parentId: string): Promise<any[]> {
     return this.s.getDebugInfoLast30Days(parentId);

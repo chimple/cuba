@@ -4550,8 +4550,7 @@ order by
     if (!classRes || !classRes.values || classRes.values.length < 1) return;
     return classRes.values[0];
   }
-  async countAllPendingChanges(): Promise<number> {
-    //reomove this
+  async countAllPendingPushes(): Promise<number> {
 
     if (!this._db) return 0;
     const tableNames = Object.values(TABLES);
