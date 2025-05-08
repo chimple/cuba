@@ -1570,11 +1570,6 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  async getCoursesForPathway(
-    studentId: string
-  ): Promise<TableTypes<"course">[]> {
-    throw new Error("Method not implemented in SupabaseApi.");
-  }
   async updateLearningPath(
     student: TableTypes<"user">,
     learning_path: string

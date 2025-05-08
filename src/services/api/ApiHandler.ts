@@ -1027,11 +1027,6 @@ export class ApiHandler implements ServiceApi {
     return this.s.getClassByUserId(userId);
   }
 
-  public async getCoursesForPathway(
-    studentId: string
-  ): Promise<TableTypes<"course">[]> {
-    return await this.s.getCoursesForPathway(studentId);
-  }
   public async updateLearningPath(
     student: TableTypes<"user">,
     learning_path: string // New parameter for learning_path

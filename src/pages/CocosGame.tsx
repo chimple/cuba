@@ -175,40 +175,50 @@ const CocosGame: React.FC = () => {
       ? JSON.parse(currentStudent.learning_path)
       : null;
 
+    let stars = currentStudent.stars;
     if (!learningPath) return;
 
-    const { courses } = learningPath;
-    const currentCourse = courses.courseList[courses.currentCourseIndex];
+    try {
+      const { courses } = learningPath;
+      const currentCourse = courses.courseList[courses.currentCourseIndex];
 
-    // Update currentIndex
-    currentCourse.currentIndex += 1;
+      // Update currentIndex
+      currentCourse.currentIndex += 1;
 
-    // Check if currentIndex exceeds pathEndIndex
-    if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
-      currentCourse.startIndex = currentCourse.currentIndex;
-      currentCourse.pathEndIndex += 5;
+      // Check if currentIndex exceeds pathEndIndex
+      if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
+        currentCourse.startIndex = currentCourse.currentIndex;
+        currentCourse.pathEndIndex += 5;
 
-      // Ensure pathEndIndex does not exceed the path length
-      if (currentCourse.pathEndIndex > currentCourse.path.length) {
-        currentCourse.pathEndIndex = currentCourse.path.length - 1;
+        // Ensure pathEndIndex does not exceed the path length
+        if (currentCourse.pathEndIndex > currentCourse.path.length) {
+          currentCourse.pathEndIndex = currentCourse.path.length - 1;
+        }
+
+        // Move to the next course
+        courses.currentCourseIndex += 1;
+        stars = (currentStudent?.stars ?? 0) + 10;
+        await api.setStarsForStudents(currentStudent.id, stars);
+        // Loop back to the first course if at the last course
+        if (courses.currentCourseIndex >= courses.courseList.length) {
+          courses.currentCourseIndex = 0;
+        }
       }
 
-      // Move to the next course
-      courses.currentCourseIndex += 1;
-
-      // Loop back to the first course if at the last course
-      if (courses.currentCourseIndex >= courses.courseList.length) {
-        courses.currentCourseIndex = 0;
-      }
-    }
-
-    // Update the learning path in the database
+      // Update the learning path in the database
     await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
-    // Update the current student object
-    await Util.setCurrentStudent(
-      { ...currentStudent, learning_path: JSON.stringify(learningPath) },
-      undefined
-    );
+      // Update the current student object
+      await Util.setCurrentStudent(
+        {
+          ...currentStudent,
+          learning_path: JSON.stringify(learningPath),
+          stars: stars,
+        },
+        undefined
+      );
+    } catch (error) {
+      console.error("Error updating learning path:", error);
+    }
   };
 
   async function init() {
@@ -300,9 +310,7 @@ const CocosGame: React.FC = () => {
     }
     // Check if the game was played from `learning_pathway`
     const learning_path: string = state?.learning_path ?? false;
-    if (learning_path) {
-      assignmentId = null; // Set assignmentId to null if the condition is true, lesson played from learning_pathway will not have assignmentId
-    }
+
     let avatarObj = AvatarObj.getInstance();
     let finalProgressTimespent =
       avatarObj.weeklyTimeSpent["min"] * 60 + avatarObj.weeklyTimeSpent["sec"];

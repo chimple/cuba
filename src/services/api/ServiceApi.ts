@@ -1310,11 +1310,6 @@ export interface ServiceApi {
   getClassByUserId(userId: string): Promise<TableTypes<"class"> | undefined>;
 
   /**
-   * getting courses for the student sorted with sort_index
-   * @param {string } studentId - student id
-   */
-  getCoursesForPathway(studentId: string): Promise<TableTypes<"course">[]>;
-  /**
    * Updates the learning path for a student.
    * @param {string} learningPath - The new learning path to be set.
    * @returns {User} Updated Student User Object

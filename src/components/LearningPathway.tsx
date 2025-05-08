@@ -7,6 +7,7 @@ import TressureBox from "./learningPathway/TressureBox";
 import DropdownMenu from "./Home/DropdownMenu";
 import { ServiceConfig } from "../services/ServiceConfig";
 import Loading from "./Loading";
+import { schoolUtil } from "../utility/schoolUtil";
 
 interface LearningPathwayProps {
   from: number;
@@ -21,10 +22,10 @@ const LearningPathway: React.FC<LearningPathwayProps> = ({ from, to }) => {
     fetchLearningPathway();
   }, []);
   const fetchLearningPathway = async () => {
-    setLoading(true); // Set loading to true while fetching/creating pathway
     const currentStudent = await Util.getCurrentStudent();
-    if (!currentStudent) {
-      console.error("No user found");
+    const currClass = schoolUtil.getCurrentClass();
+    if (!currentStudent || !currClass) {
+      console.error("No user/class found");
       setLoading(false);
       return;
     }
@@ -35,9 +36,8 @@ const LearningPathway: React.FC<LearningPathwayProps> = ({ from, to }) => {
         : null;
 
       if (!learningPath || Object.keys(learningPath).length === 0) {
-        const userCourses = await api.getCoursesForPathway(
-          currentStudent.id
-        );
+        setLoading(true); // Set loading to true while creating pathway
+        const userCourses = await api.getCoursesForClassStudent(currClass!.id);
 
         const coursesWithDetails = await Promise.all(
           userCourses.map(async (course) => {
@@ -49,7 +49,6 @@ const LearningPathway: React.FC<LearningPathwayProps> = ({ from, to }) => {
                 return lessons.map((lesson) => ({
                   lesson_id: lesson.id,
                   chapter_id: chapter.id,
-                  chapter_name: chapter.name,
                 }));
               })
             );
@@ -106,7 +105,7 @@ const LearningPathway: React.FC<LearningPathwayProps> = ({ from, to }) => {
       <div className="chapter-egg-container">
         <ChapterLessonBox
           containerStyle={{
-            width: "27vw",
+            width: "30vw",
           }}
         />
         <TressureBox startNumber={from ?? 0} endNumber={to ?? 0} />
