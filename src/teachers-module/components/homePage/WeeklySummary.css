@@ -46,7 +46,7 @@
 
 .summary-item .CircularProgressbar .CircularProgressbar-text {
   font-size: 25px;
-  alignment-baseline: ideographic;
+  /* alignment-baseline: ideographic; */
 }
 
 .time-spent-icon{
