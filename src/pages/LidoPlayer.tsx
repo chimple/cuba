@@ -23,6 +23,9 @@ const LidoPlayer: FC = () => {
   const history = useHistory();
   const [present] = useIonToast();
   const state = history.location.state as any;
+  const playedFrom = localStorage.getItem("currentHeader")
+  const assignmentType = state?.assignment?.type || 'self-played';
+  console.log("Lido State: ", state.assignment)
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [basePath, setBasePath] = useState<string>();
   const [xmlPath, setXmlPath] = useState<string>();
@@ -142,6 +145,8 @@ const LidoPlayer: FC = () => {
       game_time_spent: data.gameTimeSpent,
       quiz_time_spent: data.quizTimeSpent,
       score: data.score,
+      played_from: playedFrom,
+      assignment_type: assignmentType,
     });
     console.log("🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:", result);
     let tempAssignmentCompletedIds = localStorage.getItem(
