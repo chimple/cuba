@@ -29,6 +29,11 @@
       "public": "build",
       "site": "cuba-stage-supabase-prod",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    },
+    {
+      "public": "build",
+      "site": "cuba-stage-dev-supabase",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
     }
   ]
 }
