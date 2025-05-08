@@ -4405,12 +4405,10 @@ order by
   async validateSchoolData(
     schoolId: string,
     schoolName: string,
-    instructionMedium: string
   ): Promise<{ status: string; errors?: string[] }> {
     const schoolData = await this._serverApi.validateSchoolData(
       schoolId,
       schoolName,
-      instructionMedium
     );
     console.log("fdsfdsfs", schoolData);
     if (schoolData.status === "error") {
@@ -4438,24 +4436,6 @@ order by
     return { status: "success" };
   }
 
-  async validateClassExistence(
-    schoolId: string,
-    className: string,
-    studentName?: string
-  ): Promise<{ status: string; errors?: string[] }> {
-    const classExistence = await this._serverApi.validateClassExistence(
-      schoolId,
-      className,
-      studentName
-    );
-    if (classExistence.status === "error") {
-      return {
-        status: "error",
-        errors: classExistence.errors || ["Invalid class curriculum"],
-      };
-    }
-    return { status: "success" };
-  }
   async validateUserContacts(
     programManagerPhone: string,
     fieldCoordinatorPhone: string

@@ -1813,6 +1813,26 @@ export type Database = {
           phone: string
         }[]
       }
+      validate_school_data_rpc: {
+        Args: {
+          input_school_id: string;
+          input_school_name: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      validate_user_contacts_rpc: {
+        Args: {
+          program_manager_contact: string;
+          field_coordinator_contact?: string | null;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
       get_user_by_phonenumber: {
         Args: {
           p_phone: string

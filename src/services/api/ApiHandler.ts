@@ -980,9 +980,8 @@ export class ApiHandler implements ServiceApi {
   async validateSchoolData(
     schoolId: string,
     schoolName: string,
-    instructionMedium: string
   ): Promise<{ status: string; errors?: string[] }> {
-    return this.s.validateSchoolData(schoolId, schoolName, instructionMedium);
+    return this.s.validateSchoolData(schoolId, schoolName);
   }
   async validateClassCurriculumAndSubject(
     curriculumName: string,
@@ -992,13 +991,6 @@ export class ApiHandler implements ServiceApi {
       curriculumName,
       subjectName
     );
-  }
-  async validateClassExistence(
-    schoolId: string,
-    className: string,
-    studentName?: string
-  ): Promise<{ status: string; errors?: string[] }> {
-    return this.s.validateClassExistence(schoolId, className, studentName);
   }
   async validateUserContacts(
     programManagerPhone: string,
