@@ -7,37 +7,51 @@ import TressureBox from "./learningPathway/TressureBox";
 import DropdownMenu from "./Home/DropdownMenu";
 import { ServiceConfig } from "../services/ServiceConfig";
 import Loading from "./Loading";
+import { STARS_COUNT, TableTypes } from "../common/constants";
 
-interface LearningPathwayProps {
-  from: number;
-  to: number;
-}
-
-const LearningPathway: React.FC<LearningPathwayProps> = ({ from, to }) => {
+const LearningPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const [loading, setLoading] = useState<boolean>(true);
+  const [from, setFrom] = useState<number>(0);
+  const [to, setTo] = useState<number>(0);
+  const currentStudent = Util.getCurrentStudent();
 
   useEffect(() => {
     fetchLearningPathway();
+    if (currentStudent?.id) {
+      const storedStarsJson = localStorage.getItem(STARS_COUNT);
+      const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
+
+      const localStorageStars = parseInt(
+        storedStarsMap[currentStudent.id] || "0",
+        10
+      );
+      const studentStars = currentStudent.stars || 0;
+      if (localStorageStars < studentStars) {
+        storedStarsMap[currentStudent.id] = studentStars;
+        localStorage.setItem(STARS_COUNT, JSON.stringify(storedStarsMap));
+        setFrom(localStorageStars);
+        setTo(studentStars);
+      } else {
+        setFrom(studentStars);
+        setTo(studentStars);
+      }
+    }
   }, []);
   const fetchLearningPathway = async () => {
     setLoading(true); // Set loading to true while fetching/creating pathway
-    const currentStudent = await Util.getCurrentStudent();
     if (!currentStudent) {
       console.error("No user found");
       setLoading(false);
       return;
     }
-
     try {
       let learningPath = currentStudent.learning_path
         ? JSON.parse(currentStudent.learning_path)
         : null;
 
       if (!learningPath || Object.keys(learningPath).length === 0) {
-        const userCourses = await api.getCoursesForPathway(
-          currentStudent.id
-        );
+        const userCourses = await api.getCoursesForPathway(currentStudent.id);
 
         const coursesWithDetails = await Promise.all(
           userCourses.map(async (course) => {
@@ -109,7 +123,7 @@ const LearningPathway: React.FC<LearningPathwayProps> = ({ from, to }) => {
             width: "27vw",
           }}
         />
-        <TressureBox startNumber={from ?? 0} endNumber={to ?? 0} />
+        <TressureBox startNumber={from} endNumber={to} />
       </div>
     </div>
   );
