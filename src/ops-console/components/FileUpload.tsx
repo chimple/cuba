@@ -157,8 +157,8 @@ const FileUpload: React.FC = () => {
           // ✅ Check for duplicate SCHOOL ID
           if (schoolId) {
             if (seenSchoolIds.has(schoolId)) {
+              errors.push("❌ Duplicate SCHOOL ID found");
               row["Updated"] = `❌ Duplicate SCHOOL ID found: ${schoolId}`;
-              continue;
             } else {
               seenSchoolIds.add(schoolId);
             }
@@ -241,7 +241,7 @@ const FileUpload: React.FC = () => {
             // if (errors.length === 0) {
             const schoolValidation = await api.validateSchoolData(
               schoolId,
-              schoolName,
+              schoolName
             );
             console.log("fsdfdsfs", schoolValidation.status);
 
@@ -352,8 +352,10 @@ const FileUpload: React.FC = () => {
           const classId = `${schoolId}_${grade}_${classSection}`;
           const className = `${grade} ${classSection}`.trim();
           if (!grade || grade.trim() === "") errors.push("Missing grade");
-          if (!teacherName || teacherName.trim() === "") errors.push("Missing teacher Name");
-          if (!teacherContact || teacherContact.trim() === "") errors.push("Missing teacher Contact");
+          if (!teacherName || teacherName.trim() === "")
+            errors.push("Missing teacher Name");
+          if (!teacherContact || teacherContact.trim() === "")
+            errors.push("Missing teacher Contact");
 
           if (!schoolId || schoolId.trim() === "") {
             errors.push("Missing schoolId.");
@@ -380,8 +382,8 @@ const FileUpload: React.FC = () => {
         }
       }
 
-       // **Student Sheet Validation**
-       if (sheet.toLowerCase().includes("student")) {
+      // **Student Sheet Validation**
+      if (sheet.toLowerCase().includes("student")) {
         for (let row of processedData) {
           let errors: string[] = [];
           const schoolId = row["SCHOOL ID"]?.toString().trim();
@@ -428,7 +430,8 @@ const FileUpload: React.FC = () => {
             .trim();
           const classId = `${schoolId}_${grade}_${classSection}`; // Unique class identifier
           const className = `${grade} ${classSection}`.trim();
-          if (!studentName || studentName.trim() === "") errors.push("Missing student Name");
+          if (!studentName || studentName.trim() === "")
+            errors.push("Missing student Name");
           if (!schoolId || schoolId.trim() === "") {
             errors.push("Missing schoolId.");
           } else {

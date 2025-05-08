@@ -1359,7 +1359,7 @@ export class SupabaseApi implements ServiceApi {
 
   async validateSchoolData(
     schoolId: string,
-    schoolName: string,
+    schoolName: string
   ): Promise<{ status: string; errors?: string[] }> {
     if (!this.supabase) {
       return {
@@ -1368,14 +1368,17 @@ export class SupabaseApi implements ServiceApi {
       };
     }
     try {
-      const { data, error } = await this.supabase.rpc("validate_school_data_rpc", {
-        input_school_id: schoolId,
-        input_school_name: schoolName,
-      });
+      const { data, error } = await this.supabase.rpc(
+        "validate_school_data_rpc",
+        {
+          input_school_id: schoolId,
+          input_school_name: schoolName,
+        }
+      );
       if (error || !data) {
         throw error ?? new Error("Unknown error from RPC");
       }
-  
+
       return data as { status: string; errors?: string[] };
     } catch (error) {
       return {
@@ -1384,8 +1387,6 @@ export class SupabaseApi implements ServiceApi {
       };
     }
   }
-  
-
   async validateClassCurriculumAndSubject(
     curriculumName: string,
     subjectName: string
@@ -1417,7 +1418,6 @@ export class SupabaseApi implements ServiceApi {
       .select("id")
       .eq("curriculum_id", curriculumId)
       .eq("name", subjectName.trim());
-    console.log("fsdfsd", courseData);
 
     if (courseError || !courseData || courseData.length === 0) {
       return {
@@ -1431,7 +1431,6 @@ export class SupabaseApi implements ServiceApi {
     // If both checks pass, return success
     return { status: "success" };
   }
-  
   async validateUserContacts(
     programManagerPhone: string,
     fieldCoordinatorPhone?: string
@@ -1443,45 +1442,83 @@ export class SupabaseApi implements ServiceApi {
       };
     }
 
-    const errors: string[] = [];
-    console.log(
-      "check data for validateUserContacts",
-      programManagerPhone,
-      fieldCoordinatorPhone
-    );
-
-    const queryKey = programManagerPhone.includes("@") ? "email" : "phone";
-    const { data: pmData, error: pmError } = await this.supabase
-      .from("user")
-      .select("id")
-      .eq(queryKey, programManagerPhone.trim());
-
-    if (pmError || !pmData) {
-      errors.push(
-        "PROGRAM MANAGER EMAIL OR PHONE NUMBER does not exist in the system"
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "validate_user_contacts_rpc",
+        {
+          program_manager_contact: programManagerPhone.trim(),
+          field_coordinator_contact: fieldCoordinatorPhone?.trim() ?? null,
+        }
       );
-    }
-
-    if (fieldCoordinatorPhone) {
-      const fCqueryKey = fieldCoordinatorPhone.includes("@")
-        ? "email"
-        : "phone";
-      const { data: fcData, error: fcError } = await this.supabase
-        .from("user")
-        .select("id")
-        .eq(fCqueryKey, fieldCoordinatorPhone);
-
-      if (fcError || !fcData) {
-        errors.push(
-          "FIELD COORDINATOR EMAIL OR PHONE NUMBER does not exist in the system"
-        );
+      console.log("fdsfsfccce45rfw", data, error);
+      if (error || !data) {
+        return {
+          status: "error",
+          errors: [
+            "programManagerPhone and fieldCoordinatorPhone Validation failed",
+          ],
+        };
       }
-    }
 
-    return errors.length > 0
-      ? { status: "error", errors }
-      : { status: "success" };
+      return data;
+    } catch (err) {
+      return {
+        status: "error",
+        errors: [String(err)],
+      };
+    }
   }
+
+  // async validateUserContacts(
+  //   programManagerPhone: string,
+  //   fieldCoordinatorPhone?: string
+  // ): Promise<{ status: string; errors?: string[] }> {
+  //   if (!this.supabase) {
+  //     return {
+  //       status: "error",
+  //       errors: ["Supabase client is not initialized"],
+  //     };
+  //   }
+
+  //   const errors: string[] = [];
+  //   console.log(
+  //     "check data for validateUserContacts",
+  //     programManagerPhone,
+  //     fieldCoordinatorPhone
+  //   );
+
+  //   const queryKey = programManagerPhone.includes("@") ? "email" : "phone";
+  //   const { data: pmData, error: pmError } = await this.supabase
+  //     .from("user")
+  //     .select("id")
+  //     .eq(queryKey, programManagerPhone.trim());
+
+  //   if (pmError || !pmData) {
+  //     errors.push(
+  //       "PROGRAM MANAGER EMAIL OR PHONE NUMBER does not exist in the system"
+  //     );
+  //   }
+
+  //   if (fieldCoordinatorPhone) {
+  //     const fCqueryKey = fieldCoordinatorPhone.includes("@")
+  //       ? "email"
+  //       : "phone";
+  //     const { data: fcData, error: fcError } = await this.supabase
+  //       .from("user")
+  //       .select("id")
+  //       .eq(fCqueryKey, fieldCoordinatorPhone);
+
+  //     if (fcError || !fcData) {
+  //       errors.push(
+  //         "FIELD COORDINATOR EMAIL OR PHONE NUMBER does not exist in the system"
+  //       );
+  //     }
+  //   }
+
+  //   return errors.length > 0
+  //     ? { status: "error", errors }
+  //     : { status: "success" };
+  // }
   async setStarsForStudents(
     studentId: string,
     starsCount: number

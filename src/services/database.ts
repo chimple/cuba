@@ -1823,6 +1823,16 @@ export type Database = {
           errors?: string[];
         };
       };
+      validate_user_contacts_rpc: {
+        Args: {
+          program_manager_contact: string;
+          field_coordinator_contact?: string | null;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
       get_user_by_phonenumber: {
         Args: {
           p_phone: string
