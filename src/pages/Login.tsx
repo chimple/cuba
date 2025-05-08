@@ -777,16 +777,16 @@ const Login: React.FC = () => {
                 alt="Chimple Brand Logo"
                 src="assets/icons/ChimpleBrandLogo.svg"
               />
-              <div id="chimple-brand-text1">{t("Welcome to Chimple!")}</div>
+              {/* <div id="chimple-brand-text1">{t("Welcome to Chimple!")}</div> */}
               <p id="chimple-brand-text2">
-                {t("Discovering the joy of learning with")}
+                {t("Discovering the joy of learning")}
               </p>
-              <p id="chimple-brand-text2">
+              {/* <p id="chimple-brand-text2">
                 {t("Chimple- where curiosity meets education!")}
-              </p>
-              <div id="chimple-brand-text2">
+              </p> */}
+              {/* <div id="chimple-brand-text2">
                 <br />
-              </div>
+              </div> */}
               {!showVerification ? (
                 <div>
                   <div id="login-screen-input">
