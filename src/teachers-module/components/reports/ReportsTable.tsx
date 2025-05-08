@@ -340,6 +340,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                       handleNameSort={handleNameSort}
                       sortBy={sortType}
                       dateRangeValue={dateRange}
+                      isAssignmentReport={selectedType == TABLEDROPDOWN.ASSIGNMENTS}
                     />
                   </th>
 
