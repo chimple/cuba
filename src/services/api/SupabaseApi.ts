@@ -1359,8 +1359,7 @@ export class SupabaseApi implements ServiceApi {
 
   async validateSchoolData(
     schoolId: string,
-    schoolName: string,
-    instructionMedium: string
+    schoolName: string
   ): Promise<{ status: string; errors?: string[] }> {
     if (!this.supabase) {
       return {
@@ -1368,43 +1367,26 @@ export class SupabaseApi implements ServiceApi {
         errors: ["Supabase client is not initialized"],
       };
     }
-    const { data, error } = await this.supabase
-      .from("school_data")
-      .select("udise_code, school_name, instruction_medium") // Select only required fields
-      .eq("udise_code", schoolId);
-    if (error || !data) {
-      return { status: "error", errors: ["Invalid SCHOOL ID (UDISE Code)"] };
-    }
-
-    let errors: string[] = [];
-    console.log("fdsfdss 3rd33", data);
-
-    if (data.length === 0) {
-      errors.push("No matching SCHOOL ID (UDISE Code) found in database");
-    } else {
-      if (data.length > 1) {
-        errors.push("Duplicate SCHOOL ID (UDISE Code) found in database");
-      }
-      const school = data[0];
-      if (school) {
-        if (school.school_name !== schoolName) {
-          errors.push("SCHOOL NAME does not match the database record");
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "validate_school_data_rpc",
+        {
+          input_school_id: schoolId,
+          input_school_name: schoolName,
         }
-        if (school.instruction_medium !== instructionMedium) {
-          errors.push(
-            "SCHOOL INSTRUCTION LANGUAGE does not match the database record all letters should be capital"
-          );
-        }
+      );
+      if (error || !data) {
+        throw error ?? new Error("Unknown error from RPC");
       }
+
+      return data as { status: string; errors?: string[] };
+    } catch (error) {
+      return {
+        status: "error",
+        errors: [String(error)],
+      };
     }
-    const result =
-      errors.length > 0 ? { status: "error", errors } : { status: "success" };
-
-    console.log("Returning:", result); // ✅ Logs what is being returned
-
-    return result;
   }
-
   async validateClassCurriculumAndSubject(
     curriculumName: string,
     subjectName: string
@@ -1436,7 +1418,6 @@ export class SupabaseApi implements ServiceApi {
       .select("id")
       .eq("curriculum_id", curriculumId)
       .eq("name", subjectName.trim());
-    console.log("fsdfsd", courseData);
 
     if (courseError || !courseData || courseData.length === 0) {
       return {
@@ -1450,60 +1431,6 @@ export class SupabaseApi implements ServiceApi {
     // If both checks pass, return success
     return { status: "success" };
   }
-  async validateClassExistence(
-    schoolId: string,
-    className: string,
-    studentName?: string // Optional parameter
-  ): Promise<{ status: string; errors?: string[] }> {
-    if (!this.supabase) {
-      return {
-        status: "error",
-        errors: ["Supabase client is not initialized"],
-      };
-    }
-
-    console.log("Class Data: 122", schoolId, className);
-    className = className.trim();
-
-    // Step 1: Check if the class exists for the given school ID
-    const { data: classData, error: classError } = await this.supabase
-      .from("class")
-      .select("id") // We only need the class ID to verify existence
-      .eq("school_id", schoolId)
-      .eq("name", className);
-
-    if (classError || !classData) {
-      return {
-        status: "error",
-        errors: ["Class does not exist for the given SCHOOL ID"],
-      };
-    }
-
-    // If studentName is not provided, return success immediately
-    if (!studentName) {
-      return { status: "success" };
-    }
-
-    // Step 2: Check if the studentName already exists in the 'name' column of the class table
-    studentName = studentName.trim();
-
-    const { data: duplicateStudent, error: studentError } = await this.supabase
-      .from("class")
-      .select("id")
-      .eq("school_id", schoolId)
-      .eq("name", className)
-      .eq("name", studentName)
-      .single();
-
-    if (duplicateStudent) {
-      return {
-        status: "error",
-        errors: [`Student name '${studentName}' already exists in this class.`],
-      };
-    }
-
-    return { status: "success" };
-  }
   async validateUserContacts(
     programManagerPhone: string,
     fieldCoordinatorPhone?: string
@@ -1515,45 +1442,83 @@ export class SupabaseApi implements ServiceApi {
       };
     }
 
-    const errors: string[] = [];
-    console.log(
-      "check data for validateUserContacts",
-      programManagerPhone,
-      fieldCoordinatorPhone
-    );
-
-    const queryKey = programManagerPhone.includes("@") ? "email" : "phone";
-    const { data: pmData, error: pmError } = await this.supabase
-      .from("user")
-      .select("id")
-      .eq(queryKey, programManagerPhone.trim());
-
-    if (pmError || !pmData) {
-      errors.push(
-        "PROGRAM MANAGER EMAIL OR PHONE NUMBER does not exist in the system"
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "validate_user_contacts_rpc",
+        {
+          program_manager_contact: programManagerPhone.trim(),
+          field_coordinator_contact: fieldCoordinatorPhone?.trim() ?? null,
+        }
       );
-    }
-
-    if (fieldCoordinatorPhone) {
-      const fCqueryKey = fieldCoordinatorPhone.includes("@")
-        ? "email"
-        : "phone";
-      const { data: fcData, error: fcError } = await this.supabase
-        .from("user")
-        .select("id")
-        .eq(fCqueryKey, fieldCoordinatorPhone);
-
-      if (fcError || !fcData) {
-        errors.push(
-          "FIELD COORDINATOR EMAIL OR PHONE NUMBER does not exist in the system"
-        );
+      console.log("fdsfsfccce45rfw", data, error);
+      if (error || !data) {
+        return {
+          status: "error",
+          errors: [
+            "programManagerPhone and fieldCoordinatorPhone Validation failed",
+          ],
+        };
       }
-    }
 
-    return errors.length > 0
-      ? { status: "error", errors }
-      : { status: "success" };
+      return data;
+    } catch (err) {
+      return {
+        status: "error",
+        errors: [String(err)],
+      };
+    }
   }
+
+  // async validateUserContacts(
+  //   programManagerPhone: string,
+  //   fieldCoordinatorPhone?: string
+  // ): Promise<{ status: string; errors?: string[] }> {
+  //   if (!this.supabase) {
+  //     return {
+  //       status: "error",
+  //       errors: ["Supabase client is not initialized"],
+  //     };
+  //   }
+
+  //   const errors: string[] = [];
+  //   console.log(
+  //     "check data for validateUserContacts",
+  //     programManagerPhone,
+  //     fieldCoordinatorPhone
+  //   );
+
+  //   const queryKey = programManagerPhone.includes("@") ? "email" : "phone";
+  //   const { data: pmData, error: pmError } = await this.supabase
+  //     .from("user")
+  //     .select("id")
+  //     .eq(queryKey, programManagerPhone.trim());
+
+  //   if (pmError || !pmData) {
+  //     errors.push(
+  //       "PROGRAM MANAGER EMAIL OR PHONE NUMBER does not exist in the system"
+  //     );
+  //   }
+
+  //   if (fieldCoordinatorPhone) {
+  //     const fCqueryKey = fieldCoordinatorPhone.includes("@")
+  //       ? "email"
+  //       : "phone";
+  //     const { data: fcData, error: fcError } = await this.supabase
+  //       .from("user")
+  //       .select("id")
+  //       .eq(fCqueryKey, fieldCoordinatorPhone);
+
+  //     if (fcError || !fcData) {
+  //       errors.push(
+  //         "FIELD COORDINATOR EMAIL OR PHONE NUMBER does not exist in the system"
+  //       );
+  //     }
+  //   }
+
+  //   return errors.length > 0
+  //     ? { status: "error", errors }
+  //     : { status: "success" };
+  // }
   async setStarsForStudents(
     studentId: string,
     starsCount: number
