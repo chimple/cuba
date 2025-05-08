@@ -1733,7 +1733,9 @@ export class SqliteApi implements ServiceApi {
     if (score > 75) starsEarned++;
 
     const previousStars = localStorage.getItem(STARS_COUNT);
-    let currentStars = previousStars ? JSON.parse(previousStars)[studentId] : 0;
+    let currentStars = previousStars
+      ? JSON.parse(previousStars)[studentId] ?? 0
+      : 0;
 
     let totalStars = currentStars + starsEarned;
 
@@ -4404,11 +4406,11 @@ order by
 
   async validateSchoolData(
     schoolId: string,
-    schoolName: string,
+    schoolName: string
   ): Promise<{ status: string; errors?: string[] }> {
     const schoolData = await this._serverApi.validateSchoolData(
       schoolId,
-      schoolName,
+      schoolName
     );
     console.log("fdsfdsfs", schoolData);
     if (schoolData.status === "error") {
@@ -4531,7 +4533,6 @@ order by
     return classRes.values[0];
   }
   async countAllPendingPushes(): Promise<number> {
-
     if (!this._db) return 0;
     const tableNames = Object.values(TABLES);
     const tables = "'" + tableNames.join("', '") + "'";
