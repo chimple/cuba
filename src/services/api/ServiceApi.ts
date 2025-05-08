@@ -1247,7 +1247,6 @@ export interface ServiceApi {
   validateSchoolData(
     schoolId: string,
     schoolName: string,
-    instructionMedium: string
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1258,17 +1257,6 @@ export interface ServiceApi {
   validateClassCurriculumAndSubject(
     curriculumName: string,
     subjectName: string
-  ): Promise<{ status: string; errors?: string[] }>;
-  /**
-   * To validate that the given class is exist or not through the class name and school id
-   * @param {string } schoolId - school Id
-   * @param {string } className - class Name
-   * @param {string } studentName - student Name
-   */
-  validateClassExistence(
-    schoolId: string,
-    className: string,
-    studentName?: string
   ): Promise<{ status: string; errors?: string[] }>;
   /**
    * To validate that the given user phone or mail is exist or not

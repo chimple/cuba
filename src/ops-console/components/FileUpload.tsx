@@ -205,7 +205,6 @@ const FileUpload: React.FC = () => {
             const schoolValidation = await api.validateSchoolData(
               schoolId,
               schoolName,
-              schoolInstructionLanguage
             );
             console.log("fsdfdsfs", schoolValidation.status);
 
@@ -315,10 +314,12 @@ const FileUpload: React.FC = () => {
             .trim();
           const classId = `${schoolId}_${grade}_${classSection}`;
           const className = `${grade} ${classSection}`.trim();
-          if (!grade) errors.push("Missing grade");
+          if (!grade || grade.trim() === "") errors.push("Missing grade");
+          if (!teacherName || teacherName.trim() === "") errors.push("Missing teacher Name");
+          if (!teacherContact || teacherContact.trim() === "") errors.push("Missing teacher Contact");
 
-          if (!schoolId || !grade || !teacherName || !teacherContact) {
-            errors.push("Missing required teacher details.");
+          if (!schoolId || schoolId.trim() === "") {
+            errors.push("Missing schoolId.");
           } else {
             if (!validatedSchoolIds.has(schoolId)) {
               errors.push("SCHOOL ID does not match any validated school.");
@@ -329,26 +330,9 @@ const FileUpload: React.FC = () => {
             errors.push("Invalid TEACHER PHONE NUMBER OR EMAIL format.");
           }
 
-          // Check if classId exists and className matches
-          if (
-            validatedClassIds.has(classId) &&
-            validatedClassIds.get(classId) === className
-          ) {
-            console.log(
-              `Skipping API call for class ${classId} as it's already validated.`
-            );
-          } else {
-            const validationResponse = await api.validateClassExistence(
-              schoolId,
-              className
-            );
-            if (validationResponse.status === "error") {
-              errors.push(...(validationResponse.errors || []));
-            } else {
-              validatedClassIds.set(classId, className); // ✅ Store valid class ID and name
-            }
+          if (!className || className.trim() === "") {
+            errors.push("Class name should not be empty");
           }
-
           row["Updated"] =
             errors.length > 0
               ? `❌ Errors: ${errors.join(", ")}`
@@ -384,6 +368,7 @@ const FileUpload: React.FC = () => {
             }
           }
           let grade = row["GRADE"]?.toString().trim();
+          if (!grade || grade.trim() === "") errors.push("Missing grade");
           if (!/^\d+$/.test(grade)) {
             errors.push(
               "Grade must be a whole number without letters or special characters."
@@ -406,41 +391,39 @@ const FileUpload: React.FC = () => {
             .trim();
           const classId = `${schoolId}_${grade}_${classSection}`; // Unique class identifier
           const className = `${grade} ${classSection}`.trim();
-          if (!grade) errors.push("Missing grade");
-          
-          if (!schoolId || !studentName || !age || !grade || !parentContact) {
-            errors.push("Missing required student details.");
+          if (!studentName || studentName.trim() === "") errors.push("Missing student Name");
+          if (!schoolId || schoolId.trim() === "") {
+            errors.push("Missing schoolId.");
           } else {
             if (!validatedSchoolIds.has(schoolId)) {
               errors.push("SCHOOL ID does not match any validated school.");
             }
-          } 
+          }
+          console.log("fdsfdsfsfdsvc4554", studentLoginType);
+          // if(studentLoginType === "PARENT PHONE NUMBER"){
+          // console.log("fdsfdsfsfdsvc4554 11111", studentLoginType);
 
-          if(studentLoginType === "PARENT PHONE NUMBER"){
-            if (parentContact && !validateEmailOrPhone(parentContact)) {
-              errors.push("Invalid PARENT PHONE NUMBER OR LOGIN ID format.");
+          //   if (parentContact && !validateEmailOrPhone(parentContact)) {
+          //     errors.push("Invalid PARENT PHONE NUMBER OR LOGIN ID format.");
+          //   }
+          // }
+          // Validate based on studentLoginType
+          if (studentLoginType === "PARENT PHONE NUMBER") {
+            // Check if the parent contact is a valid 10-digit phone number
+            if (parentContact && !/^\d{10}$/.test(parentContact)) {
+              errors.push(
+                "PARENT PHONE NUMBER must be a valid 10-digit mobile number."
+              );
+            }
+          } else {
+            // If the login type is not "PARENT PHONE NUMBER", ensure the contact is not empty
+            if (!parentContact) {
+              errors.push("PARENT PHONE NUMBER OR LOGIN ID cannot be empty.");
             }
           }
 
-          // Check if classId exists and className matches
-          if (
-            validatedClassIds.has(classId) &&
-            validatedClassIds.get(classId) === className
-          ) {
-            console.log(
-              `Skipping API call for class ${classId} as it's already validated.`
-            );
-          } else {
-            const validationResponse = await api.validateClassExistence(
-              schoolId,
-              className,
-              studentName
-            );
-            if (validationResponse.status === "error") {
-              errors.push(...(validationResponse.errors || []));
-            } else {
-              validatedClassIds.set(classId, className); // ✅ Store valid class ID and name
-            }
+          if (!className || className.trim() === "") {
+            errors.push("Class name should not be empty");
           }
 
           row["Updated"] =
