@@ -400,7 +400,6 @@ export class FirebaseAuth implements ServiceAuth {
           phoneNumber,
           recaptchaVerifier
         );
-        console.log("else result ", result);
         verificationId = result?.verificationId;
         console.log("verificationId ", verificationId);
         return result;

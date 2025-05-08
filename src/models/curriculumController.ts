@@ -99,7 +99,6 @@ export default class CurriculumController {
                 });
             });
             this.curriculum.set(courseId, course);
-            console.log(this.curriculum, this.allLessons)
 
             return this.curriculum
         } else {
@@ -108,9 +107,6 @@ export default class CurriculumController {
                 chapter = await this.unlockingLessonsByChapterWise(results, courseId, chapter);
             });
             this.curriculum.set(courseId, course);
-
-            console.log(this.curriculum, this.allLessons)
-
             return this.curriculum;
         }
     }

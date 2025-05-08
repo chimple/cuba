@@ -20,9 +20,7 @@ const Dropdown: React.FC<DropdownProps> = ({ options, onChange }) => {
 const Dropdowns: React.FC = () => {
   const handleDropdownChange = (
     event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    console.log(event.target.value);
-  };
+  ) => {};
 
   return (
     <div className="dropdown-container">

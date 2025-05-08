@@ -167,8 +167,6 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
   }
 
   function skeltonHome() {
-    console.log("function skeltonHome() { called");
-
     return (
       <div className="skelton-home-screen">
         <div id="skelton-home-screen-div">

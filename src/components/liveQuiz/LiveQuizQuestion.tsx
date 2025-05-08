@@ -593,7 +593,6 @@ const LiveQuizQuestion: FC<{
                       playLiveQuizAudio(
                         liveQuizConfig.data[currentQuestionIndex].question
                       );
-                      console.log("on audio question click");
                     }}
                     className={audio ? "audio-playing" : ""}
                   />
@@ -673,7 +672,6 @@ const LiveQuizQuestion: FC<{
                           onClick={(e) => {
                             e.stopPropagation();
                             playLiveQuizAudio(option);
-                            console.log("on audio click");
                           }}
                           className={audio ? "audio-playing" : ""}
                         />

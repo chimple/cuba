@@ -46,7 +46,6 @@ export function useTtsAudioPlayer(audioText: string) {
       speak();
     }
     return () => {
-      console.log("return called in useEffect(() ");
       TextToSpeech.stop();
     };
   }, [isTtsPlaying]);

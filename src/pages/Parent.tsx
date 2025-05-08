@@ -97,7 +97,6 @@ const Parent: React.FC = () => {
   }, [reloadProfiles]);
 
   async function getStudentProfile() {
-    console.log("getStudentProfile");
     const userProfilePromise: TableTypes<"user">[] =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];

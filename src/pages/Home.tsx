@@ -273,7 +273,6 @@ const Home: FC = () => {
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(_assignment.lesson_id);
           const now = new Date().toISOString();
-          console.log(res);
           if (_assignment.type !== LIVE_QUIZ) {
             assignmentCount++;
           } else {
@@ -406,7 +405,6 @@ const Home: FC = () => {
       setHistoryLessons([]);
       setFavouriteLessons([]);
     }
-    console.log("Changing...", newValue);
   };
   const handleHomeIconClick = () => {
     setSubTab(SUBTAB.SUGGESTIONS);

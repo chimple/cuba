@@ -217,11 +217,9 @@ const DisplayStudents: FC<{}> = () => {
               showDialogBox={showDialogBox}
               handleClose={() => {
                 setShowDialogBox(true);
-                console.log("Close", false);
               }}
               onHandleClose={() => {
                 setShowDialogBox(false);
-                console.log("Close", false);
               }}
             ></ParentalLock>
           ) : null}

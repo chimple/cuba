@@ -4410,7 +4410,6 @@ order by
       schoolId,
       schoolName,
     );
-    console.log("fdsfdsfs", schoolData);
     if (schoolData.status === "error") {
       return { status: "error", errors: schoolData.errors };
     }
@@ -4426,7 +4425,6 @@ order by
         curriculumName,
         subjectName
       );
-    console.log("fdsfdsfs", ClassCurriculum);
     if (ClassCurriculum.status === "error") {
       return {
         status: "error",

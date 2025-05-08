@@ -199,7 +199,6 @@ const ProfileCard: React.FC<{
           noText={t("No")}
           handleClose={() => {
             setShowDialogBox(false);
-            console.log("Close", false);
           }}
           onYesButtonClicked={async ({}) => {
             console.log(`Show warning yes:`, user.id);

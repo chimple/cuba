@@ -201,7 +201,6 @@ const Login: React.FC = () => {
         setStudent(currentStudent);
       }
       if (appLang == undefined) {
-        console.log("navigating to app lang");
         history.replace(PAGES.APP_LANG_SELECTION);
       }
 

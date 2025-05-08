@@ -112,7 +112,6 @@ const Leaderboard: React.FC = () => {
   };
   App.addListener("appStateChange", urlOpen);
   async function inti() {
-    console.log("init method called");
     const weekOptions = [
       { text: t("Weekly"), type: LeaderboardDropdownList.WEEKLY },
       { text: t("Monthly"), type: LeaderboardDropdownList.MONTHLY },

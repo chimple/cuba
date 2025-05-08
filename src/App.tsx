@@ -221,7 +221,6 @@ const App: React.FC = () => {
     startTimeout();
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(false));
     localStorage.setItem(DOWNLOADING_CHAPTER_ID, JSON.stringify(false));
-    console.log("fetching...");
     CapApp.addListener("appStateChange", Util.onAppStateChange);
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
@@ -341,7 +340,6 @@ const App: React.FC = () => {
         const lastModalShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
 
         if (lastModalShownDate !== today) {
-          console.log("triggered");
           setShowModal(true);
           const event = new CustomEvent("shouldShowModal", { detail: true });
           window.dispatchEvent(event);

@@ -243,7 +243,6 @@ const FileUpload: React.FC = () => {
               schoolId,
               schoolName
             );
-            console.log("fsdfdsfs", schoolValidation.status);
 
             if (schoolValidation.status === "error") {
               errors.push(...(schoolValidation.errors || []));
@@ -275,7 +274,6 @@ const FileUpload: React.FC = () => {
             if (!studentLoginType?.trim())
               errors.push("Missing STUDENT LOGIN TYPE");
           }
-          console.log("fddfdsgfdgdg", errors);
 
           row["Updated"] =
             errors.length > 0
@@ -301,7 +299,6 @@ const FileUpload: React.FC = () => {
             ?.toString()
             .trim();
           const className = `${grade} ${classSection}`.trim();
-          console.log("fddfdsgfdgdg23", validatedSchoolIds);
           if (!grade) errors.push("Missing grade");
           if (!subjectGrade) errors.push("Missing subjectGrade");
           if (!curriculum) errors.push("Missing curriculum");
