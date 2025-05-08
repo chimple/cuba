@@ -4499,6 +4499,19 @@ order by
       console.error("Error setting stars for student:", error);
     }
   }
+  async getCoursesForPathway(
+    studentId: string
+  ): Promise<TableTypes<"course">[]> {
+    const query = `
+      SELECT *
+      FROM ${TABLES.UserCourse} AS uc
+      JOIN ${TABLES.Course} AS course ON uc.course_id = course.id
+      WHERE uc.user_id = "${studentId}"
+      ORDER BY course.sort_index ASC;
+    `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
   async updateLearningPath(
     student: TableTypes<"user">,
     learningPath: string

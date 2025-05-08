@@ -175,7 +175,6 @@ const CocosGame: React.FC = () => {
       ? JSON.parse(currentStudent.learning_path)
       : null;
 
-    let stars = currentStudent.stars;
     if (!learningPath) return;
 
     try {
@@ -197,8 +196,8 @@ const CocosGame: React.FC = () => {
 
         // Move to the next course
         courses.currentCourseIndex += 1;
-        stars = (currentStudent?.stars ?? 0) + 10;
-        await api.setStarsForStudents(currentStudent.id, stars);
+       
+        await api.setStarsForStudents(currentStudent.id, 10);
         // Loop back to the first course if at the last course
         if (courses.currentCourseIndex >= courses.courseList.length) {
           courses.currentCourseIndex = 0;
@@ -208,14 +207,10 @@ const CocosGame: React.FC = () => {
       // Update the learning path in the database
     await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
       // Update the current student object
-      await Util.setCurrentStudent(
-        {
-          ...currentStudent,
-          learning_path: JSON.stringify(learningPath),
-          stars: stars,
-        },
-        undefined
-      );
+      const updatedStudent = await api.getUserByDocId(currentStudent.id);
+      if (updatedStudent) {
+        Util.setCurrentStudent(updatedStudent);
+      }
     } catch (error) {
       console.error("Error updating learning path:", error);
     }
