@@ -1431,36 +1431,6 @@ export class SupabaseApi implements ServiceApi {
     // If both checks pass, return success
     return { status: "success" };
   }
-  // async validateUserContacts(
-  //   programManagerPhone: string,
-  //   fieldCoordinatorPhone?: string
-  // ): Promise<{ status: string; errors?: string[] }> {
-  //   if (!this.supabase) {
-  //     return {
-  //       status: "error",
-  //       errors: ["Supabase client is not initialized"],
-  //     };
-  //   }
-  
-  //   try {
-  //     const { data, error } = await this.supabase.rpc("validate_user_contacts_rpc", {
-  //       program_manager_contact: programManagerPhone.trim(),
-  //       field_coordinator_contact: fieldCoordinatorPhone?.trim() ?? null,
-  //     });
-  
-  //     if (error || !data) {
-  //       return { status: "error", errors: ["Validation failed"] };
-  //     }
-  
-  //     return data;
-  //   } catch (err) {
-  //     return {
-  //       status: "error",
-  //       errors: [String(err)],
-  //     };
-  //   }
-  // }
-  
   
   async validateUserContacts(
     programManagerPhone: string,
