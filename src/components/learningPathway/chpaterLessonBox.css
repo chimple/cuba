@@ -1,5 +1,7 @@
 /* CSS for ChapterLessonBox component */
 .chapter-lesson-box {
+  max-width: 300px;
+  min-width: 150px;
   position: fixed;
   bottom: 1.5vh;
   left: 50%;

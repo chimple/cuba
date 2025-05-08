@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./chpaterLessonBox.css";
 import { Util } from "../../utility/util";
+import { ServiceConfig } from "../../services/ServiceConfig";
 
 interface ChapterLessonBoxProps {
   containerStyle?: React.CSSProperties;
@@ -9,6 +10,7 @@ interface ChapterLessonBoxProps {
 const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
   containerStyle,
 }) => {
+  const api = ServiceConfig.getI().apiHandler;
   const [currentChapterName, setCurrentChapterName] = useState<string>("");
 
   useEffect(() => {
@@ -16,12 +18,13 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
       if (!currentStudent || !currentStudent.learning_path) return;
 
       const learningPath = JSON.parse(currentStudent.learning_path);
-      const currentCourseIndex = learningPath.courses.currentCourseIndex;
-      const currentIndex =
-        learningPath.courses.courseList[currentCourseIndex].currentIndex;
-      const chapterName =
-        learningPath.courses.courseList[currentCourseIndex].path[currentIndex]
-          .chapter_name;
+      const currentCourseIndex = learningPath?.courses.currentCourseIndex;
+      const course = learningPath?.courses.courseList[currentCourseIndex];
+      const { currentIndex } = course;
+
+      const chapter = await api.getChapterById(learningPath.courses.courseList[currentCourseIndex].path[currentIndex].chapter_id);
+      const lesson = await api.getLesson(learningPath.courses.courseList[currentCourseIndex].path[currentIndex].lesson_id);
+      let chapterName = chapter?.name + ": " + lesson?.name;
 
       setCurrentChapterName(chapterName || "Default Chapter");
     };

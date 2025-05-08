@@ -7,6 +7,7 @@ import TressureBox from "./learningPathway/TressureBox";
 import DropdownMenu from "./Home/DropdownMenu";
 import { ServiceConfig } from "../services/ServiceConfig";
 import Loading from "./Loading";
+import { schoolUtil } from "../utility/schoolUtil";
 import { STARS_COUNT, TableTypes } from "../common/constants";
 
 const LearningPathway: React.FC = () => {
@@ -17,8 +18,11 @@ const LearningPathway: React.FC = () => {
   const currentStudent = Util.getCurrentStudent();
 
   useEffect(() => {
-    fetchLearningPathway();
-    if (currentStudent?.id) {
+    if (!currentStudent?.id) return;
+    updateStarCount(currentStudent);
+    fetchLearningPathway(currentStudent);
+  }, []);
+  const updateStarCount = (currentStudent: any) => {
       const storedStarsJson = localStorage.getItem(STARS_COUNT);
       const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
 
@@ -36,79 +40,118 @@ const LearningPathway: React.FC = () => {
         setFrom(studentStars);
         setTo(studentStars);
       }
-    }
-  }, []);
-  const fetchLearningPathway = async () => {
-    setLoading(true); // Set loading to true while fetching/creating pathway
-    if (!currentStudent) {
-      console.error("No user found");
-      setLoading(false);
-      return;
-    }
+  };
+
+  const fetchLearningPathway = async (student: any) => {
+    setLoading(true);
+    const currClass = schoolUtil.getCurrentClass();
+
     try {
-      let learningPath = currentStudent.learning_path
-        ? JSON.parse(currentStudent.learning_path)
+      const userCourses = currClass
+        ? await api.getCoursesForClassStudent(currClass.id)
+        : await api.getCoursesForPathway(student.id);
+
+      let learningPath = student.learning_path
+        ? JSON.parse(student.learning_path)
         : null;
 
-      if (!learningPath || Object.keys(learningPath).length === 0) {
-        const userCourses = await api.getCoursesForPathway(currentStudent.id);
-
-        const coursesWithDetails = await Promise.all(
-          userCourses.map(async (course) => {
-            const chapters = await api.getChaptersForCourse(course.id);
-
-            const lessonsWithChapters = await Promise.all(
-              chapters.map(async (chapter) => {
-                const lessons = await api.getLessonsForChapter(chapter.id);
-                return lessons.map((lesson) => ({
-                  lesson_id: lesson.id,
-                  chapter_id: chapter.id,
-                  chapter_name: chapter.name,
-                }));
-              })
-            );
-            return {
-              course_id: course.id,
-              subject_id: course.subject_id,
-              path: lessonsWithChapters.flat(),
-              startIndex: 0,
-              currentIndex: 0,
-              pathEndIndex: 4,
-            };
-          })
-        );
-
-        learningPath = {
-          courses: {
-            courseList: coursesWithDetails,
-            currentCourseIndex: 0,
-          },
-        };
-
-        await api.updateLearningPath(
-          currentStudent,
-          JSON.stringify(learningPath)
-        );
-        await Util.setCurrentStudent(
-          { ...currentStudent, learning_path: JSON.stringify(learningPath) },
-          undefined
-        );
-
-        window.dispatchEvent(
-          new CustomEvent("PathwayCreated", {
-            detail: { userId: currentStudent.id },
-          })
-        );
+      if (!learningPath || !learningPath.courses?.courseList?.length) {
+        learningPath = await buildInitialLearningPath(userCourses);
+        await saveLearningPath(student, learningPath);
+      } else {
+        const updated = await updateLearningPathIfNeeded(learningPath, userCourses);
+        if (updated) await saveLearningPath(student, learningPath);
       }
     } catch (error) {
       console.error("Error in Learning Pathway", error);
     } finally {
-      setLoading(false); // Set loading to false after pathway is ready
+      setLoading(false);
     }
   };
-  if (loading) {
-    return <Loading isLoading={loading} msg="Loading Lessons" />;
-  }
+
+  const buildInitialLearningPath = async (courses: any[]) => {
+    const courseList = await Promise.all(
+      courses.map(async (course) => ({
+        course_id: course.id,
+        subject_id: course.subject_id,
+        path: await buildLessonPath(course.id),
+        startIndex: 0,
+        currentIndex: 0,
+        pathEndIndex: 4,
+      }))
+    );
+
+    return {
+      courses: {
+        courseList,
+        currentCourseIndex: 0,
+      },
+    };
+  };
+
+  const updateLearningPathIfNeeded = async (learningPath: any, userCourses: any[]) => {
+    const existingCourseIds = new Set(learningPath.courses.courseList.map((c: any) => c.course_id));
+    const newCourseIds = new Set(userCourses.map((c: any) => c.id));
+
+    const toAdd = userCourses.filter((c) => !existingCourseIds.has(c.id));
+    const toRemove = learningPath.courses.courseList.filter(
+      (c: any) => !newCourseIds.has(c.course_id)
+    );
+
+    if (!toAdd.length && !toRemove.length) return false;
+
+    // Create a map of existing course details for quick lookup
+    const existingCourseMap = new Map(
+      learningPath.courses.courseList.map((c: any) => [c.course_id, c])
+    );
+
+    // Build new course list maintaining API order
+    const newCourseList = await Promise.all(
+      userCourses.map(async (course) => {
+        if (existingCourseMap.has(course.id)) {
+          // Keep existing course details if course already exists
+          return existingCourseMap.get(course.id);
+        } else {
+          // Add new course details for new courses
+          return {
+            course_id: course.id,
+            subject_id: course.subject_id,
+            path: await buildLessonPath(course.id),
+            startIndex: 0,
+            currentIndex: 0,
+            pathEndIndex: 4,
+          };
+        }
+      })
+    );
+
+    learningPath.courses.courseList = newCourseList;
+    return true;
+  };
+
+  const buildLessonPath = async (courseId: string) => {
+    const chapters = await api.getChaptersForCourse(courseId);
+    const lessons = await Promise.all(
+      chapters.map(async (chapter) => {
+        const lessons = await api.getLessonsForChapter(chapter.id);
+        return lessons.map((lesson: any) => ({
+          lesson_id: lesson.id,
+          chapter_id: chapter.id,
+        }));
+      })
+    );
+    return lessons.flat();
+  };
+
+  const saveLearningPath = async (student: any, path: any) => {
+    const pathStr = JSON.stringify(path);
+    await api.updateLearningPath(student, pathStr);
+    await Util.setCurrentStudent({ ...student, learning_path: pathStr }, undefined);
+    window.dispatchEvent(
+      new CustomEvent("PathwayCreated", { detail: { userId: student.id } })
+    );
+  };
+  if (loading) return <Loading isLoading={loading} msg="Loading Lessons" />;
 
   return (
     <div className="learning-pathway-container">
@@ -120,7 +163,7 @@ const LearningPathway: React.FC = () => {
       <div className="chapter-egg-container">
         <ChapterLessonBox
           containerStyle={{
-            width: "27vw",
+            width: "30vw",
           }}
         />
         <TressureBox startNumber={from} endNumber={to} />

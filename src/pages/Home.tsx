@@ -78,13 +78,13 @@ const Home: FC = () => {
   let tempPageNumber = 1;
   const location = useLocation();
   const getCanShowAvatar = async () => {
-    const canShowAvatarValue = await Util.getCanShowAvatar();
-    console.log("const canShowAvatarValue in home ", canShowAvatarValue);
+    // const canShowAvatarValue = await Util.getCanShowAvatar();
+    // console.log("const canShowAvatarValue in home ", canShowAvatarValue);
 
-    setCanShowAvatar(canShowAvatarValue);
+    setCanShowAvatar(true);
   };
   const urlParams = new URLSearchParams(location.search);
-  const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
+  const [canShowAvatar, setCanShowAvatar] = useState<boolean>(true);
   const [currentHeader, setCurrentHeader] = useState(() => {
     const currPage = urlParams.get("tab");
     if (
