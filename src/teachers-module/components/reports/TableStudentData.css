@@ -1,0 +1,14 @@
+.square-cell {
+    height: 50px;
+    width: 50px;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+.square-cell-container{
+  height: 95%;
+  width: 95%;
+  align-content: center;
+  align-self: center;
+  /* display: inline-block; */
+}

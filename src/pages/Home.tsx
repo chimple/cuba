@@ -122,6 +122,14 @@ const Home: FC = () => {
     App.addListener("appStateChange", ({ isActive }) =>
       appStateChange(isActive)
     );
+    const handlePathwayCreated = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      console.log("Analytics Event: Pathway Created", customEvent.detail);
+    };
+    window.addEventListener("PathwayCreated", handlePathwayCreated);
+    return () => {
+      window.removeEventListener("PathwayCreated", handlePathwayCreated);
+    };
   }, []);
   useEffect(() => {
     if (currentStudent?.id) {
@@ -160,14 +168,10 @@ const Home: FC = () => {
   // adding background image for learning-pathway
   useEffect(() => {
     const body = document.querySelector("body");
-    if (currentHeader === HOMEHEADERLIST.HOME && !!canShowAvatar) {
-      body?.style.setProperty(
-        "background-image",
-        "url(/pathwayAssets/pathwayBackground.svg)"
-      );
-    } else {
-      body?.style.setProperty("background-image", "none");
-    }
+    body?.style.setProperty(
+      "background-image",
+      "url(/pathwayAssets/pathwayBackground.svg)"
+    );
   }, [currentHeader, canShowAvatar]);
   const handleJoinClassEvent = async (event) => {
     await getAssignments();
@@ -669,6 +673,7 @@ const Home: FC = () => {
                   });
                 }}
               />
+              
             )}
 
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}

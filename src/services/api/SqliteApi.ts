@@ -340,6 +340,19 @@ export class SqliteApi implements ServiceApi {
       });
     }
 
+    // Update debug info
+    let totalpulledRows = 0;
+    let filteredObject = {};
+    for (const [key, value] of data.entries()) {
+      if (Array.isArray(value) && value.length > 0) {
+        totalpulledRows += value.length;
+        filteredObject[key] = value; // include only non-empty arrays
+      }
+    }
+    const jsonString = JSON.stringify(filteredObject);
+    const pulledRowsSizeInBytes = new TextEncoder().encode(jsonString).length;
+    this.updateDebugInfo(0, totalpulledRows, pulledRowsSizeInBytes);
+
     // Execute batch queries efficiently
     if (batchQueries.length > 0) {
       try {
@@ -365,6 +378,8 @@ export class SqliteApi implements ServiceApi {
     try {
       res = (await this._db.query(tablePushSync)).values ?? [];
       console.log("🚀 ~ syncDB ~ tablePushSync:", res);
+
+      this.updateDebugInfo(res.length, 0, 0); //update debug info
     } catch (error) {
       console.log("🚀 ~ Api ~ syncDB ~ error:", error);
       await this.createSyncTables();
@@ -572,6 +587,10 @@ export class SqliteApi implements ServiceApi {
     profileType: PROFILETYPE
   ): Promise<string | null> {
     return await this._serverApi.addProfileImages(id, file, profileType);
+  }
+
+  async uploadData(payload: any): Promise<boolean | null> {
+    return await this._serverApi.uploadData(payload);
   }
 
   async createSchool(
@@ -2764,7 +2783,9 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getAllCourses(): Promise<TableTypes<"course">[]> {
-    const res = await this._db?.query(`select * from ${TABLES.Course} ORDER BY sort_index ASC`);
+    const res = await this._db?.query(
+      `select * from ${TABLES.Course} ORDER BY sort_index ASC`
+    );
     return res?.values ?? [];
   }
   deleteAllUserData(): Promise<void> {
@@ -3178,7 +3199,7 @@ export class SqliteApi implements ServiceApi {
   `;
     const res = await this.executeQuery(query);
     console.log("🚀 ~ SqliteApi ~ updateFCM Token:", res);
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       fcm_token: token,
       id: userId,
     });
@@ -3360,14 +3381,17 @@ export class SqliteApi implements ServiceApi {
         user.language_id,
       ]
     );
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, user);
+    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, user);
 
     return user;
   }
 
-  async syncDB(): Promise<boolean> {
+  async syncDB(
+    tableNames: TABLES[] = Object.values(TABLES),
+    refreshTables: TABLES[] = []
+  ): Promise<boolean> {
     try {
-      await this.syncDbNow();
+      await this.syncDbNow(tableNames, refreshTables);
       return true;
     } catch (error) {
       console.log("🚀 ~ SqliteApi ~ syncDB ~ error:", error);
@@ -4453,6 +4477,182 @@ order by
       });
     } catch (error) {
       console.error("Error setting stars for student:", error);
+    }
+  }
+  async getCoursesForPathway(
+    studentId: string
+  ): Promise<TableTypes<"course">[]> {
+    const query = `
+      SELECT *
+      FROM ${TABLES.UserCourse} AS uc
+      JOIN ${TABLES.Course} AS course ON uc.course_id = course.id
+      WHERE uc.user_id = "${studentId}"
+      ORDER BY course.sort_index ASC;
+    `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
+  async updateLearningPath(
+    student: TableTypes<"user">,
+    learningPath: string
+  ): Promise<TableTypes<"user">> {
+    try {
+      const updateUserQuery = `UPDATE ${TABLES.User}
+      SET learning_path = ?
+      WHERE id = ?;`;
+      await this.executeQuery(updateUserQuery, [learningPath, student.id]);
+      student.learning_path = learningPath;
+      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+        id: student.id,
+        learning_path: learningPath,
+      });
+    } catch (error) {
+      console.error("Error updating learning path:", error);
+    }
+    return student;
+  }
+  async getClassByUserId(
+    userId: string
+  ): Promise<TableTypes<"class"> | undefined> {
+    // Step 1: Get class_id from class_user
+    const classUserRes = await this._db?.query(
+      `SELECT class_id FROM ${TABLES.ClassUser} WHERE user_id = "${userId}" AND is_deleted = false`
+    );
+    if (!classUserRes || !classUserRes.values || classUserRes.values.length < 1)
+      return;
+    const classId = classUserRes.values[0].class_id;
+
+    // Step 2: Get class from class table using class_id
+    const classRes = await this._db?.query(
+      `SELECT * FROM ${TABLES.Class} WHERE id = "${classId}" AND is_deleted = false`
+    );
+
+    if (!classRes || !classRes.values || classRes.values.length < 1) return;
+    return classRes.values[0];
+  }
+  async countAllPendingChanges(): Promise<number> {
+    //reomove this
+
+    if (!this._db) return 0;
+    const tableNames = Object.values(TABLES);
+    const tables = "'" + tableNames.join("', '") + "'";
+
+    const tablePushSync = `SELECT * FROM push_sync_info WHERE table_name IN (${tables}) ORDER BY created_at;`;
+    let res: any[] = [];
+    try {
+      res = (await this._db.query(tablePushSync)).values ?? [];
+      return res.length;
+    } catch (error) {
+      console.error("❌ Failed to count pending changes:", error);
+      return 0;
+    }
+  }
+
+  async deleteOldDebugInfoData(): Promise<void> {
+    const deleteQuery = `
+      DELETE FROM debug_info
+      WHERE DATE(created_at) < DATE('now', '-30 days')
+    `;
+    await this.executeQuery(deleteQuery);
+  }
+
+  async getDebugInfoLast30Days(parentId: string): Promise<any[]> {
+    await this.createDebugInfoTables();
+    this.deleteOldDebugInfoData();
+
+    const query = `
+    SELECT 
+      parent_id,
+      SUM(No_of_pushed) AS total_pushed,
+      SUM(No_of_pulled) AS total_pulled,
+      SUM(data_transferred) AS total_transferred,
+      DATE(updated_at) AS date
+    FROM debug_info
+    WHERE parent_id = ?
+      AND DATE(updated_at) >= DATE('now', '-30 days')
+    GROUP BY DATE(updated_at)
+    ORDER BY DATE(updated_at) DESC
+  `;
+    const result = await this.executeQuery(query, [parentId]);
+    return result?.values || [];
+  }
+
+  private async createDebugInfoTables() {
+    const createDebugInfoTable = `
+      CREATE TABLE IF NOT EXISTS debug_info (
+        id TEXT NOT NULL PRIMARY KEY,
+        parent_id TEXT NOT NULL,
+        No_of_pushed INTEGER,
+        No_of_pulled INTEGER,
+        data_transferred INTEGER,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL
+      )
+    `;
+    await this.executeQuery(createDebugInfoTable);
+  }
+
+  async updateDebugInfo(
+    noOfPushed?: number,
+    noOfPulled?: number,
+    dataTransferred?: number
+  ) {
+    await this.createDebugInfoTables();
+
+    const authHandler = ServiceConfig.getI()?.authHandler;
+    const currentUser = await authHandler?.getCurrentUser();
+    const parentId = currentUser?.id;
+    const today = new Date().toISOString().split("T")[0];
+
+    const selectQuery = `
+      SELECT * FROM debug_info
+      WHERE parent_id = ? AND DATE(updated_at) = ?
+    `;
+    const existingRows = await this.executeQuery(selectQuery, [
+      parentId,
+      today,
+    ]);
+
+    if (existingRows?.values?.length && existingRows.values.length > 0) {
+      // Update existing row
+      const updateParts: string[] = ["updated_at = CURRENT_TIMESTAMP"];
+      const params: any[] = [];
+
+      if (noOfPushed !== undefined) {
+        updateParts.push("No_of_pushed = No_of_pushed + ?");
+        params.push(noOfPushed);
+      }
+      if (noOfPulled !== undefined) {
+        updateParts.push("No_of_pulled = No_of_pulled + ?");
+        params.push(noOfPulled);
+      }
+      if (dataTransferred !== undefined) {
+        updateParts.push("data_transferred = data_transferred + ?");
+        params.push(dataTransferred);
+      }
+      const updateQuery = `
+        UPDATE debug_info SET ${updateParts.join(", ")}
+        WHERE parent_id = ? AND DATE(updated_at) = ?
+      `;
+      params.push(parentId, today);
+      await this.executeQuery(updateQuery, params);
+    } else {
+      // Insert new row
+      const insertQuery = `
+        INSERT INTO debug_info (
+          id, parent_id,
+          No_of_pushed, No_of_pulled, data_transferred,
+          created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      `;
+
+      await this.executeQuery(insertQuery, [
+        uuidv4(),
+        parentId,
+        noOfPushed ?? 0,
+        noOfPulled ?? 0,
+        dataTransferred ?? 0,
+      ]);
     }
   }
 }

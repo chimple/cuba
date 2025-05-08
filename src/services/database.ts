@@ -1406,6 +1406,7 @@ export type Database = {
           stars?: number | null
           student_id: string | null
           updated_at: string | null
+          learning_path?: string | null
         }
         Insert: {
           age?: number | null

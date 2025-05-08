@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./Parent.css";
 import {
   CLASS,
@@ -37,7 +37,8 @@ import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
 import { RoleType } from "../interface/modelInterfaces";
 import DeleteParentAccount from "../components/parent/DeleteParentAccount";
-
+import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
+import DebugMode from "../teachers-module/components/DebugMode";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 const Parent: React.FC = () => {
@@ -47,6 +48,9 @@ const Parent: React.FC = () => {
   const [musicFlag, setMusicFlag] = useState<number>();
   const [userProfile, setUserProfile] = useState<TableTypes<"user">[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
+  const clickCount = useRef(0);
+  const [showDialogBox, setShowDialogBox] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
 
   const [langList, setLangList] = useState<
     {
@@ -259,8 +263,45 @@ const Parent: React.FC = () => {
                     v.detail?.checked
                   );
                 }
+
+                clickCount.current += 1;
+                // If clicked 7 times, show popup for debug mode
+                if (clickCount.current === 7) {
+                  setShowDialogBox(true);
+                  clickCount.current = 0;
+                }
               }}
             ></ToggleButton>
+            {showDialogBox && (
+              <DialogBoxButtons
+                width={"40vw"}
+                height={"30vh"}
+                message={t("Do you want to Open Debug Mode?")}
+                showDialogBox={true}
+                yesText={t("Cancel")}
+                noText={t("debugMode")}
+                handleClose={() => {
+                  setShowDialogBox(true);
+                }}
+                onYesButtonClicked={() => {
+                  setShowDialogBox(false);
+                }}
+                onNoButtonClicked={() => {
+                  setShowDebug(true);
+                  parentHeaderIconList.push({
+                    header: "debugMode",
+                    displayName: t("debugMode"),
+                  });
+
+                  setTabs((prevTabs: any) => ({
+                    ...prevTabs,
+                    [t("debugMode")]: t("debugMode"),
+                  }));
+                  setTabIndex(t("debugMode"));
+                  setShowDialogBox(false);
+                }}
+              />
+            )}
 
             <ToggleButton
               flag={musicFlag!}
@@ -473,6 +514,9 @@ const Parent: React.FC = () => {
     );
   }
 
+  function debugModeUI() {
+    return <DebugMode />;
+  }
   const handleChange = (newValue: string) => {
     const selectedHeader = parentHeaderIconList.find(
       (item) => item.header === newValue
@@ -514,6 +558,7 @@ const Parent: React.FC = () => {
         {tabIndex === t("setting") && <div>{settingUI()}</div>}
         {tabIndex === t("help") && <div>{helpUI()}</div>}
         {tabIndex === t("faq") && <div>{faqUI()}</div>}
+        {tabIndex === t("debugMode") && <div>{debugModeUI()}</div>}
       </div>
     </Box>
   );

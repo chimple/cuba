@@ -89,7 +89,7 @@ export class FirebaseApi implements ServiceApi {
   private _schoolsCache: { [userId: string]: School[] } = {};
   private _currentMode: MODES;
   private _allCourses: Course[];
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -525,11 +525,11 @@ export class FirebaseApi implements ServiceApi {
   };
   public updateFcmToken = async (userId: string) => {
     throw new Error("Method not implemented.");
-  }
+  };
 
   public getChapterById = async (Id: string) => {
     throw new Error("Method not implemented.");
-  }
+  };
   public subscribeToClassTopic() {
     throw new Error("Method not implemented.");
   }
@@ -2040,17 +2040,31 @@ export class FirebaseApi implements ServiceApi {
   async removeCoursesFromSchool(ids: string[]): Promise<void> {
     throw new Error("Failed to remove courses from school");
   }
-  async checkCourseInClasses(classIds: string[], classId: string): Promise<boolean> {
+  async checkCourseInClasses(
+    classIds: string[],
+    classId: string
+  ): Promise<boolean> {
     throw new Error("Failed to remove courses from school");
   }
 
   searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
-  getAssignmentOrLiveQuizByClassByDate(classId: string, courseId: string, startDate: string, endDate: string, isClassWise: boolean, isLiveQuiz: boolean): Promise<TableTypes<"assignment">[] | undefined> {
+  getAssignmentOrLiveQuizByClassByDate(
+    classId: string,
+    courseId: string,
+    startDate: string,
+    endDate: string,
+    isClassWise: boolean,
+    isLiveQuiz: boolean
+  ): Promise<TableTypes<"assignment">[] | undefined> {
     throw new Error("Method not implemented.");
   }
-  getStudentLastTenResults(studentId: string, courseId: string, assignmentIds: string[]): Promise<TableTypes<"result">[]> {
+  getStudentLastTenResults(
+    studentId: string,
+    courseId: string,
+    assignmentIds: string[]
+  ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
   }
   getResultByAssignmentIds(
@@ -2077,6 +2091,9 @@ export class FirebaseApi implements ServiceApi {
     startDate: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  uploadData(payload: any): Promise<boolean | null> {
     throw new Error("Method not implemented.");
   }
 }

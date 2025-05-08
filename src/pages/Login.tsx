@@ -908,80 +908,88 @@ const Login: React.FC = () => {
                     <div id="Google-horizontal-line2"></div>
                   </div>
                   <div className="login-with-google-or-student-credentials-container">
-                    <img
-                      id="login-google-icon"
-                      aria-label={String(t("Google Sign In"))}
-                      alt="Google Icon"
-                      src="assets/icons/Google Icon.png"
-                      onClick={async () => {
-                        if (!online) {
-                          presentToast({
-                            message: t(
-                              `Device is offline. Login requires an internet connection`
-                            ),
-                            color: "danger",
-                            duration: 3000,
-                            position: "bottom",
-                            buttons: [
-                              {
-                                text: "Dismiss",
-                                role: "cancel",
-                              },
-                            ],
-                          });
-                          return;
-                        }
-                        try {
-                          setIsLoading(true);
-                          setIsInitialLoading(true);
-                          console.log("isLoading ", isLoading);
-                          const _authHandler = ServiceConfig.getI().authHandler;
-                          const result: boolean =
-                            await _authHandler.googleSign();
-                          console.log(
-                            "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
-                            result
-                          );
-                          if (result) {
-                            setIsLoading(false);
-                            setIsInitialLoading(false);
-                            // history.replace(PAGES.DISPLAY_STUDENT);
-                            const user = JSON.parse(
-                              localStorage.getItem(USER_DATA)!
-                            );
-                            const userSchools = await getSchoolsForUser(user);
-                            await redirectUser(user, userSchools);
-                            localStorage.setItem(
-                              CURRENT_USER,
-                              JSON.stringify(result)
-                            );
-                            console.log(
-                              "google...",
-                              localStorage.getItem(CURRENT_USER)
-                            );
-                            Util.logEvent(EVENTS.USER_PROFILE, {
-                              user_type: RoleType.PARENT,
-                              action_type: ACTION.LOGIN,
-                              login_type: "google-signin",
+                    <div>
+                      <img
+                        id="login-google-icon"
+                        aria-label={String(t("Google Sign In"))}
+                        alt="Google Icon"
+                        src="assets/icons/Google Icon.png"
+                        onClick={async () => {
+                          if (!online) {
+                            presentToast({
+                              message: t(
+                                `Device is offline. Login requires an internet connection`
+                              ),
+                              color: "danger",
+                              duration: 3000,
+                              position: "bottom",
+                              buttons: [
+                                {
+                                  text: "Dismiss",
+                                  role: "cancel",
+                                },
+                              ],
                             });
-                          } else {
+                            return;
+                          }
+                          try {
+                            setIsLoading(true);
+                            setIsInitialLoading(true);
+                            console.log("isLoading ", isLoading);
+                            const _authHandler =
+                              ServiceConfig.getI().authHandler;
+                            const result: boolean =
+                              await _authHandler.googleSign();
+                            console.log(
+                              "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
+                              result
+                            );
+                            if (result) {
+                              setIsLoading(false);
+                              setIsInitialLoading(false);
+                              // history.replace(PAGES.DISPLAY_STUDENT);
+                              const user = JSON.parse(
+                                localStorage.getItem(USER_DATA)!
+                              );
+                              const userSchools = await getSchoolsForUser(user);
+                              await redirectUser(user, userSchools);
+                              localStorage.setItem(
+                                CURRENT_USER,
+                                JSON.stringify(result)
+                              );
+                              console.log(
+                                "google...",
+                                localStorage.getItem(CURRENT_USER)
+                              );
+                              Util.logEvent(EVENTS.USER_PROFILE, {
+                                user_type: RoleType.PARENT,
+                                action_type: ACTION.LOGIN,
+                                login_type: "google-signin",
+                              });
+                            } else {
+                              setIsLoading(false);
+                              setIsInitialLoading(false);
+                            }
+                          } catch (error) {
                             setIsLoading(false);
                             setIsInitialLoading(false);
+                            console.log("error", error);
                           }
-                        } catch (error) {
-                          setIsLoading(false);
-                          setIsInitialLoading(false);
-                          console.log("error", error);
-                        }
-                      }}
-                    />
-                    {/* <div className="google-or-student-credentials-button">OR</div> */}
-                    <div className="login-email-icon-div">
-                      <IoMailOpenOutline
-                        onClick={() => setEmailClick(true)}
-                        className="login-mail-icon"
+                        }}
                       />
+                      <p className="login-icon-label">{t("google")}</p>
                     </div>
+                    {/* <div className="google-or-student-credentials-button">OR</div> */}
+                    <div className="login-email-main-div">
+                      <div className="login-email-icon-div">
+                        <IoMailOpenOutline
+                          onClick={() => setEmailClick(true)}
+                          className="login-mail-icon"
+                        />
+                      </div>
+                      <p className="login-icon-label">{t("Email")}</p>
+                    </div>
+
                     {/* <div className="google-or-student-credentials-button">OR</div> */}
 
                     {!showVerification ? (
@@ -994,6 +1002,7 @@ const Login: React.FC = () => {
                           aria-label={String(t("Student-credentials Sign In"))}
                           className="school-icon"
                         />
+                        <p className="login-icon-label">{t("student id")}</p>
                       </div>
                     ) : null}
                   </div>

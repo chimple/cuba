@@ -27,7 +27,7 @@ const TressureBox: React.FC<TressureBoxProps> = ({
 
     let current = startNumber;
     const direction = endNumber > startNumber ? 1 : -1;
-    const interval = setInterval(() => {
+    const updateNumber = () => {
       current += direction;
       setCurrentNumber(current);
 
@@ -36,33 +36,38 @@ const TressureBox: React.FC<TressureBoxProps> = ({
         setIsConfettiVisible(false);
         setIsUpdating(false);
       }
-    }, 500);
+    };
+    updateNumber();
+    const interval = setInterval(updateNumber, 3000);
 
     return () => clearInterval(interval);
   }, [startNumber, endNumber]);
   useEffect(() => {
-    const itemHeight = 40;
-    const targetScrollTop = (currentNumber - minNum) * itemHeight;
+    const itemHeight = 50;
+    const container = containerRef.current;
+    if (!container) return;
 
-    if (containerRef.current) {
-      const container = containerRef.current;
-      const start = container.scrollTop;
-      const distance = targetScrollTop - start;
-      const duration = 1500;
-      const startTime = performance.now();
+    const targetScrollTop =
+      (currentNumber - minNum) * itemHeight -
+      container.clientHeight / 2 +
+      itemHeight / 2;
 
-      const step = (currentTime: number) => {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        container.scrollTop = start + distance * progress;
+    const start = container.scrollTop;
+    const distance = targetScrollTop - start;
+    const duration = 500;
+    const startTime = performance.now();
 
-        if (progress < 1) {
-          requestAnimationFrame(step);
-        }
-      };
+    const step = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      container.scrollTop = start + distance * progress;
 
-      requestAnimationFrame(step);
-    }
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+
+    requestAnimationFrame(step);
   }, [currentNumber]);
 
   const minNum = Math.min(startNumber, endNumber);

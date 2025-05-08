@@ -1,0 +1,58 @@
+.bottom-nav {
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff; /* Change background color if needed */
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2); /* Optional: add shadow for better visibility */ /* Ensure equal spacing */
+}
+
+.bottom-nav-action {
+  color: #000; /* Default icon and label color */
+}
+
+.bottom-nav-action.Mui-selected {
+  color: inherit; /* Maintain the same color for selected action */
+}
+
+/* Highlight only the icon and label when selected */
+.bottom-nav-action.Mui-selected .MuiSvgIcon-root {
+  color: #7c5db0;
+}
+
+.bottom-nav-action.Mui-selected .MuiBottomNavigationAction-label {
+  color: #666666;
+}
+
+/* Style for the middle icon to be larger */
+.middle-action .MuiSvgIcon-root {
+  font-size: 2rem; /* Adjust size as needed */
+}
+
+.main-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  margin: 0;
+  background-color: #7c5db0;
+}
+
+.container-footer {
+  height: 10vh;
+  color: #7c5db0;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-container-body {
+  height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.footerIcons{
+  width: 26px;
+}

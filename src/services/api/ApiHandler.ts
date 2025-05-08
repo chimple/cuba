@@ -8,6 +8,7 @@ import {
   LeaderboardRewards,
   MODES,
   PROFILETYPE,
+  TABLES,
   TableTypes,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -138,6 +139,9 @@ export class ApiHandler implements ServiceApi {
     profileType: PROFILETYPE
   ): Promise<string | null> {
     return await this.s.addProfileImages(id, file, profileType);
+  }
+  public async uploadData(payload: any): Promise<boolean | null> {
+    return await this.s.uploadData(payload);
   }
   public async createSchool(
     name: string,
@@ -729,8 +733,11 @@ export class ApiHandler implements ServiceApi {
     return this.s.createUserDoc(user);
   }
 
-  syncDB(): Promise<boolean> {
-    return this.s.syncDB();
+  syncDB(
+    tableNames: TABLES[] = Object.values(TABLES),
+    refreshTables: TABLES[] = []
+  ): Promise<boolean> {
+    return this.s.syncDB(tableNames, refreshTables);
   }
 
   async getRecommendedLessons(
@@ -999,5 +1006,28 @@ export class ApiHandler implements ServiceApi {
     starsCount: number
   ): Promise<void> {
     return this.s.setStarsForStudents(studentId, starsCount);
+  }
+  public async countAllPendingChanges(): Promise<number> {
+    return this.s.countAllPendingChanges();
+  }
+  public async getDebugInfoLast30Days(parentId: string): Promise<any[]> {
+    return this.s.getDebugInfoLast30Days(parentId);
+  }
+  public async getClassByUserId(
+    userId: string
+  ): Promise<TableTypes<"class"> | undefined> {
+    return this.s.getClassByUserId(userId);
+  }
+
+  public async getCoursesForPathway(
+    studentId: string
+  ): Promise<TableTypes<"course">[]> {
+    return await this.s.getCoursesForPathway(studentId);
+  }
+  public async updateLearningPath(
+    student: TableTypes<"user">,
+    learning_path: string // New parameter for learning_path
+  ): Promise<TableTypes<"user">> {
+    return await this.s.updateLearningPath(student, learning_path);
   }
 }

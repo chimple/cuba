@@ -7,8 +7,9 @@ import { FaCloudDownloadAlt } from "react-icons/fa";
 import { t } from "i18next";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { useLocation } from "react-router-dom";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
+import { SupabaseApi } from "../../services/api/SupabaseApi";
+import { generateFinalPayload } from "../OpsUtility/OpsDataMapper";
 import VerifiedPage from "./FileVerifiedComponent";
 import ErrorPage from "./FileErrorComponent";
 import VerificationInProgress from "./VerificationInProgress";
@@ -23,13 +24,41 @@ const FileUpload: React.FC = () => {
   const [fileBuffer, setFileBuffer] = useState<ArrayBuffer | null>(null);
   const progressRef = useRef(10);
   const [verifyingProgressState, setVerifyingProgressState] = useState(10);
-  const isReupload =
-    new URLSearchParams(useLocation().search).get("reupload") === "true";
+  const [isReupload, setIsReupload] = useState(false);
   const processedDataRef = useRef();
+  const [finalPayload, setFinalPayload] = useState<any[] | null>(null);
+  const [isVerified, setIsVerified] = useState(false);
+  const [step, setStep] = useState<
+    "idle" | "verifying" | "verified" | "uploading" | "uploaded" | "error"
+  >("idle");
+
+  function onReuploadTriggered() {
+    setFile(null);
+    setProgress(0);
+    setFileBuffer(null);
+    validSheetCountRef.current = null;
+    setStep("idle");
+    setIsReupload(true);
+  }
 
   useEffect(() => {
     setVerifyingProgressState(progressRef.current);
   }, [progressRef.current]);
+
+  useEffect(() => {
+    if (isVerified && finalPayload) {
+      setStep("uploading");
+      const uploadData = async () => {
+        const result = await SupabaseApi.i.uploadData(finalPayload);
+        if (result) {
+          setStep("uploaded");
+        } else {
+          setStep("error");
+        }
+      };
+      uploadData();
+    }
+  }, [isVerified, finalPayload]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -47,6 +76,7 @@ const FileUpload: React.FC = () => {
       setProgress(100);
       setIsProcessing(false);
     };
+    event.target.value = "";
   };
   const validateEmailOrPhone = (value: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -67,6 +97,13 @@ const FileUpload: React.FC = () => {
     let validatedSchoolIds: Set<string> = new Set(); // Store valid school IDs
     let validatedClassIds: Map<string, string> = new Map(); // Store valid school IDs
     let studentLoginType;
+
+    const validatedSheets = {
+      school: [] as any[],
+      class: [] as any[],
+      teacher: [] as any[],
+      student: [] as any[],
+    };
 
     for (const sheet of workbook.SheetNames) {
       const worksheet = workbook.Sheets[sheet];
@@ -258,7 +295,7 @@ const FileUpload: React.FC = () => {
           const grade = row["GRADE"]?.toString().trim();
           const classSection = row["CLASS SECTION"]?.toString().trim();
           const subjectGrade = row["SUBJECT GRADE"]?.toString().trim();
-          const curriculum = row["CURICULLUM"]?.toString().trim();
+          const curriculum = row["CURRICULUM"]?.toString().trim();
           const subject = row["SUBJECT"]?.toString().trim();
           const studentCount = row["STUDENTS COUNT IN CLASS"]
             ?.toString()
@@ -343,8 +380,8 @@ const FileUpload: React.FC = () => {
         }
       }
 
-      // **Student Sheet Validation**
-      if (sheet.toLowerCase().includes("student")) {
+       // **Student Sheet Validation**
+       if (sheet.toLowerCase().includes("student")) {
         for (let row of processedData) {
           let errors: string[] = [];
           const schoolId = row["SCHOOL ID"]?.toString().trim();
@@ -438,7 +475,13 @@ const FileUpload: React.FC = () => {
       // **Update sheet with validation messages**
       const updatedSheet = XLSX.utils.json_to_sheet(processedData);
       workbook.Sheets[sheet] = updatedSheet;
+
+      if (sheet === "School") validatedSheets.school = processedData;
+      else if (sheet === "Class") validatedSheets.class = processedData;
+      else if (sheet === "Teacher") validatedSheets.teacher = processedData;
+      else if (sheet === "Student") validatedSheets.student = processedData;
     }
+
     const output = XLSX.write(workbook, {
       bookType: "xlsx",
       type: "array",
@@ -453,10 +496,17 @@ const FileUpload: React.FC = () => {
       setIsProcessing(false);
       validSheetCountRef.current = 0;
     }
+    // When validations are complete
+    let payload = generateFinalPayload(
+      validatedSheets.school,
+      validatedSheets.class,
+      validatedSheets.teacher,
+      validatedSheets.student
+    );
+    setFinalPayload(payload);
 
     setIsProcessing(false);
     setIsVerifying(false);
-    return XLSX.write(workbook, { bookType: "xlsx", type: "array" });
   };
 
   const handleDownload = async () => {
@@ -500,8 +550,16 @@ const FileUpload: React.FC = () => {
   }
 
   const handleNext = async () => {
-    setIsVerifying(true);
+    setStep("verifying");
     await processFile();
+    const isValid =
+      validSheetCountRef.current === 0 && validSheetCountRef.current !== null;
+    if (isValid) {
+      setStep("verified");
+      setIsVerified(true); // triggers upload in useEffect
+    } else {
+      setStep("error");
+    }
   };
 
   const renderUploadPage = () => (
@@ -566,7 +624,10 @@ const FileUpload: React.FC = () => {
             </button>
           ) : progress === 100 ? (
             <div className="file-upload-actions">
-              <button className="file-upload-btn file-upload-cancel-btn">
+              <button
+                onClick={() => setFile(null)}
+                className="file-upload-btn file-upload-cancel-btn"
+              >
                 {t("Cancel")}
               </button>
               <div className="spacer"></div>
@@ -589,7 +650,7 @@ const FileUpload: React.FC = () => {
       </div>
 
       {!isReupload && (
-        <a href="#" className="download-upload-template">
+        <a className="download-upload-template">
           <FaCloudDownloadAlt /> {t("Download Bulk Upload Template")}
         </a>
       )}
@@ -597,7 +658,7 @@ const FileUpload: React.FC = () => {
   );
 
   // Render conditions at the end
-  if (isVerifying && !isProcessing) {
+  if (step === "verifying") {
     return (
       <VerificationInProgress
         progress={verifyingProgressState}
@@ -608,7 +669,8 @@ const FileUpload: React.FC = () => {
       />
     );
   }
-  if (validSheetCountRef.current == 0 && validSheetCountRef.current !== null) {
+
+  if (step === "verified") {
     return (
       <VerifiedPage
         title={t("Verified")}
@@ -619,8 +681,32 @@ const FileUpload: React.FC = () => {
     );
   }
 
+  if (step === "uploading") {
+    return (
+      <VerificationInProgress
+        progress={90}
+        title={t("Uploading Data...")}
+        message={t("We are uploading your data. Please wait.")}
+      />
+    );
+  }
+
+  if (step === "uploaded") {
+    return (
+      <VerifiedPage
+        title={t("Upload Successful")}
+        message={t("Your data has been uploaded successfully.")}
+      />
+    );
+  }
+
   if (validSheetCountRef.current !== 0 && validSheetCountRef.current !== null) {
-    return <ErrorPage handleDownload={() => handleDownload()} />;
+    return (
+      <ErrorPage
+        handleDownload={() => handleDownload()}
+        reUplod={() => onReuploadTriggered()}
+      />
+    );
   }
 
   return renderUploadPage();
