@@ -25,7 +25,6 @@ const LidoPlayer: FC = () => {
   const state = history.location.state as any;
   const playedFrom = localStorage.getItem("currentHeader")
   const assignmentType = state?.assignment?.type || 'self-played';
-  console.log("Lido State: ", state.assignment)
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [basePath, setBasePath] = useState<string>();
   const [xmlPath, setXmlPath] = useState<string>();
