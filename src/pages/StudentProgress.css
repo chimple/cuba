@@ -11,9 +11,10 @@
 #student-progress-display-progress-content {
   margin: 3vw 1vw 1vw 8vw;
   height: 80vh;
-  max-height: 400px;
+  max-height: 200px;
   overflow-y: auto;
 }
+
 .course-detail-div {
   display: flex;
   flex-direction: column;
@@ -47,4 +48,11 @@
 #student-progress-display-progress-no-data-message {
   text-align: center;
   color: black;
+}
+
+/*  */
+@media screen and (min-height: 500px) {
+  #student-progress-display-progress-content {
+    max-height: 300px;
+  }
 }
