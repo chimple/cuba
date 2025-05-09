@@ -294,7 +294,7 @@ const FileUpload: React.FC = () => {
           const schoolId = row["SCHOOL ID"]?.toString().trim();
           const grade = row["GRADE"]?.toString().trim();
           const classSection = row["CLASS SECTION"]?.toString().trim();
-          const subjectGrade = row["SUBJECT GRADE"]?.toString().trim();
+          let subjectGrade = row["SUBJECT GRADE"]?.toString().trim();
           const curriculum = row["CURRICULUM"]?.toString().trim();
           const subject = row["SUBJECT"]?.toString().trim();
           const studentCount = row["STUDENTS COUNT IN CLASS"]
@@ -303,10 +303,21 @@ const FileUpload: React.FC = () => {
           const className = `${grade} ${classSection}`.trim();
           console.log("fddfdsgfdgdg23", validatedSchoolIds);
           if (!grade) errors.push("Missing grade");
-          if (!subjectGrade) errors.push("Missing subjectGrade");
           if (!curriculum) errors.push("Missing curriculum");
           if (!subject) errors.push("Missing subject");
           if (!studentCount) errors.push("Missing studentCount");
+          if (!subjectGrade) {
+            errors.push("Missing subjectGrade");
+          } else {
+            // Transform subjectGrade value
+            if (subjectGrade === "1") {
+              subjectGrade = "Grade 1";
+            } else if (subjectGrade === "2") {
+              subjectGrade = "Grade 2";
+            } else {
+              errors.push("Invalid subjectGrade. Only 1 or 2 are allowed.");
+            }
+          }
 
           if (
             !schoolId &&
@@ -323,7 +334,7 @@ const FileUpload: React.FC = () => {
             }
           }
           const validationResponse =
-            await api.validateClassCurriculumAndSubject(curriculum, subject);
+            await api.validateClassCurriculumAndSubject(curriculum, subject, subjectGrade);
           if (validationResponse.status === "error") {
             errors.push(...(validationResponse.errors || []));
           }

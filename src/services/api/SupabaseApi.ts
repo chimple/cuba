@@ -1389,7 +1389,8 @@ export class SupabaseApi implements ServiceApi {
   }
   async validateClassCurriculumAndSubject(
     curriculumName: string,
-    subjectName: string
+    subjectName: string,
+    gradeName: string // new parameter
   ): Promise<{ status: string; errors?: string[] }> {
     if (!this.supabase) {
       return {
@@ -1397,8 +1398,7 @@ export class SupabaseApi implements ServiceApi {
         errors: ["Supabase client is not initialized"],
       };
     }
-
-    // Step 1: Fetch curriculum ID based on the provided curriculum name
+    // Step 1: Fetch curriculum ID
     const { data: curriculumData, error: curriculumError } = await this.supabase
       .from("curriculum")
       .select("id")
@@ -1412,23 +1412,37 @@ export class SupabaseApi implements ServiceApi {
       };
     }
     const curriculumId = curriculumData.id;
-    // Step 2: Check if the subject exists for the curriculum
+
+    // Step 2: Fetch grade ID
+    const { data: gradeData, error: gradeError } = await this.supabase
+      .from("grade")
+      .select("id")
+      .eq("name", gradeName)
+      .single();
+    if (gradeError || !gradeData) {
+      return {
+        status: "error",
+        errors: ["Invalid grade name"],
+      };
+    }
+
+    const gradeId = gradeData.id;
+
+    // Step 3: Check if course exists with curriculum ID, grade ID, and subject name
     const { data: courseData, error: courseError } = await this.supabase
       .from("course")
       .select("id")
       .eq("curriculum_id", curriculumId)
+      .eq("grade_id", gradeId)
       .eq("name", subjectName.trim());
-
     if (courseError || !courseData || courseData.length === 0) {
       return {
         status: "error",
         errors: [
-          `Subject '${subjectName}' not found in the '${curriculumName}' curriculum.`,
+          `Subject '${subjectName}' not found for grade '${gradeName}' in the '${curriculumName}' curriculum.`,
         ],
       };
     }
-
-    // If both checks pass, return success
     return { status: "success" };
   }
   async validateUserContacts(

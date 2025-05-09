@@ -4421,12 +4421,15 @@ order by
 
   async validateClassCurriculumAndSubject(
     curriculumName: string,
-    subjectName: string
+    subjectName: string,
+    gradeName: string
+    
   ): Promise<{ status: string; errors?: string[] }> {
     const ClassCurriculum =
       await this._serverApi.validateClassCurriculumAndSubject(
         curriculumName,
-        subjectName
+        subjectName,
+        gradeName
       );
     console.log("fdsfdsfs", ClassCurriculum);
     if (ClassCurriculum.status === "error") {
