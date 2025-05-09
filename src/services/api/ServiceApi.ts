@@ -1264,7 +1264,8 @@ export interface ServiceApi {
    */
   validateClassCurriculumAndSubject(
     curriculumName: string,
-    subjectName: string
+    subjectName: string,
+    gradeName: string
   ): Promise<{ status: string; errors?: string[] }>;
   /**
    * To validate that the given user phone or mail is exist or not
