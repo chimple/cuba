@@ -131,7 +131,8 @@ const Login: React.FC = () => {
     const checkRespectApp = async () => {
       const data = await Util.checkRespectApp();
       console.log("data isRespect data--> ", JSON.stringify(data));
-      setIsRespectApp(data);
+      // Hard Coding for now so to bypass the LoginAuthentication until respect launcher is ready
+      setIsRespectApp(true);
     }
 
     const authHandler = ServiceConfig.getI().authHandler;
