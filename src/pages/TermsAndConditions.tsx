@@ -28,7 +28,6 @@ const TermsAndConditions: React.FC = () => {
     try {
       const authHandler = ServiceConfig.getI()?.authHandler;
       const currentUser = await authHandler?.getCurrentUser();
-      console.log("currentUser", currentUser);
       if (!!currentUser) {
         if (!!currentUser?.is_tc_accepted) {
           history.replace(PAGES.SELECT_MODE);
@@ -37,13 +36,11 @@ const TermsAndConditions: React.FC = () => {
         history.replace(PAGES.LOGIN);
       }
     } catch (error) {
-      console.log("Error:", error);
     }
   };
 
   const handleAgreeButtonClick = async () => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    console.log("current user", currentUser);
     if (currentUser) {
       await ServiceConfig.getI().apiHandler.updateTcAccept(currentUser.id);
       history.replace(PAGES.SELECT_MODE);

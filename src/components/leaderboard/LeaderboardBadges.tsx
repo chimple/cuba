@@ -122,7 +122,6 @@ const LeaderboardBadges: FC = () => {
       date.getFullYear(),
       "weekly"
     );
-    console.log("rewardsDoc in getBadges", rewardsDoc);
 
     if (!rewardsDoc || !rewardsDoc.weekly) {
       console.error("No rewards document or weekly data found");

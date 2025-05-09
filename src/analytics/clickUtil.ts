@@ -104,7 +104,6 @@ const handleClick = async (event: MouseEvent) => {
     action_type: event.type,
   };
 
-  console.log("Clicked Logging Event Data:", eventData);
   Util.logEvent(EVENTS.CLICKS_ANALYTICS, eventData);
 };
 

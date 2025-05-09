@@ -11,14 +11,15 @@
   font-weight: bold;
   font-size: 5vh;
 }
-.livequiz-leaderboard {
-  position: sticky;
-  z-index: 3;
-  background: var(--ion-background-color);
-  top: 0;
-  padding: clamp(10px, 10vh, 20px);
-  padding-bottom: 0;
-}
+  .livequiz-leaderboard {
+    position: sticky;
+    z-index: 3;
+    /* background: var(--ion-background-color); */
+    background: transparent !important;
+    top: 0;
+    padding: clamp(10px, 10vh, 20px);
+    padding-bottom: 0;
+  }
 .leaderboard-container {
   display: flex;
   flex-direction: column;
@@ -60,4 +61,8 @@
   color: var(--text-color);
   font-size: 5vh;
   font-weight: bold;
+}
+
+ion-content.livequiz-leaderboard-page-content::part(background) {
+  background: none !important; 
 }

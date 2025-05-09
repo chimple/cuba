@@ -100,11 +100,6 @@ const AddCourses: React.FC = () => {
       // parent_username: currentStudent?.username,
       // action_type: ACTION.UPDATE,
     };
-    console.log(
-      "Util.logEvent(EVENTS.USER_PROFILE, eventParams);",
-      EVENTS.USER_PROFILE,
-      eventParams
-    );
     Util.logEvent(EVENTS.USER_PROFILE, eventParams);
     setIsLoading(false);
     switch (stage) {

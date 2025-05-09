@@ -26,14 +26,12 @@ import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 const CocosGame: React.FC = () => {
   const history = useHistory();
-  console.log("cocos game", history.location.state);
   const location = history.location.state as { from?: string, assignment?: any }; 
   // const playedFrom = location?.from?.split('/')[1].split('?')[0] 
   const playedFrom = localStorage.getItem("currentHeader")
   const assignmentType = location?.assignment?.type || 'self-played';
   const state = history.location.state as any;
   const iFrameUrl = state?.url;
-  console.log("iFrameUrl", state?.url, iFrameUrl);
   const [isLoading, setIsLoading] = useState<any>();
   const [present] = useIonToast();
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -89,7 +87,6 @@ const CocosGame: React.FC = () => {
     Util.killCocosGame();
     initialCount++;
     localStorage.setItem(LESSONS_PLAYED_COUNT, initialCount.toString());
-    console.log("---------count of LESSONS PLAYED", initialCount);
   };
 
   const push = () => {
@@ -125,7 +122,6 @@ const CocosGame: React.FC = () => {
     //   );
     //   if (cChap) {
     //     ChapterDetail = cChap;
-    //     console.log("Current Chapter ", ChapterDetail);
     //   }
     // }
     const api = ServiceConfig.getI().apiHandler;
@@ -223,21 +219,18 @@ const CocosGame: React.FC = () => {
     const lessonId: string = state.lessonId;
     const lessonIds: string[] = [];
     lessonIds.push(lessonId);
-    console.log("cocosGame page lessonIds", lessonIds);
     const dow = await Util.downloadZipBundle(lessonIds);
     if (!dow) {
       presentToast();
       push();
       return;
     }
-    console.log("donwloaded ", dow);
     setIsLoading(false);
     Util.launchCocosGame();
 
     //Just fot Testing
 
     // const onProblemEnd = async (e: any) => {
-    //   console.log("🚀 ~ file: CocosGame.tsx:73 ~ onProblemEnd ~ e:", e);
     //   push();
     // };
 
@@ -339,7 +332,6 @@ const CocosGame: React.FC = () => {
     //   );
     //   if (cChap) {
     //     ChapterDetail = cChap;
-    //     console.log("Current Chapter ", ChapterDetail);
     //   }
     //   let existing = new Map();
     //   let res: { [key: string]: string } = JSON.parse(
@@ -352,7 +344,6 @@ const CocosGame: React.FC = () => {
     //     lesson.id,
     //     ChapterDetail
     //   );
-    //   console.log("final lesson", finalLesson);
     //   existing.set(courseDetail.courseCode, finalLesson?.id);
     //   for (let [key, value] of existing) {
     //     res[key] = value;
@@ -391,7 +382,6 @@ const CocosGame: React.FC = () => {
       played_from: playedFrom,
       assignment_type: assignmentType,
     });
-    console.log("🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:", result);
     let tempAssignmentCompletedIds = localStorage.getItem(
       ASSIGNMENT_COMPLETED_IDS
     );
@@ -432,13 +422,8 @@ const CocosGame: React.FC = () => {
               }}
               onYesButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
-                console.log("--------------line 200 game result", gameResult);
                 setIsLoading(true);
                 await updateLessonAsFavorite();
-                console.log(
-                  "------------------the game result ",
-                  gameResult.detail.score
-                );
                 if (initialCount >= 5) {
                   Util.showInAppReview();
                   initialCount = 0;
@@ -453,10 +438,6 @@ const CocosGame: React.FC = () => {
                 setShowDialogBox(false);
                 setIsLoading(true);
                 // await saveTempData(gameResult.detail, undefined);
-                console.log(
-                  "------------------the game result ",
-                  gameResult.detail.score
-                );
                 push();
               }}
             />
