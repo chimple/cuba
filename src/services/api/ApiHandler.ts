@@ -524,7 +524,6 @@ export class ApiHandler implements ServiceApi {
     return this.s.updateMusicFlag(userId, value);
   }
   updateTcAccept(userId: string) {
-    console.log("🚀 ~ ApiHandler ~ updateTcAccept ~ this.s:", this.s, this);
     return this.s.updateTcAccept(userId);
   }
   public get currentStudent(): TableTypes<"user"> | undefined {

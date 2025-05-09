@@ -39,13 +39,8 @@ const ParentalLock: React.FC<{
     }, []);
 
     const checkSwipeDirection = (swipeDirection: FourSides) => {
-      console.log("RandomDirection", userDirection);
-      console.log("User swipeDirection", swipeDirection);
-
       if (swipeDirection.length > 0 && userDirection === swipeDirection) {
         Util.setPathToBackButton(PAGES.PARENT, history);
-      } else {
-        console.log('not matched');
       }
     };
 

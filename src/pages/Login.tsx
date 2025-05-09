@@ -165,7 +165,6 @@ const Login: React.FC = () => {
 
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
-        console.log("info", JSON.stringify(info));
         setIsInputFocus(true);
         setTimeout(() => {
           //@ts-ignore
@@ -185,12 +184,7 @@ const Login: React.FC = () => {
     authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
       const apiHandler = ServiceConfig.getI().apiHandler;
       const appLang = localStorage.getItem(LANGUAGE);
-      console.log(
-        "appLang",
-        appLang,
-        isUserLoggedIn,
-        isUserLoggedIn && appLang != undefined
-      );
+
 
       async function init() {
         const currentStudent = Util.getCurrentStudent();
@@ -201,7 +195,6 @@ const Login: React.FC = () => {
         setStudent(currentStudent);
       }
       if (appLang == undefined) {
-        console.log("navigating to app lang");
         history.replace(PAGES.APP_LANG_SELECTION);
       }
 
@@ -222,23 +215,19 @@ const Login: React.FC = () => {
       // Note: The 'recaptcha-container' must be rendered by this point, or
       // else Firebase throws 'auth/argument-error'
       // const auth = getAuth();
-      // console.log("auth in recaptcha ", auth);
       // const rv = new RecaptchaVerifier(
       //   "recaptcha-container",
       //   {
       //     size: "invisible",
       //     callback: (response) => {
       //       // reCAPTCHA solved, allow signInWithPhoneNumber.
-      //       console.log("// reCAPTCHA solved, allow signInWithPhoneNumber.");
       //     },
       //     "expired-callback": () => {
       //       // Reset reCAPTCHA?
-      //       console.log("// Reset reCAPTCHA?");
       //     },
       //   },
       //   auth
       // );
-      // console.log("setRecaptchaVerifier(rv);", rv);
       // setRecaptchaVerifier(rv);
       // if (!window.recaptchaVerifier) {
       //   window.recaptchaVerifier = new RecaptchaVerifier(
@@ -330,7 +319,6 @@ const Login: React.FC = () => {
         //alert("Phone Number Invalid " + phoneNumber);
         return;
       }
-      console.log("window.recaptchaVerifier", window.recaptchaVerifier);
 
       // setEnabled(true);
       let response = await authInstance.generateOtp(
@@ -348,13 +336,11 @@ const Login: React.FC = () => {
       //   phoneNumberWithCountryCode,
       //   recaptchaVerifier
       // );
-      // console.log("phoneNumberSignIn authRes", JSON.stringify(authRes));
       // if (authRes.user) {
       //   setIsLoading(false);
       //   history.replace(PAGES.SELECT_MODE);
       //   // setShowNameInput(true);
       // }
-      // console.log("verificationIdRes", authRes?.verificationId);
       // setEnabled(false);
 
       // if (authRes) {
@@ -365,7 +351,6 @@ const Login: React.FC = () => {
       //   setShowBackButton(true);
       //   setSpinnerLoading(false);
       // } else {
-      //   console.log("Phone Number signin Failed ");
       //   setSpinnerLoading(false);
       //   setSentOtpLoading(false);
       //   setErrorMessage(
@@ -374,7 +359,6 @@ const Login: React.FC = () => {
       //   //alert("Phone Number signin Failed " + authRes);
       // }
     } catch (error) {
-      console.log("Phone Number signin Failed ");
       setSpinnerLoading(false);
       setSentOtpLoading(false);
 
@@ -399,7 +383,6 @@ const Login: React.FC = () => {
         );
       }
 
-      console.log("window.recaptchaVerifier", recaptchaVerifier!);
       //@ts-ignore
       recaptchaVerifier!.clear();
       //@ts-ignore
@@ -446,17 +429,14 @@ const Login: React.FC = () => {
         phoneNumberWithCountryCode,
         otp.trim()
       );
-      console.log("login User Data ", res, userData);
       if (!res?.user) {
         setIsLoading(false);
         setIsInitialLoading(false);
-        console.log("Verification Failed");
         setErrorMessage(t("Something went wrong Verification Failed"));
         // alert("Something went wrong Verification Failed");
         return;
       }
       setUserData(res.user);
-      console.log("login User Data ", res, userData);
 
       // if (res.isUserExist) {
       setIsLoading(false);
@@ -476,13 +456,11 @@ const Login: React.FC = () => {
       //     // history.push(PAGES.DISPLAY_STUDENT);
       //     history.replace(PAGES.SELECT_MODE);
       //     localStorage.setItem(CURRENT_USER, JSON.stringify(phoneAuthResult));
-      //     console.log("new user", localStorage.getItem(CURRENT_USER));
       //   }
       // }
       // else {
       //   setIsLoading(false);
 
-      //   console.log("Verification Failed");
       //   //alert("Verification Failed");
       // }
       Util.logEvent(EVENTS.USER_PROFILE, {
@@ -497,7 +475,6 @@ const Login: React.FC = () => {
     } catch (error) {
       setIsLoading(false);
       setIsInitialLoading(false);
-      console.log("Verification Failed", error);
       //alert("Please Enter Valid Verification Code");
       setIsInvalidCode({
         isInvalidCode: true,
@@ -545,10 +522,8 @@ const Login: React.FC = () => {
         setVerificationCode("");
       } else {
         setSentOtpLoading(false);
-        console.log("Resend Otp failed");
       }
     } catch (error) {
-      console.log("Resend Otp Failed With Error " + error);
       setSentOtpLoading(false);
       //When Resend OTP Failed
       setErrorMessage(
@@ -587,7 +562,6 @@ const Login: React.FC = () => {
       setIsLoading(false);
       setIsInitialLoading(false);
       setErrorMessage(t("Login unsuccessful. Please try again later."));
-      console.log("error", error);
     }
   };
   const handleLogin = async (email: string, password: string) => {
@@ -613,7 +587,6 @@ const Login: React.FC = () => {
       setIsLoading(false);
       setIsInitialLoading(false);
       setErrorMessage(t("Login unsuccessful. Please try again later."));
-      console.log("error", error);
     }
   };
 
@@ -744,7 +717,6 @@ const Login: React.FC = () => {
                       } catch (error) {
                         setIsLoading(false);
                         setIsInitialLoading(false);
-                        console.log("error", error);
                       }
                     }}
                   />
@@ -816,11 +788,9 @@ const Login: React.FC = () => {
                               }
 
                               setPhoneNumber(input.target.value);
-                              console.log(countryCode + input.target.value);
 
                               let loginBtnBgColor = currentButtonColor;
                               if (input.target.value.length === 10) {
-                                console.log(phoneNumber);
                                 setCurrentButtonColor(Buttoncolors.Valid);
                                 phoneNumberErrorRef.current.style.display =
                                   "none";
@@ -831,7 +801,6 @@ const Login: React.FC = () => {
                               }
                             } else {
                               setPhoneNumber("");
-                              console.log(countryCode + input.target.value);
                             }
                           }}
                         ></TextBox>
@@ -870,10 +839,6 @@ const Login: React.FC = () => {
                           });
                           return;
                         }
-                        console.log(
-                          "if (!recaptchaVerifier && !Capacitor.isNativePlatform()) called",
-                          recaptchaVerifier
-                        );
 
                         // setSpinnerLoading(true);
                         if (phoneNumber.length === 10) {
@@ -935,15 +900,10 @@ const Login: React.FC = () => {
                           try {
                             setIsLoading(true);
                             setIsInitialLoading(true);
-                            console.log("isLoading ", isLoading);
                             const _authHandler =
                               ServiceConfig.getI().authHandler;
                             const result: boolean =
                               await _authHandler.googleSign();
-                            console.log(
-                              "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
-                              result
-                            );
                             if (result) {
                               setIsLoading(false);
                               setIsInitialLoading(false);
@@ -957,10 +917,6 @@ const Login: React.FC = () => {
                                 CURRENT_USER,
                                 JSON.stringify(result)
                               );
-                              console.log(
-                                "google...",
-                                localStorage.getItem(CURRENT_USER)
-                              );
                               Util.logEvent(EVENTS.USER_PROFILE, {
                                 user_type: RoleType.PARENT,
                                 action_type: ACTION.LOGIN,
@@ -973,7 +929,6 @@ const Login: React.FC = () => {
                           } catch (error) {
                             setIsLoading(false);
                             setIsInitialLoading(false);
-                            console.log("error", error);
                           }
                         }}
                       />
@@ -1026,7 +981,6 @@ const Login: React.FC = () => {
                               return;
                             }
                             setVerificationCode(input.target.value.trim());
-                            console.log(input.target.value);
                             setIsInvalidCode({
                               isInvalidCode: false,
                               isInvalidCodeLength: false,
@@ -1048,7 +1002,6 @@ const Login: React.FC = () => {
                             }
                           } else {
                             setVerificationCode("");
-                            console.log(input.target.value);
                           }
                         }}
                       ></TextBox>
@@ -1133,7 +1086,6 @@ const Login: React.FC = () => {
                   inputValue={displayName}
                   onChange={(input) => {
                     if (input.detail.value) {
-                      console.log("" + input.detail.value);
                       // setParentName(input.detail.value);
                     }
                   }}
@@ -1177,7 +1129,6 @@ const Login: React.FC = () => {
                         return;
                       }
                       setSchoolCode(input.target.value);
-                      console.log(input.target.value);
                     } else {
                       setSchoolCode("");
                     }
@@ -1197,7 +1148,6 @@ const Login: React.FC = () => {
                         return;
                       }
                       setStudentId(input.target.value);
-                      console.log(input.target.value);
                     } else {
                       setStudentId("");
                     }
@@ -1215,7 +1165,6 @@ const Login: React.FC = () => {
                       setErrorMessage("");
                       if (input.target.value) {
                         setStudenPassword(input.target.value);
-                        console.log(input.target.value);
                       } else setStudenPassword("");
                     }}
                   ></TextBox>

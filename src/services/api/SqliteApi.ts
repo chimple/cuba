@@ -81,7 +81,7 @@ export class SqliteApi implements ServiceApi {
       ret = await this._sqlite.checkConnectionsConsistency();
       isConn = (await this._sqlite.isConnection(this.DB_NAME, false)).result;
     } catch (error) {
-      console.log("🚀 ~ Api ~ init ~ error:", error);
+      console.error("🚀 ~ Api ~ init ~ error:", error);
     }
     try {
       const localVersion = localStorage.getItem(CURRENT_SQLITE_VERSION);
@@ -146,7 +146,7 @@ export class SqliteApi implements ServiceApi {
         );
       }
     } catch (error) {
-      console.log("🚀 ~ SqliteApi ~ init ~ error:", JSON.stringify(error));
+      console.error("🚀 ~ SqliteApi ~ init ~ error:", JSON.stringify(error));
     }
 
     if (ret && ret.result && isConn) {
@@ -163,14 +163,13 @@ export class SqliteApi implements ServiceApi {
     try {
       await this._db.open();
     } catch (err) {
-      console.log("🚀 ~ SqliteApi ~ init ~ err:", err);
+      console.error("🚀 ~ SqliteApi ~ init ~ err:", err);
     }
     await this.setUpDatabase();
     return this._db;
   }
 
   private async setUpDatabase() {
-    console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ setUpDatabase:");
     if (!this._db || !this._sqlite) return;
     try {
       const exportedData = await this._db.exportToJson("full");
@@ -189,16 +188,15 @@ export class SqliteApi implements ServiceApi {
         }
       }
     } catch (error) {
-      console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
+      console.error("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
     }
     let res1: DBSQLiteValues | undefined = undefined;
     try {
       const stmt =
         "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table';";
       res1 = await this._db.query(stmt);
-      console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ res1:", res1);
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ SqliteApi ~ setUpDatabase ~ error:",
         JSON.stringify(error)
       );
@@ -381,7 +379,7 @@ export class SqliteApi implements ServiceApi {
 
       this.updateDebugInfo(res.length, 0, 0); //update debug info
     } catch (error) {
-      console.log("🚀 ~ Api ~ syncDB ~ error:", error);
+      console.error("🚀 ~ Api ~ syncDB ~ error:", error);
       await this.createSyncTables();
     }
     if (res && res.length) {
@@ -619,7 +617,6 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
       is_deleted: false,
     };
-    console.log("school data..", newSchool);
 
     await this.executeQuery(
       `
@@ -652,7 +649,6 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
       is_deleted: false,
     };
-    console.log("school user data..", newSchoolUser);
 
     await this.executeQuery(
       `
@@ -1141,7 +1137,7 @@ export class SqliteApi implements ServiceApi {
       ]);
       await this.executeQuery(`DELETE FROM user WHERE id = ?`, [studentId]);
     } catch (error) {
-      console.log("🚀 ~ SqliteApi ~ deleteProfile ~ error:", error);
+      console.error("🚀 ~ SqliteApi ~ deleteProfile ~ error:", error);
     }
   }
   async getCourseByUserGradeId(
@@ -1931,7 +1927,6 @@ export class SqliteApi implements ServiceApi {
     student_id: string,
     newClassId: string
   ): Promise<TableTypes<"user">> {
-    console.log("fsgdgdfg", name, newClassId);
     const updateUserQuery = `
       UPDATE "user"
       SET
@@ -1986,7 +1981,6 @@ export class SqliteApi implements ServiceApi {
       // Check if the class has changed
       // const currentClassId = await this.getCurrentClassIdForStudent(student.id); // Assume this function retrieves the current class ID
       const currentClassId = Util.getCurrentClass();
-      console.log("fdsfsf", currentClassId, newClassId);
       if (currentClassId?.id !== newClassId) {
         // Update class_user table to set previous record as deleted
         const deleteOldClassUserQuery = `
@@ -2311,7 +2305,6 @@ export class SqliteApi implements ServiceApi {
       WHERE school_id = ? AND is_deleted = 0
     `;
     const res = await this._db?.query(query, [schoolId]);
-    console.log("res of school course", res);
     return res?.values ?? [];
   }
 
@@ -2333,7 +2326,6 @@ export class SqliteApi implements ServiceApi {
       );
 
       if (!result?.values) return false;
-      console.log("result value for classids", result, classIds, courseId);
       return result.values.length > 0; // Return true if at least one match is found
     } catch (error) {
       console.error("Error checking course in classes:", error);
@@ -2449,7 +2441,6 @@ export class SqliteApi implements ServiceApi {
 
       is_deleted: false,
     };
-    console.log("school data..", newClass);
 
     await this.executeQuery(
       `
@@ -2501,8 +2492,6 @@ export class SqliteApi implements ServiceApi {
             is_deleted: true,
           });
         }
-      } else {
-        console.log("No class_user records found for the teachers.");
       }
 
       //Update is_deleted to true for all class_course records where class_id matches
@@ -2531,8 +2520,6 @@ export class SqliteApi implements ServiceApi {
             is_deleted: true,
           });
         }
-      } else {
-        console.log("No class_course records found for the class.");
       }
 
       // Update is_deleted to true for the class itself
@@ -2547,7 +2534,6 @@ export class SqliteApi implements ServiceApi {
         is_deleted: true,
       });
 
-      console.log("Class and related data marked as deleted successfully.");
     } catch (error) {
       console.error("Failed to delete class:", error);
       throw error;
@@ -3055,7 +3041,6 @@ export class SqliteApi implements ServiceApi {
     try {
       const query = `UPDATE ${TABLES.UserSticker} SET is_seen = true WHERE user_id = "${studentId}" AND is_seen = false`;
       await this._db?.query(query);
-      console.log(`Updated unseen rewards to seen for student ${studentId}`);
     } catch (error) {
       console.error("Error updating rewards as seen:", error);
       throw new Error("Error updating rewards as seen.");
@@ -3255,7 +3240,6 @@ export class SqliteApi implements ServiceApi {
   ): Promise<boolean> {
     const assignmentUUid = uuidv4();
     const timestamp = new Date().toISOString(); // Cache timestamp for reuse
-    console.log("createAssignment called", assignmentUUid);
 
     try {
       // Insert into assignment table
@@ -3300,14 +3284,12 @@ export class SqliteApi implements ServiceApi {
         source: null,
       };
 
-      console.log("Assignment data:", assignment_data);
 
       const res = await this.updatePushChanges(
         TABLES.Assignment,
         MUTATE_TYPES.INSERT,
         assignment_data
       );
-      console.log("Push changes result:", res);
 
       // If the assignment is not class-wide, assign it to individual students
 
@@ -3340,11 +3322,6 @@ export class SqliteApi implements ServiceApi {
             TABLES.Assignment_user,
             MUTATE_TYPES.INSERT,
             newAssignmentUser
-          );
-          console.log(
-            "const assignmentUserPushRes ",
-            newAssignmentUser,
-            assignmentUserPushRes
           );
         }
       }
@@ -3388,7 +3365,7 @@ export class SqliteApi implements ServiceApi {
       await this.syncDbNow(tableNames, refreshTables);
       return true;
     } catch (error) {
-      console.log("🚀 ~ SqliteApi ~ syncDB ~ error:", error);
+      console.error("🚀 ~ SqliteApi ~ syncDB ~ error:", error);
       return false;
     }
   }
@@ -3673,7 +3650,7 @@ order by
       const serverResults = await this._serverApi.searchLessons(searchString);
       res.push(...serverResults);
     } catch (error) {
-      console.log("🚀 ~ SqliteApi ~ searchLessons ~ error:", error);
+      console.error("🚀 ~ SqliteApi ~ searchLessons ~ error:", error);
     }
 
     if (res.length > 0) return res;
@@ -4067,7 +4044,6 @@ order by
     const res = await this._db?.query(query);
     const assignments = res?.values ?? [];
 
-    console.log("assignments..", assignments);
 
     const classWiseAssignments = assignments.filter(
       (assignment) => assignment.is_class_wise
@@ -4118,7 +4094,6 @@ order by
       if (res?.values) {
         userIds = res?.values.map((row: { user_id: string }) => row.user_id);
       }
-      console.log("userids..", userIds);
 
       return userIds ?? [];
     } catch (error) {
@@ -4144,7 +4119,6 @@ order by
 
       if (res && res.values && res.values.length > 0) {
         userData = res.values[0];
-        console.log("user..", userData);
       } else {
         throw new Error("Teacher not found after update.");
       }
@@ -4154,7 +4128,7 @@ order by
         is_deleted: true,
       });
     } catch (error) {
-      console.log("🚀 ~ SqliteApi ~ deleteTeacher ~ error:", error);
+      console.error("🚀 ~ SqliteApi ~ deleteTeacher ~ error:", error);
     }
   }
   async getClassCodeById(class_id: string): Promise<number | undefined> {
@@ -4357,7 +4331,7 @@ order by
         is_deleted: true,
       });
     } catch (error) {
-      console.log("🚀 ~ SqliteApi ~ deleteUserFromSchool ~ error:", error);
+      console.error("🚀 ~ SqliteApi ~ deleteUserFromSchool ~ error:", error);
     }
   }
   async updateSchoolLastModified(schoolId: string): Promise<void> {
@@ -4404,7 +4378,6 @@ order by
       schoolId,
       schoolName
     );
-    console.log("fdsfdsfs", schoolData);
     if (schoolData.status === "error") {
       return { status: "error", errors: schoolData.errors };
     }
@@ -4423,7 +4396,6 @@ order by
         subjectName,
         gradeName
       );
-    console.log("fdsfdsfs", ClassCurriculum);
     if (ClassCurriculum.status === "error") {
       return {
         status: "error",
