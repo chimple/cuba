@@ -17,7 +17,7 @@ const SchoolUserDetail: React.FC<{
         <div className="school-user-name-div">
           <div className="school-user-item">
             <img
-              className="child-avatar-img"
+              className="school-user-avatar-img"
               src={user.image ? user.image : "assets/icons/userIcon.png"}
               onError={handleImageError}
             />
