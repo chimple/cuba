@@ -1,7 +1,8 @@
 .live-quiz-question-box {
   width: 80vw;
   height: 25vh;
-  background-color: #eae8e8;
+  /* background-color: #eae8e8; */
+  background-color: #FFFDEE;
   display: flex;
   justify-content: center;
   align-items: center;

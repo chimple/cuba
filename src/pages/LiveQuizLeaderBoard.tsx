@@ -20,6 +20,11 @@ const LiveQuizLeaderBoard: React.FC = () => {
   let resultData: TableTypes<"result">[] | null = [];
   let userData: TableTypes<"user">[] | null = [];
   useEffect(() => {
+    const body = document.querySelector("body");
+    body?.style.setProperty(
+      "background-image",
+      "url(/pathwayAssets/pathwayBackground.svg)"
+    );
     init();
   }, []);
 
@@ -153,7 +158,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
 
   return (
     <IonPage>
-      <IonContent>
+      <IonContent className="livequiz-leaderboard-page-content">
         <div className="livequiz-leaderboard">
           <div className="leaderboard-header">
             <div className="empty"></div>

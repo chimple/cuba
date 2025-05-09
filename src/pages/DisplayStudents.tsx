@@ -35,6 +35,11 @@ const DisplayStudents: FC<{}> = () => {
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   useEffect(() => {
+    const body = document.querySelector("body");
+    body?.style.setProperty(
+      "background-image",
+      "url(/pathwayAssets/pathwayBackground.svg)"
+    );
     getStudents();
     lockOrientation();
     return () => {
