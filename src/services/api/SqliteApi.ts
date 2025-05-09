@@ -1732,27 +1732,19 @@ export class SqliteApi implements ServiceApi {
     if (score > 50) starsEarned++;
     if (score > 75) starsEarned++;
 
-    const previousStars = localStorage.getItem(STARS_COUNT);
-    let currentStars = previousStars
-      ? JSON.parse(previousStars)[studentId] ?? 0
-      : 0;
-
-    let totalStars = currentStars + starsEarned;
-
     await this.executeQuery(
-      `UPDATE ${TABLES.User} SET stars = ? WHERE id = ?;`,
-      [totalStars, studentId]
+      `UPDATE ${TABLES.User} SET stars = COALESCE(stars, 0) + ? WHERE id = ?;`,
+      [starsEarned, studentId]
     );
 
     const updatedStudent = await this.getUserByDocId(studentId);
     if (updatedStudent) {
       Util.setCurrentStudent(updatedStudent);
     }
-
     this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       id: studentId,
-      stars: totalStars,
+      stars: updatedStudent?.stars,
     });
 
     return newResult;
@@ -4459,23 +4451,19 @@ order by
     starsCount: number
   ): Promise<void> {
     if (!studentId) return;
-
-    const previousStars = localStorage.getItem(STARS_COUNT);
-    let currentStars = previousStars ? JSON.parse(previousStars)[studentId] : 0;
-
-    let totalStars = currentStars + starsCount;
-
-    const query = `
-      UPDATE ${TABLES.User}
-      SET stars = ${totalStars}
-      WHERE id = '${studentId}';
-    `;
-
     try {
-      await this._db?.execute(query);
+      await this.executeQuery(
+        `UPDATE ${TABLES.User} SET stars = COALESCE(stars, 0) + ? WHERE id = ?;`,
+        [starsCount, studentId]
+      );
+      const updatedStudent = await this.getUserByDocId(studentId);
+      if (updatedStudent) {
+        Util.setCurrentStudent(updatedStudent);
+      }
+
       this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
         id: studentId,
-        stars: totalStars,
+        stars: updatedStudent?.stars,
       });
     } catch (error) {
       console.error("Error setting stars for student:", error);
