@@ -44,8 +44,8 @@ const Home: FC = () => {
   const [isStudentLinked, setIsStudentLinked] = useState<boolean>();
   const [refreshKey, setRefreshKey] = useState(0);
 
-  
-  
+
+
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
   }>();
@@ -218,12 +218,12 @@ const Home: FC = () => {
       student != null
         ? await api.getStudentClassesAndSchools(student.id)
         : null;
-    
+
     // Add a proper null check on linkedData and the classes array
-    const classDoc = linkedData?.classes && linkedData.classes.length > 0 
-      ? linkedData.classes[0] 
+    const classDoc = linkedData?.classes && linkedData.classes.length > 0
+      ? linkedData.classes[0]
       : undefined;
-      
+
     if (classDoc?.id) await api.assignmentListner(classDoc.id, () => {});
     if (student) await api.assignmentUserListner(student.id, () => {});
 
@@ -306,7 +306,7 @@ const Home: FC = () => {
         // Get assignments safely with a default empty array if undefined is returned
         const assignments = await getAssignments() || [];
         recommendationResult = assignments;
-        
+
         // Get course recommendations safely
         let tempRecommendations: TableTypes<"lesson">[] = [];
         try {
@@ -314,7 +314,7 @@ const Home: FC = () => {
         } catch (recError) {
           console.error("Error fetching course recommendations:", recError);
         }
-        
+
         // Combine recommendations
         recommendationResult = recommendationResult.concat(tempRecommendations);
         console.log("Final RECOMMENDATION List ", recommendationResult);
@@ -397,10 +397,9 @@ const Home: FC = () => {
       return;
     }
     const studentResult = await api.getStudentResult(currentStudent.id, false);
-
     if (studentResult) {
+      console.log("🚀 ~ getHistory ~ playedLessonData:", studentResult);
       const playedLessonData = studentResult;
-      console.log("🚀 ~ getHistory ~ playedLessonData:", playedLessonData);
       const sortedLessonDocIds = sortPlayedLessonDocByDate(playedLessonData);
       const allValidPlayedLessonDocIds = sortedLessonDocIds.filter(
         (lessonDoc) => lessonDoc !== undefined
@@ -604,7 +603,7 @@ const Home: FC = () => {
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
             {currentHeader === HOMEHEADERLIST.LIVEQUIZ && <LiveQuiz />}
 
-            {/* 
+            {/*
             {value === SUBTAB.SUGGESTIONS &&
             currentHeader === HOMEHEADERLIST.SUGGESTIONS ? (
               <div>
@@ -620,7 +619,7 @@ const Home: FC = () => {
               </div>
             ) : null
             }
-  
+
             {value === SUBTAB.FAVOURITES &&
               currentHeader === HOMEHEADERLIST.SUGGESTIONS && (
                 <div>
@@ -636,7 +635,7 @@ const Home: FC = () => {
                   />
                 </div>
               )
-  
+
             {value === SUBTAB.HISTORY &&
               currentHeader === HOMEHEADERLIST.SUGGESTIONS && (
                 <div>
@@ -719,7 +718,7 @@ const Home: FC = () => {
 
             {/* To show lesson cards after clicking on the header icon  */}
 
-            {/* 
+            {/*
             {currentHeader !== HEADERLIST.RECOMMENDATION ? (
               // <ChapterSlider
               //   chapterData={dataCourse.chapters}
@@ -760,7 +759,7 @@ const Home: FC = () => {
               <div style={{ marginTop: "2.6%" }}></div>
             )
             }
-  
+
             <LessonSlider
                 lessonData={
                   currentHeader === HEADERLIST.RECOMMENDATION

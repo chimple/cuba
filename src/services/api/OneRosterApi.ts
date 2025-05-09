@@ -42,7 +42,6 @@ import i18n from "../../i18n";
 import { Statement } from "tincants";
 import { Agent, Verb, Activity, ActivityDefinition, Context, ContextActivities, Score } from "tincants";
 
-
 interface IGetStudentResultStatement {
   agent: {
     mbox: string;
@@ -352,7 +351,7 @@ export class OneRosterApi implements ServiceApi {
 
 
   async addCourseForParentsStudent(
-    courses: TableTypes<"course">[], 
+    courses: TableTypes<"course">[],
     student: TableTypes<"user">
   ) {
     try {
@@ -437,7 +436,7 @@ export class OneRosterApi implements ServiceApi {
           }
         }
       }
-      
+
       return null; // Return null if lesson not found
 
     } catch (error) {
@@ -527,7 +526,7 @@ export class OneRosterApi implements ServiceApi {
     for (const c of allCourses) {
       try {
         const courseJson = await this.loadCourseJson(c.id);
-        if (courseJson.metadata.subject === currentSubject && 
+        if (courseJson.metadata.subject === currentSubject &&
             courseJson.metadata.curriculum === currentCurriculum) {
           filteredCourses.push(c);
         }
@@ -570,21 +569,21 @@ export class OneRosterApi implements ServiceApi {
   }
   assignmentListner(
     classId: string,
-    onDataChange: (roomDoc: { 
-      chapter_id: string | null; 
-      class_id: string; 
-      course_id: string | null; 
-      created_at: string; 
-      created_by: string | null; 
-      ends_at: string | null; 
-      id: string; 
-      is_class_wise: boolean; 
+    onDataChange: (roomDoc: {
+      chapter_id: string | null;
+      class_id: string;
+      course_id: string | null;
+      created_at: string;
+      created_by: string | null;
+      ends_at: string | null;
+      id: string;
+      is_class_wise: boolean;
       is_deleted: boolean | null;
       lesson_id: string;
       school_id: string;
       starts_at: string;
       type: string;
-      updated_at: string | null; 
+      updated_at: string | null;
     } | undefined) => void
   ) {
     throw new Error("Method not implemented.");
@@ -594,13 +593,13 @@ export class OneRosterApi implements ServiceApi {
   }
   assignmentUserListner(
     studentId: string,
-    onDataChange: (roomDoc: { 
-      assignment_id: string; 
-      created_at: string | null; 
-      id: string; 
-      is_deleted: boolean | null; 
-      updated_at: string | null; 
-      user_id: string; 
+    onDataChange: (roomDoc: {
+      assignment_id: string;
+      created_at: string | null;
+      id: string;
+      is_deleted: boolean | null;
+      updated_at: string | null;
+      user_id: string;
     } | undefined) => void
   ) {
     // throw new Error("Method not implemented.");
@@ -608,7 +607,7 @@ export class OneRosterApi implements ServiceApi {
   }
   liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (roomDoc: { 
+    onDataChange: (roomDoc: {
       assignment_id: string;
       class_id: string;
       course_id: string;
@@ -812,8 +811,8 @@ export class OneRosterApi implements ServiceApi {
         this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0]
       );
       console.log(
-        "getLessonsForChapter data: ", 
-        this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0], 
+        "getLessonsForChapter data: ",
+        this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0],
         courseJson.groups
       );
       const chapter = courseJson.groups.find(
@@ -968,19 +967,19 @@ export class OneRosterApi implements ServiceApi {
   }
   getLiveQuizRoomDoc(
     liveQuizRoomDocId: string
-  ): Promise<{ 
-    assignment_id: string; 
-    class_id: string; 
-    course_id: string; 
-    created_at: string | null; 
-    id: string; 
-    is_deleted: boolean | null; 
-    lesson_id: string; 
-    participants: string[] | null; 
-    results: any; 
-    school_id: string; 
-    starts_at: string; 
-    updated_at: string | null; 
+  ): Promise<{
+    assignment_id: string;
+    class_id: string;
+    course_id: string;
+    created_at: string | null;
+    id: string;
+    is_deleted: boolean | null;
+    lesson_id: string;
+    participants: string[] | null;
+    results: any;
+    school_id: string;
+    starts_at: string;
+    updated_at: string | null;
   } | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -1008,7 +1007,7 @@ export class OneRosterApi implements ServiceApi {
       }
 
       const { agentEmail, queryStatement } = this.buildXapiQuery({ name: loggedStudent.name as string });
-      const statements = await this.getStatements(agentEmail, queryStatement);
+      const statements = await this.getAllStatements(agentEmail, queryStatement);
       console.log(
         "const statements = await this.getStatements(agentEmail, queryStatement); ",
         statements
@@ -1028,7 +1027,7 @@ export class OneRosterApi implements ServiceApi {
       }
 
       const { agentEmail, queryStatement } = this.buildXapiQuery({ name: loggedStudent.name as string });
-      const statements = await this.getStatements(agentEmail, queryStatement);
+      const statements = await this.getAllStatements(agentEmail, queryStatement);
 
       // Filter out statements with null course_id
       const filteredStatements = statements.filter(statement => statement.course_id !== null) as { course_id: string }[];
@@ -1051,7 +1050,7 @@ export class OneRosterApi implements ServiceApi {
       }
 
       const { agentEmail, queryStatement } = this.buildXapiQuery({ name: loggedStudent.name as string });
-      const statements = await this.getStatements(agentEmail, queryStatement);
+      const statements = await this.getAllStatements(agentEmail, queryStatement);
 
       // Filter out statements with null lesson_id
       const filteredStatements = statements.filter(statement => statement.lesson_id !== null) as { lesson_id: string }[];
@@ -1114,7 +1113,7 @@ export class OneRosterApi implements ServiceApi {
       const courseJson = await this.loadCourseJson(id);
       const metaC = courseJson.metadata;
 
-      
+
       let tCourse: TableTypes<"course"> = {
         code: metaC.courseCode,
         color: metaC.color,
@@ -1130,10 +1129,10 @@ export class OneRosterApi implements ServiceApi {
         subject_id: metaC.subject,
         updated_at: null,
       };
-      
+
       // Add the course to the Map instead of assigning it directly
       this.currentCourse.set(id, tCourse);
-      
+
       console.log("getCourses data ", tCourse);
       return tCourse;
     } catch (error) {
@@ -1202,7 +1201,7 @@ export class OneRosterApi implements ServiceApi {
       }
       const { agentEmail, queryStatement } = this.buildXapiQuery({ name: currentUser.name as string });
       // Fetch xAPI statements
-      const statements = await this.getStatements(agentEmail, queryStatement);
+      const statements = await this.getAllStatements(agentEmail, queryStatement);
       const resultMap = new Map<string, StudentLessonResult>();
 
       statements.forEach((statement: IStatement) => {
@@ -2221,43 +2220,43 @@ export class OneRosterApi implements ServiceApi {
 
           // Case-insensitive search with improved matching logic
           const lowerQuery = searchString.toLowerCase();
-          
+
           // Score each lesson based on match quality
           const scoredLessons = lessons.map(lesson => {
             const title = lesson.title;
             const lowerTitle = title.toLowerCase();
-            
+
             // Calculate match score (higher is better)
             let score = 0;
-            
+
             // Exact match gets highest priority
             if (lowerTitle === lowerQuery) {
               score += 1000;
             }
-            
+
             // Starts with query gets high priority
             if (lowerTitle.startsWith(lowerQuery)) {
               score += 500;
             }
-            
+
             // Contains query as a word gets medium priority
-            if (lowerTitle.includes(` ${lowerQuery} `) || 
-                lowerTitle.startsWith(`${lowerQuery} `) || 
+            if (lowerTitle.includes(` ${lowerQuery} `) ||
+                lowerTitle.startsWith(`${lowerQuery} `) ||
                 lowerTitle.endsWith(` ${lowerQuery}`)) {
               score += 300;
             }
-            
+
             // Contains query gets lower priority
             if (lowerTitle.includes(lowerQuery)) {
               score += 100;
             }
-            
+
             // Shorter titles get slightly higher priority
             score += (100 - Math.min(title.length, 100));
-            
+
             return { lesson, score };
           });
-          
+
           // Filter out non-matching lessons and sort by score
           const matchingLessons = scoredLessons
             .filter(item => item.score > 0)
@@ -2466,7 +2465,7 @@ export class OneRosterApi implements ServiceApi {
   ): ICreateStudentResultStatement => {
     // Format email consistently with our other methods
     const userEmail = `${name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
-    
+
     return {
       actor: {
         name: name,
@@ -2514,66 +2513,53 @@ export class OneRosterApi implements ServiceApi {
     };
   };
 
-  getStatements = async (
-    agentEmail: string,
-    queryStatement?: IGetStudentResultStatement
-  ): Promise<TableTypes<"result">[]> => {
-    try {
-      // Fix the agent construction to prevent double mailto:
-      // If agentEmail already includes 'mailto:', use it directly
-      // Otherwise, add 'mailto:' prefix
-      const mbox = agentEmail.includes('mailto:') ? agentEmail : `mailto:${agentEmail}`;
+  async getAllStatements(agentEmail: string, queryStatement?: IGetStudentResultStatement): Promise<TableTypes<"result">[]> {
+    let allStatements: TableTypes<"result">[] = [];
+    let hasMore = true;
+    let since: string | undefined = queryStatement?.since;
+
+    while (hasMore) {
       const query = {
         params: {
-          agent: new Agent({ mbox }),
+          agent: new Agent({ mbox: agentEmail }),
           ascending: true,
-          limit: 100,
-          since: queryStatement?.since,
+          limit: 100, // Fetch 100 entries per request
+          since: since,
         }
       };
-      
+
       const result = await tincan.getStatements(query);
       const statements = result?.statements ?? [];
 
-      console.log(`Retrieved Statements for agent: ${mbox}`, statements);
-
-      // Process statements and map to TableTypes<"result">
-      const parsedStatements: TableTypes<"result">[] = statements.map((statement) => {
-        // Ensure required fields are always strings, not null
-        const lessonId = statement.object && 'definition' in statement.object ? statement.object.definition?.extensions?.["http://example.com/xapi/lessonId"] || "" : "";
-        const courseId = statement.object && 'definition' in statement.object ? statement.object.definition?.extensions?.["http://example.com/xapi/courseId"] || "" : "";
-        const studentId = statement.context?.extensions?.["http://example.com/xapi/studentId"] || "";
-        const chapterId = statement.context?.extensions?.["http://example.com/xapi/chapterId"] || null;
-        const assignmentId = statement.result?.extensions?.["http://example.com/xapi/assignmentId"] || null;
-        const correctMoves = statement.result?.extensions?.["http://example.com/xapi/correctMoves"] || null;
-        const wrongMoves = statement.result?.extensions?.["http://example.com/xapi/wrongMoves"] || null;
-        const timeSpent = this.parseFormattedDuration(statement.result?.duration || "") || null;
-
+      const parsedStatements = statements.map((statement) => {
         return {
           id: statement.id || "",
-          assignment_id: assignmentId,
-          chapter_id: chapterId,
-          correct_moves: typeof correctMoves === 'number' ? correctMoves : null,
-          course_id: courseId,
+          lesson_id: (statement.object && 'definition' in statement.object && statement.object.definition?.extensions?.["http://example.com/xapi/lessonId"]) || null,
+          assignment_id: statement.result?.extensions?.["http://example.com/xapi/assignmentId"] || null,
+          chapter_id: statement.context?.extensions?.["http://example.com/xapi/chapterId"] || null,
+          correct_moves: statement.result?.extensions?.["http://example.com/xapi/correctMoves"] || null,
+          course_id: statement.object && 'definition' in statement.object ? statement.object.definition?.extensions?.["http://example.com/xapi/courseId"] || null : null,
           created_at: statement.context?.extensions?.["http://example.com/xapi/createdAt"] || "",
           is_deleted: statement.context?.extensions?.["http://example.com/xapi/isDeleted"] || null,
-          lesson_id: lessonId,
           school_id: statement.context?.extensions?.["http://example.com/xapi/schoolId"] || null,
           score: statement.result?.score?.raw || null,
-          student_id: studentId,
-          time_spent: typeof timeSpent === 'number' ? timeSpent : null,
+          student_id: statement.context?.extensions?.["http://example.com/xapi/studentId"] || "",
+          time_spent: this.parseFormattedDuration(statement.result?.duration || "") || null,
           updated_at: statement.context?.extensions?.["http://example.com/xapi/updatedAt"] || null,
-          wrong_moves: typeof wrongMoves === 'number' ? wrongMoves : null,
+          wrong_moves: statement.result?.extensions?.["http://example.com/xapi/wrongMoves"] || null,
         };
       });
 
-      console.log("Parsed Statements:", parsedStatements);
-      return parsedStatements;
-    } catch (error) {
-      console.error("Error fetching statements:", error);
-      return []; // Ensure function always returns an array
+      allStatements = allStatements.concat(parsedStatements);
+
+      // Check if there are more statements to fetch
+      hasMore = statements.length === 100;
+      since = statements[statements.length - 1]?.timestamp || undefined;
     }
-  };
+
+    return allStatements;
+  }
+
   async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
     // Load favorites from localStorage if not already loaded
     if (!this.favoriteLessons[userId]) {
