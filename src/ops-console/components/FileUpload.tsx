@@ -218,7 +218,6 @@ const FileUpload: React.FC = () => {
               }
             }
           }
-          console.log("errors list 1", errors);
           // **Condition 1: If SCHOOL ID (UDISE Code) is present**
           if (schoolId) {
             // Validate only required fields
@@ -436,9 +435,7 @@ const FileUpload: React.FC = () => {
               errors.push("SCHOOL ID does not match any validated school.");
             }
           }
-          console.log("fdsfdsfsfdsvc4554", studentLoginType);
           // if(studentLoginType === "PARENT PHONE NUMBER"){
-          // console.log("fdsfdsfsfdsvc4554 11111", studentLoginType);
 
           //   if (parentContact && !validateEmailOrPhone(parentContact)) {
           //     errors.push("Invalid PARENT PHONE NUMBER OR LOGIN ID format.");

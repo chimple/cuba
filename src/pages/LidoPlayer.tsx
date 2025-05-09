@@ -30,11 +30,9 @@ const LidoPlayer: FC = () => {
   const [xmlPath, setXmlPath] = useState<string>();
 
   const onNextContainer = (e: any) => {
-    console.log("nextContainer", e.detail);
   };
 
   const gameCompleted = (e: any) => {
-    console.log("gameCompleted", e.detail);
     push();
   };
 
@@ -43,7 +41,6 @@ const LidoPlayer: FC = () => {
     Util.setPathToBackButton(fromPath, history);
   };
   const onActivityEnd = (e: any) => {
-    console.log("onActivityEnd", e.detail.score);
     // push();
   };
   const courseDetail: TableTypes<"course"> = state.course
@@ -53,7 +50,6 @@ const LidoPlayer: FC = () => {
     ? JSON.parse(state.chapter)
     : undefined;
   const onLessonEnd = async (e: any) => {
-    console.log("onLessonEnd", e.detail.score);
     const lessonData = e.detail;
 
     const api = ServiceConfig.getI().apiHandler;
@@ -147,7 +143,6 @@ const LidoPlayer: FC = () => {
       played_from: playedFrom,
       assignment_type: assignmentType,
     });
-    console.log("🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:", result);
     let tempAssignmentCompletedIds = localStorage.getItem(
       ASSIGNMENT_COMPLETED_IDS
     );
@@ -206,16 +201,13 @@ const LidoPlayer: FC = () => {
     setIsLoading(true);
     const urlSearchParams = new URLSearchParams(window.location.search);
     const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
-    console.log("🚀 ~ init ~ lessonId:", lessonId);
     const lessonIds: string[] = [lessonId];
-    console.log("cocosGame page lessonIds", lessonIds);
     const dow = await Util.downloadZipBundle(lessonIds);
     if (!dow) {
       presentToast();
       push();
       return;
     }
-    console.log("download ", dow);
     if (Capacitor.isNativePlatform()) {
       const path = await Util.getLessonPath(lessonId);
       setBasePath(path);

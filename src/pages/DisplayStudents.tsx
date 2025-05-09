@@ -56,10 +56,6 @@ const DisplayStudents: FC<{}> = () => {
     setStudentMode(currMode);
     const tempStudents =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-    console.log(
-      "🚀 ~ file: DisplayStudents.tsx:13 ~ getStudents ~ students:",
-      tempStudents
-    );
 
     if (!tempStudents || tempStudents.length < 1) {
       history.replace(PAGES.CREATE_STUDENT, {
@@ -87,33 +83,20 @@ const DisplayStudents: FC<{}> = () => {
 
     // const currentUser = await FirebaseAuth.getInstance().getCurrentUser();
     // const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    // console.log(
-    //   "🚀 ~ file: DisplayStudents.tsx:35 ~ getStudents ~ FirebaseAuth.getInstance().currentUser:",
-    //   currentUser
-    // );
-    // // const iseTeacher = await FirebaseApi.getInstance().isUserTeacher(
+    //  const iseTeacher = await FirebaseApi.getInstance().isUserTeacher(
     //   currentUser!
     // );
     //  if (!currentUser) return;
     // const iseTeacher = await ServiceConfig.getI().apiHandler.isUserTeacher(
     //   currentUser
     // );
-    // console.log(
-    //   "🚀 ~ file: DisplayStudents.tsx:34 ~ getStudents ~ iseTeacher:",
-    //   iseTeacher
-    // );
   };
   const onStudentClick = async (student: TableTypes<"user">) => {
-    console.log(
-      "🚀 ~ file: DisplayStudents.tsx:30 ~ onStudentClick:student",
-      student
-    );
     await Util.setCurrentStudent(student, undefined, true);
     const linkedData = await api.getStudentClassesAndSchools(student.id);
     if (linkedData.classes && linkedData.classes.length > 0) {
       const firstClass = linkedData.classes[0];
       const currClass = await api.getClassById(firstClass.id);
-      console.log("Current class details:", currClass);
       await schoolUtil.setCurrentClass(currClass ?? undefined);
     } else {
       console.warn("No classes found for the student.");
@@ -157,7 +140,6 @@ const DisplayStudents: FC<{}> = () => {
       : undefined;
     history.replace(PAGES.CREATE_STUDENT, locationState);
   };
-  console.log("🚀 ~ onCreateNewStudent ~ students:", students);
   return (
     <IonPage id="display-students">
       {/* <IonContent> */}

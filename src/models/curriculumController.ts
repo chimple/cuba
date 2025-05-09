@@ -86,7 +86,6 @@ export default class CurriculumController {
         let res = await fetch("courses/" + courseId + "/course.json")
         const data = await res.json();
         let course = Util.toCourse(data)
-        console.log("playedLessons", results)
 
         //if quiz is  not played making all other lesson lock
         if (!results[courseId + "_" + PRE_QUIZ] && courseId != COURSES.PUZZLE) {
@@ -132,7 +131,6 @@ export default class CurriculumController {
                     tempLessons[i].isUnlock = true
                     tempLessons[i].chapter = chapter;
                     this.allLessons.set(tempLessons[i].id, tempLessons[i])
-                    console.log(tempLessons[i].id, "is played so unlocking this lesson", tempLessons[i].isUnlock, playedLessons[tempLessons[i].id]?._metaData.lessonId);
 
                     // checking lesson type === EXAM && scored > 70 then Unlocking Next lesson
                     if (playedLessons[tempLessons[i].id] && tempLessons.length > i + 1) {
@@ -140,13 +138,10 @@ export default class CurriculumController {
                             tempLessons[i + 1].isUnlock = true
                             tempLessons[i + 1].chapter = chapter;
                             this.allLessons.set(tempLessons[i + 1].id, tempLessons[i + 1]);
-                            console.log(tempLessons[i].name, "is played so unlocking next lesson", tempLessons[i + 1].name, tempLessons[i + 1].isUnlock)
                         } else {
-                            // console.log("Entered else", tempLessons[i + 1].isUnlock)
                             tempLessons[i + 1].isUnlock = false
                             tempLessons[i + 1].chapter = chapter;
                             this.allLessons.set(tempLessons[i + 1].id, tempLessons[i + 1]);
-                            console.log(tempLessons[i].name, "is played but challenge score not > 70", tempLessons[i + 1].name, tempLessons[i + 1].isUnlock)
                             i++
                         }
                     }
@@ -168,19 +163,14 @@ export default class CurriculumController {
     }
 
     async unlockNextLesson(courseId: string, playedLessonId: string, score: number) {
-        console.log("unlockNextLesson method called", courseId, playedLessonId);
 
         const playedLesson = this.allLessons.get(playedLessonId)
-        console.log("before playedLesson?.chapter", playedLesson, playedLesson?.chapter)
         playedLesson?.chapter.lessons.forEach((lesson, index, lessons) => {
             if (playedLessonId === lesson.id) {
                 lessons[index].isUnlock = true;
-                console.log(lessons.length, index + 1, lessons.length > index + 1);
                 if (lessons.length > index + 1) {
-                    console.log((lesson.type != EXAM || lesson.type === null || lesson.type === undefined), (lesson.type === EXAM && score > MIN_PASS), lesson.type != EXAM || (lesson.type === EXAM && score > MIN_PASS));
                     if ((lesson.type != EXAM || lesson.type === null || lesson.type === undefined) || (lesson.type === EXAM && score > MIN_PASS)) {
                         lessons[index + 1].isUnlock = true;
-                        console.log("after playedLesson?.chapter", playedLesson, playedLesson?.chapter)
                     }
                 }
             }

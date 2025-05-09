@@ -17,8 +17,6 @@ const LiveQuizCountdownTimer: FC<{
   const [maxValue, setMaxValue] = useState<number>(0);
 
   useEffect(() => {
-    console.log("startsAt", startsAt, onTimeOut);
-
     const newMaxValue = Math.ceil(
       (startsAt.getTime() - new Date().getTime()) / 1000
     );

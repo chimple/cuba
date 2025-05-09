@@ -24,7 +24,6 @@ const InputField: React.FC<{
   const [showError, setShowError] = useState(false);
   const handleInputChange = (event: CustomEvent) => {
     let value = (event.target as HTMLInputElement).value;
-    console.log("Input value:", value);
     setInputValue(value || "");
     if (value) {
       resetUserNotFound();

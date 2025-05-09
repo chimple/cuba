@@ -23,8 +23,6 @@ const SelectCourse: FC<{
   onCourseChange: (course: TableTypes<"course">) => void;
 }> = ({ courses, modeParent, onCourseChange }) => {
   const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
-  console.log(
-    "🚀 ~ file: SelectCourse.tsx:12 ~ SelectCourse ~ courseDetails:", courseDetails)
   const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {

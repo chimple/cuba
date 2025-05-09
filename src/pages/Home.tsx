@@ -79,7 +79,6 @@ const Home: FC = () => {
   const location = useLocation();
   const getCanShowAvatar = async () => {
     // const canShowAvatarValue = await Util.getCanShowAvatar();
-    // console.log("const canShowAvatarValue in home ", canShowAvatarValue);
 
     setCanShowAvatar(true);
   };
@@ -120,7 +119,6 @@ const Home: FC = () => {
     );
     const handlePathwayCreated = (e: Event) => {
       const customEvent = e as CustomEvent;
-      console.log("Analytics Event: Pathway Created", customEvent.detail);
     };
     window.addEventListener("PathwayCreated", handlePathwayCreated);
     return () => {
@@ -247,7 +245,6 @@ const Home: FC = () => {
       student != null
         ? await api.getStudentClassesAndSchools(student.id)
         : null;
-    console.log("linkedData: ", linkedData);
     const classDoc = linkedData?.classes[0];
     if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
     if (student) await api.assignmentUserListner(student.id, () => {});
@@ -346,7 +343,6 @@ const Home: FC = () => {
           currentStudent,
           currClass
         );
-        console.log("Final RECOMMENDATION List ", recommendationResult);
         recommendationResult = recommendationResult.concat(tempRecommendations);
 
         const lessonCourseMap: { [lessonId: string]: { course_id: string } } =
@@ -393,7 +389,6 @@ const Home: FC = () => {
       if (lessonResultMap) {
         // const startIndex = (tempPageNumber - 1) * favouritesPageSize;
         // const endIndex = startIndex + favouritesPageSize;
-        // console.log("initial history lessons", initialHistoryLessons);
         // const initialFavouriteLessonsSlice = initialFavoriteLessons.slice(
         //   startIndex,
         //   endIndex
@@ -432,7 +427,6 @@ const Home: FC = () => {
 
     if (studentResult) {
       const playedLessonData = studentResult;
-      console.log("🚀 ~ getHistory ~ playedLessonData:", playedLessonData);
       const sortedLessonDocIds = sortPlayedLessonDocByDate(playedLessonData);
       const allValidPlayedLessonDocIds = sortedLessonDocIds.filter(
         (lessonDoc) => lessonDoc !== undefined
@@ -447,7 +441,6 @@ const Home: FC = () => {
     if (!lesMap) {
       return;
     }
-    console.log("Object.entries(lesMap)", lesMap, Object.entries(lesMap));
     const lesList = Object.entries(lesMap).sort((a, b) => {
       if (new Date(a[1].updated_at ?? "") === new Date(b[1].updated_at ?? "")) {
         return 0;
@@ -472,9 +465,7 @@ const Home: FC = () => {
   ): Promise<TableTypes<"lesson">[]> {
     // const allCourses: TableTypes<"course">[] =
     //   await api.getCoursesForParentsStudent(currentStudent.id);
-    // console.log("allCourses ", allCourses);
     // const lessons = await api.getAllLessonsForCourse(allCourses[0].id);
-    // console.log("const lessons ", lessons);
     let tempRecommendedLesson = await api.getRecommendedLessons(
       currentStudent.id,
       currentClass?.id
@@ -486,7 +477,6 @@ const Home: FC = () => {
     let reqLes: TableTypes<"lesson">[] = [];
     var headerIconList: HeaderIconConfig[] = [];
     DEFAULT_HEADER_ICON_CONFIGS.forEach((element) => {
-      //  console.log("elements", element);
       headerIconList.push(element);
     });
     setCurrentHeader(selectedHeader);
@@ -567,7 +557,6 @@ const Home: FC = () => {
   };
 
   const updateHistoryLessons = async (allLessonIds: string[]) => {
-    console.log("🚀 ~ updateHistoryLessons ~ allLessonIds:", allLessonIds);
     setIsLoading(true);
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent || !lessonResultMap) {
@@ -601,9 +590,6 @@ const Home: FC = () => {
     });
     setIsLoading(false);
   };
-
-  console.log("lesson slider favourite", favouriteLessons);
-  console.log("lesson slider history", historyLessons);
 
   return (
     <IonPage id="home-page">

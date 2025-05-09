@@ -32,7 +32,6 @@ const LiveQuizLeaderBoard: React.FC = () => {
     try {
       const liveQuizRoomDoc = await api.getLiveQuizRoomDoc(paramLiveRoomId);
       const liveQuizRoomResults = liveQuizRoomDoc?.results;
-      console.log("liveQuizRoomResults..", liveQuizRoomResults);
       type Participant = {
         studentDocId: string;
         totalScore: number;
@@ -57,7 +56,6 @@ const LiveQuizLeaderBoard: React.FC = () => {
             totalTimeSpent,
           });
         });
-        console.log("studentresults!!!", studentResults);
 
         const liveQuizRoomScores: Participant[] = studentResults;
         const leaderboardScores = await fetchAssignmentResults();
@@ -67,7 +65,6 @@ const LiveQuizLeaderBoard: React.FC = () => {
           leaderboardScores
         );
         combinedScores.sort((a, b) => b.totalScore - a.totalScore);
-        console.log("combinedSortedScores..", combinedScores);
         setCombinedStudentScores(combinedScores);
         const tempStudentsMap = new Map<string, TableTypes<"user">>();
         await Promise.all(
@@ -81,7 +78,6 @@ const LiveQuizLeaderBoard: React.FC = () => {
             }
           })
         );
-        console.log("tempStudentsMap..", tempStudentsMap);
         setStudents(tempStudentsMap);
       }
     } catch (error) {
@@ -96,7 +92,6 @@ const LiveQuizLeaderBoard: React.FC = () => {
     if (res) {
       const assignmentId = res?.assignment_id;
       const assignmentDoc = await api.getAssignmentById(assignmentId);
-      console.log("AssignmentDoc:", assignmentDoc);
       let scoresData: any;
 
       if (assignmentDoc) {
@@ -120,21 +115,16 @@ const LiveQuizLeaderBoard: React.FC = () => {
           };
         });
       }
-      console.log("Scores Data:", scoresData);
-
       return scoresData;
     }
   };
   const combineScores = (roomResultScores, leaderboardScores) => {
-    console.log("roomResultScores", roomResultScores);
-    console.log("leaderboardScores", leaderboardScores);
     const uniqueStudentDocIds = Array.from(
       new Set([
         ...roomResultScores.map((res) => res.studentDocId),
         ...leaderboardScores.map((res) => res.studentDocId),
       ])
     );
-    console.log("uniqueStudentDocIds..", uniqueStudentDocIds);
 
     const combinedScores = uniqueStudentDocIds.map((studentDocId) => {
       const roomResultScore = roomResultScores.find(

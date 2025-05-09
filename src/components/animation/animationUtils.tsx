@@ -19,11 +19,9 @@ export function useAudioPlayer(audioSrc: string) {
   const playAudio = () => {
     const newAudio = new Audio(audioSrc);
     newAudio.onloadedmetadata = () => {
-      console.log("Audio duration: ", newAudio.duration);
       setIsAudioPlaying(true);
       if (!isAudioPlaying) {
         newAudio.play();
-        console.log("Audio is playing: ", audioSrc);
       }
     };
 
@@ -51,7 +49,6 @@ export function useTtsAudioPlayer(audioText: string) {
   }, [isTtsPlaying]);
   useEffect(() => {
     return () => {
-      console.log("return called in useEffect(() => { TextToSpeech.stop();");
       TextToSpeech.stop();
     };
   }, []);
@@ -60,16 +57,9 @@ export function useTtsAudioPlayer(audioText: string) {
     const language = localStorage.getItem(LANGUAGE) || "en";
     audioLang = language + "-IN";
     try {
-      console.log("speak method called ", isTtsPlaying, !isTtsPlaying);
       setIsTtsPlaying(true);
       if (isTtsPlaying) {
         const isSupported = await isLanguageSupported(audioLang);
-        console.log(
-          "text: audioText,lang: audioLang, //",
-          audioText,
-          audioLang,
-          isSupported
-        );
         if (!isSupported) {
           // alert(audioLang + " Language is not supported for you device");
         }
@@ -84,10 +74,9 @@ export function useTtsAudioPlayer(audioText: string) {
         }).then(() => {
           setIsTtsPlaying(false);
         });
-        console.log("Audio is playing: ", audioText);
       }
     } catch (error) {
-      console.log("TTS speech failed ", isTtsPlaying, error);
+      console.error("TTS speech failed ", isTtsPlaying, error);
     }
   };
 

@@ -98,20 +98,10 @@ const DisplayChapters: FC<{}> = () => {
       }
     }
 
-    console.log("chapters", currentCourse);
-    console.log("local grade map", localGradeMap);
   }, [getCourseByUrl, localGradeMap, currentCourse]);
 
   const init = async () => {
     const urlParams = new URLSearchParams(location.search);
-    console.log(
-      "🚀 ~ file: DisplayChapters.tsx:103 ~ init ~ urlParams:",
-      urlParams.get(CONTINUE)
-    );
-    console.log(
-      "🚀 ~ file: DisplayChapters.tsx:107 ~ init ~ localData:",
-      localData
-    );
     await getCourses();
     if (
       !!urlParams.get(CONTINUE) &&
@@ -226,7 +216,6 @@ const DisplayChapters: FC<{}> = () => {
     if (!!currClass) setCurrentClass(currClass);
 
     const res = await api.getStudentResultInMap(currentStudent.id);
-    console.log("tempResultLessonMap = res;", res);
     localData.lessonResultMap = res;
 
     setLessonResultMap(res);

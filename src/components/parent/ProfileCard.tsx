@@ -55,9 +55,7 @@ const ProfileCard: React.FC<{
         height: "auto",
         padding: userType ? "1.5% 1.5% 3% 1.5%" : "0% 0% 0% 0%",
       }}
-      onClick={() => {
-        console.log("Profile card Icon is clicked");
-      }}
+      onClick={() => {}}
     >
       <div id="profile-card-edit-icon-div">
         {userType ? (
@@ -83,7 +81,6 @@ const ProfileCard: React.FC<{
                 });
                 return;
               }
-              console.log("click on edit icon");
               setShowDialogBox(true);
             }}
           ></MdModeEditOutline>
@@ -172,14 +169,11 @@ const ProfileCard: React.FC<{
           noText={t("Edit Profile")}
           handleClose={() => {
             setShowDialogBox(false);
-            console.log("Close", false);
           }}
           onYesButtonClicked={async ({}) => {
-            console.log(`Delete Profile`, "yes", user.id);
             setShowWarningDialogBox(true);
           }}
           onNoButtonClicked={async ({}) => {
-            console.log(`Edit Profile`, "no", user.id);
             const api = ServiceConfig.getI().apiHandler;
             await Util.setCurrentStudent(user, undefined, false);
             history.replace(PAGES.EDIT_STUDENT, {
@@ -201,7 +195,6 @@ const ProfileCard: React.FC<{
             setShowDialogBox(false);
           }}
           onYesButtonClicked={async ({}) => {
-            console.log(`Show warning yes:`, user.id);
             setShowWarningDialogBox(false);
             setShowDialogBox(false);
             setIsLoading(true);
@@ -219,16 +212,10 @@ const ProfileCard: React.FC<{
               // parent_username: user.username,
               action_type: ACTION.DELETE,
             };
-            console.log(
-              "Util.logEvent(EVENTS.USER_PROFILE, eventParams);",
-              EVENTS.USER_PROFILE,
-              eventParams
-            );
             Util.logEvent(EVENTS.USER_PROFILE, eventParams);
             setIsLoading(false);
           }}
           onNoButtonClicked={async ({}) => {
-            console.log(`Show warning No:`);
             setShowWarningDialogBox(false);
           }}
         ></DialogBoxButtons>

@@ -74,7 +74,6 @@ const Leaderboard: React.FC = () => {
   useEffect(() => {
     setIsLoading(true);
     const body = document.querySelector("body");
-    // console.log("current headerfsf4", currentHeader);
     body?.style.setProperty(
       "background-image",
       "url(/pathwayAssets/pathwayBackground.svg)"
@@ -150,7 +149,6 @@ const Leaderboard: React.FC = () => {
           ""
         );
       }
-      console.log("currentStudent ", currentStudent);
       setCurrentStudent(currentStudent);
 
       // setIsLoading(false);
@@ -163,14 +161,6 @@ const Leaderboard: React.FC = () => {
   ) {
     setIsLoading(true);
     const api = ServiceConfig.getI().apiHandler;
-    console.log(
-      "leaderboardDataInfo.weekly.length <= 0 leaderboardDataInfo.allTime.length <= 0",
-      leaderboardDataInfo.weekly.length <= 0 ||
-        leaderboardDataInfo.allTime.length <= 0,
-      leaderboardDropdownType
-        ? "leaderboardDataInfo.weekly"
-        : "leaderboardDataInfo.allTime"
-    );
     let currentUserDataContent: any[][] = [];
     let leaderboardDataArray: any[][] = [];
     currentUserDataContent = [
@@ -310,7 +300,6 @@ const Leaderboard: React.FC = () => {
   let currentUserHeaderRowIndicator = -1;
 
   function leaderboardUI() {
-    console.log("weeklySelectedValue", weeklySelectedValue);
 
     return (
       <div id="leaderboard-UI">
@@ -324,12 +313,6 @@ const Leaderboard: React.FC = () => {
               // if (weekOptionsList[0] != weekOptionsList[selectedValue]) {
               // setIsWeeklyFlag(true);
               if (weeklyList[selectedValue]?.displayName != undefined) {
-                console.log(
-                  "selected value",
-                  selectedValue,
-                  weeklyList[selectedValue]?.displayName,
-                  weeklyList[0] === weeklyList[selectedValue]
-                );
                 setWeeklySelectedValue(weeklyList[selectedValue]?.id);
                 fetchLeaderBoardData(
                   currentStudent!,
@@ -368,12 +351,6 @@ const Leaderboard: React.FC = () => {
                   {e.map((d) => {
                     i++;
                     currentUserHeaderRowIndicator++;
-                    console.log(
-                      "color: i === 1 && j === 1 ? white : ",
-                      i,
-                      currentUserHeaderRowIndicator,
-                      i === 1 && currentUserHeaderRowIndicator === 1
-                    );
 
                     return (
                       <IonCol key={d} size="0" size-sm="6">
@@ -423,17 +400,7 @@ const Leaderboard: React.FC = () => {
             let rankColors = ["", "#FFC32C", "#C4C4C4", "#D39A66", "#959595"];
             let i = -1;
             headerRowIndicator++;
-            console.log(
-              "headerRowIndicator",
-              headerRowIndicator,
-              Number(currentUserDataContent[0][1]),
-              Number(currentUserDataContent[0][1]) === headerRowIndicator,
-              headerRowIndicator + "+",
-              Number(currentUserDataContent[0][1]) === headerRowIndicator ||
-                currentUserDataContent[0][1] === headerRowIndicator + "+"
-            );
             // if (currentUserDataContent[0][1] === i.toString()) {
-            //   console.log("User e", e);
             //   // headerRowIndicator = true;
             // }
 
@@ -624,13 +591,11 @@ const Leaderboard: React.FC = () => {
                 Util.setCurrentStudent(null);
                 localStorage.removeItem(CURRENT_STUDENT);
                 if (studentMode !== MODES.SCHOOL) {
-                  console.log("Sometimes this block works..");
                   schoolUtil.removeCurrentClass();
                 }
                 // await Util.setCurrentStudent(null);
                 AvatarObj.destroyInstance();
                 const user = await auth.getCurrentUser();
-                // console.log("supabase user:", user);
                 if (!!user && !!user.language_id) {
                   const langDoc = await api.getLanguageWithId(user.language_id);
                   if (langDoc) {

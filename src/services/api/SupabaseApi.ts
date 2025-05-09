@@ -127,7 +127,6 @@ export class SupabaseApi implements ServiceApi {
     this.supabaseUrl = process.env.REACT_APP_SUPABASE_URL ?? "";
     this.supabaseKey = process.env.REACT_APP_SUPABASE_KEY ?? "";
     this.supabase = createClient<Database>(this.supabaseUrl, this.supabaseKey);
-    console.log("🚀 ~ supabase:", this.supabase);
   }
 
   // as parameters type: school, user, class
@@ -169,7 +168,6 @@ export class SupabaseApi implements ServiceApi {
       .from("ProfileImages")
       .getPublicUrl(filePath);
     const imageUrl = urlData?.data.publicUrl;
-    console.log("Public Image URL:", imageUrl);
     return imageUrl || null;
   }
 
@@ -189,7 +187,6 @@ export class SupabaseApi implements ServiceApi {
         console.error("Function error:", error);
         return false;
       }
-      console.log("Function response:", data);
       return true;
     } catch (error) {
       console.error("Upload failed:", error);
@@ -210,7 +207,6 @@ export class SupabaseApi implements ServiceApi {
         .select("*")
         .gte("updated_at", lastModifiedDate);
       data.set(tableName, res?.data);
-      console.log("🚀 ~ SupabaseApi ~ res tableName:", tableName, res);
 
       // switch (tableName) {
       //   case TABLES.User:
@@ -266,8 +262,6 @@ export class SupabaseApi implements ServiceApi {
 
       case MUTATE_TYPES.UPDATE:
         delete data.id;
-        console.log("🚀 ~ SupabaseApi ~ data:", JSON.stringify(data));
-        console.log(typeof data);
         res = await this.supabase.from(tableName).update(data).eq("id", id);
         break;
 
@@ -278,7 +272,6 @@ export class SupabaseApi implements ServiceApi {
       default:
         break;
     }
-    console.log("🚀 ~ SupabaseApi ~ res:", JSON.stringify(res));
 
     return !!res && !res.error;
   }
@@ -683,7 +676,6 @@ export class SupabaseApi implements ServiceApi {
   async linkStudent(inviteCode: number, studentId: string): Promise<any> {
     try {
       if (!studentId) {
-        console.log(this._currentStudent);
         throw Error("Student Not Found");
       }
       const rpcRes = await this.supabase?.rpc("linkStudent", {
@@ -1133,7 +1125,6 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase.rpc("find_similar_lessons", {
       search_text: searchString,
     });
-    console.log("🚀 ~ SupabaseApi ~ searchLessons ~ data, error:", data, error);
     if (error) return [];
     return data;
   }
@@ -1450,7 +1441,6 @@ export class SupabaseApi implements ServiceApi {
           field_coordinator_contact: fieldCoordinatorPhone?.trim() ?? null,
         }
       );
-      console.log("fdsfsfccce45rfw", data, error);
       if (error || !data) {
         return {
           status: "error",
@@ -1481,11 +1471,7 @@ export class SupabaseApi implements ServiceApi {
   //   }
 
   //   const errors: string[] = [];
-  //   console.log(
-  //     "check data for validateUserContacts",
-  //     programManagerPhone,
-  //     fieldCoordinatorPhone
-  //   );
+
 
   //   const queryKey = programManagerPhone.includes("@") ? "email" : "phone";
   //   const { data: pmData, error: pmError } = await this.supabase

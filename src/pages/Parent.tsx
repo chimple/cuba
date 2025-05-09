@@ -116,7 +116,6 @@ const Parent: React.FC = () => {
       }
       const currMode = await schoolUtil.getCurrMode();
       setStudentMode(currMode);
-      console.log("User ", parentUser?.music_off!);
       const sound = Util.getCurrentSound();
       const music = Util.getCurrentMusic();
       setSoundFlag(sound);
@@ -139,16 +138,6 @@ const Parent: React.FC = () => {
       setLangDocIds(tempLangDocIds);
       setLangList(tempLangList);
 
-      console.log(
-        "current Lang",
-        langDocIds,
-        langDocIds.get(parentUser?.language_id!),
-        keytempLangDocIds.get(parentUser?.language_id!),
-        langDocIds.get(parentUser?.language_id!) || localAppLang || langList[0]
-      );
-
-      //console.log(localAppLang);
-
       const element = allLang.find((obj) => obj.code === localAppLang);
       if (!element) return;
 
@@ -168,10 +157,8 @@ const Parent: React.FC = () => {
     return (
       <div id="parent-page-profile">
         {userProfile.map((element) => {
-          console.log("userProfile", userProfile);
           let studentUserType: boolean = true;
           if (element === undefined) {
-            console.log("element", element);
             studentUserType = false;
           }
           return (
@@ -217,9 +204,7 @@ const Parent: React.FC = () => {
 
                 if (!langDoc) return;
                 localStorage.setItem(LANGUAGE, langDoc.code ?? "");
-                console.log("langDoc", langDoc);
                 await i18n.changeLanguage(langDoc.code ?? "");
-                console.log("applang", selectedLangDocId);
                 const currentUser = await auth.getCurrentUser();
                 setTabIndex(t(parentHeaderIconList[1].header));
 
@@ -228,7 +213,6 @@ const Parent: React.FC = () => {
                 if (currentUser && selectedLangDocId) {
                   api.updateLanguage(currentUser.id, selectedLangDocId);
                 }
-                console.log("selectedLangDocId", selectedLangDocId);
                 setCurrentAppLang(selectedLangDocId);
                 const updatedUserData: TableTypes<"user"> | undefined =
                   currentUser
@@ -241,7 +225,6 @@ const Parent: React.FC = () => {
                 if (updatedUserData) {
                   auth.currentUser = updatedUserData;
                 }
-                // console.log("currentUser after update:",await auth.getCurrentUser());
                 // window.location.reload();
               }}
             />
@@ -251,7 +234,6 @@ const Parent: React.FC = () => {
               flag={soundFlag!}
               title={t("Sound")}
               onIonChangeClick={async (v) => {
-                console.log("ion change value ", v.detail?.checked ? 0 : 1);
                 setSoundFlag(v.detail?.checked ? 0 : 1);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -306,7 +288,6 @@ const Parent: React.FC = () => {
               flag={musicFlag!}
               title={t("Music")}
               onIonChangeClick={async (v) => {
-                console.log("ion change value ", v.detail?.checked ? 0 : 1);
                 setMusicFlag(v.detail?.checked ? 0 : 1);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -386,7 +367,6 @@ const Parent: React.FC = () => {
               <div
                 id="parent-page-help-share-button"
                 onClick={() => {
-                  console.log("Value clicked");
                   window.open("https://www.chimple.org/", "_system");
                 }}
               >
@@ -439,7 +419,6 @@ const Parent: React.FC = () => {
               <div
                 id="parent-page-help-share-button-e3"
                 onClick={() => {
-                  console.log("Value clicked");
                   // let message = "Hiii !!!!";
                   window.open(
                     `https://api.instagram.com/chimple_learning/`,
