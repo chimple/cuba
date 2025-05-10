@@ -85,8 +85,8 @@
   align-items: center;
 }
 .leaderboard-avatar-img {
-  height: clamp(50px,8vh,60px);
-  width: clamp(50px,8vh,60px);
+  height: clamp(60px,8vh,80px);
+  width: clamp(60px,8vh,80px);
 }
 
 #leaderboard-student-name {
