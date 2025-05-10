@@ -23,23 +23,23 @@ const LearningPathway: React.FC = () => {
     fetchLearningPathway(currentStudent);
   }, []);
   const updateStarCount = (currentStudent: any) => {
-      const storedStarsJson = localStorage.getItem(STARS_COUNT);
-      const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
+    const storedStarsJson = localStorage.getItem(STARS_COUNT);
+    const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
 
-      const localStorageStars = parseInt(
-        storedStarsMap[currentStudent.id] || "0",
-        10
-      );
-      const studentStars = currentStudent.stars || 0;
-      if (localStorageStars < studentStars) {
-        storedStarsMap[currentStudent.id] = studentStars;
-        localStorage.setItem(STARS_COUNT, JSON.stringify(storedStarsMap));
-        setFrom(localStorageStars);
-        setTo(studentStars);
-      } else {
-        setFrom(studentStars);
-        setTo(studentStars);
-      }
+    const localStorageStars = parseInt(
+      storedStarsMap[currentStudent.id] || "0",
+      10
+    );
+    const studentStars = currentStudent.stars || 0;
+    if (localStorageStars < studentStars) {
+      storedStarsMap[currentStudent.id] = studentStars;
+      localStorage.setItem(STARS_COUNT, JSON.stringify(storedStarsMap));
+      setFrom(localStorageStars);
+      setTo(studentStars);
+    } else {
+      setFrom(studentStars);
+      setTo(studentStars);
+    }
   };
 
   const fetchLearningPathway = async (student: any) => {
@@ -59,7 +59,10 @@ const LearningPathway: React.FC = () => {
         learningPath = await buildInitialLearningPath(userCourses);
         await saveLearningPath(student, learningPath);
       } else {
-        const updated = await updateLearningPathIfNeeded(learningPath, userCourses);
+        const updated = await updateLearningPathIfNeeded(
+          learningPath,
+          userCourses
+        );
         if (updated) await saveLearningPath(student, learningPath);
       }
     } catch (error) {
@@ -89,8 +92,13 @@ const LearningPathway: React.FC = () => {
     };
   };
 
-  const updateLearningPathIfNeeded = async (learningPath: any, userCourses: any[]) => {
-    const existingCourseIds = new Set(learningPath.courses.courseList.map((c: any) => c.course_id));
+  const updateLearningPathIfNeeded = async (
+    learningPath: any,
+    userCourses: any[]
+  ) => {
+    const existingCourseIds = new Set(
+      learningPath.courses.courseList.map((c: any) => c.course_id)
+    );
     const newCourseIds = new Set(userCourses.map((c: any) => c.id));
 
     const toAdd = userCourses.filter((c) => !existingCourseIds.has(c.id));
@@ -146,7 +154,10 @@ const LearningPathway: React.FC = () => {
   const saveLearningPath = async (student: any, path: any) => {
     const pathStr = JSON.stringify(path);
     await api.updateLearningPath(student, pathStr);
-    await Util.setCurrentStudent({ ...student, learning_path: pathStr }, undefined);
+    await Util.setCurrentStudent(
+      { ...student, learning_path: pathStr },
+      undefined
+    );
     window.dispatchEvent(
       new CustomEvent("PathwayCreated", { detail: { userId: student.id } })
     );
@@ -162,9 +173,9 @@ const LearningPathway: React.FC = () => {
 
       <div className="chapter-egg-container">
         <ChapterLessonBox
-          containerStyle={{
-            width: "30vw",
-          }}
+        // containerStyle={{
+        //   width: "30vw",
+        // }}
         />
         <TressureBox startNumber={from} endNumber={to} />
       </div>
