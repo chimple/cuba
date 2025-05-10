@@ -13,6 +13,8 @@ import { generateFinalPayload } from "../OpsUtility/OpsDataMapper";
 import VerifiedPage from "./FileVerifiedComponent";
 import ErrorPage from "./FileErrorComponent";
 import VerificationInProgress from "./VerificationInProgress";
+import { useHistory } from "react-router-dom";
+import { PAGES } from "../../common/constants";
 
 const FileUpload: React.FC = () => {
   const api = ServiceConfig.getI()?.apiHandler;
@@ -31,6 +33,7 @@ const FileUpload: React.FC = () => {
   const [step, setStep] = useState<
     "idle" | "verifying" | "verified" | "uploading" | "uploaded" | "error"
   >("idle");
+  const history = useHistory();
 
   function onReuploadTriggered() {
     setFile(null);
@@ -330,7 +333,11 @@ const FileUpload: React.FC = () => {
             }
           }
           const validationResponse =
-            await api.validateClassCurriculumAndSubject(curriculum, subject, subjectGrade);
+            await api.validateClassCurriculumAndSubject(
+              curriculum,
+              subject,
+              subjectGrade
+            );
           if (validationResponse.status === "error") {
             errors.push(...(validationResponse.errors || []));
           }
@@ -648,7 +655,7 @@ const FileUpload: React.FC = () => {
             </div>
           ) : (
             <button
-              onClick={() => setFile(null)}
+              onClick={() => history.replace(PAGES.MANAGE_SCHOOL)}
               className="file-upload-btn file-upload-long-cancel-btn"
             >
               {t("Cancel")}

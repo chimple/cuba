@@ -1800,8 +1800,13 @@ export class Util {
     }
   }
   public static addRefreshTokenToLocalStorage(refreshToken: string) {
-    localStorage.setItem(REFRESH_TOKEN, JSON.stringify(refreshToken));
+    const data = {
+      token: refreshToken,
+      savedAt: new Date().toISOString(), // store current date/time in ISO format
+    };
+    localStorage.setItem(REFRESH_TOKEN, JSON.stringify(data));
   }
+
   public static setCurrentSchool = async (
     school: TableTypes<"school">,
     role: RoleType

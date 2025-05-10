@@ -60,7 +60,7 @@ export class OneRosterAuth implements ServiceAuth {
     throw new Error("Method not implemented.");
   }
 
-  refreshSession(): Promise<void> {
+  doRefreshSession(): Promise<void> {
     throw new Error("Method not implemented.");
   }
 
@@ -71,9 +71,7 @@ export class OneRosterAuth implements ServiceAuth {
     throw new Error("Method not implemented.");
   }
 
-  updateUser(
-    attributes: UserAttributes,
-  ): Promise<boolean> {
+  updateUser(attributes: UserAttributes): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
 }
