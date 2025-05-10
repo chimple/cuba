@@ -5,10 +5,12 @@ import { Database } from "../database";
 import {
   CURRENT_USER,
   REFRESH_TOKEN,
+  REFRESH_TABLES_ON_LOGIN,
+  TABLES,
   TableTypes,
   USER_DATA,
 } from "../../common/constants";
-import { SupabaseClient } from "@supabase/supabase-js";
+import { SupabaseClient, UserAttributes } from "@supabase/supabase-js";
 import { ServiceConfig } from "../ServiceConfig";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Util } from "../../utility/util";
@@ -50,7 +52,7 @@ export class SupabaseAuth implements ServiceAuth {
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
       }
       await api.updateFcmToken(data?.user?.id ?? "");
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(Object.values(TABLES),REFRESH_TABLES_ON_LOGIN);
       await api.subscribeToClassTopic();
       return true;
     } catch (error) {
@@ -61,7 +63,58 @@ export class SupabaseAuth implements ServiceAuth {
       return false;
     }
   }
+  async signInWithEmail(email: string, password: string): Promise<boolean> {
+    try {
+      if (!this._auth) return false;
+      const { data, error } = await this._auth.signInWithPassword({
+        email,
+        password,
+      });
+      const api = ServiceConfig.getI().apiHandler;
+      if (error) {
+        throw new Error(error.message || "Authentication failed.");
+      }
+      if (data.session?.refresh_token) {
+        Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
+      }
+      await api.updateFcmToken(data?.user?.id ?? "");
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(Object.values(TABLES),REFRESH_TABLES_ON_LOGIN);
+      return true;
+    } catch (error) {
+      console.log(
+        "🚀 ~ file: SupabaseAuth.ts:166 ~ SupabaseAuth ~ Emailsignin ~ error:",
+        error
+      );
+      return false;
+    }
+  }
+  async sendResetPasswordEmail(email: string): Promise<boolean> {
+    try {
+      if (!this._auth) return false;
+      const { data, error } = await this._auth.resetPasswordForEmail(email);
 
+      if (error) {
+        console.error("Reset password error:", error.message);
+        return false;
+      }
+
+      return true;
+    } catch (err: any) {
+      console.error("Unexpected error in resetPasswordForEmail:", err.message);
+      return false;
+    }
+  }
+  async updateUser(attributes: UserAttributes): Promise<boolean> {
+    if (!this._auth) return false;
+
+    const { data, error } = await this._auth.updateUser(attributes);
+
+    if (error) {
+      console.error("Error updating user:", error.message);
+      return false;
+    }
+    return true;
+  }
   async googleSign(): Promise<boolean> {
     try {
       if (!this._auth) return false;
@@ -117,7 +170,7 @@ export class SupabaseAuth implements ServiceAuth {
         this._currentUser = createdUser;
       }
       await api.updateFcmToken(data.user?.id ?? authUser.id);
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(Object.values(TABLES),REFRESH_TABLES_ON_LOGIN);
       if (rpcRes?.data) {
         await api.subscribeToClassTopic();
       }
@@ -274,7 +327,7 @@ export class SupabaseAuth implements ServiceAuth {
         this._currentUser = createdUser;
       }
       await api.updateFcmToken(user?.user?.id ?? "");
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB();
+      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(Object.values(TABLES),REFRESH_TABLES_ON_LOGIN);
       if (rpcRes?.data) {
         await api.subscribeToClassTopic();
       }

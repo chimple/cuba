@@ -34,7 +34,7 @@ const AddUserPopUp: React.FC<AddUserPopUpProps> = ({ showDialogBox, handleClose 
                         <div className='search-field'>
                             <TextField
                                 onChange={(evt) => { }}
-                                placeholder={!isMailSerach ? 'Email' : 'PhoneNumber'}
+                                placeholder={!isMailSerach ? t('Email')??"" : t('Phone')??""}
                             />
                             <div className='search-icon'>
                                 <IoIosSearch />
@@ -43,7 +43,7 @@ const AddUserPopUp: React.FC<AddUserPopUpProps> = ({ showDialogBox, handleClose 
                         <button className="use-another-search" onClick={() => {
                             setIsMailSearch(!isMailSerach)
 
-                         }}>{!isMailSerach?t('Use Phone Number Instead'):t('Use Email Instead')}</button>
+                         }}>{!isMailSerach?t('Use phone number instead'):t('Use email instead')}</button>
                     </DialogContent>
                 </div>
 

@@ -24,6 +24,8 @@ const LidoPlayer: FC = () => {
   const history = useHistory();
   const [present] = useIonToast();
   const state = history.location.state as any;
+  const playedFrom = localStorage.getItem("currentHeader")
+  const assignmentType = state?.assignment?.type || 'self-played';
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [basePath, setBasePath] = useState<string>();
   const [xmlPath, setXmlPath] = useState<string>();
@@ -32,11 +34,9 @@ const LidoPlayer: FC = () => {
   const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
 
   const onNextContainer = (e: any) => {
-    console.log("nextContainer", e.detail);
   };
 
   const gameCompleted = (e: any) => {
-    console.log("gameCompleted", e.detail);
     push();
   };
 
@@ -45,7 +45,6 @@ const LidoPlayer: FC = () => {
     Util.setPathToBackButton(fromPath, history);
   };
   const onActivityEnd = (e: any) => {
-    console.log("onActivityEnd", e.detail.score);
     // push();
   };
   const courseDetail: TableTypes<"course"> = state.course
@@ -59,7 +58,6 @@ const LidoPlayer: FC = () => {
     : undefined;
 
   const onLessonEnd = async (e: any) => {
-    console.log("onLessonEnd", e.detail.score);
     const lessonData = e.detail;
 
     const api = ServiceConfig.getI().apiHandler;
@@ -150,8 +148,9 @@ const LidoPlayer: FC = () => {
       game_time_spent: data.gameTimeSpent,
       quiz_time_spent: data.quizTimeSpent,
       score: data.score,
+      played_from: playedFrom,
+      assignment_type: assignmentType,
     });
-    console.log("🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:", result);
     let tempAssignmentCompletedIds = localStorage.getItem(
       ASSIGNMENT_COMPLETED_IDS
     );
@@ -246,16 +245,15 @@ const LidoPlayer: FC = () => {
 
   async function init() {
     setIsLoading(true);
-    console.log("🚀 ~ init ~ lessonId:", lessonId);
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
     const lessonIds: string[] = [lessonId];
-    console.log("cocosGame page lessonIds", lessonIds);
     const dow = await Util.downloadZipBundle(lessonIds);
     if (!dow) {
       presentToast();
       push();
       return;
     }
-    console.log("download ", dow);
     if (Capacitor.isNativePlatform()) {
       const path = await Util.getLessonPath(lessonId);
       setBasePath(path);

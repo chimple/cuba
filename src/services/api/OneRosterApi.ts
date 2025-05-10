@@ -1,4 +1,3 @@
-
 // @ts-nocheck
 import { HttpHeaders } from "@capacitor-community/http";
 import {
@@ -1143,20 +1142,13 @@ export class OneRosterApi implements ServiceApi {
   validateSchoolData(
     schholId: string,
     schoolName: string,
-    instructionMedium: string
   ): Promise<TableTypes<"school_data">[] | undefined> {
     throw new Error("Method not implemented.");
   }
   validateClassCurriculumAndSubject(
     curriculumName: string,
-    subjectName: string
-  ): Promise<{ status: string; errors?: string[] }> {
-    throw new Error("Method not implemented.");
-  }
-  validateClassExistence(
-    schoolId: string,
-    className: string,
-    studentName?: string
+    subjectName: string,
+    gradeName: string
   ): Promise<{ status: string; errors?: string[] }> {
     throw new Error("Method not implemented.");
   }
@@ -1164,6 +1156,9 @@ export class OneRosterApi implements ServiceApi {
     programManagerPhone: string,
     fieldCoordinatorPhone: string
   ): Promise<{ status: string; errors?: string[] }> {
+    throw new Error("Method not implemented.");
+  }
+  uploadData(payload: any): Promise<boolean | any> {
     throw new Error("Method not implemented.");
   }
 }

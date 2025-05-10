@@ -1,0 +1,85 @@
+.dashboard-student-progress-container {
+  display: flex;
+  margin: 10px;
+  height: 12vh;
+  min-height: 70px;
+}
+.dashboard-student-avatar-container {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: 100px;
+  margin-right: 10px;
+  flex: 1;
+ 
+}
+
+.dashboard-avatar {
+  width: auto;
+  height: 75%;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+  flex: 4;
+}
+.lesson-chapter-name {
+  color: #333;
+  width: 100%; 
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis; 
+  font-size: 1.4vh;
+}
+
+
+.dashboard-avatar-name {
+  color: #333;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dashboard-score-container {
+  border: 2px solid;
+  border-radius: 12px;
+  width: 90vw;
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-family: "Arial", sans-serif;
+  display: flex;
+  flex: 4;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dashboard-score-content {
+  display: flex;
+  align-items: center;
+  padding: 1px;
+  padding-left: 10px;
+  gap: 8px;
+  overflow-x: scroll;
+  flex: 5;
+}
+
+.student-score-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: min(33%, 80px);
+  max-width: 30%;
+  
+}
+.student-score {
+  width: auto;
+  height: 60%;
+}
+.CircularProgressbar {
+  margin-bottom: 5px;
+  min-width: 30px;
+  min-height: 30px;
+  width: 6vh;
+  height: 6vh;
+}

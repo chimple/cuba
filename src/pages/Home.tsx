@@ -13,6 +13,7 @@ import {
   IS_CONECTED,
   TableTypes,
   RECOMMENDATIONS,
+  STARS_COUNT,
 } from "../common/constants";
 import "./Home.css";
 import LessonSlider from "../components/LessonSlider";
@@ -29,7 +30,7 @@ import { schoolUtil } from "../utility/schoolUtil";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import { t } from "i18next";
 import { App } from "@capacitor/app";
-import ChimpleAvatar from "../components/animation/ChimpleAvatar";
+// import ChimpleAvatar from "../components/animation/ChimpleAvatar";
 import SearchLesson from "./SearchLesson";
 import AssignmentPage from "./Assignment";
 import Subjects from "./Subjects";
@@ -37,6 +38,7 @@ import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 import { useGrowthBook } from "@growthbook/growthbook-react";
+import LearningPathway from "../components/LearningPathway";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -76,13 +78,12 @@ const Home: FC = () => {
   let tempPageNumber = 1;
   const location = useLocation();
   const getCanShowAvatar = async () => {
-    const canShowAvatarValue = await Util.getCanShowAvatar();
-    console.log("const canShowAvatarValue in home ", canShowAvatarValue);
+    // const canShowAvatarValue = await Util.getCanShowAvatar();
 
-    setCanShowAvatar(canShowAvatarValue);
+    setCanShowAvatar(true);
   };
   const urlParams = new URLSearchParams(location.search);
-  const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
+  const [canShowAvatar, setCanShowAvatar] = useState<boolean>(true);
   const [currentHeader, setCurrentHeader] = useState(() => {
     const currPage = urlParams.get("tab");
     if (
@@ -116,6 +117,13 @@ const Home: FC = () => {
     App.addListener("appStateChange", ({ isActive }) =>
       appStateChange(isActive)
     );
+    const handlePathwayCreated = (e: Event) => {
+      const customEvent = e as CustomEvent;
+    };
+    window.addEventListener("PathwayCreated", handlePathwayCreated);
+    return () => {
+      window.removeEventListener("PathwayCreated", handlePathwayCreated);
+    };
   }, []);
 
   useEffect(() => {
@@ -129,6 +137,14 @@ const Home: FC = () => {
       fetchData();
     }
   }, [currentHeader]);
+  // adding background image for learning-pathway
+  useEffect(() => {
+    const body = document.querySelector("body");
+    body?.style.setProperty(
+      "background-image",
+      "url(/pathwayAssets/pathwayBackground.svg)"
+    );
+  }, [currentHeader, canShowAvatar]);
   const handleJoinClassEvent = async (event) => {
     await getAssignments();
     setCanShowAvatar(true);
@@ -229,7 +245,6 @@ const Home: FC = () => {
       student != null
         ? await api.getStudentClassesAndSchools(student.id)
         : null;
-    console.log("linkedData: ", linkedData);
     const classDoc = linkedData?.classes[0];
     if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
     if (student) await api.assignmentUserListner(student.id, () => {});
@@ -255,7 +270,6 @@ const Home: FC = () => {
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(_assignment.lesson_id);
           const now = new Date().toISOString();
-          console.log(res);
           if (_assignment.type !== LIVE_QUIZ) {
             assignmentCount++;
           } else {
@@ -329,7 +343,6 @@ const Home: FC = () => {
           currentStudent,
           currClass
         );
-        console.log("Final RECOMMENDATION List ", recommendationResult);
         recommendationResult = recommendationResult.concat(tempRecommendations);
 
         const lessonCourseMap: { [lessonId: string]: { course_id: string } } =
@@ -376,7 +389,6 @@ const Home: FC = () => {
       if (lessonResultMap) {
         // const startIndex = (tempPageNumber - 1) * favouritesPageSize;
         // const endIndex = startIndex + favouritesPageSize;
-        // console.log("initial history lessons", initialHistoryLessons);
         // const initialFavouriteLessonsSlice = initialFavoriteLessons.slice(
         //   startIndex,
         //   endIndex
@@ -388,7 +400,6 @@ const Home: FC = () => {
       setHistoryLessons([]);
       setFavouriteLessons([]);
     }
-    console.log("Changing...", newValue);
   };
   const handleHomeIconClick = () => {
     setSubTab(SUBTAB.SUGGESTIONS);
@@ -416,7 +427,6 @@ const Home: FC = () => {
 
     if (studentResult) {
       const playedLessonData = studentResult;
-      console.log("🚀 ~ getHistory ~ playedLessonData:", playedLessonData);
       const sortedLessonDocIds = sortPlayedLessonDocByDate(playedLessonData);
       const allValidPlayedLessonDocIds = sortedLessonDocIds.filter(
         (lessonDoc) => lessonDoc !== undefined
@@ -431,7 +441,6 @@ const Home: FC = () => {
     if (!lesMap) {
       return;
     }
-    console.log("Object.entries(lesMap)", lesMap, Object.entries(lesMap));
     const lesList = Object.entries(lesMap).sort((a, b) => {
       if (new Date(a[1].updated_at ?? "") === new Date(b[1].updated_at ?? "")) {
         return 0;
@@ -456,9 +465,7 @@ const Home: FC = () => {
   ): Promise<TableTypes<"lesson">[]> {
     // const allCourses: TableTypes<"course">[] =
     //   await api.getCoursesForParentsStudent(currentStudent.id);
-    // console.log("allCourses ", allCourses);
     // const lessons = await api.getAllLessonsForCourse(allCourses[0].id);
-    // console.log("const lessons ", lessons);
     let tempRecommendedLesson = await api.getRecommendedLessons(
       currentStudent.id,
       currentClass?.id
@@ -470,7 +477,6 @@ const Home: FC = () => {
     let reqLes: TableTypes<"lesson">[] = [];
     var headerIconList: HeaderIconConfig[] = [];
     DEFAULT_HEADER_ICON_CONFIGS.forEach((element) => {
-      //  console.log("elements", element);
       headerIconList.push(element);
     });
     setCurrentHeader(selectedHeader);
@@ -494,6 +500,8 @@ const Home: FC = () => {
         break;
       case HOMEHEADERLIST.PROFILE:
         Util.setPathToBackButton(PAGES.LEADERBOARD, history);
+        const body = document.querySelector("body");
+        body?.style.removeProperty("background-image");
         break;
       // case HOMEHEADERLIST.SEARCH:
       //   history.replace(PAGES.SEARCH);
@@ -549,7 +557,6 @@ const Home: FC = () => {
   };
 
   const updateHistoryLessons = async (allLessonIds: string[]) => {
-    console.log("🚀 ~ updateHistoryLessons ~ allLessonIds:", allLessonIds);
     setIsLoading(true);
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent || !lessonResultMap) {
@@ -584,9 +591,6 @@ const Home: FC = () => {
     setIsLoading(false);
   };
 
-  console.log("lesson slider favourite", favouriteLessons);
-  console.log("lesson slider history", historyLessons);
-
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">
@@ -602,15 +606,16 @@ const Home: FC = () => {
         {!isLoading ? (
           <div className="space-between">
             {currentHeader === HOMEHEADERLIST.HOME && !!canShowAvatar ? (
-              <ChimpleAvatar
-                recommadedSuggestion={dataCourse}
-                assignments={pendingAssignments}
-                style={{
-                  marginBottom: "2vh",
-                  display: "flex",
-                  justifyContent: "space-around",
-                }}
-              ></ChimpleAvatar>
+              // <ChimpleAvatar
+              //   recommadedSuggestion={dataCourse}
+              //   assignments={pendingAssignments}
+              //   style={{
+              //     marginBottom: "2vh",
+              //     display: "flex",
+              //     justifyContent: "space-around",
+              //   }}
+              // ></ChimpleAvatar>
+              <LearningPathway />
             ) : null}
 
             {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
@@ -719,7 +724,9 @@ const Home: FC = () => {
                           lessonCourseMap={lessonCourseMap}
                         />
                       ) : (
-                        <p>{t("No liked lessons available.")}</p>
+                        <p className="no-lesson">
+                          {t("No liked lessons available.")}
+                        </p>
                       )}
                     </>
                   )}
@@ -739,7 +746,9 @@ const Home: FC = () => {
                           lessonCourseMap={lessonCourseMap}
                         />
                       ) : (
-                        <p>{t("No played lessons available.")}</p>
+                        <p className="no-played">
+                          {t("No played lessons available.")}
+                        </p>
                       )}
                     </>
                   )}

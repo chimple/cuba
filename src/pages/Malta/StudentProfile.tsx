@@ -2,7 +2,7 @@ import React from "react";
 import { useHistory } from "react-router-dom";
 // import "./TeacherProfile.css";
 import { PAGES } from "../../common/constants";
-// import ProfileDetails from "../../chimple-private/components/homePage/library/ProfileDetails";
+// import ProfileDetails from "../../teachers-module/components/homePage/library/ProfileDetails";
 import StudentProfileSection from "../../components/malta/StudentProfile/StudentProfileSection";
 import "./StudentProfile.css";
 import { t } from "i18next";
@@ -36,7 +36,7 @@ const StudentProfile: React.FC<{
       <hr className="horizontal-line-for-view-button-container" />
       <div className="view-button-container">
         <div className="view-button-info">
-          {t("Click below to view Student's progress")}
+          {t("Click below to view student's progress")}
         </div>
         <button className="view-button-in-student-profile">
           {t("View Progress")}

@@ -58,7 +58,6 @@ const HomeHeader: React.FC<{
       setStudentMode(currMode);
 
       DEFAULT_HEADER_ICON_CONFIGS.forEach(async (element) => {
-        console.log("element.headerList", element.headerList);
         if (
           !(
             (currMode === MODES.SCHOOL &&
@@ -95,7 +94,7 @@ const HomeHeader: React.FC<{
         <HeaderIcon
           headerConfig={{
             displayName: t("Home"),
-            iconSrc: "assets/icons/homeInactiveIcon.svg",
+            iconSrc: "assets/icons/HomeIconInactive.svg",
             headerList: HOMEHEADERLIST.HOME,
           }}
           currentHeader={currentHeader}

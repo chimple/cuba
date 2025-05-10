@@ -1,0 +1,56 @@
+.divider {
+  height: 0.5px;
+  background-color: #7c5db0;
+  width: clamp(217px, 31vw, 217px);
+}
+.generate-button {
+  width: 10vw;
+  height: 8vh;
+  padding: 5px;
+  background-color: #9bc344;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 7%;
+  max-width: 200px; /* Set your desired maximum width */
+  max-height: 50px; /* Set your desired maximum height */
+  min-width: 88px;
+}
+.share-button {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  color: black;
+  margin-top: 4vh;
+}
+.share-button svg {
+  flex: 1;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+}
+.dropdowns-icon {
+  font-size: 30px;
+  color: #666;
+}
+.class-code {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 2vh;
+}
+.code {
+  padding-left: 23px;
+  padding-right: 18px;
+}
+.share-code {
+  display: flex;
+  align-items: center;
+}
+.generate-code-button {
+  color: black;
+  background: #9bc344;
+  border-radius: 7px;
+}

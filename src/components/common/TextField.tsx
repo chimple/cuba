@@ -14,7 +14,6 @@ const TextField: React.FC<{
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
-        console.log("info", JSON.stringify(info));
         setIsInputFocus(true);
         setTimeout(() => {
           scollToRef.current?.scrollIntoView({

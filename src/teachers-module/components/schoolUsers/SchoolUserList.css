@@ -1,0 +1,33 @@
+.school-user-list {
+  display: flex;
+  justify-content: space-between;
+  background: white;
+  align-items: center;
+}
+.school-user-div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.horizontal-line {
+  height: 0.6px;
+  border-width: 0;
+  box-sizing: border-box;
+  background: lightgrey;
+  margin: 5px 0;
+}
+.delete-button {
+  color: black;
+}
+.trash-icon {
+  font-size: 1.5rem;
+  color: black;
+}
+.no-users-found {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 65vh;
+  color: var(--text-color);
+}
