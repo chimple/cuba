@@ -167,6 +167,16 @@ export enum TABLESORTBY {
   LOWSCORE = "Low Score",
 }
 
+export enum FileUploadStep {
+  Idle = "idle",
+  Verifying = "verifying",
+  Verified = "verified",
+  Uploading = "uploading",
+  Uploaded = "uploaded",
+  Error = "error",
+  UploadError = "uploadError",
+}
+
 export const belowGrade1 = "30ecb762-8e63-45b3-a22a-62c1a9f71641";
 export const grade1 = "c802dce7-0840-4baf-b374-ef6cb4272a76";
 export const grade2 = "36e7ff1f-34d6-42ac-9294-3192433ace40";
@@ -539,7 +549,7 @@ export enum GENDER {
   OTHER = "unspecified",
 }
 
-export const REFRESH_TABLES_ON_LOGIN :TABLES[] =[
+export const REFRESH_TABLES_ON_LOGIN: TABLES[] = [
   TABLES.School,
   TABLES.Live_quiz_room,
   TABLES.Class,
@@ -559,8 +569,8 @@ export const REFRESH_TABLES_ON_LOGIN :TABLES[] =[
   TABLES.Assignment_user,
   TABLES.Result,
   TABLES.Assignment_cart,
-  TABLES.ReqNewSchool
-]
+  TABLES.ReqNewSchool,
+];
 
 export const AVATARS: string[] = [
   "Aligator",
