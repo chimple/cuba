@@ -17,6 +17,7 @@ import {
   grade3,
   PROFILETYPE,
   STARS_COUNT,
+  LATEST_STARS,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -1728,6 +1729,12 @@ export class SqliteApi implements ServiceApi {
     if (score > 50) starsEarned++;
     if (score > 75) starsEarned++;
 
+    const allStarsMap = localStorage.getItem(LATEST_STARS);
+    const allStars = allStarsMap ? JSON.parse(allStarsMap) : {};
+    const currentLocalStars = allStars[studentId] ?? 0;
+
+    allStars[studentId] = currentLocalStars + starsEarned;
+    localStorage.setItem(LATEST_STARS, JSON.stringify(allStars));
     await this.executeQuery(
       `UPDATE ${TABLES.User} SET stars = COALESCE(stars, 0) + ? WHERE id = ?;`,
       [starsEarned, studentId]
@@ -2533,7 +2540,6 @@ export class SqliteApi implements ServiceApi {
         id: classId,
         is_deleted: true,
       });
-
     } catch (error) {
       console.error("Failed to delete class:", error);
       throw error;
@@ -3283,7 +3289,6 @@ export class SqliteApi implements ServiceApi {
         course_id: course_id,
         source: null,
       };
-
 
       const res = await this.updatePushChanges(
         TABLES.Assignment,
@@ -4044,7 +4049,6 @@ order by
     const res = await this._db?.query(query);
     const assignments = res?.values ?? [];
 
-
     const classWiseAssignments = assignments.filter(
       (assignment) => assignment.is_class_wise
     );
@@ -4388,7 +4392,6 @@ order by
     curriculumName: string,
     subjectName: string,
     gradeName: string
-    
   ): Promise<{ status: string; errors?: string[] }> {
     const ClassCurriculum =
       await this._serverApi.validateClassCurriculumAndSubject(
@@ -4427,15 +4430,20 @@ order by
   ): Promise<void> {
     if (!studentId) return;
     try {
+      const be = await this.getUserByDocId(studentId);
+      const allStarsMap = localStorage.getItem(LATEST_STARS);
+      const allStars = allStarsMap ? JSON.parse(allStarsMap) : {};
+      const currentLocalStars = allStars[studentId] ?? 0;
+
+      allStars[studentId] = currentLocalStars + starsCount;
+      localStorage.setItem(LATEST_STARS, JSON.stringify(allStars));
+
       await this.executeQuery(
         `UPDATE ${TABLES.User} SET stars = COALESCE(stars, 0) + ? WHERE id = ?;`,
         [starsCount, studentId]
       );
-      const updatedStudent = await this.getUserByDocId(studentId);
-      if (updatedStudent) {
-        Util.setCurrentStudent(updatedStudent);
-      }
 
+      const updatedStudent = await this.getUserByDocId(studentId);
       this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
         id: studentId,
         stars: updatedStudent?.stars,
@@ -4616,6 +4624,25 @@ order by
         noOfPulled ?? 0,
         dataTransferred ?? 0,
       ]);
+    }
+  }
+  async updateStudentStars(
+    studentId: string,
+    totalStars: number
+  ): Promise<void> {
+    if (!studentId) return;
+    try {
+      await this.executeQuery(
+        `UPDATE ${TABLES.User} SET stars = ? WHERE id = ?;`,
+        [totalStars, studentId]
+      );
+
+      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+        id: studentId,
+        stars: totalStars,
+      });
+    } catch (error) {
+      console.error("Error setting stars for student:", error);
     }
   }
 }
