@@ -485,6 +485,7 @@ export const CURRENT_TEACHER = "currentTeacher";
 export const CURRENT_COURSE = "currentCourse";
 export const NAVIGATION_STATE = "navigationState";
 export const STARS_COUNT = "starsCount";
+export const LATEST_STARS = "latestStar";
 
 export enum IconType {
   SCHOOL = "school",
@@ -539,7 +540,7 @@ export enum GENDER {
   OTHER = "unspecified",
 }
 
-export const REFRESH_TABLES_ON_LOGIN :TABLES[] =[
+export const REFRESH_TABLES_ON_LOGIN: TABLES[] = [
   TABLES.School,
   TABLES.Live_quiz_room,
   TABLES.Class,
@@ -559,8 +560,8 @@ export const REFRESH_TABLES_ON_LOGIN :TABLES[] =[
   TABLES.Assignment_user,
   TABLES.Result,
   TABLES.Assignment_cart,
-  TABLES.ReqNewSchool
-]
+  TABLES.ReqNewSchool,
+];
 
 export const AVATARS: string[] = [
   "Aligator",
