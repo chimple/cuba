@@ -22,8 +22,14 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
       const course = learningPath?.courses.courseList[currentCourseIndex];
       const { currentIndex } = course;
 
-      const chapter = await api.getChapterById(learningPath.courses.courseList[currentCourseIndex].path[currentIndex].chapter_id);
-      const lesson = await api.getLesson(learningPath.courses.courseList[currentCourseIndex].path[currentIndex].lesson_id);
+      const chapter = await api.getChapterById(
+        learningPath.courses.courseList[currentCourseIndex].path[currentIndex]
+          .chapter_id
+      );
+      const lesson = await api.getLesson(
+        learningPath.courses.courseList[currentCourseIndex].path[currentIndex]
+          .lesson_id
+      );
       let chapterName = chapter?.name + ": " + lesson?.name;
 
       setCurrentChapterName(chapterName || "Default Chapter");
@@ -59,7 +65,6 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
       className="chapter-lesson-box"
       style={{
         ...containerStyle,
-        backgroundImage: "url('/pathwayAssets/chapterLessonBox.svg')",
       }}
     >
       <div className="chapter-lesson-text">{currentChapterName}</div>
