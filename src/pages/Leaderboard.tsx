@@ -332,7 +332,7 @@ const Leaderboard: React.FC = () => {
             id="leaderboard-avatar"
           >
             <img
-              className="avatar-img"
+              className="leaderboard-avatar-img"
               src={
                 (studentMode === MODES.SCHOOL && currentStudent?.image) ||
                 "assets/avatars/" +
