@@ -8,7 +8,7 @@ import DropdownMenu from "./Home/DropdownMenu";
 import { ServiceConfig } from "../services/ServiceConfig";
 import Loading from "./Loading";
 import { schoolUtil } from "../utility/schoolUtil";
-import { STARS_COUNT, TableTypes } from "../common/constants";
+import { LATEST_STARS, STARS_COUNT, TableTypes } from "../common/constants";
 
 const LearningPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -22,15 +22,24 @@ const LearningPathway: React.FC = () => {
     updateStarCount(currentStudent);
     fetchLearningPathway(currentStudent);
   }, []);
-  const updateStarCount = (currentStudent: any) => {
+  const updateStarCount = async (currentStudent: TableTypes<"user">) => {
     const storedStarsJson = localStorage.getItem(STARS_COUNT);
     const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
-
     const localStorageStars = parseInt(
       storedStarsMap[currentStudent.id] || "0",
       10
     );
-    const studentStars = currentStudent.stars || 0;
+
+    const latestStarsJson = localStorage.getItem(LATEST_STARS);
+    const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
+
+    const latestLocalStars = parseInt(
+      latestStarsMap[currentStudent.id] || "0",
+      10
+    );
+    const dbStars = currentStudent.stars || 0;
+    const studentStars = Math.max(latestLocalStars, dbStars);
+
     if (localStorageStars < studentStars) {
       storedStarsMap[currentStudent.id] = studentStars;
       localStorage.setItem(STARS_COUNT, JSON.stringify(storedStarsMap));
@@ -39,6 +48,13 @@ const LearningPathway: React.FC = () => {
     } else {
       setFrom(studentStars);
       setTo(studentStars);
+    }
+
+    if (latestLocalStars <= dbStars) {
+      latestStarsMap[currentStudent.id] = dbStars;
+      localStorage.setItem(LATEST_STARS, JSON.stringify(latestStarsMap));
+    } else {
+      await api.updateStudentStars(currentStudent.id, latestLocalStars);
     }
   };
 

@@ -1254,7 +1254,7 @@ export interface ServiceApi {
    */
   validateSchoolData(
     schoolId: string,
-    schoolName: string,
+    schoolName: string
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1298,11 +1298,11 @@ export interface ServiceApi {
    */
   getClassByUserId(userId: string): Promise<TableTypes<"class"> | undefined>;
 
-    /**
+  /**
    * getting courses for the student sorted with sort_index
    * @param {string } studentId - student id
    */
-    getCoursesForPathway(studentId: string): Promise<TableTypes<"course">[]>;
+  getCoursesForPathway(studentId: string): Promise<TableTypes<"course">[]>;
   /**
    * Updates the learning path for a student.
    * @param {string} learningPath - The new learning path to be set.
@@ -1312,4 +1312,10 @@ export interface ServiceApi {
     student: TableTypes<"user">,
     learning_path: string
   ): Promise<TableTypes<"user">>;
+  /**
+   * Updates the total stars for a student.
+   * @param {string} studentId - student Id.
+   * @param {number} totalStars - total stars.
+   */
+  updateStudentStars(studentId: string, totalStars: number): Promise<void>;
 }

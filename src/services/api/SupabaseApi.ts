@@ -1486,7 +1486,6 @@ export class SupabaseApi implements ServiceApi {
 
   //   const errors: string[] = [];
 
-
   //   const queryKey = programManagerPhone.includes("@") ? "email" : "phone";
   //   const { data: pmData, error: pmError } = await this.supabase
   //     .from("user")
@@ -1544,6 +1543,12 @@ export class SupabaseApi implements ServiceApi {
     student: TableTypes<"user">,
     learning_path: string
   ): Promise<TableTypes<"user">> {
+    throw new Error("Method not implemented.");
+  }
+  async updateStudentStars(
+    studentId: string,
+    totalStars: number
+  ): Promise<void> {
     throw new Error("Method not implemented.");
   }
 }
