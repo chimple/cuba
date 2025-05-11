@@ -234,7 +234,7 @@ const CocosGame: React.FC = () => {
       once: true,
     });
     document.body.addEventListener(GAME_END, killGame, { once: true });
-    document.body.addEventListener(GAME_EXIT, gameExit,);
+    document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
 
     // document.body.addEventListener("problemEnd", onProblemEnd);
   }
