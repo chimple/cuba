@@ -115,22 +115,11 @@ const CocosGame: React.FC = () => {
   };
 
   const gameExit = async (e: any) => {
-    // let chapterDetail: TableTypes<"chapter"> | undefined;
-    // if (!!lessonDetail.cocos_chapter_code) {
-    //   let cChap = courseDetail.chapters.find(
-    //     (chap) => lessonDetail.cocosChapterCode === chap.id
-    //   );
-    //   if (cChap) {
-    //     ChapterDetail = cChap;
-    //   }
-    // }
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
-    killGame(e);
-    document.body.removeEventListener(LESSON_END, handleLessonEndListner);
+
     Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: api.currentStudent!.id,
-      // assignment_id: lessonDetail.assignment?.id,
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
       chapter_id: data.chapterId,
@@ -158,8 +147,14 @@ const CocosGame: React.FC = () => {
       played_from: playedFrom,
       assignment_type: assignmentType,
     });
-    setShowDialogBox(false);
-    push();
+
+    setTimeout(() => {
+      killGame(e);
+      document.body.removeEventListener(LESSON_END, handleLessonEndListner);
+      setShowDialogBox(false);
+      push();
+    }, 100)
+
   };
   const handleLessonEndListner = (event) => {
     saveTempData(event.detail);
