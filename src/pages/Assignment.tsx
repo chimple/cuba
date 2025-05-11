@@ -1,7 +1,7 @@
 import { IonButton, IonPage } from "@ionic/react";
 import JoinClass from "../components/assignment/JoinClass";
 import "./Assignment.css";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
   DOWNLOADED_LESSON_ID,
@@ -9,6 +9,7 @@ import {
   HOMEHEADERLIST,
   LIVE_QUIZ,
   PAGES,
+  TABLES,
   TYPE,
   TableTypes,
 } from "../common/constants";
@@ -54,7 +55,16 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
     [lessonId: string]: { course_id: string };
   }>({});
 
-  // --- On mount: initialize and set download button state ---
+  const loadPendingAssignments = useCallback(
+  async (classId: string, studentId: string) => {
+    const all = await api.getPendingAssignments(classId, studentId);
+    const pending = all.filter((a) => a.type !== LIVE_QUIZ);
+    pending.sort((a, b) => Number(a.created_at) - Number(b.created_at));
+    setAssignments(pending);
+    },
+    [api]
+  );
+
   useEffect(() => {
     const initialLoadingState = JSON.parse(
       localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) || "false"
@@ -65,14 +75,13 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
       "background-image",
       "url(/pathwayAssets/pathwayBackground.svg)"
     );
-    init();
+    init(false);
   }, []);
 
   useEffect(() => {
     checkAllHomeworkDownloaded();
   }, [lessons]);
 
-  // --- When assignments update, fetch associated lessons ---
   useEffect(() => {
     if (assignments.length > 0) {
       const fetchLessons = async () => {
@@ -99,39 +108,74 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
     }
   }, [assignments]);
 
-  useEffect(() => {
-    const student = Util.getCurrentStudent();
-    if (!currentClass || !student) {
-      return;
+  const handleNewAssignmentS = useCallback(
+  async (newAssignment: TableTypes<"assignment">) => {
+    setAssignments((prev) => {
+      if (prev.some((a) => a.id === newAssignment.id)) {
+        return prev;
+      }
+      onNewAssignment?.(newAssignment);
+      return [...prev, newAssignment];
+    });
+
+    if (newAssignment.chapter_id) {
+      const chapter = await api.getChapterById(newAssignment.chapter_id);
+      if (chapter) {
+        setLessonChapterMap((prev) => ({
+          ...prev,
+          [newAssignment.lesson_id]: chapter,
+        }));
+      }
     }
 
-    const updateAssignmentsAndLessons = async (
-      newAssignment: TableTypes<"assignment"> | undefined
-    ) => {
-      if (!newAssignment || newAssignment.type === LIVE_QUIZ) return;
-      handleNewAssignmentS(newAssignment)
-     
-    };
-
-    const updateAssignmentUserAndLessons = async (
-      newAssignmentUser: TableTypes<"assignment_user"> | undefined
-    ) => {
-      if (!newAssignmentUser) return;
-      const assignment = await api.getAssignmentById(
-        newAssignmentUser.assignment_id
-      );
-      if (assignment) {
-        handleNewAssignmentS(assignment)
+    setAssignmentLessonCourseMap((prev) => {
+      if (newAssignment.course_id) {
+        return {
+          ...prev,
+          [newAssignment.lesson_id]: { course_id: newAssignment.course_id },
+        };
       }
-    };
+      return prev;
+    });
 
-    api.assignmentListner(currentClass.id, updateAssignmentsAndLessons);
-    api.assignmentUserListner(student.id, updateAssignmentUserAndLessons);
+    const lesson = await api.getLesson(newAssignment.lesson_id);
+    if (lesson) {
+      setLessons((prev) => {
+        if (prev.some((l) => l.id === lesson.id)) {
+          return prev;
+        }
+        return [...prev, lesson];
+      });
+    }
+  },
+  [api, onNewAssignment]
+);
 
-    return () => {
-      api.removeAssignmentChannel();
-    };
-  }, [currentClass, onNewAssignment]);
+useEffect(() => {
+  const student = Util.getCurrentStudent();
+  if (!currentClass || !student) return;
+
+  api.assignmentListner(
+    currentClass.id,
+    (newA) => {
+      if (!newA || newA.type === LIVE_QUIZ) return;
+      handleNewAssignmentS(newA);
+    }
+  );
+
+  api.assignmentUserListner(
+    student.id,
+    async (au) => {
+      if (!au) return;
+      const a = await api.getAssignmentById(au.assignment_id);
+      if (a) handleNewAssignmentS(a);
+    }
+  );
+
+  return () => {
+    api.removeAssignmentChannel();
+  };
+}, [currentClass, handleNewAssignmentS]);
 
   const checkAllHomeworkDownloaded = async () => {
     if (lessons.length === 0) {
@@ -155,46 +199,6 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
       checkAllHomeworkDownloaded
     );
   };
-
-  const handleNewAssignmentS = async(newAssignment)=>{
-    setAssignments((prevAssignments) => {
-      if (!prevAssignments.some((a) => a.id === newAssignment.id)) {
-        const updated = [...prevAssignments, newAssignment];
-        onNewAssignment && onNewAssignment(newAssignment);
-        return updated;
-      }
-      return prevAssignments;
-    });
-    if (newAssignment.chapter_id) {
-      const chapter = await api.getChapterById(newAssignment.chapter_id);
-      if (chapter) {
-        setLessonChapterMap((prevMap) => {
-        return {  ...prevMap,
-          [newAssignment.lesson_id]:  chapter };
-        });
-      }
-    }
-    setAssignmentLessonCourseMap((prevMap) => {
-      if (newAssignment.course_id) {
-        return {
-          ...prevMap,
-          [newAssignment.lesson_id]: { course_id: newAssignment.course_id },
-        };
-      }
-      return prevMap;
-    });
-   
-
-    const lesson = await api.getLesson(newAssignment.lesson_id);
-    if (lesson) {
-      setLessons((prevLessons) => {
-        if (!prevLessons.some((l) => l.id === lesson.id)) {
-          return [...prevLessons, lesson];
-        }
-        return prevLessons;
-      });
-    }
-  }
 
   async function downloadAllHomeWork(lessons: TableTypes<"lesson">[]) {
     setDownloadButtonLoading(true);
@@ -230,15 +234,25 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
   );
 
   // Initialization: fetch student data, class, assignments, and lessons
-  const init = async (fromCache: boolean = true) => {
+  const init = useCallback(
+  async (fromCache: boolean = true) => {
     setLoading(true);
+
+    await api.syncDB(
+      [TABLES.Assignment, TABLES.Assignment_user],
+      [TABLES.Assignment, TABLES.Assignment_user]
+    );
+
     const student = Util.getCurrentStudent();
     if (!student) {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
+
     const studentResult = await api.getStudentResultInMap(student.id);
-    if (studentResult) setLessonResultMap(studentResult);
+    if (studentResult) {
+      setLessonResultMap(studentResult);
+    }
 
     const linked = await api.isStudentLinked(student.id, fromCache);
     if (!linked) {
@@ -246,65 +260,26 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
       setLoading(false);
       return;
     }
-    const linkedData = await api.getStudentClassesAndSchools(student.id);
-    if (linkedData?.classes.length > 0) {
-      const classDoc = linkedData.classes[0];
-      setCurrentClass(classDoc); // Set currentClass so the listener can initialize.
 
-      let allAssignments: TableTypes<"assignment">[] = [];
-      await Promise.all(
-        linkedData.classes.map(async (_class) => {
-          const fetchedAssignments = await api.getPendingAssignments(
-            _class.id,
-            student.id
-          );
-          const filteredAssignments = fetchedAssignments.filter(
-            (assignment) => assignment.type !== LIVE_QUIZ
-          );
-          allAssignments = [...allAssignments, ...filteredAssignments];
-        })
-      );
-      const _lessons: TableTypes<"lesson">[] = [];
-      const _lessonChapterMap: { [lessonId: string]: TableTypes<"chapter"> } =
-        {};
-      await Promise.all(
-        allAssignments.map(async (_assignment) => {
-          const res = await api.getLesson(_assignment.lesson_id);
-          if (_assignment.chapter_id) {
-            const chapter = await api.getChapterById(_assignment.chapter_id);
-            if (res && chapter) {
-              _lessonChapterMap[res.id] = chapter;
-            }
-          }
-          if (res) {
-            _lessons.push(res);
-          }
-        })
-      );
-      allAssignments.sort(
-        (a, b) => Number(a.created_at) - Number(b.created_at)
-      );
-      const lessonCourseMap: { [lessonId: string]: { course_id: string } } = {};
-      allAssignments.forEach(async (data) => {
-        if (data.course_id) {
-          lessonCourseMap[data.lesson_id] = { course_id: data.course_id };
-        }
-        setAssignmentLessonCourseMap(lessonCourseMap);
-      });
-      setLessonChapterMap(_lessonChapterMap);
-      setLessons(_lessons);
-      setAssignments(allAssignments);
-      setSchoolName(
-        linkedData.schools.find((val) => val.id === classDoc.school_id)?.name ||
-          ""
-      );
-      setLoading(false);
-      setIsLinked(true);
-    } else {
+    const linkedData = await api.getStudentClassesAndSchools(student.id);
+    if (!linkedData?.classes.length) {
       setIsLinked(false);
       setLoading(false);
+      return;
     }
-  };
+    const classDoc = linkedData.classes[0];
+    setCurrentClass(classDoc);
+    setSchoolName(
+      linkedData.schools.find((s) => s.id === classDoc.school_id)?.name || ""
+    );
+
+    await loadPendingAssignments(classDoc.id, student.id);
+
+    setLoading(false);
+    setIsLinked(true);
+  },
+  [api, history, loadPendingAssignments]
+);
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -396,7 +371,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
                 />
               ) : (
                 <div>
-                  {lessons.length > 0 ? (
+                  {assignments.length > 0 ? (
                     <LessonSlider
                       key={lessons.length}
                       lessonData={lessons}
