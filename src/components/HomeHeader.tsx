@@ -58,7 +58,6 @@ const HomeHeader: React.FC<{
       setStudentMode(currMode);
 
       DEFAULT_HEADER_ICON_CONFIGS.forEach(async (element) => {
-        console.log("element.headerList", element.headerList);
         if (
           !(
             (currMode === MODES.SCHOOL &&

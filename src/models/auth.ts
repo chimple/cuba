@@ -41,7 +41,6 @@ export default class Auth {
     // try {
     //   response = await AccountManager.accountPicker();
     //   if (response) {
-    //     console.log("auth result ", JSON.stringify(response));
     //     this._userAccountName = response.authAccount;
     //     this._accountType = response.addedType;
     //     this._authToken = response.authToken;
@@ -53,7 +52,6 @@ export default class Auth {
     //     // history.replace(PAGES.HOME);
     //     return true;
     //   } else {
-    //     console.log("login-button result false", response);
     //     localStorage.setItem(IS_USER_LOGED_IN, "false");
     //     return false;
     //   }
@@ -62,7 +60,6 @@ export default class Auth {
       //   error.message === "Method not implemented." &&
       //   (Capacitor.getPlatform() === "web" || Capacitor.getPlatform() === "ios")
       // ) {
-        // console.log("login error ", Capacitor.getPlatform(), error);
         localStorage.setItem(IS_USER_LOGED_IN, "true");
         localStorage.setItem(
           USER_TOKEN,
@@ -99,7 +96,6 @@ export default class Auth {
     let userData = localStorage.getItem(USER_TOKEN) || "";
     if (isUserLogedIn == "true" && userData && userData != "null") {
       const res = JSON.parse(userData);
-      console.log("auth result ", JSON.stringify(res));
       this._userAccountName = res.authAccount;
       this._accountType = res.addedType;
       this._authToken = res.authToken;
@@ -136,7 +132,6 @@ export default class Auth {
       localStorage.setItem("isUserLogedIn", "false");
       return true;
     } catch (error) {
-      console.log("error", error);
       return false;
     }
   }

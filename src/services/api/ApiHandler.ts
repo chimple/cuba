@@ -524,7 +524,6 @@ export class ApiHandler implements ServiceApi {
     return this.s.updateMusicFlag(userId, value);
   }
   updateTcAccept(userId: string) {
-    console.log("🚀 ~ ApiHandler ~ updateTcAccept ~ this.s:", this.s, this);
     return this.s.updateTcAccept(userId);
   }
   public get currentStudent(): TableTypes<"user"> | undefined {
@@ -979,7 +978,7 @@ export class ApiHandler implements ServiceApi {
   }
   async validateSchoolData(
     schoolId: string,
-    schoolName: string,
+    schoolName: string
   ): Promise<{ status: string; errors?: string[] }> {
     return this.s.validateSchoolData(schoolId, schoolName);
   }
@@ -1028,7 +1027,6 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"class"> | undefined> {
     return this.s.getClassByUserId(userId);
   }
-
   public async getCoursesForPathway(
     studentId: string
   ): Promise<TableTypes<"course">[]> {
@@ -1039,5 +1037,11 @@ export class ApiHandler implements ServiceApi {
     learning_path: string // New parameter for learning_path
   ): Promise<TableTypes<"user">> {
     return await this.s.updateLearningPath(student, learning_path);
+  }
+  public async updateStudentStars(
+    studentId: string,
+    totalStars: number
+  ): Promise<void> {
+    return await this.s.updateStudentStars(studentId, totalStars);
   }
 }

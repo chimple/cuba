@@ -3,7 +3,7 @@ name: Build Android
 on:
   push:
     branches:
-      - master-supabase
+      - dev-supabase
 
 jobs:
   build:
@@ -63,7 +63,7 @@ jobs:
       - name: Deploy to Firebase
         uses: w9jds/firebase-action@v13.0.3
         with:
-          args: deploy --only hosting:cuba-stage-supabase
+          args: deploy --only hosting:cuba-stage-dev-supabase
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
@@ -80,12 +80,10 @@ jobs:
         run: |
           cd android/app/build/outputs/apk/debug/
           git init
-          git config --global user.email prakash@sutara.org
-          git config --global user.name  bhanugummana
+          git config --global user.email vinay@sutara.org
+          git config --global user.name  vinaypanduga
           git remote add origin https://${{ secrets.ACCESS_TOKEN }}@github.com/chimple/cuba.git
-          git checkout -b supabase-master-apk
+          git checkout -b supabase-dev-apk
           git add app-debug.apk
           git commit -m "created apk"
-          #git push --force secure-origin apk
-          #git push --set-upstream origin gh-pages
-          git push origin supabase-master-apk -f
+          git push origin supabase-dev-apk -f

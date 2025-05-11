@@ -909,7 +909,7 @@ export interface ServiceApi {
    *
    * Example usage:
    * searchLessons("math")
-   *   .then(lessons => console.log(lessons))
+   *   .then(lessons => {})
    *   .catch(error => console.error(error));
    */
 
@@ -1319,4 +1319,10 @@ export interface ServiceApi {
     student: TableTypes<"user">,
     learning_path: string
   ): Promise<TableTypes<"user">>;
+  /**
+   * Updates the total stars for a student.
+   * @param {string} studentId - student Id.
+   * @param {number} totalStars - total stars.
+   */
+  updateStudentStars(studentId: string, totalStars: number): Promise<void>;
 }

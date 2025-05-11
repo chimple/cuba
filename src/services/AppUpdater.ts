@@ -202,16 +202,10 @@ export const AppUpdater = {
       // Report that the app was successfully updated.
       return true;
     } catch (error) {
-      console.log("AppUpdater: Staying on current version.\n\n", error);
 
       // Report that the app did not update.
       return false;
     } finally {
-      console.log(
-        `AppUpdater: Done in '${
-          new Date().getTime() - timeStart.getTime()
-        }' milliseconds...`
-      );
     }
   },
 };
@@ -316,10 +310,6 @@ async function buildReleaseFromBundle(): Promise<Release> {
     const copiedBundleFiles: number = Number(
       localStorage.getItem(COPIED_BUNDLE_FILES_INDEX) ?? 0
     );
-    console.log(
-      "🚀 ~ file: AppUpdater.ts:289 ~ buildReleaseFromBundle ~ copiedBundleFiles:",
-      copiedBundleFiles
-    );
 
     for (let i = copiedBundleFiles; i < checksum.files.length; i++) {
       const currentFile = checksum.files[i];
@@ -347,11 +337,6 @@ async function buildReleaseFromBundle(): Promise<Release> {
         Directory.Data,
         i + 1
       );
-      console.log(
-        "🚀 ~ file: AppUpdater.ts:312 ~ buildReleaseFromBundle ~ didDownload:",
-        didDownload,
-        currentFile.path
-      );
       // );
       // if (
       //   currentFile.path === checksum.files.at(-1)?.path ||
@@ -374,15 +359,7 @@ async function buildReleaseFromBundle(): Promise<Release> {
 
     // Saves app release summary file.
     const releaseID = checksum.id;
-    console.log(
-      "🚀 ~ file: AppUpdater.ts:317 ~ buildReleaseFromBundle ~ releaseID:",
-      releaseID
-    );
     const releaseDate = new Date(checksum.timestamp);
-    console.log(
-      "🚀 ~ file: AppUpdater.ts:319 ~ buildReleaseFromBundle ~ releaseDate:",
-      releaseDate
-    );
 
     await setCurrentRelease(releaseID, releaseDate);
 
@@ -455,14 +432,6 @@ async function deleteOldReleases(activeReleaseName: string): Promise<void> {
             recursive: true,
           });
         } catch (error) {
-          console.log(
-            "🚀 ~ file: AppUpdater.ts.ts:409 ~ deleteOldReleases ~ error:",
-            error
-          );
-          console.log(
-            "🚀 ~ file: AppUpdater.ts.ts:409 ~ deleteOldReleases ~ `releases/${oldRelease}`:",
-            `releases/${oldRelease}`
-          );
         }
       }
     }
@@ -521,23 +490,9 @@ async function getServerChecksum(url: string): Promise<Checksum | null> {
       method: "GET",
       responseType: "json",
     });
-    console.log(
-      "🚀 ~ file: AppUpdater.ts:519 ~ getServerChecksum ~ res:",
-      JSON.stringify(res)
-    );
     if (!!res && res.status === 200 && !!res.data) {
-      console.log(
-        "🚀 ~ file: AppUpdater.ts:524 ~ getServerChecksum ~ res.data:",
-        res.status,
-        res.data
-      );
       return res.data as Checksum;
     }
-    console.log(
-      "🚀 ~ file: AppUpdater.ts:526 ~ getServerChecksum ~ res.data:",
-      res.status,
-      res.data
-    );
   } catch (error) {
     console.debug(
       "AppUpdater: Could not download and parse server checksum.\n\n",
@@ -568,7 +523,6 @@ async function copyFromPreviousRelease(
       directory: directory,
     });
   } catch (error) {
-    console.log("🚀 ~ file: AppUpdater.ts.ts:474 ~ error:", error);
   }
 }
 
@@ -601,7 +555,7 @@ async function downloadFileFromWebServer(
     //   url: url,
     //   responseType: "blob",
     // });
-    // console.log("🚀 ~ file: AppUpdater.ts.ts:501 ~ res:", JSON.stringify(res));
+    
 
     // const writeFile = await Filesystem.writeFile({
     //   data: res.data,
@@ -704,12 +658,6 @@ export async function downloadFileFromAppBundle(
     } else {
       const response = await fetch(url);
       const blob = await response.blob();
-      console.log(
-        "🚀 ~ file: AppUpdater.ts.ts:644 ~ blob:",
-        blob,
-        url,
-        JSON.stringify(blob)
-      );
 
       // Convert the blob to a base64 string.
       base64Data = await new Promise((resolve, reject) => {
@@ -729,7 +677,6 @@ export async function downloadFileFromAppBundle(
         directory: directory,
         data: base64Data,
       });
-      console.log("🚀 ~ file: AppUpdater.ts.ts:690 ~ x:", svgWrite.uri);
     } else {
       try {
         await Filesystem.writeFile({
@@ -738,11 +685,8 @@ export async function downloadFileFromAppBundle(
           data: base64Data,
         });
       } catch (error) {
-        console.log("🚀 ~ file: AppUpdater.ts:713 ~ error:", error);
       }
     }
-
-    console.log("🚀 ~ file: AppUpdater.ts:694 ~ copiedBundleFiles:", index);
     localStorage.setItem(COPIED_BUNDLE_FILES_INDEX, index.toString());
   } catch (error) {
     console.debug(

@@ -61,7 +61,6 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
     );
     setDownloadButtonLoading(initialLoadingState);
     const body = document.querySelector("body");
-    // console.log("current headerfsf4", currentHeader);
     body?.style.setProperty(
       "background-image",
       "url(/pathwayAssets/pathwayBackground.svg)"

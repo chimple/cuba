@@ -132,11 +132,6 @@ const LiveQuizGame: FC = () => {
                 quizData={quizData}
                 isTimeOut={true}
                 onNewQuestionChange={(newQuestionIndex) => {
-                  console.log(
-                    "🚀 ~ file: LiveQuizGame.tsx:136 ~ newQuestionIndex:",
-                    newQuestionIndex,
-                    liveQuizConfig?.data[newQuestionIndex]
-                  );
                   setCurrentQuestionIndex(newQuestionIndex);
                 }}
                 onRemainingTimeChange={setRemainingTime}
@@ -144,7 +139,6 @@ const LiveQuizGame: FC = () => {
                 showQuiz={true}
                 onConfigLoaded={setLiveQuizConfig}
                 onTotalScoreChange={(scoreData) => {
-                  console.log("✅ Updating Total Score:", scoreData);
                   setScoreData(scoreData);
                 }}
                 onQuizEnd={handleQuizEnd}
@@ -163,7 +157,6 @@ const LiveQuizGame: FC = () => {
                 noText={t("Continue Playing")}
                 handleClose={() => setShowDialogBox(true)}
                 onYesButtonClicked={() => {
-                  console.log("User liked the game, score.", scoreData);
                   setShowDialogBox(false);
                   saveLikedStatus();
                   if (initialCount >= 5) {
@@ -177,7 +170,6 @@ const LiveQuizGame: FC = () => {
                   push();
                 }}
                 onContinueButtonClicked={() => {
-                  console.log("User continues playing, score:", scoreData);
                   setShowDialogBox(false);
                   if (initialCount >= 5) {
                     Util.showInAppReview();
@@ -224,11 +216,6 @@ const LiveQuizGame: FC = () => {
                 roomDoc={roomDoc}
                 isTimeOut={isTimeOut}
                 onNewQuestionChange={(newQuestionIndex) => {
-                  console.log(
-                    "🚀 ~ file: LiveQuizGame.tsx:54 ~ newQuestionIndex:",
-                    newQuestionIndex,
-                    liveQuizConfig?.data[newQuestionIndex]
-                  );
                   setCurrentQuestionIndex(newQuestionIndex);
                 }}
                 onRemainingTimeChange={setRemainingTime}
@@ -237,7 +224,6 @@ const LiveQuizGame: FC = () => {
                 onConfigLoaded={setLiveQuizConfig}
                 cocosLessonId={lesson?.cocos_lesson_id}
                 onQuizEnd={() => {
-                  console.log("🚀 ~ file: LiveQuizGame.tsx:65 ~ onQuizEnd:");
                   history.replace(
                     PAGES.LIVE_QUIZ_ROOM_RESULT +
                       "?liveRoomId=" +

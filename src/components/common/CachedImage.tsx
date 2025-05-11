@@ -29,7 +29,7 @@ function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
         });
         return "data:image/png;base64," + blob;
       } catch (error) {
-        console.log(
+        console.error(
           "🚀 ~ file: util.ts:698 ~ getCachedImage ~ error:",
           JSON.stringify(error)
         );
@@ -41,11 +41,10 @@ function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
     if (!!props.src) {
       getCachedImage(props.src)
         .then((src) => {
-          // console.log("🚀 ~ file: CachedImage.tsx:11 ~ .then ~ src:", src);
           setImgSrc(src);
         })
         .catch((error) => {
-          console.log(
+          console.error(
             "🚀 ~ file: CachedImage.tsx:14 ~ useEffect ~ error:",
             JSON.stringify(error)
           );
