@@ -16,6 +16,8 @@ import {
   CURRENT_CLASS_NAME,
   USER_SELECTION_STAGE,
   STAGES,
+  CURRENT_CLASS,
+  CURRENT_SCHOOL,
 } from "../common/constants";
 import SelectModeButton from "../components/selectMode/SelectModeButton";
 import { IoMdPeople } from "react-icons/io";
@@ -126,7 +128,7 @@ const SelectMode: FC = () => {
 
     const students = await api.getParentStudentProfiles();
     // const isTeacher = await api.isUserTeacher(currUser);
-    
+
     if (!allSchool || allSchool.length < 1) {
       api.currentMode = MODES.PARENT;
       schoolUtil.setCurrMode(MODES.PARENT);
@@ -321,6 +323,9 @@ const SelectMode: FC = () => {
                     aria-label={t("Back")}
                     onClicked={() => {
                       //  history.replace(PAGES.SELECT_SCHOOL);
+                      localStorage.removeItem(SELECTED_CLASSES);
+                      localStorage.removeItem(CURRENT_SCHOOL);
+                      localStorage.removeItem(CURRENT_SCHOOL_NAME);
                       setStage(STAGES.SCHOOL);
                     }}
                   />
@@ -347,7 +352,9 @@ const SelectMode: FC = () => {
                       }}
                       className="class-avatar"
                     >
-                      <div className="class-avatar-counter">{tempClass.name}</div>
+                      <div className="class-avatar-counter">
+                        {tempClass.name}
+                      </div>
                       <span className="class-name">{tempClass.name}</span>
                     </div>
                   ))}
@@ -364,6 +371,10 @@ const SelectMode: FC = () => {
                     aria-label={t("Back")}
                     onClicked={() => {
                       //  history.replace(PAGES.SELECT_SCHOOL);
+                      localStorage.removeItem(SELECTED_STUDENTS);
+                      localStorage.removeItem(CURRENT_CLASS);
+                      localStorage.removeItem(CURRENT_CLASS_NAME);
+
                       setStage(STAGES.CLASS);
                     }}
                   />

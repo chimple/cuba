@@ -2419,7 +2419,8 @@ export class SqliteApi implements ServiceApi {
       JOIN ${TABLES.User} AS user ON cu.user_id = user.id
       WHERE cu.class_id = ?
         AND cu.role = ?
-        AND cu.is_deleted = 0;
+        AND cu.is_deleted = 0
+        ORDER BY name ASC ;
     `;
     const res = await this._db?.query(query, [classId, RoleType.STUDENT]);
     return res?.values ?? [];
