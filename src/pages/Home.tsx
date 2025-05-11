@@ -304,9 +304,11 @@ const Home: FC = () => {
     const studentDetails = student[0];
     const studentClasses = student[1].classes.map((item: any) => item.id);
     const studentSchools = student[1].schools.map((item: any) => item.id);
+    console.log("studentDetails", studentDetails);
 
     growthbook.setAttributes({
       id: studentDetails.id,
+      age: studentDetails.age,
       curriculum_id: studentDetails.curriculum_id,
       grade_id: studentDetails.grade_id,
       gender: studentDetails.gender,
@@ -314,6 +316,7 @@ const Home: FC = () => {
       subject_id: studentDetails.subject_id,
       school_ids: studentSchools,
       class_ids: studentClasses,
+      language: localStorage.getItem("language") || "en",
     });
   };
 
