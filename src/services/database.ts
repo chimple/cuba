@@ -1823,6 +1823,18 @@ export type Database = {
           errors?: string[];
         };
       };
+      check_parent_and_student_in_class: {
+        Args: {
+          phone_number: string;
+          student_name: string;
+          class_name: string;
+          input_school_id: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
       validate_user_contacts_rpc: {
         Args: {
           program_manager_contact: string;
