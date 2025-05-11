@@ -4402,13 +4402,37 @@ order by
     });
   }
 
+  async validateParentAndStudentInClass(
+    phoneNumber: string,
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const validatedData = await this._serverApi.validateParentAndStudentInClass(
+      schoolId,
+      studentName,
+      className,
+      phoneNumber
+    );
+    console.log("fdsfdsfs 43r4f", JSON.stringify(validatedData));
+    if (validatedData.status === "error") {
+      const errors = validatedData.errors?.map((err: any) =>
+        typeof err === "string" ? err : err.message || JSON.stringify(err)
+      );
+      return { status: "error", errors };
+    }
+    
+    
+    return { status: "success" };
+  }
+
   async validateSchoolData(
     schoolId: string,
-    schoolName: string,
+    schoolName: string
   ): Promise<{ status: string; errors?: string[] }> {
     const schoolData = await this._serverApi.validateSchoolData(
       schoolId,
-      schoolName,
+      schoolName
     );
     console.log("fdsfdsfs", schoolData);
     if (schoolData.status === "error") {
@@ -4421,7 +4445,6 @@ order by
     curriculumName: string,
     subjectName: string,
     gradeName: string
-    
   ): Promise<{ status: string; errors?: string[] }> {
     const ClassCurriculum =
       await this._serverApi.validateClassCurriculumAndSubject(
@@ -4534,7 +4557,6 @@ order by
     return classRes.values[0];
   }
   async countAllPendingPushes(): Promise<number> {
-
     if (!this._db) return 0;
     const tableNames = Object.values(TABLES);
     const tables = "'" + tableNames.join("', '") + "'";

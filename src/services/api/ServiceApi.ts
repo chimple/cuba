@@ -1254,7 +1254,14 @@ export interface ServiceApi {
    */
   validateSchoolData(
     schoolId: string,
-    schoolName: string,
+    schoolName: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  validateParentAndStudentInClass(
+    phoneNumber: string,
+    studentName: string,
+    className: string,
+    schoolId: string
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**

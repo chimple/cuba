@@ -983,6 +983,14 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ status: string; errors?: string[] }> {
     return this.s.validateSchoolData(schoolId, schoolName);
   }
+  async validateParentAndStudentInClass(
+    phoneNumber: string,
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateParentAndStudentInClass(schoolId, className, studentName, phoneNumber);
+  }
   async validateClassCurriculumAndSubject(
     curriculumName: string,
     subjectName: string,
