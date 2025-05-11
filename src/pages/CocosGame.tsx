@@ -118,7 +118,6 @@ const CocosGame: React.FC = () => {
   };
 
   const gameExit = async (e: any) => {
-    console.log("gameExit hit", e);
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
 
