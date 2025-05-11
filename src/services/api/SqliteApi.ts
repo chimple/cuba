@@ -4386,7 +4386,6 @@ order by
       className,
       phoneNumber
     );
-    console.log("fdsfdsfs 43r4f", JSON.stringify(validatedData));
     if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>
         typeof err === "string" ? err : err.message || JSON.stringify(err)
