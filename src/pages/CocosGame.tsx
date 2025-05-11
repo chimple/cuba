@@ -121,7 +121,7 @@ const CocosGame: React.FC = () => {
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
 
-    await Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
+    Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: api.currentStudent!.id,
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
@@ -151,10 +151,13 @@ const CocosGame: React.FC = () => {
       assignment_type: assignmentType,
     });
 
-    killGame(e);
+    setTimeout(() => {
+          killGame(e);
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
     setShowDialogBox(false);
     push();
+    }, 100)
+
   };
   const handleLessonEndListner = (event) => {
     saveTempData(event.detail);
