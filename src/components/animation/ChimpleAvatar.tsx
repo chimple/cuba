@@ -178,8 +178,6 @@ const ChimpleAvatar: FC<{
     let i = 0;
     while (i < 22) {
       rive?.play(avatarObj.yesAnimation);
-
-      console.log("audio testing", isAudioPlaying, isTtsPlaying);
       i++;
     }
   };
@@ -187,8 +185,6 @@ const ChimpleAvatar: FC<{
   const onClickRiveComponent = async () => {
     if (rive) {
       speakAnimationUntilaudio();
-    } else {
-      console.log("Rive component not fully initialized yet");
     }
     // if (!isTtsPlaying) {
     await speak();

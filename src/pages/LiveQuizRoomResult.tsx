@@ -47,7 +47,6 @@ const LiveQuizRoomResult: React.FC = () => {
       }
 
       const liveQuizRoomResults = liveQuizRoomDoc?.results;
-      console.log("liveQuizRoomResults..", liveQuizRoomResults);
       type Participant = {
         studentDocId: string;
         totalScore: number;
@@ -61,13 +60,11 @@ const LiveQuizRoomResult: React.FC = () => {
             (acc: number, question) => acc + question.score,
             0
           );
-          console.log("totalScore!!", totalScore);
 
           const totalTimeSpent = studentResult.reduce(
             (acc: number, question) => acc + question.timeSpent,
             0
           );
-          console.log("totalTimeSpent!!", totalTimeSpent);
           studentResults.push({
             studentDocId,
             totalScore,
@@ -82,7 +79,6 @@ const LiveQuizRoomResult: React.FC = () => {
             return a.totalTimeSpent - b.totalTimeSpent;
           }
         });
-        console.log("studentresults!!!", studentResults);
 
         const sortedScores: Participant[] = studentResults;
         setSortedStudentScores(sortedScores);

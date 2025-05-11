@@ -13,6 +13,8 @@ import { generateFinalPayload } from "../OpsUtility/OpsDataMapper";
 import VerifiedPage from "./FileVerifiedComponent";
 import ErrorPage from "./FileErrorComponent";
 import VerificationInProgress from "./VerificationInProgress";
+import { useHistory } from "react-router-dom";
+import { FileUploadStep, PAGES } from "../../common/constants";
 
 const FileUpload: React.FC = () => {
   const api = ServiceConfig.getI()?.apiHandler;
@@ -28,16 +30,15 @@ const FileUpload: React.FC = () => {
   const processedDataRef = useRef();
   const [finalPayload, setFinalPayload] = useState<any[] | null>(null);
   const [isVerified, setIsVerified] = useState(false);
-  const [step, setStep] = useState<
-    "idle" | "verifying" | "verified" | "uploading" | "uploaded" | "error"
-  >("idle");
+  const [step, setStep] = useState<FileUploadStep>(FileUploadStep.Idle);
+  const history = useHistory();
 
   function onReuploadTriggered() {
     setFile(null);
     setProgress(0);
     setFileBuffer(null);
     validSheetCountRef.current = null;
-    setStep("idle");
+    setStep(FileUploadStep.Idle);
     setIsReupload(true);
   }
 
@@ -47,13 +48,17 @@ const FileUpload: React.FC = () => {
 
   useEffect(() => {
     if (isVerified && finalPayload) {
-      setStep("uploading");
+      setStep(FileUploadStep.Uploading);
       const uploadData = async () => {
         const result = await SupabaseApi.i.uploadData(finalPayload);
         if (result) {
-          setStep("uploaded");
+          setStep(FileUploadStep.Uploaded);
         } else {
-          setStep("error");
+          if (result) {
+            setStep(FileUploadStep.Uploaded);
+          } else {
+            setStep(FileUploadStep.UploadError);
+          }
         }
       };
       uploadData();
@@ -157,8 +162,8 @@ const FileUpload: React.FC = () => {
           // ✅ Check for duplicate SCHOOL ID
           if (schoolId) {
             if (seenSchoolIds.has(schoolId)) {
+              errors.push("❌ Duplicate SCHOOL ID found");
               row["Updated"] = `❌ Duplicate SCHOOL ID found: ${schoolId}`;
-              continue;
             } else {
               seenSchoolIds.add(schoolId);
             }
@@ -218,7 +223,6 @@ const FileUpload: React.FC = () => {
               }
             }
           }
-          console.log("errors list 1", errors);
           // **Condition 1: If SCHOOL ID (UDISE Code) is present**
           if (schoolId) {
             // Validate only required fields
@@ -241,10 +245,8 @@ const FileUpload: React.FC = () => {
             // if (errors.length === 0) {
             const schoolValidation = await api.validateSchoolData(
               schoolId,
-              schoolName,
-              schoolInstructionLanguage
+              schoolName
             );
-            console.log("fsdfdsfs", schoolValidation.status);
 
             if (schoolValidation.status === "error") {
               errors.push(...(schoolValidation.errors || []));
@@ -276,7 +278,6 @@ const FileUpload: React.FC = () => {
             if (!studentLoginType?.trim())
               errors.push("Missing STUDENT LOGIN TYPE");
           }
-          console.log("fddfdsgfdgdg", errors);
 
           row["Updated"] =
             errors.length > 0
@@ -295,19 +296,29 @@ const FileUpload: React.FC = () => {
           const schoolId = row["SCHOOL ID"]?.toString().trim();
           const grade = row["GRADE"]?.toString().trim();
           const classSection = row["CLASS SECTION"]?.toString().trim();
-          const subjectGrade = row["SUBJECT GRADE"]?.toString().trim();
+          let subjectGrade = row["SUBJECT GRADE"]?.toString().trim();
           const curriculum = row["CURRICULUM"]?.toString().trim();
           const subject = row["SUBJECT"]?.toString().trim();
           const studentCount = row["STUDENTS COUNT IN CLASS"]
             ?.toString()
             .trim();
           const className = `${grade} ${classSection}`.trim();
-          console.log("fddfdsgfdgdg23", validatedSchoolIds);
           if (!grade) errors.push("Missing grade");
-          if (!subjectGrade) errors.push("Missing subjectGrade");
           if (!curriculum) errors.push("Missing curriculum");
           if (!subject) errors.push("Missing subject");
           if (!studentCount) errors.push("Missing studentCount");
+          if (!subjectGrade) {
+            errors.push("Missing subjectGrade");
+          } else {
+            // Transform subjectGrade value
+            if (subjectGrade === "1") {
+              subjectGrade = "Grade 1";
+            } else if (subjectGrade === "2") {
+              subjectGrade = "Grade 2";
+            } else {
+              errors.push("Invalid subjectGrade. Only 1 or 2 are allowed.");
+            }
+          }
 
           if (
             !schoolId &&
@@ -324,7 +335,11 @@ const FileUpload: React.FC = () => {
             }
           }
           const validationResponse =
-            await api.validateClassCurriculumAndSubject(curriculum, subject);
+            await api.validateClassCurriculumAndSubject(
+              curriculum,
+              subject,
+              subjectGrade
+            );
           if (validationResponse.status === "error") {
             errors.push(...(validationResponse.errors || []));
           }
@@ -352,10 +367,14 @@ const FileUpload: React.FC = () => {
             .trim();
           const classId = `${schoolId}_${grade}_${classSection}`;
           const className = `${grade} ${classSection}`.trim();
-          if (!grade) errors.push("Missing grade");
+          if (!grade || grade.trim() === "") errors.push("Missing grade");
+          if (!teacherName || teacherName.trim() === "")
+            errors.push("Missing teacher Name");
+          if (!teacherContact || teacherContact.trim() === "")
+            errors.push("Missing teacher Contact");
 
-          if (!schoolId || !grade || !teacherName || !teacherContact) {
-            errors.push("Missing required teacher details.");
+          if (!schoolId || schoolId.trim() === "") {
+            errors.push("Missing schoolId.");
           } else {
             if (!validatedSchoolIds.has(schoolId)) {
               errors.push("SCHOOL ID does not match any validated school.");
@@ -366,26 +385,9 @@ const FileUpload: React.FC = () => {
             errors.push("Invalid TEACHER PHONE NUMBER OR EMAIL format.");
           }
 
-          // Check if classId exists and className matches
-          if (
-            validatedClassIds.has(classId) &&
-            validatedClassIds.get(classId) === className
-          ) {
-            console.log(
-              `Skipping API call for class ${classId} as it's already validated.`
-            );
-          } else {
-            const validationResponse = await api.validateClassExistence(
-              schoolId,
-              className
-            );
-            if (validationResponse.status === "error") {
-              errors.push(...(validationResponse.errors || []));
-            } else {
-              validatedClassIds.set(classId, className); // ✅ Store valid class ID and name
-            }
+          if (!className || className.trim() === "") {
+            errors.push("Class name should not be empty");
           }
-
           row["Updated"] =
             errors.length > 0
               ? `❌ Errors: ${errors.join(", ")}`
@@ -421,6 +423,7 @@ const FileUpload: React.FC = () => {
             }
           }
           let grade = row["GRADE"]?.toString().trim();
+          if (!grade || grade.trim() === "") errors.push("Missing grade");
           if (!/^\d+$/.test(grade)) {
             errors.push(
               "Grade must be a whole number without letters or special characters."
@@ -443,41 +446,38 @@ const FileUpload: React.FC = () => {
             .trim();
           const classId = `${schoolId}_${grade}_${classSection}`; // Unique class identifier
           const className = `${grade} ${classSection}`.trim();
-          if (!grade) errors.push("Missing grade");
-
-          if (!schoolId || !studentName || !age || !grade || !parentContact) {
-            errors.push("Missing required student details.");
+          if (!studentName || studentName.trim() === "")
+            errors.push("Missing student Name");
+          if (!schoolId || schoolId.trim() === "") {
+            errors.push("Missing schoolId.");
           } else {
             if (!validatedSchoolIds.has(schoolId)) {
               errors.push("SCHOOL ID does not match any validated school.");
             }
           }
+          // if(studentLoginType === "PARENT PHONE NUMBER"){
 
+          //   if (parentContact && !validateEmailOrPhone(parentContact)) {
+          //     errors.push("Invalid PARENT PHONE NUMBER OR LOGIN ID format.");
+          //   }
+          // }
+          // Validate based on studentLoginType
           if (studentLoginType === "PARENT PHONE NUMBER") {
-            if (parentContact && !validateEmailOrPhone(parentContact)) {
-              errors.push("Invalid PARENT PHONE NUMBER OR LOGIN ID format.");
+            // Check if the parent contact is a valid 10-digit phone number
+            if (parentContact && !/^\d{10}$/.test(parentContact)) {
+              errors.push(
+                "PARENT PHONE NUMBER must be a valid 10-digit mobile number."
+              );
+            }
+          } else {
+            // If the login type is not "PARENT PHONE NUMBER", ensure the contact is not empty
+            if (!parentContact) {
+              errors.push("PARENT PHONE NUMBER OR LOGIN ID cannot be empty.");
             }
           }
 
-          // Check if classId exists and className matches
-          if (
-            validatedClassIds.has(classId) &&
-            validatedClassIds.get(classId) === className
-          ) {
-            console.log(
-              `Skipping API call for class ${classId} as it's already validated.`
-            );
-          } else {
-            const validationResponse = await api.validateClassExistence(
-              schoolId,
-              className,
-              studentName
-            );
-            if (validationResponse.status === "error") {
-              errors.push(...(validationResponse.errors || []));
-            } else {
-              validatedClassIds.set(classId, className); // ✅ Store valid class ID and name
-            }
+          if (!className || className.trim() === "") {
+            errors.push("Class name should not be empty");
           }
 
           row["Updated"] =
@@ -567,15 +567,15 @@ const FileUpload: React.FC = () => {
   }
 
   const handleNext = async () => {
-    setStep("verifying");
+    setStep(FileUploadStep.Verifying);
     await processFile();
     const isValid =
       validSheetCountRef.current === 0 && validSheetCountRef.current !== null;
     if (isValid) {
-      setStep("verified");
+      setStep(FileUploadStep.Verified);
       setIsVerified(true); // triggers upload in useEffect
     } else {
-      setStep("error");
+      setStep(FileUploadStep.Error);
     }
   };
 
@@ -657,7 +657,7 @@ const FileUpload: React.FC = () => {
             </div>
           ) : (
             <button
-              onClick={() => setFile(null)}
+              onClick={() => history.replace(PAGES.MANAGE_SCHOOL)}
               className="file-upload-btn file-upload-long-cancel-btn"
             >
               {t("Cancel")}
@@ -675,7 +675,7 @@ const FileUpload: React.FC = () => {
   );
 
   // Render conditions at the end
-  if (step === "verifying") {
+  if (step === FileUploadStep.Verifying) {
     return (
       <VerificationInProgress
         progress={verifyingProgressState}
@@ -687,7 +687,7 @@ const FileUpload: React.FC = () => {
     );
   }
 
-  if (step === "verified") {
+  if (step === FileUploadStep.Verified) {
     return (
       <VerifiedPage
         title={t("Verified")}
@@ -698,7 +698,7 @@ const FileUpload: React.FC = () => {
     );
   }
 
-  if (step === "uploading") {
+  if (step === FileUploadStep.Uploading) {
     return (
       <VerificationInProgress
         progress={90}
@@ -708,11 +708,23 @@ const FileUpload: React.FC = () => {
     );
   }
 
-  if (step === "uploaded") {
+  if (step === FileUploadStep.Uploaded) {
     return (
       <VerifiedPage
         title={t("Upload Successful")}
         message={t("Your data has been uploaded successfully.")}
+      />
+    );
+  }
+
+  if (step === FileUploadStep.UploadError) {
+    return (
+      <ErrorPage
+        reUplod={() => history.replace(PAGES.UPLOAD_PAGE)}
+        message={t(
+          "Upload failed. Please try again later. You may retry or contact support if the problem continues."
+        )}
+        title={t("Unable to Upload File")}
       />
     );
   }

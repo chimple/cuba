@@ -55,7 +55,7 @@ const UserDetail: React.FC<{
         <div className="student-name-div">
           <div className="student-item">
             {userType === CLASS_USERS.STUDENTS ? (
-              <img className="avatar-img" src={avatarUrl} alt={user.name!} />
+              <img className="student-user-avatar-img" src={avatarUrl} alt={user.name!} />
             ) : (
               <img className="user-img" src={"assets/icons/userIcon.png"} />
             )}

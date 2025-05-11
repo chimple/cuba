@@ -34,11 +34,7 @@ const DeleteParentAccount: React.FC = () => {
       action_type: ACTION.DELETE,
     };
 
-    console.log(
-      "Util.logEvent(EVENTS.USER_PROFILE, eventParams);",
-      EVENTS.USER_PROFILE,
-      eventParams
-    );
+
 
     Util.logEvent(EVENTS.USER_PROFILE, eventParams);
     setIsLoading(false);

@@ -188,12 +188,12 @@ const HomePage: React.FC = () => {
             icon={
               tabValue === 2 ? (
                 <img
-                  className="footerIcons"
+                  className="footerIcons assignSelectedIcon"
                   src="assets/icons/assignmentSelected.png"
                 />
               ) : (
                 <img
-                  className="footerIcons"
+                  className="footerIcons assignSelectedIcon"
                   src="assets/icons/assignmentfooter.png"
                 />
               )

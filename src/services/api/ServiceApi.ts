@@ -909,7 +909,7 @@ export interface ServiceApi {
    *
    * Example usage:
    * searchLessons("math")
-   *   .then(lessons => console.log(lessons))
+   *   .then(lessons => {})
    *   .catch(error => console.error(error));
    */
 
@@ -1254,8 +1254,7 @@ export interface ServiceApi {
    */
   validateSchoolData(
     schoolId: string,
-    schoolName: string,
-    instructionMedium: string
+    schoolName: string
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1265,18 +1264,8 @@ export interface ServiceApi {
    */
   validateClassCurriculumAndSubject(
     curriculumName: string,
-    subjectName: string
-  ): Promise<{ status: string; errors?: string[] }>;
-  /**
-   * To validate that the given class is exist or not through the class name and school id
-   * @param {string } schoolId - school Id
-   * @param {string } className - class Name
-   * @param {string } studentName - student Name
-   */
-  validateClassExistence(
-    schoolId: string,
-    className: string,
-    studentName?: string
+    subjectName: string,
+    gradeName: string
   ): Promise<{ status: string; errors?: string[] }>;
   /**
    * To validate that the given user phone or mail is exist or not
@@ -1323,4 +1312,10 @@ export interface ServiceApi {
     student: TableTypes<"user">,
     learning_path: string
   ): Promise<TableTypes<"user">>;
+  /**
+   * Updates the total stars for a student.
+   * @param {string} studentId - student Id.
+   * @param {number} totalStars - total stars.
+   */
+  updateStudentStars(studentId: string, totalStars: number): Promise<void>;
 }
