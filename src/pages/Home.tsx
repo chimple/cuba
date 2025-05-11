@@ -304,7 +304,6 @@ const Home: FC = () => {
     const studentDetails = student[0];
     const studentClasses = student[1].classes.map((item: any) => item.id);
     const studentSchools = student[1].schools.map((item: any) => item.id);
-    console.log("studentDetails", studentDetails);
 
     growthbook.setAttributes({
       id: studentDetails.id,
