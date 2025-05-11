@@ -152,10 +152,10 @@ const CocosGame: React.FC = () => {
     });
 
     setTimeout(() => {
-          killGame(e);
-    document.body.removeEventListener(LESSON_END, handleLessonEndListner);
-    setShowDialogBox(false);
-    push();
+      killGame(e);
+      document.body.removeEventListener(LESSON_END, handleLessonEndListner);
+      setShowDialogBox(false);
+      push();
     }, 100)
 
   };
