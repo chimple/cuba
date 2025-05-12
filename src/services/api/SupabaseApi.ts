@@ -144,11 +144,11 @@ export class SupabaseApi implements ServiceApi {
     const filePath = `${profileType}/${folderName}/${newName}`; // Path inside the bucket
     // Attempt to delete existing files
     const removeResponse = await this.supabase?.storage
-      .from("ProfileImages")
+      .from("profile-images")
       .remove(
         (
           await this.supabase?.storage
-            .from("ProfileImages")
+            .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
           []
@@ -157,7 +157,7 @@ export class SupabaseApi implements ServiceApi {
     const renamedFile = new File([file], newName, { type: file.type });
     // Upload the new file (allow overwrite)
     const uploadResponse = await this.supabase?.storage
-      .from("ProfileImages")
+      .from("profile-images")
       .upload(filePath, renamedFile, { upsert: true });
     if (uploadResponse?.error) {
       console.error("Error uploading file:", uploadResponse.error.message);
@@ -165,7 +165,7 @@ export class SupabaseApi implements ServiceApi {
     }
     // Get the Public URL of the uploaded file
     const urlData = this.supabase?.storage
-      .from("ProfileImages")
+      .from("profile-images")
       .getPublicUrl(filePath);
     const imageUrl = urlData?.data.publicUrl;
     return imageUrl || null;
