@@ -2019,6 +2019,9 @@ export class Util {
   public static async encryptData(data: object): Promise<string> {
     const stringData = JSON.stringify(data);
     const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
+    if (!ENCRYPTION_KEY) {
+      throw new Error("ENCRYPTION_KEY is not set.");
+    }
     return CryptoJS.AES.encrypt(stringData, ENCRYPTION_KEY).toString();
   }
 
@@ -2027,6 +2030,9 @@ export class Util {
   ): Promise<{ email: string; password: string } | null> {
     try {
       const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
+      if (!ENCRYPTION_KEY) {
+        throw new Error("ENCRYPTION_KEY is not set.");
+      }
       const bytes = CryptoJS.AES.decrypt(ciphertext, ENCRYPTION_KEY);
       const decrypted = bytes.toString(CryptoJS.enc.Utf8);
       return JSON.parse(decrypted);
