@@ -272,8 +272,8 @@ export class SupabaseApi implements ServiceApi {
       default:
         break;
     }
-
-    return !!res && !res.error;
+    return res;
+    // return !!res && !res.error;
   }
 
   async pushAssignmentCart(data: { [key: string]: any }, id: string) {
