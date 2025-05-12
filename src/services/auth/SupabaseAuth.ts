@@ -9,12 +9,17 @@ import {
   TABLES,
   TableTypes,
   USER_DATA,
+  CURRENT_SCHOOL,
+  MODES,
+  SCHOOL_LOGIN,
+  PAGES,
 } from "../../common/constants";
 import { SupabaseClient, UserAttributes } from "@supabase/supabase-js";
 import { ServiceConfig } from "../ServiceConfig";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Util } from "../../utility/util";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
+import { schoolUtil } from "../../utility/schoolUtil";
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -63,6 +68,7 @@ export class SupabaseAuth implements ServiceAuth {
         Object.values(TABLES),
         REFRESH_TABLES_ON_LOGIN
       );
+      Util.storeLoginDetails(email, password);
       await api.subscribeToClassTopic();
       return true;
     } catch (error) {
@@ -92,6 +98,7 @@ export class SupabaseAuth implements ServiceAuth {
         Object.values(TABLES),
         REFRESH_TABLES_ON_LOGIN
       );
+      Util.storeLoginDetails(email, password);
       return true;
     } catch (error) {
       console.log(
@@ -242,10 +249,10 @@ export class SupabaseAuth implements ServiceAuth {
         );
         return;
       }
+
       const response = await this._auth?.refreshSession({
         refresh_token: refreshToken,
       });
-
       if (response) {
         const { error, data } = response;
         if (error) {
@@ -259,6 +266,12 @@ export class SupabaseAuth implements ServiceAuth {
       }
     } catch (error) {
       console.error("Unexpected error while refreshing session:", error);
+
+      try {
+        await schoolUtil.trySchoolRelogin();
+      } catch (retryError) {
+        console.error("trySchoolRelogin failed:", retryError);
+      }
     }
   }
 
@@ -279,6 +292,7 @@ export class SupabaseAuth implements ServiceAuth {
       return !!isUser;
     }
   }
+
   phoneNumberSignIn(phoneNumber: any, recaptchaVerifier: any): Promise<any> {
     throw new Error("Method not implemented.");
   }

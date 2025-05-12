@@ -41,6 +41,29 @@ const FileUpload: React.FC = () => {
     setStep(FileUploadStep.Idle);
     setIsReupload(true);
   }
+  const gradeLevelMap: Record<string, string> = {
+    "1": "Grade 1",
+    "2": "Grade 2",
+    "3": "Grade 3",
+  };
+
+  const curriculumMap: Record<string, string> = {
+    NCERT: "NCERT",
+    Chimple: "Chimple",
+    Karnataka: "Karnataka State Board",
+    Haryana: "Haryana",
+    "Uttar Pradesh": "Uttar Pradesh",
+    Maharashtra: "Maharashtra",
+  };
+
+  const subjectMap: Record<string, string> = {
+    Maths: "Maths",
+    English: "English",
+    "Digital Skills": "Digital Skills",
+    Kannada: "ಕನ್ನಡ",
+    Hindi: "हिंदी",
+    Marathi: "मराठी",
+  };
 
   useEffect(() => {
     setVerifyingProgressState(progressRef.current);
@@ -101,7 +124,8 @@ const FileUpload: React.FC = () => {
 
     let validatedSchoolIds: Set<string> = new Set(); // Store valid school IDs
     let validatedClassIds: Map<string, string> = new Map(); // Store valid school IDs
-    let studentLoginType;
+    let studentLoginTypeMap = new Map<string, string>(); // schoolId -> login type
+
 
     const validatedSheets = {
       school: [] as any[],
@@ -109,7 +133,6 @@ const FileUpload: React.FC = () => {
       teacher: [] as any[],
       student: [] as any[],
     };
-
     for (const sheet of workbook.SheetNames) {
       const worksheet = workbook.Sheets[sheet];
       // Define this at the top of your processing function or scope
@@ -157,7 +180,10 @@ const FileUpload: React.FC = () => {
           ]
             ?.toString()
             .trim();
-          studentLoginType = row["STUDENT LOGIN TYPE"]?.toString().trim();
+          const studentLoginType = row["STUDENT LOGIN TYPE"]?.toString().trim();
+          if (schoolId && studentLoginType) {
+            studentLoginTypeMap.set(schoolId, studentLoginType);
+          }
 
           // ✅ Check for duplicate SCHOOL ID
           if (schoolId) {
@@ -242,7 +268,6 @@ const FileUpload: React.FC = () => {
               errors.push("Missing STUDENT LOGIN TYPE");
 
             // Call API for validation if all required fields are filled
-            // if (errors.length === 0) {
             const schoolValidation = await api.validateSchoolData(
               schoolId,
               schoolName
@@ -253,7 +278,6 @@ const FileUpload: React.FC = () => {
             } else {
               validatedSchoolIds.add(schoolId); // ✅ Store valid school IDs
             }
-            // }
           }
           // **Condition 2: If SCHOOL ID (UDISE Code) is missing**
           else {
@@ -297,8 +321,8 @@ const FileUpload: React.FC = () => {
           const grade = row["GRADE"]?.toString().trim();
           const classSection = row["CLASS SECTION"]?.toString().trim();
           let subjectGrade = row["SUBJECT GRADE"]?.toString().trim();
-          const curriculum = row["CURRICULUM"]?.toString().trim();
-          const subject = row["SUBJECT"]?.toString().trim();
+          let curriculum = row["CURRICULUM"]?.toString().trim();
+          let subject = row["SUBJECT"]?.toString().trim();
           const studentCount = row["STUDENTS COUNT IN CLASS"]
             ?.toString()
             .trim();
@@ -307,18 +331,22 @@ const FileUpload: React.FC = () => {
           if (!curriculum) errors.push("Missing curriculum");
           if (!subject) errors.push("Missing subject");
           if (!studentCount) errors.push("Missing studentCount");
+
           if (!subjectGrade) {
             errors.push("Missing subjectGrade");
           } else {
-            // Transform subjectGrade value
-            if (subjectGrade === "1") {
-              subjectGrade = "Grade 1";
-            } else if (subjectGrade === "2") {
-              subjectGrade = "Grade 2";
-            } else {
-              errors.push("Invalid subjectGrade. Only 1 or 2 are allowed.");
+            subjectGrade = gradeLevelMap[subjectGrade] || "";
+            if (!subjectGrade) {
+              errors.push("Invalid subjectGrade. Only 1, 2, or 3 are allowed.");
             }
           }
+
+          // Apply curriculum and subject mappings
+          curriculum = curriculumMap[curriculum] || "";
+          subject = subjectMap[subject] || "";
+
+          if (!curriculum) errors.push("Invalid curriculum selected.");
+          if (!subject) errors.push("Invalid subject selected.");
 
           if (
             !schoolId &&
@@ -397,7 +425,6 @@ const FileUpload: React.FC = () => {
           }
         }
       }
-
       // **Student Sheet Validation**
       if (sheet.toLowerCase().includes("student")) {
         for (let row of processedData) {
@@ -445,7 +472,7 @@ const FileUpload: React.FC = () => {
             ?.toString()
             .trim();
           const classId = `${schoolId}_${grade}_${classSection}`; // Unique class identifier
-          const className = `${grade} ${classSection}`.trim();
+          const className = `${grade}${classSection}`.trim();
           if (!studentName || studentName.trim() === "")
             errors.push("Missing student Name");
           if (!schoolId || schoolId.trim() === "") {
@@ -455,24 +482,34 @@ const FileUpload: React.FC = () => {
               errors.push("SCHOOL ID does not match any validated school.");
             }
           }
-          // if(studentLoginType === "PARENT PHONE NUMBER"){
-
-          //   if (parentContact && !validateEmailOrPhone(parentContact)) {
-          //     errors.push("Invalid PARENT PHONE NUMBER OR LOGIN ID format.");
-          //   }
-          // }
-          // Validate based on studentLoginType
+          const studentLoginType = studentLoginTypeMap.get(schoolId);
+          // Validate based on login type
           if (studentLoginType === "PARENT PHONE NUMBER") {
-            // Check if the parent contact is a valid 10-digit phone number
             if (parentContact && !/^\d{10}$/.test(parentContact)) {
               errors.push(
                 "PARENT PHONE NUMBER must be a valid 10-digit mobile number."
               );
+            } else if (/^\d{10}$/.test(parentContact)) {
+              // Call validation API only if phone number is valid
+              try {
+                const result = await api.validateParentAndStudentInClass(
+                  parentContact,
+                  className,
+                  studentName,
+                  schoolId
+                );
+                if (result?.status === "error") {
+                  errors.push(...(result.errors || []));
+                }
+              } catch (e) {
+                errors.push(
+                  "Server error validating parent/student class link"
+                );
+              }
             }
           } else {
-            // If the login type is not "PARENT PHONE NUMBER", ensure the contact is not empty
-            if (!parentContact) {
-              errors.push("PARENT PHONE NUMBER OR LOGIN ID cannot be empty.");
+            if (!studentId || studentId.trim() === "") {
+              errors.push("Missing student ID.");
             }
           }
 
