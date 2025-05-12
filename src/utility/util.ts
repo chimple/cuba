@@ -2016,13 +2016,19 @@ export class Util {
       return;
     }
   }
-  public static async encryptData(data: object): Promise<string> {
-    const stringData = JSON.stringify(data);
-    const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
-    if (!ENCRYPTION_KEY) {
-      throw new Error("ENCRYPTION_KEY is not set.");
+  public static async encryptData(data: object): Promise<string | null> {
+    try {
+      const stringData = JSON.stringify(data);
+      const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
+
+      if (!ENCRYPTION_KEY) {
+        throw new Error("ENCRYPTION_KEY is not set.");
+      }
+      return CryptoJS.AES.encrypt(stringData, ENCRYPTION_KEY).toString();
+    } catch (error) {
+      console.error("Encryption failed:", error);
+      return null;
     }
-    return CryptoJS.AES.encrypt(stringData, ENCRYPTION_KEY).toString();
   }
 
   public static async decryptData(
@@ -2033,13 +2039,17 @@ export class Util {
       if (!ENCRYPTION_KEY) {
         throw new Error("ENCRYPTION_KEY is not set.");
       }
+
       const bytes = CryptoJS.AES.decrypt(ciphertext, ENCRYPTION_KEY);
       const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+
       return JSON.parse(decrypted);
-    } catch {
+    } catch (error) {
+      console.error("Decryption failed:", error);
       return null;
     }
   }
+
   public static async storeLoginDetails(
     email: string,
     password: string
@@ -2048,7 +2058,14 @@ export class Util {
       console.log("Not running on Android. Skipping storeLoginDetails.");
       return;
     }
-    const encryptedData = await this.encryptData({ email, password });
-    localStorage.setItem(SCHOOL_LOGIN, encryptedData);
+
+    try {
+      const encryptedData = await this.encryptData({ email, password });
+      if (encryptedData) {
+        localStorage.setItem(SCHOOL_LOGIN, encryptedData);
+      }
+    } catch (error) {
+      console.error("Failed to encrypt and store login details:", error);
+    }
   }
 }
