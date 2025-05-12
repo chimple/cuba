@@ -53,6 +53,7 @@ import {
   ASSIGNMENT_TYPE,
   ASSIGNMENT_POPUP_SHOWN,
   QUIZ_POPUP_SHOWN,
+  SCHOOL_LOGIN,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -88,6 +89,7 @@ import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { URLOpenListenerEvent } from "@capacitor/app";
 import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
+import CryptoJS from "crypto-js";
 declare global {
   interface Window {
     cc: any;
@@ -128,7 +130,6 @@ export class Util {
     const currentChapter = ChapterDetail;
     const currentStudentDocId: string = Util.getCurrentStudent()?.id || "";
 
-
     if (!currentChapter) return undefined;
     let currentLessonIndex;
 
@@ -142,7 +143,6 @@ export class Util {
         break;
       }
     }
-
 
     if (currentLessonIndex < currentChapter.lessons.length - 1) {
       let nextLesson = currentChapter.lessons[currentLessonIndex + 1];
@@ -424,7 +424,7 @@ export class Util {
                       url: zipUrl,
                       responseType: "blob",
                     });
-                   
+
                     if (!!zip && !!zip.data && zip.status === 200) break;
                   } catch (error) {
                     console.error(
@@ -1077,7 +1077,6 @@ export class Util {
     langFlag: boolean = true,
     isStudent: boolean = true
   ) => {
-
     const api = ServiceConfig.getI().apiHandler;
     api.currentStudent = student !== null ? student : undefined;
 
@@ -1260,9 +1259,7 @@ export class Util {
         const appUpdateResult = await AppUpdate.startFlexibleUpdate();
 
         if (appUpdateResult.code === AppUpdateResultCode.OK) {
-
           await AppUpdate.completeFlexibleUpdate();
-
         }
       }
     } catch (error) {
@@ -1300,12 +1297,10 @@ export class Util {
             LocalNotifications.addListener(
               "localNotificationActionPerformed",
               (notification) => {
-                
                 const extraData = notification.notification.extra;
                 onNotification(extraData);
               }
             );
-
           } catch (error) {
             console.error(
               "🚀 ~ file: util.ts:630 ~ error:",
@@ -1595,8 +1590,6 @@ export class Util {
 
       let oldFileJson = await oldFileResponse.json();
 
-    
-
       if (oldFileJson.version >= newFileJson.version) {
         return;
       }
@@ -1669,7 +1662,6 @@ export class Util {
   }
 
   public static async getStudentFromServer() {
-
     const api = ServiceConfig.getI().apiHandler;
     let currentStudent = await Util.getCurrentStudent();
     if (!currentStudent) return;
@@ -2023,5 +2015,34 @@ export class Util {
       );
       return;
     }
+  }
+  public static async encryptData(data: object): Promise<string> {
+    const stringData = JSON.stringify(data);
+    const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
+    return CryptoJS.AES.encrypt(stringData, ENCRYPTION_KEY).toString();
+  }
+
+  public static async decryptData(
+    ciphertext: string
+  ): Promise<{ email: string; password: string } | null> {
+    try {
+      const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
+      const bytes = CryptoJS.AES.decrypt(ciphertext, ENCRYPTION_KEY);
+      const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+      return JSON.parse(decrypted);
+    } catch {
+      return null;
+    }
+  }
+  public static async storeLoginDetails(
+    email: string,
+    password: string
+  ): Promise<void> {
+    if (!Capacitor.isNativePlatform()) {
+      console.log("Not running on Android. Skipping storeLoginDetails.");
+      return;
+    }
+    const encryptedData = await this.encryptData({ email, password });
+    localStorage.setItem(SCHOOL_LOGIN, encryptedData);
   }
 }

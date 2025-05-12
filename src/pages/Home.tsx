@@ -307,6 +307,7 @@ const Home: FC = () => {
 
     growthbook.setAttributes({
       id: studentDetails.id,
+      age: studentDetails.age,
       curriculum_id: studentDetails.curriculum_id,
       grade_id: studentDetails.grade_id,
       gender: studentDetails.gender,
@@ -314,6 +315,7 @@ const Home: FC = () => {
       subject_id: studentDetails.subject_id,
       school_ids: studentSchools,
       class_ids: studentClasses,
+      language: localStorage.getItem("language") || "en",
     });
   };
 

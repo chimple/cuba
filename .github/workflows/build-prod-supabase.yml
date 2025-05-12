@@ -37,7 +37,7 @@ jobs:
         run: |
           echo $GOOGLE_SERVICES_JSON | base64 -di > google-services.json
           echo $SHA_KEY | base64 -di > key.jks
-         
+
       - name: Build
         env:
           CI: false
@@ -56,6 +56,7 @@ jobs:
           REACT_APP_SUPABASE_KEY: ${{ secrets.REACT_APP_PROD_SUPABASE_KEY}}
           REACT_APP_CLIENT_ID: ${{ secrets.REACT_APP_PROD_CLIENT_ID}}
           REACT_APP_RAPIDAPI_KEY: ${{ secrets.REACT_APP_RAPIDAPI_KEY }}
+          REACT_APP_ENCRYPTION_KEY: ${{ secrets.REACT_APP_ENCRYPTION_KEY }}
 
         run: npm run build
 
