@@ -1398,7 +1398,7 @@ export class SupabaseApi implements ServiceApi {
           phone_number: phoneNumber,
           student_name: studentName,
           class_name: className,
-          input_school_id: schoolId,
+          input_school_udise_code: schoolId,
         }
       );
       if (data?.status === "error" && (data as any).message) {
