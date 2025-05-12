@@ -124,7 +124,8 @@ const FileUpload: React.FC = () => {
 
     let validatedSchoolIds: Set<string> = new Set(); // Store valid school IDs
     let validatedClassIds: Map<string, string> = new Map(); // Store valid school IDs
-    let studentLoginType;
+    let studentLoginTypeMap = new Map<string, string>(); // schoolId -> login type
+
 
     const validatedSheets = {
       school: [] as any[],
@@ -179,7 +180,10 @@ const FileUpload: React.FC = () => {
           ]
             ?.toString()
             .trim();
-          studentLoginType = row["STUDENT LOGIN TYPE"]?.toString().trim();
+          const studentLoginType = row["STUDENT LOGIN TYPE"]?.toString().trim();
+          if (schoolId && studentLoginType) {
+            studentLoginTypeMap.set(schoolId, studentLoginType);
+          }
 
           // ✅ Check for duplicate SCHOOL ID
           if (schoolId) {
@@ -478,6 +482,7 @@ const FileUpload: React.FC = () => {
               errors.push("SCHOOL ID does not match any validated school.");
             }
           }
+          const studentLoginType = studentLoginTypeMap.get(schoolId);
           // Validate based on login type
           if (studentLoginType === "PARENT PHONE NUMBER") {
             if (parentContact && !/^\d{10}$/.test(parentContact)) {
