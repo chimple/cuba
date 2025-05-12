@@ -261,6 +261,7 @@ const FileUpload: React.FC = () => {
               errors.push(
                 "Missing SCHOOL INSTRUCTION LANGUAGE or Invalid format"
               );
+            if (!programName) errors.push("Missing PROGRAM NAME");
             if (!principalName) errors.push("Missing PRINCIPAL NAME");
             if (!principalPhone)
               errors.push("Missing PRINCIPAL PHONE NUMBER OR EMAIL ID");
