@@ -1828,7 +1828,7 @@ export type Database = {
           phone_number: string;
           student_name: string;
           class_name: string;
-          input_school_id: string;
+          input_school_udise_code: string;
         };
         Returns: {
           status: string;
