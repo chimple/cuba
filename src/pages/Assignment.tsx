@@ -59,7 +59,6 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
   async (classId: string, studentId: string) => {
     const all = await api.getPendingAssignments(classId, studentId);
     const pending = all.filter((a) => a.type !== LIVE_QUIZ);
-    pending.sort((a, b) => Number(a.created_at) - Number(b.created_at));
     setAssignments(pending);
     },
     [api]
@@ -154,7 +153,6 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
 useEffect(() => {
   const student = Util.getCurrentStudent();
   if (!currentClass || !student) return;
-
   api.assignmentListner(
     currentClass.id,
     (newA) => {
@@ -162,7 +160,6 @@ useEffect(() => {
       handleNewAssignmentS(newA);
     }
   );
-
   api.assignmentUserListner(
     student.id,
     async (au) => {
@@ -171,7 +168,6 @@ useEffect(() => {
       if (a) handleNewAssignmentS(a);
     }
   );
-
   return () => {
     api.removeAssignmentChannel();
   };
@@ -232,23 +228,17 @@ useEffect(() => {
     ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
     checkAllHomeworkDownloaded
   );
-
-  // Initialization: fetch student data, class, assignments, and lessons
   const init = useCallback(
   async (fromCache: boolean = true) => {
     setLoading(true);
 
-    await api.syncDB(
-      [TABLES.Assignment, TABLES.Assignment_user],
-      [TABLES.Assignment, TABLES.Assignment_user]
-    );
+    await api.syncDB();
 
     const student = Util.getCurrentStudent();
     if (!student) {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
-
     const studentResult = await api.getStudentResultInMap(student.id);
     if (studentResult) {
       setLessonResultMap(studentResult);
@@ -373,7 +363,7 @@ useEffect(() => {
                 <div>
                   {assignments.length > 0 ? (
                     <LessonSlider
-                      key={lessons.length}
+                      key={assignments.length}
                       lessonData={lessons}
                       isHome={true}
                       course={undefined}
