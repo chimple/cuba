@@ -508,12 +508,6 @@ const FileUpload: React.FC = () => {
               }
             }
           } else {
-            if (!parentContact) {
-              errors.push("PARENT PHONE NUMBER OR LOGIN ID cannot be empty.");
-            }
-            if (!parentContact) {
-              errors.push("PARENT PHONE NUMBER OR LOGIN ID cannot be empty.");
-            }
             if (!studentId || studentId.trim() === "") {
               errors.push("Missing student ID.");
             }
