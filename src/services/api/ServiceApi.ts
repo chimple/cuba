@@ -1257,6 +1257,21 @@ export interface ServiceApi {
     schoolName: string
   ): Promise<{ status: string; errors?: string[] }>;
 
+
+  /**
+   * To validate given phone number and student already exist in the given class or not
+   * @param {string } phoneNumber - phone number
+   * @param {string } studentName - student Name
+   * @param {string } className  -  class Name
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateParentAndStudentInClass(
+    phoneNumber: string,
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
   /**
    * To validate that the given subject belongs to that curriculum or not
    * @param {string } curriculumName - curriculum Name

@@ -2419,7 +2419,8 @@ export class SqliteApi implements ServiceApi {
       JOIN ${TABLES.User} AS user ON cu.user_id = user.id
       WHERE cu.class_id = ?
         AND cu.role = ?
-        AND cu.is_deleted = 0;
+        AND cu.is_deleted = 0
+        ORDER BY name ASC ;
     `;
     const res = await this._db?.query(query, [classId, RoleType.STUDENT]);
     return res?.values ?? [];
@@ -4372,6 +4373,29 @@ order by
       id: userId,
       updated_at: updatedAt,
     });
+  }
+
+  async validateParentAndStudentInClass(
+    phoneNumber: string,
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const validatedData = await this._serverApi.validateParentAndStudentInClass(
+      schoolId,
+      studentName,
+      className,
+      phoneNumber
+    );
+    if (validatedData.status === "error") {
+      const errors = validatedData.errors?.map((err: any) =>
+        typeof err === "string" ? err : err.message || JSON.stringify(err)
+      );
+      return { status: "error", errors };
+    }
+    
+    
+    return { status: "success" };
   }
 
   async validateSchoolData(
