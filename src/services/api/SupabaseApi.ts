@@ -197,53 +197,28 @@ export class SupabaseApi implements ServiceApi {
   async getTablesData(
     tableNames: TABLES[] = Object.values(TABLES),
     tablesLastModifiedTime: Map<string, string> = new Map()
-  ) {
-    const data = new Map();
-    for (const tableName of tableNames) {
+  ): Promise<Map<string, any[]>> {
+    const data = new Map<string, any[]>();
+
+    const fetchPromises = tableNames.map(async (tableName) => {
       const lastModifiedDate =
         tablesLastModifiedTime.get(tableName) ?? "2024-01-01T00:00:00.000Z";
-      const res = await this.supabase
-        ?.from(tableName)
-        .select("*")
-        .gte("updated_at", lastModifiedDate);
-      data.set(tableName, res?.data);
 
-      // switch (tableName) {
-      //   case TABLES.User:
-      //     data.set(
-      //       tableName,
-      //       // await this.getUsers(tablesLastModifiedTime.get(tableName))
-      //       this.supabase?.from(tableName).select("*")
-      //     );
-      //     break;
-      //   // case TABLES.Assignment:
-      //   //   data.set(
-      //   //     tableName,
-      //   //     await this.getAssignments(tablesLastModifiedTime.get(tableName))
-      //   //   );
-      //   //   break;
-      //   case TABLES.Result:
-      //     data.set(
-      //       tableName,
-      //       await this.getResults(tablesLastModifiedTime.get(tableName))
-      //     );
-      //     break;
-      //   case TABLES.School:
-      //     data.set(
-      //       tableName,
-      //       await this.getSchools(tablesLastModifiedTime.get(tableName))
-      //     );
-      //     break;
-      //   case TABLES.SchoolUser:
-      //     data.set(
-      //       tableName,
-      //       await this.getSchoolUsers(tablesLastModifiedTime.get(tableName))
-      //     );
-      //     break;
-      //   default:
-      //     break;
-      // }
-    }
+      try {
+        const res = await this.supabase
+          ?.from(tableName)
+          .select("*")
+          .gte("updated_at", lastModifiedDate);
+
+        // console.log("📥 Supabase response for:", tableName, res);
+        data.set(tableName, res?.data ?? []);
+      } catch (error) {
+        console.error(`❌ Error fetching data for table ${tableName}:`, error);
+        data.set(tableName, []);
+      }
+    });
+
+    await Promise.allSettled(fetchPromises);
     return data;
   }
 
