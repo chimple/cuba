@@ -218,7 +218,7 @@ export class SupabaseApi implements ServiceApi {
       }
     });
 
-    await Promise.allSettled(fetchPromises);
+    await Promise.all(fetchPromises);
     return data;
   }
 
