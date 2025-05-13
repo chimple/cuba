@@ -171,6 +171,18 @@ const updateLearningPathIfNeeded = async (
       undefined
     );
 
+    const currentCourse = path.courses.courseList[path.courses.currentCourseIndex];
+    const currentPath = currentCourse.path;
+
+    const LessonSlice = currentPath.slice(
+      currentCourse.startIndex,
+      currentCourse.pathEndIndex + 1
+    );
+
+    // Extract lesson IDs
+    const LessonIds = LessonSlice.map((item: any) => item.lesson_id);
+
+
     const eventData = {
       user_id: student.id,
       path_id:
@@ -187,6 +199,11 @@ const updateLearningPathIfNeeded = async (
         path.courses.courseList[path.courses.currentCourseIndex].path[
           path.courses.courseList[path.courses.currentCourseIndex].currentIndex
         ].chapter_id,
+      path_lesson_one: LessonIds[0],
+      path_lesson_two: LessonIds[1],
+      path_lesson_three: LessonIds[2],
+      path_lesson_four: LessonIds[3],
+      path_lesson_five: LessonIds[4],
     };
     await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
   };
