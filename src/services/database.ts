@@ -1835,6 +1835,17 @@ export type Database = {
           errors?: string[];
         };
       };
+      check_student_duplicate_in_class_without_phone_number: {
+        Args: {
+          student_name: string;
+          class_name: string;
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
       validate_user_contacts_rpc: {
         Args: {
           program_manager_contact: string;
