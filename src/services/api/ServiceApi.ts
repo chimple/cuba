@@ -1272,6 +1272,14 @@ export interface ServiceApi {
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }>;
 
+   /**
+   * To validate given UDISE school Id  exist in the given school table or not
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateSchoolUdiseCode(
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
   /**
    * To validate given student already exist in the given class or not
    * @param {string } studentName - student Name

@@ -1846,6 +1846,15 @@ export type Database = {
           errors?: string[];
         };
       };
+      validate_school_udise_code: {
+        Args: {
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
       validate_user_contacts_rpc: {
         Args: {
           program_manager_contact: string;
