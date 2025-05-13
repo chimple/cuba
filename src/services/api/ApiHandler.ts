@@ -990,6 +990,13 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ status: string; errors?: string[] }> {
     return this.s.validateParentAndStudentInClass(schoolId, className, studentName, phoneNumber);
   }
+  async validateStudentInClassWithoutPhone(
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateStudentInClassWithoutPhone(studentName, className, schoolId);
+  }
   async validateClassCurriculumAndSubject(
     curriculumName: string,
     subjectName: string,

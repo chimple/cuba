@@ -1415,6 +1415,44 @@ export class SupabaseApi implements ServiceApi {
       };
     }
   }
+  async validateStudentInClassWithoutPhone(
+  studentName: string,
+  className: string,
+  schoolId: string
+): Promise<{ status: string; errors?: string[] }> {
+  if (!this.supabase) {
+    return {
+      status: "error",
+      errors: ["Supabase client is not initialized"],
+    };
+  }
+
+  try {
+    const { data, error } = await this.supabase.rpc(
+      "check_student_duplicate_in_class_without_phone_number",
+      {
+        student_name: studentName,
+        class_name: className,
+        input_school_udise_code: schoolId,
+      }
+    );
+
+    if (data?.status === "error" && (data as any).message) {
+      return {
+        status: "error",
+        errors: [(data as any).message],
+      };
+    }
+
+    return data as { status: string; errors?: string[] };
+  } catch (error) {
+    return {
+      status: "error",
+      errors: [String(error)],
+    };
+  }
+}
+
 
   async validateClassCurriculumAndSubject(
     curriculumName: string,
