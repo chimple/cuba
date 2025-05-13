@@ -116,36 +116,38 @@ const LearningPathway: React.FC = () => {
     };
   };
 
-  const updateLearningPathIfNeeded = async (
-    learningPath: any,
-    userCourses: any[]
-  ) => {
-    const oldCourseList = learningPath.courses?.courseList || [];
+const updateLearningPathIfNeeded = async (
+  learningPath: any,
+  userCourses: any[]
+) => {
+  const oldCourseList = learningPath.courses?.courseList || [];
 
-    // Check if number of courses matches
-    const sameLength = oldCourseList.length === userCourses.length;
+  // Check if lengths and course IDs/order match
+  const isSameLengthAndOrder =
+    oldCourseList.length === userCourses.length &&
+    userCourses.every(
+      (course, index) => course.id === oldCourseList[index]?.course_id
+    );
 
-    // Check if every course matches and has a valid path_id
-    const courseListValid =
-      sameLength &&
-      userCourses.every((course, index) => {
-        const oldCourse = oldCourseList[index];
-        return (
-          course.id === oldCourse?.course_id && oldCourse?.path_id // ensure path_id exists
-        );
-      });
+  // Check if any course is missing path_id
+  const isPathIdMissing = oldCourseList.some((course) => !course.path_id);
 
-    if (courseListValid) return false;
+  if (isSameLengthAndOrder && !isPathIdMissing) {
+    return false; // No need to rebuild
+  }
 
-    // rebuild the entire learning path
-    const newLearningPath = await buildInitialLearningPath(userCourses);
-    learningPath.courses.courseList = newLearningPath.courses.courseList;
-    const event = new CustomEvent("courseChanged", {
-      detail: { currentStudent },
-    });
-    window.dispatchEvent(event);
-    return true;
-  };
+  // If path_id is missing or courses mismatch, rebuild everything
+  const newLearningPath = await buildInitialLearningPath(userCourses);
+  learningPath.courses.courseList = newLearningPath.courses.courseList;
+
+  // Dispatch event to notify that course has changed
+  const event = new CustomEvent("courseChanged", {
+    detail: { currentStudent },
+  });
+  window.dispatchEvent(event);
+
+  return true;
+};
 
   const buildLessonPath = async (courseId: string) => {
     const chapters = await api.getChaptersForCourse(courseId);
