@@ -660,6 +660,9 @@ export enum EVENTS {
   USER_PROFILE = "user_profile",
   CLICKS_ANALYTICS = "clicks_analytics",
   EXPERIMENT_VIEWED = "experiment_viewed",
+  PATHWAY_CREATED = "pathway_created",
+  PATHWAY_COMPLETED = "pathway_completed",
+  PATHWAY_COURSE_CHANGED = "pathway_course_changed",
 }
 
 export const FCM_TOKENS = "fcmTokens";
