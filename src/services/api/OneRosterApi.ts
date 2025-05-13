@@ -1153,6 +1153,13 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<{ status: string; errors?: string[] }> {
     throw new Error("Method not implemented.");
   }
+  validateStudentInClassWithoutPhone(
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    throw new Error("Method not implemented.");
+  }
   validateClassCurriculumAndSubject(
     curriculumName: string,
     subjectName: string,

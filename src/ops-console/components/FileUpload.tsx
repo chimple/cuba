@@ -512,6 +512,20 @@ const FileUpload: React.FC = () => {
             if (!studentId || studentId.trim() === "") {
               errors.push("Missing student ID.");
             }
+            try {
+                const result = await api.validateStudentInClassWithoutPhone(
+                  studentName,
+                  className,
+                  schoolId
+                );
+                if (result?.status === "error") {
+                  errors.push(...(result.errors || []));
+                }
+              } catch (e) {
+                errors.push(
+                  "error while validating student in class "
+                );
+              }
           }
 
           if (!className || className.trim() === "") {

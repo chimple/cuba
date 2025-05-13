@@ -118,7 +118,7 @@ const CocosGame: React.FC = () => {
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
 
-    Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
+    await Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: api.currentStudent!.id,
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
@@ -348,7 +348,7 @@ const CocosGame: React.FC = () => {
     //     JSON.stringify(res)
     //   );
     // }
-    Util.logEvent(EVENTS.LESSON_END, {
+    await Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.id,
       // assignment_id: lesson.assignment?.id,
       chapter_id: data.chapterId,
