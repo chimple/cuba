@@ -1019,26 +1019,34 @@ export class OneRosterApi implements ServiceApi {
       return []; // Return empty array instead of empty object
     }
   }
+
   async getStudentProgress(): Promise<Map<string, string>> {
-    try {
-      const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();;
-      if (!loggedStudent) {
-        throw new Error("No logged-in student found");
-      }
-
-      const { agentEmail, queryStatement } = this.buildXapiQuery({ name: loggedStudent.name as string });
-      const statements = await this.getAllStatements(agentEmail, queryStatement);
-
-      // Filter out statements with null course_id
-      const filteredStatements = statements.filter(statement => statement.course_id !== null) as { course_id: string }[];
-      const res = ApiDataProcessor.dataProcessorGetStudentProgress(filteredStatements);
-      console.log("async getStudentProgress(): statements ", res);
-      return res;
-    } catch (error) {
-      console.error("Error in getStudentProgress:", error);
-      return new Map();
+  try {
+    const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!loggedStudent) {
+      throw new Error("No logged-in student found");
     }
+
+    const { agentEmail, queryStatement } = this.buildXapiQuery({ name: loggedStudent.name as string });
+    const statements = await this.getAllStatements(agentEmail, queryStatement);
+
+    const filteredStatements = statements.filter(statement => statement.course_id !== null) as { course_id: string; created_at: string }[];
+
+    const sortedStatements = filteredStatements.sort((a, b) => {
+      const aTimestamp = new Date(a.created_at).getTime();
+      const bTimestamp = new Date(b.created_at).getTime();
+      return bTimestamp - aTimestamp;
+    });
+
+    const res = ApiDataProcessor.dataProcessorGetStudentProgress(sortedStatements);
+    console.log("async getStudentProgress(): sorted statements ", res);
+
+    return res;
+  } catch (error) {
+    console.error("Error in getStudentProgress:", error);
+    return new Map();
   }
+}
 
   async getStudentResultInMap(
     studentId?: string
