@@ -1390,6 +1390,37 @@ export class SupabaseApi implements ServiceApi {
       };
     }
   }
+  async validateSchoolUdiseCode(
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "validate_school_udise_code",
+        {
+          input_school_udise_code: schoolId,
+        }
+      );
+      if (data?.status === "error" && (data as any).message) {
+        return {
+          status: "error",
+          errors: [(data as any).message],
+        };
+      }
+      return data as { status: string; errors?: string[] };
+    } catch (error) {
+      return {
+        status: "error",
+        errors: [String(error)],
+      };
+    }
+  }
   async validateStudentInClassWithoutPhone(
   studentName: string,
   className: string,

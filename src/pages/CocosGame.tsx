@@ -118,7 +118,7 @@ const CocosGame: React.FC = () => {
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
 
-    Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
+    await Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: api.currentStudent!.id,
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
@@ -173,6 +173,27 @@ const CocosGame: React.FC = () => {
       const { courses } = learningPath;
       const currentCourse = courses.courseList[courses.currentCourseIndex];
 
+      const prevLessonId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path[
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].currentIndex
+        ].lesson_id;
+      const prevChapterId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path[
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].currentIndex
+        ].chapter_id;
+        const prevCourseId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .course_id;
+      const prevPathId =
+        learningPath.courses.courseList[
+          learningPath.courses.currentCourseIndex
+          ].path_id;
       // Update currentIndex
       currentCourse.currentIndex += 1;
 
@@ -194,6 +215,39 @@ const CocosGame: React.FC = () => {
         if (courses.currentCourseIndex >= courses.courseList.length) {
           courses.currentCourseIndex = 0;
         }
+        const pathwayEndData = {
+          user_id: currentStudent.id,
+          current_path_id:
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].path_id,            
+          current_course_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].course_id,
+          current_lesson_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path[
+              learningPath.courses.courseList[
+                learningPath.courses.currentCourseIndex
+              ].currentIndex
+            ].lesson_id,
+          current_chapter_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path[
+              learningPath.courses.courseList[
+                learningPath.courses.currentCourseIndex
+              ].currentIndex
+            ].chapter_id,
+          prev_path_id: prevPathId,
+          prev_course_id: prevCourseId,
+          prev_lesson_id: prevLessonId,
+          prev_chapter_id: prevChapterId,
+        };
+        await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
+        await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
       }
 
       // Update the learning path in the database
@@ -348,7 +402,7 @@ const CocosGame: React.FC = () => {
     //     JSON.stringify(res)
     //   );
     // }
-    Util.logEvent(EVENTS.LESSON_END, {
+    await Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.id,
       // assignment_id: lesson.assignment?.id,
       chapter_id: data.chapterId,

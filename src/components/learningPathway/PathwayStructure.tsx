@@ -43,8 +43,13 @@ const PathwayStructure: React.FC = () => {
     if (height) image.setAttribute("height", `${height}`);
     if (x) image.setAttribute("x", `${x}`);
     if (y) image.setAttribute("y", `${y}`);
-    if (opacity !== undefined)
+    if (opacity !== undefined){
       image.setAttribute("opacity", opacity.toString());
+    }
+    // ✅ Add onerror fallback
+    image.onerror = () => {
+      image.setAttribute("href", "assets/icons/DefaultIcon.png");
+    };
     return image;
   };
 

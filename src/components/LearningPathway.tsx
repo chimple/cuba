@@ -8,11 +8,17 @@ import DropdownMenu from "./Home/DropdownMenu";
 import { ServiceConfig } from "../services/ServiceConfig";
 import Loading from "./Loading";
 import { schoolUtil } from "../utility/schoolUtil";
-import { LATEST_STARS, STARS_COUNT, TableTypes } from "../common/constants";
+import { v4 as uuidv4 } from "uuid";
+import {
+  EVENTS,
+  LATEST_STARS,
+  STARS_COUNT,
+  TableTypes,
+} from "../common/constants";
 
 const LearningPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
   const currentStudent = Util.getCurrentStudent();
@@ -59,7 +65,6 @@ const LearningPathway: React.FC = () => {
   };
 
   const fetchLearningPathway = async (student: any) => {
-    setLoading(true);
     const currClass = schoolUtil.getCurrentClass();
 
     try {
@@ -72,8 +77,10 @@ const LearningPathway: React.FC = () => {
         : null;
 
       if (!learningPath || !learningPath.courses?.courseList?.length) {
+        setLoading(true);
         learningPath = await buildInitialLearningPath(userCourses);
         await saveLearningPath(student, learningPath);
+        setLoading(false);
       } else {
         const updated = await updateLearningPathIfNeeded(
           learningPath,
@@ -91,6 +98,7 @@ const LearningPathway: React.FC = () => {
   const buildInitialLearningPath = async (courses: any[]) => {
     const courseList = await Promise.all(
       courses.map(async (course) => ({
+        path_id: uuidv4(),
         course_id: course.id,
         subject_id: course.subject_id,
         path: await buildLessonPath(course.id),
@@ -108,50 +116,38 @@ const LearningPathway: React.FC = () => {
     };
   };
 
-  const updateLearningPathIfNeeded = async (
-    learningPath: any,
-    userCourses: any[]
-  ) => {
-    const existingCourseIds = new Set(
-      learningPath.courses.courseList.map((c: any) => c.course_id)
-    );
-    const newCourseIds = new Set(userCourses.map((c: any) => c.id));
+const updateLearningPathIfNeeded = async (
+  learningPath: any,
+  userCourses: any[]
+) => {
+  const oldCourseList = learningPath.courses?.courseList || [];
 
-    const toAdd = userCourses.filter((c) => !existingCourseIds.has(c.id));
-    const toRemove = learningPath.courses.courseList.filter(
-      (c: any) => !newCourseIds.has(c.course_id)
-    );
-
-    if (!toAdd.length && !toRemove.length) return false;
-
-    // Create a map of existing course details for quick lookup
-    const existingCourseMap = new Map(
-      learningPath.courses.courseList.map((c: any) => [c.course_id, c])
+  // Check if lengths and course IDs/order match
+  const isSameLengthAndOrder =
+    oldCourseList.length === userCourses.length &&
+    userCourses.every(
+      (course, index) => course.id === oldCourseList[index]?.course_id
     );
 
-    // Build new course list maintaining API order
-    const newCourseList = await Promise.all(
-      userCourses.map(async (course) => {
-        if (existingCourseMap.has(course.id)) {
-          // Keep existing course details if course already exists
-          return existingCourseMap.get(course.id);
-        } else {
-          // Add new course details for new courses
-          return {
-            course_id: course.id,
-            subject_id: course.subject_id,
-            path: await buildLessonPath(course.id),
-            startIndex: 0,
-            currentIndex: 0,
-            pathEndIndex: 4,
-          };
-        }
-      })
-    );
+  // Check if any course is missing path_id
+  const isPathIdMissing = oldCourseList.some((course) => !course.path_id);
 
-    learningPath.courses.courseList = newCourseList;
-    return true;
-  };
+  if (isSameLengthAndOrder && !isPathIdMissing) {
+    return false; // No need to rebuild
+  }
+
+  // If path_id is missing or courses mismatch, rebuild everything
+  const newLearningPath = await buildInitialLearningPath(userCourses);
+  learningPath.courses.courseList = newLearningPath.courses.courseList;
+
+  // Dispatch event to notify that course has changed
+  const event = new CustomEvent("courseChanged", {
+    detail: { currentStudent },
+  });
+  window.dispatchEvent(event);
+
+  return true;
+};
 
   const buildLessonPath = async (courseId: string) => {
     const chapters = await api.getChaptersForCourse(courseId);
@@ -174,9 +170,42 @@ const LearningPathway: React.FC = () => {
       { ...student, learning_path: pathStr },
       undefined
     );
-    window.dispatchEvent(
-      new CustomEvent("PathwayCreated", { detail: { userId: student.id } })
+
+    const currentCourse = path.courses.courseList[path.courses.currentCourseIndex];
+    const currentPath = currentCourse.path;
+
+    const LessonSlice = currentPath.slice(
+      currentCourse.startIndex,
+      currentCourse.pathEndIndex + 1
     );
+
+    // Extract lesson IDs
+    const LessonIds = LessonSlice.map((item: any) => item.lesson_id);
+
+
+    const eventData = {
+      user_id: student.id,
+      path_id:
+          path.courses.courseList[
+            path.courses.currentCourseIndex
+          ].path_id, 
+      current_course_id:
+        path.courses.courseList[path.courses.currentCourseIndex].course_id,
+      current_lesson_id:
+        path.courses.courseList[path.courses.currentCourseIndex].path[
+          path.courses.courseList[path.courses.currentCourseIndex].currentIndex
+        ].lesson_id,
+      current_chapter_id:
+        path.courses.courseList[path.courses.currentCourseIndex].path[
+          path.courses.courseList[path.courses.currentCourseIndex].currentIndex
+        ].chapter_id,
+      path_lesson_one: LessonIds[0],
+      path_lesson_two: LessonIds[1],
+      path_lesson_three: LessonIds[2],
+      path_lesson_four: LessonIds[3],
+      path_lesson_five: LessonIds[4],
+    };
+    await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
   };
   if (loading) return <Loading isLoading={loading} msg="Loading Lessons" />;
 
