@@ -374,7 +374,7 @@ const SelectMode: FC = () => {
                       localStorage.removeItem(SELECTED_STUDENTS);
                       localStorage.removeItem(CURRENT_CLASS);
                       localStorage.removeItem(CURRENT_CLASS_NAME);
-
+                      localStorage.removeItem(USER_SELECTION_STAGE);
                       setStage(STAGES.CLASS);
                     }}
                   />
