@@ -204,18 +204,13 @@ export class SupabaseApi implements ServiceApi {
       const lastModifiedDate =
         tablesLastModifiedTime.get(tableName) ?? "2024-01-01T00:00:00.000Z";
 
-      try {
-        const res = await this.supabase
-          ?.from(tableName)
-          .select("*")
-          .gte("updated_at", lastModifiedDate);
+      const res = await this.supabase
+        ?.from(tableName)
+        .select("*")
+        .gte("updated_at", lastModifiedDate);
 
-        // console.log("📥 Supabase response for:", tableName, res);
-        data.set(tableName, res?.data ?? []);
-      } catch (error) {
-        console.error(`❌ Error fetching data for table ${tableName}:`, error);
-        data.set(tableName, []);
-      }
+      // console.log("📥 Supabase response for:", tableName, res);
+      data.set(tableName, res?.data ?? []);
     });
 
     await Promise.all(fetchPromises);
@@ -1422,43 +1417,42 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async validateStudentInClassWithoutPhone(
-  studentName: string,
-  className: string,
-  schoolId: string
-): Promise<{ status: string; errors?: string[] }> {
-  if (!this.supabase) {
-    return {
-      status: "error",
-      errors: ["Supabase client is not initialized"],
-    };
-  }
-
-  try {
-    const { data, error } = await this.supabase.rpc(
-      "check_student_duplicate_in_class_without_phone_number",
-      {
-        student_name: studentName,
-        class_name: className,
-        input_school_udise_code: schoolId,
-      }
-    );
-
-    if (data?.status === "error" && (data as any).message) {
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
       return {
         status: "error",
-        errors: [(data as any).message],
+        errors: ["Supabase client is not initialized"],
       };
     }
 
-    return data as { status: string; errors?: string[] };
-  } catch (error) {
-    return {
-      status: "error",
-      errors: [String(error)],
-    };
-  }
-}
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "check_student_duplicate_in_class_without_phone_number",
+        {
+          student_name: studentName,
+          class_name: className,
+          input_school_udise_code: schoolId,
+        }
+      );
 
+      if (data?.status === "error" && (data as any).message) {
+        return {
+          status: "error",
+          errors: [(data as any).message],
+        };
+      }
+
+      return data as { status: string; errors?: string[] };
+    } catch (error) {
+      return {
+        status: "error",
+        errors: [String(error)],
+      };
+    }
+  }
 
   async validateClassCurriculumAndSubject(
     curriculumName: string,
