@@ -518,6 +518,56 @@ const FileUpload: React.FC = () => {
             errors.push("Missing schoolId.");
           } else {
             // ---------- ✅  UDISE + backend validations ----------
+            async function validateStudentData(
+              studentLoginType: string | undefined,
+              parentContact: string,
+              className: string,
+              studentName: string,
+              schoolId: string,
+              studentId: string | undefined,
+              errors: string[]
+            ) {
+              if (studentLoginType === "PARENT PHONE NUMBER") {
+                if (parentContact && !/^\d{10}$/.test(parentContact)) {
+                  errors.push(
+                    "PARENT PHONE NUMBER must be a valid 10-digit mobile number."
+                  );
+                } else if (/^\d{10}$/.test(parentContact)) {
+                  try {
+                    const result = await api.validateParentAndStudentInClass(
+                      parentContact,
+                      className,
+                      studentName,
+                      schoolId
+                    );
+                    if (result?.status === "error") {
+                      errors.push(...(result.errors || []));
+                    }
+                  } catch (e) {
+                    errors.push(
+                      "Server error validating parent/student class link"
+                    );
+                  }
+                }
+              } else {
+                if (!studentId || studentId.trim() === "") {
+                  errors.push("Missing student ID.");
+                }
+                try {
+                  const result = await api.validateStudentInClassWithoutPhone(
+                    studentName,
+                    className,
+                    schoolId
+                  );
+                  if (result?.status === "error") {
+                    errors.push(...(result.errors || []));
+                  }
+                } catch (e) {
+                  errors.push("error while validating student in class");
+                }
+              }
+            }
+
             if (!validatedSchoolIds.has(schoolId)) {
               const result = await api.validateSchoolUdiseCode(schoolId);
               if (result?.status === "error") {
@@ -525,46 +575,27 @@ const FileUpload: React.FC = () => {
                 errors.push(...(result.errors || []));
               } else {
                 const studentLoginType = studentLoginTypeMap.get(schoolId);
-                if (studentLoginType === "PARENT PHONE NUMBER") {
-                  if (parentContact && !/^\d{10}$/.test(parentContact)) {
-                    errors.push(
-                      "PARENT PHONE NUMBER must be a valid 10-digit mobile number."
-                    );
-                  } else if (/^\d{10}$/.test(parentContact)) {
-                    try {
-                      const result = await api.validateParentAndStudentInClass(
-                        parentContact,
-                        className,
-                        studentName,
-                        schoolId
-                      );
-                      if (result?.status === "error") {
-                        errors.push(...(result.errors || []));
-                      }
-                    } catch (e) {
-                      errors.push(
-                        "Server error validating parent/student class link"
-                      );
-                    }
-                  }
-                } else {
-                  if (!studentId || studentId.trim() === "") {
-                    errors.push("Missing student ID.");
-                  }
-                  try {
-                    const result = await api.validateStudentInClassWithoutPhone(
-                      studentName,
-                      className,
-                      schoolId
-                    );
-                    if (result?.status === "error") {
-                      errors.push(...(result.errors || []));
-                    }
-                  } catch (e) {
-                    errors.push("error while validating student in class");
-                  }
-                }
+                await validateStudentData(
+                  studentLoginType,
+                  parentContact,
+                  className,
+                  studentName,
+                  schoolId,
+                  studentId,
+                  errors
+                );
               }
+            } else {
+              const studentLoginType = studentLoginTypeMap.get(schoolId);
+              await validateStudentData(
+                studentLoginType,
+                parentContact,
+                className,
+                studentName,
+                schoolId,
+                studentId,
+                errors
+              );
             }
           }
 
