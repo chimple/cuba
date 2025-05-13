@@ -327,6 +327,7 @@ const FileUpload: React.FC = () => {
             ?.toString()
             .trim();
           const className = `${grade} ${classSection}`.trim();
+          const schoolClassKey = `${schoolId}|||${className}`;
           if (!grade) errors.push("Missing grade");
           if (!curriculum) errors.push("Missing curriculum");
           if (!subject) errors.push("Missing subject");
@@ -585,18 +586,7 @@ const FileUpload: React.FC = () => {
                   errors
                 );
               }
-            } else {
-              const studentLoginType = studentLoginTypeMap.get(schoolId);
-              await validateStudentData(
-                studentLoginType,
-                parentContact,
-                className,
-                studentName,
-                schoolId,
-                studentId,
-                errors
-              );
-            }
+            } 
           }
 
           // ✅ Final status update
