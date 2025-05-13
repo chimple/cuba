@@ -1828,7 +1828,18 @@ export type Database = {
           phone_number: string;
           student_name: string;
           class_name: string;
-          input_school_id: string;
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      check_student_duplicate_in_class_without_phone_number: {
+        Args: {
+          student_name: string;
+          class_name: string;
+          input_school_udise_code: string;
         };
         Returns: {
           status: string;

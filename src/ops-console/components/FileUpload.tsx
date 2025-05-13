@@ -261,6 +261,7 @@ const FileUpload: React.FC = () => {
               errors.push(
                 "Missing SCHOOL INSTRUCTION LANGUAGE or Invalid format"
               );
+            if (!programName) errors.push("Missing PROGRAM NAME");
             if (!principalName) errors.push("Missing PRINCIPAL NAME");
             if (!principalPhone)
               errors.push("Missing PRINCIPAL PHONE NUMBER OR EMAIL ID");
@@ -511,6 +512,20 @@ const FileUpload: React.FC = () => {
             if (!studentId || studentId.trim() === "") {
               errors.push("Missing student ID.");
             }
+            try {
+                const result = await api.validateStudentInClassWithoutPhone(
+                  studentName,
+                  className,
+                  schoolId
+                );
+                if (result?.status === "error") {
+                  errors.push(...(result.errors || []));
+                }
+              } catch (e) {
+                errors.push(
+                  "error while validating student in class "
+                );
+              }
           }
 
           if (!className || className.trim() === "") {

@@ -386,15 +386,17 @@ export class SqliteApi implements ServiceApi {
     if (res && res.length) {
       for (const data of res) {
         const newData = JSON.parse(data.data);
-        const isMutated = await this._serverApi.mutate(
+        const mutate = await this._serverApi.mutate(
           data.change_type,
           data.table_name,
           newData,
           newData.id
         );
-        console.log("🚀 ~ Api ~ pushChanges ~ isMutated:", isMutated);
-        if (!isMutated) {
-          return false;
+        console.log("🚀 ~ Api ~ pushChanges ~ isMutated:", mutate);
+        if (!mutate || mutate.error) {
+          if (data.table_name !== TABLES.Result && mutate?.error?.code !== "23505") {
+            return false;
+          }
         }
         await this.executeQuery(
           `DELETE FROM push_sync_info WHERE id = ? AND table_name = ?`,
@@ -4386,6 +4388,27 @@ order by
       studentName,
       className,
       phoneNumber
+    );
+    if (validatedData.status === "error") {
+      const errors = validatedData.errors?.map((err: any) =>
+        typeof err === "string" ? err : err.message || JSON.stringify(err)
+      );
+      return { status: "error", errors };
+    }
+    
+    
+    return { status: "success" };
+  }
+
+  async validateStudentInClassWithoutPhone(
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const validatedData = await this._serverApi.validateStudentInClassWithoutPhone(
+      studentName,
+      className,
+      schoolId,
     );
     if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>
