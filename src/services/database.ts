@@ -1653,6 +1653,95 @@ export type Database = {
           },
         ]
       }
+      program: {
+        Row: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_ops: boolean | null
+          modal: string
+          name: string
+          school_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          is_ops?: boolean | null
+          modal: string
+          name: string
+          school_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          is_ops?: boolean | null
+          modal?: string
+          name?: string
+          school_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      program_user: {
+        Row: {
+          created_at: string
+          id: string
+          is_deleted: boolean
+          is_ops: boolean | null
+          program_id: string
+          role: Database["public"]["Enums"]["role"] | null
+          updated_at: string
+          user: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          is_ops?: boolean | null
+          program_id: string
+          role?: Database["public"]["Enums"]["role"] | null
+          updated_at?: string
+          user?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          is_ops?: boolean | null
+          program_id?: string
+          role?: Database["public"]["Enums"]["role"] | null
+          updated_at?: string
+          user?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_user_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "program"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_user_user_fkey"
+            columns: ["user"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       get_leaderboard_generic_data: {
