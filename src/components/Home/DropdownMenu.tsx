@@ -79,6 +79,10 @@ const DropdownMenu: FC = () => {
         learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
           .currentIndex
       ].chapter_id;
+      const prevPathId =
+      learningPath.courses.courseList[
+          learningPath.courses.currentCourseIndex
+          ].path_id;
       
     learningPath.courses.currentCourseIndex = index;
 
@@ -90,7 +94,7 @@ const DropdownMenu: FC = () => {
 
     const eventData = {
       user_id: currentStudent.id,
-      path_id:          
+      current_path_id:          
         learningPath.courses.courseList[
           learningPath.courses.currentCourseIndex
           ].path_id, 
@@ -111,6 +115,7 @@ const DropdownMenu: FC = () => {
             learningPath.courses.currentCourseIndex
           ].currentIndex
         ].chapter_id,
+      prev_path_id: prevPathId,
       prev_course_id: prevCourseId,
       prev_lesson_id: prevLessonId,
       prev_chapter_id: prevChapterId,

@@ -190,6 +190,10 @@ const CocosGame: React.FC = () => {
         const prevCourseId =
         learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
           .course_id;
+      const prevPathId =
+        learningPath.courses.courseList[
+          learningPath.courses.currentCourseIndex
+          ].path_id;
       // Update currentIndex
       currentCourse.currentIndex += 1;
 
@@ -213,7 +217,7 @@ const CocosGame: React.FC = () => {
         }
         const pathwayEndData = {
           user_id: currentStudent.id,
-          path_id:
+          current_path_id:
           learningPath.courses.courseList[
             learningPath.courses.currentCourseIndex
           ].path_id,            
@@ -237,6 +241,7 @@ const CocosGame: React.FC = () => {
                 learningPath.courses.currentCourseIndex
               ].currentIndex
             ].chapter_id,
+          prev_path_id: prevPathId,
           prev_course_id: prevCourseId,
           prev_lesson_id: prevLessonId,
           prev_chapter_id: prevChapterId,

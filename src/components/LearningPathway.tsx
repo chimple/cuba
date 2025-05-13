@@ -173,7 +173,10 @@ const updateLearningPathIfNeeded = async (
 
     const eventData = {
       user_id: student.id,
-      user_name: student.name,
+      path_id:
+          path.courses.courseList[
+            path.courses.currentCourseIndex
+          ].path_id, 
       current_course_id:
         path.courses.courseList[path.courses.currentCourseIndex].course_id,
       current_lesson_id:
