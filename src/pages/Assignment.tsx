@@ -55,48 +55,135 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
     [lessonId: string]: { course_id: string };
   }>({});
 
-  const init = async (fromCache = true) => {
-    setLoading(true);
-    await api.syncDB();
-
-    const student = Util.getCurrentStudent();
-    if (!student) {
-      history.replace(PAGES.SELECT_MODE);
-      return;
+  const loadPendingAssignments = useCallback(
+  async (
+    classId: string,
+    studentId: string,
+    getPendingAssignments: (classId: string, studentId: string) => Promise<TableTypes<"assignment">[]>
+  ) => {
+    try {
+      const all = await getPendingAssignments(classId, studentId);
+      const pending = all.filter((a) => a.type !== LIVE_QUIZ);
+      setAssignments(pending);
+    } catch (error) {
+      console.error("Failed to load pending assignments:", error);
     }
+  },
+  []);
 
-    const studentResult = await api.getStudentResultInMap(student.id);
-    if (studentResult) setLessonResultMap(studentResult);
-
-    const linked = await api.isStudentLinked(student.id, fromCache);
-    if (!linked) {
-      setIsLinked(false);
-      setLoading(false);
-      return;
-    }
-
-    const linkedData = await api.getStudentClassesAndSchools(student.id);
-    if (!linkedData?.classes.length) {
-      setIsLinked(false);
-      setLoading(false);
-      return;
-    }
-
-    const cls = linkedData.classes[0];
-    setCurrentClass(cls);
-    setSchoolName(
-      linkedData.schools.find((s) => s.id === cls.school_id)?.name || ""
+  useEffect(() => {
+    const initialLoadingState = JSON.parse(
+      localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) || "false"
     );
+    setDownloadButtonLoading(initialLoadingState);
+    const body = document.querySelector("body");
+    body?.style.setProperty(
+      "background-image",
+      "url(/pathwayAssets/pathwayBackground.svg)"
+    );
+    init(false);
+  }, []);
 
-    const all = await api.getPendingAssignments(cls.id, student.id);
-    const pending = all.filter((a) => a.type !== LIVE_QUIZ);
-    setAssignments(pending);
+  useEffect(() => {
+    checkAllHomeworkDownloaded();
+  }, [lessons]);
 
-    setIsLinked(true);
-    setLoading(false);
+  // --- When assignments update, fetch associated lessons ---
+  useEffect(() => {
+    if (assignments.length > 0) {
+      const fetchLessons = async () => {
+        const lessonPromises = assignments.map(async (assignment) => {
+          return await api.getLesson(assignment.lesson_id);
+        });
+        const lessonList = await Promise.all(lessonPromises);
+        const filteredLessons = lessonList.filter(
+          (lesson): lesson is TableTypes<"lesson"> => lesson !== undefined
+        );
+        setLessons((prevLessons) => {
+          const prevIds = new Set(prevLessons.map((l) => l.id));
+          const newLessons = filteredLessons.filter((l) => !prevIds.has(l.id));
+          if (
+            newLessons.length > 0 ||
+            prevLessons.length !== filteredLessons.length
+          ) {
+            return [...newLessons, ...prevLessons];
+          }
+          return prevLessons;
+        });
+      };
+      fetchLessons();
+    }
+  }, [assignments]);
+
+  const handleNewAssignmentS = useCallback(
+  async (newAssignment: TableTypes<"assignment">) => {
+    setAssignments((prev) => {
+      if (prev.some((a) => a.id === newAssignment.id)) {
+        return prev;
+      }
+      onNewAssignment?.(newAssignment);
+      return [...prev, newAssignment];
+    });
+
+    if (newAssignment.chapter_id) {
+      const chapter = await api.getChapterById(newAssignment.chapter_id);
+      if (chapter) {
+        setLessonChapterMap((prev) => ({
+          ...prev,
+          [newAssignment.lesson_id]: chapter,
+        }));
+      }
+    }
+
+    setAssignmentLessonCourseMap((prev) => {
+      if (newAssignment.course_id) {
+        return {
+          ...prev,
+          [newAssignment.lesson_id]: { course_id: newAssignment.course_id },
+        };
+      }
+      return prev;
+    });
+
+    const lesson = await api.getLesson(newAssignment.lesson_id);
+    if (lesson) {
+      setLessons((prev) => {
+        if (prev.some((l) => l.id === lesson.id)) {
+          return prev;
+        }
+        return [...prev, lesson];
+      });
+    }
+  },
+  [api, onNewAssignment]
+);
+
+useEffect(() => {
+  const student = Util.getCurrentStudent();
+  if (!currentClass || !student) return;
+
+  api.assignmentListner(
+    currentClass.id,
+    (newA) => {
+      if (!newA || newA.type === LIVE_QUIZ) return;
+      handleNewAssignmentS(newA);
+    }
+  );
+
+  api.assignmentUserListner(
+    student.id,
+    async (au) => {
+      if (!au) return;
+      const a = await api.getAssignmentById(au.assignment_id);
+      if (a) handleNewAssignmentS(a);
+    }
+  );
+
+  return () => {
+    api.removeAssignmentChannel();
   };
+}, [currentClass, handleNewAssignmentS]);
 
-  // check downloaded lessons
   const checkAllHomeworkDownloaded = async () => {
     if (lessons.length === 0) {
       setShowDownloadHomeworkButton(false);
@@ -120,96 +207,6 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
     );
   };
 
-  // initial effect
-  useEffect(() => {
-    document
-      .querySelector("body")
-      ?.style.setProperty(
-        "background-image",
-        "url(/pathwayAssets/pathwayBackground.svg)"
-      );
-    setDownloadButtonLoading(
-      JSON.parse(localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) || "false")
-    );
-    init();
-  }, [api, history]);
-
-  // fetch lessons when assignments arrive
-  useEffect(() => {
-    if (!assignments.length) return;
-    (async () => {
-      const lessonList = await Promise.all(
-        assignments.map((a) => api.getLesson(a.lesson_id))
-      );
-      const filtered = lessonList.filter(
-        (l): l is TableTypes<"lesson"> => !!l
-      );
-      setLessons((prev) => {
-        const prevIds = new Set(prev.map((l) => l.id));
-        const newL = filtered.filter((l) => !prevIds.has(l.id));
-        return newL.length || prev.length !== filtered.length
-          ? [...newL, ...prev]
-          : prev;
-      });
-    })();
-  }, [assignments, api]);
-
-  // real-time listeners
-  useEffect(() => {
-    const student = Util.getCurrentStudent();
-    if (!currentClass || !student) return;
-
-    const handleNew = async (newA?: TableTypes<"assignment">) => {
-      if (!newA || newA.type === LIVE_QUIZ) return;
-
-      setAssignments((prev) =>
-        prev.some((a) => a.id === newA.id) ? prev : [...prev, newA]
-      );
-      onNewAssignment?.(newA);
-
-      if (newA.chapter_id) {
-        const chap = await api.getChapterById(newA.chapter_id);
-        if (chap)
-          setLessonChapterMap((m) => ({ ...m, [newA.lesson_id]: chap }));
-      }
-      if (newA.course_id) {
-        setAssignmentLessonCourseMap((m) => ({
-          ...m,
-          [newA.lesson_id]: { course_id: newA.course_id! },
-        }));
-      }
-
-      const lesson = await api.getLesson(newA.lesson_id);
-      if (lesson)
-        setLessons((prev) =>
-          prev.some((l) => l.id === lesson.id) ? prev : [...prev, lesson]
-        );
-    };
-
-    api.assignmentListner(currentClass.id, handleNew);
-    api.assignmentUserListner(student.id, async (au) => {
-      if (!au) return;
-      const a = await api.getAssignmentById(au.assignment_id);
-      if (a) handleNew(a);
-    });
-    return () => api.removeAssignmentChannel();
-  }, [api, currentClass, onNewAssignment]);
-
-  // download button & check
-  useEffect(() => {
-    checkAllHomeworkDownloaded();
-    window.addEventListener(
-      ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
-      checkAllHomeworkDownloaded
-    );
-    return () => {
-      window.removeEventListener(
-        ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
-        checkAllHomeworkDownloaded
-      );
-    };
-  }, [lessons]);
-
   async function downloadAllHomeWork(lessons: TableTypes<"lesson">[]) {
     setDownloadButtonLoading(true);
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(true));
@@ -221,6 +218,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
       );
       const uniqueFilteredLessonIds = [...new Set(filteredLessonIds)];
       await Util.downloadZipBundle(uniqueFilteredLessonIds);
+
       localStorage.setItem(
         DOWNLOAD_BUTTON_LOADING_STATUS,
         JSON.stringify(false)
@@ -237,22 +235,58 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
     }
   }
 
-  // keyboard listeners
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-    const showSub = Keyboard.addListener(
-      "keyboardWillShow",
-      () => setIsInputFocus(true)
+  window.addEventListener(
+    ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+    checkAllHomeworkDownloaded
+  );
+
+const init = useCallback(
+  async (fromCache: boolean = true) => {
+    setLoading(true);
+
+    await api.syncDB();
+
+    const student = Util.getCurrentStudent();
+    if (!student) {
+      history.replace(PAGES.SELECT_MODE);
+      return;
+    }
+
+    const studentResult = await api.getStudentResultInMap(student.id);
+    if (studentResult) {
+      setLessonResultMap(studentResult);
+    }
+
+    const linked = await api.isStudentLinked(student.id, fromCache);
+    if (!linked) {
+      setIsLinked(false);
+      setLoading(false);
+      return;
+    }
+
+    const linkedData = await api.getStudentClassesAndSchools(student.id);
+    if (!linkedData?.classes.length) {
+      setIsLinked(false);
+      setLoading(false);
+      return;
+    }
+    const classDoc = linkedData.classes[0];
+    setCurrentClass(classDoc);
+    setSchoolName(
+      linkedData.schools.find((s) => s.id === classDoc.school_id)?.name || ""
     );
-    const hideSub = Keyboard.addListener(
-      "keyboardWillHide",
-      () => setIsInputFocus(false)
+
+    await loadPendingAssignments(
+      classDoc.id,
+      student.id,
+      api.getPendingAssignments.bind(api)
     );
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
+
+    setLoading(false);
+    setIsLinked(true);
+  },
+  [api, history, loadPendingAssignments]
+);
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
