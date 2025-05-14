@@ -220,9 +220,12 @@ export class SupabaseApi implements ServiceApi {
   async mutate(
     mutateType: MUTATE_TYPES,
     tableName: TABLES,
-    data: { [key: string]: any },
+    data1: { [key: string]: any },
     id: string
   ) {
+    const data = { ...data1 };
+    data.updated_at = new Date().toISOString();
+
     if (!this.supabase) return;
     let res: PostgrestSingleResponse<any> | undefined = undefined;
     switch (mutateType) {
@@ -1416,7 +1419,7 @@ export class SupabaseApi implements ServiceApi {
       };
     }
   }
-   async validateClassNameWithSchoolID(
+  async validateClassNameWithSchoolID(
     schoolId: string,
     className: string,
   ): Promise<{ status: string; errors?: string[] }> {
