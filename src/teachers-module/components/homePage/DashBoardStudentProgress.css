@@ -73,10 +73,10 @@
   width: auto;
   height: 60%;
 }
-/* .CircularProgressbar {
+.circularProgressbar {
   margin-bottom: 5px;
   min-width: 30px;
   min-height: 30px;
   width: 6vh;
   height: 6vh;
-} */
+}
