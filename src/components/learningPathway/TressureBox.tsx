@@ -31,13 +31,16 @@ const TressureBox: React.FC<TressureBoxProps> = ({
       current += direction;
       setCurrentNumber(current);
 
-      if (current === endNumber) {
-        clearInterval(interval);
-
-        setTimeout(() => {
-          setIsConfettiVisible(false);
-          setIsUpdating(false);
-        }, 600);
+      try {
+        if (current === endNumber) {
+          if (interval) clearInterval(interval);
+          setTimeout(() => {
+            setIsConfettiVisible(false);
+            setIsUpdating(false);
+          }, 600);
+        }
+      } catch (error) {
+        console.error("Error in updating number:", error);
       }
     };
     updateNumber();
