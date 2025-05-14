@@ -329,11 +329,7 @@ const FileUpload: React.FC = () => {
           const className = `${grade} ${classSection}`.trim();
           if (schoolId && className) {
             const schoolClassKey = `${schoolId}_${className}`;
-            if (validatedSchoolClassPairs.has(schoolClassKey)) {
-              errors.push(
-                `Duplicate entry found for SCHOOL ID: "${schoolId}" and CLASS NAME: "${className}".`
-              );
-            } else {
+            if (!validatedSchoolClassPairs.has(schoolClassKey)) {
               validatedSchoolClassPairs.add(schoolClassKey);
             }
           }
