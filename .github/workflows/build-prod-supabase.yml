@@ -81,7 +81,7 @@ jobs:
 
       - name: Generate the Android App apk (Debug)
         working-directory: ./android/
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleDebug
 
 
       - name: Upload APKs and AAB to branch
