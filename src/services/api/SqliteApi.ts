@@ -4415,6 +4415,24 @@ order by
     
     return { status: "success" };
   }
+  async validateClassNameWithSchoolID(
+    schoolId: string,
+    className: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    const validatedData = await this._serverApi.validateClassNameWithSchoolID(
+      schoolId,
+      className
+    );
+    if (validatedData.status === "error") {
+      const errors = validatedData.errors?.map((err: any) =>
+        typeof err === "string" ? err : err.message || JSON.stringify(err)
+      );
+      return { status: "error", errors };
+    }
+    
+    
+    return { status: "success" };
+  }
 
   async validateStudentInClassWithoutPhone(
     studentName: string,

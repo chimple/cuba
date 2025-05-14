@@ -123,8 +123,8 @@ const FileUpload: React.FC = () => {
     const workbook = XLSX.read(fileBuffer, { type: "array" });
 
     let validatedSchoolIds: Set<string> = new Set(); // Store valid school IDs
-    let validatedClassIds: Map<string, string> = new Map(); // Store valid school IDs
     let studentLoginTypeMap = new Map<string, string>(); // schoolId -> login type
+    let validatedSchoolClassPairs: Set<string> = new Set(); // Store validated class-school pairs
 
     const validatedSheets = {
       school: [] as any[],
@@ -327,7 +327,17 @@ const FileUpload: React.FC = () => {
             ?.toString()
             .trim();
           const className = `${grade} ${classSection}`.trim();
-          const schoolClassKey = `${schoolId}|||${className}`;
+          if (schoolId && className) {
+            const schoolClassKey = `${schoolId}_${className}`;
+            if (validatedSchoolClassPairs.has(schoolClassKey)) {
+              errors.push(
+                `Duplicate entry found for SCHOOL ID: "${schoolId}" and CLASS NAME: "${className}".`
+              );
+            } else {
+              validatedSchoolClassPairs.add(schoolClassKey);
+            }
+          }
+
           if (!grade) errors.push("Missing grade");
           if (!curriculum) errors.push("Missing curriculum");
           if (!subject) errors.push("Missing subject");
@@ -414,6 +424,25 @@ const FileUpload: React.FC = () => {
               if (result?.status === "error") {
                 errors.push("SCHOOL ID does not match any validated school.");
                 errors.push(...(result.errors || []));
+              } else if (className && schoolId) {
+                const schoolClassKey = `${schoolId}_${className}`;
+                if (!validatedSchoolClassPairs.has(schoolClassKey)) {
+                  // Validate class name and schoolId pair from server if not validated already
+                  const classValidationResponse =
+                    await api.validateClassNameWithSchoolID(
+                      schoolId,
+                      className
+                    );
+                  if (classValidationResponse?.status === "error") {
+                    errors.push(
+                      "Class name does not exist for the given school ID."
+                    );
+                    errors.push(...(classValidationResponse.errors || []));
+                  } else {
+                    // Store valid school and class pairs
+                    validatedSchoolClassPairs.add(schoolClassKey);
+                  }
+                }
               }
             }
           }
@@ -586,7 +615,20 @@ const FileUpload: React.FC = () => {
                   errors
                 );
               }
-            } 
+            } else {
+              const studentLoginType = studentLoginTypeMap.get(schoolId);
+              if (studentLoginType === "PARENT PHONE NUMBER") {
+                if (parentContact && !/^\d{10}$/.test(parentContact)) {
+                  errors.push(
+                    "PARENT PHONE NUMBER must be a valid 10-digit mobile number."
+                  );
+                }
+              } else {
+                if (!studentId || studentId.trim() === "") {
+                  errors.push("Missing student ID.");
+                }
+              }
+            }
           }
 
           // ✅ Final status update

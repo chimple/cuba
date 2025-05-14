@@ -1855,6 +1855,16 @@ export type Database = {
           errors?: string[];
         };
       };
+      check_class_exists_by_name_and_school: {
+        Args: {
+          class_name:string;
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
       validate_user_contacts_rpc: {
         Args: {
           program_manager_contact: string;
