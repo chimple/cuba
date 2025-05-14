@@ -299,8 +299,15 @@ const Home: FC = () => {
         acc[`count_of_${courseId}`] = courseCount[courseId];
         return acc;
       }, {});
-      
-      setGrowthbookAttributes([student, linkedData, liveQuizCount, assignmentCount, result]);
+      const attributeParams = {
+        studentDetails: student,
+        schools: linkedData.schools.map((item: any) => item.id),
+        classes: linkedData.classes.map((item: any) => item.id),
+        liveQuizCount: liveQuizCount,
+        assignmentCount: assignmentCount,
+        countOfPendingIds: result
+      }
+      setGrowthbookAttributes(attributeParams);
       setDataCourse(reqLes);
       // storeRecommendationsInLocalStorage(reqLes);
       // setIsLoading(true);
@@ -312,9 +319,8 @@ const Home: FC = () => {
   }
 
   const setGrowthbookAttributes = (student: any) => {
-    const studentDetails = student[0];
-    const studentClasses = student[1].classes.map((item: any) => item.id);
-    const studentSchools = student[1].schools.map((item: any) => item.id);
+    const {studentDetails, schools, classes, liveQuizCount, assignmentCount, countOfPendingIds} = student;
+
     growthbook.setAttributes({
       id: studentDetails.id,
       age: studentDetails.age,
@@ -323,13 +329,13 @@ const Home: FC = () => {
       gender: studentDetails.gender,
       parent_id: studentDetails.parent_id,
       subject_id: studentDetails.subject_id,
-      school_ids: studentSchools,
-      class_ids: studentClasses,
+      school_ids: schools,
+      class_ids: classes,
       language: localStorage.getItem("language") || "en",
       stars: studentDetails.stars,
-      pending_live_quiz: student[2],
-      pending_assignments: student[3],
-      ...student[4],
+      pending_live_quiz: liveQuizCount,
+      pending_assignments: assignmentCount,
+      ...countOfPendingIds,
     });
   };
 
