@@ -248,8 +248,6 @@ const Home: FC = () => {
     const classDoc = linkedData?.classes[0];
     if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
     if (student) await api.assignmentUserListner(student.id, () => {});
-
-    setGrowthbookAttributes([student, linkedData]);
     if (
       student != null &&
       !!linkedData &&
@@ -289,7 +287,20 @@ const Home: FC = () => {
       setPendingLiveQuizCount(liveQuizCount);
       setPendingAssignmentCount(assignmentCount);
       setPendingAssignments(allAssignments);
-
+      const courseCount = allAssignments.reduce((accumulator, current: any) => {
+        if (accumulator[current.course_id]) {
+          accumulator[current.course_id] += 1;
+        } else {
+          accumulator[current.course_id] = 1;
+        }
+        return accumulator;
+      }, {});
+      const result = Object.keys(courseCount).reduce((acc, courseId) => {
+        acc[`count_of_${courseId}`] = courseCount[courseId];
+        return acc;
+      }, {});
+      
+      setGrowthbookAttributes([student, linkedData, liveQuizCount, assignmentCount, result]);
       setDataCourse(reqLes);
       // storeRecommendationsInLocalStorage(reqLes);
       // setIsLoading(true);
@@ -304,7 +315,6 @@ const Home: FC = () => {
     const studentDetails = student[0];
     const studentClasses = student[1].classes.map((item: any) => item.id);
     const studentSchools = student[1].schools.map((item: any) => item.id);
-
     growthbook.setAttributes({
       id: studentDetails.id,
       age: studentDetails.age,
@@ -316,6 +326,10 @@ const Home: FC = () => {
       school_ids: studentSchools,
       class_ids: studentClasses,
       language: localStorage.getItem("language") || "en",
+      stars: studentDetails.stars,
+      pending_live_quiz: student[2],
+      pending_assignments: student[3],
+      ...student[4],
     });
   };
 
