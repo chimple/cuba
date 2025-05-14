@@ -5,6 +5,7 @@ import { ServiceAuth } from "./ServiceAuth";
 import { ConfirmationResult } from "@firebase/auth";
 import { Database } from "../database";
 import { TableTypes } from "../../common/constants";
+import { UserAttributes } from "@supabase/supabase-js";
 
 export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
@@ -59,7 +60,18 @@ export class OneRosterAuth implements ServiceAuth {
     throw new Error("Method not implemented.");
   }
 
-  refreshSession(): Promise<void> {
+  doRefreshSession(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  signInWithEmail(email, password): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  sendResetPasswordEmail(email: string): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+
+  updateUser(attributes: UserAttributes): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
 }

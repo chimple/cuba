@@ -7,6 +7,7 @@ import {
   LeaderboardRewards,
   MODES,
   PROFILETYPE,
+  TABLES,
   TableTypes,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -92,9 +93,11 @@ export interface ServiceApi {
     city: string,
     image: File | null,
     udise_id?: string
-  ): Promise<TableTypes<"req_new_school"> | null>;  
+  ): Promise<TableTypes<"req_new_school"> | null>;
 
-  getExistingSchoolRequest(userId: string): Promise<TableTypes<"req_new_school"> | null>;
+  getExistingSchoolRequest(
+    userId: string
+  ): Promise<TableTypes<"req_new_school"> | null>;
   /**
    * Adds a school profile image and returns the school profile image URL.
    * @param {string} id - The unique identifier of the school.
@@ -107,6 +110,13 @@ export interface ServiceApi {
     file: File,
     profileType: PROFILETYPE
   ): Promise<string | null>;
+
+  /**
+   * Adds a school profile image and returns the school profile image URL.
+   * @param {payload} any - Mapped data in the json format.
+   * @returns {Promise<boolean | null>} Returns if the upload is success or upload fails.
+   */
+  uploadData(payload: any): Promise<boolean | null>;
 
   createStudentProfile(
     name: string,
@@ -872,7 +882,7 @@ export interface ServiceApi {
    *          - `false` if there were any errors or if no synchronization was necessary.
    */
 
-  syncDB(): Promise<boolean>;
+  syncDB(tableNames: TABLES[], refreshTables: TABLES[]): Promise<boolean>;
 
   /**
    * Function to get Recommended Lessons.
@@ -899,7 +909,7 @@ export interface ServiceApi {
    *
    * Example usage:
    * searchLessons("math")
-   *   .then(lessons => console.log(lessons))
+   *   .then(lessons => {})
    *   .catch(error => console.error(error));
    */
 
@@ -1244,8 +1254,51 @@ export interface ServiceApi {
    */
   validateSchoolData(
     schoolId: string,
-    schoolName: string,
-    instructionMedium: string
+    schoolName: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+
+  /**
+   * To validate given phone number and student already exist in the given class or not
+   * @param {string } phoneNumber - phone number
+   * @param {string } studentName - student Name
+   * @param {string } className  -  class Name
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateParentAndStudentInClass(
+    phoneNumber: string,
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+   /**
+   * To validate given UDISE school Id  exist in the given school table or not
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateSchoolUdiseCode(
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given UDISE school Id a exist in the given school table or not
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateClassNameWithSchoolID(
+    schoolId: string,
+    className: string,
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given student already exist in the given class or not
+   * @param {string } studentName - student Name
+   * @param {string } className  -  class Name
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateStudentInClassWithoutPhone(
+    studentName: string,
+    className: string,
+    schoolId: string
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1255,18 +1308,8 @@ export interface ServiceApi {
    */
   validateClassCurriculumAndSubject(
     curriculumName: string,
-    subjectName: string
-  ): Promise<{ status: string; errors?: string[] }>;
-  /**
-   * To validate that the given class is exist or not through the class name and school id
-   * @param {string } schoolId - school Id
-   * @param {string } className - class Name
-   * @param {string } studentName - student Name
-   */
-  validateClassExistence(
-    schoolId: string,
-    className: string,
-    studentName?: string
+    subjectName: string,
+    gradeName: string
   ): Promise<{ status: string; errors?: string[] }>;
   /**
    * To validate that the given user phone or mail is exist or not
@@ -1277,4 +1320,46 @@ export interface ServiceApi {
     programManagerPhone: string,
     fieldCoordinatorPhone: string
   ): Promise<{ status: string; errors?: string[] }>;
+  /**
+   * setting a stars for the student
+   * @param {string } studentId - student id
+   * @param {string } starsCount - count of stars
+   */
+  setStarsForStudents(studentId: string, starsCount: number): Promise<void>;
+
+  /**
+   * count all pending row changes to be pushed in the sqlite
+   */
+  countAllPendingPushes(): Promise<number>;
+  /**
+   * getting the push, pull changes information for the last 30 days
+   * @param {string } parentId - parent id
+   */
+  getDebugInfoLast30Days(parentId: string): Promise<any[]>;
+  /**
+   * getting class for the user, user id can be Student id or teacher id
+   * @param {string } userId - user id
+   */
+  getClassByUserId(userId: string): Promise<TableTypes<"class"> | undefined>;
+
+  /**
+   * getting courses for the student sorted with sort_index
+   * @param {string } studentId - student id
+   */
+  getCoursesForPathway(studentId: string): Promise<TableTypes<"course">[]>;
+  /**
+   * Updates the learning path for a student.
+   * @param {string} learningPath - The new learning path to be set.
+   * @returns {User} Updated Student User Object
+   */
+  updateLearningPath(
+    student: TableTypes<"user">,
+    learning_path: string
+  ): Promise<TableTypes<"user">>;
+  /**
+   * Updates the total stars for a student.
+   * @param {string} studentId - student Id.
+   * @param {number} totalStars - total stars.
+   */
+  updateStudentStars(studentId: string, totalStars: number): Promise<void>;
 }

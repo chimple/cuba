@@ -53,10 +53,7 @@ export class ClassUtil {
     );
     const studentsWhoCompletedAllAssignments = studentsWithCompletedAssignments
       ? Object.keys(studentsWithCompletedAssignments).filter((studentId) => {
-          return (
-            studentsWithCompletedAssignments[studentId].size ===
-            totalAssignments
-          );
+          return studentsWithCompletedAssignments[studentId].size > 0;
         }).length
       : 0;
     const assignmentsWithCompletedStudents = assignmentResult?.reduce(
@@ -483,12 +480,16 @@ export class ClassUtil {
     );
 
     const assignmentIds = _assignments?.map((asgmt) => asgmt.id) || [];
-    const lessonIds = [...new Set(_assignments?.map((res) => res.lesson_id) || [])];
+    const lessonIds = [
+      ...new Set(_assignments?.map((res) => res.lesson_id) || []),
+    ];
 
-    const assignmentResults = await this.api.getResultByAssignmentIds(assignmentIds);
+    const assignmentResults =
+      await this.api.getResultByAssignmentIds(assignmentIds);
     const lessonDetails = await this.api.getLessonsBylessonIds(lessonIds);
-  
-    const assignmentUserRecords = await this.api.getAssignmentUserByAssignmentIds(assignmentIds);
+
+    const assignmentUserRecords =
+      await this.api.getAssignmentUserByAssignmentIds(assignmentIds);
 
     const assignmentIsClassWise: Record<string, boolean> = {};
     _assignments?.forEach((assignment) => {
@@ -501,7 +502,7 @@ export class ClassUtil {
         headerName: string;
         startAt: string;
         endAt: string;
-        belongsToClass: boolean; 
+        belongsToClass: boolean;
       }
     >[] = (_assignments || []).map((assignment) => {
       const lesson = lessonDetails?.find(
@@ -509,7 +510,7 @@ export class ClassUtil {
       );
 
       const belongsToClass = Boolean(assignment.is_class_wise);
-  
+
       const assignmentMap = new Map<
         string,
         {
@@ -519,14 +520,14 @@ export class ClassUtil {
           belongsToClass: boolean;
         }
       >();
-  
+
       assignmentMap.set(assignment.id, {
         headerName: lesson?.name ?? "",
         startAt: this.formatDate(assignment.starts_at),
         endAt: assignment.ends_at ? this.formatDate(assignment.ends_at) : "",
-        belongsToClass: belongsToClass
+        belongsToClass: belongsToClass,
       });
-  
+
       return assignmentMap;
     });
 
@@ -534,7 +535,7 @@ export class ClassUtil {
       string,
       { student: TableTypes<"user">; results: Record<string, any[]> }
     >();
-  
+
     _students.forEach((student) => {
       resultsByStudent.set(student.id, {
         student: student,
@@ -557,7 +558,9 @@ export class ClassUtil {
       const studentId = result.student_id;
       const assignmentId = result.assignment_id;
       if (resultsByStudent.get(studentId)?.results[assignmentId ?? ""]) {
-        resultsByStudent.get(studentId)!.results[assignmentId ?? ""].push(result);
+        resultsByStudent
+          .get(studentId)!
+          .results[assignmentId ?? ""].push(result);
       }
     });
 
@@ -569,8 +572,11 @@ export class ClassUtil {
               record.assignment_id === assignmentId &&
               record.user_id === studentId
           );
-    
-          if (!isAssignedToStudent && studentData.results[assignmentId].length === 0) {
+
+          if (
+            !isAssignedToStudent &&
+            studentData.results[assignmentId].length === 0
+          ) {
             studentData.results[assignmentId].push({
               assignment_id: assignmentId,
               score: null,
@@ -583,7 +589,7 @@ export class ClassUtil {
       ReportData: resultsByStudent,
       HeaderData: assignmentMapArray,
     };
-  }  
+  }
   public async getStudentProgressForStudentTable(
     studentId: string,
     courseId: string,

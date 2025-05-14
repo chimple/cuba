@@ -8,6 +8,7 @@
 #LeaderBoard-AppBar {
   /* padding: 1vh 1vw; */
   padding: 0%;
+  background-color: transparent !important;
 }
 
 #LeaderBoard-Header {
@@ -82,6 +83,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+.leaderboard-avatar-img {
+  height: clamp(60px,8vh,80px);
+  width: clamp(60px,8vh,80px);
 }
 
 #leaderboard-student-name {

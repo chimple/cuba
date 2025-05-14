@@ -1,0 +1,70 @@
+.coming-soon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  width: 100%;
+  background-color: white;
+  padding: 2vw;
+  box-sizing: border-box;
+}
+
+.coming-soon-card {
+  width: 90%;
+  max-width: 600px;
+  background: white;
+  border: 2px solid #7C5DB0;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 3vw;
+  gap: 5vw;
+  box-sizing: border-box;
+  overflow: hidden;
+  overflow-wrap: break-word;
+}
+
+.coming-soon-image {
+  width: min(100px, 25%);
+  flex-shrink: 0;
+}
+
+.coming-soon-image img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.coming-soon-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: start;
+  gap: 2vw;
+  flex: 1;
+  height: 100%;
+  background-color: white;
+}
+
+.coming-soon-title {
+  font-size: clamp(1.25rem, 4vw, 2rem);
+  font-weight: 600;
+  color: #7C5DB0;
+  margin-bottom: 0;
+}
+
+.coming-soon-description {
+  font-size: clamp(1rem, 3vw, 1.33rem);
+  font-weight: 400;
+  color: #444444;
+  margin: 0;
+  text-align: start;
+}
+
+.coming-soon-stay-connected {
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  font-weight: 600;
+  color: #444444;
+  margin: 0;
+}

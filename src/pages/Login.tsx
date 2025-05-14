@@ -34,14 +34,17 @@ import BackButton from "../components/common/BackButton";
 import { Toast } from "@capacitor/toast";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import {
+  IoCall,
   IoCallOutline,
   IoLockClosedOutline,
+  IoMailOpenOutline,
   IoReaderOutline,
   IoSchool,
   IoSchoolOutline,
 } from "react-icons/io5";
 import { RoleType } from "../interface/modelInterfaces";
 import { schoolUtil } from "../utility/schoolUtil";
+import LoginWithEmail from "../components/LoginWithEmail";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -58,8 +61,12 @@ const Login: React.FC = () => {
   const [showNameInput, setShowNameInput] = useState<boolean>(false);
   const [verificationCode, setVerificationCode] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState<any>("");
+  const [showForgotPasswordScreen, setShowForgotPasswordScreen] =
+    useState(false);
   //const [parentName, setParentName] = useState<any>("");
   const api = ServiceConfig.getI().apiHandler;
+  const [emailClick, setEmailClick] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
 
   const [recaptchaVerifier, setRecaptchaVerifier] =
     useState<RecaptchaVerifier>();
@@ -158,7 +165,6 @@ const Login: React.FC = () => {
 
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
-        console.log("info", JSON.stringify(info));
         setIsInputFocus(true);
         setTimeout(() => {
           //@ts-ignore
@@ -178,12 +184,7 @@ const Login: React.FC = () => {
     authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
       const apiHandler = ServiceConfig.getI().apiHandler;
       const appLang = localStorage.getItem(LANGUAGE);
-      console.log(
-        "appLang",
-        appLang,
-        isUserLoggedIn,
-        isUserLoggedIn && appLang != undefined
-      );
+
 
       async function init() {
         const currentStudent = Util.getCurrentStudent();
@@ -194,7 +195,6 @@ const Login: React.FC = () => {
         setStudent(currentStudent);
       }
       if (appLang == undefined) {
-        console.log("navigating to app lang");
         history.replace(PAGES.APP_LANG_SELECTION);
       }
 
@@ -215,23 +215,19 @@ const Login: React.FC = () => {
       // Note: The 'recaptcha-container' must be rendered by this point, or
       // else Firebase throws 'auth/argument-error'
       // const auth = getAuth();
-      // console.log("auth in recaptcha ", auth);
       // const rv = new RecaptchaVerifier(
       //   "recaptcha-container",
       //   {
       //     size: "invisible",
       //     callback: (response) => {
       //       // reCAPTCHA solved, allow signInWithPhoneNumber.
-      //       console.log("// reCAPTCHA solved, allow signInWithPhoneNumber.");
       //     },
       //     "expired-callback": () => {
       //       // Reset reCAPTCHA?
-      //       console.log("// Reset reCAPTCHA?");
       //     },
       //   },
       //   auth
       // );
-      // console.log("setRecaptchaVerifier(rv);", rv);
       // setRecaptchaVerifier(rv);
       // if (!window.recaptchaVerifier) {
       //   window.recaptchaVerifier = new RecaptchaVerifier(
@@ -323,7 +319,6 @@ const Login: React.FC = () => {
         //alert("Phone Number Invalid " + phoneNumber);
         return;
       }
-      console.log("window.recaptchaVerifier", window.recaptchaVerifier);
 
       // setEnabled(true);
       let response = await authInstance.generateOtp(
@@ -341,13 +336,11 @@ const Login: React.FC = () => {
       //   phoneNumberWithCountryCode,
       //   recaptchaVerifier
       // );
-      // console.log("phoneNumberSignIn authRes", JSON.stringify(authRes));
       // if (authRes.user) {
       //   setIsLoading(false);
       //   history.replace(PAGES.SELECT_MODE);
       //   // setShowNameInput(true);
       // }
-      // console.log("verificationIdRes", authRes?.verificationId);
       // setEnabled(false);
 
       // if (authRes) {
@@ -358,7 +351,6 @@ const Login: React.FC = () => {
       //   setShowBackButton(true);
       //   setSpinnerLoading(false);
       // } else {
-      //   console.log("Phone Number signin Failed ");
       //   setSpinnerLoading(false);
       //   setSentOtpLoading(false);
       //   setErrorMessage(
@@ -367,7 +359,6 @@ const Login: React.FC = () => {
       //   //alert("Phone Number signin Failed " + authRes);
       // }
     } catch (error) {
-      console.log("Phone Number signin Failed ");
       setSpinnerLoading(false);
       setSentOtpLoading(false);
 
@@ -392,7 +383,6 @@ const Login: React.FC = () => {
         );
       }
 
-      console.log("window.recaptchaVerifier", recaptchaVerifier!);
       //@ts-ignore
       recaptchaVerifier!.clear();
       //@ts-ignore
@@ -439,17 +429,14 @@ const Login: React.FC = () => {
         phoneNumberWithCountryCode,
         otp.trim()
       );
-      console.log("login User Data ", res, userData);
       if (!res?.user) {
         setIsLoading(false);
         setIsInitialLoading(false);
-        console.log("Verification Failed");
         setErrorMessage(t("Something went wrong Verification Failed"));
         // alert("Something went wrong Verification Failed");
         return;
       }
       setUserData(res.user);
-      console.log("login User Data ", res, userData);
 
       // if (res.isUserExist) {
       setIsLoading(false);
@@ -469,13 +456,11 @@ const Login: React.FC = () => {
       //     // history.push(PAGES.DISPLAY_STUDENT);
       //     history.replace(PAGES.SELECT_MODE);
       //     localStorage.setItem(CURRENT_USER, JSON.stringify(phoneAuthResult));
-      //     console.log("new user", localStorage.getItem(CURRENT_USER));
       //   }
       // }
       // else {
       //   setIsLoading(false);
 
-      //   console.log("Verification Failed");
       //   //alert("Verification Failed");
       // }
       Util.logEvent(EVENTS.USER_PROFILE, {
@@ -490,7 +475,6 @@ const Login: React.FC = () => {
     } catch (error) {
       setIsLoading(false);
       setIsInitialLoading(false);
-      console.log("Verification Failed", error);
       //alert("Please Enter Valid Verification Code");
       setIsInvalidCode({
         isInvalidCode: true,
@@ -538,10 +522,8 @@ const Login: React.FC = () => {
         setVerificationCode("");
       } else {
         setSentOtpLoading(false);
-        console.log("Resend Otp failed");
       }
     } catch (error) {
-      console.log("Resend Otp Failed With Error " + error);
       setSentOtpLoading(false);
       //When Resend OTP Failed
       setErrorMessage(
@@ -553,6 +535,7 @@ const Login: React.FC = () => {
   }
 
   const handleLoginWithStudentCredentials = async () => {
+    setShowBackButton(false);
     setStudentCredentialLogin(false);
     try {
       setIsLoading(true);
@@ -569,6 +552,7 @@ const Login: React.FC = () => {
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
       } else {
         setStudentCredentialLogin(true);
+        setShowBackButton(true);
         setErrorMessage(t("User not Found. Please verify your credentials."));
         setIsLoading(false);
         setIsInitialLoading(false);
@@ -578,11 +562,36 @@ const Login: React.FC = () => {
       setIsLoading(false);
       setIsInitialLoading(false);
       setErrorMessage(t("Login unsuccessful. Please try again later."));
-      console.log("error", error);
+    }
+  };
+  const handleLogin = async (email: string, password: string) => {
+    try {
+      setEmailClick(false);
+      setIsLoading(true);
+      setIsInitialLoading(true);
+      const result: boolean = await authInstance.signInWithEmail(
+        email,
+        password
+      );
+      if (result) {
+        setIsLoading(true);
+        setIsInitialLoading(true);
+        history.replace(PAGES.SELECT_MODE);
+      } else {
+        setEmailClick(true);
+        setError(true);
+        setIsLoading(false);
+        setIsInitialLoading(false);
+      }
+    } catch (error) {
+      setIsLoading(false);
+      setIsInitialLoading(false);
+      setErrorMessage(t("Login unsuccessful. Please try again later."));
     }
   };
 
   function loinWithStudentCredentialsButton() {
+    setEmailClick(false);
     setShowBackButton(true);
     setShowVerification(true);
     setShowNameInput(true);
@@ -626,145 +635,40 @@ const Login: React.FC = () => {
           />
         </div>
       )}
-      <div className={"header " + isInputFocus ? "scroll-header" : ""}>
-        {!isLoading ? (
-          <div>
-            <img
-              id="login-chimple-logo"
-              alt="Chimple Brand Logo"
-              src="assets/icons/ChimpleBrandLogo.svg"
-            />
-            <div id="chimple-brand-text1">{t("Welcome to Chimple!")}</div>
-            <p id="chimple-brand-text2">
-              {t("Discovering the joy of learning with")}
-            </p>
-            <p id="chimple-brand-text2">
-              {t("Chimple- where curiosity meets education!")}
-            </p>
-            <div id="chimple-brand-text2">
-              <br />
-            </div>
-            {!showVerification ? (
-              <div>
-                <div id="login-screen-input">
-                  <div id="login-text-box">
-                    <div id="login-text">
-                      <TextBox
-                        ref={inputRef}
-                        inputText={t("Enter Mobile Number (10-digit)")}
-                        inputType={"tel"}
-                        aria-label={t("Enter Mobile Number (10-digit)")}
-                        onFocus={async () => {
-                          if (
-                            Capacitor.getPlatform() === "android" &&
-                            !isPromptNumbers
-                          ) {
-                            const data = await PortPlugin.requestPermission();
-                            setIsPromptNumbers(true);
-                          }
-                        }}
-                        maxLength={10}
-                        inputValue={phoneNumber}
-                        icon={<IoCallOutline id="text-box-icon" />}
-                        onChange={(input) => {
-                          if (input.target.value) {
-                            if (!NUMBER_REGEX.test(input.target.value)) {
-                              return;
-                            }
+      {emailClick ? (
+        <>
+          <LoginWithEmail
+            onLogin={handleLogin}
+            onForgotPasswordChange={(show) => setShowForgotPasswordScreen(show)}
+            onLoginClick={(onLoginClick) => setEmailClick(!onLoginClick)}
+            errorOccurred={error}
+            onEmailClick={(onEmailClick) => setEmailClick(onEmailClick)}
+          />
 
-                            setPhoneNumber(input.target.value);
-                            console.log(countryCode + input.target.value);
-
-                            let loginBtnBgColor = currentButtonColor;
-                            if (input.target.value.length === 10) {
-                              console.log(phoneNumber);
-                              setCurrentButtonColor(Buttoncolors.Valid);
-                              phoneNumberErrorRef.current.style.display =
-                                "none";
-                            } else {
-                              if (loginBtnBgColor === Buttoncolors.Valid) {
-                                setCurrentButtonColor(Buttoncolors.Default);
-                              }
-                            }
-                          } else {
-                            setPhoneNumber("");
-                            console.log(countryCode + input.target.value);
-                          }
-                        }}
-                      ></TextBox>
-                      <p className="login-verification-error-message">
-                        {errorMessage}
-                      </p>
-                    </div>
-                    <p
-                      ref={phoneNumberErrorRef}
-                      style={{ display: "none" }}
-                      className="login-error-message"
-                    >
-                      {t("Please Enter 10 digit Mobile Number")}
-                    </p>
-                  </div>
-                  <div id="recaptcha-container" />
-                  <div
-                    ref={otpBtnRef}
-                    id="login-continue-button"
-                    style={{ backgroundColor: currentButtonColor }}
-                    onClick={async () => {
-                      if (!online) {
-                        presentToast({
-                          message: t(
-                            `Device is offline. Login requires an internet connection`
-                          ),
-                          color: "danger",
-                          duration: 3000,
-                          position: "bottom",
-                          buttons: [
-                            {
-                              text: "Dismiss",
-                              role: "cancel",
-                            },
-                          ],
-                        });
-                        return;
-                      }
-                      console.log(
-                        "if (!recaptchaVerifier && !Capacitor.isNativePlatform()) called",
-                        recaptchaVerifier
-                      );
-
-                      // setSpinnerLoading(true);
-                      if (phoneNumber.length === 10) {
-                        await onPhoneNumberSubmit();
-                      } else {
-                        phoneNumberErrorRef.current.style.display = "block";
-                      }
-                      // setShowVerification(true);
-                      setSpinnerLoading(false);
-                      setErrorMessage("");
-                    }}
-                  >
-                    {t("Send OTP")}
-                  </div>
+          {!showForgotPasswordScreen && (
+            <>
+              <div className="login-continue-with-text">{t("OR")}</div>{" "}
+              <div className="login-icons-main-div">
+                <div id="login-horizontal-line"></div>
+                <div className="login-continue-with-text">
+                  {t("Continue with")}
                 </div>
-                {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
-                <IonLoading
-                  id="custom-loading"
-                  // trigger="open-loading"
-                  message="Loading"
-                  // duration={3000}
-                  isOpen={spinnerLoading}
-                />
-
-                <div id="Google-horizontal-line-main-container">
-                  <div id="Google-horizontal-line"></div>
-                  <div id="login-google-icon-text">
-                    {t("Continue with Google or Student ID")}
+                <div id="login-horizontal-line"></div>
+              </div>
+              <div className="login-icons-div">
+                <div className="login-call-icon-div">
+                  <div className="login-call-icon">
+                    <IoCall
+                      id="login-call-icon-button-inner"
+                      onClick={() => setEmailClick(false)}
+                    />
                   </div>
-                  <div id="Google-horizontal-line2"></div>
+                  <p className="login-icon-label">{t("phone")}</p>
                 </div>
-                <div className="login-with-google-or-student-credentials-container">
+
+                <div className="login-google-icon">
                   <img
-                    id="login-google-icon"
+                    id="login-google-icon-2"
                     aria-label={String(t("Google Sign In"))}
                     alt="Google Icon"
                     src="assets/icons/Google Icon.png"
@@ -772,34 +676,26 @@ const Login: React.FC = () => {
                       if (!online) {
                         presentToast({
                           message: t(
-                            `Device is offline. Login requires an internet connection`
+                            "Device is offline. Login requires an internet connection"
                           ),
                           color: "danger",
                           duration: 3000,
                           position: "bottom",
-                          buttons: [
-                            {
-                              text: "Dismiss",
-                              role: "cancel",
-                            },
-                          ],
+                          buttons: [{ text: "Dismiss", role: "cancel" }],
                         });
                         return;
                       }
+
                       try {
                         setIsLoading(true);
                         setIsInitialLoading(true);
-                        console.log("isLoading ", isLoading);
+                        setEmailClick(false);
                         const _authHandler = ServiceConfig.getI().authHandler;
                         const result: boolean = await _authHandler.googleSign();
-                        console.log(
-                          "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
-                          result
-                        );
+
                         if (result) {
                           setIsLoading(false);
                           setIsInitialLoading(false);
-                          // history.replace(PAGES.DISPLAY_STUDENT);
                           const user = JSON.parse(
                             localStorage.getItem(USER_DATA)!
                           );
@@ -808,10 +704,6 @@ const Login: React.FC = () => {
                           localStorage.setItem(
                             CURRENT_USER,
                             JSON.stringify(result)
-                          );
-                          console.log(
-                            "google...",
-                            localStorage.getItem(CURRENT_USER)
                           );
                           Util.logEvent(EVENTS.USER_PROFILE, {
                             user_type: RoleType.PARENT,
@@ -825,140 +717,368 @@ const Login: React.FC = () => {
                       } catch (error) {
                         setIsLoading(false);
                         setIsInitialLoading(false);
-                        console.log("error", error);
                       }
                     }}
                   />
-                  <div className="google-or-student-credentials-button">OR</div>
-                  {!showVerification ? (
-                    <div
-                      className="login-with-student-credentials"
-                      aria-label={String(t("Student-credentials Sign In"))}
-                      onClick={loinWithStudentCredentialsButton}
-                    >
-                      <IoSchool
-                        aria-label={String(t("Student-credentials Sign In"))}
-                        className="school-icon"
-                      />
-                    </div>
-                  ) : null}
+                  <p className="login-icon-label">{t("google")}</p>
                 </div>
+
+                {!showVerification ? (
+                  <div
+                    className="login-with-student-credentials"
+                    aria-label={String(t("Student-credentials Sign In"))}
+                    onClick={loinWithStudentCredentialsButton}
+                  >
+                    <IoSchool
+                      aria-label={String(t("Student-credentials Sign In"))}
+                      className="school-icon-2"
+                    />
+                    <p className="login-icon-label">{t("student id")}</p>
+                  </div>
+                ) : null}
               </div>
-            ) : !showNameInput && startResendOtpCounter() ? (
-              <div>
-                <p id="login-otp-sent">
-                  {t("OTP Sent To The")} {countryCode + phoneNumber}
-                </p>
-                <div id="login-text-box">
-                  <div>
-                    <TextBox
-                      inputText={t("Enter 6 Digit Code")}
-                      inputType={"tel"}
-                      maxLength={6}
-                      inputValue={verificationCode.trim()}
-                      icon={<IoCallOutline id="text-box-icon" />}
-                      onChange={(input) => {
-                        if (input.target.value) {
-                          if (!NUMBER_REGEX.test(input.target.value)) {
+            </>
+          )}
+        </>
+      ) : (
+        <div className={"header " + isInputFocus ? "scroll-header" : ""}>
+          {!isLoading ? (
+            <div>
+              <img
+                id="login-chimple-logo"
+                alt="Chimple Brand Logo"
+                src="assets/icons/ChimpleBrandLogo.svg"
+              />
+              {/* <div id="chimple-brand-text1">{t("Welcome to Chimple!")}</div> */}
+              <p id="chimple-brand-text2">
+                {t("Discovering the joy of learning")}
+              </p>
+              {/* <p id="chimple-brand-text2">
+                {t("Chimple- where curiosity meets education!")}
+              </p> */}
+              {/* <div id="chimple-brand-text2">
+                <br />
+              </div> */}
+              {!showVerification ? (
+                <div>
+                  <div id="login-screen-input">
+                    <div id="login-text-box">
+                      <div id="login-text">
+                        <TextBox
+                          ref={inputRef}
+                          inputText={t("Enter Mobile Number (10-digit)")}
+                          inputType={"tel"}
+                          aria-label={t("Enter Mobile Number (10-digit)")}
+                          onFocus={async () => {
+                            if (
+                              Capacitor.getPlatform() === "android" &&
+                              !isPromptNumbers
+                            ) {
+                              const data = await PortPlugin.requestPermission();
+                              setIsPromptNumbers(true);
+                            }
+                          }}
+                          maxLength={10}
+                          inputValue={phoneNumber}
+                          icon={<IoCallOutline id="text-box-icon" />}
+                          onChange={(input) => {
+                            if (input.target.value) {
+                              if (!NUMBER_REGEX.test(input.target.value)) {
+                                return;
+                              }
+
+                              setPhoneNumber(input.target.value);
+
+                              let loginBtnBgColor = currentButtonColor;
+                              if (input.target.value.length === 10) {
+                                setCurrentButtonColor(Buttoncolors.Valid);
+                                phoneNumberErrorRef.current.style.display =
+                                  "none";
+                              } else {
+                                if (loginBtnBgColor === Buttoncolors.Valid) {
+                                  setCurrentButtonColor(Buttoncolors.Default);
+                                }
+                              }
+                            } else {
+                              setPhoneNumber("");
+                            }
+                          }}
+                        ></TextBox>
+                        <p className="login-verification-error-message">
+                          {errorMessage}
+                        </p>
+                      </div>
+                      <p
+                        ref={phoneNumberErrorRef}
+                        style={{ display: "none" }}
+                        className="login-error-message"
+                      >
+                        {t("Please Enter 10 digit Mobile Number")}
+                      </p>
+                    </div>
+                    <div id="recaptcha-container" />
+                    <div
+                      ref={otpBtnRef}
+                      id="login-continue-button"
+                      style={{ backgroundColor: currentButtonColor }}
+                      onClick={async () => {
+                        if (!online) {
+                          presentToast({
+                            message: t(
+                              `Device is offline. Login requires an internet connection`
+                            ),
+                            color: "danger",
+                            duration: 3000,
+                            position: "bottom",
+                            buttons: [
+                              {
+                                text: "Dismiss",
+                                role: "cancel",
+                              },
+                            ],
+                          });
+                          return;
+                        }
+
+                        // setSpinnerLoading(true);
+                        if (phoneNumber.length === 10) {
+                          await onPhoneNumberSubmit();
+                        } else {
+                          phoneNumberErrorRef.current.style.display = "block";
+                        }
+                        // setShowVerification(true);
+                        setSpinnerLoading(false);
+                        setErrorMessage("");
+                      }}
+                    >
+                      {t("Send OTP")}
+                    </div>
+                  </div>
+                  {isInputFocus ? (
+                    <div ref={scollToRef} id="scroll"></div>
+                  ) : null}
+                  <IonLoading
+                    id="custom-loading"
+                    // trigger="open-loading"
+                    message="Loading"
+                    // duration={3000}
+                    isOpen={spinnerLoading}
+                  />
+
+                  <div id="Google-horizontal-line-main-container">
+                    <div id="Google-horizontal-line"></div>
+                    <div id="login-google-icon-text">
+                      {t("Continue with Google")}
+                    </div>
+                    <div id="Google-horizontal-line2"></div>
+                  </div>
+                  <div className="login-with-google-or-student-credentials-container">
+                    <div>
+                      <img
+                        id="login-google-icon"
+                        aria-label={String(t("Google Sign In"))}
+                        alt="Google Icon"
+                        src="assets/icons/Google Icon.png"
+                        onClick={async () => {
+                          if (!online) {
+                            presentToast({
+                              message: t(
+                                `Device is offline. Login requires an internet connection`
+                              ),
+                              color: "danger",
+                              duration: 3000,
+                              position: "bottom",
+                              buttons: [
+                                {
+                                  text: "Dismiss",
+                                  role: "cancel",
+                                },
+                              ],
+                            });
                             return;
                           }
-                          setVerificationCode(input.target.value.trim());
-                          console.log(input.target.value);
-                          setIsInvalidCode({
-                            isInvalidCode: false,
-                            isInvalidCodeLength: false,
-                          });
-                          let otpBtnBgColor =
-                            getOtpBtnRef.current.style.backgroundColor;
-                          if (input.target.value.length === 6) {
-                            getOtpBtnRef.current.style.backgroundColor =
-                              Buttoncolors.Valid;
+                          try {
+                            setIsLoading(true);
+                            setIsInitialLoading(true);
+                            const _authHandler =
+                              ServiceConfig.getI().authHandler;
+                            const result: boolean =
+                              await _authHandler.googleSign();
+                            if (result) {
+                              setIsLoading(false);
+                              setIsInitialLoading(false);
+                              // history.replace(PAGES.DISPLAY_STUDENT);
+                              const user = JSON.parse(
+                                localStorage.getItem(USER_DATA)!
+                              );
+                              const userSchools = await getSchoolsForUser(user);
+                              await redirectUser(user, userSchools);
+                              localStorage.setItem(
+                                CURRENT_USER,
+                                JSON.stringify(result)
+                              );
+                              Util.logEvent(EVENTS.USER_PROFILE, {
+                                user_type: RoleType.PARENT,
+                                action_type: ACTION.LOGIN,
+                                login_type: "google-signin",
+                              });
+                            } else {
+                              setIsLoading(false);
+                              setIsInitialLoading(false);
+                            }
+                          } catch (error) {
+                            setIsLoading(false);
+                            setIsInitialLoading(false);
+                          }
+                        }}
+                      />
+                      <p className="login-icon-label">{t("google")}</p>
+                    </div>
+                    {/* <div className="google-or-student-credentials-button">OR</div> */}
+                    <div className="login-email-main-div">
+                      <div className="login-email-icon-div">
+                        <IoMailOpenOutline
+                          onClick={() => setEmailClick(true)}
+                          className="login-mail-icon"
+                        />
+                      </div>
+                      <p className="login-icon-label">{t("Email")}</p>
+                    </div>
+
+                    {/* <div className="google-or-student-credentials-button">OR</div> */}
+
+                    {!showVerification ? (
+                      <div
+                        className="login-with-student-credentials"
+                        aria-label={String(t("Student-credentials Sign In"))}
+                        onClick={loinWithStudentCredentialsButton}
+                      >
+                        <IoSchool
+                          aria-label={String(t("Student-credentials Sign In"))}
+                          className="school-icon"
+                        />
+                        <p className="login-icon-label">{t("student id")}</p>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              ) : !showNameInput && startResendOtpCounter() ? (
+                <div>
+                  <p id="login-otp-sent">
+                    {t("OTP Sent To The")} {countryCode + phoneNumber}
+                  </p>
+                  <div id="login-text-box">
+                    <div>
+                      <TextBox
+                        inputText={t("Enter 6 Digit Code")}
+                        inputType={"tel"}
+                        maxLength={6}
+                        inputValue={verificationCode.trim()}
+                        icon={<IoCallOutline id="text-box-icon" />}
+                        onChange={(input) => {
+                          if (input.target.value) {
+                            if (!NUMBER_REGEX.test(input.target.value)) {
+                              return;
+                            }
+                            setVerificationCode(input.target.value.trim());
                             setIsInvalidCode({
                               isInvalidCode: false,
                               isInvalidCodeLength: false,
                             });
-                          } else {
-                            if (otpBtnBgColor === Buttoncolors.Valid) {
+                            let otpBtnBgColor =
+                              getOtpBtnRef.current.style.backgroundColor;
+                            if (input.target.value.length === 6) {
                               getOtpBtnRef.current.style.backgroundColor =
-                                Buttoncolors.Default;
+                                Buttoncolors.Valid;
+                              setIsInvalidCode({
+                                isInvalidCode: false,
+                                isInvalidCodeLength: false,
+                              });
+                            } else {
+                              if (otpBtnBgColor === Buttoncolors.Valid) {
+                                getOtpBtnRef.current.style.backgroundColor =
+                                  Buttoncolors.Default;
+                              }
                             }
+                          } else {
+                            setVerificationCode("");
                           }
-                        } else {
+                        }}
+                      ></TextBox>
+                    </div>
+                    {errorMessage ? (
+                      <p className="login-verification-error-message">
+                        {errorMessage}
+                      </p>
+                    ) : isInvalidCode?.isInvalidCodeLength ? (
+                      <p className="login-verification-error-message">
+                        {t("Please Enter 6 Digit Code")}
+                      </p>
+                    ) : isInvalidCode?.isInvalidCode ? (
+                      <p className="login-verification-error-message">
+                        {t("Please Enter Valid Code")}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div ref={getOtpBtnRef} id="login-otp-button">
+                    <div
+                      onClick={() => {
+                        if (verificationCode.length === 6) {
+                          onVerificationCodeSubmit(verificationCode);
                           setVerificationCode("");
-                          console.log(input.target.value);
+                        } else if (verificationCode.length <= 6) {
+                          setVerificationCode("");
+                          setIsInvalidCode({
+                            isInvalidCode: false,
+                            isInvalidCodeLength: true,
+                          });
                         }
+                        // setIsLoading(false);
+                        // setShowNameInput(true);
+                        // history.push(PAGES.PARENT);
+                        else {
+                          onVerificationCodeSubmit(verificationCode);
+                          setIsInvalidCode({
+                            isInvalidCode: false,
+                            isInvalidCodeLength: false,
+                          });
+                        }
+                        setErrorMessage("");
                       }}
-                    ></TextBox>
-                  </div>
-                  {errorMessage ? (
-                    <p className="login-verification-error-message">
-                      {errorMessage}
-                    </p>
-                  ) : isInvalidCode?.isInvalidCodeLength ? (
-                    <p className="login-verification-error-message">
-                      {t("Please Enter 6 Digit Code")}
-                    </p>
-                  ) : isInvalidCode?.isInvalidCode ? (
-                    <p className="login-verification-error-message">
-                      {t("Please Enter Valid Code")}
-                    </p>
-                  ) : null}
-                </div>
-                <div ref={getOtpBtnRef} id="login-otp-button">
-                  <div
-                    onClick={() => {
-                      if (verificationCode.length === 6) {
-                        onVerificationCodeSubmit(verificationCode);
-                        setVerificationCode("");
-                      } else if (verificationCode.length <= 6) {
-                        setVerificationCode("");
-                        setIsInvalidCode({
-                          isInvalidCode: false,
-                          isInvalidCodeLength: true,
-                        });
-                      }
-                      // setIsLoading(false);
-                      // setShowNameInput(true);
-                      // history.push(PAGES.PARENT);
-                      else {
-                        onVerificationCodeSubmit(verificationCode);
-                        setIsInvalidCode({
-                          isInvalidCode: false,
-                          isInvalidCodeLength: false,
-                        });
-                      }
-                      setErrorMessage("");
-                    }}
-                  >
-                    <div>{t("Get Started")}</div>
-                  </div>
-                  <div id="login-resend-otp">
-                    <div>
+                    >
+                      <div>{t("Get Started")}</div>
+                    </div>
+                    <div id="login-resend-otp">
+                      <div>
+                        <span
+                          style={
+                            !showResendOtp
+                              ? { color: "red" }
+                              : { color: "grey" }
+                          }
+                          id="login-time-remaining"
+                        >
+                          {t("Time Remaining :")} {counter}
+                        </span>
+                      </div>
                       <span
+                        id="login-resend-otp-text"
+                        onClick={resendOtpHandler}
                         style={
-                          !showResendOtp ? { color: "red" } : { color: "grey" }
+                          showResendOtp ? { color: "green" } : { color: "grey" }
                         }
-                        id="login-time-remaining"
                       >
-                        {t("Time Remaining :")} {counter}
+                        {t("Resend OTP")}
                       </span>
                     </div>
-                    <span
-                      id="login-resend-otp-text"
-                      onClick={resendOtpHandler}
-                      style={
-                        showResendOtp ? { color: "green" } : { color: "grey" }
-                      }
-                    >
-                      {t("Resend OTP")}
-                    </span>
                   </div>
+                  {isInputFocus ? (
+                    <div ref={scollToRef} id="scroll"></div>
+                  ) : null}
                 </div>
-                {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
-              </div>
-            ) : (
-              <div>
-                {/* <div id="login-text-box">
+              ) : (
+                <div>
+                  {/* <div id="login-text-box">
                 <TextBox
                   inputText={"Enter Parent Name"}
                   inputType={"text"}
@@ -966,13 +1086,12 @@ const Login: React.FC = () => {
                   inputValue={displayName}
                   onChange={(input) => {
                     if (input.detail.value) {
-                      console.log("" + input.detail.value);
                       // setParentName(input.detail.value);
                     }
                   }}
                 ></TextBox>
               </div> */}
-                {/* <div
+                  {/* <div
                 // ref={parentNameRef}
                 id="login-continue-button"
                 onClick={async () => {
@@ -989,142 +1108,143 @@ const Login: React.FC = () => {
                 Enter Chimple APP
               </div> */}
 
-                {/* {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null} */}
-              </div>
-            )}
-          </div>
-        ) : null}
-        {showStudentCredentialtLogin ? (
-          <div className="student-credentials-container">
-            <div className="student-credentials-text-box-container">
-              <TextBox
-                inputText={t("Enter school code")}
-                inputType={"text"}
-                maxLength={100}
-                inputValue={schoolCode.trim()}
-                icon={<IoSchoolOutline id="text-box-icon" />}
-                onChange={(input) => {
-                  setErrorMessage("");
-                  if (input.target.value) {
-                    if (AT_SYMBOL_RESTRICTION.test(input.target.value)) {
-                      return;
-                    }
-                    setSchoolCode(input.target.value);
-                    console.log(input.target.value);
-                  } else {
-                    setSchoolCode("");
-                  }
-                }}
-              ></TextBox>
-
-              <TextBox
-                inputText={t("Enter student id")}
-                inputType={"text"}
-                maxLength={100}
-                inputValue={studentId.trim()}
-                icon={<IoReaderOutline id="text-box-icon" />}
-                onChange={(input) => {
-                  setErrorMessage("");
-                  if (input.target.value) {
-                    if (AT_SYMBOL_RESTRICTION.test(input.target.value)) {
-                      return;
-                    }
-                    setStudentId(input.target.value);
-                    console.log(input.target.value);
-                  } else {
-                    setStudentId("");
-                  }
-                }}
-              ></TextBox>
-
-              <div>
+                  {/* {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null} */}
+                </div>
+              )}
+            </div>
+          ) : null}
+          {showStudentCredentialtLogin ? (
+            <div className="student-credentials-container">
+              <div className="student-credentials-text-box-container">
                 <TextBox
-                  inputText={t("Enter  Password")}
-                  inputType={"password"}
+                  inputText={t("Enter school code")}
+                  inputType={"text"}
                   maxLength={100}
-                  inputValue={studentPassword.trim()}
-                  icon={<IoLockClosedOutline id="text-box-icon" />}
+                  inputValue={schoolCode.trim()}
+                  icon={<IoSchoolOutline id="text-box-icon" />}
                   onChange={(input) => {
                     setErrorMessage("");
                     if (input.target.value) {
-                      setStudenPassword(input.target.value);
-                      console.log(input.target.value);
-                    } else setStudenPassword("");
+                      if (AT_SYMBOL_RESTRICTION.test(input.target.value)) {
+                        return;
+                      }
+                      setSchoolCode(input.target.value);
+                    } else {
+                      setSchoolCode("");
+                    }
                   }}
                 ></TextBox>
-                {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
+
+                <TextBox
+                  inputText={t("Enter student id")}
+                  inputType={"text"}
+                  maxLength={100}
+                  inputValue={studentId.trim()}
+                  icon={<IoReaderOutline id="text-box-icon" />}
+                  onChange={(input) => {
+                    setErrorMessage("");
+                    if (input.target.value) {
+                      if (AT_SYMBOL_RESTRICTION.test(input.target.value)) {
+                        return;
+                      }
+                      setStudentId(input.target.value);
+                    } else {
+                      setStudentId("");
+                    }
+                  }}
+                ></TextBox>
+
+                <div>
+                  <TextBox
+                    inputText={t("Enter  Password")}
+                    inputType={"password"}
+                    maxLength={100}
+                    inputValue={studentPassword.trim()}
+                    icon={<IoLockClosedOutline id="text-box-icon" />}
+                    onChange={(input) => {
+                      setErrorMessage("");
+                      if (input.target.value) {
+                        setStudenPassword(input.target.value);
+                      } else setStudenPassword("");
+                    }}
+                  ></TextBox>
+                  {isInputFocus ? (
+                    <div ref={scollToRef} id="scroll"></div>
+                  ) : null}
+                </div>
+              </div>
+              <div>
+                {errorMessage && (
+                  <p className="student-login-verification-error-message">
+                    {errorMessage}
+                  </p>
+                )}
+              </div>
+              <div
+                id="login-with-student-credentials"
+                style={{ backgroundColor: currentButtonColor }}
+                onClick={() => {
+                  if (!online) {
+                    presentToast({
+                      message: t(
+                        `Device is offline. Login requires an internet connection`
+                      ),
+                      color: "danger",
+                      duration: 3000,
+                      position: "bottom",
+                      buttons: [
+                        {
+                          text: "Dismiss",
+                          role: "cancel",
+                        },
+                      ],
+                    });
+                    return;
+                  }
+                  if (
+                    schoolCode.length !== 0 &&
+                    studentId.length !== 0 &&
+                    studentPassword.length >= 6
+                  ) {
+                    handleLoginWithStudentCredentials();
+                  } else if (
+                    schoolCode.length == 0 ||
+                    studentId.length == 0 ||
+                    studentPassword.length == 0
+                  ) {
+                    setErrorMessage(t("Please fill in all fields."));
+                  } else if (studentPassword.length < 6) {
+                    setErrorMessage(t("Password is too short."));
+                  }
+                }}
+              >
+                {t("Get Started")}
               </div>
             </div>
-            <div>
-              {errorMessage && (
-                <p className="student-login-verification-error-message">
-                  {errorMessage}
-                </p>
-              )}
+          ) : null}
+
+          {isInitialLoading ? (
+            <div className="initial-loading-ui">
+              <img
+                src={loadingAnimations[loadingAnimationsIndex]}
+                alt="initial-gif-animations"
+                className="initial-homework-icon"
+              />
+              <img
+                src="/assets/loader-circle.gif"
+                alt="initial-loading-gif"
+                className="initial-loading-spinner"
+              />
+              <IonText className="initial-loading-text">
+                <p>{t(loadingMessages[currentMessageIndex])}</p>
+              </IonText>
+              <IonText className="initial-loading-text">
+                <p>{t("Hang tight, It’s a special occasion!")}</p>
+              </IonText>
             </div>
-            <div
-              id="login-with-student-credentials"
-              style={{ backgroundColor: currentButtonColor }}
-              onClick={() => {
-                if (!online) {
-                  presentToast({
-                    message: t(
-                      `Device is offline. Login requires an internet connection`
-                    ),
-                    color: "danger",
-                    duration: 3000,
-                    position: "bottom",
-                    buttons: [
-                      {
-                        text: "Dismiss",
-                        role: "cancel",
-                      },
-                    ],
-                  });
-                  return;
-                }
-                if (
-                  schoolCode.length !== 0 &&
-                  studentId.length !== 0 &&
-                  studentPassword.length >= 6
-                ) {
-                  handleLoginWithStudentCredentials();
-                } else if (
-                  schoolCode.length == 0 ||
-                  studentId.length == 0 ||
-                  studentPassword.length == 0
-                ) {
-                  setErrorMessage(t("Please fill in all fields."));
-                } else if (studentPassword.length < 6) {
-                  setErrorMessage(t("Password is too short."));
-                }
-              }}
-            >
-              {t("Get Started")}
-            </div>
-          </div>
-        ) : null}
-        {isInitialLoading ? (
-          <div className="initial-loading-ui">
-            <img
-              src={loadingAnimations[loadingAnimationsIndex]}
-              alt="initial-gif-animations"
-              className="initial-homework-icon"
-            />
-            <img
-              src="/assets/loader-circle.gif"
-              alt="initial-loading-gif"
-              className="initial-loading-spinner"
-            />
-            <IonText className="initial-loading-text">
-              <p>{t(loadingMessages[currentMessageIndex])}</p>
-            </IonText>
-            <IonText className="initial-loading-text">
-              <p>{t("Hang tight, It’s a special occasion!")}</p>
-            </IonText>
-          </div>
-        ) : null}
-      </div>
+          ) : null}
+        </div>
+      )}
       <Loading isLoading={sentOtpLoading} />
     </IonPage>
   );

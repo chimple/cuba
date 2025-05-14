@@ -295,6 +295,16 @@ public void shareContentWithAndroidShare(PluginCall call) {
         startActivityForResult(call, intent, "handleFileSaveResult");
     }
 
+    @PluginMethod
+    public void getLocalDatabaseSize(PluginCall call) {
+      Context appContext = getContext(); 
+      File dbFile = appContext.getDatabasePath("db_issue10SQLite.db");
+      long dbSizeInBytes = dbFile.length();
+      JSObject result = new JSObject();
+      result.put("dbSize", dbSizeInBytes);
+      call.resolve(result);
+    }
+
     @ActivityCallback
     private void handleFileSaveResult(PluginCall call, ActivityResult result) {
         if (call == null || result.getResultCode() != Activity.RESULT_OK || result.getData() == null) {

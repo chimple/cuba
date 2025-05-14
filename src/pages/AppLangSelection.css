@@ -80,41 +80,15 @@
   color: #88C327;
 }
 
-#header-text3{
-  font-size: clamp(18px,4vh,20vh);
-  font-weight: bold;
-  color: #FF5500;
-}
 .dot.active {
   background-color: #007bff;
-}
-
-.intro-text {
-  display: flex;
-  flex-direction: column;
-  font-size: var(--text-size) ;
-  color: var(--text-color);
-  align-content: center;    
-}
-
-.intro-text2{
-  line-height: 5vh;
 }
 
 .skip-button{
   text-align: center;
   background-color: #CCCCCC;
 }
-.skip-next{
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
 
-#intro-logo{
-  height: 54vh;
-  position: sticky;
-}
 #login{
   width: 60vw;
   height: 57vh;

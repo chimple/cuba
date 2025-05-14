@@ -1,0 +1,84 @@
+.student-report-table-container {
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: 8px;
+  overflow: auto;
+  max-height: 100%;
+  flex-grow: 1;
+  overflow: auto;
+}
+
+.student-report-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.student-report-table-body {
+  margin: 0 3vh;
+}
+.student-report-table-swap {
+  display: flex;
+  justify-content: center;
+}
+.student-report-table-header {
+  background-color: #e0e3e4;
+  font-weight: bold;
+  text-align: left;
+  border-bottom: 2px solid #ddd;
+  position: sticky;
+  top: 0;
+  margin: 0 1vh;
+}
+
+.student-report-table-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.student-report-table-cell {
+  flex: 1;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+  color: #707070;
+}
+
+.student-report-table-cell:first-child {
+  flex: 2;
+  text-align: center;
+  color: #707070;
+}
+.student-report-table-subject {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  justify-content: space-between;
+  text-align: left;
+}
+.student-report-score.low {
+  color: red;
+}
+
+.student-report-table-subject > .activity-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  max-width: 35vw;
+}
+
+.student-report-score.medium {
+  color: orange;
+}
+
+.student-report-score.high {
+  color: green;
+}
+
+@media (max-width: 768px) {
+  .student-report-table-cell {
+    font-size: 14px;
+    padding: 5px;
+  }
+}

@@ -1,0 +1,209 @@
+.teacher-assignments-page {
+  height: 100%;
+  padding: 0px 20px 120px 20px;
+  width: 100%;
+  font-family: Arial, sans-serif;
+  background-color: white;
+  overflow-y: scroll;
+}
+
+.manual-assignments-header,
+.recommended-assignments-header,
+.subject-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin: 0px 5px;
+}
+
+#manual-assignments-text,
+#recommended-assignments-text {
+  font-size: 17px;
+}
+
+#manual-assignments-library-text {
+  cursor: pointer;
+  text-decoration: underline;
+  color: blue;
+}
+
+.recommended-assignments-headings {
+  font-size: 20px;
+  color: black;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-wrap: normal;
+  white-space: nowrap;
+  font-weight: 500;
+  text-align-last: left;
+}
+
+.subject-header {
+  background-color: #f3edff;
+  border-radius: 10px;
+  padding: 0px 5px;
+  gap: 5px;
+}
+
+#manual-assignments-line {
+  color: #7c5db0;
+  background-color: #7c5db0;
+  height: 3px;
+}
+
+.back-to-library {
+  color: blue;
+  text-decoration: none;
+}
+
+.render-subject {
+  margin-bottom: 20px;
+}
+
+.assignment-type {
+  margin-left: 10px;
+  font-weight: bold;
+}
+
+.quiz {
+  color: green;
+}
+
+.assign-button button {
+  padding: 10px 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.assign-button button:hover {
+  background-color: #45a049;
+}
+
+.assignment-count {
+  background: #f1f1f1;
+  border-radius: 10px;
+  padding: 2px 6px;
+  margin-left: 10px;
+}
+
+.teacher-assignments-page button:hover {
+  background-color: #d0d0d0;
+}
+
+.assignment-list-item-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 60vw;
+  color: var(--text-color);
+  text-align: center;
+}
+
+.collapse-button {
+  background: none;
+}
+
+.select-all-container {
+  display: flex;
+  align-items: center;
+  color: black;
+  gap: 4px;
+}
+
+.assignment-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin: 0vw 5vw;
+}
+
+.manual-assignments-header hr,
+.recommended-assignments-header hr {
+  border: none;
+  height: 2px;
+  background-color: #7a5aaf;
+  margin: 20px 0;
+}
+
+.styled-line {
+  border: none; /* Remove default border */
+  height: 3px; /* Set height */
+  background-color: #6a5acd; /* Your purple color */
+  width: 100%; /* Full width */
+  margin: 10px 0; /* Margin above and below */
+}
+
+#assignment-page-heading {
+  margin: 18px 0px 18px 0px;
+  font-size: 24px;
+  font-weight: 500;
+  text-align: start;
+}
+
+.select-all-container-checkbox {
+  width: 20px;
+  height: 20px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-color: #fff;
+  border: 2px solid #cddc39; /* Light green border */
+  border-radius: 5px; /* Rounded corners */
+  outline: none;
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.select-all-container-checkbox:checked {
+  background-color: #cddc39; /* Light green fill for checked */
+  border-color: #cddc39;
+  position: relative;
+}
+
+.select-all-container-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 6px;
+  border: solid white;
+  border-width: 0px 0px 2px 2px;
+  transform: translate(-50%, -50%) rotate(320deg);
+}
+
+.assignment-list-item-checkbox {
+  -webkit-appearance: none; /* Remove default styles */
+  -moz-appearance: none;
+  appearance: none;
+  width: 30px;
+  height: 27px;
+  border: 2px solid #4caf50;
+  border-radius: 50%; /* Circular shape */
+  background-color: white;
+  cursor: pointer;
+  position: relative;
+  display: inline-block;
+}
+
+.assignment-list-item-checkbox:checked {
+  background-color: #4caf50; /* Green fill when checked */
+}
+
+.assignment-list-item-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 16px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  transform: translate(-50%, -50%) rotate(45deg); /* Draw checkmark */
+}

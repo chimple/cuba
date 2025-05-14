@@ -1,0 +1,18 @@
+.school-div-3 {
+  font-size: clamp(15px, 4vh, 25px);
+  color: grey;
+  position: relative;
+}
+.profile-card-div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.edit-profile-card {
+  width: 300px;
+  border: 1px solid #ccc;
+  padding: 20px;
+  text-align: left;
+  border-radius: 2vh;
+  box-shadow: 1px 1px 2px 0;
+}
