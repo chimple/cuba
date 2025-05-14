@@ -555,7 +555,7 @@ const LiveQuizQuestion: FC<{
     <div>
       <div
         className="live-quiz-navigation-dots"
-        style={lessonId ? { paddingTop: "5vh", paddingBottom: "10vh" } : {}}
+        style={lessonId ? { paddingTop: "5vh", paddingBottom: "5vh" } : {}}
       >
         {isTimeOut && liveQuizConfig && currentQuestionIndex != null && (
           <LiveQuizNavigationDots
