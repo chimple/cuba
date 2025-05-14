@@ -403,6 +403,10 @@ export class SqliteApi implements ServiceApi {
           `DELETE FROM push_sync_info WHERE id = ? AND table_name = ?`,
           [data.id, data.table_name]
         );
+        await this.executeQuery(
+          `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
+          [data.table_name, new Date().toISOString()]
+        );
       }
     }
     return true;
