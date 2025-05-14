@@ -1,0 +1,130 @@
+.nav-sidebar {
+  display: flex;
+  width: 300px;
+  padding: 24px 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--CoolGray-20, #DDE1E6);
+  border-left: 1px solid var(--CoolGray-20, #DDE1E6);
+  background: var(--Default-White, #FFF);
+  overflow: auto;
+}
+
+.nav-profile {
+ display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 268px;
+  height: 75px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background: #F0F4FA;
+}
+
+.nav-avatar {
+  width: 44px;
+  height: 40px;
+  margin-right: 10px;
+  border-radius: 44.667px;
+  /* background: url(<path-to-image>) lightgray 50% / cover no-repeat; */
+}
+
+.nav-user-info{
+  display: flex;
+  flex-direction: column; 
+}
+.nav-user-info h2 {
+  color: #000;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  margin: 0px;
+}
+.nav-user-info p {
+  color: #666;
+font-size: 12px;
+font-style: normal;
+font-weight: 500;
+line-height: normal;
+}
+
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+/* .nav-item {
+  margin: 5px 0;
+} */
+
+.nav-item a {
+  text-decoration: none;
+  padding: 8px 12px;
+  display: block;
+  border-radius: 5px;
+  color: #21272A;
+  /* Other/Menu M */
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 100%; /* 16px */
+  height: 48px;
+  align-items: center;
+  display: flex;
+}
+
+.nav-item a:hover {
+  background: #eef2ff;
+}
+
+.nav-item a.active {
+  background: #e0e7ff;
+  color: #1A71F6;
+  border-bottom: 1px solid var(--CoolGray-10, #F2F4F8);
+  /* Other/Menu M */
+}
+
+.nav-label {
+    height: auto;
+    margin-left: 10px;
+  }
+  .nav-icon{
+    width: 24px;
+    height: 24px;
+  }
+
+@media (max-width: 768px) {
+  .nav-sidebar {
+    width: 70px;
+    padding: 24px 8px;
+    align-items: center;
+  }
+
+  .nav-profile {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .nav-user-info {
+    display: none;
+  }
+
+  .nav-item a {
+    justify-content: center;
+    font-size: 0; /* hide label text */
+  }
+
+  .nav-item a::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background-color: #ccc;
+    border-radius: 4px;
+  }
+}
