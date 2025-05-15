@@ -2,11 +2,18 @@
   "metadata": {
     "title": "Chimple"
   },
+  "links": [
+    {
+      "rel": "self",
+      "href": "https://chimple.cc/opds/Chimple_OPDS.json",
+      "type": "application/opds+json"
+    }
+  ],
   "groups": [
     {
       "metadata": {
         "title": "English",
-        "identifier": "en"
+        "identifier": "urn:uuid:en"
       },
       "publications": [
         {
@@ -14,13 +21,13 @@
             "@type": "http://schema.org/Game",
             "title": "a",
             "author": "Chimple",
-            "identifier": "5QlQ1fGOchP2gAL1dho3",
+            "identifier": "urn:uuid:5QlQ1fGOchP2gAL1dho3",
             "language": "en",
             "modified": "2025-02-01T00:00:00Z"
           },
           "links": [
             {
-              "rel": "/5QlQ1fGOchP2gAL1dho3",
+              "rel": "http://opds-spec.org/acquisition/open-access",
               "href": "https://chimple.cc/topic/learningUnit1/?respectLaunchVersion=1&activity_id=5QlQ1fGOchP2gAL1dho3@en@en00@en0000",
               "type": "application/html"
             }
@@ -37,13 +44,13 @@
             "@type": "http://schema.org/Game",
             "title": "b",
             "author": "Chimple",
-            "identifier": "P3Lfezrti7DbPcvFVFZC",
+            "identifier": "urn:uuid:P3Lfezrti7DbPcvFVFZC",
             "language": "en",
             "modified": "2025-02-01T00:00:00Z"
           },
           "links": [
             {
-              "rel": "/P3Lfezrti7DbPcvFVFZC@en@en00@en0001",
+              "rel": "http://opds-spec.org/acquisition/open-access",
               "href": "https://chimple.cc/topic/learningUnit1/?respectLaunchVersion=1&activity_id=P3Lfezrti7DbPcvFVFZC@en@en00@en0001",
               "type": "application/html"
             }
