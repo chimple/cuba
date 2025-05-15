@@ -1315,10 +1315,33 @@ export class OneRosterApi implements ServiceApi {
     }
 
     const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();
-    // Format the email address consistently with our other methods
     const userEmail = `${loggedStudent?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
     const agentEmail = `mailto:${userEmail}`;
 
+    const existingStatements = await this.getAllStatements(agentEmail, {
+      agent: { mbox: agentEmail },
+      verb: { id: "http://adlnet.gov/expapi/verbs/completed" },
+      activity: { id: `http://example.com/activity/${lessonId}` },
+    });
+
+    const filteredStatements = existingStatements.filter(
+         (_statement) => _statement.lesson_id === lessonId
+    );
+
+    // If there are existing statements for the given lessonId , will return the oldest one
+    if (filteredStatements !== null && filteredStatements !== undefined && filteredStatements.length > 0) {
+      console.log(`Statements for lesson ID ${lessonId} already exist. Returning the oldest entry.`);
+      const oldestStatement = filteredStatements.sort((a, b) => {
+        const aTimestamp = new Date(a.created_at).getTime();
+        const bTimestamp = new Date(b.created_at).getTime();
+        return aTimestamp - bTimestamp;
+      })[0];
+      console.log("Oldest Statement Data:", oldestStatement);
+      console.log("Oldest Statement Lesson ID:", oldestStatement.lesson_id);
+      return oldestStatement;
+    }
+
+    // No existing statements for the lessonId yet, So creating a new one
     const statement = new Statement({
       id: uuidv4(),
       actor: {
@@ -1404,7 +1427,6 @@ export class OneRosterApi implements ServiceApi {
       throw new Error("Failed to update student result.");
     }
   }
-
 
   getLanguageWithId(id: string): Promise<TableTypes<"language"> | undefined> {
     return Promise.resolve(undefined);
