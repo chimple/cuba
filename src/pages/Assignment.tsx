@@ -27,9 +27,10 @@ import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErro
 // Extend props to accept a callback for new assignments.
 interface AssignmentPageProps {
   onNewAssignment?: (assignment: TableTypes<"assignment">) => void;
+  assignmentCount: number
 }
 
-const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
+const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment, assignmentCount }) => {
   const [loading, setLoading] = useState(true);
   const [isLinked, setIsLinked] = useState(true);
   const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
@@ -65,6 +66,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment }) => {
       const all = await getPendingAssignments(classId, studentId);
       const pending = all.filter((a) => a.type !== LIVE_QUIZ);
       setAssignments(pending);
+      assignmentCount(pending.length)
     } catch (error) {
       console.error("Failed to load pending assignments:", error);
     }
@@ -240,27 +242,13 @@ useEffect(() => {
     checkAllHomeworkDownloaded
   );
 
-const init = useCallback(
+  const init = useCallback(
   async (fromCache: boolean = true) => {
     setLoading(true);
-
-    await api.syncDB();
 
     const student = Util.getCurrentStudent();
     if (!student) {
       history.replace(PAGES.SELECT_MODE);
-      return;
-    }
-
-    const studentResult = await api.getStudentResultInMap(student.id);
-    if (studentResult) {
-      setLessonResultMap(studentResult);
-    }
-
-    const linked = await api.isStudentLinked(student.id, fromCache);
-    if (!linked) {
-      setIsLinked(false);
-      setLoading(false);
       return;
     }
 
@@ -276,11 +264,32 @@ const init = useCallback(
       linkedData.schools.find((s) => s.id === classDoc.school_id)?.name || ""
     );
 
+    const classId = classDoc.id;
+    const studentId = student.id;
+
     await loadPendingAssignments(
-      classDoc.id,
-      student.id,
+      classId,
+      studentId,
       api.getPendingAssignments.bind(api)
     );
+
+    api
+      // pass [TABLES.Assignment] as refreshTables so "assignment" gets re-pulled
+      .syncDB(Object.values(TABLES), [TABLES.Assignment])
+      .then(async (ok) => {
+        console.log("init → syncDB completed:", ok);
+        if (ok) {
+          console.log("init → re-loading assignments after sync");
+          await loadPendingAssignments(
+            classId,
+            studentId,
+            api.getPendingAssignments.bind(api)
+          );
+        }
+      })
+      .catch((err) =>
+        console.error("🚀 init → syncDB failed:", err)
+      );
 
     setLoading(false);
     setIsLinked(true);
