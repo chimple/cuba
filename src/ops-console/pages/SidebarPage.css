@@ -1,0 +1,10 @@
+
+.navbar-rightSide{
+    display: flex;
+    height: 100vh;
+}
+.navbar-render{
+    flex: 1;
+    padding: 1rem; 
+    overflow-y: auto
+}

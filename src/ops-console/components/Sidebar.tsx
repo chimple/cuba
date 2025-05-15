@@ -1,6 +1,5 @@
-import React, { useEffect } from 'react';
-import './Sidebar.css';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SchoolIcon from '@mui/icons-material/School';
 import CampaignIcon from '@mui/icons-material/Campaign';
@@ -8,51 +7,78 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import DevicesIcon from '@mui/icons-material/Devices';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import BookIcon from '@mui/icons-material/Book';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import './Sidebar.css';
+import { NavItems, PAGES } from "../../common/constants";
 
-export interface User {
+interface SidebarProps {
   name: string;
   email: string;
   photo: string;
-  role: string;
 }
-interface SidebarProps {
-  user: User;
-}
-
 
 const navItems = [
-  { label: 'Dashboard', route: '/dashboard', icon: <DashboardIcon /> },
-  { label: 'Programs', route: '/programs', icon: <BookIcon /> },
-  { label: 'Schools', route: '/schools', icon: <SchoolIcon /> },
-  { label: 'Campaigns', route: '/campaigns', icon: <CampaignIcon /> },
-  { label: 'Users', route: '/users', icon: <GroupsIcon /> },
-  { label: 'Devices', route: '/devices', icon: <DevicesIcon /> },
-  { label: 'Resources', route: '/resources', role: 'superadmin', icon: <LibraryBooksIcon /> },
+  { label: NavItems.DASHBOARD, route: PAGES.ADMIN_DASHBOARD, icon: <DashboardIcon /> },
+  { label: NavItems.PROGRAMS, route: PAGES.ADMIN_PROGRAMS, icon: <BookIcon /> },
+  { label: NavItems.SCHOOLS, route: PAGES.ADMIN_SCHOOLS,  icon: <SchoolIcon /> },
+  { label: NavItems.COMPAIGNS, route: PAGES.ADMIN_COMPAIGNS,  icon: <CampaignIcon /> },
+  { label: NavItems.USERS, route: PAGES.ADMIN_USERS,  icon: <GroupsIcon /> },
+  { label: NavItems.DEVICES, route: PAGES.ADMIN_DEVICES,  icon: <DevicesIcon /> },
+  { label: NavItems.RESOURCES, route: PAGES.ADMIN_RESOURCES,  icon: <LibraryBooksIcon /> },
 ];
 
-const Sidebar: React.FC<SidebarProps> = ({ user }) => {
+const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
+
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+
+  // Auto-close sidebar on mobile route change
+  useEffect(() => {
+      setIsOpen(false);
+  }, [location?.pathname]);
+
   return (
-    <aside className="nav-sidebar">
-      <div className="nav-profile">
-        <img src={user.photo} alt="User" className="nav-avatar" />
-        <div className="nav-user-info">
-          <h2>{user.name}</h2>
-          <p>{user.email}</p>
-        </div>
-      </div>
-      <ul className="nav-list">
-        {navItems.map((item) =>
-          (!item.role || item.role === user.role) && (
-            <li key={item.label} className="nav-item">
-                <NavLink to={item.route}>
-                    <span className="nav-icon">{item.icon}</span>
-                    <span className="nav-label">{item.label}</span>
-                </NavLink>
-            </li>
-          )
+    <>
+      
+        {!isOpen && (
+            <button className="hamburger-outside" onClick={() => setIsOpen(true)}>
+            <MenuIcon />
+            </button>
         )}
-      </ul>
-    </aside>
+      <aside className={`nav-sidebar ${isOpen ? 'open' : ''}`}>
+        <button className="hamburger-inside" onClick={() => setIsOpen(!isOpen)}>
+          {isOpen ? <CloseIcon /> : <MenuIcon />}
+        </button>
+
+          <div className="nav-profile">
+            <img src={photo} alt="User" className="nav-avatar" />
+            <div className="nav-user-info">
+              <h2>{name}</h2>
+              <p>{email}</p>
+            </div>
+          </div>
+
+        <ul className="nav-list">
+          {navItems.map(
+            (item) =>
+               (
+                <li key={item.label} className="nav-item">
+                  <NavLink
+                    to={item.route}
+                    activeClassName="active"
+                    onClick={() => window.innerWidth <= 768 && setIsOpen(false)}
+                  >
+                    <span className="nav-icon">{item.icon}</span>
+                    {isOpen && <span className="nav-label">{item.label}</span>}
+                  </NavLink>
+                </li>
+              )
+          )}
+        </ul>
+      </aside>
+
+    </>
   );
 };
 

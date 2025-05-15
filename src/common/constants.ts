@@ -405,7 +405,13 @@ export enum PAGES {
   ADD_SPONSOR = "/add-sponsor",
   UPLOAD_PAGE = "/upload-page",
   SIDEBAR_PAGE = "/admin-home-page",
-  ADMIN_DASHBOARD = '/dashboard'
+  ADMIN_DASHBOARD = '/dashboard',
+  ADMIN_PROGRAMS = '/programs',
+  ADMIN_SCHOOLS = '/schools',
+  ADMIN_COMPAIGNS = '/compaigns',
+  ADMIN_USERS = '/schools',
+  ADMIN_DEVICES = '/devices',
+  ADMIN_RESOURCES ='/resourses',
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -431,6 +437,18 @@ export enum DrawerOptions {
   MANAGE_CLASS = "Manage Class",
   USER_PROFILE = "User Profile",
 }
+
+export enum NavItems {
+  DASHBOARD = "Dashboard",
+  PROGRAMS = 'Programs',
+  SCHOOLS = 'Schools',
+  COMPAIGNS = 'Campaigns',
+  USERS = 'Users',
+  DEVICES = 'Devices',
+  RESOURCES = 'Resources'
+}
+
+
 
 export interface SchoolWithRole {
   school: TableTypes<"school">;

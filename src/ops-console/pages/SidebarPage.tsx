@@ -1,28 +1,44 @@
-import React,{ useEffect } from "react";
+import React, {useEffect, useState} from "react";
 import { PAGES } from "../../common/constants";
 import { IonPage } from "@ionic/react";
 import Sidebar from "../components/Sidebar";
 import Dashboard from "../components/Dashboard";
-import { BrowserRouter as Router, Switch, useHistory} from 'react-router-dom';
+import { BrowserRouter as Router, Switch} from 'react-router-dom';
 import ProtectedRoute from "../../ProtectedRoute";
-
+import './SidebarPage.css'
+import { ServiceConfig } from "../../services/ServiceConfig";
 
 const SidebarPage: React.FC = () => {
-    const history = useHistory();
-    
-    const mockUser = {
-        name: 'Super Admin',
-        email: 'superadmin@sdutara.org',
-        photo: 'https://i.pravatar.cc/40',
-        role: 'superadmin',
-    };
+  const [fullName, setFullName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [imagePhoto, setImagePhoto] = useState<string>("")
+  
+  useEffect(() => {
+      fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        try {
+          const currentUser =
+            await ServiceConfig.getI()?.authHandler.getCurrentUser();
+          if (!currentUser) {
+            console.error("No user is logged in.");
+            return;
+          }
+          setFullName(currentUser.name || "");
+          setEmail(currentUser.email || currentUser.phone || "");
+          setImagePhoto(currentUser.image || "")
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      };
 
   return (
     <IonPage>
        <Router>
-        <div style={{ display: "flex", height: "100vh" }}>
-            <Sidebar user={mockUser} />
-            <div style={{ flex: 1, padding: "1rem", overflowY: "auto" }}>
+        <div className="navbar-rightSide">
+            <Sidebar name={fullName} email={email} photo={imagePhoto}  />
+            <div className="navbar-render">
              <Switch>
                  <ProtectedRoute path={PAGES.ADMIN_DASHBOARD} exact={true}>              
                     <Dashboard />
