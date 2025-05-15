@@ -277,9 +277,7 @@ useEffect(() => {
       // pass [TABLES.Assignment] as refreshTables so "assignment" gets re-pulled
       .syncDB(Object.values(TABLES), [TABLES.Assignment])
       .then(async (ok) => {
-        console.log("init → syncDB completed:", ok);
         if (ok) {
-          console.log("init → re-loading assignments after sync");
           await loadPendingAssignments(
             classId,
             studentId,
