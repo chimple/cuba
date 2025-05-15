@@ -152,7 +152,7 @@ export class SupabaseApi implements ServiceApi {
             .from("ProfileImages")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-          []
+        []
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -1581,4 +1581,152 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }
+
+  async getProgramFilterOptions(): Promise<Record<string, string[]>> {
+    if (!this.supabase) {
+      console.error('Supabase client is not initialized');
+      return {};
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc('get_program_filter_options');
+      if (error) {
+        console.error('RPC error:', error);
+        return {};
+      }
+
+      const parsed: Record<string, string[]> = {};
+      if (data && typeof data === 'object') {
+        for (const key in data) {
+          const val = data[key];
+          if (Array.isArray(val) && val.every(v => typeof v === 'string')) {
+            parsed[key] = val;
+          } else {
+            parsed[key] = [];
+          }
+        }
+      }
+      return parsed;
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      return {};
+    }
+  }
+async getPrograms({
+  filters = {},
+  searchTerm = '',
+  tab = 'all'
+}: {
+  filters?: Record<string, string[]>;
+  searchTerm?: string;
+  tab?: 'all' | 'at_school' | 'at_home' | 'hybrid';
+}): Promise<{ data: any[] }> {
+  if (!this.supabase) {
+    console.error('Supabase client not initialized');
+    return { data: [] };
+  }
+
+  try {
+    console.log('Fetching programs with filters:', filters, 'searchTerm:', searchTerm, 'tab:', tab);
+
+    // Step 1: Fetch programs
+    let query = this.supabase
+      .from('program')
+      .select('id, name, state, institutes_count, students_count, devices_count')
+      .order('created_at', { ascending: false });
+
+    for (const key in filters) {
+      const values = filters[key];
+      if (values?.length) {
+        query = query.in(key, values);
+      }
+    }
+
+    if (searchTerm) {
+      query = query.ilike('name', `%${searchTerm}%`);
+    }
+
+    if (tab === 'at_school') {
+      query = query.eq('program_type', 'at_school');
+    } else if (tab === 'at_home') {
+      query = query.eq('program_type', 'at_home');
+    } else if (tab === 'hybrid') {
+      query = query.eq('program_type', 'hybrid');
+    }
+
+    const { data: programs, error } = await query;
+
+    if (error) {
+      console.error('Supabase error (program):', error);
+      return { data: [] };
+    }
+
+    console.log('Fetched programs:', programs);
+    if (!programs || programs.length === 0) {
+      console.warn('No programs found after filtering.');
+      return { data: [] };
+    }
+
+    if (!programs || programs.length === 0) {
+      return { data: [] };
+    }
+
+    const programIds = programs.map(p => p.id);
+
+    // Step 2: Fetch program_user rows where role is 'program_manager'
+    const { data: programUsers, error: puError } = await this.supabase
+      .from('program_user')
+      .select('program_id, user_id')
+      .in('program_id', programIds)
+      .eq('role', 'program_manager');
+
+    if (puError) {
+      console.error('Supabase error (program_user):', puError);
+      return { data: programs.map(p => ({ ...p, manager_name: '' })) };
+    }
+
+    console.log('Fetched program_user rows:', programUsers);
+
+    const userIds = [...new Set(programUsers.map(pu => pu.user_id))];
+
+    // Step 3: Fetch user names
+    const { data: users, error: userError } = await this.supabase
+      .from('user')
+      .select('id, name')
+      .in('id', userIds);
+
+    if (userError) {
+      console.error('Supabase error (user):', userError);
+      return { data: programs.map(p => ({ ...p, manager_name: '' })) };
+    }
+
+    console.log('Fetched users:', users);
+
+    const userMap = Object.fromEntries(users.map(u => [u.id, u.name]));
+
+    // Step 4: Group managers by program
+    const programToManagers: Record<string, string[]> = {};
+    for (const { program_id, user_id } of programUsers) {
+      if (!programToManagers[program_id]) programToManagers[program_id] = [];
+      programToManagers[program_id].push(userMap[user_id] || 'Unknown');
+    }
+
+    console.log('Program to manager mapping:', programToManagers);
+
+    // Step 5: Return final data
+    const finalData = programs.map(p => ({
+      ...p,
+      manager_name: (programToManagers[p.id] || []).join(', ')
+    }));
+
+    console.log('Final program data with manager names:', finalData);
+
+    return { data: finalData };
+  } catch (err) {
+    console.error('Unexpected error in getPrograms:', err);
+    return { data: [] };
+  }
+}
+
+
 }
