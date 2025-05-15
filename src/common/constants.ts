@@ -52,7 +52,7 @@ export enum TABLES {
   Assignment_cart = "assignment_cart",
   // Chatbot = "chatbot",
   ReqNewSchool = "req_new_school",
-}
+  }
 export enum CLASS_USERS {
   STUDENTS = "Students",
   TEACHERS = "Teachers",
@@ -404,6 +404,7 @@ export enum PAGES {
   ADD_COORDINATOR = "/add-coordinator",
   ADD_SPONSOR = "/add-sponsor",
   UPLOAD_PAGE = "/upload-page",
+  NEW_PROGRAM = "/new-program"
 }
 
 export const enum ASSIGNMENT_TYPE {
