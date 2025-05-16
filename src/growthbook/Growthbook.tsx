@@ -7,7 +7,7 @@ type GbContextType = {
 
 const GbContext = createContext<GbContextType | undefined>(undefined);
 
-export const updateLocalAttributes = (data) => {
+export const updateLocalAttributes = (data: any) => {
   let existingData = localStorage.getItem('growthbookAttributes');
   let parsedData = existingData ? JSON.parse(existingData) : {};
   const updatedData = {
@@ -19,7 +19,7 @@ export const updateLocalAttributes = (data) => {
 
 export const GbProvider = ({ children }: { children: ReactNode }) => {
   const growthbook = useGrowthBook();
-  const [gbUpdated, setGbUpdated] = useState(false);
+  const [gbUpdated, setGbUpdated] = useState(true);
 
   useEffect(() => {
     if(gbUpdated){
@@ -28,14 +28,25 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
         const attributes = JSON.parse(storedAttributes);
         setGrowthbookAttributes(attributes);
         setGbUpdated(false)
-        console.log("console from growthbook: ", attributes)
       }
     }
   }, [gbUpdated])
 
-  const setGrowthbookAttributes = (student: any) => {
-    const {studentDetails, schools, classes, liveQuizCount, assignmentCount, countOfPendingIds, last_assignment_played_at, total_assignments_played} = student;
-
+  const setGrowthbookAttributes = (attributes: any) => {
+    const {
+      studentDetails,
+      schools,
+      classes,
+      liveQuizCount,
+      assignmentCount,
+      countOfPendingIds,
+      last_assignment_played_at,
+      total_assignments_played,
+      leaderboard_position_weekly,
+      leaderboard_position_monthly,
+      leaderboard_position_all
+    } = attributes;
+    
     growthbook.setAttributes({
       id: studentDetails.id,
       age: studentDetails.age,
@@ -53,6 +64,9 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       ...countOfPendingIds,
       last_assignment_played_at: last_assignment_played_at,
       total_assignments_played: total_assignments_played,
+      leaderboard_position_weekly: leaderboard_position_weekly,
+      leaderboard_position_monthly: leaderboard_position_monthly,
+      leaderboard_position_all: leaderboard_position_all,
     });
   };
 

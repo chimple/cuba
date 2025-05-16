@@ -1,4 +1,4 @@
-import { IonPage, IonHeader } from "@ionic/react";
+import { IonPage, IonHeader, IonItem } from "@ionic/react";
 import { FC, useEffect, useState } from "react";
 import {
   HOMEHEADERLIST,
@@ -39,6 +39,8 @@ import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 import { useGrowthBook } from "@growthbook/growthbook-react";
 import LearningPathway from "../components/LearningPathway";
+import { updateLocalAttributes } from "../growthbook/Growthbook";
+import { useGbContext } from "../growthbook/Growthbook";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -73,7 +75,7 @@ const Home: FC = () => {
   const [recommendedLessonCourseMap, setRecommendedLessonCourseMap] = useState<{
     [lessonId: string]: { course_id: string };
   }>({});
-  const growthbook = useGrowthBook();
+  const { setGbUpdated } = useGbContext();
 
   let tempPageNumber = 1;
   const location = useLocation();
@@ -307,7 +309,8 @@ const Home: FC = () => {
         assignmentCount: assignmentCount,
         countOfPendingIds: result
       }
-      setGrowthbookAttributes(attributeParams);
+      updateLocalAttributes(attributeParams);
+      setGbUpdated(true);
       setDataCourse(reqLes);
       // storeRecommendationsInLocalStorage(reqLes);
       // setIsLoading(true);
@@ -317,27 +320,6 @@ const Home: FC = () => {
       return [];
     }
   }
-
-  const setGrowthbookAttributes = (student: any) => {
-    const {studentDetails, schools, classes, liveQuizCount, assignmentCount, countOfPendingIds} = student;
-
-    growthbook.setAttributes({
-      id: studentDetails.id,
-      age: studentDetails.age,
-      curriculum_id: studentDetails.curriculum_id,
-      grade_id: studentDetails.grade_id,
-      gender: studentDetails.gender,
-      parent_id: studentDetails.parent_id,
-      subject_id: studentDetails.subject_id,
-      school_ids: schools,
-      class_ids: classes,
-      language: localStorage.getItem("language") || "en",
-      stars: studentDetails.stars,
-      pending_live_quiz: liveQuizCount,
-      pending_assignments: assignmentCount,
-      ...countOfPendingIds,
-    });
-  };
 
   async function getRecommendeds(
     subjectCode: string

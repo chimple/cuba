@@ -37,6 +37,8 @@ import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 import { App } from "@capacitor/app";
 import { school } from "../stories/school/SchoolClassSubjectsTab.stories";
+import { updateLocalAttributes } from "../growthbook/Growthbook";
+import { useGbContext } from "../growthbook/Growthbook";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -56,6 +58,7 @@ const Leaderboard: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
+  const {setGbUpdated} = useGbContext();
 
   const [weeklyList, setWeeklyList] = useState<
     {
@@ -203,6 +206,13 @@ const Leaderboard: React.FC = () => {
     // } else {
     setLeaderboardDataInfo(tempLeaderboardData);
     // }
+    let leaderboardAttributes = {
+      leaderboard_position_weekly: tempLeaderboardData.weekly.findIndex((item) => item.userId === currentStudent.id) + 1,
+      leaderboard_position_monthly: tempLeaderboardData.monthly.findIndex((item) => item.userId === currentStudent.id) + 1,
+      leaderboard_position_all: tempLeaderboardData.allTime.findIndex((item) => item.userId === currentStudent.id) + 1,
+    }
+    updateLocalAttributes(leaderboardAttributes);
+    setGbUpdated(true);
 
     const tempData =
       leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
