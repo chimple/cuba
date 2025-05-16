@@ -12,7 +12,7 @@
   "groups": [
     {
       "metadata": {
-        "title": "AFRIKAANS"
+        "title": "af"
       },
       "publications": [
         {
@@ -21,7 +21,7 @@
             "title": "Level 0",
             "author": "Curious Reader",
             "identifier": "urn:uuid:ftm_AFRIKAANS_0",
-            "language": "AFRIKAANS",
+            "language": "af",
             "modified": "2025-05-16T00:00:00Z"
           },
           "links": [
@@ -44,7 +44,7 @@
             "title": "Level 1",
             "author": "Curious Reader",
             "identifier": "urn:uuid:ftm_AFRIKAANS_1",
-            "language": "AFRIKAANS",
+            "language": "af",
             "modified": "2025-05-16T00:00:00Z"
           },
           "links": [
@@ -67,7 +67,7 @@
             "title": "Level 2",
             "author": "Curious Reader",
             "identifier": "urn:uuid:ftm_AFRIKAANS_2",
-            "language": "AFRIKAANS",
+            "language": "af",
             "modified": "2025-05-16T00:00:00Z"
           },
           "links": [
