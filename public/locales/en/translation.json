@@ -526,7 +526,7 @@
   "Rabbit and Flower": "Rabbit and Flower",
   "Rank": "Rank",
   "Re-Upload": "Re-Upload",
-  "Recommended Assignments": "",
+  "Recommended Assignments": "Recommended Assignments",
   "Rectangle": "Rectangle",
   "Red": "Red",
   "Regroup & Add - 1": "Regroup & Add - 1",
@@ -718,6 +718,7 @@
   "Upcoming": "Upcoming",
   "Update": "Update",
   "Upload a new file": "Upload a new file",
+  "Unable to Upload File": "Unable to Upload File",
   "Use email instead": "Use email instead",
   "Use phone number instead": "Use phone number instead",
   "User not Found. Please verify your credentials.": "User not Found. Please verify your credentials.",
@@ -775,5 +776,9 @@
   "Your profile is not registered to any school.": "Your profile is not registered to any school.",
   "Your progress stays synced and consistent across all devices.": "Your progress stays synced and consistent across all devices.",
   "Zebra": "Zebra",
-  "Specials": "Specials"
+  "Specials": "Specials",
+  "Apply": "Apply",
+  "Search programs...": "Search programs...",
+  "Filter": "Filter",
+  "Clear Filters": "Clear Filters"
 }
