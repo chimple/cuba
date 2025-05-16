@@ -27,7 +27,7 @@ import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErro
 // Extend props to accept a callback for new assignments.
 interface AssignmentPageProps {
   onNewAssignment?: (assignment: TableTypes<"assignment">) => void;
-  assignmentCount: number
+  assignmentCount: any
 }
 
 const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment, assignmentCount }) => {
@@ -65,8 +65,8 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment, assign
     try {
       const all = await getPendingAssignments(classId, studentId);
       const pending = all.filter((a) => a.type !== LIVE_QUIZ);
-      setAssignments(pending);
-      assignmentCount(pending.length)
+      console.log("pending: ", pending.length)
+      assignmentCount(pending.length);
     } catch (error) {
       console.error("Failed to load pending assignments:", error);
     }
