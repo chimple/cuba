@@ -8,8 +8,8 @@ type GbContextType = {
 const GbContext = createContext<GbContextType | undefined>(undefined);
 
 export const updateLocalAttributes = (data: any) => {
-  let existingData = localStorage.getItem('growthbookAttributes');
-  let parsedData = existingData ? JSON.parse(existingData) : {};
+  const existingData = localStorage.getItem('growthbookAttributes');
+  const parsedData = existingData ? JSON.parse(existingData) : {};
   const updatedData = {
     ...parsedData,
     ...data

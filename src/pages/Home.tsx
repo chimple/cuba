@@ -1,4 +1,4 @@
-import { IonPage, IonHeader, IonItem } from "@ionic/react";
+import { IonPage, IonHeader } from "@ionic/react";
 import { FC, useEffect, useState } from "react";
 import {
   HOMEHEADERLIST,
@@ -37,7 +37,6 @@ import Subjects from "./Subjects";
 import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
-import { useGrowthBook } from "@growthbook/growthbook-react";
 import LearningPathway from "../components/LearningPathway";
 import { updateLocalAttributes } from "../growthbook/Growthbook";
 import { useGbContext } from "../growthbook/Growthbook";

@@ -206,7 +206,7 @@ const Leaderboard: React.FC = () => {
     // } else {
     setLeaderboardDataInfo(tempLeaderboardData);
     // }
-    let leaderboardAttributes = {
+    const leaderboardAttributes = {
       leaderboard_position_weekly: tempLeaderboardData.weekly.findIndex((item) => item.userId === currentStudent.id) + 1,
       leaderboard_position_monthly: tempLeaderboardData.monthly.findIndex((item) => item.userId === currentStudent.id) + 1,
       leaderboard_position_all: tempLeaderboardData.allTime.findIndex((item) => item.userId === currentStudent.id) + 1,
