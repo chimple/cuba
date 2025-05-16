@@ -311,22 +311,10 @@ export class SqliteApi implements ServiceApi {
       console.error("🚀 ~ Api ~ syncDB ~ error:", error);
       await this.createSyncTables();
     }
-    let data;
-    try {
-      data = await SupabaseApi.i.getTablesData(tableNames, lastPullTables);
-    } catch (err: any) {
-      const parent_user = await SupabaseAuth.i.getCurrentUser();
-      Util.logEvent(EVENTS.SYNCHING_ERROR, {
-        user_name: parent_user?.name || null,
-        user_id: parent_user?.id || null,
-        user_username: parent_user?.email || null,
-        rpc_fn_name: "not found",
-        table_name: "not found",
-        last_modified_date: "not found",
-        error_message: err || "Unknown error",
-      });
-      console.error("🚀 ~ Api ~ getTablesData ~ error:", err);
-    }
+    const data = await this._serverApi.getTablesData(
+      tableNames,
+      lastPullTables
+    );
     const lastPulled = new Date().toISOString();
     let batchQueries: { statement: string; values: any[] }[] = [];
     for (const tableName of tableNames) {
