@@ -203,13 +203,191 @@ export class SupabaseApi implements ServiceApi {
     const fetchPromises = tableNames.map(async (tableName) => {
       const lastModifiedDate =
         tablesLastModifiedTime.get(tableName) ?? "2024-01-01T00:00:00.000Z";
-
-      const res = await this.supabase
-        ?.from(tableName)
-        .select("*")
-        .gte("updated_at", lastModifiedDate);
-
-      // console.log("📥 Supabase response for:", tableName, res);
+        var res;
+        switch (tableName) {
+          case TABLES.Assignment: {
+            res = await this.supabase?.rpc("sql_get_assignments", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Assignment_cart: {
+            res = await this.supabase?.rpc("sql_get_assignment_cart", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Assignment_user: {
+            res = await this.supabase?.rpc("sql_get_assignment_users", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Badge: {
+            res = await this.supabase?.rpc("sql_get_badge", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Chapter: {
+            res = await this.supabase?.rpc("sql_get_chapter", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.ChapterLesson: {
+            res = await this.supabase?.rpc("sql_get_chapter_lesson", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Class: {
+            res = await this.supabase?.rpc("sql_get_class", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.ClassCourse: {
+            res = await this.supabase?.rpc("sql_get_class_course", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.ClassInvite_code: {
+            res = await this.supabase?.rpc("sql_get_class_invite_codes", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.ClassUser: {
+            res = await this.supabase?.rpc("sql_get_class_user", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Course: {
+            res = await this.supabase?.rpc("sql_get_course", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Curriculum: {
+            res = await this.supabase?.rpc("sql_get_curriculum", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.FavoriteLesson: {
+            res = await this.supabase?.rpc("sql_get_favorite_lessons", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Grade: {
+            res = await this.supabase?.rpc("sql_get_grade", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Language: {
+            res = await this.supabase?.rpc("sql_get_language", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Lesson: {
+            res = await this.supabase?.rpc("sql_get_lessons", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.ParentUser: {
+            res = await this.supabase?.rpc("sql_get_parent_users", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+  
+          case TABLES.Result: {
+            res = await this.supabase?.rpc("sql_get_results", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Reward: {
+            res = await this.supabase?.rpc("sql_get_reward", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.School: {
+            res = await this.supabase?.rpc("sql_get_schools", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.SchoolCourse: {
+            res = await this.supabase?.rpc("sql_get_school_courses", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.SchoolUser: {
+            res = await this.supabase?.rpc("sql_get_school_user", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Sticker: {
+            res = await this.supabase?.rpc("sql_get_sticker", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Subject: {
+            res = await this.supabase?.rpc("sql_get_subject", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.User: {
+            res = await this.supabase?.rpc("sql_get_users", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.UserBadge: {
+            res = await this.supabase?.rpc("sql_get_user_badges", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.UserBonus: {
+            res = await this.supabase?.rpc("sql_get_user_bonus", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.UserCourse: {
+            res = await this.supabase?.rpc("sql_get_user_courses", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.UserSticker: {
+            res = await this.supabase?.rpc("sql_get_user_stickers", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          default:
+            res = await this.supabase
+              ?.from(tableName)
+              .select("*")
+              .gte("updated_at", lastModifiedDate);
+            data.set(tableName, res?.data ?? []);
+        }
+      
       data.set(tableName, res?.data ?? []);
     });
 
