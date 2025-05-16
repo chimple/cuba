@@ -197,7 +197,7 @@ export class SupabaseApi implements ServiceApi {
   async getTablesData(
     tableNames: TABLES[] = Object.values(TABLES),
     tablesLastModifiedTime: Map<string, string> = new Map()
-  ) {
+  ) : Promise<Map<string, any[]>> {
     const data = new Map();
     for (const tableName of tableNames) {
       const lastModifiedDate =
