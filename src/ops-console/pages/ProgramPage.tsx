@@ -1,0 +1,219 @@
+import React, { useEffect, useState } from 'react';
+import DataTableBody, { Column } from '../components/DataTableBody';
+import DataTablePagination from '../components/DataTablePagination';
+import { useDataTableLogic } from '../components/useDataTableLogic';
+import { Box, Chip, Typography, Button, Skeleton } from '@mui/material';
+import './ProgramPage.css';
+import FilterSlider from '../components/FilterSlider';
+import SelectedFilters from '../components/SelectedFilters';
+import SearchAndFilter from '../components/SearchAndFilter';
+import HeaderTab from '../components/HeaderTab';
+import { Add } from '@mui/icons-material';
+import { SupabaseApi } from '../../services/api/SupabaseApi';
+
+const columns: Column[] = [
+  { key: 'programName', label: 'Program Name', align: 'left' },
+  { key: 'institutes', label: 'No of Institutes', align: 'left' },
+  { key: 'students', label: 'No of Students', align: 'left' },
+  { key: 'devices', label: 'No of Devices', align: 'left' },
+  { key: 'manager', label: 'Program Manager' },
+];
+
+const tabOptions = [
+  { label: 'All Programs' },
+  { label: 'At School' },
+  { label: 'At Home' },
+  { label: 'Hybrid' },
+];
+
+const ProgramsPage: React.FC = () => {
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filters, setFilters] = useState<Record<string, string[]>>({
+    partner: [],
+    programType: [],
+    model: [],
+    state: [],
+    district: [],
+    block: [],
+    village: [],
+    cluster: [],
+  });
+  const [activeTab, setActiveTab] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [programs, setPrograms] = useState<any[]>([]);
+  const [loadingPrograms, setLoadingPrograms] = useState(false);
+  const [loadingFilters, setLoadingFilters] = useState(false);
+  const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>({});
+
+  const tab = tabOptions[activeTab].label.toLowerCase().replace(' ', '_') as 'all' | 'at_school' | 'at_home' | 'hybrid';
+
+  useEffect(() => {
+    const fetchFilterOptions = async () => {
+      try {
+        setLoadingFilters(true);
+        const response = await SupabaseApi.i.getProgramFilterOptions();
+        setFilterOptions(response);
+      } catch (error) {
+        console.error('Failed to fetch filter options:', error);
+      } finally {
+        setLoadingFilters(false);
+      }
+    };
+    fetchFilterOptions();
+  }, []);
+
+  useEffect(() => {
+    const fetchPrograms = async () => {
+      setLoadingPrograms(true);
+      try {
+        const { data } = await SupabaseApi.i.getPrograms({ filters, searchTerm, tab });
+        setPrograms(data);
+      } catch (error) {
+        console.error('Failed to fetch programs:', error);
+      } finally {
+        setLoadingPrograms(false);
+      }
+    };
+    fetchPrograms();
+  }, [filters, searchTerm, tab]);
+
+ const transformedRows = programs.map((row) => ({
+  programName: {
+    value: row.name,
+    render: (
+      <Box display="flex" flexDirection="column" justifyContent='start' alignItems='left'>
+        <Typography variant="subtitle2">{row.name}</Typography>
+        <Typography variant="body2" color="text.secondary">{row.state}</Typography>
+      </Box>
+    ),
+  },
+  institutes: row.institutes_count ?? 0,
+  students: row.students_count ?? 0,
+  devices: {
+    value: row.devices_count ?? 0,
+    render: <Chip label={row.devices_count ?? 0} size="small" />,
+  },
+  manager: row.program_manager,
+}));
+
+  const {
+    orderBy,
+    order,
+    page,
+    setPage,
+    handleSort,
+    paginatedRows,
+  } = useDataTableLogic(transformedRows);
+
+  const handleFilterChange = (name: string, value: any) => {
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+  };
+
+  const handleDeleteFilter = (key: string, value: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: prev[key].filter((v) => v !== value),
+    }));
+  };
+
+  const onFilterClick = () => {
+    if (Object.values(filters).some((values) => values.length > 0)) {
+      setFilters({
+        partner: [],
+        programType: [],
+        model: [],
+        state: [],
+        district: [],
+        block: [],
+        village: [],
+        cluster: [],
+      });
+    } else {
+      setIsFilterOpen(true);
+    }
+  };
+
+  const autocompleteStyles = {
+    '& .MuiOutlinedInput-root': { padding: '6px!important' },
+    '& .MuiAutocomplete-paper': { boxShadow: 'none', border: 'none' },
+    '& .MuiAutocomplete-listbox': { padding: 0 },
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
+
+  return (
+    <div className="program-page">
+      <div className="program-page-header">Programs</div>
+
+      <div className="program-header-and-search-filter">
+        <div className="program-search-filter">
+          <HeaderTab activeTab={activeTab} handleTabChange={handleTabChange} tabs={tabOptions} />
+          <div className="program-button-and-search-filter">
+            <Button
+              variant="outlined"
+              onClick={() => {}}
+              sx={{ borderColor: 'transparent', borderRadius: 20, boxShadow: 3, height: '48px' }}
+            >
+              <Add /> New Program
+            </Button>
+            <SearchAndFilter
+              searchTerm={searchTerm}
+              onSearchChange={handleSearchChange}
+              filters={filters}
+              onFilterClick={onFilterClick}
+            />
+          </div>
+        </div>
+
+        <SelectedFilters filters={filters} onDeleteFilter={handleDeleteFilter} />
+
+        <FilterSlider
+          isOpen={isFilterOpen}
+          onClose={() => setIsFilterOpen(false)}
+          filters={filters}
+          filterOptions={filterOptions}
+          onFilterChange={handleFilterChange}
+          onApply={() => setIsFilterOpen(false)}
+          onCancel={() => setIsFilterOpen(false)}
+          autocompleteStyles={autocompleteStyles}
+        />
+      </div>
+
+      <div className="program-table">
+        {loadingPrograms ? (
+          <Box padding={2}>
+            {[...Array(10)].map((_, i) => (
+              <Skeleton key={i} variant="rectangular" height={40} sx={{ mb: 1 }} />
+            ))}
+          </Box>
+        ) : programs.length === 0 ? (
+          <Box padding={4} textAlign="center">
+            <Typography variant="h6" color="text.secondary">
+              No programs found
+            </Typography>
+          </Box>
+        ) : (
+          <DataTableBody
+            columns={columns}
+            rows={paginatedRows}
+            orderBy={orderBy}
+            order={order}
+            onSort={handleSort}
+          />
+        )}
+      </div>
+
+      <div className="program-page-pagination">
+        <DataTablePagination page={page} pageCount={Math.ceil(programs.length / 10)} onPageChange={setPage} />
+      </div>
+    </div>
+  );
+};
+
+export default ProgramsPage;

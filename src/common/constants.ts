@@ -404,6 +404,7 @@ export enum PAGES {
   ADD_COORDINATOR = "/add-coordinator",
   ADD_SPONSOR = "/add-sponsor",
   UPLOAD_PAGE = "/upload-page",
+  PROGRAM_PAGE = "/program-page",
 }
 
 export const enum ASSIGNMENT_TYPE {
