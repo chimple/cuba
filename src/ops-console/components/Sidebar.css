@@ -20,39 +20,46 @@
 }
 
 /* Profile section (only in open) */
-.nav-profile {
+.sidebar-profile-details {
   align-items: center;
   border-radius: 6px;
   background: #f0f4fa;
-  padding: 10px;
+  padding: 5px;
   margin-bottom: 16px;
 }
 
-.nav-sidebar.open .nav-user-info {
+.nav-sidebar.open .sidebar-user-info {
   display: inline-block;
 }
-
-.nav-avatar {
-  width: 40px;
-  height: 40px;
-  margin-right: 10px;
-  border-radius: 50%;
+.nav-sidebar.open .sidebar-profile-details{
+  height: 75px;
 }
 
-.nav-user-info {
+.sidebar-avatar {
+    width: 40px;
+    height: 40px;
+    margin-right: 7px;
+    border-radius: 50%;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+
+.sidebar-user-info {
   display: flex;
   flex-direction: column;
   display: none;
 }
 
-.nav-user-info h2 {
+.sidebar-user-info h2 {
   font-size: 16px;
   font-weight: 700;
   margin: 0;
   color: #000;
 }
 
-.nav-user-info p {
+.sidebar-user-info p {
   font-size: 12px;
   font-weight: 500;
   color: #666;
@@ -60,14 +67,14 @@
 }
 
 /* Navigation list */
-.nav-list {
+.sidebar-nav-list {
   list-style: none;
   padding: 0;
   margin: 0;
   width: 100%;
 }
 
-.nav-item a {
+.sidebar-item-list a {
   display: flex;
   align-items: center;
   padding: 8px 12px;
@@ -79,35 +86,35 @@
   font-weight: 500;
 }
 
-.nav-item a:hover {
+.sidebar-item-list a:hover {
   background: #eef2ff;
 }
 
-.nav-item a.active {
+.sidebar-item-list a.active {
   background: #e0e7ff;
   color: #1a71f6;
   border-bottom: 1px solid #f2f4f8;
 }
 
-.nav-icon {
+.sidebar-icon {
   width: 24px;
   height: 24px;
 }
 
-.nav-label {
+.sidebar-label {
   margin-left: 10px;
   display: none;
 }
 
-.nav-sidebar.open .nav-label {
+.nav-sidebar.open .sidebar-label {
   display: inline;
 }
 
-.nav-sidebar.open .nav-profile {
+.nav-sidebar.open .sidebar-profile-details {
   display: flex;
 }
 
-.hamburger-inside {
+.sidebar-hamburger-inside {
   background: white;
   border: none;
   cursor: pointer;
@@ -123,7 +130,7 @@
 }
 
 
-.hamburger-outside {
+.sidebar-hamburger-outside {
   position: fixed;
   top: 16px;
   left: 16px;
@@ -154,7 +161,7 @@
     left: 0;
   }
 
-  .hamburger-outside {
+  .sidebar-hamburger-outside {
     display: block;
   }
 

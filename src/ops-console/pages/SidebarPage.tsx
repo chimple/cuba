@@ -36,9 +36,9 @@ const SidebarPage: React.FC = () => {
   return (
     <IonPage>
        <Router>
-        <div className="navbar-rightSide">
+        <div className="sidebarpage-rightSide">
             <Sidebar name={fullName} email={email} photo={imagePhoto}  />
-            <div className="navbar-render">
+            <div className="sidebarpage-render">
              <Switch>
                  <ProtectedRoute path={PAGES.ADMIN_DASHBOARD} exact={true}>              
                     <Dashboard />

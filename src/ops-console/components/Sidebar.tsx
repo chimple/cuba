@@ -42,35 +42,35 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
     <>
       
         {!isOpen && (
-            <button className="hamburger-outside" onClick={() => setIsOpen(true)}>
+            <button className="sidebar-hamburger-outside" onClick={() => setIsOpen(true)}>
             <MenuIcon />
             </button>
         )}
       <aside className={`nav-sidebar ${isOpen ? 'open' : ''}`}>
-        <button className="hamburger-inside" onClick={() => setIsOpen(!isOpen)}>
+        <button className="sidebar-hamburger-inside" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <CloseIcon /> : <MenuIcon />}
         </button>
 
-          <div className="nav-profile">
-            <img src={photo} alt="User" className="nav-avatar" />
-            <div className="nav-user-info">
+          <div className="sidebar-profile-details">
+            <img src={photo} alt="User" className="sidebar-avatar" />
+            <div className="sidebar-user-info">
               <h2>{name}</h2>
               <p>{email}</p>
             </div>
           </div>
 
-        <ul className="nav-list">
+        <ul className="sidebar-nav-list">
           {navItems.map(
             (item) =>
                (
-                <li key={item.label} className="nav-item">
+                <li key={item.label} className="sidebar-item-list">
                   <NavLink
                     to={item.route}
                     activeClassName="active"
                     onClick={() => window.innerWidth <= 768 && setIsOpen(false)}
                   >
-                    <span className="nav-icon">{item.icon}</span>
-                    {isOpen && <span className="nav-label">{item.label}</span>}
+                    <span className="sidebar-icon">{item.icon}</span>
+                    {isOpen && <span className="sidebar-label">{item.label}</span>}
                   </NavLink>
                 </li>
               )
