@@ -18,6 +18,7 @@ import {
   PROFILETYPE,
   STARS_COUNT,
   LATEST_STARS,
+  EVENTS,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -40,6 +41,7 @@ import { v4 as uuidv4 } from "uuid";
 import { RoleType } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
 import { Table } from "@mui/material";
+import { SupabaseAuth } from "../auth/SupabaseAuth";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -309,7 +311,22 @@ export class SqliteApi implements ServiceApi {
       console.error("🚀 ~ Api ~ syncDB ~ error:", error);
       await this.createSyncTables();
     }
-    const data = await SupabaseApi.i.getTablesData(tableNames, lastPullTables);
+    let data;
+    try {
+      data = await SupabaseApi.i.getTablesData(tableNames, lastPullTables);
+    } catch (err: any) {
+      const parent_user = await SupabaseAuth.i.getCurrentUser();
+      Util.logEvent(EVENTS.SYNCHING_ERROR, {
+        user_name: parent_user?.name || null,
+        user_id: parent_user?.id || null,
+        user_username: parent_user?.email || null,
+        rpc_fn_name: "not found",
+        table_name: "not found",
+        last_modified_date: "not found",
+        error_message: err || "Unknown error",
+      });
+      console.error("🚀 ~ Api ~ getTablesData ~ error:", err);
+    }
     const lastPulled = new Date().toISOString();
     let batchQueries: { statement: string; values: any[] }[] = [];
     for (const tableName of tableNames) {
@@ -394,9 +411,12 @@ export class SqliteApi implements ServiceApi {
         );
         console.log("🚀 ~ Api ~ pushChanges ~ isMutated:", mutate);
         if (!mutate || mutate.error) {
-          if(data.table_name === TABLES.Result &&  mutate?.error?.code === "23505"){}
-          else{
-            return false
+          if (
+            data.table_name === TABLES.Result &&
+            mutate?.error?.code === "23505"
+          ) {
+          } else {
+            return false;
           }
         }
         await this.executeQuery(
@@ -4400,29 +4420,26 @@ order by
       );
       return { status: "error", errors };
     }
-    
-    
+
     return { status: "success" };
   }
   async validateSchoolUdiseCode(
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }> {
-    const validatedData = await this._serverApi.validateSchoolUdiseCode(
-      schoolId,
-    );
+    const validatedData =
+      await this._serverApi.validateSchoolUdiseCode(schoolId);
     if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>
         typeof err === "string" ? err : err.message || JSON.stringify(err)
       );
       return { status: "error", errors };
     }
-    
-    
+
     return { status: "success" };
   }
   async validateClassNameWithSchoolID(
     schoolId: string,
-    className: string,
+    className: string
   ): Promise<{ status: string; errors?: string[] }> {
     const validatedData = await this._serverApi.validateClassNameWithSchoolID(
       schoolId,
@@ -4434,8 +4451,7 @@ order by
       );
       return { status: "error", errors };
     }
-    
-    
+
     return { status: "success" };
   }
 
@@ -4444,19 +4460,19 @@ order by
     className: string,
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }> {
-    const validatedData = await this._serverApi.validateStudentInClassWithoutPhone(
-      studentName,
-      className,
-      schoolId,
-    );
+    const validatedData =
+      await this._serverApi.validateStudentInClassWithoutPhone(
+        studentName,
+        className,
+        schoolId
+      );
     if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>
         typeof err === "string" ? err : err.message || JSON.stringify(err)
       );
       return { status: "error", errors };
     }
-    
-    
+
     return { status: "success" };
   }
 

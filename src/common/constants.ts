@@ -663,6 +663,7 @@ export enum EVENTS {
   PATHWAY_CREATED = "pathway_created",
   PATHWAY_COMPLETED = "pathway_completed",
   PATHWAY_COURSE_CHANGED = "pathway_course_changed",
+  SYNCHING_ERROR = "synching_error",
 }
 
 export const FCM_TOKENS = "fcmTokens";
