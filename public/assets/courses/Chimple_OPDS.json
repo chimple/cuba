@@ -20,14 +20,14 @@
             "@type": "http://schema.org/Game",
             "title": "Level 0",
             "author": "Curious Reader",
-            "identifier": "urn:uuid:ftm_AFRIKAANS_0",
+            "identifier": "urn:uuid:ftm_af_0",
             "language": "af",
             "modified": "2025-05-16T00:00:00Z"
           },
           "links": [
             {
               "rel": "http://opds-spec.org/acquisition/open-access",
-              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_AFRIKAANS_0",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_0",
               "type": "application/opds-publication+json"
             }
           ],
@@ -43,14 +43,14 @@
             "@type": "http://schema.org/Game",
             "title": "Level 1",
             "author": "Curious Reader",
-            "identifier": "urn:uuid:ftm_AFRIKAANS_1",
+            "identifier": "urn:uuid:ftm_af_1",
             "language": "af",
             "modified": "2025-05-16T00:00:00Z"
           },
           "links": [
             {
               "rel": "http://opds-spec.org/acquisition/open-access",
-              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_AFRIKAANS_1",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_1",
               "type": "application/opds-publication+json"
             }
           ],
@@ -66,14 +66,2521 @@
             "@type": "http://schema.org/Game",
             "title": "Level 2",
             "author": "Curious Reader",
-            "identifier": "urn:uuid:ftm_AFRIKAANS_2",
+            "identifier": "urn:uuid:ftm_af_2",
             "language": "af",
             "modified": "2025-05-16T00:00:00Z"
           },
           "links": [
             {
               "rel": "http://opds-spec.org/acquisition/open-access",
-              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_AFRIKAANS_2",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_2",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 3",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_3",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_3",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 4",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_4",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_4",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 5",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_5",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_5",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 6",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_6",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_6",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 7",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_7",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_7",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 8",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_8",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_8",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 9",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_9",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_9",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 10",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_10",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_10",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 11",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_11",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_11",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 12",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_12",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_12",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 13",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_13",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_13",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 14",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_14",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_14",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 15",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_15",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_15",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 16",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_16",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_16",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 17",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_17",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_17",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 18",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_18",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_18",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 19",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_19",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_19",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 20",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_20",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_20",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 21",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_21",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_21",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 22",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_22",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_22",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 23",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_23",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_23",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 24",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_24",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_24",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 25",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_25",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_25",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 26",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_26",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_26",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 27",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_27",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_27",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 28",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_28",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_28",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 29",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_29",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_29",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 30",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_30",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_30",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 31",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_31",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_31",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 32",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_32",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_32",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 33",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_33",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_33",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 34",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_34",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_34",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 35",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_35",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_35",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 36",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_36",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_36",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 37",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_37",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_37",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 38",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_38",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_38",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 39",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_39",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_39",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 40",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_40",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_40",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 41",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_41",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_41",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 42",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_42",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_42",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 43",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_43",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_43",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 44",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_44",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_44",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 45",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_45",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_45",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 46",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_46",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_46",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 47",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_47",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_47",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 48",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_48",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_48",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 49",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_49",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_49",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 50",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_50",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_50",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 51",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_51",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_51",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 52",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_52",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_52",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 53",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_53",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_53",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 54",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_54",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_54",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 55",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_55",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_55",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 56",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_56",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_56",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 57",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_57",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_57",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 58",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_58",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_58",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 59",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_59",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_59",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 60",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_60",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_60",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 61",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_61",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_61",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 62",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_62",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_62",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 63",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_63",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_63",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 64",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_64",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_64",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 65",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_65",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_65",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 66",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_66",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_66",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 67",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_67",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_67",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 68",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_68",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_68",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 69",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_69",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_69",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 70",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_70",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_70",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 71",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_71",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_71",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 72",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_72",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_72",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 73",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_73",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_73",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 74",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_74",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_74",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 75",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_75",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_75",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 76",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_76",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_76",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 77",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_77",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_77",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 78",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_78",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_78",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 79",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_79",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_79",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 80",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_80",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_80",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 81",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_81",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_81",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 82",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_82",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_82",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 83",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_83",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_83",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 84",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_84",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_84",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 85",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_85",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_85",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 86",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_86",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_86",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 87",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_87",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_87",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 88",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_88",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_88",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 89",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_89",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_89",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 90",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_90",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_90",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 91",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_91",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_91",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 92",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_92",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_92",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 93",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_93",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_93",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 94",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_94",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_94",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 95",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_95",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_95",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 96",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_96",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_96",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 97",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_97",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_97",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 98",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_98",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_98",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 99",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_99",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_99",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 100",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_100",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_100",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 101",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_101",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_101",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 102",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_102",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_102",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 103",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_103",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_103",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 104",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_104",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_104",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 105",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_105",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_105",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 106",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_106",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_106",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 107",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_107",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_107",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 108",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_108",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_108",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 109",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_109",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_109",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 110",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_110",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_110",
+              "type": "application/opds-publication+json"
+            }
+          ],
+          "images": [
+            {
+              "href": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/icons/DefaultIcon.png",
+              "type": "image/png"
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "@type": "http://schema.org/Game",
+            "title": "Level 111",
+            "author": "Curious Reader",
+            "identifier": "urn:uuid:ftm_af_111",
+            "language": "af",
+            "modified": "2025-05-16T00:00:00Z"
+          },
+          "links": [
+            {
+              "rel": "http://opds-spec.org/acquisition/open-access",
+              "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_af_111",
               "type": "application/opds-publication+json"
             }
           ],
