@@ -92,7 +92,6 @@ import LidoPlayer from "./pages/LidoPlayer";
 import UploadPage from "./ops-console/pages/UploadPage";
 import { initializeClickListener } from "./analytics/clickUtil";
 import { EVENTS } from "./common/constants";
-import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 import ResetPassword from "./pages/ResetPassword";
 import DisplayClasses from "./teachers-module/pages/DisplayClasses";
 import LessonDetails from "./teachers-module/pages/LessonDetails";
@@ -135,21 +134,6 @@ const USED_TIME_KEY = "usedTime";
 const LAST_ACCESS_DATE_KEY = "lastAccessDate";
 const IS_INITIALIZED = "isInitialized";
 let timeoutId: NodeJS.Timeout;
-
-const gb = new GrowthBook({
-  apiHost: "https://cdn.growthbook.io",
-  clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
-  enableDevMode: true,
-  trackingCallback: (experiment, result) => {
-    Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
-      experimentId: experiment.key,
-      variationId: result.key,
-    });
-  },
-});
-gb.init({
-  streaming: true,
-});
 
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
@@ -402,7 +386,6 @@ const App: React.FC = () => {
     }
   }
   return (
-    <GrowthBookProvider growthbook={gb}>
       <IonApp>
         <IonReactRouter basename={BASE_NAME}>
           <IonRouterOutlet>
@@ -627,7 +610,6 @@ const App: React.FC = () => {
           />
         </IonReactRouter>
       </IonApp>
-    </GrowthBookProvider>
   );
 };
 
