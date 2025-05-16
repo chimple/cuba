@@ -26,7 +26,7 @@
           },
           "links": [
             {
-              "rel": "/ftm_AFRIKAANS_0",
+              "rel": "http://opds-spec.org/acquisition/open-access",
               "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_AFRIKAANS_0",
               "type": "application/opds-publication+json"
             }
@@ -49,7 +49,7 @@
           },
           "links": [
             {
-              "rel": "/ftm_AFRIKAANS_1",
+              "rel": "http://opds-spec.org/acquisition/open-access",
               "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_AFRIKAANS_1",
               "type": "application/opds-publication+json"
             }
@@ -72,7 +72,7 @@
           },
           "links": [
             {
-              "rel": "/ftm_AFRIKAANS_2",
+              "rel": "http://opds-spec.org/acquisition/open-access",
               "href": "https://feedthemonsterdev.curiouscontent.org/topic/learningUnit1/?respectLaunchVersion=1&activity_id=ftm_AFRIKAANS_2",
               "type": "application/opds-publication+json"
             }
