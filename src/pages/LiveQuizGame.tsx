@@ -125,6 +125,7 @@ const LiveQuizGame: FC = () => {
     <IonPage>
       {paramLessonId ? (
         <div className="live-quiz-container">
+          <div className="live-quiz-top-div"></div>
           <div className="live-quiz-center-div">
             {paramLessonId && quizData && (
               <LiveQuizQuestion

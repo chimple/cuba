@@ -248,8 +248,6 @@ const Home: FC = () => {
     const classDoc = linkedData?.classes[0];
     if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
     if (student) await api.assignmentUserListner(student.id, () => {});
-
-    setGrowthbookAttributes([student, linkedData]);
     if (
       student != null &&
       !!linkedData &&
@@ -289,7 +287,27 @@ const Home: FC = () => {
       setPendingLiveQuizCount(liveQuizCount);
       setPendingAssignmentCount(assignmentCount);
       setPendingAssignments(allAssignments);
-
+      const courseCount = allAssignments.reduce((accumulator, current: any) => {
+        if (accumulator[current.course_id]) {
+          accumulator[current.course_id] += 1;
+        } else {
+          accumulator[current.course_id] = 1;
+        }
+        return accumulator;
+      }, {});
+      const result = Object.keys(courseCount).reduce((acc, courseId) => {
+        acc[`count_of_${courseId}`] = courseCount[courseId];
+        return acc;
+      }, {});
+      const attributeParams = {
+        studentDetails: student,
+        schools: linkedData.schools.map((item: any) => item.id),
+        classes: linkedData.classes.map((item: any) => item.id),
+        liveQuizCount: liveQuizCount,
+        assignmentCount: assignmentCount,
+        countOfPendingIds: result
+      }
+      setGrowthbookAttributes(attributeParams);
       setDataCourse(reqLes);
       // storeRecommendationsInLocalStorage(reqLes);
       // setIsLoading(true);
@@ -301,9 +319,7 @@ const Home: FC = () => {
   }
 
   const setGrowthbookAttributes = (student: any) => {
-    const studentDetails = student[0];
-    const studentClasses = student[1].classes.map((item: any) => item.id);
-    const studentSchools = student[1].schools.map((item: any) => item.id);
+    const {studentDetails, schools, classes, liveQuizCount, assignmentCount, countOfPendingIds} = student;
 
     growthbook.setAttributes({
       id: studentDetails.id,
@@ -313,9 +329,13 @@ const Home: FC = () => {
       gender: studentDetails.gender,
       parent_id: studentDetails.parent_id,
       subject_id: studentDetails.subject_id,
-      school_ids: studentSchools,
-      class_ids: studentClasses,
+      school_ids: schools,
+      class_ids: classes,
       language: localStorage.getItem("language") || "en",
+      stars: studentDetails.stars,
+      pending_live_quiz: liveQuizCount,
+      pending_assignments: assignmentCount,
+      ...countOfPendingIds,
     });
   };
 

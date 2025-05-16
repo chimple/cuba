@@ -403,6 +403,10 @@ export class SqliteApi implements ServiceApi {
           `DELETE FROM push_sync_info WHERE id = ? AND table_name = ?`,
           [data.id, data.table_name]
         );
+        await this.executeQuery(
+          `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
+          [data.table_name, new Date().toISOString()]
+        );
       }
     }
     return true;
@@ -4389,6 +4393,61 @@ order by
       studentName,
       className,
       phoneNumber
+    );
+    if (validatedData.status === "error") {
+      const errors = validatedData.errors?.map((err: any) =>
+        typeof err === "string" ? err : err.message || JSON.stringify(err)
+      );
+      return { status: "error", errors };
+    }
+    
+    
+    return { status: "success" };
+  }
+  async validateSchoolUdiseCode(
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const validatedData = await this._serverApi.validateSchoolUdiseCode(
+      schoolId,
+    );
+    if (validatedData.status === "error") {
+      const errors = validatedData.errors?.map((err: any) =>
+        typeof err === "string" ? err : err.message || JSON.stringify(err)
+      );
+      return { status: "error", errors };
+    }
+    
+    
+    return { status: "success" };
+  }
+  async validateClassNameWithSchoolID(
+    schoolId: string,
+    className: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    const validatedData = await this._serverApi.validateClassNameWithSchoolID(
+      schoolId,
+      className
+    );
+    if (validatedData.status === "error") {
+      const errors = validatedData.errors?.map((err: any) =>
+        typeof err === "string" ? err : err.message || JSON.stringify(err)
+      );
+      return { status: "error", errors };
+    }
+    
+    
+    return { status: "success" };
+  }
+
+  async validateStudentInClassWithoutPhone(
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const validatedData = await this._serverApi.validateStudentInClassWithoutPhone(
+      studentName,
+      className,
+      schoolId,
     );
     if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>

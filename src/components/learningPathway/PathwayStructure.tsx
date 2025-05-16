@@ -43,8 +43,13 @@ const PathwayStructure: React.FC = () => {
     if (height) image.setAttribute("height", `${height}`);
     if (x) image.setAttribute("x", `${x}`);
     if (y) image.setAttribute("y", `${y}`);
-    if (opacity !== undefined)
+    if (opacity !== undefined){
       image.setAttribute("opacity", opacity.toString());
+    }
+    // ✅ Add onerror fallback
+    image.onerror = () => {
+      image.setAttribute("href", "assets/icons/DefaultIcon.png");
+    };
     return image;
   };
 
@@ -220,8 +225,8 @@ const PathwayStructure: React.FC = () => {
                 history.replace(PAGES.GAME + params, {
                   url: "chimple-lib/index.html" + params,
                   lessonId: lesson.cocos_lesson_id,
-                  courseDocId: course?.id,
-                  course: JSON.stringify(course),
+                  courseDocId: course.course_id,
+                  // course: JSON.stringify(course),
                   lesson: JSON.stringify(lesson),
                   chapter: JSON.stringify({ chapter_id: lesson.chapter_id }),
                   from: history.location.pathname + `?continue=true`,
