@@ -2157,6 +2157,23 @@ export type Database = {
           updated_at: string | null
         }[]
       }
+      sql_get_live_quiz_rooms: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          assignment_id: string
+          class_id: string
+          course_id: string
+          created_at: string | null
+          id: string
+          is_deleted: boolean | null
+          lesson_id: string
+          participants: string[] | null
+          results: Json | null
+          school_id: string
+          starts_at: string
+          updated_at: string | null
+        }[]
+      }
       sql_get_lessons: {
         Args: { p_updated_at?: string }
         Returns: {
