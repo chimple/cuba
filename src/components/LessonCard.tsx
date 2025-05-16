@@ -291,7 +291,11 @@ const LessonCard: React.FC<{
                   (isRespectApp ? ".png" : ".webp")
                 }
                 defaultSrc={"assets/icons/DefaultIcon.png"}
-                webSrc={lesson.image || "assets/icons/DefaultIcon.png"}
+                webSrc={
+                  lesson.image && lesson.image.trim() !== ""
+                  ? lesson.image
+                  : `https://media.githubusercontent.com/media/chimple/chimple/refs/heads/master/assets/courses/${lesson.cocos_subject_code}/${lesson.cocos_subject_code}/res/icons/${lesson.cocos_lesson_id}.png`
+                }
                 imageWidth={"60%"}
                 imageHeight={"auto"}
               />
