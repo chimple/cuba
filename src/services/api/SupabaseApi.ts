@@ -386,8 +386,8 @@ export class SupabaseApi implements ServiceApi {
               .select("*")
               .gte("updated_at", lastModifiedDate);
           }
-            data.set(tableName, res?.data ?? []);
         }
+        data.set(tableName, res?.data ?? []);
     }
     return data;
   }
