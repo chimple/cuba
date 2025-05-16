@@ -41,6 +41,7 @@ import { v4 as uuidv4 } from "uuid";
 import i18n from "../../i18n";
 import { Statement } from "tincants";
 import { Agent, Verb, Activity, ActivityDefinition, Context, ContextActivities, Score } from "tincants";
+import { image } from "ionicons/icons";
 
 interface IGetStudentResultStatement {
   agent: {
@@ -453,7 +454,6 @@ export class OneRosterApi implements ServiceApi {
 
         const getLessonData = courseJson.groups
         console.log("getLesson : ", getLessonData);
-
         for (const group of getLessonData) {
           for (const lesson of group.navigation) {
             if (lesson.id === id) {
@@ -467,7 +467,7 @@ export class OneRosterApi implements ServiceApi {
                 color: lesson.color || null,
                 created_at: "",
                 created_by: null,
-                image: lesson.thumbnail || null,
+                image: lesson.thumbnail,
                 is_deleted: null,
                 language_id: lesson.language || null,
                 outcome: lesson.outcome,
@@ -789,7 +789,7 @@ export class OneRosterApi implements ServiceApi {
         (group: any) => ({
           id: group.metadata.id,
           name: group.metadata.title,
-          image: group.metadata.thumbnail || "",
+          image: `https://media.githubusercontent.com/media/chimple/chimple/refs/heads/master/assets/courses/${group.metadata.id.replace(/_.*/, "")}/${group.metadata.id.replace(/_.*/, "")}/res/icons/${group.metadata.id.replace(/_/g, "")}.png`,
           course_id: courseId,
           created_at: null,
           updated_at: null,
@@ -921,7 +921,7 @@ export class OneRosterApi implements ServiceApi {
               curriculum_id: metaC.curriculum,
               description: null,
               grade_id: metaC.grade,
-              image: metaC.image || null,
+              image: `https://media.githubusercontent.com/media/chimple/chimple/refs/heads/master/assets/courses/${metaC.courseCode.split("_")[0]}/${metaC.courseCode.split("_")[0]}/res/icons/${metaC.courseCode.split("_")[0]}.png`,
               is_deleted: false,
               sort_index: metaC.sortIndex,
               subject_id: metaC.subjectId,
