@@ -65,7 +65,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment, assign
     try {
       const all = await getPendingAssignments(classId, studentId);
       const pending = all.filter((a) => a.type !== LIVE_QUIZ);
-      console.log("pending: ", pending.length)
+      setAssignments(pending);
       assignmentCount(pending.length);
     } catch (error) {
       console.error("Failed to load pending assignments:", error);
