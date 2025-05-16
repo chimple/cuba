@@ -25,7 +25,6 @@ import {
 } from "@supabase/supabase-js";
 import { RoleType } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
-import { SupabaseAuth } from "../auth/SupabaseAuth";
 import { ServiceConfig } from "../ServiceConfig";
 
 export class SupabaseApi implements ServiceApi {

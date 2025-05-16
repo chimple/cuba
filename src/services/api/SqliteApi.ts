@@ -18,7 +18,6 @@ import {
   PROFILETYPE,
   STARS_COUNT,
   LATEST_STARS,
-  EVENTS,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -41,7 +40,6 @@ import { v4 as uuidv4 } from "uuid";
 import { RoleType } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
 import { Table } from "@mui/material";
-import { SupabaseAuth } from "../auth/SupabaseAuth";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
