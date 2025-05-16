@@ -380,6 +380,12 @@ export class SupabaseApi implements ServiceApi {
             });
             break;
           }
+          case TABLES.Live_quiz_room: {
+            res = await this.supabase?.rpc("sql_get_live_quiz_rooms", {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
           default:
             res = await this.supabase
               ?.from(tableName)
