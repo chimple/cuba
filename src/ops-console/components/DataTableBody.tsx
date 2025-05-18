@@ -4,14 +4,16 @@ import {
     TableHead, TableRow, Paper, TableSortLabel
 } from '@mui/material';
 
-export interface Column {
-    key: string;
-    label: string;
-    align?: 'left' | 'right' | 'center' | 'justify' | 'inherit';
+export interface Column<T> {
+  key: keyof T;
+  label: string;
+  align?: 'left' | 'right' | 'center' | 'justify' | 'inherit';
+  render?: (row: T) => React.ReactNode;  // custom render receives whole row
+  [key: string]: any; // allow extra props if needed
 }
 
 interface Props {
-    columns: Column[];
+     columns: Record<string, any>[];
     rows: Record<string, any>[];
     orderBy: string | null;
     order: 'asc' | 'desc';

@@ -1,17 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import DataTableBody, { Column } from '../components/DataTableBody';
 import DataTablePagination from '../components/DataTablePagination';
-import { useDataTableLogic } from '../components/useDataTableLogic';
-import { Box, Chip, Typography, Button, Skeleton } from '@mui/material';
+import { useDataTableLogic } from '../OpsUtility/useDataTableLogic';
+import { Box, Chip, Typography, Button, Skeleton, CircularProgress } from '@mui/material';
 import './ProgramPage.css';
 import FilterSlider from '../components/FilterSlider';
 import SelectedFilters from '../components/SelectedFilters';
 import SearchAndFilter from '../components/SearchAndFilter';
 import HeaderTab from '../components/HeaderTab';
 import { Add } from '@mui/icons-material';
-import { SupabaseApi } from '../../services/api/SupabaseApi';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { t } from 'i18next';
 
-const columns: Column[] = [
+type ProgramRow = {
+  programName: any;
+  institutes: any;
+  students: any;
+  devices: any;
+  manager: any;
+};
+
+const columns: Column<ProgramRow>[] = [
   { key: 'programName', label: 'Program Name', align: 'left' },
   { key: 'institutes', label: 'No of Institutes', align: 'left' },
   { key: 'students', label: 'No of Students', align: 'left' },
@@ -26,7 +35,11 @@ const tabOptions = [
   { label: 'Hybrid' },
 ];
 
+
+
 const ProgramsPage: React.FC = () => {
+  const api = ServiceConfig.getI().apiHandler;
+  const auth = ServiceConfig.getI().authHandler;
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<Record<string, string[]>>({
     partner: [],
@@ -45,13 +58,24 @@ const ProgramsPage: React.FC = () => {
   const [loadingFilters, setLoadingFilters] = useState(false);
   const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>({});
 
-  const tab = tabOptions[activeTab].label.toLowerCase().replace(' ', '_') as 'all' | 'at_school' | 'at_home' | 'hybrid';
+type TabType = 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+
+const tabMap: Record<string, TabType> = {
+  'All Programs': 'ALL',
+  'At School': 'AT SCHOOL',
+  'At Home': 'AT HOME',
+  'Hybrid': 'HYBRID',
+};
+
+const tab: TabType | undefined = tabMap[tabOptions[activeTab].label];
 
   useEffect(() => {
+
     const fetchFilterOptions = async () => {
       try {
         setLoadingFilters(true);
-        const response = await SupabaseApi.i.getProgramFilterOptions();
+        //  const response = await SupabaseApi.i.getProgramFilterOptions();
+        const response = await api.getProgramFilterOptions();
         setFilterOptions(response);
       } catch (error) {
         console.error('Failed to fetch filter options:', error);
@@ -64,37 +88,48 @@ const ProgramsPage: React.FC = () => {
 
   useEffect(() => {
     const fetchPrograms = async () => {
+      const user = await auth.getCurrentUser();
+      const currentUserId = user?.id;
       setLoadingPrograms(true);
       try {
-        const { data } = await SupabaseApi.i.getPrograms({ filters, searchTerm, tab });
+        
+        const currentUserId = user?.id;
+        if (!currentUserId) {
+          setPrograms([]);
+          return;
+        }
+        // const { data } = await SupabaseApi.i.getPrograms({ currentUserId, filters, searchTerm, tab });
+        const { data } = await api.getPrograms({currentUserId, filters, searchTerm, tab });
+        console.log('Fetched programs:', data);
         setPrograms(data);
       } catch (error) {
         console.error('Failed to fetch programs:', error);
       } finally {
+        setPage(1);
         setLoadingPrograms(false);
       }
     };
     fetchPrograms();
   }, [filters, searchTerm, tab]);
-
- const transformedRows = programs.map((row) => ({
-  programName: {
-    value: row.name,
-    render: (
-      <Box display="flex" flexDirection="column" justifyContent='start' alignItems='left'>
-        <Typography variant="subtitle2">{row.name}</Typography>
-        <Typography variant="body2" color="text.secondary">{row.state}</Typography>
-      </Box>
-    ),
-  },
-  institutes: row.institutes_count ?? 0,
-  students: row.students_count ?? 0,
-  devices: {
-    value: row.devices_count ?? 0,
-    render: <Chip label={row.devices_count ?? 0} size="small" />,
-  },
-  manager: row.program_manager,
-}));
+ 
+  const transformedRows = programs.map((row) => ({
+    programName: {
+      value: row.name,
+      render: (
+        <Box display="flex" flexDirection="column" justifyContent='start' alignItems='left'>
+          <Typography variant="subtitle2">{row.name}</Typography>
+          <Typography variant="body2" color="text.secondary">{row.state}</Typography>
+        </Box>
+      ),
+    },
+    institutes: row.institutes_count ?? 0,
+    students: row.students_count ?? 0,
+    devices: {
+      value: row.devices_count ?? 0,
+      render: <Chip label={row.devices_count ?? 0} size="small" />,
+    },
+    manager: row.manager_names,
+  }));
 
   const {
     orderBy,
@@ -149,7 +184,7 @@ const ProgramsPage: React.FC = () => {
 
   return (
     <div className="program-page">
-      <div className="program-page-header">Programs</div>
+      <div className="program-page-header">{t("Programs")}</div>
 
       <div className="program-header-and-search-filter">
         <div className="program-search-filter">
@@ -157,17 +192,19 @@ const ProgramsPage: React.FC = () => {
           <div className="program-button-and-search-filter">
             <Button
               variant="outlined"
-              onClick={() => {}}
+              onClick={() => { }}
               sx={{ borderColor: 'transparent', borderRadius: 20, boxShadow: 3, height: '48px' }}
             >
-              <Add /> New Program
+              <Add /> {t("New Program")}
             </Button>
-            <SearchAndFilter
+            {loadingFilters ? (<CircularProgress />
+            ) : (<SearchAndFilter
               searchTerm={searchTerm}
               onSearchChange={handleSearchChange}
               filters={filters}
               onFilterClick={onFilterClick}
-            />
+            />)
+            }
           </div>
         </div>
 
