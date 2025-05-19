@@ -1,25 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { PAGES } from "../../common/constants";
+import { PAGES, TableTypes } from "../../common/constants";
 import { IonPage } from "@ionic/react";
 import Sidebar from "../components/Sidebar";
 import Dashboard from "../components/Dashboard";
-import { BrowserRouter as Router, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Switch } from "react-router-dom";
 import ProtectedRoute from "../../ProtectedRoute";
-import './SidebarPage.css';
+import "./SidebarPage.css";
 import { ServiceConfig } from "../../services/ServiceConfig";
 
-interface UserInfo {
-  fullName: string;
-  email: string;
-  imagePhoto: string;
-}
-
 const SidebarPage: React.FC = () => {
-  const [user, setUser] = useState<UserInfo>({
-    fullName: "",
-    email: "",
-    imagePhoto: ""
-  });
+  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -27,19 +17,16 @@ const SidebarPage: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const currentUser = await ServiceConfig.getI()?.authHandler.getCurrentUser();
-      if (!currentUser) {
+      const user = await ServiceConfig.getI()?.authHandler.getCurrentUser();
+      if (!user) {
         console.error("No user is logged in.");
         return;
       }
+      
+      setCurrentUser(user);
 
-      setUser({
-        fullName: currentUser.name || "",
-        email: currentUser.email || currentUser.phone || "",
-        imagePhoto: currentUser.image || ""
-      });
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching user data:", error);
     }
   };
 
@@ -48,9 +35,9 @@ const SidebarPage: React.FC = () => {
       <Router>
         <div className="sidebarpage-rightSide">
           <Sidebar
-            name={user.fullName}
-            email={user.email}
-            photo={user.imagePhoto}
+            name={currentUser?.name || ""}
+            email={currentUser?.email || ""}
+            photo={currentUser?.image || ""}
           />
           <div className="sidebarpage-render">
             <Switch>
