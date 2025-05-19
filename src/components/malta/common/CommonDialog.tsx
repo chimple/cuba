@@ -25,20 +25,16 @@ const CommonDialog: FC<CommonDialogProps> = ({ alertMsg, ionIcon }) => {
           {
             text: "Cancel",
             role: "cancel",
-            handler: () => {
-              console.log("Alert canceled");
-            },
+            handler: () => {},
           },
           {
             text: "OK",
             role: "confirm",
-            handler: () => {
-              console.log("Alert confirmed");
-            },
+            handler: () => {},
           },
         ]}
         onDidDismiss={({ detail }) =>
-          console.log(`Dismissed with role: ${detail.role}`)
+          {}
         }
       ></IonAlert>
     </>

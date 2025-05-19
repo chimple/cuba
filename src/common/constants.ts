@@ -167,6 +167,16 @@ export enum TABLESORTBY {
   LOWSCORE = "Low Score",
 }
 
+export enum FileUploadStep {
+  Idle = "idle",
+  Verifying = "verifying",
+  Verified = "verified",
+  Uploading = "uploading",
+  Uploaded = "uploaded",
+  Error = "error",
+  UploadError = "uploadError",
+}
+
 export const belowGrade1 = "30ecb762-8e63-45b3-a22a-62c1a9f71641";
 export const grade1 = "c802dce7-0840-4baf-b374-ef6cb4272a76";
 export const grade2 = "36e7ff1f-34d6-42ac-9294-3192433ace40";
@@ -505,6 +515,7 @@ export const CURRENT_TEACHER = "currentTeacher";
 export const CURRENT_COURSE = "currentCourse";
 export const NAVIGATION_STATE = "navigationState";
 export const STARS_COUNT = "starsCount";
+export const LATEST_STARS = "latestStar";
 
 export enum IconType {
   SCHOOL = "school",
@@ -559,7 +570,7 @@ export enum GENDER {
   OTHER = "unspecified",
 }
 
-export const REFRESH_TABLES_ON_LOGIN :TABLES[] =[
+export const REFRESH_TABLES_ON_LOGIN: TABLES[] = [
   TABLES.School,
   TABLES.Live_quiz_room,
   TABLES.Class,
@@ -579,8 +590,8 @@ export const REFRESH_TABLES_ON_LOGIN :TABLES[] =[
   TABLES.Assignment_user,
   TABLES.Result,
   TABLES.Assignment_cart,
-  TABLES.ReqNewSchool
-]
+  TABLES.ReqNewSchool,
+];
 
 export const AVATARS: string[] = [
   "Aligator",
@@ -669,6 +680,10 @@ export enum EVENTS {
   USER_PROFILE = "user_profile",
   CLICKS_ANALYTICS = "clicks_analytics",
   EXPERIMENT_VIEWED = "experiment_viewed",
+  PATHWAY_CREATED = "pathway_created",
+  PATHWAY_COMPLETED = "pathway_completed",
+  PATHWAY_COURSE_CHANGED = "pathway_course_changed",
+  SYNCHING_ERROR = "synching_error",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -777,3 +792,4 @@ export const LidoGameCompletedKey = "lidoGameCompleted";
 export const LidoGameExitKey = "lidoGameExit";
 export const QUIZ_POPUP_SHOWN = "quizPopupShown";
 export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
+export const SCHOOL_LOGIN = "schoolLogin";

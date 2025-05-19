@@ -31,10 +31,16 @@ const TressureBox: React.FC<TressureBoxProps> = ({
       current += direction;
       setCurrentNumber(current);
 
-      if (current === endNumber) {
-        clearInterval(interval);
-        setIsConfettiVisible(false);
-        setIsUpdating(false);
+      try {
+        if (current === endNumber) {
+          if (interval) clearInterval(interval);
+          setTimeout(() => {
+            setIsConfettiVisible(false);
+            setIsUpdating(false);
+          }, 600);
+        }
+      } catch (error) {
+        console.error("Error in updating number:", error);
       }
     };
     updateNumber();
@@ -47,10 +53,13 @@ const TressureBox: React.FC<TressureBoxProps> = ({
     const container = containerRef.current;
     if (!container) return;
 
-    const targetScrollTop =
-      (currentNumber - minNum) * itemHeight -
-      container.clientHeight / 2 +
-      itemHeight / 2;
+    const totalItems = maxNum - minNum + 1;
+    const targetIndex = currentNumber - minNum;
+    const rawTarget =
+      targetIndex * itemHeight - container.clientHeight / 2 + itemHeight / 2;
+
+    const maxScrollTop = totalItems * itemHeight - container.clientHeight;
+    const targetScrollTop = Math.min(rawTarget, maxScrollTop);
 
     const start = container.scrollTop;
     const distance = targetScrollTop - start;

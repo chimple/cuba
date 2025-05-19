@@ -37,7 +37,6 @@ export const initializeFireBase = async () => {
 
   if (deviceInfo.platform === "web") {
     FirebaseAnalytics.initializeFirebase(firebaseConfig);
-    console.log("Web firebase analytics initialized", FirebaseAnalytics);
   }
 
 };

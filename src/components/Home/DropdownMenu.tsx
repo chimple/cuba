@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef, useState } from "react";
 import './DropdownMenu.css';
-import { TableTypes } from '../../common/constants';
+import { EVENTS, TableTypes } from '../../common/constants';
 import SelectIconImage from '../displaySubjects/SelectIconImage';
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
@@ -64,11 +64,63 @@ const DropdownMenu: FC = () => {
     if (!currentStudent || !currentStudent.learning_path) return;
 
     const learningPath = JSON.parse(currentStudent.learning_path);
+    const prevCourseId =
+      learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+        .course_id;
+    const prevLessonId =
+      learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+        .path[
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .currentIndex
+      ].lesson_id;
+    const prevChapterId =
+      learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+        .path[
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .currentIndex
+      ].chapter_id;
+      const prevPathId =
+      learningPath.courses.courseList[
+          learningPath.courses.currentCourseIndex
+          ].path_id;
+      
     learningPath.courses.currentCourseIndex = index;
 
     await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
-    await Util.setCurrentStudent({ ...currentStudent, learning_path: JSON.stringify(learningPath) }, undefined);
+    await Util.setCurrentStudent(
+      { ...currentStudent, learning_path: JSON.stringify(learningPath) },
+      undefined
+    );
 
+    const eventData = {
+      user_id: currentStudent.id,
+      current_path_id:          
+        learningPath.courses.courseList[
+          learningPath.courses.currentCourseIndex
+          ].path_id, 
+      current_course_id:
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .course_id,
+      current_lesson_id:
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path[
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].currentIndex
+        ].lesson_id,
+      current_chapter_id:
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path[
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].currentIndex
+        ].chapter_id,
+      prev_path_id: prevPathId,
+      prev_course_id: prevCourseId,
+      prev_lesson_id: prevLessonId,
+      prev_chapter_id: prevChapterId,
+    };
+   await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, eventData);
     // Dispatch event
     const event = new CustomEvent("courseChanged", { detail: { currentStudent } });
     window.dispatchEvent(event);
@@ -90,7 +142,7 @@ const DropdownMenu: FC = () => {
     <div className="dropdown-main">
       <div
         className={`dropdown-container ${expanded ? "expanded" : ""}`}
-        onClick={() => setExpanded(prev => !prev)}
+        onClick={() => setExpanded((prev) => !prev)}
       >
         <div className="dropdown-left">
           {!expanded && selected && (

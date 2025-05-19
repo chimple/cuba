@@ -43,8 +43,13 @@ const PathwayStructure: React.FC = () => {
     if (height) image.setAttribute("height", `${height}`);
     if (x) image.setAttribute("x", `${x}`);
     if (y) image.setAttribute("y", `${y}`);
-    if (opacity !== undefined)
+    if (opacity !== undefined){
       image.setAttribute("opacity", opacity.toString());
+    }
+    // ✅ Add onerror fallback
+    image.onerror = () => {
+      image.setAttribute("href", "assets/icons/DefaultIcon.png");
+    };
     return image;
   };
 
@@ -123,6 +128,11 @@ const PathwayStructure: React.FC = () => {
           const flowerX = point.x - 40;
           const flowerY = point.y - 40;
           const x = xValues[idx] ?? 0;
+          const isValidUrl = (url: string) =>
+            typeof url === "string" && /^(https?:\/\/|\/)/.test(url);
+          const lesson_image = isValidUrl(lesson.image)
+            ? lesson.image
+            : "assets/icons/DefaultIcon.png";
 
           // Define x and y mappings for playedLesson positioning
           const playedLessonXValues = [
@@ -149,18 +159,7 @@ const PathwayStructure: React.FC = () => {
               "http://www.w3.org/2000/svg",
               "g"
             );
-            const lessonImage = createSVGImage(
-              lesson.image ||
-                "courses/" +
-                  lesson.cocos_subject_code +
-                  "/icons/" +
-                  lesson.id +
-                  ".webp",
-              17,
-              17,
-              34,
-              35
-            );
+            const lessonImage = createSVGImage(lesson_image, 30, 30, 28, 30);
             playedLesson.appendChild(
               playedLessonSVG.cloneNode(true) as SVGGElement
             );
@@ -211,18 +210,7 @@ const PathwayStructure: React.FC = () => {
               60,
               30
             );
-            const lessonImage = createSVGImage(
-              lesson.image ||
-                "courses/" +
-                  lesson.cocos_subject_code +
-                  "/icons/" +
-                  lesson.id +
-                  ".webp",
-              23,
-              23,
-              43,
-              43
-            );
+            const lessonImage = createSVGImage(lesson_image, 30, 30, 40, 40);
             activeGroup.appendChild(halo);
             activeGroup.appendChild(
               flowerActive.cloneNode(true) as SVGGElement
@@ -237,12 +225,12 @@ const PathwayStructure: React.FC = () => {
                 history.replace(PAGES.GAME + params, {
                   url: "chimple-lib/index.html" + params,
                   lessonId: lesson.cocos_lesson_id,
-                  courseDocId: course?.id,
-                  course: JSON.stringify(course),
+                  courseDocId: course.course_id,
+                  // course: JSON.stringify(course),
                   lesson: JSON.stringify(lesson),
                   chapter: JSON.stringify({ chapter_id: lesson.chapter_id }),
                   from: history.location.pathname + `?continue=true`,
-                  learning_path:true
+                  learning_path: true,
                 });
               }
             });
@@ -261,18 +249,7 @@ const PathwayStructure: React.FC = () => {
               "http://www.w3.org/2000/svg",
               "g"
             );
-            const lessonImage = createSVGImage(
-              lesson.image ||
-                "courses/" +
-                  lesson.cocos_subject_code +
-                  "/icons/" +
-                  lesson.id +
-                  ".webp",
-              20,
-              20,
-              26,
-              28
-            );
+            const lessonImage = createSVGImage(lesson_image, 30, 30, 21, 23);
             flower_Inactive.appendChild(
               flowerInactive.cloneNode(true) as SVGGElement
             );
@@ -355,7 +332,7 @@ const PathwayStructure: React.FC = () => {
             }, 900);
 
             setTimeout(() => {
-              const text = t("Complete these 5 lessons to earn rewards");
+              const text = t("Complete these lessons to earn rewards");
               setModalText(text);
               setModalOpen(true);
               replaceGiftContent(giftSVG);

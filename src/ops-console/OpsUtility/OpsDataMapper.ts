@@ -49,7 +49,7 @@ export const generateFinalPayload = (
                   row["SCHOOL COORDINATOR PHONE NUMBER OR EMAIL ID"]
                     ?.toString()
                     .trim() || "",
-                role: "school_coordinator",
+                role: "coordinator",
               }
             : null,
         programs: [],

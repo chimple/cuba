@@ -6,6 +6,7 @@ import {
   LidoActivityChangeKey,
   LidoActivityEndKey,
   LidoGameCompletedKey,
+  LidoGameExitKey,
   LidoLessonEndKey,
   LidoNextContainerKey,
   PAGES,
@@ -23,16 +24,19 @@ const LidoPlayer: FC = () => {
   const history = useHistory();
   const [present] = useIonToast();
   const state = history.location.state as any;
+  const playedFrom = localStorage.getItem("currentHeader")
+  const assignmentType = state?.assignment?.type || 'self-played';
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [basePath, setBasePath] = useState<string>();
   const [xmlPath, setXmlPath] = useState<string>();
 
+  const urlSearchParams = new URLSearchParams(window.location.search);
+  const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
+
   const onNextContainer = (e: any) => {
-    console.log("nextContainer", e.detail);
   };
 
   const gameCompleted = (e: any) => {
-    console.log("gameCompleted", e.detail);
     push();
   };
 
@@ -41,7 +45,6 @@ const LidoPlayer: FC = () => {
     Util.setPathToBackButton(fromPath, history);
   };
   const onActivityEnd = (e: any) => {
-    console.log("onActivityEnd", e.detail.score);
     // push();
   };
   const courseDetail: TableTypes<"course"> = state.course
@@ -50,8 +53,11 @@ const LidoPlayer: FC = () => {
   const chapterDetail: TableTypes<"chapter"> = state.chapter
     ? JSON.parse(state.chapter)
     : undefined;
+  const lessonDetail: TableTypes<"lesson"> = state.lesson
+    ? JSON.parse(state.lesson)
+    : undefined;
+
   const onLessonEnd = async (e: any) => {
-    console.log("onLessonEnd", e.detail.score);
     const lessonData = e.detail;
 
     const api = ServiceConfig.getI().apiHandler;
@@ -142,8 +148,9 @@ const LidoPlayer: FC = () => {
       game_time_spent: data.gameTimeSpent,
       quiz_time_spent: data.quizTimeSpent,
       score: data.score,
+      played_from: playedFrom,
+      assignment_type: assignmentType,
     });
-    console.log("🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:", result);
     let tempAssignmentCompletedIds = localStorage.getItem(
       ASSIGNMENT_COMPLETED_IDS
     );
@@ -162,9 +169,46 @@ const LidoPlayer: FC = () => {
       JSON.stringify(assignmentCompletedIds)
     );
   };
+  const onGameExit = (e: any) => {
+    console.log("onGameExit", e.detail);
+    const api = ServiceConfig.getI().apiHandler;
+    const lessonData = e.detail;
+
+    const data = lessonData;
+    Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
+      user_id: api.currentStudent!.id,
+      // assignment_id: lessonDetail.assignment?.id,
+      left_game_no: data.currentGameNumber,
+      left_game_name: data.gameName,
+      chapter_id: data.chapterId,
+      chapter_name: chapterDetail?.name ?? "",
+      lesson_id: data.lessonId,
+      lesson_name: lessonDetail.name,
+      lesson_type: data.lessonType,
+      lesson_session_id: data.lessonSessionId,
+      ml_partner_id: data.mlPartnerId,
+      ml_class_id: data.mlClassId,
+      ml_student_id: data.mlStudentId,
+      course_id: data.courseId,
+      course_name: courseDetail?.name ?? "",
+      time_spent: data.timeSpent,
+      total_moves: data.totalMoves,
+      total_games: data.totalGames,
+      correct_moves: data.correctMoves,
+      wrong_moves: data.wrongMoves,
+      game_score: data.gameScore,
+      quiz_score: data.quizScore,
+      game_completed: data.gameCompleted,
+      quiz_completed: data.quizCompleted,
+      game_time_spent: data.gameTimeSpent,
+      quiz_time_spent: data.quizTimeSpent,
+    });
+    push();
+  };
 
   useEffect(() => {
     init();
+    window.addEventListener(LidoGameExitKey, onGameExit);
     window.addEventListener(LidoNextContainerKey, onNextContainer);
     window.addEventListener(LidoGameCompletedKey, gameCompleted);
     window.addEventListener(LidoActivityChangeKey, onActivityEnd);
@@ -173,6 +217,7 @@ const LidoPlayer: FC = () => {
       //   setCurrentIndex(e.detail.index);
     });
     return () => {
+      window.addEventListener(LidoGameExitKey, onGameExit);
       window.removeEventListener(LidoNextContainerKey, onNextContainer);
       window.removeEventListener(LidoGameCompletedKey, gameCompleted);
       window.removeEventListener(LidoActivityChangeKey, onActivityEnd);
@@ -202,16 +247,13 @@ const LidoPlayer: FC = () => {
     setIsLoading(true);
     const urlSearchParams = new URLSearchParams(window.location.search);
     const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
-    console.log("🚀 ~ init ~ lessonId:", lessonId);
     const lessonIds: string[] = [lessonId];
-    console.log("cocosGame page lessonIds", lessonIds);
     const dow = await Util.downloadZipBundle(lessonIds);
     if (!dow) {
       presentToast();
       push();
       return;
     }
-    console.log("download ", dow);
     if (Capacitor.isNativePlatform()) {
       const path = await Util.getLessonPath(lessonId);
       setBasePath(path);
