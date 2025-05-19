@@ -775,5 +775,11 @@
   "Your profile is not registered to any school.": "Your profile is not registered to any school.",
   "Your progress stays synced and consistent across all devices.": "Your progress stays synced and consistent across all devices.",
   "Zebra": "Zebra",
-  "Specials": "Specials"
+  "Specials": "Specials",
+  "Dashboard": "Dashboard",
+  "Programs": "Programs",
+  "Campaigns": "Campaigns",
+  "Devices": "Devices",
+  "Resources": "Resources"
+
 }

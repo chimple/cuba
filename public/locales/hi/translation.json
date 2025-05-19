@@ -785,5 +785,11 @@
   "Your profile is not registered to any school.": "आपका प्रोफ़ाइल किसी भी विद्यालय में पंजीकृत नहीं है|",
   "Your progress stays synced and consistent across all devices.": "आपकी प्रगति सभी डिवाइसों पर समन्वयित और सुसंगत रहती है।",
   "Zebra": "ज़ेबरा",
-  "Specials" : "स्पेशल"
+  "Specials" : "स्पेशल",
+  "Dashboard" : "डैशबोर्ड",
+  "Programs": "प्रोग्राम",
+  "Campaigns": "अभियान",
+  "Devices": "उपकरण",
+  "Resources": "संसाधन"
+
 }
