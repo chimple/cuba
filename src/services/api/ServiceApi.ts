@@ -1331,4 +1331,21 @@ export interface ServiceApi {
    */
   insertProgram(payload: any, id?: string): Promise<boolean | null>
 
+
+  /**
+   * Get all program managers
+   */
+  getProgramManagers(): Promise<string[]>;
+
+  /**
+   * Get unique geo data
+   */
+  getUniqueGeoData(): Promise<{
+    Country: string[];
+    State: string[];
+    Block: string[];
+    Cluster: string[];
+    District: string[];
+  }>;
+
 }

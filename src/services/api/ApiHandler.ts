@@ -1042,4 +1042,16 @@ export class ApiHandler implements ServiceApi {
   public async insertProgram(payload: any): Promise<boolean | null> {
     return await this.s.insertProgram(payload);
   }
+  public async getProgramManagers(): Promise<string[]>{
+    return await this.s.getProgramManagers();
+  }
+  public async getUniqueGeoData(): Promise<{
+    Country: string[];
+    State: string[];
+    Block: string[];
+    Cluster: string[];
+    District: string[];
+  }>{
+    return await this.s.getUniqueGeoData();
+  }
 }

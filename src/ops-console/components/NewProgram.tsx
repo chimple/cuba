@@ -1,22 +1,5 @@
-import React, { useState } from 'react';
-import {
-  Box,
-  Grid,
-  TextField,
-  Typography,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
-  Checkbox,
-  FormControlLabel,
-  Container,
-  Paper,
-  InputAdornment,
-  IconButton,
-  Button,
-  FormHelperText,
-} from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Box, Grid, TextField, Typography, MenuItem, Select, InputLabel, FormControl, Checkbox, FormControlLabel, Container, Paper, InputAdornment, IconButton, Button, FormHelperText, ListItemText, } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -24,148 +7,99 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import { ServiceConfig } from '../../services/ServiceConfig';
-
-
-
-// geoData will change later, added now for test
-const geoData = {
-  Country: ['Country 1', 'Country 2'],
-  State: ['State A', 'State B'],
-  Block: ['Block X', 'Block Y'],
-  Cluster: ['Cluster Alpha', 'Cluster Beta'],
-  Village: ['Village One', 'Village Two'],
-};
+import { useHistory } from 'react-router-dom';
+import { PAGES, TABLES } from '../../common/constants';
 
 const NewProgram: React.FC = () => {
-  // Partners
-  const [partners, setPartners] = useState({
-    implementation: '',
-    funding: '',
-    institute: '',
-  });
-
-  // Program Name
+  const [partners, setPartners] = useState({ implementation: '', funding: '', institute: '', });
   const [programName, setProgramName] = useState('');
-
-  // Location dropdown selections
-  const [locations, setLocations] = useState({
-    Country: '',
-    State: '',
-    Block: '',
-    Cluster: '',
-    Village: '',
-  });
-
-  // Program Type
-  const [programType, setProgramType] = useState('Learning Centers');
-
-  // Model checkboxes (multi-select)
+  const [locations, setLocations] = useState({ Country: '', State: '', District: '', Block: '', Cluster: '', });
+  const [programType, setProgramType] = useState('');
   const [models, setModels] = useState<string[]>([]);
-
-  // Program Manager checkboxes (multi-select)
-  const programManagers = ['Naveen', 'Sakshi', 'Kritika'];
+  const [programManagers, setProgramManagers] = useState<string[]>([]);
   const [selectedManagers, setSelectedManagers] = useState<string[]>([]);
-
-  // Stats fields
-  const [stats, setStats] = useState({
-    institutes: '',
-    students: '',
-    devices: '',
-  });
-
-  // Dates
+  const [geoData, setGeoData] = useState<{ Country: string[]; State: string[]; District: string[]; Block: string[]; Cluster: string[]; }>({ Country: [], State: [], District: [], Block: [], Cluster: [], });
+  const [stats, setStats] = useState({ institutes: '', students: '', devices: '', });
   const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
   const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
-
-  // Validation error states
   const [errors, setErrors] = useState<{
     [key: string]: string;
   }>({});
+  const api = ServiceConfig.getI().apiHandler;
+  const history = useHistory();
 
-  // Handle partner change
+  useEffect(() => {
+    const fetchProgramManagers = async () => {
+      try {
+        const data = await api.getProgramManagers();
+        setProgramManagers(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const fetchGeoData = async () => {
+      try {
+        const data = await api.getUniqueGeoData();
+        const uniqueGeoData = {
+          Country: [...new Set(data.Country.filter(Boolean))],
+          State: [...new Set(data.State.filter(Boolean))],
+          Block: [...new Set(data.Block.filter(Boolean))],
+          Cluster: [...new Set(data.Cluster.filter(Boolean))],
+          District: [...new Set(data.District.filter(Boolean))],
+        };
+        setGeoData(uniqueGeoData);
+      } catch (error) {
+        console.error('Error fetching geo data:', error);
+      }
+    };
+    fetchGeoData();
+    fetchProgramManagers();
+  }, []);
+
   const handlePartnerChange = (field: string, value: string) => {
     setPartners((prev) => ({ ...prev, [field]: value }));
   };
-
-  // Handle location change
   const handleLocationChange = (field: string, value: string) => {
     setLocations((prev) => ({ ...prev, [field]: value }));
   };
-
-  // Handle model checkbox toggle
   const handleModelToggle = (model: string) => {
     setModels((prev) =>
       prev.includes(model) ? prev.filter((m) => m !== model) : [...prev, model]
     );
   };
-
-  // Handle program manager toggle
-  const handleManagerToggle = (manager: string) => {
-    setSelectedManagers((prev) =>
-      prev.includes(manager)
-        ? prev.filter((m) => m !== manager)
-        : [...prev, manager]
-    );
-  };
-
-  // Handle stats change
   const handleStatsChange = (field: string, value: string) => {
-    // Allow only numeric input
     if (/^\d*$/.test(value)) {
       setStats((prev) => ({ ...prev, [field]: value }));
     }
   };
-
-  // Validation function
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
-
-    // Partners required
     if (!partners.implementation.trim())
       newErrors['implementation'] = 'Implementation Partner is required';
     if (!partners.funding.trim())
       newErrors['funding'] = 'Funding Partner is required';
     if (!partners.institute.trim())
       newErrors['institute'] = 'Institute Partner is required';
-
-    // Program name required
     if (!programName.trim()) newErrors['programName'] = 'Program Name is required';
-
-    // Locations required
-    Object.entries(locations).forEach(([key, value]) => {
-      if (!value) newErrors[`location-${key}`] = `${key} is required`;
-    });
-
-    // Program Type required
-    if (!programType) newErrors['programType'] = 'Program Type is required';
-
-    // Model required (at least one)
     if (models.length === 0) newErrors['model'] = 'At least one model must be selected';
-
-    // Program Manager required (at least one)
-    if (selectedManagers.length === 0)
-      newErrors['programManager'] = 'At least one Program Manager must be selected';
-
-    // Stats required and numeric and > 0
     if (!stats.institutes) newErrors['institutes'] = 'No of Institutes is required';
     if (!stats.students) newErrors['students'] = 'No of Students is required';
     if (!stats.devices) newErrors['devices'] = 'No of Devices is required';
-
-    // Dates required and startDate < endDate
     if (!startDate) newErrors['startDate'] = 'Start date is required';
     if (!endDate) newErrors['endDate'] = 'End date is required';
     if (startDate && endDate && startDate.isAfter(endDate))
       newErrors['date'] = 'Start date must be before End date';
+    Object.entries(locations).forEach(([key, value]) => {
+      if (!value) newErrors[`location-${key}`] = `${key} is required`;
+    });
 
     setErrors(newErrors);
-
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle save click
   const handleSave = async () => {
     if (!validate()) return;
-
     const dataToSave = {
       partners,
       programName,
@@ -177,20 +111,20 @@ const NewProgram: React.FC = () => {
       startDate: startDate?.format('YYYY-MM-DD'),
       endDate: endDate?.format('YYYY-MM-DD'),
     };
-
     try {
-      const api = ServiceConfig.getI().apiHandler;
       const res = await api.insertProgram(dataToSave);
+      clearForm();
+      history.replace(PAGES.ADMIN_PROGRAMS);
     } catch (error) {
       console.error('Error saving program:', error);
     }
   };
 
-  const handleCancel = () => {
+  const clearForm = () => {
     setPartners({ implementation: '', funding: '', institute: '' });
-    setProgramName('XYZ');
-    setLocations({ Country: '', State: '', Block: '', Cluster: '', Village: '' });
-    setProgramType('Learning Centers');
+    setProgramName('');
+    setLocations({ Country: '', State: '', District: '', Block: '', Cluster: '' });
+    setProgramType('');
     setModels([]);
     setSelectedManagers([]);
     setStats({ institutes: '', students: '', devices: '' });
@@ -201,14 +135,11 @@ const NewProgram: React.FC = () => {
 
   return (
     <Box sx={{ height: '100vh', overflowY: 'auto' }}>
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Container maxWidth="lg" sx={{ mt: 2, mb: 2 }}>
         <Paper elevation={0} sx={{ p: { xs: 2, sm: 4 } }}>
-          {/* Page Title */}
           <Typography variant="h4" fontWeight="bold" gutterBottom>
             New Program
           </Typography>
-
-          {/* Breadcrumb */}
           <Box display="flex" alignItems="center" mb={3}>
             <Typography variant="body2" color="text.secondary">
               Programs
@@ -223,12 +154,7 @@ const NewProgram: React.FC = () => {
           </Box>
 
           <Grid container spacing={3}>
-            {/* Partners */}
-            {[
-              { label: 'Enter Implementation Partner', key: 'implementation' },
-              { label: 'Enter Funding Partner', key: 'funding' },
-              { label: 'Enter Institute Partner', key: 'institute' },
-            ].map(({ label, key }, index) => (
+            {[ { label: 'Enter Implementation Partner', key: 'implementation' }, { label: 'Enter Funding Partner', key: 'funding' }, { label: 'Enter Institute Partner', key: 'institute' }, ].map(({ label, key }, index) => (
               <Grid item xs={12} sm={4} key={key}>
                 <TextField
                   label={label}
@@ -243,7 +169,6 @@ const NewProgram: React.FC = () => {
               </Grid>
             ))}
 
-            {/* Program Name */}
             <Grid item xs={12} sm={4} md={4}>
               <TextField
                 label="Program Name"
@@ -273,7 +198,6 @@ const NewProgram: React.FC = () => {
               />
             </Grid>
 
-            {/* Location Dropdowns */}
             <Grid item xs={12}>
               <Typography variant="subtitle1" fontWeight="medium" mb={1}>
                 Location
@@ -310,7 +234,6 @@ const NewProgram: React.FC = () => {
               </Grid>
             </Grid>
 
-            {/* Program Type */}
             <Grid item xs={12} sm={4} md={3}>
               <Typography variant="subtitle1" fontWeight="medium" mb={1}>
                 Program Type
@@ -321,7 +244,8 @@ const NewProgram: React.FC = () => {
                   onChange={(e) => setProgramType(e.target.value)}
                   sx={{ borderRadius: '12px' }}
                 >
-                  <MenuItem value="Learning Centers">Learning Centers</MenuItem>
+                  {/* Program Type Menu Items will come here */}
+                  <MenuItem value="">Select</MenuItem>
                 </Select>
                 {errors['programType'] && (
                   <FormHelperText>{errors['programType']}</FormHelperText>
@@ -329,7 +253,6 @@ const NewProgram: React.FC = () => {
               </FormControl>
             </Grid>
 
-            {/* Model Checkboxes */}
             <Grid item xs={12}>
               <Typography variant="subtitle1" fontWeight="medium" mb={1}>
                 Model
@@ -361,34 +284,33 @@ const NewProgram: React.FC = () => {
               </FormControl>
             </Grid>
 
-            {/* Program Manager Checkboxes */}
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" fontWeight="medium" mb={1}>
-                Program Manager
-              </Typography>
-              <FormControl error={!!errors['programManager']}>
-                <Box display="flex" flexDirection="row" gap={3}>
-                  {programManagers.map((name, idx) => (
-                    <FormControlLabel
-                      key={idx}
-                      control={
-                        <Checkbox
-                          checked={selectedManagers.includes(name)}
-                          onChange={() => handleManagerToggle(name)}
-                        />
-                      }
-                      label={name}
-                      sx={{ mr: 3 }}
-                    />
-                  ))}
+            <Grid container sx={{ marginLeft: '24px', marginTop: '10px' }}>
+              <Grid item xs={12} md={4}>
+                <Typography variant="subtitle1" fontWeight="medium" mb={1}>
+                  Program Manager
+                </Typography>
+                <FormControl fullWidth error={!!errors['programManager']} >
+                  <Select
+                    multiple
+                    value={selectedManagers}
+                    onChange={(e) => setSelectedManagers(e.target.value as string[])}
+                    renderValue={(selected) => (selected as string[]).join(', ')}
+                    sx={{ borderRadius: '12px' }}
+                  >
+                    {programManagers.map((name, idx) => (
+                      <MenuItem key={idx} value={name}>
+                        <Checkbox checked={selectedManagers.includes(name)} />
+                        <ListItemText primary={name} />
+                      </MenuItem>
+                    ))}
+                  </Select>
                   {errors['programManager'] && (
                     <FormHelperText>{errors['programManager']}</FormHelperText>
                   )}
-                </Box>
-              </FormControl>
+                </FormControl>
+              </Grid>
             </Grid>
 
-            {/* Stats Fields */}
             {[
               { label: 'No of Institutes', key: 'institutes', placeholder: 'Enter No of Institutes' },
               { label: 'No of Students', key: 'students', placeholder: 'Enter No of Students' },
@@ -411,7 +333,6 @@ const NewProgram: React.FC = () => {
               </Grid>
             ))}
 
-            {/* Program Dates */}
             <Grid item xs={12}>
               <Typography variant="subtitle1" fontWeight="medium" mb={1}>
                 Program Date
@@ -462,17 +383,15 @@ const NewProgram: React.FC = () => {
               </LocalizationProvider>
             </Grid>
 
-            {/* Footer Buttons */}
             <Grid item xs={12} textAlign="right">
-              <Button sx={{ mr: 2 }} color="primary" onClick={handleCancel}>
+              <Button sx={{ mr: 2 }} color="primary" onClick={clearForm}>
                 Cancel
               </Button>
               <Button
                 variant="contained"
                 color="primary"
                 sx={{ borderRadius: '8px' }}
-                onClick={handleSave}
-              >
+                onClick={handleSave}>
                 Save
               </Button>
             </Grid>
@@ -482,5 +401,4 @@ const NewProgram: React.FC = () => {
     </Box>
   );
 };
-
 export default NewProgram;

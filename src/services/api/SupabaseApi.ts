@@ -1582,6 +1582,57 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+  async getProgramManagers(): Promise<string[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+  
+    const { data, error } = await this.supabase
+      .rpc('get_program_managers');
+  
+    if (error) {
+      console.error('Error fetching managers:', error);
+      return [];
+    }
+  
+    const names = data?.map((manager: { name: string }) => manager.name) || [];
+    return names;
+  }
+
+  
+  async getUniqueGeoData(): Promise<{
+    Country: string[];
+    State: string[];
+    Block: string[];
+    Cluster: string[];
+    District: string[];
+  }> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return {
+        Country: [],
+        State: [],
+        Block: [],
+        Cluster: [],
+        District: [],
+      };
+    }
+  
+    const { data, error } = await this.supabase.rpc('get_unique_geo_data');
+
+    if (error) throw error;
+    
+    if (!data) return { Country: [], State: [], Block: [], Cluster: [], District: [] };
+    return data as {
+      Country: string[];
+      State: string[];
+      Block: string[];
+      Cluster: string[];
+      District: string[];
+    };
+  }
+  
   async insertProgram(payload: any): Promise<boolean> {
     try {
       if (!this.supabase) {
@@ -1608,7 +1659,7 @@ export class SupabaseApi implements ServiceApi {
         state: payload.locations.State,
         block: payload.locations.Block,
         cluster: payload.locations.Cluster,
-        village: payload.locations.Village,
+        district: payload.locations.District,
   
         program_type: payload.programType,
         institutes_count: payload.stats.institutes,
@@ -1641,5 +1692,4 @@ export class SupabaseApi implements ServiceApi {
       return false;
     }
   }
-  
 }

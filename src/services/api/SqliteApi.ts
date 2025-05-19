@@ -4679,4 +4679,20 @@ order by
   async insertProgram(payload: any): Promise<boolean | null> {
     return await this._serverApi.insertProgram(payload);
   }
+
+  async getProgramManagers(): Promise<string[]> {
+    return await this._serverApi.getProgramManagers();
+  }
+
+  async getUniqueGeoData(): Promise<{
+    Country: string[];
+    State: string[];
+    Block: string[];
+    Cluster: string[];
+    District: string[];
+  }> {
+    return await this._serverApi.getUniqueGeoData();
+  }
+
+  
 }

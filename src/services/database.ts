@@ -1665,7 +1665,7 @@ export type Database = {
           state: string | null
           block: string | null
           cluster: string | null
-          village: string | null
+          district: string | null
           program_type: string | null
           institutes_count: number | null
           students_count: number | null
@@ -1690,7 +1690,7 @@ export type Database = {
           state?: string | null
           block?: string | null
           cluster?: string | null
-          village?: string | null
+          district?: string | null
           program_type?: string | null
           institutes_count?: number | null
           students_count?: number | null
@@ -1715,7 +1715,7 @@ export type Database = {
           state?: string | null
           block?: string | null
           cluster?: string | null
-          village?: string | null
+          district?: string | null
           program_type?: string | null
           institutes_count?: number | null
           students_count?: number | null
@@ -1981,6 +1981,27 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_program_managers: {
+        Args: Record<string, never>;
+        Returns: {
+          id: string;
+          name: string;
+          phone: string;
+          email: string;
+          created_at: string;
+        }[];
+      }
+      get_unique_geo_data: {
+        Args: Record<string, never>;
+        Returns: {
+          Country: string[];
+          State: string[];
+          Block: string[];
+          Cluster: string[];
+          District: string[];
+        };
+      };
+      
     }
     Enums: {
       role:
