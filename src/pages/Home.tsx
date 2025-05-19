@@ -191,9 +191,6 @@ const Home: FC = () => {
       setLessonResultMap(studentResult);
       const count_of_lessons_played = Object.values(studentResult).filter(item => item.assignment_id === null);
       const total_assignments_played = Object.values(studentResult).filter(item => item.assignment_id !== null);
-      console.log({'count_of_lessons_played': count_of_lessons_played,
-        'total_assignments_played': total_assignments_played
-      });
       const attributes = {
         count_of_lessons_played: count_of_lessons_played.length,
         count_of_assignment_played: total_assignments_played.length,
@@ -330,8 +327,7 @@ const Home: FC = () => {
             reqLes.push(res);
           }
         })
-      );  
-      console.log("counts_of_assignments", counts, allAssignments.length); 
+      );
 
       setPendingLiveQuizCount(liveQuizCount);
       setPendingAssignmentCount(assignmentCount);
