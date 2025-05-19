@@ -90,6 +90,7 @@ import "./App.css";
 import { schoolUtil } from "./utility/schoolUtil";
 import LidoPlayer from "./pages/LidoPlayer";
 import UploadPage from "./ops-console/pages/UploadPage";
+import SidebarPage from "./ops-console/pages/SidebarPage";
 import { initializeClickListener } from "./analytics/clickUtil";
 import { EVENTS } from "./common/constants";
 import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
@@ -621,6 +622,9 @@ const App: React.FC = () => {
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.UPLOAD_PAGE} exact={true}>
                 <UploadPage />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.SIDEBAR_PAGE} exact={true}>
+                <SidebarPage />
               </ProtectedRoute>
               <Route path={PAGES.NEW_PROGRAM} exact={true}>
                 <NewProgram />
