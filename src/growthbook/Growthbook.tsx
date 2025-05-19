@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useGrowthBook } from '@growthbook/growthbook-react';
-import { GrowthBookAttributes } from '../common/constants';
+import { GrowthBookAttributes, LANGUAGE } from '../common/constants';
 type GbContextType = {
  gbUpdated: boolean;
  setGbUpdated: React.Dispatch<React.SetStateAction<boolean>>;
@@ -49,7 +49,13 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
      leaderboard_position_monthly,
      leaderboard_position_all,
      count_of_assignment_played,
-     count_of_lessons_played
+     count_of_lessons_played,
+     count_of_en,
+     count_of_kn,
+     count_of_hi,
+     count_of_puzzle,
+     count_of_maths,
+     count_of_mr
    } = attributes;
   
    growthbook.setAttributes({
@@ -62,7 +68,7 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
      subject_id: studentDetails.subject_id,
      school_ids: schools,
      class_ids: classes,
-     language: localStorage.getItem("language") || "en",
+     language: localStorage.getItem(LANGUAGE) || "en",
      stars: studentDetails.stars,
      pending_live_quiz: liveQuizCount,
      pending_assignments: assignmentCount,
@@ -73,7 +79,13 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
      leaderboard_position_monthly: leaderboard_position_monthly,
      leaderboard_position_all: leaderboard_position_all,
      count_of_assignment_played: count_of_assignment_played,
-     count_of_lessons_played: count_of_lessons_played
+     count_of_lessons_played: count_of_lessons_played,
+     count_of_english_pending: count_of_en,
+     count_of_kannada_pending: count_of_kn,
+     count_of_hindi_pending: count_of_hi,
+     count_of_puzzle_pending: count_of_puzzle,
+     count_of_maths_pending: count_of_maths,
+     count_of_marathi_pending: count_of_mr,
    });
  };
 

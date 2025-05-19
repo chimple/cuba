@@ -191,12 +191,12 @@ const Home: FC = () => {
       setLessonResultMap(studentResult);
       const count_of_lessons_played = Object.values(studentResult).filter(item => item.assignment_id === null);
       const total_assignments_played = Object.values(studentResult).filter(item => item.assignment_id !== null);
-      console.log({'count_of_lessons_played': count_of_lessons_played.length,
-        'total_assignments_played': total_assignments_played.length
+      console.log({'count_of_lessons_played': count_of_lessons_played,
+        'total_assignments_played': total_assignments_played
       });
       const attributes = {
         count_of_lessons_played: count_of_lessons_played.length,
-        count_of_assignment_played: total_assignments_played.length,        
+        count_of_assignment_played: total_assignments_played.length,
       }
       updateLocalAttributes(attributes)
       setGbUpdated(true);
@@ -284,7 +284,6 @@ const Home: FC = () => {
       student != null
         ? await api.getStudentClassesAndSchools(student.id)
         : null;
-    console.log("linkedData: ", linkedData);
     const classDoc = linkedData?.classes[0];
     if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
     if (student) await api.assignmentUserListner(student.id, () => {});
@@ -305,13 +304,19 @@ const Home: FC = () => {
       );
       let assignmentCount = 0;
       let liveQuizCount = 0;
+
+      const counts: Record<string, number> = {};
+      
       await Promise.all(
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(_assignment.lesson_id);
           const now = new Date().toISOString();
-          console.log(res);
           if (_assignment.type !== LIVE_QUIZ) {
             assignmentCount++;
+            const code = res?.cocos_subject_code;
+            if (!code) return;
+            const key = `count_of_${code}`;
+            counts[key] = (counts[key] || 0) + 1;
           } else {
             if (_assignment.ends_at && _assignment.starts_at) {
               if (_assignment.starts_at <= now && _assignment.ends_at > now) {
@@ -325,7 +330,9 @@ const Home: FC = () => {
             reqLes.push(res);
           }
         })
-      );
+      );  
+      console.log("counts_of_assignments", counts, allAssignments.length); 
+
       setPendingLiveQuizCount(liveQuizCount);
       setPendingAssignmentCount(assignmentCount);
       setPendingAssignments(allAssignments);
@@ -348,7 +355,8 @@ const Home: FC = () => {
         classes: linkedData.classes.map((item: any) => item.id),
         liveQuizCount: liveQuizCount,
         assignmentCount: assignmentCount,
-        countOfPendingIds: result
+        countOfPendingIds: result,
+        ...counts
       }
       updateLocalAttributes(attributeParams);
       setGbUpdated(true);
