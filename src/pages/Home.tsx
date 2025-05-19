@@ -37,8 +37,8 @@ import Subjects from "./Subjects";
 import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
-import { useGrowthBook } from "@growthbook/growthbook-react";
 import LearningPathway from "../components/LearningPathway";
+import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -74,7 +74,7 @@ const Home: FC = () => {
     [lessonId: string]: { course_id: string };
   }>({});
   let currentStudent: TableTypes<"user"> | undefined;
-  const growthbook = useGrowthBook();
+  const { setGbUpdated } = useGbContext();
 
   let tempPageNumber = 1;
   const location = useLocation();
@@ -189,6 +189,17 @@ const Home: FC = () => {
     const studentResult = await api.getStudentResultInMap(student.id);
     if (!!studentResult) {
       setLessonResultMap(studentResult);
+      const count_of_lessons_played = Object.values(studentResult).filter(item => item.assignment_id === null);
+      const total_assignments_played = Object.values(studentResult).filter(item => item.assignment_id !== null);
+      console.log({'count_of_lessons_played': count_of_lessons_played.length,
+        'total_assignments_played': total_assignments_played.length
+      });
+      const attributes = {
+        count_of_lessons_played: count_of_lessons_played.length,
+        count_of_assignment_played: total_assignments_played.length,        
+      }
+      updateLocalAttributes(attributes)
+      setGbUpdated(true);
     }
     const lessonCourseMap = Object.fromEntries(
       Object.entries(studentResult).map(([lessonDocId, details]) => [
@@ -278,7 +289,6 @@ const Home: FC = () => {
     if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
     if (student) await api.assignmentUserListner(student.id, () => {});
 
-    setGrowthbookAttributes([student, linkedData]);
     if (
       student != null &&
       !!linkedData &&
@@ -320,6 +330,28 @@ const Home: FC = () => {
       setPendingAssignmentCount(assignmentCount);
       setPendingAssignments(allAssignments);
 
+      const courseCount = allAssignments.reduce((accumulator, current: any) => {
+        if (accumulator[current.course_id]) {
+          accumulator[current.course_id] += 1;
+        } else {
+          accumulator[current.course_id] = 1;
+        }
+        return accumulator;
+      }, {});
+      const result = Object.keys(courseCount).reduce((acc, courseId) => {
+        acc[`count_of_${courseId}`] = courseCount[courseId];
+        return acc;
+      }, {});
+      const attributeParams = {
+        studentDetails: student,
+        schools: linkedData.schools.map((item: any) => item.id),
+        classes: linkedData.classes.map((item: any) => item.id),
+        liveQuizCount: liveQuizCount,
+        assignmentCount: assignmentCount,
+        countOfPendingIds: result
+      }
+      updateLocalAttributes(attributeParams);
+      setGbUpdated(true);
       setDataCourse(reqLes);
       // storeRecommendationsInLocalStorage(reqLes);
       // setIsLoading(true);
@@ -329,23 +361,6 @@ const Home: FC = () => {
       return [];
     }
   }
-
-  const setGrowthbookAttributes = (student: any) => {
-    const studentDetails = student[0];
-    const studentClasses = student[1].classes.map((item: any) => item.id);
-    const studentSchools = student[1].schools.map((item: any) => item.id);
-
-    growthbook.setAttributes({
-      id: studentDetails.id,
-      curriculum_id: studentDetails.curriculum_id,
-      grade_id: studentDetails.grade_id,
-      gender: studentDetails.gender,
-      parent_id: studentDetails.parent_id,
-      subject_id: studentDetails.subject_id,
-      school_ids: studentSchools,
-      class_ids: studentClasses,
-    });
-  };
 
   async function getRecommendeds(
     subjectCode: string
