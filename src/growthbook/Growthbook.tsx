@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useGrowthBook } from '@growthbook/growthbook-react';
+import { GrowthBookAttributes } from '../common/constants';
 type GbContextType = {
   gbUpdated: boolean;
   setGbUpdated: React.Dispatch<React.SetStateAction<boolean>>;
@@ -8,13 +9,13 @@ type GbContextType = {
 const GbContext = createContext<GbContextType | undefined>(undefined);
 
 export const updateLocalAttributes = (data: any) => {
-  const existingData = localStorage.getItem('growthbookAttributes');
+  const existingData = localStorage.getItem(GrowthBookAttributes);
   const parsedData = existingData ? JSON.parse(existingData) : {};
   const updatedData = {
     ...parsedData,
     ...data
   }
-  localStorage.setItem('growthbookAttributes', JSON.stringify(updatedData));
+  localStorage.setItem(GrowthBookAttributes, JSON.stringify(updatedData));
 }
 
 export const GbProvider = ({ children }: { children: ReactNode }) => {
@@ -23,7 +24,7 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if(gbUpdated){
-      const storedAttributes = localStorage.getItem('growthbookAttributes');
+      const storedAttributes = localStorage.getItem(GrowthBookAttributes);
       if (storedAttributes) {
         const attributes = JSON.parse(storedAttributes);
         setGrowthbookAttributes(attributes);

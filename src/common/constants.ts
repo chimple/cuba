@@ -772,3 +772,4 @@ export const LidoGameExitKey = "lidoGameExit";
 export const QUIZ_POPUP_SHOWN = "quizPopupShown";
 export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
 export const SCHOOL_LOGIN = "schoolLogin";
+export const GrowthBookAttributes = "growthbookAttributes";
