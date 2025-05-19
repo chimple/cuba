@@ -447,12 +447,17 @@ export class Util {
     localStorage.setItem(SOUND, currSound.toString());
   };
 
-  public static getThumbnailUrl(
-    subjectCode?: string,
-    lessonCode?: string,
-    id?: string,
-    courseCode?: string
-  ) {
+  public static getThumbnailUrl({
+  subjectCode,
+  lessonCode,
+  id,
+  courseCode,
+}: {
+  subjectCode?: string;
+  lessonCode?: string;
+  id?: string;
+  courseCode?: string;
+})  {
 
       switch(true) {
         case subjectCode !== undefined && lessonCode !== undefined:
