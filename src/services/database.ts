@@ -1652,6 +1652,92 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      },
+      program: {
+        Row: {
+          id: string
+          name: string
+          model: string
+          implementation_partner: string | null
+          funding_partner: string | null
+          institute_partner: string | null
+          country: string | null
+          state: string | null
+          block: string | null
+          cluster: string | null
+          village: string | null
+          program_type: string | null
+          institutes_count: number | null
+          students_count: number | null
+          devices_count: number | null
+          start_date: string | null
+          end_date: string | null
+          program_manager: string[] | null
+          is_deleted: boolean | null
+          is_ops: boolean | null
+          school_id: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          model: string
+          implementation_partner?: string | null
+          funding_partner?: string | null
+          institute_partner?: string | null
+          country?: string | null
+          state?: string | null
+          block?: string | null
+          cluster?: string | null
+          village?: string | null
+          program_type?: string | null
+          institutes_count?: number | null
+          students_count?: number | null
+          devices_count?: number | null
+          start_date?: string | null
+          end_date?: string | null
+          program_manager?: string[] | null
+          is_deleted?: boolean | null
+          is_ops?: boolean | null
+          school_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          model?: string
+          implementation_partner?: string | null
+          funding_partner?: string | null
+          institute_partner?: string | null
+          country?: string | null
+          state?: string | null
+          block?: string | null
+          cluster?: string | null
+          village?: string | null
+          program_type?: string | null
+          institutes_count?: number | null
+          students_count?: number | null
+          devices_count?: number | null
+          start_date?: string | null
+          end_date?: string | null
+          program_manager?: string[] | null
+          is_deleted?: boolean | null
+          is_ops?: boolean | null
+          school_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_school_id_fkey",
+            columns: ["school_id"],
+            isOneToOne: false,
+            referencedRelation: "school",
+            referencedColumns: ["id"],
+          },
+        ]
       }
     }
     Views: {

@@ -1168,4 +1168,7 @@ export class OneRosterApi implements ServiceApi {
   uploadData(payload: any): Promise<boolean | any> {
     throw new Error("Method not implemented.");
   }
+  insertProgram(payload: any): Promise<boolean | any> {
+    throw new Error("Method not implemented.");
+  }
 }

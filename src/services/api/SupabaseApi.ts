@@ -1581,4 +1581,65 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }
+
+  async insertProgram(payload: any): Promise<boolean> {
+    try {
+      if (!this.supabase) {
+        console.error("Supabase client is not initialized.");
+        return false;
+      }
+  
+      const model =
+        payload.models.length > 1
+          ? "HYBRID"
+          : payload.models.length === 1
+          ? payload.models[0]
+          : "";
+  
+      const record: any = {
+        name: payload.programName,
+        model,
+  
+        implementation_partner: payload.partners.implementation,
+        funding_partner: payload.partners.funding,
+        institute_partner: payload.partners.institute,
+  
+        country: payload.locations.Country,
+        state: payload.locations.State,
+        block: payload.locations.Block,
+        cluster: payload.locations.Cluster,
+        village: payload.locations.Village,
+  
+        program_type: payload.programType,
+        institutes_count: payload.stats.institutes,
+        students_count: payload.stats.students,
+        devices_count: payload.stats.devices,
+  
+        start_date: payload.startDate,
+        end_date: payload.endDate,
+  
+        program_manager: payload.selectedManagers,
+  
+        is_deleted: false,
+        is_ops: false,
+        school_id: null,
+      };
+
+  
+      const { data, error } = await this.supabase
+        .from(TABLES.Program)
+        .insert(record);
+  
+      if (error) {
+        console.error("Insert error:", error);
+        return false;
+      }
+  
+      return true;
+    } catch (error) {
+      console.error("insertProgram failed:", error);
+      return false;
+    }
+  }
+  
 }

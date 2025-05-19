@@ -4675,4 +4675,8 @@ order by
       ]);
     }
   }
+
+  async insertProgram(payload: any): Promise<boolean | null> {
+    return await this._serverApi.insertProgram(payload);
+  }
 }

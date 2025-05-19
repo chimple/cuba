@@ -26,8 +26,8 @@ import dayjs, { Dayjs } from 'dayjs';
 import { ServiceConfig } from '../../services/ServiceConfig';
 
 
-// const api = ServiceConfig.getI().apiHandler;
 
+// geoData will change later, added now for test
 const geoData = {
   Country: ['Country 1', 'Country 2'],
   State: ['State A', 'State B'],
@@ -163,32 +163,27 @@ const NewProgram: React.FC = () => {
   };
 
   // Handle save click
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return;
-
-    const model = models.length > 1 ? 'HYBRID' : models[0] ?? null;
 
     const dataToSave = {
       partners,
       programName,
       locations,
       programType,
-      model,
+      models,
       selectedManagers,
       stats,
       startDate: startDate?.format('YYYY-MM-DD'),
       endDate: endDate?.format('YYYY-MM-DD'),
     };
-    console.log('Saved Program Data:', dataToSave);
-    alert('Program saved successfully! Check console for data.');
 
-    // try {
-    //   const res = await api.createAndUpdateNewProgram(dataToSave);
-    //   alert('Program saved successfully!');
-    // } catch (error) {
-    //   console.error('Error saving program:', error);
-    //   alert('Failed to save program.');
-    // }
+    try {
+      const api = ServiceConfig.getI().apiHandler;
+      const res = await api.insertProgram(dataToSave);
+    } catch (error) {
+      console.error('Error saving program:', error);
+    }
   };
 
   const handleCancel = () => {

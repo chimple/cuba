@@ -1038,4 +1038,8 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"user">> {
     return await this.s.updateLearningPath(student, learning_path);
   }
+
+  public async insertProgram(payload: any): Promise<boolean | null> {
+    return await this.s.insertProgram(payload);
+  }
 }
