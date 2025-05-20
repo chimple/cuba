@@ -14,6 +14,11 @@ const PathwayStructure: React.FC = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
 
+  const inactiveText = t("Lesson inactive, play the nearest active lesson");
+  const rewardText   = t("Complete these 5 lessons to earn rewards");
+
+  const shouldAnimate = modalText === rewardText;
+
   const fetchSVGGroup = async (
     url: string,
     className?: string
@@ -278,7 +283,7 @@ const PathwayStructure: React.FC = () => {
             );
             flower_Inactive.appendChild(lessonImage);
             flower_Inactive.addEventListener("click", () => {
-              const text = t("Lesson inactive, play the nearest active lesson");
+              const text = inactiveText;
               setModalOpen(true);
               setModalText(text);
             });
@@ -355,7 +360,7 @@ const PathwayStructure: React.FC = () => {
             }, 900);
 
             setTimeout(() => {
-              const text = t("Complete these 5 lessons to earn rewards");
+              const text = rewardText;
               setModalText(text);
               setModalOpen(true);
               replaceGiftContent(giftSVG);
@@ -389,7 +394,7 @@ const PathwayStructure: React.FC = () => {
   return (
     <>
       {isModalOpen && (
-        <PathwayModal text={modalText} onClose={() => setModalOpen(false)} />
+        <PathwayModal text={modalText} onClose={() => setModalOpen(false)} animate={shouldAnimate} />
       )}
       <div className="pathway-structure-div" ref={containerRef}></div>
     </>
