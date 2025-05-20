@@ -9,6 +9,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { useHistory } from 'react-router-dom';
 import { PAGES, TABLES } from '../../common/constants';
+import { t } from 'i18next';
 
 const NewProgram: React.FC = () => {
   const [partners, setPartners] = useState({ implementation: '', funding: '', institute: '', });
@@ -76,24 +77,33 @@ const NewProgram: React.FC = () => {
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
     if (!partners.implementation.trim())
-      newErrors['implementation'] = 'Implementation Partner is required';
+      newErrors['implementation'] = t('Implementation Partner is required');
     if (!partners.funding.trim())
-      newErrors['funding'] = 'Funding Partner is required';
+      newErrors['funding'] = t('Funding Partner is required');
     if (!partners.institute.trim())
-      newErrors['institute'] = 'Institute Partner is required';
-    if (!programName.trim()) newErrors['programName'] = 'Program Name is required';
-    if (models.length === 0) newErrors['model'] = 'At least one model must be selected';
-    if (!stats.institutes) newErrors['institutes'] = 'No of Institutes is required';
-    if (!stats.students) newErrors['students'] = 'No of Students is required';
-    if (!stats.devices) newErrors['devices'] = 'No of Devices is required';
-    if (!startDate) newErrors['startDate'] = 'Start date is required';
-    if (!endDate) newErrors['endDate'] = 'End date is required';
+      newErrors['institute'] = t('Institute Partner is required');
+    if (!programName.trim())
+      newErrors['programName'] = t('Program Name is required');
+    if (models.length === 0)
+      newErrors['model'] = t('At least one model must be selected');
+    if (!stats.institutes)
+      newErrors['institutes'] = t('No of Institutes is required');
+    if (!stats.students)
+      newErrors['students'] = t('No of Students is required');
+    if (!stats.devices)
+      newErrors['devices'] = t('No of Devices is required');
+    if (!startDate)
+      newErrors['startDate'] = t('Start date is required');
+    if (!endDate)
+      newErrors['endDate'] = t('End date is required');
     if (startDate && endDate && startDate.isAfter(endDate))
-      newErrors['date'] = 'Start date must be before End date';
+      newErrors['date'] = t('Start date must be before End date');
+  
     Object.entries(locations).forEach(([key, value]) => {
-      if (!value) newErrors[`location-${key}`] = `${key} is required`;
+      if (!value)
+        newErrors[`location-${key}`] = t('{{key}} is required', { key });
     });
-
+  
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -138,18 +148,18 @@ const NewProgram: React.FC = () => {
       <Container maxWidth="lg" sx={{ mt: 2, mb: 2 }}>
         <Paper elevation={0} sx={{ p: { xs: 2, sm: 4 } }}>
           <Typography variant="h4" fontWeight="bold" gutterBottom>
-            New Program
+           {t('New Program')}
           </Typography>
           <Box display="flex" alignItems="center" mb={3}>
             <Typography variant="body2" color="text.secondary">
-              Programs
+              {t('Programs')}   
             </Typography>
             <ChevronRightIcon
               fontSize="small"
               sx={{ mx: 0.5, color: 'text.secondary' }}
             />
             <Typography variant="body2" color="text.secondary" fontWeight="bold">
-              New Program
+              {t('New Program')}
             </Typography>
           </Box>
 
@@ -157,7 +167,7 @@ const NewProgram: React.FC = () => {
             {[ { label: 'Enter Implementation Partner', key: 'implementation' }, { label: 'Enter Funding Partner', key: 'funding' }, { label: 'Enter Institute Partner', key: 'institute' }, ].map(({ label, key }, index) => (
               <Grid item xs={12} sm={4} key={key}>
                 <TextField
-                  label={label}
+                  label={t(`${label}`)}
                   fullWidth
                   variant="outlined"
                   value={partners[key as keyof typeof partners]}
@@ -171,7 +181,7 @@ const NewProgram: React.FC = () => {
 
             <Grid item xs={12} sm={4} md={4}>
               <TextField
-                label="Program Name"
+                label={t("Program Name")}
                 fullWidth
                 variant="outlined"
                 value={programName}
@@ -200,7 +210,7 @@ const NewProgram: React.FC = () => {
 
             <Grid item xs={12}>
               <Typography variant="subtitle1" fontWeight="medium" mb={1}>
-                Location
+                {t('Location')}
               </Typography>
               <Grid container spacing={2}>
                 {Object.keys(geoData).map((label) => (
@@ -236,7 +246,7 @@ const NewProgram: React.FC = () => {
 
             <Grid item xs={12} sm={4} md={3}>
               <Typography variant="subtitle1" fontWeight="medium" mb={1}>
-                Program Type
+                {t('Program Type')}
               </Typography>
               <FormControl fullWidth error={!!errors['programType']}>
                 <Select
@@ -255,7 +265,7 @@ const NewProgram: React.FC = () => {
 
             <Grid item xs={12}>
               <Typography variant="subtitle1" fontWeight="medium" mb={1}>
-                Model
+                {t('Model')}
               </Typography>
               <FormControl error={!!errors['model']}>
                 <Box display="flex" flexDirection="row" gap={3}>
@@ -266,7 +276,7 @@ const NewProgram: React.FC = () => {
                         onChange={() => handleModelToggle('At School')}
                       />
                     }
-                    label="At School"
+                    label={t("At School")}
                   />
                   <FormControlLabel
                     control={
@@ -275,7 +285,7 @@ const NewProgram: React.FC = () => {
                         onChange={() => handleModelToggle('At Home')}
                       />
                     }
-                    label="At Home"
+                    label={t("At Home")}
                   />
                   {errors['model'] && (
                     <FormHelperText>{errors['model']}</FormHelperText>
@@ -287,7 +297,7 @@ const NewProgram: React.FC = () => {
             <Grid container sx={{ marginLeft: '24px', marginTop: '10px' }}>
               <Grid item xs={12} md={4}>
                 <Typography variant="subtitle1" fontWeight="medium" mb={1}>
-                  Program Manager
+                  {t('Program Manager')}
                 </Typography>
                 <FormControl fullWidth error={!!errors['programManager']} >
                   <Select
@@ -318,7 +328,7 @@ const NewProgram: React.FC = () => {
             ].map(({ label, key, placeholder }) => (
               <Grid item xs={12} sm={4} key={key}>
                 <Typography variant="subtitle1" fontWeight="medium" mb={1}>
-                  {label}
+                    {t(`${label}`)}
                 </Typography>
                 <TextField
                   placeholder={placeholder}
@@ -335,13 +345,13 @@ const NewProgram: React.FC = () => {
 
             <Grid item xs={12}>
               <Typography variant="subtitle1" fontWeight="medium" mb={1}>
-                Program Date
+                {t('Program Date')}
               </Typography>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6} md={3}>
                     <DatePicker
-                      label="Start date"
+                      label={t("Start date")}
                       value={startDate}
                       onChange={(newValue) => setStartDate(newValue)}
                       renderInput={(params) => (
@@ -361,7 +371,7 @@ const NewProgram: React.FC = () => {
                   </Grid>
                   <Grid item xs={12} sm={6} md={3}>
                     <DatePicker
-                      label="End date"
+                      label={t("End date")}
                       value={endDate}
                       onChange={(newValue) => setEndDate(newValue)}
                       renderInput={(params) => (
@@ -385,14 +395,14 @@ const NewProgram: React.FC = () => {
 
             <Grid item xs={12} textAlign="right">
               <Button sx={{ mr: 2 }} color="primary" onClick={clearForm}>
-                Cancel
+                {t('Cancel')}
               </Button>
               <Button
                 variant="contained"
                 color="primary"
                 sx={{ borderRadius: '8px' }}
                 onClick={handleSave}>
-                Save
+                {t('Save')}
               </Button>
             </Grid>
           </Grid>
