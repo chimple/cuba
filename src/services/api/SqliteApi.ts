@@ -309,7 +309,10 @@ export class SqliteApi implements ServiceApi {
       console.error("🚀 ~ Api ~ syncDB ~ error:", error);
       await this.createSyncTables();
     }
-    const data = await SupabaseApi.i.getTablesData(tableNames, lastPullTables);
+    const data = await this._serverApi.getTablesData(
+      tableNames,
+      lastPullTables
+    );
     const lastPulled = new Date().toISOString();
     let batchQueries: { statement: string; values: any[] }[] = [];
     for (const tableName of tableNames) {
@@ -394,9 +397,12 @@ export class SqliteApi implements ServiceApi {
         );
         console.log("🚀 ~ Api ~ pushChanges ~ isMutated:", mutate);
         if (!mutate || mutate.error) {
-          if(data.table_name === TABLES.Result &&  mutate?.error?.code === "23505"){}
-          else{
-            return false
+          if (
+            data.table_name === TABLES.Result &&
+            mutate?.error?.code === "23505"
+          ) {
+          } else {
+            return false;
           }
         }
         await this.executeQuery(
@@ -4400,29 +4406,26 @@ order by
       );
       return { status: "error", errors };
     }
-    
-    
+
     return { status: "success" };
   }
   async validateSchoolUdiseCode(
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }> {
-    const validatedData = await this._serverApi.validateSchoolUdiseCode(
-      schoolId,
-    );
+    const validatedData =
+      await this._serverApi.validateSchoolUdiseCode(schoolId);
     if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>
         typeof err === "string" ? err : err.message || JSON.stringify(err)
       );
       return { status: "error", errors };
     }
-    
-    
+
     return { status: "success" };
   }
   async validateClassNameWithSchoolID(
     schoolId: string,
-    className: string,
+    className: string
   ): Promise<{ status: string; errors?: string[] }> {
     const validatedData = await this._serverApi.validateClassNameWithSchoolID(
       schoolId,
@@ -4434,8 +4437,7 @@ order by
       );
       return { status: "error", errors };
     }
-    
-    
+
     return { status: "success" };
   }
 
@@ -4444,19 +4446,19 @@ order by
     className: string,
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }> {
-    const validatedData = await this._serverApi.validateStudentInClassWithoutPhone(
-      studentName,
-      className,
-      schoolId,
-    );
+    const validatedData =
+      await this._serverApi.validateStudentInClassWithoutPhone(
+        studentName,
+        className,
+        schoolId
+      );
     if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>
         typeof err === "string" ? err : err.message || JSON.stringify(err)
       );
       return { status: "error", errors };
     }
-    
-    
+
     return { status: "success" };
   }
 
