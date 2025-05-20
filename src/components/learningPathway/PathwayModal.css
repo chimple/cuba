@@ -30,6 +30,15 @@
   color: #333;
   overflow: hidden;
 }
+.PathwayModal-content.slide-in {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translate3d(100vw, 0, 0);
+  -webkit-transform: translate3d(100vw, 0, 0);
+  -webkit-animation: slideInRightToCenter 0.5s cubic-bezier(1,1,1,1) forwards;
+  animation: slideInRightToCenter 0.5s cubic-bezier(1,1,1,1) forwards;
+}
 
 /* Text inside modal */
 .PathwayModal-text {
@@ -71,4 +80,27 @@
 
 .PathwayModal-close::after {
   transform: rotate(-45deg);
+}
+
+@keyframes slideInRightToCenter {
+  from {
+    transform: translate3d(100vw, 0, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+/* for WebKit-based Android browsers, include a vendor prefix */
+@-webkit-keyframes slideInRightToCenter {
+  from {
+    -webkit-transform: translate3d(100vw, 0, 0);
+    opacity: 0;
+  }
+  to {
+    -webkit-transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
 }
