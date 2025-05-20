@@ -672,6 +672,7 @@ const Home: FC = () => {
                     return prev;
                   });
                 }}
+                assignmentCount={setPendingAssignmentCount}
               />
               
             )}

@@ -232,7 +232,7 @@ const tab: TabType | undefined = tabMap[tabOptions[activeTab].label];
         ) : programs.length === 0 ? (
           <Box padding={4} textAlign="center">
             <Typography variant="h6" color="text.secondary">
-              No programs found
+              {t("No programs found")}
             </Typography>
           </Box>
         ) : (

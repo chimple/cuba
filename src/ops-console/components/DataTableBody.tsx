@@ -8,8 +8,8 @@ export interface Column<T> {
   key: keyof T;
   label: string;
   align?: 'left' | 'right' | 'center' | 'justify' | 'inherit';
-  render?: (row: T) => React.ReactNode;  // custom render receives whole row
-  [key: string]: any; // allow extra props if needed
+  render?: (row: T) => React.ReactNode;  
+  [key: string]: any; 
 }
 
 interface Props {

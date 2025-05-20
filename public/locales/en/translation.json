@@ -418,6 +418,7 @@
   "No more subjects available to add": "No more subjects available to add",
   "No played lessons available.": "No played lessons available.",
   "No Principals Found": "No Principals Found",
+  "No programs found": "No programs found",
   "No selected subjects": "No selected subjects",
   "No Sponsors Found": "No Sponsors Found",
   "No students have played yet.": "No students have played yet.",
@@ -777,5 +778,10 @@
   "Your profile is not registered to any school.": "Your profile is not registered to any school.",
   "Your progress stays synced and consistent across all devices.": "Your progress stays synced and consistent across all devices.",
   "Zebra": "Zebra",
-  "Specials": "Specials"
+  "Specials": "Specials",
+  "Dashboard": "Dashboard",
+  "Campaigns": "Campaigns",
+  "Devices": "Devices",
+  "Resources": "Resources"
+
 }

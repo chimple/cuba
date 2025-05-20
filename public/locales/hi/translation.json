@@ -423,6 +423,7 @@
   "No more subjects available to add": "जोड़ने के लिए और कोई विषय उपलब्ध नहीं है",
   "No played lessons available.": "कोई खेला हुआ पाठ उपलब्ध नहीं है.",
   "No Principals Found": "कोई प्रिंसिपल नहीं मिला",
+  "No programs found": "कोई प्रोग्राम नहीं मिला",
   "No selected subjects": "कोई चयनित विषय नहीं",
   "No Sponsors Found": "कोई प्रायोजक नहीं मिला",
   "No students have played yet.": "अभी तक किसी छात्र ने नहीं खेला है।",
@@ -787,5 +788,10 @@
   "Your profile is not registered to any school.": "आपका प्रोफ़ाइल किसी भी विद्यालय में पंजीकृत नहीं है|",
   "Your progress stays synced and consistent across all devices.": "आपकी प्रगति सभी डिवाइसों पर समन्वयित और सुसंगत रहती है।",
   "Zebra": "ज़ेबरा",
-  "Specials" : "स्पेशल"
+  "Specials" : "स्पेशल",
+  "Dashboard" : "डैशबोर्ड",
+  "Campaigns": "अभियान",
+  "Devices": "उपकरण",
+  "Resources": "संसाधन"
+
 }
