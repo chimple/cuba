@@ -21,6 +21,10 @@ import {
   SpeechSynthesis,
   SpeechSynthesisUtterance,
 } from "./utility/WindowsSpeech";
+import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
+import { Util } from "./utility/util";
+import { EVENTS } from "./common/constants";
+import { GbProvider } from "./growthbook/Growthbook";
 
 // Extend React's JSX namespace to include Stencil components
 declare global {
@@ -65,11 +69,31 @@ GoogleAuth.initialize({
   scopes: ["profile", "email"],
   // grantOfflineAccess: true,
 });
+
+const gb = new GrowthBook({
+  apiHost: "https://cdn.growthbook.io",
+  clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
+  enableDevMode: true,
+  trackingCallback: (experiment, result) => {
+    Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
+      experimentId: experiment.key,
+      variationId: result.key,
+    });
+  },
+ });
+ gb.init({
+  streaming: true,
+ });
+
 SqliteApi.getInstance().then(() => {
   ServiceConfig.getInstance(APIMode.SQLITE);
   root.render(
     <>
-      <App />
+      <GrowthBookProvider growthbook={gb}>
+        <GbProvider>
+          <App />
+        </GbProvider>
+      </GrowthBookProvider>
     </>
   );
   // initializeFireBase();
