@@ -1813,6 +1813,68 @@ export type Database = {
           phone: string
         }[]
       }
+       validate_school_data_rpc: {
+        Args: {
+          input_school_id: string;
+          input_school_name: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      check_parent_and_student_in_class: {
+        Args: {
+          phone_number: string;
+          student_name: string;
+          class_name: string;
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      check_student_duplicate_in_class_without_phone_number: {
+        Args: {
+          student_name: string;
+          class_name: string;
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      validate_school_udise_code: {
+        Args: {
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      check_class_exists_by_name_and_school: {
+        Args: {
+          class_name:string;
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      validate_user_contacts_rpc: {
+        Args: {
+          program_manager_contact: string;
+          field_coordinator_contact?: string | null;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
       get_user_by_phonenumber: {
         Args: {
           p_phone: string

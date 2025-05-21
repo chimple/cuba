@@ -1254,18 +1254,63 @@ export interface ServiceApi {
    */
   validateSchoolData(
     schoolId: string,
-    schoolName: string,
-    instructionMedium: string
+    schoolName: string
   ): Promise<{ status: string; errors?: string[] }>;
+
+   /**
+   * To validate given phone number and student already exist in the given class or not
+   * @param {string } phoneNumber - phone number
+   * @param {string } studentName - student Name
+   * @param {string } className  -  class Name
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateParentAndStudentInClass(
+    phoneNumber: string,
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+   /**
+   * To validate given UDISE school Id  exist in the given school table or not
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateSchoolUdiseCode(
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given UDISE school Id a exist in the given school table or not
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateClassNameWithSchoolID(
+    schoolId: string,
+    className: string,
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given student already exist in the given class or not
+   * @param {string } studentName - student Name
+   * @param {string } className  -  class Name
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateStudentInClassWithoutPhone(
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
 
   /**
    * To validate that the given subject belongs to that curriculum or not
    * @param {string } curriculumName - curriculum Name
    * @param {string } subjectName - subject Name
+   * @param {string } gradeName - subject grade Name
    */
   validateClassCurriculumAndSubject(
     curriculumName: string,
-    subjectName: string
+    subjectName: string,
+    gradeName: string
   ): Promise<{ status: string; errors?: string[] }>;
   /**
    * To validate that the given class is exist or not through the class name and school id
