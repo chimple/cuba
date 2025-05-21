@@ -1141,8 +1141,7 @@ export class OneRosterApi implements ServiceApi {
 
   validateSchoolData(
     schholId: string,
-    schoolName: string,
-    instructionMedium: string
+    schoolName: string
   ): Promise<TableTypes<"school_data">[] | undefined> {
     throw new Error("Method not implemented.");
   }

@@ -980,17 +980,45 @@ export class ApiHandler implements ServiceApi {
   async validateSchoolData(
     schoolId: string,
     schoolName: string,
-    instructionMedium: string
   ): Promise<{ status: string; errors?: string[] }> {
-    return this.s.validateSchoolData(schoolId, schoolName, instructionMedium);
+    return this.s.validateSchoolData(schoolId, schoolName);
   }
-  async validateClassCurriculumAndSubject(
+   async validateParentAndStudentInClass(
+    phoneNumber: string,
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateParentAndStudentInClass(schoolId, className, studentName, phoneNumber);
+  }
+  async validateSchoolUdiseCode(
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateSchoolUdiseCode(schoolId);
+  }
+  async validateClassNameWithSchoolID(
+    schoolId: string,
+    className: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateClassNameWithSchoolID(schoolId, className);
+  }
+  
+  async validateStudentInClassWithoutPhone(
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateStudentInClassWithoutPhone(studentName, className, schoolId);
+  }
+ async validateClassCurriculumAndSubject(
     curriculumName: string,
-    subjectName: string
+    subjectName: string,
+    gradeName: string
   ): Promise<{ status: string; errors?: string[] }> {
     return this.s.validateClassCurriculumAndSubject(
       curriculumName,
-      subjectName
+      subjectName,
+      gradeName
     );
   }
   async validateClassExistence(
