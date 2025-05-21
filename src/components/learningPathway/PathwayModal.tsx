@@ -1,39 +1,61 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./PathwayModal.css";
 
 interface PathwayModalProps {
   text: string;
   onClose: () => void;
-  animate?: boolean; 
+  animate?: boolean;
 }
 
-const PathwayModal: React.FC<PathwayModalProps> = ({ text, onClose, animate = false }) => {
-  const PathwayModalRef = useRef<HTMLDivElement>(null);
+const PathwayModal: React.FC<PathwayModalProps> = ({
+  text,
+  onClose,
+  animate = false,
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isClosing, setIsClosing] = useState(false);
 
   const handleOutsideClick = (event: MouseEvent) => {
-    if (
-      PathwayModalRef.current &&
-      !PathwayModalRef.current.contains(event.target as Node)
-    ) {
-      onClose();
+    // clicked outside the modal
+    if (ref.current && !ref.current.contains(event.target as Node)) {
+      if (animate) {
+        // reward popup => slide out first
+        setIsClosing(true);
+      } else {
+        // inactive popup => close immediately
+        onClose();
+      }
     }
   };
 
+  // always attach the listener
   useEffect(() => {
-    if (!animate) return;
-
-    const listener = (e: MouseEvent) => handleOutsideClick(e);
-    document.addEventListener("mousedown", listener);
-
+    document.addEventListener("mousedown", handleOutsideClick);
     return () => {
-      document.removeEventListener("mousedown", listener);
+      document.removeEventListener("mousedown", handleOutsideClick);
     };
-  }, [animate]);
+  }, []);
+
+  // when slide-out animation ends, finally close
+  useEffect(() => {
+    if (!isClosing) return;
+    const node = ref.current!;
+    const onEnd = () => onClose();
+    node.addEventListener("animationend", onEnd);
+    return () => {
+      node.removeEventListener("animationend", onEnd);
+    };
+  }, [isClosing, onClose]);
+
+  const cls =
+    "PathwayModal-content" +
+    (animate && !isClosing ? " slide-in" : "") +
+    (isClosing ? " slide-out" : "");
 
   return (
     <div className="PathwayModal-overlay">
-      <div className={"PathwayModal-content" + (animate ? " slide-in" : "")} ref={PathwayModalRef}>
-        {/* only show ✖ when NOT animating (i.e. inactiveText) */}
+      <div className={cls} ref={ref}>
+        {/* ✖ only for inactive popups */}
         {!animate && (
           <button className="PathwayModal-close" onClick={onClose}>
             ✖
