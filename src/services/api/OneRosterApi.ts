@@ -2591,25 +2591,50 @@ export class OneRosterApi implements ServiceApi {
   }
 
   async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
-    // Load favorites from localStorage if not already loaded
-    if (!this.favoriteLessons[userId]) {
-      const stored = localStorage.getItem(this.FAVORITE_LESSONS_STORAGE_KEY);
-      this.favoriteLessons = stored ? JSON.parse(stored) : {};
+  // Load favorites from localStorage if not already loaded
+  if (!this.favoriteLessons[userId]) {
+    const stored = localStorage.getItem(this.FAVORITE_LESSONS_STORAGE_KEY);
+    this.favoriteLessons = stored ? JSON.parse(stored) : {};
+  }
+
+  const favoriteIds = this.favoriteLessons[userId] || [];
+  if (favoriteIds.length === 0) {
+    return [];
+  }
+
+  const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();
+  if (!loggedStudent || !loggedStudent.name) {
+    throw new Error("No logged-in student found");
+  }
+
+  const { agentEmail, queryStatement } = this.buildXapiQuery({ name: loggedStudent.name });
+  const statements = await this.getAllStatements(agentEmail, queryStatement);
+
+  const lessonCreationDates = new Map<string, string>();
+  statements.forEach(statement => {
+    if (statement.lesson_id && favoriteIds.includes(statement.lesson_id)) {
+      lessonCreationDates.set(statement.lesson_id, statement.created_at);
     }
+  });
 
-    const favoriteIds = this.favoriteLessons[userId] || [];
-    if (favoriteIds.length === 0) {
-      return [];
-    }
+  const lessons = await Promise.all(
+    favoriteIds.map(async (id) => {
+      const lesson = await this.getLesson(id);
+      if (lesson) {
 
-    console.log("fav lessons : ", favoriteIds);
-    // Use getLesson to retrieve each favorite lesson
-    const lessons = await Promise.all(
-      favoriteIds.map(async (id) => this.getLesson(id))
-    );
+        lesson.created_at = lessonCreationDates.get(id) || new Date().toISOString();
+      }
+      return lesson;
+    })
+  );
 
-    // Filter out any undefined lessons
-    return lessons.filter((lesson): lesson is TableTypes<"lesson"> => lesson !== undefined);
+  return lessons
+    .filter((lesson): lesson is TableTypes<"lesson"> => lesson !== undefined)
+    .sort((a, b) => {
+      const dateA = new Date(a.created_at).getTime();
+      const dateB = new Date(b.created_at).getTime();
+      return dateB - dateA;
+    });
   }
 
   async getRecommendedLessons(
