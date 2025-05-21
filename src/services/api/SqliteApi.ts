@@ -45,7 +45,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 1;
+  private DB_VERSION = 2;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -246,7 +246,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -4401,16 +4401,88 @@ order by
       updated_at: updatedAt,
     });
   }
+  async validateParentAndStudentInClass(
+    phoneNumber: string,
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const validatedData = await this._serverApi.validateParentAndStudentInClass(
+      schoolId,
+      studentName,
+      className,
+      phoneNumber
+    );
+    if (validatedData.status === "error") {
+      const errors = validatedData.errors?.map((err: any) =>
+        typeof err === "string" ? err : err.message || JSON.stringify(err)
+      );
+      return { status: "error", errors };
+    }
+
+    return { status: "success" };
+  }
+  async validateSchoolUdiseCode(
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const validatedData =
+      await this._serverApi.validateSchoolUdiseCode(schoolId);
+    if (validatedData.status === "error") {
+      const errors = validatedData.errors?.map((err: any) =>
+        typeof err === "string" ? err : err.message || JSON.stringify(err)
+      );
+      return { status: "error", errors };
+    }
+
+    return { status: "success" };
+  }
+  async validateClassNameWithSchoolID(
+    schoolId: string,
+    className: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const validatedData = await this._serverApi.validateClassNameWithSchoolID(
+      schoolId,
+      className
+    );
+    if (validatedData.status === "error") {
+      const errors = validatedData.errors?.map((err: any) =>
+        typeof err === "string" ? err : err.message || JSON.stringify(err)
+      );
+      return { status: "error", errors };
+    }
+
+    return { status: "success" };
+  }
+
+  async validateStudentInClassWithoutPhone(
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const validatedData =
+      await this._serverApi.validateStudentInClassWithoutPhone(
+        studentName,
+        className,
+        schoolId
+      );
+    if (validatedData.status === "error") {
+      const errors = validatedData.errors?.map((err: any) =>
+        typeof err === "string" ? err : err.message || JSON.stringify(err)
+      );
+      return { status: "error", errors };
+    }
+
+    return { status: "success" };
+  }
+
 
   async validateSchoolData(
     schoolId: string,
-    schoolName: string,
-    instructionMedium: string
+    schoolName: string
   ): Promise<{ status: string; errors?: string[] }> {
     const schoolData = await this._serverApi.validateSchoolData(
       schoolId,
-      schoolName,
-      instructionMedium
+      schoolName
     );
     console.log("fdsfdsfs", schoolData);
     if (schoolData.status === "error") {
@@ -4421,14 +4493,15 @@ order by
 
   async validateClassCurriculumAndSubject(
     curriculumName: string,
-    subjectName: string
+    subjectName: string,
+    gradeName: string
   ): Promise<{ status: string; errors?: string[] }> {
     const ClassCurriculum =
       await this._serverApi.validateClassCurriculumAndSubject(
         curriculumName,
-        subjectName
+        subjectName,
+        gradeName
       );
-    console.log("fdsfdsfs", ClassCurriculum);
     if (ClassCurriculum.status === "error") {
       return {
         status: "error",
@@ -4675,4 +4748,38 @@ order by
       ]);
     }
   }
+
+  async getProgramFilterOptions(): Promise<Record<string, string[]>> {
+    return await this._serverApi.getProgramFilterOptions();
+  }
+  async getPrograms(params: {
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    searchTerm?: string;
+    tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+  }): Promise<{ data: any[] }> {
+    const { currentUserId, filters, searchTerm, tab } = params;
+    return await this._serverApi.getPrograms({ currentUserId, filters, searchTerm, tab });
+  }
+
+
+  async insertProgram(payload: any): Promise<boolean | null> {
+    return await this._serverApi.insertProgram(payload);
+  }
+
+  async getProgramManagers(): Promise<string[]> {
+    return await this._serverApi.getProgramManagers();
+  }
+
+  async getUniqueGeoData(): Promise<{
+    Country: string[];
+    State: string[];
+    Block: string[];
+    Cluster: string[];
+    District: string[];
+  }> {
+    return await this._serverApi.getUniqueGeoData();
+  }
+
+ 
 }

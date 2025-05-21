@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as XLSX from "xlsx";
+import * as XLSX from "xlsx-js-style";
 import { Capacitor } from "@capacitor/core";
 import "./FileUpload.css";
 import UploadIcon from "../assets/icons/upload_icon.png";
@@ -13,6 +13,8 @@ import { generateFinalPayload } from "../OpsUtility/OpsDataMapper";
 import VerifiedPage from "./FileVerifiedComponent";
 import ErrorPage from "./FileErrorComponent";
 import VerificationInProgress from "./VerificationInProgress";
+import { useHistory } from "react-router-dom";
+import { FileUploadStep, PAGES } from "../../common/constants";
 
 const FileUpload: React.FC = () => {
   const api = ServiceConfig.getI()?.apiHandler;
@@ -28,18 +30,65 @@ const FileUpload: React.FC = () => {
   const processedDataRef = useRef();
   const [finalPayload, setFinalPayload] = useState<any[] | null>(null);
   const [isVerified, setIsVerified] = useState(false);
-  const [step, setStep] = useState<
-    "idle" | "verifying" | "verified" | "uploading" | "uploaded" | "error"
-  >("idle");
+  const [step, setStep] = useState<FileUploadStep>(FileUploadStep.Idle);
+  const history = useHistory();
 
   function onReuploadTriggered() {
     setFile(null);
     setProgress(0);
     setFileBuffer(null);
     validSheetCountRef.current = null;
-    setStep("idle");
+    setStep(FileUploadStep.Idle);
     setIsReupload(true);
   }
+  const gradeLevelMap: Record<string, string> = {
+    "1": "Grade 1",
+    "2": "Grade 2",
+    "3": "Grade 3",
+  };
+
+  const curriculumMap: Record<string, string> = {
+    NCERT: "NCERT",
+    Chimple: "Chimple",
+    Karnataka: "Karnataka State Board",
+    Haryana: "Haryana",
+    "Uttar Pradesh": "Uttar Pradesh",
+    Maharashtra: "Maharashtra",
+  };
+
+  const subjectMap: Record<string, string> = {
+    Maths: "Maths",
+    English: "English",
+    "Digital Skills": "Digital Skills",
+    Kannada: "ಕನ್ನಡ",
+    Hindi: "हिंदी",
+    Marathi: "मराठी",
+  };
+
+  const createStyledCell = (message, isError) => {
+    const color = isError ? "FF0000" : "00A000";
+    return {
+      v: message,
+      t: "s",
+      s: {
+        font: {
+          color: { rgb: color },
+          bold: true,
+        },
+        alignment: {
+          horizontal: "left",
+          vertical: "center",
+          wrapText: true,
+        },
+        border: {
+          top: { style: "thin", color: { rgb: color } },
+          bottom: { style: "thin", color: { rgb: color } },
+          left: { style: "thin", color: { rgb: color } },
+          right: { style: "thin", color: { rgb: color } },
+        },
+      },
+    };
+  };
 
   useEffect(() => {
     setVerifyingProgressState(progressRef.current);
@@ -47,18 +96,30 @@ const FileUpload: React.FC = () => {
 
   useEffect(() => {
     if (isVerified && finalPayload) {
-      setStep("uploading");
+      setStep(FileUploadStep.Uploading);
       const uploadData = async () => {
         const result = await SupabaseApi.i.uploadData(finalPayload);
         if (result) {
-          setStep("uploaded");
+          setStep(FileUploadStep.Uploaded);
         } else {
-          setStep("error");
+          if (result) {
+            setStep(FileUploadStep.Uploaded);
+          } else {
+            setStep(FileUploadStep.UploadError);
+          }
         }
       };
       uploadData();
     }
   }, [isVerified, finalPayload]);
+  useEffect(() => {
+    if (step === FileUploadStep.Uploaded) {
+      const timer = setTimeout(() => {
+        history.replace(PAGES.MANAGE_SCHOOL);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [step, history]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -95,8 +156,8 @@ const FileUpload: React.FC = () => {
     const workbook = XLSX.read(fileBuffer, { type: "array" });
 
     let validatedSchoolIds: Set<string> = new Set(); // Store valid school IDs
-    let validatedClassIds: Map<string, string> = new Map(); // Store valid school IDs
-    let studentLoginType;
+    let studentLoginTypeMap = new Map<string, string>(); // schoolId -> login type
+    let validatedSchoolClassPairs: Set<string> = new Set(); // Store validated class-school pairs
 
     const validatedSheets = {
       school: [] as any[],
@@ -104,7 +165,6 @@ const FileUpload: React.FC = () => {
       teacher: [] as any[],
       student: [] as any[],
     };
-
     for (const sheet of workbook.SheetNames) {
       const worksheet = workbook.Sheets[sheet];
       // Define this at the top of your processing function or scope
@@ -152,13 +212,16 @@ const FileUpload: React.FC = () => {
           ]
             ?.toString()
             .trim();
-          studentLoginType = row["STUDENT LOGIN TYPE"]?.toString().trim();
+          const studentLoginType = row["STUDENT LOGIN TYPE"]?.toString().trim();
+          if (schoolId && studentLoginType) {
+            studentLoginTypeMap.set(schoolId, studentLoginType);
+          }
 
           // ✅ Check for duplicate SCHOOL ID
           if (schoolId) {
             if (seenSchoolIds.has(schoolId)) {
+              errors.push("❌ Duplicate SCHOOL ID found");
               row["Updated"] = `❌ Duplicate SCHOOL ID found: ${schoolId}`;
-              continue;
             } else {
               seenSchoolIds.add(schoolId);
             }
@@ -218,7 +281,6 @@ const FileUpload: React.FC = () => {
               }
             }
           }
-          console.log("errors list 1", errors);
           // **Condition 1: If SCHOOL ID (UDISE Code) is present**
           if (schoolId) {
             // Validate only required fields
@@ -231,6 +293,7 @@ const FileUpload: React.FC = () => {
               errors.push(
                 "Missing SCHOOL INSTRUCTION LANGUAGE or Invalid format"
               );
+            if (!programName) errors.push("Missing PROGRAM NAME");
             if (!principalName) errors.push("Missing PRINCIPAL NAME");
             if (!principalPhone)
               errors.push("Missing PRINCIPAL PHONE NUMBER OR EMAIL ID");
@@ -238,20 +301,16 @@ const FileUpload: React.FC = () => {
               errors.push("Missing STUDENT LOGIN TYPE");
 
             // Call API for validation if all required fields are filled
-            // if (errors.length === 0) {
             const schoolValidation = await api.validateSchoolData(
               schoolId,
-              schoolName,
-              schoolInstructionLanguage
+              schoolName
             );
-            console.log("fsdfdsfs", schoolValidation.status);
 
             if (schoolValidation.status === "error") {
               errors.push(...(schoolValidation.errors || []));
             } else {
               validatedSchoolIds.add(schoolId); // ✅ Store valid school IDs
             }
-            // }
           }
           // **Condition 2: If SCHOOL ID (UDISE Code) is missing**
           else {
@@ -276,14 +335,15 @@ const FileUpload: React.FC = () => {
             if (!studentLoginType?.trim())
               errors.push("Missing STUDENT LOGIN TYPE");
           }
-          console.log("fddfdsgfdgdg", errors);
 
-          row["Updated"] =
-            errors.length > 0
-              ? `❌ Errors: ${errors.join(", ")}`
-              : "✅ School Validated";
           if (errors.length > 0) {
+            row["Updated"] = createStyledCell(
+              `❌ Errors: ${errors.join(", ")}`,
+              true
+            );
             validSheetCountRef.current = 1;
+          } else {
+            row["Updated"] = createStyledCell("✅ School Validated", false);
           }
         }
       }
@@ -295,19 +355,40 @@ const FileUpload: React.FC = () => {
           const schoolId = row["SCHOOL ID"]?.toString().trim();
           const grade = row["GRADE"]?.toString().trim();
           const classSection = row["CLASS SECTION"]?.toString().trim();
-          const subjectGrade = row["SUBJECT GRADE"]?.toString().trim();
-          const curriculum = row["CURRICULUM"]?.toString().trim();
-          const subject = row["SUBJECT"]?.toString().trim();
+          let subjectGrade = row["SUBJECT GRADE"]?.toString().trim();
+          let curriculum = row["CURRICULUM"]?.toString().trim();
+          let subject = row["SUBJECT"]?.toString().trim();
           const studentCount = row["STUDENTS COUNT IN CLASS"]
             ?.toString()
             .trim();
           const className = `${grade} ${classSection}`.trim();
-          console.log("fddfdsgfdgdg23", validatedSchoolIds);
+          if (schoolId && className) {
+            const schoolClassKey = `${schoolId}_${className}`;
+            if (!validatedSchoolClassPairs.has(schoolClassKey)) {
+              validatedSchoolClassPairs.add(schoolClassKey);
+            }
+          }
+
           if (!grade) errors.push("Missing grade");
-          if (!subjectGrade) errors.push("Missing subjectGrade");
           if (!curriculum) errors.push("Missing curriculum");
           if (!subject) errors.push("Missing subject");
           if (!studentCount) errors.push("Missing studentCount");
+
+          if (!subjectGrade) {
+            errors.push("Missing subjectGrade");
+          } else {
+            subjectGrade = gradeLevelMap[subjectGrade] || "";
+            if (!subjectGrade) {
+              errors.push("Invalid subjectGrade. Only 1, 2, or 3 are allowed.");
+            }
+          }
+
+          // Apply curriculum and subject mappings
+          curriculum = curriculumMap[curriculum] || "";
+          subject = subjectMap[subject] || "";
+
+          if (!curriculum) errors.push("Invalid curriculum selected.");
+          if (!subject) errors.push("Invalid subject selected.");
 
           if (
             !schoolId &&
@@ -320,20 +401,30 @@ const FileUpload: React.FC = () => {
             errors.push("Missing required class details.");
           } else {
             if (!validatedSchoolIds.has(schoolId)) {
-              errors.push("SCHOOL ID does not match any validated school.");
+              const result = await api.validateSchoolUdiseCode(schoolId);
+              if (result?.status === "error") {
+                errors.push("SCHOOL ID does not match any validated school.");
+                errors.push(...(result.errors || []));
+              }
             }
           }
           const validationResponse =
-            await api.validateClassCurriculumAndSubject(curriculum, subject);
+            await api.validateClassCurriculumAndSubject(
+              curriculum,
+              subject,
+              subjectGrade
+            );
           if (validationResponse.status === "error") {
             errors.push(...(validationResponse.errors || []));
           }
-          row["Updated"] =
-            errors.length > 0
-              ? `❌ Errors: ${errors.join(", ")}`
-              : "✅ Class Validated";
           if (errors.length > 0) {
-            validSheetCountRef.current = 2;
+            row["Updated"] = createStyledCell(
+              `❌ Errors: ${errors.join(", ")}`,
+              true
+            );
+            validSheetCountRef.current = 1;
+          } else {
+            row["Updated"] = createStyledCell("✅ Class Validated", false);
           }
         }
       }
@@ -352,13 +443,40 @@ const FileUpload: React.FC = () => {
             .trim();
           const classId = `${schoolId}_${grade}_${classSection}`;
           const className = `${grade} ${classSection}`.trim();
-          if (!grade) errors.push("Missing grade");
+          if (!grade || grade.trim() === "") errors.push("Missing grade");
+          if (!teacherName || teacherName.trim() === "")
+            errors.push("Missing teacher Name");
+          if (!teacherContact || teacherContact.trim() === "")
+            errors.push("Missing teacher Contact");
 
-          if (!schoolId || !grade || !teacherName || !teacherContact) {
-            errors.push("Missing required teacher details.");
+          if (!schoolId || schoolId.trim() === "") {
+            errors.push("Missing schoolId.");
           } else {
             if (!validatedSchoolIds.has(schoolId)) {
-              errors.push("SCHOOL ID does not match any validated school.");
+              const result = await api.validateSchoolUdiseCode(schoolId);
+              if (result?.status === "error") {
+                errors.push("SCHOOL ID does not match any validated school.");
+                errors.push(...(result.errors || []));
+              } else if (className && schoolId) {
+                const schoolClassKey = `${schoolId}_${className}`;
+                if (!validatedSchoolClassPairs.has(schoolClassKey)) {
+                  // Validate class name and schoolId pair from server if not validated already
+                  const classValidationResponse =
+                    await api.validateClassNameWithSchoolID(
+                      schoolId,
+                      className
+                    );
+                  if (classValidationResponse?.status === "error") {
+                    errors.push(
+                      "Class name does not exist for the given school ID."
+                    );
+                    errors.push(...(classValidationResponse.errors || []));
+                  } else {
+                    // Store valid school and class pairs
+                    validatedSchoolClassPairs.add(schoolClassKey);
+                  }
+                }
+              }
             }
           }
 
@@ -366,46 +484,68 @@ const FileUpload: React.FC = () => {
             errors.push("Invalid TEACHER PHONE NUMBER OR EMAIL format.");
           }
 
-          // Check if classId exists and className matches
-          if (
-            validatedClassIds.has(classId) &&
-            validatedClassIds.get(classId) === className
-          ) {
-            console.log(
-              `Skipping API call for class ${classId} as it's already validated.`
-            );
-          } else {
-            const validationResponse = await api.validateClassExistence(
-              schoolId,
-              className
-            );
-            if (validationResponse.status === "error") {
-              errors.push(...(validationResponse.errors || []));
-            } else {
-              validatedClassIds.set(classId, className); // ✅ Store valid class ID and name
-            }
+          if (!className || className.trim() === "") {
+            errors.push("Class name should not be empty");
           }
-
-          row["Updated"] =
-            errors.length > 0
-              ? `❌ Errors: ${errors.join(", ")}`
-              : "✅ Teacher Validated";
+         
           if (errors.length > 0) {
-            validSheetCountRef.current = 3;
+            row["Updated"] = createStyledCell(
+              `❌ Errors: ${errors.join(", ")}`,
+              true
+            );
+            validSheetCountRef.current = 1;
+          } else {
+            row["Updated"] = createStyledCell("✅ Teacher Validated", false);
           }
         }
       }
-
       // **Student Sheet Validation**
       if (sheet.toLowerCase().includes("student")) {
+        const seenNameClassCombos = new Set<string>();
+        const seenClassIdCombos = new Set<string>();
+
         for (let row of processedData) {
           let errors: string[] = [];
+
           const schoolId = row["SCHOOL ID"]?.toString().trim();
           const studentId = row["STUDENT ID"]?.toString().trim();
           const studentName = row["STUDENT NAME"]?.toString().trim();
           const gender = row["GENDER"]?.toString().trim();
           let age = row["AGE"]?.toString().trim();
-          // Validate age
+
+          let grade = row["GRADE"]?.toString().trim();
+          const classSection = row["CLASS SECTION"]
+            ? row["CLASS SECTION"].toString().trim()
+            : "";
+          const parentContact = row["PARENT PHONE NUMBER OR LOGIN ID"]
+            ?.toString()
+            .trim();
+
+          const className = `${grade}${classSection}`.trim();
+          const classId = `${schoolId}_${grade}_${classSection}`.trim();
+
+          // ---------- ✅ Duplicate within sheet check ----------
+          const nameClassKey = `${studentName}_${classId}`.toLowerCase();
+          const classPhoneOrIdKey =
+            `${classId}_${parentContact || studentId}`.toLowerCase();
+
+          if (seenNameClassCombos.has(nameClassKey)) {
+            errors.push(
+              "Duplicate student name in the same class within the sheet."
+            );
+          } else {
+            seenNameClassCombos.add(nameClassKey);
+          }
+
+          if (seenClassIdCombos.has(classPhoneOrIdKey)) {
+            errors.push(
+              "Duplicate student identifier (phone or ID) in the same class within the sheet."
+            );
+          } else {
+            seenClassIdCombos.add(classPhoneOrIdKey);
+          }
+
+          // ---------- ✅ Age & Grade validation  ----------
           if (!/^\d+$/.test(age)) {
             errors.push(
               "AGE must be a whole number without letters or special characters."
@@ -420,11 +560,10 @@ const FileUpload: React.FC = () => {
               age = numericAge.toString();
             }
           }
-          let grade = row["GRADE"]?.toString().trim();
+
+          if (!grade || grade.trim() === "") errors.push("Missing grade");
           if (!/^\d+$/.test(grade)) {
-            errors.push(
-              "Grade must be a whole number without letters or special characters."
-            );
+            errors.push("Grade must be a whole number.");
           } else {
             const numericGrade = parseInt(grade, 10);
             if (numericGrade < 0) {
@@ -435,57 +574,107 @@ const FileUpload: React.FC = () => {
               grade = numericGrade.toString();
             }
           }
-          const classSection = row["CLASS SECTION"]
-            ? row["CLASS SECTION"].toString().trim()
-            : "";
-          const parentContact = row["PARENT PHONE NUMBER OR LOGIN ID"]
-            ?.toString()
-            .trim();
-          const classId = `${schoolId}_${grade}_${classSection}`; // Unique class identifier
-          const className = `${grade} ${classSection}`.trim();
-          if (!grade) errors.push("Missing grade");
 
-          if (!schoolId || !studentName || !age || !grade || !parentContact) {
-            errors.push("Missing required student details.");
+          if (!className || className.trim() === "") {
+            errors.push("Class name should not be empty");
+          }
+          if (!studentName || studentName.trim() === "")
+            errors.push("Missing student Name");
+          if (!schoolId || schoolId.trim() === "") {
+            errors.push("Missing schoolId.");
           } else {
+            // ---------- ✅  UDISE + backend validations ----------
+            async function validateStudentData(
+              studentLoginType: string | undefined,
+              parentContact: string,
+              className: string,
+              studentName: string,
+              schoolId: string,
+              studentId: string | undefined,
+              errors: string[]
+            ) {
+              if (studentLoginType === "PARENT PHONE NUMBER") {
+                if (parentContact && !/^\d{10}$/.test(parentContact)) {
+                  errors.push(
+                    "PARENT PHONE NUMBER must be a valid 10-digit mobile number."
+                  );
+                } else if (/^\d{10}$/.test(parentContact)) {
+                  try {
+                    const result = await api.validateParentAndStudentInClass(
+                      parentContact,
+                      className,
+                      studentName,
+                      schoolId
+                    );
+                    if (result?.status === "error") {
+                      errors.push(...(result.errors || []));
+                    }
+                  } catch (e) {
+                    errors.push(
+                      "Server error validating parent/student class link"
+                    );
+                  }
+                }
+              } else {
+                if (!studentId || studentId.trim() === "") {
+                  errors.push("Missing student ID.");
+                }
+                try {
+                  const result = await api.validateStudentInClassWithoutPhone(
+                    studentName,
+                    className,
+                    schoolId
+                  );
+                  if (result?.status === "error") {
+                    errors.push(...(result.errors || []));
+                  }
+                } catch (e) {
+                  errors.push("error while validating student in class");
+                }
+              }
+            }
+
             if (!validatedSchoolIds.has(schoolId)) {
-              errors.push("SCHOOL ID does not match any validated school.");
-            }
-          }
-
-          if (studentLoginType === "PARENT PHONE NUMBER") {
-            if (parentContact && !validateEmailOrPhone(parentContact)) {
-              errors.push("Invalid PARENT PHONE NUMBER OR LOGIN ID format.");
-            }
-          }
-
-          // Check if classId exists and className matches
-          if (
-            validatedClassIds.has(classId) &&
-            validatedClassIds.get(classId) === className
-          ) {
-            console.log(
-              `Skipping API call for class ${classId} as it's already validated.`
-            );
-          } else {
-            const validationResponse = await api.validateClassExistence(
-              schoolId,
-              className,
-              studentName
-            );
-            if (validationResponse.status === "error") {
-              errors.push(...(validationResponse.errors || []));
+              const result = await api.validateSchoolUdiseCode(schoolId);
+              if (result?.status === "error") {
+                errors.push("SCHOOL ID does not match any validated school.");
+                errors.push(...(result.errors || []));
+              } else {
+                const studentLoginType = studentLoginTypeMap.get(schoolId);
+                await validateStudentData(
+                  studentLoginType,
+                  parentContact,
+                  className,
+                  studentName,
+                  schoolId,
+                  studentId,
+                  errors
+                );
+              }
             } else {
-              validatedClassIds.set(classId, className); // ✅ Store valid class ID and name
+              const studentLoginType = studentLoginTypeMap.get(schoolId);
+              if (studentLoginType === "PARENT PHONE NUMBER") {
+                if (parentContact && !/^\d{10}$/.test(parentContact)) {
+                  errors.push(
+                    "PARENT PHONE NUMBER must be a valid 10-digit mobile number."
+                  );
+                }
+              } else {
+                if (!studentId || studentId.trim() === "") {
+                  errors.push("Missing student ID.");
+                }
+              }
             }
           }
 
-          row["Updated"] =
-            errors.length > 0
-              ? `❌ Errors: ${errors.join(", ")}`
-              : "✅ Student Validated";
           if (errors.length > 0) {
-            validSheetCountRef.current = 4;
+            row["Updated"] = createStyledCell(
+              `❌ Errors: ${errors.join(", ")}`,
+              true
+            );
+            validSheetCountRef.current = 1;
+          } else {
+            row["Updated"] = createStyledCell("✅ Student Validated", false);
           }
         }
       }
@@ -567,15 +756,15 @@ const FileUpload: React.FC = () => {
   }
 
   const handleNext = async () => {
-    setStep("verifying");
+    setStep(FileUploadStep.Verifying);
     await processFile();
     const isValid =
       validSheetCountRef.current === 0 && validSheetCountRef.current !== null;
     if (isValid) {
-      setStep("verified");
+      setStep(FileUploadStep.Verified);
       setIsVerified(true); // triggers upload in useEffect
     } else {
-      setStep("error");
+      setStep(FileUploadStep.Error);
     }
   };
 
@@ -596,7 +785,7 @@ const FileUpload: React.FC = () => {
             onChange={handleFileUpload}
           />
           <p className="file-upload-text">
-            <span>{t("Click to upload")}</span> {t("Student Data")}
+            <span>{t("Click to upload student data")}</span>
           </p>
           <p className="upload-file-size">{t("Maximum file size")} 50MB</p>
         </label>
@@ -657,7 +846,7 @@ const FileUpload: React.FC = () => {
             </div>
           ) : (
             <button
-              onClick={() => setFile(null)}
+              onClick={() => history.replace(PAGES.MANAGE_SCHOOL)}
               className="file-upload-btn file-upload-long-cancel-btn"
             >
               {t("Cancel")}
@@ -675,7 +864,7 @@ const FileUpload: React.FC = () => {
   );
 
   // Render conditions at the end
-  if (step === "verifying") {
+  if (step === FileUploadStep.Verifying) {
     return (
       <VerificationInProgress
         progress={verifyingProgressState}
@@ -687,7 +876,7 @@ const FileUpload: React.FC = () => {
     );
   }
 
-  if (step === "verified") {
+  if (step === FileUploadStep.Verified) {
     return (
       <VerifiedPage
         title={t("Verified")}
@@ -698,7 +887,7 @@ const FileUpload: React.FC = () => {
     );
   }
 
-  if (step === "uploading") {
+  if (step === FileUploadStep.Uploading) {
     return (
       <VerificationInProgress
         progress={90}
@@ -708,11 +897,23 @@ const FileUpload: React.FC = () => {
     );
   }
 
-  if (step === "uploaded") {
+  if (step === FileUploadStep.Uploaded) {
     return (
       <VerifiedPage
         title={t("Upload Successful")}
         message={t("Your data has been uploaded successfully.")}
+      />
+    );
+  }
+
+  if (step === FileUploadStep.UploadError) {
+    return (
+      <ErrorPage
+        reUplod={() => history.replace(PAGES.UPLOAD_PAGE)}
+        message={t(
+          "Upload failed. Please try again later. You may retry or contact support if the problem continues."
+        )}
+        title={t("Unable to Upload File")}
       />
     );
   }
