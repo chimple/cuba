@@ -11,6 +11,8 @@ import HeaderTab from '../components/HeaderTab';
 import { Add } from '@mui/icons-material';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { t } from 'i18next';
+import { useHistory } from "react-router";
+import { PAGES } from '../../common/constants';
 
 type ProgramRow = {
   programName: any;
@@ -38,6 +40,7 @@ const tabOptions = [
 
 
 const ProgramsPage: React.FC = () => {
+  const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -192,7 +195,9 @@ const tab: TabType | undefined = tabMap[tabOptions[activeTab].label];
           <div className="program-button-and-search-filter">
             <Button
               variant="outlined"
-              onClick={() => { }}
+              onClick={() => {
+                    history.replace(PAGES.NEW_PROGRAM) //Navigate to the new program page
+               }}
               sx={{ borderColor: 'transparent', borderRadius: 20, boxShadow: 3, height: '48px' }}
             >
               <Add /> {t("New Program")}

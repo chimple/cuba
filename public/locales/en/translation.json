@@ -543,7 +543,6 @@
   "Puzzle Time 71-80": "Puzzle Time 71-80",
   "Puzzle Time 81-90": "Puzzle Time 81-90",
   "Puzzle Time 91-100": "Puzzle Time 91-100",
-  "Programs": "Programs",
   "Program Manager": "Program Manager",
   "Program Name": "Program Name",
   "Program Name is required": "Program Name is required",
@@ -820,11 +819,6 @@
   "Your data has been successfully checked, and no errors were found.": "Your data has been successfully checked, and no errors were found.",
   "Your profile is not registered to any school.": "Your profile is not registered to any school.",
   "Your progress stays synced and consistent across all devices.": "Your progress stays synced and consistent across all devices.",
-  "Zebra": "Zebra",
-  "Specials": "Specials",
-  "Dashboard": "Dashboard",
-  "Campaigns": "Campaigns",
-  "Devices": "Devices",
-  "Resources": "Resources"
+  "Zebra": "Zebra"
 }
 

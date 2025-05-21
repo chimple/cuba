@@ -551,7 +551,6 @@
   "Puzzle Time 81-90": "पहेली समय 81 - 90",
   "Puzzle Time 91-100": "पहेली समय 91 - 100",
   "Puzzle Time": "पहेली का समय",
-  "Programs": "प्रोग्राम",
   "Program Manager": "कार्यक्रम प्रबंधक",
   "Program Name": "कार्यक्रम का नाम",
   "Program Name is required": "कार्यक्रम का नाम आवश्यक है",
@@ -829,10 +828,5 @@
   "Your data has been successfully checked, and no errors were found.": "आपका डेटा सफलतापूर्वक जांचा गया है, और कोई त्रुटि नहीं मिली।",
   "Your profile is not registered to any school.": "आपका प्रोफ़ाइल किसी भी विद्यालय में पंजीकृत नहीं है|",
   "Your progress stays synced and consistent across all devices.": "आपकी प्रगति सभी डिवाइसों पर समन्वयित और सुसंगत रहती है।",
-  "Specials" : "स्पेशल",
-  "Dashboard" : "डैशबोर्ड",
-  "Campaigns": "अभियान",
-  "Devices": "उपकरण",
-  "Resources": "संसाधन",
   "Zebra": "ज़ेबरा"
 }

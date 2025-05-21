@@ -537,7 +537,6 @@
   "Puzzle Time 81-90": "कोडे वेळ  81-90",
   "Puzzle Time 91-100": "कोडे वेळ  91-100",
   "Puzzle Time": "कोडे वेळ",
-  "Programs": "प्रोग्राम",
   "Program Manager": "कार्यक्रम व्यवस्थापक",
   "Program Name": "कार्यक्रमाचे नाव",
   "Program Name is required": "कार्यक्रमाचे नाव आवश्यक आहे",
@@ -814,10 +813,5 @@
   "Your data has been successfully checked, and no errors were found.": "तुमच्या डेटाची यशस्वीरित्या तपासणी केली गेली आहे, आणि कोणतीही त्रुटी आढळली नाही.",
   "Your profile is not registered to any school.": "तुमची प्रोफाइल कोणत्याही शाळेत नोंदणीकृत नाही.",
   "Your progress stays synced and consistent across all devices.": "तुमची प्रगती सर्व डिव्हाइस वर समक्रमित आणि सातत्यपूर्ण राहते.",
-  "Specials" : "विशेष",
-  "Dashboard" : "डॅशबोर्ड",
-  "Campaigns": "मोहीम",
-  "Devices": "उपकरणे",
-  "Resources": "संसाधने"
   "Zebra": "झेब्रा"  
 }
