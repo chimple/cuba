@@ -55,7 +55,13 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
      count_of_hi,
      count_of_puzzle,
      count_of_maths,
-     count_of_mr
+     count_of_mr,
+     manufacturer,
+     model,
+     operating_system,
+     os_version,
+     platform,
+     device_language,
    } = attributes;
   
    growthbook.setAttributes({
@@ -86,6 +92,12 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
      count_of_puzzle_pending: count_of_puzzle,
      count_of_maths_pending: count_of_maths,
      count_of_marathi_pending: count_of_mr,
+     manufacturer,
+     model,
+     operating_system,
+     os_version,
+     platform,
+     device_language
    });
  };
 
