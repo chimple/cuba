@@ -1254,18 +1254,63 @@ export interface ServiceApi {
    */
   validateSchoolData(
     schoolId: string,
-    schoolName: string,
-    instructionMedium: string
+    schoolName: string
   ): Promise<{ status: string; errors?: string[] }>;
+
+   /**
+   * To validate given phone number and student already exist in the given class or not
+   * @param {string } phoneNumber - phone number
+   * @param {string } studentName - student Name
+   * @param {string } className  -  class Name
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateParentAndStudentInClass(
+    phoneNumber: string,
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+   /**
+   * To validate given UDISE school Id  exist in the given school table or not
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateSchoolUdiseCode(
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given UDISE school Id a exist in the given school table or not
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateClassNameWithSchoolID(
+    schoolId: string,
+    className: string,
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given student already exist in the given class or not
+   * @param {string } studentName - student Name
+   * @param {string } className  -  class Name
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateStudentInClassWithoutPhone(
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
 
   /**
    * To validate that the given subject belongs to that curriculum or not
    * @param {string } curriculumName - curriculum Name
    * @param {string } subjectName - subject Name
+   * @param {string } gradeName - subject grade Name
    */
   validateClassCurriculumAndSubject(
     curriculumName: string,
-    subjectName: string
+    subjectName: string,
+    gradeName: string
   ): Promise<{ status: string; errors?: string[] }>;
   /**
    * To validate that the given class is exist or not through the class name and school id
@@ -1325,6 +1370,7 @@ export interface ServiceApi {
   ): Promise<TableTypes<"user">>;
 
 
+
   /**
    * Fetches available program filter options.
    * @returns {Promise<Record<string, string[]>>} Promise resolving to a record of filter keys and their possible values.
@@ -1348,6 +1394,31 @@ export interface ServiceApi {
     searchTerm?: string;
     tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
   }): Promise<{ data: any[] }>;
+
+
+  /**
+   * Inserts or updates a program record in the database via Supabase Edge Function.
+   * @param {any} payload - The mapped program data in JSON format.
+   * @param {string} [id] - Optional program ID; if provided, updates the existing record, otherwise inserts a new one
+   */
+  insertProgram(payload: any, id?: string): Promise<boolean | null>
+
+
+  /**
+   * Get all program managers
+   */
+  getProgramManagers(): Promise<string[]>;
+
+  /**
+   * Get unique geo data
+   */
+  getUniqueGeoData(): Promise<{
+    Country: string[];
+    State: string[];
+    Block: string[];
+    Cluster: string[];
+    District: string[];
+  }>;
 
 
 }

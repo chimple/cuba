@@ -1652,6 +1652,92 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      },
+      program: {
+        Row: {
+          id: string
+          name: string
+          model: string
+          implementation_partner: string | null
+          funding_partner: string | null
+          institute_partner: string | null
+          country: string | null
+          state: string | null
+          block: string | null
+          cluster: string | null
+          district: string | null
+          program_type: string | null
+          institutes_count: number | null
+          students_count: number | null
+          devices_count: number | null
+          start_date: string | null
+          end_date: string | null
+          program_manager: string[] | null
+          is_deleted: boolean | null
+          is_ops: boolean | null
+          school_id: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          model: string
+          implementation_partner?: string | null
+          funding_partner?: string | null
+          institute_partner?: string | null
+          country?: string | null
+          state?: string | null
+          block?: string | null
+          cluster?: string | null
+          district?: string | null
+          program_type?: string | null
+          institutes_count?: number | null
+          students_count?: number | null
+          devices_count?: number | null
+          start_date?: string | null
+          end_date?: string | null
+          program_manager?: string[] | null
+          is_deleted?: boolean | null
+          is_ops?: boolean | null
+          school_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          model?: string
+          implementation_partner?: string | null
+          funding_partner?: string | null
+          institute_partner?: string | null
+          country?: string | null
+          state?: string | null
+          block?: string | null
+          cluster?: string | null
+          district?: string | null
+          program_type?: string | null
+          institutes_count?: number | null
+          students_count?: number | null
+          devices_count?: number | null
+          start_date?: string | null
+          end_date?: string | null
+          program_manager?: string[] | null
+          is_deleted?: boolean | null
+          is_ops?: boolean | null
+          school_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_school_id_fkey",
+            columns: ["school_id"],
+            isOneToOne: false,
+            referencedRelation: "school",
+            referencedColumns: ["id"],
+          },
+        ]
       }
     }
     Views: {
@@ -1813,6 +1899,68 @@ export type Database = {
           phone: string
         }[]
       }
+       validate_school_data_rpc: {
+        Args: {
+          input_school_id: string;
+          input_school_name: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      check_parent_and_student_in_class: {
+        Args: {
+          phone_number: string;
+          student_name: string;
+          class_name: string;
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      check_student_duplicate_in_class_without_phone_number: {
+        Args: {
+          student_name: string;
+          class_name: string;
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      validate_school_udise_code: {
+        Args: {
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      check_class_exists_by_name_and_school: {
+        Args: {
+          class_name:string;
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      validate_user_contacts_rpc: {
+        Args: {
+          program_manager_contact: string;
+          field_coordinator_contact?: string | null;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
       get_user_by_phonenumber: {
         Args: {
           p_phone: string
@@ -1936,6 +2084,27 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_program_managers: {
+        Args: Record<string, never>;
+        Returns: {
+          id: string;
+          name: string;
+          phone: string;
+          email: string;
+          created_at: string;
+        }[];
+      }
+      get_unique_geo_data: {
+        Args: Record<string, never>;
+        Returns: {
+          Country: string[];
+          State: string[];
+          Block: string[];
+          Cluster: string[];
+          District: string[];
+        };
+      };
+      
     }
     Enums: {
       role:

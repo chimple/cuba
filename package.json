@@ -102,6 +102,7 @@
     "workbox-strategies": "^5.1.4",
     "workbox-streams": "^5.1.4",
     "xlsx": "^0.18.5",
+    "xlsx-js-style": "^1.2.0",
     "zip2": "^0.0.4"
   },
   "scripts": {

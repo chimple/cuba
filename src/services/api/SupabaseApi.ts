@@ -1357,10 +1357,9 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  async validateSchoolData(
+ async validateSchoolData(
     schoolId: string,
-    schoolName: string,
-    instructionMedium: string
+    schoolName: string
   ): Promise<{ status: string; errors?: string[] }> {
     if (!this.supabase) {
       return {
@@ -1368,46 +1367,32 @@ export class SupabaseApi implements ServiceApi {
         errors: ["Supabase client is not initialized"],
       };
     }
-    const { data, error } = await this.supabase
-      .from("school_data")
-      .select("udise_code, school_name, instruction_medium") // Select only required fields
-      .eq("udise_code", schoolId);
-    if (error || !data) {
-      return { status: "error", errors: ["Invalid SCHOOL ID (UDISE Code)"] };
-    }
-
-    let errors: string[] = [];
-    console.log("fdsfdss 3rd33", data);
-
-    if (data.length === 0) {
-      errors.push("No matching SCHOOL ID (UDISE Code) found in database");
-    } else {
-      if (data.length > 1) {
-        errors.push("Duplicate SCHOOL ID (UDISE Code) found in database");
-      }
-      const school = data[0];
-      if (school) {
-        if (school.school_name !== schoolName) {
-          errors.push("SCHOOL NAME does not match the database record");
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "validate_school_data_rpc",
+        {
+          input_school_id: schoolId,
+          input_school_name: schoolName,
         }
-        if (school.instruction_medium !== instructionMedium) {
-          errors.push(
-            "SCHOOL INSTRUCTION LANGUAGE does not match the database record all letters should be capital"
-          );
-        }
+      );
+      if (error || !data) {
+        throw error ?? new Error("Unknown error from RPC");
       }
+
+      return data as { status: string; errors?: string[] };
+    } catch (error) {
+      return {
+        status: "error",
+        errors: [String(error)],
+      };
     }
-    const result =
-      errors.length > 0 ? { status: "error", errors } : { status: "success" };
-
-    console.log("Returning:", result); // ✅ Logs what is being returned
-
-    return result;
   }
 
-  async validateClassCurriculumAndSubject(
-    curriculumName: string,
-    subjectName: string
+  async validateParentAndStudentInClass(
+    phoneNumber: string,
+    studentName: string,
+    className: string,
+    schoolId: string
   ): Promise<{ status: string; errors?: string[] }> {
     if (!this.supabase) {
       return {
@@ -1416,7 +1401,144 @@ export class SupabaseApi implements ServiceApi {
       };
     }
 
-    // Step 1: Fetch curriculum ID based on the provided curriculum name
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "check_parent_and_student_in_class",
+        {
+          phone_number: phoneNumber,
+          student_name: studentName,
+          class_name: className,
+          input_school_udise_code: schoolId,
+        }
+      );
+      if (data?.status === "error" && (data as any).message) {
+        return {
+          status: "error",
+          errors: [(data as any).message],
+        };
+      }
+      return data as { status: string; errors?: string[] };
+    } catch (error) {
+      return {
+        status: "error",
+        errors: [String(error)],
+      };
+    }
+  }
+  async validateSchoolUdiseCode(
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "validate_school_udise_code",
+        {
+          input_school_udise_code: schoolId,
+        }
+      );
+      if (data?.status === "error" && (data as any).message) {
+        return {
+          status: "error",
+          errors: [(data as any).message],
+        };
+      }
+      return data as { status: string; errors?: string[] };
+    } catch (error) {
+      return {
+        status: "error",
+        errors: [String(error)],
+      };
+    }
+  }
+  async validateClassNameWithSchoolID(
+    schoolId: string,
+    className: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "check_class_exists_by_name_and_school",
+        {
+          class_name: className,
+          input_school_udise_code: schoolId,
+        }
+      );
+      if (data?.status === "error" && (data as any).message) {
+        return {
+          status: "error",
+          errors: [(data as any).message],
+        };
+      }
+      return data as { status: string; errors?: string[] };
+    } catch (error) {
+      return {
+        status: "error",
+        errors: [String(error)],
+      };
+    }
+  }
+  async validateStudentInClassWithoutPhone(
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "check_student_duplicate_in_class_without_phone_number",
+        {
+          student_name: studentName,
+          class_name: className,
+          input_school_udise_code: schoolId,
+        }
+      );
+
+      if (data?.status === "error" && (data as any).message) {
+        return {
+          status: "error",
+          errors: [(data as any).message],
+        };
+      }
+
+      return data as { status: string; errors?: string[] };
+    } catch (error) {
+      return {
+        status: "error",
+        errors: [String(error)],
+      };
+    }
+  }
+
+   async validateClassCurriculumAndSubject(
+    curriculumName: string,
+    subjectName: string,
+    gradeName: string // new parameter
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+    // Step 1: Fetch curriculum ID
     const { data: curriculumData, error: curriculumError } = await this.supabase
       .from("curriculum")
       .select("id")
@@ -1430,24 +1552,37 @@ export class SupabaseApi implements ServiceApi {
       };
     }
     const curriculumId = curriculumData.id;
-    // Step 2: Check if the subject exists for the curriculum
+
+    // Step 2: Fetch grade ID
+    const { data: gradeData, error: gradeError } = await this.supabase
+      .from("grade")
+      .select("id")
+      .eq("name", gradeName)
+      .single();
+    if (gradeError || !gradeData) {
+      return {
+        status: "error",
+        errors: ["Invalid grade name"],
+      };
+    }
+
+    const gradeId = gradeData.id;
+
+    // Step 3: Check if course exists with curriculum ID, grade ID, and subject name
     const { data: courseData, error: courseError } = await this.supabase
       .from("course")
       .select("id")
       .eq("curriculum_id", curriculumId)
+      .eq("grade_id", gradeId)
       .eq("name", subjectName.trim());
-    console.log("fsdfsd", courseData);
-
     if (courseError || !courseData || courseData.length === 0) {
       return {
         status: "error",
         errors: [
-          `Subject '${subjectName}' not found in the '${curriculumName}' curriculum.`,
+          `Subject '${subjectName}' not found for grade '${gradeName}' in the '${curriculumName}' curriculum.`,
         ],
       };
     }
-
-    // If both checks pass, return success
     return { status: "success" };
   }
   async validateClassExistence(
@@ -1582,6 +1717,7 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+
   async getProgramFilterOptions(): Promise<Record<string, string[]>> {
     if (!this.supabase) {
       console.error('Supabase client is not initialized');
@@ -1650,5 +1786,116 @@ async getPrograms({
     return { data: [] };
   }
 }
+
+  async getProgramManagers(): Promise<string[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+  
+    const { data, error } = await this.supabase
+      .rpc('get_program_managers');
+  
+    if (error) {
+      console.error('Error fetching managers:', error);
+      return [];
+    }
+  
+    const names = data?.map((manager: { name: string }) => manager.name) || [];
+    return names;
+  }
+
+  
+  async getUniqueGeoData(): Promise<{
+    Country: string[];
+    State: string[];
+    Block: string[];
+    Cluster: string[];
+    District: string[];
+  }> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return {
+        Country: [],
+        State: [],
+        Block: [],
+        Cluster: [],
+        District: [],
+      };
+    }
+  
+    const { data, error } = await this.supabase.rpc('get_unique_geo_data');
+
+    if (error) throw error;
+    
+    if (!data) return { Country: [], State: [], Block: [], Cluster: [], District: [] };
+    return data as {
+      Country: string[];
+      State: string[];
+      Block: string[];
+      Cluster: string[];
+      District: string[];
+    };
+  }
+  
+  async insertProgram(payload: any): Promise<boolean> {
+    try {
+      if (!this.supabase) {
+        console.error("Supabase client is not initialized.");
+        return false;
+      }
+  
+      const model =
+        payload.models.length > 1
+          ? "HYBRID"
+          : payload.models.length === 1
+          ? payload.models[0]
+          : "";
+  
+      const record: any = {
+        name: payload.programName,
+        model,
+  
+        implementation_partner: payload.partners.implementation,
+        funding_partner: payload.partners.funding,
+        institute_partner: payload.partners.institute,
+  
+        country: payload.locations.Country,
+        state: payload.locations.State,
+        block: payload.locations.Block,
+        cluster: payload.locations.Cluster,
+        district: payload.locations.District,
+  
+        program_type: payload.programType,
+        institutes_count: payload.stats.institutes,
+        students_count: payload.stats.students,
+        devices_count: payload.stats.devices,
+  
+        start_date: payload.startDate,
+        end_date: payload.endDate,
+  
+        program_manager: payload.selectedManagers,
+  
+        is_deleted: false,
+        is_ops: false,
+        school_id: null,
+      };
+
+  
+      const { data, error } = await this.supabase
+        .from(TABLES.Program)
+        .insert(record);
+  
+      if (error) {
+        console.error("Insert error:", error);
+        return false;
+      }
+  
+      return true;
+    } catch (error) {
+      console.error("insertProgram failed:", error);
+      return false;
+    }
+  }
 
 }

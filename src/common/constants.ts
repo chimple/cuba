@@ -52,7 +52,8 @@ export enum TABLES {
   Assignment_cart = "assignment_cart",
   // Chatbot = "chatbot",
   ReqNewSchool = "req_new_school",
-}
+  Program = "program"
+  }
 export enum CLASS_USERS {
   STUDENTS = "Students",
   TEACHERS = "Teachers",
@@ -165,6 +166,16 @@ export enum TABLESORTBY {
   NAME = "Name",
   HIGHSCORE = "High Score",
   LOWSCORE = "Low Score",
+}
+
+export enum FileUploadStep {
+  Idle = "idle",
+  Verifying = "verifying",
+  Verified = "verified",
+  Uploading = "uploading",
+  Uploaded = "uploaded",
+  Error = "error",
+  UploadError = "uploadError",
 }
 
 export const belowGrade1 = "30ecb762-8e63-45b3-a22a-62c1a9f71641";
@@ -413,6 +424,7 @@ export enum PAGES {
   ADMIN_USERS = '/schools',
   ADMIN_DEVICES = '/devices',
   ADMIN_RESOURCES ='/resourses',
+  NEW_PROGRAM = "/new-program"
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -580,7 +592,8 @@ export const REFRESH_TABLES_ON_LOGIN :TABLES[] =[
   TABLES.Assignment_user,
   TABLES.Result,
   TABLES.Assignment_cart,
-  TABLES.ReqNewSchool
+  TABLES.ReqNewSchool,
+  TABLES.Program
 ]
 
 export const AVATARS: string[] = [
@@ -778,3 +791,4 @@ export const LidoGameCompletedKey = "lidoGameCompleted";
 export const LidoGameExitKey = "lidoGameExit";
 export const QUIZ_POPUP_SHOWN = "quizPopupShown";
 export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
+export const GrowthBookAttributes = 'growthBookAttributes';
