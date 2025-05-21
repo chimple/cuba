@@ -185,7 +185,6 @@ export class SupabaseApi implements ServiceApi {
           body: payload,
         }
       );
-      console.log("logs to check uploadData", data, payload, error);
       if (error) {
         console.error("Function error:", error);
         return false;
