@@ -37,8 +37,6 @@ const tabOptions = [
   { label: 'Hybrid' },
 ];
 
-
-
 const ProgramsPage: React.FC = () => {
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
@@ -54,8 +52,19 @@ const ProgramsPage: React.FC = () => {
     village: [],
     cluster: [],
   });
+
+  const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({
+    partner: [],
+    programType: [],
+    model: [],
+    state: [],
+    district: [],
+    block: [],
+    village: [],
+    cluster: [],
+  });
   const [activeTab, setActiveTab] = useState(0);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [programs, setPrograms] = useState<any[]>([]);
   const [loadingPrograms, setLoadingPrograms] = useState(false);
   const [loadingFilters, setLoadingFilters] = useState(false);
@@ -63,17 +72,16 @@ const ProgramsPage: React.FC = () => {
 
 type TabType = 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
 
-const tabMap: Record<string, TabType> = {
+  const tabMap: Record<string, TabType> = {
   'All Programs': 'ALL',
   'At School': 'AT SCHOOL',
   'At Home': 'AT HOME',
   'Hybrid': 'HYBRID',
-};
+  };
 
-const tab: TabType | undefined = tabMap[tabOptions[activeTab].label];
+  const tab: TabType | undefined = tabMap[tabOptions[activeTab].label];
 
   useEffect(() => {
-
     const fetchFilterOptions = async () => {
       try {
         setLoadingFilters(true);
@@ -81,7 +89,7 @@ const tab: TabType | undefined = tabMap[tabOptions[activeTab].label];
         const response = await api.getProgramFilterOptions();
         setFilterOptions(response);
       } catch (error) {
-        console.error('Failed to fetch filter options:', error);
+        console.error("Failed to fetch filter options:", error);
       } finally {
         setLoadingFilters(false);
       }
@@ -95,7 +103,6 @@ const tab: TabType | undefined = tabMap[tabOptions[activeTab].label];
       const currentUserId = user?.id;
       setLoadingPrograms(true);
       try {
-        
         const currentUserId = user?.id;
         if (!currentUserId) {
           setPrograms([]);
@@ -114,14 +121,21 @@ const tab: TabType | undefined = tabMap[tabOptions[activeTab].label];
     };
     fetchPrograms();
   }, [filters, searchTerm, tab]);
- 
+
   const transformedRows = programs.map((row) => ({
     programName: {
       value: row.name,
       render: (
-        <Box display="flex" flexDirection="column" justifyContent='start' alignItems='left'>
+        <Box
+          display="flex"
+          flexDirection="column"
+          justifyContent="start"
+          alignItems="left"
+        >
           <Typography variant="subtitle2">{row.name}</Typography>
-          <Typography variant="body2" color="text.secondary">{row.state}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {row.state}
+          </Typography>
         </Box>
       ),
     },
@@ -144,7 +158,7 @@ const tab: TabType | undefined = tabMap[tabOptions[activeTab].label];
   } = useDataTableLogic(transformedRows);
 
   const handleFilterChange = (name: string, value: any) => {
-    setFilters((prev) => ({ ...prev, [name]: value }));
+    setTempFilters((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -152,37 +166,62 @@ const tab: TabType | undefined = tabMap[tabOptions[activeTab].label];
   };
 
   const handleDeleteFilter = (key: string, value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: prev[key].filter((v) => v !== value),
-    }));
+    setFilters((prev) => {
+      const updatedFilters = {
+        ...prev,
+        [key]: prev[key].filter((v) => v !== value),
+      };
+      setTempFilters(updatedFilters); // Update tempFilters to reflect the change in the dropdown
+      return updatedFilters;
+    });
   };
 
   const onFilterClick = () => {
-    if (Object.values(filters).some((values) => values.length > 0)) {
-      setFilters({
-        partner: [],
-        programType: [],
-        model: [],
-        state: [],
-        district: [],
-        block: [],
-        village: [],
-        cluster: [],
-      });
-    } else {
-      setIsFilterOpen(true);
-    }
+    setIsFilterOpen(true);
   };
 
   const autocompleteStyles = {
-    '& .MuiOutlinedInput-root': { padding: '6px!important' },
-    '& .MuiAutocomplete-paper': { boxShadow: 'none', border: 'none' },
-    '& .MuiAutocomplete-listbox': { padding: 0 },
+    "& .MuiOutlinedInput-root": { padding: "6px!important" },
+    "& .MuiAutocomplete-paper": { boxShadow: "none", border: "none" },
+    "& .MuiAutocomplete-listbox": { padding: 0 },
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
+  };
+
+  const handelClose = () => {
+    setIsFilterOpen(false);
+    setTempFilters(filters);
+  };
+
+  const handleApplyFilters = () => {
+    setFilters(tempFilters);
+    setIsFilterOpen(false);
+  };
+
+  const handleCancelFilters = () => {
+    setTempFilters({
+      partner: [],
+      programType: [],
+      model: [],
+      state: [],
+      district: [],
+      block: [],
+      village: [],
+      cluster: [],
+    });
+    setFilters({
+      partner: [],
+      programType: [],
+      model: [],
+      state: [],
+      district: [],
+      block: [],
+      village: [],
+      cluster: [],
+    });
+    setIsFilterOpen(false);
   };
 
   return (
@@ -196,18 +235,18 @@ const tab: TabType | undefined = tabMap[tabOptions[activeTab].label];
             <Button
               variant="outlined"
               onClick={() => {
-                    history.replace(PAGES.NEW_PROGRAM) //Navigate to the new program page
-               }}
+                history.replace(PAGES.NEW_PROGRAM); //Navigate to the new program page
+              }}
               sx={{ borderColor: 'transparent', borderRadius: 20, boxShadow: 3, height: '48px' }}
             >
               <Add /> {t("New Program")}
             </Button>
             {loadingFilters ? (<CircularProgress />
             ) : (<SearchAndFilter
-              searchTerm={searchTerm}
-              onSearchChange={handleSearchChange}
-              filters={filters}
-              onFilterClick={onFilterClick}
+                searchTerm={searchTerm}
+                onSearchChange={handleSearchChange}
+                filters={filters}
+                onFilterClick={onFilterClick}
             />)
             }
           </div>
@@ -217,12 +256,12 @@ const tab: TabType | undefined = tabMap[tabOptions[activeTab].label];
 
         <FilterSlider
           isOpen={isFilterOpen}
-          onClose={() => setIsFilterOpen(false)}
-          filters={filters}
+          onClose={handelClose}
+          filters={tempFilters}
           filterOptions={filterOptions}
           onFilterChange={handleFilterChange}
-          onApply={() => setIsFilterOpen(false)}
-          onCancel={() => setIsFilterOpen(false)}
+          onApply={handleApplyFilters}
+          onCancel={handleCancelFilters}
           autocompleteStyles={autocompleteStyles}
         />
       </div>
