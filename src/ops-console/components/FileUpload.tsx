@@ -336,13 +336,6 @@ const FileUpload: React.FC = () => {
               errors.push("Missing STUDENT LOGIN TYPE");
           }
 
-          // row["Updated"] =
-          //   errors.length > 0
-          //     ? `❌ Errors: ${errors.join(", ")}`
-          //     : "✅ School Validated";
-          // if (errors.length > 0) {
-          //   validSheetCountRef.current = 1;
-          // }
           if (errors.length > 0) {
             row["Updated"] = createStyledCell(
               `❌ Errors: ${errors.join(", ")}`,
@@ -424,13 +417,6 @@ const FileUpload: React.FC = () => {
           if (validationResponse.status === "error") {
             errors.push(...(validationResponse.errors || []));
           }
-          // row["Updated"] =
-          //   errors.length > 0
-          //     ? `❌ Errors: ${errors.join(", ")}`
-          //     : "✅ Class Validated";
-          // if (errors.length > 0) {
-          //   validSheetCountRef.current = 2;
-          // }
           if (errors.length > 0) {
             row["Updated"] = createStyledCell(
               `❌ Errors: ${errors.join(", ")}`,
@@ -501,13 +487,7 @@ const FileUpload: React.FC = () => {
           if (!className || className.trim() === "") {
             errors.push("Class name should not be empty");
           }
-          // row["Updated"] =
-          //   errors.length > 0
-          //     ? `❌ Errors: ${errors.join(", ")}`
-          //     : "✅ Teacher Validated";
-          // if (errors.length > 0) {
-          //   validSheetCountRef.current = 3;
-          // }
+         
           if (errors.length > 0) {
             row["Updated"] = createStyledCell(
               `❌ Errors: ${errors.join(", ")}`,
@@ -687,14 +667,6 @@ const FileUpload: React.FC = () => {
             }
           }
 
-          // ✅ Final status update
-          // row["Updated"] =
-          //   errors.length > 0
-          //     ? `❌ Errors: ${errors.join(", ")}`
-          //     : "✅ Student Validated";
-          // if (errors.length > 0) {
-          //   validSheetCountRef.current = 4;
-          // }
           if (errors.length > 0) {
             row["Updated"] = createStyledCell(
               `❌ Errors: ${errors.join(", ")}`,
