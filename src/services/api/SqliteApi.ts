@@ -45,7 +45,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 1;
+  private DB_VERSION = 2;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
