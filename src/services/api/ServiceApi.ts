@@ -1323,4 +1323,29 @@ export interface ServiceApi {
     student: TableTypes<"user">,
     learning_path: string
   ): Promise<TableTypes<"user">>;
+
+  /**
+   * Inserts or updates a program record in the database via Supabase Edge Function.
+   * @param {any} payload - The mapped program data in JSON format.
+   * @param {string} [id] - Optional program ID; if provided, updates the existing record, otherwise inserts a new one
+   */
+  insertProgram(payload: any, id?: string): Promise<boolean | null>
+
+
+  /**
+   * Get all program managers
+   */
+  getProgramManagers(): Promise<string[]>;
+
+  /**
+   * Get unique geo data
+   */
+  getUniqueGeoData(): Promise<{
+    Country: string[];
+    State: string[];
+    Block: string[];
+    Cluster: string[];
+    District: string[];
+  }>;
+
 }

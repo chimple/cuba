@@ -2096,4 +2096,19 @@ export class FirebaseApi implements ServiceApi {
   uploadData(payload: any): Promise<boolean | null> {
     throw new Error("Method not implemented.");
   }
+  insertProgram(payload: any): Promise<boolean | any> {
+    throw new Error("Method not implemented.");
+  }
+  getProgramManagers(): Promise<string[]>{
+    throw new Error("Method not implemented.");
+  }
+  getUniqueGeoData(): Promise<{
+    Country: string[];
+    State: string[];
+    Block: string[];
+    Cluster: string[];
+    District: string[];
+  }>{
+    throw new Error("Method not implemented.");
+  }
 }

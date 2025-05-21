@@ -45,7 +45,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 1;
+  private DB_VERSION = 2;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -4675,4 +4675,24 @@ order by
       ]);
     }
   }
+
+  async insertProgram(payload: any): Promise<boolean | null> {
+    return await this._serverApi.insertProgram(payload);
+  }
+
+  async getProgramManagers(): Promise<string[]> {
+    return await this._serverApi.getProgramManagers();
+  }
+
+  async getUniqueGeoData(): Promise<{
+    Country: string[];
+    State: string[];
+    Block: string[];
+    Cluster: string[];
+    District: string[];
+  }> {
+    return await this._serverApi.getUniqueGeoData();
+  }
+
+  
 }

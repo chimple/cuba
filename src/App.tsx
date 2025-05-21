@@ -119,6 +119,7 @@ import AddTeacher from "./teachers-module/pages/AddTeacher";
 import TeacherProfile from "./teachers-module/pages/TeacherProfile";
 import SchoolUsers from "./teachers-module/pages/SchoolUsers";
 import AddSchoolUser from "./teachers-module/pages/AddSchoolUser";
+import NewProgram from "./ops-console/components/NewProgram";
 
 setupIonicReact();
 interface ExtraData {
@@ -624,6 +625,9 @@ const App: React.FC = () => {
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.SIDEBAR_PAGE} exact={true}>
                 <SidebarPage />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.NEW_PROGRAM} exact={true}>
+                <NewProgram />
               </ProtectedRoute>
             </Switch>
           </IonRouterOutlet>
