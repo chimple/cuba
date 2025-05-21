@@ -17,7 +17,7 @@ const TabComponent: React.FC<TabComponentProps> = ({
     <Tabs
       value={activeTab}
       onChange={handleTabChange}
-      className="tabs-container"
+      className="tabs-container-HeaderTab"
     >
       {tabs.map((tab, index) => (
         <Tab

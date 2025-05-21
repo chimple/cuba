@@ -12,7 +12,7 @@ const SelectedFilters: React.FC<SelectedFiltersProps> = ({
   onDeleteFilter,
 }) => {
   return (
-    <Box className="selected-filters-container">
+    <Box className="selected-filters-container-SelectedFilters">
       {Object.entries(filters).map(([key, values]) =>
         values.length > 0
           ? values.map((value, index) => (
@@ -20,7 +20,7 @@ const SelectedFilters: React.FC<SelectedFiltersProps> = ({
                 key={`${key}-${index}`}
                 label={`${value}`}
                 onDelete={() => onDeleteFilter(key, value)}
-                className="filter-chip"
+                className="filter-chip-SelectedFilters"
               />
             ))
           : null

@@ -23,13 +23,13 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   const hasFilters = Object.values(filters).some((values) => values.length > 0);
 
   return (
-    <Stack direction="row" spacing={2} className="search-filter-container">
+    <Stack direction="row" spacing={2} className="search-filter-container-SearchAndFilter">
       <TextField
         variant="outlined"
         placeholder={t("Search programs...") || "Search programs..."}
         onChange={onSearchChange}
         value={searchTerm}
-        className="search-input"
+        className="search-input-SearchAndFilter"
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
@@ -41,7 +41,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
       <Button
         variant="outlined"
         startIcon={hasFilters ? <CloseIcon /> : <FilterListIcon />}
-        className={`filter-button ${hasFilters ? "has-filters" : ""}`}
+        className={`filter-button-SearchAndFilter${hasFilters ? " has-filters" : ""}`}
         onClick={onFilterClick}
       >
         {hasFilters ? t("Clear Filters") : t("Filter")}

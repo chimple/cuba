@@ -41,10 +41,10 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
       anchor="right"
       open={isOpen}
       onClose={onClose}
-      className="filter-slider-drawer"
+      className="filter-slider-drawer-FilterSlider"
       style={{ marginBottom: "100px" }}
     >
-      <Box className="filter-header">
+      <Box className="filter-header-FilterSlider">
         <Typography variant="h6">Filters</Typography>
         <IconButton onClick={onClose}>
           <CloseIcon />
@@ -52,7 +52,7 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
       </Box>
       <Divider sx={{ mb: 3 }} />
 
-      <Stack className="filter-content">
+      <Stack className="filter-content-FilterSlider">
         {Object.entries(filterOptions).map(([key, options]) => (
           <Autocomplete
             key={key}
@@ -75,7 +75,7 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
                 label={key
                   .replace(/([A-Z])/g, " $1")
                   .replace(/^./, (str) => str.toUpperCase())}
-                placeholder={`Search ${key}...`}
+                placeholder={t("Search {{key}}...", { key }) ?? ""}
                 variant="outlined"
               />
             )}
@@ -85,12 +85,12 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
         ))}
       </Stack>
 
-      <Box className="filter-footer">
+      <Box className="filter-footer-FilterSlider">
         <Button
           fullWidth
           variant="outlined"
           onClick={onCancel}
-          className="filter-outlined-button"
+          className="filter-outlined-button-FilterSlider"
         >
           {t("Cancel")}
         </Button>
@@ -98,7 +98,7 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
           fullWidth
           variant="contained"
           onClick={onApply}
-          className="filter-contained-button"
+          className="filter-contained-button-FilterSlider"
         >
           {t("Apply")}
         </Button>
