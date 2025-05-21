@@ -89,7 +89,7 @@ export class FirebaseApi implements ServiceApi {
   private _schoolsCache: { [userId: string]: School[] } = {};
   private _currentMode: MODES;
   private _allCourses: Course[];
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -2096,6 +2096,24 @@ export class FirebaseApi implements ServiceApi {
   uploadData(payload: any): Promise<boolean | null> {
     throw new Error("Method not implemented.");
   }
+
+  getProgramFilterOptions(): Promise<Record<string, string[]>> {
+    throw new Error("Method not implemented.");
+  }
+  async getPrograms({
+    currentUserId,
+    filters = {},
+    searchTerm = '',
+    tab = 'ALL',
+  }: {
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    searchTerm?: string;
+    tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+  }): Promise<{ data: any[] }> {
+    throw new Error('Method not implemented.');
+  }
+
   insertProgram(payload: any): Promise<boolean | any> {
     throw new Error("Method not implemented.");
   }

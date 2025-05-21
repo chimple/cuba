@@ -246,7 +246,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -4749,6 +4749,20 @@ order by
     }
   }
 
+  async getProgramFilterOptions(): Promise<Record<string, string[]>> {
+    return await this._serverApi.getProgramFilterOptions();
+  }
+  async getPrograms(params: {
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    searchTerm?: string;
+    tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+  }): Promise<{ data: any[] }> {
+    const { currentUserId, filters, searchTerm, tab } = params;
+    return await this._serverApi.getPrograms({ currentUserId, filters, searchTerm, tab });
+  }
+
+
   async insertProgram(payload: any): Promise<boolean | null> {
     return await this._serverApi.insertProgram(payload);
   }
@@ -4767,5 +4781,5 @@ order by
     return await this._serverApi.getUniqueGeoData();
   }
 
-  
+ 
 }

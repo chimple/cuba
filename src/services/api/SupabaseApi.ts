@@ -152,7 +152,7 @@ export class SupabaseApi implements ServiceApi {
             .from("ProfileImages")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-          []
+        []
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -1717,6 +1717,76 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+
+  async getProgramFilterOptions(): Promise<Record<string, string[]>> {
+    if (!this.supabase) {
+      console.error('Supabase client is not initialized');
+      return {};
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc('get_program_filter_options');
+      if (error) {
+        console.error('RPC error:', error);
+        return {};
+      }
+
+      const parsed: Record<string, string[]> = {};
+      if (data && typeof data === 'object') {
+        for (const key in data) {
+          const val = data[key];
+          if (Array.isArray(val) && val.every(v => typeof v === 'string')) {
+            parsed[key] = val;
+          } else {
+            parsed[key] = [];
+          }
+        }
+      }
+      return parsed;
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      return {};
+    }
+  }
+
+async getPrograms({
+  currentUserId,
+  filters = {},
+  searchTerm = '',
+  tab = 'ALL',
+}: {
+  currentUserId: string;
+  filters?: Record<string, string[]>;
+  searchTerm?: string;
+  tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+}): Promise<{ data: any[] }> {
+  if (!this.supabase) {
+    console.error('Supabase client not initialized');
+    return { data: [] };
+  }
+
+  try {
+    // Call the RPC with currentUserId and pass filters as JSON
+    const { data, error } = await this.supabase.rpc('get_programs_for_user', {
+      _current_user_id: currentUserId,
+      _filters: filters,
+      _search_term: searchTerm,
+      _tab: tab,
+    });
+
+    if (error) {
+      console.error('Error calling get_programs_for_user RPC:', error);
+      return { data: [] };
+    }
+
+    // data will contain programs with manager_names already attached
+    return { data: data || [] };
+  } catch (err) {
+    console.error('Unexpected error in getPrograms:', err);
+    return { data: [] };
+  }
+}
+
   async getProgramManagers(): Promise<string[]> {
     if (!this.supabase) {
       console.error("Supabase client is not initialized.");
@@ -1827,4 +1897,5 @@ export class SupabaseApi implements ServiceApi {
       return false;
     }
   }
+
 }

@@ -1067,6 +1067,18 @@ export class ApiHandler implements ServiceApi {
     return await this.s.updateLearningPath(student, learning_path);
   }
 
+  public async getProgramFilterOptions(): Promise<Record<string, string[]>>{
+    return await this.s.getProgramFilterOptions();}
+  async getPrograms(params: {
+  currentUserId: string;
+  filters?: Record<string, string[]>;
+  searchTerm?: string;
+  tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+}): Promise<{ data: any[] }> {
+  return await this.s.getPrograms(params);
+}
+
+
   public async insertProgram(payload: any): Promise<boolean | null> {
     return await this.s.insertProgram(payload);
   }
@@ -1082,4 +1094,5 @@ export class ApiHandler implements ServiceApi {
   }>{
     return await this.s.getUniqueGeoData();
   }
+
 }

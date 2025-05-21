@@ -119,6 +119,7 @@ import AddTeacher from "./teachers-module/pages/AddTeacher";
 import TeacherProfile from "./teachers-module/pages/TeacherProfile";
 import SchoolUsers from "./teachers-module/pages/SchoolUsers";
 import AddSchoolUser from "./teachers-module/pages/AddSchoolUser";
+import ProgramsPage from "./ops-console/pages/ProgramPage";
 import NewProgram from "./ops-console/components/NewProgram";
 
 setupIonicReact();
@@ -622,6 +623,9 @@ const App: React.FC = () => {
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.UPLOAD_PAGE} exact={true}>
                 <UploadPage />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.PROGRAM_PAGE} exact={true}>
+                <ProgramsPage />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.SIDEBAR_PAGE} exact={true}>
                 <SidebarPage />

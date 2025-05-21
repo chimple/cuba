@@ -1369,6 +1369,33 @@ export interface ServiceApi {
     learning_path: string
   ): Promise<TableTypes<"user">>;
 
+
+
+  /**
+   * Fetches available program filter options.
+   * @returns {Promise<Record<string, string[]>>} Promise resolving to a record of filter keys and their possible values.
+   */
+  getProgramFilterOptions(): Promise<Record<string, string[]>>;
+
+  /**
+   * Fetches programs with optional filters, search term, and tab category.
+   * Retrieves program details along with the names of program managers.
+   * 
+   * @param {Object} params - Parameters to filter and search programs.
+   * @param {string} params.currentUserId - ID of the current user making the request.
+   * @param {Record<string, string[]>} [params.filters] - Key-value pairs to filter programs.
+   * @param {string} [params.searchTerm] - Text to search in program names.
+   * @param {'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID'} [params.tab='ALL'] - Program type tab filter.
+   * @returns {Promise<{ data: any[] }>} Promise resolving to an object containing an array of programs with manager names.
+   */
+  getPrograms(params: {
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    searchTerm?: string;
+    tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+  }): Promise<{ data: any[] }>;
+
+
   /**
    * Inserts or updates a program record in the database via Supabase Edge Function.
    * @param {any} payload - The mapped program data in JSON format.
@@ -1392,5 +1419,6 @@ export interface ServiceApi {
     Cluster: string[];
     District: string[];
   }>;
+
 
 }
