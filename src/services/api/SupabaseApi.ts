@@ -1877,7 +1877,7 @@ async getPrograms({
         program_manager: payload.selectedManagers,
   
         is_deleted: false,
-        is_ops: false,
+        is_ops: true,
         school_id: null,
       };
 
