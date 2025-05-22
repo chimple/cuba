@@ -2232,103 +2232,83 @@ export class OneRosterApi implements ServiceApi {
   }
 
   async searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
-
-    try {
-      // Get all courses first
-      const courses = await this.getAllCourses();
-      const allLessons: TableTypes<"lesson">[] = [];
-
-      // Process each course
-      for (const course of courses) {
-        try {
-          // Load course JSON using existing method
-          const courseJson = await this.loadCourseJson(course.id);
-          if (!courseJson || !courseJson.groups) continue;
-
-          // Extract lessons from each group
-          const lessons = courseJson.groups.flatMap((group: any) => group.navigation);
-
-          // Case-insensitive search with improved matching logic
-          const lowerQuery = searchString.toLowerCase();
-
-          // Score each lesson based on match quality
-          const scoredLessons = lessons.map(lesson => {
-            const title = lesson.title;
-            const lowerTitle = title.toLowerCase();
-
-            // Calculate match score (higher is better)
-            let score = 0;
-
-            // Exact match gets highest priority
-            if (lowerTitle === lowerQuery) {
-              score += 1000;
-            }
-
-            // Starts with query gets high priority
-            if (lowerTitle.startsWith(lowerQuery)) {
-              score += 500;
-            }
-
-            // Contains query as a word gets medium priority
-            if (lowerTitle.includes(` ${lowerQuery} `) ||
-                lowerTitle.startsWith(`${lowerQuery} `) ||
-                lowerTitle.endsWith(` ${lowerQuery}`)) {
-              score += 300;
-            }
-
-            // Contains query gets lower priority
-            if (lowerTitle.includes(lowerQuery)) {
-              score += 100;
-            }
-
-            // Shorter titles get slightly higher priority
-            score += (100 - Math.min(title.length, 100));
-
-            return { lesson, score };
-          });
-
-          // Filter out non-matching lessons and sort by score
-          const matchingLessons = scoredLessons
-            .filter(item => item.score > 0)
-            .sort((a, b) => b.score - a.score)
-            .map(item => item.lesson);
-
-          // Transform and add matching lessons to results
-          const lessonObjects = matchingLessons.map(lesson => ({
-            id: lesson.id,
-            name: lesson.title,
-            cocos_chapter_code: lesson.cocosChapterCode,
-            cocos_lesson_id: lesson.cocosLessonCode,
-            cocos_subject_code: lesson.cocosSubjectCode,
-            color: null,
-            created_at: new Date().toISOString(),
-            created_by: null,
-            outcome: lesson.outcome,
-            status: lesson.status,
-            subject_id: lesson.subject,
-            plugin_type: lesson.pluginType,
-            updated_at: null,
-            is_deleted: null,
-            image: Util.getThumbnailUrl({subjectCode:lesson.cocosSubjectCode,lessonCode:lesson.cocosLessonCode}),
-            language_id: lesson.language || null,
-            target_age_from: lesson.targetAgeFrom || null,
-            target_age_to: lesson.targetAgeTo || null
-          }));
-
-          allLessons.push(...lessonObjects);
-        } catch (error) {
-          console.error(`Error processing course ${course.id}:`, error);
-          // Continue with next course even if one fails
-          continue;
-        }
-      }
-
-      return allLessons;
-    } catch (error) {
-      console.error("Error in searchLessons:", error);
+  try {
+    if (!searchString || searchString.trim().length === 0) {
       return [];
     }
+
+    const searchTerm = searchString.toLowerCase().trim();
+    const courses = await this.getAllCourses();
+    const allLessons: TableTypes<"lesson">[] = [];
+
+    for (const course of courses) {
+      try {
+        const courseJson = await this.loadCourseJson(course.id);
+        if (!courseJson?.groups) continue;
+
+        const lessons = courseJson.groups.flatMap((group: any) => ({
+          lessons: group.navigation,
+          groupId: group.metadata.id,
+          groupTitle: group.metadata.title
+        }));
+
+        for (const { lessons: groupLessons, groupId } of lessons) {
+          for (const lesson of groupLessons) {
+            const title = (lesson.title || '').toLowerCase();
+
+            // Dictionary style matching
+            if (title.startsWith(searchTerm) || title.includes(` ${searchTerm}`)) {
+              allLessons.push({
+                id: lesson.id,
+                name: lesson.title,
+                cocos_chapter_code: lesson.cocosChapterCode,
+                cocos_lesson_id: lesson.cocosLessonCode,
+                cocos_subject_code: lesson.cocosSubjectCode,
+                color: lesson.color || null,
+                created_at: new Date().toISOString(),
+                created_by: null,
+                image: Util.getThumbnailUrl({
+                  subjectCode: lesson.cocosSubjectCode,
+                  lessonCode: lesson.cocosLessonCode
+                }),
+                is_deleted: null,
+                language_id: lesson.language || null,
+                outcome: lesson.outcome,
+                plugin_type: lesson.pluginType,
+                status: lesson.status,
+                subject_id: lesson.subject,
+                target_age_from: lesson.targetAgeFrom || null,
+                target_age_to: lesson.targetAgeTo || null,
+                updated_at: null,
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Error processing course ${course.id}:`, error);
+        continue;
+      }
+    }
+
+    return allLessons.sort((a, b) => {
+      const nameA = a.name?.toLowerCase() || '';
+      const nameB = b.name?.toLowerCase() || '';
+
+      const startsWithA = nameA.startsWith(searchTerm);
+      const startsWithB = nameB.startsWith(searchTerm);
+
+      if (startsWithA && !startsWithB) return -1;
+      if (!startsWithA && startsWithB) return 1;
+
+      return nameA.localeCompare(nameB);
+    });
+
+  } catch (error) {
+    console.error("Error in searchLessons:", error);
+    return [];
   }
+}
+
   createOrUpdateAssignmentCart(
     userId: string,
     lessons: string

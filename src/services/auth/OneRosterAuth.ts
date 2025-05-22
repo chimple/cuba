@@ -2,6 +2,7 @@ import { OneRosterUser, ServiceAuth } from "./ServiceAuth";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 import { CURRENT_USER, TableTypes } from "../../common/constants";
 import { Capacitor, registerPlugin } from "@capacitor/core";
+import { Util } from "../../utility/util";
 export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
   private _currentUser: TableTypes<"user"> | undefined;
@@ -132,10 +133,10 @@ export class OneRosterAuth implements ServiceAuth {
       is_deleted: null,
       is_tc_accepted: true,
       language_id: "en",
-      music_off: null,
+      music_off: (Util.getCurrentMusic() === 0),
       name: given_name,
       phone: null,
-      sfx_off: null,
+      sfx_off: (Util.getCurrentSound() === 0),
       student_id: registration,
       updated_at: null,
     };
