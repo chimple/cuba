@@ -39,6 +39,7 @@ import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 import LearningPathway from "../components/LearningPathway";
 import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
+import { Device } from "@capacitor/device";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -102,6 +103,20 @@ const Home: FC = () => {
   };
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
+  const logDeviceInfo = async () => {
+    const info = await Device.getInfo();
+    const device_language = await Device.getLanguageCode();
+    const device = {
+      model: info.model,
+      manufacturer: info.manufacturer,
+      platform: info.platform,
+      os_version: info.osVersion,
+      operating_system: info.operatingSystem,
+      is_virtual: info.isVirtual,
+      device_language: device_language.value
+    }
+    return device;
+  };
   useEffect(() => {
     const student = Util.getCurrentStudent();
     if (!student) {
@@ -345,6 +360,7 @@ const Home: FC = () => {
         acc[`count_of_${courseId}`] = courseCount[courseId];
         return acc;
       }, {});
+      const device = await logDeviceInfo();
       const attributeParams = {
         studentDetails: student,
         schools: linkedData.schools.map((item: any) => item.id),
@@ -352,7 +368,8 @@ const Home: FC = () => {
         liveQuizCount: liveQuizCount,
         assignmentCount: assignmentCount,
         countOfPendingIds: result,
-        ...counts
+        ...counts,
+        ...device,
       }
       updateLocalAttributes(attributeParams);
       setGbUpdated(true);
