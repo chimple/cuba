@@ -1506,20 +1506,40 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  async updateSoundFlag(userId: string, value: boolean) {
-    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (currentUser) {
-      Util.setCurrentSound(value ? 1 : 0)
+async updateSoundFlag(userId: string, value: boolean) {
+    try {
+        const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+        if (currentUser) {
+            currentUser.sfx_off = value;
+            const userString = localStorage.getItem(CURRENT_USER);
+            if (userString) {
+                const userData = JSON.parse(userString);
+                userData.sfx_off = value;
+                localStorage.setItem(CURRENT_USER, JSON.stringify(userData));
+            }
+        }
+    } catch (error) {
+        console.error("Error updating sound flag:", error);
     }
-  }
-  async updateMusicFlag(userId: string, value: boolean) {
-    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (currentUser) {
-      Util.setCurrentMusic(value ? 1 : 0)
-      // currentUser.music_off = value
-      // localStorage.setItem(MUSIC, value)
+}
+
+async updateMusicFlag(userId: string, value: boolean) {
+    try {
+        const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+        if (currentUser) {
+            currentUser.music_off = value;
+            const userString = localStorage.getItem(CURRENT_USER);
+            if (userString) {
+                const userData = JSON.parse(userString);
+                userData.music_off = value;
+                localStorage.setItem(CURRENT_USER, JSON.stringify(userData));
+            }
+        }
+    } catch (error) {
+        console.error("Error updating music flag:", error);
     }
-  }
+}
+
   async updateLanguage(userId: string, value: string) {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {

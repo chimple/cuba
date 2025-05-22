@@ -48,7 +48,6 @@ import {
   NAVIGATION_STATE,
   GAME_URL,
   LOCAL_BUNDLES_PATH,
-  CURRENT_USER,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -421,43 +420,32 @@ export class Util {
     api.currentStudent = currentStudent;
     return currentStudent;
   }
-
-public static getCurrentSound(): number {
-    // First check localStorage
+  public static getCurrentSound(): number {
+    const auth = ServiceConfig.getI().authHandler;
+    const currUser = auth.currentUser;
+    if (!!currUser?.sfx_off) return currUser.sfx_off ? 1 : 0;
     const currSound = localStorage.getItem(SOUND);
-    if (currSound === null) {
-        localStorage.setItem(SOUND, "0");
-        return 0;
+    if (!currSound) return 0;
+    console.log(currSound);
+    if (currUser) {
+      ServiceConfig.getI().apiHandler.updateSoundFlag(
+        currUser.id,
+        currSound === "0" ? false : true
+      );
     }
-    return currSound === "1" ? 1 : 0;
-}
-
-  public static async setCurrentSound(currSound: number): Promise<void> {
-    try {
-        const newValue = currSound === 0 ? "1" : "0";
-        localStorage.setItem(SOUND, newValue);
-
-        const auth = ServiceConfig.getI().authHandler;
-        const currUser = auth.currentUser;
-
-        if (currUser) {
-            currUser.sfx_off = newValue === "1";
-            auth.currentUser = currUser;
-
-            await ServiceConfig.getI().apiHandler.updateSoundFlag(
-                currUser.id,
-                newValue === "1"
-            );
-
-            const currentUserString = localStorage.getItem(CURRENT_USER);
-            const currentUserObj = currentUserString ? JSON.parse(currentUserString) : {};
-            currentUserObj.sfx_off = newValue === "1";
-            localStorage.setItem(CURRENT_USER, JSON.stringify(currentUserObj));
-        }
-    } catch (error) {
-        console.error("Error setting sound:", error);
+    return currSound === "0" ? 0 : 1;
+  }
+  public static setCurrentSound = async (currSound: number) => {
+    const auth = ServiceConfig.getI().authHandler;
+    const currUser = auth.currentUser;
+    if (currUser) {
+      ServiceConfig.getI().apiHandler.updateSoundFlag(
+        currUser.id,
+        currSound === 1
+      );
     }
-}
+    localStorage.setItem(SOUND, currSound.toString());
+  };
 
   public static getThumbnailUrl({
   subjectCode,
@@ -490,42 +478,32 @@ public static getCurrentSound(): number {
       }
   }
 
- public static getCurrentMusic(): number {
-    // First check localStorage
+  public static getCurrentMusic(): number {
+    const auth = ServiceConfig.getI().authHandler;
+    const currUser = auth.currentUser;
+    if (!!currUser?.music_off) return currUser?.music_off ? 1 : 0;
     const currMusic = localStorage.getItem(MUSIC);
-    if (currMusic === null) {
-        localStorage.setItem(MUSIC, "0");
-        return 0;
+    if (!currMusic) return 0;
+    console.log("currentMISIC", currMusic);
+    if (currUser) {
+      ServiceConfig.getI().apiHandler.updateMusicFlag(
+        currUser.id,
+        currMusic === "0" ? false : true
+      );
     }
-    return currMusic === "1" ? 1 : 0;
-}
-
-public static async setCurrentMusic(currMusic: number): Promise<void> {
-    try {
-        const newValue = currMusic === 0 ? "1" : "0";
-        localStorage.setItem(MUSIC, newValue);
-
-        const auth = ServiceConfig.getI().authHandler;
-        const currUser = auth.currentUser;
-
-        if (currUser) {
-            currUser.music_off = newValue === "1";
-            auth.currentUser = currUser;
-
-            await ServiceConfig.getI().apiHandler.updateMusicFlag(
-                currUser.id,
-                newValue === "1"
-            );
-
-            const currentUserString = localStorage.getItem(CURRENT_USER);
-            const currentUserObj = currentUserString ? JSON.parse(currentUserString) : {};
-            currentUserObj.music_off = newValue === "1";
-            localStorage.setItem(CURRENT_USER, JSON.stringify(currentUserObj));
-        }
-    } catch (error) {
-        console.error("Error setting music:", error);
+    return currMusic === "0" ? 0 : 1;
+  }
+  public static setCurrentMusic = async (currMusic: number) => {
+    const auth = ServiceConfig.getI().authHandler;
+    const currUser = auth.currentUser;
+    if (currUser) {
+      ServiceConfig.getI().apiHandler.updateMusicFlag(
+        currUser.id,
+        currMusic === 1
+      );
     }
-}
+    localStorage.setItem(MUSIC, currMusic.toString());
+  };
   public static getGUIDRef(map: any): GUIDRef {
     return { href: map?.href, sourcedId: map?.sourcedId, type: map?.type };
   }
