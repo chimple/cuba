@@ -461,7 +461,11 @@ export enum NavItems {
   RESOURCES = 'Resources'
 }
 
-
+export enum ProgramType {
+  Govt = 'Govt',
+  Private = 'Private',
+  LearningCenter = 'Learning Center',
+}
 
 export interface SchoolWithRole {
   school: TableTypes<"school">;
