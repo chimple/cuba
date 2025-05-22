@@ -56,3 +56,9 @@
 .filter-content-FilterSlider::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+.filter-autocomplete-selected-FilterSlider {
+  border: 2px solid #1976d2 !important;
+  border-radius: 8px;
+  background: #e3f2fd;
+}

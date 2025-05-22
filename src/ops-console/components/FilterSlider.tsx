@@ -60,7 +60,7 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
             options={options}
             disableCloseOnSelect
             getOptionLabel={(option) => option}
-            value={filters[key] as string[]}
+            value={filters[key] ?? []}
             onChange={(e, value) => onFilterChange(key, value)}
             renderOption={(props, option, { selected }) => (
               <li {...props}>
@@ -79,7 +79,7 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
                 variant="outlined"
               />
             )}
-            className="filter-autocomplete"
+            className={`filter-autocomplete${(filters[key] && filters[key].length > 0) ? ' filter-autocomplete-selected-FilterSlider' : ''}`}
             sx={autocompleteStyles}
           />
         ))}
@@ -92,7 +92,7 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
           onClick={onCancel}
           className="filter-outlined-button-FilterSlider"
         >
-          {t("Cancel")}
+          {t("Clear All")}
         </Button>
         <Button
           fullWidth
