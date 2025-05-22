@@ -52,30 +52,42 @@ export interface ServiceApi {
     languageDocId: string | undefined
   ): Promise<TableTypes<"user">>;
   /**
-   * Creates a new school and returns the school object
-   * @param {string} name - name of the school
-   * @param {string} group1 - state of school
-   * @param {string} group1 - district of school
-   * @param {string} group1 - city of school
-   * @param {string[]} courseIds - school course ids
-   * @returns {TableTypes<"school">} School Object
+   * Creates a new school and returns the created school object.
+   * @param {string} name - Name of the school.
+   * @param {string} group1 - State of the school.
+   * @param {string} group2 - District of the school.
+   * @param {string} group3 - City of the school.
+   * @param {string | null} group4 - Additional grouping, if any.
+   * @param {File | null} image - Optional image file for the school.
+   * @param {string | null} program_id - Linked program ID if any.
+   * @param {string | null} udise - School's UDISE code (11 digits).
+   * @param {string | null} address - Full address of the school.
+   * @returns {Promise<TableTypes<"school">>} The created school object.
    */
   createSchool(
     name: string,
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    group4: string | null,
+    image: File | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">>;
   /**
-   * updates a school details and returns the school object
-   * @param {TableTypes<"school">} school - school object
-   * @param {string} name - name of the school
-   * @param {string} group1 - state of school
-   * @param {string} group1 - district of school
-   * @param {string} group1 - city of school
-   * @param {string} image - image of school
-   * @returns {TableTypes<"school">} Updated School Object
+   * Updates the school details and returns the updated school object.
+   * @param {TableTypes<"school">} school - The existing school object.
+   * @param {string} name - Name of the school.
+   * @param {string} group1 - State of the school.
+   * @param {string} group2 - District of the school.
+   * @param {string} group3 - City of the school.
+   * @param {string | null} group4 - Additional grouping, if any.
+   * @param {File | null} image - Optional image file for the school.
+   * @param {string | null} program_id - Linked program ID if any.
+   * @param {string | null} udise - School's UDISE code (11 digits).
+   * @param {string | null} address - Full address of the school.
+   * @returns {Promise<TableTypes<"school">>} The updated school object.
    */
   updateSchoolProfile(
     school: TableTypes<"school">,
@@ -83,7 +95,11 @@ export interface ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    group4: string | null,
+    image: File | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">>;
 
   requestNewSchool(
@@ -1257,7 +1273,6 @@ export interface ServiceApi {
     schoolName: string
   ): Promise<{ status: string; errors?: string[] }>;
 
-
   /**
    * To validate given phone number and student already exist in the given class or not
    * @param {string } phoneNumber - phone number
@@ -1272,7 +1287,7 @@ export interface ServiceApi {
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }>;
 
-   /**
+  /**
    * To validate given UDISE school Id  exist in the given school table or not
    * @param {string } schoolId -    school id(UDISE)
    */
@@ -1286,7 +1301,7 @@ export interface ServiceApi {
    */
   validateClassNameWithSchoolID(
     schoolId: string,
-    className: string,
+    className: string
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1362,4 +1377,32 @@ export interface ServiceApi {
    * @param {number} totalStars - total stars.
    */
   updateStudentStars(studentId: string, totalStars: number): Promise<void>;
+
+  /**
+   * This function gets the program for a given school.
+   * @param {string} schoolId - The school ID
+   * @returns {Promise<TableTypes<"program"> | undefined>} - A promise resolving to the program, or undefined if not found
+   */
+  getProgramForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"program"> | undefined>;
+
+  /**
+   * This function gets all program managers (users) for the given school.
+   * @param {string} schoolId - The school ID
+   * @returns {Promise<TableTypes<"user">[]>} - A promise resolving to an array of users (program managers)
+   */
+  // In ServiceApi
+  getProgramManagersForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined>;
+
+  /**
+   * Get all curriculum and their subjects for a given school.
+   * @param {string} schoolId - School ID (UDISE)
+   * @returns Promise resolving to array of curriculum and their subjects.
+   */
+  getCurriculumSubjectsForSchool(
+    schoolId: string
+  ): Promise<{ curriculum: string; subjects: string[] }[] | undefined>;
 }

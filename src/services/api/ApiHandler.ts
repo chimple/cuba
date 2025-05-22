@@ -148,9 +148,23 @@ export class ApiHandler implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    group4: string | null,
+    image: File | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">> {
-    return await this.s.createSchool(name, group1, group2, group3, image);
+    return await this.s.createSchool(
+      name,
+      group1,
+      group2,
+      group3,
+      group4,
+      image,
+      program_id,
+      udise,
+      address
+    );
   }
   public async updateSchoolProfile(
     school: TableTypes<"school">,
@@ -158,7 +172,11 @@ export class ApiHandler implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    group4: string | null,
+    image: File | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">> {
     return await this.s.updateSchoolProfile(
       school,
@@ -166,7 +184,11 @@ export class ApiHandler implements ServiceApi {
       group1,
       group2,
       group3,
-      image
+      group4,
+      image,
+      program_id,
+      udise,
+      address
     );
   }
   public async requestNewSchool(
@@ -988,7 +1010,12 @@ export class ApiHandler implements ServiceApi {
     className: string,
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }> {
-    return this.s.validateParentAndStudentInClass(schoolId, className, studentName, phoneNumber);
+    return this.s.validateParentAndStudentInClass(
+      schoolId,
+      className,
+      studentName,
+      phoneNumber
+    );
   }
   async validateSchoolUdiseCode(
     schoolId: string
@@ -997,17 +1024,21 @@ export class ApiHandler implements ServiceApi {
   }
   async validateClassNameWithSchoolID(
     schoolId: string,
-    className: string,
+    className: string
   ): Promise<{ status: string; errors?: string[] }> {
     return this.s.validateClassNameWithSchoolID(schoolId, className);
   }
-  
+
   async validateStudentInClassWithoutPhone(
     studentName: string,
     className: string,
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }> {
-    return this.s.validateStudentInClassWithoutPhone(studentName, className, schoolId);
+    return this.s.validateStudentInClassWithoutPhone(
+      studentName,
+      className,
+      schoolId
+    );
   }
   async validateClassCurriculumAndSubject(
     curriculumName: string,
@@ -1062,5 +1093,20 @@ export class ApiHandler implements ServiceApi {
     totalStars: number
   ): Promise<void> {
     return await this.s.updateStudentStars(studentId, totalStars);
+  }
+  public async getProgramForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"program"> | undefined> {
+    return await this.s.getProgramForSchool(schoolId);
+  }
+  public async getProgramManagersForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    return await this.s.getProgramManagersForSchool(schoolId);
+  }
+  public async getCurriculumSubjectsForSchool(
+    schoolId: string
+  ): Promise<{ curriculum: string; subjects: string[] }[] | undefined> {
+    return await this.s.getCurriculumSubjectsForSchool(schoolId);
   }
 }

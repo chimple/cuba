@@ -3,11 +3,7 @@ import { Box } from "@mui/material";
 import { useHistory, useLocation } from "react-router-dom";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
-import {
-  PAGES,
-  SchoolWithRole,
-  TableTypes,
-} from "../../common/constants";
+import { PAGES, SchoolWithRole, TableTypes } from "../../common/constants";
 import Header from "../components/homePage/Header";
 import "./EditSchool.css";
 import EditSchoolSection from "../components/schoolComponent/EditSchoolSection";
@@ -78,40 +74,40 @@ const EditSchool: React.FC = () => {
       setIsSaving(true);
 
       if (isEditMode && currentSchool) {
-        const updatedSchool = await api.updateSchoolProfile(
-          currentSchool,
-          schoolData.name,
-          schoolData.state,
-          schoolData.district,
-          schoolData.city,
-          profilePic
-        );
+        // const updatedSchool = await api.updateSchoolProfile(
+        //   currentSchool,
+        //   schoolData.name,
+        //   schoolData.state,
+        //   schoolData.district,
+        //   schoolData.city,
+        //   profilePic
+        // );
 
         console.log("School data updated successfully");
 
-      //   if (navigationState?.stage === Class_Creation_Stages.CREATE_SCHOOL) {
-      //     Util.setNavigationState(Class_Creation_Stages.SCHOOL_COURSE);
-      //     history.replace(PAGES.SUBJECTS_PAGE, {
-      //       schoolId: updatedSchool.id,
-      //       origin: PAGES.ADD_SCHOOL,
-      //       isSelect: true,
-      //     });
-      //   } else {
-      //     history.replace(PAGES.SCHOOL_PROFILE, {
-      //       school: updatedSchool,
-      //       role: role,
-      //     });
-      //   }
-      // } else {
-      //   Util.clearNavigationState();
-      //   setIsSaving(true);
-      //   tempSchool = await api.createSchool(
-      //     schoolData.name.trim(),
-      //     schoolData.state.trim(),
-      //     schoolData.district.trim(),
-      //     schoolData.city.trim(),
-      //     profilePic
-      //   );
+        //   if (navigationState?.stage === Class_Creation_Stages.CREATE_SCHOOL) {
+        //     Util.setNavigationState(Class_Creation_Stages.SCHOOL_COURSE);
+        //     history.replace(PAGES.SUBJECTS_PAGE, {
+        //       schoolId: updatedSchool.id,
+        //       origin: PAGES.ADD_SCHOOL,
+        //       isSelect: true,
+        //     });
+        //   } else {
+        //     history.replace(PAGES.SCHOOL_PROFILE, {
+        //       school: updatedSchool,
+        //       role: role,
+        //     });
+        //   }
+        // } else {
+        //   Util.clearNavigationState();
+        //   setIsSaving(true);
+        //   tempSchool = await api.createSchool(
+        //     schoolData.name.trim(),
+        //     schoolData.state.trim(),
+        //     schoolData.district.trim(),
+        //     schoolData.city.trim(),
+        //     profilePic
+        //   );
 
         // Util.setNavigationState(School_Creation_Stages.SCHOOL_COURSE);
         // history.replace(PAGES.SUBJECTS_PAGE, {

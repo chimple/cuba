@@ -92,11 +92,15 @@ export class SupabaseApi implements ServiceApi {
       group1: string | null;
       group2: string | null;
       group3: string | null;
+      group4: string | null;
       id: string;
       image: string | null;
       is_deleted: boolean | null;
       name: string;
       updated_at: string | null;
+      udise: string | null;
+      address: string | null;
+      program_id: string | null;
     }[];
   }> {
     throw new Error("Method not implemented.");
@@ -213,7 +217,7 @@ export class SupabaseApi implements ServiceApi {
           case TABLES.Assignment: {
             rpcName = "sql_get_assignments";
             res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
+              p_updated_at: "lastModifiedDate",
             });
             break;
           }
@@ -227,7 +231,7 @@ export class SupabaseApi implements ServiceApi {
           case TABLES.Assignment_user: {
             rpcName = "sql_get_assignment_users";
             res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
+              p_updated_at: "lastModifiedDate",
             });
             break;
           }
@@ -559,7 +563,11 @@ export class SupabaseApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    group4: string | null,
+    image: File | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">> {
     throw new Error("Method not implemented.");
   }
@@ -842,8 +850,19 @@ export class SupabaseApi implements ServiceApi {
   getClassById(id: string): Promise<TableTypes<"class"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  getSchoolById(id: string): Promise<TableTypes<"school"> | undefined> {
-    throw new Error("Method not implemented.");
+  async getSchoolById(id: string): Promise<TableTypes<"school"> | undefined> {
+    if (!this.supabase) return;
+    const { data, error } = await this.supabase
+      .from(TABLES.School)
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      console.log("Error in getting school", error);
+      return;
+    }
+    return data ?? undefined;
   }
   isStudentLinked(studentId: string, fromCache: boolean): Promise<boolean> {
     throw new Error("Method not implemented.");
@@ -1545,12 +1564,48 @@ export class SupabaseApi implements ServiceApi {
   async getPrincipalsForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    const { data, error } = await this.supabase
+      .from("school_user")
+      .select("user(*)")
+      .eq("school_id", schoolId)
+      .eq("role", RoleType.PRINCIPAL)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching principals:", error);
+      return;
+    }
+
+    const users = data
+      .map((item: { user: TableTypes<"user"> | null }) => item.user)
+      .filter((user): user is TableTypes<"user"> => !!user);
+
+    return users;
   }
   async getCoordinatorsForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    const { data, error } = await this.supabase
+      .from("school_user")
+      .select("user(*)")
+      .eq("school_id", schoolId)
+      .eq("role", RoleType.COORDINATOR)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching coordinators:", error);
+      return;
+    }
+
+    const coordinators = data
+      .map((item: { user: TableTypes<"user"> | null }) => item.user)
+      .filter((user): user is TableTypes<"user"> => !!user);
+
+    return coordinators;
   }
   async getSponsorsForSchool(
     schoolId: string
@@ -1922,5 +1977,172 @@ export class SupabaseApi implements ServiceApi {
     totalStars: number
   ): Promise<void> {
     throw new Error("Method not implemented.");
+  }
+  async getProgramForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"program"> | undefined> {
+    if (!this.supabase) return;
+    const { data: schoolData, error: schoolError } = await this.supabase
+      .from("school")
+      .select("program_id")
+      .eq("id", schoolId)
+      .maybeSingle();
+    if (schoolError || !schoolData?.program_id) {
+      console.error(
+        "Error fetching school or missing program_id:",
+        schoolError
+      );
+      return;
+    }
+    const { data: programData, error: programError } = await this.supabase
+      .from("program")
+      .select("*")
+      .eq("id", schoolData.program_id)
+      .maybeSingle();
+    if (programError) {
+      console.error("Error fetching program:", programError);
+      return;
+    }
+    return programData ?? undefined;
+  }
+  async getProgramManagersForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    if (!this.supabase) return;
+    const { data: schoolData, error: schoolError } = await this.supabase
+      .from("school")
+      .select("program_id")
+      .eq("id", schoolId)
+      .maybeSingle();
+    if (schoolError || !schoolData?.program_id) {
+      console.error(
+        "Error fetching school or missing program_id:",
+        schoolError
+      );
+      return;
+    }
+    const { data: programUsers, error: programUserError } = await this.supabase
+      .from("program_user")
+      .select("user(*)")
+      .eq("program_id", schoolData.program_id)
+      .eq("role", RoleType.PROGRAM_MANAGER)
+      .eq("is_deleted", false);
+    if (programUserError) {
+      console.error("Error fetching program managers:", programUserError);
+      return;
+    }
+    const users = programUsers
+      .map((item: { user: TableTypes<"user"> | null }) => item.user)
+      .filter((user): user is TableTypes<"user"> => !!user);
+    console.log("hgshdghksgdhjkgs", users);
+    return users;
+  }
+
+  async getCurriculumSubjectsForSchool(
+    schoolId: string
+  ): Promise<{ curriculum: string; subjects: string[] }[] | undefined> {
+    if (!this.supabase) return;
+
+    // 1. Get all course_ids for the school
+    const { data: schoolCourseData, error: schoolCourseError } =
+      await this.supabase
+        .from("school_course")
+        .select("course_id")
+        .eq("school_id", schoolId);
+
+    if (
+      schoolCourseError ||
+      !schoolCourseData ||
+      schoolCourseData.length === 0
+    ) {
+      console.error(
+        "Error fetching school courses or none found:",
+        schoolCourseError
+      );
+      return;
+    }
+    const courseIds = schoolCourseData
+      .map((row: any) => row.course_id)
+      .filter((id: string | null | undefined): id is string => !!id); // filter out null/undefined
+
+    if (courseIds.length === 0) return;
+
+    // 2. Get courses (with curriculum and subject IDs)
+    const { data: coursesData, error: coursesError } = await this.supabase
+      .from("course")
+      .select("id, curriculum_id, subject_id")
+      .in("id", courseIds);
+
+    if (coursesError || !coursesData || coursesData.length === 0) {
+      console.error("Error fetching courses or none found:", coursesError);
+      return;
+    }
+    const curriculumIds = [
+      ...new Set(
+        coursesData
+          .map((c: any) => c.curriculum_id)
+          .filter((id: string | null | undefined): id is string => !!id)
+      ),
+    ];
+    const subjectIds = [
+      ...new Set(
+        coursesData
+          .map((c: any) => c.subject_id)
+          .filter((id: string | null | undefined): id is string => !!id)
+      ),
+    ];
+
+    // 3. Get curriculum names
+    const { data: curriculumData, error: curriculumError } = await this.supabase
+      .from("curriculum")
+      .select("id, name")
+      .in("id", curriculumIds);
+
+    if (curriculumError || !curriculumData) {
+      console.error("Error fetching curriculum:", curriculumError);
+      return;
+    }
+
+    // 4. Get subject names
+    const { data: subjectData, error: subjectError } = await this.supabase
+      .from("subject")
+      .select("id, name")
+      .in("id", subjectIds);
+
+    if (subjectError || !subjectData) {
+      console.error("Error fetching subjects:", subjectError);
+      return;
+    }
+
+    // 5. Build maps, filtering out null IDs
+    const curriculumMap: Record<string, string> = {};
+    for (const c of curriculumData) {
+      if (c.id) curriculumMap[c.id] = c.name;
+    }
+
+    const subjectMap: Record<string, string> = {};
+    for (const s of subjectData) {
+      if (s.id) subjectMap[s.id] = s.name;
+    }
+
+    // Map: curriculum name => array of subjects
+    const resultMap: Record<string, string[]> = {};
+    for (const course of coursesData) {
+      if (!course.curriculum_id || !course.subject_id) continue;
+
+      const curriculumName = curriculumMap[course.curriculum_id];
+      const subjectName = subjectMap[course.subject_id];
+
+      if (!curriculumName || !subjectName) continue;
+      if (!resultMap[curriculumName]) resultMap[curriculumName] = [];
+      if (!resultMap[curriculumName].includes(subjectName))
+        resultMap[curriculumName].push(subjectName);
+    }
+
+    // Convert to array
+    return Object.entries(resultMap).map(([curriculum, subjects]) => ({
+      curriculum,
+      subjects,
+    }));
   }
 }
