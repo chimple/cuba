@@ -1,0 +1,81 @@
+.key-contacts-container {
+  background-color: #fff;
+  border-radius: 0.5rem;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+  padding: 1rem;
+  max-width: 24rem;
+  width: 100%;
+  max-height: 18rem;
+  overflow: auto;
+  text-align: left;
+  margin: 0;
+  padding-top: 1rem;
+}
+
+.key-contacts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+  height: auto;
+  min-height: 1.5rem;
+  padding: 0;
+}
+
+.key-contacts-title {
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2d3748;
+  line-height: 1.2;
+}
+
+.key-contacts-divider {
+  border-top: 1px solid #e2e8f0;
+  margin: 0.5rem 0;
+}
+
+.key-contacts-content {
+  text-align: left;
+}
+
+.key-contacts-box {
+  background-color: #f7f9fa;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.key-contacts-left {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.key-contacts-left p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #2d3748;
+  text-align: left;
+}
+
+.key-contacts-left p strong {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.15rem;
+  text-align: left;
+}
+
+.key-contacts-phone {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4a5568;
+  align-self: center;
+}

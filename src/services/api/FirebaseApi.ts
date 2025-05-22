@@ -89,7 +89,7 @@ export class FirebaseApi implements ServiceApi {
   private _schoolsCache: { [userId: string]: School[] } = {};
   private _currentMode: MODES;
   private _allCourses: Course[];
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -2103,21 +2103,21 @@ export class FirebaseApi implements ServiceApi {
   async getPrograms({
     currentUserId,
     filters = {},
-    searchTerm = '',
-    tab = 'ALL',
+    searchTerm = "",
+    tab = "ALL",
   }: {
     currentUserId: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
-    tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
   }): Promise<{ data: any[] }> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 
   insertProgram(payload: any): Promise<boolean | any> {
     throw new Error("Method not implemented.");
   }
-  getProgramManagers(): Promise<string[]>{
+  getProgramManagers(): Promise<string[]> {
     throw new Error("Method not implemented.");
   }
   getUniqueGeoData(): Promise<{
@@ -2126,7 +2126,22 @@ export class FirebaseApi implements ServiceApi {
     Block: string[];
     Cluster: string[];
     District: string[];
-  }>{
+  }> {
+    throw new Error("Method not implemented.");
+  }
+  getProgramForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"program"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getProgramManagersForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getCurriculumSubjectsForSchool(
+    schoolId: string
+  ): Promise<{ curriculum: string; subjects: string[] }[] | undefined> {
     throw new Error("Method not implemented.");
   }
 }

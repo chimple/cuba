@@ -89,11 +89,15 @@ export class SupabaseApi implements ServiceApi {
       group1: string | null;
       group2: string | null;
       group3: string | null;
+      group4: string | null;
       id: string;
       image: string | null;
       is_deleted: boolean | null;
       name: string;
       updated_at: string | null;
+      udise: string | null;
+      address: string | null;
+      program_id: string | null;
     }[];
   }> {
     throw new Error("Method not implemented.");
@@ -152,7 +156,7 @@ export class SupabaseApi implements ServiceApi {
             .from("ProfileImages")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-        []
+          []
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -333,7 +337,11 @@ export class SupabaseApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    group4: string | null,
+    image: File | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">> {
     throw new Error("Method not implemented.");
   }
@@ -1357,7 +1365,7 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
- async validateSchoolData(
+  async validateSchoolData(
     schoolId: string,
     schoolName: string
   ): Promise<{ status: string; errors?: string[] }> {
@@ -1527,7 +1535,7 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-   async validateClassCurriculumAndSubject(
+  async validateClassCurriculumAndSubject(
     curriculumName: string,
     subjectName: string,
     gradeName: string // new parameter
@@ -1717,25 +1725,26 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-
   async getProgramFilterOptions(): Promise<Record<string, string[]>> {
     if (!this.supabase) {
-      console.error('Supabase client is not initialized');
+      console.error("Supabase client is not initialized");
       return {};
     }
 
     try {
-      const { data, error } = await this.supabase.rpc('get_program_filter_options');
+      const { data, error } = await this.supabase.rpc(
+        "get_program_filter_options"
+      );
       if (error) {
-        console.error('RPC error:', error);
+        console.error("RPC error:", error);
         return {};
       }
 
       const parsed: Record<string, string[]> = {};
-      if (data && typeof data === 'object') {
+      if (data && typeof data === "object") {
         for (const key in data) {
           const val = data[key];
-          if (Array.isArray(val) && val.every(v => typeof v === 'string')) {
+          if (Array.isArray(val) && val.every((v) => typeof v === "string")) {
             parsed[key] = val;
           } else {
             parsed[key] = [];
@@ -1744,68 +1753,66 @@ export class SupabaseApi implements ServiceApi {
       }
       return parsed;
     } catch (err) {
-      console.error('Unexpected error:', err);
+      console.error("Unexpected error:", err);
       return {};
     }
   }
 
-async getPrograms({
-  currentUserId,
-  filters = {},
-  searchTerm = '',
-  tab = 'ALL',
-}: {
-  currentUserId: string;
-  filters?: Record<string, string[]>;
-  searchTerm?: string;
-  tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
-}): Promise<{ data: any[] }> {
-  if (!this.supabase) {
-    console.error('Supabase client not initialized');
-    return { data: [] };
-  }
-
-  try {
-    // Call the RPC with currentUserId and pass filters as JSON
-    const { data, error } = await this.supabase.rpc('get_programs_for_user', {
-      _current_user_id: currentUserId,
-      _filters: filters,
-      _search_term: searchTerm,
-      _tab: tab,
-    });
-
-    if (error) {
-      console.error('Error calling get_programs_for_user RPC:', error);
+  async getPrograms({
+    currentUserId,
+    filters = {},
+    searchTerm = "",
+    tab = "ALL",
+  }: {
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    searchTerm?: string;
+    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
+  }): Promise<{ data: any[] }> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized");
       return { data: [] };
     }
 
-    // data will contain programs with manager_names already attached
-    return { data: data || [] };
-  } catch (err) {
-    console.error('Unexpected error in getPrograms:', err);
-    return { data: [] };
+    try {
+      // Call the RPC with currentUserId and pass filters as JSON
+      const { data, error } = await this.supabase.rpc("get_programs_for_user", {
+        _current_user_id: currentUserId,
+        _filters: filters,
+        _search_term: searchTerm,
+        _tab: tab,
+      });
+
+      if (error) {
+        console.error("Error calling get_programs_for_user RPC:", error);
+        return { data: [] };
+      }
+
+      // data will contain programs with manager_names already attached
+      return { data: data || [] };
+    } catch (err) {
+      console.error("Unexpected error in getPrograms:", err);
+      return { data: [] };
+    }
   }
-}
 
   async getProgramManagers(): Promise<string[]> {
     if (!this.supabase) {
       console.error("Supabase client is not initialized.");
       return [];
     }
-  
-    const { data, error } = await this.supabase
-      .rpc('get_program_managers');
-  
+
+    const { data, error } = await this.supabase.rpc("get_program_managers");
+
     if (error) {
-      console.error('Error fetching managers:', error);
+      console.error("Error fetching managers:", error);
       return [];
     }
-  
+
     const names = data?.map((manager: { name: string }) => manager.name) || [];
     return names;
   }
 
-  
   async getUniqueGeoData(): Promise<{
     Country: string[];
     State: string[];
@@ -1823,12 +1830,13 @@ async getPrograms({
         District: [],
       };
     }
-  
-    const { data, error } = await this.supabase.rpc('get_unique_geo_data');
+
+    const { data, error } = await this.supabase.rpc("get_unique_geo_data");
 
     if (error) throw error;
-    
-    if (!data) return { Country: [], State: [], Block: [], Cluster: [], District: [] };
+
+    if (!data)
+      return { Country: [], State: [], Block: [], Cluster: [], District: [] };
     return data as {
       Country: string[];
       State: string[];
@@ -1837,60 +1845,59 @@ async getPrograms({
       District: string[];
     };
   }
-  
+
   async insertProgram(payload: any): Promise<boolean> {
     try {
       if (!this.supabase) {
         console.error("Supabase client is not initialized.");
         return false;
       }
-  
+
       const model =
         payload.models.length > 1
           ? "HYBRID"
           : payload.models.length === 1
-          ? payload.models[0]
-          : "";
-  
+            ? payload.models[0]
+            : "";
+
       const record: any = {
         name: payload.programName,
         model,
-  
+
         implementation_partner: payload.partners.implementation,
         funding_partner: payload.partners.funding,
         institute_partner: payload.partners.institute,
-  
+
         country: payload.locations.Country,
         state: payload.locations.State,
         block: payload.locations.Block,
         cluster: payload.locations.Cluster,
         district: payload.locations.District,
-  
+
         program_type: payload.programType,
         institutes_count: payload.stats.institutes,
         students_count: payload.stats.students,
         devices_count: payload.stats.devices,
-  
+
         start_date: payload.startDate,
         end_date: payload.endDate,
-  
+
         program_manager: payload.selectedManagers,
-  
+
         is_deleted: false,
         is_ops: true,
         school_id: null,
       };
 
-  
       const { data, error } = await this.supabase
         .from(TABLES.Program)
         .insert(record);
-  
+
       if (error) {
         console.error("Insert error:", error);
         return false;
       }
-  
+
       return true;
     } catch (error) {
       console.error("insertProgram failed:", error);
@@ -1898,4 +1905,150 @@ async getPrograms({
     }
   }
 
+  async getProgramForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"program"> | undefined> {
+    if (!this.supabase) return;
+    const { data: schoolData, error: schoolError } = await this.supabase
+      .from("school")
+      .select("program_id")
+      .eq("id", schoolId)
+      .maybeSingle();
+    if (schoolError || !schoolData?.program_id) {
+      console.error(
+        "Error fetching school or missing program_id:",
+        schoolError
+      );
+      return;
+    }
+    const { data: programData, error: programError } = await this.supabase
+      .from("program")
+      .select("*")
+      .eq("id", schoolData.program_id)
+      .maybeSingle();
+    if (programError) {
+      console.error("Error fetching program:", programError);
+      return;
+    }
+    return programData ?? undefined;
+  }
+
+  async getProgramManagersForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    if (!this.supabase) return;
+    const { data: schoolData, error: schoolError } = await this.supabase
+      .from("school")
+      .select("program_id")
+      .eq("id", schoolId)
+      .maybeSingle();
+    if (schoolError || !schoolData?.program_id) {
+      console.error(
+        "Error fetching school or missing program_id:",
+        schoolError
+      );
+      return;
+    }
+    const { data: programUsers, error: programUserError } = await this.supabase
+      .from("program_user")
+      .select("user(*)")
+      .eq("program_id", schoolData.program_id)
+      .eq("role", RoleType.PROGRAM_MANAGER)
+      .eq("is_deleted", false);
+    if (programUserError) {
+      console.error("Error fetching program managers:", programUserError);
+      return;
+    }
+    const users = programUsers
+      .flatMap((item: { user: TableTypes<"user">[] }) => item.user)
+      .filter((user): user is TableTypes<"user"> => !!user);
+    console.log("hgshdghksgdhjkgs", users);
+    return users;
+  }
+
+  async getCurriculumSubjectsForSchool(
+    schoolId: string
+  ): Promise<{ curriculum: string; subjects: string[] }[] | undefined> {
+    if (!this.supabase) return;
+    const { data: schoolCourseData, error: schoolCourseError } =
+      await this.supabase
+        .from("school_course")
+        .select("course_id")
+        .eq("school_id", schoolId);
+    if (
+      schoolCourseError ||
+      !schoolCourseData ||
+      schoolCourseData.length === 0
+    ) {
+      console.error(
+        "Error fetching school courses or none found:",
+        schoolCourseError
+      );
+      return;
+    }
+    const courseIds = schoolCourseData
+      .map((row: any) => row.course_id)
+      .filter((id: string | null | undefined): id is string => !!id);
+    if (courseIds.length === 0) return;
+    const { data: coursesData, error: coursesError } = await this.supabase
+      .from("course")
+      .select("id, curriculum_id, subject_id")
+      .in("id", courseIds);
+    if (coursesError || !coursesData || coursesData.length === 0) {
+      console.error("Error fetching courses or none found:", coursesError);
+      return;
+    }
+    const curriculumIds = [
+      ...new Set(
+        coursesData
+          .map((c: any) => c.curriculum_id)
+          .filter((id: string | null | undefined): id is string => !!id)
+      ),
+    ];
+    const subjectIds = [
+      ...new Set(
+        coursesData
+          .map((c: any) => c.subject_id)
+          .filter((id: string | null | undefined): id is string => !!id)
+      ),
+    ];
+    const { data: curriculumData, error: curriculumError } = await this.supabase
+      .from("curriculum")
+      .select("id, name")
+      .in("id", curriculumIds);
+    if (curriculumError || !curriculumData) {
+      console.error("Error fetching curriculum:", curriculumError);
+      return;
+    }
+    const { data: subjectData, error: subjectError } = await this.supabase
+      .from("subject")
+      .select("id, name")
+      .in("id", subjectIds);
+    if (subjectError || !subjectData) {
+      console.error("Error fetching subjects:", subjectError);
+      return;
+    }
+    const curriculumMap: Record<string, string> = {};
+    for (const c of curriculumData) {
+      if (c.id) curriculumMap[c.id] = c.name;
+    }
+    const subjectMap: Record<string, string> = {};
+    for (const s of subjectData) {
+      if (s.id) subjectMap[s.id] = s.name;
+    }
+    const resultMap: Record<string, string[]> = {};
+    for (const course of coursesData) {
+      if (!course.curriculum_id || !course.subject_id) continue;
+      const curriculumName = curriculumMap[course.curriculum_id];
+      const subjectName = subjectMap[course.subject_id];
+      if (!curriculumName || !subjectName) continue;
+      if (!resultMap[curriculumName]) resultMap[curriculumName] = [];
+      if (!resultMap[curriculumName].includes(subjectName))
+        resultMap[curriculumName].push(subjectName);
+    }
+    return Object.entries(resultMap).map(([curriculum, subjects]) => ({
+      curriculum,
+      subjects,
+    }));
+  }
 }
