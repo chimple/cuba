@@ -3,12 +3,14 @@ import { PAGES, TableTypes } from "../../common/constants";
 import { IonPage } from "@ionic/react";
 import Sidebar from "../components/Sidebar";
 import Dashboard from "../components/Dashboard";
-import { BrowserRouter as Router, Switch } from "react-router-dom";
+import { BrowserRouter as Router, Switch, useRouteMatch, Route, Redirect} from "react-router-dom";
 import ProtectedRoute from "../../ProtectedRoute";
 import "./SidebarPage.css";
 import { ServiceConfig } from "../../services/ServiceConfig";
 
 const SidebarPage: React.FC = () => {
+  const { path } = useRouteMatch();
+  
   const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(null);
 
   useEffect(() => {
@@ -41,8 +43,11 @@ const SidebarPage: React.FC = () => {
           />
           <div className="sidebarpage-render">
             <Switch>
-              <ProtectedRoute path={PAGES.ADMIN_DASHBOARD} exact={true}>
-                <Dashboard />
+                <Route exact path={path}>
+                  <Redirect to={`${path}${PAGES.ADMIN_DASHBOARD}`} />
+                </Route>
+                <ProtectedRoute path={`${path}${PAGES.ADMIN_DASHBOARD}`} exact={true}>
+                  <Dashboard />
               </ProtectedRoute>
             </Switch>
           </div>

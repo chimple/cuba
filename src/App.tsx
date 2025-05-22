@@ -622,7 +622,7 @@ const App: React.FC = () => {
               <ProtectedRoute path={PAGES.UPLOAD_PAGE} exact={true}>
                 <UploadPage />
               </ProtectedRoute>
-              <ProtectedRoute path={PAGES.SIDEBAR_PAGE} exact={true}>
+              <ProtectedRoute path={PAGES.SIDEBAR_PAGE}>
                 <SidebarPage />
               </ProtectedRoute>
             </Switch>

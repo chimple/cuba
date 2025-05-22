@@ -19,13 +19,13 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { label: NavItems.DASHBOARD, route: PAGES.ADMIN_DASHBOARD, icon: <DashboardIcon /> },
-  { label: NavItems.PROGRAMS, route: PAGES.ADMIN_PROGRAMS, icon: <BookIcon /> },
-  { label: NavItems.SCHOOLS, route: PAGES.ADMIN_SCHOOLS,  icon: <SchoolIcon /> },
-  { label: NavItems.COMPAIGNS, route: PAGES.ADMIN_COMPAIGNS,  icon: <CampaignIcon /> },
-  { label: NavItems.USERS, route: PAGES.ADMIN_USERS,  icon: <GroupsIcon /> },
-  { label: NavItems.DEVICES, route: PAGES.ADMIN_DEVICES,  icon: <DevicesIcon /> },
-  { label: NavItems.RESOURCES, route: PAGES.ADMIN_RESOURCES,  icon: <LibraryBooksIcon /> },
+  { label: NavItems.DASHBOARD, route: PAGES.SIDEBAR_PAGE+PAGES.ADMIN_DASHBOARD, icon: <DashboardIcon /> },
+  { label: NavItems.PROGRAMS, route: PAGES.SIDEBAR_PAGE+PAGES.ADMIN_PROGRAMS, icon: <BookIcon /> },
+  { label: NavItems.SCHOOLS, route: PAGES.SIDEBAR_PAGE+PAGES.ADMIN_SCHOOLS,  icon: <SchoolIcon /> },
+  { label: NavItems.COMPAIGNS, route: PAGES.SIDEBAR_PAGE+PAGES.ADMIN_COMPAIGNS,  icon: <CampaignIcon /> },
+  { label: NavItems.USERS, route: PAGES.SIDEBAR_PAGE+PAGES.ADMIN_USERS,  icon: <GroupsIcon /> },
+  { label: NavItems.DEVICES, route: PAGES.SIDEBAR_PAGE+PAGES.ADMIN_DEVICES,  icon: <DevicesIcon /> },
+  { label: NavItems.RESOURCES, route: PAGES.SIDEBAR_PAGE+PAGES.ADMIN_RESOURCES,  icon: <LibraryBooksIcon /> },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {

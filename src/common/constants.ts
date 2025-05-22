@@ -409,7 +409,7 @@ export enum PAGES {
   ADMIN_PROGRAMS = '/programs',
   ADMIN_SCHOOLS = '/schools',
   ADMIN_COMPAIGNS = '/compaigns',
-  ADMIN_USERS = '/schools',
+  ADMIN_USERS = '/users',
   ADMIN_DEVICES = '/devices',
   ADMIN_RESOURCES ='/resourses',
 }
