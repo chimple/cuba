@@ -522,6 +522,7 @@ export const CURRENT_TEACHER = "currentTeacher";
 export const CURRENT_COURSE = "currentCourse";
 export const NAVIGATION_STATE = "navigationState";
 export const STARS_COUNT = "starsCount";
+export const LATEST_STARS = "latestStar";
 
 export enum IconType {
   SCHOOL = "school",
@@ -576,7 +577,7 @@ export enum GENDER {
   OTHER = "unspecified",
 }
 
-export const REFRESH_TABLES_ON_LOGIN :TABLES[] =[
+export const REFRESH_TABLES_ON_LOGIN: TABLES[] = [
   TABLES.School,
   TABLES.Live_quiz_room,
   TABLES.Class,
@@ -599,6 +600,7 @@ export const REFRESH_TABLES_ON_LOGIN :TABLES[] =[
   TABLES.ReqNewSchool,
   TABLES.Program
 ]
+
 
 export const AVATARS: string[] = [
   "Aligator",
@@ -687,6 +689,10 @@ export enum EVENTS {
   USER_PROFILE = "user_profile",
   CLICKS_ANALYTICS = "clicks_analytics",
   EXPERIMENT_VIEWED = "experiment_viewed",
+  PATHWAY_CREATED = "pathway_created",
+  PATHWAY_COMPLETED = "pathway_completed",
+  PATHWAY_COURSE_CHANGED = "pathway_course_changed",
+  SYNCHING_ERROR = "synching_error",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -796,3 +802,4 @@ export const LidoGameExitKey = "lidoGameExit";
 export const QUIZ_POPUP_SHOWN = "quizPopupShown";
 export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
 export const GrowthBookAttributes = 'growthBookAttributes';
+export const SCHOOL_LOGIN = "schoolLogin";

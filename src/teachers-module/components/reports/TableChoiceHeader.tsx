@@ -26,6 +26,7 @@ interface TableChoiceHeaderProps {
     startDate: Date;
     endDate: Date;
   };
+  isAssignmentReport: boolean;
 }
 
 const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
@@ -36,6 +37,7 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
   sortBy,
   isAssignmentsOnlyProp,
   dateRangeValue,
+  isAssignmentReport,
 }) => {
   const [selectedValue, setSelectedValue] = useState<string | undefined>();
 
@@ -117,7 +119,7 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
 
   return (
     <div className="date-range-selector">
-      <div className="toggle-container">
+      {!isAssignmentReport && (<div className="toggle-container">
         <div className="table-choice-header-toggle">
           <label className="switch">
             <input
@@ -133,6 +135,7 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
           </span>
         </div>
       </div>
+      )}
       <div className="date-range-container">
         <p>{t("Click date to select Date Range")}</p>
         <div className="date-range-controls">

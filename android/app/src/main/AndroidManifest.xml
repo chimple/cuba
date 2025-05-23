@@ -59,7 +59,7 @@
         </receiver>
         <receiver android:name=".FileReceiver" android:exported="true">
             <intent-filter>
-                <action android:name="org.copy.chimple.SHARE_FOLDER" />
+                <action android:name="org.chimple.bali.SHARE_FOLDER" />
             </intent-filter>
         </receiver>
 

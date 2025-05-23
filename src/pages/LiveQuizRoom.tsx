@@ -127,10 +127,6 @@ const LiveQuizRoom: React.FC = () => {
         }
       }
     }
-    console.log(
-      "🚀 ~ file: LiveQuizRoom.tsx:98 ~ hasPlayedBefore ~ tempPrevPlayedStudents:",
-      tempPrevPlayedStudents
-    );
     tempNotPlayedStudents = Array.from(allStudents.values()).filter(
       (student) => {
         const hasPlayedBefore = tempPrevPlayedStudents.some(
@@ -146,21 +142,11 @@ const LiveQuizRoom: React.FC = () => {
 
   const downloadQuiz = async (lessonId: string) => {
     const dow = await Util.downloadZipBundle([lessonId]);
-    console.log("🚀 ~ file: LiveQuizRoom.tsx:103 ~ downloadQuiz ~ dow:", dow);
     setIsDownloaded(dow);
   };
   const joinQuiz = async (studentId: string, assignmentId: string) => {
-    console.log(
-      "🚀 ~ file: LiveQuizRoom.tsx:111 ~ joinQuiz ~ assignmentId:",
-      assignmentId
-    );
-    console.log(
-      "🚀 ~ file: LiveQuizRoom.tsx:111 ~ joinQuiz ~ studentId:",
-      studentId
-    );
     setIsJoining(true);
     const res = await api.joinLiveQuiz(assignmentId, studentId);
-    console.log("🚀 ~ file: LiveQuizRoom.tsx:108 ~ joinQuiz ~ res:", res);
     if (!res || !online) {
       setIsJoining(false);
       history.replace(PAGES.LIVE_QUIZ_JOIN);

@@ -54,5 +54,9 @@
 
 
 .footerIcons{
-  width: 26px;
+  width: clamp(30px, 3vw, 40px);
+  margin-bottom: 4px;
+}
+.assignSelectedIcon{
+  width: clamp(40px, 3.5vw, 50px);
 }

@@ -909,7 +909,7 @@ export interface ServiceApi {
    *
    * Example usage:
    * searchLessons("math")
-   *   .then(lessons => console.log(lessons))
+   *   .then(lessons => {})
    *   .catch(error => console.error(error));
    */
 
@@ -1257,6 +1257,50 @@ export interface ServiceApi {
     schoolName: string
   ): Promise<{ status: string; errors?: string[] }>;
 
+
+  /**
+   * To validate given phone number and student already exist in the given class or not
+   * @param {string } phoneNumber - phone number
+   * @param {string } studentName - student Name
+   * @param {string } className  -  class Name
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateParentAndStudentInClass(
+    phoneNumber: string,
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+   /**
+   * To validate given UDISE school Id  exist in the given school table or not
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateSchoolUdiseCode(
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given UDISE school Id a exist in the given school table or not
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateClassNameWithSchoolID(
+    schoolId: string,
+    className: string,
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given student already exist in the given class or not
+   * @param {string } studentName - student Name
+   * @param {string } className  -  class Name
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateStudentInClassWithoutPhone(
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
    /**
    * To validate given phone number and student already exist in the given class or not
    * @param {string } phoneNumber - phone number
@@ -1312,17 +1356,7 @@ export interface ServiceApi {
     subjectName: string,
     gradeName: string
   ): Promise<{ status: string; errors?: string[] }>;
-  /**
-   * To validate that the given class is exist or not through the class name and school id
-   * @param {string } schoolId - school Id
-   * @param {string } className - class Name
-   * @param {string } studentName - student Name
-   */
-  validateClassExistence(
-    schoolId: string,
-    className: string,
-    studentName?: string
-  ): Promise<{ status: string; errors?: string[] }>;
+ 
   /**
    * To validate that the given user phone or mail is exist or not
    * @param {string } programManagerPhone - programManager Phone
@@ -1342,14 +1376,14 @@ export interface ServiceApi {
   /**
    * count all pending row changes to be pushed in the sqlite
    */
-  countAllPendingChanges(): Promise<number>;
+  countAllPendingPushes(): Promise<number>;
   /**
    * getting the push, pull changes information for the last 30 days
    * @param {string } parentId - parent id
    */
   getDebugInfoLast30Days(parentId: string): Promise<any[]>;
   /**
-   * getting class for the user id
+   * getting class for the user, user id can be Student id or teacher id
    * @param {string } userId - user id
    */
   getClassByUserId(userId: string): Promise<TableTypes<"class"> | undefined>;
@@ -1421,4 +1455,10 @@ export interface ServiceApi {
   }>;
 
 
+  /**
+   * Updates the total stars for a student.
+   * @param {string} studentId - student Id.
+   * @param {number} totalStars - total stars.
+   */
+  updateStudentStars(studentId: string, totalStars: number): Promise<void>;
 }

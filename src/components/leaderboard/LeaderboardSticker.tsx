@@ -107,8 +107,6 @@ const LeaderboardStickers: FC = () => {
       if (!isSeen) {
         await api.updateRewardAsSeen(currentStudent.id);
       }
-
-      console.log("getUnlockedstickers", stickers);
       return stickers.reverse();
     } catch (error) {
       console.error("Error fetching unlocked stickers:", error);

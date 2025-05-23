@@ -71,7 +71,6 @@ const Assignment: React.FC = () => {
 
   const init = async () => {
     getCourses();
-    console.log("********", courses);
   };
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -178,7 +177,6 @@ const Assignment: React.FC = () => {
   const onLessonSelect = () => {};
 
   const segmentChanged = (evt) => {
-    console.log(evt.detail.value);
     //write logic
     setActiveTab(evt.detail.value);
   };

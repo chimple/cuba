@@ -153,17 +153,14 @@ const Subjects: React.FC<{}> = ({}) => {
       //     }
       //   } else {
       //     await getCourses();
-      //     console.log(
-      //       "🚀 ~ file: Subjects.tsx:156 ~ init ~ getCourses:"
-      //     );
+      
       //   }
       // } else {
       //   await getCourses();
-      //   console.log("🚀 ~ file: Subjects.tsx:161 ~ init ~ getCourses:");
+      
       // }
     } else {
       let result = await getCourses();
-      console.log("🚀 ~ file: Subjects.tsx:165 ~ init ~ getCourses:", result);
     }
     let map = localStorage.getItem(GRADE_MAP);
     if (!!map) {
@@ -192,12 +189,10 @@ const Subjects: React.FC<{}> = ({}) => {
     if (result) {
       currClass = schoolUtil.getCurrentClass();
     } else {
-      console.log("No classes found for the student.");
     }
     if (!!currClass) setCurrentClass(currClass);
 
     const res = await api.getStudentResultInMap(currentStudent.id);
-    console.log("tempResultLessonMap = res;", res);
     localData.lessonResultMap = res;
     localStorageData.lessonResultMap = res;
     setLessonResultMap(res);
