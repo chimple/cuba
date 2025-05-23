@@ -980,17 +980,45 @@ export class ApiHandler implements ServiceApi {
   async validateSchoolData(
     schoolId: string,
     schoolName: string,
-    instructionMedium: string
   ): Promise<{ status: string; errors?: string[] }> {
-    return this.s.validateSchoolData(schoolId, schoolName, instructionMedium);
+    return this.s.validateSchoolData(schoolId, schoolName);
   }
-  async validateClassCurriculumAndSubject(
+   async validateParentAndStudentInClass(
+    phoneNumber: string,
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateParentAndStudentInClass(schoolId, className, studentName, phoneNumber);
+  }
+  async validateSchoolUdiseCode(
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateSchoolUdiseCode(schoolId);
+  }
+  async validateClassNameWithSchoolID(
+    schoolId: string,
+    className: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateClassNameWithSchoolID(schoolId, className);
+  }
+  
+  async validateStudentInClassWithoutPhone(
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateStudentInClassWithoutPhone(studentName, className, schoolId);
+  }
+ async validateClassCurriculumAndSubject(
     curriculumName: string,
-    subjectName: string
+    subjectName: string,
+    gradeName: string
   ): Promise<{ status: string; errors?: string[] }> {
     return this.s.validateClassCurriculumAndSubject(
       curriculumName,
-      subjectName
+      subjectName,
+      gradeName
     );
   }
   async validateClassExistence(
@@ -1038,4 +1066,33 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"user">> {
     return await this.s.updateLearningPath(student, learning_path);
   }
+
+  public async getProgramFilterOptions(): Promise<Record<string, string[]>>{
+    return await this.s.getProgramFilterOptions();}
+  async getPrograms(params: {
+  currentUserId: string;
+  filters?: Record<string, string[]>;
+  searchTerm?: string;
+  tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+}): Promise<{ data: any[] }> {
+  return await this.s.getPrograms(params);
+}
+
+
+  public async insertProgram(payload: any): Promise<boolean | null> {
+    return await this.s.insertProgram(payload);
+  }
+  public async getProgramManagers(): Promise<string[]>{
+    return await this.s.getProgramManagers();
+  }
+  public async getUniqueGeoData(): Promise<{
+    Country: string[];
+    State: string[];
+    Block: string[];
+    Cluster: string[];
+    District: string[];
+  }>{
+    return await this.s.getUniqueGeoData();
+  }
+
 }

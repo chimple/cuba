@@ -1652,6 +1652,92 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      },
+      program: {
+        Row: {
+          id: string
+          name: string
+          model: string
+          implementation_partner: string | null
+          funding_partner: string | null
+          institute_partner: string | null
+          country: string | null
+          state: string | null
+          block: string | null
+          cluster: string | null
+          district: string | null
+          program_type: string | null
+          institutes_count: number | null
+          students_count: number | null
+          devices_count: number | null
+          start_date: string | null
+          end_date: string | null
+          program_manager: string[] | null
+          is_deleted: boolean | null
+          is_ops: boolean | null
+          school_id: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          model: string
+          implementation_partner?: string | null
+          funding_partner?: string | null
+          institute_partner?: string | null
+          country?: string | null
+          state?: string | null
+          block?: string | null
+          cluster?: string | null
+          district?: string | null
+          program_type?: string | null
+          institutes_count?: number | null
+          students_count?: number | null
+          devices_count?: number | null
+          start_date?: string | null
+          end_date?: string | null
+          program_manager?: string[] | null
+          is_deleted?: boolean | null
+          is_ops?: boolean | null
+          school_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          model?: string
+          implementation_partner?: string | null
+          funding_partner?: string | null
+          institute_partner?: string | null
+          country?: string | null
+          state?: string | null
+          block?: string | null
+          cluster?: string | null
+          district?: string | null
+          program_type?: string | null
+          institutes_count?: number | null
+          students_count?: number | null
+          devices_count?: number | null
+          start_date?: string | null
+          end_date?: string | null
+          program_manager?: string[] | null
+          is_deleted?: boolean | null
+          is_ops?: boolean | null
+          school_id?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_school_id_fkey",
+            columns: ["school_id"],
+            isOneToOne: false,
+            referencedRelation: "school",
+            referencedColumns: ["id"],
+          },
+        ]
       }
     }
     Views: {
@@ -1813,6 +1899,68 @@ export type Database = {
           phone: string
         }[]
       }
+       validate_school_data_rpc: {
+        Args: {
+          input_school_id: string;
+          input_school_name: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      check_parent_and_student_in_class: {
+        Args: {
+          phone_number: string;
+          student_name: string;
+          class_name: string;
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      check_student_duplicate_in_class_without_phone_number: {
+        Args: {
+          student_name: string;
+          class_name: string;
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      validate_school_udise_code: {
+        Args: {
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      check_class_exists_by_name_and_school: {
+        Args: {
+          class_name:string;
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      validate_user_contacts_rpc: {
+        Args: {
+          program_manager_contact: string;
+          field_coordinator_contact?: string | null;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
       get_user_by_phonenumber: {
         Args: {
           p_phone: string
@@ -1852,6 +2000,47 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_program_filter_options: {
+        Args: {}; 
+        Returns: Record<string, string[]>;
+      };
+
+      program: {
+    Row: {
+      id: string;
+      name: string;
+      state: string;
+      institute_count: number;
+      student_count: number;
+      device_count: number;
+      manager_name: string;
+      program_mode: 'home' | 'school' | 'other';
+      created_at: string;
+    };
+    Insert: {
+      id?: string;
+      name: string;
+      state: string;
+      institute_count?: number;
+      student_count?: number;
+      device_count?: number;
+      manager_name?: string;
+      program_mode?: 'home' | 'school' | 'other';
+      created_at?: string;
+    };
+    Update: {
+      id?: string;
+      name?: string;
+      state?: string;
+      institute_count?: number;
+      student_count?: number;
+      device_count?: number;
+      manager_name?: string;
+      program_mode?: 'home' | 'school' | 'other';
+      created_at?: string;
+    };
+    Relationships: [];
+  };
       join_live_quiz: {
         Args: {
           _assignment_id: string
@@ -1895,19 +2084,40 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_program_managers: {
+        Args: Record<string, never>;
+        Returns: {
+          id: string;
+          name: string;
+          phone: string;
+          email: string;
+          created_at: string;
+        }[];
+      }
+      get_unique_geo_data: {
+        Args: Record<string, never>;
+        Returns: {
+          Country: string[];
+          State: string[];
+          Block: string[];
+          Cluster: string[];
+          District: string[];
+        };
+      };
+      
     }
     Enums: {
       role:
-        | "coordinator"
-        | "principal"
-        | "sponsor"
-        | "teacher"
-        | "parent"
-        | "student"
-        | "autouser"
-        | "program_manager"
-        | "operational_director"
-        | "field_coordinator"
+      | "coordinator"
+      | "principal"
+      | "sponsor"
+      | "teacher"
+      | "parent"
+      | "student"
+      | "autouser"
+      | "program_manager"
+      | "operational_director"
+      | "field_coordinator"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1919,95 +2129,95 @@ type PublicSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
   PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
-    | { schema: keyof Database },
+  | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+  | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+  ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+    Database[PublicTableNameOrOptions["schema"]]["Views"])
+  : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+    Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-    ? R
-    : never
+  ? R
+  : never
   : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
+    PublicSchema["Views"])
+  ? (PublicSchema["Tables"] &
+    PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+      Row: infer R
+    }
+  ? R
+  : never
+  : never
 
 export type TablesInsert<
   PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
+  | keyof PublicSchema["Tables"]
+  | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
+    Insert: infer I
+  }
+  ? I
+  : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
+  ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+    Insert: infer I
+  }
+  ? I
+  : never
+  : never
 
 export type TablesUpdate<
   PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
+  | keyof PublicSchema["Tables"]
+  | { schema: keyof Database },
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
+    Update: infer U
+  }
+  ? U
+  : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
+  ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+    Update: infer U
+  }
+  ? U
+  : never
+  : never
 
 export type Enums<
   PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
-    | { schema: keyof Database },
+  | keyof PublicSchema["Enums"]
+  | { schema: keyof Database },
   EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+  ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+  : never = never,
 > = PublicEnumNameOrOptions extends { schema: keyof Database }
   ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
-    : never
+  ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+  : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema["CompositeTypes"]
-    | { schema: keyof Database },
+  | keyof PublicSchema["CompositeTypes"]
+  | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof Database
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+  ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+  : never = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
   ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
-    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+  ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : never

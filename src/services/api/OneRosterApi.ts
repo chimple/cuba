@@ -1141,8 +1141,7 @@ export class OneRosterApi implements ServiceApi {
 
   validateSchoolData(
     schholId: string,
-    schoolName: string,
-    instructionMedium: string
+    schoolName: string
   ): Promise<TableTypes<"school_data">[] | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -1166,6 +1165,21 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   uploadData(payload: any): Promise<boolean | any> {
+    throw new Error("Method not implemented.");
+  }
+  insertProgram(payload: any): Promise<boolean | any> {
+    throw new Error("Method not implemented.");
+  }
+  getProgramManagers(): Promise<string[]>{
+    throw new Error("Method not implemented.");
+  }
+  getUniqueGeoData(): Promise<{
+    Country: string[];
+    State: string[];
+    Block: string[];
+    Cluster: string[];
+    District: string[];
+  }>{
     throw new Error("Method not implemented.");
   }
 }

@@ -1,11 +1,10 @@
 .dropdown-main {
-  position: absolute;
   display: flex;
   flex-direction: column;
   gap: 1vh;
   left: 3vh;
   top: 42%;
-  z-index: 10;
+  position: absolute;
 }
 
 .truncate-style {
@@ -15,7 +14,8 @@
 
 .dropdown-container {
   max-width: 9vw;
-  height: 13vh;
+  min-height: 13vh;
+  height: auto;
   border: 2px solid #F35908;
   border-radius: 20px;
   background-color: #FFF9CF;
@@ -24,10 +24,15 @@
   display: flex;
   box-shadow: 0vh 0.3vh 0.2vh 0vh rgba(0, 0, 0, 0.25);
   align-items: stretch;
+  position: absolute;
 }
 
 .dropdown-container.expanded {
-  height: auto;
+  display: flex;
+}
+.dropdown-container.expanded .dropdown-left {
+  max-height: 52vh;
+  overflow-y: auto;
 }
 
 .dropdown-left {
@@ -35,19 +40,26 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 52vh;
-  overflow-y: scroll;
+  overflow-y: hidden; 
   width: 11vw;
+  height: auto;
+  max-height: 12vh;
+  transition: max-height 0.1s ease-in-out;
 }
 
 .selected-icon {
-  position: relative;
+  position: absolute;
   height: auto;
   width: auto;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1vh 0vh;
+  top: 1vh;
+}
+
+.hide-icon {
+  display: none;
 }
 
 .dropdown-items {
@@ -88,6 +100,7 @@
   width: 8vw;
   height: 2vh;
   color: #182A4F;
+  margin-top: 13vh;
 }
 
 .menu-item {
@@ -115,4 +128,14 @@
   text-align: center;
   color: #182A4F;
   font-weight: 400;
+}
+
+.menu-selected {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1vh;
+  height: 100%;
+  width: 100%;
 }

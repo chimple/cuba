@@ -94,30 +94,28 @@ const DropdownMenu: FC = () => {
       >
         <div className="dropdown-left">
           {!expanded && selected && (
-            <div className="selected-icon">
-              <SelectIconImage
-                localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
-                defaultSrc={"assets/icons/DefaultIcon.png"}
-                webSrc={selected.course.image || "assets/icons/DefaultIcon.png"}
-                imageWidth="10vh"
-                imageHeight="auto"
-              />
+            <>
+            <div className="menu-selected">
+              <div className="selected-icon">
+                <SelectIconImage
+                 localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
+                 defaultSrc={"assets/icons/DefaultIcon.png"}
+                 webSrc={selected.course.image || "assets/icons/DefaultIcon.png"}
+                 imageWidth="10vh"
+                 imageHeight="auto"
+                />
+              </div>
             </div>
+            </>
           )}
-
           {expanded && (
-            <div className="dropdown-items"
-            onClick={(e) => e.stopPropagation()}
-            >
+            <div className="dropdown-items" onClick={(e) => e.stopPropagation()}>
               {courseDetails.map((detail, index) => (
                 <div
                   ref={(el) => (itemRefs.current[detail.course.id] = el)}
-                  className={`menu-item ${expanded && selected?.course.id === detail.course.id ? "selected-expanded" : ""}`}
+                  className={`menu-item ${selected?.course.id === detail.course.id ? "selected-expanded" : ""}`}
                   key={detail.course.id}
-                  onClick={(e) => {
-                    // e.stopPropagation();
-                    handleSelect(detail, index);
-                  }}
+                  onClick={() => handleSelect(detail, index)}
                 >
                   <SelectIconImage
                     localSrc={`courses/chapter_icons/${detail.course.code}.webp`}
@@ -133,12 +131,11 @@ const DropdownMenu: FC = () => {
             </div>
           )}
         </div>
-
         <div className={`dropdown-arrow ${expanded ? "expanded-arrow" : ""}`}>
           <SelectIconImage
-            defaultSrc={expanded ? '/assets/icons/ArrowDropUp.svg' : '/assets/icons/ArrowDropDown.svg'}
+          defaultSrc={expanded ? '/assets/icons/ArrowDropUp.svg' : '/assets/icons/ArrowDropDown.svg'}
           />
-        </div>
+        </div>        
       </div>
 
       <div>
