@@ -106,7 +106,6 @@ const LiveQuizQuestion: FC<{
       const correctAnswersList = liveQuizConfig.data.map((question) =>
         question.options.findIndex((option) => option.isCorrect)
       );
-      console.log("correctAnswersList.......", correctAnswersList);
       setCorrectAnswers(correctAnswersList);
     }
   }, [liveQuizConfig]);
@@ -299,8 +298,6 @@ const LiveQuizQuestion: FC<{
     let response = await fetch(quizPath + "/config.json");
     if (!response.ok) {
       if (response.status === 404) {
-        console.log("Config file not found, triggering downloadQuiz...");
-
         if (lessonId) await downloadQuiz(lessonId); // Trigger the downloadQuiz function if the file is missing
 
         response = await fetch(quizPath + "/config.json");
@@ -317,10 +314,6 @@ const LiveQuizQuestion: FC<{
     }
 
     const configFile: LiveQuiz = (await response.json()) as LiveQuiz;
-    console.log(
-      "🚀 ~ file: LiveQuizQuestion.tsx:24 ~ getConfigJson ~ jsonData:",
-      configFile
-    );
     setLiveQuizConfig(configFile);
     if (onConfigLoaded) onConfigLoaded(configFile);
     return configFile;
@@ -355,7 +348,6 @@ const LiveQuizQuestion: FC<{
   };
 
   const onTimeOut = (_liveQuizConfig?: LiveQuiz) => {
-    console.log("🚀 ~ file: LiveQuizQuestion.tsx:168 ~ onTimeOut ~ onTimeOut:");
     changeQuestion(_liveQuizConfig);
   };
 
@@ -398,10 +390,6 @@ const LiveQuizQuestion: FC<{
     setSelectedAnswerIndex(undefined);
     setRemainingTime(LIVE_QUIZ_QUESTION_TIME);
     if (onRemainingTimeChange) onRemainingTimeChange(LIVE_QUIZ_QUESTION_TIME);
-    console.log(
-      "🚀 ~ file: LiveQuizQuestion.tsx:203 ~ onQuestionChange ~ questionInterval:",
-      questionInterval
-    );
     if (questionInterval) clearInterval(questionInterval);
     questionInterval = setInterval(() => {
       setRemainingTime((remainingTime) => {
@@ -463,8 +451,6 @@ const LiveQuizQuestion: FC<{
     } else {
       if (!roomDoc?.results) return;
       for (let result of roomDoc.results[student!.id]) {
-        console.log("inside for...", roomDoc.results[student!.id]);
-
         totalScore += result.score || 0;
         totalTimeSpent += result.timeSpent || 0;
         if (result.score > 0) {
@@ -511,7 +497,7 @@ const LiveQuizQuestion: FC<{
         setAudio(false);
       }
     } catch (error) {
-      console.log("🚀 ~ file: LiveQuizQuestion.tsx:348 ~ error:", error);
+      console.error("🚀 ~ file: LiveQuizQuestion.tsx:348 ~ error:", error);
     }
   };
 
@@ -546,7 +532,7 @@ const LiveQuizQuestion: FC<{
     try {
       await TextToSpeech.stop();
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: LiveQuizQuestion.tsx:384 ~ stopAllAudios ~ error:",
         error
       );
@@ -558,7 +544,7 @@ const LiveQuizQuestion: FC<{
         audio.currentTime = 0;
       });
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: LiveQuizQuestion.tsx:393 ~ stopAllAudios ~ error:",
         error
       );
@@ -569,7 +555,7 @@ const LiveQuizQuestion: FC<{
     <div>
       <div
         className="live-quiz-navigation-dots"
-        style={lessonId ? { paddingTop: "5vh", paddingBottom: "10vh" } : {}}
+        style={lessonId ? { paddingTop: "5vh", paddingBottom: "5vh" } : {}}
       >
         {isTimeOut && liveQuizConfig && currentQuestionIndex != null && (
           <LiveQuizNavigationDots
@@ -593,7 +579,6 @@ const LiveQuizQuestion: FC<{
                       playLiveQuizAudio(
                         liveQuizConfig.data[currentQuestionIndex].question
                       );
-                      console.log("on audio question click");
                     }}
                     className={audio ? "audio-playing" : ""}
                   />
@@ -673,7 +658,6 @@ const LiveQuizQuestion: FC<{
                           onClick={(e) => {
                             e.stopPropagation();
                             playLiveQuizAudio(option);
-                            console.log("on audio click");
                           }}
                           className={audio ? "audio-playing" : ""}
                         />

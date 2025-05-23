@@ -524,7 +524,6 @@ export class ApiHandler implements ServiceApi {
     return this.s.updateMusicFlag(userId, value);
   }
   updateTcAccept(userId: string) {
-    console.log("🚀 ~ ApiHandler ~ updateTcAccept ~ this.s:", this.s, this);
     return this.s.updateTcAccept(userId);
   }
   public get currentStudent(): TableTypes<"user"> | undefined {
@@ -1021,13 +1020,6 @@ export class ApiHandler implements ServiceApi {
       gradeName
     );
   }
-  async validateClassExistence(
-    schoolId: string,
-    className: string,
-    studentName?: string
-  ): Promise<{ status: string; errors?: string[] }> {
-    return this.s.validateClassExistence(schoolId, className, studentName);
-  }
   async validateUserContacts(
     programManagerPhone: string,
     fieldCoordinatorPhone: string
@@ -1043,8 +1035,8 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return this.s.setStarsForStudents(studentId, starsCount);
   }
-  public async countAllPendingChanges(): Promise<number> {
-    return this.s.countAllPendingChanges();
+  public async countAllPendingPushes(): Promise<number> {
+    return this.s.countAllPendingPushes();
   }
   public async getDebugInfoLast30Days(parentId: string): Promise<any[]> {
     return this.s.getDebugInfoLast30Days(parentId);
@@ -1054,7 +1046,6 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"class"> | undefined> {
     return this.s.getClassByUserId(userId);
   }
-
   public async getCoursesForPathway(
     studentId: string
   ): Promise<TableTypes<"course">[]> {
@@ -1095,4 +1086,10 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getUniqueGeoData();
   }
 
+  public async updateStudentStars(
+    studentId: string,
+    totalStars: number
+  ): Promise<void> {
+    return await this.s.updateStudentStars(studentId, totalStars);
+  }
 }

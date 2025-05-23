@@ -21,7 +21,7 @@ public class FileReceiver extends BroadcastReceiver {
     private int processedZipFiles = 0;
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (!"org.copy.chimple.SHARE_FOLDER".equals(intent.getAction())) return;
+        if (!"org.chimple.bali.SHARE_FOLDER".equals(intent.getAction())) return;
 
         List<Uri> fileUris = intent.getParcelableArrayListExtra("file_uris");
         if (fileUris == null || fileUris.isEmpty()) {
@@ -106,7 +106,7 @@ public class FileReceiver extends BroadcastReceiver {
     }
 
     private void sendExtractionProgressIntent(Context context, int processed, int total) {
-        Intent intent = new Intent("org.copy.chimple.EXTRACTION_PROGRESS");
+        Intent intent = new Intent("org.chimple.bali.EXTRACTION_PROGRESS");
         intent.putExtra("extracted_files", processed);
 //        intent.putExtra("total_files", total);
         context.sendBroadcast(intent);
@@ -114,7 +114,7 @@ public class FileReceiver extends BroadcastReceiver {
     }
 
     private void sendExtractionCompleteIntent(Context context, int processedZipCount) {
-        Intent intent = new Intent("org.copy.chimple.EXTRACTION_COMPLETE");
+        Intent intent = new Intent("org.chimple.bali.EXTRACTION_COMPLETE");
         intent.putExtra("extracted_file_count", processedZipCount);
         context.sendBroadcast(intent);
         Log.d(TAG, "📢 Extraction complete broadcast sent. Processed ZIPs: " + processedZipCount);

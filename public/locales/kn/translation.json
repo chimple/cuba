@@ -158,7 +158,7 @@
   "Comparison Of Numbers": "ಸಂಖ್ಯೆಗಳ ಹೋಲಿಕೆ",
   "Comparison": "ಹೋಲಿಕೆ",
   "Completion Score": "ಮುಕ್ತಾಯ ಸ್ಕೋರ್",
-  "Complete these 5 lessons to earn rewards": "ಈ ಐದು ಪಾಠಗಳನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ ಬಹುಮಾನಗಳನ್ನು ಗಳಿಸಿ",
+  "Complete these lessons to earn rewards": "ಈ ಪಾಠಗಳನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ ಬಹುಮಾನಗಳನ್ನು ಗಳಿಸಿ",
   "Confirm": "ದೃಢೀಕರಿಸಿ",
   "Congratulations on earning the x1!": "x1 ಗಳಿಸಿದ್ದಕ್ಕಾಗಿ ಅಭಿನಂದನೆಗಳು!",
   "Congratulations!": "ಅಭಿನಂದನೆಗಳು!",
@@ -779,6 +779,7 @@
   "Update": "ನವೀಕರಿಸಿ",
   "Upload a new file": "ಹೊಸ ಫೈಲ್ ಅಪ್ಲೋಡ್ ಮಾಡಿ",
   "Unable to Upload File": "ಫೈಲ್ ಅನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗುತ್ತಿಲ್ಲ",
+  "Upload failed. Please try again later. You may retry or contact support if the problem continues.": "ಅಪ್‌ಲೋಡ್ ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ. ಸಮಸ್ಯೆ ಮುಂದುವರಿದರೆ ನೀವು ಮರುಪ್ರಯತ್ನಿಸಬಹುದು ಅಥವಾ ಬೆಂಬಲವನ್ನು ಸಂಪರ್ಕಿಸಬಹುದು.",
   "Use email instead": "ಬದಲಿಗೆ ಇಮೇಲ್ ಬಳಸಿ",
   "Use phone number instead": "ಬದಲಿಗೆ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ಬಳಸಿ",
   "User not Found. Please verify your credentials.": "ಬಳಕೆದಾರ ಕಂಡುಬಂದಿಲ್ಲ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ರುಜುವಾತುಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.",
@@ -834,5 +835,6 @@
   "Your data has been successfully checked, and no errors were found.": "ನಿಮ್ಮ ಡೇಟಾವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ ಮತ್ತು ಯಾವುದೇ ದೋಷಗಳು ಕಂಡುಬಂದಿಲ್ಲ.",
   "Your profile is not registered to any school.": "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಯಾವುದೇ ಶಾಲೆಯಲ್ಲಿ ನೋಂದಾಯಿಸಿಲ್ಲ.",
   "Your progress stays synced and consistent across all devices.": "ನಿಮ್ಮ ಪ್ರಗತಿಯು ಎಲ್ಲಾ ಸಾಧನಗಳಾದ್ಯಂತ ನವೀಕರಿಸಲ್ಪಡುತ್ತದೆ ಮತ್ತು ಸ್ಥಿರವಾಗಿರುತ್ತದೆ.",
-  "Zebra": "ಜೀಬ್ರಾ"
+  "Zebra": "ಜೀಬ್ರಾ",
+  "Specials": "ವಿಶೇಷತೆಗಳು"
 }

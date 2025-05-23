@@ -158,7 +158,7 @@
   "Comparison Of Numbers": "संख्याओं की तुलना",
   "Comparison": "तुलना",
   "Completion Score": "समापन स्कोर",
-  "Complete these 5 lessons to earn rewards": "इन पाँच पाठों को पूरा करें और इनाम पाएं",
+  "Complete these lessons to earn rewards": "इन पाठों को पूरा करें और इनाम पाएं",
   "Confirm": "पुष्टि करना",
   "Congratulations on earning the x1!": "x1 अर्जित करने पर बधाई!",
   "Congratulations!": "बधाई हो!",
@@ -782,6 +782,7 @@
   "Update": "अद्यतन",
   "Upload a new file": "नई फ़ाइल अपलोड करें",
   "Unable to Upload File": "फाइल अपलोड करने में असमर्थ",
+  "Upload failed. Please try again later. You may retry or contact support if the problem continues.": "अपलोड विफल। कृपया बाद में पुनः प्रयास करें। यदि समस्या जारी रहती है तो आप पुनः प्रयास कर सकते हैं या सहायता से संपर्क कर सकते हैं।",
   "Use email instead": "इसके बजाय ईमेल का उपयोग करें",
   "Use phone number instead": "इसके बजाय फ़ोन नंबर का उपयोग करें",
   "User not Found. Please verify your credentials.": "उपयोगकर्ता नहीं मिला। कृपया अपनी साख सत्यापित करें.",
@@ -838,5 +839,6 @@
   "Your data has been successfully checked, and no errors were found.": "आपका डेटा सफलतापूर्वक जांचा गया है, और कोई त्रुटि नहीं मिली।",
   "Your profile is not registered to any school.": "आपका प्रोफ़ाइल किसी भी विद्यालय में पंजीकृत नहीं है|",
   "Your progress stays synced and consistent across all devices.": "आपकी प्रगति सभी डिवाइसों पर समन्वयित और सुसंगत रहती है।",
-  "Zebra": "ज़ेबरा"
+  "Zebra": "ज़ेबरा",
+  "Specials": "स्पेशल"
 }

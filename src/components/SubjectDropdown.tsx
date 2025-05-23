@@ -9,7 +9,6 @@ const SubjectDropdown: React.FC<{ onChange: Function; value: string }> = ({
       <IonItem>
         <IonSelect
           onIonChange={(e) => {
-            console.log(`ionChange fired with value: ${e.detail.value}`, e);
             onChange(e.detail.value);
           }}
           interface="popover"
