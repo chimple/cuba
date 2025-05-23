@@ -43,9 +43,9 @@ const SidebarPage: React.FC = () => {
           />
           <div className="sidebarpage-render">
             <Switch>
-                <Route exact path={path}>
+                <ProtectedRoute exact path={path}>
                   <Redirect to={`${path}${PAGES.ADMIN_DASHBOARD}`} />
-                </Route>
+                </ProtectedRoute>
                 <ProtectedRoute path={`${path}${PAGES.ADMIN_DASHBOARD}`} exact={true}>
                   <Dashboard />
               </ProtectedRoute>
