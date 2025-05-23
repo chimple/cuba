@@ -16,19 +16,15 @@ const PathwayModal: React.FC<PathwayModalProps> = ({
   const [isClosing, setIsClosing] = useState(false);
 
   const handleOutsideClick = (event: MouseEvent) => {
-    // clicked outside the modal
     if (ref.current && !ref.current.contains(event.target as Node)) {
       if (animate) {
-        // reward popup => slide out first
         setIsClosing(true);
       } else {
-        // inactive popup => close immediately
         onClose();
       }
     }
   };
 
-  // always attach the listener
   useEffect(() => {
     document.addEventListener("mousedown", handleOutsideClick);
     return () => {
@@ -36,7 +32,6 @@ const PathwayModal: React.FC<PathwayModalProps> = ({
     };
   }, []);
 
-  // when slide-out animation ends, finally close
   useEffect(() => {
     if (!isClosing) return;
     const node = ref.current!;
@@ -52,13 +47,17 @@ const PathwayModal: React.FC<PathwayModalProps> = ({
     (animate && !isClosing ? " slide-in" : "") +
     (isClosing ? " slide-out" : "");
 
+  const modalStyles = {
+    width: "40vw",
+    height: animate ? "19.5vh" : "32vh",
+  };
+
   return (
     <div className="PathwayModal-overlay">
-      <div className={cls} ref={ref}>
-        {/* ✖ only for inactive popups */}
+      <div className={cls} ref={ref} style={modalStyles}>
         {!animate && (
           <button className="PathwayModal-close" onClick={onClose}>
-            ✖
+            <img src='pathwayAssets/menuCross.svg' alt="close-icon" />
           </button>
         )}
         <p className="PathwayModal-text">{text}</p>
