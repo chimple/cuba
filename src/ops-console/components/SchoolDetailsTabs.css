@@ -1,0 +1,40 @@
+.role-tabs-container {
+  display: flex;
+  gap: 4px;
+  height: 45px;
+  background-color: #f9f9f9;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+
+.role-tabs-container::-webkit-scrollbar {
+  display: none;
+}
+
+.role-tab-button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: medium;
+  background-color: transparent;
+  color: #555;
+  border: none;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.role-tab-button.active {
+  background-color: #2563eb;
+  color: white;
+}
+
+@media (max-width: 600px) {
+  .role-tabs-container {
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+  }
+}

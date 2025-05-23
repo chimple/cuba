@@ -246,7 +246,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -598,7 +598,11 @@ export class SqliteApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    group4: string | null,
+    image: File | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -614,10 +618,14 @@ export class SqliteApi implements ServiceApi {
       group1: group1 ?? null,
       group2: group2 ?? null,
       group3: group3 ?? null,
+      group4: group4 ?? null,
       image: result ?? null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
+      program_id: program_id ?? null,
+      udise: udise ?? null,
+      address: address ?? null,
     };
     console.log("school data..", newSchool);
 
@@ -683,7 +691,11 @@ export class SqliteApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    group4: string | null,
+    image: File | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -698,11 +710,15 @@ export class SqliteApi implements ServiceApi {
       group1: group1 ?? school.group1,
       group2: group2 ?? school.group2,
       group3: group3 ?? school.group3,
+      group4: group4 ?? school.group4,
       image: result ?? school.image,
       updated_at: new Date().toISOString(),
       created_at: school.created_at,
       id: school.id,
       is_deleted: false,
+      program_id: program_id ?? null,
+      udise: udise ?? null,
+      address: address ?? null,
     };
     const updatedSchoolQuery = `
     UPDATE school
@@ -4475,7 +4491,6 @@ order by
     return { status: "success" };
   }
 
-
   async validateSchoolData(
     schoolId: string,
     schoolName: string
@@ -4756,12 +4771,16 @@ order by
     currentUserId: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
-    tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
   }): Promise<{ data: any[] }> {
     const { currentUserId, filters, searchTerm, tab } = params;
-    return await this._serverApi.getPrograms({ currentUserId, filters, searchTerm, tab });
+    return await this._serverApi.getPrograms({
+      currentUserId,
+      filters,
+      searchTerm,
+      tab,
+    });
   }
-
 
   async insertProgram(payload: any): Promise<boolean | null> {
     return await this._serverApi.insertProgram(payload);
@@ -4781,5 +4800,50 @@ order by
     return await this._serverApi.getUniqueGeoData();
   }
 
- 
+  async getProgramForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"program"> | undefined> {
+    const query = `
+    SELECT program.*
+    FROM ${TABLES.School} AS s
+    JOIN ${TABLES.Program} AS program ON s.program_id = program.id
+    WHERE s.id = "${schoolId}";
+  `;
+    const res = await this._db?.query(query);
+    return res?.values?.[0] ?? undefined;
+  }
+
+  async getProgramManagersForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    const query = `
+    SELECT user.*
+    FROM ${TABLES.School} AS s
+    JOIN ${TABLES.ProgramUser} AS pu ON s.program_id = pu.program_id
+    JOIN ${TABLES.User} AS user ON pu.user = user.id
+    WHERE s.id = "${schoolId}"
+      AND pu.role = '${RoleType.PROGRAM_MANAGER}'
+      AND pu.is_deleted = false;
+  `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
+
+  async getCurriculumSubjectsForSchool(
+    schoolId: string
+  ): Promise<{ curriculum: string; subjects: string[] }[] | undefined> {
+    const query = `
+    SELECT
+      curr.name AS curriculum,
+      ARRAY_AGG(DISTINCT subj.name) AS subjects
+    FROM ${TABLES.SchoolCourse} sc
+    JOIN ${TABLES.Course} c ON sc.course_id = c.id
+    JOIN ${TABLES.Curriculum} curr ON c.curriculum_id = curr.id
+    JOIN ${TABLES.Subject} subj ON c.subject_id = subj.id
+    WHERE sc.school_id = '${schoolId}'
+    GROUP BY curr.name
+  `;
+    const res = await this._db?.query(query);
+    return res?.values ?? [];
+  }
 }

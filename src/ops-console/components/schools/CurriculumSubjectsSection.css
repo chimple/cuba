@@ -1,0 +1,72 @@
+.curriculum-card {
+  background-color: #fff;
+  border-radius: 0.5rem;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+  padding: 1rem;
+  max-width: 24rem;
+  width: 100%;
+  overflow: auto;
+  text-align: left;
+  margin-top: 0;
+  padding-top: 0.8rem;
+}
+
+.curriculum-title {
+  font-style: normal;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: #2d3748;
+  margin-bottom: 0.25rem;
+  margin-top: 0;
+  line-height: 1.2;
+}
+
+.curriculum-title i {
+  font-style: normal !important;
+}
+
+.curriculum-divider {
+  border-top: 1px solid #e2e8f0;
+  margin: 0.5rem 0;
+}
+
+.curriculum-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.curriculum-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 6px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.9rem;
+}
+
+.curriculum-row:last-child {
+  border-bottom: none;
+}
+
+.curriculum-col {
+  width: 48%;
+  word-break: break-word;
+}
+
+.curriculum-curriculum {
+  color: #2d3748;
+  font-weight: 400;
+}
+
+.curriculum-subjects {
+  color: #444;
+  text-align: right;
+}
+
+.curriculum-loading {
+  font-size: 14px;
+  color: #888;
+  padding: 12px;
+}

@@ -148,9 +148,23 @@ export class ApiHandler implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    group4: string | null,
+    image: File | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">> {
-    return await this.s.createSchool(name, group1, group2, group3, image);
+    return await this.s.createSchool(
+      name,
+      group1,
+      group2,
+      group3,
+      group4,
+      image,
+      program_id,
+      udise,
+      address
+    );
   }
   public async updateSchoolProfile(
     school: TableTypes<"school">,
@@ -158,7 +172,11 @@ export class ApiHandler implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    group4: string | null,
+    image: File | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">> {
     return await this.s.updateSchoolProfile(
       school,
@@ -166,7 +184,11 @@ export class ApiHandler implements ServiceApi {
       group1,
       group2,
       group3,
-      image
+      group4,
+      image,
+      program_id,
+      udise,
+      address
     );
   }
   public async requestNewSchool(
@@ -979,17 +1001,22 @@ export class ApiHandler implements ServiceApi {
   }
   async validateSchoolData(
     schoolId: string,
-    schoolName: string,
+    schoolName: string
   ): Promise<{ status: string; errors?: string[] }> {
     return this.s.validateSchoolData(schoolId, schoolName);
   }
-   async validateParentAndStudentInClass(
+  async validateParentAndStudentInClass(
     phoneNumber: string,
     studentName: string,
     className: string,
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }> {
-    return this.s.validateParentAndStudentInClass(schoolId, className, studentName, phoneNumber);
+    return this.s.validateParentAndStudentInClass(
+      schoolId,
+      className,
+      studentName,
+      phoneNumber
+    );
   }
   async validateSchoolUdiseCode(
     schoolId: string
@@ -998,19 +1025,23 @@ export class ApiHandler implements ServiceApi {
   }
   async validateClassNameWithSchoolID(
     schoolId: string,
-    className: string,
+    className: string
   ): Promise<{ status: string; errors?: string[] }> {
     return this.s.validateClassNameWithSchoolID(schoolId, className);
   }
-  
+
   async validateStudentInClassWithoutPhone(
     studentName: string,
     className: string,
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }> {
-    return this.s.validateStudentInClassWithoutPhone(studentName, className, schoolId);
+    return this.s.validateStudentInClassWithoutPhone(
+      studentName,
+      className,
+      schoolId
+    );
   }
- async validateClassCurriculumAndSubject(
+  async validateClassCurriculumAndSubject(
     curriculumName: string,
     subjectName: string,
     gradeName: string
@@ -1067,22 +1098,22 @@ export class ApiHandler implements ServiceApi {
     return await this.s.updateLearningPath(student, learning_path);
   }
 
-  public async getProgramFilterOptions(): Promise<Record<string, string[]>>{
-    return await this.s.getProgramFilterOptions();}
+  public async getProgramFilterOptions(): Promise<Record<string, string[]>> {
+    return await this.s.getProgramFilterOptions();
+  }
   async getPrograms(params: {
-  currentUserId: string;
-  filters?: Record<string, string[]>;
-  searchTerm?: string;
-  tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
-}): Promise<{ data: any[] }> {
-  return await this.s.getPrograms(params);
-}
-
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    searchTerm?: string;
+    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
+  }): Promise<{ data: any[] }> {
+    return await this.s.getPrograms(params);
+  }
 
   public async insertProgram(payload: any): Promise<boolean | null> {
     return await this.s.insertProgram(payload);
   }
-  public async getProgramManagers(): Promise<string[]>{
+  public async getProgramManagers(): Promise<string[]> {
     return await this.s.getProgramManagers();
   }
   public async getUniqueGeoData(): Promise<{
@@ -1091,8 +1122,22 @@ export class ApiHandler implements ServiceApi {
     Block: string[];
     Cluster: string[];
     District: string[];
-  }>{
+  }> {
     return await this.s.getUniqueGeoData();
   }
-
+  public async getProgramForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"program"> | undefined> {
+    return await this.s.getProgramForSchool(schoolId);
+  }
+  public async getProgramManagersForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    return await this.s.getProgramManagersForSchool(schoolId);
+  }
+  public async getCurriculumSubjectsForSchool(
+    schoolId: string
+  ): Promise<{ curriculum: string; subjects: string[] }[] | undefined> {
+    return await this.s.getCurriculumSubjectsForSchool(schoolId);
+  }
 }

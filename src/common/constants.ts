@@ -40,6 +40,7 @@ export enum TABLES {
   ClassCourse = "class_course",
   ChapterLesson = "chapter_lesson",
   ParentUser = "parent_user",
+  ProgramUser = "program_user",
   SchoolCourse = "school_course",
   SchoolUser = "school_user",
   UserBadge = "user_badge",
@@ -52,8 +53,8 @@ export enum TABLES {
   Assignment_cart = "assignment_cart",
   // Chatbot = "chatbot",
   ReqNewSchool = "req_new_school",
-  Program = "program"
-  }
+  Program = "program",
+}
 export enum CLASS_USERS {
   STUDENTS = "Students",
   TEACHERS = "Teachers",
@@ -417,14 +418,14 @@ export enum PAGES {
   UPLOAD_PAGE = "/upload-page",
   PROGRAM_PAGE = "/program-page",
   SIDEBAR_PAGE = "/admin-home-page",
-  ADMIN_DASHBOARD = '/dashboard',
-  ADMIN_PROGRAMS = '/programs',
-  ADMIN_SCHOOLS = '/schools',
-  ADMIN_COMPAIGNS = '/compaigns',
-  ADMIN_USERS = '/schools',
-  ADMIN_DEVICES = '/devices',
-  ADMIN_RESOURCES ='/resourses',
-  NEW_PROGRAM = "/new-program"
+  ADMIN_DASHBOARD = "/dashboard",
+  ADMIN_PROGRAMS = "/programs",
+  ADMIN_SCHOOLS = "/schools",
+  ADMIN_COMPAIGNS = "/compaigns",
+  ADMIN_USERS = "/schools",
+  ADMIN_DEVICES = "/devices",
+  ADMIN_RESOURCES = "/resourses",
+  NEW_PROGRAM = "/new-program",
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -453,18 +454,18 @@ export enum DrawerOptions {
 
 export enum NavItems {
   DASHBOARD = "Dashboard",
-  PROGRAMS = 'Programs',
-  SCHOOLS = 'Schools',
-  COMPAIGNS = 'Campaigns',
-  USERS = 'Users',
-  DEVICES = 'Devices',
-  RESOURCES = 'Resources'
+  PROGRAMS = "Programs",
+  SCHOOLS = "Schools",
+  COMPAIGNS = "Campaigns",
+  USERS = "Users",
+  DEVICES = "Devices",
+  RESOURCES = "Resources",
 }
 
 export enum ProgramType {
-  Govt = 'Govt',
-  Private = 'Private',
-  LearningCenter = 'Learning Center',
+  Govt = "Govt",
+  Private = "Private",
+  LearningCenter = "Learning Center",
 }
 
 export interface SchoolWithRole {
@@ -576,7 +577,7 @@ export enum GENDER {
   OTHER = "unspecified",
 }
 
-export const REFRESH_TABLES_ON_LOGIN :TABLES[] =[
+export const REFRESH_TABLES_ON_LOGIN: TABLES[] = [
   TABLES.School,
   TABLES.Live_quiz_room,
   TABLES.Class,
@@ -597,8 +598,8 @@ export const REFRESH_TABLES_ON_LOGIN :TABLES[] =[
   TABLES.Result,
   TABLES.Assignment_cart,
   TABLES.ReqNewSchool,
-  TABLES.Program
-]
+  TABLES.Program,
+];
 
 export const AVATARS: string[] = [
   "Aligator",
@@ -795,4 +796,4 @@ export const LidoGameCompletedKey = "lidoGameCompleted";
 export const LidoGameExitKey = "lidoGameExit";
 export const QUIZ_POPUP_SHOWN = "quizPopupShown";
 export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
-export const GrowthBookAttributes = 'growthBookAttributes';
+export const GrowthBookAttributes = "growthBookAttributes";

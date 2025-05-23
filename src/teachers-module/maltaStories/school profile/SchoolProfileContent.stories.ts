@@ -8,10 +8,14 @@ const mockSchool: TableTypes<"school"> = {
   group1: "California",
   group2: "Los Angeles",
   group3: "Los Angeles",
+  group4: "Los Angeles",
   created_at: "",
   updated_at: null,
   image: null,
   is_deleted: null,
+  udise: "1234567890",
+  address: "address",
+  program_id: "id-1",
 };
 
 const meta: Meta<typeof SchoolProfileContent> = {
