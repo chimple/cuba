@@ -1,6 +1,6 @@
 #home-header-icons {
     display: flex;
-    margin: 0 0vw 0 0.5vw;
+    margin: 2.5vh 0vw 0 0.5vw;
     justify-content: space-between;
     align-items: center;
 }
@@ -29,7 +29,6 @@
     font-size: 18px;
     text-align: center;
     line-height: 1;
-    visibility: hidden;
     /* margin-right: 1vw; */
 }
 

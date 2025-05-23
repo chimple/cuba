@@ -130,7 +130,7 @@
   font-weight: 400;
 }
 
-.collapsed-selected {
+.menu-selected {
   display: flex;
   flex-direction: column;
   align-items: center;

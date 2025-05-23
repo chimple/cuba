@@ -95,7 +95,7 @@ const DropdownMenu: FC = () => {
         <div className="dropdown-left">
           {!expanded && selected && (
             <>
-            <div className="collapsed-selected">
+            <div className="menu-selected">
               <div className="selected-icon">
                 <SelectIconImage
                  localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
