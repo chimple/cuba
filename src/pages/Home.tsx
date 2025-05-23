@@ -325,9 +325,9 @@ const Home: FC = () => {
           const now = new Date().toISOString();
           if (_assignment.type !== LIVE_QUIZ) {
             assignmentCount++;
-            const code = res?.cocos_subject_code;
-            if (!code) return;
-            const key = `count_of_${code}`;
+            const subject_id = res?.subject_id;
+            if (!subject_id) return;
+            const key = `count_of_subject_${subject_id}_pending`;
             counts[key] = (counts[key] || 0) + 1;
           } else {
             if (_assignment.ends_at && _assignment.starts_at) {
@@ -357,7 +357,7 @@ const Home: FC = () => {
         return accumulator;
       }, {});
       const result = Object.keys(courseCount).reduce((acc, courseId) => {
-        acc[`count_of_${courseId}`] = courseCount[courseId];
+        acc[`count_of_course_${courseId}_pending`] = courseCount[courseId];
         return acc;
       }, {});
       const device = await logDeviceInfo();
@@ -367,8 +367,8 @@ const Home: FC = () => {
         classes: linkedData.classes.map((item: any) => item.id),
         liveQuizCount: liveQuizCount,
         assignmentCount: assignmentCount,
-        countOfPendingIds: result,
-        ...counts,
+        pending_course_counts: result,
+        pending_subject_counts: counts,
         ...device,
       }
       updateLocalAttributes(attributeParams);
