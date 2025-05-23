@@ -1,0 +1,30 @@
+.contact-card {
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px; /* MUI borderRadius={2} ≈ 8px */
+  background-color: #fafafa;
+  margin-bottom: 8px;
+}
+
+.contact-card-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.contact-info {
+  text-align: left;
+}
+
+.contact-name {
+  font-weight: 700; /* bold */
+}
+
+.contact-role {
+  color: rgba(0, 0, 0, 0.6); /* MUI text.secondary */
+}
+
+.contact-phone {
+  font-weight: 500; /* medium */
+  text-align: center;
+}

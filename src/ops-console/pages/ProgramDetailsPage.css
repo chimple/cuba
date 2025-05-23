@@ -1,0 +1,81 @@
+.program-details-page {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  height: 100%;
+  overflow: auto;
+}
+.program-detail-page-header{ 
+    padding-top: 20px;
+    padding-left: 20px;
+    font-size: 40px;
+    font-weight: 600;
+    color: black;
+    padding-bottom: 0px;
+}
+.program-details-page {
+  font-family: 'Roboto', sans-serif;
+}
+
+.program-detail-page-header {
+  font-size: 2rem;
+  font-weight: 600;
+  padding: 16px 24px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 16px;
+}
+
+.page-padding {
+  padding: 24px;
+}
+
+.loading-container,
+.error-container {
+  padding: 24px;
+  text-align: center;
+}
+
+.column-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.managers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.full-width-button {
+  margin-top: 16px;
+  width: 100%;
+}
+
+.detail-item {
+  margin-bottom: 12px;
+}
+.location-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+  padding: 8px 16px;
+}
+
+.location-details-item {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  align-items: flex-start; 
+}
+
+.location-details-label {
+  font-weight: 500;
+  color: #555;
+  font-size: 0.875rem;
+}
+
+.location-details-value {
+  font-size: 1rem;
+  color: #000;
+}

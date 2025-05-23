@@ -120,6 +120,7 @@ import TeacherProfile from "./teachers-module/pages/TeacherProfile";
 import SchoolUsers from "./teachers-module/pages/SchoolUsers";
 import AddSchoolUser from "./teachers-module/pages/AddSchoolUser";
 import ProgramsPage from "./ops-console/pages/ProgramPage";
+import ProgramDetailPage from "./ops-console/pages/ProgramDetailsPage";
 import NewProgram from "./ops-console/components/NewProgram";
 
 setupIonicReact();
@@ -241,7 +242,7 @@ const App: React.FC = () => {
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
-    }).catch((_) => {});
+    }).catch((_) => { });
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
@@ -601,6 +602,9 @@ const App: React.FC = () => {
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.PROGRAM_PAGE} exact={true}>
                 <ProgramsPage />
+              </ProtectedRoute>
+              <ProtectedRoute path="/programs/:programId" exact={true}>
+                <ProgramDetailPage />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.SIDEBAR_PAGE}>
                 <SidebarPage />

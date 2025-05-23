@@ -123,6 +123,7 @@ type TabType = 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
   }, [filters, searchTerm, tab]);
 
   const transformedRows = programs.map((row) => ({
+    id: row.id,
     programName: {
       value: row.name,
       render: (
@@ -286,6 +287,7 @@ type TabType = 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
             orderBy={orderBy}
             order={order}
             onSort={handleSort}
+            detailPageRouteBase="programs"
           />
         )}
       </div>
