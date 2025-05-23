@@ -29,6 +29,7 @@
   font-size: 16px;
   color: #333;
   overflow: hidden;
+  background-size: contain
 }
 .PathwayModal-content.slide-in {
   will-change: transform, opacity;
@@ -59,8 +60,8 @@
   position: absolute;
   top: 10px;
   right: 10px;
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   background: #fffdee;
   border-radius: 50%;
   border: none;
@@ -70,16 +71,6 @@
   align-items: center;
   cursor: pointer;
   z-index: 1;
-}
-
-.PathwayModal-close::before,
-.PathwayModal-close::after {
-  content: "";
-  position: absolute;
-  width: 12px;
-  height: 2px;
-  background-color: #ff5400;
-  border-radius: 1px;
 }
 
 .PathwayModal-close::before {
