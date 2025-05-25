@@ -23,7 +23,6 @@ const SchoolClassSubjectTab: FC = () => {
   const [currentSchoolState, setCurrentSchoolState] = useState<string>();
   const [allSchools, setAllSchools] = useState<[]>();
   const segmentChanged = (evt) => {
-    console.log(evt.detail.value);
     //write logic
     setActiveTab(evt.detail.value);
   };

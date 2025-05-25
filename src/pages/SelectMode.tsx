@@ -16,6 +16,8 @@ import {
   CURRENT_CLASS_NAME,
   USER_SELECTION_STAGE,
   STAGES,
+  CURRENT_CLASS,
+  CURRENT_SCHOOL,
 } from "../common/constants";
 import SelectModeButton from "../components/selectMode/SelectModeButton";
 import { IoMdPeople } from "react-icons/io";
@@ -114,12 +116,10 @@ const SelectMode: FC = () => {
     }
     const currUser = await auth.getCurrentUser();
     if (!currUser) return;
-    console.log("Testing currUser", currUser.id);
     const allSchool = await api.getSchoolsForUser(currUser.id);
     // Extract school IDs from schoolList
     const schoolIds = allSchool.map((school) => school.school.id);
     const filteredSchools = await api.getSchoolsWithRoleAutouser(schoolIds);
-    console.log("🚀 ~ init ~ allSchool:", allSchool);
     const filteredSchoolIds = filteredSchools?.map((school) => school.id) || [];
     // Filter allSchool to include only schools that are in filteredSchools
     const matchedSchools = allSchool.filter((entry) =>
@@ -127,13 +127,11 @@ const SelectMode: FC = () => {
     );
 
     const students = await api.getParentStudentProfiles();
-    console.log("🚀 ~ init ~ students:", students);
     // const isTeacher = await api.isUserTeacher(currUser);
-    // console.log("This is the current status of teacher " + isTeacher);
+
     if (!allSchool || allSchool.length < 1) {
       api.currentMode = MODES.PARENT;
       schoolUtil.setCurrMode(MODES.PARENT);
-      console.log(students);
       if (!!students && students.length == 0) {
         history.replace(PAGES.CREATE_STUDENT);
       } else history.replace(PAGES.DISPLAY_STUDENT);
@@ -145,8 +143,6 @@ const SelectMode: FC = () => {
     //   history.push(PAGES.DISPLAY_STUDENT);
     //   return;
     // }
-
-    console.log("allSchool", allSchool);
     for (let i = 0; i < matchedSchools.length; i++) {
       const element = matchedSchools[i];
       tempSchoolList.push({
@@ -182,7 +178,6 @@ const SelectMode: FC = () => {
 
   async function changeLanguage() {
     const languageDocId = localStorage.getItem(LANGUAGE);
-    console.log("This is the lang " + languageDocId);
     if (!!languageDocId) await i18n.changeLanguage(languageDocId);
   }
   const onSchoolSelect = async () => {
@@ -213,7 +208,6 @@ const SelectMode: FC = () => {
     const activeSchool = currentSchool ?? school;
     const activeUser = currentUser ?? user;
     if (!activeSchool || !activeUser) {
-      console.log("No school or user information available.");
       return;
     }
     try {
@@ -221,9 +215,7 @@ const SelectMode: FC = () => {
         activeSchool.id,
         activeUser.id
       );
-      console.log("These are the classes:", element);
       if (!element || element.length === 0) {
-        console.log("No classes found for this school.");
         return;
       }
       setCurrentClasses(element);
@@ -235,23 +227,17 @@ const SelectMode: FC = () => {
   const displayStudents = async (curClass) => {
     // if(!currClass) return;
     const element = await api.getStudentsForClass(curClass.id);
-    console.log("THis are the students " + element);
     if (!element) return;
     setCurrentStudents(element);
     localStorage.setItem(SELECTED_STUDENTS, JSON.stringify(element));
     return;
   };
   const onStudentClick = async (student: TableTypes<"user">) => {
-    console.log(
-      "🚀 ~ file: DisplayStudents.tsx:30 ~ onStudentClick:student",
-      student
-    );
     await Util.setCurrentStudent(student, undefined, true);
     history.replace(PAGES.HOME);
   };
   function randomValue() {
     let random = Math.floor(Math.random() * 37);
-    console.log("This is the random generated value  " + random);
     return random;
   }
   return (
@@ -297,7 +283,6 @@ const SelectMode: FC = () => {
                       setIsOkayButtonDisabled(true);
                       return;
                     }
-                    console.log(currSchool);
                     setCurrentSchool(currSchool);
                     localStorage.setItem(
                       CURRENT_SCHOOL_NAME,
@@ -338,6 +323,9 @@ const SelectMode: FC = () => {
                     aria-label={t("Back")}
                     onClicked={() => {
                       //  history.replace(PAGES.SELECT_SCHOOL);
+                      localStorage.removeItem(SELECTED_CLASSES);
+                      localStorage.removeItem(CURRENT_SCHOOL);
+                      localStorage.removeItem(CURRENT_SCHOOL_NAME);
                       setStage(STAGES.SCHOOL);
                     }}
                   />
@@ -354,7 +342,6 @@ const SelectMode: FC = () => {
                         if (!tempClass) return;
                         // localStorage.setItem(CURRENT_CLASS,JSON.stringify(tempClass));
                         schoolUtil.setCurrentClass(tempClass);
-                        console.log("This is the selected class " + tempClass);
                         setCurrClass(tempClass);
                         localStorage.setItem(
                           CURRENT_CLASS_NAME,
@@ -365,7 +352,9 @@ const SelectMode: FC = () => {
                       }}
                       className="class-avatar"
                     >
-                      <div className="class-avatar-counter">{tempClass.name}</div>
+                      <div className="class-avatar-counter">
+                        {tempClass.name}
+                      </div>
                       <span className="class-name">{tempClass.name}</span>
                     </div>
                   ))}
@@ -382,6 +371,10 @@ const SelectMode: FC = () => {
                     aria-label={t("Back")}
                     onClicked={() => {
                       //  history.replace(PAGES.SELECT_SCHOOL);
+                      localStorage.removeItem(SELECTED_STUDENTS);
+                      localStorage.removeItem(CURRENT_CLASS);
+                      localStorage.removeItem(CURRENT_CLASS_NAME);
+                      localStorage.removeItem(USER_SELECTION_STAGE);
                       setStage(STAGES.CLASS);
                     }}
                   />
@@ -402,9 +395,6 @@ const SelectMode: FC = () => {
                         localStorage.setItem(USER_SELECTION_STAGE, "true");
                         onStudentClick(tempStudent);
                         // Util.setCurrentStudent(tempStudent);
-                        console.log(
-                          "This is the selected student " + tempStudent.name
-                        );
                       }}
                       className="class-avatar"
                     >

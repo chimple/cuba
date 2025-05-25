@@ -36,7 +36,6 @@ const LiveQuiz: React.FC = () => {
     const studentResult = await api.getStudentResultInMap(student.id);
 
     if (!!studentResult) {
-      console.log("tempResultLessonMap = res;", studentResult);
       setLessonResultMap(studentResult);
     }
 
@@ -67,7 +66,6 @@ const LiveQuiz: React.FC = () => {
           }
         })
       );
-      console.log("all the live quizzes...", _lessons);
       setLiveQuizzes(_lessons);
       setLoading(false);
     } else {

@@ -144,10 +144,6 @@ const gb = new GrowthBook({
   clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
   enableDevMode: true,
   trackingCallback: (experiment, result) => {
-    console.log("Experiment Viewed", {
-      experimentId: experiment.key,
-      variationId: result.key,
-    });
     Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
       experimentId: experiment.key,
       variationId: result.key,
@@ -224,7 +220,6 @@ const App: React.FC = () => {
     startTimeout();
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(false));
     localStorage.setItem(DOWNLOADING_CHAPTER_ID, JSON.stringify(false));
-    console.log("fetching...");
     CapApp.addListener("appStateChange", Util.onAppStateChange);
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
@@ -274,19 +269,12 @@ const App: React.FC = () => {
 
     if (!lastAccessDate || lastAccessDate !== currentDate) {
       // First-time use or a new day
-      console.log("New day detected. Resetting usage data.");
       localStorage.setItem(USED_TIME_KEY, "0"); // Reset used time
       localStorage.setItem(START_TIME_KEY, Date.now().toString()); // Reset start time
       localStorage.setItem(LAST_ACCESS_DATE_KEY, currentDate); // Update the last access date
-    } else {
-      console.log("Continuing from the same day. Current usage data:", {
-        startTime: localStorage.getItem(START_TIME_KEY),
-        usedTime: localStorage.getItem(USED_TIME_KEY),
-      });
     }
 
     if (!localStorage.getItem(IS_INITIALIZED)) {
-      console.log("First time opening the app: initializing usage data.");
       localStorage.setItem(START_TIME_KEY, Date.now().toString());
       localStorage.setItem(IS_INITIALIZED, "true");
     }
@@ -301,17 +289,6 @@ const App: React.FC = () => {
     const usedTime = Number(localStorage.getItem(USED_TIME_KEY));
     const sessionTime = (currentTime - startTime) / 1000;
     const usedTimeInMinutes = usedTime / 60;
-    console.log(
-      "calculateUsedTime",
-      Math.floor(usedTimeInMinutes + sessionTime),
-      `Start Time (min): ${startTime / 1000 / 60}`,
-      `Current Time (min): ${currentTime / 1000 / 60}`,
-      `Used Time (min): ${usedTimeInMinutes}`,
-      `Session Time (min): ${sessionTime / 60}`
-    );
-    const date1 = new Date(currentTime);
-    const date2 = new Date(startTime);
-    console.log(date1.toString(), date2.toString());
 
     return usedTime + sessionTime;
   };
@@ -325,7 +302,6 @@ const App: React.FC = () => {
     clearExistingTimeout();
     const usedTime = Number(localStorage.getItem(USED_TIME_KEY) || 0);
     const remainingTime = Util.TIME_LIMIT - usedTime;
-    console.log("timeout trigger remainingTime", remainingTime);
     if (remainingTime > 0) {
       timeoutId = setTimeout(() => {
         checkTimeExceeded();
@@ -344,7 +320,6 @@ const App: React.FC = () => {
         const lastModalShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
 
         if (lastModalShownDate !== today) {
-          console.log("triggered");
           setShowModal(true);
           const event = new CustomEvent("shouldShowModal", { detail: true });
           window.dispatchEvent(event);
@@ -627,7 +602,7 @@ const App: React.FC = () => {
               <ProtectedRoute path={PAGES.PROGRAM_PAGE} exact={true}>
                 <ProgramsPage />
               </ProtectedRoute>
-              <ProtectedRoute path={PAGES.SIDEBAR_PAGE} exact={true}>
+              <ProtectedRoute path={PAGES.SIDEBAR_PAGE}>
                 <SidebarPage />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.NEW_PROGRAM} exact={true}>

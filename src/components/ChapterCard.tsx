@@ -10,8 +10,6 @@ const ChapterCard: React.FC<{
   levelChapter: Chapter | undefined;
 }> = ({ chapter, isActive, onChapterClick, isLastChapter, levelChapter }) => {
   const isLevelChapter = chapter.id === levelChapter?.id;
-  if (chapter.id === levelChapter?.id)
-    console.log("levelChapter", levelChapter?.id, levelChapter);
   return (
     <div>
       <IonRow>

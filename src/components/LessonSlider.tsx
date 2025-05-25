@@ -57,7 +57,6 @@ const LessonSlider: React.FC<{
   height = "35vh";
   const lessonSwiperRef = useRef<any>(null);
   const checkSplideInstance = () => {
-    console.log("startIndex value in lessonSlider", startIndex);
     if (startIndex) lessonSwiperRef?.current.go(startIndex);
   };
 
