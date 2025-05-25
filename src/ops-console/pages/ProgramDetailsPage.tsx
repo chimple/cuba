@@ -5,8 +5,8 @@ import { useHistory, useParams } from "react-router-dom";
 import "./ProgramDetailsPage.css";
 import Breadcrumb from "../components/Breadcrumb";
 import ContactCard from "../components/ContactCard";
-import { SupabaseApi } from "../../services/api/SupabaseApi";
 import { ServiceConfig } from "../../services/ServiceConfig";
+import { t } from "i18next";
 
 interface RouteParams {
   programId: string;
@@ -18,6 +18,7 @@ interface ProgramData {
   partnerDetails: { label: string; value: string }[];
   programManagers: { name: string; role: string; phone: string }[];
 }
+
 
 const ProgramDetailsPage = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -43,7 +44,12 @@ const ProgramDetailsPage = () => {
 
   if (loading) {
     return (
-      <Box className="loading-container">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="100vh"
+      >
         <CircularProgress />
       </Box>
     );
@@ -65,8 +71,8 @@ const ProgramDetailsPage = () => {
       <Box className="page-padding">
         <Breadcrumb
           crumbs={[
-            { label: "Programs", onClick: () => history.goBack() },
-            { label: data?.programDetails.find(d => d.label === "Program Name")?.value ?? "Untitled Program" },
+            { label: t("Programs"), onClick: () => history.goBack() },
+            { label: data?.programDetails.find(d => d.label === "Program Name")?.value ?? "" },
           ]}
         />
 
@@ -74,8 +80,8 @@ const ProgramDetailsPage = () => {
           {/* Column 1 */}
           <Grid item xs={12} md={4}>
             <Box className="column-container">
-              <InfoCard title="Program Details" items={data.programDetails} />
-              <InfoCard title="Partner Details" items={data.partnerDetails} />
+              <InfoCard title={t("Program Details")} items={data.programDetails} />
+              <InfoCard title={t("Partner Details")} items={data.partnerDetails} />
             </Box>
           </Grid>
 
@@ -83,7 +89,7 @@ const ProgramDetailsPage = () => {
           <Grid item xs={12} md={4}>
             <Box className="column-container">
               <InfoCard
-                title="Location Details"
+                title={t("Location Details")}
                 children={
                   <Box className="location-details-grid">
                     {data.locationDetails.map((item, idx) => (
@@ -96,7 +102,7 @@ const ProgramDetailsPage = () => {
                 }
               />
               <InfoCard
-                title="Program Managers"
+                title= {t("Program Managers")}
                 children={
                   <Box className="managers-list">
                     {data.programManagers.map((manager, idx) => (
@@ -116,15 +122,19 @@ const ProgramDetailsPage = () => {
           {/* Column 3 */}
           <Grid item xs={12} md={4}>
             <Box className="column-container">
-              <InfoCard title="Program Performance" items={[]}>
-                <Button fullWidth className="full-width-button" variant="contained">
-                  View Detailed Analytics
-                </Button>
+              <InfoCard title={t("Program Performance")} items={[]}>
+                <Box display="flex" justifyContent="center" >
+                  <Button className="full-width-button" variant="contained">
+                    {t("View Detailed Analytics")}
+                  </Button>
+                </Box>
               </InfoCard>
-              <InfoCard title="Program Statistics" items={[]}>
-                <Button fullWidth className="full-width-button" variant="contained">
-                  View Details
-                </Button>
+              <InfoCard title={t("Program Statistics")} items={[]}>
+                <Box display="flex" justifyContent="center" >
+                  <Button className="full-width-button" variant="contained">
+                    {t("View Details")}
+                  </Button>
+                </Box>
               </InfoCard>
             </Box>
           </Grid>
