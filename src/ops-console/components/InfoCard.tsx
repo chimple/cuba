@@ -7,11 +7,10 @@ import "./InfoCard.css";
 interface InfoCardProps {
   title: string;
   items?: DetailItemProps[];
-  content?: React.ReactNode;
   children?: React.ReactNode;
 }
 
-const InfoCard = ({ title, items, content, children }: InfoCardProps) => (
+const InfoCard = ({ title, items,  children }: InfoCardProps) => (
   <Card variant="outlined" className="info-card">
     <CardContent className="info-card-content">
       <Typography
@@ -30,11 +29,7 @@ const InfoCard = ({ title, items, content, children }: InfoCardProps) => (
             <DetailItem key={idx} {...item} />
           ))}
         </Box>
-      ) : children ? (
-        children
-      ) : (
-        content || null
-      )}
+      ) : <Box className= "info-card-children">{children}</Box>}
     </CardContent>
   </Card>
 );

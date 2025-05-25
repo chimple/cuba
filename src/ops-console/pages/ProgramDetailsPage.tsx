@@ -5,6 +5,8 @@ import { useHistory, useParams } from "react-router-dom";
 import "./ProgramDetailsPage.css";
 import Breadcrumb from "../components/Breadcrumb";
 import ContactCard from "../components/ContactCard";
+import { SupabaseApi } from "../../services/api/SupabaseApi";
+import { ServiceConfig } from "../../services/ServiceConfig";
 
 interface RouteParams {
   programId: string;
@@ -13,60 +15,30 @@ interface RouteParams {
 interface ProgramData {
   programDetails: { label: string; value: string }[];
   locationDetails: { label: string; value: string }[];
-  performance: { label: string; value: string }[];
   partnerDetails: { label: string; value: string }[];
   programManagers: { name: string; role: string; phone: string }[];
-  statistics: { label: string; value: string }[];
 }
 
-const mockProgramData: ProgramData = {
-  programDetails: [
-    { label: "Program Name", value: "XYZ Program" },
-    { label: "Program Type", value: "Learning Centers" },
-    { label: "Program Model", value: "At Home" },
-    {label: "Program Date", value: "April 15, 2025 December 20, 2025"},
-  ],
-  locationDetails: [
-    { label: "Country", value: "India" },
-    { label: "State", value: "Uttar Pradesh" },
-    { label: "District", value: "Buddha Nagar" },
-    { label: "Cluster", value: "Noida-East" },
-    { label: "Block", value: "Noida" },
-    { label: "Village", value: "Uttaranchal" },
-  ],
-  performance: [
-    { label: "Completion Rate", value: "85%" },
-    { label: "Satisfaction", value: "90%" },
-  ],
-  partnerDetails: [
-    { label: "Implementation Partner", value: "Educational Initiatives" },
-    { label: "Funding Partner", value: "Global Education Fund" },
-    { label: "Institute Owner", value: "Ministry of Education" },
-  ],
-  programManagers: [
-    { name: "Alice Johnson", role: "Lead Manager", phone: "+91 9876543210" },
-    { name: "Bob Smith", role: "Assistant Manager", phone: "+91 8765432109" },
-  ],
-  statistics: [
-    { label: "Participants", value: "150" },
-    { label: "Events", value: "20" },
-  ],
-};
-
 const ProgramDetailsPage = () => {
+  const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const { programId } = useParams<RouteParams>();
   const [data, setData] = useState<ProgramData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      setData(mockProgramData);
-      setLoading(false);
-    }, 500);
 
-    return () => clearTimeout(timer);
+  useEffect(() => {
+    if (!programId) return;
+
+    const fetchData = async () => {
+      setLoading(true);
+      const programData = await api.getProgramData(programId);
+      console.log("Fetched program data:", programData);
+      setData(programData);
+      setLoading(false);
+    };
+
+    fetchData();
   }, [programId]);
 
   if (loading) {
@@ -88,13 +60,13 @@ const ProgramDetailsPage = () => {
   return (
     <div className="program-details-page">
       <div className="program-detail-page-header">
-        {mockProgramData.programDetails.find((d) => d.label === "Program Name")?.value}
+        {data.programDetails.find((d) => d.label === "Program Name")?.value}
       </div>
       <Box className="page-padding">
         <Breadcrumb
           crumbs={[
             { label: "Programs", onClick: () => history.goBack() },
-            { label: "XYZ Program" },
+            { label: data?.programDetails.find(d => d.label === "Program Name")?.value ?? "Untitled Program" },
           ]}
         />
 
@@ -112,7 +84,7 @@ const ProgramDetailsPage = () => {
             <Box className="column-container">
               <InfoCard
                 title="Location Details"
-                content={
+                children={
                   <Box className="location-details-grid">
                     {data.locationDetails.map((item, idx) => (
                       <Box key={idx} className="location-details-item">
@@ -125,7 +97,7 @@ const ProgramDetailsPage = () => {
               />
               <InfoCard
                 title="Program Managers"
-                content={
+                children={
                   <Box className="managers-list">
                     {data.programManagers.map((manager, idx) => (
                       <ContactCard

@@ -1,5 +1,7 @@
-.info-card-content {
+.info-card-children {
   text-align: left;
+  padding-top: 10px;
+  gap: 8px;
 }
 
 .info-card-title {
@@ -16,4 +18,5 @@
   display: flex;
   flex-direction: column;
   gap: 8px; /* approx gap:1 */
+  padding-top: 10px;
 }
