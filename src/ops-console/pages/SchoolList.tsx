@@ -32,87 +32,85 @@ const SchoolList: React.FC = () => {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      const user = await authInstance.getCurrentUser();
-      if (!user) return;
-
-      let fetchedSchools: TableTypes<"school">[] = [];
-
-      if (selectedTab === SCHOOL_TABS.ALL) {
-        fetchedSchools = await api.getSchoolsForAdmin(
-          rowsPerPage,
-          (page - 1) * rowsPerPage
-        );
-      } else {
-        const model =
-          selectedTab === SCHOOL_TABS.AT_HOME ? MODEL.AT_HOME : MODEL.AT_SCHOOL;
-        fetchedSchools = await api.getSchoolsByModel(
-          model,
-          rowsPerPage,
-          (page - 1) * rowsPerPage
-        );
-      }
-      if (fetchedSchools.length === rowsPerPage) {
-        // Possibly more data, increase page count
-        setPageCount((prev) => Math.max(prev, page + 1));
-      } else {
-        // Last page — set pageCount exactly to this one
-        setPageCount(page);
-      }
-      const schoolIds = fetchedSchools.map((s) => s.id);
-
-      const [teachers, students, pms, fcs] = await Promise.all([
-        api.getTeachersForSchools(schoolIds),
-        api.getStudentsForSchools(schoolIds),
-        api.getProgramManagersForSchools(schoolIds),
-        api.getFieldCoordinatorsForSchools(schoolIds),
-      ]);
-
-      const mapFromRoleData = (
-        data: SchoolRoleMap[],
-        type: "count" | "names"
-      ) => {
-        return data.reduce<Record<string, any>>((acc, item) => {
-          if (type === "count") acc[item.schoolId] = item.users.length;
-          if (type === "names")
-            acc[item.schoolId] = item.users.map((u) => u.name).join(", ");
-          return acc;
-        }, {});
-      };
-
-      const teachersMap = mapFromRoleData(teachers, "count");
-      const studentsMap = mapFromRoleData(students, "count");
-      const programManagersMap = mapFromRoleData(pms, "names");
-      const fieldCoordinatorsMap = mapFromRoleData(fcs, "names");
-
-      const enrichedSchools = fetchedSchools.map((school) => ({
-        ...school,
-        students: studentsMap[school.id] || 0,
-        teachers: teachersMap[school.id] || 0,
-        programManagers: programManagersMap[school.id] || t("not assigned yet"),
-        fieldCoordinators:
-          fieldCoordinatorsMap[school.id] || t("not assigned yet"),
-        name: {
-          value: school.name,
-          render: (
-            <Box display="flex" flexDirection="column" alignItems="center">
-              <Typography variant="subtitle2">{school.name}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                {school.group2 || ""}
-              </Typography>
-            </Box>
-          ),
-        },
-      }));
-
-      setSchools(enrichedSchools);
-      setIsLoading(false);
-    };
-
     fetchData();
   }, [selectedTab, page]);
+  const fetchData = async () => {
+    setIsLoading(true);
+    const user = await authInstance.getCurrentUser();
+    if (!user) return;
 
+    let fetchedSchools: TableTypes<"school">[] = [];
+
+    if (selectedTab === SCHOOL_TABS.ALL) {
+      fetchedSchools = await api.getSchoolsForAdmin(
+        rowsPerPage,
+        (page - 1) * rowsPerPage
+      );
+    } else {
+      const model =
+        selectedTab === SCHOOL_TABS.AT_HOME ? MODEL.AT_HOME : MODEL.AT_SCHOOL;
+      fetchedSchools = await api.getSchoolsByModel(
+        model,
+        rowsPerPage,
+        (page - 1) * rowsPerPage
+      );
+    }
+    if (fetchedSchools.length === rowsPerPage) {
+      // Possibly more data, increase page count
+      setPageCount((prev) => Math.max(prev, page + 1));
+    } else {
+      // Last page — set pageCount exactly to this one
+      setPageCount(page);
+    }
+    const schoolIds = fetchedSchools.map((s) => s.id);
+
+    const [teachers, students, pms, fcs] = await Promise.all([
+      api.getTeachersForSchools(schoolIds),
+      api.getStudentsForSchools(schoolIds),
+      api.getProgramManagersForSchools(schoolIds),
+      api.getFieldCoordinatorsForSchools(schoolIds),
+    ]);
+
+    const mapFromRoleData = (
+      data: SchoolRoleMap[],
+      type: "count" | "names"
+    ) => {
+      return data.reduce<Record<string, any>>((acc, item) => {
+        if (type === "count") acc[item.schoolId] = item.users.length;
+        if (type === "names")
+          acc[item.schoolId] = item.users.map((u) => u.name).join(", ");
+        return acc;
+      }, {});
+    };
+
+    const teachersMap = mapFromRoleData(teachers, "count");
+    const studentsMap = mapFromRoleData(students, "count");
+    const programManagersMap = mapFromRoleData(pms, "names");
+    const fieldCoordinatorsMap = mapFromRoleData(fcs, "names");
+
+    const enrichedSchools = fetchedSchools.map((school) => ({
+      ...school,
+      students: studentsMap[school.id] || 0,
+      teachers: teachersMap[school.id] || 0,
+      programManagers: programManagersMap[school.id] || t("not assigned yet"),
+      fieldCoordinators:
+        fieldCoordinatorsMap[school.id] || t("not assigned yet"),
+      name: {
+        value: school.name,
+        render: (
+          <Box display="flex" flexDirection="column" alignItems="center">
+            <Typography variant="subtitle2">{school.name}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              {school.group2 || ""}
+            </Typography>
+          </Box>
+        ),
+      },
+    }));
+
+    setSchools(enrichedSchools);
+    setIsLoading(false);
+  };
   const columns: Column<Record<string, any>>[] = [
     { key: "name", label: t("Schools") },
     { key: "students", label: t("No of Students") },
