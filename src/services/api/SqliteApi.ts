@@ -4831,4 +4831,12 @@ order by
       console.error("Error setting stars for student:", error);
     }
   }
+  async getProgramData(programId: string): Promise<{
+    programDetails: { label: string; value: string }[];
+    locationDetails: { label: string; value: string }[];
+    partnerDetails: { label: string; value: string }[];
+    programManagers: { name: string; role: string; phone: string }[];
+  } | null> {
+    return await this._serverApi.getProgramData(programId);
+  }
 }

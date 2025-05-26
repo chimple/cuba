@@ -1497,4 +1497,16 @@ export interface ServiceApi {
    * @param {number} totalStars - total stars.
    */
   updateStudentStars(studentId: string, totalStars: number): Promise<void>;
+
+  /**
+   * Fetch detailed information for a given program by ID.
+   * @param {string} programId - The ID of the program to fetch.
+   * @returns Promise resolving to program details, location, partner, and managers or null if not found.
+   */
+  getProgramData(programId: string): Promise<{
+    programDetails: { label: string; value: string }[];
+    locationDetails: { label: string; value: string }[];
+    partnerDetails: { label: string; value: string }[];
+    programManagers: { name: string; role: string; phone: string }[];
+  } | null>;
 }

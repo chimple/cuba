@@ -1137,4 +1137,13 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return await this.s.updateStudentStars(studentId, totalStars);
   }
+
+  public async getProgramData(programId: string): Promise<{
+    programDetails: { label: string; value: string }[];
+    locationDetails: { label: string; value: string }[];
+    partnerDetails: { label: string; value: string }[];
+    programManagers: { name: string; role: string; phone: string }[];
+  } | null> {
+    return await this.s.getProgramData(programId);
+  }
 }

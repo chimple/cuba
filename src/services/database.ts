@@ -1441,6 +1441,7 @@ export type Database = {
           stars?: number | null;
           student_id?: string | null;
           updated_at?: string | null;
+          learning_path?: string | null;
         };
         Update: {
           age?: number | null;
@@ -1463,6 +1464,7 @@ export type Database = {
           stars?: number | null;
           student_id?: string | null;
           updated_at?: string | null;
+          learning_path?: string | null;
         };
         Relationships: [
           {
@@ -2619,6 +2621,28 @@ export type Database = {
           Cluster: string[];
           District: string[];
         };
+      };
+      get_latest_results_by_student: {
+        Args: {
+          student_uuid: string;
+        };
+        Returns: {
+          id: string;
+          student_id: string;
+          lesson_id: string | null;
+          updated_at: string | null;
+          assignment_id: string | null;
+          chapter_id: string | null;
+          class_id: string | null;
+          correct_moves: number | null;
+          course_id: string | null;
+          created_at: string;
+          is_deleted: boolean | null;
+          school_id: string | null;
+          score: number | null;
+          time_spent: number | null;
+          wrong_moves: number | null;
+        }[];
       };
     };
     Enums: {

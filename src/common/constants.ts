@@ -417,6 +417,7 @@ export enum PAGES {
   ADD_SPONSOR = "/add-sponsor",
   UPLOAD_PAGE = "/upload-page",
   PROGRAM_PAGE = "/program-page",
+  PROGRAM_DETAIL_PAGE = "/programs/:programId",
   SIDEBAR_PAGE = "/admin-home-page",
   ADMIN_DASHBOARD = "/dashboard",
   ADMIN_PROGRAMS = "/programs",
