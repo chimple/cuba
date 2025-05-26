@@ -1,19 +1,9 @@
-.program-details-page {
+.program-detail-page {
   display: flex;
   flex-direction: column;
   background-color: white;
   height: 100%;
   overflow: auto;
-}
-.program-detail-page-header{ 
-    padding-top: 20px;
-    padding-left: 20px;
-    font-size: 40px;
-    font-weight: 600;
-    color: black;
-    padding-bottom: 0px;
-}
-.program-details-page {
   font-family: 'Roboto', sans-serif;
 }
 
@@ -23,60 +13,62 @@
   padding: 16px 24px;
   border-bottom: 1px solid #ddd;
   margin-bottom: 16px;
+  color: black;
 }
 
-.page-padding {
+.program-detail-page-padding {
   padding: 24px;
 }
 
-.loading-container,
-.error-container {
+.program-detail-page-loading-container,
+.program-detail-page-error-container {
   padding: 24px;
   text-align: center;
 }
 
-.column-container {
+.program-detail-page-column-container {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.managers-list {
+.program-detail-page-managers-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.full-width-button {
+.program-detail-page-full-width-button {
   margin-top: 16px;
   display: block;
   width: 60%;
 }
 
-.detail-item {
+.program-detail-page-detail-item {
   margin-bottom: 12px;
 }
-.location-details-grid {
+
+.program-detail-page-location-details-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px 24px;
   padding: 8px 16px;
 }
 
-.location-details-item {
+.program-detail-page-location-details-item {
   display: flex;
   flex-direction: column;
   text-align: left;
-  align-items: flex-start; 
+  align-items: flex-start;
 }
 
-.location-details-label {
+.program-detail-page-location-details-label {
   font-weight: 500;
   color: #555;
   font-size: 0.875rem;
 }
 
-.location-details-value {
+.program-detail-page-location-details-value {
   font-size: 1rem;
   color: #000;
 }

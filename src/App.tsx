@@ -603,7 +603,7 @@ const App: React.FC = () => {
               <ProtectedRoute path={PAGES.PROGRAM_PAGE} exact={true}>
                 <ProgramsPage />
               </ProtectedRoute>
-              <ProtectedRoute path="/programs/:programId" exact={true}>
+              <ProtectedRoute path={PAGES.PROGRAM_DETAIL_PAGE} exact={true}>
                 <ProgramDetailPage />
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.SIDEBAR_PAGE}>
