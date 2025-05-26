@@ -704,8 +704,8 @@ export class SqliteApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    group4: string | null,
     image: File | null,
+    group4: string | null,
     program_id: string | null,
     udise: string | null,
     address: string | null
@@ -723,8 +723,8 @@ export class SqliteApi implements ServiceApi {
       group1: group1 ?? school.group1,
       group2: group2 ?? school.group2,
       group3: group3 ?? school.group3,
-      group4: group4 ?? school.group4,
       image: result ?? school.image,
+      group4: group4 ?? school.group4,
       updated_at: new Date().toISOString(),
       created_at: school.created_at,
       id: school.id,
@@ -4773,30 +4773,15 @@ order by
   async getProgramForSchool(
     schoolId: string
   ): Promise<TableTypes<"program"> | undefined> {
-    const query = `
-    SELECT program.*
-    FROM ${TABLES.School} AS s
-    JOIN ${TABLES.Program} AS program ON s.program_id = program.id
-    WHERE s.id = "${schoolId}";
-  `;
-    const res = await this._db?.query(query);
-    return res?.values?.[0] ?? undefined;
+    const prog = await this._serverApi.getProgramForSchool(schoolId);
+    return prog;
   }
 
   async getProgramManagersForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined> {
-    const query = `
-    SELECT user.*
-    FROM ${TABLES.School} AS s
-    JOIN ${TABLES.ProgramUser} AS pu ON s.program_id = pu.program_id
-    JOIN ${TABLES.User} AS user ON pu.user = user.id
-    WHERE s.id = "${schoolId}"
-      AND pu.role = '${RoleType.PROGRAM_MANAGER}'
-      AND pu.is_deleted = false;
-  `;
-    const res = await this._db?.query(query);
-    return res?.values ?? [];
+    const users = await this._serverApi.getProgramManagersForSchool(schoolId);
+    return users;
   }
 
   async getCurriculumSubjectsForSchool(

@@ -97,8 +97,8 @@ export interface ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    group4: string | null,
     image: File | null,
+    group4: string | null,
     program_id: string | null,
     udise: string | null,
     address: string | null

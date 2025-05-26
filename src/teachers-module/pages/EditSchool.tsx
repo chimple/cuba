@@ -74,14 +74,14 @@ const EditSchool: React.FC = () => {
       setIsSaving(true);
 
       if (isEditMode && currentSchool) {
-        // const updatedSchool = await api.updateSchoolProfile(
-        //   currentSchool,
-        //   schoolData.name,
-        //   schoolData.state,
-        //   schoolData.district,
-        //   schoolData.city,
-        //   profilePic
-        // );
+        const updatedSchool = await api.updateSchoolProfile(
+          currentSchool,
+          schoolData.name,
+          schoolData.state,
+          schoolData.district,
+          schoolData.city,
+          profilePic
+        );
 
         console.log("School data updated successfully");
 

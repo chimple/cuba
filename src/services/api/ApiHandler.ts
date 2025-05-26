@@ -174,11 +174,11 @@ export class ApiHandler implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    group4: string | null,
     image: File | null,
-    program_id: string | null,
-    udise: string | null,
-    address: string | null
+    group4?: string | null,
+    program_id?: string | null,
+    udise?: string | null,
+    address?: string | null
   ): Promise<TableTypes<"school">> {
     return await this.s.updateSchoolProfile(
       school,
@@ -186,13 +186,14 @@ export class ApiHandler implements ServiceApi {
       group1,
       group2,
       group3,
-      group4,
       image,
-      program_id,
-      udise,
-      address
+      group4 ?? null,
+      program_id ?? null,
+      udise ?? null,
+      address ?? null
     );
   }
+
   public async requestNewSchool(
     name: string,
     state: string,

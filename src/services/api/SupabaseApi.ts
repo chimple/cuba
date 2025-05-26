@@ -656,7 +656,11 @@ export class SupabaseApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    image: File | null,
+    group4?: string | null,
+    program_id?: string | null,
+    udise?: string | null,
+    address?: string | null
   ): Promise<TableTypes<"school">> {
     if (!this.supabase) return {} as TableTypes<"school">;
 
@@ -670,11 +674,15 @@ export class SupabaseApi implements ServiceApi {
       group2: group2 ?? school.group2,
       group3: group3 ?? school.group3,
       image: result ?? school.image,
+      group4: group4 ?? school.group4,
+      program_id: program_id ?? school.program_id,
+      udise: udise ?? school.udise,
+      address: address ?? school.address,
       updated_at: new Date().toISOString(),
       created_at: school.created_at,
       id: school.id,
       is_deleted: false,
-      model: null
+      model: null,
     };
 
     const { error } = await this.supabase
@@ -854,10 +862,14 @@ export class SupabaseApi implements ServiceApi {
       group2: group2 ?? null,
       group3: group3 ?? null,
       image: result ?? null,
+      group4: group4 ?? null,
+      program_id: program_id ?? null,
+      udise: udise ?? null,
+      address: address ?? null,
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
-      model: null
+      model: null,
     };
 
     // Insert school
@@ -5643,7 +5655,6 @@ export class SupabaseApi implements ServiceApi {
     const users = programUsers
       .flatMap((item: { user: TableTypes<"user">[] }) => item.user)
       .filter((user): user is TableTypes<"user"> => !!user);
-    console.log("hgshdghksgdhjkgs", users);
     return users;
   }
 
