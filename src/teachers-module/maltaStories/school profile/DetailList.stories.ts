@@ -20,6 +20,7 @@ const mockSchools: SchoolWithRole[] = [
       image: null,
       is_deleted: null,
       updated_at: null,
+      model: null,
     },
     role: RoleType.PRINCIPAL,
   },
@@ -34,6 +35,7 @@ const mockSchools: SchoolWithRole[] = [
       image: null,
       is_deleted: null,
       updated_at: null,
+      model: null,
     },
     role: RoleType.COORDINATOR,
   },
@@ -98,6 +100,7 @@ const meta: Meta<typeof DetailList> = {
       image: null,
       is_deleted: null,
       updated_at: null,
+      model: null,
     },
   },
 };

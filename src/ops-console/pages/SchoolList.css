@@ -1,0 +1,50 @@
+.school-container {
+  background: white;
+  margin: var(--margin);
+}
+.school-list-ion-page {
+  background: white;
+}
+.school-list-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 96vw;
+  min-width: 300px;
+  max-width: 1500px;
+  margin-bottom: 10px;
+}
+
+.school-list-tab {
+  text-transform: none !important;
+  font-weight: bold !important;
+  color: #121619 !important;
+}
+
+.school-list-tab.MuiTab-root.Mui-selected {
+  color: #0f62fe !important;
+}
+
+.school-list-tabs-div {
+  width: 33vw;
+  min-width: 200px;
+  max-width: 400px;
+}
+
+.school-heading {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #1f2937;
+}
+
+.school-list-tab-wrapper {
+  font-weight: bold;
+}
+
+.school-list-pagination {
+  display: flex;
+  justify-content: center;
+  width: 100vw;
+  padding-bottom: 20px;
+}

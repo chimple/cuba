@@ -17,6 +17,8 @@ import {
   LIVE_QUIZ,
   STARS_COUNT,
   EVENTS,
+  SchoolRoleMap,
+  MODEL,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -672,6 +674,7 @@ export class SupabaseApi implements ServiceApi {
       created_at: school.created_at,
       id: school.id,
       is_deleted: false,
+      model: null
     };
 
     const { error } = await this.supabase
@@ -850,6 +853,7 @@ export class SupabaseApi implements ServiceApi {
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
+      model: null
     };
 
     // Insert school
@@ -4704,7 +4708,7 @@ await Promise.all(
     }
   }
 
- async validateSchoolData(
+  async validateSchoolData(
     schoolId: string,
     schoolName: string
   ): Promise<{ status: string; errors?: string[] }> {
@@ -4874,7 +4878,7 @@ await Promise.all(
     }
   }
 
-   async validateClassCurriculumAndSubject(
+  async validateClassCurriculumAndSubject(
     curriculumName: string,
     subjectName: string,
     gradeName: string // new parameter
@@ -4933,7 +4937,7 @@ await Promise.all(
     }
     return { status: "success" };
   }
- 
+
   async validateUserContacts(
     programManagerPhone: string,
     fieldCoordinatorPhone?: string
@@ -5149,22 +5153,24 @@ await Promise.all(
 
   async getProgramFilterOptions(): Promise<Record<string, string[]>> {
     if (!this.supabase) {
-      console.error('Supabase client is not initialized');
+      console.error("Supabase client is not initialized");
       return {};
     }
 
     try {
-      const { data, error } = await this.supabase.rpc('get_program_filter_options');
+      const { data, error } = await this.supabase.rpc(
+        "get_program_filter_options"
+      );
       if (error) {
-        console.error('RPC error:', error);
+        console.error("RPC error:", error);
         return {};
       }
 
       const parsed: Record<string, string[]> = {};
-      if (data && typeof data === 'object') {
+      if (data && typeof data === "object") {
         for (const key in data) {
           const val = data[key];
-          if (Array.isArray(val) && val.every(v => typeof v === 'string')) {
+          if (Array.isArray(val) && val.every((v) => typeof v === "string")) {
             parsed[key] = val;
           } else {
             parsed[key] = [];
@@ -5173,68 +5179,66 @@ await Promise.all(
       }
       return parsed;
     } catch (err) {
-      console.error('Unexpected error:', err);
+      console.error("Unexpected error:", err);
       return {};
     }
   }
 
-async getPrograms({
-  currentUserId,
-  filters = {},
-  searchTerm = '',
-  tab = 'ALL',
-}: {
-  currentUserId: string;
-  filters?: Record<string, string[]>;
-  searchTerm?: string;
-  tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
-}): Promise<{ data: any[] }> {
-  if (!this.supabase) {
-    console.error('Supabase client not initialized');
-    return { data: [] };
-  }
-
-  try {
-    // Call the RPC with currentUserId and pass filters as JSON
-    const { data, error } = await this.supabase.rpc('get_programs_for_user', {
-      _current_user_id: currentUserId,
-      _filters: filters,
-      _search_term: searchTerm,
-      _tab: tab,
-    });
-
-    if (error) {
-      console.error('Error calling get_programs_for_user RPC:', error);
+  async getPrograms({
+    currentUserId,
+    filters = {},
+    searchTerm = "",
+    tab = "ALL",
+  }: {
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    searchTerm?: string;
+    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
+  }): Promise<{ data: any[] }> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized");
       return { data: [] };
     }
 
-    // data will contain programs with manager_names already attached
-    return { data: data || [] };
-  } catch (err) {
-    console.error('Unexpected error in getPrograms:', err);
-    return { data: [] };
+    try {
+      // Call the RPC with currentUserId and pass filters as JSON
+      const { data, error } = await this.supabase.rpc("get_programs_for_user", {
+        _current_user_id: currentUserId,
+        _filters: filters,
+        _search_term: searchTerm,
+        _tab: tab,
+      });
+
+      if (error) {
+        console.error("Error calling get_programs_for_user RPC:", error);
+        return { data: [] };
+      }
+
+      // data will contain programs with manager_names already attached
+      return { data: data || [] };
+    } catch (err) {
+      console.error("Unexpected error in getPrograms:", err);
+      return { data: [] };
+    }
   }
-}
 
   async getProgramManagers(): Promise<string[]> {
     if (!this.supabase) {
       console.error("Supabase client is not initialized.");
       return [];
     }
-  
-    const { data, error } = await this.supabase
-      .rpc('get_program_managers');
-  
+
+    const { data, error } = await this.supabase.rpc("get_program_managers");
+
     if (error) {
-      console.error('Error fetching managers:', error);
+      console.error("Error fetching managers:", error);
       return [];
     }
-  
+
     const names = data?.map((manager: { name: string }) => manager.name) || [];
     return names;
   }
 
-  
   async getUniqueGeoData(): Promise<{
     Country: string[];
     State: string[];
@@ -5252,12 +5256,13 @@ async getPrograms({
         District: [],
       };
     }
-  
-    const { data, error } = await this.supabase.rpc('get_unique_geo_data');
+
+    const { data, error } = await this.supabase.rpc("get_unique_geo_data");
 
     if (error) throw error;
-    
-    if (!data) return { Country: [], State: [], Block: [], Cluster: [], District: [] };
+
+    if (!data)
+      return { Country: [], State: [], Block: [], Cluster: [], District: [] };
     return data as {
       Country: string[];
       State: string[];
@@ -5266,65 +5271,313 @@ async getPrograms({
       District: string[];
     };
   }
-  
+
   async insertProgram(payload: any): Promise<boolean> {
     try {
       if (!this.supabase) {
         console.error("Supabase client is not initialized.");
         return false;
       }
-  
+
       const model =
         payload.models.length > 1
           ? "HYBRID"
           : payload.models.length === 1
-          ? payload.models[0]
-          : "";
-  
+            ? payload.models[0]
+            : "";
+
       const record: any = {
         name: payload.programName,
         model,
-  
+
         implementation_partner: payload.partners.implementation,
         funding_partner: payload.partners.funding,
         institute_partner: payload.partners.institute,
-  
+
         country: payload.locations.Country,
         state: payload.locations.State,
         block: payload.locations.Block,
         cluster: payload.locations.Cluster,
         district: payload.locations.District,
-  
+
         program_type: payload.programType,
         institutes_count: payload.stats.institutes,
         students_count: payload.stats.students,
         devices_count: payload.stats.devices,
-  
+
         start_date: payload.startDate,
         end_date: payload.endDate,
-  
+
         program_manager: payload.selectedManagers,
-  
+
         is_deleted: false,
         is_ops: true,
         school_id: null,
       };
 
-  
       const { data, error } = await this.supabase
         .from(TABLES.Program)
         .insert(record);
-  
+
       if (error) {
         console.error("Insert error:", error);
         return false;
       }
-  
+
       return true;
     } catch (error) {
       console.error("insertProgram failed:", error);
       return false;
     }
+  }
+  async getSchoolsForAdmin(
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<TableTypes<"school">[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+    const { data, error } = await this.supabase
+      .from(TABLES.School)
+      .select("*")
+      .eq("is_deleted", false)
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error("Error fetching schools:", error);
+      return [];
+    }
+    return data ?? [];
+  }
+
+  async getSchoolsByModel(
+    model: MODEL,
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<TableTypes<"school">[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.School)
+      .select("*")
+      .eq("is_deleted", false)
+      .eq("model", model)
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error("Error fetching schools by model:", error);
+      return [];
+    }
+    return data ?? [];
+  }
+
+  async getTeachersForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+
+    const { data: classes, error: classError } = await this.supabase
+      .from(TABLES.Class)
+      .select("id, school_id")
+      .in("school_id", schoolIds)
+      .eq("is_deleted", false);
+
+    if (classError || !classes) {
+      console.error("Error fetching classes:", classError);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const classIds = classes.map((cls) => cls.id);
+    const classIdToSchoolId: Record<string, string> = {};
+    for (const cls of classes) {
+      classIdToSchoolId[cls.id] = cls.school_id;
+    }
+
+    const { data: classUsers, error: classUserError } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select("user: user_id (*), class_id")
+      .in("class_id", classIds.length ? classIds : [""])
+      .eq("is_deleted", false)
+      .eq("role", RoleType.TEACHER);
+
+    if (classUserError || !classUsers) {
+      console.error("Error fetching class users:", classUserError);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const schoolMap: Map<string, TableTypes<"user">[]> = new Map();
+    for (const schoolId of schoolIds) {
+      schoolMap.set(schoolId, []);
+    }
+
+    for (const entry of classUsers) {
+      const schoolId = classIdToSchoolId[entry.class_id];
+      const user = entry.user as unknown as TableTypes<"user">;
+      if (!schoolId || !user) continue;
+
+      const existing = schoolMap.get(schoolId) || [];
+      const alreadyExists = existing.some((u) => u.id === user.id);
+      if (!alreadyExists) {
+        existing.push(user);
+        schoolMap.set(schoolId, existing);
+      }
+    }
+
+    const result: SchoolRoleMap[] = [];
+    for (const schoolId of schoolIds) {
+      result.push({ schoolId, users: schoolMap.get(schoolId) ?? [] });
+    }
+    return result;
+  }
+  async getStudentsForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+
+    const { data: classes, error: classError } = await this.supabase
+      .from(TABLES.Class)
+      .select("id, school_id")
+      .in("school_id", schoolIds)
+      .eq("is_deleted", false);
+
+    if (classError || !classes) {
+      console.error("Error fetching classes:", classError);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const classIds = classes.map((cls) => cls.id);
+    const classIdToSchoolId: Record<string, string> = {};
+    for (const cls of classes) {
+      classIdToSchoolId[cls.id] = cls.school_id;
+    }
+
+    const { data: classUsers, error: classUserError } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select("user: user_id (*), class_id")
+      .in("class_id", classIds.length ? classIds : [""])
+      .eq("is_deleted", false)
+      .eq("role", RoleType.STUDENT);
+
+    if (classUserError || !classUsers) {
+      console.error("Error fetching class users:", classUserError);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const schoolMap: Map<string, TableTypes<"user">[]> = new Map();
+    for (const schoolId of schoolIds) {
+      schoolMap.set(schoolId, []);
+    }
+
+    for (const entry of classUsers) {
+      const schoolId = classIdToSchoolId[entry.class_id];
+      const user = entry.user as unknown as TableTypes<"user">;
+      if (!schoolId || !user) continue;
+
+      const existing = schoolMap.get(schoolId) || [];
+      const alreadyExists = existing.some((u) => u.id === user.id);
+      if (!alreadyExists) {
+        existing.push(user);
+        schoolMap.set(schoolId, existing);
+      }
+    }
+
+    const result: SchoolRoleMap[] = [];
+    for (const schoolId of schoolIds) {
+      result.push({ schoolId, users: schoolMap.get(schoolId) ?? [] });
+    }
+    return result;
+  }
+
+  async getProgramManagersForSchools(
+    schoolIds: string[]
+  ): Promise<SchoolRoleMap[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select("user: user_id (*), school_id")
+      .in("school_id", schoolIds.length ? schoolIds : [""])
+      .eq("is_deleted", false)
+      .eq("role", RoleType.PROGRAM_MANAGER);
+
+    if (error || !data) {
+      console.error("Error fetching program managers:", error);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const schoolMap: Map<string, TableTypes<"user">[]> = new Map();
+    for (const schoolId of schoolIds) {
+      schoolMap.set(schoolId, []);
+    }
+
+    for (const row of data) {
+      const user = row.user as unknown as TableTypes<"user">;
+      const schoolId = row.school_id;
+
+      if (!user || !schoolMap.has(schoolId)) continue;
+
+      const users = schoolMap.get(schoolId)!;
+      if (!users.find((u) => u.id === user.id)) {
+        users.push(user);
+      }
+    }
+
+    return schoolIds.map((id) => ({
+      schoolId: id,
+      users: schoolMap.get(id) ?? [],
+    }));
+  }
+
+  async getFieldCoordinatorsForSchools(
+    schoolIds: string[]
+  ): Promise<SchoolRoleMap[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select("user: user_id (*), school_id")
+      .in("school_id", schoolIds.length ? schoolIds : ["dummy"])
+      .eq("is_deleted", false)
+      .eq("role", RoleType.FIELD_COORDINATOR);
+
+    if (error || !data) {
+      console.error("Error fetching field coordinators:", error);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const schoolMap: Map<string, TableTypes<"user">[]> = new Map();
+    for (const schoolId of schoolIds) {
+      schoolMap.set(schoolId, []);
+    }
+
+    for (const row of data) {
+      const user = row.user as unknown as TableTypes<"user">;
+      const schoolId = row.school_id;
+
+      if (!user || !schoolMap.has(schoolId)) continue;
+
+      const users = schoolMap.get(schoolId)!;
+      if (!users.find((u) => u.id === user.id)) {
+        users.push(user);
+      }
+    }
+
+    return schoolIds.map((id) => ({
+      schoolId: id,
+      users: schoolMap.get(id) ?? [],
+    }));
   }
 
   async updateStudentStars(
