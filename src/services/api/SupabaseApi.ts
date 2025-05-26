@@ -17,6 +17,8 @@ import {
   LIVE_QUIZ,
   STARS_COUNT,
   EVENTS,
+  SchoolRoleMap,
+  MODEL,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -672,6 +674,7 @@ export class SupabaseApi implements ServiceApi {
       created_at: school.created_at,
       id: school.id,
       is_deleted: false,
+      model: null
     };
 
     const { error } = await this.supabase
@@ -854,6 +857,7 @@ export class SupabaseApi implements ServiceApi {
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
+      model: null
     };
 
     // Insert school
@@ -5331,6 +5335,255 @@ export class SupabaseApi implements ServiceApi {
       console.error("insertProgram failed:", error);
       return false;
     }
+  }
+  async getSchoolsForAdmin(
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<TableTypes<"school">[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+    const { data, error } = await this.supabase
+      .from(TABLES.School)
+      .select("*")
+      .eq("is_deleted", false)
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error("Error fetching schools:", error);
+      return [];
+    }
+    return data ?? [];
+  }
+
+  async getSchoolsByModel(
+    model: MODEL,
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<TableTypes<"school">[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.School)
+      .select("*")
+      .eq("is_deleted", false)
+      .eq("model", model)
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error("Error fetching schools by model:", error);
+      return [];
+    }
+    return data ?? [];
+  }
+
+  async getTeachersForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+
+    const { data: classes, error: classError } = await this.supabase
+      .from(TABLES.Class)
+      .select("id, school_id")
+      .in("school_id", schoolIds)
+      .eq("is_deleted", false);
+
+    if (classError || !classes) {
+      console.error("Error fetching classes:", classError);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const classIds = classes.map((cls) => cls.id);
+    const classIdToSchoolId: Record<string, string> = {};
+    for (const cls of classes) {
+      classIdToSchoolId[cls.id] = cls.school_id;
+    }
+
+    const { data: classUsers, error: classUserError } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select("user: user_id (*), class_id")
+      .in("class_id", classIds.length ? classIds : [""])
+      .eq("is_deleted", false)
+      .eq("role", RoleType.TEACHER);
+
+    if (classUserError || !classUsers) {
+      console.error("Error fetching class users:", classUserError);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const schoolMap: Map<string, TableTypes<"user">[]> = new Map();
+    for (const schoolId of schoolIds) {
+      schoolMap.set(schoolId, []);
+    }
+
+    for (const entry of classUsers) {
+      const schoolId = classIdToSchoolId[entry.class_id];
+      const user = entry.user as unknown as TableTypes<"user">;
+      if (!schoolId || !user) continue;
+
+      const existing = schoolMap.get(schoolId) || [];
+      const alreadyExists = existing.some((u) => u.id === user.id);
+      if (!alreadyExists) {
+        existing.push(user);
+        schoolMap.set(schoolId, existing);
+      }
+    }
+
+    const result: SchoolRoleMap[] = [];
+    for (const schoolId of schoolIds) {
+      result.push({ schoolId, users: schoolMap.get(schoolId) ?? [] });
+    }
+    return result;
+  }
+  async getStudentsForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+
+    const { data: classes, error: classError } = await this.supabase
+      .from(TABLES.Class)
+      .select("id, school_id")
+      .in("school_id", schoolIds)
+      .eq("is_deleted", false);
+
+    if (classError || !classes) {
+      console.error("Error fetching classes:", classError);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const classIds = classes.map((cls) => cls.id);
+    const classIdToSchoolId: Record<string, string> = {};
+    for (const cls of classes) {
+      classIdToSchoolId[cls.id] = cls.school_id;
+    }
+
+    const { data: classUsers, error: classUserError } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select("user: user_id (*), class_id")
+      .in("class_id", classIds.length ? classIds : [""])
+      .eq("is_deleted", false)
+      .eq("role", RoleType.STUDENT);
+
+    if (classUserError || !classUsers) {
+      console.error("Error fetching class users:", classUserError);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const schoolMap: Map<string, TableTypes<"user">[]> = new Map();
+    for (const schoolId of schoolIds) {
+      schoolMap.set(schoolId, []);
+    }
+
+    for (const entry of classUsers) {
+      const schoolId = classIdToSchoolId[entry.class_id];
+      const user = entry.user as unknown as TableTypes<"user">;
+      if (!schoolId || !user) continue;
+
+      const existing = schoolMap.get(schoolId) || [];
+      const alreadyExists = existing.some((u) => u.id === user.id);
+      if (!alreadyExists) {
+        existing.push(user);
+        schoolMap.set(schoolId, existing);
+      }
+    }
+
+    const result: SchoolRoleMap[] = [];
+    for (const schoolId of schoolIds) {
+      result.push({ schoolId, users: schoolMap.get(schoolId) ?? [] });
+    }
+    return result;
+  }
+
+  async getProgramManagersForSchools(
+    schoolIds: string[]
+  ): Promise<SchoolRoleMap[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select("user: user_id (*), school_id")
+      .in("school_id", schoolIds.length ? schoolIds : [""])
+      .eq("is_deleted", false)
+      .eq("role", RoleType.PROGRAM_MANAGER);
+
+    if (error || !data) {
+      console.error("Error fetching program managers:", error);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const schoolMap: Map<string, TableTypes<"user">[]> = new Map();
+    for (const schoolId of schoolIds) {
+      schoolMap.set(schoolId, []);
+    }
+
+    for (const row of data) {
+      const user = row.user as unknown as TableTypes<"user">;
+      const schoolId = row.school_id;
+
+      if (!user || !schoolMap.has(schoolId)) continue;
+
+      const users = schoolMap.get(schoolId)!;
+      if (!users.find((u) => u.id === user.id)) {
+        users.push(user);
+      }
+    }
+
+    return schoolIds.map((id) => ({
+      schoolId: id,
+      users: schoolMap.get(id) ?? [],
+    }));
+  }
+
+  async getFieldCoordinatorsForSchools(
+    schoolIds: string[]
+  ): Promise<SchoolRoleMap[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select("user: user_id (*), school_id")
+      .in("school_id", schoolIds.length ? schoolIds : ["dummy"])
+      .eq("is_deleted", false)
+      .eq("role", RoleType.FIELD_COORDINATOR);
+
+    if (error || !data) {
+      console.error("Error fetching field coordinators:", error);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const schoolMap: Map<string, TableTypes<"user">[]> = new Map();
+    for (const schoolId of schoolIds) {
+      schoolMap.set(schoolId, []);
+    }
+
+    for (const row of data) {
+      const user = row.user as unknown as TableTypes<"user">;
+      const schoolId = row.school_id;
+
+      if (!user || !schoolMap.has(schoolId)) continue;
+
+      const users = schoolMap.get(schoolId)!;
+      if (!users.find((u) => u.id === user.id)) {
+        users.push(user);
+      }
+    }
+
+    return schoolIds.map((id) => ({
+      schoolId: id,
+      users: schoolMap.get(id) ?? [],
+    }));
   }
 
   async getProgramForSchool(

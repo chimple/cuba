@@ -68,7 +68,16 @@ export enum SL_GRADES {
   GRADE1 = "Grade 1",
   GRADE2 = "Grade 2",
 }
-
+export enum SCHOOL_TABS {
+  ALL = "All",
+  AT_SCHOOL = "At School",
+  AT_HOME = "At Home",
+}
+export enum MODEL {
+  AT_SCHOOL = "AT_SCHOOL",
+  AT_HOME = "AT_HOME",
+  HYBRID = "HYBRID",
+}
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
 export enum LeaderboardDropdownList {
@@ -114,6 +123,11 @@ export enum LEADERBOARD_REWARD_LIST {
   BONUS = "BONUS",
   STICKER = "STICKERS",
 }
+
+export type SchoolRoleMap = {
+  schoolId: string;
+  users: TableTypes<"user">[];
+};
 
 export enum ASSIGNMENTTAB_LIST {
   RECOMMENDED = "Recommended",
@@ -427,6 +441,7 @@ export enum PAGES {
   ADMIN_DEVICES = "/devices",
   ADMIN_RESOURCES = "/resourses",
   NEW_PROGRAM = "/new-program",
+  SCHOOL_LIST = "/school-list",
 }
 
 export const enum ASSIGNMENT_TYPE {

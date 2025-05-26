@@ -6,8 +6,10 @@ import Lesson from "../../models/lesson";
 import {
   LeaderboardDropdownList,
   LeaderboardRewards,
+  MODEL,
   MODES,
   PROFILETYPE,
+  SchoolRoleMap,
   TABLES,
   TableTypes,
 } from "../../common/constants";
@@ -1131,11 +1133,46 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ curriculum: string; subjects: string[] }[] | undefined> {
     return await this.s.getCurriculumSubjectsForSchool(schoolId);
   }
+  public async getSchoolsForAdmin(
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<TableTypes<"school">[]> {
+    return await this.s.getSchoolsForAdmin(limit, offset);
+  }
+  public async getTeachersForSchools(
+    schoolIds: string[]
+  ): Promise<SchoolRoleMap[]> {
+    return await this.s.getTeachersForSchools(schoolIds);
+  }
+  public async getStudentsForSchools(
+    schoolIds: string[]
+  ): Promise<SchoolRoleMap[]> {
+    return await this.s.getStudentsForSchools(schoolIds);
+  }
+  public async getProgramManagersForSchools(
+    schoolIds: string[]
+  ): Promise<SchoolRoleMap[]> {
+    return await this.s.getProgramManagersForSchools(schoolIds);
+  }
+
+  public async getFieldCoordinatorsForSchools(
+    schoolIds: string[]
+  ): Promise<SchoolRoleMap[]> {
+    return await this.s.getFieldCoordinatorsForSchools(schoolIds);
+  }
+
   public async updateStudentStars(
     studentId: string,
     totalStars: number
   ): Promise<void> {
     return await this.s.updateStudentStars(studentId, totalStars);
+  }
+  public async getSchoolsByModel(
+    model: MODEL,
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<TableTypes<"school">[]> {
+    return await this.s.getSchoolsByModel(model, limit, offset);
   }
 
   public async getProgramData(programId: string): Promise<{

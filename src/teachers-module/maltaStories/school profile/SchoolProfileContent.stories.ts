@@ -16,6 +16,7 @@ const mockSchool: TableTypes<"school"> = {
   udise: "1234567890",
   address: "address",
   program_id: "id-1",
+  model: null,
 };
 
 const meta: Meta<typeof SchoolProfileContent> = {

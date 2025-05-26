@@ -18,6 +18,8 @@ import {
   PROFILETYPE,
   STARS_COUNT,
   LATEST_STARS,
+  SchoolRoleMap,
+  MODEL,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -638,6 +640,7 @@ export class SqliteApi implements ServiceApi {
       program_id: program_id ?? null,
       udise: udise ?? null,
       address: address ?? null,
+      model: null,
     };
 
     await this.executeQuery(
@@ -729,6 +732,7 @@ export class SqliteApi implements ServiceApi {
       program_id: program_id ?? null,
       udise: udise ?? null,
       address: address ?? null,
+      model: null,
     };
     const updatedSchoolQuery = `
     UPDATE school
@@ -4831,6 +4835,30 @@ order by
       console.error("Error setting stars for student:", error);
     }
   }
+  async getSchoolsForAdmin(
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<TableTypes<"school">[]> {
+    return await this._serverApi.getSchoolsForAdmin(limit, offset);
+  }
+  async getSchoolsByModel(
+    model: MODEL,
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<TableTypes<"school">[]> {
+    return await this._serverApi.getSchoolsByModel(model, limit, offset);
+  }
+  async getTeachersForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
+    return await this._serverApi.getTeachersForSchools(schoolIds);
+  }
+  async getStudentsForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
+    return await this._serverApi.getStudentsForSchools(schoolIds);
+  }
+  async getProgramManagersForSchools(
+    schoolIds: string[]
+  ): Promise<SchoolRoleMap[]> {
+    return await this._serverApi.getProgramManagersForSchools(schoolIds);
+  }
   async getProgramData(programId: string): Promise<{
     programDetails: { label: string; value: string }[];
     locationDetails: { label: string; value: string }[];
@@ -4838,5 +4866,10 @@ order by
     programManagers: { name: string; role: string; phone: string }[];
   } | null> {
     return await this._serverApi.getProgramData(programId);
+  }
+  async getFieldCoordinatorsForSchools(
+    schoolIds: string[]
+  ): Promise<SchoolRoleMap[]> {
+    return await this._serverApi.getFieldCoordinatorsForSchools(schoolIds);
   }
 }

@@ -1150,21 +1150,18 @@ export type Database = {
           udise: string | null;
           address: string | null;
           program_id: string | null;
+          model: Database["public"]["Enums"]["MODEL"] | null;
         };
         Insert: {
           created_at?: string;
           group1?: string | null;
           group2?: string | null;
           group3?: string | null;
-          group4: string | null;
           id?: string;
           image?: string | null;
           is_deleted?: boolean | null;
           name: string;
           updated_at?: string | null;
-          udise: string | null;
-          address: string | null;
-          program_id: string | null;
         };
         Update: {
           created_at?: string;
@@ -1180,6 +1177,7 @@ export type Database = {
           udise: string | null;
           address: string | null;
           program_id: string | null;
+          model: Database["public"]["Enums"]["MODEL"] | null;
         };
         Relationships: [];
       };
@@ -2647,6 +2645,7 @@ export type Database = {
     };
     Enums: {
       login_type: "STUDENT ID" | "PARENT PHONE NUMBER";
+      MODEL: "HYBRID" | "AT_HOME" | "AT_SCHOOL";
       role:
         | "coordinator"
         | "principal"

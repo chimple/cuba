@@ -17,6 +17,7 @@ const mockSchoolDoc: TableTypes<"school"> = {
   udise: "1234567890",
   program_id: "id-1",
   address: "address",
+  model: null,
 };
 
 // Mock user data

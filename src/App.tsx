@@ -122,6 +122,7 @@ import AddSchoolUser from "./teachers-module/pages/AddSchoolUser";
 import ProgramsPage from "./ops-console/pages/ProgramPage";
 import ProgramDetailPage from "./ops-console/pages/ProgramDetailsPage";
 import NewProgram from "./ops-console/components/NewProgram";
+import SchoolList from "./ops-console/pages/SchoolList";
 
 setupIonicReact();
 interface ExtraData {
@@ -572,6 +573,9 @@ const App: React.FC = () => {
               </ProtectedRoute>
               <ProtectedRoute path={PAGES.EDIT_CLASS} exact={true}>
                 <EditClass />
+              </ProtectedRoute>
+              <ProtectedRoute path={PAGES.SCHOOL_LIST} exact={true}>
+                <SchoolList />
               </ProtectedRoute>
               <ProtectedRoute
                 path={PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE}
