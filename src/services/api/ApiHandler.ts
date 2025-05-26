@@ -80,7 +80,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<string | undefined> {
     return this.s.joinLiveQuiz(assignmentId, studentId);
   }
-  private constructor() {}
+  private constructor() { }
   public async updateRewardsForStudent(
     studentId: string,
     unlockedReward: LeaderboardRewards
@@ -1076,10 +1076,11 @@ export class ApiHandler implements ServiceApi {
     currentUserId: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
-    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
+    tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
   }): Promise<{ data: any[] }> {
     return await this.s.getPrograms(params);
   }
+
 
   public async insertProgram(payload: any): Promise<boolean | null> {
     return await this.s.insertProgram(payload);
@@ -1137,4 +1138,16 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"school">[]> {
     return await this.s.getSchoolsByModel(model, limit, offset);
   }
+
+  public async getProgramData(
+    programId: string
+  ): Promise<{
+    programDetails: { label: string; value: string }[];
+    locationDetails: { label: string; value: string }[];
+    partnerDetails: { label: string; value: string }[];
+    programManagers: { name: string; role: string; phone: string }[];
+  } | null> {
+    return await this.s.getProgramData(programId);
+  }
+
 }

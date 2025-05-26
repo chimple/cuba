@@ -1,0 +1,74 @@
+.program-detail-page {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  height: 100%;
+  overflow: auto;
+  font-family: 'Roboto', sans-serif;
+}
+
+.program-detail-page-header {
+  font-size: 2rem;
+  font-weight: 600;
+  padding: 16px 24px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 16px;
+  color: black;
+}
+
+.program-detail-page-padding {
+  padding: 24px;
+}
+
+.program-detail-page-loading-container,
+.program-detail-page-error-container {
+  padding: 24px;
+  text-align: center;
+}
+
+.program-detail-page-column-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.program-detail-page-managers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.program-detail-page-full-width-button {
+  margin-top: 16px;
+  display: block;
+  width: 60%;
+}
+
+.program-detail-page-detail-item {
+  margin-bottom: 12px;
+}
+
+.program-detail-page-location-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+  padding: 8px 16px;
+}
+
+.program-detail-page-location-details-item {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  align-items: flex-start;
+}
+
+.program-detail-page-location-details-label {
+  font-weight: 500;
+  color: #555;
+  font-size: 0.875rem;
+}
+
+.program-detail-page-location-details-value {
+  font-size: 1rem;
+  color: #000;
+}

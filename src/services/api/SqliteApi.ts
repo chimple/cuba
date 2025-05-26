@@ -4797,6 +4797,16 @@ order by
   ): Promise<SchoolRoleMap[]> {
     return await this._serverApi.getProgramManagersForSchools(schoolIds);
   }
+   async getProgramData(
+    programId: string
+  ): Promise<{
+    programDetails: { label: string; value: string }[];
+    locationDetails: { label: string; value: string }[];
+    partnerDetails: { label: string; value: string }[];
+    programManagers: { name: string; role: string; phone: string }[];
+  } | null> {
+    return await this._serverApi.getProgramData(programId);
+  }
   async getFieldCoordinatorsForSchools(
     schoolIds: string[]
   ): Promise<SchoolRoleMap[]> {

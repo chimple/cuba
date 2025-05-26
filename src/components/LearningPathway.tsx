@@ -218,9 +218,9 @@ const updateLearningPathIfNeeded = async (
 
       <div className="chapter-egg-container">
         <ChapterLessonBox
-        // containerStyle={{
-        //   width: "30vw",
-        // }}
+        containerStyle={{
+          width: "35vw",
+        }}
         />
         <TressureBox startNumber={from} endNumber={to} />
       </div>
