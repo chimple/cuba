@@ -18,6 +18,8 @@ import {
   PROFILETYPE,
   STARS_COUNT,
   LATEST_STARS,
+  SchoolRoleMap,
+  MODEL,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -245,7 +247,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -630,6 +632,7 @@ export class SqliteApi implements ServiceApi {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
+      model: null,
     };
 
     await this.executeQuery(
@@ -713,6 +716,7 @@ export class SqliteApi implements ServiceApi {
       created_at: school.created_at,
       id: school.id,
       is_deleted: false,
+      model: null,
     };
     const updatedSchoolQuery = `
     UPDATE school
@@ -4460,7 +4464,7 @@ order by
 
     return { status: "success" };
   }
-  
+
   async validateSchoolData(
     schoolId: string,
     schoolName: string
@@ -4721,12 +4725,16 @@ order by
     currentUserId: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
-    tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
   }): Promise<{ data: any[] }> {
     const { currentUserId, filters, searchTerm, tab } = params;
-    return await this._serverApi.getPrograms({ currentUserId, filters, searchTerm, tab });
+    return await this._serverApi.getPrograms({
+      currentUserId,
+      filters,
+      searchTerm,
+      tab,
+    });
   }
-
 
   async insertProgram(payload: any): Promise<boolean | null> {
     return await this._serverApi.insertProgram(payload);
@@ -4746,7 +4754,6 @@ order by
     return await this._serverApi.getUniqueGeoData();
   }
 
- 
   async updateStudentStars(
     studentId: string,
     totalStars: number
@@ -4765,5 +4772,34 @@ order by
     } catch (error) {
       console.error("Error setting stars for student:", error);
     }
+  }
+  async getSchoolsForAdmin(
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<TableTypes<"school">[]> {
+    return await this._serverApi.getSchoolsForAdmin(limit, offset);
+  }
+  async getSchoolsByModel(
+    model: MODEL,
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<TableTypes<"school">[]> {
+    return await this._serverApi.getSchoolsByModel(model, limit, offset);
+  }
+  async getTeachersForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
+    return await this._serverApi.getTeachersForSchools(schoolIds);
+  }
+  async getStudentsForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
+    return await this._serverApi.getStudentsForSchools(schoolIds);
+  }
+  async getProgramManagersForSchools(
+    schoolIds: string[]
+  ): Promise<SchoolRoleMap[]> {
+    return await this._serverApi.getProgramManagersForSchools(schoolIds);
+  }
+  async getFieldCoordinatorsForSchools(
+    schoolIds: string[]
+  ): Promise<SchoolRoleMap[]> {
+    return await this._serverApi.getFieldCoordinatorsForSchools(schoolIds);
   }
 }

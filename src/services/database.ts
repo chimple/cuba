@@ -1146,6 +1146,7 @@ export type Database = {
           is_deleted: boolean | null
           name: string
           updated_at: string | null
+          model: Database["public"]["Enums"]["MODEL"] | null
         }
         Insert: {
           created_at?: string
@@ -1157,6 +1158,7 @@ export type Database = {
           is_deleted?: boolean | null
           name: string
           updated_at?: string | null
+          model: Database["public"]["Enums"]["MODEL"] | null
         }
         Update: {
           created_at?: string
@@ -1168,6 +1170,7 @@ export type Database = {
           is_deleted?: boolean | null
           name?: string
           updated_at?: string | null
+          model: Database["public"]["Enums"]["MODEL"] | null
         }
         Relationships: []
       }
@@ -2566,6 +2569,7 @@ export type Database = {
     }
     Enums: {
       login_type: "STUDENT ID" | "PARENT PHONE NUMBER"
+      MODEL: "HYBRID"| "AT_HOME"| "AT_SCHOOL"
       role:
       | "coordinator"
       | "principal"

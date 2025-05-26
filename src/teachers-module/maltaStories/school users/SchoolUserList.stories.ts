@@ -13,6 +13,7 @@ const mockSchoolDoc: TableTypes<"school"> = {
   updated_at: "2023-01-01T12:00:00Z",
   is_deleted: false,
   image: null,
+  model: null,
 };
 
 // Mock user data
