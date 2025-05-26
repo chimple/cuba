@@ -25,7 +25,7 @@
   color: #0f62fe !important;
 }
 
-.tabs-div {
+.school-list-tabs-div {
   width: 33vw;
   min-width: 200px;
   max-width: 400px;
@@ -38,16 +38,10 @@
   color: #1f2937;
 }
 
-.tab-wrapper {
+.school-list-tab-wrapper {
   font-weight: bold;
 }
 
-.table-wrapper {
-  border-radius: 0.5rem;
-  overflow: hidden;
-  height: 100vh;
-  overflow: scroll;
-}
 .school-list-pagination {
   display: flex;
   justify-content: center;

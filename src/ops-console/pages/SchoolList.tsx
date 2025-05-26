@@ -125,7 +125,7 @@ const SchoolList: React.FC = () => {
         <div className="school-list-header">
           <div className="school-heading">{t("Schools")}</div>
 
-          <div className="tab-wrapper">
+          <div className="school-list-tab-wrapper">
             <Tabs
               value={selectedTab}
               onChange={(e, val) => {
@@ -135,7 +135,7 @@ const SchoolList: React.FC = () => {
               indicatorColor="primary"
               textColor="primary"
               variant="fullWidth"
-              className="tabs-div"
+              className="school-list-tabs-div"
             >
               <Tab
                 label={SCHOOL_TABS.ALL}
