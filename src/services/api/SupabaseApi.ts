@@ -60,6 +60,7 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.Chapter)
       .select("*")
       .eq("course_id", courseId)
+      .eq("is_deleted", false)
       .order("sort_index", { ascending: true });
 
     if (error) {
@@ -83,6 +84,7 @@ export class SupabaseApi implements ServiceApi {
       .eq("lesson_id", lessonId)
       .eq("class_id", classId)
       .eq("is_class_wise", true)
+      .eq("is_deleted", false)
       .order("updated_at", { ascending: false });
 
     if (classWiseError) {
@@ -102,6 +104,7 @@ export class SupabaseApi implements ServiceApi {
       .eq("lesson_id", lessonId)
       .eq("class_id", classId)
       .eq("assignment_user.user_id", studentId)
+      .eq("is_deleted", false)
       .order("updated_at", { ascending: false });
 
     if (individualError) {
@@ -112,25 +115,32 @@ export class SupabaseApi implements ServiceApi {
     // Combine and filter out assignments that already have a result
     const assignments = [...(classWise ?? []), ...(individual ?? [])];
 
-    for (const assignment of assignments) {
+ // Limit to 20 total assignments to check
+  const limitedAssignments = assignments.slice(0, 20);
+
+  const results = await Promise.all(
+    limitedAssignments.map(async (assignment) => {
+      if (!this.supabase) {
+        return null;
+      }
       const { data: result, error: resultError } = await this.supabase
         .from("result")
         .select("id")
         .eq("assignment_id", assignment.id)
         .eq("student_id", studentId)
+        .eq("is_deleted", false)
         .maybeSingle();
 
       if (resultError) {
         console.error("Error checking assignment result:", resultError);
-        continue;
+        return null;
       }
+      return !result ? assignment : null;
+    })
+  );
 
-      if (!result) {
-        return assignment;
-      }
-    }
-
-    return undefined;
+  // Return the first pending assignment, or undefined if none
+  return results.find((a) => !!a) as TableTypes<"assignment"> | undefined;
   }
 
   async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
@@ -140,6 +150,7 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.FavoriteLesson)
       .select(`lesson:lesson_id(*)`)
       .eq("user_id", userId)
+      .eq("is_deleted", false)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -176,7 +187,8 @@ export class SupabaseApi implements ServiceApi {
     `
       )
       .eq("user_id", userId)
-      .eq("role", RoleType.STUDENT);
+      .eq("role", RoleType.STUDENT)
+      .eq("is_deleted", false);
     if (error || !classUserData) {
       console.error("Error fetching student classes and schools", error);
       return data;
@@ -961,6 +973,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("user_id", userId)
       .eq("is_resolved", false)
+      .eq("is_deleted", false)
       .limit(1)
       .maybeSingle();
 
@@ -1158,6 +1171,7 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from(TABLES.Curriculum)
       .select("*")
+      .eq("is_deleted", false)
       .order("name", { ascending: true });
 
     if (error) {
@@ -1173,6 +1187,7 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from(TABLES.Grade)
       .select("*")
+      .eq("is_deleted", false)
       .order("sort_index", {
         ascending: true,
       });
@@ -1191,6 +1206,7 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from(TABLES.Language)
       .select("*")
+      .eq("is_deleted", false)
       .order("code", { ascending: true });
 
     if (error) {
@@ -1406,6 +1422,7 @@ export class SupabaseApi implements ServiceApi {
         .from("language")
         .select("*")
         .eq("id", id)
+        .eq("is_deleted", false)
         .single();
 
       if (error && error.code !== "PGRST116") {
@@ -1429,6 +1446,7 @@ export class SupabaseApi implements ServiceApi {
       .from("lesson")
       .select("*")
       .eq("cocos_lesson_id", lessonId)
+      .eq("is_deleted", false)
       .single();
 
     if (error) {
@@ -1452,7 +1470,8 @@ export class SupabaseApi implements ServiceApi {
     const { data: userCourses, error: userCourseError } = await this.supabase
       .from("user_course")
       .select("course_id")
-      .eq("user_id", studentId);
+      .eq("user_id", studentId)
+      .eq("is_deleted", false);
 
     if (userCourseError) {
       throw new Error(
@@ -1469,6 +1488,7 @@ export class SupabaseApi implements ServiceApi {
       .from("course")
       .select("*")
       .in("id", courseIds)
+      .eq("is_deleted", false)
       .order("sort_index", { ascending: true });
 
     if (courseError) {
@@ -1484,7 +1504,8 @@ export class SupabaseApi implements ServiceApi {
     const { data: userCourses, error: ucError } = await this.supabase
       .from("user_course")
       .select("course_id")
-      .eq("user_id", studentId);
+      .eq("user_id", studentId)
+      .eq("is_deleted", false);
 
     if (ucError) {
       console.error("Error fetching user courses:", ucError);
@@ -1493,7 +1514,7 @@ export class SupabaseApi implements ServiceApi {
 
     const userCourseIds = userCourses?.map((uc) => uc.course_id) ?? [];
 
-    let query = this.supabase.from("course").select("*");
+    let query = this.supabase.from("course").select("*").eq("is_deleted", false);
 
     if (userCourseIds.length > 0) {
       query = query.not("id", "in", `(${userCourseIds.join(",")})`);
@@ -1560,6 +1581,7 @@ export class SupabaseApi implements ServiceApi {
       .from("lesson")
       .select("*")
       .eq("id", id)
+      .eq("is_deleted", false)
       .single();
     if (error) {
       console.error("Error fetching lesson:", error);
@@ -1573,7 +1595,8 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from("lesson")
       .select("*")
-      .in("id", ids);
+      .in("id", ids)
+      .eq("is_deleted", false);
 
     if (error) {
       console.error("Error fetching bonuses by IDs:", error);
@@ -1588,6 +1611,7 @@ export class SupabaseApi implements ServiceApi {
       .from("chapter")
       .select("*")
       .eq("id", id)
+      .eq("is_deleted", false)
       .single();
     if (error) {
       console.error("Error fetching chapter:", error);
@@ -1602,7 +1626,8 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from("lesson")
       .select("*")
-      .eq("chapter_id", chapterId);
+      .eq("chapter_id", chapterId)
+      .eq("is_deleted", false);
     if (error) {
       console.error("Error fetching chapter:", error);
       return [] as TableTypes<"lesson">[];
@@ -1621,6 +1646,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("subject_id", course.subject_id!)
       .eq("curriculum_id", course.curriculum_id!)
+      .eq("is_deleted", false)
       .order("sort_index", { ascending: true });
 
     if (courseError || !courses) {
@@ -1642,6 +1668,7 @@ export class SupabaseApi implements ServiceApi {
       .from("grade")
       .select("*")
       .in("id", gradeIds)
+      .eq("is_deleted", false)
       .order("sort_index", { ascending: true });
 
     if (gradeError || !grades) {
@@ -1674,6 +1701,7 @@ export class SupabaseApi implements ServiceApi {
       .lte("starts_at", now)
       .gt("ends_at", now)
       .or(`is_class_wise.eq.true,assignment_user->user_id.eq.${studentId}`)
+      .eq("is_deleted", false)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -1713,6 +1741,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("user_id", studentId)
       .eq("lesson_id", lessonId)
+      .eq("is_deleted", false)
       .maybeSingle();
 
     if (error) {
@@ -1826,48 +1855,61 @@ export class SupabaseApi implements ServiceApi {
     gradeDocId: string,
     languageDocId: string
   ): Promise<TableTypes<"user">> {
-    if (!this.supabase) return student;
+if (!this.supabase) return student;
 
-    const updatedFields = {
-      name,
-      age,
-      gender,
-      avatar,
-      image: image ?? null,
-      curriculum_id: boardDocId,
-      grade_id: gradeDocId,
-      language_id: languageDocId,
-    };
+  const updatedFields = {
+    name,
+    age,
+    gender,
+    avatar,
+    image: image ?? null,
+    curriculum_id: boardDocId,
+    grade_id: gradeDocId,
+    language_id: languageDocId,
+  };
 
-    await this.supabase.from("user").update(updatedFields).eq("id", student.id);
-    Object.assign(student, updatedFields);
+  await this.supabase.from("user").update(updatedFields).eq("id", student.id);
+  Object.assign(student, updatedFields);
 
-    const courses =
-      gradeDocId && boardDocId
-        ? await this.getCourseByUserGradeId(gradeDocId, boardDocId)
-        : [];
+  const courses =
+    gradeDocId && boardDocId
+      ? await this.getCourseByUserGradeId(gradeDocId, boardDocId)
+      : [];
 
-    for (const { id: course_id } of courses ?? []) {
-      const { data } = await this.supabase
-        .from("user_course")
-        .select("id")
-        .eq("user_id", student.id)
-        .eq("course_id", course_id)
-        .maybeSingle();
+  if (courses && courses.length > 0) {
+    // Batch fetch existing user_course entries for this student and these courses
+    const courseIds = courses.map((c) => c.id);
+    const { data: existingUserCourses, error } = await this.supabase
+      .from("user_course")
+      .select("course_id")
+      .eq("user_id", student.id)
+      .in("course_id", courseIds)
+      .eq("is_deleted", false);
 
-      if (!data) {
-        await this.supabase.from("user_course").insert({
-          id: uuidv4(),
-          user_id: student.id,
-          course_id,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          is_deleted: false,
-        });
-      }
+    const existingCourseIds = new Set(
+      (existingUserCourses ?? []).map((uc) => uc.course_id)
+    );
+
+    // Prepare inserts for only missing courses
+    const now = new Date().toISOString();
+    const inserts = courses
+      .filter((c) => !existingCourseIds.has(c.id))
+      .map((c) => ({
+        id: uuidv4(),
+        user_id: student.id,
+        course_id: c.id,
+        created_at: now,
+        updated_at: now,
+        is_deleted: false,
+      }));
+
+    // Insert all missing user_course entries in one call (if any)
+    if (inserts.length > 0) {
+      await this.supabase.from("user_course").insert(inserts);
     }
+  }
 
-    return student;
+  return student;
   }
   async updateStudentFromSchoolMode(
     student: TableTypes<"user">,
@@ -1982,13 +2024,16 @@ export class SupabaseApi implements ServiceApi {
 
     const now = new Date().toISOString();
 
-    for (const courseId of selectedCourseIds) {
+await Promise.all(
+    selectedCourseIds.map(async (courseId) => {
       // Check existing entry
+      if (!this.supabase) return;
       const { data: existingEntry, error } = await this.supabase
         .from("class_course")
         .select("*")
         .eq("class_id", classId)
         .eq("course_id", courseId)
+        .eq("is_deleted", false)
         .maybeSingle();
 
       if (error) {
@@ -2037,7 +2082,8 @@ export class SupabaseApi implements ServiceApi {
           throw timestampError;
         }
       }
-    }
+    })
+  );
   }
 
   async updateSchoolCourseSelection(
@@ -2048,12 +2094,15 @@ export class SupabaseApi implements ServiceApi {
 
     const now = new Date().toISOString();
 
-    for (const courseId of selectedCourseIds) {
+ await Promise.all(
+    selectedCourseIds.map(async (courseId) => {
+      if (!this.supabase) return;
       const { data: existingEntry, error } = await this.supabase
         .from("school_course")
         .select("id, course_id, is_deleted")
         .eq("school_id", schoolId)
         .eq("course_id", courseId)
+        .eq("is_deleted", false)
         .maybeSingle();
 
       if (error) {
@@ -2102,7 +2151,8 @@ export class SupabaseApi implements ServiceApi {
           throw timestampError;
         }
       }
-    }
+    })
+  );
   }
 
   async getSubject(id: string): Promise<TableTypes<"subject"> | undefined> {
@@ -2111,6 +2161,7 @@ export class SupabaseApi implements ServiceApi {
       .from("subject")
       .select("*")
       .eq("id", id)
+      .eq("is_deleted", false)
       .single();
     if (error) {
       console.error("Error fetching subject:", error);
@@ -2124,6 +2175,7 @@ export class SupabaseApi implements ServiceApi {
       .from("course")
       .select("*")
       .eq("id", id)
+      .eq("is_deleted", false)
       .single();
     if (error) {
       console.error("Error fetching course:", error);
@@ -2140,7 +2192,8 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from("result")
       .select("*")
-      .eq("student_id", studentId);
+      .eq("student_id", studentId)
+      .eq("is_deleted", false);
 
     if (error) {
       console.error("Error fetching student results:", error);
@@ -2170,7 +2223,8 @@ export class SupabaseApi implements ServiceApi {
       )
     `
       )
-      .eq("student_id", studentId);
+      .eq("student_id", studentId)
+      .eq("is_deleted", false);
 
     if (error) {
       console.error("Error fetching student progress:", error);
@@ -2219,6 +2273,7 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.Class)
       .select("*")
       .eq("id", id)
+      .eq("is_deleted", false)
       .single();
 
     if (error) {
@@ -2233,6 +2288,7 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.School)
       .select("*")
       .eq("id", id)
+      .eq("is_deleted", false)
       .single();
 
     if (error) {
@@ -2251,6 +2307,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("user_id", studentId)
       .eq("role", RoleType.STUDENT)
+      .eq("is_deleted", false)
       .single();
 
     if (error) {
@@ -2275,6 +2332,7 @@ export class SupabaseApi implements ServiceApi {
     `
       )
       .eq("class_id", classId)
+      .eq("is_deleted", false)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -2326,6 +2384,7 @@ export class SupabaseApi implements ServiceApi {
       if (classError) {
         console.error("Error fetching classes:", classError);
       } else {
+
         const schoolIdList = classes.map((c) => c.school_id);
         const { data: schools, error: schoolError } = await this.supabase
           .from(TABLES.School)
@@ -2802,7 +2861,8 @@ export class SupabaseApi implements ServiceApi {
     const { data: chapters, error: chapterError } = await this.supabase
       .from(TABLES.Chapter)
       .select("id")
-      .eq("course_id", courseId);
+      .eq("course_id", courseId)
+      .eq("is_deleted", false);
 
     if (chapterError || !chapters || chapters.length === 0) return [];
 
@@ -2812,7 +2872,8 @@ export class SupabaseApi implements ServiceApi {
     const { data: chapterLessons, error: clError } = await this.supabase
       .from(TABLES.ChapterLesson)
       .select("lesson_id")
-      .in("chapter_id", chapterIds);
+      .in("chapter_id", chapterIds)
+      .eq("is_deleted", false);
 
     if (clError || !chapterLessons || chapterLessons.length === 0) return [];
 
@@ -2822,7 +2883,8 @@ export class SupabaseApi implements ServiceApi {
     const { data: lessons, error: lessonError } = await this.supabase
       .from(TABLES.Lesson)
       .select("*")
-      .in("id", lessonIds);
+      .in("id", lessonIds)
+      .eq("is_deleted", false);
 
     if (lessonError) return [];
 
@@ -2856,7 +2918,10 @@ export class SupabaseApi implements ServiceApi {
     `
       )
       .eq("chapter_id", chapterId)
-      .eq("lesson_id", lessonId);
+      .eq("lesson_id", lessonId)
+      .eq("is_deleted", false)
+      .eq("chapter.is_deleted", false)
+      .eq("lesson.is_deleted", false);
 
     if (error) {
       console.error("Error fetching lesson from chapter:", error);
@@ -2890,12 +2955,14 @@ export class SupabaseApi implements ServiceApi {
       const gradeCoursesRes = await this.supabase
         .from(TABLES.Course)
         .select("*")
-        .eq("grade_id", gradeDocId);
+        .eq("grade_id", gradeDocId)
+        .eq("is_deleted", false);
 
       const puzzleCoursesRes = await this.supabase
         .from(TABLES.Course)
         .select("*")
-        .eq("name", "Digital Skills");
+        .eq("name", "Digital Skills")
+        .eq("is_deleted", false);
 
       const gradeCourses = gradeCoursesRes.data ?? [];
       const puzzleCourses = puzzleCoursesRes.data ?? [];
@@ -2912,6 +2979,7 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from("course")
       .select("*")
+      .eq("is_deleted", false)
       .order("sort_index", { ascending: true });
 
     if (error) {
@@ -2938,7 +3006,9 @@ export class SupabaseApi implements ServiceApi {
       )
     `
       )
-      .eq("lesson_id", lessonId);
+      .eq("lesson_id", lessonId)
+      .eq("is_deleted", false)
+      .eq("chapter.is_deleted", false);
 
     if (error) {
       console.error("Error fetching courses from lesson:", error);
@@ -3149,6 +3219,7 @@ export class SupabaseApi implements ServiceApi {
       .from("assignment")
       .select("*")
       .eq("id", id)
+      .eq("is_deleted", false)
       .limit(1)
       .single();
 
@@ -3189,7 +3260,8 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from("badge")
       .select("*")
-      .in("id", ids);
+      .in("id", ids)
+      .eq("is_deleted", false);
 
     if (error) {
       console.error("Error fetching badges by IDs:", error);
@@ -3204,7 +3276,8 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from("sticker")
       .select("*")
-      .in("id", ids);
+      .in("id", ids)
+      .eq("is_deleted", false);
 
     if (error) {
       console.error("Error fetching stickers by IDs:", error);
@@ -3279,7 +3352,8 @@ export class SupabaseApi implements ServiceApi {
       const { data, error } = await this.supabase
         .from("user_badge")
         .select("*")
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .eq("is_deleted", false);
 
       if (error) {
         console.error("Error fetching user badge by user ID:", error);
@@ -3304,7 +3378,8 @@ export class SupabaseApi implements ServiceApi {
       const { data, error } = await this.supabase
         .from("user_bonus")
         .select("*")
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .eq("is_deleted", false);
 
       if (error) {
         console.error("Error fetching user bonus by user ID:", error);
@@ -3330,7 +3405,8 @@ export class SupabaseApi implements ServiceApi {
         .from(TABLES.UserSticker)
         .update({ is_seen: true })
         .eq("user_id", studentId)
-        .eq("is_seen", false);
+        .eq("is_seen", false)
+        .eq("is_deleted", false);
 
       if (error) {
         console.error("Error updating rewards as seen:", error);
@@ -3350,7 +3426,8 @@ export class SupabaseApi implements ServiceApi {
       const res = await this.supabase
         ?.from("user")
         .select("*")
-        .eq("id", studentId);
+        .eq("id", studentId)
+        .eq("is_deleted", false);
       return res?.data?.[0];
     } catch (error) {
       throw error;
@@ -3364,6 +3441,7 @@ export class SupabaseApi implements ServiceApi {
         .from("grade")
         .select("*")
         .eq("id", id)
+        .eq("is_deleted", false)
         .single();
 
       if (error) {
@@ -3386,7 +3464,8 @@ export class SupabaseApi implements ServiceApi {
       const { data, error } = await this.supabase
         .from("grade")
         .select("*")
-        .in("id", ids);
+        .in("id", ids)
+        .eq("is_deleted", false);
 
       if (error) {
         console.error("Error fetching grades by IDs:", error);
@@ -3409,6 +3488,7 @@ export class SupabaseApi implements ServiceApi {
         .from("curriculum")
         .select("*")
         .eq("id", id)
+        .eq("is_deleted", false)
         .single();
 
       if (error) {
@@ -3431,7 +3511,8 @@ export class SupabaseApi implements ServiceApi {
       const { data, error } = await this.supabase
         .from("curriculum")
         .select("*")
-        .in("id", ids);
+        .in("id", ids)
+        .eq("is_deleted", false);
 
       if (error) {
         console.error("Error fetching curriculums by IDs:", error);
@@ -3500,6 +3581,9 @@ export class SupabaseApi implements ServiceApi {
     `
       )
       .in("chapter.course_id", courseIds)
+      .eq("is_deleted", false)
+      .eq("lesson.is_deleted", false)
+      .eq("chapter.is_deleted", false)
       .order("chapter.course_id")
       .order("chapter.sort_index")
       .order("sort_index");
@@ -3525,7 +3609,8 @@ export class SupabaseApi implements ServiceApi {
     const resultsRes = await this.supabase
       .from("result")
       .select("id, student_id, lesson_id, assignment_id, score, updated_at")
-      .eq("student_id", studentId);
+      .eq("student_id", studentId)
+      .eq("is_deleted", false);
 
     if (resultsRes.error || !resultsRes.data) return [];
 
@@ -3661,6 +3746,7 @@ export class SupabaseApi implements ServiceApi {
       .from("assignment_cart")
       .select("*")
       .eq("id", userId)
+      .eq("is_deleted", false)
       .single();
 
     if (error || !data) return;
@@ -3683,7 +3769,10 @@ export class SupabaseApi implements ServiceApi {
       const { data, error } = await this.supabase
         .from("chapter_lesson")
         .select("lesson_id, chapter_id, chapter(course_id)")
-        .eq("lesson_id", lessonId);
+        .eq("lesson_id", lessonId)
+        .eq("is_deleted", false)
+        .eq("chapter.is_deleted", false)
+        .eq("lesson.is_deleted", false);
 
       if (error || !data || data.length < 1) return;
 
@@ -3717,7 +3806,8 @@ export class SupabaseApi implements ServiceApi {
       .eq("class_id", classId)
       .eq("course_id", courseId)
       .gte("created_at", endDate)
-      .lte("created_at", startDate);
+      .lte("created_at", startDate)
+      .eq("is_deleted", false);
 
     if (isClassWise) {
       query = query.eq("is_class_wise", true);
@@ -3749,6 +3839,7 @@ export class SupabaseApi implements ServiceApi {
       .eq("student_id", studentId)
       .eq("course_id", courseId)
       .is("assignment_id", null)
+      .eq("is_deleted", false)
       .order("created_at", { ascending: false })
       .limit(5);
 
@@ -3765,6 +3856,7 @@ export class SupabaseApi implements ServiceApi {
         .eq("student_id", studentId)
         .eq("course_id", courseId)
         .in("assignment_id", assignmentIds)
+        .eq("is_deleted", false)
         .order("created_at", { ascending: false })
         .limit(5);
 
@@ -3796,7 +3888,8 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from("assignment_user")
       .select("*")
-      .in("assignment_id", assignmentIds);
+      .in("assignment_id", assignmentIds)
+      .eq("is_deleted", false);
 
     if (error) {
       console.error("Error fetching assignment_user records:", error.message);
@@ -3813,7 +3906,8 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from("result")
       .select("*")
-      .in("assignment_id", assignmentIds);
+      .in("assignment_id", assignmentIds)
+      .eq("is_deleted", false);
 
     if (error) {
       console.error("Error fetching results by assignment IDs:", error.message);
@@ -3831,6 +3925,7 @@ export class SupabaseApi implements ServiceApi {
       .from("assignment")
       .select("*")
       .eq("class_id", classId)
+      .eq("is_deleted", false)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -3959,7 +4054,8 @@ export class SupabaseApi implements ServiceApi {
     const { data: users, error: userError } = await this.supabase
       .from(TABLES.User)
       .select("*")
-      .in("id", userIds);
+      .in("id", userIds)
+      .eq("is_deleted", false);
 
     if (userError) {
       console.error("Error fetching users:", userError);
@@ -4150,6 +4246,7 @@ export class SupabaseApi implements ServiceApi {
       .or(`class_id.eq.${classId},is_class_wise.eq.true`)
       .gte("created_at", startDate)
       .lte("created_at", endDate)
+      .eq("is_deleted", false)
       .order("is_class_wise", { ascending: false })
       .order("created_at", { ascending: true });
 
@@ -4194,7 +4291,8 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from(TABLES.Assignment_user)
       .select("user_id")
-      .eq("assignment_id", assignmentId);
+      .eq("assignment_id", assignmentId)
+      .eq("is_deleted", false);
 
     if (error) {
       console.error("Error fetching assigned students:", error);
@@ -4219,6 +4317,7 @@ export class SupabaseApi implements ServiceApi {
       .eq("course_id", course_id)
       .gte("created_at", startDate)
       .lte("created_at", endDate)
+      .eq("is_deleted", false)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -4236,7 +4335,8 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from(TABLES.Lesson)
       .select("*")
-      .in("id", lessonIds);
+      .in("id", lessonIds)
+      .eq("is_deleted", false);
 
     if (error) {
       console.error("Error fetching lessons by IDs:", error);
@@ -4329,6 +4429,7 @@ export class SupabaseApi implements ServiceApi {
         .eq("course_id", course_id)
         .gte("created_at", startDate)
         .lte("created_at", endDate)
+        .eq("is_deleted", false)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -4820,7 +4921,8 @@ export class SupabaseApi implements ServiceApi {
       .select("id")
       .eq("curriculum_id", curriculumId)
       .eq("grade_id", gradeId)
-      .eq("name", subjectName.trim());
+      .eq("name", subjectName.trim())
+      .eq("is_deleted", false);
     if (courseError || !courseData || courseData.length === 0) {
       return {
         status: "error",
@@ -4997,7 +5099,8 @@ export class SupabaseApi implements ServiceApi {
     const { data: userCourses, error: userCoursesError } = await this.supabase
       .from(TABLES.UserCourse)
       .select("course_id")
-      .eq("user_id", studentId);
+      .eq("user_id", studentId)
+      .eq("is_deleted", false);
 
     if (userCoursesError) {
       console.error("Error fetching user courses:", userCoursesError);
@@ -5015,6 +5118,7 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.Course)
       .select("*")
       .in("id", courseIds)
+      .eq("is_deleted", false)
       .order("sort_index", { ascending: true });
 
     if (coursesError) {
