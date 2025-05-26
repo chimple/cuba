@@ -52,14 +52,11 @@ const PathwayModal: React.FC<PathwayModalProps> = ({
     (animate && !isClosing ? " slide-in" : "") +
     (isClosing ? " slide-out" : "");
 
-  const modalStyles = {
-    width: "40vw",
-    height: animate ? "19.5vh" : "32vh",
-  };
+  const modalHeight = animate ? "19.5vh" : "32vh";
 
   return (
     <div className="PathwayModal-overlay">
-      <div className={cls} ref={ref} style={modalStyles}>
+      <div className={`${cls} PathwayModal-width`} ref={ref} style={{ height: modalHeight }}>
         {/* ✖ only for inactive popups */}
         {!animate && (
           <button className="PathwayModal-close" onClick={onClose}>
