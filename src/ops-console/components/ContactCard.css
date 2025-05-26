@@ -1,0 +1,34 @@
+.contact-card {
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px; 
+  background-color: #F5F7F9;
+  margin-bottom: 8px;
+}
+
+.contact-card-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; 
+  text-align: left;
+}
+
+.contact-name {
+  font-weight: 700; 
+  color: #000;
+}
+
+.contact-role {
+  color: rgba(0, 0, 0, 0.6); 
+}
+
+.contact-phone {
+  font-weight: 500; 
+  text-align: center;
+}

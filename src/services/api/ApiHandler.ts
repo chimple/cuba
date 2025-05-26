@@ -78,7 +78,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<string | undefined> {
     return this.s.joinLiveQuiz(assignmentId, studentId);
   }
-  private constructor() {}
+  private constructor() { }
   public async updateRewardsForStudent(
     studentId: string,
     unlockedReward: LeaderboardRewards
@@ -982,7 +982,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ status: string; errors?: string[] }> {
     return this.s.validateSchoolData(schoolId, schoolName);
   }
-   async validateParentAndStudentInClass(
+  async validateParentAndStudentInClass(
     phoneNumber: string,
     studentName: string,
     className: string,
@@ -1001,7 +1001,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ status: string; errors?: string[] }> {
     return this.s.validateClassNameWithSchoolID(schoolId, className);
   }
-  
+
   async validateStudentInClassWithoutPhone(
     studentName: string,
     className: string,
@@ -1009,7 +1009,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ status: string; errors?: string[] }> {
     return this.s.validateStudentInClassWithoutPhone(studentName, className, schoolId);
   }
- async validateClassCurriculumAndSubject(
+  async validateClassCurriculumAndSubject(
     curriculumName: string,
     subjectName: string,
     gradeName: string
@@ -1058,22 +1058,23 @@ export class ApiHandler implements ServiceApi {
     return await this.s.updateLearningPath(student, learning_path);
   }
 
-  public async getProgramFilterOptions(): Promise<Record<string, string[]>>{
-    return await this.s.getProgramFilterOptions();}
+  public async getProgramFilterOptions(): Promise<Record<string, string[]>> {
+    return await this.s.getProgramFilterOptions();
+  }
   async getPrograms(params: {
-  currentUserId: string;
-  filters?: Record<string, string[]>;
-  searchTerm?: string;
-  tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
-}): Promise<{ data: any[] }> {
-  return await this.s.getPrograms(params);
-}
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    searchTerm?: string;
+    tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+  }): Promise<{ data: any[] }> {
+    return await this.s.getPrograms(params);
+  }
 
 
   public async insertProgram(payload: any): Promise<boolean | null> {
     return await this.s.insertProgram(payload);
   }
-  public async getProgramManagers(): Promise<string[]>{
+  public async getProgramManagers(): Promise<string[]> {
     return await this.s.getProgramManagers();
   }
   public async getUniqueGeoData(): Promise<{
@@ -1082,7 +1083,7 @@ export class ApiHandler implements ServiceApi {
     Block: string[];
     Cluster: string[];
     District: string[];
-  }>{
+  }> {
     return await this.s.getUniqueGeoData();
   }
 
@@ -1092,4 +1093,16 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return await this.s.updateStudentStars(studentId, totalStars);
   }
+
+  public async getProgramData(
+    programId: string
+  ): Promise<{
+    programDetails: { label: string; value: string }[];
+    locationDetails: { label: string; value: string }[];
+    partnerDetails: { label: string; value: string }[];
+    programManagers: { name: string; role: string; phone: string }[];
+  } | null> {
+    return await this.s.getProgramData(programId);
+  }
+
 }

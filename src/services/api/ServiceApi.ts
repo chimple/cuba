@@ -1272,10 +1272,10 @@ export interface ServiceApi {
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }>;
 
-   /**
-   * To validate given UDISE school Id  exist in the given school table or not
-   * @param {string } schoolId -    school id(UDISE)
-   */
+  /**
+  * To validate given UDISE school Id  exist in the given school table or not
+  * @param {string } schoolId -    school id(UDISE)
+  */
   validateSchoolUdiseCode(
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }>;
@@ -1301,13 +1301,13 @@ export interface ServiceApi {
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }>;
 
-   /**
-   * To validate given phone number and student already exist in the given class or not
-   * @param {string } phoneNumber - phone number
-   * @param {string } studentName - student Name
-   * @param {string } className  -  class Name
-   * @param {string } schoolId -    school id(UDISE)
-   */
+  /**
+  * To validate given phone number and student already exist in the given class or not
+  * @param {string } phoneNumber - phone number
+  * @param {string } studentName - student Name
+  * @param {string } className  -  class Name
+  * @param {string } schoolId -    school id(UDISE)
+  */
   validateParentAndStudentInClass(
     phoneNumber: string,
     studentName: string,
@@ -1315,10 +1315,10 @@ export interface ServiceApi {
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }>;
 
-   /**
-   * To validate given UDISE school Id  exist in the given school table or not
-   * @param {string } schoolId -    school id(UDISE)
-   */
+  /**
+  * To validate given UDISE school Id  exist in the given school table or not
+  * @param {string } schoolId -    school id(UDISE)
+  */
   validateSchoolUdiseCode(
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }>;
@@ -1356,7 +1356,7 @@ export interface ServiceApi {
     subjectName: string,
     gradeName: string
   ): Promise<{ status: string; errors?: string[] }>;
- 
+
   /**
    * To validate that the given user phone or mail is exist or not
    * @param {string } programManagerPhone - programManager Phone
@@ -1461,4 +1461,18 @@ export interface ServiceApi {
    * @param {number} totalStars - total stars.
    */
   updateStudentStars(studentId: string, totalStars: number): Promise<void>;
+
+  /**
+ * Fetch detailed information for a given program by ID.
+ * @param {string} programId - The ID of the program to fetch.
+ * @returns Promise resolving to program details, location, partner, and managers or null if not found.
+ */
+  getProgramData(
+    programId: string
+  ): Promise<{
+    programDetails: { label: string; value: string }[];
+    locationDetails: { label: string; value: string }[];
+    partnerDetails: { label: string; value: string }[];
+    programManagers: { name: string; role: string; phone: string }[];
+  } | null>;
 }
