@@ -62,3 +62,15 @@
   border-radius: 8px;
   background: #e3f2fd;
 }
+
+@media (max-width: 600px) {
+  .filter-footer-FilterSlider {
+    flex-direction: column;
+  }
+
+  .filter-header-FilterSlider {
+    flex-direction: row;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+}
