@@ -19,27 +19,21 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
   const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
 
   return (
-    <div className="role-tabs-wrapper">
-      <div className="role-tabs-container">
+    <div className="school-detail-role-tabs-wrapper">
+      <div className="school-detail-role-tabs-container">
         {tabEnumValues.map((tabKey) => (
           <button
             key={tabKey}
             onClick={() => setActiveTab(tabKey)}
-            className={`role-tab-button ${activeTab === tabKey ? "active" : ""}`}
+            className={`school-detail-role-tab-button ${activeTab === tabKey ? "selectedtab" : ""}`}
           >
             {t(tabKey)}
           </button>
         ))}
       </div>
-      <div className="tab-content">
+      <div className="school-detail-tab-content">
         {activeTab === SchoolTabs.Overview && (
           <SchoolOverview data={data} isMobile={isMobile} />
-        )}
-        {activeTab !== SchoolTabs.Overview && (
-          <div>
-            <h2>{activeTab} Tab</h2>
-            <p>Content for the {activeTab} tab will go here.</p>
-          </div>
         )}
       </div>
     </div>

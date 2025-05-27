@@ -1,4 +1,4 @@
-.role-tabs-wrapper {
+.school-detail-role-tabs-wrapper {
   width: 100%;
   margin: 0;
   padding: 0;
@@ -8,7 +8,7 @@
   align-items: stretch;
 }
 
-.role-tabs-container {
+.school-detail-role-tabs-container {
   display: flex;
   gap: 8px;
   height: 43px;
@@ -22,11 +22,11 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
-.role-tabs-container::-webkit-scrollbar {
+.school-detail-role-tabs-container::-webkit-scrollbar {
   display: none;
 }
 
-.role-tab-button {
+.school-detail-role-tab-button {
   padding: 8px 18px;
   border-radius: 4px;
   font-weight: 500;
@@ -41,12 +41,12 @@
   flex-shrink: 0;
 }
 
-.role-tab-button.active {
+.school-detail-role-tab-button.selectedtab {
   background-color: #2563eb;
   color: white;
 }
 
-.tab-content {
+.school-detail-tab-content {
   margin-top: 15px;
   width: 100%;
   background: white;
@@ -62,10 +62,10 @@
     overflow-x: visible;
     min-width: 0;
   }
-  .role-tabs-wrapper {
+  .school-detail-role-tabs-wrapper {
     min-width: 0;
   }
-  .role-tabs-container {
+  .school-detail-role-tabs-container {
     min-width: 0;
     -webkit-overflow-scrolling: touch;
   }
