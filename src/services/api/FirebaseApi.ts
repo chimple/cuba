@@ -2043,11 +2043,6 @@ export class FirebaseApi implements ServiceApi {
   ): Promise<TableTypes<"user">[] | undefined> {
     throw new Error("Method not implemented.");
   }
-  getCurriculumSubjectsForSchool(
-    schoolId: string
-  ): Promise<{ curriculum: string; subjects: string[] }[] | undefined> {
-    throw new Error("Method not implemented.");
-  }
   getProgramData(programId: string): Promise<{
     programDetails: { label: string; value: string }[];
     locationDetails: { label: string; value: string }[];

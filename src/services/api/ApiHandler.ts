@@ -1129,11 +1129,6 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"user">[] | undefined> {
     return await this.s.getProgramManagersForSchool(schoolId);
   }
-  public async getCurriculumSubjectsForSchool(
-    schoolId: string
-  ): Promise<{ curriculum: string; subjects: string[] }[] | undefined> {
-    return await this.s.getCurriculumSubjectsForSchool(schoolId);
-  }
   public async getSchoolsForAdmin(
     limit: number = 10,
     offset: number = 0

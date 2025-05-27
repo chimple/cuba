@@ -1527,15 +1527,6 @@ export interface ServiceApi {
   getProgramManagersForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined>;
-
-  /**
-   * Get all curriculum and their subjects for a given school.
-   * @param {string} schoolId - School ID (UDISE)
-   * @returns Promise resolving to array of curriculum and their subjects.
-   */
-  getCurriculumSubjectsForSchool(
-    schoolId: string
-  ): Promise<{ curriculum: string; subjects: string[] }[] | undefined>;
   /**
    * Updates the total stars for a student.
    * @param {string} studentId - student Id.

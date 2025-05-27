@@ -4783,24 +4783,6 @@ order by
     const users = await this._serverApi.getProgramManagersForSchool(schoolId);
     return users;
   }
-
-  async getCurriculumSubjectsForSchool(
-    schoolId: string
-  ): Promise<{ curriculum: string; subjects: string[] }[] | undefined> {
-    const query = `
-    SELECT
-      curr.name AS curriculum,
-      ARRAY_AGG(DISTINCT subj.name) AS subjects
-    FROM ${TABLES.SchoolCourse} sc
-    JOIN ${TABLES.Course} c ON sc.course_id = c.id
-    JOIN ${TABLES.Curriculum} curr ON c.curriculum_id = curr.id
-    JOIN ${TABLES.Subject} subj ON c.subject_id = subj.id
-    WHERE sc.school_id = '${schoolId}'
-    GROUP BY curr.name
-  `;
-    const res = await this._db?.query(query);
-    return res?.values ?? [];
-  }
   async updateStudentStars(
     studentId: string,
     totalStars: number

@@ -1160,7 +1160,7 @@ export class OneRosterApi implements ServiceApi {
   }
   validateClassNameWithSchoolID(
     schoolId: string,
-    className: string,
+    className: string
   ): Promise<{ status: string; errors?: string[] }> {
     throw new Error("Method not implemented.");
   }
@@ -1210,11 +1210,6 @@ export class OneRosterApi implements ServiceApi {
   getProgramManagersForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined> {
-    throw new Error("Method not implemented.");
-  }
-  getCurriculumSubjectsForSchool(
-    schoolId: string
-  ): Promise<{ curriculum: string; subjects: string[] }[] | undefined> {
     throw new Error("Method not implemented.");
   }
 }

@@ -5602,147 +5602,52 @@ export class SupabaseApi implements ServiceApi {
     schoolId: string
   ): Promise<TableTypes<"program"> | undefined> {
     if (!this.supabase) return;
-    const { data: schoolData, error: schoolError } = await this.supabase
+    const { data, error } = await this.supabase
       .from("school")
-      .select("program_id")
+      .select("program:program_id(*)")
       .eq("id", schoolId)
       .maybeSingle();
-    if (schoolError || !schoolData?.program_id) {
-      console.error(
-        "Error fetching school or missing program_id:",
-        schoolError
-      );
+    if (error) {
+      console.error("Error fetching program with join:", error);
       return;
     }
-    const { data: programData, error: programError } = await this.supabase
-      .from("program")
-      .select("*")
-      .eq("id", schoolData.program_id)
-      .maybeSingle();
-    if (programError) {
-      console.error("Error fetching program:", programError);
-      return;
-    }
-    return programData ?? undefined;
+    const program = (data?.program ?? undefined) as
+      | TableTypes<"program">
+      | undefined;
+    return program;
   }
 
   async getProgramManagersForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined> {
     if (!this.supabase) return;
-    const { data: schoolData, error: schoolError } = await this.supabase
+    const { data, error } = await this.supabase
       .from("school")
-      .select("program_id")
+      .select(
+        `
+      program:program_id(
+        program_users:program_user(
+          role,
+          is_deleted,
+          user(*)
+        )
+      )
+    `
+      )
       .eq("id", schoolId)
       .maybeSingle();
-    if (schoolError || !schoolData?.program_id) {
-      console.error(
-        "Error fetching school or missing program_id:",
-        schoolError
-      );
+    if (error) {
+      console.error("Error fetching program managers with join:", error);
       return;
     }
-    const { data: programUsers, error: programUserError } = await this.supabase
-      .from("program_user")
-      .select("user(*)")
-      .eq("program_id", schoolData.program_id)
-      .eq("role", RoleType.PROGRAM_MANAGER)
-      .eq("is_deleted", false);
-    if (programUserError) {
-      console.error("Error fetching program managers:", programUserError);
-      return;
-    }
+    const programUsers =
+      (data?.program as { program_users?: any[] })?.program_users ?? [];
     const users = programUsers
-      .flatMap((item: { user: TableTypes<"user">[] }) => item.user)
-      .filter((user): user is TableTypes<"user"> => !!user);
+      .filter((pu) => pu.role === RoleType.PROGRAM_MANAGER && !pu.is_deleted)
+      .map((pu) => pu.user as TableTypes<"user">);
     return users;
   }
 
-  async getCurriculumSubjectsForSchool(
-    schoolId: string
-  ): Promise<{ curriculum: string; subjects: string[] }[] | undefined> {
-    if (!this.supabase) return;
-    const { data: schoolCourseData, error: schoolCourseError } =
-      await this.supabase
-        .from("school_course")
-        .select("course_id")
-        .eq("school_id", schoolId);
-    if (
-      schoolCourseError ||
-      !schoolCourseData ||
-      schoolCourseData.length === 0
-    ) {
-      console.error(
-        "Error fetching school courses or none found:",
-        schoolCourseError
-      );
-      return;
-    }
-    const courseIds = schoolCourseData
-      .map((row: any) => row.course_id)
-      .filter((id: string | null | undefined): id is string => !!id);
-    if (courseIds.length === 0) return;
-    const { data: coursesData, error: coursesError } = await this.supabase
-      .from("course")
-      .select("id, curriculum_id, subject_id")
-      .in("id", courseIds);
-    if (coursesError || !coursesData || coursesData.length === 0) {
-      console.error("Error fetching courses or none found:", coursesError);
-      return;
-    }
-    const curriculumIds = [
-      ...new Set(
-        coursesData
-          .map((c: any) => c.curriculum_id)
-          .filter((id: string | null | undefined): id is string => !!id)
-      ),
-    ];
-    const subjectIds = [
-      ...new Set(
-        coursesData
-          .map((c: any) => c.subject_id)
-          .filter((id: string | null | undefined): id is string => !!id)
-      ),
-    ];
-    const { data: curriculumData, error: curriculumError } = await this.supabase
-      .from("curriculum")
-      .select("id, name")
-      .in("id", curriculumIds);
-    if (curriculumError || !curriculumData) {
-      console.error("Error fetching curriculum:", curriculumError);
-      return;
-    }
-    const { data: subjectData, error: subjectError } = await this.supabase
-      .from("subject")
-      .select("id, name")
-      .in("id", subjectIds);
-    if (subjectError || !subjectData) {
-      console.error("Error fetching subjects:", subjectError);
-      return;
-    }
-    const curriculumMap: Record<string, string> = {};
-    for (const c of curriculumData) {
-      if (c.id) curriculumMap[c.id] = c.name;
-    }
-    const subjectMap: Record<string, string> = {};
-    for (const s of subjectData) {
-      if (s.id) subjectMap[s.id] = s.name;
-    }
-    const resultMap: Record<string, string[]> = {};
-    for (const course of coursesData) {
-      if (!course.curriculum_id || !course.subject_id) continue;
-      const curriculumName = curriculumMap[course.curriculum_id];
-      const subjectName = subjectMap[course.subject_id];
-      if (!curriculumName || !subjectName) continue;
-      if (!resultMap[curriculumName]) resultMap[curriculumName] = [];
-      if (!resultMap[curriculumName].includes(subjectName))
-        resultMap[curriculumName].push(subjectName);
-    }
-    return Object.entries(resultMap).map(([curriculum, subjects]) => ({
-      curriculum,
-      subjects,
-    }));
-  }
   async updateStudentStars(
     studentId: string,
     totalStars: number
