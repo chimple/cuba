@@ -43,7 +43,7 @@ const TextField: React.FC<{
           }
         }}
       ></input>
-      {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
+      {isInputFocus ? <div ref={scollToRef} className="input-focus" id="scroll"></div> : null}
     </div>
   );
 };
