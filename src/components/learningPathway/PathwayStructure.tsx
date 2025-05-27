@@ -6,6 +6,8 @@ import { useHistory } from "react-router";
 import { PAGES } from "../../common/constants";
 import PathwayModal from "./PathwayModal";
 import { t } from "i18next";
+import { Directory, Filesystem } from "@capacitor/filesystem";
+import { Capacitor } from "@capacitor/core";
 
 const PathwayStructure: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -15,7 +17,7 @@ const PathwayStructure: React.FC = () => {
   const [modalText, setModalText] = useState("");
 
   const inactiveText = t("Lesson inactive, play the nearest active lesson");
-  const rewardText   = t("Complete these 5 lessons to earn rewards");
+  const rewardText = t("Complete these 5 lessons to earn rewards");
 
   const shouldAnimate = modalText === rewardText;
 
@@ -30,6 +32,20 @@ const PathwayStructure: React.FC = () => {
     if (className) group.setAttribute("class", className);
     return group;
   };
+  const fetchLocalSVGGroup = async (
+      path: string,
+      className?: string
+    ): Promise<SVGGElement> => {
+      const file = await Filesystem.readFile({
+        path,
+        directory: Directory.External,
+      });
+      const svgText = atob(file.data);
+      const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      group.innerHTML = svgText;
+      if (className) group.setAttribute("class", className);
+      return group;
+    };
 
   const createSVGImage = (
     href: string,
@@ -102,6 +118,32 @@ const PathwayStructure: React.FC = () => {
         const pathGroups = svg.querySelectorAll("g > path");
         const paths = Array.from(pathGroups) as SVGPathElement[];
 
+        const subject = await api.getSubject(course.subject_id);
+        let subjectName = subject?.name;
+
+        if (subjectName === "ಕನ್ನಡ") {
+          subjectName = "Kannada";
+        } else if (subjectName === "हिंदी") {
+          subjectName = "Hindi";
+        }
+        const basePath = `learningPath/${subjectName}`;
+
+        const tryFetchSVG = async (
+          localPath: string,
+          webPath: string,
+          name: string
+        ) => {
+          if (Capacitor.isNativePlatform()) {
+            try {
+              return await fetchLocalSVGGroup(localPath, name);
+            } catch {
+              return await fetchSVGGroup(webPath, name);
+            }
+          } else {
+            return await fetchSVGGroup(webPath, name);
+          }
+        };
+
         const [
           flowerActive,
           flowerInactive,
@@ -110,18 +152,33 @@ const PathwayStructure: React.FC = () => {
           giftSVG2,
           giftSVG3,
         ] = await Promise.all([
-          fetchSVGGroup(
+          tryFetchSVG(
+            `${basePath}/FlowerActive.svg`,
             "/pathwayAssets/English/FlowerActive.svg",
             "flowerActive isSelected"
           ),
           fetchSVGGroup("/pathwayAssets/FlowerInactive.svg", "flowerInactive"),
-          fetchSVGGroup(
+
+          tryFetchSVG(
+            `${basePath}/PlayedLesson.svg`,
             "/pathwayAssets/English/PlayedLesson.svg",
             "playedLessonSVG"
           ),
-          fetchSVGGroup("/pathwayAssets/English/pathGift1.svg", "giftSVG"),
-          fetchSVGGroup("/pathwayAssets/English/pathGift2.svg", "giftSVG2"),
-          fetchSVGGroup("/pathwayAssets/English/pathGift3.svg", "giftSVG3"),
+          tryFetchSVG(
+            `${basePath}/pathGift1.svg`,
+            "/pathwayAssets/English/pathGift1.svg",
+            "giftSVG"
+          ),
+          tryFetchSVG(
+            `${basePath}/pathGift2.svg`,
+            "/pathwayAssets/English/pathGift2.svg",
+            "giftSVG2"
+          ),
+          tryFetchSVG(
+            `${basePath}/pathGift3.svg`,
+            "/pathwayAssets/English/pathGift3.svg",
+            "giftSVG3"
+          ),
         ]);
 
         const startPoint = paths[0].getPointAtLength(0);
@@ -371,7 +428,11 @@ const PathwayStructure: React.FC = () => {
   return (
     <>
       {isModalOpen && (
-        <PathwayModal text={modalText} onClose={() => setModalOpen(false)} animate={shouldAnimate} />
+        <PathwayModal
+          text={modalText}
+          onClose={() => setModalOpen(false)}
+          animate={shouldAnimate}
+        />
       )}
       <div className="pathway-structure-div" ref={containerRef}></div>
     </>

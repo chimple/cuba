@@ -224,6 +224,8 @@ const App: React.FC = () => {
     localStorage.setItem(DOWNLOADING_CHAPTER_ID, JSON.stringify(false));
     CapApp.addListener("appStateChange", Util.onAppStateChange);
     localStorage.setItem(IS_CUBA, "1");
+    
+    Util.DownloadLearningPathAssets();    
     if (Capacitor.isNativePlatform()) {
       //CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
