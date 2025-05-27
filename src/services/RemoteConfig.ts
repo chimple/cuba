@@ -9,10 +9,6 @@ export class RemoteConfig {
       });
       return value == null ? REMOTE_CONFIG_DEFAULTS[key] : value;
     } catch (error) {
-      console.log(
-        "🚀 ~ file: RemoteConfig.ts:9 ~ RemoteConfig ~ getString ~ error:",
-        JSON.stringify(error)
-      );
       return REMOTE_CONFIG_DEFAULTS[key];
     }
   }
@@ -24,10 +20,6 @@ export class RemoteConfig {
       });
       return value == null ? REMOTE_CONFIG_DEFAULTS[key] : value;
     } catch (error) {
-      console.log(
-        "🚀 ~ file: RemoteConfig.ts:27 ~ RemoteConfig ~ getNumber ~ error:",
-        JSON.stringify(error)
-      );
       return REMOTE_CONFIG_DEFAULTS[key];
     }
   }
@@ -37,10 +29,6 @@ export class RemoteConfig {
       const { value } = await FirebaseRemoteConfig.getString({ key: key });
       return JSON.parse(value) || REMOTE_CONFIG_DEFAULTS[key];
     } catch (error) {
-      console.log(
-        "🚀 ~ file: RemoteConfig.ts:39 ~ RemoteConfig ~ getJSON ~ error:",
-        error
-      );
       return REMOTE_CONFIG_DEFAULTS[key];
     }
   }
@@ -50,16 +38,8 @@ export class RemoteConfig {
       const { value } = await FirebaseRemoteConfig.getBoolean({
         key: key,
       });
-      console.log(
-        "🚀 ~ file: RemoteConfig.ts:53 ~ RemoteConfig ~ getBoolean ~ value:",
-        value
-      );
       return value == null ? REMOTE_CONFIG_DEFAULTS[key] : value;
     } catch (error) {
-      console.log(
-        "🚀 ~ file: RemoteConfig.ts:50 ~ RemoteConfig ~ getBoolean ~ error:",
-        JSON.stringify(error)
-      );
       return REMOTE_CONFIG_DEFAULTS[key];
     }
   }

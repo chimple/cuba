@@ -2,20 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { Box, Grid, TextField, Typography, MenuItem, Select, InputLabel, FormControl, Checkbox, FormControlLabel, Container, Paper, InputAdornment, IconButton, Button, FormHelperText, ListItemText, } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { useHistory } from 'react-router-dom';
-import { PAGES, TABLES } from '../../common/constants';
+import { PAGES, ProgramType } from '../../common/constants';
 import { t } from 'i18next';
 
 const NewProgram: React.FC = () => {
   const [partners, setPartners] = useState({ implementation: '', funding: '', institute: '', });
   const [programName, setProgramName] = useState('');
   const [locations, setLocations] = useState({ Country: '', State: '', District: '', Block: '', Cluster: '', });
-  const [programType, setProgramType] = useState('');
+  const [programType, setProgramType] = useState<ProgramType | ''>('');
   const [models, setModels] = useState<string[]>([]);
   const [programManagers, setProgramManagers] = useState<string[]>([]);
   const [selectedManagers, setSelectedManagers] = useState<string[]>([]);
@@ -86,6 +83,8 @@ const NewProgram: React.FC = () => {
       newErrors['programName'] = t('Program Name is required');
     if (models.length === 0)
       newErrors['model'] = t('At least one model must be selected');
+    if (!programType.trim())
+      newErrors['programType'] = t('Program Type is required');
     if (!stats.institutes)
       newErrors['institutes'] = t('No of Institutes is required');
     if (!stats.students)
@@ -98,12 +97,12 @@ const NewProgram: React.FC = () => {
       newErrors['endDate'] = t('End date is required');
     if (startDate && endDate && startDate.isAfter(endDate))
       newErrors['date'] = t('Start date must be before End date');
-  
+
     Object.entries(locations).forEach(([key, value]) => {
       if (!value)
         newErrors[`location-${key}`] = t('{{key}} is required', { key });
     });
-  
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -123,8 +122,12 @@ const NewProgram: React.FC = () => {
     };
     try {
       const res = await api.insertProgram(dataToSave);
-      clearForm();
-      history.replace(PAGES.ADMIN_PROGRAMS);
+      if(res) {
+          clearForm();
+          history.replace(PAGES.PROGRAM_PAGE);
+      } else {
+         console.error('Error in saving ops program');
+      }
     } catch (error) {
       console.error('Error saving program:', error);
     }
@@ -245,22 +248,26 @@ const NewProgram: React.FC = () => {
             </Grid>
 
             <Grid item xs={12} sm={4} md={3}>
-              <Typography variant="subtitle1" fontWeight="medium" mb={1}>
-                {t('Program Type')}
-              </Typography>
-              <FormControl fullWidth error={!!errors['programType']}>
-                <Select
-                  value={programType}
-                  onChange={(e) => setProgramType(e.target.value)}
-                  sx={{ borderRadius: '12px' }}
-                >
-                  {/* Program Type Menu Items will come here */}
-                  <MenuItem value="">Select</MenuItem>
-                </Select>
-                {errors['programType'] && (
-                  <FormHelperText>{errors['programType']}</FormHelperText>
-                )}
-              </FormControl>
+                <Typography variant="subtitle1" fontWeight="medium" mb={1}>
+                    {t('Program Type')}
+                </Typography>
+                <FormControl fullWidth error={!!errors['programType']}>
+                    <Select
+                    value={programType}
+                    onChange={(e:any) => setProgramType(e.target.value)}
+                    sx={{ borderRadius: '12px' }}
+                    >
+                    <MenuItem value="" disabled>{t('Select')}</MenuItem>
+                    {Object.values(ProgramType).map((type) => (
+                        <MenuItem key={type} value={type}>
+                        {t(`${type}`)}
+                        </MenuItem>
+                    ))}
+                    </Select>
+                    {errors['programType'] && (
+                    <FormHelperText>{errors['programType']}</FormHelperText>
+                    )}
+                </FormControl>
             </Grid>
 
             <Grid item xs={12}>
@@ -295,7 +302,7 @@ const NewProgram: React.FC = () => {
             </Grid>
 
             <Grid container sx={{ marginLeft: '24px', marginTop: '10px' }}>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} sm={4} md={4}>
                 <Typography variant="subtitle1" fontWeight="medium" mb={1}>
                   {t('Program Manager')}
                 </Typography>
@@ -307,6 +314,7 @@ const NewProgram: React.FC = () => {
                     renderValue={(selected) => (selected as string[]).join(', ')}
                     sx={{ borderRadius: '12px' }}
                   >
+                    <MenuItem value="" disabled>{t('Select')}</MenuItem>
                     {programManagers.map((name, idx) => (
                       <MenuItem key={idx} value={name}>
                         <Checkbox checked={selectedManagers.includes(name)} />
@@ -344,53 +352,47 @@ const NewProgram: React.FC = () => {
             ))}
 
             <Grid item xs={12}>
-              <Typography variant="subtitle1" fontWeight="medium" mb={1}>
-                {t('Program Date')}
-              </Typography>
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <Typography variant="subtitle1" fontWeight="medium" mb={1}>
+                    {t('Program Date')}
+                </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={3}>
-                    <DatePicker
-                      label={t("Start date")}
-                      value={startDate}
-                      onChange={(newValue) => setStartDate(newValue)}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          fullWidth
-                          variant="outlined"
-                          error={!!errors['startDate'] || !!errors['date']}
-                          helperText={errors['startDate'] || errors['date']}
-                          InputProps={{
-                            ...params.InputProps,
-                            sx: { borderRadius: '12px' },
-                          }}
-                        />
-                      )}
+                    <Grid item xs={12} sm={6} md={3}>
+                    <TextField
+                        label={t('Start date')}
+                        type="date"
+                        value={startDate ? startDate.format('YYYY-MM-DD') : ''}
+                        onChange={(e:any) => setStartDate(e.target.value ? dayjs(e.target.value) : null)}
+                        fullWidth
+                        variant="outlined"
+                        error={!!errors['startDate'] || !!errors['date']}
+                        helperText={errors['startDate'] || errors['date']}
+                        InputLabelProps={{
+                        shrink: true,
+                        }}
+                        InputProps={{
+                        sx: { borderRadius: '12px' },
+                        }}
                     />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
-                    <DatePicker
-                      label={t("End date")}
-                      value={endDate}
-                      onChange={(newValue) => setEndDate(newValue)}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          fullWidth
-                          variant="outlined"
-                          error={!!errors['endDate'] || !!errors['date']}
-                          helperText={errors['endDate'] || errors['date']}
-                          InputProps={{
-                            ...params.InputProps,
-                            sx: { borderRadius: '12px' },
-                          }}
-                        />
-                      )}
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3}>
+                    <TextField
+                        label={t('End date')}
+                        type="date"
+                        value={endDate ? endDate.format('YYYY-MM-DD') : ''}
+                        onChange={(e:any) => setEndDate(e.target.value ? dayjs(e.target.value) : null)}
+                        fullWidth
+                        variant="outlined"
+                        error={!!errors['endDate'] || !!errors['date']}
+                        helperText={errors['endDate'] || errors['date']}
+                        InputLabelProps={{
+                        shrink: true,
+                        }}
+                        InputProps={{
+                        sx: { borderRadius: '12px' },
+                        }}
                     />
-                  </Grid>
+                    </Grid>
                 </Grid>
-              </LocalizationProvider>
             </Grid>
 
             <Grid item xs={12} textAlign="right">

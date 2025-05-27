@@ -23,7 +23,8 @@ export const Test1: Story = {
     handleNameSort(){},
     onIsAssignments(){},
     sortBy:"Name",
-    isAssignmentsOnlyProp:false
+    isAssignmentsOnlyProp:false,
+    isAssignmentReport: false,
   },
 };
 export const Test2: Story = {
@@ -37,7 +38,8 @@ export const Test2: Story = {
       handleNameSort(){},
       onIsAssignments(){},
       sortBy:"High Score",
-      isAssignmentsOnlyProp:true
+      isAssignmentsOnlyProp:true,
+      isAssignmentReport: true,
     },
   };
   export const Test3: Story = {
@@ -51,6 +53,7 @@ export const Test2: Story = {
       handleNameSort(){},
       onIsAssignments(){},
       sortBy:"Low Score",
-      isAssignmentsOnlyProp:false
+      isAssignmentsOnlyProp:false,
+      isAssignmentReport: false,
     },
   };

@@ -34,7 +34,7 @@ const ResetPassword: React.FC = () => {
       setMessage("Password reset successful. Redirecting to login...");
       setTimeout(() => history.push(PAGES.LOGIN), 2000);
     } else {
-      console.log("error in updating user....");
+      console.error("error in updating user....");
     }
   };
 

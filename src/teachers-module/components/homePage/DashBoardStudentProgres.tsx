@@ -35,11 +35,11 @@ const DashBoardStudentProgres: React.FC<DashBoardStudentProgresProps> = ({
         var chapterName = "";
         if (chapterId != null) {
           const chapter = await api.getChapterById(chapterId);
-          if(chapter !== undefined && chapter.name !== null) {
+          if (chapter !== undefined && chapter.name !== null) {
             chapterName = chapter.name;
           }
         }
-        _res.set("chapterName",  chapterName);
+        _res.set("chapterName", chapterName);
       } catch (error) {
         console.error(`Error fetching lesson for ${result.lesson_id}:`, error);
       }
@@ -70,6 +70,7 @@ const DashBoardStudentProgres: React.FC<DashBoardStudentProgresProps> = ({
             <div className="student-score-container" key={index}>
               <div className="student-score">
                 <CircularProgressbar
+                  className="circularProgressbar"
                   value={parseInt(result.get("score") ?? "0", 10)}
                   text={result.get("score") ?? "0"}
                   styles={buildStyles({
@@ -91,7 +92,9 @@ const DashBoardStudentProgres: React.FC<DashBoardStudentProgresProps> = ({
                   : result.get("lesson")}
                 {}
               </span>
-              <span className="lesson-chapter-name">{result.get("chapterName")}</span>
+              <span className="lesson-chapter-name">
+                {result.get("chapterName")}
+              </span>
             </div>
           ))}
         </div>

@@ -3,12 +3,27 @@ import type { Meta, StoryObj } from '@storybook/react';
 import NewProgram from '../../../ops-console/components/NewProgram';
 import { CssBaseline } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ServiceConfig } from '../../../services/ServiceConfig';
 
 const theme = createTheme();
 
+const mockApiHandler = {
+  getProgramManagers: () => Promise.resolve(['Alice Smith', 'Bob Johnson']),
+  getUniqueGeoData: () => Promise.resolve({
+    Country: ['India'],
+    State: ['Maharashtra'],
+    District: ['Pune'],
+    Block: ['Block A'],
+    Cluster: ['Cluster 1'],
+  }),
+};
+
+(ServiceConfig.getI as any) = () => ({
+  apiHandler: mockApiHandler,
+});
+
 const meta: Meta<typeof NewProgram> = {
   title: "OpsConsole/Component/NewProgram",
-  tags: ['autodocs'],
   component: NewProgram,
   parameters: {
     layout: 'fullscreen',

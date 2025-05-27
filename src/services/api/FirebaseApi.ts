@@ -128,11 +128,6 @@ export class FirebaseApi implements ServiceApi {
         const gradeCourses = await this.getCoursesByGrade(
           isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId
         );
-        console.log(
-          "----------------line 182 courses related to grades",
-          gradeCourses
-        );
-
         const curriculumCourses = gradeCourses.filter((course) => {
           const curriculumRef = course.curriculum;
           if (!!curriculumRef && curriculumRef.id === boardDocId) return true;
@@ -154,7 +149,6 @@ export class FirebaseApi implements ServiceApi {
           (subjectId) => !subjectIds.includes(subjectId)
         ); // getting default subjects
 
-        console.log("Remaining subjects to add:", remainingSubjects);
 
         remainingSubjects.forEach((subjectId) => {
           const courses = gradeCourses.filter((course) => {
@@ -173,7 +167,6 @@ export class FirebaseApi implements ServiceApi {
       }
     }
 
-    console.log("Final courses array:", courseIds);
 
     return courseIds;
   }
@@ -286,18 +279,14 @@ export class FirebaseApi implements ServiceApi {
       `${CollectionIds.USER}/${studentId}`
     );
     let userList = _currentUser.users;
-    console.log("before userList ", _currentUser, userList);
     // userList.findIndex(studentDoc);
     for (let i = 0; i < userList.length; i++) {
       const element = userList[i];
-      console.log("element", element.id, studentDoc.id);
       if (element.id === studentDoc.id) {
         userList.splice(i, 1);
-        console.log("enter if", userList);
       }
     }
 
-    console.log("userList ", studentDoc.id, userList);
 
     const functions = getFunctions();
     const generateInviteCode = httpsCallable(
@@ -332,14 +321,13 @@ export class FirebaseApi implements ServiceApi {
       );
       const curriculums: Curriculum[] = [];
       querySnapshot.forEach((doc) => {
-        console.log(`${doc.id} => ${doc.data()}`);
         const curriculum = doc.data() as Curriculum;
         curriculum.docId = doc.id;
         curriculums.push(curriculum);
       });
       return curriculums;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:206 ~ FirebaseApi ~ getAllCurriculums ~ error:",
         JSON.stringify(error)
       );
@@ -358,14 +346,13 @@ export class FirebaseApi implements ServiceApi {
       );
       const grades: Grade[] = [];
       querySnapshot.forEach((doc) => {
-        console.log(`${doc.id} => ${doc.data()}`);
         const grade = doc.data() as Grade;
         grade.docId = doc.id;
         grades.push(grade);
       });
       return grades;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:228 ~ FirebaseApi ~ getAllGrades ~ error:",
         JSON.stringify(error)
       );
@@ -383,22 +370,17 @@ export class FirebaseApi implements ServiceApi {
         "/public/assets/animation/avatarSugguestions.json"
       );
       let responseJson = await response.json();
-      console.log("Avatar Sugguestion Json ", responseJson);
 
       const avatarDocId = "AvatarInfo";
-      console.log(
-        "getAvatarInfo(): entred",
-        doc(this._db, CollectionIds.AVATAR + "/" + avatarDocId)
-      );
+
       const documentSnapshot = await this.getDocFromOffline(
         doc(this._db, CollectionIds.AVATAR + "/" + avatarDocId)
       );
       const avatarInfoData = documentSnapshot.data() as AvatarObj;
-      console.log("const avatarInfoData", avatarInfoData);
 
       return avatarInfoData;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:262 ~ FirebaseApi ~ getAvatarInfo ~ error:",
         JSON.stringify(error)
       );
@@ -413,14 +395,13 @@ export class FirebaseApi implements ServiceApi {
       );
       const languages: Language[] = [];
       querySnapshot.forEach((doc) => {
-        // console.log(`${doc.id} => ${doc.data()}`);
         const language = doc.data() as Language;
         language.docId = doc.id;
         languages.push(language);
       });
       return languages;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:250 ~ FirebaseApi ~ getAllLanguages ~ error:",
         JSON.stringify(error)
       );
@@ -453,7 +434,7 @@ export class FirebaseApi implements ServiceApi {
       });
       return users;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:280 ~ FirebaseApi ~ getParentStudentProfiles ~ error:",
         JSON.stringify(error)
       );
@@ -500,7 +481,6 @@ export class FirebaseApi implements ServiceApi {
         musicOff: value,
         updatedAt: Timestamp.now(),
       });
-      console.log("updateMusicFlag", value);
       currentUser.musicOff = value;
       ServiceConfig.getI().authHandler.currentUser = currentUser;
     }
@@ -512,13 +492,10 @@ export class FirebaseApi implements ServiceApi {
   ) => {
     const studentDocRef = doc(this._db, CollectionIds.USER, studentId);
     const studentDoc = await getDoc(studentDocRef);
-    console.log("const studentDoc = await getDoc(studentDocRef);", studentDoc);
 
     if (!studentDoc || !studentDoc.data()) return;
     const student: User = studentDoc.data() as User;
-    console.log("const student: User = studentDoc.data() as User;", student);
     student.docId = studentDoc.id;
-    console.log("if (!rewards) return;", unlockedReward);
     await updateDoc(studentDocRef, {
       rewards: unlockedReward,
     });
@@ -555,7 +532,7 @@ export class FirebaseApi implements ServiceApi {
       if (!result.data()) return;
       return result.data() as Language;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:360 ~ FirebaseApi ~ getLanguageWithId ~ error:",
         error
       );
@@ -592,7 +569,7 @@ export class FirebaseApi implements ServiceApi {
       return this.sortSubject(subjects);
       return this.sortSubject(subjects);
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:358 ~ FirebaseApi ~ getCoursesForParentsStudent ~ error:",
         JSON.stringify(error)
       );
@@ -621,7 +598,7 @@ export class FirebaseApi implements ServiceApi {
         });
       }
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:358 ~ FirebaseApi ~ addCoursesForParentsStudent ~ error:",
         JSON.stringify(error)
       );
@@ -637,14 +614,13 @@ export class FirebaseApi implements ServiceApi {
       );
       const lessonsData: DocumentData = studentLessons.data()!;
       if (lessonsData == undefined || lessonsData.lessons == undefined) return;
-      console.log("lessonsData.lessons ", lessonsData.lessons);
       const lessonsMap: Map<string, StudentLessonResult> = new Map(
         Object.entries(lessonsData.lessons)
       );
 
       return lessonsMap;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:382 ~ FirebaseApi ~ error:",
         JSON.stringify(error)
       );
@@ -667,7 +643,7 @@ export class FirebaseApi implements ServiceApi {
       });
       return this.sortSubject(subjects);
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:444 ~ FirebaseApi ~ getCoursesForClassStudent ~ error:",
         error
       );
@@ -709,7 +685,7 @@ export class FirebaseApi implements ServiceApi {
       }
       return lesson;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:399 ~ FirebaseApi ~ getLesson ~ error:",
         JSON.stringify(error)
       );
@@ -733,7 +709,7 @@ export class FirebaseApi implements ServiceApi {
         }
       }
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:367 ~ FirebaseApi ~ getLessonsForChapter ~ error:",
         JSON.stringify(error)
       );
@@ -749,7 +725,6 @@ export class FirebaseApi implements ServiceApi {
         [key: string]: Lesson;
       };
     } = JSON.parse(localStorage.getItem("CourseLessons")!);
-    console.log("lessons ", lessons);
     if (!lessons) {
       lessons = {};
     }
@@ -774,9 +749,7 @@ export class FirebaseApi implements ServiceApi {
         }
       }
     }
-    console.log("lesMap", lesMap);
     lessons[course.courseCode] = lesMap;
-    console.log("after lessons", lessons, JSON.stringify(lessons));
 
     localStorage.setItem("CourseLessons", JSON.stringify(lessons));
     return lessons;
@@ -795,13 +768,11 @@ export class FirebaseApi implements ServiceApi {
       if (!lessons) {
         lessons = {};
       }
-      // console.log("lessons ", lessons);
       if (
         lessons != undefined &&
         lessons[course.courseCode] != undefined &&
         lessons[course.courseCode][lessonId]
       ) {
-        // console.log("lesson is already exist");
         return lessons[course.courseCode][lessonId];
       }
       let lesMap: {
@@ -812,7 +783,6 @@ export class FirebaseApi implements ServiceApi {
         if (chapter.lessons && chapter.lessons.length > 0) {
           for (let lesson of chapter.lessons) {
             if (lesson.id === lessonId) {
-              // console.log("lesson id Found", lesson);
               if (lesson instanceof DocumentReference) {
                 const lessonObj = await this.getLesson(lesson.id, chapter);
                 if (lessonObj) {
@@ -821,10 +791,7 @@ export class FirebaseApi implements ServiceApi {
               } else {
                 lesMap[lesson.id] = lesson as Lesson;
               }
-              // console.log("lesMap", lesMap);
               lessons[course.courseCode] = lesMap;
-              // console.log("after CourseLessons", lessons);
-
               // localStorage.setItem("CourseLessons", JSON.stringify(lessons));
               return lessons[course.courseCode][lessonId];
             }
@@ -832,7 +799,7 @@ export class FirebaseApi implements ServiceApi {
         }
       }
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:523 ~ FirebaseApi ~ error:",
         JSON.stringify(error)
       );
@@ -942,7 +909,6 @@ export class FirebaseApi implements ServiceApi {
       isLoved: result.isLoved,
       timeSpent: result.timeSpent,
     };
-    console.log("playedResult", result.lesson.id, JSON.stringify(playedResult));
 
     if (this._studentResultCache[student.docId] === undefined) {
       const studentProfileData = await this.getStudentResult(student.docId);
@@ -983,10 +949,6 @@ export class FirebaseApi implements ServiceApi {
       this._studentResultCache[student.docId].lessons[result.lesson.id] =
         playedResult;
     }
-    console.log(
-      "this._studentResultCache[student.docId] ",
-      JSON.stringify(this._studentResultCache[student.docId])
-    );
 
     return result;
   }
@@ -1055,7 +1017,7 @@ export class FirebaseApi implements ServiceApi {
       this._subjectsCache[id] = subject;
       return subject;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:623 ~ FirebaseApi ~ getSubject ~ error:",
         JSON.stringify(error)
       );
@@ -1076,7 +1038,7 @@ export class FirebaseApi implements ServiceApi {
       this._CourseCache[id] = course;
       return course;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:623 ~ FirebaseApi ~ getSubject ~ error:",
         JSON.stringify(error)
       );
@@ -1113,18 +1075,16 @@ export class FirebaseApi implements ServiceApi {
       const studentProfileDoc = await getDoc(
         doc(this._db, CollectionIds.STUDENT_PROFILE, studentId)
       );
-      console.log("studentProfileDoc", studentProfileDoc);
 
       if (!studentProfileDoc.exists) return;
       const studentProfile = studentProfileDoc.data() as StudentProfile;
-      console.log("studentProfile", studentProfile);
       if (studentProfile === undefined) return;
       studentProfile.docId = studentId;
       if (!studentProfile.lessons) studentProfile.lessons = {};
       this._studentResultCache[studentId] = studentProfile;
       return studentProfile;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:734 ~ FirebaseApi ~ error:",
         JSON.stringify(error)
       );
@@ -1136,14 +1096,11 @@ export class FirebaseApi implements ServiceApi {
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
     try {
       const lessonsData = await this.getStudentResult(studentId);
-      console.log(
-        "getStudentResultInMap lessonsData ",
-        JSON.stringify(lessonsData)
-      );
+
       if (!lessonsData) return;
       return lessonsData.lessons;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:753 ~ FirebaseApi ~ error:",
         JSON.stringify(error)
       );
@@ -1162,7 +1119,7 @@ export class FirebaseApi implements ServiceApi {
       this._classCache[id] = classData;
       return classData;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:770 ~ FirebaseApi ~ getClassById ~ error:",
         JSON.stringify(error)
       );
@@ -1181,7 +1138,7 @@ export class FirebaseApi implements ServiceApi {
       this._schoolCache[id] = schoolData;
       return schoolData;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:787 ~ FirebaseApi ~ getSchoolById ~ error:",
         JSON.stringify(error)
       );
@@ -1228,26 +1185,17 @@ export class FirebaseApi implements ServiceApi {
         let assignmentCompletedIds = JSON.parse(
           tempAssignmentCompletedIds ?? "{}"
         );
-        console.log(
-          "🚀 ~ file: FirebaseApi.ts:546 ~ FirebaseApi ~ queryResult.docs.forEach ~ assignmentCompletedIds:",
-          assignmentCompletedIds
-        );
+
 
         const doneAssignmentLocally = assignmentCompletedIds[studentId]?.find(
           (assignmentId) => assignmentId === assignment.docId
         );
-        console.log(
-          "🚀 ~ file: FirebaseApi.ts:554 ~ FirebaseApi ~ queryResult.docs.forEach ~ doneAssignmentLocally:",
-          doneAssignmentLocally
-        );
+
 
         if (!doneAssignment && !doneAssignmentLocally)
           assignments.push(assignment);
       });
-      console.log(
-        "🚀 ~ file: FirebaseApi.ts:533 ~ FirebaseApi ~ assignments:",
-        assignments
-      );
+
       const currentTimestamp = new Date().getTime();
 
       const filteredAssignments = assignments.filter((assignment) => {
@@ -1263,11 +1211,10 @@ export class FirebaseApi implements ServiceApi {
         }
         return true;
       });
-      console.log("Filtered assignments....", filteredAssignments);
 
       return filteredAssignments;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:856 ~ FirebaseApi ~ error:",
         JSON.stringify(error)
       );
@@ -1320,7 +1267,7 @@ export class FirebaseApi implements ServiceApi {
       this._schoolsCache[user.docId] = schools;
       return schools;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:904 ~ FirebaseApi ~ getSchoolsForUser ~ error:",
         JSON.stringify(error)
       );
@@ -1331,12 +1278,11 @@ export class FirebaseApi implements ServiceApi {
   async isUserTeacher(userId: string): Promise<boolean> {
     try {
       const isParent = user.role === RoleType.PARENT;
-      console.log("this is the role  " + user.role);
       if (isParent) return false;
       const schools = await this.getSchoolsForUser(user);
       if (!!schools && schools.length > 0) return true;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:921 ~ FirebaseApi ~ isUserTeacher ~ error:",
         JSON.stringify(error)
       );
@@ -1393,7 +1339,7 @@ export class FirebaseApi implements ServiceApi {
       }
       return classes;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:967 ~ FirebaseApi ~ getClassesForSchool ~ error:",
         JSON.stringify(error)
       );
@@ -1423,7 +1369,7 @@ export class FirebaseApi implements ServiceApi {
       }
       return students;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:1006 ~ FirebaseApi ~ getStudentsForClass ~ error:",
         error
       );
@@ -1500,9 +1446,7 @@ export class FirebaseApi implements ServiceApi {
         const weekly: StudentLeaderboardInfo[] = [];
         const allTime: StudentLeaderboardInfo[] = [];
         const monthly: StudentLeaderboardInfo[] = [];
-        console.log("school mode Data ", data, data.d, Object.keys(data));
         for (const i of Object.keys(data.d)) {
-          console.log("Object.keys(data) ", i, data.d[i]);
           weekly.push({
             name: data.d[i].n,
             score: data.d[i].w.s,
@@ -1540,16 +1484,13 @@ export class FirebaseApi implements ServiceApi {
           allTime: allTime,
           monthly: monthly,
         };
-        console.log("result", result);
 
         return result;
       }
 
-      console.log("result in FirebaseAPI", leaderBoardList);
-
       return leaderBoardList;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:971 ~ FirebaseApi ~ error:",
         JSON.stringify(error)
       );
@@ -1572,13 +1513,10 @@ export class FirebaseApi implements ServiceApi {
           CollectionIds.LEADERBOARD + "/b2c/genericLeaderboard/" + studentId
         )
       );
-      console.log("if (!queryResult.data()) return;", queryResult);
       if (!queryResult.data()) return;
 
       const data = queryResult.data();
-      console.log("if (!queryResult.data()) const data ", data);
       if (!data) return;
-      console.log("if (!data) return;", data.name);
 
       leaderBoardList.weekly.push({
         name: data.name,
@@ -1587,7 +1525,6 @@ export class FirebaseApi implements ServiceApi {
         lessonsPlayed: data.weeklyLessonPlayed,
         userId: studentId,
       });
-      console.log("leaderBoardList.weekly", leaderBoardList.weekly);
 
       leaderBoardList.monthly.push({
         name: data.name,
@@ -1596,7 +1533,6 @@ export class FirebaseApi implements ServiceApi {
         lessonsPlayed: data.monthlyLessonPlayed,
         userId: studentId,
       });
-      console.log("leaderBoardList.monthly", leaderBoardList.monthly);
       leaderBoardList.allTime.push({
         name: data.name,
         score: data.allTimeScore,
@@ -1604,13 +1540,10 @@ export class FirebaseApi implements ServiceApi {
         lessonsPlayed: data.allTimeLessonPlayed,
         userId: studentId,
       });
-      console.log("leaderBoardList.allTime", leaderBoardList.allTime);
-
-      console.log("result in FirebaseAPI", leaderBoardList, data);
 
       return leaderBoardList;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:971 ~ FirebaseApi ~ error:",
         JSON.stringify(error)
       );
@@ -1622,20 +1555,13 @@ export class FirebaseApi implements ServiceApi {
   ): Promise<TableTypes<"user"> | undefined> {
     throw new Error("Method not implemented.");
     try {
-      console.log("getUserByDocId called");
 
       const studentDocRef = doc(this._db, CollectionIds.USER, studentId);
       const studentDoc = await getDoc(studentDocRef);
       if (studentDoc.exists()) {
         const studentData = studentDoc.data();
         if (!studentData) return;
-        console.log("updated studentData as User", studentData as User);
         let updatedStudent: User = studentData as User;
-        console.log(
-          "updated studentData as User",
-          updatedStudent,
-          studentDoc.id
-        );
         updatedStudent.docId = studentDoc.id;
         // return updatedStudent;
       }
@@ -1712,14 +1638,13 @@ export class FirebaseApi implements ServiceApi {
       );
       const courses: Course[] = [];
       querySnapshot.forEach((doc) => {
-        console.log(doc.id, " => ", doc.data());
         const course = doc.data() as Course;
         course.docId = doc.id;
         courses.push(course);
       });
       return courses;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:1132 ~ FirebaseApi ~ getAllCourses ~ error:",
         JSON.stringify(error)
       );
@@ -1793,11 +1718,9 @@ export class FirebaseApi implements ServiceApi {
   //       where("startsAt", "<=", now),
   //       orderBy("startsAt", "desc")
   //     );
-  //     console.log("query result:", q);
 
   //     const liveQuizLessons: Assignment[] = [];
   //     const liveQuizDocs = await getDocs(q);
-  //     console.log("live quiz count", liveQuizDocs.size);
 
   //     if (liveQuizDocs.size > 0) {
   //       liveQuizDocs.docs.forEach((_assignment) => {
@@ -1817,21 +1740,17 @@ export class FirebaseApi implements ServiceApi {
   //           let liveQuizcompletedIds = JSON.parse(
   //             tempLiveQuizCompletedIds ?? "{}"
   //           );
-  //           console.log("liveQuizcompletedIds:", liveQuizcompletedIds);
 
   //           const doneliveQuizLocally = liveQuizcompletedIds[studentId]?.find(
   //             (assignmentId) => assignmentId === liveQuiz.docId
   //           );
-  //           console.log("doneliveQuizLocally:", doneliveQuizLocally);
 
   //           if (!doneLiveQuiz && !doneliveQuizLocally)
   //             liveQuizLessons.push(liveQuiz);
   //         }
   //       });
   //     } else {
-  //       console.log("Live Quiz has ended. Skipping.");
   //     }
-  //     console.log("Live quiz lessons", liveQuizLessons);
   //     return liveQuizLessons;
   //   } catch (error) {
   //     console.error("Error fetching live quiz lessons:", error);
@@ -1848,9 +1767,7 @@ export class FirebaseApi implements ServiceApi {
   //     );
 
   //     if (liveQuizRoomDoc.exists()) {
-  //       console.log("inside if..");
   //       const res = liveQuizRoomDoc.data() as LiveQuizRoomObject;
-  //       console.log("res", res);
   //       return res;
   //     }
   //   } catch (error) {
@@ -1911,7 +1828,7 @@ export class FirebaseApi implements ServiceApi {
   //       }),
   //     });
   //   } catch (error) {
-  //     console.log(
+  //     console.error(
   //       "🚀 ~ file: FirebaseApi.ts:1571 ~ FirebaseApi ~ error:",
   //       error
   //     );
@@ -1930,7 +1847,7 @@ export class FirebaseApi implements ServiceApi {
   //     });
   //     return result.data as string;
   //   } catch (error) {
-  //     console.log(
+  //     console.error(
   //       "🚀 ~ file: FirebaseApi.ts:1573 ~ FirebaseApi ~ error:",
   //       error
   //     );
@@ -1948,7 +1865,7 @@ export class FirebaseApi implements ServiceApi {
       assignmentData.docId = id;
       return assignmentData;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: FirebaseApi.ts:1600 ~ FirebaseApi ~ getAssignmentById ~ error:",
         error
       );
@@ -1963,12 +1880,11 @@ export class FirebaseApi implements ServiceApi {
         doc(this._db, CollectionIds.BADGE, id)
       );
       if (!badgeDoc.exists) return;
-      console.log("if (!badgeDoc.exists) return;", badgeDoc.data());
       const data = badgeDoc.data() as Badge;
       data.docId = id;
       return data;
     } catch (error) {
-      console.log("🚀 ~ FirebaseApi ~ getBadgeById ~ error:", error);
+      console.error("🚀 ~ FirebaseApi ~ getBadgeById ~ error:", error);
     }
   }
 
@@ -1979,19 +1895,13 @@ export class FirebaseApi implements ServiceApi {
       const stickerDoc = await this.getDocFromOffline(
         doc(this._db, CollectionIds.STICKER, id)
       );
-      console.log(
-        "const stickerDoc = await this.getDocFromOffline( ",
-        stickerDoc.exists()
-      );
       if (!stickerDoc.exists()) return;
-      console.log("if (!stickerDoc.exists) return;", stickerDoc.data());
       const data = stickerDoc.data() as Sticker;
-      console.log("const data = stickerDoc.data() as Sticker;", data);
 
       data.docId = id;
       return data;
     } catch (error) {
-      console.log("🚀 ~ FirebaseApi ~ getStickerById ~ error:", error);
+      console.error("🚀 ~ FirebaseApi ~ getStickerById ~ error:", error);
     }
   }
 
@@ -2008,7 +1918,7 @@ export class FirebaseApi implements ServiceApi {
       data.docId = id;
       return data;
     } catch (error) {
-      console.log("🚀 ~ FirebaseApi ~ getRewardById ~ error:", error);
+      console.error("🚀 ~ FirebaseApi ~ getRewardById ~ error:", error);
     }
   }
   public async updateRewardAsSeen(studentId: string): Promise<void> {
@@ -2117,7 +2027,7 @@ export class FirebaseApi implements ServiceApi {
   insertProgram(payload: any): Promise<boolean | any> {
     throw new Error("Method not implemented.");
   }
-  getProgramManagers(): Promise<string[]>{
+  getProgramManagers(): Promise<string[]> {
     throw new Error("Method not implemented.");
   }
   getUniqueGeoData(): Promise<{
@@ -2126,7 +2036,17 @@ export class FirebaseApi implements ServiceApi {
     Block: string[];
     Cluster: string[];
     District: string[];
-  }>{
+  }> {
     throw new Error("Method not implemented.");
+  }
+  getProgramData(
+    programId: string
+  ): Promise<{
+    programDetails: { label: string; value: string }[];
+    locationDetails: { label: string; value: string }[];
+    partnerDetails: { label: string; value: string }[];
+    programManagers: { name: string; role: string; phone: string }[];
+  } | null> {
+    throw new Error('Method not implemented.');
   }
 }

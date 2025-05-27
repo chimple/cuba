@@ -229,17 +229,11 @@ export class AvatarObj {
         //     path: path,
         //   });
         //   let suggesstionJson = await response.data;
-        //   console.log("Avatar Sugguestion Json ", suggesstionJson);
 
-        //   console.log(
-        //     "Avatar suggesstionJson.data ",
-        //     suggesstionJson,
-        //     JSON.parse(suggesstionJson).data
-        //   );
+       
 
         //   this._allSuggestions = JSON.parse(suggesstionJson).data;
         // } catch (error) {
-        //   console.log("await Filesystem.readFile({ failed");
 
         response = await fetch(path);
         let suggesstionJson = await response.json();
@@ -266,7 +260,7 @@ export class AvatarObj {
       this._option3 = currentSuggestionInJson[11];
       this._option4 = currentSuggestionInJson[12];
     } catch (error) {
-      console.log("Failed to load Avatar Data", error);
+      console.error("Failed to load Avatar Data", error);
     }
   }
 
@@ -369,7 +363,7 @@ export class AvatarObj {
       }
       this._mode = AvatarModes.ShowWeeklyProgress;
     } catch (error) {
-      console.log("loadAvatarWeeklyProgressData error ", error);
+      console.error("loadAvatarWeeklyProgressData error ", error);
     }
   }
 }

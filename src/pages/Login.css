@@ -20,6 +20,7 @@ p {
     left: 50%;
     top: 15%;
     transform: translateY(-50%) translateX(-50%); */
+  margin-bottom: 3px;
 }
 
 #chimple-brand-text1 {
@@ -48,7 +49,7 @@ p {
   transform: translateY(-1.5vw);
   text-align: center;
   line-height: 1;
-  font-size: 1.5vw;
+  font-size: var(--text-sizeL);
   color: var(--text-color);
 }
 
@@ -234,7 +235,7 @@ p {
   margin: -2.6% 0% 2% 32.8vw;
 }
 .student-credentials-container {
-  margin-top: 1vh;
+  margin-top: 10vh;
 }
 .school-icon-2 {
   max-height: 50px;

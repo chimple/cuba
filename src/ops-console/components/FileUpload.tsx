@@ -65,6 +65,7 @@ const FileUpload: React.FC = () => {
     Marathi: "मराठी",
   };
 
+
   const createStyledCell = (message, isError) => {
     const color = isError ? "FF0000" : "00A000";
     return {
@@ -89,6 +90,7 @@ const FileUpload: React.FC = () => {
       },
     };
   };
+
 
   useEffect(() => {
     setVerifyingProgressState(progressRef.current);
@@ -487,7 +489,6 @@ const FileUpload: React.FC = () => {
           if (!className || className.trim() === "") {
             errors.push("Class name should not be empty");
           }
-         
           if (errors.length > 0) {
             row["Updated"] = createStyledCell(
               `❌ Errors: ${errors.join(", ")}`,
@@ -666,7 +667,6 @@ const FileUpload: React.FC = () => {
               }
             }
           }
-
           if (errors.length > 0) {
             row["Updated"] = createStyledCell(
               `❌ Errors: ${errors.join(", ")}`,

@@ -7,10 +7,10 @@
   display: flex;
   align-items: center;
 }
-.avatar-img {
+.student-user-avatar-img {
   border-radius: 50%;
-  height: 8vh;
-  width: 8vh;
+  height: clamp(30px,8vh,60px);
+  width: clamp(30px,8vh,60px);
 }
 .user-img {
   max-width: 9vw;

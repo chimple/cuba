@@ -10,6 +10,7 @@ import {
   CURRENT_STUDENT,
   CURRENT_USER,
   PAGES,
+  SCHOOL_LOGIN,
 } from "../../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { Util } from "../../utility/util";
@@ -23,6 +24,7 @@ const ParentLogout: React.FC<{}> = ({}) => {
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.removeItem(CURRENT_USER);
     localStorage.removeItem(CURRENT_MODE);
+    localStorage.removeItem(SCHOOL_LOGIN);
     history.replace(PAGES.APP_LANG_SELECTION);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };
