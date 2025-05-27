@@ -2618,16 +2618,16 @@ export class SqliteApi implements ServiceApi {
 
       // Define the query to fetch the leaderboard data for the given student
       const currentStudentQuery = `
-        SELECT 'allTime' as type, student_id, name,
+        SELECT 'allTime' as type, res.student_id, name,
                count(res.id) as lessons_played,
                sum(score) as total_score,
                sum(time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
         WHERE res.student_id = '${studentId}'
-        GROUP BY student_id, u.name
+        GROUP BY res.student_id, u.name
         UNION ALL
-        SELECT 'monthly' as type, student_id, u.name,
+        SELECT 'monthly' as type, res.student_id, u.name,
                count(res.id) as lessons_played,
                sum(score) as total_score,
                sum(time_spent) as total_time_spent
@@ -2635,9 +2635,9 @@ export class SqliteApi implements ServiceApi {
         JOIN ${TABLES.User} u ON u.id = res.student_id
         WHERE res.student_id = '${studentId}'
         AND strftime('%m', res.created_at) = strftime('%m', datetime('now'))
-        GROUP BY student_id, u.name
+        GROUP BY res.student_id, u.name
         UNION ALL
-        SELECT 'weekly' as type, student_id, u.name,
+        SELECT 'weekly' as type, res.student_id, u.name,
                count(res.id) as lessons_played,
                sum(score) as total_score,
                sum(time_spent) as total_time_spent
@@ -2645,7 +2645,7 @@ export class SqliteApi implements ServiceApi {
         JOIN ${TABLES.User} u ON u.id = res.student_id
         WHERE res.student_id = '${studentId}'
         AND strftime('%W', res.created_at) = strftime('%W', datetime('now'))
-        GROUP BY student_id, u.name
+        GROUP BY res.student_id, u.name
       `;
 
       // Execute the query
@@ -3182,7 +3182,7 @@ export class SqliteApi implements ServiceApi {
       ON cu.class_id = c.id
       join ${TABLES.School} s
       ON c.school_id = s.id
-      where user_id = "${userId}" and role = "${RoleType.STUDENT}"`
+      where c.is_deleted = 0 and user_id = "${userId}" and role = "${RoleType.STUDENT}"`
     );
     if (!res || !res.values || res.values.length < 1) return data;
     data.classes = res.values;
