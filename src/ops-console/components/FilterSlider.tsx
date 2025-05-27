@@ -10,6 +10,8 @@ import {
   Checkbox,
   Button,
   Drawer,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import "./FilterSlider.css";
@@ -36,16 +38,28 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
   onCancel,
   autocompleteStyles = {},
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   return (
     <Drawer
       anchor="right"
       open={isOpen}
       onClose={onClose}
-      className="filter-slider-drawer-FilterSlider"
-      style={{ marginBottom: "100px" }}
+      classes={{ paper: "filter-slider-drawer-FilterSlider" }}
+      PaperProps={{
+        sx: {
+          width: isMobile ? "100%" : 400,
+          padding: 2,
+          boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh",
+        },
+      }}
     >
       <Box className="filter-header-FilterSlider">
-        <Typography variant="h6">Filters</Typography>
+        <Typography variant="h6">{t("Filters")}</Typography>
         <IconButton onClick={onClose}>
           <CloseIcon />
         </IconButton>
@@ -79,7 +93,9 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
                 variant="outlined"
               />
             )}
-            className={`filter-autocomplete${(filters[key] && filters[key].length > 0) ? ' filter-autocomplete-selected-FilterSlider' : ''}`}
+            className={`filter-autocomplete${
+              filters[key]?.length > 0 ? " filter-autocomplete-selected-FilterSlider" : ""
+            }`}
             sx={autocompleteStyles}
           />
         ))}
