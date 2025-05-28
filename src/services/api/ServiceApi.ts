@@ -1596,4 +1596,13 @@ export interface ServiceApi {
     partnerDetails: { label: string; value: string }[];
     programManagers: { name: string; role: string; phone: string }[];
   } | null>;
+
+  /**
+   * Creates a auto student profile for a parent and returns the student object
+   * @param {string} languageDocId -  languageDocId is `Language` doc id
+   * @returns {User} Student User Object
+   */
+  createAutoProfile(
+    languageDocId: string | undefined
+  ): Promise<TableTypes<"user">>;
 }

@@ -20,6 +20,10 @@ import {
   LATEST_STARS,
   SchoolRoleMap,
   MODEL,
+  COURSES,
+  CHIMPLE_HINDI,
+  GRADE1_KANNADA,
+  GRADE1_MARATHI,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -4838,5 +4842,135 @@ order by
     schoolIds: string[]
   ): Promise<SchoolRoleMap[]> {
     return await this._serverApi.getFieldCoordinatorsForSchools(schoolIds);
+  }
+  async createAutoProfile(
+    languageDocId: string | undefined
+  ): Promise<TableTypes<"user">> {
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+  const studentProfile = await this.getParentStudentProfiles();
+  if (studentProfile.length > 0) return studentProfile[0];
+    const boardDocId = OTHER_CURRICULUM;
+    const gradeDocId = grade1;
+    const studentId = uuidv4();
+    const newStudent: TableTypes<"user"> = {
+      id: studentId,
+      name: null,
+      age: null,
+      gender: null,
+      avatar: null,
+      image: null,
+      curriculum_id: boardDocId ?? null,
+      grade_id: gradeDocId ?? null,
+      language_id: languageDocId ?? null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+      is_tc_accepted: true,
+      email: null,
+      phone: null,
+      fcm_token: null,
+      music_off: false,
+      sfx_off: false,
+      student_id: null,
+    };
+
+    await this.executeQuery(
+      `
+      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `,
+      [
+        newStudent.id,
+        newStudent.name,
+        newStudent.age,
+        newStudent.gender,
+        newStudent.avatar,
+        newStudent.image,
+        newStudent.curriculum_id,
+        newStudent.grade_id,
+        newStudent.language_id,
+        newStudent.created_at,
+        newStudent.updated_at,
+      ]
+    );
+
+    const parentUserId = uuidv4();
+    await this.executeQuery(
+      `
+      INSERT INTO parent_user (id, parent_id, student_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?);
+      `,
+      [
+        parentUserId,
+        _currentUser.id,
+        studentId,
+        new Date().toISOString(),
+        new Date().toISOString(),
+      ]
+    );
+
+    let allCourses;
+    if (gradeDocId && boardDocId) {
+      allCourses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
+    }
+    // Find English, Maths, and language-dependent subject
+    const englishCourse = allCourses.find((c) => c.code?.includes(COURSES.ENGLISH));
+    const mathsCourse = allCourses.find((c) => c.code?.includes(COURSES.MATHS));
+    const digitalSkillsCourse = allCourses.find((c) => c.code?.includes(COURSES.PUZZLE));
+    const language = await this.getLanguageWithId(languageDocId!);
+    let langCourse;
+    if (language && language.code !== COURSES.ENGLISH) {
+      // Map language code to courseId
+      const thirdLanguageCourseMap: Record<string, string> = {
+        hi: CHIMPLE_HINDI,
+        kn: GRADE1_KANNADA,
+        mr: GRADE1_MARATHI,
+      };
+    
+      const courseId = thirdLanguageCourseMap[language.code ?? ""];
+      if (courseId) {
+        langCourse = await this.getCourse(courseId);
+      } 
+    }
+    const coursesToAdd = [englishCourse, mathsCourse, langCourse, digitalSkillsCourse].filter(
+      Boolean
+    );
+
+    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
+    await this.updatePushChanges(TABLES.ParentUser, MUTATE_TYPES.INSERT, {
+      id: parentUserId,
+      parent_id: _currentUser.id,
+      student_id: studentId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    });
+
+    for (const course of coursesToAdd) {
+      const newUserCourse: TableTypes<"user_course"> = {
+        course_id: course.id,
+        created_at: new Date().toISOString(),
+        id: uuidv4(),
+        is_deleted: false,
+        updated_at: new Date().toISOString(),
+        user_id: studentId,
+      };
+      await this.executeQuery(
+        `
+      INSERT INTO user_course (id, user_id, course_id)
+    VALUES (?, ?, ?);
+  `,
+        [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
+      );
+      this.updatePushChanges(
+        TABLES.UserCourse,
+        MUTATE_TYPES.INSERT,
+        newUserCourse
+      );
+    }
+
+    return newStudent;
   }
 }

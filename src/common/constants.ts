@@ -819,3 +819,6 @@ export const QUIZ_POPUP_SHOWN = "quizPopupShown";
 export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
 export const GrowthBookAttributes = "growthBookAttributes";
 export const SCHOOL_LOGIN = "schoolLogin";
+export const CHIMPLE_HINDI = "7e9d65fa-ac2e-452e-bca4-1499d5c174e0"
+export const GRADE1_KANNADA = "a90608de-4376-4baf-82c2-07760b2aa899"
+export const GRADE1_MARATHI = "2cada0d1-db3d-4da0-8ade-e9ba282a3558"

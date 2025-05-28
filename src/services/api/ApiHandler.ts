@@ -1179,4 +1179,11 @@ export class ApiHandler implements ServiceApi {
   } | null> {
     return await this.s.getProgramData(programId);
   }
+  public async createAutoProfile(
+    languageDocId: string | undefined
+  ): Promise<TableTypes<"user">> {
+    return await this.s.createAutoProfile(
+      languageDocId
+    );
+  }
 }
