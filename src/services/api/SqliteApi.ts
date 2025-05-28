@@ -612,7 +612,11 @@ export class SqliteApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    group4: string | null,
+    image: File | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -628,10 +632,14 @@ export class SqliteApi implements ServiceApi {
       group1: group1 ?? null,
       group2: group2 ?? null,
       group3: group3 ?? null,
+      group4: group4 ?? null,
       image: result ?? null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
+      program_id: program_id ?? null,
+      udise: udise ?? null,
+      address: address ?? null,
       model: null,
     };
 
@@ -696,7 +704,11 @@ export class SqliteApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    image: File | null,
+    group4: string | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -712,10 +724,14 @@ export class SqliteApi implements ServiceApi {
       group2: group2 ?? school.group2,
       group3: group3 ?? school.group3,
       image: result ?? school.image,
+      group4: group4 ?? school.group4,
       updated_at: new Date().toISOString(),
       created_at: school.created_at,
       id: school.id,
       is_deleted: false,
+      program_id: program_id ?? null,
+      udise: udise ?? null,
+      address: address ?? null,
       model: null,
     };
     const updatedSchoolQuery = `
@@ -4754,6 +4770,19 @@ order by
     return await this._serverApi.getUniqueGeoData();
   }
 
+  async getProgramForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"program"> | undefined> {
+    const prog = await this._serverApi.getProgramForSchool(schoolId);
+    return prog;
+  }
+
+  async getProgramManagersForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    const users = await this._serverApi.getProgramManagersForSchool(schoolId);
+    return users;
+  }
   async updateStudentStars(
     studentId: string,
     totalStars: number
@@ -4797,9 +4826,7 @@ order by
   ): Promise<SchoolRoleMap[]> {
     return await this._serverApi.getProgramManagersForSchools(schoolIds);
   }
-   async getProgramData(
-    programId: string
-  ): Promise<{
+  async getProgramData(programId: string): Promise<{
     programDetails: { label: string; value: string }[];
     locationDetails: { label: string; value: string }[];
     partnerDetails: { label: string; value: string }[];

@@ -117,32 +117,32 @@ export class SupabaseApi implements ServiceApi {
     // Combine and filter out assignments that already have a result
     const assignments = [...(classWise ?? []), ...(individual ?? [])];
 
- // Limit to 20 total assignments to check
-  const limitedAssignments = assignments.slice(0, 20);
+    // Limit to 20 total assignments to check
+    const limitedAssignments = assignments.slice(0, 20);
 
-  const results = await Promise.all(
-    limitedAssignments.map(async (assignment) => {
-      if (!this.supabase) {
-        return null;
-      }
-      const { data: result, error: resultError } = await this.supabase
-        .from("result")
-        .select("id")
-        .eq("assignment_id", assignment.id)
-        .eq("student_id", studentId)
-        .eq("is_deleted", false)
-        .maybeSingle();
+    const results = await Promise.all(
+      limitedAssignments.map(async (assignment) => {
+        if (!this.supabase) {
+          return null;
+        }
+        const { data: result, error: resultError } = await this.supabase
+          .from("result")
+          .select("id")
+          .eq("assignment_id", assignment.id)
+          .eq("student_id", studentId)
+          .eq("is_deleted", false)
+          .maybeSingle();
 
-      if (resultError) {
-        console.error("Error checking assignment result:", resultError);
-        return null;
-      }
-      return !result ? assignment : null;
-    })
-  );
+        if (resultError) {
+          console.error("Error checking assignment result:", resultError);
+          return null;
+        }
+        return !result ? assignment : null;
+      })
+    );
 
-  // Return the first pending assignment, or undefined if none
-  return results.find((a) => !!a) as TableTypes<"assignment"> | undefined;
+    // Return the first pending assignment, or undefined if none
+    return results.find((a) => !!a) as TableTypes<"assignment"> | undefined;
   }
 
   async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
@@ -656,7 +656,11 @@ export class SupabaseApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    image: File | null,
+    group4?: string | null,
+    program_id?: string | null,
+    udise?: string | null,
+    address?: string | null
   ): Promise<TableTypes<"school">> {
     if (!this.supabase) return {} as TableTypes<"school">;
 
@@ -670,11 +674,15 @@ export class SupabaseApi implements ServiceApi {
       group2: group2 ?? school.group2,
       group3: group3 ?? school.group3,
       image: result ?? school.image,
+      group4: group4 ?? school.group4,
+      program_id: program_id ?? school.program_id,
+      udise: udise ?? school.udise,
+      address: address ?? school.address,
       updated_at: new Date().toISOString(),
       created_at: school.created_at,
       id: school.id,
       is_deleted: false,
-      model: null
+      model: null,
     };
 
     const { error } = await this.supabase
@@ -828,7 +836,11 @@ export class SupabaseApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    group4: string | null,
+    image: File | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">> {
     if (!this.supabase) return {} as TableTypes<"school">;
     const _currentUser =
@@ -850,10 +862,14 @@ export class SupabaseApi implements ServiceApi {
       group2: group2 ?? null,
       group3: group3 ?? null,
       image: result ?? null,
+      group4: group4 ?? null,
+      program_id: program_id ?? null,
+      udise: udise ?? null,
+      address: address ?? null,
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
-      model: null
+      model: null,
     };
 
     // Insert school
@@ -1518,7 +1534,10 @@ export class SupabaseApi implements ServiceApi {
 
     const userCourseIds = userCourses?.map((uc) => uc.course_id) ?? [];
 
-    let query = this.supabase.from("course").select("*").eq("is_deleted", false);
+    let query = this.supabase
+      .from("course")
+      .select("*")
+      .eq("is_deleted", false);
 
     if (userCourseIds.length > 0) {
       query = query.not("id", "in", `(${userCourseIds.join(",")})`);
@@ -1859,61 +1878,61 @@ export class SupabaseApi implements ServiceApi {
     gradeDocId: string,
     languageDocId: string
   ): Promise<TableTypes<"user">> {
-if (!this.supabase) return student;
+    if (!this.supabase) return student;
 
-  const updatedFields = {
-    name,
-    age,
-    gender,
-    avatar,
-    image: image ?? null,
-    curriculum_id: boardDocId,
-    grade_id: gradeDocId,
-    language_id: languageDocId,
-  };
+    const updatedFields = {
+      name,
+      age,
+      gender,
+      avatar,
+      image: image ?? null,
+      curriculum_id: boardDocId,
+      grade_id: gradeDocId,
+      language_id: languageDocId,
+    };
 
-  await this.supabase.from("user").update(updatedFields).eq("id", student.id);
-  Object.assign(student, updatedFields);
+    await this.supabase.from("user").update(updatedFields).eq("id", student.id);
+    Object.assign(student, updatedFields);
 
-  const courses =
-    gradeDocId && boardDocId
-      ? await this.getCourseByUserGradeId(gradeDocId, boardDocId)
-      : [];
+    const courses =
+      gradeDocId && boardDocId
+        ? await this.getCourseByUserGradeId(gradeDocId, boardDocId)
+        : [];
 
-  if (courses && courses.length > 0) {
-    // Batch fetch existing user_course entries for this student and these courses
-    const courseIds = courses.map((c) => c.id);
-    const { data: existingUserCourses, error } = await this.supabase
-      .from("user_course")
-      .select("course_id")
-      .eq("user_id", student.id)
-      .in("course_id", courseIds)
-      .eq("is_deleted", false);
+    if (courses && courses.length > 0) {
+      // Batch fetch existing user_course entries for this student and these courses
+      const courseIds = courses.map((c) => c.id);
+      const { data: existingUserCourses, error } = await this.supabase
+        .from("user_course")
+        .select("course_id")
+        .eq("user_id", student.id)
+        .in("course_id", courseIds)
+        .eq("is_deleted", false);
 
-    const existingCourseIds = new Set(
-      (existingUserCourses ?? []).map((uc) => uc.course_id)
-    );
+      const existingCourseIds = new Set(
+        (existingUserCourses ?? []).map((uc) => uc.course_id)
+      );
 
-    // Prepare inserts for only missing courses
-    const now = new Date().toISOString();
-    const inserts = courses
-      .filter((c) => !existingCourseIds.has(c.id))
-      .map((c) => ({
-        id: uuidv4(),
-        user_id: student.id,
-        course_id: c.id,
-        created_at: now,
-        updated_at: now,
-        is_deleted: false,
-      }));
+      // Prepare inserts for only missing courses
+      const now = new Date().toISOString();
+      const inserts = courses
+        .filter((c) => !existingCourseIds.has(c.id))
+        .map((c) => ({
+          id: uuidv4(),
+          user_id: student.id,
+          course_id: c.id,
+          created_at: now,
+          updated_at: now,
+          is_deleted: false,
+        }));
 
-    // Insert all missing user_course entries in one call (if any)
-    if (inserts.length > 0) {
-      await this.supabase.from("user_course").insert(inserts);
+      // Insert all missing user_course entries in one call (if any)
+      if (inserts.length > 0) {
+        await this.supabase.from("user_course").insert(inserts);
+      }
     }
-  }
 
-  return student;
+    return student;
   }
   async updateStudentFromSchoolMode(
     student: TableTypes<"user">,
@@ -2028,66 +2047,66 @@ if (!this.supabase) return student;
 
     const now = new Date().toISOString();
 
-await Promise.all(
-    selectedCourseIds.map(async (courseId) => {
-      // Check existing entry
-      if (!this.supabase) return;
-      const { data: existingEntry, error } = await this.supabase
-        .from("class_course")
-        .select("*")
-        .eq("class_id", classId)
-        .eq("course_id", courseId)
-        .eq("is_deleted", false)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Error fetching class_course:", error);
-        throw error;
-      }
-
-      if (!existingEntry) {
-        // Insert new
-        const newEntry = {
-          id: uuidv4(),
-          class_id: classId,
-          course_id: courseId,
-          created_at: now,
-          updated_at: now,
-          is_deleted: false,
-        };
-        const { error: insertError } = await this.supabase
+    await Promise.all(
+      selectedCourseIds.map(async (courseId) => {
+        // Check existing entry
+        if (!this.supabase) return;
+        const { data: existingEntry, error } = await this.supabase
           .from("class_course")
-          .insert(newEntry);
+          .select("*")
+          .eq("class_id", classId)
+          .eq("course_id", courseId)
+          .eq("is_deleted", false)
+          .maybeSingle();
 
-        if (insertError) {
-          console.error("Error inserting class_course:", insertError);
-          throw insertError;
+        if (error) {
+          console.error("Error fetching class_course:", error);
+          throw error;
         }
-      } else if (existingEntry.is_deleted) {
-        // Reactivate
-        const { error: updateError } = await this.supabase
-          .from("class_course")
-          .update({ is_deleted: false, updated_at: now })
-          .eq("id", existingEntry.id);
 
-        if (updateError) {
-          console.error("Error updating class_course:", updateError);
-          throw updateError;
-        }
-      } else {
-        // Update timestamp
-        const { error: timestampError } = await this.supabase
-          .from("class_course")
-          .update({ updated_at: now })
-          .eq("id", existingEntry.id);
+        if (!existingEntry) {
+          // Insert new
+          const newEntry = {
+            id: uuidv4(),
+            class_id: classId,
+            course_id: courseId,
+            created_at: now,
+            updated_at: now,
+            is_deleted: false,
+          };
+          const { error: insertError } = await this.supabase
+            .from("class_course")
+            .insert(newEntry);
 
-        if (timestampError) {
-          console.error("Error updating updated_at:", timestampError);
-          throw timestampError;
+          if (insertError) {
+            console.error("Error inserting class_course:", insertError);
+            throw insertError;
+          }
+        } else if (existingEntry.is_deleted) {
+          // Reactivate
+          const { error: updateError } = await this.supabase
+            .from("class_course")
+            .update({ is_deleted: false, updated_at: now })
+            .eq("id", existingEntry.id);
+
+          if (updateError) {
+            console.error("Error updating class_course:", updateError);
+            throw updateError;
+          }
+        } else {
+          // Update timestamp
+          const { error: timestampError } = await this.supabase
+            .from("class_course")
+            .update({ updated_at: now })
+            .eq("id", existingEntry.id);
+
+          if (timestampError) {
+            console.error("Error updating updated_at:", timestampError);
+            throw timestampError;
+          }
         }
-      }
-    })
-  );
+      })
+    );
   }
 
   async updateSchoolCourseSelection(
@@ -2098,65 +2117,65 @@ await Promise.all(
 
     const now = new Date().toISOString();
 
- await Promise.all(
-    selectedCourseIds.map(async (courseId) => {
-      if (!this.supabase) return;
-      const { data: existingEntry, error } = await this.supabase
-        .from("school_course")
-        .select("id, course_id, is_deleted")
-        .eq("school_id", schoolId)
-        .eq("course_id", courseId)
-        .eq("is_deleted", false)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Error fetching school_course:", error);
-        throw error;
-      }
-
-      if (!existingEntry) {
-        // Insert new course assignment
-        const newEntry = {
-          id: uuidv4(),
-          school_id: schoolId,
-          course_id: courseId,
-          created_at: now,
-          updated_at: now,
-          is_deleted: false,
-        };
-        const { error: insertError } = await this.supabase
+    await Promise.all(
+      selectedCourseIds.map(async (courseId) => {
+        if (!this.supabase) return;
+        const { data: existingEntry, error } = await this.supabase
           .from("school_course")
-          .insert(newEntry);
+          .select("id, course_id, is_deleted")
+          .eq("school_id", schoolId)
+          .eq("course_id", courseId)
+          .eq("is_deleted", false)
+          .maybeSingle();
 
-        if (insertError) {
-          console.error("Error inserting school_course:", insertError);
-          throw insertError;
+        if (error) {
+          console.error("Error fetching school_course:", error);
+          throw error;
         }
-      } else if (existingEntry.is_deleted) {
-        // Reactivate the deleted entry
-        const { error: updateError } = await this.supabase
-          .from("school_course")
-          .update({ is_deleted: false, updated_at: now })
-          .eq("id", existingEntry.id);
 
-        if (updateError) {
-          console.error("Error updating school_course:", updateError);
-          throw updateError;
-        }
-      } else {
-        // Update timestamp of existing active entry
-        const { error: timestampError } = await this.supabase
-          .from("school_course")
-          .update({ updated_at: now })
-          .eq("id", existingEntry.id);
+        if (!existingEntry) {
+          // Insert new course assignment
+          const newEntry = {
+            id: uuidv4(),
+            school_id: schoolId,
+            course_id: courseId,
+            created_at: now,
+            updated_at: now,
+            is_deleted: false,
+          };
+          const { error: insertError } = await this.supabase
+            .from("school_course")
+            .insert(newEntry);
 
-        if (timestampError) {
-          console.error("Error updating updated_at:", timestampError);
-          throw timestampError;
+          if (insertError) {
+            console.error("Error inserting school_course:", insertError);
+            throw insertError;
+          }
+        } else if (existingEntry.is_deleted) {
+          // Reactivate the deleted entry
+          const { error: updateError } = await this.supabase
+            .from("school_course")
+            .update({ is_deleted: false, updated_at: now })
+            .eq("id", existingEntry.id);
+
+          if (updateError) {
+            console.error("Error updating school_course:", updateError);
+            throw updateError;
+          }
+        } else {
+          // Update timestamp of existing active entry
+          const { error: timestampError } = await this.supabase
+            .from("school_course")
+            .update({ updated_at: now })
+            .eq("id", existingEntry.id);
+
+          if (timestampError) {
+            console.error("Error updating updated_at:", timestampError);
+            throw timestampError;
+          }
         }
-      }
-    })
-  );
+      })
+    );
   }
 
   async getSubject(id: string): Promise<TableTypes<"subject"> | undefined> {
@@ -2388,7 +2407,6 @@ await Promise.all(
       if (classError) {
         console.error("Error fetching classes:", classError);
       } else {
-
         const schoolIdList = classes.map((c) => c.school_id);
         const { data: schools, error: schoolError } = await this.supabase
           .from(TABLES.School)
@@ -4303,7 +4321,7 @@ await Promise.all(
       return [];
     }
 
-    const userIds:string[] = data?.map((row) => row.user_id) ?? [];
+    const userIds: string[] = data?.map((row) => row.user_id) ?? [];
     return userIds ?? [];
   }
   async getStudentResultByDate(
@@ -4477,7 +4495,7 @@ await Promise.all(
     try {
       const { data, error } = await this.supabase
         .from(TABLES.SchoolUser)
-        .select("school(*)") 
+        .select("school(*)")
         .in("school_id", schoolIds)
         .eq("role", RoleType.AUTOUSER)
         .eq("is_deleted", false);
@@ -5580,114 +5598,167 @@ await Promise.all(
     }));
   }
 
+  async getProgramForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"program"> | undefined> {
+    if (!this.supabase) return;
+    const { data, error } = await this.supabase
+      .from("school")
+      .select("program:program_id(*)")
+      .eq("id", schoolId)
+      .maybeSingle();
+    if (error) {
+      console.error("Error fetching program with join:", error);
+      return;
+    }
+    const program = (data?.program ?? undefined) as
+      | TableTypes<"program">
+      | undefined;
+    return program;
+  }
+
+  async getProgramManagersForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    if (!this.supabase) return;
+    const { data, error } = await this.supabase
+      .from("school")
+      .select(
+        `
+      program:program_id(
+        program_users:program_user(
+          role,
+          is_deleted,
+          user(*)
+        )
+      )
+    `
+      )
+      .eq("id", schoolId)
+      .maybeSingle();
+    if (error) {
+      console.error("Error fetching program managers with join:", error);
+      return;
+    }
+    const programUsers =
+      (data?.program as { program_users?: any[] })?.program_users ?? [];
+    const users = programUsers
+      .filter((pu) => pu.role === RoleType.PROGRAM_MANAGER && !pu.is_deleted)
+      .map((pu) => pu.user as TableTypes<"user">);
+    return users;
+  }
+
   async updateStudentStars(
     studentId: string,
     totalStars: number
   ): Promise<void> {
-   if (!this.supabase || !studentId) return;
-  try {
-    const { error } = await this.supabase
-      .from(TABLES.User)
-      .update({ stars: totalStars })
-      .eq("id", studentId);
+    if (!this.supabase || !studentId) return;
+    try {
+      const { error } = await this.supabase
+        .from(TABLES.User)
+        .update({ stars: totalStars })
+        .eq("id", studentId);
 
-    if (error) {
+      if (error) {
+        console.error("Error setting stars for student:", error);
+        throw error;
+      }
+    } catch (error) {
       console.error("Error setting stars for student:", error);
-      throw error;
     }
-  } catch (error) {
-    console.error("Error setting stars for student:", error);
-  }
   }
 
   async getProgramData(programId: string): Promise<{
-  programDetails: { label: string; value: string }[];
-  locationDetails: { label: string; value: string }[];
-  partnerDetails: { label: string; value: string }[];
-  programManagers: { name: string; role: string; phone: string }[];
-} | null> {
-  if (!this.supabase) {
-    console.error("Supabase client not initialized.");
-    return null;
+    programDetails: { label: string; value: string }[];
+    locationDetails: { label: string; value: string }[];
+    partnerDetails: { label: string; value: string }[];
+    programManagers: { name: string; role: string; phone: string }[];
+  } | null> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return null;
+    }
+
+    try {
+      // 1. Fetch program record
+      const { data: program, error: programError } = await this.supabase
+        .from("program")
+        .select("*")
+        .eq("id", programId)
+        .single();
+
+      if (programError || !program) {
+        console.error("Error fetching program:", programError);
+        return null;
+      }
+
+      // 2. Fetch managers from user_programs
+      const { data: mappings, error: mappingsError } = await this.supabase
+        .from("program_user")
+        .select("user")
+        .eq("program_id", programId)
+        .eq("role", "program_manager");
+
+      if (mappingsError) {
+        console.error("Error fetching program managers:", mappingsError);
+        return null;
+      }
+
+      const userIds = mappings.map((m) => m.user);
+      // 3. Fetch user details
+      const { data: users, error: usersError } = await this.supabase
+        .from("user")
+        .select("id, name, phone")
+        .in("id", userIds);
+      if (usersError) {
+        console.error("Error fetching user details:", usersError);
+        return null;
+      }
+
+      // 4. Format the response
+      const programDetails = [
+        { label: "Program Name", value: program.name },
+        { label: "Program Type", value: program.program_type },
+        { label: "Program Model", value: program.model },
+        {
+          label: "Program Date",
+          value: `${program.start_date}  ${program.end_date}`,
+        },
+      ];
+
+      const locationDetails = [
+        { label: "Country", value: program.country },
+        { label: "State", value: program.state },
+        { label: "District", value: program.district },
+        { label: "Cluster", value: program.cluster },
+        { label: "Block", value: program.block },
+        { label: "Village", value: program.village },
+      ];
+
+      const partnerDetails = [
+        {
+          label: "Implementation Partner",
+          value: program.implementation_partner,
+        },
+        { label: "Funding Partner", value: program.funding_partner },
+        { label: "Institute Owner", value: program.institute_partner },
+      ];
+
+      const programManagers = users.map((user) => ({
+        name: user.name,
+        role: "Program Manager",
+        phone: user.phone,
+      }));
+
+      return {
+        programDetails,
+        locationDetails,
+        partnerDetails,
+        programManagers,
+      };
+    } catch (err) {
+      console.error("Unexpected error in getProgramData:", err);
+      return null;
+    }
   }
-
-  try {
-    // 1. Fetch program record
-    const { data: program, error: programError } = await this.supabase
-      .from('program')
-      .select('*')
-      .eq('id', programId)
-      .single();
-
-    if (programError || !program) {
-      console.error('Error fetching program:', programError);
-      return null;
-    }
-
-    // 2. Fetch managers from user_programs
-    const { data: mappings, error: mappingsError } = await this.supabase
-      .from('program_user')
-      .select('user')
-      .eq('program_id', programId)
-      .eq('role', 'program_manager');
-
-    if (mappingsError) {
-      console.error('Error fetching program managers:', mappingsError);
-      return null;
-    }
-
-    const userIds = mappings.map(m => m.user);
-    // 3. Fetch user details
-    const { data: users, error: usersError } = await this.supabase
-      .from('user')
-      .select('id, name, phone')
-      .in('id', userIds);
-    if (usersError) {
-      console.error('Error fetching user details:', usersError);
-      return null;
-    }
-
-    // 4. Format the response
-    const programDetails = [
-      { label: 'Program Name', value: program.name },
-      { label: 'Program Type', value: program.program_type },
-      { label: 'Program Model', value: program.model },
-      { label: 'Program Date', value: `${program.start_date}  ${program.end_date}` },
-    ];
-
-    const locationDetails = [
-      { label: 'Country', value: program.country },
-      { label: 'State', value: program.state },
-      { label: 'District', value: program.district },
-      { label: 'Cluster', value: program.cluster },
-      { label: 'Block', value: program.block },
-      { label: 'Village', value: program.village },
-    ];
-
-    const partnerDetails = [
-      { label: 'Implementation Partner', value: program.implementation_partner },
-      { label: 'Funding Partner', value: program.funding_partner },
-      { label: 'Institute Owner', value: program.institute_partner},
-    ];
-
-    const programManagers = users.map(user => ({
-      name: user.name,
-      role: 'Program Manager',
-      phone: user.phone,
-    }));
-
-    return {
-      programDetails,
-      locationDetails,
-      partnerDetails,
-      programManagers,
-    };
-  } catch (err) {
-    console.error('Unexpected error in getProgramData:', err);
-    return null;
-  }
-}
-  
-
-
 }
