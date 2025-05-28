@@ -92,8 +92,6 @@ import LidoPlayer from "./pages/LidoPlayer";
 import UploadPage from "./ops-console/pages/UploadPage";
 import SidebarPage from "./ops-console/pages/SidebarPage";
 import { initializeClickListener } from "./analytics/clickUtil";
-import { EVENTS } from "./common/constants";
-import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 import ResetPassword from "./pages/ResetPassword";
 import DisplayClasses from "./teachers-module/pages/DisplayClasses";
 import LessonDetails from "./teachers-module/pages/LessonDetails";
@@ -140,21 +138,6 @@ const USED_TIME_KEY = "usedTime";
 const LAST_ACCESS_DATE_KEY = "lastAccessDate";
 const IS_INITIALIZED = "isInitialized";
 let timeoutId: NodeJS.Timeout;
-
-const gb = new GrowthBook({
-  apiHost: "https://cdn.growthbook.io",
-  clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
-  enableDevMode: true,
-  trackingCallback: (experiment, result) => {
-    Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
-      experimentId: experiment.key,
-      variationId: result.key,
-    });
-  },
-});
-gb.init({
-  streaming: true,
-});
 
 const App: React.FC = () => {
   const [online, setOnline] = useState(navigator.onLine);
@@ -407,247 +390,245 @@ const App: React.FC = () => {
     }
   }
   return (
-    <GrowthBookProvider growthbook={gb}>
-      <IonApp>
-        <IonReactRouter basename={BASE_NAME}>
-          <IonRouterOutlet>
-            <Switch>
-              <Route path={PAGES.APP_UPDATE} exact={true}>
-                <HotUpdate />
-              </Route>
-              <Route path={PAGES.RESET_PASSWORD} exact={true}>
-                <ResetPassword />
-              </Route>
-              <ProtectedRoute path={PAGES.HOME} exact={true}>
-                <Home />
-              </ProtectedRoute>
-              <Route path={PAGES.LOGIN} exact={true}>
-                <Login />
-              </Route>
-              <ProtectedRoute path={PAGES.GAME} exact={true}>
-                <CocosGame />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.LIDO_PLAYER} exact={true}>
-                <LidoPlayer />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.END} exact={true}>
-                <End />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.PROFILE} exact={true}>
-                <Profile />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.PARENT} exact={true}>
-                <Parent />
-              </ProtectedRoute>
-              <Route path={PAGES.APP_LANG_SELECTION} exact={true}>
-                <AppLangSelection />
-              </Route>
-              <ProtectedRoute path={PAGES.CREATE_STUDENT} exact={true}>
-                <EditStudent />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.EDIT_STUDENT} exact={true}>
-                <EditStudent />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.DISPLAY_STUDENT} exact={true}>
-                <DisplayStudents />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.DISPLAY_SUBJECTS} exact={true}>
-                <DisplaySubjects />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.ADD_SUBJECTS} exact={true}>
-                <AddCourses />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.DISPLAY_CHAPTERS} exact={true}>
-                <DisplayChapters />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.STUDENT_PROGRESS} exact={true}>
-                <StudentProgress />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.SEARCH} exact={true}>
-                <SearchLesson />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.LEADERBOARD} exact={true}>
-                <Leaderboard />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.ASSIGNMENT} exact={true}>
-                <Home />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.LIVE_QUIZ} exact={true}>
-                <Home />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.JOIN_CLASS} exact={true}>
-                <Home />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
-                <SelectMode />
-              </ProtectedRoute>
-              {/* <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
+    <IonApp>
+      <IonReactRouter basename={BASE_NAME}>
+        <IonRouterOutlet>
+          <Switch>
+            <Route path={PAGES.APP_UPDATE} exact={true}>
+              <HotUpdate />
+            </Route>
+            <Route path={PAGES.RESET_PASSWORD} exact={true}>
+              <ResetPassword />
+            </Route>
+            <ProtectedRoute path={PAGES.HOME} exact={true}>
+              <Home />
+            </ProtectedRoute>
+            <Route path={PAGES.LOGIN} exact={true}>
+              <Login />
+            </Route>
+            <ProtectedRoute path={PAGES.GAME} exact={true}>
+              <CocosGame />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LIDO_PLAYER} exact={true}>
+              <LidoPlayer />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.END} exact={true}>
+              <End />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.PROFILE} exact={true}>
+              <Profile />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.PARENT} exact={true}>
+              <Parent />
+            </ProtectedRoute>
+            <Route path={PAGES.APP_LANG_SELECTION} exact={true}>
+              <AppLangSelection />
+            </Route>
+            <ProtectedRoute path={PAGES.CREATE_STUDENT} exact={true}>
+              <EditStudent />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.EDIT_STUDENT} exact={true}>
+              <EditStudent />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.DISPLAY_STUDENT} exact={true}>
+              <DisplayStudents />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.DISPLAY_SUBJECTS} exact={true}>
+              <DisplaySubjects />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_SUBJECTS} exact={true}>
+              <AddCourses />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.DISPLAY_CHAPTERS} exact={true}>
+              <DisplayChapters />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.STUDENT_PROGRESS} exact={true}>
+              <StudentProgress />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SEARCH} exact={true}>
+              <SearchLesson />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LEADERBOARD} exact={true}>
+              <Leaderboard />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ASSIGNMENT} exact={true}>
+              <Home />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LIVE_QUIZ} exact={true}>
+              <Home />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.JOIN_CLASS} exact={true}>
+              <Home />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
+              <SelectMode />
+            </ProtectedRoute>
+            {/* <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
               <TeacherProfile />
             </ProtectedRoute> */}
-              <ProtectedRoute path={PAGES.STUDENT_PROFILE} exact={true}>
-                <StudentProfile />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.ADD_STUDENT} exact={true}>
-                <AddStudent />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.USER_PROFILE} exact={true}>
-                <UserProfile />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.SUBJECTS_PAGE} exact={true}>
-                <SubjectSelection />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
-                <LiveQuizRoom />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.LIVE_QUIZ_GAME} exact={true}>
-                <LiveQuizGame />
-              </ProtectedRoute>
-              <Route path={PAGES.TERMS_AND_CONDITIONS} exact={true}>
-                <TermsAndConditions />
-              </Route>
-              <ProtectedRoute path={PAGES.LIVE_QUIZ_ROOM_RESULT} exact={true}>
-                <LiveQuizRoomResult />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.LIVE_QUIZ_LEADERBOARD} exact={true}>
-                <LiveQuizLeaderBoard />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.DISPLAY_SCHOOLS} exact={true}>
-                <DisplaySchools />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.STUDENT_REPORT} exact={true}>
-                <StudentReport />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.DISPLAY_CLASSES} exact={true}>
-                <DisplayClasses />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.MANAGE_SCHOOL} exact={true}>
-                <ManageSchools />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.SCHOOL_PROFILE} exact={true}>
-                <SchoolProfile />
-              </ProtectedRoute>
-              {/* <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
+            <ProtectedRoute path={PAGES.STUDENT_PROFILE} exact={true}>
+              <StudentProfile />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_STUDENT} exact={true}>
+              <AddStudent />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.USER_PROFILE} exact={true}>
+              <UserProfile />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SUBJECTS_PAGE} exact={true}>
+              <SubjectSelection />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
+              <LiveQuizRoom />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LIVE_QUIZ_GAME} exact={true}>
+              <LiveQuizGame />
+            </ProtectedRoute>
+            <Route path={PAGES.TERMS_AND_CONDITIONS} exact={true}>
+              <TermsAndConditions />
+            </Route>
+            <ProtectedRoute path={PAGES.LIVE_QUIZ_ROOM_RESULT} exact={true}>
+              <LiveQuizRoomResult />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LIVE_QUIZ_LEADERBOARD} exact={true}>
+              <LiveQuizLeaderBoard />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.DISPLAY_SCHOOLS} exact={true}>
+              <DisplaySchools />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.STUDENT_REPORT} exact={true}>
+              <StudentReport />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.DISPLAY_CLASSES} exact={true}>
+              <DisplayClasses />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.MANAGE_SCHOOL} exact={true}>
+              <ManageSchools />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SCHOOL_PROFILE} exact={true}>
+              <SchoolProfile />
+            </ProtectedRoute>
+            {/* <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
               
                 <EditSchool />
               
             </ProtectedRoute> */}
-              <ProtectedRoute path={PAGES.REQ_ADD_SCHOOL} exact={true}>
-                <ReqEditSchool />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.MANAGE_CLASS} exact={true}>
-                <ManageClass />
-              </ProtectedRoute>
-              {/* <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
+            <ProtectedRoute path={PAGES.REQ_ADD_SCHOOL} exact={true}>
+              <ReqEditSchool />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.MANAGE_CLASS} exact={true}>
+              <ManageClass />
+            </ProtectedRoute>
+            {/* <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
               
                 <EditSchool />
               
             </ProtectedRoute> */}
-              <ProtectedRoute path={PAGES.REQ_EDIT_SCHOOL} exact={true}>
-                <ReqEditSchool />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.DASHBOARD_DETAILS} exact={true}>
-                <DashBoardDetails />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.ADD_CLASS} exact={true}>
-                <EditClass />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.CLASS_PROFILE} exact={true}>
-                <ClassProfile />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.SHOW_CHAPTERS} exact={true}>
-                <ShowChapters />
-              </ProtectedRoute>
+            <ProtectedRoute path={PAGES.REQ_EDIT_SCHOOL} exact={true}>
+              <ReqEditSchool />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.DASHBOARD_DETAILS} exact={true}>
+              <DashBoardDetails />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_CLASS} exact={true}>
+              <EditClass />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.CLASS_PROFILE} exact={true}>
+              <ClassProfile />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SHOW_CHAPTERS} exact={true}>
+              <ShowChapters />
+            </ProtectedRoute>
 
-              <ProtectedRoute path={PAGES.SEARCH_LESSON} exact={true}>
-                <SearchLessons />
-              </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SEARCH_LESSON} exact={true}>
+              <SearchLessons />
+            </ProtectedRoute>
 
-              <ProtectedRoute path={PAGES.LESSON_DETAILS} exact={true}>
-                <LessonDetails />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.HOME_PAGE} exact={true}>
-                <HomePage />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.CLASS_USERS} exact={true}>
-                <ClassUsers />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.EDIT_CLASS} exact={true}>
-                <EditClass />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.SCHOOL_LIST} exact={true}>
-                <SchoolList />
-              </ProtectedRoute>
-              <ProtectedRoute
-                path={PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE}
-                exact={true}
-              >
-                <ShowStudentsInAssignmentPage />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.ADD_TEACHER} exact={true}>
-                <AddTeacher />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
-                <TeacherProfile />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.SCHOOL_USERS} exact={true}>
-                <SchoolUsers />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.ADD_PRINCIPAL} exact={true}>
-                <AddSchoolUser />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.ADD_COORDINATOR} exact={true}>
-                <AddSchoolUser />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.ADD_SPONSOR} exact={true}>
-                <AddSchoolUser />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.UPLOAD_PAGE} exact={true}>
-                <UploadPage />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.PROGRAM_PAGE} exact={true}>
-                <ProgramsPage />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.PROGRAM_DETAIL_PAGE} exact={true}>
-                <ProgramDetailPage />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.SIDEBAR_PAGE}>
-                <SidebarPage />
-              </ProtectedRoute>
-              <ProtectedRoute path={PAGES.NEW_PROGRAM} exact={true}>
-                <NewProgram />
-              </ProtectedRoute>
-            </Switch>
-          </IonRouterOutlet>
-          <IonAlert
-            isOpen={showModal}
-            onDidDismiss={() => setShowModal(false)}
-            header={t("Time for a break!") || ""}
-            message={
-              t(
-                "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
-              ) || ""
-            }
-            cssClass="custom-alert"
-            buttons={[
-              {
-                text: t("Continue"),
-                role: "cancel",
-                cssClass: "time-exceed-continue",
-                handler: handleContinue,
-              },
-            ]}
-            backdropDismiss={false}
-          />
-          {/*Toast notification for acknowledgment */}
-          <IonToast
-            isOpen={showToast}
-            onDidDismiss={() => setShowToast(false)}
-            message="You have resumed after exceeding the time limit."
-            duration={3000}
-          />
-        </IonReactRouter>
-      </IonApp>
-    </GrowthBookProvider>
+            <ProtectedRoute path={PAGES.LESSON_DETAILS} exact={true}>
+              <LessonDetails />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.HOME_PAGE} exact={true}>
+              <HomePage />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.CLASS_USERS} exact={true}>
+              <ClassUsers />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.EDIT_CLASS} exact={true}>
+              <EditClass />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SCHOOL_LIST} exact={true}>
+              <SchoolList />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE}
+              exact={true}
+            >
+              <ShowStudentsInAssignmentPage />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_TEACHER} exact={true}>
+              <AddTeacher />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
+              <TeacherProfile />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SCHOOL_USERS} exact={true}>
+              <SchoolUsers />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_PRINCIPAL} exact={true}>
+              <AddSchoolUser />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_COORDINATOR} exact={true}>
+              <AddSchoolUser />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_SPONSOR} exact={true}>
+              <AddSchoolUser />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.UPLOAD_PAGE} exact={true}>
+              <UploadPage />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.PROGRAM_PAGE} exact={true}>
+              <ProgramsPage />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.PROGRAM_DETAIL_PAGE} exact={true}>
+              <ProgramDetailPage />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SIDEBAR_PAGE}>
+              <SidebarPage />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.NEW_PROGRAM} exact={true}>
+              <NewProgram />
+            </ProtectedRoute>
+          </Switch>
+        </IonRouterOutlet>
+        <IonAlert
+          isOpen={showModal}
+          onDidDismiss={() => setShowModal(false)}
+          header={t("Time for a break!") || ""}
+          message={
+            t(
+              "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
+            ) || ""
+          }
+          cssClass="custom-alert"
+          buttons={[
+            {
+              text: t("Continue"),
+              role: "cancel",
+              cssClass: "time-exceed-continue",
+              handler: handleContinue,
+            },
+          ]}
+          backdropDismiss={false}
+        />
+        {/*Toast notification for acknowledgment */}
+        <IonToast
+          isOpen={showToast}
+          onDidDismiss={() => setShowToast(false)}
+          message="You have resumed after exceeding the time limit."
+          duration={3000}
+        />
+      </IonReactRouter>
+    </IonApp>
   );
 };
 

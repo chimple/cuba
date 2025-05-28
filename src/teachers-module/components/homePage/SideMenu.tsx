@@ -31,6 +31,7 @@ import { Capacitor } from "@capacitor/core";
 import DialogBoxButtons from "../../../components/parent/DialogBoxButtons​";
 import { ImSwitch } from "react-icons/im";
 import { t } from "i18next";
+import { updateLocalAttributes, useGbContext } from "../../../growthbook/Growthbook";
 
 const SideMenu: React.FC<{
   handleManageSchoolClick: () => void;
@@ -60,6 +61,7 @@ const SideMenu: React.FC<{
   }>({ id: "", name: "" });
   const [currentClassId, setCurrentClassId] = useState<string>("");
   const history = useHistory();
+  const { setGbUpdated } = useGbContext();
 
   useEffect(() => {
     fetchData();
@@ -77,6 +79,9 @@ const SideMenu: React.FC<{
       setFullName(currentUser.name || "");
       setEmail(currentUser.email || currentUser.phone || "");
       setCurrentUserId(currentUser.id);
+      let teacher_class_ids: string[] = []
+      const schoolList: any = [];
+      const roleMap = {};
 
       const tempSchool = Util.getCurrentSchool();
       if (tempSchool) {
@@ -87,6 +92,7 @@ const SideMenu: React.FC<{
           tempSchool.id,
           currentUser.id
         );
+        teacher_class_ids = classes.map((item) => item.id);
         const classMap = classes.map((classItem: any) => ({
           id: classItem.id,
           name: classItem.name,
@@ -117,6 +123,13 @@ const SideMenu: React.FC<{
           schoolId: school.id,
           role,
         }));
+        roles.forEach((obj) => {
+          schoolList.push(obj.schoolId);
+          roleMap[`${obj.schoolId}_role`] = obj.role;
+        });
+        const teacher_school_and_classes = { teacher_school_list: schoolList, roleMap, teacher_class_ids };
+        updateLocalAttributes(teacher_school_and_classes);
+        setGbUpdated(true);
         setSchoolRoles(roles);
       }
     } catch (error) {
