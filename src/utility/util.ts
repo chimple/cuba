@@ -517,63 +517,6 @@ export class Util {
     }
   }
 
-  public static async DownloadLearningPathAssets(
-    subjecNames: string[] = ["Maths", "English", "Hindi", "Kannada"]
-  ): Promise<boolean> {
-    try {
-      if (!Capacitor.isNativePlatform()) return true;
-      const fs = createFilesystem(Filesystem, {
-        rootDir: "learningPath",
-        directory: Directory.External,
-        base64Alway: false,
-      });
-
-      const bundleZipUrls: string[] = await RemoteConfig.getJSON(
-        REMOTE_CONFIG_KEYS.LEARNING_PATH_ZIP_URLS
-      );
-      if (!bundleZipUrls || bundleZipUrls.length < 1) return false;
-
-      const results = await Promise.all(
-        subjecNames.map(async (subjecName) => {
-          try {
-            const zipUrl = bundleZipUrls + subjecName + ".zip";
-
-            const response = await CapacitorHttp.get({
-              url: zipUrl,
-              responseType: "blob",
-            });
-            if (!response?.data || response.status !== 200) return false;
-            const buffer = Uint8Array.from(atob(response.data), (c) =>
-              c.charCodeAt(0)
-            );
-            await unzip({
-              fs,
-              extractTo: "",
-              filepaths: ["."],
-              filter: (filepath: string) => !filepath.startsWith("dist/"),
-              onProgress: (event) => {
-                console.log("Unzipping LearnigPath assets:", event.filename);
-              },
-              data: buffer,
-            });
-
-            const androidPath = await this.getAndroidBundlePath();
-            this.setGameUrl(androidPath);
-            return true;
-          } catch (err) {
-            console.error("Error processing lesson:", subjecName, err);
-            return false;
-          }
-        })
-      );
-
-      return results.every((res) => res === true);
-    } catch (err) {
-      console.error("Unexpected error in lesson downloading:", err);
-      return false;
-    }
-  }
-
   public static async deleteDownloadedLesson(
     lessonIds: string[]
   ): Promise<boolean> {
