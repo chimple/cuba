@@ -24,6 +24,9 @@ import {
   CHIMPLE_HINDI,
   GRADE1_KANNADA,
   GRADE1_MARATHI,
+  CHIMPLE_ENGLISH,
+  CHIMPLE_MATHS,
+  CHIMPLE_DIGITAL_SKILLS,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -46,6 +49,7 @@ import { v4 as uuidv4 } from "uuid";
 import { RoleType } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
 import { Table } from "@mui/material";
+import { create } from "domain";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -4851,8 +4855,6 @@ order by
     if (!_currentUser) throw "User is not Logged in";
   const studentProfile = await this.getParentStudentProfiles();
   if (studentProfile.length > 0) return studentProfile[0];
-    const boardDocId = OTHER_CURRICULUM;
-    const gradeDocId = grade1;
     const studentId = uuidv4();
     const newStudent: TableTypes<"user"> = {
       id: studentId,
@@ -4861,8 +4863,8 @@ order by
       gender: null,
       avatar: null,
       image: null,
-      curriculum_id: boardDocId ?? null,
-      grade_id: gradeDocId ?? null,
+      curriculum_id: null,
+      grade_id: null,
       language_id: languageDocId ?? null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -4911,14 +4913,10 @@ order by
       ]
     );
 
-    let allCourses;
-    if (gradeDocId && boardDocId) {
-      allCourses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
-    }
     // Find English, Maths, and language-dependent subject
-    const englishCourse = allCourses.find((c) => c.code?.includes(COURSES.ENGLISH));
-    const mathsCourse = allCourses.find((c) => c.code?.includes(COURSES.MATHS));
-    const digitalSkillsCourse = allCourses.find((c) => c.code?.includes(COURSES.PUZZLE));
+    const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
+    const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+    const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
     const language = await this.getLanguageWithId(languageDocId!);
     let langCourse;
     if (language && language.code !== COURSES.ENGLISH) {

@@ -23,6 +23,9 @@ import {
   CHIMPLE_HINDI,
   GRADE1_KANNADA,
   GRADE1_MARATHI,
+  CHIMPLE_ENGLISH,
+  CHIMPLE_MATHS,
+  CHIMPLE_DIGITAL_SKILLS,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -5773,8 +5776,7 @@ async createAutoProfile(languageDocId: string | undefined): Promise<TableTypes<"
   if (!_currentUser) throw new Error("User is not Logged in");
   const studentProfile = await this.getParentStudentProfiles();
   if (studentProfile.length > 0) return studentProfile[0];
-  const boardDocId = OTHER_CURRICULUM;
-  const gradeDocId = grade1;
+
   const studentId = uuidv4();
   const now = new Date().toISOString();
 
@@ -5785,8 +5787,8 @@ async createAutoProfile(languageDocId: string | undefined): Promise<TableTypes<"
     gender: null,
     avatar: null,
     image: null,
-    curriculum_id: boardDocId ?? null,
-    grade_id: gradeDocId ?? null,
+    curriculum_id: null,
+    grade_id: null,
     language_id: languageDocId ?? null,
     created_at: now,
     updated_at: now,
@@ -5827,16 +5829,10 @@ async createAutoProfile(languageDocId: string | undefined): Promise<TableTypes<"
     throw parentInsertError;
   }
 
-  // Get all courses for grade1 and curriculum
-  let allCourses: TableTypes<"course">[] = [];
-  if (gradeDocId && boardDocId) {
-    allCourses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
-  }
-
   // Find English, Maths, and language-dependent subject
-  const englishCourse = allCourses.find((c) => c.code?.includes(COURSES.ENGLISH));
-  const mathsCourse = allCourses.find((c) => c.code?.includes(COURSES.MATHS));
-  const digitalSkillsCourse = allCourses.find((c) => c.code?.includes(COURSES.PUZZLE));
+  const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
+  const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+  const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
   const language = languageDocId ? await this.getLanguageWithId(languageDocId) : undefined;
   let langCourse: TableTypes<"course"> | undefined;
   if (language && language.code !== COURSES.ENGLISH) {
