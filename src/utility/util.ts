@@ -518,7 +518,7 @@ export class Util {
   }
 
   public static async DownloadLearningPathAssets(
-    bundleZipUrl: string,
+    zipUrl: string,
     uniqueId: string
   ): Promise<boolean> {
     try {
@@ -558,7 +558,6 @@ export class Util {
       }
 
       // Download and unzip
-      const zipUrl = bundleZipUrl + "remoteAsset.zip";
       const response = await CapacitorHttp.get({
         url: zipUrl,
         responseType: "blob",
