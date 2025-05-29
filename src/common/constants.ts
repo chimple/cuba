@@ -40,6 +40,7 @@ export enum TABLES {
   ClassCourse = "class_course",
   ChapterLesson = "chapter_lesson",
   ParentUser = "parent_user",
+  ProgramUser = "program_user",
   SchoolCourse = "school_course",
   SchoolUser = "school_user",
   UserBadge = "user_badge",

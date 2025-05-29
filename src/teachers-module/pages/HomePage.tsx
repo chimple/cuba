@@ -20,6 +20,7 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { App } from "@capacitor/app";
 import { t } from "i18next";
 import ComingSoon from "../components/homePage/ai/comingSoon";
+import { updateLocalAttributes, useGbContext } from "../../growthbook/Growthbook";
 
 const HomePage: React.FC = () => {
   const history = useHistory();
@@ -32,6 +33,7 @@ const HomePage: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const [renderKey, setRenderKey] = useState(0);
+  const { setGbUpdated } = useGbContext();
   useEffect(() => {
     init();
     const handleClassChange = () => {
@@ -66,6 +68,11 @@ const HomePage: React.FC = () => {
         setCurrentClass(null);
       }
       if (tempClass) setCurrentClass(tempClass);
+      updateLocalAttributes({
+        teacher_class_id: tempClass?.id,
+        teacher_school_id: currentSchool?.id,
+      });
+      setGbUpdated(true);
       console.log("class data...", tempClass);
     } catch (error) {
       console.error("Failed to load class details", error);
@@ -126,7 +133,7 @@ const HomePage: React.FC = () => {
           />
         );
       case 4:
-        return <ComingSoon/>
+        return <ComingSoon />
 
       default:
         return <Library />;
@@ -142,7 +149,7 @@ const HomePage: React.FC = () => {
         schoolName={currentSchool?.name}
         isBackButton={false}
         showSideMenu={true}
-        onButtonClick={() => {}}
+        onButtonClick={() => { }}
       />
       <main className="home-container-body" key={`refresh-${refresh}`}>
         {renderComponent()}

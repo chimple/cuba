@@ -8,10 +8,14 @@ interface InfoCardProps {
   title: string;
   items?: DetailItemProps[];
   children?: React.ReactNode;
+  className?: string;
 }
 
-const InfoCard = ({ title, items,  children }: InfoCardProps) => (
-  <Card variant="outlined" className="info-card">
+const InfoCard = ({ title, items, children, className }: InfoCardProps) => (
+  <Card
+    variant="outlined"
+    className={`info-card${className ? " " + className : ""}`}
+  >
     <CardContent className="info-card-content">
       <Typography
         variant="subtitle1"
@@ -29,7 +33,9 @@ const InfoCard = ({ title, items,  children }: InfoCardProps) => (
             <DetailItem key={idx} {...item} />
           ))}
         </Box>
-      ) : <Box className= "info-card-children">{children}</Box>}
+      ) : (
+        <Box className="info-card-children">{children}</Box>
+      )}
     </CardContent>
   </Card>
 );

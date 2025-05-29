@@ -89,7 +89,7 @@ export class FirebaseApi implements ServiceApi {
   private _schoolsCache: { [userId: string]: School[] } = {};
   private _currentMode: MODES;
   private _allCourses: Course[];
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): FirebaseApi {
     if (!FirebaseApi.i) {
@@ -149,7 +149,6 @@ export class FirebaseApi implements ServiceApi {
           (subjectId) => !subjectIds.includes(subjectId)
         ); // getting default subjects
 
-
         remainingSubjects.forEach((subjectId) => {
           const courses = gradeCourses.filter((course) => {
             const subjectRef = course.subject;
@@ -166,7 +165,6 @@ export class FirebaseApi implements ServiceApi {
         });
       }
     }
-
 
     return courseIds;
   }
@@ -286,7 +284,6 @@ export class FirebaseApi implements ServiceApi {
         userList.splice(i, 1);
       }
     }
-
 
     const functions = getFunctions();
     const generateInviteCode = httpsCallable(
@@ -1186,11 +1183,9 @@ export class FirebaseApi implements ServiceApi {
           tempAssignmentCompletedIds ?? "{}"
         );
 
-
         const doneAssignmentLocally = assignmentCompletedIds[studentId]?.find(
           (assignmentId) => assignmentId === assignment.docId
         );
-
 
         if (!doneAssignment && !doneAssignmentLocally)
           assignments.push(assignment);
@@ -1555,7 +1550,6 @@ export class FirebaseApi implements ServiceApi {
   ): Promise<TableTypes<"user"> | undefined> {
     throw new Error("Method not implemented.");
     try {
-
       const studentDocRef = doc(this._db, CollectionIds.USER, studentId);
       const studentDoc = await getDoc(studentDocRef);
       if (studentDoc.exists()) {
@@ -2013,15 +2007,15 @@ export class FirebaseApi implements ServiceApi {
   async getPrograms({
     currentUserId,
     filters = {},
-    searchTerm = '',
-    tab = 'ALL',
+    searchTerm = "",
+    tab = "ALL",
   }: {
     currentUserId: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
-    tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
   }): Promise<{ data: any[] }> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
 
   insertProgram(payload: any): Promise<boolean | any> {
@@ -2039,15 +2033,23 @@ export class FirebaseApi implements ServiceApi {
   }> {
     throw new Error("Method not implemented.");
   }
-  getProgramData(
-    programId: string
-  ): Promise<{
+  getProgramForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"program"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getProgramManagersForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getProgramData(programId: string): Promise<{
     programDetails: { label: string; value: string }[];
     locationDetails: { label: string; value: string }[];
     partnerDetails: { label: string; value: string }[];
     programManagers: { name: string; role: string; phone: string }[];
   } | null> {
-    throw new Error('Method not implemented.');
+    throw new Error("Method not implemented.");
   }
   async getSchoolFilterOptions(): Promise<Record<string, string[]>> {
     throw new Error("getSchoolFilterOptions() is not implemented.");
