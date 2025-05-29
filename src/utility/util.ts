@@ -1259,11 +1259,12 @@ export class Util {
 
     if (!languageCode && !!student?.language_id) {
       const langDoc = await api.getLanguageWithId(student.language_id);
+
       if (langDoc) {
         languageCode = langDoc.code ?? undefined;
       }
     }
-    const tempLangCode = languageCode ?? LANG.ENGLISH;
+    const tempLangCode = student?.language_id ?? LANG.ENGLISH;
     console.log("🚀 ~ tempLangCode:", tempLangCode);
     if (!!langFlag) localStorage.setItem(LANGUAGE, tempLangCode);
     console.log("🚀 ~ langFlag:", langFlag);
