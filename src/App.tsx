@@ -121,6 +121,7 @@ import ProgramsPage from "./ops-console/pages/ProgramPage";
 import ProgramDetailPage from "./ops-console/pages/ProgramDetailsPage";
 import NewProgram from "./ops-console/components/NewProgram";
 import SchoolList from "./ops-console/pages/SchoolList";
+import { useFeatureValue, useFeatureIsOn } from "@growthbook/growthbook-react";
 
 setupIonicReact();
 interface ExtraData {
@@ -154,6 +155,9 @@ const App: React.FC = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
   const [isActive, setIsActive] = useState(true);
+  const shouldShowRemoteAsset = useFeatureIsOn("can_access_remote_asset");
+  const learning_path_value: any = useFeatureValue("learning_path_assets", {});
+
   useEffect(() => {
     const cleanup = initializeClickListener();
     const handleOnline = () => {
@@ -223,10 +227,16 @@ const App: React.FC = () => {
       CapApp.addListener("appUrlOpen", Util.onAppUrlOpen);
     }
 
+    if (shouldShowRemoteAsset) {
+      Util.DownloadLearningPathAssets(
+        learning_path_value?.asset_repo_url,
+        learning_path_value?.uniqueId
+      );
+    }
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
-    }).catch((_) => { });
+    }).catch((_) => {});
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();

@@ -6,6 +6,9 @@ import { useHistory } from "react-router";
 import { PAGES } from "../../common/constants";
 import PathwayModal from "./PathwayModal";
 import { t } from "i18next";
+import { Directory, Filesystem } from "@capacitor/filesystem";
+import { Capacitor } from "@capacitor/core";
+import { useFeatureIsOn } from "@growthbook/growthbook-react";
 
 const PathwayStructure: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -15,9 +18,40 @@ const PathwayStructure: React.FC = () => {
   const [modalText, setModalText] = useState("");
 
   const inactiveText = t("Lesson inactive, play the nearest active lesson");
-  const rewardText   = t("Complete these 5 lessons to earn rewards");
+  const rewardText = t("Complete these 5 lessons to earn rewards");
+  const shouldShowRemoteAsset = useFeatureIsOn("can_access_remote_asset");
 
   const shouldAnimate = modalText === rewardText;
+  const fetchLocalSVGGroup = async (
+    path: string,
+    className?: string
+  ): Promise<SVGGElement> => {
+    const file = await Filesystem.readFile({
+      path,
+      directory: Directory.External,
+    });
+    const svgText = atob(file.data);
+    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    group.innerHTML = svgText;
+    if (className) group.setAttribute("class", className);
+    return group;
+  };
+
+  const tryFetchSVG = async (
+    localPath: string,
+    webPath: string,
+    name: string
+  ) => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        return await fetchLocalSVGGroup(localPath, name);
+      } catch {
+        return await fetchSVGGroup(webPath, name);
+      }
+    } else {
+      return await fetchSVGGroup(webPath, name);
+    }
+  };
 
   const fetchSVGGroup = async (
     url: string,
@@ -48,7 +82,7 @@ const PathwayStructure: React.FC = () => {
     if (height) image.setAttribute("height", `${height}`);
     if (x) image.setAttribute("x", `${x}`);
     if (y) image.setAttribute("y", `${y}`);
-    if (opacity !== undefined){
+    if (opacity !== undefined) {
       image.setAttribute("opacity", opacity.toString());
     }
     // ✅ Add onerror fallback
@@ -102,27 +136,78 @@ const PathwayStructure: React.FC = () => {
         const pathGroups = svg.querySelectorAll("g > path");
         const paths = Array.from(pathGroups) as SVGPathElement[];
 
-        const [
-          flowerActive,
+        let flowerActive,
           flowerInactive,
           playedLessonSVG,
           giftSVG,
           giftSVG2,
-          giftSVG3,
-        ] = await Promise.all([
-          fetchSVGGroup(
-            "/pathwayAssets/English/FlowerActive.svg",
-            "flowerActive isSelected"
-          ),
-          fetchSVGGroup("/pathwayAssets/FlowerInactive.svg", "flowerInactive"),
-          fetchSVGGroup(
-            "/pathwayAssets/English/PlayedLesson.svg",
-            "playedLessonSVG"
-          ),
-          fetchSVGGroup("/pathwayAssets/English/pathGift1.svg", "giftSVG"),
-          fetchSVGGroup("/pathwayAssets/English/pathGift2.svg", "giftSVG2"),
-          fetchSVGGroup("/pathwayAssets/English/pathGift3.svg", "giftSVG3"),
-        ]);
+          giftSVG3;
+
+        if (shouldShowRemoteAsset) {
+          [
+            flowerActive,
+            flowerInactive,
+            playedLessonSVG,
+            giftSVG,
+            giftSVG2,
+            giftSVG3,
+          ] = await Promise.all([
+            tryFetchSVG(
+              "remoteAsset/FlowerActive.svg",
+              "/pathwayAssets/English/FlowerActive.svg",
+              "flowerActive isSelected"
+            ),
+            fetchSVGGroup(
+              "/pathwayAssets/FlowerInactive.svg",
+              "flowerInactive"
+            ),
+            tryFetchSVG(
+              "remoteAsset/PlayedLesson.svg",
+              "/pathwayAssets/English/PlayedLesson.svg",
+              "playedLessonSVG"
+            ),
+            tryFetchSVG(
+              "remoteAsset/pathGift1.svg",
+              "/pathwayAssets/English/pathGift1.svg",
+              "giftSVG"
+            ),
+            tryFetchSVG(
+              "remoteAsset/pathGift2.svg",
+              "/pathwayAssets/English/pathGift2.svg",
+              "giftSVG2"
+            ),
+            tryFetchSVG(
+              "remoteAsset/pathGift3.svg",
+              "/pathwayAssets/English/pathGift3.svg",
+              "giftSVG3"
+            ),
+          ]);
+        } else {
+          [
+            flowerActive,
+            flowerInactive,
+            playedLessonSVG,
+            giftSVG,
+            giftSVG2,
+            giftSVG3,
+          ] = await Promise.all([
+            fetchSVGGroup(
+              "/pathwayAssets/English/FlowerActive.svg",
+              "flowerActive isSelected"
+            ),
+            fetchSVGGroup(
+              "/pathwayAssets/FlowerInactive.svg",
+              "flowerInactive"
+            ),
+            fetchSVGGroup(
+              "/pathwayAssets/English/PlayedLesson.svg",
+              "playedLessonSVG"
+            ),
+            fetchSVGGroup("/pathwayAssets/English/pathGift1.svg", "giftSVG"),
+            fetchSVGGroup("/pathwayAssets/English/pathGift2.svg", "giftSVG2"),
+            fetchSVGGroup("/pathwayAssets/English/pathGift3.svg", "giftSVG3"),
+          ]);
+        }
 
         const startPoint = paths[0].getPointAtLength(0);
         const xValues = [27, 155, 276, 387, 496];
@@ -371,7 +456,11 @@ const PathwayStructure: React.FC = () => {
   return (
     <>
       {isModalOpen && (
-        <PathwayModal text={modalText} onClose={() => setModalOpen(false)} animate={shouldAnimate} />
+        <PathwayModal
+          text={modalText}
+          onClose={() => setModalOpen(false)}
+          animate={shouldAnimate}
+        />
       )}
       <div className="pathway-structure-div" ref={containerRef}></div>
     </>
