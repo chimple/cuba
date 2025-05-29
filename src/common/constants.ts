@@ -819,3 +819,6 @@ export const QUIZ_POPUP_SHOWN = "quizPopupShown";
 export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
 export const GrowthBookAttributes = "growthBookAttributes";
 export const SCHOOL_LOGIN = "schoolLogin";
+
+export const CAN_ACCESS_REMOTE_ASSETS = "can_access_remote_assets";
+export const LEARNING_PATH_ASSETS= "learning_path_assets";

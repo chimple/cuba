@@ -42,12 +42,14 @@ import {
   // APP_LANG,
   BASE_NAME,
   CACHE_IMAGE,
+  CAN_ACCESS_REMOTE_ASSETS,
   CONTINUE,
   DOWNLOADING_CHAPTER_ID,
   DOWNLOAD_BUTTON_LOADING_STATUS,
   GAME_URL,
   HOMEHEADERLIST,
   IS_CUBA,
+  LEARNING_PATH_ASSETS,
   MODES,
   PAGES,
   PortPlugin,
@@ -155,8 +157,8 @@ const App: React.FC = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
   const [isActive, setIsActive] = useState(true);
-  const shouldShowRemoteAsset = useFeatureIsOn("can_access_remote_asset");
-  const learning_path_value: any = useFeatureValue("learning_path_assets", {});
+  const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
+  const learningPathAssets: any = useFeatureValue(LEARNING_PATH_ASSETS, {});
 
   useEffect(() => {
     const cleanup = initializeClickListener();
@@ -227,10 +229,10 @@ const App: React.FC = () => {
       CapApp.addListener("appUrlOpen", Util.onAppUrlOpen);
     }
 
-    if (shouldShowRemoteAsset) {
+    if (shouldShowRemoteAssets) {
       Util.DownloadLearningPathAssets(
-        learning_path_value?.asset_repo_url,
-        learning_path_value?.uniqueId
+        learningPathAssets?.asset_repo_url,
+        learningPathAssets?.uniqueId
       );
     }
     Filesystem.mkdir({

@@ -3,7 +3,10 @@ import "./PathwayStructure.css";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory } from "react-router";
-import { PAGES } from "../../common/constants";
+import {
+  CAN_ACCESS_REMOTE_ASSETS,
+  PAGES,
+} from "../../common/constants";
 import PathwayModal from "./PathwayModal";
 import { t } from "i18next";
 import { Directory, Filesystem } from "@capacitor/filesystem";
@@ -19,7 +22,7 @@ const PathwayStructure: React.FC = () => {
 
   const inactiveText = t("Lesson inactive, play the nearest active lesson");
   const rewardText = t("Complete these 5 lessons to earn rewards");
-  const shouldShowRemoteAsset = useFeatureIsOn("can_access_remote_asset");
+  const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
 
   const shouldAnimate = modalText === rewardText;
   const fetchLocalSVGGroup = async (
@@ -143,7 +146,7 @@ const PathwayStructure: React.FC = () => {
           giftSVG2,
           giftSVG3;
 
-        if (shouldShowRemoteAsset) {
+        if (shouldShowRemoteAssets) {
           [
             flowerActive,
             flowerInactive,
