@@ -488,7 +488,7 @@ export interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;
 }
-export interface FilteredSchool {
+export interface FilteredSchoolsForSchoolListingOps {
   school_name: string;
   num_students: number;
   num_teachers: number;

@@ -20,7 +20,7 @@ import {
   LATEST_STARS,
   SchoolRoleMap,
   MODEL,
-  FilteredSchool,
+  FilteredSchoolsForSchoolListingOps,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -4842,11 +4842,11 @@ order by
   ): Promise<SchoolRoleMap[]> {
     return await this._serverApi.getFieldCoordinatorsForSchools(schoolIds);
   }
-  async getSchoolFilterOptions(): Promise<Record<string, string[]>> {
-    return await this._serverApi.getSchoolFilterOptions();
+  async getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>> {
+    return await this._serverApi.getSchoolFilterOptionsForSchoolListing();
   }
 
-  async getFilteredSchools(filters: Record<string, string[]>): Promise<FilteredSchool[]> {
-   return await this._serverApi.getFilteredSchools(filters);}
+  async getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>): Promise<FilteredSchoolsForSchoolListingOps[]> {
+   return await this._serverApi.getFilteredSchoolsForSchoolListing(filters);}
    
 }

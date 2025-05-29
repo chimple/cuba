@@ -2051,11 +2051,11 @@ export class FirebaseApi implements ServiceApi {
   } | null> {
     throw new Error("Method not implemented.");
   }
-  async getSchoolFilterOptions(): Promise<Record<string, string[]>> {
+  async getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>> {
     throw new Error("getSchoolFilterOptions() is not implemented.");
   }
 
-  async getFilteredSchools(filters: Record<string, string[]>): Promise<FilteredSchool[]> {
+  async getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>): Promise<FilteredSchool[]> {
     throw new Error("getFilteredSchools() is not implemented.");
   }
 }

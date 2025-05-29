@@ -4,7 +4,7 @@ import { StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import {
-  FilteredSchool,
+  FilteredSchoolsForSchoolListingOps,
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODEL,
@@ -1181,12 +1181,12 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getProgramData(programId);
   }
 
-  async getSchoolFilterOptions(): Promise<Record<string, string[]>> {
-    return await this.s.getSchoolFilterOptions();
+  async getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>> {
+    return await this.s.getSchoolFilterOptionsForSchoolListing();
   }
 
-  async getFilteredSchools(filters: Record<string, string[]>): Promise<FilteredSchool[]> {
-    return await this.s.getFilteredSchools(filters);
+  async getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>): Promise<FilteredSchoolsForSchoolListingOps[]> {
+    return await this.s.getFilteredSchoolsForSchoolListing(filters);
   }
 
 }

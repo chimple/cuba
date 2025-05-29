@@ -1605,7 +1605,7 @@ export interface ServiceApi {
    * @returns Promise resolving to an object where keys are filter categories
    * and values are arrays of filter option strings.
    */
-  getSchoolFilterOptions(): Promise<Record<string, string[]>>;
+  getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>>;
 
   /**
    * Fetch a list of schools filtered by given criteria.
@@ -1613,6 +1613,6 @@ export interface ServiceApi {
    * @param filters - An object where keys are filter categories and values are arrays of selected filter options.
    * @returns Promise resolving to a filtered list of schools matching the provided filter criteria.
    */
-  getFilteredSchools(filters: Record<string, string[]>);
+  getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>);
 
 }

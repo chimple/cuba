@@ -61,7 +61,7 @@ const SchoolList: React.FC = () => {
     const fetchFilterOptions = async () => {
       setIsLoading(true);
       try {
-        const data = await api.getSchoolFilterOptions();
+        const data = await api.getSchoolFilterOptionsForSchoolListing();
         if (data) {
           setFilterOptions({
             programType: data.program_type || [],
@@ -99,7 +99,7 @@ const SchoolList: React.FC = () => {
         )
       );
       
-      const filteredSchools = await api.getFilteredSchools(cleanedFilters);
+      const filteredSchools = await api.getFilteredSchoolsForSchoolListing(cleanedFilters);
       const enrichedSchools = filteredSchools.map((school: any) => ({
         ...school,
         students: school.num_students || 0,

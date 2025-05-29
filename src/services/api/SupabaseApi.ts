@@ -19,7 +19,7 @@ import {
   EVENTS,
   SchoolRoleMap,
   MODEL,
-  FilteredSchool,
+  FilteredSchoolsForSchoolListingOps,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -5762,7 +5762,7 @@ export class SupabaseApi implements ServiceApi {
     return null;
   }
 }
-async getSchoolFilterOptions(): Promise<Record<string, string[]>> {
+async getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>> {
   if (!this.supabase) {
     console.error("Supabase client is not initialized");
     return {};
@@ -5791,7 +5791,7 @@ async getSchoolFilterOptions(): Promise<Record<string, string[]>> {
   }
 }
 
-async getFilteredSchools(filters: Record<string, string[]>): Promise<FilteredSchool[]> {
+async getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>): Promise<FilteredSchoolsForSchoolListingOps[]> {
   if (!this.supabase) {
     console.error("Supabase client is not initialized");
     return [];
@@ -5805,7 +5805,7 @@ async getFilteredSchools(filters: Record<string, string[]>): Promise<FilteredSch
       return [];
     }
 
-    return (data ?? []) as FilteredSchool[];
+    return (data ?? []) as FilteredSchoolsForSchoolListingOps[];
   } catch (err) {
     console.error("Unexpected error in getFilteredSchools:", err);
     return [];
