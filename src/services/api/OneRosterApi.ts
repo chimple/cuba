@@ -422,7 +422,7 @@ export class OneRosterApi implements ServiceApi {
               color: null,
               created_at: "",
               created_by: null,
-              image: Util.getThumbnailUrl({subjectCode:lesson.cocosSubjectCode,lessonCode:lesson.cocosLessonCode}),
+              image: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
               is_deleted: null,
               language_id: null,
               outcome: lesson.outcome,
@@ -467,7 +467,7 @@ export class OneRosterApi implements ServiceApi {
                 color: lesson.color || null,
                 created_at: "",
                 created_by: null,
-                image: Util.getThumbnailUrl({subjectCode:lesson.cocosSubjectCode,lessonCode:lesson.cocosLessonCode}),
+                image: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
                 is_deleted: null,
                 language_id: lesson.language || null,
                 outcome: lesson.outcome,
@@ -527,7 +527,7 @@ export class OneRosterApi implements ServiceApi {
       try {
         const courseJson = await this.loadCourseJson(c.id);
         if (courseJson.metadata.subject === currentSubject &&
-            courseJson.metadata.curriculum === currentCurriculum) {
+          courseJson.metadata.curriculum === currentCurriculum) {
           filteredCourses.push(c);
         }
       } catch (error) {
@@ -789,7 +789,7 @@ export class OneRosterApi implements ServiceApi {
         (group: any) => ({
           id: group.metadata.id,
           name: group.metadata.title,
-          image: Util.getThumbnailUrl({id:group.metadata.id}),
+          image: Util.getThumbnailUrl({ id: group.metadata.id }),
           course_id: courseId,
           created_at: null,
           updated_at: null,
@@ -829,7 +829,7 @@ export class OneRosterApi implements ServiceApi {
           created_at: null,
           created_by: null,
           id: lesson.id,
-          image: Util.getThumbnailUrl({subjectCode:lesson.cocosSubjectCode,lessonCode:lesson.cocosLessonCode}),
+          image: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
           is_deleted: null,
           language_id: lesson.language,
           name: lesson.title,
@@ -921,7 +921,7 @@ export class OneRosterApi implements ServiceApi {
               curriculum_id: metaC.curriculum,
               description: null,
               grade_id: metaC.grade,
-              image: Util.getThumbnailUrl({courseCode:metaC.courseCode}),
+              image: Util.getThumbnailUrl({ courseCode: metaC.courseCode }),
               is_deleted: false,
               sort_index: metaC.sortIndex,
               subject_id: metaC.subjectId,
@@ -1021,32 +1021,32 @@ export class OneRosterApi implements ServiceApi {
   }
 
   async getStudentProgress(): Promise<Map<string, string>> {
-  try {
-    const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!loggedStudent) {
-      throw new Error("No logged-in student found");
+    try {
+      const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (!loggedStudent) {
+        throw new Error("No logged-in student found");
+      }
+
+      const { agentEmail, queryStatement } = this.buildXapiQuery({ name: loggedStudent.name as string });
+      const statements = await this.getAllStatements(agentEmail, queryStatement);
+
+      const filteredStatements = statements.filter(statement => statement.course_id !== null) as { course_id: string; created_at: string }[];
+
+      const sortedStatements = filteredStatements.sort((a, b) => {
+        const aTimestamp = new Date(a.created_at).getTime();
+        const bTimestamp = new Date(b.created_at).getTime();
+        return bTimestamp - aTimestamp;
+      });
+
+      const res = ApiDataProcessor.dataProcessorGetStudentProgress(sortedStatements);
+      console.log("async getStudentProgress(): sorted statements ", res);
+
+      return res;
+    } catch (error) {
+      console.error("Error in getStudentProgress:", error);
+      return new Map();
     }
-
-    const { agentEmail, queryStatement } = this.buildXapiQuery({ name: loggedStudent.name as string });
-    const statements = await this.getAllStatements(agentEmail, queryStatement);
-
-    const filteredStatements = statements.filter(statement => statement.course_id !== null) as { course_id: string; created_at: string }[];
-
-    const sortedStatements = filteredStatements.sort((a, b) => {
-      const aTimestamp = new Date(a.created_at).getTime();
-      const bTimestamp = new Date(b.created_at).getTime();
-      return bTimestamp - aTimestamp;
-    });
-
-    const res = ApiDataProcessor.dataProcessorGetStudentProgress(sortedStatements);
-    console.log("async getStudentProgress(): sorted statements ", res);
-
-    return res;
-  } catch (error) {
-    console.error("Error in getStudentProgress:", error);
-    return new Map();
   }
-}
 
   async getStudentResultInMap(
     studentId?: string
@@ -1130,7 +1130,7 @@ export class OneRosterApi implements ServiceApi {
         description: null,
         grade_id: metaC.grade,
         id: metaC.courseCode,
-        image: Util.getThumbnailUrl({courseCode: metaC.courseCode}),
+        image: Util.getThumbnailUrl({ courseCode: metaC.courseCode }),
         is_deleted: null,
         name: metaC.title,
         sort_index: metaC.sortIndex,
@@ -1325,7 +1325,7 @@ export class OneRosterApi implements ServiceApi {
     });
 
     const filteredStatements = existingStatements.filter(
-         (_statement) => _statement.lesson_id === lessonId
+      (_statement) => _statement.lesson_id === lessonId
     );
 
     // If there are existing statements for the given lessonId , will return the oldest one
@@ -1506,39 +1506,39 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-async updateSoundFlag(userId: string, value: boolean) {
+  async updateSoundFlag(userId: string, value: boolean) {
     try {
-        const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-        if (currentUser) {
-            currentUser.sfx_off = value;
-            const userString = localStorage.getItem(CURRENT_USER);
-            if (userString) {
-                const userData = JSON.parse(userString);
-                userData.sfx_off = value;
-                localStorage.setItem(CURRENT_USER, JSON.stringify(userData));
-            }
+      const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (currentUser) {
+        currentUser.sfx_off = value;
+        const userString = localStorage.getItem(CURRENT_USER);
+        if (userString) {
+          const userData = JSON.parse(userString);
+          userData.sfx_off = value;
+          localStorage.setItem(CURRENT_USER, JSON.stringify(userData));
         }
+      }
     } catch (error) {
-        console.error("Error updating sound flag:", error);
+      console.error("Error updating sound flag:", error);
     }
-}
+  }
 
-async updateMusicFlag(userId: string, value: boolean) {
+  async updateMusicFlag(userId: string, value: boolean) {
     try {
-        const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-        if (currentUser) {
-            currentUser.music_off = value;
-            const userString = localStorage.getItem(CURRENT_USER);
-            if (userString) {
-                const userData = JSON.parse(userString);
-                userData.music_off = value;
-                localStorage.setItem(CURRENT_USER, JSON.stringify(userData));
-            }
+      const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (currentUser) {
+        currentUser.music_off = value;
+        const userString = localStorage.getItem(CURRENT_USER);
+        if (userString) {
+          const userData = JSON.parse(userString);
+          userData.music_off = value;
+          localStorage.setItem(CURRENT_USER, JSON.stringify(userData));
         }
+      }
     } catch (error) {
-        console.error("Error updating music flag:", error);
+      console.error("Error updating music flag:", error);
     }
-}
+  }
 
   async updateLanguage(userId: string, value: string) {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -2234,7 +2234,7 @@ async updateMusicFlag(userId: string, value: boolean) {
             description: null,
             grade_id: metaC.grade,
             id: courseId,
-            image: Util.getThumbnailUrl({courseCode:metaC.courseCode}),
+            image: Util.getThumbnailUrl({ courseCode: metaC.courseCode }),
             is_deleted: null,
             name: metaC.title,
             sort_index: metaC.sortIndex,
@@ -2252,82 +2252,82 @@ async updateMusicFlag(userId: string, value: boolean) {
   }
 
   async searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
-  try {
-    if (!searchString || searchString.trim().length === 0) {
-      return [];
-    }
+    try {
+      if (!searchString || searchString.trim().length === 0) {
+        return [];
+      }
 
-    const searchTerm = searchString.toLowerCase().trim();
-    const courses = await this.getAllCourses();
-    const allLessons: TableTypes<"lesson">[] = [];
+      const searchTerm = searchString.toLowerCase().trim();
+      const courses = await this.getAllCourses();
+      const allLessons: TableTypes<"lesson">[] = [];
 
-    for (const course of courses) {
-      try {
-        const courseJson = await this.loadCourseJson(course.id);
-        if (!courseJson?.groups) continue;
+      for (const course of courses) {
+        try {
+          const courseJson = await this.loadCourseJson(course.id);
+          if (!courseJson?.groups) continue;
 
-        const lessons = courseJson.groups.flatMap((group: any) => ({
-          lessons: group.navigation,
-          groupId: group.metadata.id,
-          groupTitle: group.metadata.title
-        }));
+          const lessons = courseJson.groups.flatMap((group: any) => ({
+            lessons: group.navigation,
+            groupId: group.metadata.id,
+            groupTitle: group.metadata.title
+          }));
 
-        for (const { lessons: groupLessons, groupId } of lessons) {
-          for (const lesson of groupLessons) {
-            const title = (lesson.title || '').toLowerCase();
+          for (const { lessons: groupLessons, groupId } of lessons) {
+            for (const lesson of groupLessons) {
+              const title = (lesson.title || '').toLowerCase();
 
-            // Dictionary style matching
-            if (title.startsWith(searchTerm) || title.includes(` ${searchTerm}`)) {
-              allLessons.push({
-                id: lesson.id,
-                name: lesson.title,
-                cocos_chapter_code: lesson.cocosChapterCode,
-                cocos_lesson_id: lesson.cocosLessonCode,
-                cocos_subject_code: lesson.cocosSubjectCode,
-                color: lesson.color || null,
-                created_at: new Date().toISOString(),
-                created_by: null,
-                image: Util.getThumbnailUrl({
-                  subjectCode: lesson.cocosSubjectCode,
-                  lessonCode: lesson.cocosLessonCode
-                }),
-                is_deleted: null,
-                language_id: lesson.language || null,
-                outcome: lesson.outcome,
-                plugin_type: lesson.pluginType,
-                status: lesson.status,
-                subject_id: lesson.subject,
-                target_age_from: lesson.targetAgeFrom || null,
-                target_age_to: lesson.targetAgeTo || null,
-                updated_at: null,
-              });
+              // Dictionary style matching
+              if (title.startsWith(searchTerm) || title.includes(` ${searchTerm}`)) {
+                allLessons.push({
+                  id: lesson.id,
+                  name: lesson.title,
+                  cocos_chapter_code: lesson.cocosChapterCode,
+                  cocos_lesson_id: lesson.cocosLessonCode,
+                  cocos_subject_code: lesson.cocosSubjectCode,
+                  color: lesson.color || null,
+                  created_at: new Date().toISOString(),
+                  created_by: null,
+                  image: Util.getThumbnailUrl({
+                    subjectCode: lesson.cocosSubjectCode,
+                    lessonCode: lesson.cocosLessonCode
+                  }),
+                  is_deleted: null,
+                  language_id: lesson.language || null,
+                  outcome: lesson.outcome,
+                  plugin_type: lesson.pluginType,
+                  status: lesson.status,
+                  subject_id: lesson.subject,
+                  target_age_from: lesson.targetAgeFrom || null,
+                  target_age_to: lesson.targetAgeTo || null,
+                  updated_at: null,
+                });
+              }
             }
           }
+        } catch (error) {
+          console.error(`Error processing course ${course.id}:`, error);
+          continue;
         }
-      } catch (error) {
-        console.error(`Error processing course ${course.id}:`, error);
-        continue;
       }
+
+      return allLessons.sort((a, b) => {
+        const nameA = a.name?.toLowerCase() || '';
+        const nameB = b.name?.toLowerCase() || '';
+
+        const startsWithA = nameA.startsWith(searchTerm);
+        const startsWithB = nameB.startsWith(searchTerm);
+
+        if (startsWithA && !startsWithB) return -1;
+        if (!startsWithA && startsWithB) return 1;
+
+        return nameA.localeCompare(nameB);
+      });
+
+    } catch (error) {
+      console.error("Error in searchLessons:", error);
+      return [];
     }
-
-    return allLessons.sort((a, b) => {
-      const nameA = a.name?.toLowerCase() || '';
-      const nameB = b.name?.toLowerCase() || '';
-
-      const startsWithA = nameA.startsWith(searchTerm);
-      const startsWithB = nameB.startsWith(searchTerm);
-
-      if (startsWithA && !startsWithB) return -1;
-      if (!startsWithA && startsWithB) return 1;
-
-      return nameA.localeCompare(nameB);
-    });
-
-  } catch (error) {
-    console.error("Error in searchLessons:", error);
-    return [];
   }
-}
 
   createOrUpdateAssignmentCart(
     userId: string,
@@ -2378,7 +2378,7 @@ async updateMusicFlag(userId: string, value: boolean) {
               return {
                 id: group.metadata.id,
                 name: group.metadata.title,
-                image: Util.getThumbnailUrl({id:group.metadata.id}),
+                image: Util.getThumbnailUrl({ id: group.metadata.id }),
                 course_id: courseId,
                 created_at: "",
                 updated_at: null,
@@ -2449,7 +2449,7 @@ async updateMusicFlag(userId: string, value: boolean) {
           outcome: lesson.outcome,
           status: lesson.status,
           type: lesson.type,
-          thumbnail: Util.getThumbnailUrl({subjectCode:lesson.cocosSubjectCode,lessonCode:lesson.cocosLessonCode}),
+          thumbnail: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
           plugin_type: lesson.pluginType,
           created_at: "null",
           updated_at: "null",
@@ -2591,50 +2591,56 @@ async updateMusicFlag(userId: string, value: boolean) {
   }
 
   async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
-  // Load favorites from localStorage if not already loaded
-  if (!this.favoriteLessons[userId]) {
-    const stored = localStorage.getItem(this.FAVORITE_LESSONS_STORAGE_KEY);
-    this.favoriteLessons = stored ? JSON.parse(stored) : {};
-  }
-
-  const favoriteIds = this.favoriteLessons[userId] || [];
-  if (favoriteIds.length === 0) {
-    return [];
-  }
-
-  const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();
-  if (!loggedStudent || !loggedStudent.name) {
-    throw new Error("No logged-in student found");
-  }
-
-  const { agentEmail, queryStatement } = this.buildXapiQuery({ name: loggedStudent.name });
-  const statements = await this.getAllStatements(agentEmail, queryStatement);
-
-  const lessonCreationDates = new Map<string, string>();
-  statements.forEach(statement => {
-    if (statement.lesson_id && favoriteIds.includes(statement.lesson_id)) {
-      lessonCreationDates.set(statement.lesson_id, statement.created_at);
-    }
-  });
-
-  const lessons = await Promise.all(
-    favoriteIds.map(async (id) => {
-      const lesson = await this.getLesson(id);
-      if (lesson) {
-
-        lesson.created_at = lessonCreationDates.get(id) || new Date().toISOString();
+    try {
+      // Load favorites from localStorage if not already loaded
+      if (!this.favoriteLessons[userId]) {
+        const stored = localStorage.getItem(this.FAVORITE_LESSONS_STORAGE_KEY);
+        this.favoriteLessons = stored ? JSON.parse(stored) : {};
       }
-      return lesson;
-    })
-  );
 
-  return lessons
-    .filter((lesson): lesson is TableTypes<"lesson"> => lesson !== undefined)
-    .sort((a, b) => {
-      const dateA = new Date(a.created_at).getTime();
-      const dateB = new Date(b.created_at).getTime();
-      return dateB - dateA;
-    });
+      const favoriteIds = this.favoriteLessons[userId] || [];
+      if (favoriteIds.length === 0) {
+        return [];
+      }
+
+      const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (!loggedStudent || !loggedStudent.name) {
+        throw new Error("No logged-in student found");
+      }
+
+      const { agentEmail, queryStatement } = this.buildXapiQuery({ name: loggedStudent.name });
+      const statements = await this.getAllStatements(agentEmail, queryStatement);
+
+      const lessonCreationDates = new Map<string, string>();
+      statements.forEach(statement => {
+        if (statement.lesson_id && favoriteIds.includes(statement.lesson_id)) {
+          lessonCreationDates.set(statement.lesson_id, statement.created_at);
+        }
+      });
+
+      const lessons = await Promise.all(
+        favoriteIds.map(async (id) => {
+          const lesson = await this.getLesson(id);
+          if (lesson) {
+
+            lesson.created_at = lessonCreationDates.get(id) || new Date().toISOString();
+          }
+          return lesson;
+        })
+      );
+
+      return lessons
+        .filter((lesson): lesson is TableTypes<"lesson"> => lesson !== undefined)
+        .sort((a, b) => {
+          const dateA = new Date(a.created_at).getTime();
+          const dateB = new Date(b.created_at).getTime();
+          return dateB - dateA;
+        });
+    } catch (error) {
+      console.log("on getFavouriteLessons error", error);
+      return []
+
+    }
   }
 
   async getRecommendedLessons(
