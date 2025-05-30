@@ -21,6 +21,7 @@ import { Util } from "../../../utility/util";
 import SideMenu from "./SideMenu";
 import { t } from "i18next";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
+import { IoShareSocialSharp } from "react-icons/io5";
 
 // Updated DrawerOptions to include User Profile
 const iconMapping: Record<DrawerOptions, SvgIconComponent> = {
@@ -41,6 +42,7 @@ interface HeaderProps {
   showSideMenu?: boolean;
   customText?: string;
   onSearchChange?: (value: string) => void; // New prop for search input changes
+  onShareClick?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -55,6 +57,7 @@ const Header: React.FC<HeaderProps> = ({
   showSideMenu = false,
   customText = "",
   onSearchChange,
+  onShareClick,
 }) => {
   const history = useHistory();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -164,8 +167,15 @@ const Header: React.FC<HeaderProps> = ({
             />
         </div>
         )}
-
-        <div className="help-icon-container">
+        <div className="help-icon-container" style={{ display: 'flex', alignItems: 'center', gap: 12, marginRight:"15px" }}>
+          {onShareClick && (
+            <button
+              onClick={onShareClick}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: 8, marginTop: 4 }}
+            >
+              <IoShareSocialSharp size={28} color="white" />
+            </button>
+          )}
           <HelpOutlineOutlinedIcon
           fontSize="large"
           aria-label={String(t("Help"))}

@@ -328,7 +328,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                 selectedType === TABLEDROPDOWN.CHAPTER ? "65vh" : "70vh",
             }}
           >
-            <table>
+            <table className="Reports-Table-capture-report-table">
               <thead>
                 <tr>
                   <th>
