@@ -30,6 +30,8 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     programManagers?: any[];
     principals?: any[];
     coordinators?: any[];
+    teachers?: any[];
+    students?: any[];
   }>({});
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
@@ -39,13 +41,16 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     async function fetchAll() {
       setLoading(true);
       const api = ServiceConfig.getI().apiHandler;
-      const [school, program, programManagers, principals, coordinators] =
+      const [school, program, programManagers, principals, coordinators, teachers, students] =
         await Promise.all([
           api.getSchoolById(id),
           api.getProgramForSchool(id),
           api.getProgramManagersForSchool(id),
           api.getPrincipalsForSchool(id),
           api.getCoordinatorsForSchool(id),
+          api.getTeacherInfoBySchoolId(id),
+          api.getStudentInfoBySchoolId(id),
+
         ]);
       setData({
         schoolData: school,
@@ -53,8 +58,11 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         programManagers: programManagers,
         principals: principals,
         coordinators: coordinators,
+        teachers: teachers,
+        students: students,
       });
       setLoading(false);
+      console.log("checking data log",  students);
     }
     fetchAll();
   }, [id]);

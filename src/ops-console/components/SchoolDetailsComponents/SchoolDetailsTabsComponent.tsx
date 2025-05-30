@@ -4,6 +4,10 @@ import "../../pages/SchoolDetailsPage.css";
 import { t } from "i18next";
 import { SchoolTabs } from "../../../interface/modelInterfaces";
 import SchoolOverview from "./SchoolOverview";
+import SchoolTeachers from "./SchoolTeachers";
+import SchoolStudents from "./SchoolStudents";
+import SchoolPrincipals from "./SchoolPrincipals";
+import SchoolCoordinators from "./SchoolCoordinators";
 
 const tabEnumValues = Object.values(SchoolTabs);
 
@@ -34,6 +38,18 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
       <div className="school-detail-tab-content">
         {activeTab === SchoolTabs.Overview && (
           <SchoolOverview data={data} isMobile={isMobile} />
+        )}
+         {activeTab === SchoolTabs.Students && (
+          <SchoolStudents data={data} isMobile={isMobile} />
+        )}
+         {activeTab === SchoolTabs.Teachers && (
+          <SchoolTeachers data={data} isMobile={isMobile} />
+        )}
+         {activeTab === SchoolTabs.Principals && (
+          <SchoolPrincipals data={data} isMobile={isMobile} />
+        )}
+         {activeTab === SchoolTabs.Coordinators && (
+          <SchoolCoordinators data={data} isMobile={isMobile} />
         )}
       </div>
     </div>

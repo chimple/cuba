@@ -1199,9 +1199,9 @@ export interface ServiceApi {
     schoolIds: string[]
   ): Promise<TableTypes<"school">[] | undefined>;
   /**
-   * This function gets all the principals for the school.
+   * This function gets all the teachers for the school.
    * @param {string} schoolId school Id;
-   * @return A promise to an array of principals.
+   * @return A promise to an array of teachers.
    */
   getPrincipalsForSchool(
     schoolId: string
@@ -1596,4 +1596,27 @@ export interface ServiceApi {
     partnerDetails: { label: string; value: string }[];
     programManagers: { name: string; role: string; phone: string }[];
   } | null>;
+
+  getTeacherInfoBySchoolId(schoolId: string): Promise<
+  {
+    name: string | null;
+    gender: string | null;
+    grade: number;
+    classSection: string;
+    phoneNumber: string | null;
+    email: string | null;
+  }[]>;
+   getStudentInfoBySchoolId(schoolId: string): Promise<
+  {
+    studentId: string | null;
+    name: string | null;
+    gender: string | null;
+    grade: number;
+    classSection: string;
+    phoneNumber: string | null;
+  }[]>;
+  
+  getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
+  
+
 }

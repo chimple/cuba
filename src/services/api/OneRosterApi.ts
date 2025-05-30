@@ -1212,4 +1212,33 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<"user">[] | undefined> {
     throw new Error("Method not implemented.");
   }
+
+  getTeacherInfoBySchoolId(schoolId: string): Promise<
+  {
+    name: string | null;
+    gender: string | null;
+    grade: number;
+    classSection: string;
+    phoneNumber: string | null;
+    email: string | null;
+  }[]
+> {
+    throw new Error("Method not implemented.");
+  }
+  getStudentInfoBySchoolId(schoolId: string): Promise<
+  {
+    studentId: string | null;
+    gender: string | null;
+    grade: number;
+    classSection: string;
+    phoneNumber: string | null;
+  }[]
+> {
+    throw new Error("Method not implemented.");
+  }
+   getClassesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"class">[]> {
+    throw new Error("Method not implemented.");
+  }
 }
