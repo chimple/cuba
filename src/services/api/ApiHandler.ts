@@ -1179,4 +1179,32 @@ export class ApiHandler implements ServiceApi {
   } | null> {
     return await this.s.getProgramData(programId);
   }
+
+  public async getTeacherInfoBySchoolId(schoolId: string): Promise<
+  {
+    name: string | null;
+    gender: string | null;
+    grade: number;
+    classSection: string;
+    phoneNumber: string | null;
+    email: string | null;
+  }[]
+> {
+    return await this.s.getTeacherInfoBySchoolId(schoolId);
+  }
+  public async getStudentInfoBySchoolId(schoolId: string): Promise<
+  {
+    studentId: string | null;
+    name: string | null;
+    gender: string | null;
+    grade: number;
+    classSection: string;
+    phoneNumber: string | null;
+  }[]
+> {
+    return await this.s.getStudentInfoBySchoolId(schoolId);
+  }
+  public async getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>{
+    return await this.s.getClassesBySchoolId(schoolId);
+  }
 }
