@@ -27,13 +27,13 @@
     width: 100%; 
     padding-bottom: 20px; 
 }
-.program-search-filter{
+/* .program-search-filter{
     display: flex;
     width: 100%;
     justify-content: space-between;
     align-items: center; 
     flex-wrap: wrap;
-}
+} */
 .program-header-and-search-filter{
     padding-bottom: 10px;
     width: 100%; 
@@ -45,10 +45,49 @@
     border-radius: 8px; 
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
 }
-.program-button-and-search-filter{
+/* .program-button-and-search-filter{
     display: flex;
     flex-direction: row;
     gap: 10px;
     justify-content: end;
     align-items: center;
+} */
+
+.program-search-filter {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center; 
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.program-button-and-search-filter {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* On small screens: stack HeaderTab, then row-wrap button and search+filter */
+@media (max-width: 600px) {
+  .program-search-filter {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .program-button-and-search-filter {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .program-button-and-search-filter > :not(button) {
+    flex: 1;
+  }
+
+  .program-button-and-search-filter button {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
 }

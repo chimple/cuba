@@ -20,6 +20,7 @@ import {
   LATEST_STARS,
   SchoolRoleMap,
   MODEL,
+  FilteredSchool,
   COURSES,
   CHIMPLE_HINDI,
   GRADE1_KANNADA,
@@ -255,7 +256,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-              new Date(row.last_pulled)
+            new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -4834,7 +4835,9 @@ order by
   ): Promise<SchoolRoleMap[]> {
     return await this._serverApi.getProgramManagersForSchools(schoolIds);
   }
-  async getProgramData(programId: string): Promise<{
+  async getProgramData(
+    programId: string
+  ): Promise<{
     programDetails: { label: string; value: string }[];
     locationDetails: { label: string; value: string }[];
     partnerDetails: { label: string; value: string }[];
@@ -4847,6 +4850,15 @@ order by
   ): Promise<SchoolRoleMap[]> {
     return await this._serverApi.getFieldCoordinatorsForSchools(schoolIds);
   }
+
+  async getSchoolFilterOptions(): Promise<Record<string, string[]>> {
+    return await this._serverApi.getSchoolFilterOptions();
+  }
+
+  async getFilteredSchools(filters: Record<string, string[]>): Promise<FilteredSchool[]> {
+   return await this._serverApi.getFilteredSchools(filters);}
+   
+
   async createAutoProfile(
     languageDocId: string | undefined
   ): Promise<TableTypes<"user">> {
