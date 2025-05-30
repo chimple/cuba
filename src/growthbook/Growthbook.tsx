@@ -62,6 +62,7 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       teacher_school_list,
       teacher_class_ids,
       roleMap,
+      courseCounts,
     } = attributes;
 
     const totalAssignments = count_of_assignment_played + assignmentCount;
@@ -102,6 +103,7 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       teacher_school_list,
       teacher_class_ids,
       ...roleMap,
+      ...courseCounts,
     });
   };
 

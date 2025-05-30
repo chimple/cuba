@@ -468,6 +468,7 @@ const Home: FC = () => {
       return;
     }
     const studentResult = await api.getStudentResult(currentStudent.id, false);
+    const courseCounts: any = {};
 
     if (studentResult) {
       const playedLessonData = studentResult;
@@ -475,6 +476,16 @@ const Home: FC = () => {
       const allValidPlayedLessonDocIds = sortedLessonDocIds.filter(
         (lessonDoc) => lessonDoc !== undefined
       );
+      for (const course of studentResult) {
+        const courseId = course.course_id;
+        if (!courseId) {
+          continue;
+        }
+        const key = `${courseId}_course_completed`;
+        courseCounts[key] = (courseCounts[key] || 0) + 1;
+      }
+      updateLocalAttributes({courseCounts, total_assignments_played: allValidPlayedLessonDocIds.length});
+      setGbUpdated(true)
       return allValidPlayedLessonDocIds;
     }
   };
