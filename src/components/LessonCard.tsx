@@ -236,7 +236,7 @@ const LessonCard: React.FC<{
         >
           <div
             style={{
-              background: lesson?.color ?? lessonCardColor,
+              background: lesson?.color?.trim() ? lesson.color : lessonCardColor,
               borderRadius: "7vh",
               width: width,
               height: height,
