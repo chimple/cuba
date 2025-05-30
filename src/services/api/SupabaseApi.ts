@@ -19,6 +19,13 @@ import {
   EVENTS,
   SchoolRoleMap,
   MODEL,
+  COURSES,
+  CHIMPLE_HINDI,
+  GRADE1_KANNADA,
+  GRADE1_MARATHI,
+  CHIMPLE_ENGLISH,
+  CHIMPLE_MATHS,
+  CHIMPLE_DIGITAL_SKILLS,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -5761,4 +5768,107 @@ export class SupabaseApi implements ServiceApi {
       return null;
     }
   }
+
+async createAutoProfile(languageDocId: string | undefined): Promise<TableTypes<"user">> {
+ if (!this.supabase) throw new Error("Supabase instance is not initialized");
+
+  const _currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+  if (!_currentUser) throw new Error("User is not Logged in");
+  const studentProfile = await this.getParentStudentProfiles();
+  if (studentProfile.length > 0) return studentProfile[0];
+
+  const studentId = uuidv4();
+  const now = new Date().toISOString();
+
+  const newStudent: TableTypes<"user"> = {
+    id: studentId,
+    name: null,
+    age: null,
+    gender: null,
+    avatar: null,
+    image: null,
+    curriculum_id: null,
+    grade_id: null,
+    language_id: languageDocId ?? null,
+    created_at: now,
+    updated_at: now,
+    is_deleted: false,
+    is_tc_accepted: true,
+    email: null,
+    phone: null,
+    fcm_token: null,
+    music_off: false,
+    sfx_off: false,
+    student_id: null,
+  };
+
+  // Insert user
+  const { error: userInsertError } = await this.supabase
+    .from(TABLES.User)
+    .insert([newStudent]);
+  if (userInsertError) {
+    console.error("Error inserting auto profile user:", userInsertError);
+    throw userInsertError;
+  }
+
+  // Insert parent_user
+  const parentUserId = uuidv4();
+  const parentUserData: TableTypes<"parent_user"> = {
+    id: parentUserId,
+    parent_id: _currentUser.id,
+    student_id: studentId,
+    created_at: now,
+    updated_at: now,
+    is_deleted: false,
+  };
+  const { error: parentInsertError } = await this.supabase
+    .from(TABLES.ParentUser)
+    .insert([parentUserData]);
+  if (parentInsertError) {
+    console.error("Error inserting parent_user for auto profile:", parentInsertError);
+    throw parentInsertError;
+  }
+
+  // Find English, Maths, and language-dependent subject
+  const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
+  const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+  const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
+  const language = languageDocId ? await this.getLanguageWithId(languageDocId) : undefined;
+  let langCourse: TableTypes<"course"> | undefined;
+  if (language && language.code !== COURSES.ENGLISH) {
+    // Map language code to courseId
+    const thirdLanguageCourseMap: Record<string, string> = {
+      hi: CHIMPLE_HINDI,
+      kn: GRADE1_KANNADA,
+      mr: GRADE1_MARATHI,
+    };
+    const courseId = thirdLanguageCourseMap[language.code ?? ""];
+    if (courseId) {
+      langCourse = await this.getCourse(courseId);
+    } 
+  }
+  // Add only these three courses to the student
+  const coursesToAdd = [englishCourse, mathsCourse, langCourse, digitalSkillsCourse].filter(Boolean) as TableTypes<"course">[];
+
+  // Insert user_course entries
+  for (const course of coursesToAdd) {
+    const newUserCourse: TableTypes<"user_course"> = {
+      id: uuidv4(),
+      user_id: studentId,
+      course_id: course.id,
+      created_at: now,
+      updated_at: now,
+      is_deleted: false,
+    };
+    const { error: userCourseInsertError } = await this.supabase
+      .from(TABLES.UserCourse)
+      .insert([newUserCourse]);
+    if (userCourseInsertError) {
+      console.error("Error inserting user_course for auto profile:", userCourseInsertError);
+    }
+  }
+
+  return newStudent;
+}
+
 }
