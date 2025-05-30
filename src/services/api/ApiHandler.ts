@@ -1181,6 +1181,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getProgramData(programId);
   }
 
+
   async getSchoolFilterOptions(): Promise<Record<string, string[]>> {
     return await this.s.getSchoolFilterOptions();
   }
@@ -1189,4 +1190,11 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getFilteredSchools(filters);
   }
 
+  public async createAutoProfile(
+    languageDocId: string | undefined
+  ): Promise<TableTypes<"user">> {
+    return await this.s.createAutoProfile(
+      languageDocId
+    );
+  }
 }

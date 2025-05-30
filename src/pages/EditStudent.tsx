@@ -82,6 +82,7 @@ const EditStudent = () => {
   const [grades, setGrades] = useState<TableTypes<"grade">[]>();
   const [languages, setLanguages] = useState<TableTypes<"language">[]>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
   const [checkResults, setCheckResults] = useState<boolean>(false);
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
 
@@ -216,6 +217,30 @@ const EditStudent = () => {
   const [isInputFocus, setIsInputFocus] = useState(false);
 
   useEffect(() => {
+      (async () => {
+      // Check if parent has any student profiles
+      const students = await api.getParentStudentProfiles();
+      if (!students || students.length === 0) {
+        setIsCreatingProfile(true);
+        try {
+          // Get language id for app language
+          const languageCode = localStorage.getItem(LANGUAGE);
+          const allLanguages = await api.getAllLanguages();
+          const selectedLanguage = allLanguages.find((lang) => lang.code === languageCode);
+          // Create auto profile with default/null values
+          const student = await api.createAutoProfile(
+            selectedLanguage?.id
+          );
+          // Set as current student
+          await Util.setCurrentStudent(student, selectedLanguage?.code ?? undefined, true);
+          history.replace(PAGES.HOME);
+        } catch (err) {
+          console.error("Auto profile creation failed", err);
+        } finally {
+          setIsCreatingProfile(false);
+        }
+      }
+    })();
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
         setIsInputFocus(true);
@@ -269,6 +294,8 @@ const EditStudent = () => {
   }
 
   return (
+  <>
+    {isCreatingProfile ? <IonContent className="ion-padding"><Loading isLoading={isCreatingProfile} /></IonContent>:
     <IonPage id="Edit-student-page">
       <div id="Edit-student-back-button" aria-label={String(t("Back"))}>
         {!isEdit && !state?.showBackButton ? null : (
@@ -439,6 +466,8 @@ const EditStudent = () => {
       </div>
       <Loading isLoading={isLoading} />
     </IonPage>
+    }
+  </>
   );
 };
 export default EditStudent;

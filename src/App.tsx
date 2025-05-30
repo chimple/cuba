@@ -42,12 +42,14 @@ import {
   // APP_LANG,
   BASE_NAME,
   CACHE_IMAGE,
+  CAN_ACCESS_REMOTE_ASSETS,
   CONTINUE,
   DOWNLOADING_CHAPTER_ID,
   DOWNLOAD_BUTTON_LOADING_STATUS,
   GAME_URL,
   HOMEHEADERLIST,
   IS_CUBA,
+  LEARNING_PATH_ASSETS,
   MODES,
   PAGES,
   PortPlugin,
@@ -121,6 +123,7 @@ import ProgramsPage from "./ops-console/pages/ProgramPage";
 import ProgramDetailPage from "./ops-console/pages/ProgramDetailsPage";
 import NewProgram from "./ops-console/components/NewProgram";
 import SchoolList from "./ops-console/pages/SchoolList";
+import { useFeatureValue, useFeatureIsOn } from "@growthbook/growthbook-react";
 
 setupIonicReact();
 interface ExtraData {
@@ -154,6 +157,9 @@ const App: React.FC = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
   const [isActive, setIsActive] = useState(true);
+  const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
+  const learningPathAssets: any = useFeatureValue(LEARNING_PATH_ASSETS, {});
+
   useEffect(() => {
     const cleanup = initializeClickListener();
     const handleOnline = () => {
@@ -223,10 +229,16 @@ const App: React.FC = () => {
       CapApp.addListener("appUrlOpen", Util.onAppUrlOpen);
     }
 
+    if (shouldShowRemoteAssets) {
+      Util.DownloadLearningPathAssets(
+        learningPathAssets?.asset_repo_url,
+        learningPathAssets?.uniqueId
+      );
+    }
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
-    }).catch((_) => { });
+    }).catch((_) => {});
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();

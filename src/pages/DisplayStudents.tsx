@@ -106,7 +106,7 @@ const DisplayStudents: FC<{}> = () => {
       await schoolUtil.setCurrentClass(undefined);
     }
     if (
-      !student.curriculum_id ||
+      // !student.curriculum_id ||
       !student.language_id
       //  ||
       // !student.grade_id ||
