@@ -461,16 +461,16 @@ export class Util {
 
       switch(true) {
         case subjectCode !== undefined && lessonCode !== undefined:
-          return `https://media.githubusercontent.com/media/chimple/chimple/refs/heads/master/assets/courses/${subjectCode}/${subjectCode}/res/icons/${lessonCode}.png`;
+          return `https://media.githubusercontent.com/media/chimple/bahama/refs/heads/master/assets/courses/${subjectCode}/${subjectCode}/res/icons/${lessonCode}.png`;
 
         case id !== undefined:
           const chapterCode1 = id?.replace(/_.*/, "");
           const chapterCode2 = id?.replace(/_/g, "");
-          return `https://media.githubusercontent.com/media/chimple/chimple/refs/heads/master/assets/courses/${chapterCode1}/${chapterCode1}/res/icons/${chapterCode2}.png`;
+          return `https://media.githubusercontent.com/media/chimple/bahama/refs/heads/master/assets/courses/${chapterCode1}/${chapterCode1}/res/icons/${chapterCode2}.png`;
 
         case courseCode !== undefined:
           const code = courseCode?.split("_")[0];
-          return `https://media.githubusercontent.com/media/chimple/chimple/refs/heads/master/assets/courses/${code}/${code}/res/icons/${code}.png`;
+          return `https://media.githubusercontent.com/media/chimple/bahama/refs/heads/master/assets/courses/${code}/${code}/res/icons/${code}.png`;
 
         default:
           return "assets/icons/DefaultIcon.png";
