@@ -87,7 +87,7 @@ const SubjectSelection: React.FC = () => {
   useEffect(() => {
   const init = async () => {
     const cls = await Util.getCurrentClass();
-    if ((cls as any)?.role === "teacher") {
+    if ((cls as any)?.role === RoleType.TEACHER) {
       setCanModify(false);
     }
 

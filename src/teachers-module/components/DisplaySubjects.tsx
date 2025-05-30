@@ -11,6 +11,7 @@ import { t } from "i18next";
 import "./DisplaySubjects.css";
 import { TableTypes } from "../../common/constants";
 import { Util } from "../../utility/util";
+import { RoleType } from "../../interface/modelInterfaces";
 
 interface CurriculumWithCourses {
   curriculum: { id: string; name: string; grade?: string };
@@ -44,7 +45,7 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
   useEffect(() => {
     const checkClassRole = async () => {
       const cls = await Util.getCurrentClass();
-      if ((cls as any)?.role === "teacher") {
+      if ((cls as any)?.role === RoleType.TEACHER) {
         setCanModify(false);
       }
     };
