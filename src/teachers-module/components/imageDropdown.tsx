@@ -113,7 +113,10 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
                 {splitText(option.name, option.subjectDetail).subject}
               </span>
               <span className="grade-text">
-                {splitText(option.name, option.subjectDetail).grade}
+                {
+                  splitText(option.name, option.subjectDetail).grade ||
+                  (option.id === "all" ? "All Grades" : "")
+                }
               </span>
             </div>
           </MenuItem>
