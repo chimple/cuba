@@ -74,10 +74,10 @@ const ReportTable: React.FC<ReportTableProps> = ({
     { id: string; name: string }[]
   >([]);
   
-  const subjectOptionsWithAll =
-  selectedType === TABLEDROPDOWN.CHAPTER
-    ? mappedSubjectOptions 
-    : [{ id: "all", name: "All Subjects" }, ...mappedSubjectOptions];
+  const subjectOptionsWithAll = [
+  { id: "all", name: "All Subjects", disabled: selectedType === TABLEDROPDOWN.CHAPTER },
+  ...mappedSubjectOptions.map((subject) => ({ ...subject, disabled: false })),
+];
 
   const [mappedChaptersOptions, setMappedChaptersOptions] = useState<
     { id: string; name: string }[]
@@ -396,6 +396,7 @@ let reportResults: ReportResponse[] = [];
               options={Object.entries(TABLEDROPDOWN).map(([key, value]) => ({
                 id: key,
                 name: value,
+                disabled: selectedSubject?.id === "all" && key === "CHAPTER",
               }))}
               onOptionSelect={handleTypeSelect}
               placeholder={t(selectedType)??""}

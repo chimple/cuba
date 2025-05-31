@@ -27,12 +27,15 @@ import { Util } from "../../../../utility/util";
 import CustomDropdown from "../../CustomDropdown";
 import { t } from "i18next";
 import ImageDropdown from "../../imageDropdown";
+import SelectIconImage from '../../../assets/icons/all_subject_icon.png'
 
 const DashBoard: React.FC = ({}) => {
   const [selectedSubject, setSelectedSubject] =
     useState<TableTypes<"course">>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<TableTypes<"user">[]>();
+  console.log("students", students);
+  
   const [subjects, setSubjects] = useState<TableTypes<"course">[]>([]);;
   
   const [weeklySummary, setWeeklySummary] = useState<HomeWeeklySummary>();
@@ -102,18 +105,23 @@ const DashBoard: React.FC = ({}) => {
     );
   };
   
-  const init = async () => {
+const init = async () => {
+  setIsLoading(true);
+
   const _students = await api.getStudentsForClass(current_class?.id ?? "");
   setStudents(_students);
-  console.log("_students", _students);
-  
+
   const _classUtil = new ClassUtil();
 
   if (selectedSubject?.id === "all") {
-    let allStudentProgress = new Map();
+    const studentBandMap = new Map<string, { band: string, entry: any }>();
+    const bandOrder = ["Need Help", "Still Learning", "Doing Good", "Not Tracked"];
+    const bandPriority = Object.fromEntries(
+      bandOrder.map((band, i) => [band, i + 1])
+    );
+
     let totalAssignments = 0;
     let totalCompletedAssignments = 0;
-    let totalStudents = _students.length;
     let totalCompletedStudents = 0;
     let totalTimeSpent = 0;
     let totalAverageScore = 0;
@@ -122,14 +130,19 @@ const DashBoard: React.FC = ({}) => {
     for (const subject of subjects) {
       const progress = await _classUtil.divideStudents(current_class?.id ?? "", subject.id);
       const summary = await _classUtil.getWeeklySummary(current_class?.id ?? "", subject.id);
-      
-      // Merge studentProgress maps
-      for (let [key, value] of progress.entries()) {
-        if (!allStudentProgress.has(key)) allStudentProgress.set(key, []);
-        allStudentProgress.set(key, [...allStudentProgress.get(key), ...value]);
+
+      // Track best band for each student
+      for (const [band, studentsInBand] of progress.entries()) {
+        for (const entry of studentsInBand) {
+          const student = entry.get("student") as TableTypes<"user">;
+          const current = studentBandMap.get(student.id);
+          if (!current || bandPriority[band] < bandPriority[current.band]) {
+            studentBandMap.set(student.id, { band, entry });
+          }
+        }
       }
 
-      // Aggregate weekly summary
+      // Accumulate summary data
       totalAssignments += summary.assignments.totalAssignments || 0;
       totalCompletedAssignments += summary.assignments.asgnmetCmptd || 0;
       totalCompletedStudents += summary.students.stdCompletd || 0;
@@ -138,25 +151,36 @@ const DashBoard: React.FC = ({}) => {
       subjectsCount += 1;
     }
 
+    // Final band grouping
+    const mergedBandWiseStudents = new Map<string, any[]>();
+    for (const { band, entry } of studentBandMap.values()) {
+      if (!mergedBandWiseStudents.has(band)) {
+        mergedBandWiseStudents.set(band, []);
+      }
+      mergedBandWiseStudents.get(band)!.push(entry);
+    }
+
+    // Final average calculations
     const averageTimeSpent = subjectsCount > 0 ? Math.round(totalTimeSpent / subjectsCount) : 0;
     const averageScore = subjectsCount > 0 ? Math.round(totalAverageScore / subjectsCount) : 0;
 
     const aggregatedSummary: HomeWeeklySummary = {
       assignments: {
-        totalAssignments: totalAssignments,
+        totalAssignments,
         asgnmetCmptd: totalCompletedAssignments,
       },
       students: {
-        totalStudents: totalStudents,
-        stdCompletd: totalCompletedStudents,
+        totalStudents: _students.length,
+        stdCompletd: Math.min(totalCompletedStudents, _students.length),
       },
       timeSpent: averageTimeSpent,
-      averageScore: averageScore,
+      averageScore,
     };
 
     setWeeklySummary(aggregatedSummary);
-    setStudentProgress(allStudentProgress);
+    setStudentProgress(mergedBandWiseStudents);
   } else {
+    // Single subject mode
     const _studentProgress = await _classUtil.divideStudents(current_class?.id ?? "", selectedSubject?.id ?? "");
     const _weeklySummary = await _classUtil.getWeeklySummary(current_class?.id ?? "", selectedSubject?.id ?? "");
 
@@ -166,6 +190,8 @@ const DashBoard: React.FC = ({}) => {
 
   setIsLoading(false);
 };
+
+
 
 
   const handleSelectSubject = (subject) => {
@@ -187,7 +213,7 @@ const DashBoard: React.FC = ({}) => {
   const allOption = {
   id: "all", // internal use only
   name: "All Subjects",
-  icon: "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/thumbnails%2Fchapter_icons%2Fen.webp?alt=media&token=de04f5ee-54c6-4da9-97e9-311a6717963d", // Replace with actual icon
+  icon: SelectIconImage, // Replace with actual icon
   subjectDetail: "All Grades",
 };
 
