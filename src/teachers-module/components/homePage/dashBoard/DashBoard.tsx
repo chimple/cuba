@@ -34,10 +34,7 @@ const DashBoard: React.FC = ({}) => {
     useState<TableTypes<"course">>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<TableTypes<"user">[]>();
-  console.log("students", students);
-  
   const [subjects, setSubjects] = useState<TableTypes<"course">[]>([]);;
-  
   const [weeklySummary, setWeeklySummary] = useState<HomeWeeklySummary>();
   const [studentProgress, setStudentProgress] = useState<Map<any, any>>();
   const api = ServiceConfig.getI().apiHandler;
@@ -61,7 +58,6 @@ const DashBoard: React.FC = ({}) => {
     const _subjects = await api.getCoursesForClassStudent(
       current_class?.id ?? ""
     );
-    console.log("_subjects", _subjects);
     
     setSubjects(_subjects);    
 
@@ -107,7 +103,6 @@ const DashBoard: React.FC = ({}) => {
   
 const init = async () => {
   setIsLoading(true);
-
   const _students = await api.getStudentsForClass(current_class?.id ?? "");
   setStudents(_students);
 
@@ -115,10 +110,15 @@ const init = async () => {
 
   if (selectedSubject?.id === "all") {
     const studentBandMap = new Map<string, { band: string, entry: any }>();
-    const bandOrder = ["Need Help", "Still Learning", "Doing Good", "Not Tracked"];
-    const bandPriority = Object.fromEntries(
-      bandOrder.map((band, i) => [band, i + 1])
-    );
+     const bandOrder = [
+        BANDS.REDGROUP,
+        BANDS.YELLOWGROUP,
+        BANDS.GREENGROUP, 
+        BANDS.GREYGROUP,
+      ];
+       const bandPriority = Object.fromEntries(
+        bandOrder.map((band, i) => [band, i + 1])
+      );
 
     let totalAssignments = 0;
     let totalCompletedAssignments = 0;
@@ -131,7 +131,7 @@ const init = async () => {
       const progress = await _classUtil.divideStudents(current_class?.id ?? "", subject.id);
       const summary = await _classUtil.getWeeklySummary(current_class?.id ?? "", subject.id);
 
-      // Track best band for each student
+      // Track band for each student
       for (const [band, studentsInBand] of progress.entries()) {
         for (const entry of studentsInBand) {
           const student = entry.get("student") as TableTypes<"user">;
@@ -191,12 +191,7 @@ const init = async () => {
   setIsLoading(false);
 };
 
-
-
-
   const handleSelectSubject = (subject) => {
-    console.log("subject-------", subject);
-    
     if (subject) {
       setSelectedSubject(subject);
       Util.setCurrentCourse(current_class?.id, subject);

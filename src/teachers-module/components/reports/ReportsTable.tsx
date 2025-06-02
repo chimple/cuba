@@ -336,8 +336,6 @@ let reportResults: ReportResponse[] = [];
 
 
   const handleTypeSelect = async (type) => {
-    console.log("type", type);
-    
     if (type) {
       if (type.name === TABLEDROPDOWN.CHAPTER) {
         const _chapters = await api.getChaptersForCourse(
