@@ -266,100 +266,103 @@ const Home: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
 
   async function getAssignments(): Promise<TableTypes<"lesson">[]> {
-    let reqLes: TableTypes<"lesson">[] = [];
-    // setIsLoading(true);
-    const student = Util.getCurrentStudent();
-    // const studentResult = await api.getStudentResult(student.id, false);
-    const linkedData =
-      student != null
-        ? await api.getStudentClassesAndSchools(student.id)
-        : null;
-    const classDoc = linkedData?.classes[0];
-    if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => { });
-    if (student) await api.assignmentUserListner(student.id, () => { });
-
-    if (
-      student != null &&
-      !!linkedData &&
-      !!linkedData.classes &&
-      linkedData.classes.length > 0
-    ) {
-      const allAssignments: TableTypes<"assignment">[] = [];
-
-      await Promise.all(
-        linkedData.classes.map(async (_class) => {
-          const res = await api.getPendingAssignments(_class.id, student.id);
-          allAssignments.push(...res);
-        })
-      );
-      let assignmentCount = 0;
-      let liveQuizCount = 0;
-
-      const counts: Record<string, number> = {};
-
-      await Promise.all(
-        allAssignments.map(async (_assignment) => {
-          const res = await api.getLesson(_assignment.lesson_id);
-          const now = new Date().toISOString();
-          if (_assignment.type !== LIVE_QUIZ) {
-            assignmentCount++;
-            const subject_id = res?.subject_id;
-            if (!subject_id) return;
-            const key = `count_of_subject_${subject_id}_pending`;
-            counts[key] = (counts[key] || 0) + 1;
-          } else {
-            if (_assignment.ends_at && _assignment.starts_at) {
-              if (_assignment.starts_at <= now && _assignment.ends_at > now) {
-                liveQuizCount++;
-              }
-            }
-          }
-          if (!!res) {
-            // res.assignment = _assignment;
-            (res as any).course_id = _assignment.course_id || null;
-            reqLes.push(res);
-          }
-        })
-      );
-
-      setPendingLiveQuizCount(liveQuizCount);
-      setPendingAssignmentCount(assignmentCount);
-      setPendingAssignments(allAssignments);
-
-      const courseCount = allAssignments.reduce((accumulator, current: any) => {
-        if (accumulator[current.course_id]) {
-          accumulator[current.course_id] += 1;
-        } else {
-          accumulator[current.course_id] = 1;
+  let reqLes: TableTypes<"lesson">[] = [];
+  const student = Util.getCurrentStudent();
+  const linkedData = student
+    ? await api.getStudentClassesAndSchools(student.id)
+    : null;
+  if (
+    student != null &&
+    !!linkedData &&
+    Array.isArray(linkedData.classes) &&
+    linkedData.classes.length > 0
+  ) {
+    
+    const allAssignments: TableTypes<"assignment">[] = [];
+    await Promise.all(
+      linkedData.classes.map(async (_class) => {
+        const res = await api.getPendingAssignments(_class.id, student.id);
+        allAssignments.push(...res);
+      })
+    );
+   
+    let liveQuizCount = 0;
+    const now = new Date().toISOString();
+    allAssignments.forEach((_assignment) => {
+      if (_assignment.type === LIVE_QUIZ) {
+        if (
+          _assignment.starts_at <= now &&
+          _assignment.ends_at !== null &&
+          _assignment.ends_at > now
+        ) {
+          liveQuizCount++;
         }
-        return accumulator;
-      }, {});
-      const result = Object.keys(courseCount).reduce((acc, courseId) => {
-        acc[`count_of_course_${courseId}_pending`] = courseCount[courseId];
-        return acc;
-      }, {});
-      const device = await logDeviceInfo();
-      const attributeParams = {
-        studentDetails: student,
-        schools: linkedData.schools.map((item: any) => item.id),
-        classes: linkedData.classes.map((item: any) => item.id),
-        liveQuizCount: liveQuizCount,
-        assignmentCount: assignmentCount,
-        pending_course_counts: result,
-        pending_subject_counts: counts,
-        ...device,
       }
-      updateLocalAttributes(attributeParams);
-      setGbUpdated(true);
-      setDataCourse(reqLes);
-      // storeRecommendationsInLocalStorage(reqLes);
-      // setIsLoading(true);
-      return reqLes;
-    } else {
-      // setIsLoading(false);
-      return [];
-    }
+    });
+    
+    const nonLiveAssignments = allAssignments.filter(
+      (a) => a.type !== LIVE_QUIZ
+    );
+    
+    const subjectCounts: Record<string, number> = {};
+    await Promise.all(
+      nonLiveAssignments.map(async (_assignment) => {
+        const lesson = await api.getLesson(_assignment.lesson_id);
+        if (!lesson) return;
+        const subjectId = lesson.subject_id;
+        if (subjectId) {
+          const key = `count_of_subject_${subjectId}_pending`;
+          subjectCounts[key] = (subjectCounts[key] || 0) + 1;
+        }
+        // Attach course_id for downstream components
+        ;(lesson as any).course_id = _assignment.course_id ?? null;
+        reqLes.push(lesson);
+      })
+    );
+    
+    const courseCount: Record<string, number> = {};
+    nonLiveAssignments.forEach((_assignment) => {
+      const cid = _assignment.course_id;
+      if (cid !== null) {
+        courseCount[cid] = (courseCount[cid] || 0) + 1;
+      }
+    });
+    const pendingCourseCounts: Record<string, number> = {};
+    Object.keys(courseCount).forEach((courseId) => {
+      pendingCourseCounts[`count_of_course_${courseId}_pending`] =
+        courseCount[courseId];
+    });
+    // 6) Sort nonLiveAssignments by created_at descending (newest first)
+    nonLiveAssignments.sort((a, b) => {
+      return (
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    });
+
+    const TRUNCATED = nonLiveAssignments.slice(0, 50);
+   
+    setPendingLiveQuizCount(liveQuizCount);
+    setPendingAssignmentCount(TRUNCATED.length); // never more than 50
+    setPendingAssignments(TRUNCATED);
+    const device = await logDeviceInfo();
+    const attributeParams = {
+      studentDetails: student,
+      schools: linkedData.schools.map((item) => item.id),
+      classes: linkedData.classes.map((item) => item.id),
+      liveQuizCount: liveQuizCount,
+      assignmentCount: TRUNCATED.length,
+      pending_course_counts: pendingCourseCounts,
+      pending_subject_counts: subjectCounts,
+      ...device,
+    };
+    updateLocalAttributes(attributeParams);
+    setGbUpdated(true);
+    setDataCourse(reqLes);
+    return reqLes;
+  } else {
+    return [];
   }
+}
 
   async function getRecommendeds(
     subjectCode: string
