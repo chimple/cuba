@@ -488,6 +488,13 @@ export interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;
 }
+export interface FilteredSchoolsForSchoolListingOps {
+  school_name: string;
+  num_students: number;
+  num_teachers: number;
+  program_managers: string[];
+  field_coordinators: string[];
+}
 export enum School_Creation_Stages {
   // CREATE_SCHOOL = "create_school",
   SCHOOL_COURSE = "school_course",

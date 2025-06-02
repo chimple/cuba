@@ -4,6 +4,7 @@ import { StudentLessonResult } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import {
+  FilteredSchoolsForSchoolListingOps,
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODEL,
@@ -1178,6 +1179,14 @@ export class ApiHandler implements ServiceApi {
     programManagers: { name: string; role: string; phone: string }[];
   } | null> {
     return await this.s.getProgramData(programId);
+  }
+
+  async getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>> {
+    return await this.s.getSchoolFilterOptionsForSchoolListing();
+  }
+
+  async getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>): Promise<FilteredSchoolsForSchoolListingOps[]> {
+    return await this.s.getFilteredSchoolsForSchoolListing(filters);
   }
 
   public async getTeacherInfoBySchoolId(schoolId: string): Promise<

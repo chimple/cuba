@@ -1598,6 +1598,24 @@ export interface ServiceApi {
   } | null>;
 
   /**
+
+   * Fetch available filter options for schools.
+   * Each key in the returned object represents a filter category,
+   * and the value is an array of possible filter values.
+   * 
+   * @returns Promise resolving to an object where keys are filter categories
+   * and values are arrays of filter option strings.
+   */
+  getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>>;
+
+  /**
+   * Fetch a list of schools filtered by given criteria.
+   * 
+   * @param filters - An object where keys are filter categories and values are arrays of selected filter options.
+   * @returns Promise resolving to a filtered list of schools matching the provided filter criteria.
+   */
+  getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>);
+
    * Fetch detailed teacher information for a given school ID.
    * @param {string} schoolId - The ID of the school to fetch.
    * @returns Promise resolving to user details, grade, and classSection.
@@ -1632,4 +1650,5 @@ export interface ServiceApi {
   createAutoProfile(
     languageDocId: string | undefined
   ): Promise<TableTypes<"user">>;
+
 }

@@ -408,6 +408,19 @@ const Login: React.FC = () => {
         (school) => school.role === RoleType.AUTOUSER
       );
 
+      console.log("userSchools", userSchools);
+      const isOpsUser = userSchools.some(
+        (school) =>
+          school.role === RoleType.PROGRAM_MANAGER ||
+          school.role === RoleType.FIELD_COORDINATOR 
+      );
+
+      
+      if (isOpsUser) {
+        history.replace(PAGES.SIDEBAR_PAGE);
+        return;
+      }
+
       if (autoUserSchool) {
         schoolUtil.setCurrMode(MODES.SCHOOL);
         history.replace(PAGES.SELECT_MODE);

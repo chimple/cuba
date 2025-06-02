@@ -19,6 +19,7 @@ import {
   EVENTS,
   SchoolRoleMap,
   MODEL,
+  FilteredSchoolsForSchoolListingOps,
   COURSES,
   CHIMPLE_HINDI,
   GRADE1_KANNADA,
@@ -5979,18 +5980,65 @@ export class SupabaseApi implements ServiceApi {
         phone: user.phone,
       }));
 
-      return {
-        programDetails,
-        locationDetails,
-        partnerDetails,
-        programManagers,
-      };
-    } catch (err) {
-      console.error("Unexpected error in getProgramData:", err);
-      return null;
-    }
+    return {
+      programDetails,
+      locationDetails,
+      partnerDetails,
+      programManagers,
+    };
+  } catch (err) {
+    console.error('Unexpected error in getProgramData:', err);
+    return null;
+  }
+}
+async getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>> {
+  if (!this.supabase) {
+    console.error("Supabase client is not initialized");
+    return {};
   }
 
+  try {
+    const { data, error } = await this.supabase.rpc("get_school_filter_options", {});
+
+    if (error) {
+      console.error("RPC error in getSchoolFilterOptions:", error);
+      return {};
+    }
+
+    const parsed: Record<string, string[]> = {};
+    if (data && typeof data === "object") {
+      for (const key in data) {
+        const val = data[key];
+        parsed[key] = Array.isArray(val) && val.every(v => typeof v === "string") ? val : [];
+      }
+    }
+
+    return parsed;
+  } catch (err) {
+    console.error("Unexpected error in getSchoolFilterOptions:", err);
+    return {};
+  }
+}
+
+async getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>): Promise<FilteredSchoolsForSchoolListingOps[]> {
+  if (!this.supabase) {
+    console.error("Supabase client is not initialized");
+    return [];
+  }
+
+  try {
+    const { data, error } = await this.supabase.rpc("get_filtered_schools", { filters });
+
+    if (error) {
+      console.error("RPC error in getFilteredSchools:", error);
+      return [];
+    }
+
+    return (data ?? []) as FilteredSchoolsForSchoolListingOps[];
+  } catch (err) {
+    console.error("Unexpected error in getFilteredSchools:", err);
+    return [];
+  }
 async createAutoProfile(languageDocId: string | undefined): Promise<TableTypes<"user">> {
  if (!this.supabase) throw new Error("Supabase instance is not initialized");
 
