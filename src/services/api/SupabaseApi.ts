@@ -6039,6 +6039,7 @@ async getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>): Pro
     console.error("Unexpected error in getFilteredSchools:", err);
     return [];
   }
+}
 async createAutoProfile(languageDocId: string | undefined): Promise<TableTypes<"user">> {
  if (!this.supabase) throw new Error("Supabase instance is not initialized");
 
