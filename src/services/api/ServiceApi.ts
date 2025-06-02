@@ -1199,9 +1199,9 @@ export interface ServiceApi {
     schoolIds: string[]
   ): Promise<TableTypes<"school">[] | undefined>;
   /**
-   * This function gets all the principals for the school.
+   * This function gets all the teachers for the school.
    * @param {string} schoolId school Id;
-   * @return A promise to an array of principals.
+   * @return A promise to an array of teachers.
    */
   getPrincipalsForSchool(
     schoolId: string
@@ -1596,6 +1596,33 @@ export interface ServiceApi {
     partnerDetails: { label: string; value: string }[];
     programManagers: { name: string; role: string; phone: string }[];
   } | null>;
+
+  /**
+   * Fetch detailed teacher information for a given school ID.
+   * @param {string} schoolId - The ID of the school to fetch.
+   * @returns Promise resolving to user details, grade, and classSection.
+   */
+  getTeacherInfoBySchoolId(schoolId: string): Promise<
+  {
+   user: TableTypes<"user">;
+    grade: number;
+    classSection: string;
+  }[]>;
+
+   /**
+   * Fetch detailed student information for a given school ID.
+   * @param {string} schoolId - The ID of the school to fetch.
+   * @returns Promise resolving to user details, grade, and classSection.
+   */
+   getStudentInfoBySchoolId(schoolId: string): Promise<
+  {
+    user: TableTypes<"user">;
+    grade: number;
+    classSection: string;
+  }[]>;
+  
+  getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
+  
 
   /**
    * Creates a auto student profile for a parent and returns the student object

@@ -2530,6 +2530,228 @@ export class SupabaseApi implements ServiceApi {
 
     return allClasses || [];
   }
+  async getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> {
+    if (!this.supabase) return [];
+
+    const { data: classes, error } = await this.supabase
+      .from(TABLES.Class)
+      .select("*")
+      .eq("school_id", schoolId)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching classes by school ID:", error);
+      return [];
+    }
+
+    return classes || [];
+  }
+
+  async getUsersByIds(userIds: string[]): Promise<TableTypes<"user">[]> {
+    if (!this.supabase || userIds.length === 0) return [];
+
+    const { data: users, error } = await this.supabase
+      .from(TABLES.User)
+      .select("*")
+      .in("id", userIds)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching users by IDs:", error);
+      return [];
+    }
+
+    return users || [];
+  }
+ async getStudentInfoBySchoolId(schoolId: string): Promise<
+  {
+    user: TableTypes<"user">; 
+    grade: number;
+    classSection: string;
+  }[]
+> {
+  if (!this.supabase) {
+    console.warn("Supabase not initialized.");
+    return [];
+  }
+
+  // Step 1: Fetch all classes for the given school
+  const classes = await this.getClassesBySchoolId(schoolId);
+  if (!classes?.length) {
+    console.log(`No classes found for school ${schoolId}, so no student info.`);
+    return [];
+  }
+
+  const classMap = new Map<string, { grade: number; section: string }>();
+  const studentClassPairs: { userId: string; classId: string }[] = [];
+
+  // Step 2: Map class IDs to grade/section and fetch student user_ids
+  for (const cls of classes) {
+    if (!cls || typeof cls.name !== 'string') {
+        console.warn("Skipping class due to missing or invalid name:", cls);
+        continue;
+    }
+    const { grade, section } = await this.parseClassName(cls.name);
+    classMap.set(cls.id, { grade, section });
+
+    const { data: classUsers, error } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select("user_id")
+      .eq("class_id", cls.id)
+      .eq("role", "student")
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error(`Error fetching users for class ${cls.id}:`, error);
+      continue; 
+    }
+
+    if (classUsers) {
+      for (const cu of classUsers) {
+        if (cu?.user_id) {
+          studentClassPairs.push({ userId: cu.user_id, classId: cls.id });
+        }
+      }
+    }
+  }
+
+  if (studentClassPairs.length === 0) {
+    console.log(`No student-class pairs found for school ${schoolId}.`);
+    return [];
+  }
+
+  // Step 3: Get unique user IDs
+  const uniqueUserIds = [
+    ...new Set(studentClassPairs.map((pair) => pair.userId)),
+  ];
+  if (!uniqueUserIds.length) {
+    console.log(`No unique student user IDs found for school ${schoolId}.`);
+    return [];
+  }
+
+  // Step 4: Fetch user details in bulk
+  const users = await this.getUsersByIds(uniqueUserIds);
+  if (!users || users.length === 0) {
+    console.log(`No user data found for the collected student IDs for school ${schoolId}.`);
+    return [];
+  }
+
+  const userMap = new Map<string, TableTypes<"user">>();
+  for (const user of users) {
+    if (user && user.id) { 
+        userMap.set(user.id, user);
+    }
+  }
+
+  // Step 5: Merge user data with class info
+  const studentInfoList: {
+    user: TableTypes<"user">;
+    grade: number;
+    classSection: string;
+  }[] = []; // Changed: Type of items in the list
+
+  for (const { userId, classId } of studentClassPairs) {
+    const user = userMap.get(userId);
+    const classInfo = classMap.get(classId);
+
+    if (user && classInfo) {
+      studentInfoList.push({
+        user: user, 
+        grade: classInfo.grade,
+        classSection: classInfo.section,
+      });
+    } else {
+        if (!user) console.warn(`User data not found for userId: ${userId} in school ${schoolId}`);
+        if (!classInfo) console.warn(`Class info not found for classId: ${classId} for user ${userId} in school ${schoolId}`);
+    }
+  }
+  return studentInfoList;
+}
+
+
+  async getTeacherInfoBySchoolId(
+    schoolId: string
+  ): Promise<
+    { user: TableTypes<"user">; grade: number; classSection: string }[]
+  > {
+    if (!this.supabase) return [];
+
+    // Step 1: Get all classes for the given school
+    const classes = await this.getClassesBySchoolId(schoolId);
+    if (!classes || classes.length === 0) return [];
+
+    const classMap = new Map<string, { grade: number; section: string }>();
+    const teacherClassPairs: { userId: string; classId: string }[] = [];
+
+    // Step 2: Map class IDs to grade/section and collect teacher-userId/classId pairs
+    for (const cls of classes) {
+      const { grade, section } = await this.parseClassName(cls.name);
+      classMap.set(cls.id, { grade, section });
+
+      const { data: classUsers, error } = await this.supabase
+        .from(TABLES.ClassUser)
+        .select("user_id")
+        .eq("class_id", cls.id)
+        .eq("role", "teacher")
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.error(`Error fetching class users for class ${cls.id}:`, error);
+        continue;
+      }
+
+      classUsers?.forEach((cu) => {
+        teacherClassPairs.push({ userId: cu.user_id, classId: cls.id });
+      });
+    }
+
+    // Step 3: Extract all unique user IDs
+    const uniqueUserIds = [
+      ...new Set(teacherClassPairs.map((pair) => pair.userId)),
+    ];
+
+    if (uniqueUserIds.length === 0) return [];
+
+    // Step 4: Fetch all teacher user data in one call
+    const users = await this.getUsersByIds(uniqueUserIds); 
+    const userMap = new Map<string, TableTypes<"user">>();
+    users.forEach((user) => userMap.set(user.id, user));
+
+    // Step 5: Combine class and user info into final output
+    const teacherInfoList: {
+      user: TableTypes<"user">;
+      grade: number;
+      classSection: string;
+    }[] = [];
+
+    for (const { userId, classId } of teacherClassPairs) {
+      const user = userMap.get(userId);
+      const classInfo = classMap.get(classId);
+      if (user && classInfo) {
+        teacherInfoList.push({
+          user,
+          grade: classInfo.grade,
+          classSection: classInfo.section,
+        });
+      }
+    }
+
+    return teacherInfoList;
+  }
+
+  async parseClassName(
+    className: string
+  ): Promise<{ grade: number; section: string }> {
+    const match = className.match(/^(\d+)([A-Za-z]+)$/);
+    if (match) {
+      return {
+        grade: parseInt(match[1], 10),
+        section: match[2],
+      };
+    }
+    return { grade: 0, section: "" };
+  }
+
   async getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
     if (!this.supabase) return [];
 
