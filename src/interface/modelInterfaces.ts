@@ -65,6 +65,7 @@ export enum RoleType {
   AUTOUSER = "autouser",
   PROGRAM_MANAGER = "program_manager",
   OPERATIONAL_DIRECTOR = "operational_director",
+  SUPER_ADMIN = "super_admin",
   FIELD_COORDINATOR = "field_coordinator",
 }
 

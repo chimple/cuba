@@ -16,6 +16,7 @@ import {
   PAGES,
   TableTypes,
   USER_DATA,
+  USER_ROLE,
 } from "../common/constants";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -184,7 +185,6 @@ const Login: React.FC = () => {
     authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
       const apiHandler = ServiceConfig.getI().apiHandler;
       const appLang = localStorage.getItem(LANGUAGE);
-
 
       async function init() {
         const currentStudent = Util.getCurrentStudent();
@@ -403,6 +403,11 @@ const Login: React.FC = () => {
       role: RoleType;
     }[]
   ) {
+    const userRole = localStorage.getItem(USER_ROLE);
+    if (userRole == RoleType.SUPER_ADMIN || RoleType.OPERATIONAL_DIRECTOR) {
+      history.replace(PAGES.SIDEBAR_PAGE);
+      return;
+    }
     if (userSchools.length > 0) {
       const autoUserSchool = userSchools.find(
         (school) => school.role === RoleType.AUTOUSER
@@ -412,10 +417,9 @@ const Login: React.FC = () => {
       const isOpsUser = userSchools.some(
         (school) =>
           school.role === RoleType.PROGRAM_MANAGER ||
-          school.role === RoleType.FIELD_COORDINATOR 
+          school.role === RoleType.FIELD_COORDINATOR
       );
 
-      
       if (isOpsUser) {
         history.replace(PAGES.SIDEBAR_PAGE);
         return;
