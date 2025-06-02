@@ -1200,5 +1200,11 @@ export class ApiHandler implements ServiceApi {
   }
   public async getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>{
     return await this.s.getClassesBySchoolId(schoolId);
+  public async createAutoProfile(
+    languageDocId: string | undefined
+  ): Promise<TableTypes<"user">> {
+    return await this.s.createAutoProfile(
+      languageDocId
+    );
   }
 }

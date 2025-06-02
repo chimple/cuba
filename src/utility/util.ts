@@ -517,6 +517,75 @@ export class Util {
     }
   }
 
+  public static async DownloadLearningPathAssets(
+    zipUrl: string,
+    uniqueId: string
+  ): Promise<boolean> {
+    try {
+      if (!Capacitor.isNativePlatform()) return true;
+
+      const fs = createFilesystem(Filesystem, {
+        rootDir: "",
+        directory: Directory.External,
+        base64Alway: false,
+      });
+      const androidPath = await this.getAndroidBundlePath();
+
+      //logic for read config.json
+      try {
+        const res = await fetch("remoteAsset/config.json");
+        const isExists = res.ok;
+        if (isExists) {
+          const configFile = await Filesystem.readFile({
+            path: "remoteAsset/config.json",
+            directory: Directory.External,
+          });
+
+          const decoded = atob(configFile.data); // base64 → string
+          const config = JSON.parse(decoded); // string → object
+
+          if (config.uniqueId === uniqueId) {
+            this.setGameUrl(androidPath);
+            return true;
+          } else {
+            console.log(
+              `⚠️ Unique ID mismatch for remoteAsset, downloading update.`
+            );
+          }
+        }
+      } catch (err) {
+        console.log(`❌ Failed to read config for remoteAsset:`, err);
+      }
+
+      // Download and unzip
+      const response = await CapacitorHttp.get({
+        url: zipUrl,
+        responseType: "blob",
+      });
+
+      if (!response?.data || response.status !== 200) return false;
+      const buffer = Uint8Array.from(atob(response.data), (c) =>
+        c.charCodeAt(0)
+      );
+      await unzip({
+        fs,
+        extractTo: "",
+        filepaths: ["."],
+        filter: (filepath: string) => !filepath.startsWith("dist/"),
+        onProgress: (event) => {
+          console.log("Unzipping LearningPath assets:", event.filename);
+        },
+        data: buffer,
+      });
+
+      this.setGameUrl(androidPath);
+      return true;
+    } catch (err) {
+      console.error("Unexpected error in DownloadLearningPathAssets:", err);
+      return false;
+    }
+  }
+
   public static async deleteDownloadedLesson(
     lessonIds: string[]
   ): Promise<boolean> {

@@ -1597,12 +1597,23 @@ export interface ServiceApi {
     programManagers: { name: string; role: string; phone: string }[];
   } | null>;
 
+  /**
+   * Fetch detailed teacher information for a given school ID.
+   * @param {string} schoolId - The ID of the school to fetch.
+   * @returns Promise resolving to user details, grade, and classSection.
+   */
   getTeacherInfoBySchoolId(schoolId: string): Promise<
   {
    user: TableTypes<"user">;
     grade: number;
     classSection: string;
   }[]>;
+
+   /**
+   * Fetch detailed student information for a given school ID.
+   * @param {string} schoolId - The ID of the school to fetch.
+   * @returns Promise resolving to user details, grade, and classSection.
+   */
    getStudentInfoBySchoolId(schoolId: string): Promise<
   {
     user: TableTypes<"user">;
@@ -1613,4 +1624,12 @@ export interface ServiceApi {
   getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
   
 
+  /**
+   * Creates a auto student profile for a parent and returns the student object
+   * @param {string} languageDocId -  languageDocId is `Language` doc id
+   * @returns {User} Student User Object
+   */
+  createAutoProfile(
+    languageDocId: string | undefined
+  ): Promise<TableTypes<"user">>;
 }
