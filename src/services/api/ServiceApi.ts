@@ -1199,9 +1199,9 @@ export interface ServiceApi {
     schoolIds: string[]
   ): Promise<TableTypes<"school">[] | undefined>;
   /**
-   * This function gets all the principals for the school.
+   * This function gets all the teachers for the school.
    * @param {string} schoolId school Id;
-   * @return A promise to an array of principals.
+   * @return A promise to an array of teachers.
    */
   getPrincipalsForSchool(
     schoolId: string
@@ -1598,6 +1598,7 @@ export interface ServiceApi {
   } | null>;
 
   /**
+
    * Fetch available filter options for schools.
    * Each key in the returned object represents a filter category,
    * and the value is an array of possible filter values.
@@ -1614,5 +1615,40 @@ export interface ServiceApi {
    * @returns Promise resolving to a filtered list of schools matching the provided filter criteria.
    */
   getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>);
+
+   * Fetch detailed teacher information for a given school ID.
+   * @param {string} schoolId - The ID of the school to fetch.
+   * @returns Promise resolving to user details, grade, and classSection.
+   */
+  getTeacherInfoBySchoolId(schoolId: string): Promise<
+  {
+   user: TableTypes<"user">;
+    grade: number;
+    classSection: string;
+  }[]>;
+
+   /**
+   * Fetch detailed student information for a given school ID.
+   * @param {string} schoolId - The ID of the school to fetch.
+   * @returns Promise resolving to user details, grade, and classSection.
+   */
+   getStudentInfoBySchoolId(schoolId: string): Promise<
+  {
+    user: TableTypes<"user">;
+    grade: number;
+    classSection: string;
+  }[]>;
+  
+  getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
+  
+
+  /**
+   * Creates a auto student profile for a parent and returns the student object
+   * @param {string} languageDocId -  languageDocId is `Language` doc id
+   * @returns {User} Student User Object
+   */
+  createAutoProfile(
+    languageDocId: string | undefined
+  ): Promise<TableTypes<"user">>;
 
 }

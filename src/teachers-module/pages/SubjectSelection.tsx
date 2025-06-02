@@ -82,18 +82,28 @@ const SubjectSelection: React.FC = () => {
     message: "",
   });
   const navigationState = Util.getNavigationState();
+  const [canModify, setCanModify] = useState(true);
 
   useEffect(() => {
+  const init = async () => {
+    const cls = await Util.getCurrentClass();
+    if ((cls as any)?.role === RoleType.TEACHER) {
+      setCanModify(false);
+    }
+
     if (paramClassId) {
-      fetchSchoolAndClassSubjects(paramClassId, CLASS);
-      fetchClassDetails();
+      await fetchSchoolAndClassSubjects(paramClassId, CLASS);
+      await fetchClassDetails();
       if (isSelectSubject) setIsSelecting(true);
     } else if (paramSchoolId) {
-      fetchCurriculumsAndCourses(SCHOOL);
-      fetchSchoolAndClassSubjects(paramSchoolId, SCHOOL);
+      await fetchCurriculumsAndCourses(SCHOOL);
+      await fetchSchoolAndClassSubjects(paramSchoolId, SCHOOL);
       if (isSelectSubject) setIsSelecting(true);
     }
-  }, [paramClassId, paramSchoolId]);
+  };
+
+  init();
+}, [paramClassId, paramSchoolId]);
 
   const fetchCurriculumsAndCourses = async (
     context: "school" | "class",
@@ -593,7 +603,9 @@ const SubjectSelection: React.FC = () => {
         ]}
         cssClass="custom-alert-in-subject-selection-page"
       />
-      {!isSelecting && <AddButton onClick={() => setIsSelecting(true)} />}
+      {!isSelecting && canModify && (
+        <AddButton onClick={() => setIsSelecting(true)} />
+      )}
     </div>
   );
 };
