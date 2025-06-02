@@ -1616,10 +1616,10 @@ export interface ServiceApi {
    */
   getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>);
 
-   * Fetch detailed teacher information for a given school ID.
-   * @param {string} schoolId - The ID of the school to fetch.
-   * @returns Promise resolving to user details, grade, and classSection.
-   */
+  //  * Fetch detailed teacher information for a given school ID.
+  //  * @param {string} schoolId - The ID of the school to fetch.
+  //  * @returns Promise resolving to user details, grade, and classSection.
+  //  */
   getTeacherInfoBySchoolId(schoolId: string): Promise<
   {
    user: TableTypes<"user">;
