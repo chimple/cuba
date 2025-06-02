@@ -1215,23 +1215,18 @@ export class OneRosterApi implements ServiceApi {
 
   getTeacherInfoBySchoolId(schoolId: string): Promise<
   {
-    name: string | null;
-    gender: string | null;
-    grade: number;
-    classSection: string;
-    phoneNumber: string | null;
-    email: string | null;
+   user: TableTypes<"user">;
+   grade: number;
+   classSection: string;
   }[]
 > {
     throw new Error("Method not implemented.");
   }
   getStudentInfoBySchoolId(schoolId: string): Promise<
   {
-    studentId: string | null;
-    gender: string | null;
+    user: TableTypes<"user">;
     grade: number;
     classSection: string;
-    phoneNumber: string | null;
   }[]
 > {
     throw new Error("Method not implemented.");

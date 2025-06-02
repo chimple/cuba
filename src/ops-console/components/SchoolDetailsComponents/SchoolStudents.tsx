@@ -2,93 +2,50 @@ import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import DataTableBody, { Column } from "../DataTableBody";
 import DataTablePagination from "../DataTablePagination";
-import { Button as MuiButton, Typography, Box, Button } from "@mui/material";
-import { Add, Add as AddIcon } from "@mui/icons-material";
+import { Button as MuiButton, Typography, Box } from "@mui/material";
+import { Add as AddIcon } from "@mui/icons-material";
 import { t } from "i18next";
-
 import SearchAndFilter from "../SearchAndFilter";
 import FilterSlider from "../FilterSlider";
 import SelectedFilters from "../SelectedFilters";
 
 import "./SchoolStudents.css";
 
-interface RawStudentData {
-  studentId: string;
+interface UserType {
+  id: string;
+  student_id?: string | null; 
   name: string | null;
   gender: string | null;
-  className: string | null;
-  phoneNumber: string | null;
-  id: string;
+  phone: string | null;
 }
-interface ProcessedStudent extends Omit<RawStudentData, "className"> {
-  grade: number | string | null;
-  classSection: string | null;
-  studentIdDisplay: string;
-  originalClassName: string | null;
+interface ApiStudentData {
+  user: UserType;
+  grade: number; 
+  classSection: string; 
 }
+
+interface DisplayStudent {
+  id: string; 
+  studentIdDisplay: string; 
+  name: string;
+  gender: string;
+  grade: number; 
+  classSection: string;
+  phoneNumber: string;
+}
+
 interface SchoolStudentsProps {
-  data: { students: RawStudentData[] };
+  data: {
+    students: ApiStudentData[]; 
+  };
   isMobile: boolean;
 }
-const KNOWN_NON_NUMERIC_GRADES = [
-  "UKG",
-  "LKG",
-  "NURSERY",
-  "PLAYGROUP",
-  "PRE KG",
-  "PRE-KG",
-];
-const parseClassName = (
-  classNameInput: string | null
-): { grade: number | string | null; classSection: string | null } => {
-  /* ...your existing parseClassName logic... */
-  if (!classNameInput || classNameInput.trim() === "") {
-    return { grade: null, classSection: null };
-  }
-  const className = classNameInput.trim();
-  const upperClassName = className.toUpperCase();
-  if (/^\d+$/.test(className)) {
-    return { grade: parseInt(className, 10), classSection: null };
-  }
-  for (const nonNumericGrade of KNOWN_NON_NUMERIC_GRADES) {
-    if (upperClassName.startsWith(nonNumericGrade)) {
-      const potentialSection = className
-        .substring(nonNumericGrade.length)
-        .trim()
-        .toUpperCase();
-      if (potentialSection && /^[A-Z]+$/.test(potentialSection)) {
-        return { grade: nonNumericGrade, classSection: potentialSection };
-      }
-      return { grade: nonNumericGrade, classSection: potentialSection || null };
-    }
-  }
-  const numericThenAlphaMatch = className.match(/^(\d+)\s*([a-zA-Z]+)$/);
-  if (numericThenAlphaMatch) {
-    const gradePart = numericThenAlphaMatch[1];
-    const sectionPart = numericThenAlphaMatch[2];
-    return {
-      grade: parseInt(gradePart, 10),
-      classSection: sectionPart.toUpperCase(),
-    };
-  }
-  if (/^[a-zA-Z\s]+$/.test(className) && !/\d/.test(className)) {
-    return { grade: null, classSection: className.toUpperCase() };
-  }
-  const startsWithNumberFallback = className.match(/^(\d+)\s*(.*)$/);
-  if (startsWithNumberFallback) {
-    const grade = parseInt(startsWithNumberFallback[1], 10);
-    const section = startsWithNumberFallback[2].trim().toUpperCase() || null;
-    return { grade, classSection: section };
-  }
-  return { grade: className.toUpperCase(), classSection: null };
-};
 const studentFilterSliderOptions: Record<string, string[]> = {
   grade: [
-    ...KNOWN_NON_NUMERIC_GRADES,
-    ...Array.from({ length: 12 }, (_, i) => `Grade ${i + 1}`),
+    ...Array.from({ length: 12 }, (_, i) => `Grade ${i + 1}`), 
   ],
-  section: ["A", "B", "C", "D", "E", "F"],
 };
+
 const ROWS_PER_PAGE = 6;
 
 const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data, isMobile }) => {
@@ -109,7 +66,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data, isMobile }) => {
   const [pageCount, setPageCount] = useState(1);
 
   const handleAddNewStudent = useCallback(() => {
-    console.log("Navigate to Add New Student page");
+    // history.push("/add-student"); 
   }, [history]);
 
   const handleSearchChange = useCallback(
@@ -171,51 +128,56 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data, isMobile }) => {
   );
 
   const allFilteredStudents = useMemo(() => {
-    const studentsFromProps = data?.students || [];
-    let processedAndFiltered = studentsFromProps.map((student) => {
-      const { grade, classSection } = parseClassName(student.className);
-      return {
-        studentId: student.studentId,
-        name: student.name || "N/A",
-        gender: student.gender || "N/A",
-        phoneNumber: student.phoneNumber || "N/A",
-        id: student.id || student.studentId,
-        originalClassName: student.className,
-        grade,
-        classSection,
-        studentIdDisplay: student.studentId || "N/A",
-      };
-    });
+    const studentsFromApi: ApiStudentData[] = data?.students || [];
+    let filteredApiStudents = [...studentsFromApi];
     if (searchTerm.trim() !== "") {
       const lowerSearch = searchTerm.toLowerCase().trim();
-      processedAndFiltered = processedAndFiltered.filter(
-        (s) =>
-          s.name?.toLowerCase().includes(lowerSearch) ||
-          s.studentId?.toLowerCase().includes(lowerSearch) ||
-          s.phoneNumber?.includes(lowerSearch) ||
-          s.originalClassName?.toLowerCase().includes(lowerSearch)
+      filteredApiStudents = filteredApiStudents.filter(
+        (s_api) =>
+          s_api.user.name?.toLowerCase().includes(lowerSearch) ||
+          s_api.user.student_id?.toLowerCase().includes(lowerSearch) ||
+          s_api.user.phone?.includes(lowerSearch) ||
+          s_api.classSection?.toLowerCase().includes(lowerSearch) || 
+          String(s_api.grade).includes(lowerSearch) 
       );
     }
     const activeGradeFilters = filters.grade || [];
     const activeSectionFilters = filters.section || [];
     if (activeGradeFilters.length > 0) {
-      processedAndFiltered = processedAndFiltered.filter((s) => {
-        if (s.grade === null) return false;
-        const studentGradeString =
-          typeof s.grade === "number"
-            ? `Grade ${s.grade}`
-            : String(s.grade).toUpperCase();
-        return activeGradeFilters.includes(studentGradeString);
+      filteredApiStudents = filteredApiStudents.filter((s_api) => {
+        return activeGradeFilters.some((filterGradeString) => {
+          let numericValueToMatch: number | undefined;
+            const gradeMatch = filterGradeString.match(/^Grade (\d+)$/);
+            if (gradeMatch) {
+              numericValueToMatch = parseInt(gradeMatch[1], 10);
+            }
+          return (
+            numericValueToMatch !== undefined &&
+            s_api.grade === numericValueToMatch
+          );
+        });
       });
     }
+
     if (activeSectionFilters.length > 0) {
-      processedAndFiltered = processedAndFiltered.filter(
-        (s) =>
-          s.classSection !== null &&
-          activeSectionFilters.includes(s.classSection.toUpperCase())
+      filteredApiStudents = filteredApiStudents.filter(
+        (s_api) =>
+          s_api.classSection &&
+          activeSectionFilters.includes(s_api.classSection.toUpperCase())
       );
     }
-    return processedAndFiltered;
+
+    return filteredApiStudents.map(
+      (s_api): DisplayStudent => ({
+        id: s_api.user.id || "N/A",
+        studentIdDisplay: s_api.user.student_id || "N/A",
+        name: s_api.user.name || "N/A",
+        gender: s_api.user.gender || "N/A",
+        grade: s_api.grade,
+        classSection: s_api.classSection || "N/A",
+        phoneNumber: s_api.user.phone || "N/A",
+      })
+    );
   }, [data?.students, searchTerm, filters]);
 
   useEffect(() => {
@@ -225,15 +187,22 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data, isMobile }) => {
       setPage(newPageCount);
     } else if (page > 1 && newPageCount === 0) {
       setPage(1);
+    } else if (page === 0 && newPageCount > 0) {
+      setPage(1);
     }
-  }, [allFilteredStudents, page]);
+  }, [allFilteredStudents.length, page]);
 
   const studentsForCurrentPage = useMemo(() => {
     const startIndex = (page - 1) * ROWS_PER_PAGE;
     return allFilteredStudents.slice(startIndex, startIndex + ROWS_PER_PAGE);
   }, [allFilteredStudents, page]);
 
-  const columns: Column<ProcessedStudent>[] = [
+  const getGradeDisplayValue = (gradeNumeric: number): string => {
+    if (gradeNumeric > 0) return String(gradeNumeric); 
+    return t("N/A");
+  };
+
+  const columns: Column<DisplayStudent>[] = [
     { key: "studentIdDisplay", label: t("Student ID") },
     {
       key: "name",
@@ -250,7 +219,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data, isMobile }) => {
       label: t("Grade"),
       renderCell: (student) => (
         <Typography variant="body2">
-          {student.grade !== null ? student.grade : t("N/A")}
+          {getGradeDisplayValue(student.grade)}
         </Typography>
       ),
     },
@@ -293,8 +262,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data, isMobile }) => {
               onClick={handleAddNewStudent}
               className="schoolStudents-newStudentButton-outlined"
             >
-              <AddIcon className="schoolStudents-newStudentButton-outlined-icon" />{" "}
-              {/* Class for icon */}
+              <AddIcon className="schoolStudents-newStudentButton-outlined-icon" />
               {t("New Student")}
             </MuiButton>
             <SearchAndFilter
@@ -309,12 +277,13 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data, isMobile }) => {
         <div />
       )}
 
-      {(isDataPresent || isFilteringOrSearching) && (
-        <SelectedFilters
-          filters={filters}
-          onDeleteFilter={handleDeleteAppliedFilter}
-        />
-      )}
+      {(isDataPresent || isFilteringOrSearching) &&
+        Object.values(filters).some((arr) => arr.length > 0) && (
+          <SelectedFilters
+            filters={filters}
+            onDeleteFilter={handleDeleteAppliedFilter}
+          />
+        )}
 
       <FilterSlider
         isOpen={isFilterSliderOpen}
@@ -335,8 +304,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data, isMobile }) => {
             order={order}
             onSort={handleSort}
           />
-          {allFilteredStudents.length > 0 && (
-            <div className="school-list-pagination">
+          {pageCount > 1 && (
+            <div className="schoolStudents-school-list-pagination">
               <DataTablePagination
                 page={page}
                 pageCount={pageCount}
@@ -355,16 +324,18 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data, isMobile }) => {
               ? t("No students found matching your criteria.")
               : t("No students data found for the selected school")}
           </Typography>
-          <MuiButton
-            variant="text"
-            onClick={handleAddNewStudent}
-            className="schoolStudents-emptyStateAddButton"
-            startIcon={
-              <AddIcon className="schoolStudents-emptyStateAddButton-icon" />
-            }
-          >
-            {t("Add Student")}
-          </MuiButton>
+          {!isFilteringOrSearching && (
+            <MuiButton
+              variant="text"
+              onClick={handleAddNewStudent}
+              className="schoolStudents-emptyStateAddButton"
+              startIcon={
+                <AddIcon className="schoolStudents-emptyStateAddButton-icon" />
+              }
+            >
+              {t("Add Student")}
+            </MuiButton>
+          )}
         </Box>
       )}
     </div>

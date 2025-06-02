@@ -1599,21 +1599,15 @@ export interface ServiceApi {
 
   getTeacherInfoBySchoolId(schoolId: string): Promise<
   {
-    name: string | null;
-    gender: string | null;
+   user: TableTypes<"user">;
     grade: number;
     classSection: string;
-    phoneNumber: string | null;
-    email: string | null;
   }[]>;
    getStudentInfoBySchoolId(schoolId: string): Promise<
   {
-    studentId: string | null;
-    name: string | null;
-    gender: string | null;
+    user: TableTypes<"user">;
     grade: number;
     classSection: string;
-    phoneNumber: string | null;
   }[]>;
   
   getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;

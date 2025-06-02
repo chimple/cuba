@@ -109,7 +109,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
             onSort={handleSort}
           />
           {allFilteredPrincipals.length > 0 && (
-            <div className="school-list-pagination">
+            <div className="schoolPrincipals-school-list-pagination">
               <DataTablePagination
                 page={page}
                 pageCount={pageCount}

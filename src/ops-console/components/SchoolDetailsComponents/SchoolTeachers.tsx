@@ -10,26 +10,40 @@ import FilterSlider from "../FilterSlider";
 import SelectedFilters from "../SelectedFilters";
 import "./SchoolTeachers.css";
 
-export interface Teacher {
+interface UserType {
   id: string;
   name: string | null;
   gender: string | null;
-  grade: number | null;
-  classSection: string | null;
-  phoneNumber: string | null;
+  phone: string | null;
   email: string | null;
+}
+
+interface ApiTeacherData {
+  user: UserType;
+  grade: number;
+  classSection: string;
+}
+
+export interface Teachers {
+  id: string;
+  name: string;
+  gender: string;
+  grade: number;
+  classSection: string;
+  phoneNumber: string;
+  email: string | null;
+  emailDisplay: string;
 }
 
 interface SchoolTeachersProps {
   data: {
-    teachers: Teacher[];
+    teachers: ApiTeacherData[];
   };
   isMobile: boolean;
 }
 
 const teacherFilterSliderOptions: Record<string, string[]> = {
-  grade: ["Grade 1", "Grade 2", "Grade 3"],
-  section: ["Section A", "Section B"],
+  grade: [...Array.from({ length: 12 }, (_, i) => `Grade ${i + 1}`)],
 };
 
 const ROWS_PER_PAGE = 7;
@@ -114,40 +128,44 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({ data, isMobile }) => {
   );
 
   const allFilteredTeachers = useMemo(() => {
-    const teachersFromProps = data?.teachers || [];
-    let filtered = [...teachersFromProps];
+    const teachersFromProps: ApiTeacherData[] = data?.teachers || [];
+    let filtered: ApiTeacherData[] = [...teachersFromProps];
+
     if (searchTerm.trim() !== "") {
       const lowerSearch = searchTerm.toLowerCase().trim();
       filtered = filtered.filter(
         (t) =>
-          t.name?.toLowerCase().includes(lowerSearch) ||
-          t.email?.toLowerCase().includes(lowerSearch) ||
-          t.phoneNumber?.toLowerCase().includes(lowerSearch)
+          t.user.name?.toLowerCase().includes(lowerSearch) ||
+          t.user.email?.toLowerCase().includes(lowerSearch) ||
+          t.user.phone?.toLowerCase().includes(lowerSearch)
       );
     }
+
     const activeGradeFilters =
       filters.grade?.map((g) => parseInt(g.replace("Grade ", ""))) || [];
     const activeSectionFilters = filters.section || [];
+
     if (activeGradeFilters.length > 0) {
-      filtered = filtered.filter(
-        (t) => t.grade !== null && activeGradeFilters.includes(t.grade)
-      );
+      filtered = filtered.filter((t) => activeGradeFilters.includes(t.grade));
     }
     if (activeSectionFilters.length > 0) {
       filtered = filtered.filter((t) =>
-        activeSectionFilters.includes(t.classSection ?? "")
+        activeSectionFilters.includes(t.classSection)
       );
     }
-    return filtered.map((teacher) => ({
-      ...teacher,
-      id: teacher.id,
-      name: teacher.name || "N/A",
-      gender: teacher.gender || "N/A",
-      grade: teacher.grade !== null ? teacher.grade : "N/A",
-      classSection: teacher.classSection || "N/A",
-      phoneNumber: teacher.phoneNumber || "N/A",
-      emailDisplay: teacher.email || "N/A",
-    }));
+
+    return filtered.map(
+      (apiTeacher): Teachers => ({
+        id: apiTeacher.user.id,
+        name: apiTeacher.user.name || "N/A",
+        gender: apiTeacher.user.gender || "N/A",
+        grade: apiTeacher.grade, // This is a number
+        classSection: apiTeacher.classSection, // This is a string
+        phoneNumber: apiTeacher.user.phone || "N/A",
+        email: apiTeacher.user.email, // Original email, can be null
+        emailDisplay: apiTeacher.user.email || "N/A",
+      })
+    );
   }, [data?.teachers, searchTerm, filters]);
 
   useEffect(() => {
@@ -155,17 +173,19 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({ data, isMobile }) => {
     setPageCount(Math.max(1, newPageCount));
     if (page > newPageCount && newPageCount > 0) {
       setPage(newPageCount);
+    } else if (page === 0 && newPageCount > 0) {
+      setPage(1);
     } else if (page > 1 && newPageCount === 0) {
       setPage(1);
     }
-  }, [allFilteredTeachers, page]);
+  }, [allFilteredTeachers.length, page]);
 
   const teachersForCurrentPage = useMemo(() => {
     const startIndex = (page - 1) * ROWS_PER_PAGE;
     return allFilteredTeachers.slice(startIndex, startIndex + ROWS_PER_PAGE);
   }, [allFilteredTeachers, page]);
 
-  const columns: Column<Teacher & { emailDisplay: string }>[] = [
+  const columns: Column<Teachers>[] = [
     {
       key: "name",
       label: t("Teacher Name"),
@@ -232,12 +252,13 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({ data, isMobile }) => {
         <div />
       )}
 
-      {(isDataPresent || isFilteringOrSearching) && (
-        <SelectedFilters
-          filters={filters}
-          onDeleteFilter={handleDeleteAppliedFilter}
-        />
-      )}
+      {(isDataPresent || isFilteringOrSearching) &&
+        Object.values(filters).some((arr) => arr.length > 0) && (
+          <SelectedFilters
+            filters={filters}
+            onDeleteFilter={handleDeleteAppliedFilter}
+          />
+        )}
 
       <FilterSlider
         isOpen={isFilterSliderOpen}
@@ -258,8 +279,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({ data, isMobile }) => {
             order={order}
             onSort={handleSort}
           />
-          {allFilteredTeachers.length > 0 && (
-            <div className="school-list-pagination">
+          {pageCount > 1 && (
+            <div className="schoolTeachers-school-list-pagination">
               <DataTablePagination
                 page={page}
                 pageCount={pageCount}
@@ -278,16 +299,18 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({ data, isMobile }) => {
               ? t("No teachers found matching your criteria.")
               : t("No teachers data found for the selected school")}
           </Typography>
-          <MuiButton
-            variant="text"
-            onClick={handleAddNewTeacher}
-            className="schoolTeachers-emptyStateAddButton"
-            startIcon={
-              <AddIcon className="schoolTeachers-emptyStateAddButton-icon" />
-            }
-          >
-            {t("Add Teacher")}
-          </MuiButton>
+          {!isFilteringOrSearching && (
+            <MuiButton
+              variant="text"
+              onClick={handleAddNewTeacher}
+              className="schoolTeachers-emptyStateAddButton"
+              startIcon={
+                <AddIcon className="schoolTeachers-emptyStateAddButton-icon" />
+              }
+            >
+              {t("Add Teacher")}
+            </MuiButton>
+          )}
         </Box>
       )}
     </div>

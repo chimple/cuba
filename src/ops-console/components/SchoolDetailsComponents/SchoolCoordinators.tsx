@@ -87,7 +87,7 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({ data, isMobile 
             onSort={handleSort}
           />
           {allCoordinators.length > 0 && (
-            <div className="school-list-pagination">
+            <div className="schoolCoordinators-school-list-pagination">
               <DataTablePagination
                 page={page}
                 pageCount={pageCount}
