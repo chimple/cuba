@@ -18,6 +18,11 @@ interface ImageDropdownProps {
 }
 
 const splitText = (name: string, subjectDetail?: string) => {
+  // for 'All Subjects'
+  if (name === "All Subjects") {
+    return { subject: name.trim(), grade: "All Grades" };
+  }
+
   // Split subjectDetail into parts by the first space after the subject
   const subjectDetailParts = subjectDetail?.split(name)?.[1]?.trim();
   return {
@@ -113,10 +118,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
                 {splitText(option.name, option.subjectDetail).subject}
               </span>
               <span className="grade-text">
-                {
-                  splitText(option.name, option.subjectDetail).grade ||
-                  (option.id === "all" ? "All Grades" : "")
-                }
+                {splitText(option.name, option.subjectDetail).grade}
               </span>
             </div>
           </MenuItem>

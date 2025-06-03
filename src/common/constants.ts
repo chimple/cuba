@@ -2,6 +2,7 @@ import { Capacitor } from "@capacitor/core";
 import Auth from "../models/auth";
 import { Database } from "../services/database";
 import { RoleType } from "../interface/modelInterfaces";
+import SelectIconImage from '../teachers-module/assets/icons/all_subject_icon.png'
 
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = "sl-en",
@@ -818,3 +819,10 @@ export const QUIZ_POPUP_SHOWN = "quizPopupShown";
 export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
 export const GrowthBookAttributes = "growthBookAttributes";
 export const SCHOOL_LOGIN = "schoolLogin";
+
+export const ALL_SUBJECT = {
+  id: "all",
+  name: "All Subjects",
+  icon: SelectIconImage,
+  subjectDetail: "All Grades",
+};

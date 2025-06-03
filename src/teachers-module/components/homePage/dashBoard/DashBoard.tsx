@@ -8,6 +8,7 @@ import {
   HomeWeeklySummary,
   PAGES,
   TableTypes,
+  ALL_SUBJECT
 } from "../../../../common/constants";
 import {
   IonContent,
@@ -27,7 +28,6 @@ import { Util } from "../../../../utility/util";
 import CustomDropdown from "../../CustomDropdown";
 import { t } from "i18next";
 import ImageDropdown from "../../imageDropdown";
-import SelectIconImage from '../../../assets/icons/all_subject_icon.png'
 
 const DashBoard: React.FC = ({}) => {
   const [selectedSubject, setSelectedSubject] =
@@ -205,14 +205,7 @@ const init = async () => {
     });
   };
 
-  const allOption = {
-  id: "all", // internal use only
-  name: "All Subjects",
-  icon: SelectIconImage, // Replace with actual icon
-  subjectDetail: "All Grades",
-};
-
-const subjectOptionsWithAll = [allOption, ...(mappedSubjectOptions ?? [])];
+  const subjectOptionsWithAll = [{ ...ALL_SUBJECT }, ...(mappedSubjectOptions ?? [])];
 
   return !isLoading ? (
     <IonContent>
@@ -224,8 +217,8 @@ const subjectOptionsWithAll = [allOption, ...(mappedSubjectOptions ?? [])];
           <ImageDropdown
           options={subjectOptionsWithAll}
           selectedValue={{
-            id: selectedSubject?.id ?? "all",
-            name: selectedSubject?.name ?? "All Subjects",
+            id: selectedSubject?.id ?? "",
+            name: selectedSubject?.name ?? "",
             icon:
               (selectedSubject as any)?.icon ??
               subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.icon ??

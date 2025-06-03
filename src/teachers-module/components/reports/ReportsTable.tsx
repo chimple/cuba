@@ -11,6 +11,7 @@ import {
   TABLES,
   TABLESORTBY,
   TableTypes,
+  ALL_SUBJECT,
 } from "../../../common/constants";
 import { Util } from "../../../utility/util";
 import { ServiceConfig } from "../../../services/ServiceConfig";
@@ -75,7 +76,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
   >([]);
   
   const subjectOptionsWithAll = [
-  { id: "all", name: "All Subjects", disabled: selectedType === TABLEDROPDOWN.CHAPTER },
+  { ...ALL_SUBJECT, disabled: selectedType === TABLEDROPDOWN.CHAPTER },
   ...mappedSubjectOptions.map((subject) => ({ ...subject, disabled: false })),
 ];
 
