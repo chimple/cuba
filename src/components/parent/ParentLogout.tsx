@@ -6,11 +6,14 @@ import DialogBoxButtons from "./DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory } from "react-router";
 import {
+  CLASS,
   CURRENT_MODE,
   CURRENT_STUDENT,
   CURRENT_USER,
   PAGES,
+  SCHOOL,
   SCHOOL_LOGIN,
+  USER_ROLE,
 } from "../../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { Util } from "../../utility/util";
@@ -22,6 +25,9 @@ const ParentLogout: React.FC<{}> = ({}) => {
     const auth = ServiceConfig.getI().authHandler;
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
+    localStorage.removeItem(SCHOOL);
+    localStorage.removeItem(CLASS);
+    localStorage.removeItem(USER_ROLE);
     localStorage.removeItem(CURRENT_USER);
     localStorage.removeItem(CURRENT_MODE);
     localStorage.removeItem(SCHOOL_LOGIN);
