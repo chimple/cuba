@@ -2,7 +2,8 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Tabs, Tab, Box, Typography } from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import {
-  SCHOOL_TABS,
+  Formatted_SCHOOL_TABS,
+  SCHOOL_TABS
 } from "../../common/constants";
 import "./SchoolList.css";
 import DataTablePagination from "../components/DataTablePagination";
@@ -26,6 +27,7 @@ const INITIAL_FILTERS: Filters = {
   block: [],
   village: [],
 };
+
 
 const SchoolList: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -98,7 +100,7 @@ const SchoolList: React.FC = () => {
           ([_, v]) => Array.isArray(v) && v.length > 0
         )
       );
-      
+
       const filteredSchools = await api.getFilteredSchoolsForSchoolListing(cleanedFilters);
       const enrichedSchools = filteredSchools.map((school: any) => ({
         ...school,
@@ -171,11 +173,11 @@ const SchoolList: React.FC = () => {
                 scrollButtons="auto"
                 className="school-list-tabs-div"
               >
-                {Object.values(SCHOOL_TABS).map((tabKey) => (
+                {Object.entries(SCHOOL_TABS).map(([key, value]) => (
                   <Tab
-                    key={tabKey}
-                    label={tabKey}
-                    value={tabKey}
+                    key={key}      
+                    label={Formatted_SCHOOL_TABS[key]}      
+                    value={value}   
                     className="school-list-tab"
                   />
                 ))}

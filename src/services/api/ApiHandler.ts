@@ -1100,7 +1100,7 @@ export class ApiHandler implements ServiceApi {
     currentUserId: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
-    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
+    tab?: "ALL" | "at_school" | "at_home" | "hybrid";
   }): Promise<{ data: any[] }> {
     return await this.s.getPrograms(params);
   }

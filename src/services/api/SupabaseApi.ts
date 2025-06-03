@@ -5441,7 +5441,7 @@ export class SupabaseApi implements ServiceApi {
     currentUserId: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
-    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
+    tab?: "ALL" | "at_school" | "at_home" | "hybrid";
   }): Promise<{ data: any[] }> {
     if (!this.supabase) {
       console.error("Supabase client not initialized");

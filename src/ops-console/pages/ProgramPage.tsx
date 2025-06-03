@@ -46,7 +46,7 @@ const ProgramsPage: React.FC = () => {
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const [filters, setFilters] = useState<Record<string, string[]>>({
     partner: [],
-    programType: [],
+    program_type: [],
     model: [],
     state: [],
     district: [],
@@ -57,7 +57,7 @@ const ProgramsPage: React.FC = () => {
 
   const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({
     partner: [],
-    programType: [],
+    program_type: [],
     model: [],
     state: [],
     district: [],
@@ -72,13 +72,13 @@ const ProgramsPage: React.FC = () => {
   const [loadingFilters, setLoadingFilters] = useState(false);
   const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>({});
 
-  type TabType = 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+  type TabType = 'ALL' | 'at_school' | 'at_home' | 'hybrid';
 
   const tabMap: Record<string, TabType> = {
     'All Programs': 'ALL',
-    'At School': 'AT SCHOOL',
-    'At Home': 'AT HOME',
-    'Hybrid': 'HYBRID',
+    'At School': 'at_school',
+    'At Home': 'at_home',
+    'Hybrid': 'hybrid',
   };
 
   const tab: TabType | undefined = tabMap[tabOptions[activeTab].label];
@@ -206,7 +206,7 @@ const ProgramsPage: React.FC = () => {
   const handleCancelFilters = () => {
     setTempFilters({
       partner: [],
-      programType: [],
+      program_type: [],
       model: [],
       state: [],
       district: [],
@@ -216,7 +216,7 @@ const ProgramsPage: React.FC = () => {
     });
     setFilters({
       partner: [],
-      programType: [],
+      program_type: [],
       model: [],
       state: [],
       district: [],

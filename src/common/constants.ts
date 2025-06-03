@@ -70,6 +70,11 @@ export enum SL_GRADES {
 }
 export enum SCHOOL_TABS {
   ALL = "All",
+  AT_SCHOOL = "at_school",
+  AT_HOME = "at_home",
+}
+export enum Formatted_SCHOOL_TABS {
+  ALL = "All",
   AT_SCHOOL = "At School",
   AT_HOME = "At Home",
 }
