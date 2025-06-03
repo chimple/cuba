@@ -13,6 +13,7 @@ import {
   MODES,
   SCHOOL_LOGIN,
   PAGES,
+  USER_ROLE,
 } from "../../common/constants";
 import { SupabaseClient, UserAttributes } from "@supabase/supabase-js";
 import { ServiceConfig } from "../ServiceConfig";
@@ -215,6 +216,10 @@ export class SupabaseAuth implements ServiceAuth {
       // await this.doRefreshSession();
       const authData = await this._auth?.getSession();
       if (!authData || !authData.data.session?.user?.id) return;
+      const role = authData?.data.session?.user.app_metadata.role;
+      if (role) {
+        localStorage.setItem(USER_ROLE, role);
+      }
       const api = ServiceConfig.getI().apiHandler;
       let user = await api.getUserByDocId(authData.data.session?.user.id);
       localStorage.setItem(USER_DATA, JSON.stringify(user));
@@ -230,7 +235,6 @@ export class SupabaseAuth implements ServiceAuth {
 
     const item = localStorage.getItem(REFRESH_TOKEN);
     if (!item) {
-      console.log("No refresh token found.");
       return;
     }
 
