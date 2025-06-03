@@ -47,7 +47,6 @@ const ManageClass: React.FC = () => {
           tempSchool.id,
           user.id
         );
-        console.log("all classes..", fetchedClasses);
         if (fetchedClasses) setAllClasses(fetchedClasses);
       }
     } catch (error) {
