@@ -20,6 +20,13 @@ import {
   LATEST_STARS,
   SchoolRoleMap,
   MODEL,
+  COURSES,
+  CHIMPLE_HINDI,
+  GRADE1_KANNADA,
+  GRADE1_MARATHI,
+  CHIMPLE_ENGLISH,
+  CHIMPLE_MATHS,
+  CHIMPLE_DIGITAL_SKILLS,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -42,6 +49,7 @@ import { v4 as uuidv4 } from "uuid";
 import { RoleType } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
 import { Table } from "@mui/material";
+import { create } from "domain";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -612,7 +620,11 @@ export class SqliteApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    group4: string | null,
+    image: File | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -628,10 +640,14 @@ export class SqliteApi implements ServiceApi {
       group1: group1 ?? null,
       group2: group2 ?? null,
       group3: group3 ?? null,
+      group4: group4 ?? null,
       image: result ?? null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
+      program_id: program_id ?? null,
+      udise: udise ?? null,
+      address: address ?? null,
       model: null,
     };
 
@@ -696,7 +712,11 @@ export class SqliteApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    image: File | null,
+    group4: string | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -712,10 +732,14 @@ export class SqliteApi implements ServiceApi {
       group2: group2 ?? school.group2,
       group3: group3 ?? school.group3,
       image: result ?? school.image,
+      group4: group4 ?? school.group4,
       updated_at: new Date().toISOString(),
       created_at: school.created_at,
       id: school.id,
       is_deleted: false,
+      program_id: program_id ?? null,
+      udise: udise ?? null,
+      address: address ?? null,
       model: null,
     };
     const updatedSchoolQuery = `
@@ -2622,16 +2646,16 @@ export class SqliteApi implements ServiceApi {
 
       // Define the query to fetch the leaderboard data for the given student
       const currentStudentQuery = `
-        SELECT 'allTime' as type, student_id, name,
+        SELECT 'allTime' as type, res.student_id, name,
                count(res.id) as lessons_played,
                sum(score) as total_score,
                sum(time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
         WHERE res.student_id = '${studentId}'
-        GROUP BY student_id, u.name
+        GROUP BY res.student_id, u.name
         UNION ALL
-        SELECT 'monthly' as type, student_id, u.name,
+        SELECT 'monthly' as type, res.student_id, u.name,
                count(res.id) as lessons_played,
                sum(score) as total_score,
                sum(time_spent) as total_time_spent
@@ -2639,9 +2663,9 @@ export class SqliteApi implements ServiceApi {
         JOIN ${TABLES.User} u ON u.id = res.student_id
         WHERE res.student_id = '${studentId}'
         AND strftime('%m', res.created_at) = strftime('%m', datetime('now'))
-        GROUP BY student_id, u.name
+        GROUP BY res.student_id, u.name
         UNION ALL
-        SELECT 'weekly' as type, student_id, u.name,
+        SELECT 'weekly' as type, res.student_id, u.name,
                count(res.id) as lessons_played,
                sum(score) as total_score,
                sum(time_spent) as total_time_spent
@@ -2649,7 +2673,7 @@ export class SqliteApi implements ServiceApi {
         JOIN ${TABLES.User} u ON u.id = res.student_id
         WHERE res.student_id = '${studentId}'
         AND strftime('%W', res.created_at) = strftime('%W', datetime('now'))
-        GROUP BY student_id, u.name
+        GROUP BY res.student_id, u.name
       `;
 
       // Execute the query
@@ -3186,7 +3210,7 @@ export class SqliteApi implements ServiceApi {
       ON cu.class_id = c.id
       join ${TABLES.School} s
       ON c.school_id = s.id
-      where user_id = "${userId}" and role = "${RoleType.STUDENT}"`
+      where c.is_deleted = 0 and user_id = "${userId}" and role = "${RoleType.STUDENT}"`
     );
     if (!res || !res.values || res.values.length < 1) return data;
     data.classes = res.values;
@@ -4754,6 +4778,19 @@ order by
     return await this._serverApi.getUniqueGeoData();
   }
 
+  async getProgramForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"program"> | undefined> {
+    const prog = await this._serverApi.getProgramForSchool(schoolId);
+    return prog;
+  }
+
+  async getProgramManagersForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    const users = await this._serverApi.getProgramManagersForSchool(schoolId);
+    return users;
+  }
   async updateStudentStars(
     studentId: string,
     totalStars: number
@@ -4797,9 +4834,7 @@ order by
   ): Promise<SchoolRoleMap[]> {
     return await this._serverApi.getProgramManagersForSchools(schoolIds);
   }
-   async getProgramData(
-    programId: string
-  ): Promise<{
+  async getProgramData(programId: string): Promise<{
     programDetails: { label: string; value: string }[];
     locationDetails: { label: string; value: string }[];
     partnerDetails: { label: string; value: string }[];
@@ -4811,5 +4846,129 @@ order by
     schoolIds: string[]
   ): Promise<SchoolRoleMap[]> {
     return await this._serverApi.getFieldCoordinatorsForSchools(schoolIds);
+  }
+  async createAutoProfile(
+    languageDocId: string | undefined
+  ): Promise<TableTypes<"user">> {
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+  const studentProfile = await this.getParentStudentProfiles();
+  if (studentProfile.length > 0) return studentProfile[0];
+    const studentId = uuidv4();
+    const newStudent: TableTypes<"user"> = {
+      id: studentId,
+      name: null,
+      age: null,
+      gender: null,
+      avatar: null,
+      image: null,
+      curriculum_id: null,
+      grade_id: null,
+      language_id: languageDocId ?? null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+      is_tc_accepted: true,
+      email: null,
+      phone: null,
+      fcm_token: null,
+      music_off: false,
+      sfx_off: false,
+      student_id: null,
+    };
+
+    await this.executeQuery(
+      `
+      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, grade_id, language_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `,
+      [
+        newStudent.id,
+        newStudent.name,
+        newStudent.age,
+        newStudent.gender,
+        newStudent.avatar,
+        newStudent.image,
+        newStudent.curriculum_id,
+        newStudent.grade_id,
+        newStudent.language_id,
+        newStudent.created_at,
+        newStudent.updated_at,
+      ]
+    );
+
+    const parentUserId = uuidv4();
+    await this.executeQuery(
+      `
+      INSERT INTO parent_user (id, parent_id, student_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?);
+      `,
+      [
+        parentUserId,
+        _currentUser.id,
+        studentId,
+        new Date().toISOString(),
+        new Date().toISOString(),
+      ]
+    );
+
+    // Find English, Maths, and language-dependent subject
+    const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
+    const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+    const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
+    const language = await this.getLanguageWithId(languageDocId!);
+    let langCourse;
+    if (language && language.code !== COURSES.ENGLISH) {
+      // Map language code to courseId
+      const thirdLanguageCourseMap: Record<string, string> = {
+        hi: CHIMPLE_HINDI,
+        kn: GRADE1_KANNADA,
+        mr: GRADE1_MARATHI,
+      };
+    
+      const courseId = thirdLanguageCourseMap[language.code ?? ""];
+      if (courseId) {
+        langCourse = await this.getCourse(courseId);
+      } 
+    }
+    const coursesToAdd = [englishCourse, mathsCourse, langCourse, digitalSkillsCourse].filter(
+      Boolean
+    );
+
+    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
+    await this.updatePushChanges(TABLES.ParentUser, MUTATE_TYPES.INSERT, {
+      id: parentUserId,
+      parent_id: _currentUser.id,
+      student_id: studentId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: false,
+    });
+
+    for (const course of coursesToAdd) {
+      const newUserCourse: TableTypes<"user_course"> = {
+        course_id: course.id,
+        created_at: new Date().toISOString(),
+        id: uuidv4(),
+        is_deleted: false,
+        updated_at: new Date().toISOString(),
+        user_id: studentId,
+      };
+      await this.executeQuery(
+        `
+      INSERT INTO user_course (id, user_id, course_id)
+    VALUES (?, ?, ?);
+  `,
+        [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
+      );
+      this.updatePushChanges(
+        TABLES.UserCourse,
+        MUTATE_TYPES.INSERT,
+        newUserCourse
+      );
+    }
+
+    return newStudent;
   }
 }

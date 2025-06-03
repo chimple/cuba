@@ -80,7 +80,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<string | undefined> {
     return this.s.joinLiveQuiz(assignmentId, studentId);
   }
-  private constructor() { }
+  private constructor() {}
   public async updateRewardsForStudent(
     studentId: string,
     unlockedReward: LeaderboardRewards
@@ -150,9 +150,23 @@ export class ApiHandler implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    group4: string | null,
+    image: File | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">> {
-    return await this.s.createSchool(name, group1, group2, group3, image);
+    return await this.s.createSchool(
+      name,
+      group1,
+      group2,
+      group3,
+      group4,
+      image,
+      program_id,
+      udise,
+      address
+    );
   }
   public async updateSchoolProfile(
     school: TableTypes<"school">,
@@ -160,7 +174,11 @@ export class ApiHandler implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    image: File | null,
+    group4?: string | null,
+    program_id?: string | null,
+    udise?: string | null,
+    address?: string | null
   ): Promise<TableTypes<"school">> {
     return await this.s.updateSchoolProfile(
       school,
@@ -168,9 +186,14 @@ export class ApiHandler implements ServiceApi {
       group1,
       group2,
       group3,
-      image
+      image,
+      group4 ?? null,
+      program_id ?? null,
+      udise ?? null,
+      address ?? null
     );
   }
+
   public async requestNewSchool(
     name: string,
     state: string,
@@ -1076,11 +1099,10 @@ export class ApiHandler implements ServiceApi {
     currentUserId: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
-    tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
   }): Promise<{ data: any[] }> {
     return await this.s.getPrograms(params);
   }
-
 
   public async insertProgram(payload: any): Promise<boolean | null> {
     return await this.s.insertProgram(payload);
@@ -1096,6 +1118,16 @@ export class ApiHandler implements ServiceApi {
     District: string[];
   }> {
     return await this.s.getUniqueGeoData();
+  }
+  public async getProgramForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"program"> | undefined> {
+    return await this.s.getProgramForSchool(schoolId);
+  }
+  public async getProgramManagersForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    return await this.s.getProgramManagersForSchool(schoolId);
   }
   public async getSchoolsForAdmin(
     limit: number = 10,
@@ -1139,9 +1171,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getSchoolsByModel(model, limit, offset);
   }
 
-  public async getProgramData(
-    programId: string
-  ): Promise<{
+  public async getProgramData(programId: string): Promise<{
     programDetails: { label: string; value: string }[];
     locationDetails: { label: string; value: string }[];
     partnerDetails: { label: string; value: string }[];
@@ -1149,5 +1179,11 @@ export class ApiHandler implements ServiceApi {
   } | null> {
     return await this.s.getProgramData(programId);
   }
-
+  public async createAutoProfile(
+    languageDocId: string | undefined
+  ): Promise<TableTypes<"user">> {
+    return await this.s.createAutoProfile(
+      languageDocId
+    );
+  }
 }

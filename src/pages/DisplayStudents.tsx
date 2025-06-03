@@ -25,7 +25,7 @@ import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErro
 import SkeltonLoading from "../components/SkeltonLoading";
 import { Capacitor } from "@capacitor/core";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
-
+import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<TableTypes<"user">[]>();
@@ -34,6 +34,7 @@ const DisplayStudents: FC<{}> = () => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+  const { setGbUpdated } = useGbContext();
   useEffect(() => {
     const body = document.querySelector("body");
     body?.style.setProperty(
@@ -63,6 +64,8 @@ const DisplayStudents: FC<{}> = () => {
       });
       return;
     }
+    updateLocalAttributes({ count_of_children: tempStudents.length });
+    setGbUpdated(true);
     setStudents(tempStudents);
     setIsLoading(false);
 
@@ -103,7 +106,7 @@ const DisplayStudents: FC<{}> = () => {
       await schoolUtil.setCurrentClass(undefined);
     }
     if (
-      !student.curriculum_id ||
+      // !student.curriculum_id ||
       !student.language_id
       //  ||
       // !student.grade_id ||
