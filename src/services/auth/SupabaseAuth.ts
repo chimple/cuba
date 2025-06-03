@@ -235,7 +235,6 @@ export class SupabaseAuth implements ServiceAuth {
 
     const item = localStorage.getItem(REFRESH_TOKEN);
     if (!item) {
-      console.log("No refresh token found.");
       return;
     }
 

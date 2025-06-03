@@ -189,16 +189,6 @@ export class SqliteApi implements ServiceApi {
         "🚀 ~ Api ~ setUpDatabase ~ exportedData:",
         JSON.stringify(exportedData.export?.tables)
       );
-      if (exportedData.export?.tables) {
-        for (const da of exportedData.export?.tables) {
-          console.log(
-            "new schema name: ",
-            da.name,
-            " schema: ",
-            JSON.stringify(da.schema)
-          );
-        }
-      }
     } catch (error) {
       console.error("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
     }
@@ -287,8 +277,6 @@ export class SqliteApi implements ServiceApi {
       } else {
         this.syncDbNow();
       }
-    } else {
-      console.log("not syncing");
     }
   }
 
@@ -297,7 +285,6 @@ export class SqliteApi implements ServiceApi {
     values?: any[] | undefined,
     isSQL92?: boolean | undefined
   ) {
-    console.log("logs to check synced tables5.1");
 
     if (!this._db || !this._sqlite) return;
     const res = await this._db.query(statement, values, isSQL92);
