@@ -404,7 +404,10 @@ const Login: React.FC = () => {
     }[]
   ) {
     const userRole = localStorage.getItem(USER_ROLE);
-    if (userRole == RoleType.SUPER_ADMIN || RoleType.OPERATIONAL_DIRECTOR) {
+    if (
+      userRole === RoleType.SUPER_ADMIN ||
+      userRole === RoleType.OPERATIONAL_DIRECTOR
+    ) {
       history.replace(PAGES.SIDEBAR_PAGE);
       return;
     }
