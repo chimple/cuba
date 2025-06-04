@@ -12,7 +12,7 @@ import { Add } from '@mui/icons-material';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { t } from 'i18next';
 import { useHistory } from "react-router";
-import { PAGES, PROGRAM_TAB, TabType } from '../../common/constants';
+import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS, TabType } from '../../common/constants';
 
 type ProgramRow = {
   programName: any;
@@ -30,12 +30,10 @@ const columns: Column<ProgramRow>[] = [
   { key: 'manager', label: 'Program Manager' },
 ];
 
-const tabOptions = [
-  { label: "All", value: PROGRAM_TAB.ALL },
-  { label: "At School", value: PROGRAM_TAB.AT_SCHOOL },
-  { label: "At Home", value: PROGRAM_TAB.AT_HOME },
-  { label: "Hybrid", value: PROGRAM_TAB.HYBRID }
-];
+const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([key, label]) => ({
+  value: key as PROGRAM_TAB,
+  label,
+}));
 
 const ProgramsPage: React.FC = () => {
   const history = useHistory();

@@ -2,6 +2,7 @@ import { Capacitor } from "@capacitor/core";
 import Auth from "../models/auth";
 import { Database } from "../services/database";
 import { RoleType } from "../interface/modelInterfaces";
+import SelectIconImage from '../teachers-module/assets/icons/all_subject_icon.png'
 
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = "sl-en",
@@ -76,14 +77,14 @@ export enum PROGRAM_TAB{
   HYBRID = "hybrid",
 }
 
-export const SCHOOL_TAB_LABELS: Record<PROGRAM_TAB, string> = {
+export const PROGRAM_TAB_LABELS: Record<PROGRAM_TAB, string> = {
   [PROGRAM_TAB.ALL]: "All",
   [PROGRAM_TAB.AT_SCHOOL]: "At School",
   [PROGRAM_TAB.AT_HOME]: "At Home",
   [PROGRAM_TAB.HYBRID]: "Hybrid",
 };
 
-export type TabType = keyof typeof SCHOOL_TAB_LABELS;
+export type TabType = keyof typeof PROGRAM_TAB_LABELS;
 
 // Backend model mapping (if needed)
 export enum MODEL {
@@ -841,6 +842,13 @@ export const QUIZ_POPUP_SHOWN = "quizPopupShown";
 export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
 export const GrowthBookAttributes = "growthBookAttributes";
 export const SCHOOL_LOGIN = "schoolLogin";
+
+export const ALL_SUBJECT = {
+  id: "all",
+  name: "All Subjects",
+  icon: SelectIconImage,
+  subjectDetail: "All Grades",
+};
 export const CAN_ACCESS_REMOTE_ASSETS = "can_access_remote_assets";
 export const LEARNING_PATH_ASSETS= "learning_path_assets";
 export const CHIMPLE_ENGLISH = "63e40488-3c1a-47ab-aa8a-6f07ad21709f"

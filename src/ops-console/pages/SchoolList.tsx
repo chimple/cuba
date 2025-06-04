@@ -3,6 +3,7 @@ import { Tabs, Tab, Box, Typography } from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import {
   PROGRAM_TAB,
+  PROGRAM_TAB_LABELS,
 } from "../../common/constants";
 import "./SchoolList.css";
 import DataTablePagination from "../components/DataTablePagination";
@@ -27,12 +28,12 @@ const INITIAL_FILTERS: Filters = {
   village: [],
 };
 
-const tabOptions = [
-  { label: "All", value: PROGRAM_TAB.ALL },
-  { label: "At School", value: PROGRAM_TAB.AT_SCHOOL },
-  { label: "At Home", value: PROGRAM_TAB.AT_HOME },
-  // { label: "Hybrid", value: PROGRAM_TAB.HYBRID },
-];
+const tabOptions = Object.entries(PROGRAM_TAB_LABELS)
+  .filter(([value]) => value !== PROGRAM_TAB.HYBRID)
+  .map(([value, label]) => ({
+    label,
+    value: value as PROGRAM_TAB,
+  }));
 
 const SchoolList: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
