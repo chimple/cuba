@@ -186,9 +186,9 @@ const DisplayStudents: FC<{}> = () => {
                 {student.name && (
                   <span className="display-student-name-profile">Profile:</span>
                 )}
-                {student.name && (
-                  <span className="display-student-name">{student?.name}</span>
-                )}
+                <span className="display-student-name">
+                  {student.name ? student.name : "\u00A0"}
+                </span>
               </div>
             ))}
           </div>
