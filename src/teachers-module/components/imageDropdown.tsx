@@ -1,6 +1,7 @@
 import React from "react";
 import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
 import "./imageDropdown.css";
+import {ALL_SUBJECT} from '../../common/constants'
 
 interface DropdownOption {
   id: string | number;
@@ -19,8 +20,8 @@ interface ImageDropdownProps {
 
 const splitText = (name: string, subjectDetail?: string) => {
   // for 'All Subjects'
-  if (name === "All Subjects") {
-    return { subject: name.trim(), grade: "All Grades" };
+  if (name === ALL_SUBJECT.name) {
+    return { subject: name.trim(), grade: ALL_SUBJECT.subjectDetail };
   }
 
   // Split subjectDetail into parts by the first space after the subject

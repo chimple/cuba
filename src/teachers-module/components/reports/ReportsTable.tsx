@@ -116,7 +116,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
       // Set first subject as selected if not already
       if (
         mappedSubjectOptions.length > 0 &&
-        selectedSubject?.id === "all"
+        selectedSubject?.id === ALL_SUBJECT.id
       ) {
         handleSelectSubject(mappedSubjectOptions[0]);
       }
@@ -163,7 +163,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
   const _classUtil = new ClassUtil();
   setExpandedRow(null);
 
-  const isAllSubjects = selectedSubject?.id === "all";
+  const isAllSubjects = selectedSubject?.id === ALL_SUBJECT.id;
   const allSubjects = subjects ?? [];
 
   type ReportResponse = {
@@ -395,7 +395,7 @@ let reportResults: ReportResponse[] = [];
               options={Object.entries(TABLEDROPDOWN).map(([key, value]) => ({
                 id: key,
                 name: value,
-                disabled: selectedSubject?.id === "all" && key === "CHAPTER",
+                disabled: selectedSubject?.id === ALL_SUBJECT.id && value === TABLEDROPDOWN.CHAPTER,
               }))}
               onOptionSelect={handleTypeSelect}
               placeholder={t(selectedType)??""}
@@ -412,8 +412,8 @@ let reportResults: ReportResponse[] = [];
               options={subjectOptionsWithAll}
               onOptionSelect={handleSelectSubject}
               selectedValue={{
-                id: selectedSubject?.id ?? "all",
-                name: selectedSubject?.name ?? "All Subjects",
+                id: selectedSubject?.id ?? "",
+                name: selectedSubject?.name ?? "",
               }}
               disableTranslation={true}
             />

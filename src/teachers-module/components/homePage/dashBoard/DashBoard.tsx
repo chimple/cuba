@@ -108,7 +108,7 @@ const init = async () => {
 
   const _classUtil = new ClassUtil();
 
-  if (selectedSubject?.id === "all") {
+  if (selectedSubject?.id ===ALL_SUBJECT.id) {
     const studentBandMap = new Map<string, { band: string, entry: any }>();
      const bandOrder = [
         BANDS.REDGROUP,
