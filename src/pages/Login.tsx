@@ -19,7 +19,7 @@ import {
   USER_ROLE,
 } from "../common/constants";
 import { Capacitor, registerPlugin } from "@capacitor/core";
-import { ServiceConfig } from "../services/ServiceConfig";
+import { APIMode, ServiceConfig } from "../services/ServiceConfig";
 import TextBox from "../components/TextBox";
 import React from "react";
 import Loading from "../components/Loading";
@@ -404,29 +404,25 @@ const Login: React.FC = () => {
     }[]
   ) {
     const userRole = localStorage.getItem(USER_ROLE);
-    if (
+    const isOpsRole =
       userRole === RoleType.SUPER_ADMIN ||
-      userRole === RoleType.OPERATIONAL_DIRECTOR
-    ) {
+      userRole === RoleType.OPERATIONAL_DIRECTOR;
+
+    const isOpsSchoolRole = userSchools.some(school =>
+      school.role === RoleType.PROGRAM_MANAGER ||
+      school.role === RoleType.FIELD_COORDINATOR
+    );
+
+    if (isOpsRole || isOpsSchoolRole) {
+      ServiceConfig.getI().switchMode(APIMode.SUPABASE);
       history.replace(PAGES.SIDEBAR_PAGE);
       return;
     }
+
     if (userSchools.length > 0) {
       const autoUserSchool = userSchools.find(
         (school) => school.role === RoleType.AUTOUSER
       );
-
-      console.log("userSchools", userSchools);
-      const isOpsUser = userSchools.some(
-        (school) =>
-          school.role === RoleType.PROGRAM_MANAGER ||
-          school.role === RoleType.FIELD_COORDINATOR
-      );
-
-      if (isOpsUser) {
-        history.replace(PAGES.SIDEBAR_PAGE);
-        return;
-      }
 
       if (autoUserSchool) {
         schoolUtil.setCurrMode(MODES.SCHOOL);
