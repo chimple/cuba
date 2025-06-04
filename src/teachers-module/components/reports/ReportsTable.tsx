@@ -11,6 +11,7 @@ import {
   TABLES,
   TABLESORTBY,
   TableTypes,
+  ALL_SUBJECT,
 } from "../../../common/constants";
 import { Util } from "../../../utility/util";
 import { ServiceConfig } from "../../../services/ServiceConfig";
@@ -73,6 +74,12 @@ const ReportTable: React.FC<ReportTableProps> = ({
   const [mappedSubjectOptions, setMappedSubjectOptions] = useState<
     { id: string; name: string }[]
   >([]);
+  
+  const subjectOptionsWithAll = [
+  { ...ALL_SUBJECT, disabled: selectedType === TABLEDROPDOWN.CHAPTER },
+  ...mappedSubjectOptions.map((subject) => ({ ...subject, disabled: false })),
+];
+
   const [mappedChaptersOptions, setMappedChaptersOptions] = useState<
     { id: string; name: string }[]
   >([]);
@@ -103,6 +110,20 @@ const ReportTable: React.FC<ReportTableProps> = ({
   useEffect(() => {
     initChapters();
   }, [selectedSubject]);
+
+  useEffect(() => {
+  if (selectedType === TABLEDROPDOWN.CHAPTER) {
+      // Set first subject as selected if not already
+      if (
+        mappedSubjectOptions.length > 0 &&
+        selectedSubject?.id === ALL_SUBJECT.id
+      ) {
+        handleSelectSubject(mappedSubjectOptions[0]);
+      }
+    }
+  }, [selectedType]);
+
+
   const initChapters = async () => {
     const _chapters = await api.getChaptersForCourse(selectedSubject?.id ?? "");
     var _mappedChaptersOptions = _chapters?.map((option) => ({
@@ -136,81 +157,163 @@ const ReportTable: React.FC<ReportTableProps> = ({
     setMappedSubjectOptions(_mappedSubjectOptions);
     setIsLoading(false);
   };
+
   const init = async () => {
-    // setIsLoading(true);
-    var current_class = Util.getCurrentClass();
-    var _classUtil = new ClassUtil();
-    setExpandedRow(null);
-    switch (selectedType) {
-      case TABLEDROPDOWN.WEEKLY:
-        var _weeklyData = await _classUtil.getWeeklyReport(
-          current_class?.id ?? "",
-          selectedSubject?.id ?? "",
-          dateRange.startDate,
-          dateRange.endDate,
-          sortType,
-          isAssignments
-        );
-        setReportData(_weeklyData.ReportData);
-        setHeaderData(_weeklyData.HeaderData.slice(0, 7));
-        break;
-      case TABLEDROPDOWN.MONTHLY:
-        var _monthlyData = await _classUtil.getMonthlyReport(
-          current_class?.id ?? "",
-          selectedSubject?.id ?? "",
-          dateRange.startDate,
-          dateRange.endDate,
-          sortType,
-          isAssignments
-        );
+  const current_class = Util.getCurrentClass();
+  const _classUtil = new ClassUtil();
+  setExpandedRow(null);
 
-        setReportData(_monthlyData.ReportData);
-        setHeaderData(_monthlyData.HeaderData);
+  const isAllSubjects = selectedSubject?.id === ALL_SUBJECT.id;
+  const allSubjects = subjects ?? [];
 
-        break;
-      case TABLEDROPDOWN.ASSIGNMENTS:
-        var _assignmentData =
-          await _classUtil.getAssignmentOrLiveQuizReportForReport(
-            current_class?.id ?? "",
-            selectedSubject?.id ?? "",
-            dateRange.startDate,
-            dateRange.endDate,
-            false,
-            sortType
-          );
-        setReportData(_assignmentData.ReportData);
-        setHeaderData(_assignmentData.HeaderData);
-        break;
-      case TABLEDROPDOWN.CHAPTER:
-        var _reportData = await _classUtil.getChapterWiseReport(
-          current_class?.id ?? "",
-          dateRange.startDate,
-          dateRange.endDate,
-          selectedSubject?.id ?? "",
-          selectedChapter?.id ?? "",
-          sortType,
-          isAssignments
-        );
-        setReportData(_reportData.ReportData);
-        setHeaderData(_reportData.HeaderData);
-        break;
-      case TABLEDROPDOWN.LIVEQUIZ:
-        var _liveQuizData =
-          await _classUtil.getAssignmentOrLiveQuizReportForReport(
-            current_class?.id ?? "",
-            selectedSubject?.id ?? "",
-            dateRange.startDate,
-            dateRange.endDate,
-            true,
-            sortType
-          );
-        setReportData(_liveQuizData.ReportData);
-        setHeaderData(_liveQuizData.HeaderData);
-        break;
-      default:
-    }
-    setIsLoading(false);
+  type ReportResponse = {
+  ReportData: Map<string, { student: TableTypes<"user">; results: Record<string, any[]> }>;
+  HeaderData: Map<string, AssignmentHeader>[];
+};
+
+let reportResults: ReportResponse[] = [];
+  let mergedReportData = new Map();
+  let mergedHeaderData: Map<string, AssignmentHeader>[] = [];
+
+  const mergeReports = (reports) => {
+    reports.forEach((report) => {
+      report?.ReportData?.forEach((value, key) => {
+        if (!mergedReportData.has(key)) {
+          mergedReportData.set(key, {
+            student: value.student,
+            results: { ...value.results },
+          });
+        } else {
+          const existing = mergedReportData.get(key);
+          mergedReportData.set(key, {
+            student: value.student,
+            results: { ...existing.results, ...value.results },
+          });
+        }
+      });
+
+      report?.HeaderData?.forEach((map, index) => {
+        if (!mergedHeaderData[index]) mergedHeaderData[index] = new Map();
+        map.forEach((v, k) => mergedHeaderData[index].set(k, v));
+      });
+    });
   };
+
+  switch (selectedType) {
+    case TABLEDROPDOWN.WEEKLY:
+      if (isAllSubjects) {
+        reportResults = await Promise.all(
+          allSubjects.map((subject) =>
+            _classUtil.getWeeklyReport(
+              current_class?.id ?? "",
+              subject.id,
+              dateRange.startDate,
+              dateRange.endDate,
+              sortType,
+              isAssignments
+            )
+          )
+        );
+        mergeReports(reportResults);
+        setReportData(mergedReportData);
+        setHeaderData(mergedHeaderData.slice(0, 7));
+      } else {
+        const report = await _classUtil.getWeeklyReport(
+          current_class?.id ?? "",
+          selectedSubject?.id ?? "",
+          dateRange.startDate,
+          dateRange.endDate,
+          sortType,
+          isAssignments
+        );
+        setReportData(report.ReportData);
+        setHeaderData(report.HeaderData.slice(0, 7));
+      }
+      break;
+
+    case TABLEDROPDOWN.MONTHLY:
+      if (isAllSubjects) {
+        reportResults = await Promise.all(
+          allSubjects.map((subject) =>
+            _classUtil.getMonthlyReport(
+              current_class?.id ?? "",
+              subject.id,
+              dateRange.startDate,
+              dateRange.endDate,
+              sortType,
+              isAssignments
+            )
+          )
+        );
+        mergeReports(reportResults);
+        setReportData(mergedReportData);
+        setHeaderData(mergedHeaderData);
+      } else {
+        const report = await _classUtil.getMonthlyReport(
+          current_class?.id ?? "",
+          selectedSubject?.id ?? "",
+          dateRange.startDate,
+          dateRange.endDate,
+          sortType,
+          isAssignments
+        );
+        setReportData(report.ReportData);
+        setHeaderData(report.HeaderData);
+      }
+      break;
+
+    case TABLEDROPDOWN.ASSIGNMENTS:
+    case TABLEDROPDOWN.LIVEQUIZ:
+      const isLiveQuiz = selectedType === TABLEDROPDOWN.LIVEQUIZ;
+      if (isAllSubjects) {
+        reportResults = await Promise.all(
+          allSubjects.map((subject) =>
+            _classUtil.getAssignmentOrLiveQuizReportForReport(
+              current_class?.id ?? "",
+              subject.id,
+              dateRange.startDate,
+              dateRange.endDate,
+              isLiveQuiz,
+              sortType
+            )
+          )
+        );
+        mergeReports(reportResults);
+        setReportData(mergedReportData);
+        setHeaderData(mergedHeaderData);
+      } else {
+        const report = await _classUtil.getAssignmentOrLiveQuizReportForReport(
+          current_class?.id ?? "",
+          selectedSubject?.id ?? "",
+          dateRange.startDate,
+          dateRange.endDate,
+          isLiveQuiz,
+          sortType
+        );
+        setReportData(report.ReportData);
+        setHeaderData(report.HeaderData);
+      }
+      break;
+
+    case TABLEDROPDOWN.CHAPTER:
+      const report = await _classUtil.getChapterWiseReport(
+        current_class?.id ?? "",
+        dateRange.startDate,
+        dateRange.endDate,
+        selectedSubject?.id ?? "",
+        selectedChapter?.id ?? "",
+        sortType,
+        isAssignments
+      );
+      setReportData(report.ReportData);
+      setHeaderData(report.HeaderData);
+      break;
+  }
+
+  setIsLoading(false);
+};
+
+
   const handleSelectSubject = async (subject) => {
     var current_class = Util.getCurrentClass();
     if (subject) {
@@ -231,9 +334,11 @@ const ReportTable: React.FC<ReportTableProps> = ({
       sortType: sortType,
     });
   };
+
+
   const handleTypeSelect = async (type) => {
     if (type) {
-      if (type.name == TABLEDROPDOWN.CHAPTER) {
+      if (type.name === TABLEDROPDOWN.CHAPTER) {
         const _chapters = await api.getChaptersForCourse(
           selectedSubject?.id ?? ""
         );
@@ -243,6 +348,8 @@ const ReportTable: React.FC<ReportTableProps> = ({
       setSelectedType(type.name);
     }
   };
+
+
   const handleNameSort = async (type) => {
     if (type) {
       setSortType(type.name);
@@ -288,6 +395,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
               options={Object.entries(TABLEDROPDOWN).map(([key, value]) => ({
                 id: key,
                 name: value,
+                disabled: selectedSubject?.id === ALL_SUBJECT.id && value === TABLEDROPDOWN.CHAPTER,
               }))}
               onOptionSelect={handleTypeSelect}
               placeholder={t(selectedType)??""}
@@ -297,9 +405,11 @@ const ReportTable: React.FC<ReportTableProps> = ({
               }}
             />
           </div>
+
           <div>
+          
             <CustomDropdown
-              options={mappedSubjectOptions ?? []}
+              options={subjectOptionsWithAll}
               onOptionSelect={handleSelectSubject}
               selectedValue={{
                 id: selectedSubject?.id ?? "",
@@ -307,6 +417,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
               }}
               disableTranslation={true}
             />
+
 
             {selectedType == TABLEDROPDOWN.CHAPTER ? (
               <CustomDropdown
