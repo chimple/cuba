@@ -2,7 +2,8 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Tabs, Tab, Box, Typography } from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import {
-  SCHOOL_TABS,
+  PROGRAM_TAB,
+  PROGRAM_TAB_LABELS,
 } from "../../common/constants";
 import "./SchoolList.css";
 import DataTablePagination from "../components/DataTablePagination";
@@ -27,23 +28,26 @@ const INITIAL_FILTERS: Filters = {
   village: [],
 };
 
+const tabOptions = Object.entries(PROGRAM_TAB_LABELS)
+  .filter(([value]) => value !== PROGRAM_TAB.HYBRID)
+  .map(([value, label]) => ({
+    label,
+    value: value as PROGRAM_TAB,
+  }));
+
 const SchoolList: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
 
-  // Tabs & Pagination
-  const [selectedTab, setSelectedTab] = useState<SCHOOL_TABS>(SCHOOL_TABS.ALL);
+  const [selectedTab, setSelectedTab] = useState(PROGRAM_TAB.ALL);
   const [page, setPage] = useState(1);
   const rowsPerPage = 7;
 
-  // Sorting
   const [orderBy, setOrderBy] = useState<string | null>(null);
   const [order, setOrder] = useState<"asc" | "desc">("asc");
 
-  // Data & Loading
   const [schools, setSchools] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Search and Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
@@ -56,7 +60,6 @@ const SchoolList: React.FC = () => {
     setOrderBy(key);
   };
 
-  // Fetch filter options 
   useEffect(() => {
     const fetchFilterOptions = async () => {
       setIsLoading(true);
@@ -84,7 +87,6 @@ const SchoolList: React.FC = () => {
     fetchFilterOptions();
   }, []);
 
-  // Fetch schools whenever selectedTab or filters change
   useEffect(() => {
     fetchData();
   }, [selectedTab, filters]);
@@ -98,7 +100,7 @@ const SchoolList: React.FC = () => {
           ([_, v]) => Array.isArray(v) && v.length > 0
         )
       );
-      
+
       const filteredSchools = await api.getFilteredSchoolsForSchoolListing(cleanedFilters);
       const enrichedSchools = filteredSchools.map((school: any) => ({
         ...school,
@@ -144,7 +146,7 @@ const SchoolList: React.FC = () => {
     return filteredSchools.slice(start, start + rowsPerPage);
   }, [filteredSchools, page, rowsPerPage]);
 
-  return (
+ return (
     <IonPage className="school-list-ion-page">
       <div className="school-container">
         <div className="school-list-header">
@@ -159,27 +161,27 @@ const SchoolList: React.FC = () => {
             }}
           >
             <div style={{ flex: 1 }}>
-              <Tabs
-                value={selectedTab}
-                onChange={(e, val) => {
-                  setPage(1);
-                  setSelectedTab(val);
-                }}
-                indicatorColor="primary"
-                textColor="primary"
-                variant="scrollable"
-                scrollButtons="auto"
-                className="school-list-tabs-div"
-              >
-                {Object.values(SCHOOL_TABS).map((tabKey) => (
-                  <Tab
-                    key={tabKey}
-                    label={tabKey}
-                    value={tabKey}
-                    className="school-list-tab"
-                  />
-                ))}
-              </Tabs>
+                 <Tabs
+              value={selectedTab}
+              onChange={(e, val) => {
+                setPage(1);
+                setSelectedTab(val);
+              }}
+              indicatorColor="primary"
+              textColor="primary"
+              variant="scrollable"
+              scrollButtons="auto"
+               className="school-list-tabs-div"
+            >
+              {tabOptions.map((tab) => (
+                <Tab
+                  key={tab.value}
+                  label={tab.label}
+                  value={tab.value}
+                  className="school-list-tab"
+                />
+              ))}
+            </Tabs>
             </div>
             <div style={{ minWidth: 280, maxWidth: 400 }}>
               <SearchAndFilter

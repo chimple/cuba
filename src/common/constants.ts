@@ -69,16 +69,31 @@ export enum SL_GRADES {
   GRADE1 = "Grade 1",
   GRADE2 = "Grade 2",
 }
-export enum SCHOOL_TABS {
-  ALL = "All",
-  AT_SCHOOL = "At School",
-  AT_HOME = "At Home",
+
+export enum PROGRAM_TAB{
+  ALL = "all",
+  AT_SCHOOL = "at_school",
+  AT_HOME = "at_home",
+  HYBRID = "hybrid",
 }
+
+export const PROGRAM_TAB_LABELS: Record<PROGRAM_TAB, string> = {
+  [PROGRAM_TAB.ALL]: "All",
+  [PROGRAM_TAB.AT_SCHOOL]: "At School",
+  [PROGRAM_TAB.AT_HOME]: "At Home",
+  [PROGRAM_TAB.HYBRID]: "Hybrid",
+};
+
+export type TabType = keyof typeof PROGRAM_TAB_LABELS;
+
+// Backend model mapping (if needed)
 export enum MODEL {
   AT_SCHOOL = "AT_SCHOOL",
   AT_HOME = "AT_HOME",
   HYBRID = "HYBRID",
 }
+
+
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
 export enum LeaderboardDropdownList {

@@ -28,6 +28,7 @@ import {
   CHIMPLE_ENGLISH,
   CHIMPLE_MATHS,
   CHIMPLE_DIGITAL_SKILLS,
+  TabType,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -4750,7 +4751,7 @@ order by
     currentUserId: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
-    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
+    tab?: TabType
   }): Promise<{ data: any[] }> {
     const { currentUserId, filters, searchTerm, tab } = params;
     return await this._serverApi.getPrograms({
