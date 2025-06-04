@@ -27,6 +27,8 @@ import {
   CHIMPLE_ENGLISH,
   CHIMPLE_MATHS,
   CHIMPLE_DIGITAL_SKILLS,
+  TabType,
+  PROGRAM_TAB,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -5436,12 +5438,12 @@ export class SupabaseApi implements ServiceApi {
     currentUserId,
     filters = {},
     searchTerm = "",
-    tab = "ALL",
+    tab = PROGRAM_TAB.ALL,
   }: {
     currentUserId: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
-    tab?: "ALL" | "at_school" | "at_home" | "hybrid";
+    tab?: TabType;
   }): Promise<{ data: any[] }> {
     if (!this.supabase) {
       console.error("Supabase client not initialized");
