@@ -2,6 +2,7 @@ import { Capacitor } from "@capacitor/core";
 import Auth from "../models/auth";
 import { Database } from "../services/database";
 import { RoleType } from "../interface/modelInterfaces";
+import SelectIconImage from '../teachers-module/assets/icons/all_subject_icon.png'
 
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = "sl-en",
@@ -834,3 +835,10 @@ export const CHIMPLE_DIGITAL_SKILLS = "19bb079f-bc69-44e4-bc1d-0b77f2683b6c"
 export const CHIMPLE_HINDI = "7e9d65fa-ac2e-452e-bca4-1499d5c174e0"
 export const GRADE1_KANNADA = "a90608de-4376-4baf-82c2-07760b2aa899"
 export const GRADE1_MARATHI = "2cada0d1-db3d-4da0-8ade-e9ba282a3558"
+
+export const ALL_SUBJECT = {
+  id: "all",
+  name: "All Subjects",
+  icon: SelectIconImage,
+  subjectDetail: "All Grades",
+};

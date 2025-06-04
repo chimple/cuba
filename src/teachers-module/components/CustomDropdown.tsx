@@ -46,7 +46,11 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
         {...selectProps} // Pass down all other props
       >
         {options.map((option) => (
-          <IonSelectOption key={option.id} value={option.id}>
+          <IonSelectOption
+            key={option.id}
+            value={option.id}
+            disabled={(option as any).disabled}
+          >
             {disableTranslation ? option.name : t(option.name)}
           </IonSelectOption>
         ))}
