@@ -63,7 +63,16 @@ export enum RoleType {
   SPONSOR = "sponsor",
   COORDINATOR = "coordinator",
   AUTOUSER = "autouser",
-  PROGRAM_MANAGER="program_manager",
+  PROGRAM_MANAGER = "program_manager",
   OPERATIONAL_DIRECTOR = "operational_director",
+  SUPER_ADMIN = "super_admin",
   FIELD_COORDINATOR = "field_coordinator",
+}
+
+export enum SchoolTabs {
+  Overview = "Overview",
+  Students = "Students",
+  Teachers = "Teachers",
+  Principals = "Principals",
+  Coordinators = "Coordinators",
 }

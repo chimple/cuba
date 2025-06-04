@@ -72,7 +72,6 @@ const DisplaySchools: FC<{}> = () => {
 
   const getClasses = async (schoolId: string) => {
     const tempClasses = await api.getClassesForSchool(schoolId, user?.id!);
-    console.log("classes..", tempClasses);
     if (tempClasses.length > 0) {
       return tempClasses;
     } else {

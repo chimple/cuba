@@ -20,8 +20,8 @@ interface SidebarProps {
 
 const navItems = [
   { label: NavItems.DASHBOARD, route: PAGES.SIDEBAR_PAGE+PAGES.ADMIN_DASHBOARD, icon: <DashboardIcon /> },
-  { label: NavItems.PROGRAMS, route: PAGES.SIDEBAR_PAGE+PAGES.ADMIN_PROGRAMS, icon: <BookIcon /> },
-  { label: NavItems.SCHOOLS, route: PAGES.SIDEBAR_PAGE+PAGES.ADMIN_SCHOOLS,  icon: <SchoolIcon /> },
+  { label: NavItems.PROGRAMS, route: PAGES.SIDEBAR_PAGE+PAGES.PROGRAM_PAGE, icon: <BookIcon /> },
+  { label: NavItems.SCHOOLS, route: PAGES.SIDEBAR_PAGE+PAGES.SCHOOL_LIST,  icon: <SchoolIcon /> },
   { label: NavItems.COMPAIGNS, route: PAGES.SIDEBAR_PAGE+PAGES.ADMIN_COMPAIGNS,  icon: <CampaignIcon /> },
   { label: NavItems.USERS, route: PAGES.SIDEBAR_PAGE+PAGES.ADMIN_USERS,  icon: <GroupsIcon /> },
   { label: NavItems.DEVICES, route: PAGES.SIDEBAR_PAGE+PAGES.ADMIN_DEVICES,  icon: <DevicesIcon /> },

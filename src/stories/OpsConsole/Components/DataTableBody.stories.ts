@@ -63,3 +63,40 @@ export const CustomRender: Story = {
     ],
   },
 };
+
+export const SchoolTable: Story = {
+  args: {
+    columns: [
+      { key: "school", label: "School", align: "center" },
+      { key: "noOfStudents", label: "No of Students", align: "left" },
+      { key: "noOfTeachers", label: "No of Teachers", align: "left" },
+      { key: "programManager", label: "Program Manager", align: "left" },
+      { key: "fieldCoordinator", label: "Field Coordinator", align: "left" },
+    ],
+    rows: [
+      {
+        school: "Sunrise Public School",
+        noOfStudents: 120,
+        noOfTeachers: 8,
+        programManager: "Alice Johnson",
+        fieldCoordinator: "Bob Smith",
+      },
+      {
+        school: "Greenfield High",
+        noOfStudents: 95,
+        noOfTeachers: 6,
+        programManager: "Charlie Brown",
+        fieldCoordinator: "Daisy Miller",
+      },
+      {
+        school: "Hilltop Academy",
+        noOfStudents: 150,
+        noOfTeachers: 10,
+        programManager: "Ethan Williams",
+        fieldCoordinator: "Fiona Davis",
+      },
+    ],
+    orderBy: "school",
+    order: "asc",
+  },
+};

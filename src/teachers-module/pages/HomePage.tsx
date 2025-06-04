@@ -6,7 +6,7 @@ import "./HomePage.css";
 import DashBoard from "../components/homePage/dashBoard/DashBoard";
 import Header from "../components/homePage/Header";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, registerPlugin } from "@capacitor/core";
 import TeacherAssignment from "../components/homePage/assignment/TeacherAssignment";
 import Library from "../components/library/Library";
 import ReportTable from "../components/reports/ReportsTable";
@@ -20,6 +20,10 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { App } from "@capacitor/app";
 import { t } from "i18next";
 import ComingSoon from "../components/homePage/ai/comingSoon";
+import { updateLocalAttributes, useGbContext } from "../../growthbook/Growthbook";
+import { toPng } from "html-to-image";
+import { IoShareSocialSharp } from "react-icons/io5";
+import { Filesystem, Directory } from "@capacitor/filesystem";
 
 const HomePage: React.FC = () => {
   const history = useHistory();
@@ -32,6 +36,8 @@ const HomePage: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const [renderKey, setRenderKey] = useState(0);
+    const PortPlugin = registerPlugin<any>("Port");
+  const { setGbUpdated } = useGbContext();
   useEffect(() => {
     init();
     const handleClassChange = () => {
@@ -66,6 +72,11 @@ const HomePage: React.FC = () => {
         setCurrentClass(null);
       }
       if (tempClass) setCurrentClass(tempClass);
+      updateLocalAttributes({
+        teacher_class_id: tempClass?.id,
+        teacher_school_id: currentSchool?.id,
+      });
+      setGbUpdated(true);
       console.log("class data...", tempClass);
     } catch (error) {
       console.error("Failed to load class details", error);
@@ -126,10 +137,67 @@ const HomePage: React.FC = () => {
           />
         );
       case 4:
-        return <ComingSoon/>
+        return <ComingSoon />
 
       default:
         return <Library />;
+    }
+  };
+
+  const dataURLtoFile = (dataUrl: string, filename: string): File => {
+    const arr = dataUrl.split(",");
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : "image/png";
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+  };
+
+  const handleShare = async () => {
+    if (tabValue !== 3) return;
+    const el = document.querySelector('.Reports-Table-capture-report-table') as HTMLElement | null;
+    if (!el) return;
+    const margin_top = el.style.marginTop;
+    el.style.marginTop = '0px';
+    try {
+      const dataUrl = await toPng(el, { cacheBust: true, backgroundColor: "white" });
+      const fileName = `report-screenshot-${Date.now()}.png`;
+      if (!Capacitor.isNativePlatform()) {
+        const file = dataURLtoFile(dataUrl, fileName);
+        await Util.sendContentToAndroidOrWebShare(
+          "Report screenshot attached.",
+          "Report Screenshot",
+          undefined,
+          [file]
+        );
+        return;
+      }
+      // Android/Native: save and share
+      const base64Data = dataUrl.replace(/^data:image\/png;base64,/, "");
+      const savedFile = await Filesystem.writeFile({
+        path: fileName,
+        data: base64Data,
+        directory: Directory.Cache,
+      });
+      const fileUri = savedFile.uri;
+      await PortPlugin.shareContentWithAndroidShare({
+        text: "Report screenshot attached.",
+        title: "Report Screenshot",
+        url: "",
+        imageFile: {
+          name: fileName,
+          path: fileUri.replace("file://", ""),
+        },
+      });
+    } catch (err) {
+      console.error('Failed to capture or share screenshot.', err);
+    } finally {
+      // Restore original styles
+      el.style.marginTop = margin_top;
     }
   };
 
@@ -142,7 +210,8 @@ const HomePage: React.FC = () => {
         schoolName={currentSchool?.name}
         isBackButton={false}
         showSideMenu={true}
-        onButtonClick={() => {}}
+        onButtonClick={() => { }}
+        onShareClick={tabValue === 3 ? handleShare : undefined}
       />
       <main className="home-container-body" key={`refresh-${refresh}`}>
         {renderComponent()}

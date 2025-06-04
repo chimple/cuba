@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import DataTableBody, { Column } from '../components/DataTableBody';
 import DataTablePagination from '../components/DataTablePagination';
 import { useDataTableLogic } from '../OpsUtility/useDataTableLogic';
-import { Box, Chip, Typography, Button, Skeleton, CircularProgress } from '@mui/material';
+import { Box, Chip, Typography, Button, Skeleton, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
 import './ProgramPage.css';
 import FilterSlider from '../components/FilterSlider';
 import SelectedFilters from '../components/SelectedFilters';
@@ -42,6 +42,8 @@ const ProgramsPage: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const [filters, setFilters] = useState<Record<string, string[]>>({
     partner: [],
     programType: [],
@@ -70,13 +72,13 @@ const ProgramsPage: React.FC = () => {
   const [loadingFilters, setLoadingFilters] = useState(false);
   const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>({});
 
-type TabType = 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+  type TabType = 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
 
   const tabMap: Record<string, TabType> = {
-  'All Programs': 'ALL',
-  'At School': 'AT SCHOOL',
-  'At Home': 'AT HOME',
-  'Hybrid': 'HYBRID',
+    'All Programs': 'ALL',
+    'At School': 'AT SCHOOL',
+    'At Home': 'AT HOME',
+    'Hybrid': 'HYBRID',
   };
 
   const tab: TabType | undefined = tabMap[tabOptions[activeTab].label];
@@ -109,7 +111,7 @@ type TabType = 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
           return;
         }
         // const { data } = await SupabaseApi.i.getPrograms({ currentUserId, filters, searchTerm, tab });
-        const { data } = await api.getPrograms({currentUserId, filters, searchTerm, tab });
+        const { data } = await api.getPrograms({ currentUserId, filters, searchTerm, tab });
         console.log('Fetched programs:', data);
         setPrograms(data);
       } catch (error) {
@@ -235,19 +237,25 @@ type TabType = 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
           <div className="program-button-and-search-filter">
             <Button
               variant="outlined"
-              onClick={() => {
-                history.replace(PAGES.NEW_PROGRAM); //Navigate to the new program page
+              onClick={() => history.replace(PAGES.NEW_PROGRAM)}
+              sx={{
+                borderColor: "transparent",
+                borderRadius: 20,
+                boxShadow: 3,
+                height: "48px",
+                minWidth: isSmallScreen ? "48px" : "auto",
+                padding: isSmallScreen ? 0 : "6px 16px",
               }}
-              sx={{ borderColor: 'transparent', borderRadius: 20, boxShadow: 3, height: '48px' }}
             >
-              <Add /> {t("New Program")}
+              <Add />
+              {!isSmallScreen && t("New Program")}
             </Button>
             {loadingFilters ? (<CircularProgress />
             ) : (<SearchAndFilter
-                searchTerm={searchTerm}
-                onSearchChange={handleSearchChange}
-                filters={filters}
-                onFilterClick={onFilterClick}
+              searchTerm={searchTerm}
+              onSearchChange={handleSearchChange}
+              filters={filters}
+              onFilterClick={onFilterClick}
             />)
             }
           </div>

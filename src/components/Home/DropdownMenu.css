@@ -29,6 +29,8 @@
 
 .dropdown-container.expanded {
   display: flex;
+  align-items: flex-start;
+  background-color: white;
 }
 .dropdown-container.expanded .dropdown-left {
   max-height: 52vh;
@@ -79,10 +81,12 @@
 }
 
 .dropdown-arrow.expanded-arrow {
-  align-items: flex-start;
-  padding-bottom: 38vh;
-  padding-right: 0.1vw;
-  width: 4vw;
+  padding-bottom: 0 !important; 
+  margin-top: 5vh;                
+  padding-right: 0.1vw;          
+  width: 4vw;                     
+  align-items: center;
+  justify-content: center;
 }
 
 .icon-img {
@@ -106,7 +110,7 @@
 .menu-item {
   display: flex;
   align-items: center;
-  gap: 1vh;
+  gap: 0.5vh;
   padding: 0 0.6vw;
   flex-direction: column;
   cursor: pointer;
@@ -121,6 +125,7 @@
   background-color: #FFB792;
   width: auto;
   height: auto;
+  padding-top: 4px;
 }
 
 .menu-label {

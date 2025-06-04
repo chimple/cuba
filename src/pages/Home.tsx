@@ -275,8 +275,8 @@ const Home: FC = () => {
         ? await api.getStudentClassesAndSchools(student.id)
         : null;
     const classDoc = linkedData?.classes[0];
-    if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
-    if (student) await api.assignmentUserListner(student.id, () => {});
+    if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => { });
+    if (student) await api.assignmentUserListner(student.id, () => { });
 
     if (
       student != null &&
@@ -296,16 +296,16 @@ const Home: FC = () => {
       let liveQuizCount = 0;
 
       const counts: Record<string, number> = {};
-      
+
       await Promise.all(
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(_assignment.lesson_id);
           const now = new Date().toISOString();
           if (_assignment.type !== LIVE_QUIZ) {
             assignmentCount++;
-            const code = res?.cocos_subject_code;
-            if (!code) return;
-            const key = `count_of_${code}`;
+            const subject_id = res?.subject_id;
+            if (!subject_id) return;
+            const key = `count_of_subject_${subject_id}_pending`;
             counts[key] = (counts[key] || 0) + 1;
           } else {
             if (_assignment.ends_at && _assignment.starts_at) {
@@ -335,7 +335,7 @@ const Home: FC = () => {
         return accumulator;
       }, {});
       const result = Object.keys(courseCount).reduce((acc, courseId) => {
-        acc[`count_of_${courseId}`] = courseCount[courseId];
+        acc[`count_of_course_${courseId}_pending`] = courseCount[courseId];
         return acc;
       }, {});
       const device = await logDeviceInfo();
@@ -345,8 +345,8 @@ const Home: FC = () => {
         classes: linkedData.classes.map((item: any) => item.id),
         liveQuizCount: liveQuizCount,
         assignmentCount: assignmentCount,
-        countOfPendingIds: result,
-        ...counts,
+        pending_course_counts: result,
+        pending_subject_counts: counts,
         ...device,
       }
       updateLocalAttributes(attributeParams);
@@ -468,6 +468,7 @@ const Home: FC = () => {
       return;
     }
     const studentResult = await api.getStudentResult(currentStudent.id, false);
+    const courseCounts: any = {};
 
     if (studentResult) {
       const playedLessonData = studentResult;
@@ -475,6 +476,16 @@ const Home: FC = () => {
       const allValidPlayedLessonDocIds = sortedLessonDocIds.filter(
         (lessonDoc) => lessonDoc !== undefined
       );
+      for (const course of studentResult) {
+        const courseId = course.course_id;
+        if (!courseId) {
+          continue;
+        }
+        const key = `${courseId}_course_completed`;
+        courseCounts[key] = (courseCounts[key] || 0) + 1;
+      }
+      updateLocalAttributes({courseCounts, total_assignments_played: allValidPlayedLessonDocIds.length});
+      setGbUpdated(true)
       return allValidPlayedLessonDocIds;
     }
   };
@@ -873,70 +884,70 @@ const Home: FC = () => {
           currentHeader === HOMEHEADERLIST.FAVOURITES ||
           currentHeader === HOMEHEADERLIST.HISTORY ||
           (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME)) && (
-          <div id="home-page-bottom">
-            <AppBar className="home-page-app-bar">
-              <Box>
-                <Tabs
-                  value={subTab}
-                  onChange={handleChange}
-                  TabIndicatorProps={{ style: { display: "none" } }}
-                  sx={{
-                    "& .MuiTab-root": {
-                      color: "black",
-                      borderRadius: "5vh",
-                      padding: "0 3vw",
-                      margin: "1vh 1vh",
-                      minHeight: "37px",
-                    },
-                    "& .Mui-selected": {
-                      backgroundColor: "#FF7925",
-                      borderRadius: "8vh",
-                      color: "#FFFFFF !important",
-                      minHeight: "37px",
-                    },
-                  }}
-                >
-                  <Tab
-                    id="home-page-sub-tab"
-                    label={t("For You")}
-                    onClick={() => {
-                      setCurrentHeader(
-                        canShowAvatar
-                          ? HOMEHEADERLIST.SUGGESTIONS
-                          : HOMEHEADERLIST.HOME
-                      );
-                      setSubTab(SUBTAB.SUGGESTIONS);
+            <div id="home-page-bottom">
+              <AppBar className="home-page-app-bar">
+                <Box>
+                  <Tabs
+                    value={subTab}
+                    onChange={handleChange}
+                    TabIndicatorProps={{ style: { display: "none" } }}
+                    sx={{
+                      "& .MuiTab-root": {
+                        color: "black",
+                        borderRadius: "5vh",
+                        padding: "0 3vw",
+                        margin: "1vh 1vh",
+                        minHeight: "37px",
+                      },
+                      "& .Mui-selected": {
+                        backgroundColor: "#FF7925",
+                        borderRadius: "8vh",
+                        color: "#FFFFFF !important",
+                        minHeight: "37px",
+                      },
                     }}
-                  />
-                  <Tab
-                    id="home-page-sub-tab"
-                    label={t("Favourite")}
-                    onClick={() => {
-                      setCurrentHeader(
-                        canShowAvatar
-                          ? HOMEHEADERLIST.SUGGESTIONS
-                          : HOMEHEADERLIST.HOME
-                      );
-                      setSubTab(SUBTAB.FAVOURITES);
-                    }}
-                  />
-                  <Tab
-                    id="home-page-sub-tab"
-                    label={t("History")}
-                    onClick={() => {
-                      setCurrentHeader(
-                        canShowAvatar
-                          ? HOMEHEADERLIST.SUGGESTIONS
-                          : HOMEHEADERLIST.HOME
-                      );
-                      setSubTab(SUBTAB.HISTORY);
-                    }}
-                  />
-                </Tabs>
-              </Box>
-            </AppBar>
-          </div>
-        )}
+                  >
+                    <Tab
+                      id="home-page-sub-tab"
+                      label={t("For You")}
+                      onClick={() => {
+                        setCurrentHeader(
+                          canShowAvatar
+                            ? HOMEHEADERLIST.SUGGESTIONS
+                            : HOMEHEADERLIST.HOME
+                        );
+                        setSubTab(SUBTAB.SUGGESTIONS);
+                      }}
+                    />
+                    <Tab
+                      id="home-page-sub-tab"
+                      label={t("Favourite")}
+                      onClick={() => {
+                        setCurrentHeader(
+                          canShowAvatar
+                            ? HOMEHEADERLIST.SUGGESTIONS
+                            : HOMEHEADERLIST.HOME
+                        );
+                        setSubTab(SUBTAB.FAVOURITES);
+                      }}
+                    />
+                    <Tab
+                      id="home-page-sub-tab"
+                      label={t("History")}
+                      onClick={() => {
+                        setCurrentHeader(
+                          canShowAvatar
+                            ? HOMEHEADERLIST.SUGGESTIONS
+                            : HOMEHEADERLIST.HOME
+                        );
+                        setSubTab(SUBTAB.HISTORY);
+                      }}
+                    />
+                  </Tabs>
+                </Box>
+              </AppBar>
+            </div>
+          )}
         <SkeltonLoading isLoading={isLoading} header={currentHeader} />
       </div>
     </IonPage>
