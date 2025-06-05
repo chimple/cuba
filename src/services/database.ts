@@ -816,19 +816,25 @@ export type Database = {
       issue_debug: {
         Row: {
           created_at: string
+          firebase_id: string | null
           id: string
+          is_firebase: boolean | null
           result_id: string | null
           student_id: string | null
         }
         Insert: {
           created_at?: string
+          firebase_id?: string | null
           id?: string
+          is_firebase?: boolean | null
           result_id?: string | null
           student_id?: string | null
         }
         Update: {
           created_at?: string
+          firebase_id?: string | null
           id?: string
+          is_firebase?: boolean | null
           result_id?: string | null
           student_id?: string | null
         }
@@ -2098,6 +2104,17 @@ export type Database = {
         }
         Returns: Json
       }
+      count_program_stats: {
+        Args: { p_program_id: string }
+        Returns: {
+          total_students: number
+          active_students: number
+          avg_time_spent: number
+          total_teachers: number
+          active_teachers: number
+          total_institutes: number
+        }[]
+      }
       count_total_and_active_students_by_program: {
         Args: { p_program_id: string }
         Returns: {
@@ -2207,21 +2224,23 @@ export type Database = {
       get_latest_results_by_student: {
         Args: { student_uuid: string }
         Returns: {
-          id: string
-          student_id: string
-          lesson_id: string
-          updated_at: string
-          assignment_id: string
-          chapter_id: string
-          class_id: string
-          correct_moves: number
-          course_id: string
+          assignment_id: string | null
+          chapter_id: string | null
+          class_id: string | null
+          correct_moves: number | null
+          course_id: string | null
           created_at: string
-          is_deleted: boolean
-          school_id: string
-          score: number
-          time_spent: number
-          wrong_moves: number
+          firebase_id: string | null
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          lesson_id: string | null
+          school_id: string | null
+          score: number | null
+          student_id: string
+          time_spent: number | null
+          updated_at: string | null
+          wrong_moves: number | null
         }[]
       }
       get_leaderboard: {
@@ -2313,25 +2332,31 @@ export type Database = {
       get_user_by_email: {
         Args: { p_email: string }
         Returns: {
-          id: string
-          name: string
-          email: string
-          age: number
-          avatar: string
+          age: number | null
+          avatar: string | null
           created_at: string
-          curriculum_id: string
-          fcm_token: string
-          gender: string
-          grade_id: string
-          image: string
-          is_deleted: boolean
-          is_tc_accepted: boolean
-          language_id: string
-          music_off: boolean
-          phone: string
-          sfx_off: boolean
-          updated_at: string
-          student_id: string
+          curriculum_id: string | null
+          email: string | null
+          fcm_token: string | null
+          firebase_id: string | null
+          gender: string | null
+          grade_id: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          is_tc_accepted: boolean | null
+          language_id: string | null
+          learning_path: string | null
+          music_off: boolean | null
+          name: string | null
+          ops_created_by: string | null
+          phone: string | null
+          sfx_off: boolean | null
+          stars: number | null
+          student_id: string | null
+          updated_at: string | null
         }[]
       }
       get_user_by_phone: {
@@ -2344,25 +2369,31 @@ export type Database = {
       get_user_by_phonenumber: {
         Args: { p_phone: string }
         Returns: {
-          id: string
-          name: string
-          email: string
-          age: number
-          avatar: string
+          age: number | null
+          avatar: string | null
           created_at: string
-          curriculum_id: string
-          fcm_token: string
-          gender: string
-          grade_id: string
-          image: string
-          is_deleted: boolean
-          is_tc_accepted: boolean
-          language_id: string
-          music_off: boolean
-          phone: string
-          sfx_off: boolean
-          updated_at: string
-          student_id: string
+          curriculum_id: string | null
+          email: string | null
+          fcm_token: string | null
+          firebase_id: string | null
+          gender: string | null
+          grade_id: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          is_tc_accepted: boolean | null
+          language_id: string | null
+          learning_path: string | null
+          music_off: boolean | null
+          name: string | null
+          ops_created_by: string | null
+          phone: string | null
+          sfx_off: boolean | null
+          stars: number | null
+          student_id: string | null
+          updated_at: string | null
         }[]
       }
       get_users_for_parent_or_self_or_school: {

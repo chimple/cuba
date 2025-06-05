@@ -2337,7 +2337,9 @@ export class SupabaseApi implements ServiceApi {
 
     const resultMap: { [lessonId: string]: TableTypes<"result"> } = {};
     for (const row of data) {
-      resultMap[row.lesson_id] = row;
+      if (row.lesson_id !== null && row.lesson_id !== undefined) {
+        resultMap[row.lesson_id] = row;
+      }
     }
     return resultMap;
   }
@@ -4405,7 +4407,7 @@ export class SupabaseApi implements ServiceApi {
       id: classUserId,
       class_id: classId,
       user_id: userId,
-      role: RoleType.TEACHER,
+      role: RoleType.TEACHER as Database["public"]["Enums"]["role"],
       created_at: now,
       updated_at: now,
       is_deleted: false,
@@ -4786,7 +4788,7 @@ export class SupabaseApi implements ServiceApi {
       }
 
       const schools = (data ?? [])
-        .flatMap((item: { school: any[] }) => item.school)
+        .map((item) => item.school)
         .filter((school): school is TableTypes<"school"> => !!school);
 
       return schools ?? [];
@@ -4814,7 +4816,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     const users = (data ?? [])
-      .flatMap((item: { user: any[] }) => item.user)
+      .map((item) => item.user)
       .filter((user): user is TableTypes<"user"> => !!user);
 
     return users;
@@ -4838,7 +4840,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     const coordinators = (data ?? [])
-      .flatMap((item: { user: any[] }) => item.user)
+      .map((item) => item.user)
       .filter((user): user is TableTypes<"user"> => !!user);
 
     return coordinators;
@@ -4861,7 +4863,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     const sponsors = (data ?? [])
-      .flatMap((item: { user: any[] }) => item.user)
+      .map((item) => item.user)
       .filter((user): user is TableTypes<"user"> => !!user);
 
     return sponsors;
@@ -4880,7 +4882,7 @@ export class SupabaseApi implements ServiceApi {
       id: schoolUserId,
       school_id: schoolId,
       user_id: userId,
-      role,
+      role:role as Database["public"]["Enums"]["role"],
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
@@ -5059,13 +5061,21 @@ export class SupabaseApi implements ServiceApi {
           input_school_udise_code: schoolId,
         }
       );
-      if (data?.status === "error" && (data as any).message) {
-        return {
-          status: "error",
-          errors: [(data as any).message],
-        };
+    // Narrow the type from Json to expected shape
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "status" in data &&
+        typeof (data as any).status === "string"
+      ) {
+        return data as { status: string; errors?: string[]; message?: string };
       }
-      return data as { status: string; errors?: string[] };
+
+      // Fallback if data isn't in expected shape
+      return {
+        status: "error",
+        errors: ["Unexpected response format from Supabase function"],
+      };
     } catch (error) {
       return {
         status: "error",
@@ -5091,13 +5101,21 @@ export class SupabaseApi implements ServiceApi {
           input_school_udise_code: schoolId,
         }
       );
-      if (data?.status === "error" && (data as any).message) {
-        return {
-          status: "error",
-          errors: [(data as any).message],
-        };
+    // Narrow the type from Json to expected shape
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "status" in data &&
+        typeof (data as any).status === "string"
+      ) {
+        return data as { status: string; errors?: string[]; message?: string };
       }
-      return data as { status: string; errors?: string[] };
+
+      // Fallback if data isn't in expected shape
+      return {
+        status: "error",
+        errors: ["Unexpected response format from Supabase function"],
+      };
     } catch (error) {
       return {
         status: "error",
@@ -5124,13 +5142,21 @@ export class SupabaseApi implements ServiceApi {
           input_school_udise_code: schoolId,
         }
       );
-      if (data?.status === "error" && (data as any).message) {
-        return {
-          status: "error",
-          errors: [(data as any).message],
-        };
+    // Narrow the type from Json to expected shape
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "status" in data &&
+        typeof (data as any).status === "string"
+      ) {
+        return data as { status: string; errors?: string[]; message?: string };
       }
-      return data as { status: string; errors?: string[] };
+
+      // Fallback if data isn't in expected shape
+      return {
+        status: "error",
+        errors: ["Unexpected response format from Supabase function"],
+      };
     } catch (error) {
       return {
         status: "error",
@@ -5160,14 +5186,21 @@ export class SupabaseApi implements ServiceApi {
         }
       );
 
-      if (data?.status === "error" && (data as any).message) {
-        return {
-          status: "error",
-          errors: [(data as any).message],
-        };
+    // Narrow the type from Json to expected shape
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "status" in data &&
+        typeof (data as any).status === "string"
+      ) {
+        return data as { status: string; errors?: string[]; message?: string };
       }
 
-      return data as { status: string; errors?: string[] };
+      // Fallback if data isn't in expected shape
+      return {
+        status: "error",
+        errors: ["Unexpected response format from Supabase function"],
+      };
     } catch (error) {
       return {
         status: "error",
@@ -5263,8 +5296,21 @@ export class SupabaseApi implements ServiceApi {
           ],
         };
       }
-
-      return data;
+    if (
+      error ||
+      !data ||
+      typeof data !== "object" ||
+      data === null ||
+      !("status" in data) ||
+      typeof (data as any).status !== "string"
+    ) {
+      return {
+        status: "error",
+        errors: ["Invalid response from validation RPC"],
+      };
+    }
+    
+    return data as { status: string; errors?: string[] };
     } catch (err) {
       return {
         status: "error",
@@ -6030,12 +6076,13 @@ export class SupabaseApi implements ServiceApi {
         phone: user.phone,
       }));
 
-    return {
-      programDetails,
-      locationDetails,
-      partnerDetails,
-      programManagers,
-    };
+    // return {
+    //   programDetails,
+    //   locationDetails,
+    //   partnerDetails,
+    //   programManagers,
+    // };
+    return null;
   } catch (err) {
     console.error('Unexpected error in getProgramData:', err);
     return null;
