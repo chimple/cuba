@@ -1565,4 +1565,23 @@ export interface ServiceApi {
     partnerDetails: { label: string; value: string }[];
     programManagers: { name: string; role: string; phone: string }[];
   } | null>;
+
+  /**
+ * Count total and active students for a given program.
+ * @param {string} programId - The ID of the program.
+ * @returns Promise resolving to an object with total and active student counts.
+ */
+ countActiveStudentsByProgram(
+  programId: string
+): Promise<{ total_students: number; active_students: number; avg_time_spent: number }>;
+
+/**
+ * Count total and active teachers and total institutes for a given program.
+ * @param {string} programId - The ID of the program.
+ * @returns Promise resolving to an object with total and active teacher counts, and total institutes.
+ */
+countActiveTeachersByProgram(
+  programId: string
+): Promise<{ total_teachers: number; active_teachers: number; total_institutes: number }>;
+
 }

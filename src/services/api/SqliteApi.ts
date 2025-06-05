@@ -4812,4 +4812,16 @@ order by
   ): Promise<SchoolRoleMap[]> {
     return await this._serverApi.getFieldCoordinatorsForSchools(schoolIds);
   }
+  async countActiveStudentsByProgram(
+  programId: string
+): Promise<{ total_students: number; active_students: number; avg_time_spent: number }> {
+  return await this._serverApi.countActiveStudentsByProgram(programId);
+}
+
+async countActiveTeachersByProgram(
+  programId: string
+): Promise<{ total_teachers: number; active_teachers: number; total_institutes: number }> {
+  return await this._serverApi.countActiveTeachersByProgram(programId);
+}
+
 }

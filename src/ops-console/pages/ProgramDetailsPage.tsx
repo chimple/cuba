@@ -7,6 +7,7 @@ import Breadcrumb from "../components/Breadcrumb";
 import ContactCard from "../components/ContactCard";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
+import { SupabaseApi } from "../../services/api/SupabaseApi";
 
 interface RouteParams {
   programId: string;
@@ -19,12 +20,34 @@ interface ProgramData {
   programManagers: { name: string; role: string; phone: string }[];
 }
 
+interface ProgramStats {
+  total_students: number;
+  active_students: number;
+  avg_time_spent: number;
+}
+
+interface TeachersStars {
+  active_teachers: number;
+  total_institutes: number;
+  total_teachers: number;
+}
+
 const ProgramDetailsPage = () => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const { programId } = useParams<RouteParams>();
   const [data, setData] = useState<ProgramData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<ProgramStats>({
+    total_students: 0,
+    active_students: 0,
+    avg_time_spent: 0,
+  });
+  const [teachersStats, setTeachersStats] = useState<TeachersStars>({
+    active_teachers: 0,
+    total_institutes: 0,
+    total_teachers: 0,
+  });
 
   useEffect(() => {
     if (!programId) return;
@@ -32,7 +55,24 @@ const ProgramDetailsPage = () => {
     const fetchData = async () => {
       setLoading(true);
       const programData = await api.getProgramData(programId);
-      console.log("Fetched program data:", programData);
+
+      // Tell TypeScript the API returns CountStats type
+      const countStats = await api.countActiveStudentsByProgram(programId);
+
+      const countTeacher = await api.countActiveTeachersByProgram(programId);
+      
+      setStats({
+        total_students: countStats.total_students,
+        active_students: countStats.active_students,
+        avg_time_spent: countStats.avg_time_spent || 0, // default to 0 if undefined
+      });
+
+      setTeachersStats({
+        active_teachers: countTeacher.active_teachers,
+        total_institutes: countTeacher.total_institutes,
+        total_teachers: countTeacher.total_teachers || 0, // default to 0 if undefined
+      });
+
       setData(programData);
       setLoading(false);
     };
@@ -89,13 +129,16 @@ const ProgramDetailsPage = () => {
 
           {/* Column 2 */}
           <Grid item xs={12} md={4}>
-            <Box className="program-detail-page-column-container">
+            <Box className="program-detail-page-column-container" >
               <InfoCard
                 title={t("Location Details")}
                 children={
-                  <Box className="program-detail-page-location-details-grid">
+                  <Box className="program-detail-page-location-details-grid" >
                     {data.locationDetails.map((item, idx) => (
-                      <Box key={idx} className="program-detail-page-location-details-item">
+                      <Box
+                        key={idx}
+                        className="program-detail-page-location-details-item"
+                      >
                         <Typography className="program-detail-page-location-details-label">
                           {item.label}
                         </Typography>
@@ -129,15 +172,67 @@ const ProgramDetailsPage = () => {
           <Grid item xs={12} md={4}>
             <Box className="program-detail-page-column-container">
               <InfoCard title={t("Program Performance")} items={[]}>
-                <Box display="flex" justifyContent="center">
-                  <Button className="program-detail-page-full-width-button" variant="contained">
+                <Box
+                  className="program-performance-card"
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    boxShadow: 1,
+                    border: "1px solid #eee",
+                  }}
+                >
+                  <Box display="flex" justifyContent="space-between" mb={1}>
+                    <Typography>{t("Active Students")}</Typography>
+                    <Typography fontWeight="bold">{`${stats.active_students}%`}</Typography>
+                  </Box>
+
+                  <Box display="flex" justifyContent="space-between" mb={1}>
+                    <Typography>{t("Avg week time in mins")}</Typography>
+                    <Typography fontWeight="bold">{`${stats.avg_time_spent} mins`}</Typography>
+                  </Box>
+
+                  <Box display="flex" justifyContent="space-between" mb={2}>
+                    <Typography>{t("Active Teachers")}</Typography>
+                    <Typography fontWeight="bold">{`${teachersStats.total_teachers}%`}</Typography>
+                  </Box>
+
+                  <Button variant="contained" fullWidth>
                     {t("View Detailed Analytics")}
                   </Button>
                 </Box>
               </InfoCard>
               <InfoCard title={t("Program Statistics")} items={[]}>
-                <Box display="flex" justifyContent="center">
-                  <Button className="program-detail-page-full-width-button" variant="contained">
+                <Box
+                  className="program-detail-page-stats"
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    boxShadow: 1,
+                    border: "1px solid #eee",
+                    mb: 2,
+                  }}
+                >
+                  <Box display="flex" justifyContent="space-between" mb={1}>
+                    <Typography>{t("No of Institutes")}</Typography>
+                    <Typography fontWeight="bold">
+                      {teachersStats.total_institutes}
+                    </Typography>
+                  </Box>
+
+                  <Box display="flex" justifyContent="space-between" mb={1}>
+                    <Typography>{t("No of Students")}</Typography>
+                    <Typography fontWeight="bold">
+                      {stats.total_students}
+                    </Typography>
+                  </Box>
+
+                  <Box display="flex" justifyContent="space-between" mb={2}>
+                    <Typography>{t("No of Teachers")}</Typography>
+                    <Typography fontWeight="bold">
+                      {teachersStats.total_teachers}
+                    </Typography>
+                  </Box>
+                  <Button variant="contained" fullWidth>
                     {t("View Details")}
                   </Button>
                 </Box>

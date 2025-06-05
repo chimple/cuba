@@ -80,7 +80,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<string | undefined> {
     return this.s.joinLiveQuiz(assignmentId, studentId);
   }
-  private constructor() { }
+  private constructor() {}
   public async updateRewardsForStudent(
     studentId: string,
     unlockedReward: LeaderboardRewards
@@ -1076,11 +1076,10 @@ export class ApiHandler implements ServiceApi {
     currentUserId: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
-    tab?: 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
   }): Promise<{ data: any[] }> {
     return await this.s.getPrograms(params);
   }
-
 
   public async insertProgram(payload: any): Promise<boolean | null> {
     return await this.s.insertProgram(payload);
@@ -1139,9 +1138,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getSchoolsByModel(model, limit, offset);
   }
 
-  public async getProgramData(
-    programId: string
-  ): Promise<{
+  public async getProgramData(programId: string): Promise<{
     programDetails: { label: string; value: string }[];
     locationDetails: { label: string; value: string }[];
     partnerDetails: { label: string; value: string }[];
@@ -1150,4 +1147,23 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getProgramData(programId);
   }
 
+  async countActiveStudentsByProgram(
+    programId: string
+  ): Promise<{
+    total_students: number;
+    active_students: number;
+    avg_time_spent: number;
+  }> {
+    return await this.s.countActiveStudentsByProgram(programId);
+  }
+
+  async countActiveTeachersByProgram(
+    programId: string
+  ): Promise<{
+    total_teachers: number;
+    active_teachers: number;
+    total_institutes: number;
+  }> {
+    return await this.s.countActiveTeachersByProgram(programId);
+  }
 }
