@@ -5962,6 +5962,7 @@ export class SupabaseApi implements ServiceApi {
       .eq("id", schoolId)
       .maybeSingle();
     const programId = schoolData?.program_id;
+    if (!programId) return [];
     const { data: managers } = await this.supabase
       .from("program_user")
       .select("role, is_deleted, user(*)")
