@@ -2515,7 +2515,6 @@ export class SupabaseApi implements ServiceApi {
         }
       }
     }
-    console.log("SUPAAAAAAABASESSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",finalData);
     return finalData;
   }
   public set currentMode(value: MODES) {
