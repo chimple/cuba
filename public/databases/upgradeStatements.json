@@ -6,5 +6,47 @@
   "2": {
     "statements": ["CREATE TABLE IF NOT EXISTS program ( id TEXT PRIMARY KEY, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), name TEXT NOT NULL, model TEXT NOT NULL, is_deleted INTEGER, school_id TEXT, is_ops INTEGER, implementation_partner TEXT, funding_partner TEXT, institute_partner TEXT, country TEXT, state TEXT, block TEXT, cluster TEXT, village TEXT, program_type TEXT, institutes_count TEXT, students_count TEXT, devices_count TEXT, start_date TEXT, end_date TEXT, program_manager TEXT, district TEXT);"],
     "tableChanges": {}
-  }
+  },
+  "3": {
+    "statements": [
+      "ALTER TABLE assignment ADD COLUMN firebase_id TEXT;",
+      "ALTER TABLE assignment ADD COLUMN is_firebase BOOLEAN;",
+      "ALTER TABLE class ADD COLUMN firebase_id TEXT;",
+      "DROP TABLE IF EXISTS program;",
+      "CREATE TABLE program (id TEXT PRIMARY KEY, block TEXT, cluster TEXT, country TEXT, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), devices_count TEXT, district TEXT, end_date TEXT, funding_partner TEXT, implementation_partner TEXT, institute_partner TEXT, institutes_count TEXT, is_deleted BOOLEAN, is_ops BOOLEAN, model TEXT[], name TEXT NOT NULL, program_type TEXT, start_date TEXT, state TEXT, students_count TEXT, village TEXT);",
+      "ALTER TABLE class ADD COLUMN is_ops BOOLEAN;",
+      "ALTER TABLE class ADD COLUMN is_firebase BOOLEAN;",
+      "ALTER TABLE class ADD COLUMN academic_year TEXT;",
+      "ALTER TABLE class ADD COLUMN ops_created_by TEXT;",
+      "ALTER TABLE class ADD COLUMN standard TEXT;",
+      "ALTER TABLE class ADD COLUMN status TEXT;",
+      "ALTER TABLE class_course ADD COLUMN is_firebase BOOLEAN;",
+      "ALTER TABLE class_course ADD COLUMN is_ops BOOLEAN;",
+      "ALTER TABLE class_course ADD COLUMN ops_created_by TEXT;",
+      "ALTER TABLE class_user ADD COLUMN is_firebase BOOLEAN;",
+      "ALTER TABLE class_user ADD COLUMN is_ops BOOLEAN;",
+      "ALTER TABLE class_user ADD COLUMN ops_created_by TEXT;",
+      "ALTER TABLE course ADD COLUMN firebase_id TEXT;",
+      "ALTER TABLE parent_user ADD COLUMN is_firebase BOOLEAN;",
+      "ALTER TABLE parent_user ADD COLUMN is_ops BOOLEAN;",
+      "ALTER TABLE parent_user ADD COLUMN ops_created_by TEXT;",
+      "ALTER TABLE result ADD COLUMN firebase_id TEXT;",
+      "ALTER TABLE result ADD COLUMN is_firebase BOOLEAN;",
+      "ALTER TABLE school ADD COLUMN academic_year TEXT[];",
+      "ALTER TABLE school ADD COLUMN firebase_id TEXT;",
+      "ALTER TABLE school ADD COLUMN is_firebase BOOLEAN;",
+      "ALTER TABLE school ADD COLUMN is_ops BOOLEAN;",
+      "ALTER TABLE school ADD COLUMN language TEXT;",
+      "ALTER TABLE school ADD COLUMN ops_created_by TEXT;",
+      "ALTER TABLE school ADD COLUMN student_login_type TEXT;",
+      "ALTER TABLE school_user ADD COLUMN is_firebase BOOLEAN;",
+      "ALTER TABLE school_user ADD COLUMN is_ops BOOLEAN;",
+      "ALTER TABLE school_user ADD COLUMN ops_created_by TEXT;",
+      "ALTER TABLE user ADD COLUMN firebase_id TEXT;",
+      "ALTER TABLE user ADD COLUMN is_firebase BOOLEAN;",
+      "ALTER TABLE user ADD COLUMN is_ops BOOLEAN;",
+      "ALTER TABLE user ADD COLUMN ops_created_by TEXT;"
+    ],
+    "tableChanges": {}
+}
 }
