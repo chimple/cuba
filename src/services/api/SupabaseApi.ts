@@ -596,7 +596,6 @@ export class SupabaseApi implements ServiceApi {
             error_message: res?.error?.message || null,
           });
         }
-
         data.set(tableName, res?.data ?? []);
       });
 
@@ -631,7 +630,6 @@ export class SupabaseApi implements ServiceApi {
   ) {
     const data = { ...data1 };
     data.updated_at = new Date().toISOString();
-
     if (!this.supabase) return;
     let res: PostgrestSingleResponse<any> | undefined = undefined;
     switch (mutateType) {
@@ -693,6 +691,13 @@ export class SupabaseApi implements ServiceApi {
       id: school.id,
       is_deleted: false,
       model: null,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      language: null,
+      ops_created_by: null,
+      student_login_type: null
     };
 
     const { error } = await this.supabase
@@ -880,6 +885,13 @@ export class SupabaseApi implements ServiceApi {
       updated_at: timestamp,
       is_deleted: false,
       model: null,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      language: null,
+      ops_created_by: null,
+      student_login_type: null
     };
 
     // Insert school
@@ -901,6 +913,9 @@ export class SupabaseApi implements ServiceApi {
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null
     };
 
     const { error: userError } = await this.supabase
@@ -1054,6 +1069,12 @@ export class SupabaseApi implements ServiceApi {
       music_off: false,
       sfx_off: false,
       student_id: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null
     };
 
     const { error: userInsertError } = await this.supabase
@@ -1073,6 +1094,9 @@ export class SupabaseApi implements ServiceApi {
       created_at: now,
       updated_at: now,
       is_deleted: false,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null
     };
 
     const { error: parentInsertError } = await this.supabase
@@ -1097,6 +1121,7 @@ export class SupabaseApi implements ServiceApi {
         created_at: now,
         updated_at: now,
         is_deleted: false,
+        is_firebase: null
       };
 
       const { error: userCourseInsertError } = await this.supabase
@@ -1150,6 +1175,12 @@ export class SupabaseApi implements ServiceApi {
       music_off: false,
       sfx_off: false,
       student_id: studentId ?? null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null
     };
 
     // Insert into user table
@@ -1172,6 +1203,9 @@ export class SupabaseApi implements ServiceApi {
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null
     };
 
     const { error: classUserInsertError } = await this.supabase
@@ -1576,6 +1610,7 @@ export class SupabaseApi implements ServiceApi {
         is_deleted: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        is_firebase:false
       })
     );
 
@@ -1789,6 +1824,7 @@ export class SupabaseApi implements ServiceApi {
       created_at: existing?.created_at ?? now,
       updated_at: now,
       is_deleted: false,
+      is_firebase: null
     };
 
     const { error: upsertError } = await this.supabase
@@ -1836,6 +1872,8 @@ export class SupabaseApi implements ServiceApi {
       chapter_id: chapterId,
       course_id: courseId ?? null,
       class_id: classId ?? null,
+      firebase_id: null,
+      is_firebase: null
     };
 
     const { error: insertError } = await this.supabase
@@ -2006,6 +2044,9 @@ export class SupabaseApi implements ServiceApi {
           created_at: now,
           updated_at: now,
           is_deleted: false,
+          is_firebase: null,
+          is_ops: null,
+          ops_created_by: null
         };
 
         await this.supabase.from(TABLES.ClassUser).insert(newClassUser);
@@ -2474,7 +2515,7 @@ export class SupabaseApi implements ServiceApi {
         }
       }
     }
-    console.log(finalData);
+    console.log("SUPAAAAAAABASESSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS",finalData);
     return finalData;
   }
   public set currentMode(value: MODES) {
@@ -2837,6 +2878,13 @@ export class SupabaseApi implements ServiceApi {
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+      standard: null,
+      status: null
     };
 
     const { error } = await this.supabase.from("class").insert(newClass);
@@ -4033,7 +4081,7 @@ export class SupabaseApi implements ServiceApi {
       const classCourseIds = new Set(classCourses.map((c) => c.id));
 
       const matchedLesson = data.find((item) => {
-        const chapters = item.chapter as { course_id: string }[];
+        const chapters = item.chapter as unknown as { course_id: string }[];
         const courseId = chapters[0]?.course_id;
         return courseId && classCourseIds.has(courseId);
       });
@@ -4365,6 +4413,7 @@ export class SupabaseApi implements ServiceApi {
     };
 
     // Insert into class_user table
+    
     const { error: insertError } = await this.supabase
       .from(TABLES.ClassUser)
       .insert(classUser);
@@ -5204,7 +5253,7 @@ export class SupabaseApi implements ServiceApi {
         "validate_user_contacts_rpc",
         {
           program_manager_contact: programManagerPhone.trim(),
-          field_coordinator_contact: fieldCoordinatorPhone?.trim() ?? null,
+          field_coordinator_contact: fieldCoordinatorPhone?.trim(),
         }
       );
       if (error || !data) {
@@ -5904,7 +5953,7 @@ export class SupabaseApi implements ServiceApi {
     programDetails: { label: string; value: string }[];
     locationDetails: { label: string; value: string }[];
     partnerDetails: { label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
+    programManagers: { name: string ; role: string; phone: string }[];
   } | null> {
     if (!this.supabase) {
       console.error("Supabase client not initialized.");
@@ -5977,7 +6026,7 @@ export class SupabaseApi implements ServiceApi {
       ];
 
       const programManagers = users.map((user) => ({
-        name: user.name,
+        name: user.name || null,
         role: "Program Manager",
         phone: user.phone,
       }));
@@ -6073,6 +6122,12 @@ async createAutoProfile(languageDocId: string | undefined): Promise<TableTypes<"
     music_off: false,
     sfx_off: false,
     student_id: null,
+    firebase_id: null,
+    is_firebase: null,
+    is_ops: null,
+    learning_path: null,
+    ops_created_by: null,
+    stars: null
   };
 
   // Insert user
@@ -6093,6 +6148,9 @@ async createAutoProfile(languageDocId: string | undefined): Promise<TableTypes<"
     created_at: now,
     updated_at: now,
     is_deleted: false,
+    is_firebase: null,
+    is_ops: null,
+    ops_created_by: null
   };
   const { error: parentInsertError } = await this.supabase
     .from(TABLES.ParentUser)
@@ -6132,6 +6190,7 @@ async createAutoProfile(languageDocId: string | undefined): Promise<TableTypes<"
       created_at: now,
       updated_at: now,
       is_deleted: false,
+      is_firebase: null
     };
     const { error: userCourseInsertError } = await this.supabase
       .from(TABLES.UserCourse)
