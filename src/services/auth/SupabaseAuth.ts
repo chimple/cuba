@@ -187,6 +187,12 @@ export class SupabaseAuth implements ServiceAuth {
           sfx_off: false,
           fcm_token: null,
           student_id: null,
+          firebase_id: null,
+          is_firebase: null,
+          is_ops: null,
+          learning_path: null,
+          ops_created_by: null,
+          stars: null
         });
         this._currentUser = createdUser;
       }
@@ -368,6 +374,12 @@ export class SupabaseAuth implements ServiceAuth {
           sfx_off: false,
           fcm_token: null,
           student_id: null,
+          firebase_id: null,
+          is_firebase: null,
+          is_ops: null,
+          learning_path: null,
+          ops_created_by: null,
+          stars: null
         });
         this._currentUser = createdUser;
       }

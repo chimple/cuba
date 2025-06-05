@@ -18,6 +18,13 @@ const mockSchoolDoc: TableTypes<"school"> = {
   program_id: "id-1",
   address: "address",
   model: null,
+  academic_year: null,
+  firebase_id: null,
+  is_firebase: null,
+  is_ops: null,
+  language: null,
+  ops_created_by: null,
+  student_login_type: null
 };
 
 // Mock user data
@@ -42,6 +49,12 @@ const mockUsers: TableTypes<"user">[] = [
     phone: null,
     sfx_off: null,
     student_id: null,
+    firebase_id: null,
+    is_firebase: null,
+    is_ops: null,
+    learning_path: null,
+    ops_created_by: null,
+    stars: null
   },
   {
     id: "2",
@@ -63,6 +76,12 @@ const mockUsers: TableTypes<"user">[] = [
     phone: null,
     sfx_off: null,
     student_id: null,
+    firebase_id: null,
+    is_firebase: null,
+    is_ops: null,
+    learning_path: null,
+    ops_created_by: null,
+    stars: null
   },
 ];
 
