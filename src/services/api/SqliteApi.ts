@@ -58,7 +58,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10"; 
-  private DB_VERSION = 2;
+  private DB_VERSION = 3;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -357,6 +357,7 @@ export class SqliteApi implements ServiceApi {
     // Execute batch queries efficiently
     if (batchQueries.length > 0) {
       try {
+        
         await this._db.executeSet(batchQueries);
       } catch (error) {
         console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
@@ -514,6 +515,12 @@ export class SqliteApi implements ServiceApi {
       music_off: false,
       sfx_off: false,
       student_id: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null
     };
 
     await this.executeQuery(
@@ -574,6 +581,7 @@ export class SqliteApi implements ServiceApi {
         is_deleted: false,
         updated_at: new Date().toISOString(),
         user_id: studentId,
+        is_firebase: null
       };
       await this.executeQuery(
         `
@@ -638,6 +646,13 @@ export class SqliteApi implements ServiceApi {
       udise: udise ?? null,
       address: address ?? null,
       model: null,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      language: null,
+      ops_created_by: null,
+      student_login_type: null
     };
 
     await this.executeQuery(
@@ -670,6 +685,9 @@ export class SqliteApi implements ServiceApi {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null
     };
 
     await this.executeQuery(
@@ -730,6 +748,13 @@ export class SqliteApi implements ServiceApi {
       udise: udise ?? null,
       address: address ?? null,
       model: null,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      language: null,
+      ops_created_by: null,
+      student_login_type: null
     };
     const updatedSchoolQuery = `
     UPDATE school
@@ -871,6 +896,12 @@ export class SqliteApi implements ServiceApi {
       music_off: false,
       sfx_off: false,
       student_id: studentId ?? null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null
     };
     // Insert into user table
     await this.executeQuery(
@@ -904,6 +935,9 @@ export class SqliteApi implements ServiceApi {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null
     };
 
     await this.executeQuery(
@@ -1639,6 +1673,7 @@ export class SqliteApi implements ServiceApi {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         is_deleted: false,
+        is_firebase:false
       };
       const res = await this.executeQuery(
         `
@@ -1668,6 +1703,7 @@ export class SqliteApi implements ServiceApi {
         created_at: liked_lesson.created_at,
         updated_at: new Date().toISOString(),
         is_deleted: false,
+        is_firebase:false
       };
 
       await this.executeQuery(
@@ -1729,6 +1765,8 @@ export class SqliteApi implements ServiceApi {
       chapter_id: chapterId,
       course_id: courseId ?? null,
       class_id: classId ?? null,
+      firebase_id: null,
+      is_firebase: null
     };
 
     const res = await this.executeQuery(
@@ -1903,6 +1941,7 @@ export class SqliteApi implements ServiceApi {
             is_deleted: false,
             updated_at: now,
             user_id: student.id,
+            is_firebase: null
           };
           await this.executeQuery(
             `
@@ -2043,6 +2082,9 @@ export class SqliteApi implements ServiceApi {
           created_at: now,
           updated_at: now,
           is_deleted: false,
+          is_firebase: null,
+          is_ops: null,
+          ops_created_by: null
         };
 
         await this.executeQuery(
@@ -2478,6 +2520,13 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
 
       is_deleted: false,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+      standard: null,
+      status: null
     };
 
     await this.executeQuery(
@@ -3107,6 +3156,7 @@ export class SqliteApi implements ServiceApi {
         is_deleted: false,
         updated_at: new Date().toISOString(),
         user_id: student.id,
+        is_firebase: null
       };
       await this.executeQuery(
         `
@@ -3319,6 +3369,8 @@ export class SqliteApi implements ServiceApi {
         chapter_id: chapter_id,
         course_id: course_id,
         source: null,
+        firebase_id: null,
+        is_firebase: null
       };
 
       const res = await this.updatePushChanges(
@@ -3339,6 +3391,7 @@ export class SqliteApi implements ServiceApi {
             is_deleted: false,
             updated_at: new Date().toISOString(),
             user_id: student,
+            is_firebase: null
           };
           await this.executeQuery(
             `
@@ -5101,6 +5154,12 @@ async getStudentInfoBySchoolId(schoolId: string): Promise<
       music_off: false,
       sfx_off: false,
       student_id: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null
     };
 
     await this.executeQuery(
@@ -5179,6 +5238,7 @@ async getStudentInfoBySchoolId(schoolId: string): Promise<
         is_deleted: false,
         updated_at: new Date().toISOString(),
         user_id: studentId,
+        is_firebase: null
       };
       await this.executeQuery(
         `

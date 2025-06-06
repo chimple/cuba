@@ -3,10 +3,7 @@ import "./PathwayStructure.css";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory } from "react-router";
-import {
-  CAN_ACCESS_REMOTE_ASSETS,
-  PAGES,
-} from "../../common/constants";
+import { CAN_ACCESS_REMOTE_ASSETS, PAGES } from "../../common/constants";
 import PathwayModal from "./PathwayModal";
 import { t } from "i18next";
 import { Directory, Filesystem } from "@capacitor/filesystem";
@@ -39,13 +36,52 @@ const PathwayStructure: React.FC = () => {
     if (className) group.setAttribute("class", className);
     return group;
   };
+  const loadPathwayContent = async (
+    path: string,
+    webPath: string
+  ): Promise<string> => {
+    if (shouldShowRemoteAssets && Capacitor.isNativePlatform()) {
+      try {
+        const file = await Filesystem.readFile({
+          path,
+          directory: Directory.External,
+        });
+        return atob(file.data);
+      } catch {
+        const res = await fetch(webPath);
+        return await res.text();
+      }
+    } else {
+      const res = await fetch(webPath);
+      return await res.text();
+    }
+  };
+
+  const loadHaloAnimation = async (
+    localPath: string,
+    webPath: string
+  ): Promise<string> => {
+    if (Capacitor.isNativePlatform() && shouldShowRemoteAssets) {
+      try {
+        const file = await Filesystem.readFile({
+          path: localPath,
+          directory: Directory.External,
+        });
+        return `data:image/svg+xml;base64,${file.data}`;
+      } catch (err) {
+        console.warn("Fallback to web asset for:", webPath, err);
+        return webPath;
+      }
+    }
+    return webPath;
+  };
 
   const tryFetchSVG = async (
     localPath: string,
     webPath: string,
     name: string
   ) => {
-    if (Capacitor.isNativePlatform()) {
+    if (Capacitor.isNativePlatform() && shouldShowRemoteAssets) {
       try {
         return await fetchLocalSVGGroup(localPath, name);
       } catch {
@@ -129,91 +165,60 @@ const PathwayStructure: React.FC = () => {
             })
         );
 
-        const res = await fetch("/pathwayAssets/English/Pathway.svg");
-        const svgContent = await res.text();
+        const svgContent = await loadPathwayContent(
+          "remoteAsset/Pathway.svg",
+          "/pathwayAssets/English/Pathway.svg"
+        );
         containerRef.current.innerHTML = svgContent;
-
         const svg = containerRef.current.querySelector("svg") as SVGSVGElement;
         if (!svg) return;
 
         const pathGroups = svg.querySelectorAll("g > path");
         const paths = Array.from(pathGroups) as SVGPathElement[];
 
-        let flowerActive,
+        const [
+          flowerActive,
           flowerInactive,
           playedLessonSVG,
           giftSVG,
           giftSVG2,
-          giftSVG3;
-
-        if (shouldShowRemoteAssets) {
-          [
-            flowerActive,
-            flowerInactive,
-            playedLessonSVG,
-            giftSVG,
-            giftSVG2,
-            giftSVG3,
-          ] = await Promise.all([
-            tryFetchSVG(
-              "remoteAsset/FlowerActive.svg",
-              "/pathwayAssets/English/FlowerActive.svg",
-              "flowerActive isSelected"
-            ),
-            fetchSVGGroup(
-              "/pathwayAssets/FlowerInactive.svg",
-              "flowerInactive"
-            ),
-            tryFetchSVG(
-              "remoteAsset/PlayedLesson.svg",
-              "/pathwayAssets/English/PlayedLesson.svg",
-              "playedLessonSVG"
-            ),
-            tryFetchSVG(
-              "remoteAsset/pathGift1.svg",
-              "/pathwayAssets/English/pathGift1.svg",
-              "giftSVG"
-            ),
-            tryFetchSVG(
-              "remoteAsset/pathGift2.svg",
-              "/pathwayAssets/English/pathGift2.svg",
-              "giftSVG2"
-            ),
-            tryFetchSVG(
-              "remoteAsset/pathGift3.svg",
-              "/pathwayAssets/English/pathGift3.svg",
-              "giftSVG3"
-            ),
-          ]);
-        } else {
-          [
-            flowerActive,
-            flowerInactive,
-            playedLessonSVG,
-            giftSVG,
-            giftSVG2,
-            giftSVG3,
-          ] = await Promise.all([
-            fetchSVGGroup(
-              "/pathwayAssets/English/FlowerActive.svg",
-              "flowerActive isSelected"
-            ),
-            fetchSVGGroup(
-              "/pathwayAssets/FlowerInactive.svg",
-              "flowerInactive"
-            ),
-            fetchSVGGroup(
-              "/pathwayAssets/English/PlayedLesson.svg",
-              "playedLessonSVG"
-            ),
-            fetchSVGGroup("/pathwayAssets/English/pathGift1.svg", "giftSVG"),
-            fetchSVGGroup("/pathwayAssets/English/pathGift2.svg", "giftSVG2"),
-            fetchSVGGroup("/pathwayAssets/English/pathGift3.svg", "giftSVG3"),
-          ]);
-        }
+          giftSVG3,
+        ] = await Promise.all([
+          tryFetchSVG(
+            "remoteAsset/FlowerActive.svg",
+            "/pathwayAssets/English/FlowerActive.svg",
+            "flowerActive isSelected"
+          ),
+          fetchSVGGroup("/pathwayAssets/FlowerInactive.svg", "flowerInactive"),
+          tryFetchSVG(
+            "remoteAsset/PlayedLesson.svg",
+            "/pathwayAssets/English/PlayedLesson.svg",
+            "playedLessonSVG"
+          ),
+          tryFetchSVG(
+            "remoteAsset/pathGift1.svg",
+            "/pathwayAssets/English/pathGift1.svg",
+            "giftSVG"
+          ),
+          tryFetchSVG(
+            "remoteAsset/pathGift2.svg",
+            "/pathwayAssets/English/pathGift2.svg",
+            "giftSVG2"
+          ),
+          tryFetchSVG(
+            "remoteAsset/pathGift3.svg",
+            "/pathwayAssets/English/pathGift3.svg",
+            "giftSVG3"
+          ),
+        ]);
 
         const startPoint = paths[0].getPointAtLength(0);
         const xValues = [27, 155, 276, 387, 496];
+        
+        const haloPath = await loadHaloAnimation(
+          "remoteAsset/halo.svg",
+          "/pathwayAssets/English/halo.svg"
+        );
 
         lessons.forEach((lesson, idx) => {
           const path = paths[idx];
@@ -289,13 +294,7 @@ const PathwayStructure: React.FC = () => {
               "transform",
               `translate(${activeGroupX}, ${activeGroupY})`
             );
-            const halo = createSVGImage(
-              "/pathwayAssets/English/halo.svg",
-              140,
-              140,
-              -15,
-              -12
-            );
+            const halo = createSVGImage(haloPath, 140, 140, -15, -12);
             const pointer = createSVGImage(
               "/pathwayAssets/touchPointer.gif",
               130,

@@ -596,7 +596,6 @@ export class SupabaseApi implements ServiceApi {
             error_message: res?.error?.message || null,
           });
         }
-
         data.set(tableName, res?.data ?? []);
       });
 
@@ -631,7 +630,6 @@ export class SupabaseApi implements ServiceApi {
   ) {
     const data = { ...data1 };
     data.updated_at = new Date().toISOString();
-
     if (!this.supabase) return;
     let res: PostgrestSingleResponse<any> | undefined = undefined;
     switch (mutateType) {
@@ -693,6 +691,13 @@ export class SupabaseApi implements ServiceApi {
       id: school.id,
       is_deleted: false,
       model: null,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      language: null,
+      ops_created_by: null,
+      student_login_type: null,
     };
 
     const { error } = await this.supabase
@@ -880,6 +885,13 @@ export class SupabaseApi implements ServiceApi {
       updated_at: timestamp,
       is_deleted: false,
       model: null,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      language: null,
+      ops_created_by: null,
+      student_login_type: null,
     };
 
     // Insert school
@@ -901,6 +913,9 @@ export class SupabaseApi implements ServiceApi {
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
     };
 
     const { error: userError } = await this.supabase
@@ -1054,6 +1069,12 @@ export class SupabaseApi implements ServiceApi {
       music_off: false,
       sfx_off: false,
       student_id: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null,
     };
 
     const { error: userInsertError } = await this.supabase
@@ -1073,6 +1094,9 @@ export class SupabaseApi implements ServiceApi {
       created_at: now,
       updated_at: now,
       is_deleted: false,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
     };
 
     const { error: parentInsertError } = await this.supabase
@@ -1097,6 +1121,7 @@ export class SupabaseApi implements ServiceApi {
         created_at: now,
         updated_at: now,
         is_deleted: false,
+        is_firebase: null,
       };
 
       const { error: userCourseInsertError } = await this.supabase
@@ -1150,6 +1175,12 @@ export class SupabaseApi implements ServiceApi {
       music_off: false,
       sfx_off: false,
       student_id: studentId ?? null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null,
     };
 
     // Insert into user table
@@ -1172,6 +1203,9 @@ export class SupabaseApi implements ServiceApi {
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
     };
 
     const { error: classUserInsertError } = await this.supabase
@@ -1576,6 +1610,7 @@ export class SupabaseApi implements ServiceApi {
         is_deleted: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        is_firebase: false,
       })
     );
 
@@ -1789,6 +1824,7 @@ export class SupabaseApi implements ServiceApi {
       created_at: existing?.created_at ?? now,
       updated_at: now,
       is_deleted: false,
+      is_firebase: null,
     };
 
     const { error: upsertError } = await this.supabase
@@ -1836,6 +1872,8 @@ export class SupabaseApi implements ServiceApi {
       chapter_id: chapterId,
       course_id: courseId ?? null,
       class_id: classId ?? null,
+      firebase_id: null,
+      is_firebase: null,
     };
 
     const { error: insertError } = await this.supabase
@@ -2006,6 +2044,9 @@ export class SupabaseApi implements ServiceApi {
           created_at: now,
           updated_at: now,
           is_deleted: false,
+          is_firebase: null,
+          is_ops: null,
+          ops_created_by: null,
         };
 
         await this.supabase.from(TABLES.ClassUser).insert(newClassUser);
@@ -2296,7 +2337,9 @@ export class SupabaseApi implements ServiceApi {
 
     const resultMap: { [lessonId: string]: TableTypes<"result"> } = {};
     for (const row of data) {
-      resultMap[row.lesson_id] = row;
+      if (row.lesson_id !== null && row.lesson_id !== undefined) {
+        resultMap[row.lesson_id] = row;
+      }
     }
     return resultMap;
   }
@@ -2474,7 +2517,6 @@ export class SupabaseApi implements ServiceApi {
         }
       }
     }
-    console.log(finalData);
     return finalData;
   }
   public set currentMode(value: MODES) {
@@ -2566,111 +2608,120 @@ export class SupabaseApi implements ServiceApi {
 
     return users || [];
   }
- async getStudentInfoBySchoolId(schoolId: string): Promise<
-  {
-    user: TableTypes<"user">; 
-    grade: number;
-    classSection: string;
-  }[]
-> {
-  if (!this.supabase) {
-    console.warn("Supabase not initialized.");
-    return [];
-  }
+  async getStudentInfoBySchoolId(schoolId: string): Promise<
+    {
+      user: TableTypes<"user">;
+      grade: number;
+      classSection: string;
+    }[]
+  > {
+    if (!this.supabase) {
+      console.warn("Supabase not initialized.");
+      return [];
+    }
 
-  // Step 1: Fetch all classes for the given school
-  const classes = await this.getClassesBySchoolId(schoolId);
-  if (!classes?.length) {
-    console.log(`No classes found for school ${schoolId}, so no student info.`);
-    return [];
-  }
+    // Step 1: Fetch all classes for the given school
+    const classes = await this.getClassesBySchoolId(schoolId);
+    if (!classes?.length) {
+      console.log(
+        `No classes found for school ${schoolId}, so no student info.`
+      );
+      return [];
+    }
 
-  const classMap = new Map<string, { grade: number; section: string }>();
-  const studentClassPairs: { userId: string; classId: string }[] = [];
+    const classMap = new Map<string, { grade: number; section: string }>();
+    const studentClassPairs: { userId: string; classId: string }[] = [];
 
-  // Step 2: Map class IDs to grade/section and fetch student user_ids
-  for (const cls of classes) {
-    if (!cls || typeof cls.name !== 'string') {
+    // Step 2: Map class IDs to grade/section and fetch student user_ids
+    for (const cls of classes) {
+      if (!cls || typeof cls.name !== "string") {
         console.warn("Skipping class due to missing or invalid name:", cls);
         continue;
-    }
-    const { grade, section } = await this.parseClassName(cls.name);
-    classMap.set(cls.id, { grade, section });
+      }
+      const { grade, section } = await this.parseClassName(cls.name);
+      classMap.set(cls.id, { grade, section });
 
-    const { data: classUsers, error } = await this.supabase
-      .from(TABLES.ClassUser)
-      .select("user_id")
-      .eq("class_id", cls.id)
-      .eq("role", "student")
-      .eq("is_deleted", false);
+      const { data: classUsers, error } = await this.supabase
+        .from(TABLES.ClassUser)
+        .select("user_id")
+        .eq("class_id", cls.id)
+        .eq("role", "student")
+        .eq("is_deleted", false);
 
-    if (error) {
-      console.error(`Error fetching users for class ${cls.id}:`, error);
-      continue; 
-    }
+      if (error) {
+        console.error(`Error fetching users for class ${cls.id}:`, error);
+        continue;
+      }
 
-    if (classUsers) {
-      for (const cu of classUsers) {
-        if (cu?.user_id) {
-          studentClassPairs.push({ userId: cu.user_id, classId: cls.id });
+      if (classUsers) {
+        for (const cu of classUsers) {
+          if (cu?.user_id) {
+            studentClassPairs.push({ userId: cu.user_id, classId: cls.id });
+          }
         }
       }
     }
-  }
 
-  if (studentClassPairs.length === 0) {
-    console.log(`No student-class pairs found for school ${schoolId}.`);
-    return [];
-  }
+    if (studentClassPairs.length === 0) {
+      console.log(`No student-class pairs found for school ${schoolId}.`);
+      return [];
+    }
 
-  // Step 3: Get unique user IDs
-  const uniqueUserIds = [
-    ...new Set(studentClassPairs.map((pair) => pair.userId)),
-  ];
-  if (!uniqueUserIds.length) {
-    console.log(`No unique student user IDs found for school ${schoolId}.`);
-    return [];
-  }
+    // Step 3: Get unique user IDs
+    const uniqueUserIds = [
+      ...new Set(studentClassPairs.map((pair) => pair.userId)),
+    ];
+    if (!uniqueUserIds.length) {
+      console.log(`No unique student user IDs found for school ${schoolId}.`);
+      return [];
+    }
 
-  // Step 4: Fetch user details in bulk
-  const users = await this.getUsersByIds(uniqueUserIds);
-  if (!users || users.length === 0) {
-    console.log(`No user data found for the collected student IDs for school ${schoolId}.`);
-    return [];
-  }
+    // Step 4: Fetch user details in bulk
+    const users = await this.getUsersByIds(uniqueUserIds);
+    if (!users || users.length === 0) {
+      console.log(
+        `No user data found for the collected student IDs for school ${schoolId}.`
+      );
+      return [];
+    }
 
-  const userMap = new Map<string, TableTypes<"user">>();
-  for (const user of users) {
-    if (user && user.id) { 
+    const userMap = new Map<string, TableTypes<"user">>();
+    for (const user of users) {
+      if (user && user.id) {
         userMap.set(user.id, user);
+      }
     }
-  }
 
-  // Step 5: Merge user data with class info
-  const studentInfoList: {
-    user: TableTypes<"user">;
-    grade: number;
-    classSection: string;
-  }[] = []; // Changed: Type of items in the list
+    // Step 5: Merge user data with class info
+    const studentInfoList: {
+      user: TableTypes<"user">;
+      grade: number;
+      classSection: string;
+    }[] = []; // Changed: Type of items in the list
 
-  for (const { userId, classId } of studentClassPairs) {
-    const user = userMap.get(userId);
-    const classInfo = classMap.get(classId);
+    for (const { userId, classId } of studentClassPairs) {
+      const user = userMap.get(userId);
+      const classInfo = classMap.get(classId);
 
-    if (user && classInfo) {
-      studentInfoList.push({
-        user: user, 
-        grade: classInfo.grade,
-        classSection: classInfo.section,
-      });
-    } else {
-        if (!user) console.warn(`User data not found for userId: ${userId} in school ${schoolId}`);
-        if (!classInfo) console.warn(`Class info not found for classId: ${classId} for user ${userId} in school ${schoolId}`);
+      if (user && classInfo) {
+        studentInfoList.push({
+          user: user,
+          grade: classInfo.grade,
+          classSection: classInfo.section,
+        });
+      } else {
+        if (!user)
+          console.warn(
+            `User data not found for userId: ${userId} in school ${schoolId}`
+          );
+        if (!classInfo)
+          console.warn(
+            `Class info not found for classId: ${classId} for user ${userId} in school ${schoolId}`
+          );
+      }
     }
+    return studentInfoList;
   }
-  return studentInfoList;
-}
-
 
   async getTeacherInfoBySchoolId(
     schoolId: string
@@ -2716,7 +2767,7 @@ export class SupabaseApi implements ServiceApi {
     if (uniqueUserIds.length === 0) return [];
 
     // Step 4: Fetch all teacher user data in one call
-    const users = await this.getUsersByIds(uniqueUserIds); 
+    const users = await this.getUsersByIds(uniqueUserIds);
     const userMap = new Map<string, TableTypes<"user">>();
     users.forEach((user) => userMap.set(user.id, user));
 
@@ -2837,6 +2888,13 @@ export class SupabaseApi implements ServiceApi {
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+      standard: null,
+      status: null,
     };
 
     const { error } = await this.supabase.from("class").insert(newClass);
@@ -4033,7 +4091,7 @@ export class SupabaseApi implements ServiceApi {
       const classCourseIds = new Set(classCourses.map((c) => c.id));
 
       const matchedLesson = data.find((item) => {
-        const chapters = item.chapter as { course_id: string }[];
+        const chapters = item.chapter as unknown as { course_id: string }[];
         const courseId = chapters[0]?.course_id;
         return courseId && classCourseIds.has(courseId);
       });
@@ -4358,13 +4416,14 @@ export class SupabaseApi implements ServiceApi {
       id: classUserId,
       class_id: classId,
       user_id: userId,
-      role: RoleType.TEACHER,
+      role: RoleType.TEACHER as Database["public"]["Enums"]["role"],
       created_at: now,
       updated_at: now,
       is_deleted: false,
     };
 
     // Insert into class_user table
+
     const { error: insertError } = await this.supabase
       .from(TABLES.ClassUser)
       .insert(classUser);
@@ -4738,7 +4797,7 @@ export class SupabaseApi implements ServiceApi {
       }
 
       const schools = (data ?? [])
-        .flatMap((item: { school: any[] }) => item.school)
+        .map((item) => item.school)
         .filter((school): school is TableTypes<"school"> => !!school);
 
       return schools ?? [];
@@ -4766,7 +4825,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     const users = (data ?? [])
-      .flatMap((item: { user: any[] }) => item.user)
+      .map((item) => item.user)
       .filter((user): user is TableTypes<"user"> => !!user);
 
     return users;
@@ -4790,7 +4849,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     const coordinators = (data ?? [])
-      .flatMap((item: { user: any[] }) => item.user)
+      .map((item) => item.user)
       .filter((user): user is TableTypes<"user"> => !!user);
 
     return coordinators;
@@ -4813,7 +4872,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     const sponsors = (data ?? [])
-      .flatMap((item: { user: any[] }) => item.user)
+      .map((item) => item.user)
       .filter((user): user is TableTypes<"user"> => !!user);
 
     return sponsors;
@@ -4832,7 +4891,7 @@ export class SupabaseApi implements ServiceApi {
       id: schoolUserId,
       school_id: schoolId,
       user_id: userId,
-      role,
+      role: role as Database["public"]["Enums"]["role"],
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
@@ -5011,13 +5070,21 @@ export class SupabaseApi implements ServiceApi {
           input_school_udise_code: schoolId,
         }
       );
-      if (data?.status === "error" && (data as any).message) {
-        return {
-          status: "error",
-          errors: [(data as any).message],
-        };
+      // Narrow the type from Json to expected shape
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "status" in data &&
+        typeof (data as any).status === "string"
+      ) {
+        return data as { status: string; errors?: string[]; message?: string };
       }
-      return data as { status: string; errors?: string[] };
+
+      // Fallback if data isn't in expected shape
+      return {
+        status: "error",
+        errors: ["Unexpected response format from Supabase function"],
+      };
     } catch (error) {
       return {
         status: "error",
@@ -5043,13 +5110,21 @@ export class SupabaseApi implements ServiceApi {
           input_school_udise_code: schoolId,
         }
       );
-      if (data?.status === "error" && (data as any).message) {
-        return {
-          status: "error",
-          errors: [(data as any).message],
-        };
+      // Narrow the type from Json to expected shape
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "status" in data &&
+        typeof (data as any).status === "string"
+      ) {
+        return data as { status: string; errors?: string[]; message?: string };
       }
-      return data as { status: string; errors?: string[] };
+
+      // Fallback if data isn't in expected shape
+      return {
+        status: "error",
+        errors: ["Unexpected response format from Supabase function"],
+      };
     } catch (error) {
       return {
         status: "error",
@@ -5076,13 +5151,21 @@ export class SupabaseApi implements ServiceApi {
           input_school_udise_code: schoolId,
         }
       );
-      if (data?.status === "error" && (data as any).message) {
-        return {
-          status: "error",
-          errors: [(data as any).message],
-        };
+      // Narrow the type from Json to expected shape
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "status" in data &&
+        typeof (data as any).status === "string"
+      ) {
+        return data as { status: string; errors?: string[]; message?: string };
       }
-      return data as { status: string; errors?: string[] };
+
+      // Fallback if data isn't in expected shape
+      return {
+        status: "error",
+        errors: ["Unexpected response format from Supabase function"],
+      };
     } catch (error) {
       return {
         status: "error",
@@ -5112,14 +5195,21 @@ export class SupabaseApi implements ServiceApi {
         }
       );
 
-      if (data?.status === "error" && (data as any).message) {
-        return {
-          status: "error",
-          errors: [(data as any).message],
-        };
+      // Narrow the type from Json to expected shape
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "status" in data &&
+        typeof (data as any).status === "string"
+      ) {
+        return data as { status: string; errors?: string[]; message?: string };
       }
 
-      return data as { status: string; errors?: string[] };
+      // Fallback if data isn't in expected shape
+      return {
+        status: "error",
+        errors: ["Unexpected response format from Supabase function"],
+      };
     } catch (error) {
       return {
         status: "error",
@@ -5204,7 +5294,7 @@ export class SupabaseApi implements ServiceApi {
         "validate_user_contacts_rpc",
         {
           program_manager_contact: programManagerPhone.trim(),
-          field_coordinator_contact: fieldCoordinatorPhone?.trim() ?? null,
+          field_coordinator_contact: fieldCoordinatorPhone?.trim(),
         }
       );
       if (error || !data) {
@@ -5215,8 +5305,21 @@ export class SupabaseApi implements ServiceApi {
           ],
         };
       }
+      if (
+        error ||
+        !data ||
+        typeof data !== "object" ||
+        data === null ||
+        !("status" in data) ||
+        typeof (data as any).status !== "string"
+      ) {
+        return {
+          status: "error",
+          errors: ["Invalid response from validation RPC"],
+        };
+      }
 
-      return data;
+      return data as { status: string; errors?: string[] };
     } catch (err) {
       return {
         status: "error",
@@ -5853,31 +5956,26 @@ export class SupabaseApi implements ServiceApi {
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined> {
     if (!this.supabase) return;
-    const { data, error } = await this.supabase
+    const { data: schoolData } = await this.supabase
       .from("school")
-      .select(
-        `
-      program:program_id(
-        program_users:program_user(
-          role,
-          is_deleted,
-          user(*)
-        )
-      )
-    `
-      )
+      .select("program_id")
       .eq("id", schoolId)
       .maybeSingle();
-    if (error) {
-      console.error("Error fetching program managers with join:", error);
-      return;
-    }
-    const programUsers =
-      (data?.program as { program_users?: any[] })?.program_users ?? [];
-    const users = programUsers
-      .filter((pu) => pu.role === RoleType.PROGRAM_MANAGER && !pu.is_deleted)
-      .map((pu) => pu.user as TableTypes<"user">);
-    return users;
+    const programId = schoolData?.program_id;
+    if (!programId) return [];
+    const { data: managers } = await this.supabase
+      .from("program_user")
+      .select("role, is_deleted, user(*)")
+      .eq("program_id", programId);
+    const managerUsers = (managers ?? [])
+      .filter(
+        (pu) =>
+          pu.role === RoleType.PROGRAM_MANAGER && !pu.is_deleted && pu.user
+      )
+      .flatMap((pu) =>
+        Array.isArray(pu.user) ? pu.user : [pu.user]
+      ) as TableTypes<"user">[];
+    return managerUsers;
   }
 
   async updateStudentStars(
@@ -5977,171 +6075,209 @@ export class SupabaseApi implements ServiceApi {
       ];
 
       const programManagers = users.map((user) => ({
-        name: user.name,
+        name: user.name || null,
         role: "Program Manager",
         phone: user.phone,
       }));
 
-    return {
-      programDetails,
-      locationDetails,
-      partnerDetails,
-      programManagers,
-    };
-  } catch (err) {
-    console.error('Unexpected error in getProgramData:', err);
-    return null;
+      // return {
+      //   programDetails,
+      //   locationDetails,
+      //   partnerDetails,
+      //   programManagers,
+      // };
+      return null;
+    } catch (err) {
+      console.error("Unexpected error in getProgramData:", err);
+      return null;
+    }
   }
-}
-async getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>> {
-  if (!this.supabase) {
-    console.error("Supabase client is not initialized");
-    return {};
-  }
-
-  try {
-    const { data, error } = await this.supabase.rpc("get_school_filter_options", {});
-
-    if (error) {
-      console.error("RPC error in getSchoolFilterOptions:", error);
+  async getSchoolFilterOptionsForSchoolListing(): Promise<
+    Record<string, string[]>
+  > {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized");
       return {};
     }
 
-    const parsed: Record<string, string[]> = {};
-    if (data && typeof data === "object") {
-      for (const key in data) {
-        const val = data[key];
-        parsed[key] = Array.isArray(val) && val.every(v => typeof v === "string") ? val : [];
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "get_school_filter_options",
+        {}
+      );
+
+      if (error) {
+        console.error("RPC error in getSchoolFilterOptions:", error);
+        return {};
       }
+
+      const parsed: Record<string, string[]> = {};
+      if (data && typeof data === "object") {
+        for (const key in data) {
+          const val = data[key];
+          parsed[key] =
+            Array.isArray(val) && val.every((v) => typeof v === "string")
+              ? val
+              : [];
+        }
+      }
+
+      return parsed;
+    } catch (err) {
+      console.error("Unexpected error in getSchoolFilterOptions:", err);
+      return {};
     }
-
-    return parsed;
-  } catch (err) {
-    console.error("Unexpected error in getSchoolFilterOptions:", err);
-    return {};
-  }
-}
-
-async getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>): Promise<FilteredSchoolsForSchoolListingOps[]> {
-  if (!this.supabase) {
-    console.error("Supabase client is not initialized");
-    return [];
   }
 
-  try {
-    const { data, error } = await this.supabase.rpc("get_filtered_schools", { filters });
-
-    if (error) {
-      console.error("RPC error in getFilteredSchools:", error);
+  async getFilteredSchoolsForSchoolListing(
+    filters: Record<string, string[]>
+  ): Promise<FilteredSchoolsForSchoolListingOps[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized");
       return [];
     }
 
-    return (data ?? []) as FilteredSchoolsForSchoolListingOps[];
-  } catch (err) {
-    console.error("Unexpected error in getFilteredSchools:", err);
-    return [];
+    try {
+      const { data, error } = await this.supabase.rpc("get_filtered_schools", {
+        filters,
+      });
+
+      if (error) {
+        console.error("RPC error in getFilteredSchools:", error);
+        return [];
+      }
+
+      return (data ?? []) as FilteredSchoolsForSchoolListingOps[];
+    } catch (err) {
+      console.error("Unexpected error in getFilteredSchools:", err);
+      return [];
+    }
   }
-}
-async createAutoProfile(languageDocId: string | undefined): Promise<TableTypes<"user">> {
- if (!this.supabase) throw new Error("Supabase instance is not initialized");
+  async createAutoProfile(
+    languageDocId: string | undefined
+  ): Promise<TableTypes<"user">> {
+    if (!this.supabase) throw new Error("Supabase instance is not initialized");
 
-  const _currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-  if (!_currentUser) throw new Error("User is not Logged in");
-  const studentProfile = await this.getParentStudentProfiles();
-  if (studentProfile.length > 0) return studentProfile[0];
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw new Error("User is not Logged in");
+    const studentProfile = await this.getParentStudentProfiles();
+    if (studentProfile.length > 0) return studentProfile[0];
 
-  const studentId = uuidv4();
-  const now = new Date().toISOString();
+    const studentId = uuidv4();
+    const now = new Date().toISOString();
 
-  const newStudent: TableTypes<"user"> = {
-    id: studentId,
-    name: null,
-    age: null,
-    gender: null,
-    avatar: null,
-    image: null,
-    curriculum_id: null,
-    grade_id: null,
-    language_id: languageDocId ?? null,
-    created_at: now,
-    updated_at: now,
-    is_deleted: false,
-    is_tc_accepted: true,
-    email: null,
-    phone: null,
-    fcm_token: null,
-    music_off: false,
-    sfx_off: false,
-    student_id: null,
-  };
-
-  // Insert user
-  const { error: userInsertError } = await this.supabase
-    .from(TABLES.User)
-    .insert([newStudent]);
-  if (userInsertError) {
-    console.error("Error inserting auto profile user:", userInsertError);
-    throw userInsertError;
-  }
-
-  // Insert parent_user
-  const parentUserId = uuidv4();
-  const parentUserData: TableTypes<"parent_user"> = {
-    id: parentUserId,
-    parent_id: _currentUser.id,
-    student_id: studentId,
-    created_at: now,
-    updated_at: now,
-    is_deleted: false,
-  };
-  const { error: parentInsertError } = await this.supabase
-    .from(TABLES.ParentUser)
-    .insert([parentUserData]);
-  if (parentInsertError) {
-    console.error("Error inserting parent_user for auto profile:", parentInsertError);
-    throw parentInsertError;
-  }
-
-  // Find English, Maths, and language-dependent subject
-  const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
-  const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
-  const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
-  const language = languageDocId ? await this.getLanguageWithId(languageDocId) : undefined;
-  let langCourse: TableTypes<"course"> | undefined;
-  if (language && language.code !== COURSES.ENGLISH) {
-    // Map language code to courseId
-    const thirdLanguageCourseMap: Record<string, string> = {
-      hi: CHIMPLE_HINDI,
-      kn: GRADE1_KANNADA,
-      mr: GRADE1_MARATHI,
-    };
-    const courseId = thirdLanguageCourseMap[language.code ?? ""];
-    if (courseId) {
-      langCourse = await this.getCourse(courseId);
-    } 
-  }
-  // Add only these three courses to the student
-  const coursesToAdd = [englishCourse, mathsCourse, langCourse, digitalSkillsCourse].filter(Boolean) as TableTypes<"course">[];
-
-  // Insert user_course entries
-  for (const course of coursesToAdd) {
-    const newUserCourse: TableTypes<"user_course"> = {
-      id: uuidv4(),
-      user_id: studentId,
-      course_id: course.id,
+    const newStudent: TableTypes<"user"> = {
+      id: studentId,
+      name: null,
+      age: null,
+      gender: null,
+      avatar: null,
+      image: null,
+      curriculum_id: null,
+      grade_id: null,
+      language_id: languageDocId ?? null,
       created_at: now,
       updated_at: now,
       is_deleted: false,
+      is_tc_accepted: true,
+      email: null,
+      phone: null,
+      fcm_token: null,
+      music_off: false,
+      sfx_off: false,
+      student_id: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null,
     };
-    const { error: userCourseInsertError } = await this.supabase
-      .from(TABLES.UserCourse)
-      .insert([newUserCourse]);
-    if (userCourseInsertError) {
-      console.error("Error inserting user_course for auto profile:", userCourseInsertError);
+
+    // Insert user
+    const { error: userInsertError } = await this.supabase
+      .from(TABLES.User)
+      .insert([newStudent]);
+    if (userInsertError) {
+      console.error("Error inserting auto profile user:", userInsertError);
+      throw userInsertError;
     }
+
+    // Insert parent_user
+    const parentUserId = uuidv4();
+    const parentUserData: TableTypes<"parent_user"> = {
+      id: parentUserId,
+      parent_id: _currentUser.id,
+      student_id: studentId,
+      created_at: now,
+      updated_at: now,
+      is_deleted: false,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+    };
+    const { error: parentInsertError } = await this.supabase
+      .from(TABLES.ParentUser)
+      .insert([parentUserData]);
+    if (parentInsertError) {
+      console.error(
+        "Error inserting parent_user for auto profile:",
+        parentInsertError
+      );
+      throw parentInsertError;
+    }
+
+    // Find English, Maths, and language-dependent subject
+    const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
+    const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+    const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
+    const language = languageDocId
+      ? await this.getLanguageWithId(languageDocId)
+      : undefined;
+    let langCourse: TableTypes<"course"> | undefined;
+    if (language && language.code !== COURSES.ENGLISH) {
+      // Map language code to courseId
+      const thirdLanguageCourseMap: Record<string, string> = {
+        hi: CHIMPLE_HINDI,
+        kn: GRADE1_KANNADA,
+        mr: GRADE1_MARATHI,
+      };
+      const courseId = thirdLanguageCourseMap[language.code ?? ""];
+      if (courseId) {
+        langCourse = await this.getCourse(courseId);
+      }
+    }
+    // Add only these three courses to the student
+    const coursesToAdd = [
+      englishCourse,
+      mathsCourse,
+      langCourse,
+      digitalSkillsCourse,
+    ].filter(Boolean) as TableTypes<"course">[];
+
+    // Insert user_course entries
+    for (const course of coursesToAdd) {
+      const newUserCourse: TableTypes<"user_course"> = {
+        id: uuidv4(),
+        user_id: studentId,
+        course_id: course.id,
+        created_at: now,
+        updated_at: now,
+        is_deleted: false,
+        is_firebase: null,
+      };
+      const { error: userCourseInsertError } = await this.supabase
+        .from(TABLES.UserCourse)
+        .insert([newUserCourse]);
+      if (userCourseInsertError) {
+        console.error(
+          "Error inserting user_course for auto profile:",
+          userCourseInsertError
+        );
+      }
+    }
+
+    return newStudent;
   }
-
-  return newStudent;
-}
-
 }
