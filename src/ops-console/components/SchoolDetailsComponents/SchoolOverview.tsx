@@ -7,6 +7,7 @@ import { t } from "i18next";
 import InfoCard from "../InfoCard";
 import DetailItem from "../DetailItem";
 import ContactCard from "../ContactCard";
+import { BsBoxArrowUpRight } from "react-icons/bs";
 
 interface SchoolOverviewProps {
   data: any;
@@ -17,7 +18,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
   // school details
   const schoolDetailsItems = [
     { label: "School Name", value: data.schoolData?.name },
-    { label: "School ID", value: data.schoolData?.udise },
+    { label: "School ID (UDISE)", value: data.schoolData?.udise },
     { label: "State", value: data.schoolData?.group1 },
     { label: "District", value: data.schoolData?.group2 },
     { label: "Cluster", value: data.schoolData?.group3 },
@@ -33,15 +34,22 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
   const programDetailsItems = [
     { label: "Program Name", value: data.programData?.name },
     { label: "Program Type", value: data.programData?.program_type },
-    { label: "Model", value: data.programData?.model },
+    {
+      label: "Model",
+      value: Array.isArray(data.programData?.model)
+        ? data.programData.model
+            .map((m: string) => m.replace(/_/g, " ").toUpperCase())
+            .join(", ")
+        : data.programData?.model?.replace(/_/g, " ").toUpperCase(),
+    },
   ].filter((item) => item.value !== undefined && item.value !== null);
   const [programName, programType, model] = programDetailsItems;
 
   //school performance
   const schoolPerformanceItems = [
-    { label: "Overall", value: "90%" },
-    { label: "Students", value: "76%" },
-    { label: "Teachers", value: "90%" },
+    { label: "Active Students", value: "85%" },
+    { label: "Avg week time in mins", value: "14 mins" },
+    { label: "Active Teachers", value: "78%" },
   ].filter((item) => item.value !== undefined && item.value !== null);
 
   return (
@@ -76,7 +84,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             </Button>
           </InfoCard>
           <InfoCard
-            title="Key Contacts"
+            title={t("Key Contacts")}
             children={
               <Box className="principal-list">
                 {data.principals?.map((principal, idx) => (
@@ -99,16 +107,39 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             }
           />
           <InfoCard
-            title="School Details"
+            title={t("School Details")}
             className="school-detail-infocard school-card"
             items={schoolDetailsItems}
           />
-          <InfoCard
-            title="Address & Location"
-            className="address-card"
-            items={schooladdressDetailsItems}
-          />
-          <InfoCard title="Program Details" className="program-card">
+          <Box position="relative" width="100%">
+            <InfoCard title={t("Address & Location")} className="address-card">
+              <Box>
+                {schooladdressDetailsItems.map((item, idx) => (
+                  <Box key={idx} mb={2}>
+                    <Typography variant="caption" color="text.secondary">
+                      {t(item.label)}
+                    </Typography>
+                    <Typography variant="body2" align="left">
+                      {item.value}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+              <Box
+                style={{
+                  position: "absolute",
+                  top: 20,
+                  right: 24,
+                  zIndex: 2,
+                }}
+              >
+                <BsBoxArrowUpRight
+                  style={{ fontSize: 18, cursor: "pointer" }}
+                />
+              </Box>
+            </InfoCard>
+          </Box>
+          <InfoCard title={t("Program Details")} className="program-card">
             <Box className="info-card-items">
               {programDetailsItems.map((item, idx) => (
                 <DetailItem key={idx} {...item} />
@@ -117,11 +148,11 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             <Divider className="info-card-section-divider" />
             <Box mt={2}>
               <Typography
-                variant="subtitle2"
+                variant="subtitle1"
                 className="info-card-section-title"
                 gutterBottom
                 align="left"
-                fontWeight={600}
+                fontWeight={500}
               >
                 {t("Program Manager")}
               </Typography>
@@ -147,11 +178,37 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                 className="school-detail-infocard school-card"
                 items={schoolDetailsItems}
               />
-              <InfoCard
-                title={t("Address & Location")}
-                className="address-card"
-                items={schooladdressDetailsItems}
-              />
+              <Box position="relative" width="100%">
+                <InfoCard
+                  title={t("Address & Location")}
+                  className="address-card"
+                >
+                  <Box>
+                    {schooladdressDetailsItems.map((item, idx) => (
+                      <Box key={idx} mb={2}>
+                        <Typography variant="caption" color="text.secondary">
+                          {t(item.label)}
+                        </Typography>
+                        <Typography variant="body2" align="left">
+                          {item.value}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                  <Box
+                    style={{
+                      position: "absolute",
+                      top: 20,
+                      right: 24,
+                      zIndex: 2,
+                    }}
+                  >
+                    <BsBoxArrowUpRight
+                      style={{ fontSize: 18, cursor: "pointer" }}
+                    />
+                  </Box>
+                </InfoCard>
+              </Box>
             </Box>
           </Grid>
           <Grid item xs={12} md={4}>
