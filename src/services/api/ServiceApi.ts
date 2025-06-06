@@ -1652,4 +1652,28 @@ export interface ServiceApi {
     languageDocId: string | undefined
   ): Promise<TableTypes<"user">>;
 
+  /**
+ * Count total and active students, total and active teachers, and total institutes for a given program.
+ * 
+ * @param {string} programId - The ID of the program.
+ * @returns {Promise<{
+ *   total_students: number;
+ *   active_students: number;
+ *   avg_time_spent: number;
+ *   total_teachers: number;
+ *   active_teachers: number;
+ *   total_institutes: number;
+ * }>} Promise resolving to an object with student, teacher, and institute statistics.
+ */
+countProgramStats(
+  programId: string
+): Promise<{
+  total_students: number;
+  active_students: number;
+  avg_time_spent: number;
+  total_teachers: number;
+  active_teachers: number;
+  total_institutes: number;
+}>;
+
 }
