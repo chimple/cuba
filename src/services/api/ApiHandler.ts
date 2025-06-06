@@ -13,6 +13,7 @@ import {
   SchoolRoleMap,
   TABLES,
   TableTypes,
+  TabType,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -1100,7 +1101,7 @@ export class ApiHandler implements ServiceApi {
     currentUserId: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
-    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
+    tab?: TabType;
   }): Promise<{ data: any[] }> {
     return await this.s.getPrograms(params);
   }

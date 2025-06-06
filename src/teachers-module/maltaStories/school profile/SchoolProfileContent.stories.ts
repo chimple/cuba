@@ -17,6 +17,13 @@ const mockSchool: TableTypes<"school"> = {
   address: "address",
   program_id: "id-1",
   model: null,
+  academic_year: null,
+  firebase_id: null,
+  is_firebase: null,
+  is_ops: null,
+  language: null,
+  ops_created_by: null,
+  student_login_type: null
 };
 
 const meta: Meta<typeof SchoolProfileContent> = {

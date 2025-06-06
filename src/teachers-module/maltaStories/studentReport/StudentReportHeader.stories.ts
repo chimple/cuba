@@ -33,6 +33,12 @@ export const Test2: Story = {
       sfx_off: true,
       student_id: "student_id",
       updated_at: "20-07-2024",
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null
     },
     mappedSubjectOptions: [{ id: "a", name: "Digital" }],
     onSubjectChange: () => {},
@@ -44,6 +50,13 @@ export const Test2: Story = {
       name: "chimple",
       school_id: "school_id",
       updated_at: "20-07-2024",
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+      standard: null,
+      status: null
     },
     selectedSubject: {
       code: "en",
@@ -59,6 +72,7 @@ export const Test2: Story = {
       sort_index: 1,
       subject_id: "subject_id",
       updated_at: "20-07-2024",
+      firebase_id: null
     },
   },
 };
@@ -84,6 +98,12 @@ export const Test3: Story = {
       sfx_off: true,
       student_id: "student_id",
       updated_at: "20-07-2024",
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null
     },
     mappedSubjectOptions: [
       { id: "a", name: "Digital Skills" },
@@ -99,6 +119,13 @@ export const Test3: Story = {
       name: "chimple",
       school_id: "school_id",
       updated_at: "20-07-2024",
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+      standard: null,
+      status: null
     },
     selectedSubject: {
       code: "en",
@@ -114,6 +141,7 @@ export const Test3: Story = {
       sort_index: 1,
       subject_id: "subject_id",
       updated_at: "20-07-2024",
+      firebase_id: null
     },
   },
 };
@@ -139,6 +167,12 @@ export const Test4: Story = {
       sfx_off: true,
       student_id: "student_id",
       updated_at: "20-07-2024",
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null
     },
     mappedSubjectOptions: [{ id: "a", name: "Digital Skills" },{ id: "a", name: "Kannada" }],
     onSubjectChange: () => {},
@@ -150,6 +184,13 @@ export const Test4: Story = {
       name: "chimple",
       school_id: "school_id",
       updated_at: "20-07-2024",
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+      standard: null,
+      status: null
     },
     selectedSubject: {
       code: "en",
@@ -165,6 +206,7 @@ export const Test4: Story = {
       sort_index: 1,
       subject_id: "subject_id",
       updated_at: "20-07-2024",
+      firebase_id: null
     },
   },
 };
