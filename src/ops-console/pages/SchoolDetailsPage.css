@@ -1,12 +1,11 @@
 .school-detail-container {
   background: white;
   width: 100%;
-  height: 100%;
   box-sizing: border-box;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
 }
 
 .school-detail-gap {
@@ -51,11 +50,11 @@
 .school-detail-tertiary-header {
   width: calc(100% - 32px);
   margin: 0 auto;
-  height: 100%;
   background: white;
   border-radius: 4px;
   box-sizing: border-box;
   padding: 0;
   min-width: 0;
-  overflow: hidden;
+  margin-top: 10px;
+  margin-bottom: 15px;
 }
