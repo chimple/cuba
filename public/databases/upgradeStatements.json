@@ -33,6 +33,7 @@
       "ALTER TABLE result ADD COLUMN firebase_id TEXT;",
       "ALTER TABLE result ADD COLUMN is_firebase BOOLEAN;",
       "ALTER TABLE school ADD COLUMN academic_year TEXT[];",
+      "ALTER TABLE school ADD COLUMN model TEXT;",
       "ALTER TABLE school ADD COLUMN firebase_id TEXT;",
       "ALTER TABLE school ADD COLUMN is_firebase BOOLEAN;",
       "ALTER TABLE school ADD COLUMN is_ops BOOLEAN;",
