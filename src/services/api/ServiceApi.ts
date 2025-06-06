@@ -1652,4 +1652,10 @@ export interface ServiceApi {
     languageDocId: string | undefined
   ): Promise<TableTypes<"user">>;
 
+  /**
+   * Checks if the current user is a program user.
+   * @returns {Promise<boolean>} A promise that resolves to true if the user is a program user, false otherwise.
+   */
+  isProgramUser(): Promise<boolean> 
+
 }

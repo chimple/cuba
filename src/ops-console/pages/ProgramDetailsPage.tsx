@@ -7,6 +7,7 @@ import Breadcrumb from "../components/Breadcrumb";
 import ContactCard from "../components/ContactCard";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
+import { PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
 
 interface RouteParams {
   programId: string;
@@ -26,19 +27,67 @@ const ProgramDetailsPage = () => {
   const [data, setData] = useState<ProgramData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!programId) return;
+ useEffect(() => {
+  if (!programId) return;
 
-    const fetchData = async () => {
-      setLoading(true);
-      const programData = await api.getProgramData(programId);
-      console.log("Fetched program data:", programData);
-      setData(programData);
+  const fetchData = async () => {
+    setLoading(true);
+    const programData = await api.getProgramData(programId);
+    if (!programData) {
       setLoading(false);
-    };
+      return;
+    }
+    const updatedProgramDetails = programData.programDetails.map((item) => {
+      if (item.label === "Program Model") {
+        try {
+          const rawModelArray = JSON.parse(item.value.replace(/'/g, '"')) as string[];
+          const formattedModel = rawModelArray
+            .map((m) => PROGRAM_TAB_LABELS[m as PROGRAM_TAB])
+            .filter(Boolean)
+            .join(", ");
 
-    fetchData();
-  }, [programId]);
+          return {
+            ...item,
+            value: formattedModel, 
+          };
+        } catch (err) {
+          console.error("Failed to parse model:", item.value, err);
+          return item;
+        }
+      }
+
+      if (item.label === "Program Date") {
+        const [start, end] = item.value.split(/\s+/);
+
+        const formatDate = (d: string) =>
+          new Date(d).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+
+        if (start && end) {
+          return {
+            ...item,
+            value: `${formatDate(start)} - ${formatDate(end)}`,
+          };
+        }
+        return item;
+      }
+
+      return item;
+    });
+
+    setData({
+      ...programData,
+      programDetails: updatedProgramDetails,
+    });
+
+    setLoading(false);
+  };
+
+  fetchData();
+}, [programId]);
 
   if (loading) {
     return (

@@ -46,6 +46,7 @@ import {
 import { RoleType } from "../interface/modelInterfaces";
 import { schoolUtil } from "../utility/schoolUtil";
 import LoginWithEmail from "../components/LoginWithEmail";
+import { SupabaseApi } from "../services/api/SupabaseApi";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -408,12 +409,9 @@ const Login: React.FC = () => {
       userRole === RoleType.SUPER_ADMIN ||
       userRole === RoleType.OPERATIONAL_DIRECTOR;
 
-    const isOpsSchoolRole = userSchools.some(school =>
-      school.role === RoleType.PROGRAM_MANAGER ||
-      school.role === RoleType.FIELD_COORDINATOR
-    );
+    const isProgramUser = await api.isProgramUser();
 
-    if (isOpsRole || isOpsSchoolRole) {
+    if (isOpsRole || isProgramUser) {
       ServiceConfig.getI().switchMode(APIMode.SUPABASE);
       history.replace(PAGES.SIDEBAR_PAGE);
       return;

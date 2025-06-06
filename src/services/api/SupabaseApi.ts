@@ -300,7 +300,7 @@ export class SupabaseApi implements ServiceApi {
             .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-          []
+        []
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -6010,7 +6010,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     try {
-      // 1. Fetch program record
+
       const { data: program, error: programError } = await this.supabase
         .from("program")
         .select("*")
@@ -6022,7 +6022,6 @@ export class SupabaseApi implements ServiceApi {
         return null;
       }
 
-      // 2. Fetch managers from user_programs
       const { data: mappings, error: mappingsError } = await this.supabase
         .from("program_user")
         .select("user")
@@ -6035,7 +6034,7 @@ export class SupabaseApi implements ServiceApi {
       }
 
       const userIds = mappings.map((m) => m.user);
-      // 3. Fetch user details
+
       const { data: users, error: usersError } = await this.supabase
         .from("user")
         .select("id, name, phone")
@@ -6045,48 +6044,47 @@ export class SupabaseApi implements ServiceApi {
         return null;
       }
 
-      // 4. Format the response
       const programDetails = [
-        { label: "Program Name", value: program.name },
-        { label: "Program Type", value: program.program_type },
-        { label: "Program Model", value: program.model },
+        { label: "Program Name", value: program.name ?? "" },
+        { label: "Program Type", value: program.program_type ?? "" },
+        { label: "Program Model", value: Array.isArray(program.model) ? program.model.join(", ") : program.model ?? "" },
         {
           label: "Program Date",
-          value: `${program.start_date}  ${program.end_date}`,
+          value: `${program.start_date ?? ""}  ${program.end_date ?? ""}`,
         },
       ];
 
       const locationDetails = [
-        { label: "Country", value: program.country },
-        { label: "State", value: program.state },
-        { label: "District", value: program.district },
-        { label: "Cluster", value: program.cluster },
-        { label: "Block", value: program.block },
-        { label: "Village", value: program.village },
+        { label: "Country", value: program.country ?? "" },
+        { label: "State", value: program.state ?? "" },
+        { label: "District", value: program.district ?? "" },
+        { label: "Cluster", value: program.cluster ?? "" },
+        { label: "Block", value: program.block ?? "" },
+        { label: "Village", value: program.village ?? "" },
       ];
+
 
       const partnerDetails = [
         {
           label: "Implementation Partner",
-          value: program.implementation_partner,
+          value: program.implementation_partner ?? "",
         },
-        { label: "Funding Partner", value: program.funding_partner },
-        { label: "Institute Owner", value: program.institute_partner },
+        { label: "Funding Partner", value: program.funding_partner ?? "" },
+        { label: "Institute Owner", value: program.institute_partner ?? "" },
       ];
 
       const programManagers = users.map((user) => ({
-        name: user.name || null,
+        name: user.name ?? "",
         role: "Program Manager",
-        phone: user.phone,
+        phone: user.phone ?? "",
       }));
 
-      // return {
-      //   programDetails,
-      //   locationDetails,
-      //   partnerDetails,
-      //   programManagers,
-      // };
-      return null;
+      return {
+        programDetails,
+        locationDetails,
+        partnerDetails,
+        programManagers,
+      };
     } catch (err) {
       console.error("Unexpected error in getProgramData:", err);
       return null;
@@ -6141,7 +6139,6 @@ export class SupabaseApi implements ServiceApi {
       const { data, error } = await this.supabase.rpc("get_filtered_schools", {
         filters,
       });
-
       if (error) {
         console.error("RPC error in getFilteredSchools:", error);
         return [];
@@ -6279,5 +6276,31 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return newStudent;
+  }
+
+  async isProgramUser(): Promise<boolean> {
+     if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return false;
+    }
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw new Error("User is not Logged in");
+
+    const userId = _currentUser.id;
+
+    const { data, error } = await this.supabase
+      .from('program_user')
+      .select('id')
+      .eq('user', userId)
+      .in('role', ['program_manager', 'field_coordinator'])
+      .limit(1);
+
+    if (error) {
+      console.error('Error checking program_user table', error);
+      return false;
+    }
+
+    return !!(data && data.length > 0);
   }
 }

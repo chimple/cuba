@@ -1218,4 +1218,8 @@ export class ApiHandler implements ServiceApi {
       languageDocId
     );
   }
+
+  public async isProgramUser(): Promise<boolean> {
+   return await this.s.isProgramUser();
+  }
 }

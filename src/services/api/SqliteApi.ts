@@ -5256,4 +5256,8 @@ async getStudentInfoBySchoolId(schoolId: string): Promise<
 
     return newStudent;
   }
+  
+  async isProgramUser(): Promise<boolean> {
+      return await this._serverApi.isProgramUser();
+  }
 }
