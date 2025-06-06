@@ -5998,98 +5998,110 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  async getProgramData(programId: string): Promise<{
-    programDetails: { label: string; value: string }[];
-    locationDetails: { label: string; value: string }[];
-    partnerDetails: { label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
-  } | null> {
-    if (!this.supabase) {
-      console.error("Supabase client not initialized.");
-      return null;
-    }
-
-    try {
-
-      const { data: program, error: programError } = await this.supabase
-        .from("program")
-        .select("*")
-        .eq("id", programId)
-        .single();
-
-      if (programError || !program) {
-        console.error("Error fetching program:", programError);
-        return null;
-      }
-
-      const { data: mappings, error: mappingsError } = await this.supabase
-        .from("program_user")
-        .select("user")
-        .eq("program_id", programId)
-        .eq("role", "program_manager");
-
-      if (mappingsError) {
-        console.error("Error fetching program managers:", mappingsError);
-        return null;
-      }
-
-      const userIds = mappings.map((m) => m.user);
-
-      const { data: users, error: usersError } = await this.supabase
-        .from("user")
-        .select("id, name, phone")
-        .in("id", userIds);
-      if (usersError) {
-        console.error("Error fetching user details:", usersError);
-        return null;
-      }
-
-      const programDetails = [
-        { label: "Program Name", value: program.name ?? "" },
-        { label: "Program Type", value: program.program_type ?? "" },
-        { label: "Program Model", value: Array.isArray(program.model) ? program.model.join(", ") : program.model ?? "" },
-        {
-          label: "Program Date",
-          value: `${program.start_date ?? ""}  ${program.end_date ?? ""}`,
-        },
-      ];
-
-      const locationDetails = [
-        { label: "Country", value: program.country ?? "" },
-        { label: "State", value: program.state ?? "" },
-        { label: "District", value: program.district ?? "" },
-        { label: "Cluster", value: program.cluster ?? "" },
-        { label: "Block", value: program.block ?? "" },
-        { label: "Village", value: program.village ?? "" },
-      ];
-
-
-      const partnerDetails = [
-        {
-          label: "Implementation Partner",
-          value: program.implementation_partner ?? "",
-        },
-        { label: "Funding Partner", value: program.funding_partner ?? "" },
-        { label: "Institute Owner", value: program.institute_partner ?? "" },
-      ];
-
-      const programManagers = users.map((user) => ({
-        name: user.name ?? "",
-        role: "Program Manager",
-        phone: user.phone ?? "",
-      }));
-
-      return {
-        programDetails,
-        locationDetails,
-        partnerDetails,
-        programManagers,
-      };
-    } catch (err) {
-      console.error("Unexpected error in getProgramData:", err);
-      return null;
-    }
+ async getProgramData(programId: string): Promise<{
+  programDetails: { id: string; label: string; value: string }[];
+  locationDetails: { id: string; label: string; value: string }[];
+  partnerDetails: { id: string; label: string; value: string }[];
+  programManagers: {name: string; role: string; phone: string }[];
+} | null> {
+  if (!this.supabase) {
+    console.error("Supabase client not initialized.");
+    return null;
   }
+
+  try {
+    const { data: program, error: programError } = await this.supabase
+      .from("program")
+      .select("*")
+      .eq("id", programId)
+      .single();
+
+    if (programError || !program) {
+      console.error("Error fetching program:", programError);
+      return null;
+    }
+
+    const { data: mappings, error: mappingsError } = await this.supabase
+      .from("program_user")
+      .select("user")
+      .eq("program_id", programId)
+      .eq("role", "program_manager");
+
+    if (mappingsError) {
+      console.error("Error fetching program managers:", mappingsError);
+      return null;
+    }
+
+    const userIds = mappings.map((m) => m.user);
+
+    const { data: users, error: usersError } = await this.supabase
+      .from("user")
+      .select("id, name, phone")
+      .in("id", userIds);
+    if (usersError) {
+      console.error("Error fetching user details:", usersError);
+      return null;
+    }
+
+    const programDetails = [
+      { id: "program_name", label: "Program Name", value: program.name ?? "" },
+      { id: "program_type", label: "Program Type", value: program.program_type ?? "" },
+      {
+        id: "program_model",
+        label: "Program Model",
+        value: Array.isArray(program.model) ? program.model.join(", ") : program.model ?? "",
+      },
+      {
+        id: "program_date",
+        label: "Program Date",
+        value: `${program.start_date ?? ""}  ${program.end_date ?? ""}`,
+      },
+    ];
+
+    const locationDetails = [
+      { id: "country", label: "Country", value: program.country ?? "" },
+      { id: "state", label: "State", value: program.state ?? "" },
+      { id: "district", label: "District", value: program.district ?? "" },
+      { id: "cluster", label: "Cluster", value: program.cluster ?? "" },
+      { id: "block", label: "Block", value: program.block ?? "" },
+      { id: "village", label: "Village", value: program.village ?? "" },
+    ];
+
+    const partnerDetails = [
+      {
+        id: "implementation_partner",
+        label: "Implementation Partner",
+        value: program.implementation_partner ?? "",
+      },
+      {
+        id: "funding_partner",
+        label: "Funding Partner",
+        value: program.funding_partner ?? "",
+      },
+      {
+        id: "institute_owner",
+        label: "Institute Owner",
+        value: program.institute_partner ?? "",
+      },
+    ];
+
+    const programManagers = users.map((user) => ({
+      name: user.name ?? "",
+      role: "Program Manager",
+      phone: user.phone ?? "",
+    }));
+
+    return {
+      programDetails,
+      locationDetails,
+      partnerDetails,
+      programManagers,
+    };
+  } catch (err) {
+    console.error("Unexpected error in getProgramData:", err);
+    return null;
+  }
+}
   async getSchoolFilterOptionsForSchoolListing(): Promise<
     Record<string, string[]>
   > {

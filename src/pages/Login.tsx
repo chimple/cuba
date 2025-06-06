@@ -10,6 +10,7 @@ import {
   CURRENT_USER,
   DOMAIN,
   EVENTS,
+  IS_OPS_USER,
   LANGUAGE,
   MODES,
   NUMBER_REGEX,
@@ -46,7 +47,6 @@ import {
 import { RoleType } from "../interface/modelInterfaces";
 import { schoolUtil } from "../utility/schoolUtil";
 import LoginWithEmail from "../components/LoginWithEmail";
-import { SupabaseApi } from "../services/api/SupabaseApi";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -404,15 +404,13 @@ const Login: React.FC = () => {
       role: RoleType;
     }[]
   ) {
+
     const userRole = localStorage.getItem(USER_ROLE);
-    const isOpsRole =
-      userRole === RoleType.SUPER_ADMIN ||
-      userRole === RoleType.OPERATIONAL_DIRECTOR;
-
+    const isOpsRole = userRole === RoleType.SUPER_ADMIN || userRole === RoleType.OPERATIONAL_DIRECTOR;
     const isProgramUser = await api.isProgramUser();
-
     if (isOpsRole || isProgramUser) {
-      ServiceConfig.getI().switchMode(APIMode.SUPABASE);
+      localStorage.setItem(IS_OPS_USER, 'true');
+      ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
       history.replace(PAGES.SIDEBAR_PAGE);
       return;
     }

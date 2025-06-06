@@ -23,7 +23,7 @@ import {
 } from "./utility/WindowsSpeech";
 import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 import { Util } from "./utility/util";
-import { EVENTS } from "./common/constants";
+import { EVENTS, IS_OPS_USER } from "./common/constants";
 import { GbProvider } from "./growthbook/Growthbook";
 
 // Extend React's JSX namespace to include Stencil components
@@ -85,28 +85,25 @@ const gb = new GrowthBook({
   streaming: true,
  });
 
-SqliteApi.getInstance().then(() => {
-  ServiceConfig.getInstance(APIMode.SQLITE);
-  root.render(
-    <>
-      <GrowthBookProvider growthbook={gb}>
-        <GbProvider>
-          <App />
-        </GbProvider>
-      </GrowthBookProvider>
-    </>
-  );
-  // initializeFireBase();
-});
+// Default to Supabase
+const serviceInstance = ServiceConfig.getInstance(APIMode.SUPABASE);
+
+// Check role
+const isOpsUser = localStorage.getItem(IS_OPS_USER) === 'true';
+
+if (!isOpsUser) {
+  // Initialize SQLite only if needed
+  SqliteApi.getInstance().then(() => {
+    serviceInstance.switchMode(APIMode.SQLITE);
+  });
+}
 
 root.render(
-  <>
-    <IonLoading
-      message={`<img class="loading" src="assets/loading.gif"></img>`}
-      isOpen={true}
-      spinner={null}
-    />
-  </>
+  <GrowthBookProvider growthbook={gb}>
+    <GbProvider>
+      <App />
+    </GbProvider>
+  </GrowthBookProvider>
 );
 
 // If you want your app to work offline and load faster, you can change

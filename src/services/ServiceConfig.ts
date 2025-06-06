@@ -21,43 +21,33 @@ export class ServiceConfig {
   private _authHandler: AuthHandler;
   private _mode: APIMode;
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(mode: APIMode): ServiceConfig {
-  
     if (!ServiceConfig.instance) {
       ServiceConfig.instance = new ServiceConfig();
-      ServiceConfig.instance.mode = mode;
+      ServiceConfig.instance.setMode(mode);
+    } else if (ServiceConfig.instance.mode !== mode) {
+      ServiceConfig.instance.setMode(mode);
     }
-    switch (mode) {
-      case APIMode.FIREBASE:
-        this.instance.initializeFireBase();
-        break;
-      case APIMode.ONEROSTER:
-        this.instance.initializeOneroster();
-        break;
-      case APIMode.SQLITE:
-        this.instance.initializeSqlite();
-        break;
-      case APIMode.SUPABASE:
-        this.instance.initializeSupabase();
-        break;
-      default:
-        this.instance.initializeFireBase();
-        break;
-    }
-    return this.instance;
+    return ServiceConfig.instance;
   }
 
   public static getI(): ServiceConfig {
-    console.debug("[ServiceConfig] getI called");
     return ServiceConfig.instance;
   }
 
   public switchMode(newMode: APIMode) {
-    console.debug(`[ServiceConfig] switchMode called. Switching from ${APIMode[this._mode]} to ${APIMode[newMode]}`);
-    this.mode = newMode;
-    switch (newMode) {
+    this.setMode(newMode);
+  }
+
+  private setMode(mode: APIMode) {
+    this.mode = mode;
+    this.initializeByMode(mode);
+  }
+
+  private initializeByMode(mode: APIMode) {
+    switch (mode) {
       case APIMode.FIREBASE:
         this.initializeFireBase();
         break;
@@ -76,15 +66,13 @@ export class ServiceConfig {
     }
   }
 
-  private initializeOneroster()  {
-    console.debug("[ServiceConfig] Initializing OneRoster API and Auth");
+  private initializeOneroster() {
     //@ts-ignore
     this._apiHandler = ApiHandler.getInstance(OneRosterApi.getInstance());
     this._authHandler = AuthHandler.getInstance(OneRosterAuth.getInstance());
   }
 
   private initializeFireBase() {
-    console.debug("[ServiceConfig] Initializing Firebase API and Auth");
     //@ts-ignore
     this._apiHandler = ApiHandler.getInstance(FirebaseApi.getInstance());
     //@ts-ignore
@@ -92,16 +80,12 @@ export class ServiceConfig {
   }
 
   private initializeSqlite() {
-    console.debug("[ServiceConfig] Initializing SQLite API and Supabase Auth");
     this._apiHandler = ApiHandler.getInstance(SqliteApi.i);
     this._authHandler = AuthHandler.getInstance(SupabaseAuth.getInstance());
   }
 
   private initializeSupabase() {
-    console.debug("[ServiceConfig] Initializing Supabase API and Auth");
-    //@ts-ignore
     this._apiHandler = ApiHandler.getInstance(SupabaseApi.getInstance());
-    //@ts-ignore
     this._authHandler = AuthHandler.getInstance(SupabaseAuth.getInstance());
   }
 
@@ -118,7 +102,6 @@ export class ServiceConfig {
   }
 
   public set mode(value: APIMode) {
-    console.debug(`[ServiceConfig] mode set to: ${APIMode[value]}`);
     this._mode = value;
   }
 }

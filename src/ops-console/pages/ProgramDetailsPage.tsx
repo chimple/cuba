@@ -20,6 +20,30 @@ interface ProgramData {
   programManagers: { name: string; role: string; phone: string }[];
 }
 
+const formatProgramModel = (value: string) => {
+  try {
+    const arr = JSON.parse(value.replace(/'/g, '"')) as string[];
+    return arr
+      .map((m) => PROGRAM_TAB_LABELS[m as PROGRAM_TAB])
+      .filter(Boolean)
+      .join(", ");
+  } catch {
+    return "";
+  }
+};
+
+const formatProgramDate = (value: string) => {
+  const [start, end] = value.split(/\s+/);
+  if (!start || !end) return value;
+  const formatDate = (d: string) =>
+    new Date(d).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  return `${formatDate(start)} - ${formatDate(end)}`;
+};
+
 const ProgramDetailsPage = () => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
@@ -27,67 +51,31 @@ const ProgramDetailsPage = () => {
   const [data, setData] = useState<ProgramData | null>(null);
   const [loading, setLoading] = useState(true);
 
- useEffect(() => {
-  if (!programId) return;
+  useEffect(() => {
+    if (!programId) return;
 
-  const fetchData = async () => {
-    setLoading(true);
-    const programData = await api.getProgramData(programId);
-    if (!programData) {
-      setLoading(false);
-      return;
-    }
-    const updatedProgramDetails = programData.programDetails.map((item) => {
-      if (item.label === "Program Model") {
-        try {
-          const rawModelArray = JSON.parse(item.value.replace(/'/g, '"')) as string[];
-          const formattedModel = rawModelArray
-            .map((m) => PROGRAM_TAB_LABELS[m as PROGRAM_TAB])
-            .filter(Boolean)
-            .join(", ");
-
-          return {
-            ...item,
-            value: formattedModel, 
-          };
-        } catch (err) {
-          console.error("Failed to parse model:", item.value, err);
-          return item;
-        }
+    const fetchData = async () => {
+      setLoading(true);
+      const programData = await api.getProgramData(programId);
+      if (!programData) {
+        setLoading(false);
+        return;
       }
 
-      if (item.label === "Program Date") {
-        const [start, end] = item.value.split(/\s+/);
-
-        const formatDate = (d: string) =>
-          new Date(d).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          });
-
-        if (start && end) {
-          return {
-            ...item,
-            value: `${formatDate(start)} - ${formatDate(end)}`,
-          };
-        }
+      const updatedProgramDetails = programData.programDetails.map((item) => {
+        if (item.id === "program_model")
+          return { ...item, value: formatProgramModel(item.value) };
+        if (item.id === "program_date")
+          return { ...item, value: formatProgramDate(item.value) };
         return item;
-      }
+      });
 
-      return item;
-    });
+      setData({ ...programData, programDetails: updatedProgramDetails });
+      setLoading(false);
+    };
 
-    setData({
-      ...programData,
-      programDetails: updatedProgramDetails,
-    });
-
-    setLoading(false);
-  };
-
-  fetchData();
-}, [programId]);
+    fetchData();
+  }, [programId]);
 
   if (loading) {
     return (
@@ -144,7 +132,10 @@ const ProgramDetailsPage = () => {
                 children={
                   <Box className="program-detail-page-location-details-grid">
                     {data.locationDetails.map((item, idx) => (
-                      <Box key={idx} className="program-detail-page-location-details-item">
+                      <Box
+                        key={idx}
+                        className="program-detail-page-location-details-item"
+                      >
                         <Typography className="program-detail-page-location-details-label">
                           {item.label}
                         </Typography>
@@ -179,14 +170,20 @@ const ProgramDetailsPage = () => {
             <Box className="program-detail-page-column-container">
               <InfoCard title={t("Program Performance")} items={[]}>
                 <Box display="flex" justifyContent="center">
-                  <Button className="program-detail-page-full-width-button" variant="contained">
+                  <Button
+                    className="program-detail-page-full-width-button"
+                    variant="contained"
+                  >
                     {t("View Detailed Analytics")}
                   </Button>
                 </Box>
               </InfoCard>
               <InfoCard title={t("Program Statistics")} items={[]}>
                 <Box display="flex" justifyContent="center">
-                  <Button className="program-detail-page-full-width-button" variant="contained">
+                  <Button
+                    className="program-detail-page-full-width-button"
+                    variant="contained"
+                  >
                     {t("View Details")}
                   </Button>
                 </Box>
