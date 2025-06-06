@@ -1191,21 +1191,21 @@ export class ApiHandler implements ServiceApi {
   }
 
   public async getTeacherInfoBySchoolId(schoolId: string): Promise<
-  {
-   user: TableTypes<"user">;
-   grade: number;
-   classSection: string;
-  }[]
-> {
+    {
+      user: TableTypes<"user">;
+      grade: number;
+      classSection: string;
+    }[]
+  > {
     return await this.s.getTeacherInfoBySchoolId(schoolId);
   }
   public async getStudentInfoBySchoolId(schoolId: string): Promise<
-  {
-   user: TableTypes<"user">;
-   grade: number;
-   classSection: string;
-  }[]
-> {
+    {
+      user: TableTypes<"user">;
+      grade: number;
+      classSection: string;
+    }[]
+  > {
     return await this.s.getStudentInfoBySchoolId(schoolId);
   }
   public async getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>{
@@ -1214,8 +1214,16 @@ export class ApiHandler implements ServiceApi {
   public async createAutoProfile(
     languageDocId: string | undefined
   ): Promise<TableTypes<"user">> {
-    return await this.s.createAutoProfile(
-      languageDocId
-    );
+    return await this.s.createAutoProfile(languageDocId);
+  }
+  public async countProgramStats(programId: string): Promise<{
+    total_students: number;
+    active_students: number;
+    avg_time_spent: number;
+    total_teachers: number;
+    active_teachers: number;
+    total_institutes: number;
+  }> {
+    return await this.s.countProgramStats(programId);
   }
 }

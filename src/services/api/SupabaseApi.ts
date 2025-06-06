@@ -6249,4 +6249,64 @@ async createAutoProfile(languageDocId: string | undefined): Promise<TableTypes<"
   return newStudent;
 }
 
+async countProgramStats(programId: string): Promise<{
+  total_students: number;
+  active_students: number;
+  avg_time_spent: number;
+  total_teachers: number;
+  active_teachers: number;
+  total_institutes: number;
+}> {
+  if (!this.supabase) {
+    console.error("Supabase client is not initialized.");
+    return {
+      total_students: 0,
+      active_students: 0,
+      avg_time_spent: 0,
+      total_teachers: 0,
+      active_teachers: 0,
+      total_institutes: 0,
+    };
+  }
+
+  try {
+    const { data, error } = await this.supabase.rpc("count_program_stats", {
+      p_program_id: programId,
+    });
+
+    if (error) {
+      console.error("RPC error:", error);
+      return {
+        total_students: 0,
+        active_students: 0,
+        avg_time_spent: 0,
+        total_teachers: 0,
+        active_teachers: 0,
+        total_institutes: 0,
+      };
+    }
+
+    const result = Array.isArray(data) ? data[0] : data;
+
+    return {
+      total_students: result?.total_students ?? 0,
+      active_students: result?.active_students ?? 0,
+      avg_time_spent: result?.avg_time_spent ?? 0,
+      total_teachers: result?.total_teachers ?? 0,
+      active_teachers: result?.active_teachers ?? 0,
+      total_institutes: result?.total_institutes ?? 0,
+    };
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    return {
+      total_students: 0,
+      active_students: 0,
+      avg_time_spent: 0,
+      total_teachers: 0,
+      active_teachers: 0,
+      total_institutes: 0,
+    };
+  }
+}
+
 }
