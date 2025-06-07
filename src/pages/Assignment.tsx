@@ -30,6 +30,8 @@ interface AssignmentPageProps {
   assignmentCount: any
 }
 
+const MAX_ASSIGNMENTS = 50;
+
 const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment, assignmentCount }) => {
   const [loading, setLoading] = useState(true);
   const [isLinked, setIsLinked] = useState(true);
@@ -57,21 +59,33 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment, assign
   }>({});
 
   const loadPendingAssignments = useCallback(
-  async (
-    classId: string,
-    studentId: string,
-    getPendingAssignments: (classId: string, studentId: string) => Promise<TableTypes<"assignment">[]>
-  ) => {
-    try {
-      const all = await getPendingAssignments(classId, studentId);
-      const pending = all.filter((a) => a.type !== LIVE_QUIZ);
-      setAssignments(pending);
-      assignmentCount(pending.length);
-    } catch (error) {
-      console.error("Failed to load pending assignments:", error);
-    }
-  },
-  []);
+    async (
+      classId: string,
+      studentId: string,
+      getPendingAssignments: (classId: string, studentId: string) => Promise<TableTypes<"assignment">[]>
+    ) => {
+      try {
+        const all = await getPendingAssignments(classId, studentId);
+        const pending = all.filter((a) => a.type !== LIVE_QUIZ);
+
+        // Sort by created_at descending (newest first):
+        pending.sort((a, b) => {
+          const da = new Date(a.created_at).getTime();
+          const db = new Date(b.created_at).getTime();
+          return db - da;
+        });
+
+        // Keep only the first MAX_ASSIGNMENTS:
+        const truncated = pending.slice(0, MAX_ASSIGNMENTS);
+
+        setAssignments(truncated);
+        assignmentCount(truncated.length);
+      } catch (error) {
+        console.error("Failed to load pending assignments:", error);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     const initialLoadingState = JSON.parse(
@@ -118,47 +132,71 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment, assign
   }, [assignments]);
 
   const handleNewAssignmentS = useCallback(
-  async (newAssignment: TableTypes<"assignment">) => {
-    setAssignments((prev) => {
-      if (prev.some((a) => a.id === newAssignment.id)) {
-        return prev;
-      }
-      onNewAssignment?.(newAssignment);
-      return [...prev, newAssignment];
-    });
-
-    if (newAssignment.chapter_id) {
-      const chapter = await api.getChapterById(newAssignment.chapter_id);
-      if (chapter) {
-        setLessonChapterMap((prev) => ({
-          ...prev,
-          [newAssignment.lesson_id]: chapter,
-        }));
-      }
-    }
-
-    setAssignmentLessonCourseMap((prev) => {
-      if (newAssignment.course_id) {
-        return {
-          ...prev,
-          [newAssignment.lesson_id]: { course_id: newAssignment.course_id },
-        };
-      }
-      return prev;
-    });
-
-    const lesson = await api.getLesson(newAssignment.lesson_id);
-    if (lesson) {
-      setLessons((prev) => {
-        if (prev.some((l) => l.id === lesson.id)) {
+    async (newAssignment: TableTypes<"assignment">) => {
+      setAssignments((prev) => {
+        if (prev.some((a) => a.id === newAssignment.id)) {
           return prev;
         }
-        return [...prev, lesson];
+
+        // We will append newAssignment, then possibly drop the oldest:
+        const combined = [...prev, newAssignment];
+
+        if (combined.length <= MAX_ASSIGNMENTS) {
+          // If still under or equal to limit, no need to remove old
+          assignmentCount(combined.length);
+          return combined;
+        }
+
+        // we have exceeded MAX_ASSIGNMENTS. Find the oldest by created_at:
+        let oldest = combined[0];
+        combined.forEach((a) => {
+          if (new Date(a.created_at).getTime() < new Date(oldest.created_at).getTime()) {
+            oldest = a;
+          }
+        });
+
+        // Filter out exactly one oldest assignment:
+        const filtered = combined.filter((a) => a.id !== oldest.id);
+
+        // Inform parent of the new count:
+        assignmentCount(filtered.length);
+        return filtered;
       });
-    }
-  },
-  [api, onNewAssignment]
-);
+
+      onNewAssignment?.(newAssignment);
+
+      if (newAssignment.chapter_id) {
+        const chapter = await api.getChapterById(newAssignment.chapter_id);
+        if (chapter) {
+          setLessonChapterMap((prev) => ({
+            ...prev,
+            [newAssignment.lesson_id]: chapter,
+          }));
+        }
+      }
+
+      setAssignmentLessonCourseMap((prev) => {
+        if (newAssignment.course_id) {
+          return {
+            ...prev,
+            [newAssignment.lesson_id]: { course_id: newAssignment.course_id },
+          };
+        }
+        return prev;
+      });
+
+      const lesson = await api.getLesson(newAssignment.lesson_id);
+      if (lesson) {
+        setLessons((prev) => {
+          if (prev.some((l) => l.id === lesson.id)) {
+            return prev;
+          }
+          return [...prev, lesson];
+        });
+      }
+    },
+    [api, assignmentCount, onNewAssignment]
+  );
 
 useEffect(() => {
   const student = Util.getCurrentStudent();
