@@ -41,14 +41,14 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const filterConfigs = [
-    { key: "Partner", label: "Select Partner" },
-    { key: "Program Manager", label: "Select Program Manager" },
-    { key: "Program Type", label: "Select Program Type" },
-    { key: "state", label: "Select State" },
-    { key: "district", label: "Select District" },
-    { key: "block", label: "Select Block" },
-    { key: "village", label: "Select Village" },
-    { key: "cluster", label: "Select Cluster" },
+    { key: "Partner", label: t("Select Partner") },
+    { key: "Program Manager", label: t("Select Program Manager" )},
+    { key: "Program Type", label: t("Select Program Type") },
+    { key: "state", label: t("Select State") },
+    { key: "district", label: t("Select District") },
+    { key: "block", label: t("Select Block") },
+    { key: "village", label: t("Select Village") },
+    { key: "cluster", label: t("Select Cluster") },
   ];
 
   return (
