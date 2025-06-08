@@ -2,7 +2,7 @@ import { Capacitor } from "@capacitor/core";
 import Auth from "../models/auth";
 import { Database } from "../services/database";
 import { RoleType } from "../interface/modelInterfaces";
-import SelectIconImage from '../teachers-module/assets/icons/all_subject_icon.png'
+import SelectIconImage from "../teachers-module/assets/icons/all_subject_icon.png";
 
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = "sl-en",
@@ -70,7 +70,7 @@ export enum SL_GRADES {
   GRADE2 = "Grade 2",
 }
 
-export enum PROGRAM_TAB{
+export enum PROGRAM_TAB {
   ALL = "all",
   AT_SCHOOL = "at_school",
   AT_HOME = "at_home",
@@ -92,7 +92,6 @@ export enum MODEL {
   AT_HOME = "AT_HOME",
   HYBRID = "HYBRID",
 }
-
 
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
@@ -458,6 +457,7 @@ export enum PAGES {
   ADMIN_RESOURCES = "/resourses",
   NEW_PROGRAM = "/new-program",
   SCHOOL_LIST = "/school-list",
+  SCHOOL_DETAILS = "/school-details",
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -850,10 +850,10 @@ export const ALL_SUBJECT = {
   subjectDetail: "All Grades",
 };
 export const CAN_ACCESS_REMOTE_ASSETS = "can_access_remote_assets";
-export const LEARNING_PATH_ASSETS= "learning_path_assets";
-export const CHIMPLE_ENGLISH = "63e40488-3c1a-47ab-aa8a-6f07ad21709f"
-export const CHIMPLE_MATHS = "9d2474bd-b9c6-43ea-8415-242668807ba0"
-export const CHIMPLE_DIGITAL_SKILLS = "19bb079f-bc69-44e4-bc1d-0b77f2683b6c"
-export const CHIMPLE_HINDI = "7e9d65fa-ac2e-452e-bca4-1499d5c174e0"
-export const GRADE1_KANNADA = "a90608de-4376-4baf-82c2-07760b2aa899"
-export const GRADE1_MARATHI = "2cada0d1-db3d-4da0-8ade-e9ba282a3558"
+export const LEARNING_PATH_ASSETS = "learning_path_assets";
+export const CHIMPLE_ENGLISH = "63e40488-3c1a-47ab-aa8a-6f07ad21709f";
+export const CHIMPLE_MATHS = "9d2474bd-b9c6-43ea-8415-242668807ba0";
+export const CHIMPLE_DIGITAL_SKILLS = "19bb079f-bc69-44e4-bc1d-0b77f2683b6c";
+export const CHIMPLE_HINDI = "7e9d65fa-ac2e-452e-bca4-1499d5c174e0";
+export const GRADE1_KANNADA = "a90608de-4376-4baf-82c2-07760b2aa899";
+export const GRADE1_MARATHI = "2cada0d1-db3d-4da0-8ade-e9ba282a3558";
