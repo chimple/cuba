@@ -4819,7 +4819,7 @@ order by
     return await this._serverApi.insertProgram(payload);
   }
 
-  async getProgramManagers(): Promise<string[]> {
+  async getProgramManagers(): Promise<{ name: string; id: string }[]> {
     return await this._serverApi.getProgramManagers();
   }
 
