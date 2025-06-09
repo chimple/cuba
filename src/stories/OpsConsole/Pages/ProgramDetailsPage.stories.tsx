@@ -9,7 +9,7 @@ import { MemoryRouter, Route } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
 import i18n from 'i18next';
 
-// Initialize i18n for story
+
 i18n.init({
   lng: 'en',
   fallbackLng: 'en',
@@ -17,34 +17,35 @@ i18n.init({
   interpolation: { escapeValue: false },
 });
 
-// Mock the service layer
 ServiceConfig.getI = () =>
   ({
     apiHandler: {
       getProgramData: async (programId: string) => ({
         programDetails: [
           { label: 'Program Name', value: 'Sample Program A' },
+          { label: 'Program Type  ', value: 'Govt' },
           { label: 'Start Date', value: '2023-01-01' },
+          { label: 'Program Model', value: 'At Home' },
           { label: 'End Date', value: '2023-12-31' },
         ],
         locationDetails: [
+          { label: 'Country', value: 'India' },
           { label: 'State', value: 'Karnataka' },
           { label: 'District', value: 'Bangalore Urban' },
+          { label: 'Block', value: 'Koramangala' },
+          { label: 'Cluster', value: 'Cluster A' },
+          { label: 'Village', value: 'Village' },
         ],
         partnerDetails: [
-          { label: 'Partner Name', value: 'Partner X' },
-          { label: 'Contact', value: 'contact@partnerx.org' },
+          { label: 'Implementation Partner', value: 'Sutara' },
+          { label: 'Funding Partner', value: 'Chimple' },
+          { label: 'Institute Partner', value: 'XYZ' },
         ],
         programManagers: [
           {
-            name: 'Alice Johnson',
+            name: 'XYZ',
             role: 'Program Manager',
-            phone: '+91-9876543210',
-          },
-          {
-            name: 'Bob Williams',
-            role: 'Field Coordinator',
-            phone: '+91-9123456789',
+            phone: '9876543210',
           },
         ],
       }),
@@ -77,3 +78,4 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Page: Story = {};
+

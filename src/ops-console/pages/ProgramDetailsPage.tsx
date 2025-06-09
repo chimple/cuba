@@ -7,6 +7,7 @@ import Breadcrumb from "../components/Breadcrumb";
 import ContactCard from "../components/ContactCard";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
+import { PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
 
 interface RouteParams {
   programId: string;
@@ -18,6 +19,30 @@ interface ProgramData {
   partnerDetails: { label: string; value: string }[];
   programManagers: { name: string; role: string; phone: string }[];
 }
+
+const formatProgramModel = (value: string) => {
+  try {
+    const arr = JSON.parse(value.replace(/'/g, '"')) as string[];
+    return arr
+      .map((m) => PROGRAM_TAB_LABELS[m as PROGRAM_TAB])
+      .filter(Boolean)
+      .join(", ");
+  } catch {
+    return "";
+  }
+};
+
+const formatProgramDate = (value: string) => {
+  const [start, end] = value.split(/\s+/);
+  if (!start || !end) return value;
+  const formatDate = (d: string) =>
+    new Date(d).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  return `${formatDate(start)} - ${formatDate(end)}`;
+};
 
 const ProgramDetailsPage = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -32,8 +57,20 @@ const ProgramDetailsPage = () => {
     const fetchData = async () => {
       setLoading(true);
       const programData = await api.getProgramData(programId);
-      console.log("Fetched program data:", programData);
-      setData(programData);
+      if (!programData) {
+        setLoading(false);
+        return;
+      }
+
+      const updatedProgramDetails = programData.programDetails.map((item) => {
+        if (item.id === "program_model")
+          return { ...item, value: formatProgramModel(item.value) };
+        if (item.id === "program_date")
+          return { ...item, value: formatProgramDate(item.value) };
+        return item;
+      });
+
+      setData({ ...programData, programDetails: updatedProgramDetails });
       setLoading(false);
     };
 
@@ -95,7 +132,10 @@ const ProgramDetailsPage = () => {
                 children={
                   <Box className="program-detail-page-location-details-grid">
                     {data.locationDetails.map((item, idx) => (
-                      <Box key={idx} className="program-detail-page-location-details-item">
+                      <Box
+                        key={idx}
+                        className="program-detail-page-location-details-item"
+                      >
                         <Typography className="program-detail-page-location-details-label">
                           {item.label}
                         </Typography>
@@ -130,14 +170,20 @@ const ProgramDetailsPage = () => {
             <Box className="program-detail-page-column-container">
               <InfoCard title={t("Program Performance")} items={[]}>
                 <Box display="flex" justifyContent="center">
-                  <Button className="program-detail-page-full-width-button" variant="contained">
+                  <Button
+                    className="program-detail-page-full-width-button"
+                    variant="contained"
+                  >
                     {t("View Detailed Analytics")}
                   </Button>
                 </Box>
               </InfoCard>
               <InfoCard title={t("Program Statistics")} items={[]}>
                 <Box display="flex" justifyContent="center">
-                  <Button className="program-detail-page-full-width-button" variant="contained">
+                  <Button
+                    className="program-detail-page-full-width-button"
+                    variant="contained"
+                  >
                     {t("View Details")}
                   </Button>
                 </Box>
