@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Grid, Typography, Button, CircularProgress } from "@mui/material";
+import { Box, Grid, Typography, Button, CircularProgress, IconButton } from "@mui/material";
 import InfoCard from "../components/InfoCard";
 import { useHistory, useParams } from "react-router-dom";
 import "./ProgramDetailsPage.css";
@@ -8,9 +8,10 @@ import ContactCard from "../components/ContactCard";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
 import { PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
+import { BsFillBellFill } from "react-icons/bs";
 
-interface RouteParams {
-  programId: string;
+interface ProgramDetailComponentProps {
+  id: string;
 }
 
 interface ProgramData {
@@ -44,19 +45,18 @@ const formatProgramDate = (value: string) => {
   return `${formatDate(start)} - ${formatDate(end)}`;
 };
 
-const ProgramDetailsPage = () => {
+const ProgramDetailsPage : React.FC<ProgramDetailComponentProps> = ({ id })=> {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
-  const { programId } = useParams<RouteParams>();
   const [data, setData] = useState<ProgramData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!programId) return;
+    if (!id) return;
 
     const fetchData = async () => {
       setLoading(true);
-      const programData = await api.getProgramData(programId);
+      const programData = await api.getProgramData(id);
       if (!programData) {
         setLoading(false);
         return;
@@ -75,7 +75,7 @@ const ProgramDetailsPage = () => {
     };
 
     fetchData();
-  }, [programId]);
+  }, [id]);
 
   if (loading) {
     return (
@@ -102,6 +102,7 @@ const ProgramDetailsPage = () => {
     <div className="program-detail-page">
       <div className="program-detail-page-header">
         {data.programDetails.find((d) => d.label === "Program Name")?.value}
+        <IconButton sx={{color: "black"}}><BsFillBellFill/></IconButton>
       </div>
       <Box className="program-detail-page-padding">
         <Breadcrumb

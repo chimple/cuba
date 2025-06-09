@@ -9,6 +9,8 @@ import "./SidebarPage.css";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import ProgramsPage from "./ProgramPage";
 import SchoolList from "./SchoolList";
+import SchoolDetailsPage from "./SchoolDetailsPage";
+import ProgramDetailsPage from "./ProgramDetailsPage";
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
@@ -36,30 +38,52 @@ const SidebarPage: React.FC = () => {
 
   return (
     <IonPage>
-        <div className="sidebarpage-rightSide">
-          <Sidebar
-            name={currentUser?.name || ""}
-            email={currentUser?.email || ""}
-            photo={currentUser?.image || ""}
-          />
-          <div className="sidebarpage-render">
-            <Switch>
-                
-                 <ProtectedRoute exact path={path}>
-                  <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
-                </ProtectedRoute>
-                {/* <ProtectedRoute path={`${path}${PAGES.ADMIN_DASHBOARD}`} exact={true}>
-                  <Dashboard />
-              </ProtectedRoute> */}
-               <ProtectedRoute path={`${path}${PAGES.PROGRAM_PAGE}`} exact={true}>
-                  <ProgramsPage/>
-              </ProtectedRoute>
-               <ProtectedRoute path={`${path}${PAGES.SCHOOL_LIST}`} exact={true}>
-                  <SchoolList/>
-              </ProtectedRoute>
-            </Switch>
-          </div>
+      <div className="sidebarpage-rightSide">
+        <Sidebar
+          name={currentUser?.name || ""}
+          email={currentUser?.email || ""}
+          photo={currentUser?.image || ""}
+        />
+        <div className="sidebarpage-render">
+          <Switch>
+            <ProtectedRoute exact path={path}>
+              <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
+            </ProtectedRoute>
+            {/* <ProtectedRoute
+              path={`${path}${PAGES.ADMIN_DASHBOARD}`}
+              exact={true}
+            >
+              <Dashboard />
+            </ProtectedRoute> */}
+            <ProtectedRoute path={`${path}${PAGES.PROGRAM_PAGE}`} exact={true}>
+              <ProgramsPage />
+            </ProtectedRoute>
+            <ProtectedRoute path={`${path}${PAGES.SCHOOL_LIST}`} exact={true}>
+              <SchoolList />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/:school_id`}
+              exact={true}
+            >
+              {(routeProps) => {
+                return (
+                  <SchoolDetailsPage id={routeProps.match.params.school_id} />
+                );
+              }}
+            </ProtectedRoute>
+             <ProtectedRoute
+              path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/:program_id`}
+              exact={true}
+            >
+              {(routeProps) => {
+                return (
+                  <ProgramDetailsPage id={routeProps.match.params.program_id} />
+                );
+              }}
+            </ProtectedRoute>
+          </Switch>
         </div>
+      </div>
     </IonPage>
   );
 };

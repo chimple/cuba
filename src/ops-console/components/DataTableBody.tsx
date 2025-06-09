@@ -4,6 +4,7 @@ import {
     TableHead, TableRow, TableSortLabel
 } from '@mui/material';
 import { useHistory } from "react-router";
+import { PAGES } from '../../common/constants';
 export interface Column<T> {
   key: keyof T;
   label: string;
@@ -44,9 +45,10 @@ const DataTableBody: React.FC<Props> = ({
       return;
     }
 
-    if (detailPageRouteBase) {
-      // console.log(`Navigate to /${detailPageRouteBase}/${id}`);
-      history.push(`/programs/${row.id}`);
+    if (detailPageRouteBase === 'programs') {      
+      history.push(
+        `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/${row["id"]}`
+      );
     } else {
       console.log("Row clicked:", id, row);
     }
