@@ -500,12 +500,6 @@ export enum ProgramType {
   LearningCenter = "learning_centers",
 }
 
-export enum ProgramModel {
-  AtSchool = "at_school",
-  AtHome = "at_home",
-  Hybrid = "hybrid"
-}
-
 export interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;

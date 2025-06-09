@@ -5,7 +5,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import dayjs, { Dayjs } from 'dayjs';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { useHistory } from 'react-router-dom';
-import { PAGES, ProgramModel, ProgramType } from '../../common/constants';
+import { PAGES, PROGRAM_TAB, ProgramType , PROGRAM_TAB_LABELS} from '../../common/constants';
 import { t } from 'i18next';
 
 const NewProgram: React.FC = () => {
@@ -276,7 +276,9 @@ const NewProgram: React.FC = () => {
               </Typography>
               <FormControl error={!!errors['model']}>
                 <Box display="flex" flexDirection="row" gap={3}>
-                  {Object.entries(ProgramModel).map(([label, value]) => (
+                 {Object.entries(PROGRAM_TAB)
+                  .slice(1)
+                  .map(([labelKey, value]) => (
                     <FormControlLabel
                       key={value}
                       control={
@@ -285,9 +287,9 @@ const NewProgram: React.FC = () => {
                           onChange={() => handleModelToggle(value)}
                         />
                       }
-                      label={t(label.replace(/([A-Z])/g, ' $1').trim())}
+                      label={PROGRAM_TAB_LABELS[value as PROGRAM_TAB]}
                     />
-                  ))}
+                ))}
                 </Box>
                 {errors['model'] && (
                   <FormHelperText>{errors['model']}</FormHelperText>
