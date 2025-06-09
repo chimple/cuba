@@ -49,9 +49,25 @@
   padding-bottom: 20px;
 }
 
-.selected-filters-container{
+.selected-filters-container {
   width: 100%;
   display: flex;
   align-items: start;
   padding-bottom: 10px;
+}
+.upload-text {
+  font-weight: bolder;
+  color: #121619;
+  padding-left: 5vh;
+  padding-top: 3vh;
+  font-size: large;
+}
+.file-upload-conatainer {
+  color: #121619;
+  width: 23vh;
+  height: 10vh;
+  border: 2px;
+  /* background-color: coral; */
+  box-shadow: 3px 3px 5px 0px #c9d5d9;
+  border-radius: 23px;
 }

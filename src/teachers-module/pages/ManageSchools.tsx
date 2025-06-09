@@ -18,7 +18,9 @@ interface SchoolWithRole {
 }
 
 const ManageSchools: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(null);
+  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
+    null
+  );
   const [allSchools, setAllSchools] = useState<SchoolWithRole[]>([]);
   const [searchQuery, setSearchQuery] = useState(""); // State for search query
   const [filteredSchools, setFilteredSchools] = useState<SchoolWithRole[]>([]); // State for filtered schools
@@ -37,9 +39,12 @@ const ManageSchools: React.FC = () => {
 
       // isManagerOrDirector will be true if user is PROGRAM_MANAGER or OPERATIONAL_DIRECTOR or FIELD_COORDINATOR
       if (school) {
-        isManagerOrDirector = await api.checkUserIsManagerOrDirector(school.id, user.id);
+        isManagerOrDirector = await api.checkUserIsManagerOrDirector(
+          school.id,
+          user.id
+        );
       }
-      
+
       const fetchedSchools = await api.getSchoolsForUser(user.id);
       console.log("all schools..", fetchedSchools);
 
@@ -81,13 +86,13 @@ const ManageSchools: React.FC = () => {
         <DetailList data={filteredSchools} type={IconType.SCHOOL} />
       </div>
 
-      {isManagerOrDirector && (
+      {/* {isManagerOrDirector && (
         <UploadButton
           onClick={() => {
             history.replace(PAGES.UPLOAD_PAGE);
           }}
         />
-      )}
+      )} */}
 
       {/* <AddButton
         onClick={() => {
