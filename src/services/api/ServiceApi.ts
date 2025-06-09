@@ -1497,7 +1497,7 @@ export interface ServiceApi {
   /**
    * Get all program managers
    */
-  getProgramManagers(): Promise<string[]>;
+  getProgramManagers(): Promise<{ name: string; id: string }[]>;
 
   /**
    * Get unique geo data

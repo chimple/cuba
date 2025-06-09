@@ -14,7 +14,7 @@ const NewProgram: React.FC = () => {
   const [locations, setLocations] = useState({ Country: '', State: '', District: '', Block: '', Cluster: '', });
   const [programType, setProgramType] = useState<ProgramType | ''>('');
   const [models, setModels] = useState<string[]>([]);
-  const [programManagers, setProgramManagers] = useState<string[]>([]);
+  const [programManagers, setProgramManagers] = useState<{ name: string; id: string }[]>([]);
   const [selectedManagers, setSelectedManagers] = useState<string[]>([]);
   const [geoData, setGeoData] = useState<{ Country: string[]; State: string[]; District: string[]; Block: string[]; Cluster: string[]; }>({ Country: [], State: [], District: [], Block: [], Cluster: [], });
   const [stats, setStats] = useState({ institutes: '', students: '', devices: '', });
@@ -302,19 +302,26 @@ const NewProgram: React.FC = () => {
                 <Typography variant="subtitle1" fontWeight="medium" mb={1}>
                   {t('Program Manager')}
                 </Typography>
-                <FormControl fullWidth error={!!errors['programManager']} >
+                <FormControl fullWidth error={!!errors['programManager']}>
                   <Select
                     multiple
                     value={selectedManagers}
                     onChange={(e) => setSelectedManagers(e.target.value as string[])}
-                    renderValue={(selected) => (selected as string[]).join(', ')}
+                    renderValue={(selected) => {
+                      const selectedNames = programManagers
+                        .filter(pm => (selected as string[]).includes(pm.id))
+                        .map(pm => pm.name);
+                      return selectedNames.join(', ');
+                    }}
                     sx={{ borderRadius: '12px' }}
                   >
-                    <MenuItem value="" disabled>{t('Select')}</MenuItem>
-                    {programManagers.map((name, idx) => (
-                      <MenuItem key={idx} value={name}>
-                        <Checkbox checked={selectedManagers.includes(name)} />
-                        <ListItemText primary={name} />
+                    <MenuItem value="" disabled>
+                      {t('Select')}
+                    </MenuItem>
+                    {programManagers.map((manager) => (
+                      <MenuItem key={manager.id} value={manager.id}>
+                        <Checkbox checked={selectedManagers.includes(manager.id)} />
+                        <ListItemText primary={manager.name} />
                       </MenuItem>
                     ))}
                   </Select>
