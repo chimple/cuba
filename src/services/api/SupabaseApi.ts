@@ -5575,7 +5575,7 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  async getProgramManagers(): Promise<string[]> {
+  async getProgramManagers(): Promise<{ name: string; id: string }[]> {
     if (!this.supabase) {
       console.error("Supabase client is not initialized.");
       return [];
@@ -5588,9 +5588,9 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
 
-    const names = data?.map((manager: { name: string }) => manager.name) || [];
-    return names;
+    return (data as { name: string; id: string }[]) || [];
   }
+
 
   async getUniqueGeoData(): Promise<{
     Country: string[];
@@ -5632,16 +5632,9 @@ export class SupabaseApi implements ServiceApi {
         return false;
       }
 
-      const model =
-        payload.models.length > 1
-          ? "HYBRID"
-          : payload.models.length === 1
-            ? payload.models[0]
-            : "";
-
       const record: any = {
         name: payload.programName,
-        model,
+        model: payload.models,
 
         implementation_partner: payload.partners.implementation,
         funding_partner: payload.partners.funding,
@@ -5661,19 +5654,39 @@ export class SupabaseApi implements ServiceApi {
         start_date: payload.startDate,
         end_date: payload.endDate,
 
-        program_manager: payload.selectedManagers,
-
         is_deleted: false,
         is_ops: true,
-        school_id: null,
       };
 
+      // Step 1: Insert the program
       const { data, error } = await this.supabase
         .from(TABLES.Program)
-        .insert(record);
+        .insert(record)
+        .select('id')
+        .single();
 
-      if (error) {
+      if (error || !data) {
         console.error("Insert error:", error);
+        return false;
+      }
+
+      const programId = data.id;
+
+      // Step 2: Insert into program_user table
+      const programUserRows = payload.selectedManagers.map((userId: string) => ({
+        program_id: programId,
+        user: userId,
+        is_deleted: false,
+        is_ops: true,
+        role: RoleType.PROGRAM_MANAGER
+      }));
+
+      const { error: programUserError } = await this.supabase
+        .from(TABLES.ProgramUser)
+        .insert(programUserRows);
+
+      if (programUserError) {
+        console.error("Error inserting program users:", programUserError);
         return false;
       }
 

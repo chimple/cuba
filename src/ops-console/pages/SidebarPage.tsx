@@ -3,7 +3,13 @@ import { PAGES, TableTypes } from "../../common/constants";
 import { IonPage } from "@ionic/react";
 import Sidebar from "../components/Sidebar";
 import Dashboard from "../components/Dashboard";
-import { BrowserRouter as Router, Switch, useRouteMatch, Route, Redirect} from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Switch,
+  useRouteMatch,
+  Route,
+  Redirect,
+} from "react-router-dom";
 import ProtectedRoute from "../../ProtectedRoute";
 import "./SidebarPage.css";
 import { ServiceConfig } from "../../services/ServiceConfig";
@@ -12,10 +18,13 @@ import SchoolList from "./SchoolList";
 import SchoolDetailsPage from "./SchoolDetailsPage";
 import ProgramDetailsPage from "./ProgramDetailsPage";
 
+
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
-  
-  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(null);
+
+  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
+    null
+  );
 
   useEffect(() => {
     fetchData();
@@ -28,9 +37,8 @@ const SidebarPage: React.FC = () => {
         console.error("No user is logged in.");
         return;
       }
-      
-      setCurrentUser(user);
 
+      setCurrentUser(user);
     } catch (error) {
       console.error("Error fetching user data:", error);
     }

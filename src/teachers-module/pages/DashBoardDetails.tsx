@@ -41,10 +41,10 @@ const DashBoardDetails: React.FC<DashBoardDetailsProps> = ({}) => {
                 ? t("Doing Good")
                 : t("Not Tracked")}
           <span style={{ marginLeft: "10px" }}>
-            {studentsProgress.length} / {studentLength}
+            {studentsProgress?.length} / {studentLength}
           </span>
         </div>
-        {studentsProgress.map((stdpr) => (
+        {studentsProgress?.map((stdpr) => (
           <DashBoardStudentProgres studentProgress={stdpr} />
         ))}
       </main>

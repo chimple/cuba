@@ -78,11 +78,11 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
       <Divider sx={{ mb: 3 }} />
 
       <Stack className="filter-content-FilterSlider">
-        {Object.entries(filterOptions).map(([key, options]) => (
+        {filterConfigs.map(({ key, label }) => (
           <Autocomplete
             key={key}
             multiple
-            options={options}
+            options={filterOptions[key] || []}
             disableCloseOnSelect
             getOptionLabel={(option) => option}
             value={filters[key] ?? []}
@@ -97,9 +97,7 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
             renderInput={(params) => (
               <TextField
                 {...params}
-                label={key
-                  .replace(/([A-Z])/g, " $1")
-                  .replace(/^./, (str) => str.toUpperCase())}
+                label={label}
                 placeholder={t("Search {{key}}...", { key }) ?? ""}
                 variant="outlined"
               />

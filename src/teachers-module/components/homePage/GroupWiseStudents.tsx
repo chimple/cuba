@@ -33,11 +33,11 @@ const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
               ? t("Doing Good")
               : t("Not Tracked")}
         <span style={{ marginLeft: "10px" }}>
-          {studentsProgress.length} / {studentLength}
+          {studentsProgress?.length} / {studentLength}
         </span>
       </div>
       <div className="group-wise-content">
-        {studentsProgress.map((stdpr) => {
+        {studentsProgress?.map((stdpr) => {
           const student = stdpr.get("student") as TableTypes<"user">;
           return (
             <div className="student-avatar-container" key={student.id}>
