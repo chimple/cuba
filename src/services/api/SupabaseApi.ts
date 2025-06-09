@@ -5632,16 +5632,9 @@ export class SupabaseApi implements ServiceApi {
         return false;
       }
 
-      const model =
-        payload.models.length > 1
-          ? "HYBRID"
-          : payload.models.length === 1
-            ? payload.models[0]
-            : "";
-
       const record: any = {
         name: payload.programName,
-        model,
+        model: payload.models,
 
         implementation_partner: payload.partners.implementation,
         funding_partner: payload.partners.funding,
@@ -5665,7 +5658,6 @@ export class SupabaseApi implements ServiceApi {
 
         is_deleted: false,
         is_ops: true,
-        school_id: null,
       };
 
       const { data, error } = await this.supabase
