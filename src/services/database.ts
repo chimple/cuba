@@ -2214,6 +2214,7 @@ export type Database = {
       get_filtered_schools: {
         Args: { filters: Json }
         Returns: {
+          sch_id: string
           school_name: string
           num_students: number
           num_teachers: number

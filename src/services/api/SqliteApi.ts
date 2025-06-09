@@ -4892,10 +4892,10 @@ order by
   async getProgramData(
     programId: string
   ): Promise<{
-    programDetails: { label: string; value: string }[];
-    locationDetails: { label: string; value: string }[];
-    partnerDetails: { label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
+    programDetails: { id:string; label: string; value: string }[];
+    locationDetails: {id:string;  label: string; value: string }[];
+    partnerDetails: {id:string; label: string; value: string }[];
+    programManagers: {name: string; role: string; phone: string }[];
   } | null> {
     return await this._serverApi.getProgramData(programId);
   }
@@ -5255,5 +5255,9 @@ async getStudentInfoBySchoolId(schoolId: string): Promise<
     }
 
     return newStudent;
+  }
+  
+  async isProgramUser(): Promise<boolean> {
+      return await this._serverApi.isProgramUser();
   }
 }

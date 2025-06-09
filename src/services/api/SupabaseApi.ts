@@ -300,7 +300,7 @@ export class SupabaseApi implements ServiceApi {
             .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-          []
+        []
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -5990,100 +5990,110 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  async getProgramData(programId: string): Promise<{
-    programDetails: { label: string; value: string }[];
-    locationDetails: { label: string; value: string }[];
-    partnerDetails: { label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
-  } | null> {
-    if (!this.supabase) {
-      console.error("Supabase client not initialized.");
-      return null;
-    }
-
-    try {
-      // 1. Fetch program record
-      const { data: program, error: programError } = await this.supabase
-        .from("program")
-        .select("*")
-        .eq("id", programId)
-        .single();
-
-      if (programError || !program) {
-        console.error("Error fetching program:", programError);
-        return null;
-      }
-
-      // 2. Fetch managers from user_programs
-      const { data: mappings, error: mappingsError } = await this.supabase
-        .from("program_user")
-        .select("user")
-        .eq("program_id", programId)
-        .eq("role", "program_manager");
-
-      if (mappingsError) {
-        console.error("Error fetching program managers:", mappingsError);
-        return null;
-      }
-
-      const userIds = mappings.map((m) => m.user);
-      // 3. Fetch user details
-      const { data: users, error: usersError } = await this.supabase
-        .from("user")
-        .select("id, name, phone")
-        .in("id", userIds);
-      if (usersError) {
-        console.error("Error fetching user details:", usersError);
-        return null;
-      }
-
-      // 4. Format the response
-      const programDetails = [
-        { label: "Program Name", value: program.name },
-        { label: "Program Type", value: program.program_type },
-        { label: "Program Model", value: program.model },
-        {
-          label: "Program Date",
-          value: `${program.start_date}  ${program.end_date}`,
-        },
-      ];
-
-      const locationDetails = [
-        { label: "Country", value: program.country },
-        { label: "State", value: program.state },
-        { label: "District", value: program.district },
-        { label: "Cluster", value: program.cluster },
-        { label: "Block", value: program.block },
-        { label: "Village", value: program.village },
-      ];
-
-      const partnerDetails = [
-        {
-          label: "Implementation Partner",
-          value: program.implementation_partner,
-        },
-        { label: "Funding Partner", value: program.funding_partner },
-        { label: "Institute Owner", value: program.institute_partner },
-      ];
-
-      const programManagers = users.map((user) => ({
-        name: user.name || null,
-        role: "Program Manager",
-        phone: user.phone,
-      }));
-
-      // return {
-      //   programDetails,
-      //   locationDetails,
-      //   partnerDetails,
-      //   programManagers,
-      // };
-      return null;
-    } catch (err) {
-      console.error("Unexpected error in getProgramData:", err);
-      return null;
-    }
+ async getProgramData(programId: string): Promise<{
+  programDetails: { id: string; label: string; value: string }[];
+  locationDetails: { id: string; label: string; value: string }[];
+  partnerDetails: { id: string; label: string; value: string }[];
+  programManagers: {name: string; role: string; phone: string }[];
+} | null> {
+  if (!this.supabase) {
+    console.error("Supabase client not initialized.");
+    return null;
   }
+
+  try {
+    const { data: program, error: programError } = await this.supabase
+      .from("program")
+      .select("*")
+      .eq("id", programId)
+      .single();
+
+    if (programError || !program) {
+      console.error("Error fetching program:", programError);
+      return null;
+    }
+
+    const { data: mappings, error: mappingsError } = await this.supabase
+      .from("program_user")
+      .select("user")
+      .eq("program_id", programId)
+      .eq("role", "program_manager");
+
+    if (mappingsError) {
+      console.error("Error fetching program managers:", mappingsError);
+      return null;
+    }
+
+    const userIds = mappings.map((m) => m.user);
+
+    const { data: users, error: usersError } = await this.supabase
+      .from("user")
+      .select("id, name, phone")
+      .in("id", userIds);
+    if (usersError) {
+      console.error("Error fetching user details:", usersError);
+      return null;
+    }
+
+    const programDetails = [
+      { id: "program_name", label: "Program Name", value: program.name ?? "" },
+      { id: "program_type", label: "Program Type", value: program.program_type ?? "" },
+      {
+        id: "program_model",
+        label: "Program Model",
+        value: Array.isArray(program.model) ? program.model.join(", ") : program.model ?? "",
+      },
+      {
+        id: "program_date",
+        label: "Program Date",
+        value: `${program.start_date ?? ""}  ${program.end_date ?? ""}`,
+      },
+    ];
+
+    const locationDetails = [
+      { id: "country", label: "Country", value: program.country ?? "" },
+      { id: "state", label: "State", value: program.state ?? "" },
+      { id: "district", label: "District", value: program.district ?? "" },
+      { id: "cluster", label: "Cluster", value: program.cluster ?? "" },
+      { id: "block", label: "Block", value: program.block ?? "" },
+      { id: "village", label: "Village", value: program.village ?? "" },
+    ];
+
+    const partnerDetails = [
+      {
+        id: "implementation_partner",
+        label: "Implementation Partner",
+        value: program.implementation_partner ?? "",
+      },
+      {
+        id: "funding_partner",
+        label: "Funding Partner",
+        value: program.funding_partner ?? "",
+      },
+      {
+        id: "institute_owner",
+        label: "Institute Owner",
+        value: program.institute_partner ?? "",
+      },
+    ];
+
+    const programManagers = users.map((user) => ({
+      name: user.name ?? "",
+      role: "Program Manager",
+      phone: user.phone ?? "",
+    }));
+
+    return {
+      programDetails,
+      locationDetails,
+      partnerDetails,
+      programManagers,
+    };
+  } catch (err) {
+    console.error("Unexpected error in getProgramData:", err);
+    return null;
+  }
+}
   async getSchoolFilterOptionsForSchoolListing(): Promise<
     Record<string, string[]>
   > {
@@ -6133,7 +6143,6 @@ export class SupabaseApi implements ServiceApi {
       const { data, error } = await this.supabase.rpc("get_filtered_schools", {
         filters,
       });
-
       if (error) {
         console.error("RPC error in getFilteredSchools:", error);
         return [];
@@ -6271,5 +6280,31 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return newStudent;
+  }
+
+  async isProgramUser(): Promise<boolean> {
+     if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return false;
+    }
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw new Error("User is not Logged in");
+
+    const userId = _currentUser.id;
+
+    const { data, error } = await this.supabase
+      .from('program_user')
+      .select('id')
+      .eq('user', userId)
+      .in('role', ['program_manager', 'field_coordinator'])
+      .limit(1);
+
+    if (error) {
+      console.error('Error checking program_user table', error);
+      return false;
+    }
+
+    return !!(data && data.length > 0);
   }
 }
