@@ -5,7 +5,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import dayjs, { Dayjs } from 'dayjs';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { useHistory } from 'react-router-dom';
-import { PAGES, ProgramType } from '../../common/constants';
+import { PAGES, PROGRAM_TAB, ProgramType , PROGRAM_TAB_LABELS} from '../../common/constants';
 import { t } from 'i18next';
 
 const NewProgram: React.FC = () => {
@@ -154,7 +154,7 @@ const NewProgram: React.FC = () => {
            {t('New Program')}
           </Typography>
           <Box display="flex" alignItems="center" mb={3}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" onClick={() => history.replace(PAGES.PROGRAM_PAGE)}>
               {t('Programs')}   
             </Typography>
             <ChevronRightIcon
@@ -258,10 +258,10 @@ const NewProgram: React.FC = () => {
                     sx={{ borderRadius: '12px' }}
                     >
                     <MenuItem value="" disabled>{t('Select')}</MenuItem>
-                    {Object.values(ProgramType).map((type) => (
-                        <MenuItem key={type} value={type}>
-                        {t(`${type}`)}
-                        </MenuItem>
+                    {Object.entries(ProgramType).map(([label, value]) => (
+                      <MenuItem key={value} value={value}>
+                        {t(label.replace(/([A-Z])/g, ' $1').trim())}
+                      </MenuItem>
                     ))}
                     </Select>
                     {errors['programType'] && (
@@ -270,34 +270,30 @@ const NewProgram: React.FC = () => {
                 </FormControl>
             </Grid>
 
-            <Grid item xs={12}>
+           <Grid item xs={12}>
               <Typography variant="subtitle1" fontWeight="medium" mb={1}>
                 {t('Model')}
               </Typography>
               <FormControl error={!!errors['model']}>
                 <Box display="flex" flexDirection="row" gap={3}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={models.includes('At School')}
-                        onChange={() => handleModelToggle('At School')}
-                      />
-                    }
-                    label={t("At School")}
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={models.includes('At Home')}
-                        onChange={() => handleModelToggle('At Home')}
-                      />
-                    }
-                    label={t("At Home")}
-                  />
-                  {errors['model'] && (
-                    <FormHelperText>{errors['model']}</FormHelperText>
-                  )}
+                 {Object.entries(PROGRAM_TAB)
+                  .slice(1)
+                  .map(([labelKey, value]) => (
+                    <FormControlLabel
+                      key={value}
+                      control={
+                        <Checkbox
+                          checked={models.includes(value)}
+                          onChange={() => handleModelToggle(value)}
+                        />
+                      }
+                      label={PROGRAM_TAB_LABELS[value as PROGRAM_TAB]}
+                    />
+                ))}
                 </Box>
+                {errors['model'] && (
+                  <FormHelperText>{errors['model']}</FormHelperText>
+                )}
               </FormControl>
             </Grid>
 

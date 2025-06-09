@@ -495,9 +495,9 @@ export enum NavItems {
 }
 
 export enum ProgramType {
-  Govt = "Govt",
-  Private = "Private",
-  LearningCenter = "Learning Center",
+  Govt = "govt",
+  Private = "private",
+  LearningCenter = "learning_centers",
 }
 
 export interface SchoolWithRole {
