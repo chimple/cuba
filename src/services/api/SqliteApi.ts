@@ -476,7 +476,6 @@ export class SqliteApi implements ServiceApi {
       mutateType,
       JSON.stringify(data),
     ];
-    console.log("🚀 ~ Api ~ variables:", stmt, variables);
     await this.executeQuery(stmt, variables);
     return await this.syncDbNow([tableName]);
   }
@@ -964,10 +963,6 @@ export class SqliteApi implements ServiceApi {
     selectedCourseIds: string[]
   ): Promise<void> {
     const currentDate = new Date().toISOString();
-    console.log(
-      "check how many lessons we are getting in api",
-      selectedCourseIds
-    );
 
     for (const courseId of selectedCourseIds) {
       // Check if the course is already assigned to the school
@@ -1424,7 +1419,6 @@ export class SqliteApi implements ServiceApi {
     WHERE id = "${userId}";
   `;
     const res = await this.executeQuery(query);
-    console.log("🚀 ~ SqliteApi ~ updateSoundFlag ~ res:", res);
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       sfx_off: value ? 1 : 0,
       id: userId,
@@ -1748,7 +1742,6 @@ export class SqliteApi implements ServiceApi {
         resultId = uuidv4(); // now this won't throw error
       }
     }
-    console.log("🚀 ~ SqliteApi ~ id:", studentId);
     const newResult: TableTypes<"result"> = {
       id: resultId,
       assignment_id: assignmentId ?? null,
@@ -4819,7 +4812,7 @@ order by
     return await this._serverApi.insertProgram(payload);
   }
 
-  async getProgramManagers(): Promise<string[]> {
+  async getProgramManagers(): Promise<{ name: string; id: string }[]> {
     return await this._serverApi.getProgramManagers();
   }
 
@@ -4892,10 +4885,10 @@ order by
   async getProgramData(
     programId: string
   ): Promise<{
-    programDetails: { label: string; value: string }[];
-    locationDetails: { label: string; value: string }[];
-    partnerDetails: { label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
+    programDetails: { id:string; label: string; value: string }[];
+    locationDetails: {id:string;  label: string; value: string }[];
+    partnerDetails: {id:string; label: string; value: string }[];
+    programManagers: {name: string; role: string; phone: string }[];
   } | null> {
     return await this._serverApi.getProgramData(programId);
   }
@@ -5255,5 +5248,9 @@ async getStudentInfoBySchoolId(schoolId: string): Promise<
     }
 
     return newStudent;
+  }
+  
+  async isProgramUser(): Promise<boolean> {
+      return await this._serverApi.isProgramUser();
   }
 }

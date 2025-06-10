@@ -1,10 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Tabs, Tab, Box, Typography } from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import {
-  PROGRAM_TAB,
-  PROGRAM_TAB_LABELS,
-} from "../../common/constants";
+import { PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
 import "./SchoolList.css";
 import DataTablePagination from "../components/DataTablePagination";
 import { IonPage } from "@ionic/react";
@@ -14,6 +11,8 @@ import { t } from "i18next";
 import SearchAndFilter from "../components/SearchAndFilter";
 import FilterSlider from "../components/FilterSlider";
 import SelectedFilters from "../components/SelectedFilters";
+import FileUpload from "../components/FileUpload";
+import UploadButton from "../components/UploadButton";
 
 type Filters = Record<string, string[]>;
 
@@ -48,6 +47,8 @@ const SchoolList: React.FC = () => {
   const [schools, setSchools] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [showUploadPage, setShowUploadPage] = useState(false);
+  // Search and Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
@@ -60,6 +61,7 @@ const SchoolList: React.FC = () => {
     setOrderBy(key);
   };
 
+  // Fetch filter options
   useEffect(() => {
     const fetchFilterOptions = async () => {
       setIsLoading(true);
@@ -101,13 +103,17 @@ const SchoolList: React.FC = () => {
         )
       );
 
-      const filteredSchools = await api.getFilteredSchoolsForSchoolListing(cleanedFilters);
+      const filteredSchools =
+        await api.getFilteredSchoolsForSchoolListing(cleanedFilters);
       const enrichedSchools = filteredSchools.map((school: any) => ({
         ...school,
+        id: school.sch_id,
         students: school.num_students || 0,
         teachers: school.num_teachers || 0,
-        programManagers: school.program_managers?.join(", ") || t("not assigned yet"),
-        fieldCoordinators: school.field_coordinators?.join(", ") || t("not assigned yet"),
+        programManagers:
+          school.program_managers?.join(", ") || t("not assigned yet"),
+        fieldCoordinators:
+          school.field_coordinators?.join(", ") || t("not assigned yet"),
         name: {
           value: school.school_name,
           render: (
@@ -146,7 +152,21 @@ const SchoolList: React.FC = () => {
     return filteredSchools.slice(start, start + rowsPerPage);
   }, [filteredSchools, page, rowsPerPage]);
 
- return (
+  function onCancleClick(): void {
+    setShowUploadPage(false);
+  }
+  if (showUploadPage) {
+    return (
+      <div>
+        <div className="school-list-upload-text"> {t("Upload File")}</div>
+        <div>
+          <FileUpload onCancleClick={onCancleClick} />
+        </div>
+      </div>
+    );
+  }
+
+  return (
     <IonPage className="school-list-ion-page">
       <div className="school-container">
         <div className="school-list-header">
@@ -161,27 +181,34 @@ const SchoolList: React.FC = () => {
             }}
           >
             <div style={{ flex: 1 }}>
-                 <Tabs
-              value={selectedTab}
-              onChange={(e, val) => {
-                setPage(1);
-                setSelectedTab(val);
-              }}
-              indicatorColor="primary"
-              textColor="primary"
-              variant="scrollable"
-              scrollButtons="auto"
-               className="school-list-tabs-div"
-            >
-              {tabOptions.map((tab) => (
-                <Tab
-                  key={tab.value}
-                  label={tab.label}
-                  value={tab.value}
-                  className="school-list-tab"
-                />
-              ))}
-            </Tabs>
+              <Tabs
+                value={selectedTab}
+                onChange={(e, val) => {
+                  setPage(1);
+                  setSelectedTab(val);
+                }}
+                indicatorColor="primary"
+                textColor="primary"
+                variant="scrollable"
+                scrollButtons="auto"
+                className="school-list-tabs-div"
+              >
+                {tabOptions.map((tab) => (
+                  <Tab
+                    key={tab.value}
+                    label={tab.label}
+                    value={tab.value}
+                    className="school-list-tab"
+                  />
+                ))}
+              </Tabs>
+            </div>
+            <div className="school-list-file-upload-conatainer">
+              <UploadButton
+                onClick={() => {
+                  setShowUploadPage(true);
+                }}
+              />
             </div>
             <div style={{ minWidth: 280, maxWidth: 400 }}>
               <SearchAndFilter

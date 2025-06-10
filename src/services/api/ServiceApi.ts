@@ -1497,7 +1497,7 @@ export interface ServiceApi {
   /**
    * Get all program managers
    */
-  getProgramManagers(): Promise<string[]>;
+  getProgramManagers(): Promise<{ name: string; id: string }[]>;
 
   /**
    * Get unique geo data
@@ -1592,10 +1592,10 @@ export interface ServiceApi {
    * @returns Promise resolving to program details, location, partner, and managers or null if not found.
    */
   getProgramData(programId: string): Promise<{
-    programDetails: { label: string; value: string }[];
-    locationDetails: { label: string; value: string }[];
-    partnerDetails: { label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
+    programDetails: {id:string; label: string; value: string }[];
+    locationDetails: {id:string; label: string; value: string }[];
+    partnerDetails: {id:string; label: string; value: string }[];
+    programManagers: {name: string; role: string; phone: string }[];
   } | null>;
 
   /**
@@ -1651,5 +1651,11 @@ export interface ServiceApi {
   createAutoProfile(
     languageDocId: string | undefined
   ): Promise<TableTypes<"user">>;
+
+  /**
+   * Checks if the current user is a program user.
+   * @returns {Promise<boolean>} A promise that resolves to true if the user is a program user, false otherwise.
+   */
+  isProgramUser(): Promise<boolean> 
 
 }
