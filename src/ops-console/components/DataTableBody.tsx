@@ -50,9 +50,10 @@ const DataTableBody: React.FC<Props> = ({
       return;
     }
 
-    if (detailPageRouteBase) {
-      // console.log(`Navigate to /${detailPageRouteBase}/${id}`);
-      history.push(`/programs/${row.id}`);
+    if (detailPageRouteBase === 'programs') {      
+      history.push(
+        `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/${row["id"]}`
+      );
     } else {
       history.push(
         `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/${row["sch_id"]}`

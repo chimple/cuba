@@ -16,6 +16,8 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import ProgramsPage from "./ProgramPage";
 import SchoolList from "./SchoolList";
 import SchoolDetailsPage from "./SchoolDetailsPage";
+import ProgramDetailsPage from "./ProgramDetailsPage";
+
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
@@ -74,6 +76,16 @@ const SidebarPage: React.FC = () => {
               {(routeProps) => {
                 return (
                   <SchoolDetailsPage id={routeProps.match.params.school_id} />
+                );
+              }}
+            </ProtectedRoute>
+             <ProtectedRoute
+              path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/:program_id`}
+              exact={true}
+            >
+              {(routeProps) => {
+                return (
+                  <ProgramDetailsPage id={routeProps.match.params.program_id} />
                 );
               }}
             </ProtectedRoute>

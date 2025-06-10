@@ -11,6 +11,8 @@ import { t } from "i18next";
 import SearchAndFilter from "../components/SearchAndFilter";
 import FilterSlider from "../components/FilterSlider";
 import SelectedFilters from "../components/SelectedFilters";
+import FileUpload from "../components/FileUpload";
+import UploadButton from "../components/UploadButton";
 
 type Filters = Record<string, string[]>;
 
@@ -45,6 +47,8 @@ const SchoolList: React.FC = () => {
   const [schools, setSchools] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [showUploadPage, setShowUploadPage] = useState(false);
+  // Search and Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
@@ -57,6 +61,7 @@ const SchoolList: React.FC = () => {
     setOrderBy(key);
   };
 
+  // Fetch filter options
   useEffect(() => {
     const fetchFilterOptions = async () => {
       setIsLoading(true);
@@ -147,6 +152,20 @@ const SchoolList: React.FC = () => {
     return filteredSchools.slice(start, start + rowsPerPage);
   }, [filteredSchools, page, rowsPerPage]);
 
+  function onCancleClick(): void {
+    setShowUploadPage(false);
+  }
+  if (showUploadPage) {
+    return (
+      <div>
+        <div className="school-list-upload-text"> {t("Upload File")}</div>
+        <div>
+          <FileUpload onCancleClick={onCancleClick} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <IonPage className="school-list-ion-page">
       <div className="school-container">
@@ -183,6 +202,13 @@ const SchoolList: React.FC = () => {
                   />
                 ))}
               </Tabs>
+            </div>
+            <div className="school-list-file-upload-conatainer">
+              <UploadButton
+                onClick={() => {
+                  setShowUploadPage(true);
+                }}
+              />
             </div>
             <div style={{ minWidth: 280, maxWidth: 400 }}>
               <SearchAndFilter
