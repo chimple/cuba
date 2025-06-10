@@ -50,6 +50,14 @@ const StudentReport: React.FC = () => {
     format(history.location.state!["endDate"], "yyyy-MM-dd")
   );
   let maxEndDate: string;
+  
+  const toDate = (dateStr: string | null): Date => {
+    const d = new Date(dateStr || "");
+    return isNaN(d.getTime()) ? new Date() : d;
+  };
+
+  const todayDate = new Date();
+
   useEffect(() => {
     init();
   }, []);
@@ -177,7 +185,7 @@ const StudentReport: React.FC = () => {
       </div>
       {showStartDatePicker && (
         <CalendarPicker
-          value={format(startDate ?? "", "yyyy-MM-dd")}
+          value={startDate}
           onConfirm={(date) => handleDateConfirm("start", date)}
           onCancel={() => setShowStartDatePicker(false)}
           mode="start"
@@ -186,20 +194,16 @@ const StudentReport: React.FC = () => {
       )}
       {showEndDatePicker && (
         <CalendarPicker
-          value={format(endDate ?? "", "yyyy-MM-dd")}
+          value={endDate}
           onConfirm={(date) => handleDateConfirm("end", date)}
           onCancel={() => setShowEndDatePicker(false)}
           mode="end"
           startDate={startDate}
-          minDate={
-            format(startDate ?? "", "yyyy-MM-dd")
-              ? format(startDate ?? "", "yyyy-MM-dd")
-              : new Date().toISOString().split("T")[0]
-          }
+          minDate={format(toDate(startDate), "yyyy-MM-dd")}
           maxDate={
-            isAfter(format(addMonths(startDate ?? "", 6), "yyyy-MM-dd"), today)
-              ? today
-              : format(addMonths(startDate ?? "", 6), "yyyy-MM-dd")
+            isAfter(addMonths(toDate(startDate), 6), todayDate)
+              ? format(todayDate, "yyyy-MM-dd")
+              : format(addMonths(toDate(startDate), 6), "yyyy-MM-dd")
           }
         />
       )}
