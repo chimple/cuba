@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Grid, TextField, Typography, MenuItem, Select, InputLabel, FormControl, Checkbox, FormControlLabel, Container, Paper, InputAdornment, IconButton, Button, FormHelperText, ListItemText, } from '@mui/material';
+import { Box, Link, Grid, TextField, Typography, MenuItem, Select, InputLabel, FormControl, Checkbox, FormControlLabel, Container, Paper, InputAdornment, IconButton, Button, FormHelperText, ListItemText, } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import dayjs, { Dayjs } from 'dayjs';
@@ -9,6 +9,7 @@ import { PAGES, PROGRAM_TAB, ProgramType , PROGRAM_TAB_LABELS} from '../../commo
 import { t } from 'i18next';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { Link as RouterLink } from 'react-router-dom';
 
 const NewProgram: React.FC = () => {
   const [partners, setPartners] = useState({ implementation: '', funding: '', institute: '', });
@@ -187,9 +188,17 @@ const NewProgram: React.FC = () => {
            {t('New Program')}
           </Typography>
           <Box display="flex" alignItems="center" mb={3}>
-            <Typography variant="body2" color="text.secondary" onClick={() => history.replace(PAGES.SIDEBAR_PAGE+PAGES.PROGRAM_PAGE)}>
-              {t('Programs')}   
-            </Typography>
+            <Link
+              component={RouterLink}
+              to={PAGES.SIDEBAR_PAGE + PAGES.PROGRAM_PAGE}
+              variant="body2"
+              color="primary"
+              underline="always"
+            >
+              <Typography variant="body2" color="text.secondary">
+                {t('Programs')}
+              </Typography>
+            </Link>
             <ChevronRightIcon
               fontSize="small"
               sx={{ mx: 0.5, color: 'text.secondary' }}
@@ -437,7 +446,7 @@ const NewProgram: React.FC = () => {
                 </Grid>
               </Grid>
             </LocalizationProvider>
-            
+
             <Grid item xs={12} textAlign="right">
               <Button sx={{ mr: 2 }} color="primary" onClick={navigateToProgramPage}>
                 {t('Cancel')}
