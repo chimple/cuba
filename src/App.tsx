@@ -120,7 +120,6 @@ import TeacherProfile from "./teachers-module/pages/TeacherProfile";
 import SchoolUsers from "./teachers-module/pages/SchoolUsers";
 import AddSchoolUser from "./teachers-module/pages/AddSchoolUser";
 import ProgramsPage from "./ops-console/pages/ProgramPage";
-import ProgramDetailPage from "./ops-console/pages/ProgramDetailsPage";
 import NewProgram from "./ops-console/components/NewProgram";
 import SchoolList from "./ops-console/pages/SchoolList";
 import { useFeatureValue, useFeatureIsOn } from "@growthbook/growthbook-react";
@@ -601,9 +600,9 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.PROGRAM_PAGE} exact={true}>
               <ProgramsPage />
             </ProtectedRoute>
-            <ProtectedRoute path={PAGES.PROGRAM_DETAIL_PAGE} exact={true}>
+            {/* <ProtectedRoute path={PAGES.PROGRAM_DETAIL_PAGE} exact={true}>
               <ProgramDetailPage />
-            </ProtectedRoute>
+            </ProtectedRoute> */}
             <ProtectedRoute path={PAGES.SIDEBAR_PAGE}>
               <SidebarPage />
             </ProtectedRoute>
