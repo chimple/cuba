@@ -16,7 +16,9 @@ import VerificationInProgress from "./VerificationInProgress";
 import { useHistory } from "react-router-dom";
 import { FileUploadStep, PAGES } from "../../common/constants";
 
-const FileUpload: React.FC = () => {
+const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
+  onCancleClick,
+}) => {
   const api = ServiceConfig.getI()?.apiHandler;
   const [file, setFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
@@ -65,7 +67,6 @@ const FileUpload: React.FC = () => {
     Marathi: "मराठी",
   };
 
-
   const createStyledCell = (message, isError) => {
     const color = isError ? "FF0000" : "00A000";
     return {
@@ -90,7 +91,6 @@ const FileUpload: React.FC = () => {
       },
     };
   };
-
 
   useEffect(() => {
     setVerifyingProgressState(progressRef.current);
@@ -831,7 +831,7 @@ const FileUpload: React.FC = () => {
           ) : progress === 100 ? (
             <div className="file-upload-actions">
               <button
-                onClick={() => setFile(null)}
+                onClick={onCancleClick}
                 className="file-upload-btn file-upload-cancel-btn"
               >
                 {t("Cancel")}
@@ -846,7 +846,7 @@ const FileUpload: React.FC = () => {
             </div>
           ) : (
             <button
-              onClick={() => history.replace(PAGES.MANAGE_SCHOOL)}
+              onClick={onCancleClick}
               className="file-upload-btn file-upload-long-cancel-btn"
             >
               {t("Cancel")}
