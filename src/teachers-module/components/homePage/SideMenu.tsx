@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   IonMenu,
   IonHeader,
@@ -37,6 +37,7 @@ const SideMenu: React.FC<{
   handleManageSchoolClick: () => void;
   handleManageClassClick: () => void;
 }> = ({ handleManageSchoolClick, handleManageClassClick }) => {
+  const menuRef = useRef<HTMLIonMenuElement>(null);
   const [fullName, setFullName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [currentUserId, setCurrentUserId] = useState<string>("");
@@ -250,6 +251,7 @@ const SideMenu: React.FC<{
   return (
     <>
       <IonMenu
+        ref={menuRef}
         aria-label={String(t("Menu"))}
         contentId="main-content"
         id="main-container"
@@ -275,7 +277,7 @@ const SideMenu: React.FC<{
           </div>
           <div className="side-menu-switch-user-toggle">
             <IonItem className="side-menu-ion-item-container">
-              <PiUserSwitchFill className="side-menu-user-switch-icon" />
+              <img src="assets/icons/userSwitch.svg" alt="SCHOOL" className="icon" />
               <CommonToggle
                 onChange={switchUser}
                 label="Switch to Child's Mode"
@@ -304,17 +306,8 @@ const SideMenu: React.FC<{
         </div>
       </IonMenu>
 
-      <div aria-label={String(t("Menu"))} id="main-content">
-        <IonHeader aria-label={String(t("Menu"))}>
-          <div aria-label={String(t("Menu"))}>
-            <IonMenuButton
-              aria-label={String(t("Menu"))}
-              id="menu-button"
-              slot="start"
-            />
-          </div>
-        </IonHeader>
-      </div>
+      <img src="assets/icons/hamburgerMenu.svg" alt={String(t("Menu"))}
+      id="menu-button" className="sidemenu-hamburger" onClick={() => menuRef.current?.open()} />
     </>
   );
 };

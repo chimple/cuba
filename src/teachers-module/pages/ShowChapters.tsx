@@ -11,6 +11,8 @@ import { Util } from "../../utility/util";
 interface ShowChaptersProps {}
 
 const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
+  const currentSchool = Util.getCurrentSchool();
   const history = useHistory();
   const course: TableTypes<"course"> = history.location.state![
     "course"
@@ -30,6 +32,20 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
   const auth = ServiceConfig.getI().authHandler;
   const api = ServiceConfig.getI().apiHandler;
   const current_class = Util.getCurrentClass();
+
+  useEffect(() => {
+    const fetchClassDetails = async () => {
+      try {
+        const tempClass = await Util.getCurrentClass();
+        console.log("ShowChapters → fetched class:", tempClass);
+        setCurrentClass(tempClass || null);
+      } catch (err) {
+        console.error("ShowChapters → Failed to load current class:", err);
+        setCurrentClass(null);
+      }
+    };
+    fetchClassDetails();
+  }, []);
 
   useEffect(() => {
     init();
@@ -123,6 +139,10 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
         onButtonClick={() => {
           history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
         }}
+        showSchool={true}
+        showClass={true}
+        className={currentClass?.name}
+        schoolName={currentSchool?.name}
       />
       <main className="container-body">
         <div className="lesson-grid">

@@ -10,6 +10,7 @@
   flex-direction: column;
   min-height: 100px;
   height: auto; 
+  padding: 6px;
 }
 
 .weekly-summary-header {
@@ -32,8 +33,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 25%;
-  
 }
 
 .summary-item .CircularProgressbar {
@@ -59,7 +58,7 @@
 
 .summary-label {
   text-align: center;
-  font-size: var(--text-sizeM);
+  font-size: 10px;
   color: #666;
   line-height: 1.2;
   overflow: hidden;

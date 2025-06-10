@@ -37,9 +37,10 @@ const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
         </span>
       </div>
       <div className="group-wise-content">
-        {studentsProgress.map((stdpr) => {
-          const student = stdpr.get("student") as TableTypes<"user">;
-          return (
+        <div className="avatars-wrapper">
+          {studentsProgress.map((stdpr) => {
+            const student = stdpr.get("student") as TableTypes<"user">;
+            return (
             <div className="student-avatar-container" key={student.id}>
               <img
                 src={student.image ?? ""}
@@ -57,7 +58,9 @@ const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
               </span>
             </div>
           );
-        })}
+          })}
+        </div>
+        <img src="assets/icons/arrowSign.png" alt="expand-icon" className="expand-icon" />
       </div>
     </div>
   );

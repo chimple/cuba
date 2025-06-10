@@ -121,24 +121,27 @@
 
 .input-group label {
   /* margin-bottom: 1vh; */
-  color: #333;
+  color: #707070;
   font-size: var(--text-sizeL);
   font-family: "BalooExtraBold";
+  font-weight: 400;
 }
 
 .input-group input,
 .input-group select {
   padding: 0vh;
   border: none;
-  border-bottom: 0.2vh solid #333;
+  border-bottom: 0.1vh solid #EFF2F4;
   background-color: transparent;
   font-size: var(--text-sizeL);
   color: #333;
 }
 
 .add-button.disabled {
-  background-color: #c4c5c1;
-  cursor: not-allowed;
+  background-color: #7C5DB0;
+  cursor: pointer;
+  height: 50px;
+  width: 250px;
 }
 
 .gender-options {
@@ -227,6 +230,10 @@ ion-radio.radio-checked::part(mark) {
 /* Additional styles to ensure consistent spacing */
 .add-student-form {
   padding: 2vw;
+  margin: 0px 15px;
+  border: 1px solid #ccc;
+  border-radius: 15px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
   /* Padding around the form to adjust to screen size */
 }
 

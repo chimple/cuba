@@ -115,7 +115,7 @@ const AddTeacher: React.FC = () => {
           <div className="user-details">
             <hr className="horizontal-line" />
 
-            <div className="user-info-container">
+            <div className="add-teacher-container">
               <img
                 src={user.image ? user.image : "assets/icons/userIcon.png"}
                 className="user-image"
@@ -125,14 +125,9 @@ const AddTeacher: React.FC = () => {
                 }}
               />
               <p>{user.name}</p>
-              <IonButton
-                color="#7C5DB0"
-                onClick={handleAddTeacher}
-                disabled={isLoading}
-                className="add-user-btn"
-              >
+              <button onClick={handleAddTeacher} disabled={isLoading} className="add-teacher-btn">
                 {isLoading ? t("Adding") + "..." : t("Add")}
-              </IonButton>
+              </button>
             </div>
           </div>
         )}

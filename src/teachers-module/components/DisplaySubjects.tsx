@@ -6,7 +6,7 @@ import {
   IonIcon,
   IonAlert,
 } from "@ionic/react";
-import { closeCircleOutline } from "ionicons/icons";
+import { checkmarkCircle, closeCircleOutline } from "ionicons/icons";
 import { t } from "i18next";
 import "./DisplaySubjects.css";
 import { TableTypes } from "../../common/constants";
@@ -119,8 +119,8 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
                   </div>
                   {canModify && (
                     <IonIcon
-                      icon={closeCircleOutline}
-                      className="remove-icon"
+                      icon={checkmarkCircle}
+                      className="display-subIcon"
                     />
                   )}
                 </div>

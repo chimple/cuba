@@ -51,12 +51,19 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
   return (
     <div
       className="imageDropdown-container"
-      style={{ borderBottom: isDownBorder ? "0.2vh solid #333" : "none" }}
+      style={{ borderBottom: isDownBorder ? "0px" : "none" }}
     >
       <Select
         value={selectedValue?.id || ""}
         onChange={handleChange}
         displayEmpty
+        IconComponent={() => (
+        <img
+          src="/assets/icons/iconDown.png"
+          alt="down-icon"
+          className="image-subject-dropdown-icon"
+        />
+        )}
         MenuProps={{
           PaperProps: {
             sx: {
