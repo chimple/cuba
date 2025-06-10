@@ -117,8 +117,15 @@ const SchoolList: React.FC = () => {
         name: {
           value: school.school_name,
           render: (
-            <Box display="flex" flexDirection="column" alignItems="center">
+            <Box display="flex" flexDirection="column" alignItems="flex-start">
               <Typography variant="subtitle2">{school.school_name}</Typography>
+              <Typography
+                variant="subtitle2"
+                color="text.secondary"
+                fontSize={"12px"}
+              >
+                {school.group2 || ""}
+              </Typography>
             </Box>
           ),
         },
@@ -167,19 +174,11 @@ const SchoolList: React.FC = () => {
   }
 
   return (
-    <IonPage className="school-list-ion-page">
-      <div className="school-container">
+    <div className="school-list-ion-page">
+      <div className="school-list-main-container">
         <div className="school-list-header">
           <div className="school-heading">{t("Schools")}</div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 16,
-              marginBottom: 16,
-            }}
-          >
+          <div className="school-list-container">
             <div style={{ flex: 1 }}>
               <Tabs
                 value={selectedTab}
@@ -295,7 +294,7 @@ const SchoolList: React.FC = () => {
           </>
         )}
       </div>
-    </IonPage>
+    </div>
   );
 };
 
