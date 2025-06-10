@@ -55,14 +55,14 @@
   align-items: start;
   padding-bottom: 10px;
 }
-.upload-text {
+.school-list-upload-text {
   font-weight: bolder;
   color: #121619;
   padding-left: 5vh;
   padding-top: 3vh;
   font-size: large;
 }
-.file-upload-conatainer {
+.school-list-file-upload-conatainer {
   color: #121619;
   width: 23vh;
   height: 10vh;

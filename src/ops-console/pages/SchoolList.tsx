@@ -158,7 +158,7 @@ const SchoolList: React.FC = () => {
   if (showUploadPage) {
     return (
       <div>
-        <div className="upload-text"> {t("Upload File")}</div>
+        <div className="school-list-upload-text"> {t("Upload File")}</div>
         <div>
           <FileUpload onCancleClick={onCancleClick} />
         </div>
@@ -203,7 +203,7 @@ const SchoolList: React.FC = () => {
                 ))}
               </Tabs>
             </div>
-            <div className="file-upload-conatainer">
+            <div className="school-list-file-upload-conatainer">
               <UploadButton
                 onClick={() => {
                   setShowUploadPage(true);
