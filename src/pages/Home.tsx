@@ -106,6 +106,7 @@ const Home: FC = () => {
   const [to, setTo] = useState<number>(0);
   const logDeviceInfo = async () => {
     const info = await Device.getInfo();
+    console.log("Device Info:", info);
     const device_language = await Device.getLanguageCode();
     const device = {
       model: info.model,
@@ -184,9 +185,17 @@ const Home: FC = () => {
       setLessonResultMap(studentResult);
       const count_of_lessons_played = Object.values(studentResult).filter(item => item.assignment_id === null);
       const total_assignments_played = Object.values(studentResult).filter(item => item.assignment_id !== null);
+      let latestDate = null;
+      for (const lessonId in studentResult) {
+        const currentDate: any = studentResult[lessonId].updated_at;
+        if (!latestDate || new Date(currentDate) > new Date(latestDate)) {
+          latestDate = currentDate;
+        }
+      }
       const attributes = {
         count_of_lessons_played: count_of_lessons_played.length,
         count_of_assignment_played: total_assignments_played.length,
+        last_assignment_played_at: latestDate,
       }
       updateLocalAttributes(attributes)
       setGbUpdated(true);
@@ -484,7 +493,7 @@ const Home: FC = () => {
         const key = `${courseId}_course_completed`;
         courseCounts[key] = (courseCounts[key] || 0) + 1;
       }
-      updateLocalAttributes({courseCounts, total_assignments_played: allValidPlayedLessonDocIds.length});
+      updateLocalAttributes({ courseCounts, total_assignments_played: allValidPlayedLessonDocIds.length });
       setGbUpdated(true)
       return allValidPlayedLessonDocIds;
     }

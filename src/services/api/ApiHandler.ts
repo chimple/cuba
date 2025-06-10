@@ -13,6 +13,7 @@ import {
   SchoolRoleMap,
   TABLES,
   TableTypes,
+  TabType,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -24,6 +25,19 @@ export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
 
   private s: ServiceApi;
+
+  private constructor(service: ServiceApi) {
+    this.s= service;
+  }
+
+    public static getInstance(service: ServiceApi): ApiHandler {
+    // Only create a new instance if the service has changed
+    if (!ApiHandler.i || ApiHandler.i.s !== service) {
+      ApiHandler.i = new ApiHandler(service);
+    }
+    return ApiHandler.i;
+  }
+
 
   public getAssignmentById(
     id: string
@@ -81,7 +95,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<string | undefined> {
     return this.s.joinLiveQuiz(assignmentId, studentId);
   }
-  private constructor() {}
+  // private constructor() {}
   public async updateRewardsForStudent(
     studentId: string,
     unlockedReward: LeaderboardRewards
@@ -667,14 +681,6 @@ export class ApiHandler implements ServiceApi {
     return await this.s.deleteProfile(studentId);
   }
 
-  public static getInstance(s: ServiceApi): ApiHandler {
-    if (!ApiHandler.i) {
-      ApiHandler.i = new ApiHandler();
-      ApiHandler.i.s = s;
-    }
-    return ApiHandler.i;
-  }
-
   public async getLanguageWithId(
     id: string
   ): Promise<TableTypes<"language"> | undefined> {
@@ -1100,7 +1106,7 @@ export class ApiHandler implements ServiceApi {
     currentUserId: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
-    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
+    tab?: TabType;
   }): Promise<{ data: any[] }> {
     return await this.s.getPrograms(params);
   }
@@ -1108,7 +1114,7 @@ export class ApiHandler implements ServiceApi {
   public async insertProgram(payload: any): Promise<boolean | null> {
     return await this.s.insertProgram(payload);
   }
-  public async getProgramManagers(): Promise<string[]> {
+  public async getProgramManagers(): Promise<{ name: string; id: string }[]> {
     return await this.s.getProgramManagers();
   }
   public async getUniqueGeoData(): Promise<{
@@ -1173,10 +1179,10 @@ export class ApiHandler implements ServiceApi {
   }
 
   public async getProgramData(programId: string): Promise<{
-    programDetails: { label: string; value: string }[];
-    locationDetails: { label: string; value: string }[];
-    partnerDetails: { label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
+    programDetails: {id:string; label: string; value: string }[];
+    locationDetails: {id:string; label: string; value: string }[];
+    partnerDetails: {id:string; label: string; value: string }[];
+    programManagers: {name: string; role: string; phone: string }[];
   } | null> {
     return await this.s.getProgramData(programId);
   }
@@ -1216,5 +1222,9 @@ export class ApiHandler implements ServiceApi {
     return await this.s.createAutoProfile(
       languageDocId
     );
+  }
+
+  public async isProgramUser(): Promise<boolean> {
+   return await this.s.isProgramUser();
   }
 }

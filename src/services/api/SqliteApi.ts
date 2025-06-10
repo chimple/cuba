@@ -28,6 +28,7 @@ import {
   CHIMPLE_ENGLISH,
   CHIMPLE_MATHS,
   CHIMPLE_DIGITAL_SKILLS,
+  TabType,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -57,7 +58,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10"; 
-  private DB_VERSION = 2;
+  private DB_VERSION = 3;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -356,6 +357,7 @@ export class SqliteApi implements ServiceApi {
     // Execute batch queries efficiently
     if (batchQueries.length > 0) {
       try {
+        
         await this._db.executeSet(batchQueries);
       } catch (error) {
         console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
@@ -474,7 +476,6 @@ export class SqliteApi implements ServiceApi {
       mutateType,
       JSON.stringify(data),
     ];
-    console.log("🚀 ~ Api ~ variables:", stmt, variables);
     await this.executeQuery(stmt, variables);
     return await this.syncDbNow([tableName]);
   }
@@ -513,6 +514,12 @@ export class SqliteApi implements ServiceApi {
       music_off: false,
       sfx_off: false,
       student_id: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null
     };
 
     await this.executeQuery(
@@ -573,6 +580,7 @@ export class SqliteApi implements ServiceApi {
         is_deleted: false,
         updated_at: new Date().toISOString(),
         user_id: studentId,
+        is_firebase: null
       };
       await this.executeQuery(
         `
@@ -637,6 +645,13 @@ export class SqliteApi implements ServiceApi {
       udise: udise ?? null,
       address: address ?? null,
       model: null,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      language: null,
+      ops_created_by: null,
+      student_login_type: null
     };
 
     await this.executeQuery(
@@ -669,6 +684,9 @@ export class SqliteApi implements ServiceApi {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null
     };
 
     await this.executeQuery(
@@ -729,6 +747,13 @@ export class SqliteApi implements ServiceApi {
       udise: udise ?? null,
       address: address ?? null,
       model: null,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      language: null,
+      ops_created_by: null,
+      student_login_type: null
     };
     const updatedSchoolQuery = `
     UPDATE school
@@ -870,6 +895,12 @@ export class SqliteApi implements ServiceApi {
       music_off: false,
       sfx_off: false,
       student_id: studentId ?? null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null
     };
     // Insert into user table
     await this.executeQuery(
@@ -903,6 +934,9 @@ export class SqliteApi implements ServiceApi {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null
     };
 
     await this.executeQuery(
@@ -929,10 +963,6 @@ export class SqliteApi implements ServiceApi {
     selectedCourseIds: string[]
   ): Promise<void> {
     const currentDate = new Date().toISOString();
-    console.log(
-      "check how many lessons we are getting in api",
-      selectedCourseIds
-    );
 
     for (const courseId of selectedCourseIds) {
       // Check if the course is already assigned to the school
@@ -1389,7 +1419,6 @@ export class SqliteApi implements ServiceApi {
     WHERE id = "${userId}";
   `;
     const res = await this.executeQuery(query);
-    console.log("🚀 ~ SqliteApi ~ updateSoundFlag ~ res:", res);
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       sfx_off: value ? 1 : 0,
       id: userId,
@@ -1638,6 +1667,7 @@ export class SqliteApi implements ServiceApi {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         is_deleted: false,
+        is_firebase:false
       };
       const res = await this.executeQuery(
         `
@@ -1667,6 +1697,7 @@ export class SqliteApi implements ServiceApi {
         created_at: liked_lesson.created_at,
         updated_at: new Date().toISOString(),
         is_deleted: false,
+        is_firebase:false
       };
 
       await this.executeQuery(
@@ -1711,7 +1742,6 @@ export class SqliteApi implements ServiceApi {
         resultId = uuidv4(); // now this won't throw error
       }
     }
-    console.log("🚀 ~ SqliteApi ~ id:", studentId);
     const newResult: TableTypes<"result"> = {
       id: resultId,
       assignment_id: assignmentId ?? null,
@@ -1728,6 +1758,8 @@ export class SqliteApi implements ServiceApi {
       chapter_id: chapterId,
       course_id: courseId ?? null,
       class_id: classId ?? null,
+      firebase_id: null,
+      is_firebase: null
     };
 
     const res = await this.executeQuery(
@@ -1902,6 +1934,7 @@ export class SqliteApi implements ServiceApi {
             is_deleted: false,
             updated_at: now,
             user_id: student.id,
+            is_firebase: null
           };
           await this.executeQuery(
             `
@@ -2042,6 +2075,9 @@ export class SqliteApi implements ServiceApi {
           created_at: now,
           updated_at: now,
           is_deleted: false,
+          is_firebase: null,
+          is_ops: null,
+          ops_created_by: null
         };
 
         await this.executeQuery(
@@ -2477,6 +2513,13 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
 
       is_deleted: false,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+      standard: null,
+      status: null
     };
 
     await this.executeQuery(
@@ -3106,6 +3149,7 @@ export class SqliteApi implements ServiceApi {
         is_deleted: false,
         updated_at: new Date().toISOString(),
         user_id: student.id,
+        is_firebase: null
       };
       await this.executeQuery(
         `
@@ -3318,6 +3362,8 @@ export class SqliteApi implements ServiceApi {
         chapter_id: chapter_id,
         course_id: course_id,
         source: null,
+        firebase_id: null,
+        is_firebase: null
       };
 
       const res = await this.updatePushChanges(
@@ -3338,6 +3384,7 @@ export class SqliteApi implements ServiceApi {
             is_deleted: false,
             updated_at: new Date().toISOString(),
             user_id: student,
+            is_firebase: null
           };
           await this.executeQuery(
             `
@@ -4750,7 +4797,7 @@ order by
     currentUserId: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
-    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
+    tab?: TabType
   }): Promise<{ data: any[] }> {
     const { currentUserId, filters, searchTerm, tab } = params;
     return await this._serverApi.getPrograms({
@@ -4765,7 +4812,7 @@ order by
     return await this._serverApi.insertProgram(payload);
   }
 
-  async getProgramManagers(): Promise<string[]> {
+  async getProgramManagers(): Promise<{ name: string; id: string }[]> {
     return await this._serverApi.getProgramManagers();
   }
 
@@ -4838,10 +4885,10 @@ order by
   async getProgramData(
     programId: string
   ): Promise<{
-    programDetails: { label: string; value: string }[];
-    locationDetails: { label: string; value: string }[];
-    partnerDetails: { label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
+    programDetails: { id:string; label: string; value: string }[];
+    locationDetails: {id:string;  label: string; value: string }[];
+    partnerDetails: {id:string; label: string; value: string }[];
+    programManagers: {name: string; role: string; phone: string }[];
   } | null> {
     return await this._serverApi.getProgramData(programId);
   }
@@ -5100,6 +5147,12 @@ async getStudentInfoBySchoolId(schoolId: string): Promise<
       music_off: false,
       sfx_off: false,
       student_id: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null
     };
 
     await this.executeQuery(
@@ -5178,6 +5231,7 @@ async getStudentInfoBySchoolId(schoolId: string): Promise<
         is_deleted: false,
         updated_at: new Date().toISOString(),
         user_id: studentId,
+        is_firebase: null
       };
       await this.executeQuery(
         `
@@ -5194,5 +5248,9 @@ async getStudentInfoBySchoolId(schoolId: string): Promise<
     }
 
     return newStudent;
+  }
+  
+  async isProgramUser(): Promise<boolean> {
+      return await this._serverApi.isProgramUser();
   }
 }
