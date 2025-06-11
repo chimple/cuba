@@ -31,7 +31,6 @@ const SearchLesson: React.FC = ({}) => {
     const fetchClassDetails = async () => {
       try {
         const tempClass = await Util.getCurrentClass();
-        console.log("ShowChapters → fetched class:", tempClass);
         setCurrentClass(tempClass || null);
       } catch (err) {
         console.error("ShowChapters → Failed to load current class:", err);

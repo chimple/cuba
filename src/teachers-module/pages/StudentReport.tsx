@@ -67,7 +67,6 @@ const StudentReport: React.FC = () => {
   const fetchClassDetails = async () => {
   try {
     let classToUse = tempClass ?? Util.getCurrentClass();
-    console.log('My edit class res-', classToUse)
       if (classToUse) {
         setCurrentClass(classToUse);
       }
