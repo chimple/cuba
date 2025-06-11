@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Link, Grid, TextField, Typography, MenuItem, Select, InputLabel, FormControl, Checkbox, FormControlLabel, Container, Paper, InputAdornment, IconButton, Button, FormHelperText, ListItemText, } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import dayjs, { Dayjs } from 'dayjs';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { useHistory } from 'react-router-dom';
@@ -116,6 +116,8 @@ const NewProgram: React.FC = () => {
       newErrors['programType'] = t('Program Type is required');
     if (!stats.institutes)
       newErrors['institutes'] = t('No of Institutes is required');
+    if (selectedManagers.length === 0)
+      newErrors['programManager'] = t('Program Manager is required');
     if (!stats.students)
       newErrors['students'] = t('No of Students is required');
     if (!stats.devices)
@@ -171,7 +173,7 @@ const NewProgram: React.FC = () => {
     setPartners({ implementation: '', funding: '', institute: '' });
     setProgramName('');
     setLocations({ Country: '', State: '', District: '', Block: '', Cluster: '' });
-    setProgramType('');
+    setProgramType(ProgramType.LearningCenter);
     setModels([]);
     setSelectedManagers([]);
     setStats({ institutes: '', students: '', devices: '' });
@@ -193,46 +195,56 @@ const NewProgram: React.FC = () => {
               to={PAGES.SIDEBAR_PAGE + PAGES.PROGRAM_PAGE}
               variant="body2"
               color="primary"
-              underline="always"
+              underline="none"
             >
               <Typography variant="body2" color="text.secondary">
                 {t('Programs')}
               </Typography>
             </Link>
-            <ChevronRightIcon
-              fontSize="small"
-              sx={{ mx: 0.5, color: 'text.secondary' }}
-            />
+            <PlayArrowIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary' }} />
             <Typography variant="body2" color="text.secondary" fontWeight="bold">
               {t('New Program')}
             </Typography>
           </Box>
 
           <Grid container spacing={3}>
-            {[ { label: 'Enter Implementation Partner', key: 'implementation' }, { label: 'Enter Funding Partner', key: 'funding' }, { label: 'Enter Institute Partner', key: 'institute' }, ].map(({ label, key }, index) => (
+            {[
+              { title: 'Implementation Partner', placeholder: 'Enter Implementation Partner', key: 'implementation' },
+              { title: 'Funding Partner', placeholder: 'Enter Funding Partner', key: 'funding' },
+              { title: 'Institute Partner', placeholder: 'Enter Institute Partner', key: 'institute' },
+            ].map(({ title, placeholder, key }) => (
               <Grid item xs={12} sm={4} key={key}>
+                <Typography fontWeight="bold" mb={1} sx={{ textAlign: 'left' }}>
+                  {t(title).toString()}
+                </Typography>
                 <TextField
-                  label={t(`${label}`)}
+                  placeholder={t(placeholder).toString()}
                   fullWidth
                   variant="outlined"
                   value={partners[key as keyof typeof partners]}
                   onChange={(e) => handlePartnerChange(key, e.target.value)}
                   error={!!errors[key]}
                   helperText={errors[key]}
-                  InputProps={{ sx: { borderRadius: '12px' } }}
+                  InputProps={{
+                    sx: {
+                      borderRadius: '12px',
+                    },
+                  }}
                 />
               </Grid>
             ))}
 
             <Grid item xs={12} sm={4} md={4}>
+              <Typography fontWeight="bold" mb={1} sx={{ textAlign: 'left' }}>
+                {t('Program Name')}
+              </Typography>
               <TextField
                 inputRef={programNameInputRef}
-                label={t('Program Name')}
                 fullWidth
                 variant="outlined"
                 value={programName}
                 onChange={(e) => setProgramName(e.target.value)}
-                disabled={!isEditingProgramName} 
+                disabled={!isEditingProgramName}
                 error={!!errors['programName']}
                 helperText={errors['programName']}
                 InputProps={{
@@ -250,12 +262,16 @@ const NewProgram: React.FC = () => {
                   ),
                   sx: { borderRadius: '12px' },
                 }}
-                sx={{ '& .MuiOutlinedInput-root': { paddingRight: 0.5 } }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    paddingRight: 0.5,
+                  },
+                }}
               />
             </Grid>
 
             <Grid item xs={12}>
-              <Typography variant="subtitle1" fontWeight="medium" mb={1}>
+              <Typography variant="subtitle1" fontWeight="bold" mb={1}>
                 {t('Location')}
               </Typography>
               <Grid container spacing={2}>
@@ -274,7 +290,6 @@ const NewProgram: React.FC = () => {
                         }
                         sx={{ borderRadius: '12px' }}
                       >
-                        <MenuItem value="">Select</MenuItem>
                         {geoData[label as keyof typeof geoData].map((item) => (
                           <MenuItem key={item} value={item}>
                             {item}
@@ -291,16 +306,17 @@ const NewProgram: React.FC = () => {
             </Grid>
 
             <Grid item xs={12} sm={4} md={3}>
-                <Typography variant="subtitle1" fontWeight="medium" mb={1}>
+                <Typography variant="subtitle1" fontWeight="bold" mb={1}>
                     {t('Program Type')}
                 </Typography>
                 <FormControl fullWidth error={!!errors['programType']}>
+                    <InputLabel>{`Select ${t('Program Type')}`}</InputLabel>
                     <Select
+                    label={`Select ${t('Program Type')}`}
                     value={programType}
                     onChange={(e:any) => setProgramType(e.target.value)}
                     sx={{ borderRadius: '12px' }}
                     >
-                    <MenuItem value="" disabled>{t('Select')}</MenuItem>
                     {Object.entries(ProgramType).map(([label, value]) => (
                       <MenuItem key={value} value={value}>
                         {t(label.replace(/([A-Z])/g, ' $1').trim())}
@@ -314,7 +330,7 @@ const NewProgram: React.FC = () => {
             </Grid>
 
            <Grid item xs={12}>
-              <Typography variant="subtitle1" fontWeight="medium" mb={1}>
+              <Typography variant="subtitle1" fontWeight="bold" mb={1}>
                 {t('Model')}
               </Typography>
               <FormControl error={!!errors['model']}>
@@ -342,12 +358,14 @@ const NewProgram: React.FC = () => {
 
             <Grid container sx={{ marginLeft: '24px', marginTop: '10px' }}>
               <Grid item xs={12} sm={4} md={4}>
-                <Typography variant="subtitle1" fontWeight="medium" mb={1}>
+                <Typography variant="subtitle1" fontWeight="bold" mb={1}>
                   {t('Program Manager')}
                 </Typography>
                 <FormControl fullWidth error={!!errors['programManager']}>
+                  <InputLabel>{`Select ${t('Program Managers')}`}</InputLabel>
                   <Select
                     multiple
+                    label={`Select ${t('Program Managers')}`}
                     value={selectedManagers}
                     onChange={(e) => setSelectedManagers(e.target.value as string[])}
                     renderValue={(selected) => {
@@ -358,9 +376,6 @@ const NewProgram: React.FC = () => {
                     }}
                     sx={{ borderRadius: '12px' }}
                   >
-                    <MenuItem value="" disabled>
-                      {t('Select')}
-                    </MenuItem>
                     {programManagers.map((manager) => (
                       <MenuItem key={manager.id} value={manager.id}>
                         <Checkbox checked={selectedManagers.includes(manager.id)} />
@@ -381,7 +396,7 @@ const NewProgram: React.FC = () => {
               { label: 'No of Devices', key: 'devices', placeholder: 'Enter No of Devices' },
             ].map(({ label, key, placeholder }) => (
               <Grid item xs={12} sm={4} key={key}>
-                <Typography variant="subtitle1" fontWeight="medium" mb={1}>
+                <Typography variant="subtitle1" fontWeight="bold" mb={1}>
                     {t(`${label}`)}
                 </Typography>
                 <TextField
@@ -399,7 +414,7 @@ const NewProgram: React.FC = () => {
 
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <Grid item xs={12}>
-                <Typography variant="subtitle1" fontWeight="medium" mb={1}>
+                <Typography variant="subtitle1" fontWeight="bold" mb={1}>
                   {t('Program Date')}
                 </Typography>
                 <Grid container spacing={2}>

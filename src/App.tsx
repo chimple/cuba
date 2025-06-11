@@ -606,9 +606,6 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.SIDEBAR_PAGE}>
               <SidebarPage />
             </ProtectedRoute>
-            <ProtectedRoute path={PAGES.NEW_PROGRAM} exact={true}>
-              <NewProgram />
-            </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
         <IonAlert
