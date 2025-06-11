@@ -1592,10 +1592,10 @@ export interface ServiceApi {
    * @returns Promise resolving to program details, location, partner, and managers or null if not found.
    */
   getProgramData(programId: string): Promise<{
-    programDetails: {id:string; label: string; value: string }[];
-    locationDetails: {id:string; label: string; value: string }[];
-    partnerDetails: {id:string; label: string; value: string }[];
-    programManagers: {name: string; role: string; phone: string }[];
+    programDetails: { id: string; label: string; value: string }[];
+    locationDetails: { id: string; label: string; value: string }[];
+    partnerDetails: { id: string; label: string; value: string }[];
+    programManagers: { name: string; role: string; phone: string }[];
   } | null>;
 
   /**
@@ -1611,7 +1611,7 @@ export interface ServiceApi {
 
   /**
    * Fetch a list of schools filtered by given criteria.
-   * 
+   *
    * @param filters - An object where keys are filter categories and values are arrays of selected filter options.
    * @returns Promise resolving to a filtered list of schools matching the provided filter criteria.
    */
@@ -1622,26 +1622,27 @@ export interface ServiceApi {
   //  * @returns Promise resolving to user details, grade, and classSection.
   //  */
   getTeacherInfoBySchoolId(schoolId: string): Promise<
-  {
-   user: TableTypes<"user">;
-    grade: number;
-    classSection: string;
-  }[]>;
+    {
+      user: TableTypes<"user">;
+      grade: number;
+      classSection: string;
+    }[]
+  >;
 
-   /**
+  /**
    * Fetch detailed student information for a given school ID.
    * @param {string} schoolId - The ID of the school to fetch.
    * @returns Promise resolving to user details, grade, and classSection.
    */
-   getStudentInfoBySchoolId(schoolId: string): Promise<
-  {
-    user: TableTypes<"user">;
-    grade: number;
-    classSection: string;
-  }[]>;
-  
+  getStudentInfoBySchoolId(schoolId: string): Promise<
+    {
+      user: TableTypes<"user">;
+      grade: number;
+      classSection: string;
+    }[]
+  >;
+
   getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
-  
 
   /**
    * Creates a auto student profile for a parent and returns the student object
@@ -1656,6 +1657,47 @@ export interface ServiceApi {
    * Checks if the current user is a program user.
    * @returns {Promise<boolean>} A promise that resolves to true if the user is a program user, false otherwise.
    */
-  isProgramUser(): Promise<boolean> 
+  isProgramUser(): Promise<boolean>;
 
+  /**
+   * Count total and active students, total and active teachers, and total institutes for a given program.
+   *
+   * @param {string} programId - The ID of the program.
+   * @returns {Promise<{
+   *   total_students: number;
+   *   active_students: number;
+   *   avg_time_spent: number;
+   *   total_teachers: number;
+   *   active_teachers: number;
+   *   total_institutes: number;
+   * }>} Promise resolving to an object with student, teacher, and institute statistics.
+   */
+  countProgramStats(programId: string): Promise<{
+    total_students: number;
+    active_students: number;
+    avg_time_spent: number;
+    total_teachers: number;
+    active_teachers: number;
+    total_institutes: number;
+  }>;
+
+  /**
+   * Count total and active students, total and active teachers, and average time spent for a given school.
+   *
+   * @param {string} schoolId - The ID of the school.
+   * @returns {Promise<{
+   *   total_students: number;
+   *   active_students: number;
+   *   avg_time_spent: number;
+   *   total_teachers: number;
+   *   active_teachers: number;
+   * }>} Promise resolving to an object with student and teacher statistics.
+   */
+  countUsersBySchool(schoolId: string): Promise<{
+    total_students: number;
+    active_students: number;
+    avg_time_spent: number;
+    total_teachers: number;
+    active_teachers: number;
+  }>;
 }

@@ -23,6 +23,14 @@ function useIsMobile() {
   return isMobile;
 }
 
+type SchoolStats = {
+  total_students: number;
+  active_students: number;
+  total_teachers: number;
+  active_teachers: number;
+  avg_time_spent: number;
+};
+
 const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const [data, setData] = useState<{
     schoolData?: any;
@@ -32,10 +40,18 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     coordinators?: any[];
     teachers?: any[];
     students?: any[];
+    schoolStats?: SchoolStats;
   }>({});
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const history = useHistory();
+  const [schoolStats, setSchoolStats] = useState<SchoolStats>({
+  total_students: 0,
+  active_students: 0,
+  total_teachers: 0,
+  active_teachers: 0,
+  avg_time_spent: 0,
+});
 
   useEffect(() => {
     async function fetchAll() {
@@ -52,15 +68,27 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
           api.getStudentInfoBySchoolId(id),
 
         ]);
-      setData({
-        schoolData: school,
-        programData: program,
-        programManagers: programManagers,
-        principals: principals,
-        coordinators: coordinators,
-        teachers: teachers,
-        students: students,
-      });
+        const res = await api.countUsersBySchool(id);
+        const result = Array.isArray(res) ? res[0] : res;
+        const newSchoolStats = {
+          total_students: result.total_students ?? 0,
+          active_students: result.active_students ?? 0,
+          total_teachers: result.total_teachers ?? 0,
+          active_teachers: result.active_teachers ?? 0,
+          avg_time_spent: result.avg_time_spent ?? 0,
+        };
+        setSchoolStats(newSchoolStats);
+
+        setData({
+          schoolData: school,
+          programData: program,
+          programManagers: programManagers,
+          principals: principals,
+          coordinators: coordinators,
+          teachers: teachers,
+          students: students,
+          schoolStats: newSchoolStats,
+        });
       setLoading(false);
       console.log("checking data log",  students);
     }

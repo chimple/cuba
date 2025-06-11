@@ -1227,4 +1227,27 @@ export class ApiHandler implements ServiceApi {
   public async isProgramUser(): Promise<boolean> {
    return await this.s.isProgramUser();
   }
+
+  public async countProgramStats(programId: string): Promise<{
+    total_students: number;
+    active_students: number;
+    avg_time_spent: number;
+    total_teachers: number;
+    active_teachers: number;
+    total_institutes: number;
+  }> {
+    return await this.s.countProgramStats(programId);
+  }
+
+  public async countUsersBySchool(schoolId: string): Promise<{
+    total_students: number;
+    active_students: number;
+    avg_time_spent: number;
+    total_teachers: number;
+    active_teachers: number;
+  }> {
+    return await this.s.countUsersBySchool(schoolId);
+  }
+
+
 }
