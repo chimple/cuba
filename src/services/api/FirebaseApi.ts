@@ -2061,4 +2061,26 @@ export class FirebaseApi implements ServiceApi {
   async isProgramUser(): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
+
+  countProgramStats(programId: string): Promise<{
+    total_students: number;
+    active_students: number;
+    avg_time_spent: number;
+    total_teachers: number;
+    active_teachers: number;
+    total_institutes: number;
+  }> {
+    throw new Error("Method not implemented.");
+  }
+
+  countUsersBySchool(schoolId: string): Promise<{
+    total_students: number;
+    active_students: number;
+    avg_time_spent: number;
+    total_teachers: number;
+    active_teachers: number;
+  }> {
+    throw new Error("Method not implemented.");
+  }
+
 }

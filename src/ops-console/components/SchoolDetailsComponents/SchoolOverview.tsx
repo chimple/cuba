@@ -52,10 +52,23 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
   const [programName, programType, model] = programDetailsItems;
 
   //school performance
+  const activeStudents = data.schoolStats.total_students
+  ? ((data.schoolStats.active_students / data.schoolStats.total_students) * 100).toFixed(2)
+  : '0.00';
+
+const avgWeekTime = data.schoolStats.avg_time_spent
+  ? (data.schoolStats.avg_time_spent / 60).toFixed(2)
+  : '0.00';
+
+const activeTeachers = data.schoolStats.total_teachers
+  ? ((data.schoolStats.active_teachers / data.schoolStats.total_teachers) * 100).toFixed(2)
+  : '0.00';
+
+  
   const schoolPerformanceItems = [
-    { label: "Active Students", value: "85%" },
-    { label: "Avg week time in mins", value: "14 mins" },
-    { label: "Active Teachers", value: "78%" },
+    { label: "Active Students", value: `${activeStudents}%` },
+    { label: "Avg week time in mins", value: `${avgWeekTime} mins` },
+    { label: "Active Teachers", value: `${activeTeachers}%` },
   ].filter((item) => item.value !== undefined && item.value !== null);
 
   return (
