@@ -1112,7 +1112,7 @@ export type Database = {
           institutes_count: string | null
           is_deleted: boolean | null
           is_ops: boolean | null
-          model: Database["public"]["Enums"]["program_model"][] | null
+          model: string | null
           name: string
           program_type: Database["public"]["Enums"]["program_type"] | null
           start_date: string | null
@@ -1136,7 +1136,7 @@ export type Database = {
           institutes_count?: string | null
           is_deleted?: boolean | null
           is_ops?: boolean | null
-          model?: Database["public"]["Enums"]["program_model"][] | null
+          model?: string | null
           name: string
           program_type?: Database["public"]["Enums"]["program_type"] | null
           start_date?: string | null
@@ -1160,7 +1160,7 @@ export type Database = {
           institutes_count?: string | null
           is_deleted?: boolean | null
           is_ops?: boolean | null
-          model?: Database["public"]["Enums"]["program_model"][] | null
+          model?: string | null
           name?: string
           program_type?: Database["public"]["Enums"]["program_type"] | null
           start_date?: string | null
@@ -1428,7 +1428,7 @@ export type Database = {
       }
       school: {
         Row: {
-          academic_year: string[] | null
+          academic_year: string | null
           address: string | null
           created_at: string
           firebase_id: string | null
@@ -1451,7 +1451,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          academic_year?: string[] | null
+          academic_year?: string | null
           address?: string | null
           created_at?: string
           firebase_id?: string | null
@@ -1474,7 +1474,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          academic_year?: string[] | null
+          academic_year?: string | null
           address?: string | null
           created_at?: string
           firebase_id?: string | null
@@ -2214,6 +2214,7 @@ export type Database = {
       get_filtered_schools: {
         Args: { filters: Json }
         Returns: {
+          sch_id: string
           school_name: string
           num_students: number
           num_teachers: number
@@ -2677,7 +2678,7 @@ export type Database = {
       reseach_get_schools: {
         Args: { p_updated_at: string }
         Returns: {
-          academic_year: string[] | null
+          academic_year: string | null
           address: string | null
           created_at: string
           firebase_id: string | null
@@ -3079,7 +3080,7 @@ export type Database = {
       sql_get_schools: {
         Args: { p_updated_at: string }
         Returns: {
-          academic_year: string[] | null
+          academic_year: string | null
           address: string | null
           created_at: string
           firebase_id: string | null

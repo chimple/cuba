@@ -1,10 +1,10 @@
-
-.sidebarpage-rightSide{
-    display: flex;
-    height: 100vh;
+.sidebarpage-rightSide {
+  display: flex;
+  height: 100vh;
 }
-.sidebarpage-render{
-    flex: 1;
-    /* padding: 1rem;  */
-    overflow-y: auto
+.sidebarpage-render {
+  flex: 1;
+  /* padding: 1rem;  */
+  overflow-y: auto;
+  background-color: #f5f5f5;
 }

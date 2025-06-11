@@ -2044,10 +2044,10 @@ export class FirebaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   getProgramData(programId: string): Promise<{
-    programDetails: { label: string; value: string }[];
-    locationDetails: { label: string; value: string }[];
-    partnerDetails: { label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
+    programDetails: {id:string; label: string; value: string }[];
+    locationDetails: {id:string;  label: string; value: string }[];
+    partnerDetails: {id:string;  label: string; value: string }[];
+    programManagers: {name: string; role: string; phone: string }[];
   } | null> {
     throw new Error("Method not implemented.");
   }
@@ -2057,5 +2057,8 @@ export class FirebaseApi implements ServiceApi {
 
   async getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>): Promise<FilteredSchool[]> {
     throw new Error("getFilteredSchools() is not implemented.");
+  }
+  async isProgramUser(): Promise<boolean> {
+    throw new Error("Method not implemented.");
   }
 }

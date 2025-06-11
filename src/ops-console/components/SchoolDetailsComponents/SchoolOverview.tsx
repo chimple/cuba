@@ -33,7 +33,13 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
   // program details
   const programDetailsItems = [
     { label: "Program Name", value: data.programData?.name },
-    { label: "Program Type", value: data.programData?.program_type },
+    {
+      label: "Program Type",
+      value: data.programData?.program_type
+        ? data.programData.program_type.trim().charAt(0).toUpperCase() +
+          data.programData.program_type.trim().slice(1).toLowerCase()
+        : "",
+    },
     {
       label: "Model",
       value: Array.isArray(data.programData?.model)
