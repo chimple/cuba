@@ -9,6 +9,7 @@ import "./SidebarPage.css";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import ProgramsPage from "./ProgramPage";
 import SchoolList from "./SchoolList";
+import NewProgram from "../components/NewProgram";
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
@@ -56,6 +57,9 @@ const SidebarPage: React.FC = () => {
               </ProtectedRoute>
                <ProtectedRoute path={`${path}${PAGES.SCHOOL_LIST}`} exact={true}>
                   <SchoolList/>
+              </ProtectedRoute>
+              <ProtectedRoute path={`${path}${PAGES.NEW_PROGRAM}`} exact={true}>
+                  <NewProgram/>
               </ProtectedRoute>
             </Switch>
           </div>
