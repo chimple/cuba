@@ -15,8 +15,8 @@
   gap: 3vw;
 }
 .curriculum-header {
-  background-color: #e6d8ff;
-  color: #4b0082;
+  background-color: #F2EBFE;
+  color: #707070;
   font-weight: bold;
   padding: 1.2vh;
   border-radius: 1vh;
@@ -83,8 +83,8 @@
 }
 
 .subject-selection-container .curriculum-header {
-  background-color: #e6d8ff;
-  color: #4b0082;
+  background-color: #F2EBFE;
+  color: #707070;
   font-weight: bold;
   padding: 1.2vh;
   border-radius: 1vh;
@@ -145,11 +145,18 @@
 }
 
 .subject-page-checkbox {
-  --background: #f0f0f0;
-  --checkmark-color: #f0f0f0;
-  --background-checked: #019541 !important;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 2px;
+  box-sizing: content-box;
+  color: #ccc;
 }
 
+.subject-page-checkbox.selected {
+  color: #019541;
+}
 .subject-selection-actions .confirm-button-in-subject-page {
   --background: #7c5db0;
   --background-activated: #7c5db0;

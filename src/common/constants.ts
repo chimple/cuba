@@ -194,8 +194,8 @@ export enum TABLEDROPDOWN {
 
 export enum TABLESORTBY {
   NAME = "Name",
-  HIGHSCORE = "High Score",
-  LOWSCORE = "Low Score",
+  HIGHSCORE = "High to Low",
+  LOWSCORE = "Low to High",
 }
 
 export enum FileUploadStep {

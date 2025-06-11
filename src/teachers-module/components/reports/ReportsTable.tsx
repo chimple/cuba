@@ -22,6 +22,7 @@ import { t } from "i18next";
 import CustomDropdown from "../CustomDropdown";
 import { blue } from "@mui/material/colors";
 import { useHistory } from "react-router";
+import ImageDropdown from "../imageDropdown";
 
 interface ReportTableProps {
   handleButtonClick;
@@ -56,7 +57,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
     selectedTypeProp ?? TABLEDROPDOWN.WEEKLY
   );
   const [sortType, setSortType] = useState<TABLESORTBY>(
-    sortTypeProp ?? TABLESORTBY.HIGHSCORE
+    sortTypeProp ?? TABLESORTBY.NAME
   );
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAssignments, setIsAssignments] = useState<boolean>(
@@ -72,8 +73,8 @@ const ReportTable: React.FC<ReportTableProps> = ({
     Map<string, { student: TableTypes<"user">; results: Record<string, any[]> }>
   >(new Map());
   const [mappedSubjectOptions, setMappedSubjectOptions] = useState<
-    { id: string; name: string }[]
-  >([]);
+      { icon: string; id: string; name: string; subjectDetail: string }[]
+    >([]);
   
   const subjectOptionsWithAll = [
   { ...ALL_SUBJECT, disabled: selectedType === TABLEDROPDOWN.CHAPTER },
@@ -135,28 +136,52 @@ const ReportTable: React.FC<ReportTableProps> = ({
     setSelectedChapter(_chapters[0]);
   };
   const initData = async () => {
-    var current_class = Util.getCurrentClass();
-    const _subjects = await api.getCoursesForClassStudent(
-      current_class?.id ?? ""
-    );
-    setSubjects(_subjects);    
-    var current_course = Util.getCurrentCourse(current_class?.id);
-    setSelectedSubject(current_course ?? _subjects[0]);
-    const _chapters = await api.getChaptersForCourse(_subjects[0]?.id);
-    setChapters(_chapters);
-    setSelectedChapter(_chapters[0]);
-    var _mappedSubjectOptions = _subjects?.map((option) => ({
-      id: option.id,
-      name: option.name,
-    }));
-    var _mappedChaptersOptions = _chapters?.map((option) => ({
-      id: option.id,
-      name: option.name ?? "",
-    }));
-    setMappedChaptersOptions(_mappedChaptersOptions);
-    setMappedSubjectOptions(_mappedSubjectOptions);
-    setIsLoading(false);
-  };
+      const current_class = Util.getCurrentClass();
+      const _subjects = await api.getCoursesForClassStudent(
+        current_class?.id ?? ""
+      );
+      
+      setSubjects(_subjects);    
+  
+      const curriculumIds = Array.from(
+        new Set(_subjects.map((s) => s.curriculum_id))
+      );
+      const gradeIds = Array.from(new Set(_subjects.map((s) => s.grade_id)));
+      const filteredCurriculumIds = curriculumIds.filter(
+        (id): id is string => id !== null
+      );
+      const filteredGradeIds = gradeIds.filter((id): id is string => id !== null);
+  
+      try {
+        // Fetch curriculums and grades
+        const [curriculums, grades] = await Promise.all([
+          api.getCurriculumsByIds(filteredCurriculumIds),
+          api.getGradesByIds(filteredGradeIds),
+        ]);
+  
+        const curriculumMap = new Map(curriculums.map((c) => [c.id, c]));
+        const gradeMap = new Map(grades.map((g) => [g.id, g]));
+        const _mappedSubjectOptions = _subjects.map((subject) => {
+          const curriculum = curriculumMap.get(subject.curriculum_id ?? "");
+          const grade = gradeMap.get(subject.grade_id ?? "");
+          return {
+            id: subject.id,
+            subjectDetail: `${subject.name} ${curriculum?.name ?? "Unknown"}-${grade?.name ?? "Unknown"}`,
+            // icon: curriculum?.image,
+            icon: subject?.image || "/assets/icons/DefaultIcon.png",
+            name: subject.name,
+          };
+        });
+  
+        setMappedSubjectOptions(_mappedSubjectOptions);
+      } catch (error) {
+        console.error("Error fetching curriculums or grades:", error);
+        setMappedSubjectOptions([]);
+      }
+      setSelectedSubject(
+        Util.getCurrentCourse(current_class?.id) ?? _subjects[0]
+      );
+    };
 
   const init = async () => {
   const current_class = Util.getCurrentClass();
@@ -408,16 +433,23 @@ let reportResults: ReportResponse[] = [];
 
           <div>
           
-            <CustomDropdown
-              options={subjectOptionsWithAll}
-              onOptionSelect={handleSelectSubject}
-              selectedValue={{
-                id: selectedSubject?.id ?? "",
-                name: selectedSubject?.name ?? "",
-              }}
-              disableTranslation={true}
+            <ImageDropdown
+            options={subjectOptionsWithAll}
+            selectedValue={{
+              id: selectedSubject?.id ?? "",
+              name: selectedSubject?.name ?? "",
+              icon:
+                (selectedSubject as any)?.icon ??
+                subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.icon ??
+                "",
+              subjectDetail:
+                (selectedSubject as any)?.subject ??
+                subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.subjectDetail ??
+                "",
+             }}
+            onOptionSelect={handleSelectSubject}
+            placeholder={t("Select Language") as string}
             />
-
 
             {selectedType == TABLEDROPDOWN.CHAPTER ? (
               <CustomDropdown
@@ -465,7 +497,8 @@ let reportResults: ReportResponse[] = [];
                       <td
                         style={{
                           borderRight:
-                            expandedRow === key ? "0" : "1px solid grey",
+                            expandedRow === key ? "0" : "",
+                          borderBottom: expandedRow === key ? "0" : "2px solid #EFF2F4"
                         }}
                         onClick={() => {
                           if (

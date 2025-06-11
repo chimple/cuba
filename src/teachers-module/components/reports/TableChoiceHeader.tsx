@@ -119,25 +119,36 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
 
   return (
     <div className="date-range-selector">
-      {!isAssignmentReport && (<div className="toggle-container">
-        <div className="table-choice-header-toggle">
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={isAssignmentsOnly}
-              onChange={toggleAssignmentsOnly}
-            />
-            <span className="slider"></span>
-          </label>
-
-          <span className="toggle-label">
-            {isAssignmentsOnly ? t("Assignments Only") : t("All activities")}
-          </span>
-        </div>
+      {!isAssignmentReport && (
+        <div className="toggle-container">
+          <div className="pill-toggle">
+      <div
+        className={`pill-option ${isAssignmentsOnly ? "active" : ""}`}
+        onClick={() => {
+          if (!isAssignmentsOnly) {
+            setIsAssignmentsOnly(true);
+            onIsAssignments(true);
+          }
+        }}
+      >
+        {t("Assignments")}
       </div>
+      <div
+        className={`pill-option ${!isAssignmentsOnly ? "active" : ""}`}
+        onClick={() => {
+          if (isAssignmentsOnly) {
+            setIsAssignmentsOnly(false);
+            onIsAssignments(false);
+          }
+        }}
+      >
+        {t("All Activities")}
+           </div>
+         </div>
+        </div>
       )}
       <div className="date-range-container">
-        <p>{t("Click date to select Date Range")}</p>
+        <p className="table-date-range-text">{t("Click date to select Date Range")}</p>
         <div className="date-range-controls">
           <button className="nav-btn" onClick={handlePrevDateRange}>
             {"<"}
@@ -166,18 +177,27 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
         </div>
       </div>
       <div className="table-sort-divider"></div>
+
       <div>
-        <CustomDropdown
-          options={Object.entries(TABLESORTBY).map(([key, value]) => ({
-            id: key,
-            name: value,
-          }))}
-          placeholder={t(sortBy)??""}
-          onOptionSelect={handleNameSort}
-          selectedValue={sortBy}
-          isDownBorder={false}
-          icon={funnel}
-        />
+        <select
+        value={sortBy.id} className="table-choice-filter"
+        onChange={(e) => {
+          const selectedId = e.target.value;
+          const selectedOption = Object.entries(TABLESORTBY).find(([key]) => key === selectedId);
+          if (selectedOption) {
+            handleNameSort({ id: selectedOption[0], name: selectedOption[1] });
+          }
+        }}
+        style={{
+          backgroundImage: `url('/assets/icons/filterArrow.svg')`,
+        }}
+        >
+          {Object.entries(TABLESORTBY).map(([key, value]) => (
+            <option key={key} value={key}>
+              {t(value)}
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   );

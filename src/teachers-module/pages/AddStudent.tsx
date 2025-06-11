@@ -217,8 +217,6 @@ const AddStudent: React.FC = () => {
         isBackButton={true}
         showSchool={true}
         showClass={true}
-        className={currentClass.name}
-        schoolName={currentSchool?.name}
         onBackButtonClick={handleBack}
       />
       <div className="profile-details-container">
@@ -229,7 +227,6 @@ const AddStudent: React.FC = () => {
           isEditMode={true}
         />
       </div>
-      <h2 className="title">{t("Add Student")}</h2>
       <AddStudentSection
         languageOptions={languages}
         fullName={fullName}

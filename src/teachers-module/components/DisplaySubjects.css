@@ -70,7 +70,7 @@
 }
 
 .main-title-in-display-subject-page {
-  color: black;
+  color: #707070;
   font-size: 1.2rem;
   margin: 0;
 }
@@ -140,4 +140,10 @@
   flex-direction: row;
   align-items: center;
   gap: 3vw;
+}
+
+.display-subIcon {
+  color: #019541;
+  width: 30px;
+  height: 25px;
 }

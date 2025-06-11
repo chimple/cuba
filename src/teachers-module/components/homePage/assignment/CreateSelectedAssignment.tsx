@@ -479,7 +479,7 @@ const CreateSelectedAssignment = ({
           <p>
             <Trans i18nKey="assignments_date_message" />
           </p>
-          <div className="date-selection">
+          <div className="date-created-assignment">
             <div>
               <b>{t("Start Date")}</b>
               <div className="date-input">

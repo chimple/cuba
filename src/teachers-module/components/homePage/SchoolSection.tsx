@@ -1,10 +1,11 @@
 import React from "react";
 import { IonItem, IonIcon, IonLabel, IonButton } from "@ionic/react";
-import { schoolOutline, chevronForwardOutline } from "ionicons/icons";
+import { schoolOutline, chevronForwardOutline, school } from "ionicons/icons";
 import DropDown from "../DropDown";
 import { t } from "i18next";
 import CustomDropdown from "../CustomDropdown";
 import "./SchoolSection.css";
+import { display } from "html2canvas/dist/types/css/property-descriptors/display";
 
 interface SchoolSectionProps {
   schoolData: { id: string | number; name: string }[];
@@ -22,8 +23,8 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
   return (
     <>
       <IonItem lines="none">
-        <IonIcon icon={schoolOutline} slot="start" className="icon" />
-        <IonLabel color="white">{t("School")}</IonLabel>
+        <img src="assets/icons/scholarIcon.svg" alt="SCHOOL" className="icon" />
+        <IonLabel color="white" className="school-iconlabel">{t("School")}</IonLabel>
       </IonItem>
       <div className="school-dropdown">
         <CustomDropdown
@@ -33,7 +34,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
           isDownBorder={false}
         />
         <div className="divider-line">
-          <div className="divider" />
+          <div className="school-divider" />
         </div>
       </div>
       <div className="manage-school">
@@ -41,9 +42,6 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
           <IonButton fill="clear" color="" onClick={handleManageSchoolClick}>
             <IonLabel color="dark">{t("Manage School")}</IonLabel>
           </IonButton>
-        </div>
-        <div className="manage-school-icon">
-          <IonIcon color="dark" icon={chevronForwardOutline} slot="end" />
         </div>
       </div>
       <div className="divider-line">

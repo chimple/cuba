@@ -12,6 +12,7 @@ import { Util } from "../../utility/util";
 import AssigmentCount from "../components/library/AssignmentCount";
 interface LessonDetailsProps {}
 const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
+  const currentSchool = Util.getCurrentSchool();
   const history = useHistory();
   const course: TableTypes<"course"> = history.location.state?.[
     "course"
@@ -27,6 +28,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   const auth = ServiceConfig.getI().authHandler;
   const current_class = Util.getCurrentClass();
   const selectedLesson = history.location.state?.["selectedLesson"];
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
 
   let isGrade1: string | boolean = false;
 
@@ -65,12 +67,19 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     setAssignmentCount(_assignmentLength);
     init();
   }, [classSelectedLesson]);
+
   const init = async () => {
     const current_class = Util.getCurrentClass();
-    setChapterId(
-      chapterId ??
-        (await api.getChapterByLesson(lesson.id, current_class?.id ?? ""))
-    );
+    setCurrentClass(current_class ?? null);
+    if (!chapterId && current_class) {
+      const fetched = await api.getChapterByLesson(
+        lesson.id,
+        current_class.id
+      );
+    if (typeof fetched === "string") {
+      setChapterId(fetched);
+    }
+   }
   };
 
   const handleButtonClick = () => {
@@ -103,13 +112,17 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
               })
             : history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
         }}
+        showSchool={true}
+        showClass={true}
+        className={currentClass?.name}
+        schoolName={currentSchool?.name}
       />
       <div className="lesson-details-body">
         <div className="lesson-card-info">
           <div className="lesson-card">
             <div className="play-ion" onClick={onPlayClick}>
               <div className="lesson-info-text">{t("Click to play")}</div>
-              <RemoveRedEyeOutlinedIcon className="lesson-info-text" />
+              <img src="assets/icons/lessonplayEye.svg" alt="View_lesson" />
             </div>
             <div className="lesson-info-image">
               <SelectIconImage

@@ -9,6 +9,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0px 8px;
 }
 
 .calendar-icon {
@@ -43,8 +44,7 @@
 
 .date-selection {
   border-radius: 10px;
-  box-shadow: 1px 0px 2px 0px;
-  border: 1px solid black;
+  border: 1px solid #707070;
   background: white;
   color: var(--text-color);
   padding: 2vh;
@@ -63,12 +63,14 @@
 .teacher-name {
   font-size: clamp(35px, 5vh, 45px);
   font-weight: bold;
-  max-width: 150px;
+  width: auto;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #707070;
 }
 .joined-date {
+  color: #707070;
   font-size: var(--text-size);
   font-weight: bold;
 }
@@ -86,7 +88,7 @@
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
+  /* margin-top: 10px; */
 }
 
 th,
@@ -97,7 +99,7 @@ td {
 }
 
 th {
-  background-color: #f0f0f0;
+  border-right: 2px solid #EFF2F4;
 }
 .teacher-profile-section {
   max-height: 85vh;
@@ -133,9 +135,9 @@ th {
   border-radius: 5px;
   font-weight: bold;
   padding: 1vh;
-  color: var(--text-color);
+  color: #707070;
 }
 .no-data-text {
   margin: 5vh 0;
-  color: var(--text-color);
+  color: #707070;
 }

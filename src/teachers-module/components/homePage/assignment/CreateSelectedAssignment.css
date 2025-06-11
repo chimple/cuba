@@ -17,17 +17,19 @@
   padding: 15px;
   border: 2px solid gray;
   border-radius: 8px;
-  margin-top: 20px;
+  margin-top: 10px;
   box-shadow: 1px 1px 3px gray;
 }
 
-.date-selection {
+.date-created-assignment {
   background-color: #f3edff;
   display: flex;
   justify-content: space-between;
   padding: 10px;
   border-radius: 10px;
   color: black;
+  display: flex;
+  flex-direction: row;
 }
 
 .date-input {
@@ -95,13 +97,13 @@
   left: 15vw;
   width: 70vw;
   padding: 10px;
-  background-color: #7a5aaf;
+  background-color: #7C5DB0;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   margin-top: 20px;
-  font-size: 25px;
+  font-size: 22px;
   font-weight: bolder;
 }
 .assign-selected-button:hover:not(:disabled) {
@@ -113,10 +115,9 @@
 }
 
 #create-assignment-heading {
-  color: black;
+  color: #707070;
   font-size: 30px;
   text-align: start;
-  padding: 20px 20px 0px 20px;
 }
 
 .select-all-checkbox {
