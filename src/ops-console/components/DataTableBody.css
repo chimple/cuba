@@ -1,0 +1,11 @@
+.data-tablebody-head {
+  display: flex;
+  padding: 16px 12px;
+  align-items: center;
+  gap: 8px;
+  align-self: stretch;
+  transform: none;
+}
+.data-tablebody-cell {
+  font-size: 14px;
+}

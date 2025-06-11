@@ -8,6 +8,7 @@ import {
   TableRow,
   TableSortLabel,
 } from "@mui/material";
+import "./DataTableBody.css";
 import { useHistory } from "react-router";
 import { PAGES } from "../../common/constants";
 export interface Column<T> {
@@ -50,7 +51,7 @@ const DataTableBody: React.FC<Props> = ({
       return;
     }
 
-    if (detailPageRouteBase === 'programs') {      
+    if (detailPageRouteBase === "programs") {
       history.push(
         `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/${row["id"]}`
       );
@@ -65,7 +66,7 @@ const DataTableBody: React.FC<Props> = ({
   return (
     <TableContainer sx={{ width: "100%", overflowX: "auto" }}>
       <Table size="small">
-        <TableHead>
+        <TableHead className="data-tablebody-head">
           <TableRow>
             {columns.map((col) => (
               <TableCell
@@ -75,6 +76,7 @@ const DataTableBody: React.FC<Props> = ({
                   transform: "none",
                   backgroundColor: "#DDE1E6 !important",
                   height: "48px",
+                  fontSize: "14px",
                 }}
               >
                 <TableSortLabel
@@ -100,7 +102,11 @@ const DataTableBody: React.FC<Props> = ({
               }}
             >
               {columns.map((col) => (
-                <TableCell key={col.key} align={col.align || "left"}>
+                <TableCell
+                  key={col.key}
+                  align={col.align || "left"}
+                  className="data-tablebody-cell"
+                >
                   {typeof row[col.key] === "object" &&
                   row[col.key]?.render !== undefined
                     ? row[col.key].render
