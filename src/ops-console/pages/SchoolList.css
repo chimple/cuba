@@ -83,7 +83,7 @@
 .school-list-file-upload-conatainer {
   color: #121619;
   width: 23vh;
-  height: 10vh;
+  /* height: 10vh; */
   border: 2px;
   /* background-color: coral; */
   box-shadow: 3px 3px 5px 0px #c9d5d9;
