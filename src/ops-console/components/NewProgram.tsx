@@ -21,8 +21,8 @@ const NewProgram: React.FC = () => {
   const [selectedManagers, setSelectedManagers] = useState<string[]>([]);
   const [geoData, setGeoData] = useState<{ Country: string[]; State: string[]; District: string[]; Block: string[]; Cluster: string[]; }>({ Country: [], State: [], District: [], Block: [], Cluster: [], });
   const [stats, setStats] = useState({ institutes: '', students: '', devices: '', });
-  const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
-  const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
+  const [startDate, setStartDate] = useState<Dayjs | null>(null);
+  const [endDate, setEndDate] = useState<Dayjs | null>(null);
   const [errors, setErrors] = useState<{
     [key: string]: string;
   }>({});
