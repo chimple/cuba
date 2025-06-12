@@ -135,7 +135,6 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           const i = allChapters.findIndex((chapter) => chapter.id === chapterId);
           const nextChapter = allChapters[i + 1];
 
-          console.log("Getting first lesson for next chapter");
           const lessonList = await api.getLessonsForChapter(nextChapter.id);
           recommendedAssignments[course.id].lessons.push(lessonList[0]);
         }
@@ -165,7 +164,6 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           }));
       });
       setRecommendedAssignments(updatedRecommendedAssignments);
-      console.log("Updated Recommended Assignments:", updatedRecommendedAssignments);
       updateSelectedLesson(
         TeacherAssignmentPageType.RECOMMENDED,
         updatedRecommendedAssignments

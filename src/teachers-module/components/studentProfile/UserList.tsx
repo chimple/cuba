@@ -30,11 +30,9 @@ const UserList: React.FC<{
     if (userType === CLASS_USERS.STUDENTS) {
       const studentsDoc = await api?.getStudentsForClass(classDoc.id);
       setAllStudents(studentsDoc);
-      console.log("all students..", studentsDoc);
     } else {
       const teachersDoc = await api?.getTeachersForClass(classDoc.id);
       setAllTeachers(teachersDoc);
-      console.log("all teachers..", teachersDoc);
     }
   };
 
@@ -48,7 +46,6 @@ const UserList: React.FC<{
       try {
         if (userType === CLASS_USERS.STUDENTS) {
           await api?.deleteUserFromClass(selectedUser.id);
-          console.log("selected student removed from class", selectedUser);
           setAllStudents((prev) =>
             prev?.filter((student) => student.id !== selectedUser.id)
           );
@@ -59,7 +56,6 @@ const UserList: React.FC<{
           await api.updateClassLastModified(classDoc.id);
           await api.updateUserLastModified(selectedUser.id);
 
-          console.log("selected teacher removed from class");
           setAllTeachers((prev) =>
             prev?.filter((teacher) => teacher.id !== selectedUser.id)
           );

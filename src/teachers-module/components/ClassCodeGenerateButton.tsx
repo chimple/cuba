@@ -25,8 +25,6 @@ const ClassCodeGenerateButton: React.FC<ClassCodeProps> = ({
       classCode = await api.createClassCode(classId);
       if (classCode) {
         setClassCode(classCode);
-      } else {
-        console.log("Failed to get class code");
       }
     }
   };

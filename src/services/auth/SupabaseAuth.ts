@@ -38,7 +38,6 @@ export class SupabaseAuth implements ServiceAuth {
       SupabaseAuth.i._auth = SupabaseAuth.i._supabaseDb?.auth;
       SupabaseAuth?.i?._auth?.onAuthStateChange((event, session) => {
         if (event === "TOKEN_REFRESHED") {
-          console.log("Session refreshed:", session?.refresh_token);
           if (session?.refresh_token)
             Util.addRefreshTokenToLocalStorage(session?.refresh_token);
         }
@@ -73,7 +72,7 @@ export class SupabaseAuth implements ServiceAuth {
       await api.subscribeToClassTopic();
       return true;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: SupabaseAuth.ts:143 ~ SupabaseAuth ~ Emailsignin ~ error:",
         error
       );
@@ -102,7 +101,7 @@ export class SupabaseAuth implements ServiceAuth {
       Util.storeLoginDetails(email, password);
       return true;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: SupabaseAuth.ts:166 ~ SupabaseAuth ~ Emailsignin ~ error:",
         error
       );
@@ -141,7 +140,7 @@ export class SupabaseAuth implements ServiceAuth {
       if (!this._auth) return false;
       const api = ServiceConfig.getI().apiHandler;
       const authUser = await GoogleAuth.signIn();
-      console.log(
+      console.error(
         "🚀 ~ SupabaseAuth ~ googleSign ~ authUser:",
         authUser.authentication.refreshToken
       );
@@ -154,7 +153,7 @@ export class SupabaseAuth implements ServiceAuth {
 
       if (data.session?.refresh_token)
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
-      console.log(
+      console.error(
         "🚀 ~ SupabaseAuth ~ googleSign ~ data, error:",
         data,
         error,
@@ -165,7 +164,6 @@ export class SupabaseAuth implements ServiceAuth {
         user_phone: "",
       });
 
-      console.log("🚀 ~ SupabaseAuth ~ googleSign ~ isUserExists:", rpcRes);
       if (!rpcRes?.data) {
         const createdUser = await api.createUserDoc({
           age: null,
@@ -271,7 +269,6 @@ export class SupabaseAuth implements ServiceAuth {
           const { access_token, refresh_token } = data.session;
           this._auth?.setSession({ access_token, refresh_token });
           Util.addRefreshTokenToLocalStorage(refresh_token);
-          console.log("Session refreshed successfully:", refresh_token);
         }
       }
     } catch (error) {
@@ -321,7 +318,7 @@ export class SupabaseAuth implements ServiceAuth {
       if (!error) return true;
       return false;
     } catch (error) {
-      console.log("Failed with ");
+      console.error("Failed with ",error);
     }
   }
 
@@ -351,7 +348,6 @@ export class SupabaseAuth implements ServiceAuth {
         user_email: "",
         user_phone: user?.user?.phone ?? "",
       });
-      console.log("🚀 ~ SupabaseAuth ~ PhoneSignIn ~ isUserExists:", rpcRes);
 
       if (!rpcRes?.data) {
         const createdUser = await api.createUserDoc({

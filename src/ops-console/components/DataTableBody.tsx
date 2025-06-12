@@ -59,7 +59,6 @@ const DataTableBody: React.FC<Props> = ({
       history.push(
         `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/${row["sch_id"]}`
       );
-      console.log("Row clicked:", id, row);
     }
   };
 

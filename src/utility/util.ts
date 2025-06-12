@@ -547,14 +547,10 @@ export class Util {
           if (config.uniqueId === uniqueId) {
             this.setGameUrl(androidPath);
             return true;
-          } else {
-            console.log(
-              `⚠️ Unique ID mismatch for remoteAsset, downloading update.`
-            );
           }
         }
       } catch (err) {
-        console.log(`❌ Failed to read config for remoteAsset:`, err);
+        console.error(`❌ Failed to read config for remoteAsset:`, err);
       }
 
       // Download and unzip
@@ -1900,10 +1896,16 @@ export class Util {
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentClass) return api.currentClass;
     const temp = localStorage.getItem(CLASS);
-    if (!temp) return;
-    const currentClass = JSON.parse(temp) as TableTypes<"class">;
-    api.currentClass = currentClass;
-    return currentClass;
+    if (!temp || temp === "undefined") return;
+
+    try {
+      const currentClass = JSON.parse(temp) as TableTypes<"class">;
+      api.currentClass = currentClass;
+      return currentClass;
+    } catch (err) {
+      console.error("Failed to parse currentClass from localStorage", err);
+      return;
+    }
   }
 
   public static async sendContentToAndroidOrWebShare(
@@ -2128,7 +2130,6 @@ export class Util {
     password: string
   ): Promise<void> {
     if (!Capacitor.isNativePlatform()) {
-      console.log("Not running on Android. Skipping storeLoginDetails.");
       return;
     }
 

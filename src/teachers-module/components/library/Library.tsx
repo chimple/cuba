@@ -25,7 +25,6 @@ const Library: React.FC = () => {
     course_res.sort(
       (a, b) => (a.sort_index ?? Infinity) - (b.sort_index ?? Infinity)
     );
-    console.log("My following subjects are- ", course_res)
     setCourses(course_res);
   };
 

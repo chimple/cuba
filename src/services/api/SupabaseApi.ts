@@ -1514,7 +1514,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (error) {
-      console.log("Error fetching lesson:", error);
+      console.error("Error fetching lesson:", error);
       if (error.code === "PGRST116") {
         // No rows found
         return null;
@@ -2353,7 +2353,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (error) {
-      console.log("Error in getting class", error);
+      console.error("Error in getting class", error);
       return;
     }
     return data ?? undefined;
@@ -2368,7 +2368,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (error) {
-      console.log("Error in getting school", error);
+      console.error("Error in getting school", error);
       return;
     }
     return data ?? undefined;
@@ -2387,7 +2387,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (error) {
-      console.log("Error in isStudentLinked", error);
+      console.error("Error in isStudentLinked", error);
     }
     return true;
   }
@@ -2623,9 +2623,6 @@ export class SupabaseApi implements ServiceApi {
     // Step 1: Fetch all classes for the given school
     const classes = await this.getClassesBySchoolId(schoolId);
     if (!classes?.length) {
-      console.log(
-        `No classes found for school ${schoolId}, so no student info.`
-      );
       return [];
     }
 
@@ -2663,7 +2660,6 @@ export class SupabaseApi implements ServiceApi {
     }
 
     if (studentClassPairs.length === 0) {
-      console.log(`No student-class pairs found for school ${schoolId}.`);
       return [];
     }
 
@@ -2672,16 +2668,12 @@ export class SupabaseApi implements ServiceApi {
       ...new Set(studentClassPairs.map((pair) => pair.userId)),
     ];
     if (!uniqueUserIds.length) {
-      console.log(`No unique student user IDs found for school ${schoolId}.`);
       return [];
     }
 
     // Step 4: Fetch user details in bulk
     const users = await this.getUsersByIds(uniqueUserIds);
     if (!users || users.length === 0) {
-      console.log(
-        `No user data found for the collected student IDs for school ${schoolId}.`
-      );
       return [];
     }
 
@@ -2938,7 +2930,6 @@ export class SupabaseApi implements ServiceApi {
       }
 
       if (!deletedClassUsers || deletedClassUsers.length === 0) {
-        console.log("No class_user records found for the teachers.");
       }
 
       // Soft-delete class_course for this class
@@ -2969,7 +2960,6 @@ export class SupabaseApi implements ServiceApi {
       }
 
       if (!deletedClassCourses || deletedClassCourses.length === 0) {
-        console.log("No class_course records found for the class.");
       }
 
       // Soft-delete the class itself
@@ -2984,7 +2974,6 @@ export class SupabaseApi implements ServiceApi {
         throw classUpdateError;
       }
 
-      console.log("Class and related data marked as deleted successfully.");
     } catch (error) {
       console.error("Failed to delete class:", error);
       throw error;
@@ -3724,8 +3713,6 @@ export class SupabaseApi implements ServiceApi {
         console.error("Error updating rewards as seen:", error);
         throw new Error("Error updating rewards as seen.");
       }
-
-      console.log(`Updated unseen rewards to seen for student ${studentId}`);
     } catch (err) {
       console.error("Unexpected error updating rewards as seen:", err);
       throw new Error("Unexpected error updating rewards as seen.");
