@@ -14,7 +14,7 @@ const SelectIcon: React.FC<SelectIconProps> = ({ onClick, isSelected }) => {
         className="select-icon"
         style={{ backgroundColor: isSelected ? "#7c5db0" : "#EFE8F8" }}
       >
-        <AssignmentRoundedIcon />
+        <AssignmentRoundedIcon style={{width: '14px', height: '20px'}} />
         <span
           style={{ color: isSelected ? "white" : "black" }}
           className="select-text"

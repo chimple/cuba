@@ -103,12 +103,8 @@ const Header: React.FC<HeaderProps> = ({
       <div className="header">
         <div aria-label={String(t("Menu"))} id="header-menu-element">
           {isBackButton ? (
-            <KeyboardBackspaceIcon
-              aria-label={String(t("Back"))}
-              fontSize="large"
-              onClick={handleBackButtonClick}
-              className={disableBackButton ? "disabled-back-button" : ""}
-            />
+            <img src="assets/icons/HeaderBackBtn.svg" alt={String(t("Back"))}
+            onClick={handleBackButtonClick} className={disableBackButton ? "disabled-back-button" : ""} />
           ) : showSideMenu ? (
             <SideMenu
               aria-label={t("Menu")}
@@ -167,7 +163,7 @@ const Header: React.FC<HeaderProps> = ({
             />
         </div>
         )}
-        <div className="help-icon-container" style={{ display: 'flex', alignItems: 'center', gap: 12, marginRight:"15px" }}>
+        <div className="help-icon-container" style={{ display: 'flex', alignItems: 'center' }}>
           {onShareClick && (
             <button
               onClick={onShareClick}
@@ -176,11 +172,7 @@ const Header: React.FC<HeaderProps> = ({
               <IoShareSocialSharp size={28} color="white" />
             </button>
           )}
-          <HelpOutlineOutlinedIcon
-          fontSize="large"
-          aria-label={String(t("Help"))}
-          className="help-icon"
-        />
+        <img src="assets/icons/helpIcon.svg" alt={String(t("Menu"))} className="help-icon" />
       </div>
     </div>
     </div>

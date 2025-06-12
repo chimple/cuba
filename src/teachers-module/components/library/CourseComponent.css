@@ -39,3 +39,9 @@
   margin-top: 4px; /* Space above grade name */
   line-height: 1.2; /* Ensure spacing between lines */
 }
+.course-divider {
+  width: 100%;
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 0.5rem 0;    
+}

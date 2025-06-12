@@ -479,7 +479,7 @@ const CreateSelectedAssignment = ({
           <p>
             <Trans i18nKey="assignments_date_message" />
           </p>
-          <div className="date-selection">
+          <div className="date-created-assignment">
             <div>
               <b>{t("Start Date")}</b>
               <div className="date-input">
@@ -515,14 +515,13 @@ const CreateSelectedAssignment = ({
                     onCancel={() => setShowEndDatePicker(false)}
                     mode="end"
                     minDate={
-                      format(startDate ?? "", "yyyy-MM-dd")
-                        ? format(startDate ?? "", "yyyy-MM-dd")
+                      startDate
+                        ? format(new Date(startDate), "yyyy-MM-dd")
                         : new Date().toISOString().split("T")[0]
                     }
-                    maxDate={format(
-                      addMonths(startDate ?? "", 1),
-                      "yyyy-MM-dd"
-                    )}
+                    maxDate={
+                      format(addMonths(new Date(startDate), 1), "yyyy-MM-dd")
+                    }
                     startDate={startDate}
                   />
                 ) : (

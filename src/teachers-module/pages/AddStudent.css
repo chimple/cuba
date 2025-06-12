@@ -118,8 +118,10 @@
 }
 
 .add-button.disabled {
-  background-color: #c4c5c1;
-  cursor: not-allowed;
+  background-color: #7C5DB0;
+  cursor: pointer;
+  height: 50px;
+  width: 250px;
 }
 
 .gender-options {
@@ -208,6 +210,10 @@ ion-radio.radio-checked::part(mark) {
 /* Additional styles to ensure consistent spacing */
 .add-student-form {
   padding: 2vw;
+  margin: 0px 15px;
+  border: 1px solid #ccc;
+  border-radius: 15px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
   /* Padding around the form to adjust to screen size */
 }
 

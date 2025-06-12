@@ -2115,6 +2115,16 @@ export type Database = {
           total_institutes: number
         }[]
       }
+      count_users_by_school:{
+        Args: { p_school_id: string }
+        Returns: {
+          total_students: Number
+          active_students: Number
+          total_teachers: Number
+          active_teachers: Number
+          avg_time_spent: Number
+        }
+      }
       count_total_and_active_students_by_program: {
         Args: { p_program_id: string }
         Returns: {

@@ -49,3 +49,9 @@
 .teacher-logout-btn:hover {
   background-color: #7350b1;
 }
+
+.sidemenu-hamburger {
+  cursor: pointer;
+  width: 30px;
+  height: 24px;
+}

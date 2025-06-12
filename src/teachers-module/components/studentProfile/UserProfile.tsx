@@ -26,7 +26,6 @@ const UserProfile: React.FC<{
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    console.log("Input Changed:", name, value);
     setStudent((prevState) => {
       if (!prevState) return prevState;
 

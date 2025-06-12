@@ -5253,4 +5253,30 @@ async getStudentInfoBySchoolId(schoolId: string): Promise<
   async isProgramUser(): Promise<boolean> {
       return await this._serverApi.isProgramUser();
   }
+
+async countProgramStats(
+  programId: string
+  ): Promise<{
+    total_students: number;
+    active_students: number;
+    avg_time_spent: number;
+    total_teachers: number;
+    active_teachers: number;
+    total_institutes: number;
+  }> {
+    return await this._serverApi.countProgramStats(programId);
+  }
+
+async countUsersBySchool(
+    schoolId: string
+  ): Promise<{
+    total_students: number;
+    active_students: number;
+    avg_time_spent: number;
+    total_teachers: number;
+    active_teachers: number;
+  }> {
+    return await this._serverApi.countUsersBySchool(schoolId);
+}
+
 }

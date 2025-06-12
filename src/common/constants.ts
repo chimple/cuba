@@ -194,8 +194,8 @@ export enum TABLEDROPDOWN {
 
 export enum TABLESORTBY {
   NAME = "Name",
-  HIGHSCORE = "High Score",
-  LOWSCORE = "Low Score",
+  HIGHSCORE = "High to Low",
+  LOWSCORE = "Low to High",
 }
 
 export enum FileUploadStep {
@@ -594,7 +594,10 @@ export interface PortPlugin {
     imageFile?: File[];
   }): Promise<void>;
   shareUserId(options: { userId: string }): Promise<void>;
-  saveProceesedXlsxFile(options: { fileData: string }): Promise<void>;
+  saveProceesedXlsxFile(options: {
+    fileData: string;
+    fileName?: string;
+  }): Promise<void>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [
@@ -858,3 +861,5 @@ export const CHIMPLE_DIGITAL_SKILLS = "19bb079f-bc69-44e4-bc1d-0b77f2683b6c";
 export const CHIMPLE_HINDI = "7e9d65fa-ac2e-452e-bca4-1499d5c174e0";
 export const GRADE1_KANNADA = "a90608de-4376-4baf-82c2-07760b2aa899";
 export const GRADE1_MARATHI = "2cada0d1-db3d-4da0-8ade-e9ba282a3558";
+export const BULK_UPLOAD_TEMPLATE_URL =
+  "https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/common-files//Bulk%20School%20&%20Students%20Upload%20Template.xlsx";

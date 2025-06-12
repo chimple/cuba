@@ -169,7 +169,6 @@ const AddStudent: React.FC = () => {
         // Log the estimated size of the base64 image
         const base64Length = resizedDataUrl.length * (3 / 4); // Base64 is approximately 33% larger
         const fileSizeInKB = base64Length / 1024; // Convert size to KB
-        console.log(`Resized image size: ${fileSizeInKB.toFixed(2)} KB`);
         callback(resizedDataUrl);
       };
     };
@@ -217,8 +216,6 @@ const AddStudent: React.FC = () => {
         isBackButton={true}
         showSchool={true}
         showClass={true}
-        className={currentClass.name}
-        schoolName={currentSchool?.name}
         onBackButtonClick={handleBack}
       />
       <div className="profile-details-container">
@@ -229,7 +226,6 @@ const AddStudent: React.FC = () => {
           isEditMode={true}
         />
       </div>
-      <h2 className="title">{t("Add Student")}</h2>
       <AddStudentSection
         languageOptions={languages}
         fullName={fullName}

@@ -46,7 +46,6 @@ const ManageSchools: React.FC = () => {
       }
 
       const fetchedSchools = await api.getSchoolsForUser(user.id);
-      console.log("all schools..", fetchedSchools);
 
       if (fetchedSchools) setAllSchools(fetchedSchools);
     } catch (error) {

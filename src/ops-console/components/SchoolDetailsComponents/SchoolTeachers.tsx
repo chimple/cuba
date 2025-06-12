@@ -3,7 +3,7 @@ import { useHistory } from "react-router-dom";
 import DataTableBody, { Column } from "../DataTableBody";
 import DataTablePagination from "../DataTablePagination";
 import { Button as MuiButton, Typography, Box } from "@mui/material";
-import { Add as AddIcon } from "@mui/icons-material";
+import { Add as AddIcon, Label } from "@mui/icons-material";
 import { t } from "i18next";
 import SearchAndFilter from "../SearchAndFilter";
 import FilterSlider from "../FilterSlider";
@@ -219,6 +219,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({ data, isMobile }) => {
     searchTerm.trim() !== "" ||
     Object.values(filters).some((f) => f.length > 0);
 
+  const filterConfigsForTeachers = [{ key: "grade", label: "Grade" }];
+
   return (
     <div className="schoolTeachers-pageContainer">
       {isDataPresent || isFilteringOrSearching ? (
@@ -268,6 +270,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({ data, isMobile }) => {
         onFilterChange={handleSliderFilterChange}
         onApply={handleApplyFilters}
         onCancel={handleCancelFilters}
+        filterConfigs={filterConfigsForTeachers}
       />
 
       {isDataPresent ? (
