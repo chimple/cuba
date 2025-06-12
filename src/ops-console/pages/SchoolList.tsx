@@ -148,6 +148,18 @@ const SchoolList: React.FC = () => {
     { key: "fieldCoordinators", label: t("Field Coordinator") },
   ];
 
+     const filterConfigsForSchool = [
+      { key: "Partner", label: t("Select Partner") },
+      { key: "Program Manager", label: t("Select Program Manager" )},
+      { key: "Field Coordinator", label: t("Select Field Coordinator") },
+      { key: "Program Type", label: t("Select Program Type") },
+      { key: "state", label: t("Select State") },
+      { key: "district", label: t("Select District") },
+      { key: "block", label: t("Select Block") },
+      { key: "village", label: t("Select Village") },
+      { key: "cluster", label: t("Select Cluster") },
+    ];
+
   const filteredSchools = useMemo(() => {
     return schools.filter((school) =>
       school.name.value.toLowerCase().includes(searchTerm.toLowerCase())
@@ -251,6 +263,7 @@ const SchoolList: React.FC = () => {
             setIsFilterOpen(false);
           }}
           autocompleteStyles={{}}
+          filterConfigs={filterConfigsForSchool}
         />
 
         <Box className="selected-filters-container">

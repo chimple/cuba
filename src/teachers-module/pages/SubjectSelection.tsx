@@ -519,7 +519,6 @@ const SubjectSelection: React.FC = () => {
   const onBackButtonClick = () => {
     // if (navigationState?.stage === School_Creation_Stages.SCHOOL_COURSE) {
     //   Util.setNavigationState(School_Creation_Stages.CREATE_SCHOOL);
-    //   console.log("ha ha ha 1",currentSchool,currentClass);
     //   history.replace(PAGES.EDIT_SCHOOL, {
     //     school: currentSchool,
     //     role: RoleType.PRINCIPAL,

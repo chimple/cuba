@@ -14,7 +14,11 @@ import VerifiedPage from "./FileVerifiedComponent";
 import ErrorPage from "./FileErrorComponent";
 import VerificationInProgress from "./VerificationInProgress";
 import { useHistory } from "react-router-dom";
-import { FileUploadStep, PAGES } from "../../common/constants";
+import {
+  BULK_UPLOAD_TEMPLATE_URL,
+  FileUploadStep,
+  PAGES,
+} from "../../common/constants";
 
 const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
   onCancleClick,
@@ -117,7 +121,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
   useEffect(() => {
     if (step === FileUploadStep.Uploaded) {
       const timer = setTimeout(() => {
-        history.replace(PAGES.MANAGE_SCHOOL);
+        onCancleClick?.();
       }, 2000);
       return () => clearTimeout(timer);
     }
@@ -721,39 +725,13 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
       const blob = new Blob([processedDataRef.current], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
-
-      if (Capacitor.isNativePlatform()) {
-        const fileDataBase64 = await blobToBase64(blob);
-        await Util.triggerSaveProceesedXlsxFile({ fileData: fileDataBase64 });
-        progressRef.current = 100;
-        setVerifyingProgressState(progressRef.current);
-      } else {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "processed_data.xlsx";
-        document.body.appendChild(a);
-        a.click();
-        URL.revokeObjectURL(url);
-        progressRef.current = 100;
-        setVerifyingProgressState(progressRef.current);
-      }
+      Util.handleBlobDownloadAndSave(blob, "ProcessedFile.xlsx");
+      progressRef.current = 100;
+      setVerifyingProgressState(progressRef.current);
     } catch (error) {
       console.error("Download failed:", error);
     }
   };
-
-  function blobToBase64(blob: Blob): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(blob);
-      reader.onloadend = () => {
-        const base64Data = reader.result as string;
-        resolve(base64Data.split(",")[1]);
-      };
-      reader.onerror = reject;
-    });
-  }
 
   const handleNext = async () => {
     setStep(FileUploadStep.Verifying);
@@ -856,7 +834,10 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
       </div>
 
       {!isReupload && (
-        <a className="download-upload-template">
+        <a
+          className="download-upload-template"
+          onClick={() => Util.downloadFileFromUrl(BULK_UPLOAD_TEMPLATE_URL)}
+        >
           <FaCloudDownloadAlt /> {t("Download Bulk Upload Template")}
         </a>
       )}
@@ -909,7 +890,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
   if (step === FileUploadStep.UploadError) {
     return (
       <ErrorPage
-        reUplod={() => history.replace(PAGES.UPLOAD_PAGE)}
+        reUplod={() => onReuploadTriggered()}
         message={t(
           "Upload failed. Please try again later. You may retry or contact support if the problem continues."
         )}

@@ -50,7 +50,7 @@ const EditClass: FC = () => {
         setClassName(classToUse.name);
       }
     } catch (error) {
-    console.log("Failed to load class details.");
+      console.error("Failed to load class details.",error);
     }
   };
 
@@ -68,7 +68,7 @@ const EditClass: FC = () => {
         });
       }
     } catch (error) {
-      console.log("unable to create a class", error);
+      console.error("unable to create a class", error);
     }
   };
   const handleUpdateClass = async () => {
@@ -91,7 +91,7 @@ const EditClass: FC = () => {
         }
       }
     } catch (error) {
-      console.log("unable to update a class", error);
+      console.error("unable to update a class", error);
     }
   };
 

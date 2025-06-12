@@ -38,15 +38,12 @@ const SchoolUserList: React.FC<{
     if (userType === SCHOOL_USERS.PRINCIPALS) {
       const principalDocs = await api?.getPrincipalsForSchool(schoolDoc.id);
       setAllPrincipals(principalDocs);
-      console.log("principalDocs", principalDocs);
     } else if (userType === SCHOOL_USERS.COORDINATORS) {
       const coordinatorsDoc = await api?.getCoordinatorsForSchool(schoolDoc.id);
       setAllCoordinators(coordinatorsDoc);
-      console.log("coordinatorsDoc", coordinatorsDoc);
     } else {
       const sponsorsDoc = await api?.getSponsorsForSchool(schoolDoc.id);
       setAllSponsors(sponsorsDoc);
-      console.log("sponsorsDoc", sponsorsDoc);
     }
   };
 

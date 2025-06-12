@@ -100,25 +100,26 @@ const DashBoard: React.FC = ({}) => {
       Util.getCurrentCourse(current_class?.id) ?? _subjects[0]
     );
   };
-  
+
 const init = async () => {
   setIsLoading(true);
   const _students = await api.getStudentsForClass(current_class?.id ?? "");
   setStudents(_students);
-
   const _classUtil = new ClassUtil();
 
-  if (selectedSubject?.id ===ALL_SUBJECT.id) {
+  if (selectedSubject?.id === ALL_SUBJECT.id) {
     const studentBandMap = new Map<string, { band: string, entry: any }>();
-     const bandOrder = [
-        BANDS.REDGROUP,
-        BANDS.YELLOWGROUP,
-        BANDS.GREENGROUP, 
-        BANDS.GREYGROUP,
-      ];
-       const bandPriority = Object.fromEntries(
-        bandOrder.map((band, i) => [band, i + 1])
-      );
+
+    const bandOrder = [
+      BANDS.REDGROUP,
+      BANDS.YELLOWGROUP,
+      BANDS.GREENGROUP,
+      BANDS.GREYGROUP,
+    ];
+    const bandPriority = Object.fromEntries(
+      bandOrder.map((band, i) => [band, i + 1])
+    );
+    
 
     let totalAssignments = 0;
     let totalCompletedAssignments = 0;
@@ -127,14 +128,18 @@ const init = async () => {
     let totalAverageScore = 0;
     let subjectsCount = 0;
 
-    for (const subject of subjects) {
+    const visibleSubjects = subjects.filter((subject) =>
+      subject.name && subject.name !== ALL_SUBJECT.name
+    );
+
+    for (const subject of visibleSubjects) {
       const progress = await _classUtil.divideStudents(current_class?.id ?? "", subject.id);
       const summary = await _classUtil.getWeeklySummary(current_class?.id ?? "", subject.id);
 
-      // Track band for each student
       for (const [band, studentsInBand] of progress.entries()) {
         for (const entry of studentsInBand) {
           const student = entry.get("student") as TableTypes<"user">;
+          
           const current = studentBandMap.get(student.id);
           if (!current || bandPriority[band] < bandPriority[current.band]) {
             studentBandMap.set(student.id, { band, entry });
@@ -142,7 +147,6 @@ const init = async () => {
         }
       }
 
-      // Accumulate summary data
       totalAssignments += summary.assignments.totalAssignments || 0;
       totalCompletedAssignments += summary.assignments.asgnmetCmptd || 0;
       totalCompletedStudents += summary.students.stdCompletd || 0;
@@ -150,7 +154,7 @@ const init = async () => {
       totalAverageScore += summary.averageScore || 0;
       subjectsCount += 1;
     }
-
+    
     // Final band grouping
     const mergedBandWiseStudents = new Map<string, any[]>();
     for (const { band, entry } of studentBandMap.values()) {
@@ -159,6 +163,12 @@ const init = async () => {
       }
       mergedBandWiseStudents.get(band)!.push(entry);
     }
+    // Ensure all bands exist in the map, even with 0 students
+      for (const band of bandOrder) {
+        if (!mergedBandWiseStudents.has(band)) {
+          mergedBandWiseStudents.set(band, []);
+        }
+      }
 
     // Final average calculations
     const averageTimeSpent = subjectsCount > 0 ? Math.round(totalTimeSpent / subjectsCount) : 0;

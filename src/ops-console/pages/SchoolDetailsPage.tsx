@@ -90,7 +90,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
           schoolStats: newSchoolStats,
         });
       setLoading(false);
-      console.log("checking data log",  students);
     }
     fetchAll();
   }, [id]);
