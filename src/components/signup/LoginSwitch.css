@@ -1,4 +1,4 @@
-.login-other-ways {
+.LoginSwitch-other-ways {
   display: flex;
   flex-direction: column;
   gap: 32px;
@@ -21,7 +21,7 @@
   z-index: 10;
 }
 
-.login-other-ways-options {
+.LoginSwitch-other-ways-options {
   position: absolute;
   top: 38%;
   display: flex;
@@ -36,7 +36,7 @@
   margin-top: 0;
 }
 
-.login-other-ways-header {
+.LoginSwitch-other-ways-header {
   position: absolute;
   top: 15%;
   color: var(--text-color);
@@ -44,7 +44,7 @@
   gap: 15px;
 }
 
-.login-switch-option {
+.LoginSwitch-switch-option {
   color: var(--text-color);
   width: 78px;
   height: 57px;
@@ -58,19 +58,19 @@
   gap: 2px;
 }
 
-.login-switch-option-img {
+.LoginSwitch-switch-option-img {
   width: 29.5px;
   height: 29.5px;
   max-height: 29.5px;
   max-width: 29.5px;
 }
 
-.login-switch-option.disabled {
+.LoginSwitch-switch-option.disabled {
   pointer-events: none;
   cursor: not-allowed;
 }
 
-.login-terms-condition {
+.LoginSwitch-terms-condition {
   position: absolute;
   top: 75%;
   padding: 8px 16px;
@@ -80,7 +80,7 @@
   align-items: center;
 }
 
-.terms-checkbox-label {
+.LoginSwitch-terms-checkbox-label {
   display: flex;
   align-items: center;
   font-size: 16px;
@@ -90,18 +90,18 @@
   gap: 8px;
 }
 
-.terms-checkbox-label label {
+.LoginSwitch-terms-checkbox-label label {
   display: flex;
   align-items: center;
   margin: 0;
   padding: 0;
 }
 
-.terms-checkbox-input {
+.LoginSwitch-terms-checkbox-input {
   display: none;
 }
 
-.terms-custom-checkbox {
+.LoginSwitch-terms-custom-checkbox {
   width: 24px;
   height: 24px;
   border: 2px solid #02c1c1;
@@ -112,7 +112,7 @@
   display: inline-block;
 }
 
-.terms-checkbox-input:checked+.terms-custom-checkbox::after {
+.LoginSwitch-terms-checkbox-input:checked+.LoginSwitch-terms-custom-checkbox::after {
   content: "";
   position: absolute;
   left: 6px;
@@ -124,7 +124,7 @@
   transform: rotate(45deg);
 }
 
-.login-terms-link {
+.LoginSwitch-terms-link {
   text-decoration: underline;
   color: var(--text-color);
   font-weight: 500;
@@ -132,7 +132,7 @@
 }
 
 /* OTP Expiry UI Styles */
-.otp-expiry-container {
+.LoginSwitch-otp-expiry-container {
   border-radius: 12px;
   display: flex;
   flex-direction: column;
@@ -143,7 +143,7 @@
   gap: 12px;
 }
 
-.otp-expiry-header {
+.LoginSwitch-otp-expiry-header {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -152,7 +152,7 @@
   font-weight: 600;
 }
 
-.otp-expiry-text {
+.LoginSwitch-otp-expiry-text {
   font-size: 1.15rem;
   font-weight: 600;
   color: var(--text-color);
@@ -160,11 +160,11 @@
   text-align: center;
 }
 
-.otp-resend-link {
+.LoginSwitch-otp-resend-link {
   text-align: center;
 }
 
-.otp-resend-anchor {
+.LoginSwitch-otp-resend-anchor {
   font-size: 20px;
   font-weight: bold;
   color: var(--text-color);
@@ -174,28 +174,28 @@
 }
 
 @media (max-width: 500px) {
-  .otp-expiry-container {
+  .LoginSwitch-otp-expiry-container {
     padding: 24px 8px 20px 8px;
     max-width: 95vw;
     margin-top: 15px;
   }
 
-  .otp-expiry-header {
+  .LoginSwitch-otp-expiry-header {
     margin-bottom: 20px;
   }
 
-  .otp-expiry-stripe {
+  .LoginSwitch-otp-expiry-stripe {
     width: 30px;
     margin: 0 6px;
   }
 
-  .otp-expiry-text {
+  .LoginSwitch-otp-expiry-text {
     font-size: 1rem;
   }
 }
 
 @media (orientation: portrait) {
-  .login-other-ways {
+  .LoginSwitch-other-ways {
     border-top-right-radius: 25% 32px;
   }
 }

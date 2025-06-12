@@ -1,6 +1,6 @@
 /* LoginScreen.css */
 
-.login-screen {
+.Loginscreen-login-screen {
   background-image: url("/public/assets/loginAssets/LoginBG1.svg");
   background-size: cover;
   background-repeat: no-repeat;
@@ -13,7 +13,7 @@
   align-items: center;
 }
 
-.login-header {
+.Loginscreen-login-header {
   width: 100%;
   padding: 16px;
   display: flex;
@@ -22,7 +22,7 @@
   position: relative;
 }
 
-.chimple-login-logo {
+.Loginscreen-chimple-login-logo {
   margin: 0 auto;
 }
 
@@ -33,7 +33,7 @@
   gap: 12px;
 }
 
-.chimple-login-logo-otp-container {
+.Loginscreen-chimple-login-logo-otp-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -46,24 +46,24 @@
 }
 
 @media screen and (max-width: 600px) {
-  .chimple-login-logo-otp-container{
+  .Loginscreen-chimple-login-logo-otp-container{
     position: absolute;
     top: 23%;
     gap: 20px;
     z-index: 12;
   }
-  .otp-back-button {
+  .Loginscreen-otp-back-button {
     position: absolute;
     top: 79px;
     left: 30px;
   }
-  .chimple-login-logo {
+  .Loginscreen-chimple-login-logo {
     margin-top: 23.5%;
   }
-  .login-header {
+  .Loginscreen-login-header {
     padding: 12px;
   }
-  .otp-back-button {
+  .Loginscreen-otp-back-button {
     width: 48px;
     height: 32px;
     margin-right: 8px;
@@ -71,52 +71,53 @@
 }
 
 @media screen and (max-height: 500px) {
-  .chimple-login-logo-otp-container {
+  .Loginscreen-chimple-login-logo-otp-container {
     z-index: 12;
     max-height: 125px;
     font-size: 16px;
     margin-top: -50px;
   }
-  .chimple-login-logo-otp {
+  .Loginscreen-chimple-login-logo-otp {
     max-width: 78px;
   }
-  .chimple-login-logo {
+  .Loginscreen-chimple-login-logo {
     position: absolute;
     max-width: 120px;
   }
 }
 
 @media screen and (max-width: 768px) {
-  .login-screen {
+  .Loginscreen-login-screen {
     background-size: 1860px 1300px;
   }
 }
 
-.otp-back-button {
-  background: #f44a06;
+.Loginscreen-otp-back-button {
+  background: #FFFFFF;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   width: 60px;
   height: 35px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 0 #8a2901;
+  border: 2.5px solid #f34d08;
+  /* box-shadow: 0 2px 0 #8a2901; */
   cursor: pointer;
   margin-right: 12px;
   transition: box-shadow 0.1s;
 }
 
-.otp-back-button:active {
+.Loginscreen-otp-back-button:active {
   box-shadow: none;
 }
 
-.otp-back-arrow-img {
-  width: 24px;
+.Loginscreen-otp-back-arrow-img {
+  font-size: x-large;
   display: block;
 }
 
-.tc-popup {
+.Loginscreen-tc-popup {
   position: fixed;
   top: 0;
   left: 0;
@@ -126,25 +127,25 @@
   z-index: 15;
 }
 
-.tc-header {
+.Loginscreen-tc-header {
   padding: 1rem;
   display: flex;
   justify-content: flex-end;
 }
 
-.tc-close-button {
+.Loginscreen-tc-close-button {
   background: none;
   border: none;
   cursor: pointer;
   padding: 0.5rem;
 }
 
-.tc-close-button img {
+.Loginscreen-tc-close-button img {
   width: 24px;
   height: 24px;
 }
 
-.tc-content {
+.Loginscreen-tc-content {
   height: calc(100% - 60px);
   overflow: auto;
 }
@@ -156,7 +157,7 @@
 }
 
 /* Loading Animation Styles */
-.initial-loading-ui {
+.Loginscreen-initial-loading-ui {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -171,125 +172,125 @@
   background-color: var(--ion-background-color);
 }
 
-.initial-homework-icon {
+.Loginscreen-initial-homework-icon {
   height: 45vh;
 }
 
-.initial-loading-spinner {
+.Loginscreen-initial-loading-spinner {
   width: 15vh;
   height: 15vh;
 }
 
-.initial-loading-text {
+.Loginscreen-initial-loading-text {
   font-size: 5vh;
   color: var(--text-color);
 }
 
 /* Mobile Responsive Styles for Loading Animation */
 @media screen and (max-width: 768px) {
-  .initial-loading-ui {
+  .Loginscreen-initial-loading-ui {
     margin-top: 0;
     padding: 0 20px;
   }
 
-  .initial-homework-icon {
+  .Loginscreen-initial-homework-icon {
     height: 35vh;
     max-width: 100%;
   }
 
-  .initial-loading-spinner {
+  .Loginscreen-initial-loading-spinner {
     width: 12vh;
     height: 12vh;
   }
 
-  .initial-loading-text {
+  .Loginscreen-initial-loading-text {
     font-size: 4vh;
   }
 }
 
 @media screen and (max-width: 480px) {
-  .initial-loading-ui {
+  .Loginscreen-initial-loading-ui {
     margin-top: 0;
   }
 
-  .initial-homework-icon {
+  .Loginscreen-initial-homework-icon {
     height: 30vh;
   }
 
-  .initial-loading-spinner {
+  .Loginscreen-initial-loading-spinner {
     width: 10vh;
     height: 10vh;
   }
 
-  .initial-loading-text {
+  .Loginscreen-initial-loading-text {
     font-size: 3vh;
   }
 }
 
 @media screen and (max-height: 600px) {
-  .initial-loading-ui {
+  .Loginscreen-initial-loading-ui {
     margin-top: 4vh;
   }
 
-  .initial-homework-icon {
+  .Loginscreen-initial-homework-icon {
     height: 25vh;
   }
 
-  .initial-loading-spinner {
+  .Loginscreen-initial-loading-spinner {
     width: 8vh;
     height: 8vh;
   }
 
-  .initial-loading-text {
+  .Loginscreen-initial-loading-text {
     font-size: 2.5vh;
   }
 }
 
 /* Landscape Mode Styles */
 @media screen and (orientation: landscape) {
-  .initial-loading-ui {
+  .Loginscreen-initial-loading-ui {
     margin-top: 0;
     justify-content: center;
     padding: 0;
   }
 
-  .initial-homework-icon {
+  .Loginscreen-initial-homework-icon {
     height: 40vh;
     max-height: 300px;
   }
 
-  .initial-loading-spinner {
+  .Loginscreen-initial-loading-spinner {
     width: 12vh;
     height: 12vh;
     max-width: 100px;
     max-height: 100px;
   }
 
-  .initial-loading-text {
+  .Loginscreen-initial-loading-text {
     font-size: 3vh;
     margin: 1vh 0;
   }
 
   /* Adjust for very short landscape screens */
   @media screen and (max-height: 400px) {
-    .initial-loading-ui {
+    .Loginscreen-initial-loading-ui {
       justify-content: flex-start;
       padding-top: 2vh;
     }
 
-    .initial-homework-icon {
+    .Loginscreen-initial-homework-icon {
       height: 25vh;
       max-height: 200px;
     }
 
-    .initial-loading-spinner {
+    .Loginscreen-initial-loading-spinner {
       width: 8vh;
       height: 8vh;
       max-width: 80px;
       max-height: 80px;
     }
 
-    .initial-loading-text {
+    .Loginscreen-initial-loading-text {
       font-size: 2.5vh;
       margin: 0.5vh 0;
     }

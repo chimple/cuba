@@ -34,26 +34,26 @@ const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
   }, []);
 
   return (
-    <div className="lang-dropdown-container" ref={ref}>
+    <div className="LanguageDropdown-container" ref={ref}>
       <button
-        className={`lang-dropdown-selected${open ? " open" : ""}`}
+        className={`LanguageDropdown-selected${open ? " open" : ""}`}
         onClick={() => setOpen((prev) => !prev)}
         type="button"
       >
-        <span className="lang-dropdown-title">
+        <span className="LanguageDropdown-title">
           {selected ? selected.displayName : "Select"}
         </span>
         <img
           src="/assets/loginAssets/DropDownArrow.svg"
-          className="lang-dropdown-arrow"
+          className="LanguageDropdown-arrow"
         />
       </button>
 
-      <div className={`lang-dropdown-menu ${open ? "show" : "hide"}`}>
+      <div className={`LanguageDropdown-menu ${open ? "show" : "hide"}`}>
         {options.map((opt) => (
           <div
             key={opt.id}
-            className={`lang-dropdown-option${
+            className={`LanguageDropdown-option${
               opt.id === value ? " selected" : ""
             }`}
             onClick={() => {

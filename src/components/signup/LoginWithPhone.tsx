@@ -31,12 +31,12 @@ const LoginWithPhone: React.FC<LoginWithPhoneProps> = ({ onNext, phoneNumber, se
   }, [phoneNumber, checkbox]);
 
   return (
-    <div className="login-method">
-      <div className="login-method-content">
-        <span className="login-with-phone-text">{t("Login / SignUp")}</span>
+    <div className="LoginWithPhone-login-method">
+      <div className="LoginWithPhone-login-method-content">
+        <span className="LoginWithPhone-login-with-phone-text">{t("Login / SignUp")}</span>
 
-        <div className="phone-input-wrapper">
-          <span className="country-code">+91</span>
+        <div className="LoginWithPhone-phone-input-wrapper">
+          <span className="LoginWithPhone-country-code">+91</span>
           <input
             ref={inputRef}
             type="tel"
@@ -53,11 +53,11 @@ const LoginWithPhone: React.FC<LoginWithPhoneProps> = ({ onNext, phoneNumber, se
                 setPhoneNumber("");
               }
             }}
-            className="login-phone-input"
+            className="LoginWithPhone-login-phone-input"
           />
         </div>
         {errorMessage && (
-          <span className="login-error-message">{errorMessage}</span>
+          <span className="LoginWithPhone-login-error-message">{errorMessage}</span>
         )}
 
         <button
@@ -65,10 +65,8 @@ const LoginWithPhone: React.FC<LoginWithPhoneProps> = ({ onNext, phoneNumber, se
           onClick={onNext}
           style={{
             backgroundColor: currentButtonColor,
-            borderBottom:
-              currentButtonColor === Buttoncolors.Valid ? "4px solid #8A2901" : "none",
           }}
-          className="login-with-phone-button"
+          className="LoginWithPhone-login-with-phone-button"
         >
           {t("START")}
         </button>

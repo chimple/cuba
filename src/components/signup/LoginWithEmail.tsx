@@ -1,5 +1,7 @@
 import { t } from "i18next";
 import React, { useState } from "react";
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import "./LoginWithEmail.css";
 
 interface LoginWithEmailProps {
@@ -47,62 +49,57 @@ const LoginWithEmail: React.FC<LoginWithEmailProps> = ({
   };
 
   return (
-    <div className="login-method-with-email">
-      <div className="login-container-with-email">
-        <span className="login-with-email-text">{t("Login / SignUp")}</span>
+    <div className="LoginWithEmail-method-with-email">
+      <div className="LoginWithEmail-container-with-email">
+        <span className="LoginWithEmail-with-email-text">{t("Login / SignUp")}</span>
 
-        <div className="email-input-wrapper">
-          <div className="input-icon-wrapper-email">
-            <img
-              src="/assets/loginAssets/EmailInput.svg"
-              alt=""
-              className="input-icon-email"
+        <div className="LoginWithEmail-input-wrapper">
+          <div className="LoginWithEmail-input-icon-wrapper-email">
+          <EmailOutlinedIcon sx={{ color: "var(--text-color)", fontSize: "22px" }}
+              className="LoginWithEmail-input-icon-email"
             />
             <input
               type="text"
               placeholder={t("Enter your Email ID") || ""}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="login-email-input"
+              className="LoginWithEmail-email-input"
             />
           </div>
 
-          <div className="input-icon-wrapper-email">
-            <img
-              src="/assets/loginAssets/Password.svg"
-              alt=""
-              className="input-icon-email"
+          <div className="LoginWithEmail-input-icon-wrapper-email">
+          <LockOutlinedIcon sx={{ color: "var(--text-color)", fontSize: "22px" }}
+              className="LoginWithEmail-input-icon-email"
             />
             <input
               type="password"
               placeholder={t("Enter your Password") || ""}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="login-email-input"
+              className="LoginWithEmail-email-input"
             />
           </div>
           <span
-            className="forgot-password-email-text"
+            className="LoginWithEmail-forgot-password-email-text"
             onClick={() => onForgotPasswordChange?.()}
           >
             {t("Forgot Password?")}
           </span>
         </div>
-        <div className="divider-with-email">
+        <div className="LoginWithEmail-divider-with-email">
           {errorMessage && (
-            <span className="error-message-email">{errorMessage}</span>
+            <span className="LoginWithEmail-error-message-email">{errorMessage}</span>
           )}
           <button
-            disabled={!isFormValid}
+            disabled={!isFormValid()}
             onClick={() => onLogin(email, password)}
             style={{
               backgroundColor: isFormValid()
                 ? buttonColors.Valid
                 : buttonColors.Default,
-              borderBottom: isFormValid() ? "4px solid #8A2901" : "none",
               marginTop: errorMessage ? "10px" : "0px",
             }}
-            className="login-with-email-button"
+            className="LoginWithEmail-with-email-button"
           >
           {t("START")}
           </button>

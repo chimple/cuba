@@ -1,6 +1,9 @@
 import { t } from "i18next";
 import React from "react";
 
+import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+
 import "./LoginWithStudentID.css";
 
 interface LoginWithStudentIDProps {
@@ -34,59 +37,55 @@ const LoginWithStudentID: React.FC<LoginWithStudentIDProps> = ({
   };
 
   return (
-    <div className="login-method-student-id">
-      <div className="login-method-content-student-id">
-        <span className="login-with-student-text">{t("Login / SignUp")}</span>
+    <div className="LoginWithStudentID-login-method-student-id">
+      <div className="LoginWithStudentID-login-method-content-student-id">
+        <span className="LoginWithStudentID-login-with-student-text">{t("Login / SignUp")}</span>
 
-        <div className="student-input-wrapper">
-          <div className="input-icon-wrapper-student-id">
-            <img
-              src="/assets/loginAssets/SchoolCode.svg"
-              alt=""
-              className="input-icon-student-id"
+        <div className="LoginWithStudentID-student-input-wrapper">
+          <div className="LoginWithStudentID-input-icon-wrapper-student-id">
+            <SchoolOutlinedIcon sx={{ color: "var(--text-color)", fontSize: "22px" }}
+              className="LoginWithStudentID-input-icon-student-id"
             />
             <input
               type="text"
               placeholder={t("Enter your School Code") || ""}
               value={schoolCode}
               onChange={(e) => setSchoolCode(e.target.value)}
-              className="login-student-input"
+              className="LoginWithStudentID-login-student-input"
             />
           </div>
 
-          <div className="input-icon-wrapper-student-id">
+          <div className="LoginWithStudentID-input-icon-wrapper-student-id">
             <img
               src="/assets/loginAssets/StudentID_Input.svg"
               alt=""
-              className="input-icon-student-id"
+              className="LoginWithStudentID-input-icon-student-id"
             />
             <input
               type="text"
               placeholder={t("Enter your Student ID") || ""}
               value={studentId}
               onChange={(e) => setStudentId(e.target.value)}
-              className="login-student-input"
+              className="LoginWithStudentID-login-student-input"
             />
           </div>
 
-          <div className="input-icon-wrapper-student-id">
-            <img
-              src="/assets/loginAssets/Password.svg"
-              alt=""
-              className="input-icon-student-id"
+          <div className="LoginWithStudentID-input-icon-wrapper-student-id">
+            <LockOutlinedIcon sx={{ color: "var(--text-color)", fontSize: "22px" }}
+              className="LoginWithStudentID-input-icon-student-id"
             />
             <input
               type="password"
               placeholder={t("Enter your Password") || ""}
               value={studentPassword}
               onChange={(e) => setStudentPassword(e.target.value)}
-              className="login-student-input"
+              className="LoginWithStudentID-login-student-input"
             />
           </div>
         </div>
-        <div className="divider-with-student-id">
+        <div className="LoginWithStudentID-divider-with-student-id">
           {errorMessage && (
-            <span className="error-message-student-id">
+            <span className="LoginWithStudentID-error-message-student-id">
               {errorMessage}
             </span>
           )}
@@ -97,10 +96,9 @@ const LoginWithStudentID: React.FC<LoginWithStudentIDProps> = ({
               backgroundColor: isFormValid
                 ? buttonColors.Valid
                 : buttonColors.Default,
-              borderBottom: isFormValid ? "4px solid #8A2901" : "none",
               marginTop: "10px",
             }}
-            className="login-with-student-button"
+            className="LoginWithStudentID-login-with-student-button"
           >
           {t("START")}
           </button>

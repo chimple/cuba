@@ -122,14 +122,14 @@ const OtpVerification: React.FC<OtpVerificationProps> = ({
   };
 
   return (
-    <div className="otp-method">
-      <div className="otp-title">{phoneNumber && `${t("Enter the OTP sent to +91")}${phoneNumber}`}</div>
-      <div className="otp-inputs">
+    <div className="OtpVerification-method">
+      <div className="OtpVerification-title">{phoneNumber && `${t("Enter the OTP sent to +91")}${phoneNumber}`}</div>
+      <div className="OtpVerification-inputs">
         {[...Array(OTP_LENGTH)].map((_, i) => (
           <input
             key={i}
             maxLength={1}
-            className={`otp-box ${errorMessage ? "error" : ""}`}
+            className={`OtpVerification-box ${errorMessage ? "error" : ""}`}
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"
@@ -143,7 +143,7 @@ const OtpVerification: React.FC<OtpVerificationProps> = ({
           />
         ))}
       </div>
-      {errorMessage && <div className="otp-error">{errorMessage}</div>}
+      {errorMessage && <div className="OtpVerification-error">{errorMessage}</div>}
     </div>
   );
 };

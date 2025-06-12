@@ -37,6 +37,7 @@ import { APP_LANGUAGES } from "../common/constants";
 import "./LoginScreen.css";
 import { Util } from "../utility/util";
 import i18n from "../i18n";
+import { FaArrowLeftLong } from "react-icons/fa6";
 
 const LoginScreen: React.FC = () => {
   const history = useHistory();
@@ -704,38 +705,38 @@ const LoginScreen: React.FC = () => {
   }, [allowSubmittingOtpCounter]);
 
   return (
-    <div className="login-screen">
+    <div className="Loginscreen-login-screen">
       {initializing ? (
         <Loading isLoading={true} />
       ) : (
         animatedLoading ? (
-          <div className="initial-loading-ui">
+          <div className="Loginscreen-initial-loading-ui">
             <img
               src={loadingAnimations[loadingAnimationsIndex]}
               alt="initial-gif-animations"
-              className="initial-homework-icon"
+              className="Loginscreen-initial-homework-icon"
             />
             <img
               src="/assets/loader-circle.gif"
               alt="initial-loading-gif"
-              className="initial-loading-spinner"
+              className="Loginscreen-initial-loading-spinner"
             />
-            <IonText className="initial-loading-text">
+            <IonText className="Loginscreen-initial-loading-text">
               <p>{t(loadingMessages[currentMessageIndex])}</p>
             </IonText>
-            <IonText className="initial-loading-text">
+            <IonText className="Loginscreen-initial-loading-text">
               <p>{t("Hang tight, It's a special occasion!")}</p>
             </IonText>
           </div>
         ) : (
           <>
             <div
-              className="tc-popup"
+              className="Loginscreen-tc-popup"
               style={{ display: showTandC ? "block" : "none" }}
             >
-              <div className="tc-header">
+              <div className="Loginscreen-tc-header">
                 <button
-                  className="tc-close-button"
+                  className="Loginscreen-tc-close-button"
                   onClick={() => setShowTandC(false)}
                 >
                   <img
@@ -744,7 +745,7 @@ const LoginScreen: React.FC = () => {
                   />
                 </button>
               </div>
-              <div className="tc-content">
+              <div className="Loginscreen-tc-content">
                 <iframe
                   src="assets/termsandconditions/TermsandConditionsofChimple.html"
                   title="Terms and Conditions"
@@ -753,18 +754,16 @@ const LoginScreen: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="login-header">
+            <div className="Loginscreen-login-header">
               {loginType === "otp" || loginType === "forgot-pass" ? (
                 <button
-                  className="otp-back-button"
+                  className="Loginscreen-otp-back-button"
                   onClick={handleOtpBack}
                   aria-label="Back"
                   type="button"
                 >
-                  <img
-                    src="/assets/loginAssets/BackArrow.svg"
-                    alt="Back"
-                    className="otp-back-arrow-img"
+                  <FaArrowLeftLong style={{color:"#f34d08"}}
+                    className="Loginscreen-otp-back-arrow-img"
                   />
                 </button>
               ) : (
@@ -780,7 +779,7 @@ const LoginScreen: React.FC = () => {
               <img
                 src={"/assets/loginAssets/ChimpleLogo.svg"}
                 alt="Chimple Logo"
-                className="chimple-login-logo"
+                className="Loginscreen-chimple-login-logo"
                 style={
                   (loginType as string) !== "phone"
                     ? {
@@ -794,12 +793,12 @@ const LoginScreen: React.FC = () => {
                 }
               />
             ) : (
-              <div className="chimple-login-logo-otp-container">
+              <div className="Loginscreen-chimple-login-logo-otp-container">
                 <p>{t("Verify Your Number")}</p>
                 <img
                   src={"/assets/loginAssets/MascotForOTP.svg"}
                   alt="Chimple Logo"
-                  className="chimple-login-logo-otp"
+                  className="Loginscreen-chimple-login-logo-otp"
                 />
               </div>
             )}

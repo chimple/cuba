@@ -1,6 +1,6 @@
 import { t } from 'i18next';
 import { useState } from 'react';
-
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import "./LoginWithEmail.css";
 
@@ -57,30 +57,28 @@ const ForgotPass = ({ onGoBack }: ForgotPassProps) => {
     };
 
     return (
-        <div className="login-method-with-email">
+        <div className="LoginWithEmail-method-with-email">
             {!isMailSent ? (
-                <div className="login-container-with-email">
-                    <span className="forgot-email-text">{t("We will send a password reset link")}</span>
+                <div className="LoginWithEmail-container-with-email">
+                    <span className="LoginWithEmail-forgot-email-text">{t("We will send a password reset link")}</span>
 
-                    <div className="email-input-wrapper">
-                        <div className="input-icon-wrapper-email">
-                            <img
-                                src="/assets/loginAssets/EmailInput.svg"
-                                alt=""
-                                className="input-icon-email"
+                    <div className="LoginWithEmail-input-wrapper">
+                        <div className="LoginWithEmail-input-icon-wrapper-email">
+                            <EmailOutlinedIcon sx={{ color: "var(--text-color)", fontSize: "22px" }}
+                                className="LoginWithEmail-input-icon-email"
                             />
                             <input
                                 type="email"
                                 placeholder={t("Enter your Email ID")||"Enter your Email ID"}
                                 value={forgotEmail}
                                 onChange={(e) => setForgotEmail(e.target.value)}
-                                className="login-email-input"
+                                className="LoginWithEmail-email-input"
                             />
                         </div>
                     </div>
-                    <div className="divider-with-email">
+                    <div className="LoginWithEmail-divider-with-email">
                         {forgotError && (
-                            <span className="error-message-email">
+                            <span className="LoginWithEmail-error-message-email">
                                 {forgotMessage}
                             </span>
                         )}
@@ -91,27 +89,25 @@ const ForgotPass = ({ onGoBack }: ForgotPassProps) => {
                                 backgroundColor: isFormValid
                                     ? buttonColors.Valid
                                     : buttonColors.Default,
-                                borderBottom: isFormValid ? "4px solid #8A2901" : "none",
                                 marginTop: "25px"
                             }}
-                            className="login-with-email-button"
+                            className="LoginWithEmail-with-email-button"
                         >
                             {forgotLoading ? t("sending") : t("send")}
                         </button>
                     </div>
                 </div>
             ) : (
-                <div className="login-container-with-email">
-                    <span className="forgot-email-text">{t("Please check your mail and confirm.") || "Please check your mail and confirm."}</span>
-                    <div className="divider-with-email">
+                <div className="LoginWithEmail-container-with-email">
+                    <span className="LoginWithEmail-forgot-email-text">{t("Please check your mail and confirm.") || "Please check your mail and confirm."}</span>
+                    <div className="LoginWithEmail-divider-with-email">
                         <button
                             onClick={onGoBack}
                             style={{
                                 backgroundColor: buttonColors.Valid,
-                                borderBottom: "4px solid #8A2901",
                                 marginTop: "25px"
                             }}
-                            className="login-with-email-button"
+                            className="LoginWithEmail-with-email-button"
                         >
                             {t("Go to Login")}
                         </button>
