@@ -2191,21 +2191,27 @@ export class SqliteApi implements ServiceApi {
     return true;
   }
   async getPendingAssignments(
-    classId: string,
-    studentId: string
-  ): Promise<TableTypes<"assignment">[]> {
-    const query = `
+  classId: string,
+  studentId: string
+): Promise<TableTypes<"assignment">[]> {
+  const nowIso = new Date().toISOString(); // ISO string for proper SQLite comparison
+
+  const query = `
     SELECT a.*
     FROM ${TABLES.Assignment} a
     LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
     LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
-    WHERE a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = "${studentId}") and r.assignment_id IS NULL
+    WHERE a.class_id = '${classId}'
+      AND (a.is_class_wise = 1 OR au.user_id = "${studentId}")
+      AND r.assignment_id IS NULL
+      AND (a.ends_at IS NULL OR a.ends_at > '${nowIso}')
     ORDER BY a.created_at DESC;
-    `;
-    const res = await this._db?.query(query);
-    if (!res || !res.values || res.values.length < 1) return [];
-    return res.values;
-  }
+  `;
+
+  const res = await this._db?.query(query);
+  if (!res || !res.values || res.values.length < 1) return [];
+  return res.values;
+}
 
   async getSchoolsForUser(
     userId: string

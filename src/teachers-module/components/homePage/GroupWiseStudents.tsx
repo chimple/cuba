@@ -1,6 +1,6 @@
 import React from "react";
 import "react-circular-progressbar/dist/styles.css";
-import "./GroupWiseStudents.css"; // Import the CSS file
+import "./GroupWiseStudents.css";
 import { BANDWISECOLOR, TableTypes } from "../../../common/constants";
 import { t } from "i18next";
 
@@ -10,6 +10,7 @@ interface GroupWiseStudentsProps {
   studentLength: string;
   onClickCallBack: Function;
 }
+
 const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
   color,
   studentsProgress,
@@ -28,39 +29,47 @@ const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
         {color === BANDWISECOLOR.RED
           ? t("Need Help")
           : color === BANDWISECOLOR.YELLOW
-            ? t("Still Learning")
-            : color === BANDWISECOLOR.GREEN
-              ? t("Doing Good")
-              : t("Not Tracked")}
+          ? t("Still Learning")
+          : color === BANDWISECOLOR.GREEN
+          ? t("Doing Good")
+          : t("Not Tracked")}
         <span style={{ marginLeft: "10px" }}>
-          {studentsProgress?.length} / {studentLength}
+          {studentsProgress.length} / {studentLength}
         </span>
       </div>
+
       <div className="group-wise-content">
-        {studentsProgress?.map((stdpr) => {
-          const student = stdpr.get("student") as TableTypes<"user">;
-          return (
-            <div className="student-avatar-container" key={student.id}>
-              <img
-                src={student.image ?? ""}
-                alt="Profile"
-                className="avatar"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = `assets/avatars/${student.avatar}.png`;
-                }}
-              />
-              <span className="avatar-name">
-                {student.name!.length > 12
-                  ? student.name?.substring(0, 12) + "..."
-                  : student.name}
-              </span>
-            </div>
-          );
+        <div className="avatars-wrapper">
+          {studentsProgress.map((stdpr) => {
+            const student = stdpr.get("student") as TableTypes<"user">;
+            return (
+              <div className="student-avatar-container" key={student.id}>
+                <img
+                  src={student.image ?? ""}
+                  alt="Profile"
+                  className="avatar"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = `assets/avatars/${student.avatar}.png`;
+                  }}
+                />
+                <span className="avatar-name">
+                  {student.name && student.name.length > 12
+                    ? student.name.substring(0, 12) + "..."
+                    : student.name ?? ""}
+                </span>
+              </div>
+            );
           })}
         </div>
-        <img src="assets/icons/arrowSign.png" alt="expand-icon" className="expand-icon" />
+
+        <img
+          src="assets/icons/arrowSign.png"
+          alt="expand-icon"
+          className="expand-icon"
+        />
       </div>
+    </div>
   );
 };
 

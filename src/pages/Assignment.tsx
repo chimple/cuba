@@ -57,21 +57,21 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment, assign
   }>({});
 
   const loadPendingAssignments = useCallback(
-  async (
-    classId: string,
-    studentId: string,
-    getPendingAssignments: (classId: string, studentId: string) => Promise<TableTypes<"assignment">[]>
-  ) => {
-    try {
-      const all = await getPendingAssignments(classId, studentId);
-      const pending = all.filter((a) => a.type !== LIVE_QUIZ);
-      setAssignments(pending);
-      assignmentCount(pending.length);
-    } catch (error) {
-      console.error("Failed to load pending assignments:", error);
-    }
-  },
-  []);
+    async (
+      classId: string,
+      studentId: string,
+      getPendingAssignments: (classId: string, studentId: string) => Promise<TableTypes<"assignment">[]>
+    ) => {
+      try {
+        const pending = await getPendingAssignments(classId, studentId);
+        setAssignments(pending);
+        assignmentCount(pending.length);
+      } catch (error) {
+        console.error("Failed to load pending assignments:", error);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     const initialLoadingState = JSON.parse(
@@ -119,6 +119,10 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment, assign
 
   const handleNewAssignmentS = useCallback(
   async (newAssignment: TableTypes<"assignment">) => {
+    const now = new Date();
+    if (newAssignment.ends_at && new Date(newAssignment.ends_at) <= now) {
+      return; 
+    }
     setAssignments((prev) => {
       if (prev.some((a) => a.id === newAssignment.id)) {
         return prev;
