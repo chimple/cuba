@@ -243,6 +243,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data, isMobile }) => {
   const isFilteringOrSearching =
     searchTerm.trim() !== "" ||
     Object.values(filters).some((f) => f.length > 0);
+  const filterConfigsForSchool = [{ key: "grade", label: "Grade" }];
 
   return (
     <div className="schoolStudents-pageContainer">
@@ -293,6 +294,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data, isMobile }) => {
         onFilterChange={handleSliderFilterChange}
         onApply={handleApplyFilters}
         onCancel={handleCancelFilters}
+        filterConfigs={filterConfigsForSchool}
       />
 
       {isDataPresent ? (
