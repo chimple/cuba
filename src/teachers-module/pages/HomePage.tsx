@@ -50,9 +50,6 @@ const HomePage: React.FC = () => {
     const listener = App.addListener("appStateChange", ({ isActive }) => {
       if (isActive) {
         setRenderKey((prev) => prev + 1);
-        console.log("Active");
-      } else {
-        console.log("Non Active");
       }
     });
 
@@ -77,7 +74,6 @@ const HomePage: React.FC = () => {
         teacher_school_id: currentSchool?.id,
       });
       setGbUpdated(true);
-      console.log("class data...", tempClass);
     } catch (error) {
       console.error("Failed to load class details", error);
     }
@@ -257,12 +253,12 @@ const HomePage: React.FC = () => {
             icon={
               tabValue === 2 ? (
                 <img
-                  className="footerIcons assignSelectedIcon"
+                  className="footerIcons"
                   src="assets/icons/assignmentSelected.png"
                 />
               ) : (
                 <img
-                  className="footerIcons assignSelectedIcon"
+                  className="footerIcons"
                   src="assets/icons/assignmentfooter.png"
                 />
               )

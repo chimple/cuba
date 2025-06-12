@@ -547,14 +547,10 @@ export class Util {
           if (config.uniqueId === uniqueId) {
             this.setGameUrl(androidPath);
             return true;
-          } else {
-            console.log(
-              `⚠️ Unique ID mismatch for remoteAsset, downloading update.`
-            );
           }
         }
       } catch (err) {
-        console.log(`❌ Failed to read config for remoteAsset:`, err);
+        console.error(`❌ Failed to read config for remoteAsset:`, err);
       }
 
       // Download and unzip
@@ -1900,10 +1896,16 @@ export class Util {
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentClass) return api.currentClass;
     const temp = localStorage.getItem(CLASS);
-    if (!temp) return;
-    const currentClass = JSON.parse(temp) as TableTypes<"class">;
-    api.currentClass = currentClass;
-    return currentClass;
+    if (!temp || temp === "undefined") return;
+
+    try {
+      const currentClass = JSON.parse(temp) as TableTypes<"class">;
+      api.currentClass = currentClass;
+      return currentClass;
+    } catch (err) {
+      console.error("Failed to parse currentClass from localStorage", err);
+      return;
+    }
   }
 
   public static async sendContentToAndroidOrWebShare(
@@ -2011,13 +2013,17 @@ export class Util {
   public static setGameUrl(path: string) {
     localStorage.setItem(GAME_URL, path);
   }
-  public static async triggerSaveProceesedXlsxFile(data: { fileData: string }) {
+  public static async triggerSaveProceesedXlsxFile(data: {
+    fileData: string;
+    fileName?: string;
+  }) {
     try {
       if (!Util.port) {
         Util.port = registerPlugin<PortPlugin>("Port");
       }
       await Util.port.saveProceesedXlsxFile({
         fileData: data.fileData,
+        fileName: data.fileName,
       });
     } catch (error) {
       console.error("Download failed:", error);
@@ -2124,7 +2130,6 @@ export class Util {
     password: string
   ): Promise<void> {
     if (!Capacitor.isNativePlatform()) {
-      console.log("Not running on Android. Skipping storeLoginDetails.");
       return;
     }
 
@@ -2135,6 +2140,67 @@ export class Util {
       }
     } catch (error) {
       console.error("Failed to encrypt and store login details:", error);
+    }
+  }
+
+  public static async downloadFileFromUrl(fileUrl: string): Promise<void> {
+    try {
+      const response = await fetch(fileUrl);
+
+      // ✅ Validate content type to avoid corrupted files
+      const contentType = response.headers.get("content-type") || "";
+      if (
+        contentType.includes("text/html") ||
+        contentType.includes("application/json")
+      ) {
+        const text = await response.text();
+        console.error(
+          "Unexpected content instead of a file:",
+          text.slice(0, 100)
+        );
+        throw new Error(
+          "Invalid file download. Check if the link is direct and the file is public."
+        );
+      }
+      const blob = await response.blob();
+      this.handleBlobDownloadAndSave(blob, "BulkUploadTemplate.xlsx");
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  }
+
+  public static async blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+        const base64Data = reader.result as string;
+        resolve(base64Data.split(",")[1]);
+      };
+      reader.onerror = reject;
+    });
+  }
+
+  public static async handleBlobDownloadAndSave(blob: Blob, fileName?: string) {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        const base64 = await Util.blobToBase64(blob);
+        await Util.triggerSaveProceesedXlsxFile({
+          fileData: base64,
+          fileName: fileName,
+        });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName || "ProcessedFile.xlsx";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      console.error("Failed to save or download file:", error);
     }
   }
 }

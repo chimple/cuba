@@ -57,7 +57,6 @@ const ExpandedTable: React.FC<ExpandedTableProps> = ({ expandedData }) => {
   const api = ServiceConfig.getI().apiHandler;
   const init = async () => {
     const _lessonIdsByDay = await getLessonScoresByDay(expandedData, api);
-    console.log(_lessonIdsByDay);
     setLessonIdsByDay(_lessonIdsByDay);
   };
   return (

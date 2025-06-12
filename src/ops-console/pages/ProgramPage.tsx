@@ -186,7 +186,7 @@ const ProgramsPage: React.FC = () => {
           <div className="program-button-and-search-filter">
             <Button
               variant="outlined"
-              onClick={() => history.replace(PAGES.NEW_PROGRAM)}
+              onClick={() => history.replace(PAGES.SIDEBAR_PAGE + PAGES.NEW_PROGRAM)}
               sx={{
                 borderColor: "transparent",
                 borderRadius: 20,

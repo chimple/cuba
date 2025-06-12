@@ -492,7 +492,7 @@ export class OneRosterApi implements ServiceApi {
         const endpointUrl = new URL(Auth.i.endpointUrl);
         ipcHost = endpointUrl.host + endpointUrl.pathname;
       } catch (error) {
-        console.log(
+        console.error(
           "🚀 ~ file: OneRosterApi.ts:53 ~ OneRosterApi ~ getHeaders ~ error:",
           JSON.stringify(error)
         );
@@ -505,7 +505,6 @@ export class OneRosterApi implements ServiceApi {
   }
 
   async getClassesForUser(userId: string): Promise<Class[]> {
-    console.log("in getClassesForUser");
     // throw new Error("Method not implemented.");
     // try {
     //   let url;
@@ -1060,12 +1059,6 @@ export class OneRosterApi implements ServiceApi {
     let index = (score * chapters.length) / 100 - 1;
     const isFloat = (x: number) => !!(x % 1);
     if (isFloat(index)) index = Math.round(index);
-    console.log(
-      "getChapterForPreQuizScore",
-      score,
-      index,
-      chapters[Math.min(index, chapters.length - 1)]?.id
-    );
     return chapters[Math.min(index, chapters.length - 1)] ?? chapters[1];
   }
 

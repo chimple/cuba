@@ -277,20 +277,22 @@ public void shareContentWithAndroidShare(PluginCall call) {
     @PluginMethod
     public void saveProceesedXlsxFile(PluginCall call) {
         String fileData = call.getString("fileData"); // Base64 encoded file data
+        String fileName = call.getString("fileName"); // Full file name expected from the caller
+
         if (fileData == null || fileData.isEmpty()) {
             call.reject("No file data provided");
             return;
         }
 
-        // ✅ Store file data for later use
+        if (fileName == null || fileName.trim().isEmpty()) {
+              fileName = "ProcessedFile.xlsx";
+       }
+       
         fileDataStorage = fileData;
-
-        // ✅ Open system file picker to save the file
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        intent.putExtra(Intent.EXTRA_TITLE, "ProcessedFile.xlsx");
-
+        intent.putExtra(Intent.EXTRA_TITLE, fileName);
         call.setKeepAlive(true);
         startActivityForResult(call, intent, "handleFileSaveResult");
     }

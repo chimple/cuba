@@ -43,13 +43,14 @@ const EditClass: FC = () => {
   }, [isEditMode]);
 
   const fetchClassDetails = async () => {
-    try {
-      if (tempClass) {
-        setCurrentClass(tempClass);
-        setClassName(tempClass.name);
+  try {
+    let classToUse = tempClass ?? Util.getCurrentClass();
+      if (classToUse) {
+        setCurrentClass(classToUse);
+        setClassName(classToUse.name);
       }
     } catch (error) {
-      console.log("Failed to load class details.");
+      console.error("Failed to load class details.",error);
     }
   };
 
@@ -67,7 +68,7 @@ const EditClass: FC = () => {
         });
       }
     } catch (error) {
-      console.log("unable to create a class", error);
+      console.error("unable to create a class", error);
     }
   };
   const handleUpdateClass = async () => {
@@ -90,7 +91,7 @@ const EditClass: FC = () => {
         }
       }
     } catch (error) {
-      console.log("unable to update a class", error);
+      console.error("unable to update a class", error);
     }
   };
 
@@ -122,7 +123,9 @@ const EditClass: FC = () => {
         isBackButton={true}
         onBackButtonClick={onBackButtonClick}
         showSchool={true}
+        showClass={true}
         schoolName={currentSchool?.name}
+        className={currentClass?.name}
       />
       <div className="class-div">
         {isEditMode ? t("Edit Class") : t("Create Class")}
@@ -131,7 +134,7 @@ const EditClass: FC = () => {
       <EditClassField className={className} setClassName={setClassName} />
 
       <div className="update-button-container">
-        <IonButton
+        <button
           color="#7C5DB0"
           onClick={isEditMode ? handleUpdateClass : handleCreateClass}
           className="view-progress-btn-2"
@@ -140,9 +143,9 @@ const EditClass: FC = () => {
           {isSaving
             ? t("Creating") + "..."
             : isEditMode
-              ? t("Update")
+              ? t("Save")
               : t("Create")}
-        </IonButton>
+        </button>
       </div>
     </div>
   );

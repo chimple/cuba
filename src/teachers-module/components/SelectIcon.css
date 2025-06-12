@@ -2,13 +2,13 @@
   width: fit-content;
 }
 .select-icon {
+  width: 65px;
   height: auto;
   border: 1px solid #7c5db0;
   border-radius: 7px;
-  padding-left: 10px;
-  padding-right: 10px;
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
+  gap: 3px;
 }
 .select-text {
   font-size: 12px;

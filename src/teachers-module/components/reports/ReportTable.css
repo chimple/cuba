@@ -48,13 +48,13 @@ tbody {
 .reports-dropdown {
   display: flex;
   justify-content: space-between;
-  margin: 10px;
+  margin: 5px 0px;
 }
 .table-container-body {
   display: flex;
   flex: 1;
   height: 0;
-  border: 2px solid black;
+  border: 1px solid #EFF2F4;
 }
 
 th:first-child,

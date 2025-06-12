@@ -57,7 +57,6 @@ const ClassUsers: React.FC = () => {
   };
 
   const tabLabels = Object.values(CLASS_USERS).map((key) => key);
-  console.log("tab names..", tabLabels);
   const onBackButtonClick = () => {
     Util.setPathToBackButton(PAGES.MANAGE_CLASS, history);
   };

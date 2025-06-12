@@ -151,7 +151,6 @@ const LessonCard: React.FC<{
             //   lesson.orig_lesson_id != undefined
             // ) {
             //   const parmas = `?courseid=${lesson.orig_course_id}&chapterid=${lesson.orig_chapter_id}&lessonid=${lesson.orig_lesson_id}`;
-            //   console.log("parmas", parmas);
             //   history.push(PAGES.GAME + parmas, {
             //     url: "chimple-lib/index.html" + parmas,
             //     lessonId: TableTypes<"lesson">.orig_lesson_id,
@@ -159,7 +158,6 @@ const LessonCard: React.FC<{
             //     from: history.location.pathname,
             //   });
             // } else {
-            // console.log("LessonCard course: subject,", subject);
             if (!course && !currentCourse) {
               await getCurrentCourse();
             }

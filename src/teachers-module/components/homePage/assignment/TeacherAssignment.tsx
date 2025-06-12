@@ -135,7 +135,6 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           const i = allChapters.findIndex((chapter) => chapter.id === chapterId);
           const nextChapter = allChapters[i + 1];
 
-          console.log("Getting first lesson for next chapter");
           const lessonList = await api.getLessonsForChapter(nextChapter.id);
           recommendedAssignments[course.id].lessons.push(lessonList[0]);
         }
@@ -165,7 +164,6 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           }));
       });
       setRecommendedAssignments(updatedRecommendedAssignments);
-      console.log("Updated Recommended Assignments:", updatedRecommendedAssignments);
       updateSelectedLesson(
         TeacherAssignmentPageType.RECOMMENDED,
         updatedRecommendedAssignments
@@ -403,12 +401,9 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
               <KeyboardArrowDownIcon />
             ) : (
               <div className="select-all-container">
-                <h3 className="recommended-assignments-headings">
-                  {selectedLessonsCount?.[TeacherAssignmentPageType.MANUAL]?.count ?? 0}/
-                  {Object.keys(manualAssignments).reduce((total, subjectId) => {
-                    return total + manualAssignments[subjectId].lessons.length;
-                  }, 0)}
-                </h3>
+                <label className="recommended-assignments-headings">
+                  {t("Select All")}
+                </label>
                 <input
                   className="select-all-container-checkbox"
                   type="checkbox"
@@ -422,9 +417,6 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
                     )
                   }
                 />
-                <label className="recommended-assignments-headings">
-                  {t("Select All")}
-                </label>
               </div>
             )}
           </div>
@@ -470,12 +462,15 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
               <KeyboardArrowDownIcon />
             ) : (
               <div className="select-all-container">
-                <h3 className="recommended-assignments-headings">
+                {/* <h3 className="recommended-assignments-headings">
                   {selectedLessonsCount?.[TeacherAssignmentPageType.RECOMMENDED]?.count ?? 0}/
                   {Object.keys(recommendedAssignments).reduce((total, subjectId) => {
                     return total + recommendedAssignments[subjectId].lessons.length;
                   }, 0)}
-                </h3>
+                </h3> */}
+                <label className="recommended-assignments-headings">
+                  {t("Select All")}
+                </label>
                 <input
                   className="select-all-container-checkbox"
                   type="checkbox"
@@ -489,9 +484,6 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
                     )
                   }
                 />
-                <label className="recommended-assignments-headings">
-                  {t("Select All")}
-                </label>
               </div>
             )}
           </div>

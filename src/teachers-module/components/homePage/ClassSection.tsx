@@ -28,8 +28,8 @@ const ClassSection: React.FC<ClassSectionProps> = ({
   return (
     <>
       <IonItem lines="none">
-        <IonIcon icon={peopleOutline} slot="start" className="icon" />
-        <IonLabel color="dark">{t("Class")}</IonLabel>
+        <img src="assets/icons/classIcon.svg" alt="SCHOOL" className="icon" />
+        <IonLabel color="dark" className="class-iconlabel">{t("Class")}</IonLabel>
       </IonItem>
       <div className="school-dropdown">
         <CustomDropdown
@@ -40,7 +40,7 @@ const ClassSection: React.FC<ClassSectionProps> = ({
           isDownBorder={false}
         />
         <div className="divider-line">
-          <div className="divider" />
+          <div className="class-divider" />
         </div>
       </div>
 
@@ -52,17 +52,17 @@ const ClassSection: React.FC<ClassSectionProps> = ({
       />
 
       <div className="divider-line">
-        <div className="divider" />
+        <div className="class-divider" />
       </div>
       <div className="manage-classes">
-        <div>
+        <div className="manage-class-button">
           <IonButton fill="clear" color="" onClick={handleManageClassClick}>
             <IonLabel color="dark">{t("Manage Classes")}</IonLabel>
           </IonButton>
         </div>
-        <div>
-          <IonIcon color="dark" icon={chevronForwardOutline} slot="end" />
-        </div>
+      </div>
+      <div className="divider-line">
+        <div className="divider" />
       </div>
     </>
   );

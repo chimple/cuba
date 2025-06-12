@@ -6,7 +6,7 @@
 }
 
 td:first-child {
-  text-align: center;
+  text-align: left;
   min-width: 120px;
   max-width: 120px;
   writing-mode: horizontal-tb;
@@ -44,9 +44,4 @@ td {
 
 .border-divide {
   border: 2px solid;
-}
-
-tr:last-child {
-  /* position:sticky; */
-  border-bottom: 2px solid gray;
 }

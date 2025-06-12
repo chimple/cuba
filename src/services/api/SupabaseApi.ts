@@ -1514,7 +1514,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (error) {
-      console.log("Error fetching lesson:", error);
+      console.error("Error fetching lesson:", error);
       if (error.code === "PGRST116") {
         // No rows found
         return null;
@@ -2353,7 +2353,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (error) {
-      console.log("Error in getting class", error);
+      console.error("Error in getting class", error);
       return;
     }
     return data ?? undefined;
@@ -2368,7 +2368,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (error) {
-      console.log("Error in getting school", error);
+      console.error("Error in getting school", error);
       return;
     }
     return data ?? undefined;
@@ -2387,7 +2387,7 @@ export class SupabaseApi implements ServiceApi {
       .single();
 
     if (error) {
-      console.log("Error in isStudentLinked", error);
+      console.error("Error in isStudentLinked", error);
     }
     return true;
   }
@@ -2623,9 +2623,6 @@ export class SupabaseApi implements ServiceApi {
     // Step 1: Fetch all classes for the given school
     const classes = await this.getClassesBySchoolId(schoolId);
     if (!classes?.length) {
-      console.log(
-        `No classes found for school ${schoolId}, so no student info.`
-      );
       return [];
     }
 
@@ -2663,7 +2660,6 @@ export class SupabaseApi implements ServiceApi {
     }
 
     if (studentClassPairs.length === 0) {
-      console.log(`No student-class pairs found for school ${schoolId}.`);
       return [];
     }
 
@@ -2672,16 +2668,12 @@ export class SupabaseApi implements ServiceApi {
       ...new Set(studentClassPairs.map((pair) => pair.userId)),
     ];
     if (!uniqueUserIds.length) {
-      console.log(`No unique student user IDs found for school ${schoolId}.`);
       return [];
     }
 
     // Step 4: Fetch user details in bulk
     const users = await this.getUsersByIds(uniqueUserIds);
     if (!users || users.length === 0) {
-      console.log(
-        `No user data found for the collected student IDs for school ${schoolId}.`
-      );
       return [];
     }
 
@@ -2938,7 +2930,6 @@ export class SupabaseApi implements ServiceApi {
       }
 
       if (!deletedClassUsers || deletedClassUsers.length === 0) {
-        console.log("No class_user records found for the teachers.");
       }
 
       // Soft-delete class_course for this class
@@ -2969,7 +2960,6 @@ export class SupabaseApi implements ServiceApi {
       }
 
       if (!deletedClassCourses || deletedClassCourses.length === 0) {
-        console.log("No class_course records found for the class.");
       }
 
       // Soft-delete the class itself
@@ -2984,7 +2974,6 @@ export class SupabaseApi implements ServiceApi {
         throw classUpdateError;
       }
 
-      console.log("Class and related data marked as deleted successfully.");
     } catch (error) {
       console.error("Failed to delete class:", error);
       throw error;
@@ -3724,8 +3713,6 @@ export class SupabaseApi implements ServiceApi {
         console.error("Error updating rewards as seen:", error);
         throw new Error("Error updating rewards as seen.");
       }
-
-      console.log(`Updated unseen rewards to seen for student ${studentId}`);
     } catch (err) {
       console.error("Unexpected error updating rewards as seen:", err);
       throw new Error("Unexpected error updating rewards as seen.");
@@ -6328,4 +6315,121 @@ export class SupabaseApi implements ServiceApi {
 
     return !!(data && data.length > 0);
   }
+
+  async countProgramStats(programId: string): Promise<{
+  total_students: number;
+  active_students: number;
+  avg_time_spent: number;
+  total_teachers: number;
+  active_teachers: number;
+  total_institutes: number;
+}> {
+  if (!this.supabase) {
+    console.error("Supabase client is not initialized.");
+    return {
+      total_students: 0,
+      active_students: 0,
+      avg_time_spent: 0,
+      total_teachers: 0,
+      active_teachers: 0,
+      total_institutes: 0,
+    };
+  }
+
+  try {
+    const { data, error } = await this.supabase.rpc("count_program_stats", {
+      p_program_id: programId,
+    });
+
+    if (error) {
+      console.error("RPC error:", error);
+      return {
+        total_students: 0,
+        active_students: 0,
+        avg_time_spent: 0,
+        total_teachers: 0,
+        active_teachers: 0,
+        total_institutes: 0,
+      };
+    }
+
+    const result = Array.isArray(data) ? data[0] : data;
+
+    return {
+      total_students: result?.total_students ?? 0,
+      active_students: result?.active_students ?? 0,
+      avg_time_spent: result?.avg_time_spent ?? 0,
+      total_teachers: result?.total_teachers ?? 0,
+      active_teachers: result?.active_teachers ?? 0,
+      total_institutes: result?.total_institutes ?? 0,
+    };
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    return {
+      total_students: 0,
+      active_students: 0,
+      avg_time_spent: 0,
+      total_teachers: 0,
+      active_teachers: 0,
+      total_institutes: 0,
+    };
+  }
+}
+
+async countUsersBySchool(schoolId: string): Promise<{
+  total_students: number;
+  active_students: number;
+  total_teachers: number;
+  active_teachers: number;
+  avg_time_spent: number;
+}> {
+  if (!this.supabase) {
+    console.error("Supabase client is not initialized.");
+    return {
+      total_students: 0,
+      active_students: 0,
+      total_teachers: 0,
+      active_teachers: 0,
+      avg_time_spent: 0,
+    };
+  }
+
+  try {
+    const { data, error } = await this.supabase.rpc("count_users_by_school", {
+      p_school_id: schoolId,
+    });
+
+    if (error) {
+      console.error("RPC error:", error);
+      return {
+        total_students: 0,
+        active_students: 0,
+        total_teachers: 0,
+        active_teachers: 0,
+        avg_time_spent: 0,
+      };
+    }
+
+    const result = Array.isArray(data) ? data[0] : data;
+
+    return {
+      total_students: result?.total_students ?? 0,
+      active_students: result?.active_students ?? 0,
+      total_teachers: result?.total_teachers ?? 0,
+      active_teachers: result?.active_teachers ?? 0,
+      avg_time_spent: result?.avg_time_spent ?? 0,
+    };
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    return {
+      total_students: 0,
+      active_students: 0,
+      total_teachers: 0,
+      active_teachers: 0,
+      avg_time_spent: 0,
+    };
+  }
+}
+
+
 }

@@ -57,9 +57,10 @@ const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
               </span>
             </div>
           );
-        })}
+          })}
+        </div>
+        <img src="assets/icons/arrowSign.png" alt="expand-icon" className="expand-icon" />
       </div>
-    </div>
   );
 };
 

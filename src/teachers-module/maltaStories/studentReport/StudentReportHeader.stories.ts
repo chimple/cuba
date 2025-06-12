@@ -40,7 +40,7 @@ export const Test2: Story = {
       ops_created_by: null,
       stars: null
     },
-    mappedSubjectOptions: [{ id: "a", name: "Digital" }],
+    mappedSubjectOptions: [{ id: "a", name: "Digital", icon: "/assets/icons/DefaultIcon.png", subjectDetail: "Digital Skills - Grade 4", }],
     onSubjectChange: () => {},
     currentClass: {
       created_at: "20-07-2024",
@@ -106,10 +106,25 @@ export const Test3: Story = {
       stars: null
     },
     mappedSubjectOptions: [
-      { id: "a", name: "Digital Skills" },
-      { id: "b", name: "Maths" },
-      { id: "a", name: "English" },
-    ],
+  {
+    id: "a",
+    name: "Digital Skills",
+    icon: "/assets/icons/DefaultIcon.png",
+    subjectDetail: "Digital Skills - Grade 4",
+  },
+  {
+    id: "b",
+    name: "Maths",
+    icon: "/assets/icons/DefaultIcon.png",
+    subjectDetail: "Maths - Grade 5",
+  },
+  {
+    id: "c",
+    name: "English",
+    icon: "/assets/icons/DefaultIcon.png",
+    subjectDetail: "English - Grade 6",
+  },
+],
     onSubjectChange: () => {},
     currentClass: {
       created_at: "20-07-2024",
@@ -174,7 +189,7 @@ export const Test4: Story = {
       ops_created_by: null,
       stars: null
     },
-    mappedSubjectOptions: [{ id: "a", name: "Digital Skills" },{ id: "a", name: "Kannada" }],
+    mappedSubjectOptions: [{ id: "a", name: "Digital Skills",icon: "/assets/icons/DefaultIcon.png" ,subjectDetail: "Digital Skills - Grade 4", },{ id: "a", name: "Kannada", icon: "/assets/icons/DefaultIcon.png", subjectDetail: "Kannada - Grade 5" }],
     onSubjectChange: () => {},
     currentClass: {
       created_at: "20-07-2024",

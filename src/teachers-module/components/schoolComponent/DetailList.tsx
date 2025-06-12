@@ -1,17 +1,12 @@
 import React from "react";
-import { List, ListItem, ListItemIcon, ListItemText, Box } from "@mui/material";
-import SchoolIcon from "@mui/icons-material/School";
-import GroupsIcon from "@mui/icons-material/Groups";
-import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+import { ListItemIcon, ListItemText } from "@mui/material";
 import { useHistory } from "react-router-dom";
+import SchoolIcon from "@mui/icons-material/School";
 import {
-  CLASS,
   IconType,
   PAGES,
-  SCHOOL,
   SchoolWithRole,
   TableTypes,
-  USER_ROLE,
 } from "../../../common/constants";
 import { t } from "i18next";
 import "./DetailList.css";
@@ -75,7 +70,7 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
       </div>
 
       <div className="main-list">
-        <List>
+        <div>
           {data.map((item) => {
             const icon = type === IconType.SCHOOL && <SchoolIcon />;
             const name =
@@ -89,42 +84,28 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
 
             return (
               <div key={id}>
-                <ListItem
-                  className="dummy"
-                  sx={{
-                    display: "flex",
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                  }}
+                <div
+                  className="detail-container"
                 >
-                  <div
+                  <div className="detail-section"
                     onClick={() => handleItemClick(item)}
-                    className="detail-item"
                   >
                     {type === IconType.SCHOOL && (
-                      <ListItemIcon className="list-icon">{icon}</ListItemIcon>
+                      <img src="assets/icons/scholarIcon.svg" alt="" className="list-icon" />
                     )}
-                    <ListItemText className="name-div" primary={name} />
+                    <span className="detail-school-name">{name}</span>
                   </div>
-
-                  <div>
-                    <Box className="class-icons">
-                      <GroupsIcon
-                        className="class-user-icon"
-                        onClick={() => handleUserIconClick(item)}
-                      />
-                      <LibraryBooksIcon
-                        className="class-subjects-icon"
-                        onClick={() => handleSubjectIconClick(item)}
-                      />
-                    </Box>
+                  <div className="class-icons">
+                      <img src="assets/icons/schoolUserIcon.svg" alt="User_Icon" onClick={() => handleUserIconClick(item)} className="class-user-icon" />
+                      
+                      <img src="assets/icons/subjectUserIcon.svg" alt="User_Subject"className="class-subjects-icon" onClick={() => handleSubjectIconClick(item)} />
+                    </div>
                   </div>
-                </ListItem>
                 <hr className="horizontal-line" />
               </div>
             );
           })}
-        </List>
+        </div>
       </div>
     </div>
   );

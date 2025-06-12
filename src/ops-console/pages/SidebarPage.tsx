@@ -18,6 +18,7 @@ import SchoolList from "./SchoolList";
 import SchoolDetailsPage from "./SchoolDetailsPage";
 import ProgramDetailsPage from "./ProgramDetailsPage";
 
+import NewProgram from "../components/NewProgram";
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
@@ -88,6 +89,9 @@ const SidebarPage: React.FC = () => {
                   <ProgramDetailsPage id={routeProps.match.params.program_id} />
                 );
               }}
+            </ProtectedRoute>
+            <ProtectedRoute path={`${path}${PAGES.NEW_PROGRAM}`} exact={true}>
+                <NewProgram/>
             </ProtectedRoute>
           </Switch>
         </div>
