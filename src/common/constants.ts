@@ -862,4 +862,4 @@ export const CHIMPLE_HINDI = "7e9d65fa-ac2e-452e-bca4-1499d5c174e0";
 export const GRADE1_KANNADA = "a90608de-4376-4baf-82c2-07760b2aa899";
 export const GRADE1_MARATHI = "2cada0d1-db3d-4da0-8ade-e9ba282a3558";
 export const BULK_UPLOAD_TEMPLATE_URL =
-  "https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/sign/common-files/Bulk%20School%20&%20Students%20Upload%20Template.xlsx?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9iMzdjNzUwMi1mZDk4LTRiZGUtOTBhMS1iNjE2NzAyY2ViOWUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJjb21tb24tZmlsZXMvQnVsayBTY2hvb2wgJiBTdHVkZW50cyBVcGxvYWQgVGVtcGxhdGUueGxzeCIsImlhdCI6MTc0OTYyNjc5MiwiZXhwIjo0OTAzMjI2NzkyfQ.JzU8YKIMvSzWrJ2rV3ueACLOcvqK3aBmNJ_GkKxGCMg";
+  "https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/common-files//Bulk%20School%20&%20Students%20Upload%20Template.xlsx";
