@@ -106,7 +106,6 @@ const Home: FC = () => {
   const [to, setTo] = useState<number>(0);
   const logDeviceInfo = async () => {
     const info = await Device.getInfo();
-    console.log("Device Info:", info);
     const device_language = await Device.getLanguageCode();
     const device = {
       model: info.model,

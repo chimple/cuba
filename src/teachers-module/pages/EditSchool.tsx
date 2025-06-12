@@ -83,8 +83,6 @@ const EditSchool: React.FC = () => {
           profilePic
         );
 
-        console.log("School data updated successfully");
-
         //   if (navigationState?.stage === Class_Creation_Stages.CREATE_SCHOOL) {
         //     Util.setNavigationState(Class_Creation_Stages.SCHOOL_COURSE);
         //     history.replace(PAGES.SUBJECTS_PAGE, {
@@ -115,7 +113,6 @@ const EditSchool: React.FC = () => {
         //   origin: PAGES.ADD_SCHOOL,
         //   isSelect: true,
         // });
-        // console.log("Profile picture uploaded successfully:", tempSchool.image);
       }
     } catch (error) {
       console.error("Failed to save school:", error);

@@ -169,7 +169,6 @@ const AddStudent: React.FC = () => {
         // Log the estimated size of the base64 image
         const base64Length = resizedDataUrl.length * (3 / 4); // Base64 is approximately 33% larger
         const fileSizeInKB = base64Length / 1024; // Convert size to KB
-        console.log(`Resized image size: ${fileSizeInKB.toFixed(2)} KB`);
         callback(resizedDataUrl);
       };
     };

@@ -30,7 +30,6 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
   };
-  console.log()
   useEffect(() => {
     chapterSelectedLessons(chapter.id, selectedLessons);
   }, [selectedLessons]);

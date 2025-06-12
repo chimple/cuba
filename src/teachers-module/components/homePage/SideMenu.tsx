@@ -216,12 +216,25 @@ const SideMenu: React.FC<{
         return;
       }
 
-      const currentClass = await api.getClassById(String(id));
-      if (!currentClass?.id) {
-        console.warn("Class not found");
+      const classIdStr = String(id).trim();
+      if (!classIdStr) {
+        console.warn("Class ID is empty after conversion");
         return;
       }
+
+      const currentClass = await api.getClassById(classIdStr);
+      if (!currentClass || !currentClass.id) {
+        console.warn("Class not found or invalid response");
+        return;
+      }
+
       Util.setCurrentClass(currentClass);
+
+      if (!currentClass.id) {
+        console.warn("Missing class ID after setting current class");
+        return;
+      }
+
       setCurrentClassId(currentClass.id);
       setcurrentClassDetail({
         id: currentClass.id,
@@ -229,12 +242,18 @@ const SideMenu: React.FC<{
       });
 
       const classCode = await getClassCodeById(currentClass.id);
-      setClassCode(classCode);
+      if (classCode !== undefined && classCode !== null) {
+        setClassCode(classCode);
+      } else {
+        console.warn("Class code is null or undefined");
+      }
+
       Util.dispatchClassOrSchoolChangeEvent();
     } catch (error) {
       console.error("Error handling class selection:", error);
     }
   };
+
 
   const [showDialogBox, setShowDialogBox] = useState(false);
 
