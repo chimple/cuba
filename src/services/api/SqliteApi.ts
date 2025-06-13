@@ -2194,19 +2194,23 @@ export class SqliteApi implements ServiceApi {
   classId: string,
   studentId: string
 ): Promise<TableTypes<"assignment">[]> {
-  const nowIso = new Date().toISOString(); // ISO string for proper SQLite comparison
+  const nowIso = new Date().toISOString(); 
 
   const query = `
-    SELECT a.*
-    FROM ${TABLES.Assignment} a
-    LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
-    LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
-    WHERE a.class_id = '${classId}'
-      AND (a.is_class_wise = 1 OR au.user_id = "${studentId}")
-      AND r.assignment_id IS NULL
-      AND (a.ends_at IS NULL OR a.ends_at > '${nowIso}')
-    ORDER BY a.created_at DESC;
-  `;
+  SELECT a.*
+  FROM ${TABLES.Assignment} a
+  LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
+  LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
+  WHERE a.class_id = '${classId}'
+    AND (a.is_class_wise = 1 OR au.user_id = "${studentId}")
+    AND r.assignment_id IS NULL
+    AND (
+      a.ends_at IS NULL OR
+      TRIM(a.ends_at) = '' OR
+      datetime(a.ends_at) > datetime('${nowIso}')
+    )
+  ORDER BY a.created_at DESC;
+`;
 
   const res = await this._db?.query(query);
   if (!res || !res.values || res.values.length < 1) return [];

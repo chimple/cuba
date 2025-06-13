@@ -63,7 +63,8 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ onNewAssignment, assign
       getPendingAssignments: (classId: string, studentId: string) => Promise<TableTypes<"assignment">[]>
     ) => {
       try {
-        const pending = await getPendingAssignments(classId, studentId);
+        const all = await getPendingAssignments(classId, studentId);
+        const pending = all.filter((a) => a.type !== LIVE_QUIZ);
         setAssignments(pending);
         assignmentCount(pending.length);
       } catch (error) {
