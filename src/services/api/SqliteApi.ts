@@ -29,6 +29,7 @@ import {
   CHIMPLE_MATHS,
   CHIMPLE_DIGITAL_SKILLS,
   TabType,
+  AVATARS,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -5124,6 +5125,7 @@ async getStudentInfoBySchoolId(schoolId: string): Promise<
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
+    const randomAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)];
   const studentProfile = await this.getParentStudentProfiles();
   if (studentProfile.length > 0) return studentProfile[0];
     const studentId = uuidv4();
@@ -5132,7 +5134,7 @@ async getStudentInfoBySchoolId(schoolId: string): Promise<
       name: null,
       age: null,
       gender: null,
-      avatar: null,
+      avatar: randomAvatar,
       image: null,
       curriculum_id: null,
       grade_id: null,

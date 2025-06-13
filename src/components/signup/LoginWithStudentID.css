@@ -1,0 +1,168 @@
+.LoginWithStudentID-login-method-student-id {
+  position: absolute;
+  top: 40%;
+  width: 100%;
+  height: 100%;
+  background-image: url("/public/assets/loginAssets/LoginBG2.svg");
+  background-repeat: no-repeat;
+  background-position: top center;
+}
+
+.LoginWithStudentID-login-method-content-student-id {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.LoginWithStudentID-login-with-student-text {
+  font-size: 24px;
+  color: var(--text-color);
+  font-weight: bold;
+}
+
+/* Student input container */
+.LoginWithStudentID-student-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 242px;
+}
+
+.LoginWithStudentID-divider-with-student-id {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.LoginWithStudentID-input-icon-wrapper-student-id {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 10px;
+  width: 242px;
+  height: 35px;
+  padding-left: 12px;
+  overflow: hidden;
+}
+
+.LoginWithStudentID-input-icon-student-id {
+  width: 20px;
+  height: 20px;
+  /* font-size: x-large; */
+  margin-right: 10px;
+}
+
+.LoginWithStudentID-login-student-input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 18px;
+  background-color: transparent;
+  font-weight: 600;
+  color: var(--text-color);
+  border-left: 1px solid #dff2f2;
+  padding: 0 12px;
+  width: 242px;
+  height: 35px;
+}
+
+.LoginWithStudentID-login-student-input::placeholder {
+  color: var(--text-color);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* START button */
+.LoginWithStudentID-login-with-student-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 220px !important;
+  height: 50px !important;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 28px;
+  font-weight: 600;
+  padding-top: 4px;
+  border-bottom: 7px solid #8a2901;
+}
+
+.LoginWithStudentID-login-with-student-button:active {
+  border-bottom: 4px solid #8a2901 !important;
+  transition:
+    background 0.1s,
+    color 0.1s;
+}
+
+.LoginWithStudentID-login-with-student-button:disabled {
+  background-color: #6d8c87 !important;
+  color: #a8a8a8 !important;
+  border-bottom: 7px solid #8a8a8a !important;
+  cursor: not-allowed;
+  pointer-events: none; /* Prevent any interaction like :active */
+}
+
+/* Error message */
+.LoginWithStudentID-error-message-student-id {
+  color: var(--text-color);
+  font-size: 14px;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+@media (orientation: landscape) {
+  .LoginWithStudentID-student-input-wrapper {
+    flex-direction: row;
+    width: auto;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .LoginWithStudentID-divider-with-student-id {
+    flex-direction: row;
+  }
+}
+
+/* Responsive styling */
+@media (max-width: 500px) {
+  .LoginWithStudentID-student-input-wrapper {
+    margin-top: 10px;
+  }
+
+  .LoginWithStudentID-login-method-student-id {
+    border-top-left-radius: 50% 80px;
+    border-top-right-radius: 50% 80px;
+    background-size: cover;
+    top: 33%;
+    min-height: 220px;
+    padding-top: 32px;
+    padding-bottom: 24px;
+  }
+
+  .LoginWithStudentID-login-with-student-button {
+    max-width: 220px;
+    font-size: 32px;
+  }
+
+  .LoginWithStudentID-login-with-student-text {
+    font-size: 32px;
+  }
+}
+
+@media (max-height: 500px) {
+  .LoginWithStudentID-login-method-student-id {
+    top: 30%;
+  }
+
+  .LoginWithStudentID-login-with-student-button {
+    max-width: 200px;
+    max-height: 45px;
+    margin-top: 4px;
+    font-size: 24px;
+  }
+}

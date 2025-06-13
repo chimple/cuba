@@ -31,7 +31,7 @@ const ParentLogout: React.FC<{}> = ({}) => {
     localStorage.removeItem(CURRENT_USER);
     localStorage.removeItem(CURRENT_MODE);
     localStorage.removeItem(SCHOOL_LOGIN);
-    history.replace(PAGES.APP_LANG_SELECTION);
+    history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };
   return (

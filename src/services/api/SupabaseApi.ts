@@ -29,6 +29,7 @@ import {
   CHIMPLE_DIGITAL_SKILLS,
   TabType,
   PROGRAM_TAB,
+  AVATARS,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -6170,6 +6171,7 @@ export class SupabaseApi implements ServiceApi {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw new Error("User is not Logged in");
+    const randomAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)];
     const studentProfile = await this.getParentStudentProfiles();
     if (studentProfile.length > 0) return studentProfile[0];
 
@@ -6181,7 +6183,7 @@ export class SupabaseApi implements ServiceApi {
       name: null,
       age: null,
       gender: null,
-      avatar: null,
+      avatar: randomAvatar,
       image: null,
       curriculum_id: null,
       grade_id: null,

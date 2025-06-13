@@ -263,7 +263,7 @@ const SideMenu: React.FC<{
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.removeItem(CURRENT_USER);
     localStorage.removeItem(CURRENT_MODE);
-    history.replace(PAGES.APP_LANG_SELECTION);
+    history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };
 
