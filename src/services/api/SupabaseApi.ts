@@ -301,7 +301,7 @@ export class SupabaseApi implements ServiceApi {
             .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-        []
+          []
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -2974,7 +2974,6 @@ export class SupabaseApi implements ServiceApi {
         console.error("Error soft-deleting class:", classUpdateError);
         throw classUpdateError;
       }
-
     } catch (error) {
       console.error("Failed to delete class:", error);
       throw error;
@@ -5579,7 +5578,6 @@ export class SupabaseApi implements ServiceApi {
     return (data as { name: string; id: string }[]) || [];
   }
 
-
   async getUniqueGeoData(): Promise<{
     Country: string[];
     State: string[];
@@ -5650,7 +5648,7 @@ export class SupabaseApi implements ServiceApi {
       const { data, error } = await this.supabase
         .from(TABLES.Program)
         .insert(record)
-        .select('id')
+        .select("id")
         .single();
 
       if (error || !data) {
@@ -5661,13 +5659,15 @@ export class SupabaseApi implements ServiceApi {
       const programId = data.id;
 
       // Step 2: Insert into program_user table
-      const programUserRows = payload.selectedManagers.map((userId: string) => ({
-        program_id: programId,
-        user: userId,
-        is_deleted: false,
-        is_ops: true,
-        role: RoleType.PROGRAM_MANAGER
-      }));
+      const programUserRows = payload.selectedManagers.map(
+        (userId: string) => ({
+          program_id: programId,
+          user: userId,
+          is_deleted: false,
+          is_ops: true,
+          role: RoleType.PROGRAM_MANAGER,
+        })
+      );
 
       const { error: programUserError } = await this.supabase
         .from(TABLES.ProgramUser)
@@ -5999,110 +5999,120 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
- async getProgramData(programId: string): Promise<{
-  programDetails: { id: string; label: string; value: string }[];
-  locationDetails: { id: string; label: string; value: string }[];
-  partnerDetails: { id: string; label: string; value: string }[];
-  programManagers: {name: string; role: string; phone: string }[];
-} | null> {
-  if (!this.supabase) {
-    console.error("Supabase client not initialized.");
-    return null;
+  async getProgramData(programId: string): Promise<{
+    programDetails: { id: string; label: string; value: string }[];
+    locationDetails: { id: string; label: string; value: string }[];
+    partnerDetails: { id: string; label: string; value: string }[];
+    programManagers: { name: string; role: string; phone: string }[];
+  } | null> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return null;
+    }
+
+    try {
+      const { data: program, error: programError } = await this.supabase
+        .from("program")
+        .select("*")
+        .eq("id", programId)
+        .single();
+
+      if (programError || !program) {
+        console.error("Error fetching program:", programError);
+        return null;
+      }
+
+      const { data: mappings, error: mappingsError } = await this.supabase
+        .from("program_user")
+        .select("user")
+        .eq("program_id", programId)
+        .eq("role", "program_manager");
+
+      if (mappingsError) {
+        console.error("Error fetching program managers:", mappingsError);
+        return null;
+      }
+
+      const userIds = mappings.map((m) => m.user);
+
+      const { data: users, error: usersError } = await this.supabase
+        .from("user")
+        .select("id, name, phone")
+        .in("id", userIds);
+      if (usersError) {
+        console.error("Error fetching user details:", usersError);
+        return null;
+      }
+
+      const programDetails = [
+        {
+          id: "program_name",
+          label: "Program Name",
+          value: program.name ?? "",
+        },
+        {
+          id: "program_type",
+          label: "Program Type",
+          value: program.program_type ?? "",
+        },
+        {
+          id: "program_model",
+          label: "Program Model",
+          value: Array.isArray(program.model)
+            ? program.model.join(", ")
+            : program.model ?? "",
+        },
+        {
+          id: "program_date",
+          label: "Program Date",
+          value: `${program.start_date ?? ""}  ${program.end_date ?? ""}`,
+        },
+      ];
+
+      const locationDetails = [
+        { id: "country", label: "Country", value: program.country ?? "" },
+        { id: "state", label: "State", value: program.state ?? "" },
+        { id: "district", label: "District", value: program.district ?? "" },
+        { id: "cluster", label: "Cluster", value: program.cluster ?? "" },
+        { id: "block", label: "Block", value: program.block ?? "" },
+        { id: "village", label: "Village", value: program.village ?? "" },
+      ];
+
+      const partnerDetails = [
+        {
+          id: "implementation_partner",
+          label: "Implementation Partner",
+          value: program.implementation_partner ?? "",
+        },
+        {
+          id: "funding_partner",
+          label: "Funding Partner",
+          value: program.funding_partner ?? "",
+        },
+        {
+          id: "institute_owner",
+          label: "Institute Owner",
+          value: program.institute_partner ?? "",
+        },
+      ];
+
+      const programManagers = users.map((user) => ({
+        name: user.name ?? "",
+        role: "Program Manager",
+        phone: user.phone ?? "",
+      }));
+
+      return {
+        programDetails,
+        locationDetails,
+        partnerDetails,
+        programManagers,
+      };
+    } catch (err) {
+      console.error("Unexpected error in getProgramData:", err);
+      return null;
+    }
   }
-
-  try {
-    const { data: program, error: programError } = await this.supabase
-      .from("program")
-      .select("*")
-      .eq("id", programId)
-      .single();
-
-    if (programError || !program) {
-      console.error("Error fetching program:", programError);
-      return null;
-    }
-
-    const { data: mappings, error: mappingsError } = await this.supabase
-      .from("program_user")
-      .select("user")
-      .eq("program_id", programId)
-      .eq("role", "program_manager");
-
-    if (mappingsError) {
-      console.error("Error fetching program managers:", mappingsError);
-      return null;
-    }
-
-    const userIds = mappings.map((m) => m.user);
-
-    const { data: users, error: usersError } = await this.supabase
-      .from("user")
-      .select("id, name, phone")
-      .in("id", userIds);
-    if (usersError) {
-      console.error("Error fetching user details:", usersError);
-      return null;
-    }
-
-    const programDetails = [
-      { id: "program_name", label: "Program Name", value: program.name ?? "" },
-      { id: "program_type", label: "Program Type", value: program.program_type ?? "" },
-      {
-        id: "program_model",
-        label: "Program Model",
-        value: Array.isArray(program.model) ? program.model.join(", ") : program.model ?? "",
-      },
-      {
-        id: "program_date",
-        label: "Program Date",
-        value: `${program.start_date ?? ""}  ${program.end_date ?? ""}`,
-      },
-    ];
-
-    const locationDetails = [
-      { id: "country", label: "Country", value: program.country ?? "" },
-      { id: "state", label: "State", value: program.state ?? "" },
-      { id: "district", label: "District", value: program.district ?? "" },
-      { id: "cluster", label: "Cluster", value: program.cluster ?? "" },
-      { id: "block", label: "Block", value: program.block ?? "" },
-      { id: "village", label: "Village", value: program.village ?? "" },
-    ];
-
-    const partnerDetails = [
-      {
-        id: "implementation_partner",
-        label: "Implementation Partner",
-        value: program.implementation_partner ?? "",
-      },
-      {
-        id: "funding_partner",
-        label: "Funding Partner",
-        value: program.funding_partner ?? "",
-      },
-      {
-        id: "institute_owner",
-        label: "Institute Owner",
-        value: program.institute_partner ?? "",
-      },
-    ];
-
-    const programManagers = users.map((user) => ({
-      name: user.name ?? "",
-      role: "Program Manager",
-      phone: user.phone ?? "",
-    }));
-
-    return {
-      programDetails,
-      locationDetails,
-      partnerDetails,
-      programManagers,
-    };
-  } catch (err) {
-    console.error("Unexpected error in getProgramData:", err);
-    return null;
-  }
-}
   async getSchoolFilterOptionsForSchoolListing(): Promise<
     Record<string, string[]>
   > {
@@ -6293,7 +6303,7 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async isProgramUser(): Promise<boolean> {
-     if (!this.supabase) {
+    if (!this.supabase) {
       console.error("Supabase client not initialized.");
       return false;
     }
@@ -6304,47 +6314,53 @@ export class SupabaseApi implements ServiceApi {
     const userId = _currentUser.id;
 
     const { data, error } = await this.supabase
-      .from('program_user')
-      .select('id')
-      .eq('user', userId)
-      .in('role', ['program_manager', 'field_coordinator'])
+      .from("program_user")
+      .select("id")
+      .eq("user", userId)
+      .in("role", ["program_manager", "field_coordinator"])
       .limit(1);
 
     if (error) {
-      console.error('Error checking program_user table', error);
+      console.error("Error checking program_user table", error);
       return false;
     }
 
     return !!(data && data.length > 0);
   }
 
-  async countProgramStats(programId: string): Promise<{
-  total_students: number;
-  active_students: number;
-  avg_time_spent: number;
-  total_teachers: number;
-  active_teachers: number;
-  total_institutes: number;
-}> {
-  if (!this.supabase) {
-    console.error("Supabase client is not initialized.");
-    return {
-      total_students: 0,
-      active_students: 0,
-      avg_time_spent: 0,
-      total_teachers: 0,
-      active_teachers: 0,
-      total_institutes: 0,
-    };
+  async getManagersAndCoordinators(): Promise<
+    { name: string; role: string }[]
+  > {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return [];
+    }
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw new Error("User is not Logged in");
+    const userId = _currentUser.id;
+    const { data, error } = await this.supabase.rpc(
+      "get_managers_and_coordinators_for_user",
+      { _current_user_id: userId }
+    );
+    console.log(data);
+    if (error) {
+      console.error("Error fetching managers and coordinators", error);
+      return [];
+    }
+    return data ?? [];
   }
 
-  try {
-    const { data, error } = await this.supabase.rpc("count_program_stats", {
-      p_program_id: programId,
-    });
-
-    if (error) {
-      console.error("RPC error:", error);
+  async countProgramStats(programId: string): Promise<{
+    total_students: number;
+    active_students: number;
+    avg_time_spent: number;
+    total_teachers: number;
+    active_teachers: number;
+    total_institutes: number;
+  }> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
       return {
         total_students: 0,
         active_students: 0,
@@ -6355,54 +6371,55 @@ export class SupabaseApi implements ServiceApi {
       };
     }
 
-    const result = Array.isArray(data) ? data[0] : data;
+    try {
+      const { data, error } = await this.supabase.rpc("count_program_stats", {
+        p_program_id: programId,
+      });
 
-    return {
-      total_students: result?.total_students ?? 0,
-      active_students: result?.active_students ?? 0,
-      avg_time_spent: result?.avg_time_spent ?? 0,
-      total_teachers: result?.total_teachers ?? 0,
-      active_teachers: result?.active_teachers ?? 0,
-      total_institutes: result?.total_institutes ?? 0,
-    };
-  } catch (err) {
-    console.error("Unexpected error:", err);
-    return {
-      total_students: 0,
-      active_students: 0,
-      avg_time_spent: 0,
-      total_teachers: 0,
-      active_teachers: 0,
-      total_institutes: 0,
-    };
+      if (error) {
+        console.error("RPC error:", error);
+        return {
+          total_students: 0,
+          active_students: 0,
+          avg_time_spent: 0,
+          total_teachers: 0,
+          active_teachers: 0,
+          total_institutes: 0,
+        };
+      }
+
+      const result = Array.isArray(data) ? data[0] : data;
+
+      return {
+        total_students: result?.total_students ?? 0,
+        active_students: result?.active_students ?? 0,
+        avg_time_spent: result?.avg_time_spent ?? 0,
+        total_teachers: result?.total_teachers ?? 0,
+        active_teachers: result?.active_teachers ?? 0,
+        total_institutes: result?.total_institutes ?? 0,
+      };
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      return {
+        total_students: 0,
+        active_students: 0,
+        avg_time_spent: 0,
+        total_teachers: 0,
+        active_teachers: 0,
+        total_institutes: 0,
+      };
+    }
   }
-}
 
-async countUsersBySchool(schoolId: string): Promise<{
-  total_students: number;
-  active_students: number;
-  total_teachers: number;
-  active_teachers: number;
-  avg_time_spent: number;
-}> {
-  if (!this.supabase) {
-    console.error("Supabase client is not initialized.");
-    return {
-      total_students: 0,
-      active_students: 0,
-      total_teachers: 0,
-      active_teachers: 0,
-      avg_time_spent: 0,
-    };
-  }
-
-  try {
-    const { data, error } = await this.supabase.rpc("count_users_by_school", {
-      p_school_id: schoolId,
-    });
-
-    if (error) {
-      console.error("RPC error:", error);
+  async countUsersBySchool(schoolId: string): Promise<{
+    total_students: number;
+    active_students: number;
+    total_teachers: number;
+    active_teachers: number;
+    avg_time_spent: number;
+  }> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
       return {
         total_students: 0,
         active_students: 0,
@@ -6412,26 +6429,40 @@ async countUsersBySchool(schoolId: string): Promise<{
       };
     }
 
-    const result = Array.isArray(data) ? data[0] : data;
+    try {
+      const { data, error } = await this.supabase.rpc("count_users_by_school", {
+        p_school_id: schoolId,
+      });
 
-    return {
-      total_students: result?.total_students ?? 0,
-      active_students: result?.active_students ?? 0,
-      total_teachers: result?.total_teachers ?? 0,
-      active_teachers: result?.active_teachers ?? 0,
-      avg_time_spent: result?.avg_time_spent ?? 0,
-    };
-  } catch (err) {
-    console.error("Unexpected error:", err);
-    return {
-      total_students: 0,
-      active_students: 0,
-      total_teachers: 0,
-      active_teachers: 0,
-      avg_time_spent: 0,
-    };
+      if (error) {
+        console.error("RPC error:", error);
+        return {
+          total_students: 0,
+          active_students: 0,
+          total_teachers: 0,
+          active_teachers: 0,
+          avg_time_spent: 0,
+        };
+      }
+
+      const result = Array.isArray(data) ? data[0] : data;
+
+      return {
+        total_students: result?.total_students ?? 0,
+        active_students: result?.active_students ?? 0,
+        total_teachers: result?.total_teachers ?? 0,
+        active_teachers: result?.active_teachers ?? 0,
+        avg_time_spent: result?.avg_time_spent ?? 0,
+      };
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      return {
+        total_students: 0,
+        active_students: 0,
+        total_teachers: 0,
+        active_teachers: 0,
+        avg_time_spent: 0,
+      };
+    }
   }
-}
-
-
 }
