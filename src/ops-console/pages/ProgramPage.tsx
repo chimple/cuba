@@ -11,6 +11,7 @@ import {
   CircularProgress,
   useMediaQuery,
   useTheme,
+  IconButton,
 } from "@mui/material";
 import "./ProgramPage.css";
 import FilterSlider from "../components/FilterSlider";
@@ -29,6 +30,7 @@ import {
   USER_ROLE,
 } from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
+import { BsFillBellFill } from "react-icons/bs";
 
 type ProgramRow = {
   programName: any;
@@ -91,6 +93,8 @@ const ProgramsPage: React.FC = () => {
   const isOpsRole =
     userRole === RoleType.SUPER_ADMIN ||
     userRole === RoleType.OPERATIONAL_DIRECTOR;
+  const isProgramManger = api.isProgramManager();
+  const showNewProgramButton = isOpsRole || isProgramManger;
   const tab: TabType = tabOptions[activeTabIndex].value;
 
   useEffect(() => {
@@ -234,8 +238,12 @@ const ProgramsPage: React.FC = () => {
 
   return (
     <div className="program-page">
-      <div className="program-page-header">{t("Programs")}</div>
-
+      <div className="program-page-header">
+        {t("Programs")}
+        <IconButton sx={{ color: "black" }}>
+          <BsFillBellFill />
+        </IconButton>
+      </div>
       <div className="program-header-and-search-filter">
         <div className="program-search-filter">
           <HeaderTab
@@ -244,7 +252,7 @@ const ProgramsPage: React.FC = () => {
             tabs={tabOptions}
           />
           <div className="program-button-and-search-filter">
-            {isOpsRole && (
+            {showNewProgramButton && (
               <Button
                 variant="outlined"
                 onClick={() =>
