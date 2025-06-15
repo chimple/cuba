@@ -17,7 +17,7 @@ import ProgramsPage from "./ProgramPage";
 import SchoolList from "./SchoolList";
 import SchoolDetailsPage from "./SchoolDetailsPage";
 import ProgramDetailsPage from "./ProgramDetailsPage";
-
+import UsersPage from "./UsersPage";
 import NewProgram from "../components/NewProgram";
 
 const SidebarPage: React.FC = () => {
@@ -80,7 +80,7 @@ const SidebarPage: React.FC = () => {
                 );
               }}
             </ProtectedRoute>
-             <ProtectedRoute
+            <ProtectedRoute
               path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/:program_id`}
               exact={true}
             >
@@ -91,7 +91,10 @@ const SidebarPage: React.FC = () => {
               }}
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.NEW_PROGRAM}`} exact={true}>
-                <NewProgram/>
+              <NewProgram />
+            </ProtectedRoute>
+            <ProtectedRoute path={`${path}${PAGES.USERS}`} exact={true}>
+              <UsersPage />
             </ProtectedRoute>
           </Switch>
         </div>

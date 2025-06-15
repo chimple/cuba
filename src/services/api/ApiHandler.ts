@@ -27,17 +27,16 @@ export class ApiHandler implements ServiceApi {
   private s: ServiceApi;
 
   private constructor(service: ServiceApi) {
-    this.s= service;
+    this.s = service;
   }
 
-    public static getInstance(service: ServiceApi): ApiHandler {
+  public static getInstance(service: ServiceApi): ApiHandler {
     // Only create a new instance if the service has changed
     if (!ApiHandler.i || ApiHandler.i.s !== service) {
       ApiHandler.i = new ApiHandler(service);
     }
     return ApiHandler.i;
   }
-
 
   public getAssignmentById(
     id: string
@@ -1179,53 +1178,57 @@ export class ApiHandler implements ServiceApi {
   }
 
   public async getProgramData(programId: string): Promise<{
-    programDetails: {id:string; label: string; value: string }[];
-    locationDetails: {id:string; label: string; value: string }[];
-    partnerDetails: {id:string; label: string; value: string }[];
-    programManagers: {name: string; role: string; phone: string }[];
+    programDetails: { id: string; label: string; value: string }[];
+    locationDetails: { id: string; label: string; value: string }[];
+    partnerDetails: { id: string; label: string; value: string }[];
+    programManagers: { name: string; role: string; phone: string }[];
   } | null> {
     return await this.s.getProgramData(programId);
   }
 
-  async getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>> {
+  async getSchoolFilterOptionsForSchoolListing(): Promise<
+    Record<string, string[]>
+  > {
     return await this.s.getSchoolFilterOptionsForSchoolListing();
   }
 
-  async getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>): Promise<FilteredSchoolsForSchoolListingOps[]> {
+  async getFilteredSchoolsForSchoolListing(
+    filters: Record<string, string[]>
+  ): Promise<FilteredSchoolsForSchoolListingOps[]> {
     return await this.s.getFilteredSchoolsForSchoolListing(filters);
   }
 
   public async getTeacherInfoBySchoolId(schoolId: string): Promise<
-  {
-   user: TableTypes<"user">;
-   grade: number;
-   classSection: string;
-  }[]
-> {
+    {
+      user: TableTypes<"user">;
+      grade: number;
+      classSection: string;
+    }[]
+  > {
     return await this.s.getTeacherInfoBySchoolId(schoolId);
   }
   public async getStudentInfoBySchoolId(schoolId: string): Promise<
-  {
-   user: TableTypes<"user">;
-   grade: number;
-   classSection: string;
-  }[]
-> {
+    {
+      user: TableTypes<"user">;
+      grade: number;
+      classSection: string;
+    }[]
+  > {
     return await this.s.getStudentInfoBySchoolId(schoolId);
   }
-  public async getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>{
+  public async getClassesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"class">[]> {
     return await this.s.getClassesBySchoolId(schoolId);
   }
   public async createAutoProfile(
     languageDocId: string | undefined
   ): Promise<TableTypes<"user">> {
-    return await this.s.createAutoProfile(
-      languageDocId
-    );
+    return await this.s.createAutoProfile(languageDocId);
   }
 
   public async isProgramUser(): Promise<boolean> {
-   return await this.s.isProgramUser();
+    return await this.s.isProgramUser();
   }
 
   public async countProgramStats(programId: string): Promise<{
@@ -1239,6 +1242,12 @@ export class ApiHandler implements ServiceApi {
     return await this.s.countProgramStats(programId);
   }
 
+  public async getManagersAndCoordinators(): Promise<
+    { name: string; role: string }[]
+  > {
+    return await this.s.getManagersAndCoordinators();
+  }
+
   public async countUsersBySchool(schoolId: string): Promise<{
     total_students: number;
     active_students: number;
@@ -1248,6 +1257,4 @@ export class ApiHandler implements ServiceApi {
   }> {
     return await this.s.countUsersBySchool(schoolId);
   }
-
-
 }
