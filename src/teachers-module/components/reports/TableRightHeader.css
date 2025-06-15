@@ -33,3 +33,21 @@
 .belowText {
   bottom: 0; /* Stick to the bottom */
 }
+
+/* TableRightHeader.css */
+.subject-header {
+  border-right: 1px solid #ddd;
+  text-align: center;
+  font-weight: bold;
+}
+
+.assignment-subheaders {
+  display: flex;
+  justify-content: space-around;
+}
+
+.assignment-subheader {
+  flex: 1;
+  padding: 4px;
+  border-left: 1px solid #eee;
+}

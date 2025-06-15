@@ -744,4 +744,43 @@ export class ClassUtil {
     });
     return groups;
   }
+  public sortStudentsByTotalScoreAssignment = (
+        studentsMap: Map<string, { student: TableTypes<"user">; results: Record<string, any[]> }>
+      ): Map<string, { student: TableTypes<"user">; results: Record<string, any[]> }> => {
+        // Convert Map to array of entries
+        const studentsArray = Array.from(studentsMap.entries());
+        
+        // Calculate total score for each student
+        const studentsWithScores = studentsArray.map(([studentId, studentData]) => {
+          let totalScore = 0;
+          let validResults = 0;
+      
+          // Sum scores from all assignments
+          Object.values(studentData.results).forEach(assignmentResults => {
+            assignmentResults.forEach(result => {
+              if (result.score !== null && !isNaN(result.score)) {
+                totalScore += result.score;
+                validResults++;
+              }
+            });
+          });
+      
+      // Calculate average score (or 0 if no valid results)
+      const averageScore = validResults > 0 ? totalScore / validResults : 0;
+      
+      return {
+        studentId,
+        studentData,
+        averageScore
+      };
+    });
+    
+    // Sort by average score (ascending for LOWSCORE)
+    studentsWithScores.sort((a, b) => a.averageScore - b.averageScore);
+    
+    // Convert back to Map
+    return new Map(
+      studentsWithScores.map(item => [item.studentId, item.studentData])
+    );
+  };
 }
