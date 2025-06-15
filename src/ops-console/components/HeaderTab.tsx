@@ -18,6 +18,8 @@ const TabComponent: React.FC<TabComponentProps> = ({
       value={activeTab}
       onChange={handleTabChange}
       className="tabs-container-HeaderTab"
+      variant="scrollable"
+      scrollButtons="auto"
     >
       {tabs.map((tab, index) => (
         <Tab

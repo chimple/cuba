@@ -4,7 +4,7 @@ export type Order = 'asc' | 'desc';
 
 export function useDataTableLogic<T extends Record<string, any>>(
   rows: T[],
-  rowsPerPage = 8
+  rowsPerPage = 7
 ) {
   const [orderBy, setOrderBy] = useState<string | null>(null);
   const [order, setOrder] = useState<Order>('asc');

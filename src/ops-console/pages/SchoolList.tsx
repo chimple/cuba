@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Tabs, Tab, Box, Typography } from "@mui/material";
+import { Tabs, Tab, Box, Typography, IconButton } from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
 import "./SchoolList.css";
@@ -13,6 +13,10 @@ import FilterSlider from "../components/FilterSlider";
 import SelectedFilters from "../components/SelectedFilters";
 import FileUpload from "../components/FileUpload";
 import UploadButton from "../components/UploadButton";
+import TabComponent from "../components/HeaderTab";
+import { useDataTableLogic } from "../OpsUtility/useDataTableLogic";
+import { BsFillBellFill } from "react-icons/bs";
+
 
 type Filters = Record<string, string[]>;
 
@@ -27,41 +31,27 @@ const INITIAL_FILTERS: Filters = {
   village: [],
 };
 
-const tabOptions = Object.entries(PROGRAM_TAB_LABELS)
-  .filter(([value]) => value !== PROGRAM_TAB.HYBRID)
-  .map(([value, label]) => ({
-    label,
-    value: value as PROGRAM_TAB,
-  }));
+const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([key, label]) => ({
+  label,
+  value: key as PROGRAM_TAB,
+}));
 
 const SchoolList: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
 
   const [selectedTab, setSelectedTab] = useState(PROGRAM_TAB.ALL);
-  const [page, setPage] = useState(1);
-  const rowsPerPage = 7;
-
-  const [orderBy, setOrderBy] = useState<string | null>(null);
-  const [order, setOrder] = useState<"asc" | "desc">("asc");
-
-  const [schools, setSchools] = useState<any[]>([]);
+  const [showUploadPage, setShowUploadPage] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [showUploadPage, setShowUploadPage] = useState(false);
-  // Search and Filters
+  // Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
   const [tempFilters, setTempFilters] = useState<Filters>(INITIAL_FILTERS);
   const [filterOptions, setFilterOptions] = useState<Filters>(INITIAL_FILTERS);
 
-  const handleSort = (key: string) => {
-    const isAsc = orderBy === key && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(key);
-  };
+  const [schools, setSchools] = useState<any[]>([]);
 
-  // Fetch filter options
   useEffect(() => {
     const fetchFilterOptions = async () => {
       setIsLoading(true);
@@ -103,28 +93,21 @@ const SchoolList: React.FC = () => {
         )
       );
 
-      const filteredSchools =
-        await api.getFilteredSchoolsForSchoolListing(cleanedFilters);
+      const filteredSchools = await api.getFilteredSchoolsForSchoolListing(cleanedFilters);
       const enrichedSchools = filteredSchools.map((school: any) => ({
         ...school,
         id: school.sch_id,
         students: school.num_students || 0,
         teachers: school.num_teachers || 0,
-        programManagers:
-          school.program_managers?.join(", ") || t("not assigned yet"),
-        fieldCoordinators:
-          school.field_coordinators?.join(", ") || t("not assigned yet"),
+        programManagers: school.program_managers?.join(", ") || t("not assigned yet"),
+        fieldCoordinators: school.field_coordinators?.join(", ") || t("not assigned yet"),
         name: {
           value: school.school_name,
           render: (
             <Box display="flex" flexDirection="column" alignItems="flex-start">
               <Typography variant="subtitle2">{school.school_name}</Typography>
-              <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                fontSize={"12px"}
-              >
-                {school.group2 || ""}
+              <Typography variant="subtitle2" color="text.secondary" fontSize={"12px"}>
+                {school.state || ""}
               </Typography>
             </Box>
           ),
@@ -132,7 +115,6 @@ const SchoolList: React.FC = () => {
       }));
 
       setSchools(enrichedSchools);
-      setPage(1);
     } catch (error) {
       console.error("Failed to fetch filtered schools:", error);
     } finally {
@@ -148,36 +130,44 @@ const SchoolList: React.FC = () => {
     { key: "fieldCoordinators", label: t("Field Coordinator") },
   ];
 
-     const filterConfigsForSchool = [
-      { key: "Partner", label: t("Select Partner") },
-      { key: "Program Manager", label: t("Select Program Manager" )},
-      { key: "Field Coordinator", label: t("Select Field Coordinator") },
-      { key: "Program Type", label: t("Select Program Type") },
-      { key: "state", label: t("Select State") },
-      { key: "district", label: t("Select District") },
-      { key: "block", label: t("Select Block") },
-      { key: "village", label: t("Select Village") },
-      { key: "cluster", label: t("Select Cluster") },
-    ];
+  const filterConfigsForSchool = [
+    { key: "Partner", label: t("Select Partner") },
+    { key: "Program Manager", label: t("Select Program Manager") },
+    { key: "Field Coordinator", label: t("Select Field Coordinator") },
+    { key: "Program Type", label: t("Select Program Type") },
+    { key: "state", label: t("Select State") },
+    { key: "district", label: t("Select District") },
+    { key: "block", label: t("Select Block") },
+    { key: "village", label: t("Select Village") },
+    { key: "cluster", label: t("Select Cluster") },
+  ];
 
+  // Apply client-side search
   const filteredSchools = useMemo(() => {
     return schools.filter((school) =>
       school.name.value.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [schools, searchTerm]);
 
-  const paginatedSchools = useMemo(() => {
-    const start = (page - 1) * rowsPerPage;
-    return filteredSchools.slice(start, start + rowsPerPage);
-  }, [filteredSchools, page, rowsPerPage]);
+  // 👉 Use the sorting + pagination hook
+  const {
+    orderBy,
+    order,
+    page,
+    pageCount,
+    setPage,
+    handleSort,
+    paginatedRows,
+  } = useDataTableLogic(filteredSchools);
 
   function onCancleClick(): void {
     setShowUploadPage(false);
   }
+
   if (showUploadPage) {
     return (
       <div>
-        <div className="school-list-upload-text"> {t("Upload File")}</div>
+        <div className="school-list-upload-text">{t("Upload File")}</div>
         <div>
           <FileUpload onCancleClick={onCancleClick} />
         </div>
@@ -191,37 +181,18 @@ const SchoolList: React.FC = () => {
         <div className="school-list-header">
           <div className="school-heading">{t("Schools")}</div>
           <div className="school-list-container">
-            <div style={{ flex: 1 }}>
-              <Tabs
-                value={selectedTab}
-                onChange={(e, val) => {
-                  setPage(1);
-                  setSelectedTab(val);
-                }}
-                indicatorColor="primary"
-                textColor="primary"
-                variant="scrollable"
-                scrollButtons="auto"
-                className="school-list-tabs-div"
-              >
-                {tabOptions.map((tab) => (
-                  <Tab
-                    key={tab.value}
-                    label={tab.label}
-                    value={tab.value}
-                    className="school-list-tab"
-                  />
-                ))}
-              </Tabs>
-            </div>
-            <div className="school-list-file-upload-conatainer">
-              <UploadButton
-                onClick={() => {
-                  setShowUploadPage(true);
-                }}
-              />
-            </div>
-            <div style={{ minWidth: 280, maxWidth: 400 }}>
+            <TabComponent
+              activeTab={tabOptions.findIndex((tab) => tab.value === selectedTab)}
+              handleTabChange={(e, index) => {
+                setPage(1);
+                setSelectedTab(tabOptions[index].value);
+              }}
+              tabs={tabOptions.map((tab) => ({ label: tab.label }))}
+            />
+            <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+              <div className="school-list-file-upload-conatainer">
+                <UploadButton onClick={() => setShowUploadPage(true)} />
+              </div>
               <SearchAndFilter
                 searchTerm={searchTerm}
                 onSearchChange={(e) => setSearchTerm(e.target.value)}
@@ -290,16 +261,18 @@ const SchoolList: React.FC = () => {
           </Typography>
         ) : (
           <>
-            <DataTableBody
-              columns={columns}
-              rows={paginatedSchools}
-              orderBy={orderBy}
-              order={order}
-              onSort={handleSort}
-            />
+            <div className="school-list-table-container">
+              <DataTableBody
+                columns={columns}
+                rows={paginatedRows}
+                orderBy={orderBy}
+                order={order}
+                onSort={handleSort}
+              />
+            </div>
             <div className="school-list-footer">
               <DataTablePagination
-                pageCount={Math.ceil(filteredSchools.length / rowsPerPage)}
+                pageCount={pageCount}
                 page={page}
                 onPageChange={(val) => setPage(val)}
               />
