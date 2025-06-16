@@ -104,7 +104,7 @@ const SchoolList: React.FC = () => {
             <Box display="flex" flexDirection="column" alignItems="flex-start">
               <Typography variant="subtitle2">{school.school_name}</Typography>
               <Typography variant="subtitle2" color="text.secondary" fontSize={"12px"}>
-                {school.state || ""}
+                {school.district || ""}
               </Typography>
             </Box>
           ),

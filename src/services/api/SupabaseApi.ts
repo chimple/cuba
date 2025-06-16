@@ -6149,7 +6149,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     try {
-      const { data, error } = await this.supabase.rpc("getfilteredschools", {
+      const { data, error } = await this.supabase.rpc("get_filtered_schools", {
         filters,
       });
       if (error) {
@@ -6308,6 +6308,7 @@ export class SupabaseApi implements ServiceApi {
       .select('id')
       .eq('user', userId)
       .in('role', ['program_manager', 'field_coordinator'])
+      .eq('is_deleted', false)
       .limit(1);
 
     if (error) {
@@ -6446,6 +6447,7 @@ async countUsersBySchool(schoolId: string): Promise<{
       .select('id')
       .eq('user', userId)
       .in('role', ['program_manager'])
+      .eq('is_deleted', false)
       .limit(1);
     if (error) {
       console.error('Error checking program_user table', error);

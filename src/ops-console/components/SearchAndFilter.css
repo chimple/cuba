@@ -1,6 +1,8 @@
 .search-filter-container-SearchAndFilter {
   display: flex;
   align-items: center;
+  padding-left: 5px;
+  gap: 1rem;;
 }
 
 .search-input-SearchAndFilter .MuiOutlinedInput-root {

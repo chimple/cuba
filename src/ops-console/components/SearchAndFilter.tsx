@@ -37,7 +37,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   return (
     <Stack
       direction="row"
-      spacing={1}
+      spacing={2}
       className="search-filter-container-SearchAndFilter"
       alignItems="center"
     >

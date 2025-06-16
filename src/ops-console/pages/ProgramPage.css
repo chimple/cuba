@@ -85,6 +85,10 @@
 
 /* On small screens: stack HeaderTab, then row-wrap button and search+filter */
 @media (max-width: 600px) {
+   .program-page {
+    height: 100vh;
+    overflow-y: auto;
+  }
   .program-search-filter {
     flex-direction: column;
     align-items: stretch;

@@ -2221,11 +2221,12 @@ export type Database = {
           total_time_spent: number
         }[]
       }
-      getfilteredschools: {
+      get_filtered_schools: {
         Args: { filters: Json }
         Returns: {
           sch_id: string
           school_name: string
+          district: string
           num_students: number
           num_teachers: number
           program_managers: string[]

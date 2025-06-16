@@ -80,20 +80,4 @@
   border-radius: 23px;
 }
 
-.school-list-table-container {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  margin: 10px 0;
-}
 
-.school-list-pagination {
-  flex-shrink: 0;
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  padding: 10px 0;
-  background: white;
-  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05); /* Optional visual separation */
-  z-index: 10;
-}
