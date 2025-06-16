@@ -13,6 +13,7 @@ import FilterSlider from "../components/FilterSlider";
 import SelectedFilters from "../components/SelectedFilters";
 import FileUpload from "../components/FileUpload";
 import UploadButton from "../components/UploadButton";
+import { useDataTableLogic } from "../OpsUtility/useDataTableLogic";
 
 type Filters = Record<string, string[]>;
 
@@ -27,39 +28,25 @@ const INITIAL_FILTERS: Filters = {
   village: [],
 };
 
-const tabOptions = Object.entries(PROGRAM_TAB_LABELS)
-  .filter(([value]) => value !== PROGRAM_TAB.HYBRID)
-  .map(([value, label]) => ({
-    label,
-    value: value as PROGRAM_TAB,
-  }));
+const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([value, label]) => ({
+  label,
+  value: value as PROGRAM_TAB,
+}));
 
 const SchoolList: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
 
   const [selectedTab, setSelectedTab] = useState(PROGRAM_TAB.ALL);
-  const [page, setPage] = useState(1);
-  const rowsPerPage = 7;
-
-  const [orderBy, setOrderBy] = useState<string | null>(null);
-  const [order, setOrder] = useState<"asc" | "desc">("asc");
 
   const [schools, setSchools] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const [showUploadPage, setShowUploadPage] = useState(false);
-  // Search and Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
   const [tempFilters, setTempFilters] = useState<Filters>(INITIAL_FILTERS);
   const [filterOptions, setFilterOptions] = useState<Filters>(INITIAL_FILTERS);
-
-  const handleSort = (key: string) => {
-    const isAsc = orderBy === key && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(key);
-  };
 
   // Fetch filter options
   useEffect(() => {
@@ -148,17 +135,17 @@ const SchoolList: React.FC = () => {
     { key: "fieldCoordinators", label: t("Field Coordinator") },
   ];
 
-     const filterConfigsForSchool = [
-      { key: "Partner", label: t("Select Partner") },
-      { key: "Program Manager", label: t("Select Program Manager" )},
-      { key: "Field Coordinator", label: t("Select Field Coordinator") },
-      { key: "Program Type", label: t("Select Program Type") },
-      { key: "state", label: t("Select State") },
-      { key: "district", label: t("Select District") },
-      { key: "block", label: t("Select Block") },
-      { key: "village", label: t("Select Village") },
-      { key: "cluster", label: t("Select Cluster") },
-    ];
+  const filterConfigsForSchool = [
+    { key: "Partner", label: t("Select Partner") },
+    { key: "Program Manager", label: t("Select Program Manager") },
+    { key: "Field Coordinator", label: t("Select Field Coordinator") },
+    { key: "Program Type", label: t("Select Program Type") },
+    { key: "state", label: t("Select State") },
+    { key: "district", label: t("Select District") },
+    { key: "block", label: t("Select Block") },
+    { key: "village", label: t("Select Village") },
+    { key: "cluster", label: t("Select Cluster") },
+  ];
 
   const filteredSchools = useMemo(() => {
     return schools.filter((school) =>
@@ -166,10 +153,15 @@ const SchoolList: React.FC = () => {
     );
   }, [schools, searchTerm]);
 
-  const paginatedSchools = useMemo(() => {
-    const start = (page - 1) * rowsPerPage;
-    return filteredSchools.slice(start, start + rowsPerPage);
-  }, [filteredSchools, page, rowsPerPage]);
+  const {
+    orderBy,
+    order,
+    page,
+    pageCount,
+    setPage,
+    handleSort,
+    paginatedRows,
+  } = useDataTableLogic(filteredSchools);
 
   function onCancleClick(): void {
     setShowUploadPage(false);
@@ -191,7 +183,7 @@ const SchoolList: React.FC = () => {
         <div className="school-list-header">
           <div className="school-heading">{t("Schools")}</div>
           <div className="school-list-container">
-            <div style={{ flex: 1 }}>
+            <div>
               <Tabs
                 value={selectedTab}
                 onChange={(e, val) => {
@@ -214,74 +206,74 @@ const SchoolList: React.FC = () => {
                 ))}
               </Tabs>
             </div>
-            <div className="school-list-file-upload-conatainer">
-              <UploadButton
-                onClick={() => {
-                  setShowUploadPage(true);
+            <div className="school-list-filter-container-2">
+              <div className="school-list-file-upload-conatainer">
+                <UploadButton
+                  onClick={() => {
+                    setShowUploadPage(true);
+                  }}
+                />
+              </div>
+              <div>
+                <SearchAndFilter
+                  searchTerm={searchTerm}
+                  onSearchChange={(e) => setSearchTerm(e.target.value)}
+                  filters={filters}
+                  onFilterClick={() => setIsFilterOpen(true)}
+                />
+              </div>
+              <FilterSlider
+                isOpen={isFilterOpen}
+                onClose={() => {
+                  setIsFilterOpen(false);
+                  setTempFilters(filters);
                 }}
+                filters={tempFilters}
+                filterOptions={filterOptions}
+                onFilterChange={(name, value) =>
+                  setTempFilters((prev) => ({ ...prev, [name]: value }))
+                }
+                onApply={() => {
+                  setFilters(tempFilters);
+                  setIsFilterOpen(false);
+                }}
+                onCancel={() => {
+                  const empty = {
+                    state: [],
+                    district: [],
+                    block: [],
+                    village: [],
+                    programType: [],
+                    partner: [],
+                    programManager: [],
+                    fieldCoordinator: [],
+                  };
+                  setTempFilters(empty);
+                  setFilters(empty);
+                  setIsFilterOpen(false);
+                }}
+                autocompleteStyles={{}}
+                filterConfigs={filterConfigsForSchool}
               />
-            </div>
-            <div style={{ minWidth: 280, maxWidth: 400 }}>
-              <SearchAndFilter
-                searchTerm={searchTerm}
-                onSearchChange={(e) => setSearchTerm(e.target.value)}
-                filters={filters}
-                onFilterClick={() => setIsFilterOpen(true)}
-              />
+
+              <Box className="selected-filters-container">
+                <SelectedFilters
+                  filters={filters}
+                  onDeleteFilter={(key, value) => {
+                    setFilters((prev) => {
+                      const updated = {
+                        ...prev,
+                        [key]: prev[key].filter((v) => v !== value),
+                      };
+                      setTempFilters(updated);
+                      return updated;
+                    });
+                  }}
+                />
+              </Box>
             </div>
           </div>
         </div>
-
-        <FilterSlider
-          isOpen={isFilterOpen}
-          onClose={() => {
-            setIsFilterOpen(false);
-            setTempFilters(filters);
-          }}
-          filters={tempFilters}
-          filterOptions={filterOptions}
-          onFilterChange={(name, value) =>
-            setTempFilters((prev) => ({ ...prev, [name]: value }))
-          }
-          onApply={() => {
-            setFilters(tempFilters);
-            setIsFilterOpen(false);
-          }}
-          onCancel={() => {
-            const empty = {
-              state: [],
-              district: [],
-              block: [],
-              village: [],
-              programType: [],
-              partner: [],
-              programManager: [],
-              fieldCoordinator: [],
-            };
-            setTempFilters(empty);
-            setFilters(empty);
-            setIsFilterOpen(false);
-          }}
-          autocompleteStyles={{}}
-          filterConfigs={filterConfigsForSchool}
-        />
-
-        <Box className="selected-filters-container">
-          <SelectedFilters
-            filters={filters}
-            onDeleteFilter={(key, value) => {
-              setFilters((prev) => {
-                const updated = {
-                  ...prev,
-                  [key]: prev[key].filter((v) => v !== value),
-                };
-                setTempFilters(updated);
-                return updated;
-              });
-            }}
-          />
-        </Box>
-
         {isLoading ? (
           <Loading isLoading={true} />
         ) : filteredSchools.length === 0 ? (
@@ -292,14 +284,14 @@ const SchoolList: React.FC = () => {
           <>
             <DataTableBody
               columns={columns}
-              rows={paginatedSchools}
+              rows={paginatedRows}
               orderBy={orderBy}
               order={order}
               onSort={handleSort}
             />
             <div className="school-list-footer">
               <DataTablePagination
-                pageCount={Math.ceil(filteredSchools.length / rowsPerPage)}
+                pageCount={pageCount}
                 page={page}
                 onPageChange={(val) => setPage(val)}
               />

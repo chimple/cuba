@@ -123,6 +123,7 @@ import ProgramsPage from "./ops-console/pages/ProgramPage";
 import NewProgram from "./ops-console/components/NewProgram";
 import SchoolList from "./ops-console/pages/SchoolList";
 import { useFeatureValue, useFeatureIsOn } from "@growthbook/growthbook-react";
+import LoginScreen from "./pages/LoginScreen";
 
 setupIonicReact();
 interface ExtraData {
@@ -415,7 +416,7 @@ const App: React.FC = () => {
               <Home />
             </ProtectedRoute>
             <Route path={PAGES.LOGIN} exact={true}>
-              <Login />
+              <LoginScreen />
             </Route>
             <ProtectedRoute path={PAGES.GAME} exact={true}>
               <CocosGame />
@@ -432,9 +433,9 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.PARENT} exact={true}>
               <Parent />
             </ProtectedRoute>
-            <Route path={PAGES.APP_LANG_SELECTION} exact={true}>
+            {/* <Route path={PAGES.APP_LANG_SELECTION} exact={true}>
               <AppLangSelection />
-            </Route>
+            </Route> */}
             <ProtectedRoute path={PAGES.CREATE_STUDENT} exact={true}>
               <EditStudent />
             </ProtectedRoute>

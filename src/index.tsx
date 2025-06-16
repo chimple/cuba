@@ -44,9 +44,9 @@ if (typeof window !== "undefined") {
   }
 }
 
-if (Capacitor.isNativePlatform()) {
-  await ScreenOrientation.lock({ orientation: "landscape" });
-}
+// if (Capacitor.isNativePlatform()) {
+//   await ScreenOrientation.lock({ orientation: "landscape" });
+// }
 applyPolyfills().then(() => {
   jeepSqlite(window);
 });
@@ -93,9 +93,10 @@ const isOpsUser = localStorage.getItem(IS_OPS_USER) === 'true';
 
 if (!isOpsUser) {
   // Initialize SQLite only if needed
-  SqliteApi.getInstance().then(() => {
-    serviceInstance.switchMode(APIMode.SQLITE);
-  });
+  SplashScreen.show();
+  await SqliteApi.getInstance();
+  serviceInstance.switchMode(APIMode.SQLITE);
+  SplashScreen.hide();
 }
 
 root.render(
