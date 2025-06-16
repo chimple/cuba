@@ -1,20 +1,12 @@
+.school-list-ion-page {
+  height: 100vh;
+  overflow-y: auto;
+}
+
 .school-list-main-container {
   background: white;
   padding: 0 20px;
-  height: auto;
-  overflow: visible;
-}
-
-@media (max-width: 768px) {
-  .school-list-main-container {
-    height: 100vh;
-    overflow-y: auto;
-  }
-
-  .school-list-ion-page {
-    height: 100vh;
-    overflow-y: auto;
-  }
+  min-height: 100vh;
 }
 
 .school-list-header {
