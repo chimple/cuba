@@ -17,12 +17,14 @@ import { Util } from "../../../utility/util";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import Loading from "../../../components/Loading";
 import { ClassUtil } from "../../../utility/classUtil";
-import { addMonths, subDays, subMonths } from "date-fns";
+import { addMonths, subDays, subMonths, addDays } from "date-fns";
 import { t } from "i18next";
 import CustomDropdown from "../CustomDropdown";
 import { blue } from "@mui/material/colors";
 import { useHistory } from "react-router";
 import ImageDropdown from "../imageDropdown";
+// Make sure this import exists
+// import { AssignmentHeader } from '../../../components/DashboardTable/TableRightHeader';
 
 interface ReportTableProps {
   handleButtonClick;
@@ -38,6 +40,8 @@ type AssignmentHeader = {
   startAt: string;
   endAt: string;
   belongsToClass?: boolean; 
+  subjectName?: string; // Add subject name to the header data
+  
 };
 
 const ReportTable: React.FC<ReportTableProps> = ({
@@ -69,6 +73,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
   const [headerData, setHeaderData] = useState<Map<string, AssignmentHeader>[]>(
     []
   );
+  
   const [reportData, setReportData] = useState<
     Map<string, { student: TableTypes<"user">; results: Record<string, any[]> }>
   >(new Map());
@@ -93,6 +98,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
     endDate: endDateProp ?? new Date(),
     isStudentProfilePage: false,
   });
+
   const api = ServiceConfig.getI().apiHandler;
   useEffect(() => {
     init();
@@ -183,6 +189,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
       );
     };
 
+    
   const init = async () => {
   const current_class = Util.getCurrentClass();
   const _classUtil = new ClassUtil();
@@ -223,6 +230,124 @@ let reportResults: ReportResponse[] = [];
       });
     });
   };
+
+  // Special handling for Assignment Report with All Subjects
+if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
+  // Get all subject IDs
+  const allSubjectIds = subjects?.map(subject => subject.id) || [];
+  
+  // Date adjustments
+  const adjustedStartDate = subDays(new Date(dateRange.startDate), 1);
+  const adjustedEndDate = addDays(new Date(dateRange.endDate), 1);
+  const startTimeStamp = adjustedStartDate.toISOString().replace("T", " ").replace("Z", "+00");
+  const endTimeStamp = adjustedEndDate.toISOString().replace("T", " ").replace("Z", "+00");
+
+  // Single query for all assignments across subjects
+  const _assignments = await api.getAssignmentOrLiveQuizByClassByDate(
+    current_class?.id ?? "",
+    allSubjectIds,
+    endTimeStamp,
+    startTimeStamp,
+    false,
+    false
+  ) || [];
+
+  // Enhance assignments with subject info
+  const flattenedAssignments = _assignments.map(assignment => {
+    const subject = allSubjects.find(s => s.id === assignment.course_id);
+    return {
+      ...assignment,
+      subjectId: assignment.course_id,
+      subjectName: subject?.name || ""
+    };
+  });
+
+  // Get unique assignment IDs and lesson IDs
+  const assignmentIds = flattenedAssignments.map(asgmt => asgmt.id);
+  const lessonIds = [...new Set(flattenedAssignments.map(res => res.lesson_id))];
+
+  // Parallel data fetching
+  const [assignmentResults, lessonDetails, assignmentUserRecords, _students] = await Promise.all([
+    api.getResultByAssignmentIds(assignmentIds),
+    api.getLessonsBylessonIds(lessonIds),
+    api.getAssignmentUserByAssignmentIds(assignmentIds),
+    api.getStudentsForClass(current_class?.id ?? "")
+  ]);
+
+  // Initialize student results
+  let resultsByStudent = new Map<
+    string,
+    { student: TableTypes<"user">; results: Record<string, any[]> }
+  >();
+
+  // Sort students by name if needed
+  const students = sortType === TABLESORTBY.NAME 
+    ? [..._students].sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+    : _students;
+
+  // Initialize results structure
+  students.forEach(student => {
+    resultsByStudent.set(student.id, {
+      student,
+      results: Object.fromEntries(assignmentIds.map(id => [id, []]))
+    });
+  });
+
+  // Process assignment results
+  assignmentResults?.forEach(result => {
+    const studentId = result.student_id;
+    const assignmentId = result.assignment_id;
+    if (studentId && assignmentId && resultsByStudent.has(studentId)) {
+      resultsByStudent.get(studentId)!.results[assignmentId].push(result);
+    }
+  });
+
+  // Create headers grouped by subject
+  const subjectHeaders = allSubjects.map(subject => {
+    const map = new Map<string, AssignmentHeader>();
+    flattenedAssignments
+      .filter(a => a.subjectId === subject.id)
+      .forEach(assignment => {
+        const lesson = lessonDetails?.find(l => l.id === assignment.lesson_id);
+        map.set(assignment.id, {
+          headerName: subject.name,
+          startAt: _classUtil.formatDate(assignment.starts_at),
+          endAt: assignment.ends_at ? _classUtil.formatDate(assignment.ends_at) : "",
+          belongsToClass: Boolean(assignment.is_class_wise),
+          subjectName: subject.name
+        });
+      });
+    return map;
+  }).filter(map => map.size > 0); // Filter empty subjects
+
+  // Handle sorting
+  if (sortType === TABLESORTBY.LOWSCORE || sortType === TABLESORTBY.HIGHSCORE) {
+    resultsByStudent = _classUtil.sortStudentsByTotalScoreAssignment(resultsByStudent);
+    if (sortType === TABLESORTBY.HIGHSCORE) {
+      resultsByStudent = new Map([...resultsByStudent.entries()].reverse());
+    }
+  }
+
+  // Handle individual assignments
+  resultsByStudent.forEach((studentData, studentId) => {
+    assignmentIds.forEach(assignmentId => {
+      const assignment = flattenedAssignments.find(a => a.id === assignmentId);
+      if (assignment && !assignment.is_class_wise) {
+        const isAssigned = assignmentUserRecords?.some(
+          record => record.assignment_id === assignmentId && record.user_id === studentId
+        );
+        if (!isAssigned && studentData.results[assignmentId].length === 0) {
+          studentData.results[assignmentId].push({ assignment_id: assignmentId, score: null });
+        }
+      }
+    });
+  });
+
+  setReportData(resultsByStudent);
+  setHeaderData(subjectHeaders);
+  setIsLoading(false);
+  return;
+}
 
   switch (selectedType) {
     case TABLEDROPDOWN.WEEKLY:
@@ -487,7 +612,14 @@ let reportResults: ReportResponse[] = [];
                     />
                   </th>
 
-                  <TableRightHeader headerDetails={headerData} />
+                  <TableRightHeader 
+                      headerDetails={headerData}
+                      showSubjects={selectedType === TABLEDROPDOWN.ASSIGNMENTS && selectedSubject?.id === ALL_SUBJECT.id}
+                      subjects={selectedType === TABLEDROPDOWN.ASSIGNMENTS && selectedSubject?.id === ALL_SUBJECT.id ? 
+                        subjects?.map(s => ({id: s.id, name: s.name})) || [] : 
+                        []
+                      }
+                    />
                 </tr>
               </thead>
               <tbody>
@@ -530,7 +662,11 @@ let reportResults: ReportResponse[] = [];
                           }
                           assignmentMap={assignmentMapObject}
                           selectedType={selectedType}
-                        />
+                          headerDetails={selectedType === TABLEDROPDOWN.ASSIGNMENTS && selectedSubject?.id === ALL_SUBJECT.id ? 
+                            headerData : 
+                            undefined
+                          }
+/>
                       )}
                     </tr>
 

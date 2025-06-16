@@ -3903,33 +3903,40 @@ order by
     return res?.values ?? [];
   }
 
-  async getAssignmentOrLiveQuizByClassByDate(
-    classId: string,
-    courseId: string,
-    startDate: string,
-    endDate: string,
-    isClassWise: boolean,
-    isLiveQuiz: boolean
-  ): Promise<TableTypes<"assignment">[] | undefined> {
-    let query = `SELECT *
-       FROM ${TABLES.Assignment}
-       WHERE class_id = '${classId}'
-       AND course_id = '${courseId}'
-       AND created_at BETWEEN '${endDate}' AND '${startDate}'`;
-    if (isClassWise) {
-      query += ` AND is_class_wise = 1`;
-    }
-    if (isLiveQuiz) {
-      query += ` AND type = 'liveQuiz'`;
-    } else {
-      query += ` AND type != 'liveQuiz'`;
-    }
-    query += ` ORDER BY created_at DESC;`;
-    const res = await this._db?.query(query);
+ async getAssignmentOrLiveQuizByClassByDate(
+  classId: string,
+  courseId: any,
+  startDate: string,
+  endDate: string,
+  isClassWise: boolean,
+  isLiveQuiz: boolean
+): Promise<TableTypes<"assignment">[] | undefined> {
+  let query = `SELECT * FROM ${TABLES.Assignment} WHERE class_id = ? AND created_at BETWEEN ? AND ?`;
+  const params: any[] = [classId, endDate, startDate];
 
-    if (!res || !res.values || res.values.length < 1) return;
-    return res.values;
+  // Handle courseId parameter
+  if (typeof courseId === 'string') {
+    query += ` AND course_id = ?`;
+    params.push(courseId);
+  } else if (Array.isArray(courseId) && courseId.length > 0) {
+    query += ` AND course_id IN (${courseId.map(() => '?').join(',')})`;
+    params.push(...courseId);
   }
+
+  if (isClassWise) {
+    query += ` AND is_class_wise = 1`;
+  }
+  if (isLiveQuiz) {
+    query += ` AND type = 'liveQuiz'`;
+  } else {
+    query += ` AND type != 'liveQuiz'`;
+  }
+  query += ` ORDER BY created_at DESC`;
+
+  const res = await this._db?.query(query, params);
+  return res?.values;
+}
+  
   async getStudentResultByDate(
     studentId: string,
     course_id: string,
