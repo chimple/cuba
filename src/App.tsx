@@ -259,10 +259,23 @@ const App: React.FC = () => {
       }
     });
     updateAvatarSuggestionJson();
+
+    const sendLaunch = async () => {
+      const authHandler = ServiceConfig.getI()?.authHandler;
+      const isUserLoggedIn = await authHandler?.isUserLoggedIn();
+      if (!isUserLoggedIn) {
+        await Toast.show({
+          text: "Couldn't launch the lesson, please sign in with RESPECT.",
+          duration: "long",
+        });
+      }
+    };
+    document.addEventListener("sendLaunch", sendLaunch);
     // Cleanup on unmount
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       clearExistingTimeout();
+      document.removeEventListener("sendLaunch", sendLaunch);
     };
   }, []);
 
@@ -447,23 +460,6 @@ const App: React.FC = () => {
       console.error("Util.migrateLocalJsonFile failed ", error);
     }
   }
-
-  useEffect(() => {
-    const sendLaunch = async () => {
-      const authHandler = ServiceConfig.getI()?.authHandler;
-      const isUserLoggedIn = await authHandler?.isUserLoggedIn();
-      if (!isUserLoggedIn) {
-        await Toast.show({
-          text: "Couldn't launch the lesson, please sign in with RESPECT.",
-          duration: "long",
-        });
-      }
-    };
-    document.addEventListener("sendLaunch", sendLaunch);
-    return () => {
-      document.removeEventListener("sendLaunch", sendLaunch);
-    };
-  }, []);
 
   const history = useHistory();
 
