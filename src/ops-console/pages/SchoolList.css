@@ -1,37 +1,37 @@
+.school-list-ion-page {
+  height: 100vh;
+  overflow-y: auto;
+}
+
 .school-list-main-container {
   background: white;
   padding: 0 20px;
+  min-height: 100vh;
 }
-.school-list-ion-page {
-  background: white;
-  overflow-x: hidden;
-  overflow-y: hidden;
-  height: 100%;
-  width: 100%;
-}
+
 .school-list-header {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  width: 96vw;
-  min-width: 300px;
-  max-width: 1500px;
 }
 .school-list-container {
-  width: 92vw;
-  min-width: 500px;
-  max-width: 1500px;
   display: flex;
   flex-direction: row;
   background-color: white;
   gap: 10px;
-  height: 5vh;
-  min-height: 30px;
-  max-height: 90px;
-  padding: 20px 0;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
 }
-
+.school-list-filter-container-2 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  row-gap: 0;
+  column-gap: 16px;
+  flex-direction: row;
+  justify-content: center;
+}
 .school-list-tab {
   text-transform: none !important;
   font-weight: bold !important;
@@ -40,12 +40,6 @@
 
 .school-list-tab.MuiTab-root.Mui-selected {
   color: #0f62fe !important;
-}
-
-.school-list-tabs-div {
-  width: 33vw;
-  min-width: 200px;
-  max-width: 400px;
 }
 
 .school-heading {
