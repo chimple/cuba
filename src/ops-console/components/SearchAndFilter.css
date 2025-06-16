@@ -13,13 +13,14 @@
 }
 
 .filter-button-SearchAndFilter {
-  height: 56px; 
+  height: 56px;
   min-height: 56px;
   border-radius: 8px;
   padding: 0 24px;
   text-transform: none;
   border-color: #e0e0e0;
   color: #6b778c;
+  margin-left: 0 !important;
 }
 
 .filter-button-SearchAndFilter.has-filters {

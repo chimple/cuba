@@ -1,56 +1,61 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo } from "react";
 
-export type Order = 'asc' | 'desc';
+export type Order = "asc" | "desc";
 
 export function useDataTableLogic<T extends Record<string, any>>(
   rows: T[],
   rowsPerPage = 7
 ) {
   const [orderBy, setOrderBy] = useState<string | null>(null);
-  const [order, setOrder] = useState<Order>('asc');
+  const [order, setOrder] = useState<Order>("asc");
   const [page, setPage] = useState(1);
 
-  const handleSort = (key: string ) => {
+  const handleSort = (key: string) => {
     if (orderBy === key) {
-      setOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+      setOrder((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setOrderBy(key);
-      setOrder('asc');
+      setOrder("asc");
     }
   };
 
-const sortedRows = useMemo(() => {
-  if (!orderBy) return rows;
+  const sortedRows = useMemo(() => {
+    if (!orderBy) return rows;
 
-  return [...rows].sort((a, b) => {
-    const aVal = a[orderBy];
-    const bVal = b[orderBy];
+    return [...rows].sort((a, b) => {
+      const aVal = a[orderBy];
+      const bVal = b[orderBy];
 
-    const aRaw = typeof aVal === 'object' && aVal?.value !== undefined ? aVal.value : aVal;
-    const bRaw = typeof bVal === 'object' && bVal?.value !== undefined ? bVal.value : bVal;
+      const aRaw =
+        typeof aVal === "object" && aVal?.value !== undefined
+          ? aVal.value
+          : aVal;
+      const bRaw =
+        typeof bVal === "object" && bVal?.value !== undefined
+          ? bVal.value
+          : bVal;
 
-    // Handle nullish values
-    if (aRaw == null) return order === 'asc' ? -1 : 1;
-    if (bRaw == null) return order === 'asc' ? 1 : -1;
+      // Handle nullish values
+      if (aRaw == null) return order === "asc" ? -1 : 1;
+      if (bRaw == null) return order === "asc" ? 1 : -1;
 
-    const aNum = typeof aRaw === 'number' ? aRaw : parseFloat(aRaw);
-    const bNum = typeof bRaw === 'number' ? bRaw : parseFloat(bRaw);
+      const aNum = typeof aRaw === "number" ? aRaw : parseFloat(aRaw);
+      const bNum = typeof bRaw === "number" ? bRaw : parseFloat(bRaw);
 
-    const bothAreNumbers = !isNaN(aNum) && !isNaN(bNum);
+      const bothAreNumbers = !isNaN(aNum) && !isNaN(bNum);
 
-    if (bothAreNumbers) {
-      return order === 'asc' ? aNum - bNum : bNum - aNum;
-    }
+      if (bothAreNumbers) {
+        return order === "asc" ? aNum - bNum : bNum - aNum;
+      }
 
-    const aStr = aRaw.toString();
-    const bStr = bRaw.toString();
+      const aStr = aRaw.toString();
+      const bStr = bRaw.toString();
 
-    return order === 'asc'
-      ? aStr.localeCompare(bStr)
-      : bStr.localeCompare(aStr);
-  });
-}, [rows, orderBy, order]);
-
+      return order === "asc"
+        ? aStr.localeCompare(bStr)
+        : bStr.localeCompare(aStr);
+    });
+  }, [rows, orderBy, order]);
 
   const paginatedRows = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
