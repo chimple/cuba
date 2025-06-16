@@ -73,7 +73,6 @@ const ReportTable: React.FC<ReportTableProps> = ({
   const [headerData, setHeaderData] = useState<Map<string, AssignmentHeader>[]>(
     []
   );
-  console.log("headerData", headerData);
   
   const [reportData, setReportData] = useState<
     Map<string, { student: TableTypes<"user">; results: Record<string, any[]> }>
@@ -234,151 +233,118 @@ let reportResults: ReportResponse[] = [];
 
   // Special handling for Assignment Report with All Subjects
 if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
-  const allAssignments = await Promise.all(
-    allSubjects.map(async (subject) => {
-      const adjustedStartDate = subDays(new Date(dateRange.startDate), 1);
-      const adjustedEndDate = addDays(new Date(dateRange.endDate), 1);
+  // Get all subject IDs
+  const allSubjectIds = subjects?.map(subject => subject.id) || [];
+  
+  // Date adjustments
+  const adjustedStartDate = subDays(new Date(dateRange.startDate), 1);
+  const adjustedEndDate = addDays(new Date(dateRange.endDate), 1);
+  const startTimeStamp = adjustedStartDate.toISOString().replace("T", " ").replace("Z", "+00");
+  const endTimeStamp = adjustedEndDate.toISOString().replace("T", " ").replace("Z", "+00");
 
-      const startTimeStamp = adjustedStartDate
-        .toISOString()
-        .replace("T", " ")
-        .replace("Z", "+00");
-      const endTimeStamp = adjustedEndDate
-        .toISOString()
-        .replace("T", " ")
-        .replace("Z", "+00");
+  // Single query for all assignments across subjects
+  const _assignments = await api.getAssignmentOrLiveQuizByClassByDate(
+    current_class?.id ?? "",
+    allSubjectIds,
+    endTimeStamp,
+    startTimeStamp,
+    false,
+    false
+  ) || [];
 
-      const assignments = await api.getAssignmentOrLiveQuizByClassByDate(
-        current_class?.id ?? "",
-        subject.id,
-        endTimeStamp,
-        startTimeStamp,
-        false,
-        false // isLiveQuiz
-      );
-
-      return assignments?.map(assignment => ({
-        ...assignment,
-        subjectId: subject.id,
-        subjectName: subject.name
-      })) || [];
-    })
-  );
-
-  // Flatten all assignments
-  const flattenedAssignments = allAssignments.flat();
+  // Enhance assignments with subject info
+  const flattenedAssignments = _assignments.map(assignment => {
+    const subject = allSubjects.find(s => s.id === assignment.course_id);
+    return {
+      ...assignment,
+      subjectId: assignment.course_id,
+      subjectName: subject?.name || ""
+    };
+  });
 
   // Get unique assignment IDs and lesson IDs
   const assignmentIds = flattenedAssignments.map(asgmt => asgmt.id);
   const lessonIds = [...new Set(flattenedAssignments.map(res => res.lesson_id))];
 
-  // Fetch related data
-  const [assignmentResults, lessonDetails, assignmentUserRecords] = await Promise.all([
+  // Parallel data fetching
+  const [assignmentResults, lessonDetails, assignmentUserRecords, _students] = await Promise.all([
     api.getResultByAssignmentIds(assignmentIds),
     api.getLessonsBylessonIds(lessonIds),
-    api.getAssignmentUserByAssignmentIds(assignmentIds)
+    api.getAssignmentUserByAssignmentIds(assignmentIds),
+    api.getStudentsForClass(current_class?.id ?? "")
   ]);
 
-  /// Create header data grouped by subject
-  const subjectHeaders = allSubjects.map(subject => {
-    const subjectAssignments = flattenedAssignments.filter(
-      a => a.subjectId === subject.id
-    );
-
-    const assignmentMap = new Map<string, AssignmentHeader>();
-    
-    subjectAssignments.forEach(assignment => {
-      const lesson = lessonDetails?.find(l => l.id === assignment.lesson_id);
-      assignmentMap.set(assignment.id, {
-        headerName: subject.name, // Use subject name instead of lesson name
-        startAt: _classUtil.formatDate(assignment.starts_at),
-        endAt: assignment.ends_at ? _classUtil.formatDate(assignment.ends_at) : "",
-        belongsToClass: Boolean(assignment.is_class_wise),
-        subjectName: subject.name
-      });
-    });
-
-    return assignmentMap;
-  });
-
-  // Filter out empty subject headers
-  const filteredHeaders = subjectHeaders.filter(map => map.size > 0);
-
   // Initialize student results
-  const students = await api.getStudentsForClass(current_class?.id ?? "");
-  if (sortType === TABLESORTBY.NAME) {
-    students.sort((a, b) => {
-      if (a.name === null) return 1;
-      if (b.name === null) return -1;
-      return a.name.localeCompare(b.name);
-    });
-  }
-
   let resultsByStudent = new Map<
     string,
     { student: TableTypes<"user">; results: Record<string, any[]> }
   >();
 
+  // Sort students by name if needed
+  const students = sortType === TABLESORTBY.NAME 
+    ? [..._students].sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+    : _students;
+
+  // Initialize results structure
   students.forEach(student => {
     resultsByStudent.set(student.id, {
-      student: student,
-      results: {},
-    });
-    assignmentIds.forEach(assignmentId => {
-      resultsByStudent.get(student.id)!.results[assignmentId] = [];
+      student,
+      results: Object.fromEntries(assignmentIds.map(id => [id, []]))
     });
   });
 
   // Process assignment results
- assignmentResults?.forEach(result => {
-  const studentId = result.student_id;
-  const assignmentId = result.assignment_id;
-  
-  // Skip if either ID is missing
-  if (!studentId || !assignmentId) return;
-  const studentData = resultsByStudent.get(studentId);
-  if (!studentData) return;
-  
-  if (studentData.results[assignmentId]) {
-    studentData.results[assignmentId].push(result);
-  }
-});
+  assignmentResults?.forEach(result => {
+    const studentId = result.student_id;
+    const assignmentId = result.assignment_id;
+    if (studentId && assignmentId && resultsByStudent.has(studentId)) {
+      resultsByStudent.get(studentId)!.results[assignmentId].push(result);
+    }
+  });
+
+  // Create headers grouped by subject
+  const subjectHeaders = allSubjects.map(subject => {
+    const map = new Map<string, AssignmentHeader>();
+    flattenedAssignments
+      .filter(a => a.subjectId === subject.id)
+      .forEach(assignment => {
+        const lesson = lessonDetails?.find(l => l.id === assignment.lesson_id);
+        map.set(assignment.id, {
+          headerName: subject.name,
+          startAt: _classUtil.formatDate(assignment.starts_at),
+          endAt: assignment.ends_at ? _classUtil.formatDate(assignment.ends_at) : "",
+          belongsToClass: Boolean(assignment.is_class_wise),
+          subjectName: subject.name
+        });
+      });
+    return map;
+  }).filter(map => map.size > 0); // Filter empty subjects
 
   // Handle sorting
   if (sortType === TABLESORTBY.LOWSCORE || sortType === TABLESORTBY.HIGHSCORE) {
-  resultsByStudent = _classUtil.sortStudentsByTotalScoreAssignment(resultsByStudent);
-  if (sortType === TABLESORTBY.HIGHSCORE) {
-    const reversedEntries = [...resultsByStudent.entries()].reverse();
-    resultsByStudent = new Map(reversedEntries);
+    resultsByStudent = _classUtil.sortStudentsByTotalScoreAssignment(resultsByStudent);
+    if (sortType === TABLESORTBY.HIGHSCORE) {
+      resultsByStudent = new Map([...resultsByStudent.entries()].reverse());
+    }
   }
-}
 
-  // Handle student-specific assignments
+  // Handle individual assignments
   resultsByStudent.forEach((studentData, studentId) => {
     assignmentIds.forEach(assignmentId => {
       const assignment = flattenedAssignments.find(a => a.id === assignmentId);
       if (assignment && !assignment.is_class_wise) {
-        const isAssignedToStudent = assignmentUserRecords?.some(
-          record =>
-            record.assignment_id === assignmentId &&
-            record.user_id === studentId
+        const isAssigned = assignmentUserRecords?.some(
+          record => record.assignment_id === assignmentId && record.user_id === studentId
         );
-
-        if (
-          !isAssignedToStudent &&
-          studentData.results[assignmentId].length === 0
-        ) {
-          studentData.results[assignmentId].push({
-            assignment_id: assignmentId,
-            score: null,
-          });
+        if (!isAssigned && studentData.results[assignmentId].length === 0) {
+          studentData.results[assignmentId].push({ assignment_id: assignmentId, score: null });
         }
       }
     });
   });
 
   setReportData(resultsByStudent);
-  setHeaderData(filteredHeaders);
+  setHeaderData(subjectHeaders);
   setIsLoading(false);
   return;
 }

@@ -443,7 +443,7 @@ export class ClassUtil {
   }
   public async getAssignmentOrLiveQuizReportForReport(
     classId: string,
-    courseId: string,
+    courseId: any,
     startDate: Date,
     endDate: Date,
     isLiveQuiz: boolean,
