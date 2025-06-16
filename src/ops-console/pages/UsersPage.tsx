@@ -19,6 +19,7 @@ import { SupabaseApi } from "../../services/api/SupabaseApi";
 import { USER_ROLE } from "../../common/constants";
 import { t } from "i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
+import { RoleLabels, RoleType } from "../../interface/modelInterfaces";
 
 interface User {
   fullName: string;
@@ -34,7 +35,7 @@ const columns = [
   { key: "role", label: "Role", width: "70%" },
 ];
 
-const ROWS_PER_PAGE = 8;
+const ROWS_PER_PAGE = 7;
 
 const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
   const [search, setSearch] = useState("");
@@ -60,10 +61,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
         setUsers(
           result.map((u: any) => ({
             fullName: u.name,
-            role: u.role
-              .split("_")
-              .map((word) => word[0].toUpperCase() + word.slice(1))
-              .join(" "),
+            role: RoleLabels[u.role as RoleType] || u.role,
           }))
         );
       } else {

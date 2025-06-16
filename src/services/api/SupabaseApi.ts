@@ -30,6 +30,7 @@ import {
   TabType,
   PROGRAM_TAB,
   AVATARS,
+  USER_ROLE,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -6346,16 +6347,56 @@ export class SupabaseApi implements ServiceApi {
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw new Error("User is not Logged in");
     const userId = _currentUser.id;
-    const { data, error } = await this.supabase.rpc(
-      "get_managers_and_coordinators_for_user",
-      { _current_user_id: userId }
-    );
-    console.log(data);
-    if (error) {
-      console.error("Error fetching managers and coordinators", error);
-      return [];
+    const role = localStorage.getItem(USER_ROLE);
+    // Checks for the Highest Roles
+    if (
+      role === RoleType.SUPER_ADMIN ||
+      role === RoleType.OPERATIONAL_DIRECTOR
+    ) {
+      const { data, error } = await (this.supabase.rpc as any)(
+        "get_admin_view_users"
+      );
+      if (error) {
+        console.error("Error fetching admin view users", error);
+        return [];
+      }
+      const unique = new Map();
+      for (const u of data) {
+        if (!unique.has(u.id)) {
+          unique.set(u.id, { name: u.name, role: u.role });
+        }
+      }
+      return Array.from(unique.values());
+    } else {
+      // Checks for the Program manager role
+      const { data: programs, error: programError } = await this.supabase
+        .from("program_user")
+        .select("program_id")
+        .eq("user", userId)
+        .eq("role", "program_manager");
+      if (programError || !programs) {
+        console.error("Error fetching programs", programError);
+        return [];
+      }
+      const programIds = programs.map((p) => p.program_id);
+      if (programIds.length === 0) return [];
+      const { data: coordinators, error: coordError } = await this.supabase
+        .from("program_user")
+        .select("user(id, name), role")
+        .in("program_id", programIds)
+        .eq("role", "field_coordinator");
+      if (coordError || !coordinators) {
+        console.error("Error fetching coordinators", coordError);
+        return [];
+      }
+      const unique = new Map();
+      for (const c of coordinators) {
+        if (c.user?.id && !unique.has(c.user.id)) {
+          unique.set(c.user.id, { name: c.user.name ?? "", role: c.role });
+        }
+      }
+      return Array.from(unique.values());
     }
-    return data ?? [];
   }
 
   async countProgramStats(programId: string): Promise<{

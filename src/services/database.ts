@@ -2104,7 +2104,7 @@ export type Database = {
         };
         Returns: Json;
       };
-      get_managers_and_coordinators_for_user: {
+      get_admin_view_users: {
         Args: { _current_user_id: string };
         Returns: {
           name: string;
