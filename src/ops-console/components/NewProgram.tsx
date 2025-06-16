@@ -10,6 +10,7 @@ import { t } from 'i18next';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { Link as RouterLink } from 'react-router-dom';
+import NotificationsIcon from '@mui/icons-material/Notifications'
 
 const NewProgram: React.FC = () => {
   const [partners, setPartners] = useState({ implementation: '', funding: '', institute: '', });
@@ -185,11 +186,15 @@ const NewProgram: React.FC = () => {
   return (
     <Box sx={{ height: '100vh', overflowY: 'auto', m: 0, p: 0 }}>
       <Container maxWidth="lg" sx={{ mt: 2, mb: 2 }}>
-          <Box sx={{ backgroundColor: "transparent" }}>
-            <Typography variant="h4" fontWeight="bold" gutterBottom>
-            {t('New Program')}
-            </Typography>
-            <Box display="flex" alignItems="center" mb={3}>
+          <Box mb={3}>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Typography color="text.primary" variant="h4" fontWeight="bold">
+                {t('New Program')}
+              </Typography>
+              <NotificationsIcon sx={{ color: 'text.secondary', cursor: 'pointer' }} />
+            </Box>
+
+            <Box display="flex" alignItems="center" mt={1}>
               <Link
                 component={RouterLink}
                 to={PAGES.SIDEBAR_PAGE + PAGES.PROGRAM_PAGE}
@@ -201,7 +206,7 @@ const NewProgram: React.FC = () => {
                   {t('Programs')}
                 </Typography>
               </Link>
-              <PlayArrowIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary' }} />
+              <PlayArrowIcon fontSize="small" sx={{ mx: 0.5, color: 'text.secondary' }} />
               <Typography variant="body2" color="text.secondary" fontWeight="bold">
                 {t('New Program')}
               </Typography>
@@ -216,7 +221,7 @@ const NewProgram: React.FC = () => {
                 { title: 'Institute Partner', placeholder: 'Enter Institute Partner', key: 'institute' },
               ].map(({ title, placeholder, key }) => (
                 <Grid item xs={12} sm={4} key={key} mb={3}>
-                  <Typography fontWeight="bold" mb={1} sx={{ textAlign: 'left' }}>
+                  <Typography fontWeight="bold" color="text.primary" mb={1} sx={{ textAlign: 'left' }}>
                     {t(title).toString()}
                   </Typography>
                   <TextField
@@ -237,7 +242,7 @@ const NewProgram: React.FC = () => {
               ))}
 
               <Grid item xs={12} sm={4} md={4} mb={3}>
-                <Typography fontWeight="bold" mb={1} sx={{ textAlign: 'left' }}>
+                <Typography fontWeight="bold" color="text.primary" mb={1} sx={{ textAlign: 'left' }}>
                   {t('Program Name')}
                 </Typography>
                 <TextField
@@ -273,7 +278,7 @@ const NewProgram: React.FC = () => {
               </Grid>
 
               <Grid item xs={12} mb={3}>
-                <Typography variant="subtitle1" fontWeight="bold" mb={1}>
+                <Typography variant="subtitle1" color="text.primary" fontWeight="bold" mb={1}>
                   {t('Location')}
                 </Typography>
                 <Grid container spacing={2}>
@@ -310,8 +315,8 @@ const NewProgram: React.FC = () => {
                 </Grid>
               </Grid>
 
-              <Grid item xs={12} sm={4} md={3} mb={3}>
-                  <Typography variant="subtitle1" fontWeight="bold" mb={1}>
+              <Grid item xs={12} sm={4} md={4} mb={3}>
+                  <Typography variant="subtitle1" color="text.primary" fontWeight="bold" mb={1}>
                       {t('Program Type')}
                   </Typography>
                   <FormControl fullWidth error={!!errors['programType']}>
@@ -335,7 +340,7 @@ const NewProgram: React.FC = () => {
               </Grid>
 
             <Grid item xs={12} mb={3}>
-                <Typography variant="subtitle1" fontWeight="bold" mb={1}>
+                <Typography variant="subtitle1" color="text.primary" fontWeight="bold" mb={1}>
                   {t('Model')}
                 </Typography>
                 <FormControl error={!!errors['model']}>
@@ -363,7 +368,7 @@ const NewProgram: React.FC = () => {
 
               <Grid container ml={3} mb={3}>
                 <Grid item xs={12} sm={4} md={4}>
-                  <Typography variant="subtitle1" fontWeight="bold" mb={1}>
+                  <Typography variant="subtitle1" color="text.primary" fontWeight="bold" mb={1}>
                     {t('Program Manager')}
                   </Typography>
                   <Autocomplete
@@ -408,7 +413,7 @@ const NewProgram: React.FC = () => {
                 { label: 'No of Devices', key: 'devices', placeholder: 'Enter No of Devices' },
               ].map(({ label, key, placeholder }) => (
                 <Grid item xs={12} sm={4} key={key} mb={3}>
-                  <Typography variant="subtitle1" fontWeight="bold" mb={1}>
+                  <Typography variant="subtitle1" color="text.primary" fontWeight="bold" mb={1}>
                       {t(`${label}`)}
                   </Typography>
                   <TextField
@@ -426,15 +431,16 @@ const NewProgram: React.FC = () => {
 
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <Grid item xs={12} mb={3}>
-                  <Typography variant="subtitle1" fontWeight="bold" mb={1}>
+                  <Typography variant="subtitle1" color="text.primary" fontWeight="bold" mb={1}>
                     {t('Program Date')}
                   </Typography>
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6} md={3}>
                       <DatePicker
-                        label={t('Start date')}
+                        label={t('Start Date')}
                         value={startDate}
                         onChange={(date: Dayjs | null) => setStartDate(date)}
+                        inputFormat="DD/MM/YYYY"
                         renderInput={(params) => (
                           <TextField
                             {...params}
@@ -452,9 +458,10 @@ const NewProgram: React.FC = () => {
                     </Grid>
                     <Grid item xs={12} sm={6} md={3}>
                       <DatePicker
-                        label={t('End date')}
+                        label={t('End Date')}
                         value={endDate}
                         onChange={(date: Dayjs | null) => setEndDate(date)}
+                        inputFormat="DD/MM/YYYY"
                         renderInput={(params) => (
                           <TextField
                             {...params}
