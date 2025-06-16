@@ -1249,5 +1249,8 @@ export class ApiHandler implements ServiceApi {
     return await this.s.countUsersBySchool(schoolId);
   }
 
+  public async isProgramManager(): Promise<boolean> {
+   return await this.s.isProgramManager();
+  }
 
 }

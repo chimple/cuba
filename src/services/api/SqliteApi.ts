@@ -5290,5 +5290,8 @@ async countUsersBySchool(
   }> {
     return await this._serverApi.countUsersBySchool(schoolId);
 }
+async isProgramManager(): Promise<boolean> {
+      return await this._serverApi.isProgramManager();
+  }
 
 }

@@ -14,6 +14,7 @@
   flex-direction: column;
   justify-content: flex-start;
 }
+
 .school-list-container {
   display: flex;
   flex-direction: row;
@@ -55,18 +56,14 @@
   font-weight: bold;
 }
 
-.school-list-pagination {
-  display: flex;
-  justify-content: center;
-  width: 100vw;
-  padding-bottom: 20px;
-}
-
 .selected-filters-container {
   width: 100%;
   display: flex;
-  align-items: start;
+  align-items: flex-start;
+  flex-shrink: 0;
+  padding-top: 10px;
 }
+
 .school-list-upload-text {
   font-weight: bolder;
   color: #121619;
@@ -74,12 +71,13 @@
   padding-top: 3vh;
   font-size: large;
 }
+
 .school-list-file-upload-conatainer {
   color: #121619;
   width: 23vh;
-  /* height: 10vh; */
   border: 2px;
-  /* background-color: coral; */
   box-shadow: 3px 3px 5px 0px #c9d5d9;
   border-radius: 23px;
 }
+
+

@@ -6308,6 +6308,7 @@ export class SupabaseApi implements ServiceApi {
       .select('id')
       .eq('user', userId)
       .in('role', ['program_manager', 'field_coordinator'])
+      .eq('is_deleted', false)
       .limit(1);
 
     if (error) {
@@ -6432,6 +6433,28 @@ async countUsersBySchool(schoolId: string): Promise<{
     };
   }
 }
+ async isProgramManager(): Promise<boolean> {
+     if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return false;
+    }
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw new Error("User is not Logged in");
+    const userId = _currentUser.id;
+    const { data, error } = await this.supabase
+      .from('program_user')
+      .select('id')
+      .eq('user', userId)
+      .in('role', ['program_manager'])
+      .eq('is_deleted', false)
+      .limit(1);
+    if (error) {
+      console.error('Error checking program_user table', error);
+      return false;
+    }
+    return !!(data && data.length > 0);
+  }
 
 
 }
