@@ -811,7 +811,7 @@ export class ApiHandler implements ServiceApi {
   }
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId: string,
+    courseId: any,
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -826,6 +826,7 @@ export class ApiHandler implements ServiceApi {
       isLiveQuiz
     );
   }
+
   getAssignmentUserByAssignmentIds(
     assignmentIds: string[]
   ): Promise<TableTypes<"assignment_user">[]> {
@@ -1256,5 +1257,9 @@ export class ApiHandler implements ServiceApi {
     active_teachers: number;
   }> {
     return await this.s.countUsersBySchool(schoolId);
+  }
+
+  public async isProgramManager(): Promise<boolean> {
+    return await this.s.isProgramManager();
   }
 }

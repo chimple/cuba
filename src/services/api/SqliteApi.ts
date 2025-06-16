@@ -2190,12 +2190,12 @@ export class SqliteApi implements ServiceApi {
     return true;
   }
   async getPendingAssignments(
-  classId: string,
-  studentId: string
-): Promise<TableTypes<"assignment">[]> {
-  const nowIso = new Date().toISOString(); 
+    classId: string,
+    studentId: string
+  ): Promise<TableTypes<"assignment">[]> {
+    const nowIso = new Date().toISOString();
 
-  const query = `
+    const query = `
   SELECT a.*
   FROM ${TABLES.Assignment} a
   LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
@@ -2211,10 +2211,10 @@ export class SqliteApi implements ServiceApi {
   ORDER BY a.created_at DESC;
 `;
 
-  const res = await this._db?.query(query);
-  if (!res || !res.values || res.values.length < 1) return [];
-  return res.values;
-}
+    const res = await this._db?.query(query);
+    if (!res || !res.values || res.values.length < 1) return [];
+    return res.values;
+  }
 
   async getSchoolsForUser(
     userId: string
@@ -3903,17 +3903,24 @@ order by
 
   async getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId: string,
+    courseId: any,
     startDate: string,
     endDate: string,
     isClassWise: boolean,
     isLiveQuiz: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
-    let query = `SELECT *
-       FROM ${TABLES.Assignment}
-       WHERE class_id = '${classId}'
-       AND course_id = '${courseId}'
-       AND created_at BETWEEN '${endDate}' AND '${startDate}'`;
+    let query = `SELECT * FROM ${TABLES.Assignment} WHERE class_id = ? AND created_at BETWEEN ? AND ?`;
+    const params: any[] = [classId, endDate, startDate];
+
+    // Handle courseId parameter
+    if (typeof courseId === "string") {
+      query += ` AND course_id = ?`;
+      params.push(courseId);
+    } else if (Array.isArray(courseId) && courseId.length > 0) {
+      query += ` AND course_id IN (${courseId.map(() => "?").join(",")})`;
+      params.push(...courseId);
+    }
+
     if (isClassWise) {
       query += ` AND is_class_wise = 1`;
     }
@@ -3922,12 +3929,12 @@ order by
     } else {
       query += ` AND type != 'liveQuiz'`;
     }
-    query += ` ORDER BY created_at DESC;`;
-    const res = await this._db?.query(query);
+    query += ` ORDER BY created_at DESC`;
 
-    if (!res || !res.values || res.values.length < 1) return;
-    return res.values;
+    const res = await this._db?.query(query, params);
+    return res?.values;
   }
+
   async getStudentResultByDate(
     studentId: string,
     course_id: string,
@@ -5309,5 +5316,8 @@ order by
     active_teachers: number;
   }> {
     return await this._serverApi.countUsersBySchool(schoolId);
+  }
+  async isProgramManager(): Promise<boolean> {
+    return await this._serverApi.isProgramManager();
   }
 }

@@ -2092,4 +2092,7 @@ export class FirebaseApi implements ServiceApi {
   }> {
     throw new Error("Method not implemented.");
   }
+  async isProgramManager(): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
 }

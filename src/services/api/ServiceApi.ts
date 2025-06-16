@@ -1709,4 +1709,10 @@ export interface ServiceApi {
     total_teachers: number;
     active_teachers: number;
   }>;
+
+    /**
+   * Checks if the current user is a program manager.
+   * @returns {Promise<boolean>} A promise that resolves to true if the user is a program manager, false otherwise.
+   */
+  isProgramManager(): Promise<boolean>;
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Tabs, Tab, Box, Typography } from "@mui/material";
+import { Tabs, Tab, Box, Typography, IconButton } from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
 import "./SchoolList.css";
@@ -90,28 +90,21 @@ const SchoolList: React.FC = () => {
         )
       );
 
-      const filteredSchools =
-        await api.getFilteredSchoolsForSchoolListing(cleanedFilters);
+      const filteredSchools = await api.getFilteredSchoolsForSchoolListing(cleanedFilters);
       const enrichedSchools = filteredSchools.map((school: any) => ({
         ...school,
         id: school.sch_id,
         students: school.num_students || 0,
         teachers: school.num_teachers || 0,
-        programManagers:
-          school.program_managers?.join(", ") || t("not assigned yet"),
-        fieldCoordinators:
-          school.field_coordinators?.join(", ") || t("not assigned yet"),
+        programManagers: school.program_managers?.join(", ") || t("not assigned yet"),
+        fieldCoordinators: school.field_coordinators?.join(", ") || t("not assigned yet"),
         name: {
           value: school.school_name,
           render: (
             <Box display="flex" flexDirection="column" alignItems="flex-start">
               <Typography variant="subtitle2">{school.school_name}</Typography>
-              <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                fontSize={"12px"}
-              >
-                {school.group2 || ""}
+              <Typography variant="subtitle2" color="text.secondary" fontSize={"12px"}>
+                {school.district || ""}
               </Typography>
             </Box>
           ),
@@ -119,7 +112,6 @@ const SchoolList: React.FC = () => {
       }));
 
       setSchools(enrichedSchools);
-      setPage(1);
     } catch (error) {
       console.error("Failed to fetch filtered schools:", error);
     } finally {
@@ -147,6 +139,7 @@ const SchoolList: React.FC = () => {
     { key: "cluster", label: t("Select Cluster") },
   ];
 
+  // Apply client-side search
   const filteredSchools = useMemo(() => {
     return schools.filter((school) =>
       school.name.value.toLowerCase().includes(searchTerm.toLowerCase())
@@ -166,10 +159,11 @@ const SchoolList: React.FC = () => {
   function onCancleClick(): void {
     setShowUploadPage(false);
   }
+
   if (showUploadPage) {
     return (
       <div>
-        <div className="school-list-upload-text"> {t("Upload File")}</div>
+        <div className="school-list-upload-text">{t("Upload File")}</div>
         <div>
           <FileUpload onCancleClick={onCancleClick} />
         </div>

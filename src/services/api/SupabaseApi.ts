@@ -4091,7 +4091,7 @@ export class SupabaseApi implements ServiceApi {
   }
   async getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId: string,
+    courseId: any,
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -4103,10 +4103,16 @@ export class SupabaseApi implements ServiceApi {
       .from("assignment")
       .select("*")
       .eq("class_id", classId)
-      .eq("course_id", courseId)
       .gte("created_at", endDate)
       .lte("created_at", startDate)
       .eq("is_deleted", false);
+
+    // Handle both string and array courseIds
+    if (typeof courseId === "string") {
+      query = query.eq("course_id", courseId);
+    } else if (Array.isArray(courseId) && courseId.length > 0) {
+      query = query.in("course_id", courseId);
+    }
 
     if (isClassWise) {
       query = query.eq("is_class_wise", true);
@@ -6318,6 +6324,7 @@ export class SupabaseApi implements ServiceApi {
       .select("id")
       .eq("user", userId)
       .in("role", ["program_manager", "field_coordinator"])
+      .eq("is_deleted", false)
       .limit(1);
 
     if (error) {
@@ -6464,5 +6471,27 @@ export class SupabaseApi implements ServiceApi {
         avg_time_spent: 0,
       };
     }
+  }
+  async isProgramManager(): Promise<boolean> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return false;
+    }
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw new Error("User is not Logged in");
+    const userId = _currentUser.id;
+    const { data, error } = await this.supabase
+      .from("program_user")
+      .select("id")
+      .eq("user", userId)
+      .in("role", ["program_manager"])
+      .eq("is_deleted", false)
+      .limit(1);
+    if (error) {
+      console.error("Error checking program_user table", error);
+      return false;
+    }
+    return !!(data && data.length > 0);
   }
 }

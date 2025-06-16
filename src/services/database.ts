@@ -2233,6 +2233,7 @@ export type Database = {
         Returns: {
           sch_id: string;
           school_name: string;
+          district: string;
           num_students: number;
           num_teachers: number;
           program_managers: string[];
