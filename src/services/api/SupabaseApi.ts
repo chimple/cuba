@@ -4091,39 +4091,45 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async getAssignmentOrLiveQuizByClassByDate(
-    classId: string,
-    courseId: string,
-    startDate: string,
-    endDate: string,
-    isClassWise: boolean,
-    isLiveQuiz: boolean
-  ): Promise<TableTypes<"assignment">[] | undefined> {
-    if (!this.supabase) return;
+      classId: string,
+      courseId: any,
+      startDate: string,
+      endDate: string,
+      isClassWise: boolean,
+      isLiveQuiz: boolean
+    ): Promise<TableTypes<"assignment">[] | undefined> {
+      if (!this.supabase) return;
 
-    let query = this.supabase
-      .from("assignment")
-      .select("*")
-      .eq("class_id", classId)
-      .eq("course_id", courseId)
-      .gte("created_at", endDate)
-      .lte("created_at", startDate)
-      .eq("is_deleted", false);
+      let query = this.supabase
+        .from("assignment")
+        .select("*")
+        .eq("class_id", classId)
+        .gte("created_at", endDate)
+        .lte("created_at", startDate)
+        .eq("is_deleted", false);
 
-    if (isClassWise) {
-      query = query.eq("is_class_wise", true);
-    }
+      // Handle both string and array courseIds
+      if (typeof courseId === 'string') {
+        query = query.eq("course_id", courseId);
+      } else if (Array.isArray(courseId) && courseId.length > 0) {
+        query = query.in("course_id", courseId);
+      }
 
-    if (isLiveQuiz) {
-      query = query.eq("type", "liveQuiz");
-    } else {
-      query = query.neq("type", "liveQuiz");
-    }
+      if (isClassWise) {
+        query = query.eq("is_class_wise", true);
+      }
 
-    query = query.order("created_at", { ascending: false });
-    const { data, error } = await query;
+      if (isLiveQuiz) {
+        query = query.eq("type", "liveQuiz");
+      } else {
+        query = query.neq("type", "liveQuiz");
+      }
 
-    if (error || !data || data.length < 1) return;
-    return data;
+        query = query.order("created_at", { ascending: false });
+        const { data, error } = await query;
+
+        if (error || !data || data.length < 1) return;
+        return data;
   }
   async getStudentLastTenResults(
     studentId: string,
@@ -6308,6 +6314,7 @@ export class SupabaseApi implements ServiceApi {
       .select('id')
       .eq('user', userId)
       .in('role', ['program_manager', 'field_coordinator'])
+      .eq('is_deleted', false)
       .limit(1);
 
     if (error) {
@@ -6432,6 +6439,28 @@ async countUsersBySchool(schoolId: string): Promise<{
     };
   }
 }
+ async isProgramManager(): Promise<boolean> {
+     if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return false;
+    }
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw new Error("User is not Logged in");
+    const userId = _currentUser.id;
+    const { data, error } = await this.supabase
+      .from('program_user')
+      .select('id')
+      .eq('user', userId)
+      .in('role', ['program_manager'])
+      .eq('is_deleted', false)
+      .limit(1);
+    if (error) {
+      console.error('Error checking program_user table', error);
+      return false;
+    }
+    return !!(data && data.length > 0);
+  }
 
 
 }
