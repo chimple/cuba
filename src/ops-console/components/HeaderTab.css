@@ -13,8 +13,9 @@
 
 .tabs-container-HeaderTab .MuiTab-root {
   text-transform: none;
+  color: black;
   font-weight: 600;
-  font-size: clamp(0.75rem, 1.1vw, 1.1rem);
+  font-size: clamp(0.875rem, 1.1vw, 0.875rem);
   padding: 0.8vh 1.8vw;
   min-width: auto;
   min-height: auto;

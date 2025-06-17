@@ -262,7 +262,7 @@ const ProgramsPage: React.FC = () => {
                   borderColor: "transparent",
                   borderRadius: 20,
                   boxShadow: 3,
-                  height: "48px",
+                  height: "auto",
                   minWidth: isSmallScreen ? "48px" : "auto",
                   padding: isSmallScreen ? 0 : "6px 16px",
                 }}

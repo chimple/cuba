@@ -11,6 +11,7 @@ import {
 import "./DataTableBody.css";
 import { useHistory } from "react-router";
 import { PAGES } from "../../common/constants";
+
 export interface Column<T> {
   key: keyof T;
   label: string;
@@ -63,9 +64,9 @@ const DataTableBody: React.FC<Props> = ({
   };
 
   return (
-    <TableContainer sx={{ width: "100%", overflowX: "auto" }}>
-      <Table size="small">
-        <TableHead className="data-tablebody-head">
+    <TableContainer className="data-tablebody-container">
+      <Table size="small" stickyHeader>
+         <TableHead className="data-tablebody-head">
           <TableRow>
             {columns.map((col) => (
               <TableCell
@@ -117,6 +118,7 @@ const DataTableBody: React.FC<Props> = ({
         </TableBody>
       </Table>
     </TableContainer>
+
   );
 };
 

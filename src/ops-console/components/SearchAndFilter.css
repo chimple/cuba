@@ -2,23 +2,24 @@
   display: flex;
   align-items: center;
   padding-left: 5px;
-  gap: 1rem;;
+  gap: 1rem;
 }
 
 .search-input-SearchAndFilter .MuiOutlinedInput-root {
   border-radius: 8px;
-  height: 56px;
+  height: 48px;
 }
 
-.search-input-SearchAndFilter .MuiOutlinedInput-notchedOutline {
-  border-color: #e0e0e0;
+.search-input-SearchAndFilter .MuiOutlinedInput-root {
+  border-radius: 8px;   
+  height: 48px;
 }
 
 .filter-button-SearchAndFilter {
-  height: 56px;
-  min-height: 56px;
-  border-radius: 8px;
-  padding: 0 24px;
+  height: 48px;
+  min-height: 48px;
+  border-radius: 24px;  
+  /* padding: 0 24px; */
   text-transform: none;
   border-color: #e0e0e0;
   color: #6b778c;
@@ -31,7 +32,7 @@
 }
 
 .filter-button-SearchAndFilter:hover {
-  border-color: #1976d2;
+  border-color: #1976d2; 
   background-color: rgba(25, 118, 210, 0.04);
 }
 
