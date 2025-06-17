@@ -76,7 +76,7 @@ const LoginWithStudentID: React.FC<LoginWithStudentIDProps> = ({
             />
             <input
               type="password"
-              placeholder={t("Enter your Password") || ""}
+              placeholder={t("Enter your password") || ""}
               value={studentPassword}
               onChange={(e) => setStudentPassword(e.target.value)}
               className="LoginWithStudentID-login-student-input"

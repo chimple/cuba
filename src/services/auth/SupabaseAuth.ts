@@ -140,7 +140,7 @@ export class SupabaseAuth implements ServiceAuth {
       if (!this._auth) return false;
       const api = ServiceConfig.getI().apiHandler;
       const authUser = await GoogleAuth.signIn();
-      console.error(
+      console.log(
         "🚀 ~ SupabaseAuth ~ googleSign ~ authUser:",
         authUser.authentication.refreshToken
       );
@@ -153,7 +153,7 @@ export class SupabaseAuth implements ServiceAuth {
 
       if (data.session?.refresh_token)
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
-      console.error(
+      console.log(
         "🚀 ~ SupabaseAuth ~ googleSign ~ data, error:",
         data,
         error,
@@ -202,8 +202,8 @@ export class SupabaseAuth implements ServiceAuth {
       if (rpcRes?.data) {
         await api.subscribeToClassTopic();
       }
-    } catch (error) {
-      console.error("🚀 ~ SupabaseAuth ~ googleSign ~ error:", error);
+    } catch (error:any) {
+      console.error("🚀 ~ SupabaseAuth ~ googleSign ~ error:", error?.stack || error);
       return false;
     }
     return true;

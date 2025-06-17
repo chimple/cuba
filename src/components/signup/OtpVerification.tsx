@@ -123,7 +123,8 @@ const OtpVerification: React.FC<OtpVerificationProps> = ({
 
   return (
     <div className="OtpVerification-method">
-      <div className="OtpVerification-title">{phoneNumber && `${t("Enter the OTP sent to +91")}${phoneNumber}`}</div>
+      <div className="OtpVerification-title">{phoneNumber && t("Enter the OTP sent to +91", { phoneNumber })}
+</div>
       <div className="OtpVerification-inputs">
         {[...Array(OTP_LENGTH)].map((_, i) => (
           <input
