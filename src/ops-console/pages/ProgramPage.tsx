@@ -85,31 +85,40 @@ const ProgramsPage: React.FC = () => {
   const [programs, setPrograms] = useState<any[]>([]);
   const [loadingPrograms, setLoadingPrograms] = useState(false);
   const [loadingFilters, setLoadingFilters] = useState(false);
-  const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>(
-    {}
-  );
+  const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>({});
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const userRole = localStorage.getItem(USER_ROLE);
-  const isOpsRole =
-    userRole === RoleType.SUPER_ADMIN ||
-    userRole === RoleType.OPERATIONAL_DIRECTOR;
-  const isProgramManger = api.isProgramManager();
-  const showNewProgramButton = isOpsRole || isProgramManger;
+  const [isProgramManager, setIsProgramManager] = useState(false);
+  const [isOpsRole, setIsOpsRole] = useState(false);
   const tab: TabType = tabOptions[activeTabIndex].value;
 
+  const showNewProgramButton = isOpsRole || isProgramManager;
+
   useEffect(() => {
-    const fetchFilterOptions = async () => {
+    const fetchInitialData = async () => {
       try {
         setLoadingFilters(true);
-        const response = await api.getProgramFilterOptions();
-        setFilterOptions(response);
+
+        const [filterResponse, isManager] = await Promise.all([
+          api.getProgramFilterOptions(),
+          api.isProgramManager(),
+        ]);
+
+        setFilterOptions(filterResponse);
+        setIsProgramManager(!!isManager);
       } catch (error) {
-        console.error("Failed to fetch filter options:", error);
+        console.error("Failed to fetch data:", error);
+        setIsProgramManager(false);
       } finally {
         setLoadingFilters(false);
       }
+
+      const userRole = localStorage.getItem(USER_ROLE);
+      const isOps =
+        userRole === RoleType.SUPER_ADMIN || userRole === RoleType.OPERATIONAL_DIRECTOR;
+      setIsOpsRole(isOps);
     };
-    fetchFilterOptions();
+
+    fetchInitialData();
   }, []);
 
   useEffect(() => {
@@ -144,12 +153,7 @@ const ProgramsPage: React.FC = () => {
     programName: {
       value: row.name,
       render: (
-        <Box
-          display="flex"
-          flexDirection="column"
-          justifyContent="flex-start"
-          alignItems="flex-start"
-        >
+        <Box display="flex" flexDirection="column" alignItems="flex-start">
           <Typography variant="subtitle2">{row.name}</Typography>
           <Typography variant="body2" color="text.secondary">
             {row.state}
@@ -244,27 +248,33 @@ const ProgramsPage: React.FC = () => {
           <BsFillBellFill />
         </IconButton>
       </div>
+
       <div className="program-header-and-search-filter">
         <div className="program-search-filter">
-          <HeaderTab
-            activeTab={activeTabIndex}
-            handleTabChange={handleTabChange}
-            tabs={tabOptions}
-          />
+          <div className="program-tab-wrapper">
+            <HeaderTab
+              activeTab={activeTabIndex}
+              handleTabChange={handleTabChange}
+              tabs={tabOptions}
+            />
+          </div>
+
           <div className="program-button-and-search-filter">
-            {showNewProgramButton && (
+            {!loadingFilters && showNewProgramButton && (
               <Button
                 variant="outlined"
                 onClick={() =>
                   history.replace(PAGES.SIDEBAR_PAGE + PAGES.NEW_PROGRAM)
                 }
                 sx={{
-                  borderColor: "transparent",
+                  borderColor: "#e0e0e0",
+                  border: "1px solid",
                   borderRadius: 20,
-                  boxShadow: 3,
-                  height: "auto",
+                  boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.1)",
+                  height: "36px",
                   minWidth: isSmallScreen ? "48px" : "auto",
                   padding: isSmallScreen ? 0 : "6px 16px",
+                  textTransform: "none",
                 }}
               >
                 <Add />

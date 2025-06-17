@@ -5,20 +5,17 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  height: 100vh;           /* Full viewport */
+  height: 100vh;           
   width: 100%;
-  overflow: hidden;        /* No page scroll */
+  overflow: hidden;        
 }
 
 .program-page-header {
   flex: 0 0 auto;
   display: flex;
   justify-content: space-between;
-  align-items: center; 
-  padding-top: 20px;
-  padding-left: 20px;
-  padding-right: 20px;
-  padding-bottom: 20px;
+  align-items: center;
+  padding: 20px;
   font-size: 32px;
   width: 100%;
   font-weight: 600;
@@ -29,21 +26,20 @@
   flex: 0 0 auto;
   width: 100%;
   display: flex;
+  max-height: 100%;
   flex-direction: column;
   background-color: white;
-  padding-left: 20px;
-  padding-right: 20px;
+  padding: 0 20px;
   border-radius: 8px;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .program-table {
-  flex: 1 1 auto;          /* Take up remaining height */
-  min-height: 0;           /* Required for flexbox scroll children */
+  flex: 1 1 auto;        
+  min-height: 0;       
   width: 100%;
-  padding-left: 20px;
-  padding-right: 20px;
-  overflow: hidden;        /* No scroll here, scroll only in tablebody */
+  padding: 0 20px;
+  overflow: hidden;        
   display: flex;
   flex-direction: column;
 }
@@ -51,51 +47,62 @@
 .program-page-pagination {
   display: flex;
   justify-content: center;
-  width: 100%; 
-  /* padding-bottom: 20px;  */
+  width: 100%;
   flex: 0 0 auto;
-  /* padding: 8px; */
   background-color: white;
 }
+
+
 
 .program-search-filter {
   display: flex;
   width: 100%;
   justify-content: space-between;
-  align-items: center; 
-  flex-wrap: wrap;
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: nowrap;        
+  overflow-x: auto;    
+  overflow-y: hidden;
+  align-items: center;   
   gap: 10px;
+}
+
+.program-tab-wrapper {
+  flex-shrink: 0;         
 }
 
 .program-button-and-search-filter {
   display: flex;
   flex-direction: row;
-  gap: 10px;
   align-items: center;
-  flex-wrap: wrap;
+  gap: 10px;
+  flex-wrap: nowrap;
+  flex: 1 1 auto;       
+  min-width: 0;
+  justify-content: flex-end;
 }
 
+.program-button-and-search-filter > * {
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.program-button-and-search-filter button {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+
+.program-search-filter::-webkit-scrollbar {
+  display: none;
+}
+.program-search-filter {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 @media (max-width: 600px) {
-   .program-page {
+  .program-page {
     height: 100vh;
     overflow-y: auto;
-  }
-  .program-search-filter {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .program-button-and-search-filter {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .program-button-and-search-filter > :not(button) {
-    flex: 1;
-  }
-
-  .program-button-and-search-filter button {
-    flex-shrink: 0;
-    white-space: nowrap;
   }
 }

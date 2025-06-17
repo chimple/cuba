@@ -1,25 +1,30 @@
 .tabs-container-HeaderTab {
   min-height: 7vh;
+  overflow: hidden;
 }
+
 
 .tabs-container-HeaderTab .MuiTabs-flexContainer {
   height: 100%;
 }
+
 
 .tabs-container-HeaderTab .MuiTabs-indicator {
   background-color: #1976d2;
   height: 0.3vh;
 }
 
+
 .tabs-container-HeaderTab .MuiTab-root {
   text-transform: none;
   color: black;
   font-weight: 600;
   font-size: clamp(0.875rem, 1.1vw, 0.875rem);
-  padding: 0.8vh 1.8vw;
+  padding: 0.8vh 1.2vw;
   min-width: auto;
   min-height: auto;
 }
+
 
 .tabs-container-HeaderTab .MuiTab-root.Mui-selected {
   color: #1976d2;
@@ -29,7 +34,6 @@
   background-color: rgba(25, 118, 210, 0.04);
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .tabs-container-HeaderTab .MuiTab-root {
     font-size: clamp(0.65rem, 1.3vw, 0.85rem);
@@ -45,4 +49,17 @@
     font-size: clamp(0.55rem, 1.5vw, 0.7rem);
     padding: 0.6vh 0.8vw;
   }
+}
+
+.tabs-container-HeaderTab .MuiTabs-scrollButtons.Mui-disabled {
+  display: none;
+}
+.tabs-container-HeaderTab .MuiTabs-scrollButtons {
+  width: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.3s ease;
 }

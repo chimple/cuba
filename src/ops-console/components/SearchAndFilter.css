@@ -5,25 +5,23 @@
   gap: 1rem;
 }
 
-.search-input-SearchAndFilter .MuiOutlinedInput-root {
-  border-radius: 8px;
-  height: 48px;
-}
 
 .search-input-SearchAndFilter .MuiOutlinedInput-root {
   border-radius: 8px;   
-  height: 48px;
+  height: 36px;
 }
 
 .filter-button-SearchAndFilter {
-  height: 48px;
-  min-height: 48px;
-  border-radius: 24px;  
-  /* padding: 0 24px; */
+  height: 36px;
+  min-height: 36px;
+  border-radius: 24px  !important;
+  padding: 0 24px;
   text-transform: none;
   border-color: #e0e0e0;
   color: #6b778c;
   margin-left: 0 !important;
+  text-transform: none !important; 
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .filter-button-SearchAndFilter.has-filters {

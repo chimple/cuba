@@ -66,7 +66,7 @@ const DataTableBody: React.FC<Props> = ({
   return (
     <TableContainer className="data-tablebody-container">
       <Table size="small" stickyHeader>
-         <TableHead className="data-tablebody-head">
+        <TableHead className="data-tablebody-head">
           <TableRow>
             {columns.map((col) => (
               <TableCell
@@ -75,8 +75,18 @@ const DataTableBody: React.FC<Props> = ({
                 sx={{
                   transform: "none",
                   backgroundColor: "#DDE1E6 !important",
-                  height: "48px",
+                  height: "auto",
                   fontSize: "14px",
+                  paddingTop: {
+                    xs: "4px !important",
+                    sm: "6px !important",
+                    md: "8px !important",
+                  },
+                  paddingBottom: {
+                    xs: "4px !important",
+                    sm: "6px !important",
+                    md: "8px !important",
+                  },
                 }}
               >
                 <TableSortLabel
@@ -108,7 +118,7 @@ const DataTableBody: React.FC<Props> = ({
                   className="data-tablebody-cell"
                 >
                   {typeof row[col.key] === "object" &&
-                  row[col.key]?.render !== undefined
+                    row[col.key]?.render !== undefined
                     ? row[col.key].render
                     : row[col.key]}
                 </TableCell>
