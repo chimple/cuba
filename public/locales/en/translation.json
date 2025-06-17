@@ -285,7 +285,7 @@
   "Enter school code": "Enter school code",
   "Enter student id": "Enter student id",
   "Enter text": "Enter text",
-  "Enter the OTP sent to +91": "Enter the OTP sent to +91",
+  "Enter the OTP sent to +91": "Enter the OTP sent to +91{{phoneNumber}}",
   "Enter the 6 digit code your teacher has given to join the class": "Enter the 6 digit code your teacher has given to join the class",
   "Enter the 6-digit code your teacher has shared with you to join the class.": "Enter the 6-digit code your teacher has shared with you to join the class.",
   "Enter the class code to join the class": "Enter the class code to join the class",

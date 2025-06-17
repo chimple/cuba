@@ -140,11 +140,6 @@
   padding: 0.5rem;
 }
 
-.Loginscreen-tc-close-button img {
-  width: 24px;
-  height: 24px;
-}
-
 .Loginscreen-tc-content {
   height: calc(100% - 60px);
   overflow: auto;

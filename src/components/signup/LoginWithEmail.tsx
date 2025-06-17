@@ -73,7 +73,7 @@ const LoginWithEmail: React.FC<LoginWithEmailProps> = ({
             />
             <input
               type="password"
-              placeholder={t("Enter your Password") || ""}
+              placeholder={t("Enter your password") || "Enter your password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="LoginWithEmail-email-input"
