@@ -10,14 +10,16 @@
   "license": "AGPL-3.0",
   "website": "https://www.chimple.org/",
   "icon": "https://raw.githubusercontent.com/chimple/cuba/RESPECTify/public/assets/icons/favicon.png",
-  "learningUnits": "https://cuba-respect0.web.app/index.json",
+  "learningUnits": "https://chimple-respectify.web.app/opds.json",
   "defaultLaunchUri": "https://chimple.cc/landingpage",
 
   "android": {
     "packageId": "org.chimple.bahama",
     "stores": [
       "https://play.google.com/store/apps/details?id=org.chimple.bahama"
-    ],
+    ]
+  },
+  "web": {
     "sourceCode": "https://github.com/chimple/cuba/tree/RESPECTify"
   }
 }
