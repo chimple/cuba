@@ -6353,17 +6353,15 @@ export class SupabaseApi implements ServiceApi {
       role === RoleType.SUPER_ADMIN ||
       role === RoleType.OPERATIONAL_DIRECTOR
     ) {
-      const { data, error } = await (this.supabase.rpc as any)(
-        "get_admin_view_users"
-      );
+      const { data, error } = await this.supabase.rpc("get_admin_view_users");
       if (error) {
         console.error("Error fetching admin view users", error);
         return [];
       }
       const unique = new Map();
       for (const u of data) {
-        if (!unique.has(u.id)) {
-          unique.set(u.id, { name: u.name, role: u.role });
+        if (u?.name && !unique.has(u.name)) {
+          unique.set(u.name, { name: u.name ?? "", role: u.role ?? "" });
         }
       }
       return Array.from(unique.values());
