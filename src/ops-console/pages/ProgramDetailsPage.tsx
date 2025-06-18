@@ -39,9 +39,8 @@ interface ProgramData {
 
 const formatProgramModel = (value: string) => {
   try {
-    const arr = JSON.parse(value.replace(/'/g, '"')) as string[];
-    return arr
-      .map((m) => PROGRAM_TAB_LABELS[m as PROGRAM_TAB])
+    return JSON.parse(value)
+      .map((k: string) => PROGRAM_TAB_LABELS[k as keyof typeof PROGRAM_TAB_LABELS])
       .filter(Boolean)
       .join(", ");
   } catch {

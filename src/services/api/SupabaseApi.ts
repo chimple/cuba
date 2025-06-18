@@ -6056,7 +6056,7 @@ export class SupabaseApi implements ServiceApi {
       {
         id: "program_model",
         label: "Program Model",
-        value: Array.isArray(program.model) ? program.model.join(", ") : program.model ?? "",
+        value: program.model ?? "",
       },
       {
         id: "program_date",
