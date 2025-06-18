@@ -169,7 +169,7 @@ const LessonCard: React.FC<{
                 lessonId: lesson.cocos_lesson_id,
                 courseDocId:
                   course?.id ??
-                  // lesson?.assignment?.course?.id ??
+                  assignment?.course_id??
                   // lesson.courseId ??
                   currentCourse?.id,
                 course: JSON.stringify(currentCourse!),
