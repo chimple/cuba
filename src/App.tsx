@@ -38,6 +38,7 @@ import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
 import { App as CapApp } from "@capacitor/app";
+import { Toast } from "@capacitor/toast";
 import {
   // APP_LANG,
   BASE_NAME,
@@ -222,7 +223,7 @@ const App: React.FC = () => {
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
-    }).catch((_) => {});
+    }).catch((_) => { });
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
@@ -258,10 +259,23 @@ const App: React.FC = () => {
       }
     });
     updateAvatarSuggestionJson();
+
+    const sendLaunch = async () => {
+      const authHandler = ServiceConfig.getI()?.authHandler;
+      const isUserLoggedIn = await authHandler?.isUserLoggedIn();
+      if (!isUserLoggedIn) {
+        await Toast.show({
+          text: "Couldn't launch the lesson, please sign in with RESPECT.",
+          duration: "long",
+        });
+      }
+    };
+    document.addEventListener("sendLaunch", sendLaunch);
     // Cleanup on unmount
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       clearExistingTimeout();
+      document.removeEventListener("sendLaunch", sendLaunch);
     };
   }, []);
 
@@ -446,26 +460,27 @@ const App: React.FC = () => {
       console.error("Util.migrateLocalJsonFile failed ", error);
     }
   }
+
   const history = useHistory();
 
   useEffect(() => {
-  
+
     const handleDeepLink = (event: any) => {
       if (!event) {
         console.error("❌ Invalid event object received:", event);
         return;
       }
-  
+
       try {
         const learningUnitId = event.learningUnitId;
-  
+
         if (learningUnitId) {
           const parts = learningUnitId.split("_");
           if (parts.length === 3) {
             const courseId = parts[0];
             const chapterId = parts[1];
             const lessonId = parts[2];
-  
+
             const params = `?courseid=${courseId}&chapterid=${chapterId}&lessonid=${lessonId}`;
             history.replace(PAGES.GAME + params, {
               url: "chimple-lib/index.html" + params,
@@ -474,7 +489,7 @@ const App: React.FC = () => {
               courseDocId: courseId,
             });
             window.location.href = PAGES.GAME + params;
-  
+
           } else {
             console.error("❌ Invalid learningUnitId format:", learningUnitId);
           }
@@ -485,14 +500,14 @@ const App: React.FC = () => {
         console.error("⚠️ Error parsing deep link data:", error);
       }
     };
-  
+
     window.addEventListener("appUrlOpen", handleDeepLink);
-  
+
     return () => {
       window.removeEventListener("appUrlOpen", handleDeepLink);
     };
   }, []);
-  
+
   return (
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>

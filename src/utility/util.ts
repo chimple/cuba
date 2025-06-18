@@ -191,7 +191,7 @@ export class Util {
 
   public static async groupResultsByCourse(studentResults: TableTypes<"result">[]): Promise<Map<string, TableTypes<"result">[]>> {
     const playedLessonsByCourse = new Map<string, TableTypes<"result">[]>();
-    
+
     for (const result of studentResults) {
         const courseId = result.course_id;
         if (courseId) {
@@ -199,9 +199,9 @@ export class Util {
                 playedLessonsByCourse.set(courseId, []);
             }
             playedLessonsByCourse.get(courseId)?.push(result);
-            console.log(`Added result to course ID: ${courseId}`); 
+            console.log(`Added result to course ID: ${courseId}`);
         } else {
-            console.warn("Result has no course ID:", result); 
+            console.warn("Result has no course ID:", result);
         }
     }
 
@@ -215,8 +215,8 @@ export class Util {
 
     // Sort by sort_index
     sortedEntries.sort((a, b) => {
-        const sortIndexA = a[2] as number; 
-        const sortIndexB = b[2] as number; 
+        const sortIndexA = a[2] as number;
+        const sortIndexB = b[2] as number;
         return sortIndexA - sortIndexB;
     });
 
@@ -227,34 +227,34 @@ export class Util {
 
     return sortedMap;
   }
-  
+
 
   public static getMostRecentResult(results: TableTypes<"result">[]): TableTypes<"result"> | undefined {
     if (results.length === 0) return undefined;
-    
+
     // Sort results by date to get the most recently played lesson
-    const sortedResults = results.sort((a, b) => 
+    const sortedResults = results.sort((a, b) =>
       new Date(b.updated_at ?? "").getTime() - new Date(a.updated_at ?? "").getTime()
     );
-    
+
     return sortedResults[0];
   }
 
   public static async getNextLessonsForCourse(
-    courseId: string, 
+    courseId: string,
     lastPlayedLesson: TableTypes<"result">
   ): Promise<TableTypes<"lesson">[]> {
     const recommendations: TableTypes<"lesson">[] = [];
-    
+
     // Get all chapters for this course
     const api = ServiceConfig.getI().apiHandler;
     const chapters = await api.getChaptersForCourse(courseId);
-    
+
     // Find which chapter contains the last played lesson
     let foundChapterIndex = -1;
     let lastPlayedLessonIndex = -1;
     let foundLessons: TableTypes<"lesson">[] | undefined;
-    
+
     // Search for the lesson in all chapters
     for (let i = 0; i < chapters.length; i++) {
       const api = ServiceConfig.getI().apiHandler;
@@ -269,14 +269,14 @@ export class Util {
         }
       }
     }
-    
+
     // If we found the chapter and lesson
     if (foundChapterIndex !== -1 && foundLessons) {
 
       // If there's a next lesson in the same chapter
       if (lastPlayedLessonIndex + 1 < foundLessons.length) {
         recommendations.push(foundLessons[lastPlayedLessonIndex + 1]);
-      } 
+      }
       // If this is the last lesson in the chapter, but there's another chapter
       else if (foundChapterIndex + 1 < chapters.length) {
         // Try to get the first lesson from the next chapter
@@ -290,17 +290,17 @@ export class Util {
       // Always add the last played lesson
       recommendations.push(foundLessons[lastPlayedLessonIndex]);
     }
-    
+
     return recommendations;
   }
 
 
   public static async getRecommendationsForUnplayedCourses(
-    allCourses: TableTypes<"course">[], 
+    allCourses: TableTypes<"course">[],
     playedCourseIds: Set<string>
   ): Promise<TableTypes<"lesson">[]> {
     const recommendations: TableTypes<"lesson">[] = [];
-    
+
     for (const course of allCourses) {
       if (!playedCourseIds.has(course.id)) {
         const firstLesson = await this.getFirstLessonForCourse(course.id);
@@ -309,7 +309,7 @@ export class Util {
         }
       }
     }
-    
+
     return recommendations;
   }
 
@@ -317,14 +317,14 @@ export class Util {
     courses: TableTypes<"course">[]
   ): Promise<TableTypes<"lesson">[]> {
     const recommendations: TableTypes<"lesson">[] = [];
-    
+
     for (const course of courses) {
       const firstLesson = await this.getFirstLessonForCourse(course.id);
       if (firstLesson) {
         recommendations.push(firstLesson);
       }
     }
-    
+
     return recommendations;
   }
 
@@ -446,6 +446,37 @@ export class Util {
     }
     localStorage.setItem(SOUND, currSound.toString());
   };
+
+  public static getThumbnailUrl({
+  subjectCode,
+  lessonCode,
+  id,
+  courseCode,
+}: {
+  subjectCode?: string;
+  lessonCode?: string;
+  id?: string;
+  courseCode?: string;
+})  {
+
+      switch(true) {
+        case subjectCode !== undefined && lessonCode !== undefined:
+          return `https://media.githubusercontent.com/media/chimple/bahama/refs/heads/master/assets/courses/${subjectCode}/${subjectCode}/res/icons/${lessonCode}.png`;
+
+        case id !== undefined:
+          const chapterCode1 = id?.replace(/_.*/, "");
+          const chapterCode2 = id?.replace(/_/g, "");
+          return `https://media.githubusercontent.com/media/chimple/bahama/refs/heads/master/assets/courses/${chapterCode1}/${chapterCode1}/res/icons/${chapterCode2}.png`;
+
+        case courseCode !== undefined:
+          const code = courseCode?.split("_")[0];
+          return `https://media.githubusercontent.com/media/chimple/bahama/refs/heads/master/assets/courses/${code}/${code}/res/icons/${code}.png`;
+
+        default:
+          return "assets/icons/DefaultIcon.png";
+
+      }
+  }
 
   public static getCurrentMusic(): number {
     const auth = ServiceConfig.getI().authHandler;
@@ -1228,11 +1259,12 @@ export class Util {
 
     if (!languageCode && !!student?.language_id) {
       const langDoc = await api.getLanguageWithId(student.language_id);
+
       if (langDoc) {
         languageCode = langDoc.code ?? undefined;
       }
     }
-    const tempLangCode = languageCode ?? LANG.ENGLISH;
+    const tempLangCode = student?.language_id ?? LANG.ENGLISH;
     console.log("🚀 ~ tempLangCode:", tempLangCode);
     if (!!langFlag) localStorage.setItem(LANGUAGE, tempLangCode);
     console.log("🚀 ~ langFlag:", langFlag);

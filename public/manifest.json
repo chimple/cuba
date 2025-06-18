@@ -10,7 +10,7 @@
   "license": "AGPL-3.0",
   "website": "https://www.chimple.org/",
   "icon": "https://raw.githubusercontent.com/chimple/cuba/RESPECTify/public/assets/icons/favicon.png",
-  "learningUnits": "https://cuba-respect0.web.app/index.json",
+  "learningUnits": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/courses/Chimple_OPDS.json",
   "defaultLaunchUri": "https://chimple.cc/landingpage",
 
   "android": {

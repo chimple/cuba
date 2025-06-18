@@ -3,14 +3,21 @@
     "en-US": "Chimple Kids Learning",
     "hi-IN": "चिम्पल किड्स लर्निंग"
   },
+  "description": {
+    "en-US": "Chimple is an android app that can be used by Kids, 1st and 2nd standard children to learn reading, writing and maths through thousands of games, activities and stories. The app adapts to the child’s learning level and offers a personalized learning journey through an Artificial Intelligent engine which scaffolds the child’s learning. The child can use the app at home using personal mobiles or tablets, or at school using teacher-administered tablets. Teachers can use the companion app to track progress data and create a learning plan for the class or individual child. Chimple works without continuous internet access and can be used in school, community and distance learning situations.",
+    "hi-IN": "चिम्पल एक एंड्रॉइड ऐप है जिसका उपयोग पहली और दूसरी कक्षा के बच्चे हजारों खेलों, गतिविधियों और कहानियों के माध्यम से पढ़ना, लिखना और गणित सीखने के लिए कर सकते हैं। ऐप बच्चे के सीखने के स्तर को अनुकूलित करता है और एक आर्टिफिशियल इंटेलिजेंट इंजन के माध्यम से व्यक्तिगत सीखने की यात्रा प्रदान करता है जो बच्चे की सीखने की क्षमता को बढ़ाता है। बच्चा ऐप का उपयोग घर पर व्यक्तिगत मोबाइल या टैबलेट का उपयोग करके, या स्कूल में शिक्षक-प्रशासित टैबलेट का उपयोग करके कर सकता है। शिक्षक प्रगति डेटा को ट्रैक करने और कक्षा या व्यक्तिगत बच्चे के लिए सीखने की योजना बनाने के लिए साथी ऐप का उपयोग कर सकते हैं। चिम्पल निरंतर इंटरनेट एक्सेस के बिना काम करता है और इसका उपयोग स्कूल, समुदाय और दूरस्थ शिक्षा स्थितियों में किया जा सकता है।"
+  },
   "license": "AGPL-3.0",
-  "learningUnits": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/courses/en/res/course.json",
-  "defaultLaunchUri": "https://chimple.org/",
+  "website": "https://www.chimple.org/",
+  "icon": "https://raw.githubusercontent.com/chimple/cuba/RESPECTify/public/assets/icons/favicon.png",
+  "learningUnits": "https://raw.githubusercontent.com/chimple/cuba/refs/heads/RESPECTify/public/assets/courses/Chimple_OPDS.json",
+  "defaultLaunchUri": "https://chimple.cc/landingpage",
 
   "android": {
     "packageId": "org.chimple.bahama",
     "stores": [
       "https://play.google.com/store/apps/details?id=org.chimple.bahama"
-    ]
+    ],
+    "sourceCode": "https://github.com/chimple/cuba/tree/RESPECTify"
   }
 }

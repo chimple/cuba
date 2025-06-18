@@ -42,7 +42,6 @@ import i18n from "../../i18n";
 import { Statement } from "tincants";
 import { Agent, Verb, Activity, ActivityDefinition, Context, ContextActivities, Score } from "tincants";
 
-
 interface IGetStudentResultStatement {
   agent: {
     mbox: string;
@@ -352,7 +351,7 @@ export class OneRosterApi implements ServiceApi {
 
 
   async addCourseForParentsStudent(
-    courses: TableTypes<"course">[], 
+    courses: TableTypes<"course">[],
     student: TableTypes<"user">
   ) {
     try {
@@ -423,7 +422,7 @@ export class OneRosterApi implements ServiceApi {
               color: null,
               created_at: "",
               created_by: null,
-              image: lesson.thumbnail || null,
+              image: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
               is_deleted: null,
               language_id: null,
               outcome: lesson.outcome,
@@ -437,7 +436,7 @@ export class OneRosterApi implements ServiceApi {
           }
         }
       }
-      
+
       return null; // Return null if lesson not found
 
     } catch (error) {
@@ -468,7 +467,7 @@ export class OneRosterApi implements ServiceApi {
                 color: lesson.color || null,
                 created_at: "",
                 created_by: null,
-                image: lesson.thumbnail || null,
+                image: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
                 is_deleted: null,
                 language_id: lesson.language || null,
                 outcome: lesson.outcome,
@@ -527,8 +526,8 @@ export class OneRosterApi implements ServiceApi {
     for (const c of allCourses) {
       try {
         const courseJson = await this.loadCourseJson(c.id);
-        if (courseJson.metadata.subject === currentSubject && 
-            courseJson.metadata.curriculum === currentCurriculum) {
+        if (courseJson.metadata.subject === currentSubject &&
+          courseJson.metadata.curriculum === currentCurriculum) {
           filteredCourses.push(c);
         }
       } catch (error) {
@@ -570,21 +569,21 @@ export class OneRosterApi implements ServiceApi {
   }
   assignmentListner(
     classId: string,
-    onDataChange: (roomDoc: { 
-      chapter_id: string | null; 
-      class_id: string; 
-      course_id: string | null; 
-      created_at: string; 
-      created_by: string | null; 
-      ends_at: string | null; 
-      id: string; 
-      is_class_wise: boolean; 
+    onDataChange: (roomDoc: {
+      chapter_id: string | null;
+      class_id: string;
+      course_id: string | null;
+      created_at: string;
+      created_by: string | null;
+      ends_at: string | null;
+      id: string;
+      is_class_wise: boolean;
       is_deleted: boolean | null;
       lesson_id: string;
       school_id: string;
       starts_at: string;
       type: string;
-      updated_at: string | null; 
+      updated_at: string | null;
     } | undefined) => void
   ) {
     throw new Error("Method not implemented.");
@@ -594,13 +593,13 @@ export class OneRosterApi implements ServiceApi {
   }
   assignmentUserListner(
     studentId: string,
-    onDataChange: (roomDoc: { 
-      assignment_id: string; 
-      created_at: string | null; 
-      id: string; 
-      is_deleted: boolean | null; 
-      updated_at: string | null; 
-      user_id: string; 
+    onDataChange: (roomDoc: {
+      assignment_id: string;
+      created_at: string | null;
+      id: string;
+      is_deleted: boolean | null;
+      updated_at: string | null;
+      user_id: string;
     } | undefined) => void
   ) {
     // throw new Error("Method not implemented.");
@@ -608,7 +607,7 @@ export class OneRosterApi implements ServiceApi {
   }
   liveQuizListener(
     liveQuizRoomDocId: string,
-    onDataChange: (roomDoc: { 
+    onDataChange: (roomDoc: {
       assignment_id: string;
       class_id: string;
       course_id: string;
@@ -790,7 +789,7 @@ export class OneRosterApi implements ServiceApi {
         (group: any) => ({
           id: group.metadata.id,
           name: group.metadata.title,
-          image: group.metadata.thumbnail || "",
+          image: Util.getThumbnailUrl({ id: group.metadata.id }),
           course_id: courseId,
           created_at: null,
           updated_at: null,
@@ -812,8 +811,8 @@ export class OneRosterApi implements ServiceApi {
         this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0]
       );
       console.log(
-        "getLessonsForChapter data: ", 
-        this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0], 
+        "getLessonsForChapter data: ",
+        this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0],
         courseJson.groups
       );
       const chapter = courseJson.groups.find(
@@ -830,7 +829,7 @@ export class OneRosterApi implements ServiceApi {
           created_at: null,
           created_by: null,
           id: lesson.id,
-          image: lesson.thumbnail || "",
+          image: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
           is_deleted: null,
           language_id: lesson.language,
           name: lesson.title,
@@ -922,7 +921,7 @@ export class OneRosterApi implements ServiceApi {
               curriculum_id: metaC.curriculum,
               description: null,
               grade_id: metaC.grade,
-              image: metaC.image || null,
+              image: Util.getThumbnailUrl({ courseCode: metaC.courseCode }),
               is_deleted: false,
               sort_index: metaC.sortIndex,
               subject_id: metaC.subjectId,
@@ -968,19 +967,19 @@ export class OneRosterApi implements ServiceApi {
   }
   getLiveQuizRoomDoc(
     liveQuizRoomDocId: string
-  ): Promise<{ 
-    assignment_id: string; 
-    class_id: string; 
-    course_id: string; 
-    created_at: string | null; 
-    id: string; 
-    is_deleted: boolean | null; 
-    lesson_id: string; 
-    participants: string[] | null; 
-    results: any; 
-    school_id: string; 
-    starts_at: string; 
-    updated_at: string | null; 
+  ): Promise<{
+    assignment_id: string;
+    class_id: string;
+    course_id: string;
+    created_at: string | null;
+    id: string;
+    is_deleted: boolean | null;
+    lesson_id: string;
+    participants: string[] | null;
+    results: any;
+    school_id: string;
+    starts_at: string;
+    updated_at: string | null;
   } | undefined> {
     throw new Error("Method not implemented.");
   }
@@ -1008,7 +1007,7 @@ export class OneRosterApi implements ServiceApi {
       }
 
       const { agentEmail, queryStatement } = this.buildXapiQuery({ name: loggedStudent.name as string });
-      const statements = await this.getStatements(agentEmail, queryStatement);
+      const statements = await this.getAllStatements(agentEmail, queryStatement);
       console.log(
         "const statements = await this.getStatements(agentEmail, queryStatement); ",
         statements
@@ -1020,20 +1019,28 @@ export class OneRosterApi implements ServiceApi {
       return []; // Return empty array instead of empty object
     }
   }
+
   async getStudentProgress(): Promise<Map<string, string>> {
     try {
-      const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();;
+      const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();
       if (!loggedStudent) {
         throw new Error("No logged-in student found");
       }
 
       const { agentEmail, queryStatement } = this.buildXapiQuery({ name: loggedStudent.name as string });
-      const statements = await this.getStatements(agentEmail, queryStatement);
+      const statements = await this.getAllStatements(agentEmail, queryStatement);
 
-      // Filter out statements with null course_id
-      const filteredStatements = statements.filter(statement => statement.course_id !== null) as { course_id: string }[];
-      const res = ApiDataProcessor.dataProcessorGetStudentProgress(filteredStatements);
-      console.log("async getStudentProgress(): statements ", res);
+      const filteredStatements = statements.filter(statement => statement.course_id !== null) as { course_id: string; created_at: string }[];
+
+      const sortedStatements = filteredStatements.sort((a, b) => {
+        const aTimestamp = new Date(a.created_at).getTime();
+        const bTimestamp = new Date(b.created_at).getTime();
+        return bTimestamp - aTimestamp;
+      });
+
+      const res = ApiDataProcessor.dataProcessorGetStudentProgress(sortedStatements);
+      console.log("async getStudentProgress(): sorted statements ", res);
+
       return res;
     } catch (error) {
       console.error("Error in getStudentProgress:", error);
@@ -1051,7 +1058,7 @@ export class OneRosterApi implements ServiceApi {
       }
 
       const { agentEmail, queryStatement } = this.buildXapiQuery({ name: loggedStudent.name as string });
-      const statements = await this.getStatements(agentEmail, queryStatement);
+      const statements = await this.getAllStatements(agentEmail, queryStatement);
 
       // Filter out statements with null lesson_id
       const filteredStatements = statements.filter(statement => statement.lesson_id !== null) as { lesson_id: string }[];
@@ -1114,7 +1121,7 @@ export class OneRosterApi implements ServiceApi {
       const courseJson = await this.loadCourseJson(id);
       const metaC = courseJson.metadata;
 
-      
+
       let tCourse: TableTypes<"course"> = {
         code: metaC.courseCode,
         color: metaC.color,
@@ -1123,17 +1130,17 @@ export class OneRosterApi implements ServiceApi {
         description: null,
         grade_id: metaC.grade,
         id: metaC.courseCode,
-        image: metaC.thumbnail,
+        image: Util.getThumbnailUrl({ courseCode: metaC.courseCode }),
         is_deleted: null,
         name: metaC.title,
         sort_index: metaC.sortIndex,
         subject_id: metaC.subject,
         updated_at: null,
       };
-      
+
       // Add the course to the Map instead of assigning it directly
       this.currentCourse.set(id, tCourse);
-      
+
       console.log("getCourses data ", tCourse);
       return tCourse;
     } catch (error) {
@@ -1202,7 +1209,7 @@ export class OneRosterApi implements ServiceApi {
       }
       const { agentEmail, queryStatement } = this.buildXapiQuery({ name: currentUser.name as string });
       // Fetch xAPI statements
-      const statements = await this.getStatements(agentEmail, queryStatement);
+      const statements = await this.getAllStatements(agentEmail, queryStatement);
       const resultMap = new Map<string, StudentLessonResult>();
 
       statements.forEach((statement: IStatement) => {
@@ -1308,10 +1315,33 @@ export class OneRosterApi implements ServiceApi {
     }
 
     const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();
-    // Format the email address consistently with our other methods
     const userEmail = `${loggedStudent?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
     const agentEmail = `mailto:${userEmail}`;
 
+    const existingStatements = await this.getAllStatements(agentEmail, {
+      agent: { mbox: agentEmail },
+      verb: { id: "http://adlnet.gov/expapi/verbs/completed" },
+      activity: { id: `http://example.com/activity/${lessonId}` },
+    });
+
+    const filteredStatements = existingStatements.filter(
+      (_statement) => _statement.lesson_id === lessonId
+    );
+
+    // If there are existing statements for the given lessonId , will return the oldest one
+    if (filteredStatements !== null && filteredStatements !== undefined && filteredStatements.length > 0) {
+      console.log(`Statements for lesson ID ${lessonId} already exist. Returning the oldest entry.`);
+      const oldestStatement = filteredStatements.sort((a, b) => {
+        const aTimestamp = new Date(a.created_at).getTime();
+        const bTimestamp = new Date(b.created_at).getTime();
+        return aTimestamp - bTimestamp;
+      })[0];
+      console.log("Oldest Statement Data:", oldestStatement);
+      console.log("Oldest Statement Lesson ID:", oldestStatement.lesson_id);
+      return oldestStatement;
+    }
+
+    // No existing statements for the lessonId yet, So creating a new one
     const statement = new Statement({
       id: uuidv4(),
       actor: {
@@ -1398,7 +1428,6 @@ export class OneRosterApi implements ServiceApi {
     }
   }
 
-
   getLanguageWithId(id: string): Promise<TableTypes<"language"> | undefined> {
     return Promise.resolve(undefined);
   }
@@ -1478,19 +1507,39 @@ export class OneRosterApi implements ServiceApi {
   }
 
   async updateSoundFlag(userId: string, value: boolean) {
-    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (currentUser) {
-      Util.setCurrentSound(value ? 1 : 0)
+    try {
+      const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (currentUser) {
+        currentUser.sfx_off = value;
+        const userString = localStorage.getItem(CURRENT_USER);
+        if (userString) {
+          const userData = JSON.parse(userString);
+          userData.sfx_off = value;
+          localStorage.setItem(CURRENT_USER, JSON.stringify(userData));
+        }
+      }
+    } catch (error) {
+      console.error("Error updating sound flag:", error);
     }
   }
+
   async updateMusicFlag(userId: string, value: boolean) {
-    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (currentUser) {
-      Util.setCurrentMusic(value ? 1 : 0)
-      // currentUser.music_off = value
-      // localStorage.setItem(MUSIC, value)
+    try {
+      const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (currentUser) {
+        currentUser.music_off = value;
+        const userString = localStorage.getItem(CURRENT_USER);
+        if (userString) {
+          const userData = JSON.parse(userString);
+          userData.music_off = value;
+          localStorage.setItem(CURRENT_USER, JSON.stringify(userData));
+        }
+      }
+    } catch (error) {
+      console.error("Error updating music flag:", error);
     }
   }
+
   async updateLanguage(userId: string, value: string) {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (currentUser) {
@@ -2185,7 +2234,7 @@ export class OneRosterApi implements ServiceApi {
             description: null,
             grade_id: metaC.grade,
             id: courseId,
-            image: metaC.thumbnail,
+            image: Util.getThumbnailUrl({ courseCode: metaC.courseCode }),
             is_deleted: null,
             name: metaC.title,
             sort_index: metaC.sortIndex,
@@ -2203,103 +2252,83 @@ export class OneRosterApi implements ServiceApi {
   }
 
   async searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
-
     try {
-      // Get all courses first
+      if (!searchString || searchString.trim().length === 0) {
+        return [];
+      }
+
+      const searchTerm = searchString.toLowerCase().trim();
       const courses = await this.getAllCourses();
       const allLessons: TableTypes<"lesson">[] = [];
 
-      // Process each course
       for (const course of courses) {
         try {
-          // Load course JSON using existing method
           const courseJson = await this.loadCourseJson(course.id);
-          if (!courseJson || !courseJson.groups) continue;
+          if (!courseJson?.groups) continue;
 
-          // Extract lessons from each group
-          const lessons = courseJson.groups.flatMap((group: any) => group.navigation);
-
-          // Case-insensitive search with improved matching logic
-          const lowerQuery = searchString.toLowerCase();
-          
-          // Score each lesson based on match quality
-          const scoredLessons = lessons.map(lesson => {
-            const title = lesson.title;
-            const lowerTitle = title.toLowerCase();
-            
-            // Calculate match score (higher is better)
-            let score = 0;
-            
-            // Exact match gets highest priority
-            if (lowerTitle === lowerQuery) {
-              score += 1000;
-            }
-            
-            // Starts with query gets high priority
-            if (lowerTitle.startsWith(lowerQuery)) {
-              score += 500;
-            }
-            
-            // Contains query as a word gets medium priority
-            if (lowerTitle.includes(` ${lowerQuery} `) || 
-                lowerTitle.startsWith(`${lowerQuery} `) || 
-                lowerTitle.endsWith(` ${lowerQuery}`)) {
-              score += 300;
-            }
-            
-            // Contains query gets lower priority
-            if (lowerTitle.includes(lowerQuery)) {
-              score += 100;
-            }
-            
-            // Shorter titles get slightly higher priority
-            score += (100 - Math.min(title.length, 100));
-            
-            return { lesson, score };
-          });
-          
-          // Filter out non-matching lessons and sort by score
-          const matchingLessons = scoredLessons
-            .filter(item => item.score > 0)
-            .sort((a, b) => b.score - a.score)
-            .map(item => item.lesson);
-
-          // Transform and add matching lessons to results
-          const lessonObjects = matchingLessons.map(lesson => ({
-            id: lesson.id,
-            name: lesson.title,
-            cocos_chapter_code: lesson.cocosChapterCode,
-            cocos_lesson_id: lesson.cocosLessonCode,
-            cocos_subject_code: lesson.cocosSubjectCode,
-            color: null,
-            created_at: new Date().toISOString(),
-            created_by: null,
-            outcome: lesson.outcome,
-            status: lesson.status,
-            subject_id: lesson.subject,
-            plugin_type: lesson.pluginType,
-            updated_at: null,
-            is_deleted: null,
-            image: lesson.thumbnail || null,
-            language_id: lesson.language || null,
-            target_age_from: lesson.targetAgeFrom || null,
-            target_age_to: lesson.targetAgeTo || null
+          const lessons = courseJson.groups.flatMap((group: any) => ({
+            lessons: group.navigation,
+            groupId: group.metadata.id,
+            groupTitle: group.metadata.title
           }));
 
-          allLessons.push(...lessonObjects);
+          for (const { lessons: groupLessons, groupId } of lessons) {
+            for (const lesson of groupLessons) {
+              const title = (lesson.title || '').toLowerCase();
+
+              // Dictionary style matching
+              if (title.startsWith(searchTerm) || title.includes(` ${searchTerm}`)) {
+                allLessons.push({
+                  id: lesson.id,
+                  name: lesson.title,
+                  cocos_chapter_code: lesson.cocosChapterCode,
+                  cocos_lesson_id: lesson.cocosLessonCode,
+                  cocos_subject_code: lesson.cocosSubjectCode,
+                  color: lesson.color || null,
+                  created_at: new Date().toISOString(),
+                  created_by: null,
+                  image: Util.getThumbnailUrl({
+                    subjectCode: lesson.cocosSubjectCode,
+                    lessonCode: lesson.cocosLessonCode
+                  }),
+                  is_deleted: null,
+                  language_id: lesson.language || null,
+                  outcome: lesson.outcome,
+                  plugin_type: lesson.pluginType,
+                  status: lesson.status,
+                  subject_id: lesson.subject,
+                  target_age_from: lesson.targetAgeFrom || null,
+                  target_age_to: lesson.targetAgeTo || null,
+                  updated_at: null,
+                });
+              }
+            }
+          }
         } catch (error) {
           console.error(`Error processing course ${course.id}:`, error);
-          // Continue with next course even if one fails
           continue;
         }
       }
 
-      return allLessons;
+      return allLessons.sort((a, b) => {
+        const nameA = a.name?.toLowerCase() || '';
+        const nameB = b.name?.toLowerCase() || '';
+
+        const startsWithA = nameA.startsWith(searchTerm);
+        const startsWithB = nameB.startsWith(searchTerm);
+
+        if (startsWithA && !startsWithB) return -1;
+        if (!startsWithA && startsWithB) return 1;
+
+        return nameA.localeCompare(nameB);
+      });
+
     } catch (error) {
       console.error("Error in searchLessons:", error);
       return [];
     }
   }
+
   createOrUpdateAssignmentCart(
     userId: string,
     lessons: string
@@ -2349,7 +2378,7 @@ export class OneRosterApi implements ServiceApi {
               return {
                 id: group.metadata.id,
                 name: group.metadata.title,
-                image: group.metadata.thumbnail || null,
+                image: Util.getThumbnailUrl({ id: group.metadata.id }),
                 course_id: courseId,
                 created_at: "",
                 updated_at: null,
@@ -2420,7 +2449,7 @@ export class OneRosterApi implements ServiceApi {
           outcome: lesson.outcome,
           status: lesson.status,
           type: lesson.type,
-          thumbnail: lesson.thumbnail || null,
+          thumbnail: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
           plugin_type: lesson.pluginType,
           created_at: "null",
           updated_at: "null",
@@ -2466,7 +2495,7 @@ export class OneRosterApi implements ServiceApi {
   ): ICreateStudentResultStatement => {
     // Format email consistently with our other methods
     const userEmail = `${name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
-    
+
     return {
       actor: {
         name: name,
@@ -2514,86 +2543,104 @@ export class OneRosterApi implements ServiceApi {
     };
   };
 
-  getStatements = async (
-    agentEmail: string,
-    queryStatement?: IGetStudentResultStatement
-  ): Promise<TableTypes<"result">[]> => {
-    try {
-      // Fix the agent construction to prevent double mailto:
-      // If agentEmail already includes 'mailto:', use it directly
-      // Otherwise, add 'mailto:' prefix
-      const mbox = agentEmail.includes('mailto:') ? agentEmail : `mailto:${agentEmail}`;
+  async getAllStatements(agentEmail: string, queryStatement?: IGetStudentResultStatement): Promise<TableTypes<"result">[]> {
+    let allStatements: TableTypes<"result">[] = [];
+    let hasMore = true;
+    let since: string | undefined = queryStatement?.since;
+
+    while (hasMore) {
       const query = {
         params: {
-          agent: new Agent({ mbox }),
+          agent: new Agent({ mbox: agentEmail }),
           ascending: true,
-          limit: 100,
-          since: queryStatement?.since,
+          limit: 100, // Fetch 100 entries per request
+          since: since,
         }
       };
-      
+
       const result = await tincan.getStatements(query);
       const statements = result?.statements ?? [];
 
-      console.log(`Retrieved Statements for agent: ${mbox}`, statements);
-
-      // Process statements and map to TableTypes<"result">
-      const parsedStatements: TableTypes<"result">[] = statements.map((statement) => {
-        // Ensure required fields are always strings, not null
-        const lessonId = statement.object && 'definition' in statement.object ? statement.object.definition?.extensions?.["http://example.com/xapi/lessonId"] || "" : "";
-        const courseId = statement.object && 'definition' in statement.object ? statement.object.definition?.extensions?.["http://example.com/xapi/courseId"] || "" : "";
-        const studentId = statement.context?.extensions?.["http://example.com/xapi/studentId"] || "";
-        const chapterId = statement.context?.extensions?.["http://example.com/xapi/chapterId"] || null;
-        const assignmentId = statement.result?.extensions?.["http://example.com/xapi/assignmentId"] || null;
-        const correctMoves = statement.result?.extensions?.["http://example.com/xapi/correctMoves"] || null;
-        const wrongMoves = statement.result?.extensions?.["http://example.com/xapi/wrongMoves"] || null;
-        const timeSpent = this.parseFormattedDuration(statement.result?.duration || "") || null;
-
+      const parsedStatements = statements.map((statement) => {
         return {
           id: statement.id || "",
-          assignment_id: assignmentId,
-          chapter_id: chapterId,
-          correct_moves: typeof correctMoves === 'number' ? correctMoves : null,
-          course_id: courseId,
+          lesson_id: (statement.object && 'definition' in statement.object && statement.object.definition?.extensions?.["http://example.com/xapi/lessonId"]) || null,
+          assignment_id: statement.result?.extensions?.["http://example.com/xapi/assignmentId"] || null,
+          chapter_id: statement.context?.extensions?.["http://example.com/xapi/chapterId"] || null,
+          correct_moves: statement.result?.extensions?.["http://example.com/xapi/correctMoves"] || null,
+          course_id: statement.object && 'definition' in statement.object ? statement.object.definition?.extensions?.["http://example.com/xapi/courseId"] || null : null,
           created_at: statement.context?.extensions?.["http://example.com/xapi/createdAt"] || "",
           is_deleted: statement.context?.extensions?.["http://example.com/xapi/isDeleted"] || null,
-          lesson_id: lessonId,
           school_id: statement.context?.extensions?.["http://example.com/xapi/schoolId"] || null,
           score: statement.result?.score?.raw || null,
-          student_id: studentId,
-          time_spent: typeof timeSpent === 'number' ? timeSpent : null,
+          student_id: statement.context?.extensions?.["http://example.com/xapi/studentId"] || "",
+          time_spent: this.parseFormattedDuration(statement.result?.duration || "") || null,
           updated_at: statement.context?.extensions?.["http://example.com/xapi/updatedAt"] || null,
-          wrong_moves: typeof wrongMoves === 'number' ? wrongMoves : null,
+          wrong_moves: statement.result?.extensions?.["http://example.com/xapi/wrongMoves"] || null,
         };
       });
 
-      console.log("Parsed Statements:", parsedStatements);
-      return parsedStatements;
-    } catch (error) {
-      console.error("Error fetching statements:", error);
-      return []; // Ensure function always returns an array
+      allStatements = allStatements.concat(parsedStatements);
+
+      // Check if there are more statements to fetch
+      hasMore = statements.length === 100;
+      since = statements[statements.length - 1]?.timestamp || undefined;
     }
-  };
+
+    return allStatements;
+  }
+
   async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
-    // Load favorites from localStorage if not already loaded
-    if (!this.favoriteLessons[userId]) {
-      const stored = localStorage.getItem(this.FAVORITE_LESSONS_STORAGE_KEY);
-      this.favoriteLessons = stored ? JSON.parse(stored) : {};
+    try {
+      // Load favorites from localStorage if not already loaded
+      if (!this.favoriteLessons[userId]) {
+        const stored = localStorage.getItem(this.FAVORITE_LESSONS_STORAGE_KEY);
+        this.favoriteLessons = stored ? JSON.parse(stored) : {};
+      }
+
+      const favoriteIds = this.favoriteLessons[userId] || [];
+      if (favoriteIds.length === 0) {
+        return [];
+      }
+
+      const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (!loggedStudent || !loggedStudent.name) {
+        throw new Error("No logged-in student found");
+      }
+
+      const { agentEmail, queryStatement } = this.buildXapiQuery({ name: loggedStudent.name });
+      const statements = await this.getAllStatements(agentEmail, queryStatement);
+
+      const lessonCreationDates = new Map<string, string>();
+      statements.forEach(statement => {
+        if (statement.lesson_id && favoriteIds.includes(statement.lesson_id)) {
+          lessonCreationDates.set(statement.lesson_id, statement.created_at);
+        }
+      });
+
+      const lessons = await Promise.all(
+        favoriteIds.map(async (id) => {
+          const lesson = await this.getLesson(id);
+          if (lesson) {
+
+            lesson.created_at = lessonCreationDates.get(id) || new Date().toISOString();
+          }
+          return lesson;
+        })
+      );
+
+      return lessons
+        .filter((lesson): lesson is TableTypes<"lesson"> => lesson !== undefined)
+        .sort((a, b) => {
+          const dateA = new Date(a.created_at).getTime();
+          const dateB = new Date(b.created_at).getTime();
+          return dateB - dateA;
+        });
+    } catch (error) {
+      console.log("on getFavouriteLessons error", error);
+      return []
+
     }
-
-    const favoriteIds = this.favoriteLessons[userId] || [];
-    if (favoriteIds.length === 0) {
-      return [];
-    }
-
-    console.log("fav lessons : ", favoriteIds);
-    // Use getLesson to retrieve each favorite lesson
-    const lessons = await Promise.all(
-      favoriteIds.map(async (id) => this.getLesson(id))
-    );
-
-    // Filter out any undefined lessons
-    return lessons.filter((lesson): lesson is TableTypes<"lesson"> => lesson !== undefined);
   }
 
   async getRecommendedLessons(

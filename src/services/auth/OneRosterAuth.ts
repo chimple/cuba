@@ -1,7 +1,9 @@
 import { OneRosterUser, ServiceAuth } from "./ServiceAuth";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
-import { CURRENT_USER, TableTypes } from "../../common/constants";
+import { CURRENT_USER, LANGUAGE, TableTypes } from "../../common/constants";
 import { Capacitor, registerPlugin } from "@capacitor/core";
+import { Util } from "../../utility/util";
+import i18n from "../../i18n";
 export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
   private _currentUser: TableTypes<"user"> | undefined;
@@ -111,13 +113,17 @@ export class OneRosterAuth implements ServiceAuth {
     throw new Error("Method not implemented.");
   }
 
-  getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
+  async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
     const isUser = localStorage.getItem(CURRENT_USER);
     const {
       actor = { mbox: ["mailto:johndoe@example.com"] },
       registration = "reg-12345",
       given_name = "John",
     } = isUser ? JSON.parse(isUser) : {};
+    let appLang = localStorage.getItem(LANGUAGE) ?? 'en'
+    await i18n.changeLanguage(appLang);
+    console.log("let appLang = ", LANGUAGE, appLang);
+
     const user: TableTypes<"user"> = {
       age: null,
       avatar: "Aligator",
@@ -131,11 +137,11 @@ export class OneRosterAuth implements ServiceAuth {
       image: null,
       is_deleted: null,
       is_tc_accepted: true,
-      language_id: "en",
-      music_off: null,
+      language_id: appLang,
+      music_off: (Util.getCurrentMusic() === 0),
       name: given_name,
       phone: null,
-      sfx_off: null,
+      sfx_off: (Util.getCurrentSound() === 0),
       student_id: registration,
       updated_at: null,
     };
