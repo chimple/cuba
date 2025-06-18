@@ -106,3 +106,8 @@
     overflow-y: auto;
   }
 }
+@media (max-height: 600px) {
+   .program-page-header {
+    padding: 10px;
+  }
+}

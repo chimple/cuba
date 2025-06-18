@@ -66,17 +66,16 @@ const DataTableBody: React.FC<Props> = ({
   return (
     <TableContainer className="data-tablebody-container">
       <Table size="small" stickyHeader>
-        <TableHead className="data-tablebody-head">
+        <TableHead>
           <TableRow>
             {columns.map((col) => (
               <TableCell
                 key={col.key}
                 align={col.align || "left"}
+                className="data-tablebody-head-cell"
                 sx={{
                   transform: "none",
-                  backgroundColor: "#DDE1E6 !important",
                   height: "auto",
-                  fontSize: "14px",
                   paddingTop: {
                     xs: "4px !important",
                     sm: "6px !important",

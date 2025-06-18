@@ -1,65 +1,45 @@
-.tabs-container-HeaderTab {
+.HeaderTab-tabs-container {
   min-height: 7vh;
   overflow: hidden;
-}
-
-
-.tabs-container-HeaderTab .MuiTabs-flexContainer {
   height: 100%;
 }
 
-
-.tabs-container-HeaderTab .MuiTabs-indicator {
+.HeaderTab-custom-tab-indicator {
   background-color: #1976d2;
   height: 0.3vh;
 }
 
-
-.tabs-container-HeaderTab .MuiTab-root {
+.HeaderTab-tab-item {
   text-transform: none;
-  color: black;
-  font-weight: 600;
-  font-size: clamp(0.875rem, 1.1vw, 0.875rem);
+  color: black !important;
+  font-weight: 600 !important;
+  font-size: 14px;
   padding: 0.8vh 1.2vw;
   min-width: auto;
   min-height: auto;
 }
 
-
-.tabs-container-HeaderTab .MuiTab-root.Mui-selected {
+.HeaderTab-tab-item.active {
   color: #1976d2;
 }
 
-.tabs-container-HeaderTab .MuiTab-root:hover {
+.HeaderTab-tab-item:hover {
   background-color: rgba(25, 118, 210, 0.04);
 }
 
 @media (max-width: 768px) {
-  .tabs-container-HeaderTab .MuiTab-root {
+  .HeaderTab-tab-item {
     font-size: clamp(0.65rem, 1.3vw, 0.85rem);
     padding: 0.8vh 1.3vw;
   }
 }
 
 @media (max-width: 480px) {
-  .tabs-container-HeaderTab {
+  .HeaderTab-tabs-container {
     min-height: 5vh;
   }
-  .tabs-container-HeaderTab .MuiTab-root {
+  .HeaderTab-tab-item {
     font-size: clamp(0.55rem, 1.5vw, 0.7rem);
     padding: 0.6vh 0.8vw;
   }
-}
-
-.tabs-container-HeaderTab .MuiTabs-scrollButtons.Mui-disabled {
-  display: none;
-}
-.tabs-container-HeaderTab .MuiTabs-scrollButtons {
-  width: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 1;
-  pointer-events: auto;
-  transition: opacity 0.3s ease;
 }

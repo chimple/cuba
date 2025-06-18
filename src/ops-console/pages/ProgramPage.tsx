@@ -58,7 +58,7 @@ const ProgramsPage: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const isSmallScreen = useMediaQuery("(max-width: 768px)");
 
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [filters, setFilters] = useState<Record<string, string[]>>({
@@ -278,7 +278,7 @@ const ProgramsPage: React.FC = () => {
                 }}
               >
                 <Add />
-                {!isSmallScreen && t("New Program")}
+                {!isSmallScreen && <span style={{ color: "black" }}>{t("New Program")}</span>}
               </Button>
             )}
             {loadingFilters ? (

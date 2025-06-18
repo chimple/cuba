@@ -29,7 +29,8 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  // const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMobile = useMediaQuery("(max-width: 900px)");
   const hasFilters = Object.values(filters).some((values) => values.length > 0);
 
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -107,7 +108,10 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
           className={`filter-button-SearchAndFilter${hasFilters ? " has-filters" : ""}`}
           onClick={onFilterClick}
         >
-          {hasFilters ? t("Clear Filters") : t("Filter")}
+          <span style={{ color: "black" }}>
+            {hasFilters ? t("Clear Filters") : t("Filter")}
+          </span>
+
         </Button>
       )}
     </Stack>
