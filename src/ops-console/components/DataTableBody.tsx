@@ -11,6 +11,7 @@ import {
 import "./DataTableBody.css";
 import { useHistory } from "react-router";
 import { PAGES } from "../../common/constants";
+
 export interface Column<T> {
   key: keyof T;
   label: string;
@@ -63,21 +64,29 @@ const DataTableBody: React.FC<Props> = ({
   };
 
   return (
-    <TableContainer sx={{ width: "100%", overflowX: "auto" }}>
-      <Table size="small">
-        <TableHead className="data-tablebody-head">
+    <TableContainer className="data-tablebody-container">
+      <Table size="small" stickyHeader>
+        <TableHead>
           <TableRow>
             {columns.map((col) => (
               <TableCell
                 key={col.key}
                 align={col.align || "left"}
+                className="data-tablebody-head-cell"
                 sx={{
                   transform: "none",
-                  backgroundColor: "#DDE1E6 !important",
-                  height: "48px",
-                  fontSize: "14px",
-                  width: col.width,
-                  maxWidth: col.width,
+                  height: "auto",
+                  paddingTop: {
+                    xs: "4px !important",
+                    sm: "6px !important",
+                    md: "8px !important",
+                  },
+                  paddingBottom: {
+                    xs: "4px !important",
+                    sm: "6px !important",
+                    md: "8px !important",
+                  },
+
                 }}
               >
                 <TableSortLabel
@@ -113,7 +122,7 @@ const DataTableBody: React.FC<Props> = ({
                   }}
                 >
                   {typeof row[col.key] === "object" &&
-                  row[col.key]?.render !== undefined
+                    row[col.key]?.render !== undefined
                     ? row[col.key].render
                     : row[col.key]}
                 </TableCell>
@@ -123,6 +132,7 @@ const DataTableBody: React.FC<Props> = ({
         </TableBody>
       </Table>
     </TableContainer>
+
   );
 };
 

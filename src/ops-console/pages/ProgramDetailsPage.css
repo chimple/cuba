@@ -10,7 +10,10 @@
 .program-detail-page-header {
   font-size: 2rem;
   font-weight: 600;
-  padding: 16px 24px;
+  padding-top: 16px;
+  padding-bottom: 10px;
+  padding-left: 24px;
+  padding-right: 24px;
   border-bottom: 1px solid #ddd;
   margin-bottom: 16px;
   color: black;
@@ -19,7 +22,8 @@
 }
 
 .program-detail-page-padding {
-  padding: 24px;
+  padding-top: 12px;
+  padding-left: 24px;
 }
 
 .program-detail-page-loading-container,
@@ -32,6 +36,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding-top: 20px;
 }
 
 .program-detail-page-managers-list {

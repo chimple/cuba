@@ -1,110 +1,113 @@
-.program-page-header{
-    display: flex;
-    justify-content: space-between;
-    align-items: center; 
-    padding-top: 20px;
-    padding-left: 20px;
-    padding-right: 20px;
-    font-size: 32px;
-    width: 100%; /* make sure it stretches full width */
-    font-weight: 600;
+.program-page {
+  background-color: white;
+  color: black;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;           
+  width: 100%;
+  overflow: hidden;        
 }
-.program-table{
-    width: 100%;
-    padding-left: 20px;
-    padding-right: 20px;
-    padding-top: 10px;
-     flex: 1 1 auto;
-    overflow-y: auto; 
-    min-height: 0; /* Important for flex scrolling */
+
+.program-page-header {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  font-size: 32px;
+  width: 100%;
+  font-weight: 600;
+  background: white;
 }
-.program-page{
-    background-color: white;
-    color: black;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: start;
-    align-items: start;
-    height: 100%;
-    overflow: hidden; /* Prevent page scroll */
+
+.program-header-and-search-filter {
+  flex: 0 0 auto;
+  width: 100%;
+  display: flex;
+  max-height: 100%;
+  flex-direction: column;
+  background-color: white;
+  padding: 0 20px;
+  border-radius: 8px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
 }
-.program-page-pagination{
-    display: flex;
-    justify-content: center;
-    width: 100%; 
-    padding-bottom: 20px; 
-    flex: 0 0 auto;
-    padding: 8px;
-    background-color: white;
+
+.program-table {
+  flex: 1 1 auto;        
+  min-height: 0;       
+  width: 100%;
+  padding: 0 20px;
+  overflow: hidden;        
+  display: flex;
+  flex-direction: column;
 }
-/* .program-search-filter{
-    display: flex;
-    width: 100%;
-    justify-content: space-between;
-    align-items: center; 
-    flex-wrap: wrap;
-} */
-.program-header-and-search-filter{
-    /* padding-bottom: 10px; */
-    width: 100%; 
-    display:flex; 
-    flex-direction: column; 
-    background-color: white; 
-    padding-left: 20px; 
-    padding-right: 20px; 
-    border-radius: 8px; 
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
-    flex: 0 0 auto;
+
+.program-page-pagination {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  flex: 0 0 auto;
+  background-color: white;
 }
-/* .program-button-and-search-filter{
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    justify-content: end;
-    align-items: center;
-} */
+
+
 
 .program-search-filter {
   display: flex;
   width: 100%;
   justify-content: space-between;
-  align-items: center; 
-  flex-wrap: wrap;
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: nowrap;        
+  overflow-x: auto;    
+  overflow-y: hidden;
+  align-items: center;   
   gap: 10px;
+}
+
+.program-tab-wrapper {
+  flex-shrink: 0;         
 }
 
 .program-button-and-search-filter {
   display: flex;
   flex-direction: row;
-  gap: 10px;
   align-items: center;
-  flex-wrap: wrap;
+  gap: 10px;
+  flex-wrap: nowrap;
+  flex: 1 1 auto;       
+  min-width: 0;
+  justify-content: flex-end;
 }
 
-/* On small screens: stack HeaderTab, then row-wrap button and search+filter */
+.program-button-and-search-filter > * {
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.program-button-and-search-filter button {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+
+.program-search-filter::-webkit-scrollbar {
+  display: none;
+}
+.program-search-filter {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 @media (max-width: 600px) {
-   .program-page {
+  .program-page {
     height: 100vh;
     overflow-y: auto;
   }
-  .program-search-filter {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .program-button-and-search-filter {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .program-button-and-search-filter > :not(button) {
-    flex: 1;
-  }
-
-  .program-button-and-search-filter button {
-    flex-shrink: 0;
-    white-space: nowrap;
+}
+@media (max-height: 600px) {
+   .program-page-header {
+    padding: 10px;
   }
 }

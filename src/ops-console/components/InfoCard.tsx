@@ -22,6 +22,7 @@ const InfoCard = ({ title, items, children, className }: InfoCardProps) => (
         className="info-card-title"
         gutterBottom
         align="left"
+        style={{ fontWeight: "bold" }}  
       >
         {title}
       </Typography>
