@@ -21,7 +21,6 @@
   justify-content: flex-start;
 }
 .school-list-table-container {
-  width: 100%;
   overflow-y: auto;
 }
 .school-list-container {
