@@ -86,6 +86,7 @@ const DataTableBody: React.FC<Props> = ({
                     sm: "6px !important",
                     md: "8px !important",
                   },
+
                 }}
               >
                 <TableSortLabel
@@ -115,6 +116,10 @@ const DataTableBody: React.FC<Props> = ({
                   key={col.key}
                   align={col.align || "left"}
                   className="data-tablebody-cell"
+                  sx={{
+                    width: col.width,
+                    maxWidth: col.width,
+                  }}
                 >
                   {typeof row[col.key] === "object" &&
                     row[col.key]?.render !== undefined
