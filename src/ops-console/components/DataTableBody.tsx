@@ -17,6 +17,7 @@ export interface Column<T> {
   label: string;
   align?: "left" | "right" | "center" | "justify" | "inherit";
   render?: (row: T) => React.ReactNode;
+  width?: string | number;
   [key: string]: any;
 }
 
@@ -74,6 +75,7 @@ const DataTableBody: React.FC<Props> = ({
                 align={col.align || "left"}
                 className="data-tablebody-head-cell"
                 sx={{
+                  width: col.width ?? "auto",
                   transform: "none",
                   height: "auto",
                   paddingTop: {
@@ -115,6 +117,7 @@ const DataTableBody: React.FC<Props> = ({
                 <TableCell
                   key={col.key}
                   align={col.align || "left"}
+                  sx={{ width: col.width ?? "auto" }}
                   className="data-tablebody-cell"
                   sx={{
                     width: col.width,
