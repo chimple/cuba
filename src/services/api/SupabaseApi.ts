@@ -4807,7 +4807,7 @@ export class SupabaseApi implements ServiceApi {
 
     const { data, error } = await this.supabase
       .from("school_user")
-      .select("user(*)")
+      .select("user:user!school_user_user_id_fkey(*)") 
       .eq("school_id", schoolId)
       .eq("role", RoleType.PRINCIPAL)
       .eq("is_deleted", false)
@@ -4831,7 +4831,7 @@ export class SupabaseApi implements ServiceApi {
 
     const { data, error } = await this.supabase
       .from("school_user")
-      .select("user(*)")
+      .select("user:user!school_user_user_id_fkey(*)") 
       .eq("school_id", schoolId)
       .eq("role", RoleType.COORDINATOR)
       .eq("is_deleted", false)
