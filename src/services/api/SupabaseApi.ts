@@ -6380,20 +6380,19 @@ export class SupabaseApi implements ServiceApi {
       if (programIds.length === 0) return [];
       const { data: coordinators, error: coordError } = await this.supabase
         .from("program_user")
-        .select("user(id, name), role")
+        .select("role, user(id, name)")
         .in("program_id", programIds)
         .eq("role", "field_coordinator");
       if (coordError || !coordinators) {
         console.error("Error fetching coordinators", coordError);
         return [];
       }
-      const unique = new Map();
-      for (const c of coordinators) {
-        if (c.user?.id && !unique.has(c.user.id)) {
-          unique.set(c.user.id, { name: c.user.name ?? "", role: c.role });
-        }
-      }
-      return Array.from(unique.values());
+      return (coordinators ?? [])
+        .filter((c) => c.user?.name && c.role)
+        .map((c) => ({
+          name: c.user!.name ?? "", 
+          role: c.role ?? "",
+      }));
     }
   }
 
