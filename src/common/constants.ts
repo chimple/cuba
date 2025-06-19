@@ -458,6 +458,7 @@ export enum PAGES {
   NEW_PROGRAM = "/new-program",
   SCHOOL_LIST = "/school-list",
   SCHOOL_DETAILS = "/school-details",
+  USERS = "/users",
 }
 
 export const enum ASSIGNMENT_TYPE {
