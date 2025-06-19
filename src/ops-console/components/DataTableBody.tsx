@@ -16,6 +16,7 @@ export interface Column<T> {
   label: string;
   align?: "left" | "right" | "center" | "justify" | "inherit";
   render?: (row: T) => React.ReactNode;
+  width?: string | number;
   [key: string]: any;
 }
 
@@ -72,6 +73,7 @@ const DataTableBody: React.FC<Props> = ({
                 key={col.key}
                 align={col.align || "left"}
                 sx={{
+                  width: col.width ?? "auto",
                   transform: "none",
                   backgroundColor: "#DDE1E6 !important",
                   height: "48px",
@@ -104,6 +106,7 @@ const DataTableBody: React.FC<Props> = ({
                 <TableCell
                   key={col.key}
                   align={col.align || "left"}
+                  sx={{ width: col.width ?? "auto" }}
                   className="data-tablebody-cell"
                 >
                   {typeof row[col.key] === "object" &&

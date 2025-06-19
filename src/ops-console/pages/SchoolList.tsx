@@ -90,20 +90,27 @@ const SchoolList: React.FC = () => {
         )
       );
 
-      const filteredSchools = await api.getFilteredSchoolsForSchoolListing(cleanedFilters);
+      const filteredSchools =
+        await api.getFilteredSchoolsForSchoolListing(cleanedFilters);
       const enrichedSchools = filteredSchools.map((school: any) => ({
         ...school,
         id: school.sch_id,
         students: school.num_students || 0,
         teachers: school.num_teachers || 0,
-        programManagers: school.program_managers?.join(", ") || t("not assigned yet"),
-        fieldCoordinators: school.field_coordinators?.join(", ") || t("not assigned yet"),
+        programManagers:
+          school.program_managers?.join(", ") || t("not assigned yet"),
+        fieldCoordinators:
+          school.field_coordinators?.join(", ") || t("not assigned yet"),
         name: {
           value: school.school_name,
           render: (
             <Box display="flex" flexDirection="column" alignItems="flex-start">
               <Typography variant="subtitle2">{school.school_name}</Typography>
-              <Typography variant="subtitle2" color="text.secondary" fontSize={"12px"}>
+              <Typography
+                variant="subtitle2"
+                color="text.secondary"
+                fontSize={"12px"}
+              >
                 {school.district || ""}
               </Typography>
             </Box>
@@ -120,9 +127,9 @@ const SchoolList: React.FC = () => {
   };
 
   const columns: Column<Record<string, any>>[] = [
-    { key: "name", label: t("Schools") },
-    { key: "students", label: t("No of Students") },
-    { key: "teachers", label: t("No of Teachers") },
+    { key: "name", label: t("Schools"), width: "30%" },
+    { key: "students", label: t("No of Students"), width: "fit-content" },
+    { key: "teachers", label: t("No of Teachers"), width: "fit-content" },
     { key: "programManagers", label: t("Program Manager") },
     { key: "fieldCoordinators", label: t("Field Coordinator") },
   ];
@@ -276,13 +283,15 @@ const SchoolList: React.FC = () => {
           </Typography>
         ) : (
           <>
-            <DataTableBody
-              columns={columns}
-              rows={paginatedRows}
-              orderBy={orderBy}
-              order={order}
-              onSort={handleSort}
-            />
+            <div className="school-list-table-container">
+              <DataTableBody
+                columns={columns}
+                rows={paginatedRows}
+                orderBy={orderBy}
+                order={order}
+                onSort={handleSort}
+              />
+            </div>
             <div className="school-list-footer">
               <DataTablePagination
                 pageCount={pageCount}

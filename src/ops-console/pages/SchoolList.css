@@ -1,20 +1,29 @@
-.school-list-ion-page {
-  height: 100vh;
-  overflow-y: auto;
-}
-
 .school-list-main-container {
-  background: white;
   padding: 0 20px;
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
-
+.school-list-ion-page {
+  background: white;
+  height: 100vh;
+}
+.school-list-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  padding: 10px 0;
+  border-top: 1px solid #eee;
+}
 .school-list-header {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
 }
-
+.school-list-table-container {
+  width: 100%;
+  overflow-y: auto;
+}
 .school-list-container {
   display: flex;
   flex-direction: row;
@@ -56,14 +65,17 @@
   font-weight: bold;
 }
 
+.school-list-pagination {
+  display: flex;
+  justify-content: center;
+  width: 100vw;
+}
+
 .selected-filters-container {
   width: 100%;
   display: flex;
-  align-items: flex-start;
-  flex-shrink: 0;
-  padding-top: 10px;
+  align-items: start;
 }
-
 .school-list-upload-text {
   font-weight: bolder;
   color: #121619;
@@ -71,7 +83,6 @@
   padding-top: 3vh;
   font-size: large;
 }
-
 .school-list-file-upload-conatainer {
   color: #121619;
   width: 23vh;
@@ -79,5 +90,3 @@
   box-shadow: 3px 3px 5px 0px #c9d5d9;
   border-radius: 23px;
 }
-
-
