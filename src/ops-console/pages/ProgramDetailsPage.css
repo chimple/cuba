@@ -1,5 +1,6 @@
 .program-detail-page {
   display: flex;
+  padding: 0 2% 2% 2%;
   flex-direction: column;
   background-color: white;
   height: 100%;
@@ -12,18 +13,21 @@
   font-weight: 600;
   padding-top: 16px;
   padding-bottom: 10px;
-  padding-left: 24px;
-  padding-right: 24px;
+  padding-right: 10%;
   border-bottom: 1px solid #ddd;
   margin-bottom: 16px;
   color: black;
   display: flex;
   justify-content: space-between;
+  @media (max-width: 480px) {
+    padding-left: 15%;
+    font-size: 1.5rem;
+  }
 }
 
-.program-detail-page-padding {
+.program-detail-page-Breadcrumb-padding {
   padding-top: 12px;
-  padding-left: 24px;
+  padding-left: 2%;
 }
 
 .program-detail-page-loading-container,

@@ -46,7 +46,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
         showMobileSearch ? (
           <TextField
             variant="outlined"
-            placeholder={t("Search programs...") || "Search programs..."}
+            placeholder={t("Search") || "Search"}
             onChange={onSearchChange}
             value={searchTerm}
             className="search-input-SearchAndFilter"
@@ -80,7 +80,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
       ) : (
         <TextField
           variant="outlined"
-          placeholder={t("Search programs...") || "Search programs..."}
+          placeholder={t("Search") || "Search"}
           onChange={onSearchChange}
           value={searchTerm}
           className="search-input-SearchAndFilter"

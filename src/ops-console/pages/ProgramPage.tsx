@@ -58,7 +58,7 @@ const ProgramsPage: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const theme = useTheme();
-  const isSmallScreen = useMediaQuery("(max-width: 768px)");
+  const isSmallScreen = useMediaQuery("(max-width: 900px)");
 
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [filters, setFilters] = useState<Record<string, string[]>>({
@@ -155,7 +155,7 @@ const ProgramsPage: React.FC = () => {
       render: (
         <Box display="flex" flexDirection="column" alignItems="flex-start">
           <Typography variant="subtitle2">{row.name}</Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary"  textAlign={"left"}>
             {row.state}
           </Typography>
         </Box>
