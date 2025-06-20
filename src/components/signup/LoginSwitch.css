@@ -164,17 +164,28 @@
 }
 
 .LoginSwitch-otp-resend-link {
+  background: none !important;
+  border: none;
+  outline: none;
   text-align: center;
-}
-
-.LoginSwitch-otp-resend-anchor {
   font-size: 20px;
   font-weight: bold;
   color: var(--text-color);
   text-decoration: underline;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color 0.2s, background 0.2s;
+  padding: 5px 10px;
+  border-radius: 6px;
+  box-shadow: none;
 }
+
+.LoginSwitch-otp-resend-link:disabled,
+.LoginSwitch-otp-resend-link[disabled] {
+  cursor: not-allowed !important;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
 
 @media (max-width: 500px) {
   .LoginSwitch-otp-expiry-container {

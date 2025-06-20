@@ -628,7 +628,7 @@
   "Reports": "अहवाल",
   "Request Confirmation": "विनंती पुष्टीकरण",
   "Resend Otp Failed!! Please try again after some time.": "OTP पुन्हा पाठवणे अयशस्वी! कृपया थोड्या वेळाने पुन्हा प्रयत्न करा.",
-  "Resend OTP": "OTP पुन्हा पाठवा",
+  "Resend OTP": "ओटीपी पुन्हा पाठवा",
   "reset password": "संकेतशब्द रीसेट करा",
   "Resources": "संसाधने",
   "Revision Number Order": "क्रम संख्या पुनरावलोकन",
@@ -892,7 +892,7 @@
   "Your data has been successfully checked, and no errors were found.": "तुमच्या डेटाची यशस्वीरित्या तपासणी केली गेली आहे, आणि कोणतीही त्रुटी आढळली नाही.",
   "Your profile is not registered to any school.": "तुमची प्रोफाइल कोणत्याही शाळेत नोंदणीकृत नाही.",
   "Your progress stays synced and consistent across all devices.": "तुमची प्रगती सर्व डिव्हाइस वर समक्रमित आणि सातत्यपूर्ण राहते.",
-  "Your OTP will expire in": "तुमचा ओटीपी इतक्या वेळात संपेल",
+  "Your OTP will expire in {{minutes}} minutes": "तुमचा ओटीपी {{minutes}} मिनिटांमध्ये समाप्त होईल",
   "Zebra": "झेब्रा",
   "not assigned yet": "अद्याप नियुक्त केलेले नाही"
 }
