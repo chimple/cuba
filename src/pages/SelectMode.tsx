@@ -150,7 +150,6 @@ const SelectMode: FC = () => {
     setCurrentUser(currUser);
     setSchoolList(tempSchoolList);
   };
-
   async function changeLanguage() {
     const languageDocId = localStorage.getItem(LANGUAGE);
     console.log("This is the lang " + languageDocId);

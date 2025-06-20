@@ -6,7 +6,6 @@ import { t } from "i18next";
 import { TableTypes } from "../../common/constants";
 import { Util } from "../../utility/util";
 
-let isRespectApp = false;
 const SelectChapter: FC<{
   chapters: TableTypes<"chapter">[];
   onChapterChange: (chapter: TableTypes<"chapter">) => void;
@@ -28,8 +27,8 @@ const SelectChapter: FC<{
   const checkRespectApp = async () => {
     const data = await Util.checkRespectApp();
     console.log("data isRespect data--> ", JSON.stringify(data));
-    isRespectApp = data;
-  }
+    Util.isRespectMode = data;
+  };
 
   useEffect(() => {
     checkRespectApp();
@@ -60,7 +59,7 @@ const SelectChapter: FC<{
                       course.code +
                       "/icons/" +
                       chapter.id +
-                      (isRespectApp ? ".png" : ".webp")
+                      (Util.isRespectMode ? ".png" : ".webp")
                     }
                     defaultSrc={"assets/icons/DefaultIcon.png"}
                     webSrc={chapter.image || "assets/icons/DefaultIcon.png"}

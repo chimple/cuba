@@ -66,10 +66,6 @@ const DisplayChapters: FC<{}> = () => {
 
   const searchParams = new URLSearchParams(location.search);
   const courseDocId = searchParams.get("courseDocId");
-  console.log(
-    "const getCourseByUrl = localGradeMap?.courses?.find(",
-    localGradeMap
-  );
   const getCourseByUrl = localGradeMap?.courses?.find(
     (course) => courseDocId == course.id
   );
@@ -177,22 +173,14 @@ const DisplayChapters: FC<{}> = () => {
     } else {
       console.warn("Course not found in local data.");
     }
-    //Later need to remove use existing one
+    //Later remove it & need to use existing one
     const currentStudent = Util.getCurrentStudent();
-    console.log(
-      "const currentStudent = Util.getCurrentStudent(); ",
-      currentStudent
-    );
 
     if (!currentStudent) {
       return;
     }
     const result = await api.getStudentResultInMap(currentStudent.id);
     const lessons = result;
-    console.log(
-      "final const result = await api.getStudentResultInMap(currentStudent.id); ",
-      result
-    );
 
     localData.lessonResultMap = lessons;
     setLessonResultMap(lessons);

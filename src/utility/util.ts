@@ -100,6 +100,7 @@ export class Util {
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = "lastModalShown";
   static isDeepLink: boolean = false;
+  static isRespectMode: boolean = true;
 
   public api = ServiceConfig.getI().apiHandler;
 
@@ -193,36 +194,36 @@ export class Util {
     const playedLessonsByCourse = new Map<string, TableTypes<"result">[]>();
 
     for (const result of studentResults) {
-        const courseId = result.course_id;
-        if (courseId) {
-            if (!playedLessonsByCourse.has(courseId)) {
-                playedLessonsByCourse.set(courseId, []);
-            }
-            playedLessonsByCourse.get(courseId)?.push(result);
-            console.log(`Added result to course ID: ${courseId}`);
-        } else {
-            console.warn("Result has no course ID:", result);
+      const courseId = result.course_id;
+      if (courseId) {
+        if (!playedLessonsByCourse.has(courseId)) {
+          playedLessonsByCourse.set(courseId, []);
         }
+        playedLessonsByCourse.get(courseId)?.push(result);
+        console.log(`Added result to course ID: ${courseId}`);
+      } else {
+        console.warn("Result has no course ID:", result);
+      }
     }
 
     // Sort the courses based on their sort_index
     const sortedEntries = await Promise.all(
-        Array.from(playedLessonsByCourse.entries()).map(async ([courseId, lessons]) => {
-            const currentCourse = await ServiceConfig.getI().apiHandler.getCourse(courseId);
-            return [courseId, lessons, currentCourse?.sort_index ?? Number.MAX_SAFE_INTEGER];
-        })
+      Array.from(playedLessonsByCourse.entries()).map(async ([courseId, lessons]) => {
+        const currentCourse = await ServiceConfig.getI().apiHandler.getCourse(courseId);
+        return [courseId, lessons, currentCourse?.sort_index ?? Number.MAX_SAFE_INTEGER];
+      })
     );
 
     // Sort by sort_index
     sortedEntries.sort((a, b) => {
-        const sortIndexA = a[2] as number;
-        const sortIndexB = b[2] as number;
-        return sortIndexA - sortIndexB;
+      const sortIndexA = a[2] as number;
+      const sortIndexB = b[2] as number;
+      return sortIndexA - sortIndexB;
     });
 
     // Create a new sorted map
     const sortedMap = new Map<string, TableTypes<"result">[]>(
-        sortedEntries.map(([courseId, lessons]) => [courseId, lessons] as [string, TableTypes<"result">[]]) // Ensure correct tuple type
+      sortedEntries.map(([courseId, lessons]) => [courseId, lessons] as [string, TableTypes<"result">[]]) // Ensure correct tuple type
     );
 
     return sortedMap;
@@ -448,34 +449,34 @@ export class Util {
   };
 
   public static getThumbnailUrl({
-  subjectCode,
-  lessonCode,
-  id,
-  courseCode,
-}: {
-  subjectCode?: string;
-  lessonCode?: string;
-  id?: string;
-  courseCode?: string;
-})  {
+    subjectCode,
+    lessonCode,
+    id,
+    courseCode,
+  }: {
+    subjectCode?: string;
+    lessonCode?: string;
+    id?: string;
+    courseCode?: string;
+  }) {
 
-      switch(true) {
-        case subjectCode !== undefined && lessonCode !== undefined:
-          return `https://media.githubusercontent.com/media/chimple/bahama/refs/heads/master/assets/courses/${subjectCode}/${subjectCode}/res/icons/${lessonCode}.png`;
+    switch (true) {
+      case subjectCode !== undefined && lessonCode !== undefined:
+        return `https://media.githubusercontent.com/media/chimple/bahama/refs/heads/master/assets/courses/${subjectCode}/${subjectCode}/res/icons/${lessonCode}.png`;
 
-        case id !== undefined:
-          const chapterCode1 = id?.replace(/_.*/, "");
-          const chapterCode2 = id?.replace(/_/g, "");
-          return `https://media.githubusercontent.com/media/chimple/bahama/refs/heads/master/assets/courses/${chapterCode1}/${chapterCode1}/res/icons/${chapterCode2}.png`;
+      case id !== undefined:
+        const chapterCode1 = id?.replace(/_.*/, "");
+        const chapterCode2 = id?.replace(/_/g, "");
+        return `https://media.githubusercontent.com/media/chimple/bahama/refs/heads/master/assets/courses/${chapterCode1}/${chapterCode1}/res/icons/${chapterCode2}.png`;
 
-        case courseCode !== undefined:
-          const code = courseCode?.split("_")[0];
-          return `https://media.githubusercontent.com/media/chimple/bahama/refs/heads/master/assets/courses/${code}/${code}/res/icons/${code}.png`;
+      case courseCode !== undefined:
+        const code = courseCode?.split("_")[0];
+        return `https://media.githubusercontent.com/media/chimple/bahama/refs/heads/master/assets/courses/${code}/${code}/res/icons/${code}.png`;
 
-        default:
-          return "assets/icons/DefaultIcon.png";
+      default:
+        return "assets/icons/DefaultIcon.png";
 
-      }
+    }
   }
 
   public static getCurrentMusic(): number {

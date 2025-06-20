@@ -61,32 +61,36 @@ const ProfileCard: React.FC<{
     >
       <div id="profile-card-edit-icon-div">
         {userType ? (
-          // <MdModeEditOutline
-          //   id="profile-card-edit-icon"
-          //   size={"5%"}
-          //   onClick={() => {
-          //     if (!online) {
-          //       presentToast({
-          //         message: t(
-          //           `Device is offline. Cannot edit or delete child profile`
-          //         ),
-          //         color: "danger",
-          //         duration: 3000,
-          //         position: "bottom",
-          //         buttons: [
-          //           {
-          //             text: "Dismiss",
-          //             role: "cancel",
-          //           },
-          //         ],
-          //       });
-          //       return;
-          //     }
-          //     console.log("click on edit icon");
-          //     setShowDialogBox(true);
-          //   }}
-          // ></MdModeEditOutline>
-          <div></div>
+          //Hiding the Student Edit icon for respect mode
+          !Util.isRespectMode ? (
+            <MdModeEditOutline
+              id="profile-card-edit-icon"
+              size={"5%"}
+              onClick={() => {
+                if (!online) {
+                  presentToast({
+                    message: t(
+                      `Device is offline. Cannot edit or delete child profile`
+                    ),
+                    color: "danger",
+                    duration: 3000,
+                    position: "bottom",
+                    buttons: [
+                      {
+                        text: "Dismiss",
+                        role: "cancel",
+                      },
+                    ],
+                  });
+                  return;
+                }
+                console.log("click on edit icon");
+                setShowDialogBox(true);
+              }}
+            ></MdModeEditOutline>
+          ) : (
+            <div></div>
+          )
         ) : (
           // <></>
           <p className="profile-card-empty-element">&#9679;</p>

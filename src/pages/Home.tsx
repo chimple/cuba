@@ -43,13 +43,9 @@ const Home: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isStudentLinked, setIsStudentLinked] = useState<boolean>();
   const [refreshKey, setRefreshKey] = useState(0);
-
-  
-  
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
   }>();
-
   const [pendingAssignments, setPendingAssignments] = useState<
     TableTypes<"assignment">[]
   >([]);
@@ -135,12 +131,10 @@ const Home: FC = () => {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
-
     const studentResult = await api.getStudentResultInMap(student.id);
     if (!!studentResult) {
       setLessonResultMap(studentResult);
     }
-
     fetchData();
     await isLinked();
     const urlParams = new URLSearchParams(window.location.search);
@@ -218,12 +212,13 @@ const Home: FC = () => {
       student != null
         ? await api.getStudentClassesAndSchools(student.id)
         : null;
-    
+
     // Add a proper null check on linkedData and the classes array
-    const classDoc = linkedData?.classes && linkedData.classes.length > 0 
-      ? linkedData.classes[0] 
-      : undefined;
-      
+    const classDoc =
+      linkedData?.classes && linkedData.classes.length > 0
+        ? linkedData.classes[0]
+        : undefined;
+
     if (classDoc?.id) await api.assignmentListner(classDoc.id, () => {});
     if (student) await api.assignmentUserListner(student.id, () => {});
 
@@ -304,17 +299,19 @@ const Home: FC = () => {
       }
       try {
         // Get assignments safely with a default empty array if undefined is returned
-        const assignments = await getAssignments() || [];
+        const assignments = (await getAssignments()) || [];
         recommendationResult = assignments;
-        
+
         // Get course recommendations safely
         let tempRecommendations: TableTypes<"lesson">[] = [];
         try {
-          tempRecommendations = await getCourseRecommendationLessons(currentStudent, currClass) || [];
+          tempRecommendations =
+            (await getCourseRecommendationLessons(currentStudent, currClass)) ||
+            [];
         } catch (recError) {
           console.error("Error fetching course recommendations:", recError);
         }
-        
+
         // Combine recommendations
         recommendationResult = recommendationResult.concat(tempRecommendations);
         console.log("Final RECOMMENDATION List ", recommendationResult);
@@ -477,7 +474,10 @@ const Home: FC = () => {
         // }
         break;
       case HOMEHEADERLIST.PROFILE:
-        Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
+        Util.setPathToBackButton(
+          Util.isRespectMode ? PAGES.DISPLAY_STUDENT : PAGES.LEADERBOARD,
+          history
+        );
         break;
       // case HOMEHEADERLIST.SEARCH:
       //   history.replace(PAGES.SEARCH);
@@ -599,7 +599,8 @@ const Home: FC = () => {
 
             {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
 
-            {/* {currentHeader === HOMEHEADERLIST.ASSIGNMENT && <AssignmentPage />} */}
+            {currentHeader === HOMEHEADERLIST.ASSIGNMENT &&
+              !!Util.isRespectMode && <AssignmentPage />}
 
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
             {currentHeader === HOMEHEADERLIST.LIVEQUIZ && <LiveQuiz />}
@@ -661,7 +662,6 @@ const Home: FC = () => {
               ((canShowAvatar &&
                 currentHeader === HOMEHEADERLIST.SUGGESTIONS) ||
                 (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME)) && (
-
                 <div>
                   {subTab === SUBTAB.SUGGESTIONS && (
                     <LessonSlider

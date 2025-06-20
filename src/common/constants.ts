@@ -2,6 +2,7 @@ import { Capacitor } from "@capacitor/core";
 import Auth from "../models/auth";
 import { Database } from "../services/database";
 import { RoleType } from "../interface/modelInterfaces";
+import { Util } from "../utility/util";
 
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = "sl-en",
@@ -645,7 +646,7 @@ export const NUMBER_NAME = [
 ];
 
 //Setting student max profile as 1 for OneRoaster
-export const MAX_STUDENTS_ALLOWED = 1;
+export const MAX_STUDENTS_ALLOWED = Util.isRespectMode ? 1 : 3;
 export const INSTANT_SEARCH_INDEX_NAME =
   process.env.REACT_APP_ALGOLIA_INDEX_NAME ?? "";
 
