@@ -2,7 +2,7 @@
   background-color: white;
   color: black;
   margin: 0;
-  padding-bottom: 20px;
+  /* padding-bottom: 10px; */
   display: flex;
   flex-direction: column;
   height: 100vh;           
@@ -15,7 +15,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-left: 20px;
+  padding-top: 12px;
+  padding-left: 21px;
   padding-right: 20px;
   font-size: 32px;
   width: 100%;
@@ -105,10 +106,5 @@
   .program-page {
     height: 100vh;
     overflow-y: auto;
-  }
-}
-@media (max-height: 600px) {
-   .program-page-header {
-    padding: 10px;
   }
 }

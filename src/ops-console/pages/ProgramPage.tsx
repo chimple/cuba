@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import DataTableBody, { Column } from "../components/DataTableBody";
 import DataTablePagination from "../components/DataTablePagination";
 import { useDataTableLogic } from "../OpsUtility/useDataTableLogic";
 import {
   Box,
-  Chip,
   Typography,
   Button,
   Skeleton,
@@ -41,11 +40,11 @@ type ProgramRow = {
 };
 
 const columns: Column<ProgramRow>[] = [
-  { key: "programName", label: "Program Name", align: "left" },
+  { key: "programName", label: "Program Name", align: "left", width: "30%" },
   { key: "institutes", label: "No of Institutes", align: "left" },
   { key: "students", label: "No of Students", align: "left" },
   { key: "devices", label: "No of Devices", align: "left" },
-  { key: "manager", label: "Program Manager" },
+  { key: "manager", label: "Program Manager", align: "left", width: "25%" },
 ];
 
 const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([key, label]) => ({
@@ -90,6 +89,7 @@ const ProgramsPage: React.FC = () => {
   const [isProgramManager, setIsProgramManager] = useState(false);
   const [isOpsRole, setIsOpsRole] = useState(false);
   const tab: TabType = tabOptions[activeTabIndex].value;
+  const tableScrollRef = React.useRef<HTMLDivElement>(null);
 
   const showNewProgramButton = isOpsRole || isProgramManager;
 
@@ -148,14 +148,14 @@ const ProgramsPage: React.FC = () => {
     fetchPrograms();
   }, [filters, searchTerm, tab]);
 
-  const transformedRows = programs.map((row) => ({
+  const transformedRows = useMemo(() =>  programs.map((row) => ({
     id: row.id,
     programName: {
       value: row.name,
       render: (
         <Box display="flex" flexDirection="column" alignItems="flex-start">
           <Typography variant="subtitle2">{row.name}</Typography>
-          <Typography variant="body2" color="text.secondary"  textAlign={"left"}>
+          <Typography variant="body2" color="text.secondary" textAlign={"left"}>
             {row.state}
           </Typography>
         </Box>
@@ -163,12 +163,9 @@ const ProgramsPage: React.FC = () => {
     },
     institutes: row.institutes_count ?? 0,
     students: row.students_count ?? 0,
-    devices: {
-      value: row.devices_count ?? 0,
-      render: <Chip label={row.devices_count ?? 0} size="small" />,
-    },
+    devices: row.devices_count ?? 0,
     manager: row.manager_names,
-  }));
+  })), [programs]);
 
   const { orderBy, order, page, setPage, handleSort, paginatedRows } =
     useDataTableLogic(transformedRows);
@@ -338,6 +335,7 @@ const ProgramsPage: React.FC = () => {
             order={order}
             onSort={handleSort}
             detailPageRouteBase="programs"
+            ref={tableScrollRef}
           />
         )}
       </div>
@@ -346,7 +344,10 @@ const ProgramsPage: React.FC = () => {
         <DataTablePagination
           page={page}
           pageCount={Math.ceil(programs.length / 10)}
-          onPageChange={setPage}
+          onPageChange={(newPage) => {
+            setPage(newPage);
+            tableScrollRef.current?.scrollTo?.({ top: 0, behavior: "smooth" });
+          }}
         />
       </div>
     </div>

@@ -40,7 +40,5 @@
 
 .breadcrumb-separator {
   color: black;
-  margin-left: 8px; /* mx: 1 (theme spacing unit) */
-  margin-right: 8px;
   font-size: 20px;
 }
