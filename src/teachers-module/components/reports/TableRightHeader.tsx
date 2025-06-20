@@ -1,11 +1,9 @@
 import React from "react";
 import "./TableRightHeader.css";
 import { t } from "i18next";
+
 interface TableRightHeaderProps {
-  headerDetails: Map<string,{ headerName: string; startAt: string; endAt: string, subjectName?: string; }>[];
-  showSubjects?: boolean;
-  subjects?: {id: string; name: string}[];
-  subjectName?: string;
+  headerDetails: Map<string, { headerName: string; startAt: string; endAt: string }>[];
 }
 
 const TableRightHeader: React.FC<TableRightHeaderProps> = ({
@@ -13,12 +11,9 @@ const TableRightHeader: React.FC<TableRightHeaderProps> = ({
 }) => {
   return (
     <>
-       {headerDetails.map((assignmentMap, index) => {
-        const [assignmentId, { headerName, startAt, endAt, subjectName }] = 
+      {headerDetails.map((assignmentMap) => {
+        const [assignmentId, { headerName, startAt, endAt }] = 
           Array.from(assignmentMap.entries())[0];
-
-        // Use subjectName if available, otherwise fall back to headerName
-        const displayName = subjectName || headerName;
 
         return (
           <th className="tableRightHeader" key={assignmentId}>
@@ -26,7 +21,7 @@ const TableRightHeader: React.FC<TableRightHeaderProps> = ({
               <span>{startAt}</span>
             </div>
             <div className="tableRightHeaderText">
-              {t(displayName)}
+              {t(headerName)}
             </div>
             <div className="belowText">
               <span>{endAt}</span>

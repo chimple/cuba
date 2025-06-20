@@ -77,6 +77,8 @@ const ReportTable: React.FC<ReportTableProps> = ({
   const [reportData, setReportData] = useState<
     Map<string, { student: TableTypes<"user">; results: Record<string, any[]> }>
   >(new Map());
+  console.log("reportData", reportData);
+  
   const [mappedSubjectOptions, setMappedSubjectOptions] = useState<
       { icon: string; id: string; name: string; subjectDetail: string }[]
     >([]);
@@ -208,6 +210,7 @@ let reportResults: ReportResponse[] = [];
   let mergedHeaderData: Map<string, AssignmentHeader>[] = [];
 
   const mergeReports = (reports) => {
+    
     reports.forEach((report) => {
       report?.ReportData?.forEach((value, key) => {
         if (!mergedReportData.has(key)) {
@@ -231,7 +234,7 @@ let reportResults: ReportResponse[] = [];
     });
   };
 
-  // Special handling for Assignment Report with All Subjects
+// Special handling for Assignment Report with All Subjects
 if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
   // Get all subject IDs
   const allSubjectIds = subjects?.map(subject => subject.id) || [];
@@ -252,19 +255,9 @@ if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
     false
   ) || [];
 
-  // Enhance assignments with subject info
-  const flattenedAssignments = _assignments.map(assignment => {
-    const subject = allSubjects.find(s => s.id === assignment.course_id);
-    return {
-      ...assignment,
-      subjectId: assignment.course_id,
-      subjectName: subject?.name || ""
-    };
-  });
-
   // Get unique assignment IDs and lesson IDs
-  const assignmentIds = flattenedAssignments.map(asgmt => asgmt.id);
-  const lessonIds = [...new Set(flattenedAssignments.map(res => res.lesson_id))];
+  const assignmentIds = _assignments.map(asgmt => asgmt.id);
+  const lessonIds = [...new Set(_assignments.map(res => res.lesson_id))];
 
   // Parallel data fetching
   const [assignmentResults, lessonDetails, assignmentUserRecords, _students] = await Promise.all([
@@ -302,23 +295,20 @@ if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
     }
   });
 
-  // Create headers grouped by subject
-  const subjectHeaders = allSubjects.map(subject => {
+  // Create headers - single flat array of assignments
+  const assignmentHeaders: Map<string, AssignmentHeader>[] = [];
+  
+  _assignments.forEach(assignment => {
+    const lesson = lessonDetails?.find(l => l.id === assignment.lesson_id);
     const map = new Map<string, AssignmentHeader>();
-    flattenedAssignments
-      .filter(a => a.subjectId === subject.id)
-      .forEach(assignment => {
-        const lesson = lessonDetails?.find(l => l.id === assignment.lesson_id);
-        map.set(assignment.id, {
-          headerName: subject.name,
-          startAt: _classUtil.formatDate(assignment.starts_at),
-          endAt: assignment.ends_at ? _classUtil.formatDate(assignment.ends_at) : "",
-          belongsToClass: Boolean(assignment.is_class_wise),
-          subjectName: subject.name
-        });
-      });
-    return map;
-  }).filter(map => map.size > 0); // Filter empty subjects
+    map.set(assignment.id, {
+      headerName: lesson?.name || "Assignment",
+      startAt: _classUtil.formatDate(assignment.starts_at),
+      endAt: assignment.ends_at ? _classUtil.formatDate(assignment.ends_at) : "",
+      belongsToClass: Boolean(assignment.is_class_wise)
+    });
+    assignmentHeaders.push(map);
+  });
 
   // Handle sorting
   if (sortType === TABLESORTBY.LOWSCORE || sortType === TABLESORTBY.HIGHSCORE) {
@@ -331,7 +321,7 @@ if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
   // Handle individual assignments
   resultsByStudent.forEach((studentData, studentId) => {
     assignmentIds.forEach(assignmentId => {
-      const assignment = flattenedAssignments.find(a => a.id === assignmentId);
+      const assignment = _assignments.find(a => a.id === assignmentId);
       if (assignment && !assignment.is_class_wise) {
         const isAssigned = assignmentUserRecords?.some(
           record => record.assignment_id === assignmentId && record.user_id === studentId
@@ -344,7 +334,7 @@ if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
   });
 
   setReportData(resultsByStudent);
-  setHeaderData(subjectHeaders);
+  setHeaderData(assignmentHeaders);
   setIsLoading(false);
   return;
 }
@@ -613,13 +603,8 @@ if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
                   </th>
 
                   <TableRightHeader 
-                      headerDetails={headerData}
-                      showSubjects={selectedType === TABLEDROPDOWN.ASSIGNMENTS && selectedSubject?.id === ALL_SUBJECT.id}
-                      subjects={selectedType === TABLEDROPDOWN.ASSIGNMENTS && selectedSubject?.id === ALL_SUBJECT.id ? 
-                        subjects?.map(s => ({id: s.id, name: s.name})) || [] : 
-                        []
-                      }
-                    />
+                    headerDetails={headerData}
+                  />
                 </tr>
               </thead>
               <tbody>

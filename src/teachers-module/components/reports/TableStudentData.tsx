@@ -12,18 +12,7 @@ interface TableStudentDataProps {
 }
 
 function getColor(studentResults: any[], belongsToClass: boolean, isIndividuallyAssigned: boolean, selectedType: string) {
-  if (selectedType === TABLEDROPDOWN.MONTHLY || selectedType === TABLEDROPDOWN.WEEKLY || selectedType === TABLEDROPDOWN.CHAPTER) {
-    if (studentResults.length > 0 && studentResults.some((r) => r.score !== null)) {
-      let totalScore = studentResults.reduce((sum, result) => sum + (result.score || 0), 0);
-      const averageScore = totalScore / studentResults.length;
-      if (averageScore < 30) return "#F09393";
-      if (averageScore <= 70) return "#FDF7C3";
-      return "#A4CC51";
-    }
-    return "#FFFFFF";
-  }
-  
-  // If student has played and has a score, apply the score-based color.
+  // If student has played and has a score, apply the score-based color
   if (studentResults.length > 0 && studentResults.some((r) => r.score !== null)) {
     let totalScore = studentResults.reduce((sum, result) => sum + (result.score || 0), 0);
     const averageScore = totalScore / studentResults.length;
@@ -32,84 +21,20 @@ function getColor(studentResults: any[], belongsToClass: boolean, isIndividually
     return "#A4CC51";
   }
 
-  if (isIndividuallyAssigned) {
-    return "#FFFFFF";
-  }
-
-  return "#C4C4C4"; 
+  // For all-subjects view, we don't need the gray background for unassigned
+  return "#FFFFFF";
 }
 
-function TableStudentData({ studentData, isScore, assignmentMap, assignmentUserRecords, selectedType, headerDetails = [] }: TableStudentDataProps) {
-  // Group assignments by subject if headerDetails is provided
-  const assignmentsBySubject = new Map<string, string[]>();
-  if (headerDetails.length > 0) {
-    headerDetails.forEach(assignmentMap => {
-      const [assignmentId, headerData] = Array.from(assignmentMap.entries())[0];
-      const subjectName = headerData.subjectName || 'Unknown Subject';
-      
-      if (!assignmentsBySubject.has(subjectName)) {
-        assignmentsBySubject.set(subjectName, []);
-      }
-      assignmentsBySubject.get(subjectName)?.push(assignmentId);
-    });
-  }
-
+function TableStudentData({ studentData, isScore, assignmentMap, selectedType }: TableStudentDataProps) {
   return (
     <>
-    {assignmentsBySubject.size > 0 ? (
-        // Render grouped by subject
-        Array.from(assignmentsBySubject.entries()).map(([subjectName, assignmentIds]) => (
-          <React.Fragment key={subjectName}>
-            {assignmentIds.map(assignmentId => {
-              const currentResults = studentData[assignmentId] || [];
-              const assignmentDetails = assignmentMap[assignmentId];
-              const belongsToClass = assignmentDetails?.belongsToClass ?? false;
-
-              let isIndividuallyAssigned = (assignmentUserRecords ?? []).some(
-                record => record.assignment_id === assignmentId &&
-                studentData[assignmentId]?.some(r => r.student_id === record.user_id)
-              );
-
-              if (!isIndividuallyAssigned && studentData[assignmentId]?.length > 0 && !belongsToClass) {
-                isIndividuallyAssigned = true;
-              }
-
-              const backgroundColor = getColor(currentResults, belongsToClass, isIndividuallyAssigned, selectedType);
-
-              let displayValue = "";
-              if (currentResults.length > 0) {
-                if (isScore) {
-                  displayValue = currentResults[0].score !== null ? currentResults[0].score.toString() : "";
-                } else {
-                  displayValue = currentResults.length.toString();
-                }
-              }
-
-              return (
-                <td className="square-cell" key={assignmentId} style={{ backgroundColor }}>
-                  <div className="square-cell-container">
-                    {displayValue}
-                  </div>
-                </td>
-              );
-            })}
-          </React.Fragment>
-        ))
-      ) : (
-      <>
       {Object.keys(studentData).map((assignmentId) => {
         const currentResults = studentData[assignmentId] || [];
         const assignmentDetails = assignmentMap[assignmentId];
         const belongsToClass = assignmentDetails?.belongsToClass ?? false;
 
-        let isIndividuallyAssigned = (assignmentUserRecords ?? []).some(
-          (record) => record.assignment_id === assignmentId &&
-          studentData[assignmentId]?.some((r) => r.student_id === record.user_id)
-        );
-
-        if (!isIndividuallyAssigned && studentData[assignmentId]?.length > 0 && !belongsToClass) {
-          isIndividuallyAssigned = true;
-        }
+        // For all-subjects view, we consider all assignments as individually assigned
+        const isIndividuallyAssigned = true;
 
         const backgroundColor = getColor(currentResults, belongsToClass, isIndividuallyAssigned, selectedType);
 
@@ -129,10 +54,7 @@ function TableStudentData({ studentData, isScore, assignmentMap, assignmentUserR
             </div>
           </td>
         );
-      }
-    )}
-      </>
-      )}
+      })}
     </>
   );
 }
