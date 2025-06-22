@@ -148,7 +148,7 @@ const ProgramsPage: React.FC = () => {
     fetchPrograms();
   }, [filters, searchTerm, tab]);
 
-  const transformedRows = useMemo(() =>  programs.map((row) => ({
+  const transformedRows = useMemo(() => programs.map((row) => ({
     id: row.id,
     programName: {
       value: row.name,
@@ -240,12 +240,11 @@ const ProgramsPage: React.FC = () => {
   return (
     <div className="program-page">
       <div className="program-page-header">
-        {t("Programs")}
-        <IconButton sx={{ color: "black" }}>
+        <span className="program-page-header-title">{t("Programs")}</span>
+        <IconButton className="bell-icon" sx={{ color: "black" }}>
           <BsFillBellFill />
         </IconButton>
       </div>
-
       <div className="program-header-and-search-filter">
         <div className="program-search-filter">
           <div className="program-tab-wrapper">
