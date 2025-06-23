@@ -15,7 +15,6 @@
 
 .assignments-dates {
   padding: 15px;
-  border: 2px solid gray;
   border-radius: 8px;
   margin-top: 10px;
   box-shadow: 1px 1px 3px gray;
@@ -31,11 +30,15 @@
   display: flex;
   flex-direction: row;
 }
+.date-created-assignment b {
+  color: #707070;
+}
 
 .date-input {
   display: flex;
   align-items: center;
   gap: 5px;
+  color: #707070;
 }
 
 .select-all {
@@ -51,9 +54,7 @@
 }
 
 .assignment-category {
-  margin-bottom: 15px;
-  padding: 10px;
-  /* border: 1px solid #ddd; */
+  margin: 15px 0px;
   border-radius: 8px;
   color: black;
 }
@@ -116,7 +117,8 @@
 
 #create-assignment-heading {
   color: #707070;
-  font-size: 30px;
+  font-size: 24px;
+  font-weight: 600;
   text-align: start;
 }
 

@@ -51,7 +51,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
   return (
     <div
       className="imageDropdown-container"
-      style={{ borderBottom: isDownBorder ? "0px" : "none" }}
+      // style={{ borderBottom: isDownBorder ? "0px" : "none" }}
     >
       <Select
         value={selectedValue?.id || ""}
@@ -113,23 +113,29 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
         }}
       >
         {options.map((option) => (
-          <MenuItem key={option.id} value={option.id} className="menu-item-in-image-dropdown">
-            {option.icon && (
-              <img
-                src={option.icon}
-                alt={option.name}
-                className="dropdown-icon"
-              />
-            )}
-            <div className="dropdown-text">
-              <span className="subject-text">
-                {splitText(option.name, option.subjectDetail).subject}
-              </span>
-              <span className="grade-text">
-                {splitText(option.name, option.subjectDetail).grade}
-              </span>
-            </div>
-          </MenuItem>
+          <MenuItem
+    key={option.id}
+    value={option.id}
+    className="menu-item-in-image-dropdown"
+  >
+    <div className="menu-item-content">
+      {option.icon && (
+        <img
+          src={option.icon}
+          alt={option.name}
+          className="dropdown-icon"
+        />
+      )}
+      <div className="dropdown-text">
+        <span className="subject-text">
+          {splitText(option.name, option.subjectDetail).subject}
+        </span>
+        <span className="grade-text">
+          {splitText(option.name, option.subjectDetail).grade}
+        </span>
+      </div>
+    </div>
+  </MenuItem>
         ))}
       </Select>
     </div>

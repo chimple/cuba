@@ -2,10 +2,15 @@
 .imageDropdown-container {
   display: flex;
   align-items: center;
-  border-bottom: 4px solid black;
-  width: clamp(170px, 200px, 300px);
+  border-bottom: 2px solid #9473CB;
+  /* width: clamp(170px, 200px, 300px); */
   height: min(5vh, 40px);
   min-height: 35px;
+}
+
+.menu-item-content {
+  display: flex;
+  align-items: center;
 }
 
 .imageDropdown-select {
@@ -42,19 +47,16 @@
   margin-left: 10px;
   color: #707070;
 }
-.imageDropdown-container
-  .css-1m5xwth-MuiInputBase-root-MuiOutlinedInput-root-MuiSelect-root.Mui-focused
-  .MuiOutlinedInput-notchedOutline {
-  border-color: none;
-  border-width: 0;
-}
 .selected-value {
   display: flex;
   align-items: center;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  margin-left: 1rem;
+}
+.selected-value span {
+  color: #707070;
+  font-size: 2.5vh;
 }
 .dropdown-text {
   display: flex;
@@ -66,13 +68,13 @@
 .subject-text {
   font-size: 2vh;
   font-weight: 500;
-  color: #333;
+  color: #707070;
 }
 
 .imageDropdown-container .grade-text {
   font-size: 1.6vh;
   font-weight: 400;
-  color: #666;
+  color: #707070;
 }
 .image-subject-dropdown-icon {
   width: 16px;

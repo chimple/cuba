@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-// import "./AddStudentSection.css";
+import "./AddStudentSection.css";
 import { t } from "i18next";
 import { IonIcon, IonItem, IonRadio, IonRadioGroup, IonSelect, IonSelectOption } from "@ionic/react";
 import DropDown from "../../components/DropDown";
@@ -50,9 +50,9 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
     name: option.label,
   }));
   return (
-    <div className="add-student-form">
+    <div className="addstudent-form">
       <form>
-        <div className="input-group">
+        <div className="studentinput-group">
           <label htmlFor="name">{t("Name")}</label>
           <input
             type="text"
@@ -63,8 +63,8 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
             onChange={(e) => onFullNameChange(e.target.value)}
           />
         </div>
-
-        <div className="input-group">
+        <hr className="horizontal-line" />
+        <div className="studentinput-group">
           <label htmlFor="age">{t("Age")}</label>
           <input
             type="number"
@@ -76,8 +76,8 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
             maxLength={2}
           />
         </div>
-
-        <div className="input-group">
+        <hr className="horizontal-line" />
+        <div className="studentinput-group">
           <label htmlFor="studentId">{t("Student Id")}</label>
           <input
             type="text"
@@ -88,23 +88,8 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
             onChange={(e) => onStudentIdChange(e.target.value)}
           />
         </div>
-        <div className="input-group">
-          <label>{t("Select Language")}</label>
-          <CustomDropdown
-            options={mappedLanguageOptions}
-            selectedValue={{
-              id: language,
-              name: mappedLanguageOptions.find(option => option.id === language)?.name || "",
-            }}
-            onOptionSelect={(selectedOption) => {
-              if (selectedOption) {
-                onLanguageChange(String(selectedOption.id));
-              }
-            }}
-            placeholder={t("Select Language") as string}
-          />
-        </div>
-        <div className="input-group">
+        <hr className="horizontal-line" />
+        <div className="studentinput-group">
           <label>{t("Gender")}</label>
           <IonRadioGroup
             value={gender}
@@ -122,6 +107,23 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
               </label>
             </div>
           </IonRadioGroup>
+        </div>
+        <hr className="horizontal-line" />
+        <div className="studentinput-group">
+          <label>{t("Preferred Language")}</label>
+          <CustomDropdown
+            options={mappedLanguageOptions}
+            selectedValue={{
+              id: language,
+              name: mappedLanguageOptions.find(option => option.id === language)?.name || "",
+            }}
+            onOptionSelect={(selectedOption) => {
+              if (selectedOption) {
+                onLanguageChange(String(selectedOption.id));
+              }
+            }}
+            placeholder={t("English") as string}
+          />
         </div>
       </form>
     </div>

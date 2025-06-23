@@ -270,18 +270,24 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
         />
         <div className="teacher-info">
           <div className="teacher-name">{teacher.name}</div>
-          <p className="joined-date">
-            {joinedDate ? t("Joined on") + "  :  " + joinedDate : ""}
+          <p className="joined-date" style={{ fontSize: "18px" }}>
+           {joinedDate ? (
+           <>
+           <span style={{ fontSize: "14px" }}>{t("Joined Date")} :</span>{" "}
+           <span style={{ fontSize: "18px" }}>{joinedDate}</span>
+           </>
+          ) : null}
           </p>
+
         </div>
       </div>
 
       {/* Date selection section */}
       <div className="date-selection">
         <div>
-          <p>
+          <span style={{color: "#4A4949", fontSize: "12px"}}>
             <Trans i18nKey="assignments_date_message" />
-          </p>
+          </span>
         </div>
         <div className="date-icons">
           <div>

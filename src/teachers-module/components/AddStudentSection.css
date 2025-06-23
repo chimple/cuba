@@ -1,0 +1,17 @@
+.addstudent-form {
+    padding: 2vw;
+    margin: 0px 15px;
+    border-radius: 15px;
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+}
+.studentinput-group {
+    display: flex;
+    flex-direction: column;
+}
+.studentinput-group input {
+    border: none;
+    text-align: center;
+}
+.studentinput-group label {
+    color: #707070;
+}

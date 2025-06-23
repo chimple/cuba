@@ -21,7 +21,7 @@
 .aboveText, .belowText {
   transform: rotate(180deg);
   font-size: 10px;
-  position: absolute;
+  /* position: absolute; */
   width: 100%; /* Full width to align with th */
   text-align: center;
 }
