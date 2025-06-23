@@ -210,29 +210,41 @@ let reportResults: ReportResponse[] = [];
   let mergedHeaderData: Map<string, AssignmentHeader>[] = [];
 
   const mergeReports = (reports) => {
-    
-    reports.forEach((report) => {
-      report?.ReportData?.forEach((value, key) => {
-        if (!mergedReportData.has(key)) {
-          mergedReportData.set(key, {
-            student: value.student,
-            results: { ...value.results },
-          });
-        } else {
-          const existing = mergedReportData.get(key);
-          mergedReportData.set(key, {
-            student: value.student,
-            results: { ...existing.results, ...value.results },
-          });
-        }
-      });
+  reports.forEach((report) => {
+    report?.ReportData?.forEach((value, key) => {
+      if (!mergedReportData.has(key)) {
+        // First subject for this student
+        mergedReportData.set(key, {
+          student: value.student,
+          results: { ...value.results },
+        });
+      } else {
+        const existing = mergedReportData.get(key);
+        const mergedResults = { ...existing.results };
 
-      report?.HeaderData?.forEach((map, index) => {
-        if (!mergedHeaderData[index]) mergedHeaderData[index] = new Map();
-        map.forEach((v, k) => mergedHeaderData[index].set(k, v));
-      });
+        // Deep merge each day's results
+        for (const day in value.results) {
+          if (!mergedResults[day]) {
+            mergedResults[day] = [...value.results[day]];
+          } else {
+            mergedResults[day] = [...mergedResults[day], ...value.results[day]];
+          }
+        }
+
+        mergedReportData.set(key, {
+          student: value.student,
+          results: mergedResults,
+        });
+      }
     });
-  };
+
+    report?.HeaderData?.forEach((map, index) => {
+      if (!mergedHeaderData[index]) mergedHeaderData[index] = new Map();
+      map.forEach((v, k) => mergedHeaderData[index].set(k, v));
+    });
+  });
+};
+
 
 // Special handling for Assignment Report with All Subjects
 if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
