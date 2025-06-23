@@ -1,0 +1,29 @@
+.user-table {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  padding: 0 32px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  margin-top: 0;
+}
+
+.user-page-pagination {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  flex: 0 0 auto;
+  background-color: white;
+}
+
+@media screen and (orientation: portrait) {
+  .user-table {
+    padding: 0 20px; 
+    font-size: 0.95rem; 
+  }
+  .user-page-pagination {
+    padding: 10px 0;
+  }
+}

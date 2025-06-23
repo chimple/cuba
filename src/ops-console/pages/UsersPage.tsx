@@ -9,6 +9,7 @@ import {
   useTheme,
   useMediaQuery,
   CircularProgress,
+  Skeleton,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
@@ -20,6 +21,7 @@ import { USER_ROLE } from "../../common/constants";
 import { t } from "i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { RoleLabels, RoleType } from "../../interface/modelInterfaces";
+import "./UsersPage.css";
 
 interface User {
   fullName: string;
@@ -32,10 +34,10 @@ interface UsersPageProps {
 
 const columns = [
   { key: "fullName", label: "Full Name", width: "30%" },
-  { key: "role", label: "Role", width: "70%" },
+  { key: "role", label: "Roles", width: "70%" },
 ];
 
-const ROWS_PER_PAGE = 7;
+const ROWS_PER_PAGE = 10;
 
 const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
   const [search, setSearch] = useState("");
@@ -100,14 +102,18 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
   };
 
   return (
-    <div style={{ background: "white", height: "100%" }}>
+    <div
+      style={{
+        background: "white",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <Box
         width="100%"
         py={isMobile ? 2 : 4}
-        sx={{
-          px: isMobile ? "20px" : 4,
-          background: "white",
-        }}
+        sx={{ px: isMobile ? "20px" : 4, background: "white" }}
       >
         <Box
           display="flex"
@@ -176,7 +182,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
             justifyContent="flex-end"
             alignItems="center"
             gap={2}
-            mb={3}
+            mb={isMobile ? 1 : 1}
           >
             {localStorage.getItem(USER_ROLE) !== "field_coordinator" && (
               <Button
@@ -212,33 +218,42 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
             />
           </Box>
         )}
-
+      </Box>
+      <div className="user-table">
         {loading ? (
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            height="100vh"
-          >
-            <CircularProgress />
+          <Box padding={2}>
+            {[...Array(10)].map((_, i) => (
+              <Skeleton
+                key={i}
+                variant="rectangular"
+                height={40}
+                sx={{ mb: 0 }}
+              />
+            ))}
+          </Box>
+        ) : paginatedUsers.length === 0 ? (
+          <Box padding={4} textAlign="center">
+            <Typography variant="h6" color="text.secondary">
+              {t("No users found")}
+            </Typography>
           </Box>
         ) : (
-          <>
-            <DataTableBody
-              columns={columns}
-              rows={paginatedUsers}
-              orderBy={"fullName"}
-              order={order}
-              onSort={handleSort}
-            />
-            <DataTablePagination
-              page={page}
-              pageCount={pageCount}
-              onPageChange={setPage}
-            />
-          </>
+          <DataTableBody
+            columns={columns}
+            rows={paginatedUsers}
+            orderBy={"fullName"}
+            order={order}
+            onSort={handleSort}
+          />
         )}
-      </Box>
+      </div>
+      <div className="user-page-pagination">
+        <DataTablePagination
+          page={page}
+          pageCount={pageCount}
+          onPageChange={setPage}
+        />
+      </div>
     </div>
   );
 };
