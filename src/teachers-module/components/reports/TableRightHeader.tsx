@@ -2,6 +2,7 @@ import React from "react";
 import "./TableRightHeader.css";
 import { t } from "i18next";
 
+
 interface AssignmentHeader {
   headerName: string;
   startAt: string;
@@ -47,7 +48,9 @@ const TableRightHeader: React.FC<TableRightHeaderProps> = ({
             <div className="aboveText">
               <span>{formatDate(displayDate)}</span>
             </div>
-            <div className="tableRightHeaderText">{t(headerName)}</div>
+            <div className="tableRightHeaderText">
+              {t(headerName)}
+            </div>
             {/* <div className="belowText">
               <span>&nbsp;</span>
             </div> */}

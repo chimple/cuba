@@ -29,7 +29,10 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMobile = useMediaQuery("(max-width: 900px)");
+  const isPortraitMobile = useMediaQuery(
+    "(max-width: 600px) and (orientation: portrait)"
+  );
   const hasFilters = Object.values(filters).some((values) => values.length > 0);
 
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -40,12 +43,30 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
       spacing={2}
       className="search-filter-container-SearchAndFilter"
       alignItems="center"
+      // width="100%"
     >
-      {isMobile ? (
+      {isPortraitMobile ? (
+        <TextField
+          variant="outlined"
+          placeholder={t("Search") || "Search"}
+          onChange={onSearchChange}
+          value={searchTerm}
+          className="search-input-SearchAndFilter"
+          size="small"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ flex: 1 }}
+        />
+      ) : isMobile ? (
         showMobileSearch ? (
           <TextField
             variant="outlined"
-            placeholder={t("Search programs...") || "Search programs..."}
+            placeholder={t("Search") || "Search"}
             onChange={onSearchChange}
             value={searchTerm}
             className="search-input-SearchAndFilter"
@@ -79,7 +100,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
       ) : (
         <TextField
           variant="outlined"
-          placeholder={t("Search programs...") || "Search programs..."}
+          placeholder={t("Search") || "Search"}
           onChange={onSearchChange}
           value={searchTerm}
           className="search-input-SearchAndFilter"
@@ -104,10 +125,14 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
         <Button
           variant="outlined"
           startIcon={hasFilters ? <CloseIcon /> : <FilterListIcon />}
-          className={`filter-button-SearchAndFilter${hasFilters ? " has-filters" : ""}`}
+          className={`filter-button-SearchAndFilter${
+            hasFilters ? " has-filters" : ""
+          }`}
           onClick={onFilterClick}
         >
-          {hasFilters ? t("Clear Filters") : t("Filter")}
+          <span style={{ color: "black" }}>
+            {hasFilters ? t("Clear Filters") : t("Filter")}
+          </span>
         </Button>
       )}
     </Stack>

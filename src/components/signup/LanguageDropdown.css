@@ -4,8 +4,12 @@
 }
 
 .LanguageDropdown-selected {
-  width: 98px;
-  height: 35px;
+  width: 23vw;
+  height: 3.8vh;
+  min-width: 100px;
+  min-height: 35px;
+  max-width: 100px;
+  max-height: 35px;
   background: #fff;
   border: 2.5px solid #f34d08;
   border-radius: 10px;
@@ -69,7 +73,7 @@
   transform: scaleY(0.95);
   transform-origin: top;
   transition: opacity 0.3s ease, transform 0.3s ease;
-  z-index: 10;
+  z-index: 100;
   pointer-events: none;
 }
 
@@ -104,7 +108,7 @@
   color: #F34D08;
 } */
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 768px) {
   .LanguageDropdown-container {
     position: absolute;
     top: 79px;

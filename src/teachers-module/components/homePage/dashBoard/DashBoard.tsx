@@ -171,8 +171,9 @@ const init = async () => {
       }
 
     // Final average calculations
-    const averageTimeSpent = subjectsCount > 0 ? Math.round(totalTimeSpent / subjectsCount) : 0;
-    const averageScore = subjectsCount > 0 ? Math.round(totalAverageScore / subjectsCount) : 0;
+    const hasStudentsAndSubject = _students.length > 0 && subjectsCount > 0;
+    const averageTimeSpent = hasStudentsAndSubject ? Math.round(totalTimeSpent / subjectsCount) : 0;
+    const averageScore = hasStudentsAndSubject ? Math.round(totalAverageScore / subjectsCount) : 0;
 
     const aggregatedSummary: HomeWeeklySummary = {
       assignments: {
@@ -181,7 +182,7 @@ const init = async () => {
       },
       students: {
         totalStudents: _students.length,
-        stdCompletd: Math.min(totalCompletedStudents, _students.length),
+        stdCompletd: _students.length > 0 ? Math.min(totalCompletedStudents, _students.length) : 0,
       },
       timeSpent: averageTimeSpent,
       averageScore,

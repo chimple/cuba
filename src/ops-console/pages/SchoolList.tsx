@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Tabs, Tab, Box, Typography } from "@mui/material";
+import { Tabs, Tab, Box, Typography, IconButton } from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
 import "./SchoolList.css";
@@ -111,7 +111,7 @@ const SchoolList: React.FC = () => {
                 color="text.secondary"
                 fontSize={"12px"}
               >
-                {school.group2 || ""}
+                {school.district || ""}
               </Typography>
             </Box>
           ),
@@ -119,7 +119,6 @@ const SchoolList: React.FC = () => {
       }));
 
       setSchools(enrichedSchools);
-      setPage(1);
     } catch (error) {
       console.error("Failed to fetch filtered schools:", error);
     } finally {
@@ -128,9 +127,9 @@ const SchoolList: React.FC = () => {
   };
 
   const columns: Column<Record<string, any>>[] = [
-    { key: "name", label: t("Schools") },
-    { key: "students", label: t("No of Students") },
-    { key: "teachers", label: t("No of Teachers") },
+    { key: "name", label: t("Schools"), width: "30%" },
+    { key: "students", label: t("No of Students"), width: "fit-content" },
+    { key: "teachers", label: t("No of Teachers"), width: "fit-content" },
     { key: "programManagers", label: t("Program Manager") },
     { key: "fieldCoordinators", label: t("Field Coordinator") },
   ];
@@ -147,6 +146,7 @@ const SchoolList: React.FC = () => {
     { key: "cluster", label: t("Select Cluster") },
   ];
 
+  // Apply client-side search
   const filteredSchools = useMemo(() => {
     return schools.filter((school) =>
       school.name.value.toLowerCase().includes(searchTerm.toLowerCase())
@@ -166,10 +166,11 @@ const SchoolList: React.FC = () => {
   function onCancleClick(): void {
     setShowUploadPage(false);
   }
+
   if (showUploadPage) {
     return (
       <div>
-        <div className="school-list-upload-text"> {t("Upload File")}</div>
+        <div className="school-list-upload-text">{t("Upload File")}</div>
         <div>
           <FileUpload onCancleClick={onCancleClick} />
         </div>
@@ -282,13 +283,15 @@ const SchoolList: React.FC = () => {
           </Typography>
         ) : (
           <>
-            <DataTableBody
-              columns={columns}
-              rows={paginatedRows}
-              orderBy={orderBy}
-              order={order}
-              onSort={handleSort}
-            />
+            <div className="school-list-table-container">
+              <DataTableBody
+                columns={columns}
+                rows={paginatedRows}
+                orderBy={orderBy}
+                order={order}
+                onSort={handleSort}
+              />
+            </div>
             <div className="school-list-footer">
               <DataTablePagination
                 pageCount={pageCount}

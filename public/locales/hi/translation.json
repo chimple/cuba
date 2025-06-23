@@ -287,7 +287,7 @@
   "Enter school code": "स्कूल कोड दर्ज करें",
   "Enter student id": "छात्र आईडी दर्ज करें",
   "Enter text": "पाठ दर्ज करें",
-  "Enter the OTP sent to +91": "+91 पर भेजा गया ओटीपी दर्ज करें",
+  "Enter the OTP sent to +91": "+91{{phoneNumber}} पर भेजा गया ओटीपी दर्ज करें",
   "Enter the 6 digit code your teacher has given to join the class": "कक्षा में शामिल होने के लिए आपके शिक्षक दिए हुवे  6 अंकों का कोड दर्ज करें।",
   "Enter the 6-digit code your teacher has shared with you to join the class.": "अपने शिक्षक द्वारा दिया गया कोड दर्ज करें",
   "Enter the class code to join the class": "कक्षा में शामिल होने के लिए कक्षा का कोड दर्ज करें",
@@ -524,6 +524,7 @@
   "Numbers 11-20": "संख्या 11-20",
   "Numbers 21-100": "संख्या 21 - 100",
   "Numbers 6 -10": "संख्या 6 - 10",
+  "New User": "नया उपयोगकर्ता",
   "Objects and shapes": "वस्तुएँ और आकृतियाँ",
   "Odd Numbers": "विषम संख्या",
   "OFF ": " बंद ",
@@ -633,7 +634,7 @@
   "Reports": "विवरण",
   "Request Confirmation": "अनुरोध की पुष्टि",
   "Resend Otp Failed!! Please try again after some time.": "OTP  दोबारा भेजने में विफल!! कृपया कुछ समय बाद पुनः प्रयास करें.",
-  "Resend OTP": "OTP  पुनः भेजें",
+  "Resend OTP": "ओटीपी पुनः भेजें",
   "reset password": "पासवर्ड रीसेट करें",
   "Resources": "संसाधन",
   "Revision ": "दोहराव",
@@ -906,6 +907,6 @@
   "Your data has been successfully checked, and no errors were found.": "आपका डेटा सफलतापूर्वक जांचा गया है, और कोई त्रुटि नहीं मिली।",
   "Your profile is not registered to any school.": "आपका प्रोफ़ाइल किसी भी विद्यालय में पंजीकृत नहीं है|",
   "Your progress stays synced and consistent across all devices.": "आपकी प्रगति सभी डिवाइसों पर समन्वयित और सुसंगत रहती है।",
-  "Your OTP will expire in": "आपका ओटीपी समाप्त हो जाएगा",
+  "Your OTP will expire in {{minutes}} minutes": "आपका ओटीपी {{minutes}} मिनट में समाप्त हो जाएगा",
   "Zebra": "ज़ेबरा"
 }

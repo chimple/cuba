@@ -1,5 +1,6 @@
 .program-detail-page {
   display: flex;
+  padding: 0 2% 2% 2%;
   flex-direction: column;
   background-color: white;
   height: 100%;
@@ -7,31 +8,67 @@
   font-family: 'Roboto', sans-serif;
 }
 
+/* Sticky header */
 .program-detail-page-header {
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 100;
   font-size: 2rem;
   font-weight: 600;
-  padding: 16px 24px;
-  border-bottom: 1px solid #ddd;
-  margin-bottom: 16px;
+  padding-top: 16px;
+  padding-bottom: 10px;
   color: black;
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 16px;
+  position: sticky;
 }
 
-.program-detail-page-padding {
-  padding: 24px;
+/* Title: left-aligned by default */
+.program-detail-page-header-title {
+  flex-grow: 1;
+  text-align: left;
 }
 
+/* Bell icon on the right */
+.program-detail-page-header-icon {
+  margin-left: auto;
+}
+
+/* Center title on small screens */
+@media (max-width: 480px) {
+  .program-detail-page-header-title {
+    text-align: center;
+    margin-left: -32px; /* visually balance with icon */
+  }
+
+  .program-detail-page-header {
+    font-size: 1.5rem;
+  }
+}
+
+/* Breadcrumb */
+.program-detail-page-Breadcrumb {
+  padding-top: 12px;
+  padding-left: 2%;
+}
+
+/* Loading & error containers */
 .program-detail-page-loading-container,
 .program-detail-page-error-container {
   padding: 24px;
   text-align: center;
 }
 
+/* Layout containers */
 .program-detail-page-column-container {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding-top: 20px;
 }
 
 .program-detail-page-managers-list {
@@ -50,6 +87,7 @@
   margin-bottom: 12px;
 }
 
+/* Location grid */
 .program-detail-page-location-details-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

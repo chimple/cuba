@@ -1,4 +1,4 @@
-import React from "react";
+import React, { forwardRef } from "react";
 import {
   Table,
   TableBody,
@@ -11,11 +11,13 @@ import {
 import "./DataTableBody.css";
 import { useHistory } from "react-router";
 import { PAGES } from "../../common/constants";
+
 export interface Column<T> {
   key: keyof T;
   label: string;
   align?: "left" | "right" | "center" | "justify" | "inherit";
   render?: (row: T) => React.ReactNode;
+  width?: string | number;
   [key: string]: any;
 }
 
@@ -29,7 +31,7 @@ interface Props {
   onRowClick?: (id: string | number, row: any) => void; // optional custom click handler
 }
 
-const DataTableBody: React.FC<Props> = ({
+const DataTableBody = forwardRef<HTMLDivElement, Props>(({
   columns,
   rows,
   orderBy,
@@ -37,7 +39,7 @@ const DataTableBody: React.FC<Props> = ({
   onSort,
   detailPageRouteBase,
   onRowClick,
-}) => {
+}, ref) => {
   const history = useHistory();
   const handleRowClick = (row: any) => {
     const id = row.id;
@@ -63,19 +65,29 @@ const DataTableBody: React.FC<Props> = ({
   };
 
   return (
-    <TableContainer sx={{ width: "100%", overflowX: "auto" }}>
-      <Table size="small">
-        <TableHead className="data-tablebody-head">
+    <TableContainer  ref={ref} className="data-tablebody-container">
+      <Table size="small" stickyHeader>
+        <TableHead>
           <TableRow>
             {columns.map((col) => (
               <TableCell
                 key={col.key}
                 align={col.align || "left"}
+                className="data-tablebody-head-cell"
                 sx={{
+                  width: col.width ?? "auto",
                   transform: "none",
-                  backgroundColor: "#DDE1E6 !important",
-                  height: "48px",
-                  fontSize: "14px",
+                  height: "auto",
+                  paddingTop: {
+                    xs: "4px !important",
+                    sm: "6px !important",
+                    md: "8px !important",
+                  },
+                  paddingBottom: {
+                    xs: "4px !important",
+                    sm: "6px !important",
+                    md: "8px !important",
+                  },
                 }}
               >
                 <TableSortLabel
@@ -105,6 +117,10 @@ const DataTableBody: React.FC<Props> = ({
                   key={col.key}
                   align={col.align || "left"}
                   className="data-tablebody-cell"
+                  sx={{
+                    width: col.width ?? "auto",
+                    maxWidth: col.width,
+                  }}
                 >
                   {typeof row[col.key] === "object" &&
                   row[col.key]?.render !== undefined
@@ -118,6 +134,6 @@ const DataTableBody: React.FC<Props> = ({
       </Table>
     </TableContainer>
   );
-};
+});
 
 export default DataTableBody;

@@ -3,7 +3,6 @@ import { Keyboard } from "@capacitor/keyboard";
 import { Toast } from "@capacitor/toast";
 import { useHistory } from "react-router-dom";
 import { Capacitor, registerPlugin } from "@capacitor/core";
-import { ConfirmationResult } from "@firebase/auth";
 import { IonLoading, IonText } from "@ionic/react";
 import { t } from "i18next";
 import React, { useEffect, useRef, useState } from "react";
@@ -19,7 +18,7 @@ import LoginWithPhone from "../components/signup/LoginWithPhone";
 import LoginSwitch from "../components/signup/LoginSwitch";
 import ForgotPass from "../components/signup/ForgotPass";
 import { RoleType } from "../interface/modelInterfaces";
-import { ServiceConfig } from "../services/ServiceConfig";
+import { APIMode, ServiceConfig } from "../services/ServiceConfig";
 import Loading from "../components/Loading";
 import { schoolUtil } from "../utility/schoolUtil";
 import {
@@ -27,9 +26,11 @@ import {
   CURRENT_USER,
   DOMAIN,
   EVENTS,
+  IS_OPS_USER,
   LANGUAGE,
   MODES,
   PAGES,
+  TableTypes,
   USER_DATA,
   USER_ROLE,
 } from "../common/constants";
@@ -41,6 +42,7 @@ import { FaArrowLeftLong } from "react-icons/fa6";
 
 const LoginScreen: React.FC = () => {
   const history = useHistory();
+  const api = ServiceConfig.getI().apiHandler;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [loginType, setLoginType] = useState<
     "phone" | "student" | "email" | "otp" | "forgot-pass"
@@ -66,10 +68,7 @@ const LoginScreen: React.FC = () => {
   const [isPromptNumbers, setIsPromptNumbers] = useState<boolean>(false);
   const PortPlugin = registerPlugin<any>("Port");
   const phoneNumberErrorRef = useRef<any>();
-  const [isInvalidCode, setIsInvalidCode] = useState({
-    isInvalidCode: false,
-    isInvalidCodeLength: false,
-  });
+
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
   const [isInputFocus, setIsInputFocus] = useState<boolean>(false);
   const [disableOtpButtonIfSameNumber, setDisableOtpButtonIfSameNumber] =
@@ -78,7 +77,6 @@ const LoginScreen: React.FC = () => {
     useState<number>(0);
   const [currentPhone, setCurrentPhone] = useState<any>();
   const [title, setTitle] = React.useState("");
-  const [userData, setUserData] = useState<any>();
   const scollToRef = useRef<null | HTMLDivElement>(null);
   const [otpExpiryCounter, setOtpExpiryCounter] = useState(15);
   const [animatedLoading, setAnimatedLoading] = useState<boolean>(false);
@@ -144,7 +142,10 @@ const LoginScreen: React.FC = () => {
     initialize();
     return () => {
       if (Capacitor.isNativePlatform()) {
-        document.removeEventListener("visibilitychange", handleVisibilityChange);
+        document.removeEventListener(
+          "visibilitychange",
+          handleVisibilityChange
+        );
       }
     };
   }, []);
@@ -167,8 +168,8 @@ const LoginScreen: React.FC = () => {
 
   // Timer effect for OTP resend
   useEffect(() => {
- let interval: NodeJS.Timer | null = null;
-    
+    let interval: NodeJS.Timer | null = null;
+
     if (showTimer && counter > 0) {
       interval = setInterval(() => {
         setCounter((prevCounter) => {
@@ -303,7 +304,6 @@ const LoginScreen: React.FC = () => {
       }
 
       // Store user data and proceed with navigation
-      setUserData(res.user);
       localStorage.setItem(CURRENT_USER, JSON.stringify(res.user));
 
       // Log the login event
@@ -316,9 +316,10 @@ const LoginScreen: React.FC = () => {
         action_type: ACTION.LOGIN,
         login_type: "phone-number",
       });
-      setAnimatedLoading(false);
       // Finally navigate to next screen
-      history.replace(PAGES.SELECT_MODE);
+      const userSchools = await getSchoolsForUser(res.user.user);
+      await redirectUser(userSchools);
+      setAnimatedLoading(false);
     } catch (error) {
       // Handle all state updates for error case at once
       const updates = () => {
@@ -394,14 +395,16 @@ const LoginScreen: React.FC = () => {
 
       setAnimatedLoading(true);
       setIsLoading(true);
-      const result: boolean = await authInstance.googleSign();
+      const result: boolean =
+        await ServiceConfig.getI().authHandler.googleSign();
 
       if (result) {
-        setAnimatedLoading(false);
         setIsLoading(false);
-        const user = JSON.parse(localStorage.getItem(USER_DATA)!);
+        const user: any =
+          await ServiceConfig.getI().authHandler.getCurrentUser();
         const userSchools = await getSchoolsForUser(user);
-        await redirectUser(user, userSchools);
+        await redirectUser(userSchools);
+        setAnimatedLoading(false);
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
         Util.logEvent(EVENTS.USER_PROFILE, {
           user_type: RoleType.PARENT,
@@ -416,6 +419,7 @@ const LoginScreen: React.FC = () => {
         setLoginType("phone");
       }
     } catch (error) {
+      console.log("Google signIn error", error);
       setAnimatedLoading(false);
       setIsLoading(false);
       setErrorMessage(t("Google sign in failed. Please try again."));
@@ -425,8 +429,7 @@ const LoginScreen: React.FC = () => {
   };
 
   // Helper function to get schools for user
-  async function getSchoolsForUser(user: any) {
-    const api = ServiceConfig.getI().apiHandler;
+  async function getSchoolsForUser(user: TableTypes<"user">) {
     const userSchools = await api.getSchoolsForUser(user.id);
     if (userSchools && userSchools.length > 0) {
       return userSchools;
@@ -435,30 +438,29 @@ const LoginScreen: React.FC = () => {
   }
 
   // Helper function to redirect user based on role
-  async function redirectUser(user: any, userSchools: any[]) {
+  async function redirectUser(
+    userSchools: {
+      school: TableTypes<"school">;
+      role: RoleType;
+    }[]
+  ) {
     const userRole = localStorage.getItem(USER_ROLE);
-    if (
+    const isOpsRole =
       userRole === RoleType.SUPER_ADMIN ||
-      userRole === RoleType.OPERATIONAL_DIRECTOR
-    ) {
+      userRole === RoleType.OPERATIONAL_DIRECTOR;
+    const isProgramUser = await api.isProgramUser();
+    if (isOpsRole || isProgramUser) {
+      localStorage.setItem(IS_OPS_USER, "true");
+      ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+      await ScreenOrientation.unlock();
       history.replace(PAGES.SIDEBAR_PAGE);
       return;
     }
+
     if (userSchools.length > 0) {
       const autoUserSchool = userSchools.find(
         (school) => school.role === RoleType.AUTOUSER
       );
-
-      const isOpsUser = userSchools.some(
-        (school) =>
-          school.role === RoleType.PROGRAM_MANAGER ||
-          school.role === RoleType.FIELD_COORDINATOR
-      );
-
-      if (isOpsUser) {
-        history.replace(PAGES.SIDEBAR_PAGE);
-        return;
-      }
 
       if (autoUserSchool) {
         schoolUtil.setCurrMode(MODES.SCHOOL);
@@ -514,7 +516,7 @@ const LoginScreen: React.FC = () => {
         setIsLoading(false);
         const user = JSON.parse(localStorage.getItem(USER_DATA)!);
         const userSchools = await getSchoolsForUser(user);
-        await redirectUser(user, userSchools);
+        await redirectUser(userSchools);
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
 
         // Log the login event
@@ -571,9 +573,7 @@ const LoginScreen: React.FC = () => {
 
       // Password validation
       if (password.length < 6 || /\s/.test(password)) {
-        setErrorMessage(
-          t("Password must be at least 6 characters")
-        );
+        setErrorMessage(t("Password must be at least 6 characters"));
         return;
       }
 
@@ -585,12 +585,15 @@ const LoginScreen: React.FC = () => {
       );
 
       if (result) {
-        setAnimatedLoading(false);
-        setIsLoading(false);
-        const user = JSON.parse(localStorage.getItem(USER_DATA)!);
-        const userSchools = await getSchoolsForUser(user);
-        await redirectUser(user, userSchools);
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
+        setIsLoading(false);
+        const user: any =
+          await ServiceConfig.getI().authHandler.getCurrentUser();
+        if (user) {
+          const userSchools = await getSchoolsForUser(user);
+          await redirectUser(userSchools);
+        }
+        setAnimatedLoading(false);
 
         // Log the login event
         Util.logEvent(EVENTS.USER_PROFILE, {
@@ -637,7 +640,7 @@ const LoginScreen: React.FC = () => {
         phoneNumberErrorRef.current.style.display = "none";
       }
       setPhoneNumber(phoneNumber.number.toString());
-    } 
+    }
   };
 
   const otpEventListener = async (event: Event) => {
@@ -708,186 +711,184 @@ const LoginScreen: React.FC = () => {
     <div className="Loginscreen-login-screen">
       {initializing ? (
         <Loading isLoading={true} />
+      ) : animatedLoading ? (
+        <div className="Loginscreen-initial-loading-ui">
+          <img
+            src={loadingAnimations[loadingAnimationsIndex]}
+            alt="initial-gif-animations"
+            className="Loginscreen-initial-homework-icon"
+          />
+          <img
+            src="/assets/loader-circle.gif"
+            alt="initial-loading-gif"
+            className="Loginscreen-initial-loading-spinner"
+          />
+          <IonText className="Loginscreen-initial-loading-text">
+            <p>{t(loadingMessages[currentMessageIndex])}</p>
+          </IonText>
+          <IonText className="Loginscreen-initial-loading-text">
+            <p>{t("Hang tight, It's a special occasion!")}</p>
+          </IonText>
+        </div>
       ) : (
-        animatedLoading ? (
-          <div className="Loginscreen-initial-loading-ui">
-            <img
-              src={loadingAnimations[loadingAnimationsIndex]}
-              alt="initial-gif-animations"
-              className="Loginscreen-initial-homework-icon"
-            />
-            <img
-              src="/assets/loader-circle.gif"
-              alt="initial-loading-gif"
-              className="Loginscreen-initial-loading-spinner"
-            />
-            <IonText className="Loginscreen-initial-loading-text">
-              <p>{t(loadingMessages[currentMessageIndex])}</p>
-            </IonText>
-            <IonText className="Loginscreen-initial-loading-text">
-              <p>{t("Hang tight, It's a special occasion!")}</p>
-            </IonText>
-          </div>
-        ) : (
-          <>
-            <div
-              className="Loginscreen-tc-popup"
-              style={{ display: showTandC ? "block" : "none" }}
-            >
-              <div className="Loginscreen-tc-header">
-                <button
-                  className="Loginscreen-tc-close-button"
-                  onClick={() => setShowTandC(false)}
-                >
-                  <img
-                    src="/assets/loginAssets/TermsConditionsClose.svg"
-                    alt="Close"
-                  />
-                </button>
-              </div>
-              <div className="Loginscreen-tc-content">
-                <iframe
-                  src="assets/termsandconditions/TermsandConditionsofChimple.html"
-                  title="Terms and Conditions"
-                  allowFullScreen={true}
-                  style={{ height: "80vh", width: "100%", border: "none" }}
-                />
-              </div>
-            </div>
-            <div className="Loginscreen-login-header">
-              {loginType === "otp" || loginType === "forgot-pass" ? (
-                <button
-                  className="Loginscreen-otp-back-button"
-                  onClick={handleOtpBack}
-                  aria-label="Back"
-                  type="button"
-                >
-                  <FaArrowLeftLong style={{color:"#f34d08"}}
-                    className="Loginscreen-otp-back-arrow-img"
-                  />
-                </button>
-              ) : (
-                <div></div>
-              )}
-              <LanguageDropdown
-                options={langOptions}
-                value={currentLang}
-                onChange={handleLanguageChange}
-              />
-            </div>
-            {loginType !== "otp" ? (
-              <img
-                src={"/assets/loginAssets/ChimpleLogo.svg"}
-                alt="Chimple Logo"
-                className="Loginscreen-chimple-login-logo"
-                style={
-                  (loginType as string) !== "phone"
-                    ? {
-                        maxWidth: "138px",
-                        marginTop: window.matchMedia("(orientation: landscape)")
-                          .matches
-                          ? "0"
-                          : "35%",
-                    }
-                    : undefined
-                }
-              />
-            ) : (
-              <div className="Loginscreen-chimple-login-logo-otp-container">
-                <p>{t("Verify Your Number")}</p>
+        <>
+          <div
+            className="Loginscreen-tc-popup"
+            style={{ display: showTandC ? "block" : "none" }}
+          >
+            <div className="Loginscreen-tc-header">
+              <button
+                className="Loginscreen-tc-close-button"
+                onClick={() => setShowTandC(false)}
+              >
                 <img
-                  src={"/assets/loginAssets/MascotForOTP.svg"}
-                  alt="Chimple Logo"
-                  className="Loginscreen-chimple-login-logo-otp"
+                  src="/assets/loginAssets/TermsConditionsClose.svg"
+                  alt="Close"
                 />
-              </div>
+              </button>
+            </div>
+            <div className="Loginscreen-tc-content">
+              <iframe
+                src="assets/termsandconditions/TermsandConditionsofChimple.html"
+                title="Terms and Conditions"
+                allowFullScreen={true}
+                style={{ height: "80vh", width: "100%", border: "none" }}
+              />
+            </div>
+          </div>
+          <div className="Loginscreen-login-header">
+            {loginType === "otp" || loginType === "forgot-pass" ? (
+              <button
+                className="Loginscreen-otp-back-button"
+                onClick={handleOtpBack}
+                aria-label="Back"
+                type="button"
+              >
+                <FaArrowLeftLong
+                  style={{ color: "#f34d08" }}
+                  className="Loginscreen-otp-back-arrow-img"
+                />
+              </button>
+            ) : (
+              <div></div>
             )}
-
-            <>
-              {loginType === "phone" && (
-                <LoginWithPhone
-                  onNext={handlePhoneNext}
-                  phoneNumber={phoneNumber}
-                  setPhoneNumber={setPhoneNumber}
-                  errorMessage={errorMessage}
-                  checkbox={checkbox}
-                  onFocus={async () => {
-                    if (
-                      Capacitor.getPlatform() === "android" &&
-                      !isPromptNumbers
-                    ) {
-                      const data = await PortPlugin.requestPermission();
-                      setIsPromptNumbers(true);
+            <LanguageDropdown
+              options={langOptions}
+              value={currentLang}
+              onChange={handleLanguageChange}
+            />
+          </div>
+          {loginType !== "otp" ? (
+            <img
+              src={"/assets/loginAssets/ChimpleLogo.svg"}
+              alt="Chimple Logo"
+              className="Loginscreen-chimple-login-logo"
+              style={
+                (loginType as string) !== "phone"
+                  ? {
+                      maxWidth: window.matchMedia("(orientation: landscape)")
+                      .matches
+                      ? "120px"
+                      : "138px",
                     }
-                  }}
-                />
-              )}
-              {loginType === "student" && (
-                <LoginWithStudentID
-                  onLogin={handleStudentLogin}
-                  schoolCode={schoolCode}
-                  setSchoolCode={setSchoolCode}
-                  studentId={studentId}
-                  setStudentId={setStudentId}
-                  studentPassword={studentPassword}
-                  setStudentPassword={setStudentPassword}
-                  errorMessage={errorMessage}
-                  checkbox={checkbox}
-                />
-              )}
-              {loginType === "email" && (
-                <LoginWithEmail
-                  onLogin={handleEmailLogin}
-                  onForgotPasswordChange={() => {
-                    setLoginType("forgot-pass");
-                  }}
-                  email={email}
-                  setEmail={setEmail}
-                  password={password}
-                  setPassword={setPassword}
-                  errorMessage={errorMessage}
-                  checkbox={checkbox}
-                />
-              )}
-              {loginType === "otp" && (
-                <OtpVerification
-                  phoneNumber={phoneNumber}
-                  onVerify={handleOtpVerification}
-                  onResend={handleResendOtp}
-                  errorMessage={errorMessage}
-                  counter={counter}
-                  showResendOtp={showResendOtp}
-                  isLoading={isLoading}
-                  verificationCode={verificationCode}
-                  setVerificationCode={setVerificationCode}
-                />
-              )}
-              {loginType === "forgot-pass" && (
-                <ForgotPass
-                  onGoBack={() => {
-                    setLoginType("email");
-                  }}
-                />
-              )}
-            </>
-            <LoginSwitch
-              loginType={loginType}
-              onSwitch={handleSwitch}
-              checkbox={checkbox}
-              onCheckboxChange={setCheckbox}
-              onTermsClick={() => setShowTandC(true)}
-              onGoogleSignIn={handleGoogleSignIn}
-              otpExpiryCounter={otpExpiryCounter}
+                  : undefined
+              }
             />
-            {isInputFocus && <div ref={scollToRef} id="scroll"></div>}
-            <IonLoading
-              id="custom-loading"
-              message="Loading"
-              isOpen={spinnerLoading}
-            />
-            <Loading isLoading={sentOtpLoading} />
+          ) : (
+            <div className="Loginscreen-chimple-login-logo-otp-container">
+              <p>{t("Verify Your Number")}</p>
+              <img
+                src={"/assets/loginAssets/MascotForOTP.svg"}
+                alt="Chimple Logo"
+                className="Loginscreen-chimple-login-logo-otp"
+              />
+            </div>
+          )}
+
+          <>
+            {loginType === "phone" && (
+              <LoginWithPhone
+                onNext={handlePhoneNext}
+                phoneNumber={phoneNumber}
+                setPhoneNumber={setPhoneNumber}
+                errorMessage={errorMessage}
+                checkbox={checkbox}
+                onFocus={async () => {
+                  if (
+                    Capacitor.getPlatform() === "android" &&
+                    !isPromptNumbers
+                  ) {
+                    const data = await PortPlugin.requestPermission();
+                    setIsPromptNumbers(true);
+                  }
+                }}
+              />
+            )}
+            {loginType === "student" && (
+              <LoginWithStudentID
+                onLogin={handleStudentLogin}
+                schoolCode={schoolCode}
+                setSchoolCode={setSchoolCode}
+                studentId={studentId}
+                setStudentId={setStudentId}
+                studentPassword={studentPassword}
+                setStudentPassword={setStudentPassword}
+                errorMessage={errorMessage}
+                checkbox={checkbox}
+              />
+            )}
+            {loginType === "email" && (
+              <LoginWithEmail
+                onLogin={handleEmailLogin}
+                onForgotPasswordChange={() => {
+                  setLoginType("forgot-pass");
+                }}
+                email={email}
+                setEmail={setEmail}
+                password={password}
+                setPassword={setPassword}
+                errorMessage={errorMessage}
+                checkbox={checkbox}
+              />
+            )}
+            {loginType === "otp" && (
+              <OtpVerification
+                phoneNumber={phoneNumber}
+                onVerify={handleOtpVerification}
+                errorMessage={errorMessage}
+                isLoading={isLoading}
+                verificationCode={verificationCode}
+                setVerificationCode={setVerificationCode}
+              />
+            )}
+            {loginType === "forgot-pass" && (
+              <ForgotPass
+                onGoBack={() => {
+                  setLoginType("email");
+                }}
+              />
+            )}
           </>
-        )
+          <LoginSwitch
+            loginType={loginType}
+            onSwitch={handleSwitch}
+            checkbox={checkbox}
+            onCheckboxChange={setCheckbox}
+            onResend={loginType=="otp" ? handleResendOtp:()=>{}}
+            showResendOtp={showResendOtp}
+            counter={counter}
+            onTermsClick={() => setShowTandC(true)}
+            onGoogleSignIn={handleGoogleSignIn}
+            otpExpiryCounter={otpExpiryCounter}
+          />
+          {isInputFocus && <div ref={scollToRef} id="scroll"></div>}
+          <IonLoading
+            id="custom-loading"
+            message="Loading"
+            isOpen={spinnerLoading}
+          />
+          <Loading isLoading={sentOtpLoading} />
+        </>
       )}
     </div>
   );

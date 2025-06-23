@@ -1,11 +1,11 @@
 .school-detail-container {
   background: white;
   width: 100%;
-  box-sizing: border-box;
-  overflow-x: hidden;
+  position: relative !important;
+  overflow: hidden !important;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
 }
 
 .school-detail-gap {

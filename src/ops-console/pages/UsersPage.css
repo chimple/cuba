@@ -1,0 +1,115 @@
+.user-table {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  padding: 0 32px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  margin-top: 0;
+}
+
+.user-page-pagination {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  flex: 0 0 auto;
+  background-color: white;
+}
+
+@media screen and (orientation: portrait) {
+  .user-table {
+    padding: 0 20px;
+    font-size: 0.95rem;
+  }
+  .user-page-pagination {
+    padding: 10px 0;
+  }
+  .user-page-header {
+    padding: 16px 20px !important;
+  }
+}
+
+.user-page-container {
+  background: white;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-page-header {
+  width: 100%;
+  background: white;
+  padding-top: 32px;
+  padding-bottom: 32px;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+.user-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.user-title {
+  font-size: 30px !important;
+  font-weight: 700 !important;
+}
+
+.user-title-mobile {
+  font-size: 25px !important;
+  font-weight: 700 !important;
+  text-align: center;
+}
+
+.user-icon-button {
+  color: black !important;
+  width: 40px;
+  height: 40px;
+}
+
+.user-mobile-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.user-search-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-add-mobile {
+  min-width: 0 !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 70% !important;
+  color: #1976d2;
+  border-color: #d0d0d0;
+  padding: 0 !important;
+}
+
+.user-desktop-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.user-add-desktop {
+  border-radius: 999px !important;
+  color: #6e6e6e !important;
+  border-color: #d0d0d0;
+  text-transform: none;
+  font-weight: 700 !important;
+  padding: 6px 22px !important;
+}
+
+.user-search-desktop {
+  min-width: 250px;
+}

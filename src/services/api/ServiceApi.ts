@@ -1682,6 +1682,15 @@ export interface ServiceApi {
   }>;
 
   /**
+   * Retrieve the list of managers and coordinators associated with the current user.
+   *
+   * @returns {Promise<{ name: string; role: string }[]>}
+   *   Promise resolving to an array of objects, each containing the user's name and their role
+   *   (e.g., "Program Manager", "Field Coordinator").
+   */
+  getManagersAndCoordinators(): Promise<{ name: string; role: string }[]>;
+
+  /**
    * Count total and active students, total and active teachers, and average time spent for a given school.
    *
    * @param {string} schoolId - The ID of the school.
@@ -1700,4 +1709,10 @@ export interface ServiceApi {
     total_teachers: number;
     active_teachers: number;
   }>;
+
+    /**
+   * Checks if the current user is a program manager.
+   * @returns {Promise<boolean>} A promise that resolves to true if the user is a program manager, false otherwise.
+   */
+  isProgramManager(): Promise<boolean>;
 }

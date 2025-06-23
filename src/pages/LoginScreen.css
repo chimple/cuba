@@ -46,12 +46,6 @@
 }
 
 @media screen and (max-width: 600px) {
-  .Loginscreen-chimple-login-logo-otp-container{
-    position: absolute;
-    top: 23%;
-    gap: 20px;
-    z-index: 12;
-  }
   .Loginscreen-otp-back-button {
     position: absolute;
     top: 79px;
@@ -69,7 +63,14 @@
     margin-right: 8px;
   }
 }
-
+@media screen and (max-width: 768px) {
+  .Loginscreen-chimple-login-logo-otp-container{
+    position: absolute;
+    top: 23%;
+    gap: 20px;
+    z-index: 12;
+  }
+}
 @media screen and (max-height: 500px) {
   .Loginscreen-chimple-login-logo-otp-container {
     z-index: 12;
@@ -80,9 +81,19 @@
   .Loginscreen-chimple-login-logo-otp {
     max-width: 78px;
   }
+}
+@media screen and (max-height: 620px) {
+  .Loginscreen-chimple-login-logo {
+    position: absolute;
+    max-width: 150px;
+    top:12%;
+  }
+}
+@media screen and (max-height: 540px) {
   .Loginscreen-chimple-login-logo {
     position: absolute;
     max-width: 120px;
+    top:5%;
   }
 }
 
@@ -138,11 +149,6 @@
   border: none;
   cursor: pointer;
   padding: 0.5rem;
-}
-
-.Loginscreen-tc-close-button img {
-  width: 24px;
-  height: 24px;
 }
 
 .Loginscreen-tc-content {

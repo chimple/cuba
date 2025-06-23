@@ -44,9 +44,9 @@ if (typeof window !== "undefined") {
   }
 }
 
-// if (Capacitor.isNativePlatform()) {
-//   await ScreenOrientation.lock({ orientation: "landscape" });
-// }
+if (Capacitor.isNativePlatform()) {
+  await ScreenOrientation.lock({ orientation: "landscape" });
+}
 applyPolyfills().then(() => {
   jeepSqlite(window);
 });

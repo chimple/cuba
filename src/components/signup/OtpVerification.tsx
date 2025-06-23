@@ -8,10 +8,7 @@ const OTP_LENGTH = 6;
 interface OtpVerificationProps {
   phoneNumber: string;
   onVerify: (otp: string) => void;
-  onResend: () => void;
   errorMessage?: string | null;
-  counter: number;
-  showResendOtp: boolean;
   isLoading: boolean;
   verificationCode?: string;
   setVerificationCode?: (code: string) => void;
@@ -20,10 +17,7 @@ interface OtpVerificationProps {
 const OtpVerification: React.FC<OtpVerificationProps> = ({
   phoneNumber,
   onVerify,
-  onResend,
   errorMessage,
-  counter,
-  showResendOtp,
   isLoading,
   verificationCode,
   setVerificationCode
@@ -123,7 +117,8 @@ const OtpVerification: React.FC<OtpVerificationProps> = ({
 
   return (
     <div className="OtpVerification-method">
-      <div className="OtpVerification-title">{phoneNumber && `${t("Enter the OTP sent to +91")}${phoneNumber}`}</div>
+      <div className="OtpVerification-title">{phoneNumber && t("Enter the OTP sent to +91", { phoneNumber })}
+</div>
       <div className="OtpVerification-inputs">
         {[...Array(OTP_LENGTH)].map((_, i) => (
           <input

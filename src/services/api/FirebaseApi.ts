@@ -2044,18 +2044,22 @@ export class FirebaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   getProgramData(programId: string): Promise<{
-    programDetails: {id:string; label: string; value: string }[];
-    locationDetails: {id:string;  label: string; value: string }[];
-    partnerDetails: {id:string;  label: string; value: string }[];
-    programManagers: {name: string; role: string; phone: string }[];
+    programDetails: { id: string; label: string; value: string }[];
+    locationDetails: { id: string; label: string; value: string }[];
+    partnerDetails: { id: string; label: string; value: string }[];
+    programManagers: { name: string; role: string; phone: string }[];
   } | null> {
     throw new Error("Method not implemented.");
   }
-  async getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>> {
+  async getSchoolFilterOptionsForSchoolListing(): Promise<
+    Record<string, string[]>
+  > {
     throw new Error("getSchoolFilterOptions() is not implemented.");
   }
 
-  async getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>): Promise<FilteredSchool[]> {
+  async getFilteredSchoolsForSchoolListing(
+    filters: Record<string, string[]>
+  ): Promise<FilteredSchool[]> {
     throw new Error("getFilteredSchools() is not implemented.");
   }
   async isProgramUser(): Promise<boolean> {
@@ -2073,6 +2077,12 @@ export class FirebaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+  public async getManagersAndCoordinators(
+    userId: string
+  ): Promise<{ name: string; role: string }[]> {
+    throw new Error("Method not implemented.");
+  }
+
   countUsersBySchool(schoolId: string): Promise<{
     total_students: number;
     active_students: number;
@@ -2082,5 +2092,7 @@ export class FirebaseApi implements ServiceApi {
   }> {
     throw new Error("Method not implemented.");
   }
-
+  async isProgramManager(): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
 }

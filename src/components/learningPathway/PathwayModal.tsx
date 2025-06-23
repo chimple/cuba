@@ -57,12 +57,9 @@ const PathwayModal: React.FC<PathwayModalProps> = ({
   return (
     <div className="PathwayModal-overlay">
       <div className={`${cls} PathwayModal-width`} ref={ref} style={{ height: modalHeight }}>
-        {/* ✖ only for inactive popups */}
-        {!animate && (
           <button className="PathwayModal-close" onClick={onClose}>
             <img src='pathwayAssets/menuCross.svg' alt="close-icon" />
           </button>
-        )}
         <p className="PathwayModal-text">{text}</p>
       </div>
     </div>

@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import DataTableBody, { Column } from "../components/DataTableBody";
 import DataTablePagination from "../components/DataTablePagination";
 import { useDataTableLogic } from "../OpsUtility/useDataTableLogic";
 import {
   Box,
-  Chip,
   Typography,
   Button,
   Skeleton,
   CircularProgress,
   useMediaQuery,
   useTheme,
+  IconButton,
 } from "@mui/material";
 import "./ProgramPage.css";
 import FilterSlider from "../components/FilterSlider";
@@ -29,6 +29,7 @@ import {
   USER_ROLE,
 } from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
+import { BsFillBellFill } from "react-icons/bs";
 
 type ProgramRow = {
   programName: any;
@@ -39,11 +40,11 @@ type ProgramRow = {
 };
 
 const columns: Column<ProgramRow>[] = [
-  { key: "programName", label: "Program Name", align: "left" },
+  { key: "programName", label: "Program Name", align: "left", width: "30%" },
   { key: "institutes", label: "No of Institutes", align: "left" },
   { key: "students", label: "No of Students", align: "left" },
   { key: "devices", label: "No of Devices", align: "left" },
-  { key: "manager", label: "Program Manager" },
+  { key: "manager", label: "Program Manager", align: "left", width: "25%" },
 ];
 
 const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([key, label]) => ({
@@ -56,7 +57,7 @@ const ProgramsPage: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const isSmallScreen = useMediaQuery("(max-width: 900px)");
 
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [filters, setFilters] = useState<Record<string, string[]>>({
@@ -83,29 +84,41 @@ const ProgramsPage: React.FC = () => {
   const [programs, setPrograms] = useState<any[]>([]);
   const [loadingPrograms, setLoadingPrograms] = useState(false);
   const [loadingFilters, setLoadingFilters] = useState(false);
-  const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>(
-    {}
-  );
+  const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>({});
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const userRole = localStorage.getItem(USER_ROLE);
-  const isOpsRole =
-    userRole === RoleType.SUPER_ADMIN ||
-    userRole === RoleType.OPERATIONAL_DIRECTOR;
+  const [isProgramManager, setIsProgramManager] = useState(false);
+  const [isOpsRole, setIsOpsRole] = useState(false);
   const tab: TabType = tabOptions[activeTabIndex].value;
+  const tableScrollRef = React.useRef<HTMLDivElement>(null);
+
+  const showNewProgramButton = isOpsRole || isProgramManager;
 
   useEffect(() => {
-    const fetchFilterOptions = async () => {
+    const fetchInitialData = async () => {
       try {
         setLoadingFilters(true);
-        const response = await api.getProgramFilterOptions();
-        setFilterOptions(response);
+
+        const [filterResponse, isManager] = await Promise.all([
+          api.getProgramFilterOptions(),
+          api.isProgramManager(),
+        ]);
+
+        setFilterOptions(filterResponse);
+        setIsProgramManager(!!isManager);
       } catch (error) {
-        console.error("Failed to fetch filter options:", error);
+        console.error("Failed to fetch data:", error);
+        setIsProgramManager(false);
       } finally {
         setLoadingFilters(false);
       }
+
+      const userRole = localStorage.getItem(USER_ROLE);
+      const isOps =
+        userRole === RoleType.SUPER_ADMIN || userRole === RoleType.OPERATIONAL_DIRECTOR;
+      setIsOpsRole(isOps);
     };
-    fetchFilterOptions();
+
+    fetchInitialData();
   }, []);
 
   useEffect(() => {
@@ -135,19 +148,14 @@ const ProgramsPage: React.FC = () => {
     fetchPrograms();
   }, [filters, searchTerm, tab]);
 
-  const transformedRows = programs.map((row) => ({
+  const transformedRows = useMemo(() => programs.map((row) => ({
     id: row.id,
     programName: {
       value: row.name,
       render: (
-        <Box
-          display="flex"
-          flexDirection="column"
-          justifyContent="flex-start"
-          alignItems="flex-start"
-        >
+        <Box display="flex" flexDirection="column" alignItems="flex-start">
           <Typography variant="subtitle2">{row.name}</Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" textAlign={"left"}>
             {row.state}
           </Typography>
         </Box>
@@ -155,12 +163,9 @@ const ProgramsPage: React.FC = () => {
     },
     institutes: row.institutes_count ?? 0,
     students: row.students_count ?? 0,
-    devices: {
-      value: row.devices_count ?? 0,
-      render: <Chip label={row.devices_count ?? 0} size="small" />,
-    },
+    devices: row.devices_count ?? 0,
     manager: row.manager_names,
-  }));
+  })), [programs]);
 
   const { orderBy, order, page, setPage, handleSort, paginatedRows } =
     useDataTableLogic(transformedRows);
@@ -234,33 +239,42 @@ const ProgramsPage: React.FC = () => {
 
   return (
     <div className="program-page">
-      <div className="program-page-header">{t("Programs")}</div>
-
+      <div className="program-page-header">
+        <span className="program-page-header-title">{t("Programs")}</span>
+        <IconButton className="bell-icon" sx={{ color: "black" }}>
+          <BsFillBellFill />
+        </IconButton>
+      </div>
       <div className="program-header-and-search-filter">
         <div className="program-search-filter">
-          <HeaderTab
-            activeTab={activeTabIndex}
-            handleTabChange={handleTabChange}
-            tabs={tabOptions}
-          />
+          <div className="program-tab-wrapper">
+            <HeaderTab
+              activeTab={activeTabIndex}
+              handleTabChange={handleTabChange}
+              tabs={tabOptions}
+            />
+          </div>
+
           <div className="program-button-and-search-filter">
-            {isOpsRole && (
+            {!loadingFilters && showNewProgramButton && (
               <Button
                 variant="outlined"
                 onClick={() =>
                   history.replace(PAGES.SIDEBAR_PAGE + PAGES.NEW_PROGRAM)
                 }
                 sx={{
-                  borderColor: "transparent",
+                  borderColor: "#e0e0e0",
+                  border: "1px solid",
                   borderRadius: 20,
-                  boxShadow: 3,
-                  height: "48px",
+                  boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.1)",
+                  height: "36px",
                   minWidth: isSmallScreen ? "48px" : "auto",
                   padding: isSmallScreen ? 0 : "6px 16px",
+                  textTransform: "none",
                 }}
               >
                 <Add />
-                {!isSmallScreen && t("New Program")}
+                {!isSmallScreen && <span style={{ color: "black" }}>{t("New Program")}</span>}
               </Button>
             )}
             {loadingFilters ? (
@@ -320,6 +334,7 @@ const ProgramsPage: React.FC = () => {
             order={order}
             onSort={handleSort}
             detailPageRouteBase="programs"
+            ref={tableScrollRef}
           />
         )}
       </div>
@@ -328,7 +343,10 @@ const ProgramsPage: React.FC = () => {
         <DataTablePagination
           page={page}
           pageCount={Math.ceil(programs.length / 10)}
-          onPageChange={setPage}
+          onPageChange={(newPage) => {
+            setPage(newPage);
+            tableScrollRef.current?.scrollTo?.({ top: 0, behavior: "smooth" });
+          }}
         />
       </div>
     </div>

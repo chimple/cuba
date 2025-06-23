@@ -46,10 +46,12 @@
 
 .LoginSwitch-switch-option {
   color: var(--text-color);
-  width: 78px;
-  height: 57px;
-  min-width: 78px;
-  min-height: 57px;
+  width: 2vw;
+  height: 7vh;
+  min-width: 90px;
+  min-height: 60px;
+  max-width: 95px;
+  max-height: 65px;
   font-size: 16px;
   display: flex;
   flex-direction: column;
@@ -73,7 +75,7 @@
 .LoginSwitch-terms-condition {
   position: absolute;
   top: 75%;
-  padding: 8px 16px;
+  margin-top: 8px;
   border-radius: 4px;
   display: flex;
   justify-content: center;
@@ -112,7 +114,8 @@
   display: inline-block;
 }
 
-.LoginSwitch-terms-checkbox-input:checked+.LoginSwitch-terms-custom-checkbox::after {
+.LoginSwitch-terms-checkbox-input:checked
+  + .LoginSwitch-terms-custom-checkbox::after {
   content: "";
   position: absolute;
   left: 6px;
@@ -161,17 +164,28 @@
 }
 
 .LoginSwitch-otp-resend-link {
+  background: none !important;
+  border: none;
+  outline: none;
   text-align: center;
-}
-
-.LoginSwitch-otp-resend-anchor {
   font-size: 20px;
   font-weight: bold;
   color: var(--text-color);
   text-decoration: underline;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color 0.2s, background 0.2s;
+  padding: 5px 10px;
+  border-radius: 6px;
+  box-shadow: none;
 }
+
+.LoginSwitch-otp-resend-link:disabled,
+.LoginSwitch-otp-resend-link[disabled] {
+  cursor: not-allowed !important;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
 
 @media (max-width: 500px) {
   .LoginSwitch-otp-expiry-container {
