@@ -9,6 +9,7 @@ import {
   useTheme,
   useMediaQuery,
   CircularProgress,
+  Skeleton,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
@@ -20,6 +21,7 @@ import { USER_ROLE } from "../../common/constants";
 import { t } from "i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { RoleLabels, RoleType } from "../../interface/modelInterfaces";
+import "./UsersPage.css";
 
 interface User {
   fullName: string;
@@ -32,10 +34,10 @@ interface UsersPageProps {
 
 const columns = [
   { key: "fullName", label: "Full Name", width: "30%" },
-  { key: "role", label: "Role", width: "70%" },
+  { key: "role", label: "Roles", width: "70%" },
 ];
 
-const ROWS_PER_PAGE = 7;
+const ROWS_PER_PAGE = 10;
 
 const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
   const [search, setSearch] = useState("");
@@ -100,51 +102,37 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
   };
 
   return (
-    <div style={{ background: "white", height: "100%" }}>
-      <Box
-        width="100%"
-        py={isMobile ? 2 : 4}
-        sx={{
-          px: isMobile ? "20px" : 4,
-          background: "white",
-        }}
-      >
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={3}
-        >
+    <div className="user-page-container">
+      <Box className="user-page-header">
+        <Box className="user-header-top">
           {isMobile ? (
             <>
               <Box sx={{ width: 40 }} />
-              <Typography fontSize="25px" fontWeight="bold" textAlign="center">
+              <Typography className="user-title-mobile">
                 {t("Users")}
               </Typography>
-              <IconButton sx={{ color: "black", width: 40, height: 40 }}>
+              <IconButton className="user-icon-button">
                 <NotificationsIcon />
               </IconButton>
             </>
           ) : (
             <>
-              <Typography fontSize="29px" fontWeight="bold">
-                {t("Users")}
-              </Typography>
-              <IconButton sx={{ color: "black" }}>
+              <Typography className="user-title">{t("Users")}</Typography>
+              <IconButton className="user-icon-button">
                 <NotificationsIcon />
               </IconButton>
             </>
           )}
         </Box>
         {isMobile ? (
-          <Box display="flex" alignItems="center" gap={1} mb={3}>
+          <Box className="user-mobile-actions">
             <TextField
               placeholder="Search"
               size="small"
               variant="outlined"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              sx={{ minWidth: 0, flex: 1 }}
+              className="user-search-input"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -153,55 +141,26 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
                 ),
               }}
             />
-            {localStorage.getItem(USER_ROLE) !== "field_coordinator" && (
-              <Button
-                variant="outlined"
-                sx={{
-                  minWidth: 0,
-                  width: 40,
-                  height: 40,
-                  borderRadius: "50%",
-                  color: "#1976d2",
-                  borderColor: "#d0d0d0",
-                  padding: 0,
-                }}
-              >
-                <AddIcon sx={{ fontSize: 25 }} />
-              </Button>
-            )}
+            <Button variant="outlined" className="user-add-mobile">
+              <AddIcon sx={{ fontSize: 25 }} />
+            </Button>
           </Box>
         ) : (
-          <Box
-            display="flex"
-            justifyContent="flex-end"
-            alignItems="center"
-            gap={2}
-            mb={3}
-          >
-            {localStorage.getItem(USER_ROLE) !== "field_coordinator" && (
-              <Button
-                variant="outlined"
-                startIcon={<AddIcon sx={{ color: "#1976d2", fontSize: 25 }} />}
-                sx={{
-                  borderRadius: "999px",
-                  color: "#6e6e6e",
-                  borderColor: "#d0d0d0",
-                  textTransform: "none",
-                  fontWeight: 600,
-                  px: 3,
-                  py: 1,
-                }}
-              >
-                {t("New User")}
-              </Button>
-            )}
+          <Box className="user-desktop-actions">
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon sx={{ color: "#1976d2", fontSize: 25 }} />}
+              className="user-add-desktop"
+            >
+              {t("New User")}
+            </Button>
             <TextField
               placeholder="Search"
               size="small"
               variant="outlined"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              sx={{ minWidth: 250 }}
+              className="user-search-desktop"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -211,34 +170,43 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
               }}
             />
           </Box>
-        )}
-
-        {loading ? (
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            height="100vh"
-          >
-            <CircularProgress />
-          </Box>
-        ) : (
-          <>
-            <DataTableBody
-              columns={columns}
-              rows={paginatedUsers}
-              orderBy={"fullName"}
-              order={order}
-              onSort={handleSort}
-            />
-            <DataTablePagination
-              page={page}
-              pageCount={pageCount}
-              onPageChange={setPage}
-            />
-          </>
         )}
       </Box>
+      <div className="user-table">
+        {loading ? (
+          <Box padding={2}>
+            {[...Array(10)].map((_, i) => (
+              <Skeleton
+                key={i}
+                variant="rectangular"
+                height={40}
+                sx={{ mb: 0 }}
+              />
+            ))}
+          </Box>
+        ) : paginatedUsers.length === 0 ? (
+          <Box padding={4} textAlign="center">
+            <Typography variant="h6" color="text.secondary">
+              {t("No users found")}
+            </Typography>
+          </Box>
+        ) : (
+          <DataTableBody
+            columns={columns}
+            rows={paginatedUsers}
+            orderBy={"fullName"}
+            order={order}
+            onSort={handleSort}
+          />
+        )}
+      </div>
+      <div className="user-page-pagination">
+        <DataTablePagination
+          page={page}
+          pageCount={pageCount}
+          onPageChange={setPage}
+        />
+      </div>
     </div>
   );
 };
