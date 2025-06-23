@@ -638,7 +638,7 @@
   "Reports": "विवरण",
   "Request Confirmation": "अनुरोध की पुष्टि",
   "Resend Otp Failed!! Please try again after some time.": "OTP  दोबारा भेजने में विफल!! कृपया कुछ समय बाद पुनः प्रयास करें.",
-  "Resend OTP": "OTP  पुनः भेजें",
+  "Resend OTP": "ओटीपी पुनः भेजें",
   "reset password": "पासवर्ड रीसेट करें",
   "Resources": "संसाधन",
   "Revision ": "दोहराव",
@@ -911,6 +911,6 @@
   "Your data has been successfully checked, and no errors were found.": "आपका डेटा सफलतापूर्वक जांचा गया है, और कोई त्रुटि नहीं मिली।",
   "Your profile is not registered to any school.": "आपका प्रोफ़ाइल किसी भी विद्यालय में पंजीकृत नहीं है|",
   "Your progress stays synced and consistent across all devices.": "आपकी प्रगति सभी डिवाइसों पर समन्वयित और सुसंगत रहती है।",
-  "Your OTP will expire in": "आपका ओटीपी समाप्त हो जाएगा",
+  "Your OTP will expire in {{minutes}} minutes": "आपका ओटीपी {{minutes}} मिनट में समाप्त हो जाएगा",
   "Zebra": "ज़ेबरा"
 }

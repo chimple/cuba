@@ -148,7 +148,7 @@
 }
 
 /* Responsive styling */
-@media (max-width: 500px) {
+@media (max-width: 768px) {
   .LoginWithEmail-forgot-email-text {
     margin-top: 13%;
   }

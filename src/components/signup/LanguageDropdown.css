@@ -108,7 +108,7 @@
   color: #F34D08;
 } */
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 768px) {
   .LanguageDropdown-container {
     position: absolute;
     top: 79px;
