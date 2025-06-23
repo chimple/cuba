@@ -1,0 +1,31 @@
+.classcode-container {
+  display: flex;
+  justify-content: center;
+}
+.manage-classes {
+  padding-left: 45px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.manage-class-button {
+  border: 1px solid #7C5DB0;
+  border-radius: 5px;
+  width: 150px;
+  height: 34px;
+}
+
+.manage-class-button {
+  border: 1px solid #7C5DB0;
+  border-radius: 5px;
+  width: 150px;
+  height: 34px;
+}
+.class-divider {
+  background-color:#9473CB;
+  height: 0.5px;
+  width: clamp(217px, 31vw, 217px);
+}
+.class-iconlabel {
+  padding-left: 10px;
+}

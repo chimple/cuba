@@ -53,10 +53,7 @@ export class ClassUtil {
     );
     const studentsWhoCompletedAllAssignments = studentsWithCompletedAssignments
       ? Object.keys(studentsWithCompletedAssignments).filter((studentId) => {
-          return (
-            studentsWithCompletedAssignments[studentId].size ===
-            totalAssignments
-          );
+          return studentsWithCompletedAssignments[studentId].size > 0;
         }).length
       : 0;
     const assignmentsWithCompletedStudents = assignmentResult?.reduce(
@@ -446,7 +443,7 @@ export class ClassUtil {
   }
   public async getAssignmentOrLiveQuizReportForReport(
     classId: string,
-    courseId: string,
+    courseId: any,
     startDate: Date,
     endDate: Date,
     isLiveQuiz: boolean,
@@ -463,54 +460,78 @@ export class ClassUtil {
       .toISOString()
       .replace("T", " ")
       .replace("Z", "+00");
+
     const _students = await this.api.getStudentsForClass(classId);
-    if (sortBy == TABLESORTBY.NAME)
+    if (sortBy === TABLESORTBY.NAME) {
       _students.sort((a, b) => {
         if (a.name === null) return 1;
         if (b.name === null) return -1;
         return a.name.localeCompare(b.name);
       });
+    }
 
     const _assignments = await this.api.getAssignmentOrLiveQuizByClassByDate(
       classId,
       courseId,
       endTimeStamp,
       startTimeStamp,
-      false,
+      /* isClassWise = */ false,
       isLiveQuiz
     );
 
-    let assignmentIds = _assignments?.map((asgmt) => asgmt.id) || [];
+    const assignmentIds = _assignments?.map((asgmt) => asgmt.id) || [];
     const lessonIds = [
       ...new Set(_assignments?.map((res) => res.lesson_id) || []),
     ];
+
     const assignmentResults =
       await this.api.getResultByAssignmentIds(assignmentIds);
     const lessonDetails = await this.api.getLessonsBylessonIds(lessonIds);
 
+    const assignmentUserRecords =
+      await this.api.getAssignmentUserByAssignmentIds(assignmentIds);
+
+    const assignmentIsClassWise: Record<string, boolean> = {};
+    _assignments?.forEach((assignment) => {
+      assignmentIsClassWise[assignment.id] = Boolean(assignment.is_class_wise);
+    });
+
     const assignmentMapArray: Map<
       string,
-      { headerName: string; startAt: string; endAt: string }
+      {
+        headerName: string;
+        startAt: string;
+        endAt: string;
+        belongsToClass: boolean;
+      }
     >[] = (_assignments || []).map((assignment) => {
       const lesson = lessonDetails?.find(
         (lesson) => lesson.id === assignment.lesson_id
       );
 
+      const belongsToClass = Boolean(assignment.is_class_wise);
+
       const assignmentMap = new Map<
         string,
-        { headerName: string; startAt: string; endAt: string }
+        {
+          headerName: string;
+          startAt: string;
+          endAt: string;
+          belongsToClass: boolean;
+        }
       >();
 
       assignmentMap.set(assignment.id, {
         headerName: lesson?.name ?? "",
-
         startAt: this.formatDate(assignment.starts_at),
         endAt: assignment.ends_at ? this.formatDate(assignment.ends_at) : "",
+        belongsToClass: belongsToClass,
       });
 
       return assignmentMap;
     });
-    var resultsByStudent = new Map<
+
+    let resultsByStudent = new Map<
       string,
       { student: TableTypes<"user">; results: Record<string, any[]> }
     >();
@@ -524,6 +545,7 @@ export class ClassUtil {
         resultsByStudent.get(student.id)!.results[assignmentId] = [];
       });
     });
+
     if (sortBy === TABLESORTBY.LOWSCORE || sortBy === TABLESORTBY.HIGHSCORE) {
       resultsByStudent = this.sortStudentsByTotalScore(resultsByStudent);
       if (sortBy === TABLESORTBY.HIGHSCORE) {
@@ -531,15 +553,37 @@ export class ClassUtil {
         resultsByStudent = new Map(reversedEntries);
       }
     }
+
     assignmentResults?.forEach((result) => {
       const studentId = result.student_id;
       const assignmentId = result.assignment_id;
-
       if (resultsByStudent.get(studentId)?.results[assignmentId ?? ""]) {
         resultsByStudent
           .get(studentId)!
           .results[assignmentId ?? ""].push(result);
       }
+    });
+
+    resultsByStudent.forEach((studentData, studentId) => {
+      assignmentIds.forEach((assignmentId) => {
+        if (!assignmentIsClassWise[assignmentId]) {
+          const isAssignedToStudent = assignmentUserRecords?.some(
+            (record) =>
+              record.assignment_id === assignmentId &&
+              record.user_id === studentId
+          );
+
+          if (
+            !isAssignedToStudent &&
+            studentData.results[assignmentId].length === 0
+          ) {
+            studentData.results[assignmentId].push({
+              assignment_id: assignmentId,
+              score: null,
+            });
+          }
+        }
+      });
     });
     return {
       ReportData: resultsByStudent,
@@ -700,4 +744,43 @@ export class ClassUtil {
     });
     return groups;
   }
+  public sortStudentsByTotalScoreAssignment = (
+        studentsMap: Map<string, { student: TableTypes<"user">; results: Record<string, any[]> }>
+      ): Map<string, { student: TableTypes<"user">; results: Record<string, any[]> }> => {
+        // Convert Map to array of entries
+        const studentsArray = Array.from(studentsMap.entries());
+        
+        // Calculate total score for each student
+        const studentsWithScores = studentsArray.map(([studentId, studentData]) => {
+          let totalScore = 0;
+          let validResults = 0;
+      
+          // Sum scores from all assignments
+          Object.values(studentData.results).forEach(assignmentResults => {
+            assignmentResults.forEach(result => {
+              if (result.score !== null && !isNaN(result.score)) {
+                totalScore += result.score;
+                validResults++;
+              }
+            });
+          });
+      
+      // Calculate average score (or 0 if no valid results)
+      const averageScore = validResults > 0 ? totalScore / validResults : 0;
+      
+      return {
+        studentId,
+        studentData,
+        averageScore
+      };
+    });
+    
+    // Sort by average score (ascending for LOWSCORE)
+    studentsWithScores.sort((a, b) => a.averageScore - b.averageScore);
+    
+    // Convert back to Map
+    return new Map(
+      studentsWithScores.map(item => [item.studentId, item.studentData])
+    );
+  };
 }

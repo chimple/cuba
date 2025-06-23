@@ -3,6 +3,7 @@ import Auth from "../models/auth";
 import { Database } from "../services/database";
 import { RoleType } from "../interface/modelInterfaces";
 import { Util } from "../utility/util";
+import SelectIconImage from "../teachers-module/assets/icons/all_subject_icon.png";
 
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = "sl-en",
@@ -41,6 +42,7 @@ export enum TABLES {
   ClassCourse = "class_course",
   ChapterLesson = "chapter_lesson",
   ParentUser = "parent_user",
+  ProgramUser = "program_user",
   SchoolCourse = "school_course",
   SchoolUser = "school_user",
   UserBadge = "user_badge",
@@ -52,6 +54,8 @@ export enum TABLES {
   Result = "result",
   Assignment_cart = "assignment_cart",
   // Chatbot = "chatbot",
+  ReqNewSchool = "req_new_school",
+  Program = "program",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -92,6 +96,28 @@ export const ALL_CURRICULUM: {} = {
 
 export const OTHER_CURRICULUM = "7d560737-746a-4931-a49f-02de1ca526bd";
 
+export enum PROGRAM_TAB {
+  ALL = "all",
+  AT_SCHOOL = "at_school",
+  AT_HOME = "at_home",
+  HYBRID = "hybrid",
+}
+
+export const PROGRAM_TAB_LABELS: Record<PROGRAM_TAB, string> = {
+  [PROGRAM_TAB.ALL]: "All",
+  [PROGRAM_TAB.AT_SCHOOL]: "At School",
+  [PROGRAM_TAB.AT_HOME]: "At Home",
+  [PROGRAM_TAB.HYBRID]: "Hybrid",
+};
+
+export type TabType = keyof typeof PROGRAM_TAB_LABELS;
+
+// Backend model mapping (if needed)
+export enum MODEL {
+  AT_SCHOOL = "AT_SCHOOL",
+  AT_HOME = "AT_HOME",
+  HYBRID = "HYBRID",
+}
 
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
 
@@ -139,6 +165,11 @@ export enum LEADERBOARD_REWARD_LIST {
   STICKER = "STICKERS",
 }
 
+export type SchoolRoleMap = {
+  schoolId: string;
+  users: TableTypes<"user">[];
+};
+
 export enum ASSIGNMENTTAB_LIST {
   RECOMMENDED = "Recommended",
   ASSIGNMENT = "Assignment",
@@ -173,6 +204,12 @@ export enum USERTYPES {
   STUDENTS = "Students",
 }
 
+export enum PROFILETYPE {
+  SCHOOL = "school",
+  CLASS = "class",
+  USER = "user",
+}
+
 export enum TABLEDROPDOWN {
   ASSIGNMENTS = "Assignments Report",
   MONTHLY = "Monthly Report",
@@ -183,8 +220,18 @@ export enum TABLEDROPDOWN {
 
 export enum TABLESORTBY {
   NAME = "Name",
-  HIGHSCORE = "High Score",
-  LOWSCORE = "Low Score",
+  HIGHSCORE = "High to Low",
+  LOWSCORE = "Low to High",
+}
+
+export enum FileUploadStep {
+  Idle = "idle",
+  Verifying = "verifying",
+  Verified = "verified",
+  Uploading = "uploading",
+  Uploaded = "uploaded",
+  Error = "error",
+  UploadError = "uploadError",
 }
 
 export const belowGrade1 = "30ecb762-8e63-45b3-a22a-62c1a9f71641";
@@ -229,23 +276,23 @@ export const ACTIVE_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
       HOMEHEADERLIST.HOME,
       {
         displayName: "Home",
-        iconSrc: "/assets/icons/homeIcon.svg",
+        iconSrc: "/assets/icons/HomeIconActive.svg",
         headerList: HOMEHEADERLIST.HOME,
       },
     ],
     [
-      HOMEHEADERLIST.SUGGESTIONS,
+      HOMEHEADERLIST.ASSIGNMENT,
       {
-        displayName: "Suggestion",
-        iconSrc: "/assets/icons/suggestionIcon_icon.svg",
-        headerList: HOMEHEADERLIST.SUGGESTIONS,
+        displayName: "Homework",
+        iconSrc: "/assets/icons/HomeworkIconActive.svg",
+        headerList: HOMEHEADERLIST.ASSIGNMENT,
       },
     ],
     [
       HOMEHEADERLIST.SUBJECTS,
       {
         displayName: "Subjects",
-        iconSrc: "/assets/icons/subjectIcon.svg",
+        iconSrc: "/assets/icons/SubjectsIconActive.svg",
         headerList: HOMEHEADERLIST.SUBJECTS,
       },
     ],
@@ -276,8 +323,8 @@ export const ACTIVE_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
     [
       HOMEHEADERLIST.LIVEQUIZ,
       {
-        displayName: "Live Quiz",
-        iconSrc: "/assets/icons/quiz_icon.svg",
+        displayName: "Specials",
+        iconSrc: "/assets/icons/SpecialsIconActive.svg",
         headerList: HOMEHEADERLIST.LIVEQUIZ,
       },
     ],
@@ -288,18 +335,18 @@ export const DEFAULT_HEADER_ICON_CONFIGS: Map<
   HeaderIconConfig
 > = new Map<HOMEHEADERLIST, HeaderIconConfig>([
   [
-    HOMEHEADERLIST.SUGGESTIONS,
+    HOMEHEADERLIST.ASSIGNMENT,
     {
-      displayName: "Suggestion",
-      iconSrc: "/assets/icons/suggestionInactiveIcon.svg",
-      headerList: HOMEHEADERLIST.SUGGESTIONS,
+      displayName: "Homework",
+      iconSrc: "/assets/icons/HomeworkIconInactive.svg",
+      headerList: HOMEHEADERLIST.ASSIGNMENT,
     },
   ],
   [
     HOMEHEADERLIST.SUBJECTS,
     {
       displayName: "Subjects",
-      iconSrc: "/assets/icons/subjectInactiveIcon.svg",
+      iconSrc: "/assets/icons/SubjectsIcon.svg",
       headerList: HOMEHEADERLIST.SUBJECTS,
     },
   ],
@@ -330,8 +377,8 @@ export const DEFAULT_HEADER_ICON_CONFIGS: Map<
   [
     HOMEHEADERLIST.LIVEQUIZ,
     {
-      displayName: "Live Quiz",
-      iconSrc: "/assets/icons/quizInactiveIcon.svg",
+      displayName: "Specials",
+      iconSrc: "/assets/icons/SpecialsIcon.svg",
       headerList: HOMEHEADERLIST.LIVEQUIZ,
     },
   ],
@@ -410,10 +457,12 @@ export const CHAPTER_CARD_COLOURS = [
 export const DEFUALT_SUBJECT_CARD_COLOUR = "#009948";
 
 export enum PAGES {
+  RESET_PASSWORD = "/reset-password",
   APP_UPDATE = "/",
   HOME = "/home",
   LOGIN = "/login",
   GAME = "/game",
+  LIDO_PLAYER = "/lido-player",
   END = "/end",
   PROFILE = "/profile",
   PARENT = "/parent",
@@ -454,8 +503,10 @@ export enum PAGES {
   MANAGE_SCHOOL = "/manage-schools",
   SCHOOL_PROFILE = "/school-profile",
   ADD_SCHOOL = "/add-school",
+  REQ_ADD_SCHOOL = "/req-add-school",
   MANAGE_CLASS = "/manage-class",
   EDIT_SCHOOL = "/edit-school",
+  REQ_EDIT_SCHOOL = "/req-edit-school",
   EDIT_CLASS = "/edit-class",
   ADD_CLASS = "/add-class",
   CLASS_PROFILE = "/class-profile",
@@ -467,8 +518,28 @@ export enum PAGES {
   ADD_PRINCIPAL = "/add-principal",
   ADD_COORDINATOR = "/add-coordinator",
   ADD_SPONSOR = "/add-sponsor",
+  UPLOAD_PAGE = "/upload-page",
+  PROGRAM_PAGE = "/program-page",
+  PROGRAM_DETAIL_PAGE = "/program-details-page",
+  SIDEBAR_PAGE = "/admin-home-page",
+  ADMIN_DASHBOARD = "/dashboard",
+  ADMIN_PROGRAMS = "/programs",
+  ADMIN_SCHOOLS = "/schools",
+  ADMIN_COMPAIGNS = "/compaigns",
+  ADMIN_USERS = "/users",
+  ADMIN_DEVICES = "/devices",
+  ADMIN_RESOURCES = "/resourses",
+  NEW_PROGRAM = "/new-program",
+  SCHOOL_LIST = "/school-list",
+  SCHOOL_DETAILS = "/school-details",
+  USERS = "/users",
 }
 
+export const enum ASSIGNMENT_TYPE {
+  ASSIGNMENT = "assignment",
+  LIVEQUIZ = "liveQuiz",
+  REWARD = "reward",
+}
 export enum LANG {
   ENGLISH = "en",
   HINDI = "hi",
@@ -488,12 +559,35 @@ export enum DrawerOptions {
   USER_PROFILE = "User Profile",
 }
 
+export enum NavItems {
+  DASHBOARD = "Dashboard",
+  PROGRAMS = "Programs",
+  SCHOOLS = "Schools",
+  COMPAIGNS = "Campaigns",
+  USERS = "Users",
+  DEVICES = "Devices",
+  RESOURCES = "Resources",
+}
+
+export enum ProgramType {
+  Govt = "govt",
+  Private = "private",
+  LearningCenter = "learning_centers",
+}
+
 export interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;
 }
+export interface FilteredSchoolsForSchoolListingOps {
+  school_name: string;
+  num_students: number;
+  num_teachers: number;
+  program_managers: string[];
+  field_coordinators: string[];
+}
 export enum School_Creation_Stages {
-  CREATE_SCHOOL = "create_school",
+  // CREATE_SCHOOL = "create_school",
   SCHOOL_COURSE = "school_course",
   CREATE_CLASS = "create_class",
   CLASS_COURSE = "class_course",
@@ -533,6 +627,7 @@ export const TC_ACCEPT = "tcAccept";
 export const RECOMMENDATIONS = "recommendations";
 export const LIVE_QUIZ = "liveQuiz";
 export const COCOS = "cocos";
+export const LIDO = "lido";
 export const TYPE = "type";
 export const APP_NAME = "Kids";
 export const SCHOOL = "school";
@@ -542,6 +637,9 @@ export const CURRENT_TEACHER = "currentTeacher";
 export const CURRENT_COURSE = "currentCourse";
 export const NAVIGATION_STATE = "navigationState";
 export const USER_COURSES = "userCourses"
+export const STARS_COUNT = "starsCount";
+export const LATEST_STARS = "latestStar";
+export const IS_OPS_USER = "isOpsUser";
 
 export enum IconType {
   SCHOOL = "school",
@@ -563,6 +661,7 @@ export interface PortPlugin {
   fetchNotificationData(): Promise<{
     notificationType: string;
     rewardProfileId: string;
+    classId?: string;
   }>;
   shareContentWithAndroidShare(options: {
     text: string;
@@ -571,6 +670,10 @@ export interface PortPlugin {
     imageFile?: File[];
   }): Promise<void>;
   shareUserId(options: { userId: string }): Promise<void>;
+  saveProceesedXlsxFile(options: {
+    fileData: string;
+    fileName?: string;
+  }): Promise<void>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [
@@ -589,6 +692,30 @@ export enum GENDER {
   GIRL = "female",
   OTHER = "unspecified",
 }
+
+export const REFRESH_TABLES_ON_LOGIN: TABLES[] = [
+  TABLES.School,
+  TABLES.Live_quiz_room,
+  TABLES.Class,
+  TABLES.User,
+  TABLES.ClassInvite_code,
+  TABLES.ClassUser,
+  TABLES.FavoriteLesson,
+  TABLES.ClassCourse,
+  TABLES.ParentUser,
+  TABLES.SchoolCourse,
+  TABLES.SchoolUser,
+  TABLES.UserBadge,
+  TABLES.UserBonus,
+  TABLES.UserCourse,
+  TABLES.UserSticker,
+  TABLES.Assignment,
+  TABLES.Assignment_user,
+  TABLES.Result,
+  TABLES.Assignment_cart,
+  TABLES.ReqNewSchool,
+  TABLES.Program,
+];
 
 export const AVATARS: string[] = [
   "Aligator",
@@ -662,6 +789,13 @@ export enum ACTION {
   DELETE = "delete",
   LOGIN = "login",
 }
+export enum STAGES {
+  MODE = "mode",
+  SCHOOL = "school",
+  CLASS = "class",
+  STUDENT = "student",
+  TEACHER = "teacher",
+}
 
 export const CURRENT_STUDENT = "currentStudent";
 export const CURRENT_USER = "currentUser";
@@ -669,6 +803,12 @@ export enum EVENTS {
   LESSON_END = "lesson_end",
   LESSON_INCOMPLETE = "lesson_incomplete",
   USER_PROFILE = "user_profile",
+  CLICKS_ANALYTICS = "clicks_analytics",
+  EXPERIMENT_VIEWED = "experiment_viewed",
+  PATHWAY_CREATED = "pathway_created",
+  PATHWAY_COMPLETED = "pathway_completed",
+  PATHWAY_COURSE_CHANGED = "pathway_course_changed",
+  SYNCHING_ERROR = "synching_error",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -746,6 +886,7 @@ export const AT_SYMBOL_RESTRICTION = /@/;
 export const SELECTED_STUDENTS = "selectedStudent";
 export const SELECTED_CLASSES = "selectedClasses";
 export const CURRENT_CLASS_NAME = "currClassName";
+export const USER_SELECTION_STAGE = "userSelectionStage";
 export const CURRENT_SCHOOL_NAME = "currentSchoolName";
 export const DOWNLOADING_CHAPTER_ID = "downloading_chapter_id";
 export const USER_DATA = "userData";
@@ -767,3 +908,31 @@ export interface HomeWeeklySummary {
   timeSpent: number;
   averageScore: number;
 }
+
+export const LidoActivityEndKey = "lidoActivityEnd";
+export const LidoLessonEndKey = "lidoLessonEnd";
+export const LidoNextContainerKey = "lidoNextContainer";
+export const LidoActivityChangeKey = "lidoActivityChange";
+export const LidoGameCompletedKey = "lidoGameCompleted";
+export const LidoGameExitKey = "lidoGameExit";
+export const QUIZ_POPUP_SHOWN = "quizPopupShown";
+export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
+export const GrowthBookAttributes = "growthBookAttributes";
+export const SCHOOL_LOGIN = "schoolLogin";
+
+export const ALL_SUBJECT = {
+  id: "all",
+  name: "All Subjects",
+  icon: SelectIconImage,
+  subjectDetail: "All Grades",
+};
+export const CAN_ACCESS_REMOTE_ASSETS = "can_access_remote_assets";
+export const LEARNING_PATH_ASSETS = "learning_path_assets";
+export const CHIMPLE_ENGLISH = "63e40488-3c1a-47ab-aa8a-6f07ad21709f";
+export const CHIMPLE_MATHS = "9d2474bd-b9c6-43ea-8415-242668807ba0";
+export const CHIMPLE_DIGITAL_SKILLS = "19bb079f-bc69-44e4-bc1d-0b77f2683b6c";
+export const CHIMPLE_HINDI = "7e9d65fa-ac2e-452e-bca4-1499d5c174e0";
+export const GRADE1_KANNADA = "a90608de-4376-4baf-82c2-07760b2aa899";
+export const GRADE1_MARATHI = "2cada0d1-db3d-4da0-8ade-e9ba282a3558";
+export const BULK_UPLOAD_TEMPLATE_URL =
+  "https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/common-files//Bulk%20School%20&%20Students%20Upload%20Template.xlsx";

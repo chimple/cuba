@@ -31,7 +31,7 @@ import "./theme/variables.css";
 import Home from "./pages/Home";
 import CocosGame from "./pages/CocosGame";
 import { End } from "./pages/End";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import Profile from "./pages/Profile";
@@ -43,12 +43,14 @@ import {
   // APP_LANG,
   BASE_NAME,
   CACHE_IMAGE,
+  CAN_ACCESS_REMOTE_ASSETS,
   CONTINUE,
   DOWNLOADING_CHAPTER_ID,
   DOWNLOAD_BUTTON_LOADING_STATUS,
   GAME_URL,
   HOMEHEADERLIST,
   IS_CUBA,
+  LEARNING_PATH_ASSETS,
   MODES,
   PAGES,
   PortPlugin,
@@ -87,44 +89,49 @@ import User from "./models/user";
 import React from "react";
 import Dashboard from "./pages/Malta/Dashboard";
 import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
-import {
-  HomePage,
-  TestPage1,
-  TestPage2,
-  DisplaySchools,
-  ShowChapters,
-  SearchLessons,
-  AddStudent,
-  UserProfile,
-  ClassUsers,
-  StudentProfile,
-  ManageSchools,
-  SchoolProfile,
-  AddSchool,
-  ManageClass,
-  EditSchool,
-  SubjectSelection,
-  EditClass,
-  ClassProfile,
-  DashBoardDetails,
-  AddTeacher,
-  TeacherProfile,
-  StudentReport,
-  SchoolUsers,
-  AddSchoolUser,
-} from "./common/chimplePrivatePages";
-import LessonDetails from "./chimple-private/pages/LessonDetails";
-import DisplayClasses from "./chimple-private/pages/DisplayClasses";
 import "./App.css";
-import ShowStudentsInAssignmentPage from "./chimple-private/pages/ShowStudentsInAssignmentPage";
 import { schoolUtil } from "./utility/schoolUtil";
 import { useHandleLessonClick } from "./utility/lessonUtils";
-
+import LidoPlayer from "./pages/LidoPlayer";
+import UploadPage from "./ops-console/pages/UploadPage";
+import SidebarPage from "./ops-console/pages/SidebarPage";
+import { initializeClickListener } from "./analytics/clickUtil";
+import ResetPassword from "./pages/ResetPassword";
+import DisplayClasses from "./teachers-module/pages/DisplayClasses";
+import LessonDetails from "./teachers-module/pages/LessonDetails";
+import ShowStudentsInAssignmentPage from "./teachers-module/pages/ShowStudentsInAssignmentPage";
+import ReqEditSchool from "./teachers-module/pages/ReqEditSchool";
+import StudentProfile from "./teachers-module/pages/StudentProfile";
+import AddStudent from "./teachers-module/pages/AddStudent";
+import UserProfile from "./teachers-module/pages/UserProfile";
+import SubjectSelection from "./teachers-module/pages/SubjectSelection";
+import DisplaySchools from "./teachers-module/pages/DisplaySchools";
+import StudentReport from "./teachers-module/pages/StudentReport";
+import ManageSchools from "./teachers-module/pages/ManageSchools";
+import SchoolProfile from "./teachers-module/pages/SchoolProfile";
+import ManageClass from "./teachers-module/pages/ManageClass";
+import DashBoardDetails from "./teachers-module/pages/DashBoardDetails";
+import EditClass from "./teachers-module/pages/EditClass";
+import ClassProfile from "./teachers-module/pages/ClassProfile";
+import ShowChapters from "./teachers-module/pages/ShowChapters";
+import SearchLessons from "./teachers-module/pages/SearchLessons";
+import HomePage from "./teachers-module/pages/HomePage";
+import ClassUsers from "./teachers-module/pages/ClassUsers";
+import AddTeacher from "./teachers-module/pages/AddTeacher";
+import TeacherProfile from "./teachers-module/pages/TeacherProfile";
+import SchoolUsers from "./teachers-module/pages/SchoolUsers";
+import AddSchoolUser from "./teachers-module/pages/AddSchoolUser";
+import ProgramsPage from "./ops-console/pages/ProgramPage";
+import NewProgram from "./ops-console/components/NewProgram";
+import SchoolList from "./ops-console/pages/SchoolList";
+import { useFeatureValue, useFeatureIsOn } from "@growthbook/growthbook-react";
+import LoginScreen from "./pages/LoginScreen";
 
 setupIonicReact();
 interface ExtraData {
   notificationType?: string;
   rewardProfileId?: string;
+  classId?: string;
 }
 interface WindowEventMap {
   shouldShowModal: CustomEvent<boolean>;
@@ -154,8 +161,11 @@ const App: React.FC = () => {
   const [isActive, setIsActive] = useState(true);
   const handleLessonClick = useHandleLessonClick();
 
+  const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
+  const learningPathAssets: any = useFeatureValue(LEARNING_PATH_ASSETS, {});
 
   useEffect(() => {
+    const cleanup = initializeClickListener();
     const handleOnline = () => {
       if (!online) {
         setOnline(true);
@@ -196,6 +206,7 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      cleanup();
     };
   }, [online, presentToast]);
   useEffect(() => {
@@ -204,7 +215,6 @@ const App: React.FC = () => {
     startTimeout();
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(false));
     localStorage.setItem(DOWNLOADING_CHAPTER_ID, JSON.stringify(false));
-    console.log("fetching...");
     CapApp.addListener("appStateChange", Util.onAppStateChange);
     localStorage.setItem(IS_CUBA, "1");
     if (Capacitor.isNativePlatform()) {
@@ -213,13 +223,22 @@ const App: React.FC = () => {
 
       const portPlugin = registerPlugin<PortPlugin>("Port");
       portPlugin.addListener("notificationOpened", (data: any) => {
-        if (data) {
+        if (data.fullPayload) {
+          const formattedPayload = JSON.parse(data.fullPayload);
+          processNotificationData(formattedPayload);
+        } else {
           processNotificationData(data);
         }
       });
       CapApp.addListener("appUrlOpen", Util.onAppUrlOpen);
     }
 
+    if (shouldShowRemoteAssets) {
+      Util.DownloadLearningPathAssets(
+        learningPathAssets?.asset_repo_url,
+        learningPathAssets?.uniqueId
+      );
+    }
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
@@ -233,29 +252,8 @@ const App: React.FC = () => {
     fetchData();
 
     Util.notificationListener(async (extraData: ExtraData | undefined) => {
-      if (extraData && extraData.notificationType === "reward") {
-        const currentStudent = Util.getCurrentStudent();
-        const data = extraData as ExtraData;
-        const rewardProfileId = data.rewardProfileId;
-        if (rewardProfileId)
-          if (currentStudent?.id === rewardProfileId) {
-            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
-          } else {
-            await Util.setCurrentStudent(null);
-            const students =
-              await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-            let matchingUser =
-              students.find((user) => user.id === rewardProfileId) ||
-              students[0];
-            if (matchingUser) {
-              await Util.setCurrentStudent(matchingUser, undefined, true);
-              window.location.replace(
-                PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME
-              );
-            } else {
-              return;
-            }
-          }
+      if (extraData) {
+        Util.navigateTabByNotificationData(extraData);
       }
     });
     updateAvatarSuggestionJson();
@@ -285,19 +283,12 @@ const App: React.FC = () => {
 
     if (!lastAccessDate || lastAccessDate !== currentDate) {
       // First-time use or a new day
-      console.log("New day detected. Resetting usage data.");
       localStorage.setItem(USED_TIME_KEY, "0"); // Reset used time
       localStorage.setItem(START_TIME_KEY, Date.now().toString()); // Reset start time
       localStorage.setItem(LAST_ACCESS_DATE_KEY, currentDate); // Update the last access date
-    } else {
-      console.log("Continuing from the same day. Current usage data:", {
-        startTime: localStorage.getItem(START_TIME_KEY),
-        usedTime: localStorage.getItem(USED_TIME_KEY),
-      });
     }
 
     if (!localStorage.getItem(IS_INITIALIZED)) {
-      console.log("First time opening the app: initializing usage data.");
       localStorage.setItem(START_TIME_KEY, Date.now().toString());
       localStorage.setItem(IS_INITIALIZED, "true");
     }
@@ -312,17 +303,6 @@ const App: React.FC = () => {
     const usedTime = Number(localStorage.getItem(USED_TIME_KEY));
     const sessionTime = (currentTime - startTime) / 1000;
     const usedTimeInMinutes = usedTime / 60;
-    console.log(
-      "calculateUsedTime",
-      Math.floor(usedTimeInMinutes + sessionTime),
-      `Start Time (min): ${startTime / 1000 / 60}`,
-      `Current Time (min): ${currentTime / 1000 / 60}`,
-      `Used Time (min): ${usedTimeInMinutes}`,
-      `Session Time (min): ${sessionTime / 60}`
-    );
-    const date1 = new Date(currentTime);
-    const date2 = new Date(startTime);
-    console.log(date1.toString(), date2.toString());
 
     return usedTime + sessionTime;
   };
@@ -336,7 +316,6 @@ const App: React.FC = () => {
     clearExistingTimeout();
     const usedTime = Number(localStorage.getItem(USED_TIME_KEY) || 0);
     const remainingTime = Util.TIME_LIMIT - usedTime;
-    console.log("timeout trigger remainingTime", remainingTime);
     if (remainingTime > 0) {
       timeoutId = setTimeout(() => {
         checkTimeExceeded();
@@ -355,7 +334,6 @@ const App: React.FC = () => {
         const lastModalShownDate = localStorage.getItem(LAST_MODAL_SHOWN_KEY);
 
         if (lastModalShownDate !== today) {
-          console.log("triggered");
           setShowModal(true);
           const event = new CustomEvent("shouldShowModal", { detail: true });
           window.dispatchEvent(event);
@@ -397,43 +375,23 @@ const App: React.FC = () => {
     localStorage.setItem(START_TIME_KEY, Date.now().toString());
   };
   const processNotificationData = async (data) => {
-    const currentStudent = Util.getCurrentStudent();
-    if (data && data.notificationType === "reward") {
-      if (data.rewardProfileId) {
-        if (currentStudent?.id === data.rewardProfileId) {
-          window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
-          return;
-        } else {
-          await Util.setCurrentStudent(null);
-          const students =
-            await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-          let matchingUser =
-            students.find((user) => user.id === data.rewardProfileId) ||
-            students[0];
-          if (matchingUser) {
-            await Util.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
-            return;
-          } else {
-            return;
-          }
-        }
-      }
-    }
+    Util.navigateTabByNotificationData(data);
   };
   const getNotificationData = async () => {
-    if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
-    if (Util.port && typeof Util.port.fetchNotificationData === "function") {
-      try {
-        const data = await Util.port.fetchNotificationData();
-        if (data && data.notificationType && data.rewardProfileId) {
-          processNotificationData(data);
+    if (Capacitor.isNativePlatform()) {
+      if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+      if (Util.port && typeof Util.port.fetchNotificationData === "function") {
+        try {
+          const data = await Util.port.fetchNotificationData();
+          if (data) {
+            processNotificationData(data);
+          }
+        } catch (error) {
+          console.error("Error retrieving notification data:", error);
         }
-      } catch (error) {
-        console.error("Error retrieving notification data:", error);
+      } else {
+        console.warn("Util.port or fetchNotificationData is not available.");
       }
-    } else {
-      console.warn("Util.port or fetchNotificationData is not available.");
     }
   };
   const fetchData = async () => {
@@ -516,14 +474,20 @@ const App: React.FC = () => {
             <Route path={PAGES.APP_UPDATE} exact={true}>
               <HotUpdate />
             </Route>
+            <Route path={PAGES.RESET_PASSWORD} exact={true}>
+              <ResetPassword />
+            </Route>
             <ProtectedRoute path={PAGES.HOME} exact={true}>
               <Home />
             </ProtectedRoute>
             <Route path={PAGES.LOGIN} exact={true}>
-              <Login />
+              <LoginScreen />
             </Route>
             <ProtectedRoute path={PAGES.GAME} exact={true}>
               <CocosGame />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.LIDO_PLAYER} exact={true}>
+              <LidoPlayer />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.END} exact={true}>
               <End />
@@ -534,9 +498,9 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.PARENT} exact={true}>
               <Parent />
             </ProtectedRoute>
-            <Route path={PAGES.APP_LANG_SELECTION} exact={true}>
+            {/* <Route path={PAGES.APP_LANG_SELECTION} exact={true}>
               <AppLangSelection />
-            </Route>
+            </Route> */}
             <ProtectedRoute path={PAGES.CREATE_STUDENT} exact={true}>
               <EditStudent />
             </ProtectedRoute>
@@ -580,24 +544,16 @@ const App: React.FC = () => {
               <TeacherProfile />
             </ProtectedRoute> */}
             <ProtectedRoute path={PAGES.STUDENT_PROFILE} exact={true}>
-              <Suspense>
-                <StudentProfile />
-              </Suspense>
+              <StudentProfile />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.ADD_STUDENT} exact={true}>
-              <Suspense>
-                <AddStudent />
-              </Suspense>
+              <AddStudent />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.USER_PROFILE} exact={true}>
-              <Suspense>
-                <UserProfile />
-              </Suspense>
+              <UserProfile />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.SUBJECTS_PAGE} exact={true}>
-              <Suspense>
-                <SubjectSelection />
-              </Suspense>
+              <SubjectSelection />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.LIVE_QUIZ_JOIN} exact={true}>
               <LiveQuizRoom />
@@ -614,138 +570,107 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.LIVE_QUIZ_LEADERBOARD} exact={true}>
               <LiveQuizLeaderBoard />
             </ProtectedRoute>
-            <Route path={PAGES.TEST_PAGE} exact={true}>
-              <Suspense>
-                <TestPage1 />
-              </Suspense>
-            </Route>
-            <Route path={PAGES.DISPLAY_SCHOOLS} exact={true}>
-              <Suspense>
-                <DisplaySchools />
-              </Suspense>
-            </Route>
-            <Route path={PAGES.STUDENT_REPORT} exact={true}>
-              <Suspense>
-                <StudentReport />
-              </Suspense>
-            </Route>
-            <Route path={PAGES.DISPLAY_CLASSES} exact={true}>
-              <Suspense>
-                <DisplayClasses />
-              </Suspense>
-            </Route>
+            <ProtectedRoute path={PAGES.DISPLAY_SCHOOLS} exact={true}>
+              <DisplaySchools />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.STUDENT_REPORT} exact={true}>
+              <StudentReport />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.DISPLAY_CLASSES} exact={true}>
+              <DisplayClasses />
+            </ProtectedRoute>
             <ProtectedRoute path={PAGES.MANAGE_SCHOOL} exact={true}>
-              <Suspense>
-                <ManageSchools />
-              </Suspense>
+              <ManageSchools />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.SCHOOL_PROFILE} exact={true}>
-              <Suspense>
-                <SchoolProfile />
-              </Suspense>
+              <SchoolProfile />
             </ProtectedRoute>
-            <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
-              <Suspense>
+            {/* <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
+              
                 <EditSchool />
-              </Suspense>
+              
+            </ProtectedRoute> */}
+            <ProtectedRoute path={PAGES.REQ_ADD_SCHOOL} exact={true}>
+              <ReqEditSchool />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.MANAGE_CLASS} exact={true}>
-              <Suspense>
-                <ManageClass />
-              </Suspense>
+              <ManageClass />
             </ProtectedRoute>
-            <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
-              <Suspense>
+            {/* <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
+              
                 <EditSchool />
-              </Suspense>
+              
+            </ProtectedRoute> */}
+            <ProtectedRoute path={PAGES.REQ_EDIT_SCHOOL} exact={true}>
+              <ReqEditSchool />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.DASHBOARD_DETAILS} exact={true}>
-              <Suspense>
-                <DashBoardDetails />
-              </Suspense>
+              <DashBoardDetails />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.ADD_CLASS} exact={true}>
-              <Suspense>
-                <EditClass />
-              </Suspense>
+              <EditClass />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.CLASS_PROFILE} exact={true}>
-              <Suspense>
-                <ClassProfile />
-              </Suspense>
+              <ClassProfile />
             </ProtectedRoute>
-            <Route path={PAGES.SHOW_CHAPTERS} exact={true}>
-              <Suspense>
-                <ShowChapters />
-              </Suspense>
-            </Route>
+            <ProtectedRoute path={PAGES.SHOW_CHAPTERS} exact={true}>
+              <ShowChapters />
+            </ProtectedRoute>
 
-            <Route path={PAGES.SEARCH_LESSON} exact={true}>
-              <Suspense>
-                <SearchLessons />
-              </Suspense>
-            </Route>
+            <ProtectedRoute path={PAGES.SEARCH_LESSON} exact={true}>
+              <SearchLessons />
+            </ProtectedRoute>
 
-            <Route path={PAGES.LESSON_DETAILS} exact={true}>
+            <ProtectedRoute path={PAGES.LESSON_DETAILS} exact={true}>
               <LessonDetails />
-            </Route>
-            <Route path={PAGES.TEST_PAGE1} exact={true}>
-              <Suspense>
-                <TestPage2 />
-              </Suspense>
-            </Route>
+            </ProtectedRoute>
             <ProtectedRoute path={PAGES.HOME_PAGE} exact={true}>
-              <Suspense>
-                <HomePage />
-              </Suspense>
+              <HomePage />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.CLASS_USERS} exact={true}>
-              <Suspense>
-                <ClassUsers />
-              </Suspense>
+              <ClassUsers />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.EDIT_CLASS} exact={true}>
-              <Suspense>
-                <EditClass />
-              </Suspense>
+              <EditClass />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SCHOOL_LIST} exact={true}>
+              <SchoolList />
             </ProtectedRoute>
             <ProtectedRoute
               path={PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE}
               exact={true}
             >
-              <Suspense>
-                <ShowStudentsInAssignmentPage />
-              </Suspense>
+              <ShowStudentsInAssignmentPage />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.ADD_TEACHER} exact={true}>
-              <Suspense>
-                <AddTeacher />
-              </Suspense>
+              <AddTeacher />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.TEACHER_PROFILE} exact={true}>
-              <Suspense>
-                <TeacherProfile />
-              </Suspense>
+              <TeacherProfile />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.SCHOOL_USERS} exact={true}>
-              <Suspense>
-                <SchoolUsers />
-              </Suspense>
+              <SchoolUsers />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.ADD_PRINCIPAL} exact={true}>
-              <Suspense>
-                <AddSchoolUser />
-              </Suspense>
+              <AddSchoolUser />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.ADD_COORDINATOR} exact={true}>
-              <Suspense>
-                <AddSchoolUser />
-              </Suspense>
+              <AddSchoolUser />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.ADD_SPONSOR} exact={true}>
-              <Suspense>
-                <AddSchoolUser />
-              </Suspense>
+              <AddSchoolUser />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.UPLOAD_PAGE} exact={true}>
+              <UploadPage />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.PROGRAM_PAGE} exact={true}>
+              <ProgramsPage />
+            </ProtectedRoute>
+            {/* <ProtectedRoute path={PAGES.PROGRAM_DETAIL_PAGE} exact={true}>
+              <ProgramDetailPage />
+            </ProtectedRoute> */}
+            <ProtectedRoute path={PAGES.SIDEBAR_PAGE}>
+              <SidebarPage />
             </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>

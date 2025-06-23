@@ -1,19 +1,19 @@
 import React, { useState } from "react";
-import { IonItem, IonInput, IonIcon, IonButton } from "@ionic/react";
+import { IonIcon, IonButton } from "@ionic/react";
 import { searchOutline } from "ionicons/icons";
 import "./InputField.css";
 import { t } from "i18next";
-import { textTransform } from "html2canvas/dist/types/css/property-descriptors/text-transform";
-import { PaddingOutlined } from "@mui/icons-material";
 
-const InputField: React.FC<{
+interface Props {
   useEmail: boolean;
   inputValue: string;
   setInputValue: (value: string) => void;
   onEnter: () => void;
   toggleInputMethod: () => void;
   resetUserNotFound: () => void;
-}> = ({
+}
+
+const InputField: React.FC<Props> = ({
   useEmail,
   inputValue,
   setInputValue,
@@ -22,18 +22,18 @@ const InputField: React.FC<{
   resetUserNotFound,
 }) => {
   const [showError, setShowError] = useState(false);
-  const handleInputChange = (event: CustomEvent) => {
-    let value = (event.target as HTMLInputElement).value;
-    console.log("Input value:", value);
-    setInputValue(value || "");
-    if (value) {
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVal = e.target.value;
+    setInputValue(newVal);
+    if (newVal) {
       resetUserNotFound();
       setShowError(false);
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === "Enter") {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
       if (inputValue.trim() === "") {
         setShowError(true);
       } else {
@@ -43,7 +43,7 @@ const InputField: React.FC<{
     }
   };
 
-  const handleClick = () => {
+  const handleIconClick = () => {
     if (inputValue.trim() === "") {
       setShowError(true);
     } else {
@@ -60,30 +60,28 @@ const InputField: React.FC<{
 
   return (
     <>
-      <IonItem className="custom-search-bar">
-        <IonInput
-          value={inputValue}
-          onIonInput={handleInputChange}
-          onKeyDown={handleKeyDown}
+      <div className="custom-search-bar">
+        <input
+          className="plain-input"
           type={useEmail ? "email" : "number"}
+          inputMode={useEmail ? "email" : "tel"}
           placeholder={useEmail ? t("Email") || "" : t("Phone") || ""}
-          inputmode={useEmail ? "email" : "tel"}
-          className="custom-ion-input"
+          value={inputValue}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
         />
         <div
-          className={`search-icon-container ${!inputValue ? "disabled-icon" : ""}`}
-          onClick={() => handleClick()}
+          className={`search-icon-container ${
+            !inputValue.trim() ? "disabled-icon" : ""
+          }`}
+          onClick={handleIconClick}
         >
           <IonIcon icon={searchOutline} />
         </div>
-      </IonItem>
+      </div>
 
       {showError && (
-        <div className="field-error-text">
-          <IonButton fill="clear" color="danger" onClick={() => {}}>
-            {t("Field cannot be empty")}
-          </IonButton>
-        </div>
+        <div className="field-error-text">{t("Field cannot be empty")}</div>
       )}
 
       <div className="toggle-text">
@@ -92,7 +90,9 @@ const InputField: React.FC<{
           onClick={handleToggleInputMethod}
           className="inputField-toggle-text"
         >
-          {useEmail ? t("Use phone number instead") : t("Use email instead")}
+          {useEmail
+            ? t("Use phone number instead")
+            : t("Use email instead")}
         </IonButton>
       </div>
     </>

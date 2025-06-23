@@ -1,0 +1,29 @@
+.dashboard-details-body {
+    background-color: white;
+    height: 90vh;
+    display: block;
+    overflow-x: auto;
+  }
+  .dashboard-details-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+    background-color: #7c5db0;
+  }
+  .dashboard-group-wise-header{
+    font-weight: bold;
+    font-size: 2.5vh;
+    padding-left: 30px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    height: 6vh;
+    min-height: 50px;
+    color: #7B7676;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+
+  

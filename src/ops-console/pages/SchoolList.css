@@ -1,0 +1,91 @@
+.school-list-main-container {
+  padding: 0 20px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.school-list-ion-page {
+  background: white;
+  height: 100vh;
+}
+.school-list-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  padding: 10px 0;
+  border-top: 1px solid #eee;
+}
+.school-list-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.school-list-table-container {
+  overflow-y: auto;
+}
+.school-list-container {
+  display: flex;
+  flex-direction: row;
+  background-color: white;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.school-list-filter-container-2 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  row-gap: 0;
+  column-gap: 16px;
+  flex-direction: row;
+  justify-content: center;
+}
+.school-list-tab {
+  text-transform: none !important;
+  font-weight: bold !important;
+  color: #121619 !important;
+}
+
+.school-list-tab.MuiTab-root.Mui-selected {
+  color: #0f62fe !important;
+}
+
+.school-heading {
+  color: #21272a;
+  font-size: 32px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  padding-top: 15px;
+}
+
+.school-list-tab-wrapper {
+  font-weight: bold;
+}
+
+.school-list-pagination {
+  display: flex;
+  justify-content: center;
+  width: 100vw;
+}
+
+.selected-filters-container {
+  width: 100%;
+  display: flex;
+  align-items: start;
+}
+.school-list-upload-text {
+  font-weight: bolder;
+  color: #121619;
+  padding-left: 5vh;
+  padding-top: 3vh;
+  font-size: large;
+}
+.school-list-file-upload-conatainer {
+  color: #121619;
+  width: 23vh;
+  border: 2px;
+  box-shadow: 3px 3px 5px 0px #c9d5d9;
+  border-radius: 23px;
+}

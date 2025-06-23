@@ -17,6 +17,33 @@ import { SplashScreen } from "@capacitor/splash-screen";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
 import { BrowserRouter } from "react-router-dom";
+import { defineCustomElements, JSX as LocalJSX } from "lido-standalone/loader";
+import {
+  SpeechSynthesis,
+  SpeechSynthesisUtterance,
+} from "./utility/WindowsSpeech";
+import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
+import { Util } from "./utility/util";
+import { EVENTS, IS_OPS_USER } from "./common/constants";
+import { GbProvider } from "./growthbook/Growthbook";
+
+// Extend React's JSX namespace to include Stencil components
+declare global {
+  namespace JSX {
+    interface IntrinsicElements extends LocalJSX.IntrinsicElements {}
+  }
+}
+defineCustomElements(window);
+
+// Conditionally attach only if the native APIs are missing (optional)
+if (typeof window !== "undefined") {
+  if (!(window as any).speechSynthesis) {
+    (window as any).speechSynthesis = new SpeechSynthesis();
+  }
+  if (!(window as any).SpeechSynthesisUtterance) {
+    (window as any).SpeechSynthesisUtterance = SpeechSynthesisUtterance;
+  }
+}
 
 if (Capacitor.isNativePlatform()) {
   await ScreenOrientation.lock({ orientation: "landscape" });
@@ -44,12 +71,45 @@ GoogleAuth.initialize({
   // grantOfflineAccess: true,
 });
 
+const gb = new GrowthBook({
+  apiHost: "https://cdn.growthbook.io",
+  clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
+  enableDevMode: true,
+  trackingCallback: (experiment, result) => {
+    Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
+      experimentId: experiment.key,
+      variationId: result.key,
+    });
+  },
+ });
+ gb.init({
+  streaming: true,
+ });
+
+// Default to Supabase
+const serviceInstance = ServiceConfig.getInstance(APIMode.SUPABASE);
+
+// Check role
+const isOpsUser = localStorage.getItem(IS_OPS_USER) === 'true';
+
+if (!isOpsUser) {
+  // Initialize SQLite only if needed
+  SplashScreen.show();
+  await SqliteApi.getInstance();
+  serviceInstance.switchMode(APIMode.SQLITE);
+  SplashScreen.hide();
+}
+
 // SqliteApi.getInstance().then(() => {
 ServiceConfig.getInstance(APIMode.ONEROSTER);
 root.render(
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>
+  <GrowthBookProvider growthbook={gb}>
+    <GbProvider>
+      <BrowserRouter>
+      <App />
+      </BrowserRouter>
+    </GbProvider>
+  </GrowthBookProvider>
 );
 // });
 

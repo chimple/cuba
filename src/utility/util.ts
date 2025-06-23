@@ -48,6 +48,12 @@ import {
   NAVIGATION_STATE,
   GAME_URL,
   LOCAL_BUNDLES_PATH,
+  School_Creation_Stages,
+  HOMEHEADERLIST,
+  ASSIGNMENT_TYPE,
+  ASSIGNMENT_POPUP_SHOWN,
+  QUIZ_POPUP_SHOWN,
+  SCHOOL_LOGIN,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -83,8 +89,7 @@ import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { URLOpenListenerEvent } from "@capacitor/app";
 import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
-
-
+import CryptoJS from "crypto-js";
 declare global {
   interface Window {
     cc: any;
@@ -130,8 +135,6 @@ export class Util {
     const currentChapter = ChapterDetail;
     const currentStudentDocId: string = Util.getCurrentStudent()?.id || "";
 
-    console.log("currentChapter", currentChapter);
-
     if (!currentChapter) return undefined;
     let currentLessonIndex;
 
@@ -140,15 +143,11 @@ export class Util {
 
     for (let i = 0; i < cChapter.length - 1; i++) {
       const currentLesson = cChapter[i];
-      console.log(`Checking lesson at index ${i}:`, currentLesson);
-      console.log("currentlesson id:", currentLesson.id);
       if (currentLesson.id === currentLessonId) {
         currentLessonIndex = i;
         break;
       }
     }
-
-    console.log("currentLessonIndex", currentLessonIndex);
 
     if (currentLessonIndex < currentChapter.lessons.length - 1) {
       let nextLesson = currentChapter.lessons[currentLessonIndex + 1];
@@ -171,7 +170,6 @@ export class Util {
         const lessonObj = (await api.getLesson(
           nextLesson.id
         )) as TableTypes<"lesson">;
-        console.log("lessonObj", lessonObj);
         if (lessonObj) {
           return lessonObj;
         }
@@ -342,7 +340,6 @@ export class Util {
   }
 
   public static handleAppStateChange = (state: any) => {
-    console.log("handleAppStateChange triggered");
     if (state.isActive && Capacitor.isNativePlatform()) {
       const currentTime = Date.now();
       const startTime = Number(localStorage.getItem("startTime") || "0");
@@ -350,14 +347,9 @@ export class Util {
       if (timeElapsed >= Util.TIME_LIMIT) {
         const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
         const today = new Date().toISOString().split("T")[0];
-        console.log(
-          "lastShownDate in handleAppStateChange",
-          today,
-          lastShownDate
-        );
+
         if ("2024-11-05" !== today) {
           // if (STAGES.MODE === "parent") {
-          console.log("handleAppStateChange modal triggered");
           const showModalEvent = new CustomEvent("shouldShowModal", {
             detail: true,
           });
@@ -427,7 +419,6 @@ export class Util {
     if (!!currUser?.sfx_off) return currUser.sfx_off ? 1 : 0;
     const currSound = localStorage.getItem(SOUND);
     if (!currSound) return 0;
-    console.log(currSound);
     if (currUser) {
       ServiceConfig.getI().apiHandler.updateSoundFlag(
         currUser.id,
@@ -485,7 +476,6 @@ export class Util {
     if (!!currUser?.music_off) return currUser?.music_off ? 1 : 0;
     const currMusic = localStorage.getItem(MUSIC);
     if (!currMusic) return 0;
-    console.log("currentMISIC", currMusic);
     if (currUser) {
       ServiceConfig.getI().apiHandler.updateMusicFlag(
         currUser.id,
@@ -557,6 +547,15 @@ export class Util {
     localStorage.setItem(lessonIdStorageKey, JSON.stringify(updatedItems));
   };
 
+  public static async getLessonPath(lessonId: string): Promise<string> {
+    const path =
+      (localStorage.getItem("gameUrl") ??
+        "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
+      lessonId +
+      "/";
+    return path;
+  }
+
   public static async downloadZipBundle(
     lessonIds: string[],
     chapterId?: string
@@ -612,13 +611,10 @@ export class Util {
                       url: zipUrl,
                       responseType: "blob",
                     });
-                    console.log(
-                      "🚀 ~ file: util.ts:219 ~ downloadZipBundle ~ zip:",
-                      zip.status
-                    );
+
                     if (!!zip && !!zip.data && zip.status === 200) break;
                   } catch (error) {
-                    console.log(
+                    console.error(
                       "🚀 ~ file: util.ts:216 ~ downloadZipBundle ~ error:",
                       error
                     );
@@ -629,10 +625,26 @@ export class Util {
               if (!zip || !zip.data || zip.status !== 200)
                 lessonDownloadSuccess = false;
               if (zip instanceof Object) {
-                console.log("unzipping ");
                 const buffer = Uint8Array.from(atob(zip.data), (c) =>
                   c.charCodeAt(0)
                 );
+
+                // Store the size and lesson data in a single object
+                const lessonData = JSON.parse(
+                  localStorage.getItem("downloaded_lessons_size") || "{}"
+                );
+                lessonData[lessonId] = {
+                  size: buffer.byteLength,
+                };
+                localStorage.setItem(
+                  "downloaded_lessons_size",
+                  JSON.stringify(lessonData)
+                );
+
+                const lessonData1 = JSON.parse(
+                  localStorage.getItem("downloaded_lessons_size") || "{}"
+                ) as { [lessonId: string]: { size: number } };
+
                 await unzip({
                   fs: fs,
                   extractTo: lessonId,
@@ -649,7 +661,6 @@ export class Util {
                     ),
                   data: buffer,
                 });
-                console.log("Unzip done");
                 this.setGameUrl(androidPath);
                 this.storeLessonIdToLocalStorage(
                   lessonId,
@@ -693,10 +704,78 @@ export class Util {
     }
   }
 
+  public static async DownloadLearningPathAssets(
+    zipUrl: string,
+    uniqueId: string
+  ): Promise<boolean> {
+    try {
+      if (!Capacitor.isNativePlatform()) return true;
+
+      const fs = createFilesystem(Filesystem, {
+        rootDir: "",
+        directory: Directory.External,
+        base64Alway: false,
+      });
+      const androidPath = await this.getAndroidBundlePath();
+
+      //logic for read config.json
+      try {
+        const res = await fetch("remoteAsset/config.json");
+        const isExists = res.ok;
+        if (isExists) {
+          const configFile = await Filesystem.readFile({
+            path: "remoteAsset/config.json",
+            directory: Directory.External,
+          });
+
+          const decoded = atob(configFile.data); // base64 → string
+          const config = JSON.parse(decoded); // string → object
+
+          if (config.uniqueId === uniqueId) {
+            this.setGameUrl(androidPath);
+            return true;
+          }
+        }
+      } catch (err) {
+        console.error(`❌ Failed to read config for remoteAsset:`, err);
+      }
+
+      // Download and unzip
+      const response = await CapacitorHttp.get({
+        url: zipUrl,
+        responseType: "blob",
+      });
+
+      if (!response?.data || response.status !== 200) return false;
+      const buffer = Uint8Array.from(atob(response.data), (c) =>
+        c.charCodeAt(0)
+      );
+      await unzip({
+        fs,
+        extractTo: "",
+        filepaths: ["."],
+        filter: (filepath: string) => !filepath.startsWith("dist/"),
+        onProgress: (event) => {
+          console.log("Unzipping LearningPath assets:", event.filename);
+        },
+        data: buffer,
+      });
+
+      this.setGameUrl(androidPath);
+      return true;
+    } catch (err) {
+      console.error("Unexpected error in DownloadLearningPathAssets:", err);
+      return false;
+    }
+  }
+
   public static async deleteDownloadedLesson(
     lessonIds: string[]
   ): Promise<boolean> {
     try {
+      const lessonData = JSON.parse(
+        localStorage.getItem("downloaded_lessons_size") || "{}"
+      );
       for (const lessonId of lessonIds) {
         const lessonPath = `${lessonId}`;
         await Filesystem.rmdir({
@@ -704,13 +783,43 @@ export class Util {
           directory: Directory.External,
           recursive: true,
         });
-        console.log("Lesson deleted successfully:", lessonId);
+
+        // Remove the lesson and size from the single object in localStorage
+        delete lessonData[lessonId];
+        localStorage.setItem(
+          "downloaded_lessons_size",
+          JSON.stringify(lessonData)
+        );
+
         this.removeLessonIdFromLocalStorage(lessonId, DOWNLOADED_LESSON_ID);
       }
     } catch (error) {
       console.error("Error deleting lesson:", error);
     }
     return false;
+  }
+
+  public static async deleteAllDownloadedLessons(): Promise<boolean> {
+    try {
+      // Retrieve all lesson data stored in localStorage
+      const lessonData = JSON.parse(
+        localStorage.getItem("downloaded_lessons_size") || "{}"
+      );
+
+      await Filesystem.rmdir({
+        path: "/",
+        directory: Directory.External,
+        recursive: true,
+      });
+
+      // Clear the lessons data from localStorage
+      localStorage.removeItem("downloaded_lessons_size");
+      localStorage.removeItem(DOWNLOADED_LESSON_ID);
+      return true;
+    } catch (error) {
+      console.error("Error deleting all lessons:", error);
+      return false;
+    }
   }
 
   public static async checkDownloadedLessonsFromLocal() {
@@ -735,11 +844,9 @@ export class Util {
         const folderNamesArray: string[] = [];
 
         for (let i = 0; i < contents.files.length; i++) {
-          console.log("Processing folder:", contents.files[i].name);
           folderNamesArray.push(contents.files[i].name);
         }
         localStorage.setItem(DOWNLOADED_LESSON_ID, JSON.stringify([]));
-        console.log("local ids", folderNamesArray);
         this.storeLessonIdToLocalStorage(
           folderNamesArray,
           DOWNLOADED_LESSON_ID
@@ -820,7 +927,6 @@ export class Util {
               if (div) {
                 div.style.backgroundImage = "";
               }
-              console.log("Success to load scene: " + launchScene);
             }
             resolve(scene);
           } else {
@@ -829,7 +935,7 @@ export class Util {
         });
       });
     } catch (error) {
-      console.log("launchCocosGame(): error ", error);
+      console.error("launchCocosGame(): error ", error);
     }
   }
 
@@ -837,7 +943,6 @@ export class Util {
     if (!window.cc) {
       return;
     }
-    console.log("pausing the game");
     window.cc.game.pause();
     window.cc.audioEngine.stopAll();
     const canvas = document.getElementById("GameCanvas");
@@ -952,7 +1057,6 @@ export class Util {
     if (typeof msg !== "string") {
       msg = JSON.stringify(msg);
     }
-    console.log("🚀 ~ file: util.ts:303 ~ showLog ~ msg:", msg);
     await Toast.show({
       text: msg,
       duration: "long",
@@ -966,6 +1070,7 @@ export class Util {
     }
   ) {
     try {
+      if (Util.isRespectMode) return
       //Setting User Id in User Properites
       await FirebaseAnalytics.setUserId({
         userId: params.user_id,
@@ -981,13 +1086,12 @@ export class Util {
         nameOverride: window.location.pathname,
       });
 
-      console.log("FirebaseAnalytics.setUserId({", FirebaseAnalytics);
       await FirebaseAnalytics.logEvent({
         name: eventName,
         params: params,
       });
     } catch (error) {
-      console.log(
+      console.error(
         "Error logging event to firebase analytics ",
         eventName,
         ":",
@@ -1022,7 +1126,7 @@ export class Util {
       //   value: currentUser.username,
       // });
     } catch (error) {
-      console.log("Set User Properties Error ", error);
+      console.error("Set User Properties Error ", error);
     }
   }
 
@@ -1186,14 +1290,12 @@ export class Util {
           "webglcontextrestored",
           (event) => {
             try {
-              console.log("WebGL context restored.");
               event.preventDefault(); // Prevent the browser from restoring automatically
               const webglContext = canvas.getContext(
                 "webgl"
               ) as WebGLRenderingContext | null;
 
               if (webglContext) {
-                console.log("WebGL context successfully restored.");
               }
             } catch (error) {
               console.error("Error handling webglcontextrestored:", error);
@@ -1202,7 +1304,6 @@ export class Util {
           false
         );
 
-        console.log("WebGL setup completed successfully.");
         return true; // Return true if canvas exists and WebGL is initialized
       } else {
         console.warn("GameCanvas element not found.");
@@ -1229,8 +1330,6 @@ export class Util {
     langFlag: boolean = true,
     isStudent: boolean = true
   ) => {
-    console.log("setCurrentStudent called", student);
-
     const api = ServiceConfig.getI().apiHandler;
     api.currentStudent = student !== null ? student : undefined;
 
@@ -1265,12 +1364,9 @@ export class Util {
         languageCode = langDoc.code ?? undefined;
       }
     }
-    const tempLangCode = student?.language_id ?? LANG.ENGLISH;
-    console.log("🚀 ~ tempLangCode:", tempLangCode);
+    const tempLangCode = languageCode ?? LANG.ENGLISH;
     if (!!langFlag) localStorage.setItem(LANGUAGE, tempLangCode);
-    console.log("🚀 ~ langFlag:", langFlag);
     if (!!isStudent) await i18n.changeLanguage(tempLangCode);
-    console.log("🚀 ~ isStudent:", isStudent);
 
     //Setting Student Id in User Properites
     // if (student)
@@ -1384,7 +1480,6 @@ export class Util {
   public static isTextFieldFocus(scollToRef, setIsInputFocus) {
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
-        console.log("info", JSON.stringify(info));
         setIsInputFocus(true);
 
         setTimeout(() => {
@@ -1405,16 +1500,10 @@ export class Util {
     if (!Capacitor.isNativePlatform()) return;
     try {
       const canCheckUpdate = Util.canCheckUpdate(LAST_UPDATE_CHECKED);
-      console.log(
-        "🚀 ~ file: util.ts:473 ~ startFlexibleUpdate ~ canCheckUpdate:",
-        canCheckUpdate
-      );
+
       if (!canCheckUpdate) return;
       const result = await AppUpdate.getAppUpdateInfo();
-      console.log(
-        "🚀 ~ file: util.ts:471 ~ startFlexibleUpdate ~ result:",
-        JSON.stringify(result)
-      );
+
       if (
         result.updateAvailability !== AppUpdateAvailability.UPDATE_AVAILABLE
       ) {
@@ -1422,23 +1511,13 @@ export class Util {
       }
       if (result.flexibleUpdateAllowed) {
         const appUpdateResult = await AppUpdate.startFlexibleUpdate();
-        console.log(
-          "🚀 ~ file: util.ts:482 ~ startFlexibleUpdate ~ appUpdateResult:",
-          JSON.stringify(appUpdateResult)
-        );
+
         if (appUpdateResult.code === AppUpdateResultCode.OK) {
-          console.log(
-            "🚀 ~ file: util.ts:487 ~ startFlexibleUpdate ~ appUpdateResult.code:",
-            appUpdateResult.code
-          );
           await AppUpdate.completeFlexibleUpdate();
-          console.log(
-            "🚀 ~ file: util.ts:492 ~ startFlexibleUpdate ~ completeFlexibleUpdate:"
-          );
         }
       }
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: util.ts:482 ~ startFlexibleUpdate ~ error:",
         JSON.stringify(error)
       );
@@ -1455,14 +1534,6 @@ export class Util {
       FirebaseMessaging.addListener(
         "notificationReceived",
         async ({ notification }) => {
-          if (
-            notification.data &&
-            notification.data["notificationType"] === TABLES.Assignment
-          ) {
-            const api = ServiceConfig.getI().apiHandler;
-            await api.syncDB();
-          }
-          console.log("notificationReceived", JSON.stringify(notification));
           try {
             const res = await LocalNotifications.schedule({
               notifications: [
@@ -1480,20 +1551,12 @@ export class Util {
             LocalNotifications.addListener(
               "localNotificationActionPerformed",
               (notification) => {
-                console.log(
-                  "Local Notification Action Performed",
-                  notification
-                );
                 const extraData = notification.notification.extra;
                 onNotification(extraData);
               }
             );
-            console.log(
-              "🚀 ~ file: util.ts:622 ~ res:",
-              JSON.stringify(res.notifications)
-            );
           } catch (error) {
-            console.log(
+            console.error(
               "🚀 ~ file: util.ts:630 ~ error:",
               JSON.stringify(error)
             );
@@ -1506,10 +1569,110 @@ export class Util {
       if (result.receive === "granted") return;
       await FirebaseMessaging.requestPermissions();
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: util.ts:514 ~ checkNotificationPermissionsAndType ~ error:",
         JSON.stringify(error)
       );
+    }
+  }
+
+  public static async navigateTabByNotificationData(data: any) {
+    const currentStudent = this.getCurrentStudent();
+    const api = ServiceConfig.getI().apiHandler;
+    if (data && data.notificationType === ASSIGNMENT_TYPE.REWARD) {
+      const rewardProfileId = data.rewardProfileId;
+      if (rewardProfileId)
+        if (currentStudent?.id === rewardProfileId) {
+          window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+        } else {
+          await this.setCurrentStudent(null);
+          const students = await api.getParentStudentProfiles();
+          let matchingUser =
+            students.find((user) => user.id === rewardProfileId) || students[0];
+          if (matchingUser) {
+            await this.setCurrentStudent(matchingUser, undefined, true);
+            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+          } else {
+            return;
+          }
+        }
+    } else if (data && data.notificationType === ASSIGNMENT_TYPE.ASSIGNMENT) {
+      sessionStorage.setItem(ASSIGNMENT_POPUP_SHOWN, "false");
+      if (data.classId) {
+        const classId = data.classId;
+        if (!classId) return;
+        const studentsData = await api.getStudentsForClass(classId);
+        let tempStudentIds: string[] = [];
+        for (let student of studentsData) {
+          tempStudentIds.push(student.id);
+        }
+        let foundMatch = false;
+        for (let studentId of tempStudentIds) {
+          if (currentStudent?.id === studentId) {
+            window.location.replace(
+              PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
+            );
+            foundMatch = true;
+            break;
+          }
+        }
+        if (!foundMatch) {
+          await this.setCurrentStudent(null);
+          const students = await api.getParentStudentProfiles();
+          let matchingUser =
+            students.find((user) => tempStudentIds.includes(user.id)) ||
+            students[0];
+          if (matchingUser) {
+            await this.setCurrentStudent(matchingUser, undefined, true);
+            window.location.replace(
+              PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
+            );
+          }
+        } else {
+          window.location.replace(
+            PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
+          );
+          return;
+        }
+      }
+    } else if (data && data.notificationType === ASSIGNMENT_TYPE.LIVEQUIZ) {
+      sessionStorage.setItem(QUIZ_POPUP_SHOWN, "false");
+      if (data.classId) {
+        const classId = data.classId;
+        const studentsData = await api.getStudentsForClass(classId);
+        let tempStudentIds: string[] = [];
+        for (let student of studentsData) {
+          tempStudentIds.push(student.id);
+        }
+        let foundMatch = false;
+        for (let studentId of tempStudentIds) {
+          if (currentStudent?.id === studentId) {
+            window.location.replace(
+              data.assignmentId
+                ? PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${data.assignmentId}`
+                : PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ
+            );
+            foundMatch = true;
+            break;
+          }
+        }
+        if (!foundMatch) {
+          await this.setCurrentStudent(null);
+          const students = await api.getParentStudentProfiles();
+          let matchingUser =
+            students.find((user) => tempStudentIds.includes(user.id)) ||
+            students[0];
+          if (matchingUser) {
+            await this.setCurrentStudent(matchingUser, undefined, true);
+            window.location.replace(
+              PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ
+            );
+          }
+        }
+      } else {
+        window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ);
+        return;
+      }
     }
   }
 
@@ -1546,15 +1709,12 @@ export class Util {
     //     disableNetwork(_db);
     //   }
     //   window.addEventListener("online", (e) => {
-    //     console.log("🚀 ~ file: util.ts:677 ~ window.addEventListener ~ e:", e);
     //     enableNetwork(_db);
     //   });
     //   window.addEventListener("offline", (e) => {
-    //     console.log("🚀 ~ file: util.ts:681 ~ window.addEventListener ~ e:", e);
     //     disableNetwork(_db);
     //   });
     // } catch (err) {
-    //   console.log("🚀 ~ listenToNetwork ~ err:", err);
     // }
   }
 
@@ -1562,7 +1722,7 @@ export class Util {
     try {
       await RateApp.requestReview();
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: util.ts:694 ~ showInAppReview ~ error:",
         JSON.stringify(error)
       );
@@ -1583,11 +1743,9 @@ export class Util {
       path: "",
     });
     const filePath = path.uri.replace("/files", "/databases/") + "jsb.sqlite";
-    console.log("🚀 ~ file: util.ts:714 ~ migrate ~ filePath:", filePath);
     const url = Capacitor.convertFileSrc(filePath);
     const res = await fetch(url);
     const isExists = res.ok;
-    console.log("🚀 ~ file: util.ts:717 ~ migrate ~ isExists:", isExists);
     if (!isExists) return { migrated: false };
 
     if (!Util.port) {
@@ -1600,10 +1758,6 @@ export class Util {
       const result = await migrateUsers({
         users: port.users,
       });
-      console.log(
-        "🚀 ~ file: util.ts:734 ~ migrate ~ result:",
-        JSON.stringify(result)
-      );
       const res: any = result.data;
       // if (res.migrated) {
       //   const _db = getFirestore();
@@ -1615,7 +1769,7 @@ export class Util {
       //   return { migrated: true, newStudents: newStudents };
       // }
     } catch (error) {
-      console.log("🚀 ~ file: util.ts:707 ~ migrate ~ error:", error);
+      console.error("🚀 ~ file: util.ts:707 ~ migrate ~ error:", error);
       return { migrated: false };
     }
   }
@@ -1660,10 +1814,6 @@ export class Util {
       // await RemoteConfig.getBoolean(
       //   REMOTE_CONFIG_KEYS.CAN_SHOW_AVATAR
       // );
-      console.log(
-        "getCanShowAvatar() return canShowAvatarValue;",
-        canShowAvatarValue
-      );
 
       return canShowAvatarValue;
     } catch (error) {
@@ -1678,37 +1828,23 @@ export class Util {
     localStorageNameForFilePath: string
   ) {
     try {
-      console.log("Migrate existing Json File ");
       // if (!Capacitor.isNativePlatform()) {
-      //   console.log("Not a native platform. JSON migration skipped.");
       //   return;
       // }
 
       if (!newFileURL) {
-        console.log("new avatar newFileURL is undefined ", newFileURL);
-
         return;
       }
 
       let newFileResponse = await fetch(newFileURL);
 
       let newFileJson = await newFileResponse.json();
-      console.log("newAvatarSuggesstionJson ", newFileJson);
 
       let oldFileResponse = await fetch(oldFilePath);
 
       let oldFileJson = await oldFileResponse.json();
 
-      console.log("newAvatarSuggesstionJson.data", oldFileJson);
-      console.log(
-        "oldFileJson.version >= newFileJson.version",
-        oldFileJson.version,
-        newFileJson.version,
-        oldFileJson.version >= newFileJson.version
-      );
-
       if (oldFileJson.version >= newFileJson.version) {
-        console.log("No need to migrate. Current version is up to date.");
         return;
       }
 
@@ -1719,10 +1855,6 @@ export class Util {
         encoding: Encoding.UTF8,
         recursive: true,
       });
-      console.log(
-        "const res = await Filesystem.writeFile({ slice",
-        res.uri //.slice(1, res.uri.length)
-      );
       localStorage.setItem(
         localStorageNameForFilePath,
         res.uri
@@ -1784,15 +1916,10 @@ export class Util {
   }
 
   public static async getStudentFromServer() {
-    console.log("getStudentInfo called");
-
     const api = ServiceConfig.getI().apiHandler;
     let currentStudent = await Util.getCurrentStudent();
-    console.log("Util.getCurrentStudent() ", currentStudent);
     if (!currentStudent) return;
-    console.log("Util.getCurrentStudent().id ", currentStudent.id);
     const updatedStudent = await api.getUserByDocId(currentStudent.id);
-    console.log("api.getUserByDocId(currentStudent.id); ", updatedStudent);
     if (updatedStudent) {
       await Util.setCurrentStudent(updatedStudent);
     }
@@ -1811,19 +1938,9 @@ export class Util {
       if (!rewardsDoc) return false;
       const currentWeek = Util.getCurrentWeekNumber();
       const weeklyData = rewardsDoc.weeklySticker;
-
-      console.log(
-        "const weeklyData = rewardsDoc.weeklySticker;",
-        rewardsDoc.weeklySticker
-      );
-
       let currentReward;
 
       weeklyData?.[currentWeek.toString()].forEach(async (value) => {
-        console.log(
-          "weeklyData[currentWeek.toString()].forEach((value) => {",
-          value
-        );
         currentReward = value;
       });
       // if (!currentUser.rewards) {
@@ -1843,7 +1960,6 @@ export class Util {
       // let canPushCurrentReward = true;
       // for (let i = 0; i < currentUser.rewards.sticker.length; i++) {
       //   const element = currentUser.rewards.sticker[i];
-      //   console.log("const element = currentUser.rewards.sticker[i];", element);
       //   if (element.id === currentReward.id) {
       //     canPushCurrentReward = false;
       //   }
@@ -1853,11 +1969,10 @@ export class Util {
       //     id: currentReward.id,
       //     seen: false,
       //   });
-      // console.log("currentUser.rewards?.sticker.push({", currentUser.rewards);
       // await api.updateRewardsForStudent(currentUser.id, currentUser.rewards);
       return true;
     } catch (error) {
-      console.log("unlockWeeklySticker() error ", error);
+      console.error("unlockWeeklySticker() error ", error);
       return false;
     }
   }
@@ -1865,7 +1980,6 @@ export class Util {
   public static async getAllUnlockedRewards(): Promise<
     unlockedRewardsInfo[] | undefined
   > {
-    //   console.log("getAllUnlockedRewards() called");
     //   await this.getStudentFromServer();
     //   const api = ServiceConfig.getI().apiHandler;
     //   const currentStudent = this.getCurrentStudent();
@@ -1880,7 +1994,6 @@ export class Util {
     //       if (!element.seen) {
     //         const reward = await apiGetter(element.id);
     //         if (reward) {
-    //           console.log("Reward added: ", element, reward);
     //           allUnlockedRewards.push({
     //             id: element.id,
     //             type,
@@ -1911,7 +2024,6 @@ export class Util {
     //     (id) => api.getStickerById(id),
     //     LEADERBOARD_REWARD_LIST.STICKER
     //   );
-    //   console.log("getAllUnlockedRewards() called ", allUnlockedRewards);
     //   return allUnlockedRewards;
     return;
   }
@@ -1934,13 +2046,17 @@ export class Util {
     }
   }
   public static addRefreshTokenToLocalStorage(refreshToken: string) {
-    localStorage.setItem(REFRESH_TOKEN, JSON.stringify(refreshToken));
+    const data = {
+      token: refreshToken,
+      savedAt: new Date().toISOString(), // store current date/time in ISO format
+    };
+    localStorage.setItem(REFRESH_TOKEN, JSON.stringify(data));
   }
+
   public static setCurrentSchool = async (
     school: TableTypes<"school">,
     role: RoleType
   ) => {
-    console.log("setCurrentSchool called", school);
     const api = ServiceConfig.getI().apiHandler;
     api.currentSchool = school !== null ? school : undefined;
     localStorage.setItem(SCHOOL, JSON.stringify(school));
@@ -1960,7 +2076,6 @@ export class Util {
   public static setCurrentClass = async (
     classDoc: TableTypes<"class"> | null
   ) => {
-    console.log("setCurrentClass called", classDoc);
     const api = ServiceConfig.getI().apiHandler;
     api.currentClass = classDoc !== null ? classDoc : undefined;
     localStorage.setItem(CLASS, JSON.stringify(classDoc));
@@ -1970,10 +2085,16 @@ export class Util {
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentClass) return api.currentClass;
     const temp = localStorage.getItem(CLASS);
-    if (!temp) return;
-    const currentClass = JSON.parse(temp) as TableTypes<"class">;
-    api.currentClass = currentClass;
-    return currentClass;
+    if (!temp || temp === "undefined") return;
+
+    try {
+      const currentClass = JSON.parse(temp) as TableTypes<"class">;
+      api.currentClass = currentClass;
+      return currentClass;
+    } catch (err) {
+      console.error("Failed to parse currentClass from localStorage", err);
+      return;
+    }
   }
 
   public static async sendContentToAndroidOrWebShare(
@@ -1993,7 +2114,7 @@ export class Util {
           url: url,
           imageFile: imageFile, // Pass the File object for Android
         })
-        .then(() => console.log("Content shared successfully"))
+        .then(() => { })
         .catch((error) => console.error("Error sharing content:", error));
     } else {
       // Web sharing
@@ -2006,7 +2127,7 @@ export class Util {
 
       await navigator
         .share(shareData)
-        .then(() => console.log("Content shared successfully"))
+        .then(() => { })
         .catch((error) => console.error("Error sharing content:", error));
     }
   }
@@ -2066,11 +2187,8 @@ export class Util {
           path: "",
         });
 
-        console.log("path ", path, "uri", path?.uri);
-
         if (path && path.uri) {
           const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.bahama/cache
-          console.log("uri", uri); // http://localhost/_capacitor_file_/data/user/0/org.chimple.bahama/cache
           return uri + "/";
         }
       } catch (error) {
@@ -2084,7 +2202,197 @@ export class Util {
   public static setGameUrl(path: string) {
     localStorage.setItem(GAME_URL, path);
   }
+  public static async triggerSaveProceesedXlsxFile(data: {
+    fileData: string;
+    fileName?: string;
+  }) {
+    try {
+      if (!Util.port) {
+        Util.port = registerPlugin<PortPlugin>("Port");
+      }
+      await Util.port.saveProceesedXlsxFile({
+        fileData: data.fileData,
+        fileName: data.fileName,
+      });
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  }
+  public static handleMissingEntities(
+    history: any,
+    redirectPage: string,
+    origin: PAGES,
+    classId?: string
+  ) {
+    history.replace(redirectPage, {
+      classId: classId,
+      origin: origin,
+      isSelect: true,
+    });
+  }
+  public static async handleClassAndSubjects(
+    schoolId: string,
+    userId: string,
+    history: any,
+    originPage: PAGES
+  ) {
+    const api = ServiceConfig.getI().apiHandler;
+    const schoolCourses = await api.getCoursesBySchoolId(schoolId);
+    if (schoolCourses.length === 0) {
+      this.setNavigationState(School_Creation_Stages.SCHOOL_COURSE);
+      history.replace(PAGES.SUBJECTS_PAGE, {
+        schoolId: schoolId,
+        origin: originPage,
+        isSelect: true,
+      });
+      return;
+    }
+    const fetchedClasses = await api.getClassesForSchool(schoolId, userId);
+    if (fetchedClasses.length === 0) {
+      history.replace(PAGES.ADD_CLASS, {
+        school: { id: schoolId },
+        origin: originPage,
+      });
+      return;
+    }
 
+    const classCoursesData = await Promise.all(
+      fetchedClasses.map((classItem) =>
+        api.getCoursesByClassId(classItem.id).then((courses) => ({
+          classId: classItem.id,
+          courses,
+        }))
+      )
+    );
+
+    const classWithoutSubjects = classCoursesData.find(
+      (data) => data.courses.length === 0
+    );
+
+    if (classWithoutSubjects) {
+      this.setNavigationState(School_Creation_Stages.CLASS_COURSE);
+      this.handleMissingEntities(
+        history,
+        PAGES.SUBJECTS_PAGE,
+        originPage,
+        classWithoutSubjects.classId
+      );
+      return;
+    }
+  }
+  public static async encryptData(data: object): Promise<string | null> {
+    try {
+      const stringData = JSON.stringify(data);
+      const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
+
+      if (!ENCRYPTION_KEY) {
+        throw new Error("ENCRYPTION_KEY is not set.");
+      }
+      return CryptoJS.AES.encrypt(stringData, ENCRYPTION_KEY).toString();
+    } catch (error) {
+      console.error("Encryption failed:", error);
+      return null;
+    }
+  }
+
+  public static async decryptData(
+    ciphertext: string
+  ): Promise<{ email: string; password: string } | null> {
+    try {
+      const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
+      if (!ENCRYPTION_KEY) {
+        throw new Error("ENCRYPTION_KEY is not set.");
+      }
+
+      const bytes = CryptoJS.AES.decrypt(ciphertext, ENCRYPTION_KEY);
+      const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+
+      return JSON.parse(decrypted);
+    } catch (error) {
+      console.error("Decryption failed:", error);
+      return null;
+    }
+  }
+
+  public static async storeLoginDetails(
+    email: string,
+    password: string
+  ): Promise<void> {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+
+    try {
+      const encryptedData = await this.encryptData({ email, password });
+      if (encryptedData) {
+        localStorage.setItem(SCHOOL_LOGIN, encryptedData);
+      }
+    } catch (error) {
+      console.error("Failed to encrypt and store login details:", error);
+    }
+  }
+
+  public static async downloadFileFromUrl(fileUrl: string): Promise<void> {
+    try {
+      const response = await fetch(fileUrl);
+
+      // ✅ Validate content type to avoid corrupted files
+      const contentType = response.headers.get("content-type") || "";
+      if (
+        contentType.includes("text/html") ||
+        contentType.includes("application/json")
+      ) {
+        const text = await response.text();
+        console.error(
+          "Unexpected content instead of a file:",
+          text.slice(0, 100)
+        );
+        throw new Error(
+          "Invalid file download. Check if the link is direct and the file is public."
+        );
+      }
+      const blob = await response.blob();
+      this.handleBlobDownloadAndSave(blob, "BulkUploadTemplate.xlsx");
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  }
+
+  public static async blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+        const base64Data = reader.result as string;
+        resolve(base64Data.split(",")[1]);
+      };
+      reader.onerror = reject;
+    });
+  }
+
+  public static async handleBlobDownloadAndSave(blob: Blob, fileName?: string) {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        const base64 = await Util.blobToBase64(blob);
+        await Util.triggerSaveProceesedXlsxFile({
+          fileData: base64,
+          fileName: fileName,
+        });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName || "ProcessedFile.xlsx";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      console.error("Failed to save or download file:", error);
+    }
+  }
+  
   public static async loadJson(jsonPath) {
     let response = await fetch(jsonPath);
     // Check if the request was successful

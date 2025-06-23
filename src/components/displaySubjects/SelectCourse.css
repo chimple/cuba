@@ -79,3 +79,13 @@
 .slide {
   max-width: fit-content;
 }
+
+#ignore {
+  background: transparent !important;
+  color: transparent !important;
+  position: absolute;
+  display: grid;
+  align-self: center !important;
+  justify-self: center !important;
+  width: fit-content;
+}

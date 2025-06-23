@@ -1,0 +1,98 @@
+.schoolPrincipals-pageContainer {
+  padding: 1.667vw; /* 24px */
+  background-color: #fff;
+  display: flex; 
+  flex-direction: column; 
+  flex-grow: 1; 
+}
+
+.schoolPrincipals-dataTableContainer {
+  border: 1px solid #eaecf0;
+  border-radius: 0.556vw; 
+  overflow: hidden;
+  background-color: #fff;
+  flex-grow: 1;
+  display: flex; 
+  flex-direction: column; 
+}
+
+.schoolPrincipals-dataTableContainer table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.schoolPrincipals-dataTableContainer th,
+.schoolPrincipals-dataTableContainer td {
+  padding: 0.833vw 1.667vw; /* 12px 24px */
+  text-align: left;
+  vertical-align: middle;
+}
+.schoolPrincipals-dataTableContainer th {
+  background-color: #f9fafb;
+  color: #667085;
+  font-weight: 500;
+  font-size: 0.833vw;
+  line-height: 1.25vw;
+  border-bottom: 1px solid #eaecf0;
+}
+.schoolPrincipals-dataTableContainer td {
+  color: #344054;
+  font-weight: 400;
+  font-size: 0.972vw;
+  line-height: 1.389vw;
+  border-bottom: 1px solid #eaecf0;
+}
+.schoolPrincipals-dataTableContainer tbody tr:last-child td {
+  border-bottom: none;
+}
+.schoolPrincipals-dataTableContainer .principal-name-data.MuiTypography-root {
+  font-weight: 500 !important;
+  color: #1d2939 !important;
+}
+.schoolPrincipals-dataTableContainer .truncate-text.MuiTypography-root {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 12.5vw; /* 180px */
+}
+.schoolPrincipals-dataTableContainer th .sort-icon {
+  margin-left: 0.278vw; /* 4px */
+  font-size: 1.11vw; /* Approx 16px */
+  vertical-align: middle;
+}
+
+.schoolPrincipals-school-list-pagination {
+  padding: 0.833vw 1.667vw; /* 12px 24px */
+  border-top: 1px solid #eaecf0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: auto;
+}
+
+.schoolPrincipals-emptyStateContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3.333vh 1.11vw; 
+  min-height: 33.333vh;
+  width: 100%;
+  box-sizing: border-box;
+  flex-grow: 1; 
+}
+
+.schoolPrincipals-emptyStateTitle.MuiTypography-root {
+  font-weight: 600 !important;
+  color: #1d2939 !important;
+  margin-bottom: 0.556vw !important;
+  font-size: 1.389vw; 
+}
+
+.schoolPrincipals-emptyStateMessage.MuiTypography-root {
+  color: #475467 !important;
+  font-size: 0.972vw !important;
+  max-width: 20.833vw;
+  line-height: 1.5;
+}

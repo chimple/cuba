@@ -1,0 +1,9 @@
+.sidebarpage-rightSide {
+  display: flex;
+  height: 100vh;
+}
+.sidebarpage-render {
+  flex: 1;
+  /* padding: 1rem;  */
+  background-color: #f5f5f5;
+}

@@ -23,6 +23,9 @@ const LessonSlider: React.FC<{
   assignments?: TableTypes<"assignment">[];
   chapter?: TableTypes<"chapter">;
   lessonChapterMap?: { [lessonId: string]: TableTypes<"chapter"> };
+  lessonCourseMap?: {
+    [lessonId: string]: { course_id: string };
+  };
 }> = ({
   lessonData,
   course,
@@ -39,6 +42,7 @@ const LessonSlider: React.FC<{
   assignments,
   lessonChapterMap,
   chapter,
+  lessonCourseMap,
 }) => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
   const [loadedLessons, setLoadedLessons] = useState<TableTypes<"lesson">[]>(
@@ -53,7 +57,6 @@ const LessonSlider: React.FC<{
   height = "35vh";
   const lessonSwiperRef = useRef<any>(null);
   const checkSplideInstance = () => {
-    console.log("startIndex value in lessonSlider", startIndex);
     if (startIndex) lessonSwiperRef?.current.go(startIndex);
   };
 
@@ -137,6 +140,7 @@ const LessonSlider: React.FC<{
                 showDate={showDate}
                 onDownloadOrDelete={onDownloadOrDelete}
                 chapter={lessonChapterMap?.[m.id] ?? chapter}
+                lessonCourseMap={lessonCourseMap}
               />
             </SplideSlide>
           );

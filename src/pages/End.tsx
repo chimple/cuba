@@ -5,7 +5,6 @@ import "./End.css";
 
 export const End: React.FC = () => {
   const history = useHistory();
-  console.log("END game", history.location.state);
   const state = history.location.state as any;
   return (
     <IonPage>

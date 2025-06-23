@@ -175,7 +175,8 @@
 }
 
 .status-text-container-2 {
-  background-color: rgb(220, 213, 213);
+  /* background-color: rgb(220, 213, 213); */
+  background-color: #FFFDEE;
   border-radius: 15px 15px 0 0;
   padding: 10px;
   position: absolute;
@@ -192,7 +193,8 @@
   width: 80vw;
   border-radius: 35px;
   padding: 2vh;
-  background: rgb(220, 213, 213);
+  /* background: rgb(220, 213, 213); */
+  background-color: #FFFDEE;
   justify-content: space-between;
 }
 .green-circle {
