@@ -102,55 +102,37 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
   };
 
   return (
-    <div
-      style={{
-        background: "white",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <Box
-        width="100%"
-        py={isMobile ? 2 : 4}
-        sx={{ px: isMobile ? "20px" : 4, background: "white" }}
-      >
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={3}
-        >
+    <div className="user-page-container">
+      <Box className="user-page-header">
+        <Box className="user-header-top">
           {isMobile ? (
             <>
               <Box sx={{ width: 40 }} />
-              <Typography fontSize="25px" fontWeight="bold" textAlign="center">
+              <Typography className="user-title-mobile">
                 {t("Users")}
               </Typography>
-              <IconButton sx={{ color: "black", width: 40, height: 40 }}>
+              <IconButton className="user-icon-button">
                 <NotificationsIcon />
               </IconButton>
             </>
           ) : (
             <>
-              <Typography fontSize="29px" fontWeight="bold">
-                {t("Users")}
-              </Typography>
-              <IconButton sx={{ color: "black" }}>
+              <Typography className="user-title">{t("Users")}</Typography>
+              <IconButton className="user-icon-button">
                 <NotificationsIcon />
               </IconButton>
             </>
           )}
         </Box>
         {isMobile ? (
-          <Box display="flex" alignItems="center" gap={1} mb={3}>
+          <Box className="user-mobile-actions">
             <TextField
               placeholder="Search"
               size="small"
               variant="outlined"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              sx={{ minWidth: 0, flex: 1 }}
+              className="user-search-input"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -159,55 +141,26 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
                 ),
               }}
             />
-            {localStorage.getItem(USER_ROLE) !== "field_coordinator" && (
-              <Button
-                variant="outlined"
-                sx={{
-                  minWidth: 0,
-                  width: 40,
-                  height: 40,
-                  borderRadius: "50%",
-                  color: "#1976d2",
-                  borderColor: "#d0d0d0",
-                  padding: 0,
-                }}
-              >
-                <AddIcon sx={{ fontSize: 25 }} />
-              </Button>
-            )}
+            <Button variant="outlined" className="user-add-mobile">
+              <AddIcon sx={{ fontSize: 25 }} />
+            </Button>
           </Box>
         ) : (
-          <Box
-            display="flex"
-            justifyContent="flex-end"
-            alignItems="center"
-            gap={2}
-            mb={isMobile ? 1 : 1}
-          >
-            {localStorage.getItem(USER_ROLE) !== "field_coordinator" && (
-              <Button
-                variant="outlined"
-                startIcon={<AddIcon sx={{ color: "#1976d2", fontSize: 25 }} />}
-                sx={{
-                  borderRadius: "999px",
-                  color: "#6e6e6e",
-                  borderColor: "#d0d0d0",
-                  textTransform: "none",
-                  fontWeight: 600,
-                  px: 3,
-                  py: 1,
-                }}
-              >
-                {t("New User")}
-              </Button>
-            )}
+          <Box className="user-desktop-actions">
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon sx={{ color: "#1976d2", fontSize: 25 }} />}
+              className="user-add-desktop"
+            >
+              {t("New User")}
+            </Button>
             <TextField
               placeholder="Search"
               size="small"
               variant="outlined"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              sx={{ minWidth: 250 }}
+              className="user-search-desktop"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
