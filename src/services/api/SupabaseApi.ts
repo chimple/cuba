@@ -4807,7 +4807,7 @@ export class SupabaseApi implements ServiceApi {
 
     const { data, error } = await this.supabase
       .from("school_user")
-      .select("user:user!school_user_user_id_fkey(*)") 
+      .select("user:user!school_user_user_id_fkey(*)")
       .eq("school_id", schoolId)
       .eq("role", RoleType.PRINCIPAL)
       .eq("is_deleted", false)
@@ -4831,7 +4831,7 @@ export class SupabaseApi implements ServiceApi {
 
     const { data, error } = await this.supabase
       .from("school_user")
-      .select("user:user!school_user_user_id_fkey(*)") 
+      .select("user:user!school_user_user_id_fkey(*)")
       .eq("school_id", schoolId)
       .eq("role", RoleType.COORDINATOR)
       .eq("is_deleted", false)
@@ -6390,9 +6390,9 @@ export class SupabaseApi implements ServiceApi {
       return (coordinators ?? [])
         .filter((c) => c.user?.name && c.role)
         .map((c) => ({
-          name: c.user!.name ?? "", 
+          name: c.user!.name ?? "",
           role: c.role ?? "",
-      }));
+        }));
     }
   }
 
@@ -6531,5 +6531,32 @@ export class SupabaseApi implements ServiceApi {
       return false;
     }
     return !!(data && data.length > 0);
+  }
+
+  async getUserSpecialRole(userId: string): Promise<string | undefined> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return undefined;
+    }
+
+    if (!userId) {
+      console.warn("userId is missing. Cannot fetch role.");
+      return undefined;
+    }
+
+    const { data, error } = await this.supabase
+      .from("special_users")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("is_deleted", false)
+      .limit(1)
+      .single();
+
+    if (error) {
+      console.error("Error checking special_users table:", error);
+      return undefined;
+    }
+
+    return data?.role ?? undefined;
   }
 }
