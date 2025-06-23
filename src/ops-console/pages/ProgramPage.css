@@ -2,7 +2,6 @@
   background-color: white;
   color: black;
   margin: 0;
-  padding: 0;
   display: flex;
   flex-direction: column;
   height: 100vh;           
@@ -15,7 +14,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
+  padding-top: 12px;
+  padding-left: 21px;
+  padding-right: 20px;
   font-size: 32px;
   width: 100%;
   font-weight: 600;
@@ -52,8 +53,6 @@
   background-color: white;
 }
 
-
-
 .program-search-filter {
   display: flex;
   width: 100%;
@@ -63,7 +62,6 @@
   flex-wrap: nowrap;        
   overflow-x: auto;    
   overflow-y: hidden;
-  align-items: center;   
   gap: 10px;
 }
 
@@ -92,7 +90,6 @@
   flex-shrink: 0;
 }
 
-
 .program-search-filter::-webkit-scrollbar {
   display: none;
 }
@@ -100,14 +97,87 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-@media (max-width: 600px) {
+
+
+@media (max-width: 600px) and (orientation: portrait) {
   .program-page {
     height: 100vh;
-    overflow-y: auto;
+    width: 100vw;
+    overflow-y: hidden;
+    overflow-x: hidden;
   }
-}
-@media (max-height: 600px) {
-   .program-page-header {
-    padding: 10px;
+
+  .program-page-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    padding: 5%;
+  }
+
+  .program-page-header-title {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: auto;
+    width: max-content;
+    text-align: center;
+    pointer-events: none;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  .program-page-header .bell-icon {
+    margin-left: auto;
+    position: relative;
+    pointer-events: auto;
+  }
+
+  .program-header-and-search-filter,
+  .program-page-pagination {
+    padding: 0 0 !important;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .program-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .program-table table {
+    width: 100%;
+  }
+
+  .program-search-filter {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .program-button-and-search-filter {
+    padding-left: 4%;
+    padding-right: 4%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
+
+  .program-button-and-search-filter button {
+    flex: 0 1 1;
+    overflow: hidden;
+  }
+
+  .program-tab-wrapper {
+    width: 100%;
+  }
+
+  .program-page-pagination {
+    overflow-x: auto;
+    justify-content: center;
+    padding-bottom: 16px;
   }
 }
