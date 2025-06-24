@@ -53,6 +53,7 @@ import {
   MODES,
   PAGES,
   PortPlugin,
+  SHOULD_SHOW_REMOTE_ASSETS,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -236,7 +237,7 @@ const App: React.FC = () => {
       );
     }
     localStorage.setItem(
-      "shouldShowRemoteAssets",
+      SHOULD_SHOW_REMOTE_ASSETS,
       JSON.stringify(shouldShowRemoteAssets)
     );
     
