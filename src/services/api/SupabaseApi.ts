@@ -6544,19 +6544,24 @@ export class SupabaseApi implements ServiceApi {
       return undefined;
     }
 
-    const { data, error } = await this.supabase
-      .from("special_users")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("is_deleted", false)
-      .limit(1)
-      .single();
+    try {
+      const { data, error } = await this.supabase
+        .from("special_users")
+        .select("role")
+        .eq("user_id", userId)
+        .in("role", ["super_admin", "operational_director", "program_manager"])
+        .eq("is_deleted", false)
+        .limit(1)
+        .single();
 
-    if (error) {
-      console.error("Error checking special_users table:", error);
+      if (error) {
+        console.error("Error fetching role from special_users:", error.message);
+        return undefined;
+      }
+      return data?.role ?? undefined;
+    } catch (e) {
+      console.error("Unexpected error while fetching user special role:", e);
       return undefined;
     }
-
-    return data?.role ?? undefined;
   }
 }

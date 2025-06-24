@@ -1700,7 +1700,7 @@ export type Database = {
           created_at: string;
           id: string;
           is_deleted: boolean | null;
-          role: Database["public"]["Enums"]["role"] | null;
+          role: Database["public"]["Enums"]["special_roles"] | null;
           updated_at: string | null;
           user_id: string | null;
         };
@@ -1708,7 +1708,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           is_deleted?: boolean | null;
-          role?: Database["public"]["Enums"]["role"] | null;
+          role?: Database["public"]["Enums"]["special_roles"] | null;
           updated_at?: string | null;
           user_id?: string | null;
         };
@@ -1716,7 +1716,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           is_deleted?: boolean | null;
-          role?: Database["public"]["Enums"]["role"] | null;
+          role?: Database["public"]["Enums"]["special_roles"] | null;
           updated_at?: string | null;
           user_id?: string | null;
         };
@@ -3354,6 +3354,7 @@ export type Database = {
         | "program_manager"
         | "operational_director"
         | "field_coordinator";
+      special_roles: "super_admin" | "operational_director" | "program_manager";
     };
     CompositeTypes: {
       [_ in never]: never;
