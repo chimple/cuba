@@ -1,0 +1,253 @@
+.update-teacher-form {
+  display: flex;
+  flex-direction: column;
+  margin: 3vh auto;
+  padding: 1vh 3vw;
+  width: 80%;
+  /* max-width: 400px; */
+  max-width: 60vh;
+  background-color: white;
+  border-radius: 8%;
+  box-shadow: 0 0.5vh 1.5vh rgba(0, 0, 0, 0.3);
+}
+
+.update-teacher-form h2 {
+  text-align: center;
+  margin-bottom: 4vh;
+  font-size: 2.5vh;
+}
+.add-student-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  color: black;
+  padding: 2vw;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 0;
+  background-color: #ffffff;
+}
+
+.header-for-add-student {
+  background-color: #fffbec;
+  width: 100%;
+  margin-top: 0;
+  /* padding-bottom: 3vh; */
+}
+
+.title {
+  /* padding: 0.001vw; */
+  /* font-size: 250%; */
+  margin: 0.2%;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 35%;
+  margin-left: 33vw;
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.login-user-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 24vh;
+  font-size: clamp(15px, 5vh, 30px);
+  color: var(--text-color);
+}
+
+.edit-icon {
+  cursor: pointer;
+  margin-left: 10px;
+  color: black;
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.save-button {
+  padding: 10px 20px;
+  background-color: #bcd589;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: white;
+}
+
+.save-button:hover {
+  background-color: #bcd589;
+}
+
+.add-student-form h2 {
+  text-align: center;
+  margin-bottom: 4vh;
+  font-size: 2.5vh;
+}
+
+.profile-pic-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4vh;
+}
+
+.profile-pic {
+  width: 20vw;
+  height: 20vw;
+  /* max-width: 100px; */
+  /* max-height: 100px; */
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.5vh;
+}
+
+.input-group label {
+  /* margin-bottom: 1vh; */
+  color: #333;
+  font-size: var(--text-sizeL);
+  font-family: "BalooExtraBold";
+}
+
+.input-group input,
+.input-group select {
+  padding: 0vh;
+  border: none;
+  border-bottom: 0.2vh solid #333;
+  background-color: transparent;
+  font-size: var(--text-sizeL);
+  color: #333;
+}
+
+.add-button.disabled {
+  background-color: #c4c5c1;
+  cursor: not-allowed;
+}
+
+.gender-options {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1vh;
+}
+
+.gender-options label {
+  display: flex;
+  align-items: center;
+  font-size: 2vh;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 2vh;
+}
+
+.form-actions button {
+  padding: 1.5vh 3vw;
+  border: none;
+  border-radius: 0.5vh;
+  background-color: #7c5db0;
+  color: white;
+  font-size: 3vh;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.main-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  margin: 0;
+  background-color: white;
+}
+
+.gender-options {
+  display: flex;
+  justify-content: space-around;
+  gap: 3vw;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 1.9vh;
+  font-size: 0.8rem !important;
+}
+
+ion-radio::part(container) {
+  width: 3vh;
+  height: 3vh;
+  border-radius: 50%;
+  border: 0.2vh solid #ddd;
+}
+
+ion-radio::part(mark) {
+  background: none;
+  transition: none;
+  transform: none;
+  border-radius: 0;
+}
+
+/* When a radio button is checked, it will have a black background */
+ion-radio.radio-checked::part(container) {
+  background: #000;
+  border-color: transparent;
+}
+
+/* Display a white tick mark inside the checked radio button */
+ion-radio.radio-checked::part(mark) {
+  width: 0.6vh;
+  /* Tick size based on viewport height */
+  height: 1vh;
+  /* Tick size based on viewport height */
+  border-width: 0 0.2vh 0.2vh 0;
+  /* Responsive tick thickness */
+  border-style: solid;
+  border-color: #fff;
+  transform: rotate(45deg);
+}
+
+/* Additional styles to ensure consistent spacing */
+.add-student-form {
+  padding: 2vw;
+  /* Padding around the form to adjust to screen size */
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  /* gap: 1.5vh; Spacing between form elements */
+  font-size: 2vh;
+}
+
+label {
+  font-size: 2vh;
+}
+
+form {
+  width: 100%;
+  max-width: 80vw;
+  margin: 0 auto;
+}
+.profile-details-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}

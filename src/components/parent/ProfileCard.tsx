@@ -55,38 +55,40 @@ const ProfileCard: React.FC<{
         height: "auto",
         padding: userType ? "1.5% 1.5% 3% 1.5%" : "0% 0% 0% 0%",
       }}
-      onClick={() => {
-        console.log("Profile card Icon is clicked");
-      }}
+      onClick={() => {}}
     >
       <div id="profile-card-edit-icon-div">
         {userType ? (
-          // <MdModeEditOutline
-          //   id="profile-card-edit-icon"
-          //   size={"5%"}
-          //   onClick={() => {
-          //     if (!online) {
-          //       presentToast({
-          //         message: t(
-          //           `Device is offline. Cannot edit or delete child profile`
-          //         ),
-          //         color: "danger",
-          //         duration: 3000,
-          //         position: "bottom",
-          //         buttons: [
-          //           {
-          //             text: "Dismiss",
-          //             role: "cancel",
-          //           },
-          //         ],
-          //       });
-          //       return;
-          //     }
-          //     console.log("click on edit icon");
-          //     setShowDialogBox(true);
-          //   }}
-          // ></MdModeEditOutline>
-          <div></div>
+          //Hiding the Student Edit icon for respect mode
+          !Util.isRespectMode ? (
+            <MdModeEditOutline
+              id="profile-card-edit-icon"
+              size={"5%"}
+              onClick={() => {
+                if (!online) {
+                  presentToast({
+                    message: t(
+                      `Device is offline. Cannot edit or delete child profile`
+                    ),
+                    color: "danger",
+                    duration: 3000,
+                    position: "bottom",
+                    buttons: [
+                      {
+                        text: "Dismiss",
+                        role: "cancel",
+                      },
+                    ],
+                  });
+                  return;
+                }
+                console.log("click on edit icon");
+                setShowDialogBox(true);
+              }}
+            ></MdModeEditOutline>
+          ) : (
+            <div></div>
+          )
         ) : (
           // <></>
           <p className="profile-card-empty-element">&#9679;</p>
@@ -109,7 +111,7 @@ const ProfileCard: React.FC<{
             }
             alt=""
           />
-          <p id="profile-card-user-name">{user.name}</p>
+          <p id="profile-card-user-name">{user.name ? user.name : "\u00A0"}</p>
         </div>
       ) : (
         <div id="profile-card-new-user">
@@ -172,14 +174,11 @@ const ProfileCard: React.FC<{
           noText={t("Edit Profile")}
           handleClose={() => {
             setShowDialogBox(false);
-            console.log("Close", false);
           }}
           onYesButtonClicked={async ({}) => {
-            console.log(`Delete Profile`, "yes", user.id);
             setShowWarningDialogBox(true);
           }}
           onNoButtonClicked={async ({}) => {
-            console.log(`Edit Profile`, "no", user.id);
             const api = ServiceConfig.getI().apiHandler;
             await Util.setCurrentStudent(user, undefined, false);
             history.replace(PAGES.EDIT_STUDENT, {
@@ -199,10 +198,8 @@ const ProfileCard: React.FC<{
           noText={t("No")}
           handleClose={() => {
             setShowDialogBox(false);
-            console.log("Close", false);
           }}
           onYesButtonClicked={async ({}) => {
-            console.log(`Show warning yes:`, user.id);
             setShowWarningDialogBox(false);
             setShowDialogBox(false);
             setIsLoading(true);
@@ -220,16 +217,10 @@ const ProfileCard: React.FC<{
               // parent_username: user.username,
               action_type: ACTION.DELETE,
             };
-            console.log(
-              "Util.logEvent(EVENTS.USER_PROFILE, eventParams);",
-              EVENTS.USER_PROFILE,
-              eventParams
-            );
             Util.logEvent(EVENTS.USER_PROFILE, eventParams);
             setIsLoading(false);
           }}
           onNoButtonClicked={async ({}) => {
-            console.log(`Show warning No:`);
             setShowWarningDialogBox(false);
           }}
         ></DialogBoxButtons>

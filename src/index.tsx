@@ -17,6 +17,29 @@ import { SplashScreen } from "@capacitor/splash-screen";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
 import { BrowserRouter } from "react-router-dom";
+import { defineCustomElements, JSX as LocalJSX } from "lido-standalone/loader";
+import {
+  SpeechSynthesis,
+  SpeechSynthesisUtterance,
+} from "./utility/WindowsSpeech";
+
+// Extend React's JSX namespace to include Stencil components
+declare global {
+  namespace JSX {
+    interface IntrinsicElements extends LocalJSX.IntrinsicElements {}
+  }
+}
+defineCustomElements(window);
+
+// Conditionally attach only if the native APIs are missing (optional)
+if (typeof window !== "undefined") {
+  if (!(window as any).speechSynthesis) {
+    (window as any).speechSynthesis = new SpeechSynthesis();
+  }
+  if (!(window as any).SpeechSynthesisUtterance) {
+    (window as any).SpeechSynthesisUtterance = SpeechSynthesisUtterance;
+  }
+}
 
 if (Capacitor.isNativePlatform()) {
   await ScreenOrientation.lock({ orientation: "landscape" });

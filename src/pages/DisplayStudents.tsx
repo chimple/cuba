@@ -23,6 +23,8 @@ import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 import { schoolUtil } from "../utility/schoolUtil";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import SkeltonLoading from "../components/SkeltonLoading";
+import { Capacitor } from "@capacitor/core";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -33,28 +35,35 @@ const DisplayStudents: FC<{}> = () => {
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   useEffect(() => {
+    const body = document.querySelector("body");
+    body?.style.setProperty(
+      "background-image",
+      "url(/pathwayAssets/pathwayBackground.svg)"
+    );
     getStudents();
+    lockOrientation();
     return () => {
       setIsLoading(false);
     };
   }, []);
+  const lockOrientation = () => {
+    if (Capacitor.isNativePlatform()) {
+      ScreenOrientation.lock({ orientation: "landscape" });
+    }
+  };
   const getStudents = async () => {
     const currMode = await schoolUtil.getCurrMode();
     setStudentMode(currMode);
-    const students =
+    const tempStudents =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-    console.log(
-      "🚀 ~ file: DisplayStudents.tsx:13 ~ getStudents ~ students:",
-      students
-    );
 
-    if (!students || students.length < 1) {
+    if (!tempStudents || tempStudents.length < 1) {
       history.replace(PAGES.CREATE_STUDENT, {
         showBackButton: false,
       });
       return;
     }
-    setStudents(students);
+    setStudents(tempStudents);
     setIsLoading(false);
 
     // const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -74,33 +83,20 @@ const DisplayStudents: FC<{}> = () => {
 
     // const currentUser = await FirebaseAuth.getInstance().getCurrentUser();
     // const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    // console.log(
-    //   "🚀 ~ file: DisplayStudents.tsx:35 ~ getStudents ~ FirebaseAuth.getInstance().currentUser:",
-    //   currentUser
-    // );
-    // // const iseTeacher = await FirebaseApi.getInstance().isUserTeacher(
+    //  const iseTeacher = await FirebaseApi.getInstance().isUserTeacher(
     //   currentUser!
     // );
     //  if (!currentUser) return;
     // const iseTeacher = await ServiceConfig.getI().apiHandler.isUserTeacher(
     //   currentUser
     // );
-    // console.log(
-    //   "🚀 ~ file: DisplayStudents.tsx:34 ~ getStudents ~ iseTeacher:",
-    //   iseTeacher
-    // );
   };
   const onStudentClick = async (student: TableTypes<"user">) => {
-    console.log(
-      "🚀 ~ file: DisplayStudents.tsx:30 ~ onStudentClick:student",
-      student
-    );
     await Util.setCurrentStudent(student, undefined, true);
     const linkedData = await api.getStudentClassesAndSchools(student.id);
     if (linkedData?.classes && linkedData?.classes.length > 0) {
       const firstClass = linkedData.classes[0];
       const currClass = await api.getClassById(firstClass.id);
-      console.log("Current class details:", currClass);
       await schoolUtil.setCurrentClass(currClass ?? undefined);
     } else {
       console.warn("No classes found for the student.");
@@ -144,7 +140,6 @@ const DisplayStudents: FC<{}> = () => {
       : undefined;
     history.replace(PAGES.CREATE_STUDENT, locationState);
   };
-  console.log("🚀 ~ onCreateNewStudent ~ students:", students);
   return (
     <IonPage id="display-students">
       {/* <IonContent> */}
@@ -229,11 +224,9 @@ const DisplayStudents: FC<{}> = () => {
               showDialogBox={showDialogBox}
               handleClose={() => {
                 setShowDialogBox(true);
-                console.log("Close", false);
               }}
               onHandleClose={() => {
                 setShowDialogBox(false);
-                console.log("Close", false);
               }}
             ></ParentalLock>
           ) : null}

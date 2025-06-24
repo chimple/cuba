@@ -40,7 +40,6 @@ const EditStudent = () => {
   const state = history.location.state as any;
   const api = ServiceConfig.getI().apiHandler;
   const currentStudent = Util.getCurrentStudent();
-  console.log("🚀 ~ EditStudent ~ currentStudent:", currentStudent);
   const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
 
   enum STAGES {
@@ -146,11 +145,6 @@ const EditStudent = () => {
           parent_id: student.uid,
           action_type: ACTION.CREATE,
         };
-        console.log(
-          "Util.logEvent(EVENTS.USER_PROFILE, eventParams);",
-          EVENTS.USER_PROFILE,
-          eventParams
-        );
 
         Util.logEvent(EVENTS.USER_PROFILE, eventParams);
         //Setting the Current Student
@@ -163,10 +157,6 @@ const EditStudent = () => {
           tmpPath === PAGES.HOME ? true : false
         );
       }
-      console.log(
-        "🚀 ~ file: EditStudent.tsx:56 ~ onNextButton ~ student:",
-        student
-      );
 
       history.replace(tmpPath);
     } else {
@@ -190,11 +180,6 @@ const EditStudent = () => {
         localStoreData.grades = results[1];
         setLanguages(results[2]);
         localStoreData.languages = results[2];
-
-        console.log(
-          "🚀 ~ file: EditStudent.tsx:51 ~ isNextButtonEnabled ~ docs:",
-          results
-        );
       }
 
       localStoreData.stage = newStage;
@@ -231,7 +216,6 @@ const EditStudent = () => {
   const [isInputFocus, setIsInputFocus] = useState(false);
 
   useEffect(() => {
-    console.log("in edit student");
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
         setIsInputFocus(true);
@@ -245,17 +229,7 @@ const EditStudent = () => {
   }, []);
 
   async function init() {
-    // const user = await ServiceConfig.getI().authHandler.getCurrentUser();
-    // console.log("🚀 ~ init ~ data:", user);
-    // if (!user) return;
-    // await ServiceConfig.getI().apiHandler.getLessonWithCocosLessonId(user.id);
-    // console.log("done update");
-
     const urlParams = new URLSearchParams(location.search);
-    console.log(
-      "🚀 ~ file: DisplaySubjects.tsx:47 ~ init ~ urlParams:",
-      urlParams.get("isReload")
-    );
     if (!!urlParams.get("isReload")) {
       let locData: any = localStorage.getItem(EDIT_STUDENT_STORE);
       if (!!locData) {
@@ -285,7 +259,6 @@ const EditStudent = () => {
 
   async function changeLanguage() {
     const languageDocId = localStorage.getItem(LANGUAGE);
-    console.log("This is the lang " + languageDocId);
     if (!!languageDocId) await i18n.changeLanguage(languageDocId);
   }
 
@@ -297,9 +270,10 @@ const EditStudent = () => {
 
   return (
     <IonPage id="Edit-student-page">
-      <div id="Edit-student-back-button">
+      <div id="Edit-student-back-button" aria-label={String(t("Back"))}>
         {!isEdit && !state?.showBackButton ? null : (
           <BackButton
+            aria-label={t("Back")}
             onClicked={() => {
               localStorage.removeItem(EDIT_STUDENT_STORE);
               history.replace(PAGES.DISPLAY_STUDENT);
@@ -358,8 +332,9 @@ const EditStudent = () => {
       {stage === STAGES.AVATAR && (
         <>
           <>
-            <div id="Edit-student-back-button">
+            <div id="Edit-student-back-button" aria-label={String(t("Back"))}>
               <BackButton
+                aria-label={t("Back")}
                 onClicked={() => {
                   localStoreData.stage = STAGES.GENDER_AND_AGE;
                   addDataToLocalStorage();
@@ -380,8 +355,10 @@ const EditStudent = () => {
       <div className="content">
         {stage === STAGES.GENDER_AND_AGE && (
           <>
-            <div id="Edit-student-back-button">
+            <div id="Edit-student-back-button" aria-label={String(t("Back"))}>
+              <span className="back-button-ignore">Back</span>
               <BackButton
+                aria-label={t("Back")}
                 onClicked={() => {
                   localStoreData.stage = STAGES.NAME;
                   addDataToLocalStorage();
@@ -417,8 +394,9 @@ const EditStudent = () => {
         {stage === STAGES.GRADE && (
           <>
             <>
-              <div id="Edit-student-back-button">
+              <div id="Edit-student-back-button" aria-label={String(t("Back"))}>
                 <BackButton
+                  aria-label={t("Back")}
                   onClicked={() => {
                     localStoreData.stage = STAGES.AVATAR;
                     addDataToLocalStorage();

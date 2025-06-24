@@ -2,10 +2,14 @@ import {
   CURRENT_CLASS,
   CURRENT_MODE,
   CURRENT_SCHOOL,
+  CURRENT_USER,
   MODES,
+  PAGES,
+  SCHOOL_LOGIN,
   TableTypes,
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
+import { Util } from "./util";
 
 export class schoolUtil {
   //   public static port: PortPlugin;
@@ -68,6 +72,11 @@ export class schoolUtil {
       //   coordinator: currClass.coordinator,
       // })
     );
+  };
+  public static removeCurrentClass = () => {
+    const api = ServiceConfig.getI().apiHandler;
+    api.currentClass = undefined;
+    localStorage.removeItem(CURRENT_CLASS);
   };
   public static getCurrentSchool(): TableTypes<"school"> | undefined {
     const api = ServiceConfig.getI().apiHandler;
@@ -132,10 +141,10 @@ export class schoolUtil {
       if (!currUser) return undefined;
       const allSchool = await api.getSchoolsForUser(currUser.id);
       if (!allSchool || allSchool.length < 1) {
-        api.currentMode = MODES.PARENT;
+        this.setCurrMode(MODES.PARENT);
         return MODES.PARENT;
       } else {
-        api.currentMode = MODES.SCHOOL;
+        this.setCurrMode(MODES.SCHOOL);
         return MODES.SCHOOL;
       }
     }
@@ -148,4 +157,43 @@ export class schoolUtil {
     api.currentMode = currMode;
     localStorage.setItem(CURRENT_MODE, currMode);
   };
+
+  public static async trySchoolRelogin(): Promise<boolean> {
+    try {
+      const currentMode = localStorage.getItem(CURRENT_MODE);
+      if (currentMode !== MODES.SCHOOL) return false;
+      const savedSchoolData = localStorage.getItem(SCHOOL_LOGIN);
+      if (!savedSchoolData) return false;
+      const credentials = await Util.decryptData(savedSchoolData);
+      if (!credentials || !credentials.email || !credentials.password)
+        return false;
+      const authInstance = ServiceConfig.getI().authHandler;
+      const result = await authInstance.loginWithEmailAndPassword(
+        credentials.email,
+        credentials.password
+      );
+      console.log("resultresultresultresult", result);
+      if (result) {
+        localStorage.setItem(CURRENT_USER, JSON.stringify(result));
+        window.history.replaceState(
+          window.history.state,
+          "",
+          PAGES.SELECT_MODE.toString()
+        );
+
+        return true;
+      } else {
+        console.warn("User not found. Please verify your credentials.");
+        window.history.replaceState(
+          window.history.state,
+          "",
+          PAGES.LOGIN.toString()
+        );
+        return false;
+      }
+    } catch (error) {
+      console.error("Login unsuccessful. Please try again later.", error);
+      return false;
+    }
+  }
 }

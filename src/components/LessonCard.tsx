@@ -5,6 +5,7 @@ import {
   COCOS,
   CONTINUE,
   LESSON_CARD_COLORS,
+  LIDO,
   LIVE_QUIZ,
   PAGES,
   TYPE,
@@ -40,6 +41,9 @@ const LessonCard: React.FC<{
   onDownloadOrDelete?: () => void;
   chapter?: TableTypes<"chapter">;
   assignment?: TableTypes<"assignment">;
+  lessonCourseMap?: {
+    [lessonId: string]: { course_id: string };
+  };
 }> = ({
   width,
   height,
@@ -58,6 +62,7 @@ const LessonCard: React.FC<{
   onDownloadOrDelete,
   chapter,
   assignment,
+  lessonCourseMap,
 }) => {
   console.log("lesson-->", lesson);
   const history = useHistory();
@@ -83,30 +88,20 @@ const LessonCard: React.FC<{
       setDate(dateObj);
     }
   };
+
   const getCurrentCourse = async () => {
-    const currentStudent = Util.getCurrentStudent();
-    if (!currentStudent) {
-      return;
-    }
     const api = ServiceConfig.getI().apiHandler;
-    const courses = await api.getCoursesForParentsStudent(currentStudent.id);
-
-    let currentCourse = courses.find(
-      (course) => lesson.cocos_subject_code === course.code
-    );
-
-    if (!currentCourse) {
-      const lessonCourse = await api.getCoursesFromLesson(lesson.id);
-      if (lessonCourse && lessonCourse.length > 0) {
-        setCurrentCourse(lessonCourse[0]);
+    try {
+      if (lessonCourseMap) {
+        const lessonData = lessonCourseMap[lesson.id];
+        if (lessonData?.course_id) {
+          const course = await api.getCourse(lessonData.course_id);
+          setCurrentCourse(course);
+          return;
+        }
       }
-    } else if (!Util.checkLessonPresentInCourse(currentCourse, lesson.id)) {
-      const lessonCourse = await api.getCoursesFromLesson(lesson.id);
-      if (lessonCourse && lessonCourse.length > 0) {
-        setCurrentCourse(lessonCourse[0]);
-      }
-    } else {
-      setCurrentCourse(currentCourse);
+    } catch (error) {
+      console.error("Error fetching course data:", error);
     }
   };
 
@@ -175,6 +170,10 @@ const LessonCard: React.FC<{
             //   });
             // } else {
             // console.log("LessonCard course: subject,", subject);
+            if (!course && !currentCourse) {
+              await getCurrentCourse();
+            }
+
             if (lesson.plugin_type === COCOS) {
               const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
               history.replace(PAGES.GAME + parmas, {
@@ -191,7 +190,10 @@ const LessonCard: React.FC<{
                 chapter: JSON.stringify(chapter),
                 from: history.location.pathname + `?${CONTINUE}=true`,
               });
-            } else if (!!assignment?.id && lesson.plugin_type === LIVE_QUIZ) {
+            } else if (
+              // !!assignment?.id &&
+              lesson.plugin_type === LIVE_QUIZ
+            ) {
               if (!online) {
                 presentToast({
                   message: t(`Device is offline`),
@@ -207,12 +209,32 @@ const LessonCard: React.FC<{
                 });
                 return;
               }
-              history.replace(
-                PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${assignment?.id}`,
-                {
-                  assignment: JSON.stringify(assignment),
-                }
-              );
+              if (assignment) {
+                history.replace(
+                  PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${assignment?.id}`,
+                  { assignment: JSON.stringify(assignment) }
+                );
+              } else {
+                history.replace(
+                  PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
+                  {
+                    courseId: course?.id ?? currentCourse?.id,
+                    lesson: JSON.stringify(lesson),
+                    from: history.location.pathname + `?${CONTINUE}=true`,
+                  }
+                );
+              }
+            } else if (lesson.plugin_type === LIDO) {
+              const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+              history.replace(PAGES.LIDO_PLAYER + parmas, {
+                lessonId: lesson.cocos_lesson_id,
+                courseDocId: course?.id ?? currentCourse?.id,
+                course: JSON.stringify(currentCourse!),
+                lesson: JSON.stringify(lesson),
+                assignment: assignment,
+                chapter: JSON.stringify(chapter),
+                from: history.location.pathname + `?${CONTINUE}=true`,
+              });
             }
           }
         }}
@@ -258,6 +280,7 @@ const LessonCard: React.FC<{
 
             {showSubjectName && currentCourse?.name ? (
               <div id="lesson-card-subject-name">
+                <p className="ignore">{lesson.name} </p>
                 <p>
                   {currentCourse?.name}
                   {/* {subject.title==="English"?subject.title:t(subject.title)} */}
@@ -326,6 +349,7 @@ const LessonCard: React.FC<{
           <div className="lesson-download-button-container">
             {lesson.cocos_lesson_id && (
               <DownloadLesson
+                aria-label="Download-button"
                 lessonId={lesson.cocos_lesson_id}
                 downloadButtonLoading={downloadButtonLoading}
                 onDownloadOrDelete={onDownloadOrDelete}

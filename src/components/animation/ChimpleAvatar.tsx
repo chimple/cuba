@@ -14,6 +14,8 @@ import {
   TableTypes,
   RECOMMENDATIONS,
   SHOW_DAILY_PROGRESS_FLAG,
+  COCOS,
+  LIDO,
 } from "../../common/constants";
 import "./ChimpleAvatar.css";
 import { useHistory } from "react-router";
@@ -176,8 +178,6 @@ const ChimpleAvatar: FC<{
     let i = 0;
     while (i < 22) {
       rive?.play(avatarObj.yesAnimation);
-
-      console.log("audio testing", isAudioPlaying, isTtsPlaying);
       i++;
     }
   };
@@ -185,8 +185,6 @@ const ChimpleAvatar: FC<{
   const onClickRiveComponent = async () => {
     if (rive) {
       speakAnimationUntilaudio();
-    } else {
-      console.log("Rive component not fully initialized yet");
     }
     // if (!isTtsPlaying) {
     await speak();
@@ -403,17 +401,24 @@ const ChimpleAvatar: FC<{
             assignment: JSON.stringify(assignmentFound),
           }
         );
-      } else {
+      } else if (currentLesson.plugin_type === COCOS) {
         const lessonCourse =
           (await api.getCoursesFromLesson(currentLesson.id)) || currentCourse;
-        // let lessonCourse = currentCourse;
-        // if (!currentCourse) {
-        //   lessonCourse =
-        //     (await api.getCoursesFromLesson(currentLesson.id)) || currentCourse;
-        // }
         const parmas = `?courseid=${currentLesson.cocos_subject_code}&chapterid=${currentLesson.cocos_chapter_code}&lessonid=${currentLesson.cocos_lesson_id}`;
-        await history.replace(PAGES.GAME + parmas, {
+        history.replace(PAGES.GAME + parmas, {
           url: "chimple-lib/index.html" + parmas,
+          lessonId: currentLesson.cocos_lesson_id,
+          courseDocId: lessonCourse[0].id,
+          course: JSON.stringify(lessonCourse),
+          lesson: JSON.stringify(currentLesson),
+          from: history.location.pathname + "?continue=true",
+          assignment: assignmentFound,
+        });
+      } else if (currentLesson.plugin_type === LIDO) {
+        const lessonCourse =
+          (await api.getCoursesFromLesson(currentLesson.id)) || currentCourse;
+        const params = `?courseid=${currentLesson.cocos_subject_code}&chapterid=${currentLesson.cocos_chapter_code}&lessonid=${currentLesson.cocos_lesson_id}`;
+        history.replace(PAGES.LIDO_PLAYER + params, {
           lessonId: currentLesson.cocos_lesson_id,
           courseDocId: lessonCourse[0].id,
           course: JSON.stringify(lessonCourse),

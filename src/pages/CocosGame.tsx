@@ -27,10 +27,12 @@ import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 const CocosGame: React.FC = () => {
   const history = useHistory();
-  console.log("cocos game", history.location.state);
+  const location = history.location.state as { from?: string, assignment?: any }; 
+  // const playedFrom = location?.from?.split('/')[1].split('?')[0] 
+  const playedFrom = localStorage.getItem("currentHeader")
+  const assignmentType = location?.assignment?.type || 'self-played';
   const state = history.location.state as any;
   const iFrameUrl = state?.url;
-  console.log("iFrameUrl", state?.url, iFrameUrl);
   const [isLoading, setIsLoading] = useState<any>();
   const [present] = useIonToast();
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -100,7 +102,6 @@ const CocosGame: React.FC = () => {
     Util.killCocosGame();
     initialCount++;
     localStorage.setItem(LESSONS_PLAYED_COUNT, initialCount.toString());
-    console.log("---------count of LESSONS PLAYED", initialCount);
   };
 
   const push = () => {
@@ -164,6 +165,108 @@ const CocosGame: React.FC = () => {
     saveTempData(event.detail);
     setGameResult(event);
   };
+  
+  const updateLearningPath = async () => {
+    if (!currentStudent) return;
+    const learningPath = currentStudent.learning_path
+      ? JSON.parse(currentStudent.learning_path)
+      : null;
+
+    if (!learningPath) return;
+
+    try {
+      const { courses } = learningPath;
+      const currentCourse = courses.courseList[courses.currentCourseIndex];
+
+      const prevLessonId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path[
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].currentIndex
+        ].lesson_id;
+      const prevChapterId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path[
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].currentIndex
+        ].chapter_id;
+        const prevCourseId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .course_id;
+      const prevPathId =
+        learningPath.courses.courseList[
+          learningPath.courses.currentCourseIndex
+          ].path_id;
+      // Update currentIndex
+      currentCourse.currentIndex += 1;
+
+      // Check if currentIndex exceeds pathEndIndex
+      if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
+        currentCourse.startIndex = currentCourse.currentIndex;
+        currentCourse.pathEndIndex += 5;
+
+        // Ensure pathEndIndex does not exceed the path length
+        if (currentCourse.pathEndIndex > currentCourse.path.length) {
+          currentCourse.pathEndIndex = currentCourse.path.length - 1;
+        }
+
+        // Move to the next course
+        courses.currentCourseIndex += 1;
+       
+        await api.setStarsForStudents(currentStudent.id, 10);
+        // Loop back to the first course if at the last course
+        if (courses.currentCourseIndex >= courses.courseList.length) {
+          courses.currentCourseIndex = 0;
+        }
+        const pathwayEndData = {
+          user_id: currentStudent.id,
+          current_path_id:
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].path_id,            
+          current_course_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].course_id,
+          current_lesson_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path[
+              learningPath.courses.courseList[
+                learningPath.courses.currentCourseIndex
+              ].currentIndex
+            ].lesson_id,
+          current_chapter_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path[
+              learningPath.courses.courseList[
+                learningPath.courses.currentCourseIndex
+              ].currentIndex
+            ].chapter_id,
+          prev_path_id: prevPathId,
+          prev_course_id: prevCourseId,
+          prev_lesson_id: prevLessonId,
+          prev_chapter_id: prevChapterId,
+        };
+        await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
+        await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
+      }
+
+      // Update the learning path in the database
+    await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
+      // Update the current student object
+      const updatedStudent = await api.getUserByDocId(currentStudent.id);
+      if (updatedStudent) {
+        Util.setCurrentStudent(updatedStudent);
+      }
+    } catch (error) {
+      console.error("Error updating learning path:", error);
+    }
+  };
+
   async function init() {
     const currentStudent = Util.getCurrentStudent();
     setIsLoading(true);
@@ -176,9 +279,14 @@ const CocosGame: React.FC = () => {
       push();
       return;
     }
-    console.log("donwloaded ", dow);
     setIsLoading(false);
     Util.launchCocosGame();
+
+    //Just fot Testing
+
+    // const onProblemEnd = async (e: any) => {
+    //   push();
+    // };
 
     document.body.addEventListener(LESSON_END, handleLessonEndListner, {
       once: true,
@@ -327,7 +435,7 @@ const CocosGame: React.FC = () => {
           <div>
             <ScoreCard
               title={t("🎉Congratulations🎊")}
-              score={gameResult.detail.score}
+              score={gameResult.detail?.score ?? 0}
               message={t("You Completed the Lesson:")}
               showDialogBox={showDialogBox}
               yesText={t("Like the Game")}
@@ -340,13 +448,8 @@ const CocosGame: React.FC = () => {
               }}
               onYesButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
-                console.log("--------------line 200 game result", gameResult);
                 setIsLoading(true);
                 await updateLessonAsFavorite();
-                console.log(
-                  "------------------the game result ",
-                  gameResult.detail.score
-                );
                 if (initialCount >= 5) {
                   Util.showInAppReview();
                   initialCount = 0;
@@ -361,10 +464,6 @@ const CocosGame: React.FC = () => {
                 setShowDialogBox(false);
                 setIsLoading(true);
                 // await saveTempData(gameResult.detail, undefined);
-                console.log(
-                  "------------------the game result ",
-                  gameResult.detail.score
-                );
                 push();
               }}
             />

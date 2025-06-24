@@ -39,7 +39,7 @@ const SelectChapter: FC<{
   return (
     <div>
       <div className="grade-container" />
-      <div className="chapter-container">
+      <div className="chapter-container-in-select-chapter-page">
         {chapters.map((chapter) => {
           return (
             <div

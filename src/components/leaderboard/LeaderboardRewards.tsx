@@ -28,6 +28,16 @@ const LeaderboardRewards: FC = () => {
     }
     setTabIndex(currentTab);
   }, []);
+
+  useEffect(() => {
+    // Update URL when tabIndex changes
+    if (tabIndex) {
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set("rewards", tabIndex.toLowerCase());
+      window.history.replaceState({}, "", newUrl.toString());
+    }
+  }, [tabIndex]);
+
   return (
     <div className="leaderboard-rewards-container">
       <Tabs

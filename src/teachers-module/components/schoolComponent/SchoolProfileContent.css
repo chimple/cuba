@@ -1,0 +1,79 @@
+.vl {
+  height: 30px;
+  width: 1px;
+  background: grey;
+  position: fixed;
+}
+.edit-div {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+.horizontal-line {
+  height: 0.6px;
+  border-width: 0;
+  box-sizing: border-box;
+  background: lightgrey;
+  margin: 5px 0;
+}
+.edit-button {
+  font-weight: bold;
+}
+.school-address-div {
+  font-size: clamp(15px, 4vh, 25px);
+  font-weight: bold;
+  color: grey;
+}
+.profile-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.school-profile-card {
+  width: 300px;
+  border: 1px solid #ccc;
+  padding: 25px;
+  margin: 1vh 0;
+  text-align: left;
+  border-radius: 2vh;
+  box-shadow: 1px 1px 2px 0;
+}
+.schoolProfile-edit-icon-container {
+  color: black;
+  font-size: 1.5rem;
+}
+.profile-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+.schoolProfile-top-div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 3vw;
+  margin-bottom: 3vh;
+}
+.profile-label {
+  margin-bottom: 5px;
+  color: grey;
+}
+
+.profile-value {
+  color: var(--text-color);
+  max-width: 80%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+}
+.school-text {
+  color: black;
+  justify-content: center;
+  text-align: center;
+  font-weight: 800;
+  font-size: 21px;
+}
+.single-container {
+  margin-top: 15px;
+}

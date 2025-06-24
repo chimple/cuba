@@ -97,7 +97,7 @@ const AddCourse: FC<{
     }
   };
 
-  const renderSubjectCard = (curr) => {
+  const renderSubjectCard = (curr, currt) => {
     return (
       <div className="Subject-slider-content">
         <Splide
@@ -164,6 +164,13 @@ const AddCourse: FC<{
                     </div>
                     {t(course?.course.name)}
                     {/* {course.title === "English" ? course.title : course.title} */}
+                    {currt ? (
+                      <div id="ignore">
+                        <div id="ignore">
+                          <p id="ignore">{currt} Curriculum</p>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 </SplideSlide>
               );
@@ -190,7 +197,7 @@ const AddCourse: FC<{
                   <div className="subject-header">
                     {t(curriculum.name) + " " + t("Curriculum")}
                   </div>
-                  {renderSubjectCard(curriculum.id)}
+                  {renderSubjectCard(curriculum.id, curriculum.name)}
                 </div>
               );
             }

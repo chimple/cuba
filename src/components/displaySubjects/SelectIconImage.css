@@ -7,7 +7,7 @@
   left: 0;
 }
 
-.image {
+.select-icon-image {
   width: calc(100% + 10%);
   height: calc(100% + 10%);
   opacity: 0;

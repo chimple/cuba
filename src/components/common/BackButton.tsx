@@ -5,9 +5,9 @@ import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { CONTINUE } from "../../common/constants";
+import { t } from "i18next";
 
 const BackButton: React.FC<{
-
   onClicked: any;
 }> = ({ onClicked }) => {
   useEffect(() => {
@@ -29,6 +29,7 @@ const BackButton: React.FC<{
   return (
     <IoIosArrowBack
       id="common-back-button"
+      aria-label={String(t("Back"))}
       onClick={onClicked}
     ></IoIosArrowBack>
   );

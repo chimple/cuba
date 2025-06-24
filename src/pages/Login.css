@@ -20,6 +20,7 @@ p {
     left: 50%;
     top: 15%;
     transform: translateY(-50%) translateX(-50%); */
+  margin-bottom: 3px;
 }
 
 #chimple-brand-text1 {
@@ -48,7 +49,7 @@ p {
   transform: translateY(-1.5vw);
   text-align: center;
   line-height: 1;
-  font-size: 1.5vw;
+  font-size: var(--text-sizeL);
   color: var(--text-color);
 }
 
@@ -80,7 +81,7 @@ p {
   text-align: center;
   line-height: 6vw;
   font-size: 1.9vw;
-  margin: 3.5% 0% 2% 36.8vw;
+  margin: 3.5% 0% 0% 36.8vw;
 }
 
 #login-otp-button {
@@ -101,41 +102,47 @@ p {
     top: 83%;
     left: 50%;
     transform: translateY(-5%) translateX(-50%); */
-  margin: -2% 1% 0% 1%;
-  font-size: var(--text-size);
+  font-size: var(--text-sizeM);
   color: var(--text-color);
-  font-size: 1.4vw;
+}
+
+#login-google-icon-2 {
+  max-height: 50px;
+  min-height: 25px;
+  height: 6vh;
+  width: auto;
+  margin-top: 0%;
 }
 
 #login-google-icon {
   /* position: absolute;
     top: 89%;
     left: 50%; */
-  height: 9vh;
+  height: 7vh;
+  min-height: 25px;
+  max-height: 60px;
   width: auto;
   /* text-align: center; */
   /* transform: translateY(-5%) translateX(-50%); */
   margin-top: 0%;
 }
-
 #Google-horizontal-line {
   flex: auto;
   height: 0.1vh;
-  margin-top: 2%;
   background-color: gray;
 }
 
 #Google-horizontal-line-main-container {
   display: flex;
-  width: 30vw;
+  width: 26vw;
   margin-left: 36.9%;
-  margin-top: -2%;
+  margin-top: 0%;
+  align-items: center;
 }
 
 #Google-horizontal-line2 {
   flex: auto;
   height: 0.1vh;
-  margin-top: 2%;
   background-color: gray;
 }
 
@@ -228,13 +235,22 @@ p {
   margin: -2.6% 0% 2% 32.8vw;
 }
 .student-credentials-container {
-  margin-top: 1vh;
+  margin-top: 10vh;
 }
-.school-icon {
-  height: 9vh;
+.school-icon-2 {
+  max-height: 50px;
+  min-height: 25px;
+  height: 6vh;
   width: auto;
-  /* text-align: center; */
-  /* transform: translateY(-5%) translateX(-50%); */
+  margin-top: 0%;
+  color: #565656;
+}
+
+.school-icon {
+  height: 7vh;
+  min-height: 25px;
+  max-height: 60px;
+  width: auto;
   margin-top: 0%;
   color: #565656;
 }
@@ -258,4 +274,107 @@ p {
   padding-bottom: 2vh;
   font-size: 1.3vw;
   white-space: nowrap;
+}
+
+.initial-loading-ui {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-top: 12vh;
+}
+
+.initial-homework-icon {
+  /* width: 40vw; */
+  height: 45vh;
+}
+
+.initial-loading-spinner {
+  width: 15vh;
+  height: 15vh;
+}
+
+.initial-loading-text {
+  font-size: 5vh;
+  color: var(--text-color);
+}
+
+.back {
+  visibility: none;
+  display: none;
+}
+.login-mail-icon {
+  font-size: medium;
+  color: white;
+  height: 5vh;
+  min-height: 15px;
+  max-height: 50px;
+  width: auto;
+}
+.login-email-icon-div {
+  background: black;
+  border-radius: 50%;
+  height: 7vh;
+  width: 7vh;
+  min-height: 25px;
+  max-height: 80px;
+  min-width: 25px;
+  max-width: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.login-icons-div {
+  display: flex;
+  justify-content: center;
+  gap: 4vw;
+  margin-top: 1vh;
+}
+.login-call-icon {
+  background: #0076be;
+  max-height: 50px;
+  min-height: 25px;
+  max-width: 50px;
+  min-width: 25px;
+  height: 5vh;
+  width: 6vh;
+  display: flex;
+  border-radius: 50%;
+  flex-direction: column;
+  font-size: var(--text-sizeM);
+  align-items: center;
+  margin-bottom: 2.3vh;
+  justify-content: center;
+}
+#login-horizontal-line {
+  height: 0.6px;
+  border-width: 0;
+  width: 7vw;
+  box-sizing: border-box;
+  background: var(--text-color);
+  margin: 5px 0;
+}
+.login-continue-with-text {
+  margin: 0 1vh;
+  color: var(--text-color);
+  font-size: var(--text-sizeM);
+}
+.login-icons-main-div {
+  display: flex;
+  color: var(--text-color);
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+.login-call-icon-div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.login-email-main-div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
 }

@@ -2,7 +2,7 @@
   overflow: hidden scroll;
   /* margin-top: 9vh;
   margin-bottom: 12vh; */
-  background-color: #e2dede;
+  /* background-color: #e2dede; */
 }
 
 .content::-webkit-scrollbar {
@@ -65,4 +65,9 @@
   text-align: center;
   margin-bottom: 1.5vh;
   color: #05342f;
+}
+
+.back-button-ignore {
+  visibility: none;
+  display: none;
 }

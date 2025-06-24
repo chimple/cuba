@@ -44,8 +44,6 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
 
   const getCanShowAvatar = async () => {
     const canShowAvatarValue = await Util.getCanShowAvatar();
-    console.log("const canShowAvatarValue in home ", canShowAvatarValue);
-
     setCanShowAvatar(canShowAvatarValue);
   };
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
@@ -167,8 +165,6 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
   }
 
   function skeltonHome() {
-    console.log("function skeltonHome() { called");
-
     return (
       <div className="skelton-home-screen">
         <div id="skelton-home-screen-div">

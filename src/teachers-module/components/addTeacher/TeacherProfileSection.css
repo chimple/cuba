@@ -1,0 +1,141 @@
+.date-icons {
+  display: flex;
+  justify-content: space-around;
+  background: #f2ebfe;
+  padding: 10px;
+  border-radius: 12px;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.calendar-icon {
+  font-size: 2rem;
+}
+.teacher-info {
+  display: flex;
+  color: var(--text-color);
+  flex-direction: column;
+  align-items: center;
+}
+.back-button,
+.info-icon {
+  cursor: pointer;
+}
+
+.school-info {
+  text-align: center;
+}
+.student-details {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.profile-picture {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: #ccc;
+  margin: auto;
+}
+
+.date-selection {
+  border-radius: 10px;
+  box-shadow: 1px 0px 2px 0px;
+  border: 1px solid black;
+  background: white;
+  color: var(--text-color);
+  padding: 2vh;
+  margin-bottom: 2vh;
+  margin-top: 2vh;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+}
+.date-text {
+  margin: 0 5px;
+}
+.assignment-text {
+  margin-right: 5px;
+}
+.teacher-name {
+  font-size: clamp(35px, 5vh, 45px);
+  font-weight: bold;
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.joined-date {
+  font-size: var(--text-size);
+  font-weight: bold;
+}
+.vertical-line {
+  color: grey;
+  height: 5vh;
+  background: lightgray;
+  width: 0.6px;
+  display: flex;
+  margin: 5px 0;
+}
+.assignments-section {
+  margin-top: 20px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th,
+td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+
+th {
+  background-color: #f0f0f0;
+}
+.teacher-profile-section {
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 20px;
+  background-color: #fff;
+}
+
+.assignments-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--text-color);
+}
+
+.assignments-table th,
+.assignments-table td {
+  padding: 8px;
+  text-align: left;
+}
+
+.assignments-table th {
+  background-color: #f0f0f0;
+  border-bottom: 1px solid #ddd;
+}
+.teacher-profile-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+}
+.text-label {
+  width: 100%;
+  background: #f2ebfe;
+  border-radius: 5px;
+  font-weight: bold;
+  padding: 1vh;
+  color: var(--text-color);
+}
+.no-data-text {
+  margin: 5vh 0;
+  color: var(--text-color);
+}

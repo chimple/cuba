@@ -1,0 +1,64 @@
+.lesson-component-container {
+  text-align: center;
+  font-family: Arial, sans-serif;
+  display: flex;
+  margin: 10px;
+  flex-direction: column;
+  flex-wrap: wrap;
+}
+
+.assignment-logo {
+  width: 10px;
+  height: 10px;
+  background-size: contain;
+  margin-left: 4px;
+  background-image: url("../../assets/icons/assignment_icon.png");
+}
+.quiz-logo {
+  width: 10px;
+  height: 10px;
+  background-size: contain;
+  margin-left: 4px;
+  background-image: url("../../assets/icons/livequiz_icon.png");
+}
+.lesson-type-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+}
+.lesson-details {
+  font-size: var(--text-sizeM);
+  color: black;
+  text-wrap: nowrap;
+}
+.lesson-type {
+  font-size: var(--text-sizeL);
+  color: black;
+}
+.image-container {
+  cursor: pointer;
+  height: 10vh;
+  width: 14vh;
+  margin: auto;
+  border-radius: 8px;
+  /* background-color: bisque; */
+}
+@media (orientation: landscape) {
+  .image-container {
+    height: 10vw;
+    width: 14vw;
+  }
+}
+.image-container img {
+  height: 75px;
+  width: 100px; /* Adjust the size as needed */
+  /* height: auto; */
+}
+
+.text-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}

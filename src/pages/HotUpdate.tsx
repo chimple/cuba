@@ -7,6 +7,7 @@ import { t } from "i18next";
 import "./HotUpdate.css";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { Capacitor } from "@capacitor/core";
+import { useFeatureValue, useFeatureIsOn } from "@growthbook/growthbook-react";
 
 const HotUpdate: FC<{}> = () => {
   const history = useHistory();
@@ -14,16 +15,20 @@ const HotUpdate: FC<{}> = () => {
     HotUpdateStatus.CHECKING_FOR_UPDATE
   );
   const [isLoading, setIsLoading] = useState(true);
+  const can_hot_update = useFeatureIsOn("can_hot_update");
+  const hot_update_server = useFeatureValue("hot_update_url", "https://chimple-prod-hot-update.web.app/v7");
   const init = async () => {
     try {
       if (!Capacitor.isNativePlatform()) {
         push();
         return;
       }
-      const canHotUpdate = await RemoteConfig.getBoolean(
-        REMOTE_CONFIG_KEYS.CAN_HOT_UPDATE
-      );
-      const hotUpdateServer = HOT_UPDATE_SERVER;
+      // const canHotUpdate = await RemoteConfig.getBoolean(
+      //   REMOTE_CONFIG_KEYS.CAN_HOT_UPDATE
+      // );
+      const canHotUpdate = can_hot_update;
+      const hotUpdateServer = hot_update_server
+      // const hotUpdateServer = HOT_UPDATE_SERVER;
       if (!canHotUpdate || !hotUpdateServer) {
         push();
         return;

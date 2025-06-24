@@ -26,6 +26,7 @@ const CustomAppBar: React.FC<TabBarProps> = ({
   return (
     <div>
       <div className="back-button-in-custom-app-bar">
+        <span className="hidden-text">Back</span>
         <BackButton onClicked={handleBackButton} />
       </div>
       <AppBar

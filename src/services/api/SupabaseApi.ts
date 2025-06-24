@@ -6,6 +6,8 @@ import {
   TABLES,
   TableTypes,
   MUTATE_TYPES,
+  PROFILETYPE,
+  EVENTS,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -22,6 +24,8 @@ import {
   createClient,
 } from "@supabase/supabase-js";
 import { RoleType } from "../../interface/modelInterfaces";
+import { Util } from "../../utility/util";
+import { ServiceConfig } from "../ServiceConfig";
 
 export class SupabaseApi implements ServiceApi {
   getChapterByLessonID(lessonId: string): Promise<TableTypes<"chapter"> | undefined> {
@@ -105,7 +109,10 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"user"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  syncDB(): Promise<boolean> {
+  syncDB(
+    tableNames: TABLES[] = Object.values(TABLES),
+    refreshTables: TABLES[] = []
+  ): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
   public static i: SupabaseApi;
@@ -126,69 +133,362 @@ export class SupabaseApi implements ServiceApi {
     this.supabaseUrl = process.env.REACT_APP_SUPABASE_URL ?? "";
     this.supabaseKey = process.env.REACT_APP_SUPABASE_KEY ?? "";
     this.supabase = createClient<Database>(this.supabaseUrl, this.supabaseKey);
-    console.log("🚀 ~ supabase:", this.supabase);
+  }
+
+  // as parameters type: school, user, class
+  //               image
+  // return image stored url
+  //---------------------------------------------------------------
+  async addProfileImages(
+    id: string,
+    file: File,
+    profileType: PROFILETYPE
+  ): Promise<string | null> {
+    const extension = file.name.split(".").pop(); // Get file extension
+    const newName = `ProfilePicture_${profileType}_${Date.now()}.${extension}`; // Rename the file
+    const folderName = encodeURIComponent(String(id));
+    const filePath = `${profileType}/${folderName}/${newName}`; // Path inside the bucket
+    // Attempt to delete existing files
+    const removeResponse = await this.supabase?.storage
+      .from("profile-images")
+      .remove(
+        (
+          await this.supabase?.storage
+            .from("profile-images")
+            .list(`${profileType}/${folderName}`, { limit: 2 })
+        )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
+          []
+      );
+    // Convert File to Blob (necessary for renaming)
+    const renamedFile = new File([file], newName, { type: file.type });
+    // Upload the new file (allow overwrite)
+    const uploadResponse = await this.supabase?.storage
+      .from("profile-images")
+      .upload(filePath, renamedFile, { upsert: true });
+    if (uploadResponse?.error) {
+      console.error("Error uploading file:", uploadResponse.error.message);
+      return null;
+    }
+    // Get the Public URL of the uploaded file
+    const urlData = this.supabase?.storage
+      .from("profile-images")
+      .getPublicUrl(filePath);
+    const imageUrl = urlData?.data.publicUrl;
+    return imageUrl || null;
+  }
+
+  async uploadData(payload: any): Promise<boolean> {
+    try {
+      if (!this.supabase) {
+        console.error("Supabase client is not initialized.");
+        return false;
+      }
+      const { data, error } = await this.supabase.functions.invoke(
+        "ops-data-insert",
+        {
+          body: payload,
+        }
+      );
+      if (error) {
+        console.error("Function error:", error);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("Upload failed:", error);
+      return false;
+    }
   }
 
   async getTablesData(
     tableNames: TABLES[] = Object.values(TABLES),
     tablesLastModifiedTime: Map<string, string> = new Map()
-  ) {
-    const data = new Map();
-    for (const tableName of tableNames) {
-      const lastModifiedDate =
-        tablesLastModifiedTime.get(tableName) ?? "2024-01-01T00:00:00.000Z";
-      const res = await this.supabase
-        ?.from(tableName)
-        .select("*")
-        .gte("updated_at", lastModifiedDate);
-      data.set(tableName, res?.data);
-      console.log("🚀 ~ SupabaseApi ~ res tableName:", tableName, res);
+  ): Promise<Map<string, any[]>> {
+    try {
+      const data = new Map<string, any[]>();
 
-      // switch (tableName) {
-      //   case TABLES.User:
-      //     data.set(
-      //       tableName,
-      //       // await this.getUsers(tablesLastModifiedTime.get(tableName))
-      //       this.supabase?.from(tableName).select("*")
-      //     );
-      //     break;
-      //   // case TABLES.Assignment:
-      //   //   data.set(
-      //   //     tableName,
-      //   //     await this.getAssignments(tablesLastModifiedTime.get(tableName))
-      //   //   );
-      //   //   break;
-      //   case TABLES.Result:
-      //     data.set(
-      //       tableName,
-      //       await this.getResults(tablesLastModifiedTime.get(tableName))
-      //     );
-      //     break;
-      //   case TABLES.School:
-      //     data.set(
-      //       tableName,
-      //       await this.getSchools(tablesLastModifiedTime.get(tableName))
-      //     );
-      //     break;
-      //   case TABLES.SchoolUser:
-      //     data.set(
-      //       tableName,
-      //       await this.getSchoolUsers(tablesLastModifiedTime.get(tableName))
-      //     );
-      //     break;
-      //   default:
-      //     break;
-      // }
+      const fetchPromises = tableNames.map(async (tableName) => {
+        const lastModifiedDate =
+          tablesLastModifiedTime.get(tableName) ?? "2024-01-01T00:00:00.000Z";
+        let rpcName;
+        let res;
+        switch (tableName) {
+          case TABLES.Assignment: {
+            rpcName = "sql_get_assignments";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Assignment_cart: {
+            rpcName = "sql_get_assignment_cart";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Assignment_user: {
+            rpcName = "sql_get_assignment_users";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Badge: {
+            rpcName = "sql_get_badge";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Chapter: {
+            rpcName = "sql_get_chapter";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.ChapterLesson: {
+            rpcName = "sql_get_chapter_lesson";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Class: {
+            rpcName = "sql_get_class";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.ClassCourse: {
+            rpcName = "sql_get_class_course";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.ClassInvite_code: {
+            rpcName = "sql_get_class_invite_codes";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.ClassUser: {
+            rpcName = "sql_get_class_user";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Course: {
+            rpcName = "sql_get_course";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Curriculum: {
+            rpcName = "sql_get_curriculum";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.FavoriteLesson: {
+            rpcName = "sql_get_favorite_lessons";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Grade: {
+            rpcName = "sql_get_grade";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Language: {
+            rpcName = "sql_get_language";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Lesson: {
+            rpcName = "sql_get_lessons";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.ParentUser: {
+            rpcName = "sql_get_parent_users";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+
+          case TABLES.Result: {
+            rpcName = "sql_get_results";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Reward: {
+            rpcName = "sql_get_reward";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.School: {
+            rpcName = "sql_get_schools";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.SchoolCourse: {
+            rpcName = "sql_get_school_courses";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.SchoolUser: {
+            rpcName = "sql_get_school_user";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Sticker: {
+            rpcName = "sql_get_sticker";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Subject: {
+            rpcName = "sql_get_subject";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.User: {
+            rpcName = "sql_get_users";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.UserBadge: {
+            rpcName = "sql_get_user_badges";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.UserBonus: {
+            rpcName = "sql_get_user_bonus";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.UserCourse: {
+            rpcName = "sql_get_user_courses";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.UserSticker: {
+            rpcName = "sql_get_user_stickers";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          case TABLES.Live_quiz_room: {
+            rpcName = "sql_get_live_quiz_rooms";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
+          default:
+            res = await this.supabase
+              ?.from(tableName)
+              .select("*")
+              .gte("updated_at", lastModifiedDate);
+            data.set(tableName, res?.data ?? []);
+        }
+
+        if (res == null || res.error || !res.data) {
+          let parent_user;
+          try {
+            parent_user =
+              await ServiceConfig.getI().authHandler.getCurrentUser();
+          } catch (error: any) {
+            console.error("User Error", error);
+          }
+          Util.logEvent(EVENTS.SYNCHING_ERROR, {
+            user_name: parent_user?.name || null,
+            user_id: parent_user?.id || null,
+            user_username: parent_user?.email || null,
+            rpc_fn_name: rpcName || "not found",
+            table_name: tableName || "not found",
+            last_modified_date: lastModifiedDate || "not found",
+            error_code: res?.error?.code || null,
+            error_deatils: res?.error?.details || null,
+            error_hint: res?.error?.hint || null,
+            error_message: res?.error?.message || null,
+          });
+        }
+
+        data.set(tableName, res?.data ?? []);
+      });
+
+      await Promise.all(fetchPromises);
+      return data;
+    } catch (err: any) {
+      let parent_user;
+      try {
+        parent_user = await ServiceConfig.getI().authHandler.getCurrentUser();
+      } catch (error: any) {
+        console.error("User Error", error);
+      }
+      Util.logEvent(EVENTS.SYNCHING_ERROR, {
+        user_name: parent_user?.name || null,
+        user_id: parent_user?.id || null,
+        user_username: parent_user?.email || null,
+        rpc_fn_name: "not found",
+        table_name: "not found",
+        last_modified_date: "not found",
+        error_message: err || "Unknown error",
+      });
+      console.error("🚀 ~ Api ~ getTablesData ~ error:", err);
+      throw err;
     }
-    return data;
   }
 
   async mutate(
     mutateType: MUTATE_TYPES,
     tableName: TABLES,
-    data: { [key: string]: any },
+    data1: { [key: string]: any },
     id: string
   ) {
+    const data = { ...data1 };
+    data.updated_at = new Date().toISOString();
+
     if (!this.supabase) return;
     let res: PostgrestSingleResponse<any> | undefined = undefined;
     switch (mutateType) {
@@ -198,8 +498,6 @@ export class SupabaseApi implements ServiceApi {
 
       case MUTATE_TYPES.UPDATE:
         delete data.id;
-        console.log("🚀 ~ SupabaseApi ~ data:", data);
-        console.log(typeof data);
         res = await this.supabase.from(tableName).update(data).eq("id", id);
         break;
 
@@ -210,9 +508,8 @@ export class SupabaseApi implements ServiceApi {
       default:
         break;
     }
-    console.log("🚀 ~ SupabaseApi ~ res:", res);
-
-    return !!res && !res.error;
+    return res;
+    // return !!res && !res.error;
   }
 
   async pushAssignmentCart(data: { [key: string]: any }, id: string) {
@@ -242,7 +539,6 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-
   async removeCoursesFromClass(ids: string[]): Promise<void> {
     throw new Error("Method not implemented.");
   }
@@ -250,10 +546,12 @@ export class SupabaseApi implements ServiceApi {
   async removeCoursesFromSchool(ids: string[]): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  async checkCourseInClasses(classIds: string[], classId: string): Promise<boolean> {
+  async checkCourseInClasses(
+    classIds: string[],
+    classId: string
+  ): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
-
 
   async deleteUserFromClass(userId: string): Promise<void> {
     throw new Error("Method not implemented.");
@@ -264,7 +562,24 @@ export class SupabaseApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
+    image: File | null
   ): Promise<TableTypes<"school">> {
+    throw new Error("Method not implemented.");
+  }
+
+  requestNewSchool(
+    name: string,
+    state: string,
+    district: string,
+    city: string,
+    image: File | null,
+    udise_id?: string
+  ): Promise<TableTypes<"req_new_school"> | null> {
+    throw new Error("Method not implemented.");
+  }
+  getExistingSchoolRequest(
+    userId: string
+  ): Promise<TableTypes<"req_new_school"> | null> {
     throw new Error("Method not implemented.");
   }
 
@@ -597,7 +912,6 @@ export class SupabaseApi implements ServiceApi {
   async linkStudent(inviteCode: number, studentId: string): Promise<any> {
     try {
       if (!studentId) {
-        console.log(this._currentStudent);
         throw Error("Student Not Found");
       }
       const rpcRes = await this.supabase?.rpc("linkStudent", {
@@ -789,12 +1103,17 @@ export class SupabaseApi implements ServiceApi {
     ) => void
   ) {
     try {
-      if (this._assignmentUserRealTime) return;
+      if (this._assignmentUserRealTime) {
+        this._assignmentUserRealTime.unsubscribe();
+        this._assignmentUserRealTime = undefined;
+      }
+
       this._assignmentUserRealTime = this.supabase?.channel("assignment_user");
       if (!this._assignmentUserRealTime) {
         throw new Error("Failed to establish channel for assignment_user");
       }
-      const res = this._assignmentUserRealTime
+
+      this._assignmentUserRealTime
         .on(
           "postgres_changes",
           {
@@ -804,48 +1123,65 @@ export class SupabaseApi implements ServiceApi {
             filter: `user_id=eq.${studentId}`,
           },
           (payload) => {
-            onDataChange(payload.new as TableTypes<"assignment_user">);
+            if (onDataChange) {
+              onDataChange(payload.new as TableTypes<"assignment_user">);
+            } else {
+              console.error(
+                "🛑 onDataChange is undefined for assignment_user!"
+              );
+            }
           }
         )
         .subscribe();
-      return;
     } catch (error) {
-      throw error;
+      console.error("🛑 Error in Supabase assignment_user listener:", error);
     }
   }
+
   async assignmentListner(
     classId: string,
     onDataChange: (assignment: TableTypes<"assignment"> | undefined) => void
   ) {
     try {
-      if (this._assignmetRealTime) return;
+      if (this._assignmetRealTime) {
+        this._assignmetRealTime.unsubscribe();
+        this._assignmetRealTime = undefined;
+      }
+
       this._assignmetRealTime = this.supabase?.channel("assignment");
       if (!this._assignmetRealTime) {
         throw new Error("Failed to establish channel for assignment");
       }
-      const res = this._assignmetRealTime!.on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "assignment",
-          filter: `class_id=eq.${classId}`,
-        },
-        (payload) => {
-          onDataChange(payload.new as TableTypes<"assignment">);
-        }
-      ).subscribe();
-      return;
+      this._assignmetRealTime
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "assignment",
+            filter: `class_id=eq.${classId}`,
+          },
+          (payload) => {
+            if (onDataChange) {
+              onDataChange(payload.new as TableTypes<"assignment">);
+            } else {
+              console.error("🛑 onDataChange is undefined!");
+            }
+          }
+        )
+        .subscribe();
     } catch (error) {
-      throw error;
+      console.error("🛑 Error in Supabase listener:", error);
     }
   }
   async removeAssignmentChannel() {
     try {
       if (this._assignmentUserRealTime)
         this.supabase?.removeChannel(this._assignmentUserRealTime);
+      this._assignmentUserRealTime = undefined;
       if (this._assignmetRealTime)
         this.supabase?.removeChannel(this._assignmetRealTime);
+      this._assignmetRealTime = undefined;
     } catch (error) {
       throw error;
     }
@@ -1013,7 +1349,10 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getRecommendedLessons(studentId: string,classId?:string): Promise<TableTypes<"lesson">[]> {
+  getRecommendedLessons(
+    studentId: string,
+    classId?: string
+  ): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
 
@@ -1022,7 +1361,6 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase.rpc("find_similar_lessons", {
       search_text: searchString,
     });
-    console.log("🚀 ~ SupabaseApi ~ searchLessons ~ data, error:", data, error);
     if (error) return [];
     return data;
   }
@@ -1055,6 +1393,11 @@ export class SupabaseApi implements ServiceApi {
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
+  }
+  getAssignmentUserByAssignmentIds(
+    assignmentIds: string[]
+  ): Promise<TableTypes<"assignment_user">[]> {
+    throw new Error("Method not implemented");
   }
   getResultByAssignmentIds(
     assignmentIds: string[]
@@ -1121,6 +1464,9 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   checkUserExistInSchool(schoolId, userId): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  checkUserIsManagerOrDirector(schoolId, userId): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
   getAssignmentsByAssignerAndClass(
@@ -1194,6 +1540,11 @@ export class SupabaseApi implements ServiceApi {
       throw error; // Re-throw the error for external handling
     }
   }
+  async getSchoolsWithRoleAutouser(
+    schoolIds: string[]
+  ): Promise<TableTypes<"school">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
   async getPrincipalsForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined> {
@@ -1220,6 +1571,358 @@ export class SupabaseApi implements ServiceApi {
     schoolId: string,
     userId: string,
     role: RoleType
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  async updateSchoolLastModified(id: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  async updateClassLastModified(id: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  async updateUserLastModified(id: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  async validateSchoolData(
+    schoolId: string,
+    schoolName: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "validate_school_data_rpc",
+        {
+          input_school_id: schoolId,
+          input_school_name: schoolName,
+        }
+      );
+      if (error || !data) {
+        throw error ?? new Error("Unknown error from RPC");
+      }
+
+      return data as { status: string; errors?: string[] };
+    } catch (error) {
+      return {
+        status: "error",
+        errors: [String(error)],
+      };
+    }
+  }
+  async validateParentAndStudentInClass(
+    phoneNumber: string,
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "check_parent_and_student_in_class",
+        {
+          phone_number: phoneNumber,
+          student_name: studentName,
+          class_name: className,
+          input_school_udise_code: schoolId,
+        }
+      );
+      if (data?.status === "error" && (data as any).message) {
+        return {
+          status: "error",
+          errors: [(data as any).message],
+        };
+      }
+      return data as { status: string; errors?: string[] };
+    } catch (error) {
+      return {
+        status: "error",
+        errors: [String(error)],
+      };
+    }
+  }
+  async validateSchoolUdiseCode(
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "validate_school_udise_code",
+        {
+          input_school_udise_code: schoolId,
+        }
+      );
+      if (data?.status === "error" && (data as any).message) {
+        return {
+          status: "error",
+          errors: [(data as any).message],
+        };
+      }
+      return data as { status: string; errors?: string[] };
+    } catch (error) {
+      return {
+        status: "error",
+        errors: [String(error)],
+      };
+    }
+  }
+  async validateClassNameWithSchoolID(
+    schoolId: string,
+    className: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "check_class_exists_by_name_and_school",
+        {
+          class_name: className,
+          input_school_udise_code: schoolId,
+        }
+      );
+      if (data?.status === "error" && (data as any).message) {
+        return {
+          status: "error",
+          errors: [(data as any).message],
+        };
+      }
+      return data as { status: string; errors?: string[] };
+    } catch (error) {
+      return {
+        status: "error",
+        errors: [String(error)],
+      };
+    }
+  }
+  async validateStudentInClassWithoutPhone(
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "check_student_duplicate_in_class_without_phone_number",
+        {
+          student_name: studentName,
+          class_name: className,
+          input_school_udise_code: schoolId,
+        }
+      );
+
+      if (data?.status === "error" && (data as any).message) {
+        return {
+          status: "error",
+          errors: [(data as any).message],
+        };
+      }
+
+      return data as { status: string; errors?: string[] };
+    } catch (error) {
+      return {
+        status: "error",
+        errors: [String(error)],
+      };
+    }
+  }
+
+  async validateClassCurriculumAndSubject(
+    curriculumName: string,
+    subjectName: string,
+    gradeName: string // new parameter
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+    // Step 1: Fetch curriculum ID
+    const { data: curriculumData, error: curriculumError } = await this.supabase
+      .from("curriculum")
+      .select("id")
+      .eq("name", curriculumName)
+      .single();
+
+    if (curriculumError || !curriculumData) {
+      return {
+        status: "error",
+        errors: ["Invalid curriculum name"],
+      };
+    }
+    const curriculumId = curriculumData.id;
+
+    // Step 2: Fetch grade ID
+    const { data: gradeData, error: gradeError } = await this.supabase
+      .from("grade")
+      .select("id")
+      .eq("name", gradeName)
+      .single();
+    if (gradeError || !gradeData) {
+      return {
+        status: "error",
+        errors: ["Invalid grade name"],
+      };
+    }
+
+    const gradeId = gradeData.id;
+
+    // Step 3: Check if course exists with curriculum ID, grade ID, and subject name
+    const { data: courseData, error: courseError } = await this.supabase
+      .from("course")
+      .select("id")
+      .eq("curriculum_id", curriculumId)
+      .eq("grade_id", gradeId)
+      .eq("name", subjectName.trim());
+    if (courseError || !courseData || courseData.length === 0) {
+      return {
+        status: "error",
+        errors: [
+          `Subject '${subjectName}' not found for grade '${gradeName}' in the '${curriculumName}' curriculum.`,
+        ],
+      };
+    }
+    return { status: "success" };
+  }
+  async validateUserContacts(
+    programManagerPhone: string,
+    fieldCoordinatorPhone?: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "validate_user_contacts_rpc",
+        {
+          program_manager_contact: programManagerPhone.trim(),
+          field_coordinator_contact: fieldCoordinatorPhone?.trim() ?? null,
+        }
+      );
+      if (error || !data) {
+        return {
+          status: "error",
+          errors: [
+            "programManagerPhone and fieldCoordinatorPhone Validation failed",
+          ],
+        };
+      }
+
+      return data;
+    } catch (err) {
+      return {
+        status: "error",
+        errors: [String(err)],
+      };
+    }
+  }
+
+  // async validateUserContacts(
+  //   programManagerPhone: string,
+  //   fieldCoordinatorPhone?: string
+  // ): Promise<{ status: string; errors?: string[] }> {
+  //   if (!this.supabase) {
+  //     return {
+  //       status: "error",
+  //       errors: ["Supabase client is not initialized"],
+  //     };
+  //   }
+
+  //   const errors: string[] = [];
+
+  //   const queryKey = programManagerPhone.includes("@") ? "email" : "phone";
+  //   const { data: pmData, error: pmError } = await this.supabase
+  //     .from("user")
+  //     .select("id")
+  //     .eq(queryKey, programManagerPhone.trim());
+
+  //   if (pmError || !pmData) {
+  //     errors.push(
+  //       "PROGRAM MANAGER EMAIL OR PHONE NUMBER does not exist in the system"
+  //     );
+  //   }
+
+  //   if (fieldCoordinatorPhone) {
+  //     const fCqueryKey = fieldCoordinatorPhone.includes("@")
+  //       ? "email"
+  //       : "phone";
+  //     const { data: fcData, error: fcError } = await this.supabase
+  //       .from("user")
+  //       .select("id")
+  //       .eq(fCqueryKey, fieldCoordinatorPhone);
+
+  //     if (fcError || !fcData) {
+  //       errors.push(
+  //         "FIELD COORDINATOR EMAIL OR PHONE NUMBER does not exist in the system"
+  //       );
+  //     }
+  //   }
+
+  //   return errors.length > 0
+  //     ? { status: "error", errors }
+  //     : { status: "success" };
+  // }
+  async setStarsForStudents(
+    studentId: string,
+    starsCount: number
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  async countAllPendingPushes(): Promise<number> {
+    throw new Error("Method not implemented.");
+  }
+  async getDebugInfoLast30Days(parentId: string): Promise<any[]> {
+    throw new Error("Method not implemented.");
+  }
+  async getClassByUserId(userId: string): Promise<TableTypes<"class">> {
+    throw new Error("Method not implemented.");
+  }
+
+  async getCoursesForPathway(
+    studentId: string
+  ): Promise<TableTypes<"course">[]> {
+    throw new Error("Method not implemented in SupabaseApi.");
+  }
+  async updateLearningPath(
+    student: TableTypes<"user">,
+    learning_path: string
+  ): Promise<TableTypes<"user">> {
+    throw new Error("Method not implemented.");
+  }
+  async updateStudentStars(
+    studentId: string,
+    totalStars: number
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }

@@ -6,6 +6,8 @@ import {
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
+  PROFILETYPE,
+  TABLES,
   TableTypes,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -63,6 +65,7 @@ export interface ServiceApi {
     group1: string,
     group2: string,
     group3: string,
+    image: File | null
   ): Promise<TableTypes<"school">>;
   /**
    * updates a school details and returns the school object
@@ -71,6 +74,7 @@ export interface ServiceApi {
    * @param {string} group1 - state of school
    * @param {string} group1 - district of school
    * @param {string} group1 - city of school
+   * @param {string} image - image of school
    * @returns {TableTypes<"school">} Updated School Object
    */
   updateSchoolProfile(
@@ -78,8 +82,41 @@ export interface ServiceApi {
     name: string,
     group1: string,
     group2: string,
-    group3: string
+    group3: string,
+    image: File | null
   ): Promise<TableTypes<"school">>;
+
+  requestNewSchool(
+    name: string,
+    state: string,
+    district: string,
+    city: string,
+    image: File | null,
+    udise_id?: string
+  ): Promise<TableTypes<"req_new_school"> | null>;
+
+  getExistingSchoolRequest(
+    userId: string
+  ): Promise<TableTypes<"req_new_school"> | null>;
+  /**
+   * Adds a school profile image and returns the school profile image URL.
+   * @param {string} id - The unique identifier of the school.
+   * @param {File} file - The image file to be uploaded.
+   * @param {PROFILETYPE} profileType - The type of profile image (e.g., "school", "class", "user").
+   * @returns {Promise<string | null>} The URL of the uploaded profile image or null if the upload fails.
+   */
+  addProfileImages(
+    id: string,
+    file: File,
+    profileType: PROFILETYPE
+  ): Promise<string | null>;
+
+  /**
+   * Adds a school profile image and returns the school profile image URL.
+   * @param {payload} any - Mapped data in the json format.
+   * @returns {Promise<boolean | null>} Returns if the upload is success or upload fails.
+   */
+  uploadData(payload: any): Promise<boolean | null>;
 
   createStudentProfile(
     name: string,
@@ -111,11 +148,10 @@ export interface ServiceApi {
     schoolId: string
   ): Promise<TableTypes<"school_course">[]>;
 
-
   /**
-     * To delete 'courses' with given class IDs from the class_course table.
-     * @param {string[] } class_ids - Class Ids
-     */
+   * To delete 'courses' with given class IDs from the class_course table.
+   * @param {string[] } class_ids - Class Ids
+   */
   removeCoursesFromClass(ids: string[]): Promise<void>;
 
   /**
@@ -130,7 +166,6 @@ export interface ServiceApi {
    * @param {string } course_id - course Id
    */
   checkCourseInClasses(classIds: string[], courseId: string): Promise<boolean>;
-
 
   /**
    * To delete a 'user' with a given student ID from the class_user table.
@@ -160,7 +195,7 @@ export interface ServiceApi {
    * @returns {TableTypes<"grade">} or `undefined` if it could not find the grade with given `id`
    */
   getGradeById(id: string): Promise<TableTypes<"grade"> | undefined>;
-   /**
+  /**
    * @param ids - IDs of the grades.
    * @returns {TableTypes<"grade">} or `[]` if it could not find the grade with given `ids`
    */
@@ -171,11 +206,11 @@ export interface ServiceApi {
    * @returns {TableTypes<"curriculum">} or `undefined` if it could not find the curriculum with given `id`
    */
   getCurriculumById(id: string): Promise<TableTypes<"curriculum"> | undefined>;
-/**
+  /**
    * @param ids - IDs of the curriculum.
    * @returns {TableTypes<"curriculum">} or [] if it could not find the curriculum with given `ids`
    */
-  getCurriculumsByIds(ids: string []): Promise<TableTypes<"curriculum">[]>;
+  getCurriculumsByIds(ids: string[]): Promise<TableTypes<"curriculum">[]>;
 
   /**
    * Gives all `Languages` available on database
@@ -847,7 +882,7 @@ export interface ServiceApi {
    *          - `false` if there were any errors or if no synchronization was necessary.
    */
 
-  syncDB(): Promise<boolean>;
+  syncDB(tableNames: TABLES[], refreshTables: TABLES[]): Promise<boolean>;
 
   /**
    * Function to get Recommended Lessons.
@@ -856,7 +891,10 @@ export interface ServiceApi {
    * @param classId - The current class id
    * @returns A promise returns list of Recommended Lessons to home page.
    */
-  getRecommendedLessons(studentId: string,classId?:string): Promise<TableTypes<"lesson">[]>;
+  getRecommendedLessons(
+    studentId: string,
+    classId?: string
+  ): Promise<TableTypes<"lesson">[]>;
 
   /**
    * Searches for lessons that match the given search string in their name or outcome fields.
@@ -871,7 +909,7 @@ export interface ServiceApi {
    *
    * Example usage:
    * searchLessons("math")
-   *   .then(lessons => console.log(lessons))
+   *   .then(lessons => {})
    *   .catch(error => console.error(error));
    */
 
@@ -972,6 +1010,10 @@ export interface ServiceApi {
     classId: string
   ): Promise<TableTypes<"assignment">[] | undefined>;
 
+  getAssignmentUserByAssignmentIds(
+    assignmentIds: string[]
+  ): Promise<TableTypes<"assignment_user">[]>;
+
   /**
    * Creates a assignment object
    * @param {string} student_list - list of the students id's
@@ -1036,6 +1078,17 @@ export interface ServiceApi {
    * @return returns boolean whether the user is already connected to school or not.
    */
   checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean>;
+
+  /**
+   * Checks the user present in school or not.
+   * @param {string} schoolId school Id
+   * @param {string} userId user Id;
+   * @return returns boolean whether the user is Program-manager/Operational-director or not.
+   */
+  checkUserIsManagerOrDirector(
+    schoolId: string,
+    userId: string
+  ): Promise<boolean>;
 
   /**
    * Gets the assignments by assigner and class.
@@ -1124,6 +1177,14 @@ export interface ServiceApi {
    */
   createClassCode(classId: string): Promise<number>;
   /**
+   * To get autousers from school user table for the given school ids
+   * @param {string []} schoolIds - school Ids
+   * * @return an array of autouser schools.
+   */
+  getSchoolsWithRoleAutouser(
+    schoolIds: string[]
+  ): Promise<TableTypes<"school">[] | undefined>;
+  /**
    * This function gets all the principals for the school.
    * @param {string} schoolId school Id;
    * @return A promise to an array of principals.
@@ -1170,4 +1231,139 @@ export interface ServiceApi {
     userId: string,
     role: RoleType
   ): Promise<void>;
+
+  /**
+   * updates a school LastModified time and Date
+   * @param {string} id - The unique identifier of the school.
+   */
+  updateSchoolLastModified(id: string): Promise<void>;
+
+  /**
+   * updates a Class LastModified time and Date
+   * @param {string} id - The unique identifier of the Class.
+   */
+  updateClassLastModified(id: string): Promise<void>;
+
+  /**
+   * updates a User LastModified time and Date
+   * @param {string} id - The unique identifier of the User.
+   */
+  updateUserLastModified(id: string): Promise<void>;
+
+  /**
+   * To validate a school for given school id, school name and instruction medium
+   * @param {string } schoolId - school Id
+   * @param {string } schoolName - school Name
+   * @param {string } instructionMedium - school instruction Medium
+   */
+  validateSchoolData(
+    schoolId: string,
+    schoolName: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+
+  /**
+   * To validate given phone number and student already exist in the given class or not
+   * @param {string } phoneNumber - phone number
+   * @param {string } studentName - student Name
+   * @param {string } className  -  class Name
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateParentAndStudentInClass(
+    phoneNumber: string,
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+   /**
+   * To validate given UDISE school Id  exist in the given school table or not
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateSchoolUdiseCode(
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given UDISE school Id a exist in the given school table or not
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateClassNameWithSchoolID(
+    schoolId: string,
+    className: string,
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given student already exist in the given class or not
+   * @param {string } studentName - student Name
+   * @param {string } className  -  class Name
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateStudentInClassWithoutPhone(
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate that the given subject belongs to that curriculum or not
+   * @param {string } curriculumName - curriculum Name
+   * @param {string } subjectName - subject Name
+   */
+  validateClassCurriculumAndSubject(
+    curriculumName: string,
+    subjectName: string,
+    gradeName: string
+  ): Promise<{ status: string; errors?: string[] }>;
+  /**
+   * To validate that the given user phone or mail is exist or not
+   * @param {string } programManagerPhone - programManager Phone
+   * @param {string } fieldCoordinatorPhone - fieldCoordinator Phone
+   */
+  validateUserContacts(
+    programManagerPhone: string,
+    fieldCoordinatorPhone: string
+  ): Promise<{ status: string; errors?: string[] }>;
+  /**
+   * setting a stars for the student
+   * @param {string } studentId - student id
+   * @param {string } starsCount - count of stars
+   */
+  setStarsForStudents(studentId: string, starsCount: number): Promise<void>;
+
+  /**
+   * count all pending row changes to be pushed in the sqlite
+   */
+  countAllPendingPushes(): Promise<number>;
+  /**
+   * getting the push, pull changes information for the last 30 days
+   * @param {string } parentId - parent id
+   */
+  getDebugInfoLast30Days(parentId: string): Promise<any[]>;
+  /**
+   * getting class for the user, user id can be Student id or teacher id
+   * @param {string } userId - user id
+   */
+  getClassByUserId(userId: string): Promise<TableTypes<"class"> | undefined>;
+
+  /**
+   * getting courses for the student sorted with sort_index
+   * @param {string } studentId - student id
+   */
+  getCoursesForPathway(studentId: string): Promise<TableTypes<"course">[]>;
+  /**
+   * Updates the learning path for a student.
+   * @param {string} learningPath - The new learning path to be set.
+   * @returns {User} Updated Student User Object
+   */
+  updateLearningPath(
+    student: TableTypes<"user">,
+    learning_path: string
+  ): Promise<TableTypes<"user">>;
+  /**
+   * Updates the total stars for a student.
+   * @param {string} studentId - student Id.
+   * @param {number} totalStars - total stars.
+   */
+  updateStudentStars(studentId: string, totalStars: number): Promise<void>;
 }

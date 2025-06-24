@@ -1,0 +1,70 @@
+.profile-details {
+  text-align: center;
+  margin-top: 1.2vh;
+}
+
+.profile-container {
+  line-height: 0;
+  display: inline-block;
+  margin: 1vw;
+  border: 0.5vw solid rgba(200, 200, 200, 0.4);
+  border-radius: 50%;
+  box-shadow: 0px 0px 2vw rgba(0, 0, 0, 0.4);
+  transition: linear 0.25s;
+  height: 20vh;
+  width: 20vh;
+  background-color: white;
+}
+
+.profile-container img {
+  border-radius: 50%;
+  width: 100%;
+  height: 100%;
+}
+.profile-container:hover {
+  transition: ease-out 0.2s;
+  border: 2vw solid rgba(0, 0, 0, 0.2);
+  -webkit-transition: ease-out 0.2s;
+}
+
+/* .profile-details-container {
+  margin-top: 20px; 
+} */
+
+/* ProfileDetails.css */
+.profile-details {
+  cursor: pointer;
+  margin-top: 0 !important;
+  margin-left: 0 !important;
+  align-items: center;
+  justify-content: center;
+  height: 165px;
+}
+
+.profile-container {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-details .overlay {
+  position: relative;
+  top: -45px;
+  right: -90px;
+  width: 30px;
+  height: 30px;
+  background-color: rgba(200, 200, 200, 0.9);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camera-icon {
+  width: 18px;
+  height: 18px;
+  color: black;
+}
+
+.label {
+  height: 135px;
+}
