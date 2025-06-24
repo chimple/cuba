@@ -235,6 +235,11 @@ const App: React.FC = () => {
         learningPathAssets?.uniqueId
       );
     }
+    localStorage.setItem(
+      "shouldShowRemoteAssets",
+      JSON.stringify(shouldShowRemoteAssets)
+    );
+    
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
