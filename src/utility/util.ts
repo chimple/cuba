@@ -54,6 +54,7 @@ import {
   ASSIGNMENT_POPUP_SHOWN,
   QUIZ_POPUP_SHOWN,
   SCHOOL_LOGIN,
+  SHOULD_SHOW_REMOTE_ASSETS,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -2207,7 +2208,7 @@ export class Util {
     const body = document.querySelector("body");
     if (
       Capacitor.isNativePlatform() &&
-      localStorage.getItem("shouldShowRemoteAssets") === "true"
+      localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === "true"
     ) {
       try {
         const result = await Filesystem.readFile({
