@@ -179,9 +179,9 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
       </div>
       <div className="table-sort-divider"></div>
 
-      <div className="custom-dropdown-wrapper">
+      <div className="tablechoice-custom-dropdown-wrapper">
         <div
-          className="custom-dropdown-header"
+          className="tablechoice-custom-dropdown-header"
           onClick={() => setDropdownOpen(!isDropdownOpen)}
         >
           <span>
@@ -191,12 +191,12 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
         </div>
 
         {isDropdownOpen && (
-          <div className="custom-dropdown-menu">
+          <div className="tablechoice-custom-dropdown-menu">
             {Object.entries(TABLESORTBY).map(([key, value]) => {
               return (
                 <div
                 key={key}
-                className={`custom-dropdown-item ${sortBy === value ? "selected" : ""}`}
+                className={`tablechoice-custom-dropdown-item ${sortBy === value ? "selected" : ""}`}
                 onClick={() => {
                   handleNameSort({ id: key, name: value });
                   setDropdownOpen(false);

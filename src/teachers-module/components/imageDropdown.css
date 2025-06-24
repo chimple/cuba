@@ -8,7 +8,7 @@
   min-height: 35px;
 }
 
-.menu-item-content {
+.image-drop-content {
   display: flex;
   align-items: center;
 }
@@ -32,7 +32,7 @@
   color: #333;
 }
 
-.dropdown-icon {
+.imageDropdown-icon {
   width: auto;
   max-width: 5vh;
   height: min(4vh, 30px);
@@ -47,14 +47,14 @@
   margin-left: 10px;
   color: #707070;
 }
-.selected-value {
+.selectedImageDropdown-value {
   display: flex;
   align-items: center;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.selected-value span {
+.selectedImageDropdown-value span {
   color: #707070;
   font-size: 2.5vh;
 }

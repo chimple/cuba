@@ -97,9 +97,9 @@ const CustomImageDropdown: React.FC<CustomImageDropdownProps> = ({
                 }}
               >
                 {option.icon && <img src={option.icon} alt={option.name} className="customImage-icon" />}
-                <div className="dropdown-text">
-                  <span className="subject-text">{subject}</span>
-                  <span className="grade-text">{grade}</span>
+                <div className="customImgdropdown-text">
+                  <span className="custonmImgDropdownsubject-text">{subject}</span>
+                  <span className="custonmImgDropdowngrade-text">{grade}</span>
                 </div>
               </div>
             );

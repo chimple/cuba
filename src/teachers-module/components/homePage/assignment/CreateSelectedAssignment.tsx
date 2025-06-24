@@ -482,7 +482,7 @@ const CreateSelectedAssignment = ({
           <div className="date-created-assignment">
             <div>
               <b>{t("Start Date")}</b>
-              <div className="date-input">
+              <div className="selectAssignmentDate-input">
                 {showStartDatePicker ? (
                   <CalendarPicker
                     value={startDate}
@@ -507,7 +507,7 @@ const CreateSelectedAssignment = ({
             <div className="vertical-line"></div>
             <div>
               <b>{t("End Date")}</b>
-              <div className="date-input">
+              <div className="selectAssignmentDate-input">
                 {showEndDatePicker ? (
                   <CalendarPicker
                     value={endDate}

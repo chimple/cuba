@@ -34,7 +34,7 @@
   color: #707070;
 }
 
-.date-input {
+.selectAssignmentDate-input {
   display: flex;
   align-items: center;
   gap: 5px;
