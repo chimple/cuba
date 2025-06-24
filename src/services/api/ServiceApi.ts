@@ -1710,9 +1710,15 @@ export interface ServiceApi {
     active_teachers: number;
   }>;
 
-    /**
+  /**
    * Checks if the current user is a program manager.
    * @returns {Promise<boolean>} A promise that resolves to true if the user is a program manager, false otherwise.
    */
   isProgramManager(): Promise<boolean>;
+
+  /**
+   * Checks if the current user is a role.
+   * @returns {Promise<string | undefined>} If any special role is there it will return role otherwise it will return undefined.
+   */
+  getUserSpecialRole(userId: string): Promise<string | undefined>;
 }
