@@ -169,7 +169,7 @@ const DisplayStudents: FC<{}> = () => {
       {!isLoading && students && (
         <div className="display-student-content">
           <div className="avatar-container">
-            {students.hasOwnProperty("respectLaunchVersion") ? (
+            {Util.isRespectMode ? (
               <>
                 <div
                   key={(students as any).registration}

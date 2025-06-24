@@ -91,13 +91,13 @@ const LidoPlayer: FC = () => {
           assignmentId = result?.id;
         }
       }
-      chapter_id = await api.getChapterByLesson(lesson.id, classId);
+      // chapter_id = await api.getChapterById(lesson.id, classId);
     } else {
-      chapter_id = await api.getChapterByLesson(
-        lesson.id,
-        undefined,
-        currentStudent.id
-      );
+      // chapter_id = await api.getChapterByLesson(
+      //   lesson.id,
+      //   undefined,
+      //   currentStudent.id
+      // );
     }
     let avatarObj = AvatarObj.getInstance();
     let finalProgressTimeSpent =

@@ -64,7 +64,6 @@ const LessonCard: React.FC<{
   assignment,
   lessonCourseMap,
 }) => {
-  console.log("lesson-->", lesson);
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
   const [subject, setSubject] = useState<TableTypes<"subject">>();
