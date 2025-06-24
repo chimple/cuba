@@ -190,7 +190,7 @@ export class SupabaseAuth implements ServiceAuth {
           is_ops: null,
           learning_path: null,
           ops_created_by: null,
-          stars: null
+          stars: null,
         });
         this._currentUser = createdUser;
       }
@@ -202,8 +202,11 @@ export class SupabaseAuth implements ServiceAuth {
       if (rpcRes?.data) {
         await api.subscribeToClassTopic();
       }
-    } catch (error:any) {
-      console.error("🚀 ~ SupabaseAuth ~ googleSign ~ error:", error?.stack || error);
+    } catch (error: any) {
+      console.error(
+        "🚀 ~ SupabaseAuth ~ googleSign ~ error:",
+        error?.stack || error
+      );
       return false;
     }
     return true;
@@ -220,11 +223,16 @@ export class SupabaseAuth implements ServiceAuth {
       // await this.doRefreshSession();
       const authData = await this._auth?.getSession();
       if (!authData || !authData.data.session?.user?.id) return;
-      const role = authData?.data.session?.user.app_metadata.role;
-      if (role) {
-        localStorage.setItem(USER_ROLE, role);
-      }
+
       const api = ServiceConfig.getI().apiHandler;
+
+      const userRole = await api.getUserSpecialRole(
+        authData.data.session?.user.id
+      );
+      if (userRole) {
+        localStorage.setItem(USER_ROLE, userRole);
+      }
+
       let user = await api.getUserByDocId(authData.data.session?.user.id);
       localStorage.setItem(USER_DATA, JSON.stringify(user));
       this._currentUser = user;
@@ -318,7 +326,7 @@ export class SupabaseAuth implements ServiceAuth {
       if (!error) return true;
       return false;
     } catch (error) {
-      console.error("Failed with ",error);
+      console.error("Failed with ", error);
     }
   }
 
@@ -375,7 +383,7 @@ export class SupabaseAuth implements ServiceAuth {
           is_ops: null,
           learning_path: null,
           ops_created_by: null,
-          stars: null
+          stars: null,
         });
         this._currentUser = createdUser;
       }

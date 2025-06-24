@@ -895,7 +895,7 @@
   "Your data has been successfully checked, and no errors were found.": "Your data has been successfully checked, and no errors were found.",
   "Your profile is not registered to any school.": "Your profile is not registered to any school.",
   "Your progress stays synced and consistent across all devices.": "Your progress stays synced and consistent across all devices.",
-  "Your OTP will expire in": "Your OTP will expire in",
+  "Your OTP will expire in {{minutes}} minutes": "Your OTP will expire in {{minutes}} minutes",
   "Zebra": "Zebra",
   "Field Coordinator": "Field Coordinator",
   "No of Teachers": "No of Teachers"

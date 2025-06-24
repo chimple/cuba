@@ -82,7 +82,7 @@
   cursor: not-allowed;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 768px) {
   .OtpVerification-method {
     top: 46%;
     border-top-left-radius: 50% 80px;

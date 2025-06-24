@@ -129,7 +129,7 @@
 }
 
 /* Responsive styling */
-@media (max-width: 500px) {
+@media (max-width: 768px) {
   .LoginWithStudentID-student-input-wrapper {
     margin-top: 10px;
   }
@@ -155,6 +155,9 @@
 }
 
 @media (max-height: 500px) {
+  .LoginWithStudentID-login-method-content-student-id {
+    gap: 5px;
+  }
   .LoginWithStudentID-login-method-student-id {
     top: 30%;
   }
