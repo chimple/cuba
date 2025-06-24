@@ -452,6 +452,7 @@ const LoginScreen: React.FC = () => {
     if (isOpsRole || isProgramUser) {
       localStorage.setItem(IS_OPS_USER, "true");
       ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+      await ScreenOrientation.unlock();
       history.replace(PAGES.SIDEBAR_PAGE);
       return;
     }
@@ -785,11 +786,10 @@ const LoginScreen: React.FC = () => {
               style={
                 (loginType as string) !== "phone"
                   ? {
-                      maxWidth: "138px",
-                      marginTop: window.matchMedia("(orientation: landscape)")
-                        .matches
-                        ? "0"
-                        : "35%",
+                      maxWidth: window.matchMedia("(orientation: landscape)")
+                      .matches
+                      ? "120px"
+                      : "138px",
                     }
                   : undefined
               }
@@ -855,10 +855,7 @@ const LoginScreen: React.FC = () => {
               <OtpVerification
                 phoneNumber={phoneNumber}
                 onVerify={handleOtpVerification}
-                onResend={handleResendOtp}
                 errorMessage={errorMessage}
-                counter={counter}
-                showResendOtp={showResendOtp}
                 isLoading={isLoading}
                 verificationCode={verificationCode}
                 setVerificationCode={setVerificationCode}
@@ -877,6 +874,9 @@ const LoginScreen: React.FC = () => {
             onSwitch={handleSwitch}
             checkbox={checkbox}
             onCheckboxChange={setCheckbox}
+            onResend={loginType=="otp" ? handleResendOtp:()=>{}}
+            showResendOtp={showResendOtp}
+            counter={counter}
             onTermsClick={() => setShowTandC(true)}
             onGoogleSignIn={handleGoogleSignIn}
             otpExpiryCounter={otpExpiryCounter}

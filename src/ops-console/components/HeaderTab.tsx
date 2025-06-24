@@ -24,6 +24,9 @@ const TabComponent: React.FC<TabComponentProps> = ({
     >
       {tabs.map((tab, index) => (
         <Tab
+          sx={{
+            textTransform: "none",
+          }}
           key={index}
           label={tab.label}
           className={`HeaderTab-tab-item ${

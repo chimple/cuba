@@ -1,4 +1,4 @@
-import React from "react";
+import React, { forwardRef } from "react";
 import {
   Table,
   TableBody,
@@ -31,7 +31,7 @@ interface Props {
   onRowClick?: (id: string | number, row: any) => void; // optional custom click handler
 }
 
-const DataTableBody: React.FC<Props> = ({
+const DataTableBody = forwardRef<HTMLDivElement, Props>(({
   columns,
   rows,
   orderBy,
@@ -39,7 +39,7 @@ const DataTableBody: React.FC<Props> = ({
   onSort,
   detailPageRouteBase,
   onRowClick,
-}) => {
+}, ref) => {
   const history = useHistory();
   const handleRowClick = (row: any) => {
     const id = row.id;
@@ -65,7 +65,7 @@ const DataTableBody: React.FC<Props> = ({
   };
 
   return (
-    <TableContainer className="data-tablebody-container">
+    <TableContainer  ref={ref} className="data-tablebody-container">
       <Table size="small" stickyHeader>
         <TableHead>
           <TableRow>
@@ -134,6 +134,6 @@ const DataTableBody: React.FC<Props> = ({
       </Table>
     </TableContainer>
   );
-};
+});
 
 export default DataTableBody;

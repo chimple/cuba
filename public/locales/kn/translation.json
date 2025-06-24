@@ -636,7 +636,7 @@
   "Reports": "ವರದಿಗಳು",
   "Request Confirmation": "ವಿನಂತಿ ದೃಢೀಕರಣ",
   "Resend Otp Failed!! Please try again after some time.": "OTP ಅನ್ನು ಮರುಕಳುಹಿಸಲು ವಿಫಲವಾಗಿದೆ!! ದಯವಿಟ್ಟು ಸ್ವಲ್ಪ ಸಮಯದ ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
-  "Resend OTP": "OTP ಮರುಕಳುಹಿಸಿ",
+  "Resend OTP": "ಓಟಿಪಿ ಮರುಕಳುಹಿಸಿ",
   "reset password": "ಗುಪ್ತಪದ ಮರುಹೊಂದಿಸಿ",
   "Resources": "ಸಂಪನ್ಮೂಲಗಳು",
   "Revision ": "ಪರಿಷ್ಕರಣೆ",
@@ -900,6 +900,6 @@
   "Your data has been successfully checked, and no errors were found.": "ನಿಮ್ಮ ಡೇಟಾವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ ಮತ್ತು ಯಾವುದೇ ದೋಷಗಳು ಕಂಡುಬಂದಿಲ್ಲ.",
   "Your profile is not registered to any school.": "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಯಾವುದೇ ಶಾಲೆಯಲ್ಲಿ ನೋಂದಾಯಿಸಿಲ್ಲ.",
   "Your progress stays synced and consistent across all devices.": "ನಿಮ್ಮ ಪ್ರಗತಿಯು ಎಲ್ಲಾ ಸಾಧನಗಳಾದ್ಯಂತ ನವೀಕರಿಸಲ್ಪಡುತ್ತದೆ ಮತ್ತು ಸ್ಥಿರವಾಗಿರುತ್ತದೆ.",
-  "Your OTP will expire in": "ನಿಮ್ಮ ಓಟಿಪಿ ಅವಧಿ ಮುಗಿಯಲಿದೆ",
+  "Your OTP will expire in {{minutes}} minutes": "ನಿಮ್ಮ ಓಟಿಪಿ {{minutes}} ನಿಮಿಷಗಳಲ್ಲಿ ಮುಕ್ತಾಯವಾಗುತ್ತದೆ",
   "Zebra": "ಜೀಬ್ರಾ"
 }

@@ -63,7 +63,7 @@ const formatProgramDate = (value: string) => {
 const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
-  
+
   const [data, setData] = useState<ProgramData | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<ProgramStats>({
@@ -135,27 +135,31 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
 
   return (
     <div className="program-detail-page">
+
+
       <div className="program-detail-page-header">
-        {data.programDetails.find((d) => d.label === "Program Name")?.value}
-        <IconButton sx={{ color: "black" }}>
+        <div className="program-detail-page-header-title">
+          {data.programDetails.find((d) => d.label === "Program Name")?.value}
+        </div>
+        <IconButton className="program-detail-page-header-icon" sx={{ color: "black" }}>
           <BsFillBellFill />
         </IconButton>
       </div>
-      <Box className="program-detail-page-padding">
+
+      <Box className="program-detail-page-Breadcrumb-padding">
         <Breadcrumb
           crumbs={[
             { label: t("Programs"), onClick: () => history.goBack() },
             {
-              label:
-                data?.programDetails.find((d) => d.label === "Program Name")
-                  ?.value ?? "",
+              label: data?.programDetails.find((d) => d.label === "Program Name")
+                ?.value ?? "",
             },
           ]}
         />
 
         <Grid container spacing={2}>
           {/* Column 1 */}
-         <Grid item xs={12} md={4} order={{ xs: 2, md: 1 }}>
+          <Grid item xs={12} md={4} order={{ xs: 2, md: 1 }}>
             <Box className="program-detail-page-column-container">
               <InfoCard
                 title={t("Program Details")}
@@ -169,7 +173,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
           </Grid>
 
           {/* Column 2 */}
-         <Grid item xs={12} md={4} order={{ xs: 3, md: 2 }}>
+          <Grid item xs={12} md={4} order={{ xs: 3, md: 2 }}>
             <Box className="program-detail-page-column-container">
               <InfoCard
                 title={t("Location Details")}

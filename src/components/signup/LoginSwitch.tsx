@@ -3,10 +3,6 @@ import React from "react";
 import "./LoginSwitch.css";
 import { t } from "i18next";
 
-import StayCurrentPortraitIcon from "@mui/icons-material/StayCurrentPortrait";
-import MailOutlineIcon from "@mui/icons-material/MailOutline";
-import SchoolIcon from "@mui/icons-material/School";
-
 interface LoginSwitchProps {
   loginType: string;
   onSwitch: (type: string) => void;
@@ -15,6 +11,9 @@ interface LoginSwitchProps {
   onTermsClick: () => void;
   onGoogleSignIn: () => Promise<void>;
   otpExpiryCounter: number;
+  onResend?: () => void;
+  counter?: number;
+  showResendOtp?: boolean;
 }
 
 const LoginSwitch: React.FC<LoginSwitchProps> = ({
@@ -25,6 +24,9 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
   onTermsClick,
   onGoogleSignIn,
   otpExpiryCounter,
+  onResend,
+  counter,
+  showResendOtp,
 }) => {
   return (
     <div className="LoginSwitch-other-ways">
@@ -123,16 +125,17 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
               <div className="LoginSwitch-otp-expiry-header">
                 <img src="/assets/loginAssets/LoginStripe1.svg" alt="" />
                 <span className="LoginSwitch-otp-expiry-text">
-                  {t("Your OTP will expire in")} {otpExpiryCounter}{" "}
-                  {otpExpiryCounter === 1 ? t("minutes") : t("minutes")}
+                  {t("Your OTP will expire in {{minutes}} minutes", { minutes: otpExpiryCounter })}
                 </span>
                 <img src="/assets/loginAssets/LoginStripe2.svg" alt="" />
               </div>
-              <div className="LoginSwitch-otp-resend-link">
-                <span className="LoginSwitch-otp-resend-anchor">
+              <button
+                disabled={(counter ?? 0) > 0 ? true : false}
+                className="LoginSwitch-otp-resend-link"
+                onClick={onResend}
+              >
                   {t("Resend OTP")}
-                </span>
-              </div>
+              </button>
             </div>
           )}
         </>

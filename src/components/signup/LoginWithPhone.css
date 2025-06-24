@@ -101,7 +101,7 @@
 }
 
 /* Responsive styling */
-@media (max-width: 500px) {
+@media (max-width: 768px) {
   .LoginWithPhone-login-method {
     border-top-left-radius: 50% 80px;
     border-top-right-radius: 50% 80px;
@@ -123,12 +123,23 @@
   }
 }
 
-@media (max-height: 500px) {
+@media (max-height: 650px) {
+  .LoginWithPhone-login-method {
+    top: 40%;
+  }
+  .LoginWithPhone-login-method-content {
+    gap: 10px;
+  }
+  .LoginWithPhone-login-with-phone-button {
+    margin-top: 8px;
+  }
+}
+@media (max-height: 540px) {
   .LoginWithPhone-login-method {
     top: 30%;
   }
   .LoginWithPhone-login-method-content {
-    gap: 0;
+    gap: 0px;
   }
   .LoginWithPhone-login-with-phone-button {
     margin-top: 8px;
