@@ -19,6 +19,10 @@ import {
   FileUploadStep,
   PAGES,
 } from "../../common/constants";
+import {
+  splitLargeClassesIntoChunks,
+  splitSchoolPayloadByClass,
+} from "../OpsUtility/OpsDataMapperHelper";
 
 const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
   onCancleClick,
@@ -104,7 +108,8 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
     if (isVerified && finalPayload) {
       setStep(FileUploadStep.Uploading);
       const uploadData = async () => {
-        const result = await SupabaseApi.i.uploadData(finalPayload);
+        const api = ServiceConfig.getI().apiHandler;
+        const result = await api.uploadData(finalPayload);
         if (result) {
           setStep(FileUploadStep.Uploaded);
         } else {

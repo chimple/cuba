@@ -50,6 +50,10 @@ import { RoleType } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
 import { v4 as uuidv4 } from "uuid";
 import { ServiceConfig } from "../ServiceConfig";
+import {
+  splitLargeClassesIntoChunks,
+  splitSchoolPayloadByClass,
+} from "../../ops-console/OpsUtility/OpsDataMapperHelper";
 
 export class SupabaseApi implements ServiceApi {
   private _assignmetRealTime?: RealtimeChannel;
@@ -322,21 +326,41 @@ export class SupabaseApi implements ServiceApi {
     return imageUrl || null;
   }
 
+  async sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   async uploadData(payload: any): Promise<boolean> {
+    const uploading_user =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    const upload_start_time = new Date().toISOString();
+    console.log("up", upload_start_time);
     try {
       if (!this.supabase) {
         console.error("Supabase client is not initialized.");
         return false;
       }
-      const { data, error } = await this.supabase.functions.invoke(
-        "ops-data-insert",
-        {
-          body: payload,
+      const classwisePayload = splitSchoolPayloadByClass(payload);
+      const chunkedPayload = splitLargeClassesIntoChunks(classwisePayload, 95);
+      for (const entry of chunkedPayload) {
+        const { data, error } = await this.supabase.functions.invoke(
+          "ops-data-insert",
+          {
+            body: [entry],
+          }
+        );
+        if (error) {
+          await this.sleep(10000);
+          console.error("Function error:", error);
+          await this.supabase.functions.invoke("ops-data-rollback", {
+            body: {
+              id: uploading_user?.id,
+              start_time: upload_start_time,
+            },
+          });
+          return false;
         }
-      );
-      if (error) {
-        console.error("Function error:", error);
-        return false;
+        await this.sleep(5000);
       }
       return true;
     } catch (error) {
