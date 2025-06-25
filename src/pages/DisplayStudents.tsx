@@ -173,14 +173,14 @@ const DisplayStudents: FC<{}> = () => {
                     ? (student as any).registration
                     : student.id
                 }
-                onClick={() => onStudentClick(students as any)}
+                onClick={() => onStudentClick(student)}
                 className="display-students-avatar"
               >
                 <img
                   className="avatar-img"
                   src={
-                    (studentMode === MODES.SCHOOL && (students as any).image) ||
-                    "assets/avatars/" + AVATARS[0] + ".png"
+                    (studentMode === MODES.SCHOOL && student.image) ||
+                    "assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png"
                   }
                   alt=""
                 />

@@ -22,6 +22,7 @@ import {
   SpeechSynthesis,
   SpeechSynthesisUtterance,
 } from "./utility/WindowsSpeech";
+import { Util } from "./utility/util";
 
 // Extend React's JSX namespace to include Stencil components
 declare global {
@@ -67,24 +68,33 @@ GoogleAuth.initialize({
   // grantOfflineAccess: true,
 });
 
-// SqliteApi.getInstance().then(() => {
-ServiceConfig.getInstance(APIMode.ONEROSTER);
-root.render(
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>
-);
-// });
-
-// root.render(
-//   <>
-//     <IonLoading
-//       message={`<img class="loading" src="assets/loading.gif"></img>`}
-//       isOpen={true}
-//       spinner={null}
-//     />
-//   </>
-// );
+if (!Util.isRespectMode) {
+  SqliteApi.getInstance().then(() => {
+    ServiceConfig.getInstance(APIMode.SQLITE);
+    root.render(
+      <>
+        <App />
+      </>
+    );
+    // initializeFireBase();
+  });
+  root.render(
+    <>
+      <IonLoading
+        message={`<img class="loading" src="assets/loading.gif"></img>`}
+        isOpen={true}
+        spinner={null}
+      />
+    </>
+  );
+} else {
+  ServiceConfig.getInstance(APIMode.ONEROSTER);
+  root.render(
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  );
+}
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

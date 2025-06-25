@@ -27,10 +27,13 @@ import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 const CocosGame: React.FC = () => {
   const history = useHistory();
-  const location = history.location.state as { from?: string, assignment?: any }; 
-  // const playedFrom = location?.from?.split('/')[1].split('?')[0] 
-  const playedFrom = localStorage.getItem("currentHeader")
-  const assignmentType = location?.assignment?.type || 'self-played';
+  const location = history.location.state as {
+    from?: string;
+    assignment?: any;
+  };
+  // const playedFrom = location?.from?.split('/')[1].split('?')[0]
+  const playedFrom = localStorage.getItem("currentHeader");
+  const assignmentType = location?.assignment?.type || "self-played";
   const state = history.location.state as any;
   const iFrameUrl = state?.url;
   const [isLoading, setIsLoading] = useState<any>();
@@ -67,7 +70,6 @@ const CocosGame: React.FC = () => {
   const PortPlugin = registerPlugin<any>("Port");
 
   useEffect(() => {
-    window.console.log("cocos game useEffect");
     init();
     Util.checkingIfGameCanvasAvailable();
     CapApp.addListener("appStateChange", handleAppStateChange);
@@ -112,7 +114,11 @@ const CocosGame: React.FC = () => {
       console.log("Checking fromPath conditions", fromPath);
 
       // Reset to home if trying to go back to an unloaded game screen
-      if (Util.isDeepLink || (fromPath === PAGES.GAME || fromPath.includes(PAGES.GAME))) {
+      if (
+        Util.isDeepLink ||
+        fromPath === PAGES.GAME ||
+        fromPath.includes(PAGES.GAME)
+      ) {
         Util.isDeepLink = false;
         fromPath = PAGES.HOME;
         console.log("Resetting fromPath to:", fromPath);
@@ -153,9 +159,37 @@ const CocosGame: React.FC = () => {
   };
 
   const gameExit = async (e: any) => {
-    
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
+    await Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
+      user_id: api.currentStudent!.id,
+      left_game_no: data.currentGameNumber,
+      left_game_name: data.gameName,
+      chapter_id: data.chapterId,
+      chapter_name: chapterDetail?.name ?? "",
+      lesson_id: data.lessonId,
+      lesson_name: lessonDetail.name,
+      lesson_type: data.lessonType,
+      lesson_session_id: data.lessonSessionId,
+      ml_partner_id: data.mlPartnerId,
+      ml_class_id: data.mlClassId,
+      ml_student_id: data.mlStudentId,
+      course_id: data.courseId,
+      course_name: courseDetail?.name ?? "",
+      time_spent: data.timeSpent,
+      total_moves: data.totalMoves,
+      total_games: data.totalGames,
+      correct_moves: data.correctMoves,
+      wrong_moves: data.wrongMoves,
+      game_score: data.gameScore,
+      quiz_score: data.quizScore,
+      game_completed: data.gameCompleted,
+      quiz_completed: data.quizCompleted,
+      game_time_spent: data.gameTimeSpent,
+      quiz_time_spent: data.quizTimeSpent,
+      played_from: playedFrom,
+      assignment_type: assignmentType,
+    });
     killGame(e);
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
     setShowDialogBox(false);
@@ -165,7 +199,7 @@ const CocosGame: React.FC = () => {
     saveTempData(event.detail);
     setGameResult(event);
   };
-  
+
   const updateLearningPath = async () => {
     if (!currentStudent) return;
     const learningPath = currentStudent.learning_path
@@ -192,13 +226,12 @@ const CocosGame: React.FC = () => {
             learningPath.courses.currentCourseIndex
           ].currentIndex
         ].chapter_id;
-        const prevCourseId =
+      const prevCourseId =
         learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
           .course_id;
       const prevPathId =
-        learningPath.courses.courseList[
-          learningPath.courses.currentCourseIndex
-          ].path_id;
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path_id;
       // Update currentIndex
       currentCourse.currentIndex += 1;
 
@@ -214,7 +247,7 @@ const CocosGame: React.FC = () => {
 
         // Move to the next course
         courses.currentCourseIndex += 1;
-       
+
         await api.setStarsForStudents(currentStudent.id, 10);
         // Loop back to the first course if at the last course
         if (courses.currentCourseIndex >= courses.courseList.length) {
@@ -223,9 +256,9 @@ const CocosGame: React.FC = () => {
         const pathwayEndData = {
           user_id: currentStudent.id,
           current_path_id:
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].path_id,            
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path_id,
           current_course_id:
             learningPath.courses.courseList[
               learningPath.courses.currentCourseIndex
@@ -256,7 +289,10 @@ const CocosGame: React.FC = () => {
       }
 
       // Update the learning path in the database
-    await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
+      await api.updateLearningPath(
+        currentStudent,
+        JSON.stringify(learningPath)
+      );
       // Update the current student object
       const updatedStudent = await api.getUserByDocId(currentStudent.id);
       if (updatedStudent) {
@@ -293,7 +329,6 @@ const CocosGame: React.FC = () => {
     });
     document.body.addEventListener(GAME_END, gameEnd, { once: true });
     document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
-
   }
   const currentStudentDocId: string = Util.getCurrentStudent()?.id || "";
 
@@ -304,18 +339,18 @@ const CocosGame: React.FC = () => {
   const updateLessonAsFavorite = async () => {
     const currentStudent = Util.getCurrentStudent();
     let lesson;
-    const lessonNormal: Lesson = state.lesson ? JSON.parse(state.lesson) : undefined;
-    
-    if(Util.isDeepLink) {
+    const lessonNormal: Lesson = state.lesson
+      ? JSON.parse(state.lesson)
+      : undefined;
+
+    if (Util.isDeepLink) {
       const deeplinkdata = await PortPlugin.sendLaunchData();
       const deeplinkLesson = await api.getLesson(deeplinkdata.lessonId);
       lesson = deeplinkLesson;
-    
-    }       
-    else {
+    } else {
       lesson = lessonNormal;
     }
-    
+
     if (currentStudent != null && lesson && lesson.id) {
       const result = await api.updateFavoriteLesson(
         currentStudent.id,
@@ -335,12 +370,11 @@ const CocosGame: React.FC = () => {
         ? JSON.parse(state.lesson)
         : undefined;
 
-      if(Util.isDeepLink) {
+      if (Util.isDeepLink) {
         const deeplinkdata = await PortPlugin.sendLaunchData();
         const deeplinkLesson = await api.getLesson(deeplinkdata.lessonId);
         lesson = deeplinkLesson;
-      }
-      else {
+      } else {
         lesson = lessonNormal;
       }
 
@@ -370,7 +404,10 @@ const CocosGame: React.FC = () => {
             assignmentId = result?.id;
           }
         }
-        chapter_id = await api.getChapterIDByLessonID(lesson?.id || "", classId);
+        chapter_id = await api.getChapterIDByLessonID(
+          lesson?.id || "",
+          classId
+        );
       } else {
         chapter_id = await api.getChapterIDByLessonID(
           lesson?.id || "",
@@ -378,6 +415,7 @@ const CocosGame: React.FC = () => {
           currentStudent?.id
         );
       }
+      const learning_path: string = state?.learning_path ?? false;
       let avatarObj = AvatarObj.getInstance();
       let finalProgressTimespent =
         avatarObj.weeklyTimeSpent["min"] * 60 +
@@ -388,6 +426,35 @@ const CocosGame: React.FC = () => {
       avatarObj.weeklyTimeSpent["min"] = computeMinutes;
       avatarObj.weeklyTimeSpent["sec"] = computeSec;
       avatarObj.weeklyPlayedLesson++;
+      await Util.logEvent(EVENTS.LESSON_END, {
+        user_id: currentStudent.id,
+        // assignment_id: lesson.assignment?.id,
+        chapter_id: data.chapterId,
+        // chapter_name: ChapterDetail ? ChapterDetail.name : "",
+        lesson_id: data.lessonId,
+        // lesson_name: lesson.name,
+        lesson_type: data.lessonType,
+        lesson_session_id: data.lessonSessionId,
+        ml_partner_id: data.mlPartnerId,
+        ml_class_id: data.mlClassId,
+        ml_student_id: data.mlStudentId,
+        course_id: data.courseId,
+        course_name: courseDetail.name,
+        time_spent: data.timeSpent,
+        total_moves: data.totalMoves,
+        total_games: data.totalGames,
+        correct_moves: data.correctMoves,
+        wrong_moves: data.wrongMoves,
+        game_score: data.gameScore,
+        quiz_score: data.quizScore,
+        game_completed: data.gameCompleted,
+        quiz_completed: data.quizCompleted,
+        game_time_spent: data.gameTimeSpent,
+        quiz_time_spent: data.quizTimeSpent,
+        score: data.score,
+        played_from: playedFrom,
+        assignment_type: assignmentType,
+      });
       const result = await api.updateResult(
         currentStudent?.id,
         courseDocId,
@@ -401,7 +468,11 @@ const CocosGame: React.FC = () => {
         classId,
         schoolId
       );
-      
+      // Check if the game was played from the `/home` URL and if the user is connected to a class, Update the learning path only if the conditions are met
+      if (learning_path) {
+        await updateLearningPath();
+      }
+
       console.log(
         "🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:",
         result

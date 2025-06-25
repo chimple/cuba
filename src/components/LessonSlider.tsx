@@ -83,14 +83,13 @@ const LessonSlider: React.FC<{
     const api = ServiceConfig.getI().apiHandler;
     const student = Util.getCurrentStudent();
     if (!student || !student.id) return;
-    //Later need to fix
-    // api.getFavouriteLessons(student.id).then((val) => {
-    //   const data = {};
-    //   val.forEach((lesson) => {
-    //     data[lesson.id] = true;
-    //   });
-    //   setFavLessonMap(data);
-    // });
+    api.getFavouriteLessons(student.id).then((val) => {
+      const data = {};
+      val.forEach((lesson) => {
+        data[lesson.id] = true;
+      });
+      setFavLessonMap(data);
+    });
   };
 
   const assignmentMap = {};

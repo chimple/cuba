@@ -251,14 +251,6 @@ export const ACTIVE_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
       },
     ],
     [
-      HOMEHEADERLIST.ASSIGNMENT,
-      {
-        displayName: "Homework",
-        iconSrc: "/assets/icons/HomeworkIconActive.svg",
-        headerList: HOMEHEADERLIST.ASSIGNMENT,
-      },
-    ],
-    [
       HOMEHEADERLIST.SUBJECTS,
       {
         displayName: "Subjects",
@@ -280,14 +272,6 @@ export const DEFAULT_HEADER_ICON_CONFIGS: Map<
   HOMEHEADERLIST,
   HeaderIconConfig
 > = new Map<HOMEHEADERLIST, HeaderIconConfig>([
-  [
-    HOMEHEADERLIST.ASSIGNMENT,
-    {
-      displayName: "Homework",
-      iconSrc: "/assets/icons/HomeworkIconInactive.svg",
-      headerList: HOMEHEADERLIST.ASSIGNMENT,
-    },
-  ],
   [
     HOMEHEADERLIST.SUBJECTS,
     {
@@ -326,14 +310,6 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
       },
     ],
     // [
-    //   HOMEHEADERLIST.ASSIGNMENT,
-    //   {
-    //     displayName: "Home work",
-    //     iconSrc: "/assets/icons/homework_icon.svg",
-    //     headerList: HOMEHEADERLIST.ASSIGNMENT,
-    //   },
-    // ],
-    // [
     //   HOMEHEADERLIST.CHALLENGES,
     //   {
     //     displayName: "Challenges",
@@ -358,6 +334,33 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
       },
     ],
   ]);
+
+if (!Util.isRespectMode) {
+  HEADER_ICON_CONFIGS.set(
+    HOMEHEADERLIST.ASSIGNMENT,
+    {
+      displayName: "Home work",
+      iconSrc: "/assets/icons/homework_icon.svg",
+      headerList: HOMEHEADERLIST.ASSIGNMENT,
+    },
+  )
+  DEFAULT_HEADER_ICON_CONFIGS.set(
+    HOMEHEADERLIST.ASSIGNMENT,
+    {
+      displayName: "Home work",
+      iconSrc: "/assets/icons/homework_icon.svg",
+      headerList: HOMEHEADERLIST.ASSIGNMENT,
+    },
+  )
+  ACTIVE_HEADER_ICON_CONFIGS.set(
+    HOMEHEADERLIST.ASSIGNMENT,
+    {
+      displayName: "Homework",
+      iconSrc: "/assets/icons/HomeworkIconActive.svg",
+      headerList: HOMEHEADERLIST.ASSIGNMENT,
+    },
+  )
+}
 
 export const LESSON_CARD_COLORS = [
   "#FF7925",
