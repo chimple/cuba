@@ -114,7 +114,7 @@ const EditStudent = () => {
           grade ?? currentStudent.grade_id!,
           language ?? currentStudent.language_id!
         );
-        const storedMapStr = sessionStorage.getItem("editStudentsMap");
+        const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
         const studentsMap = storedMapStr ? JSON.parse(storedMapStr) : {};
         studentsMap[student.id] = student;
         sessionStorage.setItem(EDIT_STUDENTS_MAP, JSON.stringify(studentsMap));
