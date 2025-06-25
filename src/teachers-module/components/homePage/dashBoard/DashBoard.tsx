@@ -177,6 +177,8 @@ const init = async () => {
       totalAverageScore += summary.averageScore || 0;
       subjectsCount += 1;
     }
+    
+    
 
     // Merge into final band-wise map
     const mergedBandWiseStudents = new Map<string, any[]>();
@@ -193,6 +195,16 @@ const init = async () => {
       mergedBandWiseStudents.get(band)!.push(entry);
     }
 
+    let activeCount = 0;
+      const activeBands = [BANDS.GREENGROUP, BANDS.YELLOWGROUP, BANDS.REDGROUP];
+
+      for (const band of activeBands) {
+        if (mergedBandWiseStudents.has(band)) {
+          activeCount += mergedBandWiseStudents.get(band)?.length || 0;
+          
+        }
+      }
+
     const hasStudentsAndSubject = _students.length > 0 && subjectsCount > 0;
     const averageTimeSpent = hasStudentsAndSubject
       ? Math.round(totalTimeSpent / subjectsCount)
@@ -208,10 +220,7 @@ const init = async () => {
       },
       students: {
         totalStudents: _students.length,
-        stdCompletd:
-          _students.length > 0
-            ? Math.min(totalCompletedStudents, _students.length)
-            : 0,
+        stdCompletd: activeCount
       },
       timeSpent: averageTimeSpent,
       averageScore,
