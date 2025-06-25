@@ -53,6 +53,7 @@ import {
   MODES,
   PAGES,
   PortPlugin,
+  SHOULD_SHOW_REMOTE_ASSETS,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -235,6 +236,11 @@ const App: React.FC = () => {
         learningPathAssets?.uniqueId
       );
     }
+    localStorage.setItem(
+      SHOULD_SHOW_REMOTE_ASSETS,
+      JSON.stringify(shouldShowRemoteAssets)
+    );
+    
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,

@@ -160,11 +160,7 @@ const Home: FC = () => {
   }, [currentHeader]);
   // adding background image for learning-pathway
   useEffect(() => {
-    const body = document.querySelector("body");
-    body?.style.setProperty(
-      "background-image",
-      "url(/pathwayAssets/pathwayBackground.svg)"
-    );
+    Util.loadBackgroundImage();
   }, [currentHeader, canShowAvatar]);
   const handleJoinClassEvent = async (event) => {
     await getAssignments();
