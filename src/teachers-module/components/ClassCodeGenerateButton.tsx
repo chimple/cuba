@@ -55,9 +55,6 @@ const ClassCodeGenerateButton: React.FC<ClassCodeProps> = ({
         {classCode ? (
           <div className="share-code">
             <div className="code">{classCode}</div>
-            {/* <IonButton onClick={shareClassCode} fill="clear" color="dark">
-              <TfiSharethis style={{ width: "15px", height: "15px" }} />
-            </IonButton> */}
             <img src="assets/icons/shareClassCode.svg" alt="Share_Code" onClick={shareClassCode} style={{ width: "18px", height: "18px" }} />
           </div>
         ) : null}

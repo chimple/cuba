@@ -50,26 +50,28 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
     name: option.label,
   }));
   return (
-    <div className="addstudent-form">
+    <div className="add-student__form">
       <form>
-        <div className="addStudentinput-group">
+        <div className="add-student__group">
           <label htmlFor="name">{t("Name")}</label>
           <input
             type="text"
             id="name"
             name="name"
+            className="add-student__groupInput"
             placeholder={t("Enter Name") || ""}
             value={fullName}
             onChange={(e) => onFullNameChange(e.target.value)}
           />
         </div>
         <hr className="horizontal-line" />
-        <div className="addStudentinput-group">
+        <div className="add-student__group">
           <label htmlFor="age">{t("Age")}</label>
           <input
             type="number"
             id="age"
             name="age"
+            className="add-student__groupInput"
             placeholder={t("Enter Age") || ""}
             value={age}
             onChange={(e) => handleAgeChange(e.target.value)}
@@ -77,19 +79,20 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
           />
         </div>
         <hr className="horizontal-line" />
-        <div className="addStudentinput-group">
+        <div className="add-student__group">
           <label htmlFor="studentId">{t("Student Id")}</label>
           <input
             type="text"
             id="studentId"
             name="studentId"
+            className="add-student__groupInput"
             placeholder={t("Enter student id") || ""}
             value={studentId}
             onChange={(e) => onStudentIdChange(e.target.value)}
           />
         </div>
         <hr className="horizontal-line" />
-        <div className="addStudentinput-group">
+        <div className="add-student__group">
           <label>{t("Gender")}</label>
           <IonRadioGroup
             value={gender}
@@ -109,7 +112,7 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
           </IonRadioGroup>
         </div>
         <hr className="horizontal-line" />
-        <div className="addStudentinput-group">
+        <div className="add-student__group">
           <label>{t("Preferred Language")}</label>
           <CustomDropdown
             options={mappedLanguageOptions}

@@ -1,17 +1,17 @@
-.addstudent-form {
+.add-student__form {
     padding: 2vw;
     margin: 0px 15px;
     border-radius: 15px;
     box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 }
-.addStudentinput-group {
+.add-student__group {
     display: flex;
     flex-direction: column;
 }
-.addStudentinput-group input {
+.add-student__groupInput {
     border: none;
     text-align: center;
 }
-.addStudentinput-group label {
+.add-student__group label {
     color: #707070;
 }
