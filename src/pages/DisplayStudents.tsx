@@ -12,6 +12,7 @@ import {
   CONTINUE,
   TableTypes,
   CURRENT_CLASS,
+  EDIT_STUDENTS_MAP,
 } from "../common/constants";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { useHistory } from "react-router";
@@ -55,44 +56,22 @@ const DisplayStudents: FC<{}> = () => {
   const getStudents = async () => {
     const currMode = await schoolUtil.getCurrMode();
     setStudentMode(currMode);
-    const tempStudents =
-      await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-
-    if (!tempStudents || tempStudents.length < 1) {
+    const tempStudents = await api.getParentStudentProfiles();
+    const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
+    const mergedStudents = Util.mergeStudentsByUpdatedAt(
+      tempStudents,
+      storedMapStr
+    );
+    if (!mergedStudents || mergedStudents.length < 1) {
       history.replace(PAGES.CREATE_STUDENT, {
         showBackButton: false,
       });
       return;
     }
-    updateLocalAttributes({ count_of_children: tempStudents.length });
+    setStudents(mergedStudents);
+    updateLocalAttributes({ count_of_children: mergedStudents.length });
     setGbUpdated(true);
-    setStudents(tempStudents);
     setIsLoading(false);
-
-    // const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    // if (!currentUser) {
-    //   return;
-    // }
-
-    // await FirebaseAnalytics.setUserId({
-    //   userId: currentUser.id,
-    // });
-
-    // Util.setUserProperties(currentUser);
-
-    // setStudents([students[0]]);
-
-    // setStudents([...students, students[0]]);
-
-    // const currentUser = await FirebaseAuth.getInstance().getCurrentUser();
-    // const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    //  const iseTeacher = await FirebaseApi.getInstance().isUserTeacher(
-    //   currentUser!
-    // );
-    //  if (!currentUser) return;
-    // const iseTeacher = await ServiceConfig.getI().apiHandler.isUserTeacher(
-    //   currentUser
-    // );
   };
   const onStudentClick = async (student: TableTypes<"user">) => {
     await Util.setCurrentStudent(student, undefined, true);
