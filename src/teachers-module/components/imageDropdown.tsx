@@ -8,11 +8,12 @@ interface DropdownOption {
   name: string;
   icon?: string; // Optional image URL
   subjectDetail?: string;
+  disabled?: boolean;
 }
 
 interface ImageDropdownProps {
   options: DropdownOption[];
-  selectedValue: DropdownOption;
+  selectedValue: DropdownOption & { disabled?: boolean };
   onOptionSelect: (selected: DropdownOption) => void;
   placeholder?: string;
   isDownBorder?: boolean;
@@ -113,7 +114,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
         }}
       >
         {options.map((option) => (
-          <MenuItem key={option.id} value={option.id} className="menu-item-in-image-dropdown">
+          <MenuItem key={option.id} value={option.id} disabled={option.disabled} className="menu-item-in-image-dropdown">
             {option.icon && (
               <img
                 src={option.icon}

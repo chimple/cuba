@@ -32,7 +32,7 @@
   max-width: 5vh;
   height: min(4vh, 30px);
   min-height: 25px;
-  margin-right: 1rem;
+  margin-right: 10px;
   border-radius: 50%;
 }
 
@@ -54,7 +54,7 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  margin-left: 1rem;
+  margin-left: -5px;
 }
 .dropdown-text {
   display: flex;
