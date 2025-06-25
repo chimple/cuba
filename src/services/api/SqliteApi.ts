@@ -2068,7 +2068,6 @@ export class SqliteApi implements ServiceApi {
   async getStudentResultInMap(
     studentId: string
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
-
     const query = `
     SELECT *
     FROM ${TABLES.Result}
@@ -2132,7 +2131,6 @@ export class SqliteApi implements ServiceApi {
     return res.values;
   }
 
-  // working
   async getSchoolsForUser(
     userId: string
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
@@ -2704,7 +2702,6 @@ export class SqliteApi implements ServiceApi {
     lesson: TableTypes<"lesson">[];
     course: TableTypes<"course">[];
   }> {
-    console.log("??????", chapterId, lessonId);
     const query = `
     SELECT l.*,JSON_OBJECT(
           'id',co.id,
@@ -3162,7 +3159,6 @@ export class SqliteApi implements ServiceApi {
       where c.is_deleted = 0 and user_id = "${userId}" and role = "${RoleType.STUDENT}"`
     );
 
-    console.log("Homeeeeeeeee111", res);
     return ApiDataProcessor.dataProcessorGetStudentClassesAndSchools(
       res?.values ?? []
     );

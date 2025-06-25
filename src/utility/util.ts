@@ -105,6 +105,7 @@ export class Util {
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = "lastModalShown";
   static isDeepLink: boolean = false;
+  static isRespectMode: boolean = true;
 
   public api = ServiceConfig.getI().apiHandler;
 
@@ -1297,7 +1298,7 @@ export class Util {
         languageCode = langDoc.code ?? undefined;
       }
     }
-    const tempLangCode = student?.language_id ?? LANG.ENGLISH;
+    const tempLangCode = (Util.isRespectMode ? languageCode : student?.language_id) ?? LANG.ENGLISH;
     if (!!langFlag) localStorage.setItem(LANGUAGE, tempLangCode);
     if (!!isStudent) await i18n.changeLanguage(tempLangCode);
 

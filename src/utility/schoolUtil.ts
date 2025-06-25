@@ -21,7 +21,7 @@ export class schoolUtil {
 
     if (!temp) return;
     try {
-      // const currentClass = JSON.parse(temp) as TableTypes<"class">;
+      const currentClass = JSON.parse(temp) as TableTypes<"class"> || undefined;
       // function getRef(ref): DocumentReference {
       //   const db = getFirestore();
       //   const newCourseRef = doc(
@@ -42,7 +42,7 @@ export class schoolUtil {
       // if (!!currentClass.school)
       //   currentClass.school = convertDoc(currentClass.school);
       // api.currentClass = currentClass;
-      return undefined;
+      return currentClass;
     } catch (error) {
       console.error("Failed to parse CURRENT_SCHOOL from localStorage:", error);
       return undefined;

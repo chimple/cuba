@@ -166,48 +166,32 @@ const DisplayStudents: FC<{}> = () => {
       {!isLoading && students && (
         <div className="display-student-content">
           <div className="avatar-container">
-            {students.hasOwnProperty("respectLaunchVersion") ? (
-              <>
-                <div
-                  key={(students as any).registration}
-                  onClick={() => onStudentClick(students as any)}
-                  className="avatar"
-                >
-                  <img
-                    className="avatar-img"
-                    src={
-                      (studentMode === MODES.SCHOOL &&
-                        (students as any).image) ||
-                      "assets/avatars/" + AVATARS[0] + ".png"
-                    }
-                    alt=""
-                  />
-                  <span className="student-name">{(students as any).name}</span>
-                </div>
-              </>
-            ) : (
-              <>
-                {students.map((student) => (
-                  <div
-                    key={student.id}
-                    onClick={() => onStudentClick(student)}
-                    className="avatar"
-                  >
-                    <img
-                      className="avatar-img"
-                      src={
-                        (studentMode === MODES.SCHOOL && student.image) ||
-                        "assets/avatars/" +
-                          (student.avatar ?? AVATARS[0]) +
-                          ".png"
-                      }
-                      alt=""
-                    />
-                    <span className="student-name">{student.name}</span>
-                  </div>
-                ))}
-              </>
-            )}
+            {students.map((student) => (
+              <div
+                key={
+                  Util.isRespectMode
+                    ? (student as any).registration
+                    : student.id
+                }
+                onClick={() => onStudentClick(students as any)}
+                className="display-students-avatar"
+              >
+                <img
+                  className="avatar-img"
+                  src={
+                    (studentMode === MODES.SCHOOL && (students as any).image) ||
+                    "assets/avatars/" + AVATARS[0] + ".png"
+                  }
+                  alt=""
+                />
+                {student.name && (
+                  <span className="display-student-name-profile">Profile:</span>
+                )}
+                {student.name && (
+                  <span className="display-student-name">{student?.name}</span>
+                )}
+              </div>
+            ))}
           </div>
           {/* {students.length < MAX_STUDENTS_ALLOWED && (
             <div className="add-new-button">
