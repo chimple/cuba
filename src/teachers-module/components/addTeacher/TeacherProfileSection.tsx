@@ -285,7 +285,7 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
       {/* Date selection section */}
       <div className="date-selection">
         <div>
-          <span style={{color: "#4A4949", fontSize: "12px"}}>
+          <span className="teacherprofile-title">
             <Trans i18nKey="assignments_date_message" />
           </span>
         </div>

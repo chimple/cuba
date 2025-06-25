@@ -52,7 +52,7 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
   return (
     <div className="addstudent-form">
       <form>
-        <div className="studentinput-group">
+        <div className="addStudentinput-group">
           <label htmlFor="name">{t("Name")}</label>
           <input
             type="text"
@@ -64,7 +64,7 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
           />
         </div>
         <hr className="horizontal-line" />
-        <div className="studentinput-group">
+        <div className="addStudentinput-group">
           <label htmlFor="age">{t("Age")}</label>
           <input
             type="number"
@@ -77,7 +77,7 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
           />
         </div>
         <hr className="horizontal-line" />
-        <div className="studentinput-group">
+        <div className="addStudentinput-group">
           <label htmlFor="studentId">{t("Student Id")}</label>
           <input
             type="text"
@@ -89,7 +89,7 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
           />
         </div>
         <hr className="horizontal-line" />
-        <div className="studentinput-group">
+        <div className="addStudentinput-group">
           <label>{t("Gender")}</label>
           <IonRadioGroup
             value={gender}
@@ -109,7 +109,7 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
           </IonRadioGroup>
         </div>
         <hr className="horizontal-line" />
-        <div className="studentinput-group">
+        <div className="addStudentinput-group">
           <label>{t("Preferred Language")}</label>
           <CustomDropdown
             options={mappedLanguageOptions}
@@ -122,7 +122,7 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
                 onLanguageChange(String(selectedOption.id));
               }
             }}
-            placeholder={t("English") as string}
+            placeholder={t("Select Language") as string}
           />
         </div>
       </form>
