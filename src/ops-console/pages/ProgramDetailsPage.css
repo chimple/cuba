@@ -24,7 +24,6 @@
   align-items: center;
   border-bottom: 1px solid #ddd;
   margin-bottom: 16px;
-  position: sticky;
 }
 
 /* Title: left-aligned by default */
@@ -36,18 +35,6 @@
 /* Bell icon on the right */
 .program-detail-page-header-icon {
   margin-left: auto;
-}
-
-/* Center title on small screens */
-@media (max-width: 480px) {
-  .program-detail-page-header-title {
-    text-align: center;
-    margin-left: -32px; /* visually balance with icon */
-  }
-
-  .program-detail-page-header {
-    font-size: 1.5rem;
-  }
 }
 
 /* Breadcrumb */
@@ -112,3 +99,33 @@
   font-size: 1rem;
   color: #000;
 }
+
+@media (max-width: 600px) and (orientation: portrait) {
+  .program-detail-page-header {
+    font-size: 1.5rem;
+    position: relative;
+    height: 10%; 
+    align-items: center;
+    justify-content: center;
+  }
+
+  .program-detail-page-header-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 65%;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+  }
+
+  .program-detail-page-header-icon {
+    position: absolute;
+    right: -45%;
+    transform: none;
+    z-index: 2;
+  }
+}
+
