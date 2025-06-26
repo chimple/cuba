@@ -23,7 +23,6 @@ import CustomDropdown from "../CustomDropdown";
 import { blue } from "@mui/material/colors";
 import { useHistory } from "react-router";
 import ImageDropdown from "../imageDropdown";
-import CustomImageDropdown from "./CustomImageDropdown";
 
 interface ReportTableProps {
   handleButtonClick;
@@ -559,23 +558,23 @@ if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
 
   {selectedType === TABLEDROPDOWN.CHAPTER ? (
     <div style={{width: '45%'}} className="chapter-type-row"> {/* ✅ Only for CHAPTER */}
-      <CustomImageDropdown
-        options={subjectOptionsWithAll}
-        selectedValue={{
-          id: selectedSubject?.id ?? "",
-          name: selectedSubject?.name ?? "",
-          icon:
-            (selectedSubject as any)?.icon ??
-            subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.icon ??
-            "",
-          subjectDetail:
-            (selectedSubject as any)?.subject ??
-            subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.subjectDetail ??
-            "",
-        }}
-        onOptionSelect={handleSelectSubject}
-        placeholder={t("Select Language") as string}
-      />
+      <ImageDropdown
+          options={subjectOptionsWithAll}
+          selectedValue={{
+            id: selectedSubject?.id ?? "",
+            name: selectedSubject?.name ?? "",
+            icon:
+              (selectedSubject as any)?.icon ??
+              subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.icon ??
+              "",
+            subjectDetail:
+              (selectedSubject as any)?.subject ??
+              subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.subjectDetail ??
+              "",
+          }}
+          onOptionSelect={handleSelectSubject}
+          placeholder={t("Select Language") as string}
+        />
 
       <CustomDropdown
         options={mappedChaptersOptions ?? []}
@@ -587,23 +586,23 @@ if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
       />
     </div>
   ) : (
-    <CustomImageDropdown
-      options={subjectOptionsWithAll}
-      selectedValue={{
-        id: selectedSubject?.id ?? "",
-        name: selectedSubject?.name ?? "",
-        icon:
-          (selectedSubject as any)?.icon ??
-          subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.icon ??
-          "",
-        subjectDetail:
-          (selectedSubject as any)?.subject ??
-          subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.subjectDetail ??
-          "",
-      }}
-      onOptionSelect={handleSelectSubject}
-      placeholder={t("Select Language") as string}
-    />
+    <ImageDropdown
+          options={subjectOptionsWithAll}
+          selectedValue={{
+            id: selectedSubject?.id ?? "",
+            name: selectedSubject?.name ?? "",
+            icon:
+              (selectedSubject as any)?.icon ??
+              subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.icon ??
+              "",
+            subjectDetail:
+              (selectedSubject as any)?.subject ??
+              subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.subjectDetail ??
+              "",
+          }}
+          onOptionSelect={handleSelectSubject}
+          placeholder={t("Select Language") as string}
+        />
   )}
 </div>
         <div className="table-container-body">
