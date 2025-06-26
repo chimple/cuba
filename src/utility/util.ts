@@ -2204,6 +2204,27 @@ export class Util {
       console.error("Failed to save or download file:", error);
     }
   }
+  public static mergeStudentsByUpdatedAt(
+    apiStudents: TableTypes<"user">[],
+    storedMapStr: string | null
+  ): TableTypes<"user">[] {
+    const studentsMap: Record<string, TableTypes<"user">> = storedMapStr
+      ? JSON.parse(storedMapStr)
+      : {};
+
+    const mergedStudents = apiStudents.map((studentFromAPI) => {
+      const localStudent = studentsMap[studentFromAPI.id];
+
+      if (localStudent) {
+        const apiUpdatedAt = new Date(studentFromAPI.updated_at ?? 0).getTime();
+        const localUpdatedAt = new Date(localStudent.updated_at ?? 0).getTime();
+        return localUpdatedAt > apiUpdatedAt ? localStudent : studentFromAPI;
+      }
+      return studentFromAPI;
+    });
+
+    return mergedStudents;
+  }
   public static async loadBackgroundImage() {
     const body = document.querySelector("body");
     if (

@@ -565,7 +565,7 @@ export const NAVIGATION_STATE = "navigationState";
 export const STARS_COUNT = "starsCount";
 export const LATEST_STARS = "latestStar";
 export const IS_OPS_USER = "isOpsUser";
-
+export const EDIT_STUDENTS_MAP = "editStudentsMap";
 export enum IconType {
   SCHOOL = "school",
   CLASS = "class",
