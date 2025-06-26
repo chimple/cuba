@@ -193,7 +193,7 @@ export enum TABLEDROPDOWN {
 }
 
 export enum TABLESORTBY {
-  NAME = "Name",
+  NAME = "Alphabetical",
   HIGHSCORE = "High to Low",
   LOWSCORE = "Low to High",
 }

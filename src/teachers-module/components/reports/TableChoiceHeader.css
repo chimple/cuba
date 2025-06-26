@@ -109,16 +109,18 @@ nav-btn:hover {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  font-weight: 600;
 }
 
 .date-range {
   padding: 0 6px;
-  font-size: 1.5vh;
+  font-size: 1.9vh;
   background-color: #f3ebff;
   height: 2.5vh;
   max-width: 120px;
   min-width: 100px;
   border-radius: 5px;
+  color: #707070;
 }
 .table-sort-divider {
   width: 100%;
@@ -129,7 +131,7 @@ nav-btn:hover {
   background-color: #F2EBFE;
   border-radius: 15px;
   overflow: hidden;
-  width: 130px;
+  width: 36vw;
   height: 25px;
   font-size: 1.2vh;
   font-weight: 600;
@@ -171,4 +173,58 @@ nav-btn:hover {
   cursor: pointer;
   background-size: 18px 18px;
   vertical-align: middle;
+}
+
+.tablechoice-custom-dropdown-wrapper {
+  position: relative;
+  width: fit-content;
+  font-family: Arial, sans-serif;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.tablechoice-custom-dropdown-header {
+  background-color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  min-width: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #707070;
+  font-weight: 600;
+}
+
+.tablechoice-custom-dropdown-header span {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.arrow-icon {
+  margin-left: 8px;
+  font-size: 12px;
+}
+
+.tablechoice-custom-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border: 2px solid #EFF2F4;
+  border-radius: 6px;
+  margin-top: 4px;
+}
+
+.tablechoice-custom-dropdown-item {
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #707070;
+}
+
+.tablechoice-custom-dropdown-item.selected {
+  background-color: #F4EEFE;
+  font-weight: 600;
 }

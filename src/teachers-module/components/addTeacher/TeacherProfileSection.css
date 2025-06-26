@@ -9,7 +9,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0px 8px;
+  padding: 0px 15px;
 }
 
 .calendar-icon {
@@ -140,4 +140,8 @@ th {
 .no-data-text {
   margin: 5vh 0;
   color: #707070;
+}
+.teacherprofile-title {
+  font-size: 12px;
+  color: #4A4949
 }

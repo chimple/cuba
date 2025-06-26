@@ -125,7 +125,7 @@ const WeeklySummary: React.FC<WeeklySummaryProps> = ({ weeklySummary }) => {
                     : `${item.numerator}/${item.denominator}`}
               </strong>
               <br />
-              <div style={{ color: "black" }}>{item.label}</div>
+              <div style={{ color: "#707070" }}>{item.label}</div>
             </div>
           </div>
         ))}

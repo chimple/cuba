@@ -20,6 +20,11 @@
   display: flex;
   align-items: center;
   color: white;
+  gap: 10px;
+}
+.assignment-count-next-button img {
+  width: 9px;
+  height: 15px;
 }
 .assignment-count-text {
   display: flex;

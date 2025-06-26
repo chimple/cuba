@@ -39,6 +39,7 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
   dateRangeValue,
   isAssignmentReport,
 }) => {
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [selectedValue, setSelectedValue] = useState<string | undefined>();
 
   const [isAssignmentsOnly, setIsAssignmentsOnly] = useState(
@@ -178,26 +179,35 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
       </div>
       <div className="table-sort-divider"></div>
 
-      <div>
-        <select
-        value={sortBy.id} className="table-choice-filter"
-        onChange={(e) => {
-          const selectedId = e.target.value;
-          const selectedOption = Object.entries(TABLESORTBY).find(([key]) => key === selectedId);
-          if (selectedOption) {
-            handleNameSort({ id: selectedOption[0], name: selectedOption[1] });
-          }
-        }}
-        style={{
-          backgroundImage: `url('/assets/icons/filterArrow.svg')`,
-        }}
+      <div className="tablechoice-custom-dropdown-wrapper">
+        <div
+          className="tablechoice-custom-dropdown-header"
+          onClick={() => setDropdownOpen(!isDropdownOpen)}
         >
-          {Object.entries(TABLESORTBY).map(([key, value]) => (
-            <option key={key} value={key}>
-              {t(value)}
-            </option>
-          ))}
-        </select>
+          <span>
+            {sortBy ? t(sortBy) : t("Sort By")}
+          </span>
+          <img src="assets/icons/filterArrow.svg" alt="Filter_icon" />
+        </div>
+
+        {isDropdownOpen && (
+          <div className="tablechoice-custom-dropdown-menu">
+            {Object.entries(TABLESORTBY).map(([key, value]) => {
+              return (
+                <div
+                key={key}
+                className={`tablechoice-custom-dropdown-item ${sortBy === value ? "selected" : ""}`}
+                onClick={() => {
+                  handleNameSort({ id: key, name: value });
+                  setDropdownOpen(false);
+                }}
+                >
+                  {t(value)}
+                </div>
+              );
+            })}
+          </div>
+    )}
       </div>
     </div>
   );
