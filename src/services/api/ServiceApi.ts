@@ -1672,13 +1672,13 @@ export interface ServiceApi {
    *   total_institutes: number;
    * }>} Promise resolving to an object with student, teacher, and institute statistics.
    */
-  countProgramStats(programId: string): Promise<{
+  program_activity_stats(programId: string): Promise<{
     total_students: number;
-    active_students: number;
-    avg_time_spent: number;
     total_teachers: number;
-    active_teachers: number;
     total_institutes: number;
+    active_student_percentage: number;
+    active_teacher_percentage: number;
+    avg_weekly_time_minutes: number;
   }>;
 
   /**
@@ -1688,26 +1688,22 @@ export interface ServiceApi {
    *   Promise resolving to an array of objects, each containing the user's name and their role
    *   (e.g., "Program Manager", "Field Coordinator").
    */
-  getManagersAndCoordinators(): Promise<{ name: string; role: string }[]>;
+  getManagersAndCoordinators(): Promise<{ user: any; role: string }[]>;
 
   /**
    * Count total and active students, total and active teachers, and average time spent for a given school.
    *
    * @param {string} schoolId - The ID of the school.
    * @returns {Promise<{
-   *   total_students: number;
    *   active_students: number;
    *   avg_time_spent: number;
-   *   total_teachers: number;
    *   active_teachers: number;
    * }>} Promise resolving to an object with student and teacher statistics.
    */
-  countUsersBySchool(schoolId: string): Promise<{
-    total_students: number;
-    active_students: number;
-    avg_time_spent: number;
-    total_teachers: number;
-    active_teachers: number;
+  school_activity_stats(schoolId: string): Promise<{
+    active_student_percentage: number;
+    active_teacher_percentage: number;
+    avg_weekly_time_minutes: number;
   }>;
 
   /**
