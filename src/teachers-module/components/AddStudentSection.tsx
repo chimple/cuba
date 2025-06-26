@@ -50,28 +50,28 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
     name: option.label,
   }));
   return (
-    <div className="add-student__form">
+    <div className="add-studentsection__form">
       <form>
-        <div className="add-student__group">
+        <div className="add-studentsection__group">
           <label htmlFor="name">{t("Name")}</label>
           <input
             type="text"
             id="name"
             name="name"
-            className="add-student__groupInput"
+            className="add-studentsection__groupInput"
             placeholder={t("Enter Name") || ""}
             value={fullName}
             onChange={(e) => onFullNameChange(e.target.value)}
           />
         </div>
         <hr className="horizontal-line" />
-        <div className="add-student__group">
+        <div className="add-studentsection__group">
           <label htmlFor="age">{t("Age")}</label>
           <input
             type="number"
             id="age"
             name="age"
-            className="add-student__groupInput"
+            className="add-studentsection__groupInput"
             placeholder={t("Enter Age") || ""}
             value={age}
             onChange={(e) => handleAgeChange(e.target.value)}
@@ -85,7 +85,7 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
             type="text"
             id="studentId"
             name="studentId"
-            className="add-student__groupInput"
+            className="add-studentsection__groupInput"
             placeholder={t("Enter student id") || ""}
             value={studentId}
             onChange={(e) => onStudentIdChange(e.target.value)}

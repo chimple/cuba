@@ -62,7 +62,7 @@ const CustomImageDropdown: React.FC<CustomImageDropdownProps> = ({
         {selectedValue?.id ? (
           <>
             {selectedValue.icon && (
-              <img src={selectedValue.icon} alt={selectedValue.name} className="customImage-icon" />
+              <img src={selectedValue.icon} alt={selectedValue.name} className="customImagedropdown-icon" />
             )}
             <span>{selectedValue.name}</span>
           </>
@@ -71,7 +71,7 @@ const CustomImageDropdown: React.FC<CustomImageDropdownProps> = ({
             <img
               src={options[0]?.icon || ""}
               alt="placeholder"
-              className="customImage-icon"
+              className="customImagedropdown-icon"
             />
             <span>{placeholder}</span>
           </>
@@ -96,7 +96,7 @@ const CustomImageDropdown: React.FC<CustomImageDropdownProps> = ({
                   setIsOpen(false);
                 }}
               >
-                {option.icon && <img src={option.icon} alt={option.name} className="customImage-icon" />}
+                {option.icon && <img src={option.icon} alt={option.name} className="customImagedropdown-icon" />}
                 <div className="customImgdropdown-text">
                   <span className="custonmImgDropdownsubject-text">{subject}</span>
                   <span className="custonmImgDropdowngrade-text">{grade}</span>
