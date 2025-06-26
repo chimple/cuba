@@ -1695,6 +1695,41 @@ export type Database = {
           },
         ];
       };
+      special_users: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_deleted: boolean | null;
+          role: Database["public"]["Enums"]["special_roles"] | null;
+          updated_at: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          role?: Database["public"]["Enums"]["special_roles"] | null;
+          updated_at?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          role?: Database["public"]["Enums"]["special_roles"] | null;
+          updated_at?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "special_users_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "user";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sticker: {
         Row: {
           created_at: string;
@@ -3319,6 +3354,7 @@ export type Database = {
         | "program_manager"
         | "operational_director"
         | "field_coordinator";
+      special_roles: "super_admin" | "operational_director" | "program_manager";
     };
     CompositeTypes: {
       [_ in never]: never;

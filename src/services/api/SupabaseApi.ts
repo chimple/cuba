@@ -253,7 +253,8 @@ export class SupabaseApi implements ServiceApi {
     tableNames: TABLES[] = Object.values(TABLES),
     refreshTables: TABLES[] = []
   ): Promise<boolean> {
-    throw new Error("Method not implemented.");
+    // No operation performed
+    return Promise.resolve(true);
   }
   public static i: SupabaseApi;
   public supabase: SupabaseClient<Database> | undefined;
@@ -302,7 +303,7 @@ export class SupabaseApi implements ServiceApi {
             .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-          []
+        []
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -4807,7 +4808,7 @@ export class SupabaseApi implements ServiceApi {
 
     const { data, error } = await this.supabase
       .from("school_user")
-      .select("user:user!school_user_user_id_fkey(*)") 
+      .select("user:user!school_user_user_id_fkey(*)")
       .eq("school_id", schoolId)
       .eq("role", RoleType.PRINCIPAL)
       .eq("is_deleted", false)
@@ -4831,7 +4832,7 @@ export class SupabaseApi implements ServiceApi {
 
     const { data, error } = await this.supabase
       .from("school_user")
-      .select("user:user!school_user_user_id_fkey(*)") 
+      .select("user:user!school_user_user_id_fkey(*)")
       .eq("school_id", schoolId)
       .eq("role", RoleType.COORDINATOR)
       .eq("is_deleted", false)
@@ -6390,9 +6391,9 @@ export class SupabaseApi implements ServiceApi {
       return (coordinators ?? [])
         .filter((c) => c.user?.name && c.role)
         .map((c) => ({
-          name: c.user!.name ?? "", 
+          name: c.user!.name ?? "",
           role: c.role ?? "",
-      }));
+        }));
     }
   }
 
@@ -6531,5 +6532,37 @@ export class SupabaseApi implements ServiceApi {
       return false;
     }
     return !!(data && data.length > 0);
+  }
+
+  async getUserSpecialRole(userId: string): Promise<string | undefined> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return undefined;
+    }
+
+    if (!userId) {
+      console.warn("userId is missing. Cannot fetch role.");
+      return undefined;
+    }
+
+    try {
+      const { data, error } = await this.supabase
+        .from("special_users")
+        .select("role")
+        .eq("user_id", userId)
+        .in("role", ["super_admin", "operational_director", "program_manager"])
+        .eq("is_deleted", false)
+        .limit(1)
+        .single();
+
+      if (error) {
+        console.error("Error fetching role from special_users:", error.message);
+        return undefined;
+      }
+      return data?.role ?? undefined;
+    } catch (e) {
+      console.error("Unexpected error while fetching user special role:", e);
+      return undefined;
+    }
   }
 }

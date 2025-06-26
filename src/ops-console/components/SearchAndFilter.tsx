@@ -40,7 +40,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   return (
     <Stack
       direction="row"
-      spacing={2}
+      spacing={isPortraitMobile ? 1 : 2}
       className="search-filter-container-SearchAndFilter"
       alignItems="center"
       // width="100%"
@@ -118,6 +118,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
         <IconButton
           aria-label={hasFilters ? "Clear Filters" : "Open Filters"}
           onClick={onFilterClick}
+          sx={{ marginLeft: "0px" }}
         >
           {hasFilters ? <CloseIcon /> : <FilterListIcon />}
         </IconButton>

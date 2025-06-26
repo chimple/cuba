@@ -39,6 +39,7 @@ import "./LoginScreen.css";
 import { Util } from "../utility/util";
 import i18n from "../i18n";
 import { FaArrowLeftLong } from "react-icons/fa6";
+import { SqliteApi } from "../services/api/SqliteApi";
 
 const LoginScreen: React.FC = () => {
   const history = useHistory();
@@ -449,13 +450,16 @@ const LoginScreen: React.FC = () => {
       userRole === RoleType.SUPER_ADMIN ||
       userRole === RoleType.OPERATIONAL_DIRECTOR;
     const isProgramUser = await api.isProgramUser();
+
     if (isOpsRole || isProgramUser) {
       localStorage.setItem(IS_OPS_USER, "true");
-      ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
       await ScreenOrientation.unlock();
       history.replace(PAGES.SIDEBAR_PAGE);
       return;
     }
+    
+    await SqliteApi.getInstance();
+    ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(APIMode.SQLITE);
 
     if (userSchools.length > 0) {
       const autoUserSchool = userSchools.find(
