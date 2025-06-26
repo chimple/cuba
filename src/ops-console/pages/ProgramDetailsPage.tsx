@@ -135,8 +135,6 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
     );
   }
 
-  console.log(stats.total_institutes);
-
   return (
     <div className="program-detail-page">
       <div className="program-detail-page-header">

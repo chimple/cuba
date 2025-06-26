@@ -6391,7 +6391,6 @@ export class SupabaseApi implements ServiceApi {
           user: userMap.get(u.id as string) ?? {},
           role: u.role as string,
         }));
-      console.log(finalResult);
       return finalResult;
     } else {
       // Checks for the Program manager role
@@ -6443,7 +6442,6 @@ export class SupabaseApi implements ServiceApi {
         avg_weekly_time_minutes: 0,
       };
     }
-    console.log(programId);
     try {
       const { data, error } = await this.supabase.rpc(
         "get_program_activity_stats",
@@ -6463,7 +6461,6 @@ export class SupabaseApi implements ServiceApi {
           avg_weekly_time_minutes: 0,
         };
       }
-      console.log(data.total_institutes);
       return {
         total_students: data.total_students ?? 0,
         total_teachers: data.total_teachers ?? 0,
