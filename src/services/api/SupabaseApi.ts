@@ -6337,9 +6337,7 @@ export class SupabaseApi implements ServiceApi {
     return !!(data && data.length > 0);
   }
 
-  async getManagersAndCoordinators(): Promise<
-    { name: string; role: string }[]
-  > {
+  async getManagersAndCoordinators(): Promise<{ user: any; role: string }[]> {
     if (!this.supabase) {
       console.error("Supabase client not initialized.");
       return [];
