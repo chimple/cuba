@@ -20,7 +20,6 @@ import SearchAndFilter from "../components/SearchAndFilter";
 import FilterSlider from "../components/FilterSlider";
 import SelectedFilters from "../components/SelectedFilters";
 import FileUpload from "../components/FileUpload";
-import UploadButton from "../components/UploadButton";
 import { useDataTableLogic } from "../OpsUtility/useDataTableLogic";
 import { Add } from "@mui/icons-material";
 import { BsFillBellFill } from "react-icons/bs";
