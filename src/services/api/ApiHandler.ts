@@ -1232,31 +1232,29 @@ export class ApiHandler implements ServiceApi {
     return await this.s.isProgramUser();
   }
 
-  public async countProgramStats(programId: string): Promise<{
+  public async program_activity_stats(programId: string): Promise<{
     total_students: number;
-    active_students: number;
-    avg_time_spent: number;
     total_teachers: number;
-    active_teachers: number;
     total_institutes: number;
+    active_student_percentage: number;
+    active_teacher_percentage: number;
+    avg_weekly_time_minutes: number;
   }> {
-    return await this.s.countProgramStats(programId);
+    return await this.s.program_activity_stats(programId);
   }
 
   public async getManagersAndCoordinators(): Promise<
-    { name: string; role: string }[]
+    { user: any; role: string }[]
   > {
     return await this.s.getManagersAndCoordinators();
   }
 
-  public async countUsersBySchool(schoolId: string): Promise<{
-    total_students: number;
-    active_students: number;
-    avg_time_spent: number;
-    total_teachers: number;
-    active_teachers: number;
+  public async school_activity_stats(schoolId: string): Promise<{
+    active_student_percentage: number;
+    active_teacher_percentage: number;
+    avg_weekly_time_minutes: number;
   }> {
-    return await this.s.countUsersBySchool(schoolId);
+    return await this.s.school_activity_stats(schoolId);
   }
 
   public async isProgramManager(): Promise<boolean> {

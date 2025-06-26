@@ -307,7 +307,7 @@ export class SupabaseApi implements ServiceApi {
             .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-        []
+          []
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -6361,9 +6361,7 @@ export class SupabaseApi implements ServiceApi {
     return !!(data && data.length > 0);
   }
 
-  async getManagersAndCoordinators(): Promise<
-    { name: string; role: string }[]
-  > {
+  async getManagersAndCoordinators(): Promise<{ user: any; role: string }[]> {
     if (!this.supabase) {
       console.error("Supabase client not initialized.");
       return [];
@@ -6378,18 +6376,46 @@ export class SupabaseApi implements ServiceApi {
       role === RoleType.SUPER_ADMIN ||
       role === RoleType.OPERATIONAL_DIRECTOR
     ) {
-      const { data, error } = await this.supabase.rpc("get_admin_view_users");
-      if (error) {
-        console.error("Error fetching admin view users", error);
+      const { data: programUsers, error: programError } = await this.supabase
+        .from("program_user")
+        .select("role, user");
+
+      const { data: specialUsers, error: specialError } = await this.supabase
+        .from("special_users")
+        .select("role, user_id");
+
+      if (programError || specialError) {
+        console.error("Error fetching users", programError || specialError);
         return [];
       }
-      const unique = new Map();
-      for (const u of data) {
-        if (u?.name && !unique.has(u.name)) {
-          unique.set(u.name, { name: u.name ?? "", role: u.role ?? "" });
-        }
+      const combined = [
+        ...(programUsers || []).map((u) => ({ id: u.user, role: u.role })),
+        ...(specialUsers || []).map((u) => ({ id: u.user_id, role: u.role })),
+      ];
+      const uniqueUsers = Array.from(
+        new Map(combined.map((u) => [u.id, u])).values()
+      );
+      const userIds = uniqueUsers.map((u) => u.id);
+      const { data: userDetails, error: userError } = await this.supabase
+        .from("user")
+        .select("*")
+        .in("id", userIds);
+      if (userError) {
+        console.error("Error fetching user names", userError);
+        return [];
       }
-      return Array.from(unique.values());
+      const userMap = new Map(
+        (userDetails || [])
+          .filter((u) => u.id !== null)
+          .map((u) => [u.id as string, u])
+      );
+      const finalResult: { user: any; role: string }[] = uniqueUsers
+        .filter((u) => u.id !== null && u.role !== null)
+        .map((u) => ({
+          user: userMap.get(u.id as string) ?? {},
+          role: u.role as string,
+        }));
+      return finalResult;
     } else {
       // Checks for the Program manager role
       const { data: programs, error: programError } = await this.supabase
@@ -6405,136 +6431,127 @@ export class SupabaseApi implements ServiceApi {
       if (programIds.length === 0) return [];
       const { data: coordinators, error: coordError } = await this.supabase
         .from("program_user")
-        .select("role, user(id, name)")
+        .select("role, user(*)")
         .in("program_id", programIds)
         .eq("role", "field_coordinator");
       if (coordError || !coordinators) {
         console.error("Error fetching coordinators", coordError);
         return [];
       }
-      return (coordinators ?? [])
-        .filter((c) => c.user?.name && c.role)
+      return (coordinators || [])
+        .filter((c) => c.user !== null && c.role !== null)
         .map((c) => ({
-          name: c.user!.name ?? "",
-          role: c.role ?? "",
-        }));
+          user: c.user!,
+          role: c.role!,
+        })) as { user: any; role: string }[];
     }
   }
 
-  async countProgramStats(programId: string): Promise<{
+  async program_activity_stats(programId: string): Promise<{
     total_students: number;
-    active_students: number;
-    avg_time_spent: number;
     total_teachers: number;
-    active_teachers: number;
     total_institutes: number;
+    active_student_percentage: number;
+    active_teacher_percentage: number;
+    avg_weekly_time_minutes: number;
   }> {
     if (!this.supabase) {
       console.error("Supabase client is not initialized.");
       return {
         total_students: 0,
-        active_students: 0,
-        avg_time_spent: 0,
         total_teachers: 0,
-        active_teachers: 0,
         total_institutes: 0,
+        active_student_percentage: 0,
+        active_teacher_percentage: 0,
+        avg_weekly_time_minutes: 0,
       };
     }
-
     try {
-      const { data, error } = await this.supabase.rpc("count_program_stats", {
-        p_program_id: programId,
-      });
+      const { data, error } = await this.supabase.rpc(
+        "get_program_activity_stats",
+        {
+          p_program_id: programId,
+        }
+      );
 
-      if (error) {
+      if (error || !data) {
         console.error("RPC error:", error);
         return {
           total_students: 0,
-          active_students: 0,
-          avg_time_spent: 0,
           total_teachers: 0,
-          active_teachers: 0,
           total_institutes: 0,
+          active_student_percentage: 0,
+          active_teacher_percentage: 0,
+          avg_weekly_time_minutes: 0,
         };
       }
-
-      const result = Array.isArray(data) ? data[0] : data;
-
       return {
-        total_students: result?.total_students ?? 0,
-        active_students: result?.active_students ?? 0,
-        avg_time_spent: result?.avg_time_spent ?? 0,
-        total_teachers: result?.total_teachers ?? 0,
-        active_teachers: result?.active_teachers ?? 0,
-        total_institutes: result?.total_institutes ?? 0,
+        total_students: data.total_students ?? 0,
+        total_teachers: data.total_teachers ?? 0,
+        total_institutes: data.total_institutes ?? 0,
+        active_student_percentage: data.active_student_percentage ?? 0,
+        active_teacher_percentage: data.active_teacher_percentage ?? 0,
+        avg_weekly_time_minutes: data.avg_weekly_time_minutes ?? 0,
       };
     } catch (err) {
       console.error("Unexpected error:", err);
       return {
         total_students: 0,
-        active_students: 0,
-        avg_time_spent: 0,
         total_teachers: 0,
-        active_teachers: 0,
         total_institutes: 0,
+        active_student_percentage: 0,
+        active_teacher_percentage: 0,
+        avg_weekly_time_minutes: 0,
       };
     }
   }
 
-  async countUsersBySchool(schoolId: string): Promise<{
-    total_students: number;
-    active_students: number;
-    total_teachers: number;
-    active_teachers: number;
-    avg_time_spent: number;
+  async school_activity_stats(schoolId: string): Promise<{
+    active_student_percentage: number;
+    active_teacher_percentage: number;
+    avg_weekly_time_minutes: number;
   }> {
     if (!this.supabase) {
       console.error("Supabase client is not initialized.");
       return {
-        total_students: 0,
-        active_students: 0,
-        total_teachers: 0,
-        active_teachers: 0,
-        avg_time_spent: 0,
+        active_student_percentage: 0,
+        active_teacher_percentage: 0,
+        avg_weekly_time_minutes: 0,
       };
     }
 
     try {
-      const { data, error } = await this.supabase.rpc("count_users_by_school", {
-        p_school_id: schoolId,
-      });
+      const { data, error } = await this.supabase.rpc(
+        "get_school_activity_stats",
+        {
+          p_school_id: schoolId,
+        }
+      );
 
       if (error) {
         console.error("RPC error:", error);
         return {
-          total_students: 0,
-          active_students: 0,
-          total_teachers: 0,
-          active_teachers: 0,
-          avg_time_spent: 0,
+          active_student_percentage: 0,
+          active_teacher_percentage: 0,
+          avg_weekly_time_minutes: 0,
         };
       }
 
-      const result = Array.isArray(data) ? data[0] : data;
-
       return {
-        total_students: result?.total_students ?? 0,
-        active_students: result?.active_students ?? 0,
-        total_teachers: result?.total_teachers ?? 0,
-        active_teachers: result?.active_teachers ?? 0,
-        avg_time_spent: result?.avg_time_spent ?? 0,
+        active_student_percentage: data?.active_student_percentage ?? 0,
+        active_teacher_percentage: data?.active_teacher_percentage ?? 0,
+        avg_weekly_time_minutes: data?.avg_weekly_time_minutes ?? 0,
       };
     } catch (err) {
       console.error("Unexpected error:", err);
       return {
-        total_students: 0,
-        active_students: 0,
-        total_teachers: 0,
-        active_teachers: 0,
-        avg_time_spent: 0,
+        active_student_percentage: 0,
+        active_teacher_percentage: 0,
+        avg_weekly_time_minutes: 0,
       };
     }
   }
+
   async isProgramManager(): Promise<boolean> {
     if (!this.supabase) {
       console.error("Supabase client not initialized.");
