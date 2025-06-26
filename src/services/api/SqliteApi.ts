@@ -5323,4 +5323,8 @@ order by
   async isProgramManager(): Promise<boolean> {
     return await this._serverApi.isProgramManager();
   }
+
+  async getUserSpecialRole(userId: string): Promise<string | undefined> {
+    return await this._serverApi.getUserSpecialRole(userId);
+  }
 }

@@ -32,7 +32,6 @@
   background-color: white;
   padding: 0 20px;
   border-radius: 8px;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .program-table {
@@ -152,7 +151,7 @@
   .program-search-filter {
     flex-direction: column;
     width: 100%;
-    gap: 8px;
+    /* gap: 8px; */
   }
 
   .program-button-and-search-filter {
@@ -162,8 +161,8 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    gap: 4px;
-    flex-wrap: nowrap;
+    /* gap: 4px; */
+    /* flex-wrap: nowrap; */
   }
 
   .program-button-and-search-filter button {

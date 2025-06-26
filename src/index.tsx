@@ -87,11 +87,12 @@ const gb = new GrowthBook({
 
 // Default to Supabase
 const serviceInstance = ServiceConfig.getInstance(APIMode.SUPABASE);
-
+const authHandler = ServiceConfig.getI()?.authHandler;
+const isUserLoggedIn = await authHandler?.isUserLoggedIn();
 // Check role
 const isOpsUser = localStorage.getItem(IS_OPS_USER) === 'true';
 
-if (!isOpsUser) {
+if (!isOpsUser && isUserLoggedIn) {
   // Initialize SQLite only if needed
   SplashScreen.show();
   await SqliteApi.getInstance();

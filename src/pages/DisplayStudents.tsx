@@ -37,11 +37,7 @@ const DisplayStudents: FC<{}> = () => {
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const { setGbUpdated } = useGbContext();
   useEffect(() => {
-    const body = document.querySelector("body");
-    body?.style.setProperty(
-      "background-image",
-      "url(/pathwayAssets/pathwayBackground.svg)"
-    );
+    Util.loadBackgroundImage();
     getStudents();
     lockOrientation();
     return () => {

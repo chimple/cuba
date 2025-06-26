@@ -54,6 +54,7 @@ import {
   ASSIGNMENT_POPUP_SHOWN,
   QUIZ_POPUP_SHOWN,
   SCHOOL_LOGIN,
+  SHOULD_SHOW_REMOTE_ASSETS,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -2223,5 +2224,37 @@ export class Util {
     });
 
     return mergedStudents;
+  public static async loadBackgroundImage() {
+    const body = document.querySelector("body");
+    if (
+      Capacitor.isNativePlatform() &&
+      localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === "true"
+    ) {
+      try {
+        const result = await Filesystem.readFile({
+          path: "remoteAsset/remoteBackground.svg",
+          directory: Directory.External,
+        });
+        const svgData = atob(result.data); // decode base64
+
+        if (body) {
+          body.style.backgroundImage = `url('data:image/svg+xml;utf8,${encodeURIComponent(svgData)}')`;
+          body.style.backgroundRepeat = "no-repeat";
+          body.style.backgroundSize = "cover";
+          body.style.backgroundPosition = "center center";
+        }
+      } catch (e) {
+        body?.style.setProperty(
+          "background-image",
+          "url(/pathwayAssets/pathwayBackground.svg)"
+        );
+        console.error("Failed to load remote background image:", e);
+      }
+    } else {
+      body?.style.setProperty(
+        "background-image",
+        "url(/pathwayAssets/pathwayBackground.svg)"
+      );
+    }
   }
 }

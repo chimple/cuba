@@ -75,11 +75,7 @@ const Leaderboard: React.FC = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    const body = document.querySelector("body");
-    body?.style.setProperty(
-      "background-image",
-      "url(/pathwayAssets/pathwayBackground.svg)"
-    );
+    Util.loadBackgroundImage();
     inti();
     const urlParams = new URLSearchParams(window.location.search);
     const rewardsTab = urlParams.get("tab");
