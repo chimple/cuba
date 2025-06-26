@@ -2,6 +2,7 @@ import { IonContent, IonPage, useIonToast } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import {
+  APP_URL_OPEN,
   EVENTS,
   GAME_END,
   GAME_EXIT,
@@ -76,7 +77,7 @@ const CocosGame: React.FC = () => {
     return () => {
       CapApp.removeAllListeners();
       CapApp.addListener("appStateChange", Util.onAppStateChange);
-      CapApp.addListener("appUrlOpen", Util.onAppUrlOpen);
+      CapApp.addListener(APP_URL_OPEN, Util.onAppUrlOpen);
     };
   }, []);
 
@@ -334,7 +335,7 @@ const CocosGame: React.FC = () => {
 
   let ChapterDetail: Chapter | undefined;
   const api = ServiceConfig.getI().apiHandler;
-  const lesson: Lesson = state.lesson ? JSON.parse(state.lesson) : undefined;
+  const lesson: Lesson = JSON.parse(state.lesson);
 
   const updateLessonAsFavorite = async () => {
     const currentStudent = Util.getCurrentStudent();

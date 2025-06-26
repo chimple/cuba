@@ -76,7 +76,6 @@ const LessonCard: React.FC<{
   useEffect(() => {
     getCurrentCourse();
     getDate();
-    checkRespectApp();
   }, [lesson]);
 
   const getDate = () => {
@@ -107,12 +106,7 @@ const LessonCard: React.FC<{
   //   LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
 
   const [lessonCardColor, setLessonCardColor] = useState("");
-
-  const checkRespectApp = async () => {
-    const data = await Util.checkRespectApp();
-    Util.isRespectMode = data;
-  };
-
+  
   useEffect(() => {
     setLessonCardColor(
       LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)]

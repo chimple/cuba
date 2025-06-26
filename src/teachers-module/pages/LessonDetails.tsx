@@ -69,7 +69,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     const current_class = Util.getCurrentClass();
     setChapterId(
       chapterId ??
-        (await api.getChapterByLesson(lesson.id, current_class?.id ?? ""))
+        (await api.getChapterIDByLessonID(lesson.id, current_class?.id ?? ""))
     );
   };
 

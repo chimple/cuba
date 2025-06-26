@@ -29,7 +29,10 @@ export class SupabaseAuth implements ServiceAuth {
   private _supabaseDb: SupabaseClient<Database> | undefined;
   // private _auth = getAuth();
 
-  private constructor() {}
+  private constructor() { }
+  refreshSession(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
   public static getInstance(): SupabaseAuth {
     if (!SupabaseAuth.i) {
       SupabaseAuth.i = new SupabaseAuth();

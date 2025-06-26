@@ -182,11 +182,6 @@ public  class MainActivity extends BridgeActivity {
         new Handler(Looper.getMainLooper()).postDelayed(() -> PortPlugin.sendLaunch(), 5000);
     }
 
-    public ArrayList<Class<? extends Plugin>> getPlugins() {
-        return new ArrayList<>();
-    }
-
-
     public boolean isAppInstalled(String packageName) {
         PackageManager pm = getPackageManager();
         try {

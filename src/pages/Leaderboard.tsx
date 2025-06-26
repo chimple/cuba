@@ -15,6 +15,7 @@ import {
   CLASS,
   CURRENT_CLASS,
   STAGES,
+  APP_URL_OPEN,
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import BackButton from "../components/common/BackButton";
@@ -101,7 +102,7 @@ const Leaderboard: React.FC = () => {
 
   useEffect(() => {}, []);
   const urlOpen = () => {
-    App.addListener("appUrlOpen", (event) => {
+    App.addListener(APP_URL_OPEN, (event) => {
       const url = new URL(event.url);
       Util.setPathToBackButton(
         `${PAGES.HOME}?page=/${url.pathname.substring(1)}&classCode=${url.searchParams.get("classCode")}`,
@@ -300,7 +301,6 @@ const Leaderboard: React.FC = () => {
   let currentUserHeaderRowIndicator = -1;
 
   function leaderboardUI() {
-
     return (
       <div id="leaderboard-UI">
         <div id="leaderboard-left-UI">

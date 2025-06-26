@@ -29,7 +29,7 @@ import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { CollectionIds } from "../../common/courseConstants";
-import { ACTION, EVENTS, LANGUAGE, TableTypes } from "../../common/constants";
+import { ACTION, APP_URL_OPEN, EVENTS, LANGUAGE, TableTypes } from "../../common/constants";
 import { ServiceConfig } from "../ServiceConfig";
 import { getFunctions, httpsCallable } from "firebase/functions";
 
@@ -40,7 +40,7 @@ export class FirebaseAuth implements ServiceAuth {
   private _db = getFirestore();
   private _auth = getAuth(); //FirebaseAuth.whichAuth();
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): FirebaseAuth {
     if (!FirebaseAuth.i) {
@@ -117,7 +117,7 @@ export class FirebaseAuth implements ServiceAuth {
         }
       }
       App.addListener("appStateChange", Util.onAppStateChange);
-      CapApp.addListener("appUrlOpen", Util.onAppUrlOpen);
+      CapApp.addListener(APP_URL_OPEN, Util.onAppUrlOpen);
       this.updateUserFcm(user.uid);
       const migrateRes = await Util.migrate();
       if (
@@ -225,7 +225,7 @@ export class FirebaseAuth implements ServiceAuth {
     // try {
     //   if (this._currentUser) return this._currentUser;
     //   const currentUser = this._auth.currentUser;
-    
+
     //   // let currentUser: any = (await FirebaseAuthentication.getCurrentUser()).user;
     //   
 
@@ -237,11 +237,11 @@ export class FirebaseAuth implements ServiceAuth {
     //   const tempUserDoc = await getDoc(doc(this._db, "User", currentUser.uid));
     //   this.updateUserPreferenceLanguage();
     //   this._currentUser = (tempUserDoc.data() || tempUserDoc) as User;
-    
+
     //   this._currentUser.docId = tempUserDoc.id;
     //   return this._currentUser;
     // } catch (error) {
-    
+
     // }
   }
 
@@ -262,7 +262,7 @@ export class FirebaseAuth implements ServiceAuth {
           //   phoneNumber,
           //   0
           // ).then((verificationId) => {
-          
+
           // });
 
           const signInWithPhoneNumber = async () => {
@@ -284,7 +284,7 @@ export class FirebaseAuth implements ServiceAuth {
                 // await FirebaseAuthentication.addListener(
                 //   "authStateChange",
                 //   async (event) => {
-                
+
 
                 //     resolve(event);
                 //   }
@@ -349,7 +349,7 @@ export class FirebaseAuth implements ServiceAuth {
       }
 
       // if (verificationId) {
-      
+
       //   proceedWithVerificationCode(verificationId);
       // }
     } catch (error) {
@@ -431,7 +431,7 @@ export class FirebaseAuth implements ServiceAuth {
       // let res = await signInWithCredential(auth, credential);
       const u = await FirebaseAuthentication.getCurrentUser();
 
-      
+
       // Success!
 
       // await FirebaseAuthentication.confirmVerificationCode({
@@ -439,8 +439,8 @@ export class FirebaseAuth implements ServiceAuth {
       //   verificationCode,
       // });
 
-      
-      
+
+
 
       if (!res.user) {
         throw Error("Verification Failed");
@@ -471,7 +471,7 @@ export class FirebaseAuth implements ServiceAuth {
       const userRef = doc(this._db, "User", userData.uid);
       // if (additionalUserInfo?.isNewUser) {
       //   let u = await this._createUserDoc(userData);
-      
+
       // } else {
       const tempUserDoc = await getDoc(userRef);
       if (!tempUserDoc.exists()) {
@@ -504,21 +504,21 @@ export class FirebaseAuth implements ServiceAuth {
 
   async isUserLoggedIn(): Promise<boolean> {
     throw new Error("Method not implemented");
-    
+
 
     // const user = await this.getCurrentUser();
-    
+
     // if (!!user) return true;
-    
+
     // // if (!user && Capacitor.isNativePlatform()) return false;
 
     // const res = localStorage.getItem(CURRENT_USER);
-    
+
     // if (!res) return false;
     // for (var i = 0; i < 1000; i++) {
     //   await new Promise((res) => setTimeout(res, 100));
     //   const user = await this.getCurrentUser();
-    
+
     //   if (!!user) {
     //     await FirebaseAnalytics.setUserId({
     //       userId: user.id,

@@ -8,7 +8,6 @@
     </queries>
 
     <application
-        android:name=".RespectHttpClient"
         android:allowBackup="false"
         android:icon="@mipmap/chimple_monkey_icon"
         android:label="@string/app_name"
@@ -80,7 +79,8 @@
                 <data android:scheme="https" android:host="chimple.cc" android:path="/assignment" />
                 <data android:scheme="https" android:host="chimple.cc" android:path="/live-quiz" /> -->
                 <data android:scheme="https" android:host="chimple.cc"
-                    android:pathPattern="/.*" /> >>>>>>> master-supabase </intent-filter>
+                    android:pathPattern="/.*" />
+            </intent-filter>
 
 
         </activity>
@@ -131,8 +131,6 @@
     </application>
 
     <!-- Permissions -->
-    <!-- ✅ Permissions -->
-    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />

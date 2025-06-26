@@ -40,6 +40,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import { App as CapApp } from "@capacitor/app";
 import { Toast } from "@capacitor/toast";
 import {
+  APP_URL_OPEN,
   // APP_LANG,
   BASE_NAME,
   CACHE_IMAGE,
@@ -52,6 +53,7 @@ import {
   MODES,
   PAGES,
   PortPlugin,
+  TRIGGER_DEEPLINK,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -171,8 +173,9 @@ const App: React.FC = () => {
   const [isActive, setIsActive] = useState(true);
   const handleLessonClick = useHandleLessonClick();
 
-
   useEffect(() => {
+    console.log("App.tsx called");
+
     const cleanup = initializeClickListener();
     const handleOnline = () => {
       if (!online) {
@@ -238,13 +241,13 @@ const App: React.FC = () => {
           processNotificationData(data);
         }
       });
-      CapApp.addListener("appUrlOpen", Util.onAppUrlOpen);
+      CapApp.addListener(APP_URL_OPEN, Util.onAppUrlOpen);
     }
 
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
-    }).catch((_) => { });
+    }).catch((_) => {});
 
     //Checking for flexible update in play-store
     Util.startFlexibleUpdate();
@@ -265,17 +268,17 @@ const App: React.FC = () => {
       const isUserLoggedIn = await authHandler?.isUserLoggedIn();
       if (!isUserLoggedIn) {
         await Toast.show({
-          text: "Couldn't launch the lesson, please sign in with RESPECT.",
+          text: t("Couldn't launch the lesson, please sign in with RESPECT."),
           duration: "long",
         });
       }
     };
-    document.addEventListener("sendLaunch", sendLaunch);
+    document.addEventListener(TRIGGER_DEEPLINK, sendLaunch);
     // Cleanup on unmount
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       clearExistingTimeout();
-      document.removeEventListener("sendLaunch", sendLaunch);
+      document.removeEventListener(TRIGGER_DEEPLINK, sendLaunch);
     };
   }, []);
 
@@ -424,7 +427,6 @@ const App: React.FC = () => {
   const history = useHistory();
 
   useEffect(() => {
-
     const handleDeepLink = (event: any) => {
       if (!event) {
         console.error("❌ Invalid event object received:", event);
@@ -449,7 +451,6 @@ const App: React.FC = () => {
               courseDocId: courseId,
             });
             window.location.href = PAGES.GAME + params;
-
           } else {
             console.error("❌ Invalid learningUnitId format:", learningUnitId);
           }
@@ -461,10 +462,10 @@ const App: React.FC = () => {
       }
     };
 
-    window.addEventListener("appUrlOpen", handleDeepLink);
+    window.addEventListener(APP_URL_OPEN, handleDeepLink);
 
     return () => {
-      window.removeEventListener("appUrlOpen", handleDeepLink);
+      window.removeEventListener(APP_URL_OPEN, handleDeepLink);
     };
   }, []);
 

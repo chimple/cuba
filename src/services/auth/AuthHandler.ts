@@ -7,7 +7,10 @@ export class AuthHandler implements ServiceAuth {
 
   private s: ServiceAuth;
 
-  private constructor() {}
+  private constructor() { }
+  refreshSession(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
 
   public static getInstance(s: ServiceAuth): AuthHandler {
     if (!AuthHandler.i) {

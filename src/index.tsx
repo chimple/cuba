@@ -24,6 +24,8 @@ import {
 } from "./utility/WindowsSpeech";
 import { Util } from "./utility/util";
 
+console.log("Index.tsx called ");
+
 // Extend React's JSX namespace to include Stencil components
 declare global {
   namespace JSX {
@@ -67,6 +69,10 @@ GoogleAuth.initialize({
   scopes: ["profile", "email"],
   // grantOfflineAccess: true,
 });
+
+Util.isRespectMode = await Util.checkRespectApp();
+console.log("Util.isRespectMode = await Util.checkRespectApp();",Util.isRespectMode);
+
 
 if (!Util.isRespectMode) {
   SqliteApi.getInstance().then(() => {

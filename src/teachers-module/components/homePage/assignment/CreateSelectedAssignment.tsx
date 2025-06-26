@@ -170,7 +170,7 @@ const CreateSelectedAssignment = ({
               }
 
               const tempChapterId =
-                (await api.getChapterByLesson(tempLes.id, current_class.id)) ??
+                (await api.getChapterIDByLessonID(tempLes.id, current_class.id)) ??
                 "";
               if (!tempChapterId) {
                 console.warn(`Chapter not found for lessonId: ${lessonId}`);
@@ -391,7 +391,7 @@ const CreateSelectedAssignment = ({
               }
 
               const tempChapterId =
-                (await api.getChapterByLesson(tempLes.id, current_class.id)) ??
+                (await api.getChapterIDByLessonID(tempLes.id, current_class.id)) ??
                 "";
               if (!tempChapterId) {
                 console.warn(`Chapter not found for lessonId: ${lessonId}`);

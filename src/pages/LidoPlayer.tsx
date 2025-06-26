@@ -24,8 +24,8 @@ const LidoPlayer: FC = () => {
   const history = useHistory();
   const [present] = useIonToast();
   const state = history.location.state as any;
-  const playedFrom = localStorage.getItem("currentHeader")
-  const assignmentType = state?.assignment?.type || 'self-played';
+  const playedFrom = localStorage.getItem("currentHeader");
+  const assignmentType = state?.assignment?.type || "self-played";
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [basePath, setBasePath] = useState<string>();
   const [xmlPath, setXmlPath] = useState<string>();
@@ -33,8 +33,7 @@ const LidoPlayer: FC = () => {
   const urlSearchParams = new URLSearchParams(window.location.search);
   const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
 
-  const onNextContainer = (e: any) => {
-  };
+  const onNextContainer = (e: any) => {};
 
   const gameCompleted = (e: any) => {
     push();
@@ -91,9 +90,9 @@ const LidoPlayer: FC = () => {
           assignmentId = result?.id;
         }
       }
-      chapter_id = await api.getChapterByLesson(lesson.id, classId);
+      chapter_id = await api.getChapterIDByLessonID(lesson.id, classId);
     } else {
-      chapter_id = await api.getChapterByLesson(
+      chapter_id = await api.getChapterIDByLessonID(
         lesson.id,
         undefined,
         currentStudent.id
