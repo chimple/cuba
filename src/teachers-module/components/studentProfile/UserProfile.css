@@ -1,4 +1,4 @@
-.profile-content {
+.userprofile-content {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -21,21 +21,17 @@
   color: black;
 }
 
-.profile-card {
+.userprofile-card {
   width: 300px;
-  border: 1px solid #ccc;
   padding: 10px;
-  margin: 20px 0;
-  text-align: left;
   border-radius: 2vh;
-  box-shadow: 1px 1px 2px 0;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-.profile-row {
+.userprofile-row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 10px;
-  flex-direction: row;
+  flex-direction: column;
 }
 
 .first-content {
@@ -51,28 +47,32 @@
   text-overflow: ellipsis;
   max-width: 150px;
   font-size: clamp(15px, 5vh, 30px);
-  color: var(--text-color);
+  color: #707070;
 }
 
-.profile-label {
+.userprofile-label {
   width: 30%;
   text-align: left;
 }
+.userprofile-label span {
+  color: #707070;
+}
 
-.profile-value {
-  max-width: 150px;
-  text-align: right;
+.userprofile-value {
+  color: #707070;
+  font-size: 20px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.profile-value input,
-.profile-value select {
+.userprofile-value input,
+.userprofile-value select {
   border: none;
   background-color: transparent;
-  font-size: 2vh;
-  color: #333;
+  color: #707070;
+  font-size: 20px;
+  text-align: center;
 }
 
 .profile-info input {
@@ -80,10 +80,24 @@
   border-bottom: 0.2vh solid #333;
   background-color: transparent;
   font-size: 2vh;
-  color: #333;
+  color: #707070;
 }
 .profile-details-container {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+.usergender-options input[type="radio"] {
+  accent-color: black;
+}
+.usergender-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.usergender-options label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 18px;
 }

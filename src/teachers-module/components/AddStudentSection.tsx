@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-// import "./AddStudentSection.css";
+import "./AddStudentSection.css";
 import { t } from "i18next";
 import { IonIcon, IonItem, IonRadio, IonRadioGroup, IonSelect, IonSelectOption } from "@ionic/react";
 import DropDown from "../../components/DropDown";
@@ -50,61 +50,49 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
     name: option.label,
   }));
   return (
-    <div className="add-student-form">
+    <div className="add-studentsection__form">
       <form>
-        <div className="input-group">
+        <div className="add-studentsection__group">
           <label htmlFor="name">{t("Name")}</label>
           <input
             type="text"
             id="name"
             name="name"
+            className="add-studentsection__groupInput"
             placeholder={t("Enter Name") || ""}
             value={fullName}
             onChange={(e) => onFullNameChange(e.target.value)}
           />
         </div>
-
-        <div className="input-group">
+        <hr className="horizontal-line" />
+        <div className="add-studentsection__group">
           <label htmlFor="age">{t("Age")}</label>
           <input
             type="number"
             id="age"
             name="age"
+            className="add-studentsection__groupInput"
             placeholder={t("Enter Age") || ""}
             value={age}
             onChange={(e) => handleAgeChange(e.target.value)}
             maxLength={2}
           />
         </div>
-
-        <div className="input-group">
+        <hr className="horizontal-line" />
+        <div className="add-student__group">
           <label htmlFor="studentId">{t("Student Id")}</label>
           <input
             type="text"
             id="studentId"
             name="studentId"
+            className="add-studentsection__groupInput"
             placeholder={t("Enter student id") || ""}
             value={studentId}
             onChange={(e) => onStudentIdChange(e.target.value)}
           />
         </div>
-        <div className="input-group">
-          <label>{t("Select Language")}</label>
-          <CustomDropdown
-            options={mappedLanguageOptions}
-            selectedValue={{
-              id: language,
-              name: mappedLanguageOptions.find(option => option.id === language)?.name || "",
-            }}
-            onOptionSelect={(selectedOption) => {
-              if (selectedOption) {
-                onLanguageChange(String(selectedOption.id));
-              }
-            }}
-            placeholder={t("Select Language") as string}
-          />
-        </div>
-        <div className="input-group">
+        <hr className="horizontal-line" />
+        <div className="add-student__group">
           <label>{t("Gender")}</label>
           <IonRadioGroup
             value={gender}
@@ -122,6 +110,23 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
               </label>
             </div>
           </IonRadioGroup>
+        </div>
+        <hr className="horizontal-line" />
+        <div className="add-student__group">
+          <label>{t("Preferred Language")}</label>
+          <CustomDropdown
+            options={mappedLanguageOptions}
+            selectedValue={{
+              id: language,
+              name: mappedLanguageOptions.find(option => option.id === language)?.name || "",
+            }}
+            onOptionSelect={(selectedOption) => {
+              if (selectedOption) {
+                onLanguageChange(String(selectedOption.id));
+              }
+            }}
+            placeholder={t("Select Language") as string}
+          />
         </div>
       </form>
     </div>

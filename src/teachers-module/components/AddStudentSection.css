@@ -1,0 +1,17 @@
+.add-studentsection__form {
+    padding: 2vw;
+    margin: 0px 15px;
+    border-radius: 15px;
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+}
+.add-studentsection__group {
+    display: flex;
+    flex-direction: column;
+}
+.add-studentsection__groupInput {
+    border: none;
+    text-align: center;
+}
+.add-studentsection__group label {
+    color: #707070;
+}
