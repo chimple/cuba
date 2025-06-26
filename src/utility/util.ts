@@ -2224,6 +2224,7 @@ export class Util {
     });
 
     return mergedStudents;
+  }
   public static async loadBackgroundImage() {
     const body = document.querySelector("body");
     if (
