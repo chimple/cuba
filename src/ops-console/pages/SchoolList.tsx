@@ -1,5 +1,13 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Tabs, Tab, Box, Typography, IconButton } from "@mui/material";
+import {
+  Tabs,
+  Tab,
+  Box,
+  Typography,
+  IconButton,
+  Button,
+  useMediaQuery,
+} from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
 import "./SchoolList.css";
@@ -14,6 +22,8 @@ import SelectedFilters from "../components/SelectedFilters";
 import FileUpload from "../components/FileUpload";
 import UploadButton from "../components/UploadButton";
 import { useDataTableLogic } from "../OpsUtility/useDataTableLogic";
+import { Add } from "@mui/icons-material";
+import { BsFillBellFill } from "react-icons/bs";
 
 type Filters = Record<string, string[]>;
 
@@ -47,7 +57,7 @@ const SchoolList: React.FC = () => {
   const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
   const [tempFilters, setTempFilters] = useState<Filters>(INITIAL_FILTERS);
   const [filterOptions, setFilterOptions] = useState<Filters>(INITIAL_FILTERS);
-
+  const isSmallScreen = useMediaQuery("(max-width: 900px)");
   // Fetch filter options
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -79,7 +89,6 @@ const SchoolList: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, [selectedTab, filters]);
-
   const fetchData = async () => {
     setIsLoading(true);
     try {
@@ -181,10 +190,15 @@ const SchoolList: React.FC = () => {
   return (
     <div className="school-list-ion-page">
       <div className="school-list-main-container">
-        <div className="school-list-header">
-          <div className="school-heading">{t("Schools")}</div>
-          <div className="school-list-container">
-            <div>
+        <div className="school-list-page-header">
+          <span className="school-list-page-header-title">{t("Schools")}</span>
+          <IconButton className="bell-icon">
+            <BsFillBellFill />
+          </IconButton>
+        </div>
+        <div className="school-list-header-and-search-filter">
+          <div className="school-list-search-filter">
+            <div className="school-list-tab-wrapper">
               <Tabs
                 value={selectedTab}
                 onChange={(e, val) => {
@@ -192,7 +206,6 @@ const SchoolList: React.FC = () => {
                   setSelectedTab(val);
                 }}
                 indicatorColor="primary"
-                textColor="primary"
                 variant="scrollable"
                 scrollButtons="auto"
                 className="school-list-tabs-div"
@@ -207,73 +220,84 @@ const SchoolList: React.FC = () => {
                 ))}
               </Tabs>
             </div>
-            <div className="school-list-filter-container-2">
-              <div className="school-list-file-upload-conatainer">
-                <UploadButton
-                  onClick={() => {
-                    setShowUploadPage(true);
-                  }}
-                />
-              </div>
-              <div>
-                <SearchAndFilter
-                  searchTerm={searchTerm}
-                  onSearchChange={(e) => setSearchTerm(e.target.value)}
-                  filters={filters}
-                  onFilterClick={() => setIsFilterOpen(true)}
-                />
-              </div>
-              <FilterSlider
-                isOpen={isFilterOpen}
-                onClose={() => {
-                  setIsFilterOpen(false);
-                  setTempFilters(filters);
-                }}
-                filters={tempFilters}
-                filterOptions={filterOptions}
-                onFilterChange={(name, value) =>
-                  setTempFilters((prev) => ({ ...prev, [name]: value }))
-                }
-                onApply={() => {
-                  setFilters(tempFilters);
-                  setIsFilterOpen(false);
-                }}
-                onCancel={() => {
-                  const empty = {
-                    state: [],
-                    district: [],
-                    block: [],
-                    village: [],
-                    programType: [],
-                    partner: [],
-                    programManager: [],
-                    fieldCoordinator: [],
-                  };
-                  setTempFilters(empty);
-                  setFilters(empty);
-                  setIsFilterOpen(false);
-                }}
-                autocompleteStyles={{}}
-                filterConfigs={filterConfigsForSchool}
-              />
 
-              <Box className="selected-filters-container">
-                <SelectedFilters
-                  filters={filters}
-                  onDeleteFilter={(key, value) => {
-                    setFilters((prev) => {
-                      const updated = {
-                        ...prev,
-                        [key]: prev[key].filter((v) => v !== value),
-                      };
-                      setTempFilters(updated);
-                      return updated;
-                    });
-                  }}
-                />
-              </Box>
+            <div className="school-list-button-and-search-filter">
+              <Button
+                variant="outlined"
+                onClick={() => setShowUploadPage(true)}
+                sx={{
+                  borderColor: "#e0e0e0",
+                  border: "1px solid",
+                  borderRadius: 20,
+                  boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.1)",
+                  height: "36px",
+                  minWidth: isSmallScreen ? "48px" : "auto",
+                  padding: isSmallScreen ? 0 : "6px 16px",
+                  textTransform: "none",
+                }}
+              >
+                <Add />
+                {!isSmallScreen && (
+                  <span className="school-list-upload-text">{t("Upload")}</span>
+                )}
+              </Button>
+
+              <SearchAndFilter
+                searchTerm={searchTerm}
+                onSearchChange={(e) => setSearchTerm(e.target.value)}
+                filters={filters}
+                onFilterClick={() => setIsFilterOpen(true)}
+              />
             </div>
           </div>
+
+          <SelectedFilters
+            filters={filters}
+            onDeleteFilter={(key, value) => {
+              setFilters((prev) => {
+                const updated = {
+                  ...prev,
+                  [key]: prev[key].filter((v) => v !== value),
+                };
+                setTempFilters(updated);
+                return updated;
+              });
+            }}
+          />
+
+          <FilterSlider
+            isOpen={isFilterOpen}
+            onClose={() => {
+              setIsFilterOpen(false);
+              setTempFilters(filters);
+            }}
+            filters={tempFilters}
+            filterOptions={filterOptions}
+            onFilterChange={(name, value) =>
+              setTempFilters((prev) => ({ ...prev, [name]: value }))
+            }
+            onApply={() => {
+              setFilters(tempFilters);
+              setIsFilterOpen(false);
+            }}
+            onCancel={() => {
+              const empty = {
+                state: [],
+                district: [],
+                block: [],
+                village: [],
+                programType: [],
+                partner: [],
+                programManager: [],
+                fieldCoordinator: [],
+              };
+              setTempFilters(empty);
+              setFilters(empty);
+              setIsFilterOpen(false);
+            }}
+            autocompleteStyles={{}}
+            filterConfigs={filterConfigsForSchool}
+          />
         </div>
         {isLoading ? (
           <Loading isLoading={true} />
