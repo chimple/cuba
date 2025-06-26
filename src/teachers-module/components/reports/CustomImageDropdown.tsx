@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./CustomImageDropdown.css";
 import { ALL_SUBJECT } from '../../../common/constants';
+import { t } from "i18next";
 
 interface DropdownOption {
   id: string | number;
@@ -73,7 +74,7 @@ const CustomImageDropdown: React.FC<CustomImageDropdownProps> = ({
               alt="placeholder"
               className="customImagedropdown-icon"
             />
-            <span>{placeholder}</span>
+            <span>{t(placeholder)}</span>
           </>
         )}
         <img

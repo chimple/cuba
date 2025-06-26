@@ -2,6 +2,7 @@ import React from "react";
 import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
 import "./imageDropdown.css";
 import {ALL_SUBJECT} from '../../common/constants'
+import { t } from "i18next";
 
 interface DropdownOption {
   id: string | number;
@@ -97,7 +98,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
                 alt="placeholder-icon"
                 className="imageDropdown-icon"
               />
-              <span>{placeholder}</span>
+              <span>{t(placeholder)}</span>
             </div>
           )
         }
