@@ -11,6 +11,7 @@ import { NUMBER_REGEX, PAGES } from "../../common/constants";
 import { useHistory, useLocation } from "react-router";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 import { schoolUtil } from "../../utility/schoolUtil";
+import JoinClassInput from "./JoinClassInput";
 const urlClassCode: any = {};
 
 const JoinClass: FC<{
@@ -140,94 +141,70 @@ const JoinClass: FC<{
   }, [inviteCode]);
 
   return (
-    <div className="join-class-container">
+    <div className="join-class-parent-container">
       <h2>{t("Join a Class by entering the details below")}</h2>
-
-      <div className="join-class-input-wrapper">
-        <label className="join-class-input-label">
-          {t("Full Name")}<span className="join-class-required">*</span>
-        </label>
-        <div className="join-class-input-box">
-          <div className="join-class-icon-area">
-            <img src="assets/icons/BusinessCard.svg" alt="ID icon" />
-          </div>
-          <div className="join-class-divider" />
-          <input
-            type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            readOnly={fullName !== ""}
-            className="join-class-text-input"
-            placeholder={t("Enter the child’s full name")??""}
-          />
-          <div className="join-class-status">
-            <img
-              src={
-                fullName && (fullName.length >= 3 || fullName !== "")
-                  ? "assets/icons/CheckIcon.svg"
-                  : "assets/icons/Vector.svg"
-              }
-              alt="Status icon"
-            />
-          </div>
-        </div>
-      </div>
-      <div className="join-class-input-wrapper">
-        <label className="join-class-input-label">
-          {t("Class Code")}<span className="join-class-required">*</span>
-        </label>
-        <div className="join-class-input-box">
-          <div className="join-class-icon-area">
-            <img src="assets/icons/OpenBook.svg" alt="ID icon" />
-          </div>
-          <div className="join-class-divider" />
-          <input
-            type="number"
-            value={inviteCode}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (value.length <= 6) {
-                setInviteCode(parseInt(value));
-              }
-            }}
-            className="join-class-text-input"
-            placeholder={t("Enter the class code to join a class")??""}
-          />
-          <div className="join-class-status">
-            {codeResult && !error && inviteCode?.toString().length === 6 ? (
+      <div className="join-class-container">
+        <JoinClassInput
+          label={t("Full Name")}
+          placeholder={t("Enter the child’s full name") ?? ""}
+          value={fullName}
+          setValue={setFullName}
+          icon="assets/icons/BusinessCard.svg"
+          readOnly={fullName !== ""}
+          statusIcon={
+            fullName && fullName.length >= 3 ? (
               <img src="assets/icons/CheckIcon.svg" alt="Status icon" />
-            ) : error && error !== "" && inviteCode?.toString().length === 6 ? (
+            ) : (
               <img src="assets/icons/Vector.svg" alt="Status icon" />
-            ) : null}
-          </div>
-        </div>
-      </div>
-      <div className="join-class-message">
-        {codeResult &&
-        !error &&
-        error == "" &&
-        inviteCode?.toString().length === 6
-          ? `${t("School")}: ${codeResult["school_name"]}, ${t("Class")}: ${codeResult["class_name"]}`
-          : error && inviteCode?.toString().length === 6
-            ? error
-            : null}
-      </div>
+            )
+          }
+        />
 
-      <button
-        className="join-class-confirm-button"
-        onClick={onJoin}
-        disabled={
-          !(
-            codeResult &&
-            !error &&
-            error === "" &&
-            fullName.length >= 3 &&
-            inviteCode?.toString().length === 6
-          )
-        }
-      >
-        <span className="join-class-confirm-text">{t("Confirm")}</span>
-      </button>
+        <JoinClassInput
+          label={t("Class Code")}
+          placeholder={t("Enter the class code to join a class") ?? ""}
+          value={inviteCode}
+          setValue={setInviteCode}
+          icon="assets/icons/OpenBook.svg"
+          type="number"
+          maxLength={6}
+          statusIcon={
+            inviteCode?.toString().length === 6 ? (
+              codeResult && !error ? (
+                <img src="assets/icons/CheckIcon.svg" alt="Status icon" />
+              ) : error && error !== "" ? (
+                <img src="assets/icons/Vector.svg" alt="Status icon" />
+              ) : null
+            ) : null
+          }
+        />
+
+        <div className="join-class-message">
+          {codeResult &&
+          !error &&
+          error == "" &&
+          inviteCode?.toString().length === 6
+            ? `${t("School")}: ${codeResult["school_name"]}, ${t("Class")}: ${codeResult["class_name"]}`
+            : error && inviteCode?.toString().length === 6
+              ? error
+              : null}
+        </div>
+        <button
+          className="join-class-confirm-button"
+          onClick={onJoin}
+          disabled={
+            !(
+              codeResult &&
+              !error &&
+              error === "" &&
+              fullName.length >= 3 &&
+              inviteCode?.toString().length === 6
+            )
+          }
+        >
+          <span className="join-class-confirm-text">{t("Confirm")}</span>
+        </button>
+      </div>
     </div>
   );
 };
