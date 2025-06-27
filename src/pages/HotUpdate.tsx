@@ -2,14 +2,13 @@ import { IonLoading } from "@ionic/react";
 import { FC, useEffect, useState } from "react";
 import { AppUpdater, HotUpdateStatus } from "../services/AppUpdater";
 import { useHistory } from "react-router";
-import { HOT_UPDATE_SERVER, LANGUAGE, PAGES, USER_ROLE } from "../common/constants";
+import { HOT_UPDATE_SERVER, LANGUAGE, PAGES } from "../common/constants";
 import { t } from "i18next";
 import "./HotUpdate.css";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { Capacitor } from "@capacitor/core";
 import { useFeatureValue, useFeatureIsOn } from "@growthbook/growthbook-react";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { RoleType } from "../interface/modelInterfaces";
 
 const HotUpdate: FC<{}> = () => {
   const history = useHistory();
@@ -45,18 +44,8 @@ const HotUpdate: FC<{}> = () => {
     }
     setIsLoading(false);
   };
-  const push = async () => {
+  const push = () => {
   const appLang = localStorage.getItem(LANGUAGE);
-  const userRole = localStorage.getItem(USER_ROLE);
-  const isOpsRole = userRole === RoleType.SUPER_ADMIN || userRole === RoleType.OPERATIONAL_DIRECTOR;
-
-  const isProgramUser = await api.isProgramUser();
-
-  // If user is ops or program user, go to SIDEBAR_PAGE
-  if (isOpsRole || isProgramUser) {
-    history.replace(PAGES.SIDEBAR_PAGE);
-    return;
-  }
 
     if (appLang == undefined) {
       history.replace(PAGES.LOGIN);
