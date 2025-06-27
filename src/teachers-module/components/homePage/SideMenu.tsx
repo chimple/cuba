@@ -8,15 +8,17 @@ import {
   IonLabel,
   IonItem,
 } from "@ionic/react";
-import { ServiceConfig } from "../../../services/ServiceConfig";
+import { APIMode, ServiceConfig } from "../../../services/ServiceConfig";
 import { Util } from "../../../utility/util";
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   CURRENT_MODE,
   CURRENT_USER,
+  IS_OPS_USER,
   MODES,
   PAGES,
   SCHOOL,
+  USER_ROLE,
 } from "../../../common/constants";
 import ProfileSection from "./ProfileDetail";
 import SchoolSection from "./SchoolSection";
@@ -31,7 +33,10 @@ import { Capacitor } from "@capacitor/core";
 import DialogBoxButtons from "../../../components/parent/DialogBoxButtons​";
 import { ImSwitch } from "react-icons/im";
 import { t } from "i18next";
-import { updateLocalAttributes, useGbContext } from "../../../growthbook/Growthbook";
+import {
+  updateLocalAttributes,
+  useGbContext,
+} from "../../../growthbook/Growthbook";
 
 const SideMenu: React.FC<{
   handleManageSchoolClick: () => void;
@@ -41,6 +46,8 @@ const SideMenu: React.FC<{
   const [fullName, setFullName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [isAuthorizedForOpsMode, setIsAuthorizedForOpsMode] =
+    useState<boolean>(false);
   const [schoolData, setSchoolData] = useState<
     { id: string | number; name: string }[]
   >([]);
@@ -77,10 +84,18 @@ const SideMenu: React.FC<{
         console.error("No user is logged in.");
         return;
       }
+      const userRole = localStorage.getItem(USER_ROLE);
+      const isOpsRole =
+        userRole === RoleType.SUPER_ADMIN ||
+        userRole === RoleType.OPERATIONAL_DIRECTOR;
+      const isProgramUser = await api.isProgramUser();
+      if (isOpsRole || isProgramUser) {
+        setIsAuthorizedForOpsMode(true);
+      }
       setFullName(currentUser.name || "");
       setEmail(currentUser.email || currentUser.phone || "");
       setCurrentUserId(currentUser.id);
-      let teacher_class_ids: string[] = []
+      let teacher_class_ids: string[] = [];
       const schoolList: any = [];
       const roleMap = {};
 
@@ -128,7 +143,11 @@ const SideMenu: React.FC<{
           schoolList.push(obj.schoolId);
           roleMap[`${obj.schoolId}_role`] = obj.role;
         });
-        const teacher_school_and_classes = { teacher_school_list: schoolList, roleMap, teacher_class_ids };
+        const teacher_school_and_classes = {
+          teacher_school_list: schoolList,
+          roleMap,
+          teacher_class_ids,
+        };
         updateLocalAttributes(teacher_school_and_classes);
         setGbUpdated(true);
         setSchoolRoles(roles);
@@ -140,6 +159,12 @@ const SideMenu: React.FC<{
   const switchUser = async () => {
     schoolUtil.setCurrMode(MODES.PARENT);
     history.replace(PAGES.DISPLAY_STUDENT);
+  };
+  const switchUserToOps = () => {
+    localStorage.setItem(IS_OPS_USER, "true");
+    ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+    history.replace(PAGES.SIDEBAR_PAGE);
+    return;
   };
   const getClassCodeById = async (class_id: string) => {
     if (class_id) {
@@ -254,7 +279,6 @@ const SideMenu: React.FC<{
     }
   };
 
-
   const [showDialogBox, setShowDialogBox] = useState(false);
 
   const onSignOut = async () => {
@@ -296,13 +320,32 @@ const SideMenu: React.FC<{
           </div>
           <div className="side-menu-switch-user-toggle">
             <IonItem className="side-menu-ion-item-container">
-              <img src="assets/icons/userSwitch.svg" alt="SCHOOL" className="icon" />
+              <img
+                src="assets/icons/userSwitch.svg"
+                alt="SCHOOL"
+                className="icon"
+              />
               <CommonToggle
                 onChange={switchUser}
                 label="Switch to Child's Mode"
               />
             </IonItem>
           </div>
+          {!Capacitor.isNativePlatform() && isAuthorizedForOpsMode && (
+            <div className="side-menu-switch-user-toggle">
+              <IonItem className="side-menu-ion-item-container">
+                <img
+                  src="assets/icons/userSwitch.svg"
+                  alt="OPS"
+                  className="icon"
+                />
+                <CommonToggle
+                  onChange={switchUserToOps}
+                  label="Switch to Ops Mode"
+                />
+              </IonItem>
+            </div>
+          )}
           <div
             className="teacher-logout-btn"
             onClick={() => setShowDialogBox(true)}
@@ -325,8 +368,13 @@ const SideMenu: React.FC<{
         </div>
       </IonMenu>
 
-      <img src="assets/icons/hamburgerMenu.svg" alt={String(t("Menu"))}
-      id="menu-button" className="sidemenu-hamburger" onClick={() => menuRef.current?.open()} />
+      <img
+        src="assets/icons/hamburgerMenu.svg"
+        alt={String(t("Menu"))}
+        id="menu-button"
+        className="sidemenu-hamburger"
+        onClick={() => menuRef.current?.open()}
+      />
     </>
   );
 };
