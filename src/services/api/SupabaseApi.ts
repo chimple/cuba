@@ -6355,12 +6355,12 @@ export class SupabaseApi implements ServiceApi {
     ) {
       const { data: programUsers, error: programError } = await this.supabase
         .from("program_user")
-        .select("role, user");
-
+        .select("role, user")
+        .eq("is_deleted", false);
       const { data: specialUsers, error: specialError } = await this.supabase
         .from("special_users")
-        .select("role, user_id");
-
+        .select("role, user_id")
+        .eq("is_deleted", false);
       if (programError || specialError) {
         console.error("Error fetching users", programError || specialError);
         return [];
@@ -6376,7 +6376,8 @@ export class SupabaseApi implements ServiceApi {
       const { data: userDetails, error: userError } = await this.supabase
         .from("user")
         .select("*")
-        .in("id", userIds);
+        .in("id", userIds)
+        .eq("is_deleted", false);
       if (userError) {
         console.error("Error fetching user names", userError);
         return [];
@@ -6399,7 +6400,8 @@ export class SupabaseApi implements ServiceApi {
         .from("program_user")
         .select("program_id")
         .eq("user", userId)
-        .eq("role", "program_manager");
+        .eq("role", "program_manager")
+        .eq("is_deleted", false);
       if (programError || !programs) {
         console.error("Error fetching programs", programError);
         return [];
@@ -6410,7 +6412,8 @@ export class SupabaseApi implements ServiceApi {
         .from("program_user")
         .select("role, user(*)")
         .in("program_id", programIds)
-        .eq("role", "field_coordinator");
+        .eq("role", "field_coordinator")
+        .eq("is_deleted", false);
       if (coordError || !coordinators) {
         console.error("Error fetching coordinators", coordError);
         return [];
