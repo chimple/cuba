@@ -1362,4 +1362,10 @@ export interface ServiceApi {
    * @param {number} totalStars - total stars.
    */
   updateStudentStars(studentId: string, totalStars: number): Promise<void>;
+
+  /**
+   * gets record from chpater_links table by QRCode link
+   * @param link -Qrlink
+   */
+  getChapterIdbyQrLink(link: string): Promise<TableTypes<"chapter_links"> | undefined>;
 }

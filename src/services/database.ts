@@ -1653,6 +1653,71 @@ export type Database = {
           },
         ]
       }
+      chapter_links: {
+        Row: {
+          id: string
+          created_at: string
+          chapter_id: string | null
+          link: string | null
+          curriculum_id: string | null
+          course_id: string
+          grade_id: string | null
+          updated_at: string | null
+          is_deleted: boolean | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          chapter_id?: string | null
+          link?: string | null
+          curriculum_id?: string | null
+          course_id?: string
+          grade_id?: string | null
+          updated_at?: string | null
+          is_deleted?: boolean | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          chapter_id?: string | null
+          link?: string | null
+          curriculum_id?: string | null
+          course_id?: string
+          grade_id?: string | null
+          updated_at?: string | null
+          is_deleted?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chapter_links_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapter"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chapter_links_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chapter_links_curriculum_id_fkey"
+            columns: ["curriculum_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chapter_links_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "grade"
+            referencedColumns: ["id"]
+    },
+  ]
+}
     }
     Views: {
       get_leaderboard_generic_data: {

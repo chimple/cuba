@@ -1923,4 +1923,7 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
+  async getChapterIdbyQrLink(link: string): Promise<TableTypes<"chapter_links"> | undefined> {
+      throw new Error("Method not implemented.");
+  }
 }
