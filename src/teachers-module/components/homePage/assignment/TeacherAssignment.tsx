@@ -436,18 +436,18 @@ const processScannedData = async (scannedText: string) => {
 
     const result = await api.getChapterIdbyQrLink(processedText);
     if (!result?.chapter_id) {
-      Toast.show({ text: "Chapter Not Found" });
+      Toast.show({ text: t("Chapter Not Found") });
       return;
     }
     const lessonList = await api.getLessonsForChapter(result?.chapter_id);
     if (!lessonList || lessonList.length < 1) {
-      Toast.show({ text: "No lessons found for this chapter" });
+      Toast.show({ text: t("No lessons found for this chapter") });
       return;
     }
     // Get course info for this chapter
     const course = await api.getCourse(result.course_id);
     if (!course) {
-      Toast.show({ text: "Course not found for this chapter" });
+      Toast.show({ text: t("Course not found for this chapter") });
       return;
     }
     const current_class = await Util.getCurrentClass();
@@ -491,7 +491,7 @@ const processScannedData = async (scannedText: string) => {
 
     await init();
   } catch (error) {
-    Toast.show({ text: "Something Went wrong." });
+    Toast.show({ text: t("Something Went wrong") });
     console.error("Error processing scanned data:", error);
   }
 };
