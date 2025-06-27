@@ -452,15 +452,43 @@ const processScannedData = async (scannedText: string) => {
     }
     const current_class = await Util.getCurrentClass();
     const classId = current_class?.id ?? "";
-    const chapterLessonsMap = new Map<string, string[]>();
-    chapterLessonsMap.set(result.chapter_id, lessonList.map((l: any) => l.id));
-    const classSelectedLesson = new Map<string, string>();
+    // 1. Get previous assignment cart
+    let previous_sync_lesson = currentUser?.id
+      ? await api.getUserAssignmentCart(currentUser?.id)
+      : null;
+      
+      let classSelectedLesson: Map<string, string>;
+      if (previous_sync_lesson?.lessons) {
+        classSelectedLesson = new Map(
+          Object.entries(JSON.parse(previous_sync_lesson.lessons))
+        );
+      } else {
+        classSelectedLesson = new Map();
+      }
+      
+      // 2. Merge new lessons for this chapter into the class's lessons
+      let chapterLessonsMap: Map<string, string[]>;
+      if (classSelectedLesson.has(classId)) {
+      chapterLessonsMap = new Map(
+        Object.entries(JSON.parse(classSelectedLesson.get(classId) || "{}"))
+      );
+    } else {
+      chapterLessonsMap = new Map();
+    }
+    
+    // Add or merge lessons for the scanned chapter
+    const newLessonIds = lessonList.map((l: any) => l.id);
+    const prevLessonIds = chapterLessonsMap.get(result.chapter_id) || [];
+    // Merge and deduplicate
+    const mergedLessonIds = Array.from(new Set([...(prevLessonIds as string[]), ...newLessonIds]));
+    chapterLessonsMap.set(result.chapter_id, mergedLessonIds);
+    
+    // Update the classSelectedLesson map
     classSelectedLesson.set(classId, JSON.stringify(Object.fromEntries(chapterLessonsMap)));
     const lessonsJson = JSON.stringify(Object.fromEntries(classSelectedLesson));
+    
     await api.createOrUpdateAssignmentCart(currentUser?.id!, lessonsJson);
 
-    // After updating the database, reload assignments from backend to update UI
-    setManualAssignments({});
     await init();
   } catch (error) {
     Toast.show({ text: "Something Went wrong." });
