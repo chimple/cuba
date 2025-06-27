@@ -4737,7 +4737,7 @@ order by
     if (!link) return;
     try {
       const res = await this._db?.query(
-        `SELECT * FROM ${TABLES.ChapterLinks} WHERE link = ?;`,
+        `SELECT * FROM ${TABLES.ChapterLinks} WHERE link = ? AND is_deleted = 0 LIMIT 1;`,
         [link]
       );
 
