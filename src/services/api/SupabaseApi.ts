@@ -253,8 +253,7 @@ export class SupabaseApi implements ServiceApi {
     tableNames: TABLES[] = Object.values(TABLES),
     refreshTables: TABLES[] = []
   ): Promise<boolean> {
-    // No operation performed
-    return Promise.resolve(true);
+    throw new Error("Method not implemented.");
   }
   public static i: SupabaseApi;
   public supabase: SupabaseClient<Database> | undefined;
@@ -303,7 +302,7 @@ export class SupabaseApi implements ServiceApi {
             .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-        []
+          []
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -6337,7 +6336,9 @@ export class SupabaseApi implements ServiceApi {
     return !!(data && data.length > 0);
   }
 
-  async getManagersAndCoordinators(): Promise<{ user: any; role: string }[]> {
+  async getManagersAndCoordinators(): Promise<
+    { user: TableTypes<"user">; role: string }[]
+  > {
     if (!this.supabase) {
       console.error("Supabase client not initialized.");
       return [];
@@ -6419,7 +6420,7 @@ export class SupabaseApi implements ServiceApi {
         .map((c) => ({
           user: c.user!,
           role: c.role!,
-        })) as { user: any; role: string }[];
+        })) as { user: TableTypes<"user">; role: string }[];
     }
   }
 
@@ -6567,7 +6568,12 @@ export class SupabaseApi implements ServiceApi {
         .from("special_users")
         .select("role")
         .eq("user_id", userId)
-        .in("role", ["super_admin", "operational_director", "program_manager"])
+        .in("role", [
+          "super_admin",
+          "operational_director",
+          "program_manager",
+          "field_coordinator",
+        ])
         .eq("is_deleted", false)
         .limit(1)
         .single();

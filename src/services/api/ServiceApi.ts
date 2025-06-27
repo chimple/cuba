@@ -1688,7 +1688,9 @@ export interface ServiceApi {
    *   Promise resolving to an array of objects, each containing the user's name and their role
    *   (e.g., "Program Manager", "Field Coordinator").
    */
-  getManagersAndCoordinators(): Promise<{ user: any; role: string }[]>;
+  getManagersAndCoordinators(): Promise<
+    { user: TableTypes<"user">; role: string }[]
+  >;
 
   /**
    * Count total and active students, total and active teachers, and average time spent for a given school.

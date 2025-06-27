@@ -1244,7 +1244,7 @@ export class ApiHandler implements ServiceApi {
   }
 
   public async getManagersAndCoordinators(): Promise<
-    { user: any; role: string }[]
+    { user: TableTypes<"user">; role: string }[]
   > {
     return await this.s.getManagersAndCoordinators();
   }

@@ -2079,7 +2079,7 @@ export class FirebaseApi implements ServiceApi {
 
   public async getManagersAndCoordinators(
     userId: string
-  ): Promise<{ user: any; role: string }[]> {
+  ): Promise<{ user: TableTypes<"user">; role: string }[]> {
     throw new Error("Method not implemented.");
   }
 

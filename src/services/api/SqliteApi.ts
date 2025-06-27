@@ -5302,7 +5302,9 @@ order by
     return await this._serverApi.program_activity_stats(programId);
   }
 
-  async getManagersAndCoordinators(): Promise<{ user: any; role: string }[]> {
+  async getManagersAndCoordinators(): Promise<
+    { user: TableTypes<"user">; role: string }[]
+  > {
     return await this._serverApi.getManagersAndCoordinators();
   }
 
