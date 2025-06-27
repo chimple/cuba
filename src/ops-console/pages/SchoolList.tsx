@@ -191,7 +191,7 @@ const SchoolList: React.FC = () => {
       <div className="school-list-main-container">
         <div className="school-list-page-header">
           <span className="school-list-page-header-title">{t("Schools")}</span>
-          <IconButton className="bell-icon">
+          <IconButton className="school-list-bell-icon">
             <BsFillBellFill />
           </IconButton>
         </div>

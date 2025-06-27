@@ -115,7 +115,7 @@
     font-size: 24px;
     font-weight: 600;
   }
-  .school-list-page-header .bell-icon {
+  .school-list-page-header .school-list-bell-icon {
     margin-left: auto;
     position: relative;
     pointer-events: auto;
@@ -146,7 +146,7 @@
     box-sizing: border-box;
   }
 }
-.bell-icon {
+.school-list-bell-icon {
   color: black !important;
 }
 .school-list-upload-text {
