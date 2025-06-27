@@ -18,6 +18,11 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
       if (!currentStudent || !currentStudent.learning_path) return;
 
       const learningPath = JSON.parse(currentStudent.learning_path);
+      console.log(
+        "const learningPath = JSON.parse(currentStudent.learning_path);",
+        learningPath
+      );
+
       const currentCourseIndex = learningPath?.courses.currentCourseIndex;
       const course = learningPath?.courses.courseList[currentCourseIndex];
       const { currentIndex } = course;

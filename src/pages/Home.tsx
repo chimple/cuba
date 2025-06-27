@@ -553,6 +553,12 @@ const Home: FC = () => {
         // }
         break;
       case HOMEHEADERLIST.PROFILE:
+        console.log(
+          "is respect ",
+          Util.isRespectMode,
+          Util.isRespectMode ? PAGES.DISPLAY_STUDENT : PAGES.LEADERBOARD
+        );
+
         Util.setPathToBackButton(
           Util.isRespectMode ? PAGES.DISPLAY_STUDENT : PAGES.LEADERBOARD,
           history

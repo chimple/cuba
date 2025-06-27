@@ -791,11 +791,29 @@ export class OneRosterApi implements ServiceApi {
   getClassByUserId(userId: string): Promise<TableTypes<"class"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  getCoursesForPathway(studentId: string): Promise<TableTypes<"course">[]> {
-    throw new Error("Method not implemented.");
+  async getCoursesForPathway(studentId: string): Promise<TableTypes<"course">[]> {
+    return await this.getAllCourses();
+    // throw new Error("Method not implemented.");
   }
-  updateLearningPath(student: TableTypes<"user">, learning_path: string): Promise<TableTypes<"user">> {
-    throw new Error("Method not implemented.");
+  async updateLearningPath(student: TableTypes<"user">, learning_path: string): Promise<TableTypes<"user">> {
+    try {
+      let current_user = await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (current_user) {
+        current_user.learning_path = learning_path
+      }
+      // const updateUserQuery = `UPDATE ${TABLES.User}
+      // SET learning_path = ?
+      // WHERE id = ?;`;
+      // await this.executeQuery(updateUserQuery, [learningPath, student.id]);
+      // student.learning_path = learningPath;
+      // this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      //   id: student.id,
+      //   learning_path: learningPath,
+      // });
+    } catch (error) {
+      console.error("Error updating learning path:", error);
+    }
+    return student;
   }
   updateStudentStars(studentId: string, totalStars: number): Promise<void> {
     throw new Error("Method not implemented.");

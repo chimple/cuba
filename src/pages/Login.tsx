@@ -109,6 +109,7 @@ const Login: React.FC = () => {
     // init();
     setIsLoading(true);
     setIsInvalidCode(verificationCodeMessageFlags);
+    console.log("Login Util.isRespectMode ", Util.isRespectMode);
 
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
@@ -632,7 +633,7 @@ const Login: React.FC = () => {
                   isOpen={spinnerLoading}
                 />
 
-                {!isRespectApp ? (
+                {!Util.isRespectMode ? (
                   <>
                     <div id="Google-horizontal-line-main-container">
                       <div id="Google-horizontal-line"></div>
@@ -668,8 +669,10 @@ const Login: React.FC = () => {
                             setIsLoading(true);
                             setIsInitialLoading(true);
                             console.log("isLoading ", isLoading);
-                            const _authHandler = ServiceConfig.getI().authHandler;
-                            const result: boolean = await _authHandler.googleSign();
+                            const _authHandler =
+                              ServiceConfig.getI().authHandler;
+                            const result: boolean =
+                              await _authHandler.googleSign();
                             console.log(
                               "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
                               result
@@ -748,8 +751,10 @@ const Login: React.FC = () => {
                             setIsLoading(true);
                             setIsInitialLoading(true);
                             console.log("isLoading ", isLoading);
-                            const _authHandler = ServiceConfig.getI().authHandler;
-                            const result: boolean = await _authHandler.googleSign();
+                            const _authHandler =
+                              ServiceConfig.getI().authHandler;
+                            const result: boolean =
+                              await _authHandler.googleSign();
                             console.log(
                               "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
                               result
@@ -784,7 +789,10 @@ const Login: React.FC = () => {
                       />
                       <button
                         id="login-respect-icon"
-                        style={{ backgroundColor: 'transparent', border: 'none' }}
+                        style={{
+                          backgroundColor: "transparent",
+                          border: "none",
+                        }}
                         onClick={async () => {
                           if (!online) {
                             // presentToast({
@@ -835,7 +843,7 @@ const Login: React.FC = () => {
                         <img
                           src="assets/icons/respect-logo.png"
                           alt="Respect Logo"
-                          style={{ width: '10vw', height: '4vw' }}
+                          style={{ width: "10vw", height: "4vw" }}
                         />
                       </button>
                       {!showVerification ? (

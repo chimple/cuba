@@ -2,6 +2,7 @@ import { Util } from "../utility/util";
 import { EVENTS, PAGES } from "../common/constants";
 import { RoleType } from "../interface/modelInterfaces";
 import { SupabaseAuth } from "../services/auth/SupabaseAuth";
+import { ServiceConfig } from "../services/ServiceConfig";
 
 const storedStudent: {
   id?: string;
@@ -11,7 +12,7 @@ const storedStudent: {
 } = {};
 
 const handleClick = async (event: MouseEvent) => {
-  const student = await SupabaseAuth.i.getCurrentUser();
+  const student = await ServiceConfig.getI().authHandler.getCurrentUser()
   storedStudent.id = student?.id || storedStudent.id || "null";
   storedStudent.name = student?.name || storedStudent.name || "null";
   storedStudent.gender = student?.gender || storedStudent.gender || "null";

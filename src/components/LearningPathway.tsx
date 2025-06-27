@@ -75,6 +75,7 @@ const LearningPathway: React.FC = () => {
       let learningPath = student.learning_path
         ? JSON.parse(student.learning_path)
         : null;
+      console.log("let learningPath = student.learning_path ", learningPath);
 
       if (!learningPath || !learningPath.courses?.courseList?.length) {
         setLoading(true);
@@ -96,6 +97,11 @@ const LearningPathway: React.FC = () => {
   };
 
   const buildInitialLearningPath = async (courses: any[]) => {
+    console.log(
+      "const buildInitialLearningPath = async (courses: any[]) => { ",
+      courses
+    );
+
     const courseList = await Promise.all(
       courses.map(async (course) => ({
         path_id: uuidv4(),
@@ -108,6 +114,13 @@ const LearningPathway: React.FC = () => {
       }))
     );
 
+    console.log(
+      "const buildInitialLearningPath = async (courses: any[]) => { after ",
+      {
+        courseList,
+        currentCourseIndex: 0,
+      }
+    );
     return {
       courses: {
         courseList,
@@ -116,50 +129,59 @@ const LearningPathway: React.FC = () => {
     };
   };
 
-const updateLearningPathIfNeeded = async (
-  learningPath: any,
-  userCourses: any[]
-) => {
-  const oldCourseList = learningPath.courses?.courseList || [];
+  const updateLearningPathIfNeeded = async (
+    learningPath: any,
+    userCourses: any[]
+  ) => {
+    const oldCourseList = learningPath.courses?.courseList || [];
 
-  // Check if lengths and course IDs/order match
-  const isSameLengthAndOrder =
-    oldCourseList.length === userCourses.length &&
-    userCourses.every(
-      (course, index) => course.id === oldCourseList[index]?.course_id
-    );
+    // Check if lengths and course IDs/order match
+    const isSameLengthAndOrder =
+      oldCourseList.length === userCourses.length &&
+      userCourses.every(
+        (course, index) => course.id === oldCourseList[index]?.course_id
+      );
 
-  // Check if any course is missing path_id
-  const isPathIdMissing = oldCourseList.some((course) => !course.path_id);
+    // Check if any course is missing path_id
+    const isPathIdMissing = oldCourseList.some((course) => !course.path_id);
 
-  if (isSameLengthAndOrder && !isPathIdMissing) {
-    return false; // No need to rebuild
-  }
+    if (isSameLengthAndOrder && !isPathIdMissing) {
+      return false; // No need to rebuild
+    }
 
-  // If path_id is missing or courses mismatch, rebuild everything
-  const newLearningPath = await buildInitialLearningPath(userCourses);
-  learningPath.courses.courseList = newLearningPath.courses.courseList;
+    // If path_id is missing or courses mismatch, rebuild everything
+    const newLearningPath = await buildInitialLearningPath(userCourses);
+    learningPath.courses.courseList = newLearningPath.courses.courseList;
 
-  // Dispatch event to notify that course has changed
-  const event = new CustomEvent("courseChanged", {
-    detail: { currentStudent },
-  });
-  window.dispatchEvent(event);
+    // Dispatch event to notify that course has changed
+    const event = new CustomEvent("courseChanged", {
+      detail: { currentStudent },
+    });
+    window.dispatchEvent(event);
 
-  return true;
-};
+    return true;
+  };
 
   const buildLessonPath = async (courseId: string) => {
     const chapters = await api.getChaptersForCourse(courseId);
+    console.log(
+      "const buildLessonPath = async (courseId: string) => { ",
+      chapters
+    );
+
     const lessons = await Promise.all(
       chapters.map(async (chapter) => {
         const lessons = await api.getLessonsForChapter(chapter.id);
+        console.log("const lessons ", lessons);
+
         return lessons.map((lesson: any) => ({
           lesson_id: lesson.id,
           chapter_id: chapter.id,
         }));
       })
     );
+    console.log("return lessons.flat(); ", lessons.flat());
+
     return lessons.flat();
   };
 
@@ -171,7 +193,8 @@ const updateLearningPathIfNeeded = async (
       undefined
     );
 
-    const currentCourse = path.courses.courseList[path.courses.currentCourseIndex];
+    const currentCourse =
+      path.courses.courseList[path.courses.currentCourseIndex];
     const currentPath = currentCourse.path;
 
     const LessonSlice = currentPath.slice(
@@ -182,13 +205,9 @@ const updateLearningPathIfNeeded = async (
     // Extract lesson IDs
     const LessonIds = LessonSlice.map((item: any) => item.lesson_id);
 
-
     const eventData = {
       user_id: student.id,
-      path_id:
-          path.courses.courseList[
-            path.courses.currentCourseIndex
-          ].path_id, 
+      path_id: path.courses.courseList[path.courses.currentCourseIndex].path_id,
       current_course_id:
         path.courses.courseList[path.courses.currentCourseIndex].course_id,
       current_lesson_id:

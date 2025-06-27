@@ -307,38 +307,40 @@ const Parent: React.FC = () => {
             <ParentLogout />
           </div>
           <div id="parent_logout-btn">
-            <DeleteParentAccount />
+            {!Util.isRespectMode && <DeleteParentAccount />}
           </div>
           <div className="parent-teachermode-toggle">
-            <ToggleButton
-              title={"Switch to Teacher's Mode"}
-              layout="vertical"
-              onIonChangeClick={async () => {
-                if (localSchool && localClass) {
-                  schoolUtil.setCurrMode(MODES.TEACHER);
-                  history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
-                } else if (schools && schools.length > 0) {
-                  if (schools?.length === 1) {
-                    Util.setCurrentSchool(schools[0].school, schools[0].role);
-                    const tempClasses = await api.getClassesForSchool(
-                      schools[0].school.id,
-                      currentUser?.id!
-                    );
-                    if (tempClasses.length > 0) {
-                      Util.setCurrentClass(tempClasses[0]);
+            {!Util.isRespectMode && (
+              <ToggleButton
+                title={"Switch to Teacher's Mode"}
+                layout="vertical"
+                onIonChangeClick={async () => {
+                  if (localSchool && localClass) {
+                    schoolUtil.setCurrMode(MODES.TEACHER);
+                    history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+                  } else if (schools && schools.length > 0) {
+                    if (schools?.length === 1) {
+                      Util.setCurrentSchool(schools[0].school, schools[0].role);
+                      const tempClasses = await api.getClassesForSchool(
+                        schools[0].school.id,
+                        currentUser?.id!
+                      );
+                      if (tempClasses.length > 0) {
+                        Util.setCurrentClass(tempClasses[0]);
+                        schoolUtil.setCurrMode(MODES.TEACHER);
+                        history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+                      }
+                    } else {
                       schoolUtil.setCurrMode(MODES.TEACHER);
-                      history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+                      history.replace(PAGES.DISPLAY_SCHOOLS);
                     }
                   } else {
                     schoolUtil.setCurrMode(MODES.TEACHER);
                     history.replace(PAGES.DISPLAY_SCHOOLS);
                   }
-                } else {
-                  schoolUtil.setCurrMode(MODES.TEACHER);
-                  history.replace(PAGES.DISPLAY_SCHOOLS);
-                }
-              }}
-            />
+                }}
+              />
+            )}
           </div>
         </div>
       </div>

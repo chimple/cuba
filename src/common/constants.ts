@@ -335,32 +335,32 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
     ],
   ]);
 
-if (!Util.isRespectMode) {
-  HEADER_ICON_CONFIGS.set(
-    HOMEHEADERLIST.ASSIGNMENT,
-    {
-      displayName: "Home work",
-      iconSrc: "/assets/icons/homework_icon.svg",
-      headerList: HOMEHEADERLIST.ASSIGNMENT,
-    },
-  )
-  DEFAULT_HEADER_ICON_CONFIGS.set(
-    HOMEHEADERLIST.ASSIGNMENT,
-    {
-      displayName: "Home work",
-      iconSrc: "/assets/icons/homework_icon.svg",
-      headerList: HOMEHEADERLIST.ASSIGNMENT,
-    },
-  )
-  ACTIVE_HEADER_ICON_CONFIGS.set(
-    HOMEHEADERLIST.ASSIGNMENT,
-    {
-      displayName: "Homework",
-      iconSrc: "/assets/icons/HomeworkIconActive.svg",
-      headerList: HOMEHEADERLIST.ASSIGNMENT,
-    },
-  )
-}
+// if (!Util.isRespectMode) {
+//   HEADER_ICON_CONFIGS.set(
+//     HOMEHEADERLIST.ASSIGNMENT,
+//     {
+//       displayName: "Home work",
+//       iconSrc: "/assets/icons/homework_icon.svg",
+//       headerList: HOMEHEADERLIST.ASSIGNMENT,
+//     },
+//   )
+//   DEFAULT_HEADER_ICON_CONFIGS.set(
+//     HOMEHEADERLIST.ASSIGNMENT,
+//     {
+//       displayName: "Home work",
+//       iconSrc: "/assets/icons/homework_icon.svg",
+//       headerList: HOMEHEADERLIST.ASSIGNMENT,
+//     },
+//   )
+//   ACTIVE_HEADER_ICON_CONFIGS.set(
+//     HOMEHEADERLIST.ASSIGNMENT,
+//     {
+//       displayName: "Homework",
+//       iconSrc: "/assets/icons/HomeworkIconActive.svg",
+//       headerList: HOMEHEADERLIST.ASSIGNMENT,
+//     },
+//   )
+// }
 
 export const LESSON_CARD_COLORS = [
   "#FF7925",
@@ -656,7 +656,8 @@ export const NUMBER_NAME = [
 ];
 
 //Setting student max profile as 1 for OneRoaster
-export const MAX_STUDENTS_ALLOWED = Util.isRespectMode ? 1 : 3;
+// export const MAX_STUDENTS_ALLOWED = Util.isRespectMode ? 1 : 3;
+export const MAX_STUDENTS_ALLOWED = 1;
 export const INSTANT_SEARCH_INDEX_NAME =
   process.env.REACT_APP_ALGOLIA_INDEX_NAME ?? "";
 
