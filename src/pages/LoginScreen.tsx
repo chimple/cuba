@@ -129,10 +129,23 @@ const LoginScreen: React.FC = () => {
         }
         const authHandler = ServiceConfig.getI().authHandler;
         const isUserLoggedIn = await authHandler.isUserLoggedIn();
-        if (isUserLoggedIn) {
-          history.replace(PAGES.SELECT_MODE);
-          return;
-        }
+
+          if (isUserLoggedIn) {
+            const userRole = localStorage.getItem(USER_ROLE);
+            const isOpsRole = userRole === RoleType.SUPER_ADMIN || userRole === RoleType.OPERATIONAL_DIRECTOR;
+            const isProgramUser = await api.isProgramUser();
+
+            // If user is ops or program user, redirect to sidebar page
+            if (isOpsRole || isProgramUser) {
+              history.replace(PAGES.SIDEBAR_PAGE);
+              return;
+            }
+
+            // Otherwise go to select mode
+            history.replace(PAGES.SELECT_MODE);
+            return;
+          }
+
         if (Capacitor.isNativePlatform()) {
           document.addEventListener("visibilitychange", handleVisibilityChange);
         }
