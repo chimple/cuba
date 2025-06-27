@@ -20,7 +20,7 @@ const AssigmentCount: React.FC<AssigmentCountProps> = ({
         </div>
         <div className="assignment-count-next-button">
           {t("Next")}
-          <NavigateNextOutlinedIcon />
+          <img src="assets/icons/arrowRightWhite.png" alt="Arrow_sign" />
         </div>
       </div>
     </div>

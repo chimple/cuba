@@ -2,6 +2,7 @@ import React from "react";
 import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
 import "./imageDropdown.css";
 import {ALL_SUBJECT} from '../../common/constants'
+import { t } from "i18next";
 
 interface DropdownOption {
   id: string | number;
@@ -52,7 +53,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
   return (
     <div
       className="imageDropdown-container"
-      style={{ borderBottom: isDownBorder ? "0px" : "none" }}
+      // style={{ borderBottom: isDownBorder ? "0px" : "none" }}
     >
       <Select
         value={selectedValue?.id || ""}
@@ -80,12 +81,12 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
         }}
         renderValue={(value) =>
           selectedValue?.id ? (
-            <div className="selected-value">
+            <div className="selectedImageDropdown-value">
               {selectedValue.icon && (
                 <img
                   src={selectedValue.icon}
                   alt={selectedValue.name}
-                  className="dropdown-icon"
+                  className="imageDropdown-icon"
                 />
               )}
               <span>{selectedValue.name}</span>
@@ -95,9 +96,9 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
               <img
                 src={options[0]?.icon || ""}
                 alt="placeholder-icon"
-                className="dropdown-icon"
+                className="imageDropdown-icon"
               />
-              <span>{placeholder}</span>
+              <span>{t(placeholder)}</span>
             </div>
           )
         }
@@ -114,23 +115,29 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
         }}
       >
         {options.map((option) => (
-          <MenuItem key={option.id} value={option.id} disabled={option.disabled} className="menu-item-in-image-dropdown">
-            {option.icon && (
-              <img
-                src={option.icon}
-                alt={option.name}
-                className="dropdown-icon"
-              />
-            )}
-            <div className="dropdown-text">
-              <span className="subject-text">
-                {splitText(option.name, option.subjectDetail).subject}
-              </span>
-              <span className="grade-text">
-                {splitText(option.name, option.subjectDetail).grade}
-              </span>
-            </div>
-          </MenuItem>
+          <MenuItem
+    key={option.id}
+    value={option.id} disabled={option.disabled}
+    className="menu-item-in-image-dropdown"
+  >
+    <div className="image-drop-content">
+      {option.icon && (
+        <img
+          src={option.icon}
+          alt={option.name}
+          className="imageDropdown-icon"
+        />
+      )}
+      <div className="dropdown-text">
+        <span className="imgDropsubject-text">
+          {splitText(option.name, option.subjectDetail).subject}
+        </span>
+        <span className="grade-text">
+          {splitText(option.name, option.subjectDetail).grade}
+        </span>
+      </div>
+    </div>
+  </MenuItem>
         ))}
       </Select>
     </div>

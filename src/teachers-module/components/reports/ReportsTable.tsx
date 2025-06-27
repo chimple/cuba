@@ -23,8 +23,6 @@ import CustomDropdown from "../CustomDropdown";
 import { blue } from "@mui/material/colors";
 import { useHistory } from "react-router";
 import ImageDropdown from "../imageDropdown";
-// Make sure this import exists
-// import { AssignmentHeader } from '../../../components/DashboardTable/TableRightHeader';
 
 interface ReportTableProps {
   handleButtonClick;
@@ -542,54 +540,71 @@ if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
     ) : (
       <div className="table-container ">
         <div className="reports-dropdown">
-          <div className="type-dropdown">
-            <CustomDropdown
-              options={Object.entries(TABLEDROPDOWN).map(([key, value]) => ({
-                id: key,
-                name: value,
-                disabled: selectedSubject?.id === ALL_SUBJECT.id && value === TABLEDROPDOWN.CHAPTER,
-              }))}
-              onOptionSelect={handleTypeSelect}
-              placeholder={t(selectedType)??""}
-              selectedValue={{
-                id: selectedType,
-                name: selectedType,
-              }}
-            />
-          </div>
+  <div className="type-dropdown">
+    <CustomDropdown
+      options={Object.entries(TABLEDROPDOWN).map(([key, value]) => ({
+        id: key,
+        name: value,
+        disabled: selectedSubject?.id === ALL_SUBJECT.id && value === TABLEDROPDOWN.CHAPTER,
+      }))}
+      onOptionSelect={handleTypeSelect}
+      placeholder={t(selectedType) ?? ""}
+      selectedValue={{
+        id: selectedType,
+        name: selectedType,
+      }}
+    />
+  </div>
 
-          <div>
-          
-            <ImageDropdown
-            options={subjectOptionsWithAll}
-            selectedValue={{
-              id: selectedSubject?.id ?? "",
-              name: selectedSubject?.name ?? "",
-              icon:
-                (selectedSubject as any)?.icon ??
-                subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.icon ??
-                "",
-              subjectDetail:
-                (selectedSubject as any)?.subject ??
-                subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.subjectDetail ??
-                "",
-             }}
-            onOptionSelect={handleSelectSubject}
-            placeholder={t("Select Language") as string}
-            />
+  {selectedType === TABLEDROPDOWN.CHAPTER ? (
+    <div style={{width: '45%'}} className="chapter-type-row"> {/* ✅ Only for CHAPTER */}
+      <ImageDropdown
+          options={subjectOptionsWithAll}
+          selectedValue={{
+            id: selectedSubject?.id ?? "",
+            name: selectedSubject?.name ?? "",
+            icon:
+              (selectedSubject as any)?.icon ??
+              subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.icon ??
+              "",
+            subjectDetail:
+              (selectedSubject as any)?.subject ??
+              subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.subjectDetail ??
+              "",
+          }}
+          onOptionSelect={handleSelectSubject}
+          placeholder={t("Select Language") as string}
+        />
 
-            {selectedType == TABLEDROPDOWN.CHAPTER ? (
-              <CustomDropdown
-                options={mappedChaptersOptions ?? []}
-                onOptionSelect={handleSelectChapter}
-                selectedValue={{
-                  id: selectedChapter?.id ?? "",
-                  name: selectedChapter?.name ?? "",
-                }}
-              />
-            ) : null}
-          </div>
-        </div>
+      <CustomDropdown
+        options={mappedChaptersOptions ?? []}
+        onOptionSelect={handleSelectChapter}
+        selectedValue={{
+          id: selectedChapter?.id ?? "",
+          name: selectedChapter?.name ?? "",
+        }}
+      />
+    </div>
+  ) : (
+    <ImageDropdown
+          options={subjectOptionsWithAll}
+          selectedValue={{
+            id: selectedSubject?.id ?? "",
+            name: selectedSubject?.name ?? "",
+            icon:
+              (selectedSubject as any)?.icon ??
+              subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.icon ??
+              "",
+            subjectDetail:
+              (selectedSubject as any)?.subject ??
+              subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.subjectDetail ??
+              "",
+          }}
+          onOptionSelect={handleSelectSubject}
+          placeholder={t("Select Language") as string}
+        />
+  )}
+</div>
         <div className="table-container-body">
           <div
             className="table"
@@ -616,7 +631,7 @@ if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
 
                   <TableRightHeader 
                     headerDetails={headerData}
-                  />
+                  dateRangeValue={dateRange} />
                 </tr>
               </thead>
               <tbody>

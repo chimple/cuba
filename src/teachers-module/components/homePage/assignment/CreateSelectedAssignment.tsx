@@ -476,13 +476,13 @@ const CreateSelectedAssignment = ({
       <div>
         <p id="create-assignment-heading">{t("Assignments")}</p>
         <section className="assignments-dates">
-          <p>
+          <span style={{color: "#4A4949", fontSize: "11px"}}>
             <Trans i18nKey="assignments_date_message" />
-          </p>
+          </span>
           <div className="date-created-assignment">
             <div>
               <b>{t("Start Date")}</b>
-              <div className="date-input">
+              <div className="createselectAssignmentDate-input">
                 {showStartDatePicker ? (
                   <CalendarPicker
                     value={startDate}
@@ -493,13 +493,13 @@ const CreateSelectedAssignment = ({
                     maxDate={maxEndDate}
                   />
                 ) : (
-                  <p
+                  <span
                     onClick={() => {
                       setShowStartDatePicker(true);
                     }}
                   >
                     {startDate}
-                  </p>
+                  </span>
                 )}
                 <IonIcon icon={calendarOutline} size={"2vw"} />
               </div>
@@ -507,7 +507,7 @@ const CreateSelectedAssignment = ({
             <div className="vertical-line"></div>
             <div>
               <b>{t("End Date")}</b>
-              <div className="date-input">
+              <div className="createselectAssignmentDate-input">
                 {showEndDatePicker ? (
                   <CalendarPicker
                     value={endDate}
@@ -525,13 +525,13 @@ const CreateSelectedAssignment = ({
                     startDate={startDate}
                   />
                 ) : (
-                  <p
+                  <span
                     onClick={() => {
                       setShowEndDatePicker(true);
                     }}
                   >
                     {endDate}
-                  </p>
+                  </span>
                 )}
                 <IonIcon icon={calendarOutline} />
               </div>
@@ -562,21 +562,21 @@ const CreateSelectedAssignment = ({
               >
                 <h4>{groupWiseStudents[category].title}</h4>
                 <div className="select-all">
-                  <div>
+                  {/* <div>
                     {
                       groupWiseStudents[category].students.filter(
                         (student) => student.selected
                       ).length
                     }
                     /{groupWiseStudents[category].students.length}
-                  </div>
-                  <IonIcon
-                    icon={
-                      groupWiseStudents[category].isCollapsed
-                        ? chevronDownOutline
-                        : chevronUpOutline
-                    }
-                  />
+                  </div> */}
+                  <img
+                  src={
+                  groupWiseStudents[category].isCollapsed
+                  ? "assets/icons/iconDown.png"
+                  : "assets/icons/iconUp.png"
+                  }
+                  alt="toggle-icon" style={{ width: "15px", height: "15px" }} />
                   <input
                     className="select-all-checkbox"
                     type="checkbox"

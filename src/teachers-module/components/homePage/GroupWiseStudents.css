@@ -20,9 +20,9 @@
   display: flex;
   align-items: center;
   flex: 1;
-  color: #7B7676;
+  color: #707070;
   min-height: 20px;
-  font-size: 2vh;
+  font-size: 1.9vh;
 }
 
 .group-wise-content {
@@ -48,17 +48,17 @@
   width: auto;  
   height: 45px; 
   border-radius: 50%;
-  border: 2px solid #ddd;
+  border: 1px solid #707070;
   aspect-ratio: 1;
 }
 
 .avatar-name {
-  color: #333;
+  color: #707070;
   width: 100%; 
   white-space: nowrap; 
   overflow: hidden;
   text-overflow: ellipsis; 
-  font-size: 1.8vh;
+  font-size: 1.9vh;
 }
 
 .avatars-wrapper {
