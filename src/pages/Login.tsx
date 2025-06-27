@@ -576,7 +576,13 @@ const Login: React.FC = () => {
       if (result) {
         setIsLoading(true);
         setIsInitialLoading(true);
-        history.replace(PAGES.SELECT_MODE);
+        const storedUser = localStorage.getItem(USER_DATA);
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          const userSchools = await getSchoolsForUser(user);
+          await redirectUser(user, userSchools);
+          localStorage.setItem(CURRENT_USER, JSON.stringify(result));
+        }
       } else {
         setEmailClick(true);
         setError(true);
