@@ -26,6 +26,7 @@ const JoinClass: FC<{
   const scollToRef = useRef<null | HTMLDivElement>(null);
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+  const [fullName, setFullName] = useState("");
 
   const api = ServiceConfig.getI().apiHandler;
 
@@ -53,7 +54,7 @@ const JoinClass: FC<{
       return;
     } else {
       if (!!error) setError("");
-      if (!isNextButtonEnabled()) return;
+      // if (!isNextButtonEnabled()) return;
       setLoading(true);
       try {
         const result = await api.getDataByInviteCode(
@@ -65,7 +66,7 @@ const JoinClass: FC<{
         if (error instanceof Object) {
           let eMsg: string =
             "Error: Invalid inviteCode" === error.toString()
-              ? t("Invalid Code. Please contact your teacher")
+              ? t("Invalid code. Please check and Try again.")
               : error.toString();
           setError(eMsg);
         }
@@ -74,7 +75,7 @@ const JoinClass: FC<{
     }
   };
   const onJoin = async () => {
-    setShowDialogBox(false);
+    // setShowDialogBox(false);
     setLoading(true);
     const student = Util.getCurrentStudent();
     try {
@@ -112,7 +113,8 @@ const JoinClass: FC<{
   const location = useLocation();
 
   useEffect(() => {
-    //Util.isTextFieldFocus(scollToRef, setIsInputFocus);
+    const student = Util.getCurrentStudent();
+    setFullName(student?.name || "");
 
     const urlParams = new URLSearchParams(location.search);
     const joinClassParam = urlParams.get("join-class");
@@ -125,85 +127,107 @@ const JoinClass: FC<{
           : undefined;
       setInviteCode(tempClassCode);
       urlClassCode.inviteCode = tempClassCode;
-      if (classCode != "") {
+      if (classCode && classCode != "") {
         getClassData();
       }
     }
   }, []);
 
-  return (
-    <div className="join-class-main-header">
-      <div className="join-class-header" aria-label="Join Class Header">
-        {/* <div className="join-class-title">
-          {t("Enter the 6 digit code your teacher has given to join the class")}
-        </div> */}
-        <input
-          aria-label="Join Class Header"
-          onChange={(evt) => {
-            const inviteCode = evt.target.value.slice(0, 6);
-            if (!inviteCode) {
-              setInviteCode(undefined);
-              return;
-            }
-            if (!NUMBER_REGEX.test(inviteCode)) {
-              return;
-            }
+  useEffect(() => {
+    if (inviteCode && inviteCode.toString().length === 6) {
+      getClassData();
+    }
+  }, [inviteCode]);
 
-            setInviteCode(parseInt(inviteCode));
-          }}
-          className="join-class-text-box"
-          defaultValue={inviteCode ?? ""}
-          type="tel"
-          placeholder={t("Enter the class code to join the class") as string}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              getClassData();
-            }
-          }}
-          value={inviteCode ?? ""}
-          style={{ width: "63vw" }}
-        />
-        <p className={"error-text "}>{error}</p>
-        <button
-          className={
-            "okay-button " + (!isNextButtonEnabled() ? "disabled-btn" : "")
-          }
-          disabled={!isNextButtonEnabled()}
-          onClick={getClassData}
-        >
-          {t("Okay")}
-        </button>
-        {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
+  return (
+    <div className="join-class-container">
+      <h2>{t("Join a Class by entering the details below")}</h2>
+
+      <div className="join-class-input-wrapper">
+        <label className="join-class-input-label">
+          {t("Full Name")}<span className="join-class-required">*</span>
+        </label>
+        <div className="join-class-input-box">
+          <div className="join-class-icon-area">
+            <img src="assets/icons/BusinessCard.svg" alt="ID icon" />
+          </div>
+          <div className="join-class-divider" />
+          <input
+            type="text"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            readOnly={fullName !== ""}
+            className="join-class-text-input"
+            placeholder={t("Enter the child’s full name")??""}
+          />
+          <div className="join-class-status">
+            <img
+              src={
+                fullName && (fullName.length >= 3 || fullName !== "")
+                  ? "assets/icons/CheckIcon.svg"
+                  : "assets/icons/Vector.svg"
+              }
+              alt="Status icon"
+            />
+          </div>
+        </div>
       </div>
-      <Loading isLoading={loading} />
-      <DialogBoxButtons
-        width={"40vw"}
-        height={"30vh"}
-        message={
-          t("You are Joining ") +
-          (!!codeResult
-            ? t("School") +
-                ": " +
-                codeResult["school_name"] +
-                ", " +
-                t("Class") +
-                ": " +
-                codeResult["class_name"] ?? ""
-            : "")
+      <div className="join-class-input-wrapper">
+        <label className="join-class-input-label">
+          {t("Class Code")}<span className="join-class-required">*</span>
+        </label>
+        <div className="join-class-input-box">
+          <div className="join-class-icon-area">
+            <img src="assets/icons/OpenBook.svg" alt="ID icon" />
+          </div>
+          <div className="join-class-divider" />
+          <input
+            type="number"
+            value={inviteCode}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value.length <= 6) {
+                setInviteCode(parseInt(value));
+              }
+            }}
+            className="join-class-text-input"
+            placeholder={t("Enter the class code to join a class")??""}
+          />
+          <div className="join-class-status">
+            {codeResult && !error && inviteCode?.toString().length === 6 ? (
+              <img src="assets/icons/CheckIcon.svg" alt="Status icon" />
+            ) : error && error !== "" && inviteCode?.toString().length === 6 ? (
+              <img src="assets/icons/Vector.svg" alt="Status icon" />
+            ) : null}
+          </div>
+        </div>
+      </div>
+      <div className="join-class-message">
+        {codeResult &&
+        !error &&
+        error == "" &&
+        inviteCode?.toString().length === 6
+          ? `${t("School")}: ${codeResult["school_name"]}, ${t("Class")}: ${codeResult["class_name"]}`
+          : error && inviteCode?.toString().length === 6
+            ? error
+            : null}
+      </div>
+
+      <button
+        className="join-class-confirm-button"
+        onClick={onJoin}
+        disabled={
+          !(
+            codeResult &&
+            !error &&
+            error === "" &&
+            fullName.length >= 3 &&
+            inviteCode?.toString().length === 6
+          )
         }
-        showDialogBox={showDialogBox}
-        yesText={t("Cancel")}
-        noText={t("Enter the Class")}
-        handleClose={() => {
-          setShowDialogBox(false);
-        }}
-        onYesButtonClicked={() => {
-          setShowDialogBox(false);
-        }}
-        onNoButtonClicked={async () => {
-          await onJoin();
-        }}
-      />
+      >
+        <span className="join-class-confirm-text">{t("Confirm")}</span>
+      </button>
     </div>
   );
 };
