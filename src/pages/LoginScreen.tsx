@@ -133,6 +133,7 @@ const LoginScreen: React.FC = () => {
           history.replace(PAGES.SELECT_MODE);
           return;
         }
+
         if (Capacitor.isNativePlatform()) {
           document.addEventListener("visibilitychange", handleVisibilityChange);
         }
