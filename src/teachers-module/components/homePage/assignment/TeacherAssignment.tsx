@@ -13,6 +13,7 @@ import AssignmentNextButton from "./AssignmentNextButton";
 import { BarcodeScanner } from "@capacitor-community/barcode-scanner";
 import { App } from '@capacitor/app';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
+import Loading from "../../../../components/Loading";
 
 declare global {
   interface Window {
@@ -34,6 +35,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
   const [manualAssignments, setManualAssignments] = useState<any>({});
   const [recommendedAssignments, setRecommendedAssignments] = useState<any>({});
   const [currentUser, setCurrentuser] = useState<TableTypes<"user"> | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const [manualCollapsed, setManualCollapsed] = useState(false);
   const [recommendedCollapsed, setRecommendedCollapsed] = useState(true);
@@ -409,7 +411,13 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
 
   const startScan = async () => {
     // Prepare the scanner
-    await BarcodeScanner.checkPermission({ force: true });
+    setLoading(true);
+    const permission = await BarcodeScanner.checkPermission({ force: true });
+    setTimeout(() => setLoading(false), 100);
+    if (!permission.granted) {
+      Toast.show({ text: t("Camera permission denied. Please enable it in settings") });
+      return;
+    }
     await BarcodeScanner.hideBackground(); // Make background transparent
     document.querySelector("html")?.style.setProperty("display", "none");
 
@@ -496,6 +504,8 @@ const processScannedData = async (scannedText: string) => {
   }
 };
   return (
+    <>
+    {loading ? <Loading isLoading={loading}/>:
     <div className="teacher-assignments-page">
       <p id="assignment-page-heading">{t("Assignments")}</p>
       <div className="manual-assignments">
@@ -710,7 +720,8 @@ const processScannedData = async (scannedText: string) => {
           }
         }}
       />
-    </div>
+    </div>}
+    </>
   );
 };
 
