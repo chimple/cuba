@@ -43,17 +43,16 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
     },
     {
       label: "Model",
-      value: ((m) =>
-        (Array.isArray(m)
-          ? m
-          : (() => {
-              try {
-                return JSON.parse(m);
-              } catch {
-                return [m];
-              }
-            })()
-        )
+      value: (() => {
+        const raw = data.programData?.model;
+        if (!raw) return "";
+        let arr: string[] = [];
+        try {
+          arr = Array.isArray(raw) ? raw : JSON.parse(raw);
+        } catch {
+          return "";
+        }
+        return arr
           .map(
             (v: string) =>
               PROGRAM_TAB_LABELS?.[v.toLowerCase().replace(/ /g, "_")] ||
@@ -62,7 +61,8 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                 .replace(/_/g, " ")
                 .replace(/\b\w/g, (c) => c.toUpperCase())
           )
-          .join(", "))(data.programData?.model),
+          .join(", ");
+      })(),
     },
   ].filter((item) => item.value !== undefined && item.value !== null);
   const [programName, programType, model] = programDetailsItems;
