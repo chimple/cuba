@@ -891,43 +891,40 @@ export class OneRosterApi implements ServiceApi {
     chapterId: string
   ): Promise<TableTypes<"lesson">[]> {
     try {
-      const courseJson = await this.loadCourseJson(
-        this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0]
-      );
-      console.log(
-        "getLessonsForChapter data: ",
-        this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0],
-        courseJson.groups
-      );
-      const chapter = courseJson.groups.find(
-        (group: any) => group.metadata.id === chapterId
-      );
-      if (!chapter || !chapter.navigation) return [];
-
-      const lessons: TableTypes<"lesson">[] = chapter.navigation.map(
-        (lesson: any) => ({
-          cocos_chapter_code: lesson.cocosChapterCode,
-          cocos_lesson_id: lesson.cocosLessonCode,
-          cocos_subject_code: lesson.cocosSubjectCode,
-          color: lesson.color,
-          created_at: null,
-          created_by: null,
-          id: lesson.id,
-          image: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
-          is_deleted: null,
-          language_id: lesson.language,
-          name: lesson.title,
-          outcome: lesson.outcome || null,
-          plugin_type: lesson.pluginType,
-          status: lesson.status,
-          chapter_id: chapterId,
-          subject_id: lesson.subject,
-          target_age_from: lesson.targetAgeFrom || null,
-          target_age_to: lesson.targetAgeTo || null,
-        })
-      );
-
-      return lessons;
+      // Search all available courses for the chapter
+      for (const courseId of this.studentAvailableCourseIds) {
+        const courseJson = await this.loadCourseJson(courseId);
+        const chapter = courseJson.groups.find(
+          (group: any) => group.metadata.id === chapterId
+        );
+        if (chapter && chapter.navigation) {
+          const lessons: TableTypes<"lesson">[] = chapter.navigation.map(
+            (lesson: any) => ({
+              cocos_chapter_code: lesson.cocosChapterCode,
+              cocos_lesson_id: lesson.cocosLessonCode,
+              cocos_subject_code: lesson.cocosSubjectCode,
+              color: lesson.color,
+              created_at: null,
+              created_by: null,
+              id: lesson.id,
+              image: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
+              is_deleted: null,
+              language_id: lesson.language,
+              name: lesson.title,
+              outcome: lesson.outcome || null,
+              plugin_type: lesson.pluginType,
+              status: lesson.status,
+              chapter_id: chapterId,
+              subject_id: lesson.subject,
+              target_age_from: lesson.targetAgeFrom || null,
+              target_age_to: lesson.targetAgeTo || null,
+            })
+          );
+          return lessons;
+        }
+      }
+      // If not found in any course
+      return [];
     } catch (error) {
       console.error("Error in getLessonsForChapter:", error);
       return []; // Return empty array on error
