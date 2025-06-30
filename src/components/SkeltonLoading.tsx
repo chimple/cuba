@@ -76,6 +76,8 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
       return isLoading ? skeletonLiveQuizRoom() : null;
     case PAGES.STUDENT_PROGRESS:
       return isLoading ? skeletonStudentProgress() : null;
+    case PAGES.SCHOOL_LIST:
+      return isLoading ? skeletonSchoolList() : null;
     default:
       return isLoading ? skeltonSubjectCards() : null;
   }
@@ -265,6 +267,15 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
           <Skeleton className="skeleton-student-score" />
           <Skeleton className="skeleton-student-score" />
         </IonCol>
+      </div>
+    );
+  }
+  function skeletonSchoolList() {
+    return (
+      <div className="skeleton-school-list-wrapper">
+        {[...Array(10)].map((_, i) => (
+          <Skeleton key={i} className="skeleton-rectangle"></Skeleton>
+        ))}
       </div>
     );
   }

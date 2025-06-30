@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
-  Tabs,
-  Tab,
   Box,
-  Typography,
-  IconButton,
   Button,
+  IconButton,
+  Tab,
+  Tabs,
+  Typography,
   useMediaQuery,
 } from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
+import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
 import "./SchoolList.css";
 import DataTablePagination from "../components/DataTablePagination";
 import { IonPage } from "@ionic/react";
@@ -21,8 +21,9 @@ import FilterSlider from "../components/FilterSlider";
 import SelectedFilters from "../components/SelectedFilters";
 import FileUpload from "../components/FileUpload";
 import { useDataTableLogic } from "../OpsUtility/useDataTableLogic";
-import { Add } from "@mui/icons-material";
+import { Add, FileUploadOutlined } from "@mui/icons-material";
 import { BsFillBellFill } from "react-icons/bs";
+import SkeltonLoading from "../../components/SkeltonLoading";
 
 type Filters = Record<string, string[]>;
 
@@ -48,7 +49,10 @@ const SchoolList: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState(PROGRAM_TAB.ALL);
 
   const [schools, setSchools] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(false);
+
+  const isLoading = isFilterLoading || isDataLoading;
 
   const [showUploadPage, setShowUploadPage] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -60,7 +64,7 @@ const SchoolList: React.FC = () => {
   // Fetch filter options
   useEffect(() => {
     const fetchFilterOptions = async () => {
-      setIsLoading(true);
+      setIsFilterLoading(true);
       try {
         const data = await api.getSchoolFilterOptionsForSchoolListing();
         if (data) {
@@ -78,7 +82,7 @@ const SchoolList: React.FC = () => {
       } catch (error) {
         console.error("Failed to fetch filter options", error);
       } finally {
-        setIsLoading(false);
+        setIsFilterLoading(false);
       }
     };
 
@@ -89,7 +93,7 @@ const SchoolList: React.FC = () => {
     fetchData();
   }, [selectedTab, filters]);
   const fetchData = async () => {
-    setIsLoading(true);
+    setIsDataLoading(true);
     try {
       const tabModelFilter = { model: [selectedTab] };
       const cleanedFilters = Object.fromEntries(
@@ -130,7 +134,7 @@ const SchoolList: React.FC = () => {
     } catch (error) {
       console.error("Failed to fetch filtered schools:", error);
     } finally {
-      setIsLoading(false);
+      setIsDataLoading(false);
     }
   };
 
@@ -235,7 +239,7 @@ const SchoolList: React.FC = () => {
                   textTransform: "none",
                 }}
               >
-                <Add />
+                <FileUploadOutlined className="school-list-upload-icon" />
                 {!isSmallScreen && (
                   <span className="school-list-upload-text">{t("Upload")}</span>
                 )}
@@ -298,13 +302,15 @@ const SchoolList: React.FC = () => {
             filterConfigs={filterConfigsForSchool}
           />
         </div>
-        {isLoading ? (
-          <Loading isLoading={true} />
-        ) : filteredSchools.length === 0 ? (
+        {isLoading && (
+          <SkeltonLoading isLoading={isLoading} header={PAGES.SCHOOL_LIST} />
+        )}
+        {!isLoading && filteredSchools.length === 0 && (
           <Typography align="center" sx={{ mt: 4 }}>
             {t("No schools found.")}
           </Typography>
-        ) : (
+        )}
+        {!isLoading && filteredSchools.length > 0 && (
           <>
             <div className="school-list-table-container">
               <DataTableBody
