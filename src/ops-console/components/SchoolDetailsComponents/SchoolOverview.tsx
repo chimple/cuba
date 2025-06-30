@@ -8,6 +8,7 @@ import InfoCard from "../InfoCard";
 import DetailItem from "../DetailItem";
 import ContactCard from "../ContactCard";
 import { BsBoxArrowUpRight } from "react-icons/bs";
+import { PROGRAM_TAB_LABELS } from "../../../common/constants";
 
 interface SchoolOverviewProps {
   data: any;
@@ -42,29 +43,38 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
     },
     {
       label: "Model",
-      value: Array.isArray(data.programData?.model)
-        ? data.programData.model
-            .map((m: string) => m.replace(/_/g, " ").toUpperCase())
-            .join(", ")
-        : data.programData?.model?.replace(/_/g, " ").toUpperCase(),
+      value: (() => {
+        const raw = data.programData?.model;
+        if (!raw) return "";
+        let arr: string[] = [];
+        try {
+          arr = Array.isArray(raw) ? raw : JSON.parse(raw);
+        } catch {
+          return "";
+        }
+        return arr
+          .map(
+            (v: string) =>
+              PROGRAM_TAB_LABELS?.[v.toLowerCase().replace(/ /g, "_")] ||
+              v
+                .toLowerCase()
+                .replace(/_/g, " ")
+                .replace(/\b\w/g, (c) => c.toUpperCase())
+          )
+          .join(", ");
+      })(),
     },
   ].filter((item) => item.value !== undefined && item.value !== null);
   const [programName, programType, model] = programDetailsItems;
 
   //school performance
-  const activeStudents = data.schoolStats.total_students
-  ? ((data.schoolStats.active_students / data.schoolStats.total_students) * 100).toFixed(2)
-  : '0.00';
+  const activeStudents =
+    data.schoolStats?.active_student_percentage?.toFixed(2) ?? "0.00";
+  const avgWeekTime =
+    data.schoolStats?.avg_weekly_time_minutes?.toFixed(2) ?? "0.00";
+  const activeTeachers =
+    data.schoolStats?.active_teacher_percentage?.toFixed(2) ?? "0.00";
 
-const avgWeekTime = data.schoolStats.avg_time_spent
-  ? (data.schoolStats.avg_time_spent / 60).toFixed(2)
-  : '0.00';
-
-const activeTeachers = data.schoolStats.total_teachers
-  ? ((data.schoolStats.active_teachers / data.schoolStats.total_teachers) * 100).toFixed(2)
-  : '0.00';
-
-  
   const schoolPerformanceItems = [
     { label: "Active Students", value: `${activeStudents}%` },
     { label: "Avg week time in mins", value: `${avgWeekTime} mins` },
