@@ -2066,27 +2066,29 @@ export class FirebaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  program_activity_stats(programId: string): Promise<{
+  countProgramStats(programId: string): Promise<{
     total_students: number;
+    active_students: number;
+    avg_time_spent: number;
     total_teachers: number;
+    active_teachers: number;
     total_institutes: number;
-    active_student_percentage: number;
-    active_teacher_percentage: number;
-    avg_weekly_time_minutes: number;
   }> {
     throw new Error("Method not implemented.");
   }
 
   public async getManagersAndCoordinators(
     userId: string
-  ): Promise<{ user: TableTypes<"user">; role: string }[]> {
+  ): Promise<{ name: string; role: string }[]> {
     throw new Error("Method not implemented.");
   }
 
-  school_activity_stats(schoolId: string): Promise<{
-    active_student_percentage: number;
-    active_teacher_percentage: number;
-    avg_weekly_time_minutes: number;
+  countUsersBySchool(schoolId: string): Promise<{
+    total_students: number;
+    active_students: number;
+    avg_time_spent: number;
+    total_teachers: number;
+    active_teachers: number;
   }> {
     throw new Error("Method not implemented.");
   }

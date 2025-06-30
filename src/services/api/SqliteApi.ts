@@ -1881,9 +1881,11 @@ export class SqliteApi implements ServiceApi {
         image = ?,
         curriculum_id = ?,
         grade_id = ?,
-        language_id = ?
+        language_id = ?,
+        updated_at = ?
       WHERE id = ?;
     `;
+    const now = new Date().toISOString();
 
     await this.executeQuery(updateUserQuery, [
       name,
@@ -1894,6 +1896,7 @@ export class SqliteApi implements ServiceApi {
       boardDocId,
       gradeDocId,
       languageDocId,
+      now,
       student.id,
     ]);
 
@@ -1910,9 +1913,9 @@ export class SqliteApi implements ServiceApi {
     student.curriculum_id = boardDocId;
     student.grade_id = gradeDocId;
     student.language_id = languageDocId;
+    student.updated_at = now;
 
     if (courses && courses.length > 0) {
-      const now = new Date().toISOString();
       for (const course of courses) {
         const checkCourseExistsQuery = `
           SELECT COUNT(*) as count FROM user_course WHERE user_id = ? AND course_id = ?;
@@ -5291,29 +5294,31 @@ order by
     return await this._serverApi.isProgramUser();
   }
 
-  async program_activity_stats(programId: string): Promise<{
+  async countProgramStats(programId: string): Promise<{
     total_students: number;
+    active_students: number;
+    avg_time_spent: number;
     total_teachers: number;
+    active_teachers: number;
     total_institutes: number;
-    active_student_percentage: number;
-    active_teacher_percentage: number;
-    avg_weekly_time_minutes: number;
   }> {
-    return await this._serverApi.program_activity_stats(programId);
+    return await this._serverApi.countProgramStats(programId);
   }
 
   async getManagersAndCoordinators(): Promise<
-    { user: TableTypes<"user">; role: string }[]
+    { name: string; role: string }[]
   > {
     return await this._serverApi.getManagersAndCoordinators();
   }
 
-  async school_activity_stats(schoolId: string): Promise<{
-    active_student_percentage: number;
-    active_teacher_percentage: number;
-    avg_weekly_time_minutes: number;
+  async countUsersBySchool(schoolId: string): Promise<{
+    total_students: number;
+    active_students: number;
+    avg_time_spent: number;
+    total_teachers: number;
+    active_teachers: number;
   }> {
-    return await this._serverApi.school_activity_stats(schoolId);
+    return await this._serverApi.countUsersBySchool(schoolId);
   }
   async isProgramManager(): Promise<boolean> {
     return await this._serverApi.isProgramManager();

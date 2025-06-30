@@ -24,9 +24,11 @@ function useIsMobile() {
 }
 
 type SchoolStats = {
-  active_student_percentage: number;
-  active_teacher_percentage: number;
-  avg_weekly_time_minutes: number;
+  total_students: number;
+  active_students: number;
+  total_teachers: number;
+  active_teachers: number;
+  avg_time_spent: number;
 };
 
 const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
@@ -44,51 +46,49 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const [loading, setLoading] = useState(true);
   const history = useHistory();
   const [schoolStats, setSchoolStats] = useState<SchoolStats>({
-    active_student_percentage: 0,
-    active_teacher_percentage: 0,
-    avg_weekly_time_minutes: 0,
-  });
+  total_students: 0,
+  active_students: 0,
+  total_teachers: 0,
+  active_teachers: 0,
+  avg_time_spent: 0,
+});
 
   useEffect(() => {
     async function fetchAll() {
       setLoading(true);
       const api = ServiceConfig.getI().apiHandler;
-      const [
-        school,
-        program,
-        programManagers,
-        principals,
-        coordinators,
-        teachers,
-        students,
-      ] = await Promise.all([
-        api.getSchoolById(id),
-        api.getProgramForSchool(id),
-        api.getProgramManagersForSchool(id),
-        api.getPrincipalsForSchool(id),
-        api.getCoordinatorsForSchool(id),
-        api.getTeacherInfoBySchoolId(id),
-        api.getStudentInfoBySchoolId(id),
-      ]);
-      const res = await api.school_activity_stats(id);
-      const result = Array.isArray(res) ? res[0] : res;
-      const newSchoolStats = {
-        active_student_percentage: result.active_student_percentage ?? 0,
-        active_teacher_percentage: result.active_teacher_percentage ?? 0,
-        avg_weekly_time_minutes: result.avg_weekly_time_minutes ?? 0,
-      };
-      setSchoolStats(newSchoolStats);
+      const [school, program, programManagers, principals, coordinators, teachers, students] =
+        await Promise.all([
+          api.getSchoolById(id),
+          api.getProgramForSchool(id),
+          api.getProgramManagersForSchool(id),
+          api.getPrincipalsForSchool(id),
+          api.getCoordinatorsForSchool(id),
+          api.getTeacherInfoBySchoolId(id),
+          api.getStudentInfoBySchoolId(id),
 
-      setData({
-        schoolData: school,
-        programData: program,
-        programManagers: programManagers,
-        principals: principals,
-        coordinators: coordinators,
-        teachers: teachers,
-        students: students,
-        schoolStats: newSchoolStats,
-      });
+        ]);
+        const res = await api.countUsersBySchool(id);
+        const result = Array.isArray(res) ? res[0] : res;
+        const newSchoolStats = {
+          total_students: result.total_students ?? 0,
+          active_students: result.active_students ?? 0,
+          total_teachers: result.total_teachers ?? 0,
+          active_teachers: result.active_teachers ?? 0,
+          avg_time_spent: result.avg_time_spent ?? 0,
+        };
+        setSchoolStats(newSchoolStats);
+
+        setData({
+          schoolData: school,
+          programData: program,
+          programManagers: programManagers,
+          principals: principals,
+          coordinators: coordinators,
+          teachers: teachers,
+          students: students,
+          schoolStats: newSchoolStats,
+        });
       setLoading(false);
     }
     fetchAll();
