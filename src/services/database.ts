@@ -2146,25 +2146,23 @@ export type Database = {
           role: string;
         }[];
       };
-      count_program_stats: {
+      get_program_activity_stats: {
         Args: { p_program_id: string };
         Returns: {
           total_students: number;
-          active_students: number;
-          avg_time_spent: number;
           total_teachers: number;
-          active_teachers: number;
           total_institutes: number;
-        }[];
+          active_student_percentage: number;
+          active_teacher_percentage: number;
+          avg_weekly_time_minutes: number;
+        };
       };
-      count_users_by_school: {
+      get_school_activity_stats: {
         Args: { p_school_id: string };
         Returns: {
-          total_students: Number;
-          active_students: Number;
-          total_teachers: Number;
-          active_teachers: Number;
-          avg_time_spent: Number;
+          active_student_percentage: number;
+          active_teacher_percentage: number;
+          avg_weekly_time_minutes: number;
         };
       };
       count_total_and_active_students_by_program: {
