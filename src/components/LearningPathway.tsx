@@ -21,6 +21,7 @@ const LearningPathway: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
+  const [pathReady, setPathReady] = useState<boolean>(false);
   const currentStudent = Util.getCurrentStudent();
 
   useEffect(() => {
@@ -68,6 +69,7 @@ const LearningPathway: React.FC = () => {
     const currClass = schoolUtil.getCurrentClass();
 
     try {
+      setPathReady(false);
       const userCourses = currClass
         ? await api.getCoursesForClassStudent(currClass.id)
         : await api.getCoursesForPathway(student.id);
@@ -81,16 +83,22 @@ const LearningPathway: React.FC = () => {
         setLoading(true);
         learningPath = await buildInitialLearningPath(userCourses);
         await saveLearningPath(student, learningPath);
+        // Dispatch event to notify that course has changed
+        const event = new CustomEvent("courseChanged", { detail: { currentStudent: student } });
+        window.dispatchEvent(event);
         setLoading(false);
+        setPathReady(true);
       } else {
         const updated = await updateLearningPathIfNeeded(
           learningPath,
           userCourses
         );
         if (updated) await saveLearningPath(student, learningPath);
+        setPathReady(true);
       }
     } catch (error) {
       console.error("Error in Learning Pathway", error);
+      setPathReady(true);
     } finally {
       setLoading(false);
     }
@@ -226,7 +234,7 @@ const LearningPathway: React.FC = () => {
     };
     await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
   };
-  if (loading) return <Loading isLoading={loading} msg="Loading Lessons" />;
+  if (loading || !pathReady) return <Loading isLoading={true} msg="Loading Lessons" />;
 
   return (
     <div className="learning-pathway-container">
