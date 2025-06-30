@@ -1,5 +1,4 @@
-
-.join-class-input-wrapper {
+.with-icon-input-wrapper {
   display: flex;
   flex-direction: column;
   font-family: sans-serif;
@@ -8,7 +7,7 @@
   position: relative;
 }
 
-.join-class-input-box {
+.with-icon-input-box {
   display: flex;
   align-items: center;
   position: relative;
@@ -21,7 +20,7 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.join-class-input-box::before {
+.with-icon-input-box::before {
   content: "";
   position: absolute;
   top: -2px;
@@ -33,7 +32,7 @@
   z-index: 2;
 }
 
-.join-class-input-label {
+.with-icon-input-label {
   position: absolute;
   top: -18px;
   left: 13px;
@@ -45,38 +44,38 @@
   z-index: 100;
 }
 
-.join-class-required {
+.with-icon-required {
   color: #182a4f;
   margin-left: 2px;
   font-size: 20px;
   font-weight: 200;
 }
 
-.join-class-icon-area {
+.with-icon-icon-area {
   width: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.join-class-icon-area img {
+.with-icon-icon-area img {
   width: 26px;
   height: 22px;
 }
 
-.join-class-divider {
+.with-icon-divider {
   height: 30px;
   width: 1px;
   background-color: #182a4f;
   margin: 0 22px;
 }
 
-.join-class-status {
+.with-icon-status {
   width: 18px;
   height: 18px;
 }
 
-.join-class-text-input {
+.with-icon-text-input {
   border: none;
   outline: none;
   flex: 1;
@@ -84,7 +83,7 @@
   background: transparent;
   color: #182a4f;
 }
-.join-class-text-input::placeholder {
+.with-icon-text-input::placeholder {
   color: #182a4f;
   font-weight: 400;
   font-style: normal;

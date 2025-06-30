@@ -1,5 +1,5 @@
 import React, { FC, ReactNode } from "react";
-import "./InputWithStatus.css";
+import "./InputWithIcons.css";
 
 type InputProps = {
   label: string;
@@ -13,7 +13,7 @@ type InputProps = {
   statusIcon?: ReactNode;
 };
 
-const InputWithStatus: FC<InputProps> = ({
+const InputWithIcons: FC<InputProps> = ({
   label,
   placeholder,
   value,
@@ -25,16 +25,16 @@ const InputWithStatus: FC<InputProps> = ({
   statusIcon,
 }) => {
   return (
-    <div className="join-class-input-wrapper">
-      <label className="join-class-input-label">
+    <div className="with-icon-input-wrapper">
+      <label className="with-icon-input-label">
         {label}
-        <span className="join-class-required">*</span>
+        <span className="with-icon-required">*</span>
       </label>
-      <div className="join-class-input-box">
-        <div className="join-class-icon-area">
+      <div className="with-icon-input-box">
+        <div className="with-icon-icon-area">
           <img src={icon} alt="Input icon" />
         </div>
-        <div className="join-class-divider" />
+        <div className="with-icon-divider" />
         <input
           type={type}
           value={value ?? ""}
@@ -52,13 +52,13 @@ const InputWithStatus: FC<InputProps> = ({
             }
           }}
           readOnly={readOnly}
-          className="join-class-text-input"
+          className="with-icon-text-input"
           placeholder={placeholder}
         />
-        <div className="join-class-status">{statusIcon}</div>
+        <div className="with-icon-status">{statusIcon}</div>
       </div>
     </div>
   );
 };
 
-export default InputWithStatus;
+export default InputWithIcons;
