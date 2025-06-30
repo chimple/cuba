@@ -1653,6 +1653,71 @@ export type Database = {
           },
         ]
       }
+      chapter_links: {
+        Row: {
+          id: string
+          created_at: string
+          chapter_id: string | null
+          link: string | null
+          curriculum_id: string | null
+          course_id: string
+          grade_id: string | null
+          updated_at: string | null
+          is_deleted: boolean | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          chapter_id?: string | null
+          link?: string | null
+          curriculum_id?: string | null
+          course_id?: string
+          grade_id?: string | null
+          updated_at?: string | null
+          is_deleted?: boolean | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          chapter_id?: string | null
+          link?: string | null
+          curriculum_id?: string | null
+          course_id?: string
+          grade_id?: string | null
+          updated_at?: string | null
+          is_deleted?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chapter_links_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapter"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chapter_links_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chapter_links_curriculum_id_fkey"
+            columns: ["curriculum_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chapter_links_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "grade"
+            referencedColumns: ["id"]
+    },
+  ]
+}
     }
     Views: {
       get_leaderboard_generic_data: {
@@ -1941,6 +2006,464 @@ export type Database = {
         }
         Returns: string
       }
+      sql_get_assignment_cart: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          lessons: string | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_assignment_users: {
+        Args: { p_updated_at: string }
+        Returns: {
+          assignment_id: string
+          created_at: string | null
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          updated_at: string | null
+          user_id: string
+        }[]
+      }
+      sql_get_assignments: {
+        Args: { p_updated_at: string }
+        Returns: {
+          chapter_id: string | null
+          class_id: string
+          course_id: string | null
+          created_at: string
+          created_by: string | null
+          ends_at: string | null
+          firebase_id: string | null
+          id: string
+          is_class_wise: boolean
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          lesson_id: string
+          school_id: string
+          source: string | null
+          starts_at: string
+          type: string | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_badge: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string | null
+          description: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          updated_at: string | null
+        }[]
+      }
+      sql_get_chapter: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          course_id: string | null
+          created_at: string
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string | null
+          sort_index: number | null
+          sub_topics: string | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_chapter_lesson: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          chapter_id: string
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          lesson_id: string
+          sort_index: number | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_class: {
+        Args: { p_updated_at: string }
+        Returns: {
+          created_at: string
+          firebase_id: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          name: string
+          school_id: string
+          standard: string | null
+          status: string | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_class_course: {
+        Args: { p_updated_at: string }
+        Returns: {
+          class_id: string
+          course_id: string
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_class_invite_codes: {
+        Args: { p_updated_at: string }
+        Returns: {
+          class_id: string
+          code: number
+          created_at: string
+          expires_at: string
+          id: string
+          is_class_code: boolean | null
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_class_user: {
+        Args: { p_updated_at: string }
+        Returns: {
+          class_id: string
+          created_at: string | null
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          role: Database["public"]["Enums"]["role"]
+          updated_at: string | null
+          user_id: string
+        }[]
+      }
+      sql_get_course: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          code: string | null
+          color: string | null
+          created_at: string
+          curriculum_id: string | null
+          description: string | null
+          firebase_id: string | null
+          grade_id: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          sort_index: number | null
+          subject_id: string | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_curriculum: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string
+          description: string | null
+          firebase_id: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          sort_index: number | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_favorite_lessons: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string | null
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          lesson_id: string
+          updated_at: string | null
+          user_id: string
+        }[]
+      }
+      sql_get_grade: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string
+          description: string | null
+          firebase_id: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          sort_index: number | null
+          test: string | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_language: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          code: string | null
+          created_at: string
+          description: string | null
+          firebase_id: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          sort_index: number | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_live_quiz_rooms: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          assignment_id: string
+          class_id: string
+          course_id: string
+          created_at: string | null
+          id: string
+          is_deleted: boolean | null
+          lesson_id: string
+          participants: string[] | null
+          results: Json | null
+          school_id: string
+          starts_at: string
+          updated_at: string | null
+        }[]
+      }
+      sql_get_lessons: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          cocos_chapter_code: string | null
+          cocos_lesson_id: string | null
+          cocos_subject_code: string | null
+          color: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          language_id: string | null
+          name: string | null
+          outcome: string | null
+          plugin_type: string | null
+          status: string | null
+          subject_id: string | null
+          target_age_from: number | null
+          target_age_to: number | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_parent_users: {
+        Args: { p_updated_at: string }
+        Returns: {
+          created_at: string | null
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          parent_id: string
+          student_id: string
+          updated_at: string | null
+        }[]
+      }
+      sql_get_results: {
+        Args: { p_updated_at: string }
+        Returns: {
+          assignment_id: string | null
+          chapter_id: string | null
+          class_id: string | null
+          correct_moves: number | null
+          course_id: string | null
+          created_at: string
+          firebase_id: string | null
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          lesson_id: string | null
+          school_id: string | null
+          score: number | null
+          student_id: string
+          time_spent: number | null
+          updated_at: string | null
+          wrong_moves: number | null
+        }[]
+      }
+      sql_get_reward: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          monthly: string | null
+          updated_at: string | null
+          weekly: string | null
+          weeklySticker: string | null
+          year: number
+        }[]
+      }
+      sql_get_school_courses: {
+        Args: { p_updated_at: string }
+        Returns: {
+          course_id: string
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          school_id: string
+          updated_at: string | null
+        }[]
+      }
+      sql_get_school_user: {
+        Args: { p_updated_at: string }
+        Returns: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          role: Database["public"]["Enums"]["role"]
+          school_id: string
+          updated_at: string | null
+          user_id: string
+        }[]
+      }
+      sql_get_schools: {
+        Args: { p_updated_at: string }
+        Returns: {
+          academic_year: string[] | null
+          created_at: string
+          firebase_id: string | null
+          group1: string | null
+          group2: string | null
+          group3: string | null
+          group4: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          language: string | null
+          name: string
+          student_login_type: Database["public"]["Enums"]["login_type"] | null
+          UDISE: string | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_sticker: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          updated_at: string | null
+        }[]
+      }
+      sql_get_subject: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          sort_index: number | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_user_badges: {
+        Args: { p_updated_at: string }
+        Returns: {
+          badge_id: string
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_seen: boolean | null
+          updated_at: string | null
+          user_id: string
+        }[]
+      }
+      sql_get_user_bonus: {
+        Args: { p_updated_at: string }
+        Returns: {
+          bonus_id: string
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_seen: boolean | null
+          updated_at: string | null
+          user_id: string
+        }[]
+      }
+      sql_get_user_courses: {
+        Args: { p_updated_at: string }
+        Returns: {
+          course_id: string
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          updated_at: string | null
+          user_id: string
+        }[]
+      }
+      sql_get_user_stickers: {
+        Args: { p_updated_at: string }
+        Returns: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_seen: boolean | null
+          sticker_id: string
+          updated_at: string | null
+          user_id: string
+        }[]
+      }
+      sql_get_users: {
+        Args: { p_updated_at: string }
+        Returns: {
+          age: number | null
+          avatar: string | null
+          created_at: string
+          curriculum_id: string | null
+          email: string | null
+          fcm_token: string | null
+          firebase_id: string | null
+          gender: string | null
+          grade_id: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          is_tc_accepted: boolean | null
+          language_id: string | null
+          learning_path: string | null
+          music_off: boolean | null
+          name: string | null
+          phone: string | null
+          sfx_off: boolean | null
+          stars: number | null
+          student_id: string | null
+          updated_at: string | null
+        }[]
+      }
       update_live_quiz: {
         Args: {
           room_id: string
@@ -1959,6 +2482,7 @@ export type Database = {
       }
     }
     Enums: {
+      login_type: "STUDENT ID" | "PARENT PHONE NUMBER"
       role:
         | "coordinator"
         | "principal"

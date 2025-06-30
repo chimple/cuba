@@ -46,7 +46,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 1;
+  private DB_VERSION = 2;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -309,7 +309,10 @@ export class SqliteApi implements ServiceApi {
       console.error("🚀 ~ Api ~ syncDB ~ error:", error);
       await this.createSyncTables();
     }
-    const data = await SupabaseApi.i.getTablesData(tableNames, lastPullTables);
+    const data = await this._serverApi.getTablesData(
+      tableNames,
+      lastPullTables
+    );
     const lastPulled = new Date().toISOString();
     let batchQueries: { statement: string; values: any[] }[] = [];
     for (const tableName of tableNames) {
@@ -394,9 +397,12 @@ export class SqliteApi implements ServiceApi {
         );
         console.log("🚀 ~ Api ~ pushChanges ~ isMutated:", mutate);
         if (!mutate || mutate.error) {
-          if(data.table_name === TABLES.Result &&  mutate?.error?.code === "23505"){}
-          else{
-            return false
+          if (
+            data.table_name === TABLES.Result &&
+            mutate?.error?.code === "23505"
+          ) {
+          } else {
+            return false;
           }
         }
         await this.executeQuery(
@@ -2612,16 +2618,16 @@ export class SqliteApi implements ServiceApi {
 
       // Define the query to fetch the leaderboard data for the given student
       const currentStudentQuery = `
-        SELECT 'allTime' as type, student_id, name,
+        SELECT 'allTime' as type, res.student_id, name,
                count(res.id) as lessons_played,
                sum(score) as total_score,
                sum(time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
         WHERE res.student_id = '${studentId}'
-        GROUP BY student_id, u.name
+        GROUP BY res.student_id, u.name
         UNION ALL
-        SELECT 'monthly' as type, student_id, u.name,
+        SELECT 'monthly' as type, res.student_id, u.name,
                count(res.id) as lessons_played,
                sum(score) as total_score,
                sum(time_spent) as total_time_spent
@@ -2629,9 +2635,9 @@ export class SqliteApi implements ServiceApi {
         JOIN ${TABLES.User} u ON u.id = res.student_id
         WHERE res.student_id = '${studentId}'
         AND strftime('%m', res.created_at) = strftime('%m', datetime('now'))
-        GROUP BY student_id, u.name
+        GROUP BY res.student_id, u.name
         UNION ALL
-        SELECT 'weekly' as type, student_id, u.name,
+        SELECT 'weekly' as type, res.student_id, u.name,
                count(res.id) as lessons_played,
                sum(score) as total_score,
                sum(time_spent) as total_time_spent
@@ -2639,7 +2645,7 @@ export class SqliteApi implements ServiceApi {
         JOIN ${TABLES.User} u ON u.id = res.student_id
         WHERE res.student_id = '${studentId}'
         AND strftime('%W', res.created_at) = strftime('%W', datetime('now'))
-        GROUP BY student_id, u.name
+        GROUP BY res.student_id, u.name
       `;
 
       // Execute the query
@@ -3176,7 +3182,7 @@ export class SqliteApi implements ServiceApi {
       ON cu.class_id = c.id
       join ${TABLES.School} s
       ON c.school_id = s.id
-      where user_id = "${userId}" and role = "${RoleType.STUDENT}"`
+      where c.is_deleted = 0 and user_id = "${userId}" and role = "${RoleType.STUDENT}"`
     );
     if (!res || !res.values || res.values.length < 1) return data;
     data.classes = res.values;
@@ -4400,29 +4406,26 @@ order by
       );
       return { status: "error", errors };
     }
-    
-    
+
     return { status: "success" };
   }
   async validateSchoolUdiseCode(
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }> {
-    const validatedData = await this._serverApi.validateSchoolUdiseCode(
-      schoolId,
-    );
+    const validatedData =
+      await this._serverApi.validateSchoolUdiseCode(schoolId);
     if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>
         typeof err === "string" ? err : err.message || JSON.stringify(err)
       );
       return { status: "error", errors };
     }
-    
-    
+
     return { status: "success" };
   }
   async validateClassNameWithSchoolID(
     schoolId: string,
-    className: string,
+    className: string
   ): Promise<{ status: string; errors?: string[] }> {
     const validatedData = await this._serverApi.validateClassNameWithSchoolID(
       schoolId,
@@ -4434,8 +4437,7 @@ order by
       );
       return { status: "error", errors };
     }
-    
-    
+
     return { status: "success" };
   }
 
@@ -4444,19 +4446,19 @@ order by
     className: string,
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }> {
-    const validatedData = await this._serverApi.validateStudentInClassWithoutPhone(
-      studentName,
-      className,
-      schoolId,
-    );
+    const validatedData =
+      await this._serverApi.validateStudentInClassWithoutPhone(
+        studentName,
+        className,
+        schoolId
+      );
     if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>
         typeof err === "string" ? err : err.message || JSON.stringify(err)
       );
       return { status: "error", errors };
     }
-    
-    
+
     return { status: "success" };
   }
 
@@ -4729,6 +4731,21 @@ order by
       });
     } catch (error) {
       console.error("Error setting stars for student:", error);
+    }
+  }
+  async getChapterIdbyQrLink(link:string): Promise<TableTypes<"chapter_links"> | undefined> {
+    if (!link) return;
+    try {
+      const res = await this._db?.query(
+        `SELECT * FROM ${TABLES.ChapterLinks} WHERE link = ? AND is_deleted = 0 LIMIT 1;`,
+        [link]
+      );
+
+      if (!res || !res.values || res.values.length < 1) return;
+      return res.values[0];
+    } catch (error) {
+      console.error("Error fetching chapter by QR link:", error);
+      return;
     }
   }
 }
