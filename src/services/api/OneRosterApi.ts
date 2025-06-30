@@ -806,8 +806,25 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   async getCoursesForPathway(studentId: string): Promise<TableTypes<"course">[]> {
-    return await this.getAllCourses();
-    // throw new Error("Method not implemented.");
+    const student = await Util.getCurrentStudent();
+    const allCourses = await this.getAllCourses();
+
+    if (!student || !student.grade_id) {
+      // Fallback: add digital skills at the end if present
+      const digitalSkills = allCourses.find(c => c.id === "digital_skills");
+      return digitalSkills ? [...allCourses.filter(c => c.id !== "digital_skills"), digitalSkills] : allCourses;
+    }
+
+    // Filter by grade_id
+    let filteredCourses = allCourses.filter(course => course.grade_id === student.grade_id);
+
+    // Add digital skills at the end if not already included
+    const digitalSkills = allCourses.find(c => c.code === "puzzle");
+    if (digitalSkills && !filteredCourses.some(c => c.id === "puzzle")) {
+      filteredCourses = [...filteredCourses, digitalSkills];
+    }
+
+    return filteredCourses;
   }
   async updateLearningPath(student: TableTypes<"user">, learning_path: string): Promise<TableTypes<"user">> {
     try {
