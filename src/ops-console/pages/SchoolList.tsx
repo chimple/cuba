@@ -241,7 +241,9 @@ const SchoolList: React.FC = () => {
               >
                 <FileUploadOutlined className="school-list-upload-icon" />
                 {!isSmallScreen && (
-                  <span className="school-list-upload-text">{t("Upload")}</span>
+                  <span className="school-list-upload-text1">
+                    {t("Upload")}
+                  </span>
                 )}
               </Button>
 

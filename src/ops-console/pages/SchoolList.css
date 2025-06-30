@@ -151,6 +151,15 @@
 .school-list-bell-icon {
   color: black !important;
 }
-.school-list-upload-text {
+
+.school-list-upload-text1 {
   color: black;
+}
+
+.school-list-upload-text {
+  font-weight: bolder;
+  color: #121619;
+  padding-left: 5vh;
+  padding-top: 3vh;
+  font-size: large;
 }
