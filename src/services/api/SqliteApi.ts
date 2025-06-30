@@ -46,7 +46,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 1;
+  private DB_VERSION = 2;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -4731,6 +4731,21 @@ order by
       });
     } catch (error) {
       console.error("Error setting stars for student:", error);
+    }
+  }
+  async getChapterIdbyQrLink(link:string): Promise<TableTypes<"chapter_links"> | undefined> {
+    if (!link) return;
+    try {
+      const res = await this._db?.query(
+        `SELECT * FROM ${TABLES.ChapterLinks} WHERE link = ? AND is_deleted = 0 LIMIT 1;`,
+        [link]
+      );
+
+      if (!res || !res.values || res.values.length < 1) return;
+      return res.values[0];
+    } catch (error) {
+      console.error("Error fetching chapter by QR link:", error);
+      return;
     }
   }
 }
