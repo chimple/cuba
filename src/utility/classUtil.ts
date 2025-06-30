@@ -1,7 +1,7 @@
 import { start } from "repl";
 import { BANDS, TABLESORTBY, TableTypes } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { addDays, addMonths, format, subDays, subWeeks } from "date-fns";
+import { addDays, addMonths, format, subDays, subWeeks, differenceInCalendarWeeks } from "date-fns";
 
 export class ClassUtil {
   private api = ServiceConfig.getI().apiHandler;
@@ -146,7 +146,10 @@ export class ClassUtil {
       ).length;
       if (
         results.length === 0 ||
-        results[0].created_at <= oneWeekBackTimeStamp
+        differenceInCalendarWeeks(
+          new Date(results[0].created_at),
+          adjustedoneWeekBack
+        ) > 0
       ) {
         greyGroup.push(
           new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
