@@ -251,6 +251,14 @@ export const ACTIVE_HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
       },
     ],
     [
+      HOMEHEADERLIST.ASSIGNMENT,
+      {
+        displayName: "Homework",
+        iconSrc: "/assets/icons/HomeworkIconActive.svg",
+        headerList: HOMEHEADERLIST.ASSIGNMENT,
+      },
+    ],
+    [
       HOMEHEADERLIST.SUBJECTS,
       {
         displayName: "Subjects",
@@ -272,6 +280,14 @@ export const DEFAULT_HEADER_ICON_CONFIGS: Map<
   HOMEHEADERLIST,
   HeaderIconConfig
 > = new Map<HOMEHEADERLIST, HeaderIconConfig>([
+  [
+    HOMEHEADERLIST.ASSIGNMENT,
+    {
+      displayName: "Homework",
+      iconSrc: "/assets/icons/HomeworkIconInactive.svg",
+      headerList: HOMEHEADERLIST.ASSIGNMENT,
+    },
+  ],
   [
     HOMEHEADERLIST.SUBJECTS,
     {
@@ -309,6 +325,7 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
         headerList: HOMEHEADERLIST.SUBJECTS,
       },
     ],
+    
     // [
     //   HOMEHEADERLIST.CHALLENGES,
     //   {

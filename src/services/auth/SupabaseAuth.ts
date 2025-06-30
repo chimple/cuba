@@ -15,11 +15,12 @@ import {
   PAGES,
 } from "../../common/constants";
 import { SupabaseClient, UserAttributes } from "@supabase/supabase-js";
-import { ServiceConfig } from "../ServiceConfig";
+import { APIMode, ServiceConfig } from "../ServiceConfig";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Util } from "../../utility/util";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 import { schoolUtil } from "../../utility/schoolUtil";
+import { OneRosterAuth } from "./OneRosterAuth";
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -208,7 +209,18 @@ export class SupabaseAuth implements ServiceAuth {
   }
 
   async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
-    throw new Error("Method not implemented.");
+
+
+    Util.isRespectMode = true
+    const serviceInstance = ServiceConfig.getInstance(APIMode.ONEROSTER);
+    serviceInstance.switchMode(APIMode.ONEROSTER)
+    console.log("Supabase Auth Loginwithrespect ", serviceInstance);
+    // root.render(
+    //   <BrowserRouter>
+    //     <App />
+    //   </BrowserRouter>
+    // );
+    return await OneRosterAuth.i.loginWithRespect()
   }
 
   async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {

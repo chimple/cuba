@@ -1,10 +1,14 @@
 import { HttpHeaders } from "@capacitor-community/http";
 import {
+  ACTIVE_HEADER_ICON_CONFIGS,
   ALL_CURRICULUM,
   APP_LANGUAGES,
   COURSES,
   CURRENT_STUDENT,
   CURRENT_USER,
+  DEFAULT_HEADER_ICON_CONFIGS,
+  HEADER_ICON_CONFIGS,
+  HOMEHEADERLIST,
   LANGUAGE,
   LeaderboardDropdownList,
   LeaderboardRewards,
@@ -727,7 +731,17 @@ export class OneRosterApi implements ServiceApi {
   deleteUserFromSchool(schoolId: string, userId: string, role: RoleType): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  private constructor() { }
+  private constructor() {
+    HEADER_ICON_CONFIGS.delete(
+      HOMEHEADERLIST.ASSIGNMENT,
+    )
+    DEFAULT_HEADER_ICON_CONFIGS.delete(
+      HOMEHEADERLIST.ASSIGNMENT,
+    )
+    ACTIVE_HEADER_ICON_CONFIGS.delete(
+      HOMEHEADERLIST.ASSIGNMENT,
+    )
+  }
   requestNewSchool(name: string, state: string, district: string, city: string, image: File | null, udise_id?: string): Promise<TableTypes<"req_new_school"> | null> {
     throw new Error("Method not implemented.");
   }

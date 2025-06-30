@@ -71,9 +71,14 @@ GoogleAuth.initialize({
 });
 
 Util.isRespectMode = await Util.checkRespectApp();
-console.log("Util.isRespectMode = await Util.checkRespectApp();",Util.isRespectMode);
+console.log(
+  "Util.isRespectMode = await Util.checkRespectApp();",
+  Util.isRespectMode
+);
 
+// if(!Util.isRespectMode){
 
+// }
 if (!Util.isRespectMode) {
   SqliteApi.getInstance().then(() => {
     ServiceConfig.getInstance(APIMode.SQLITE);

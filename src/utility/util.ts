@@ -1005,6 +1005,11 @@ export class Util {
     }
   ) {
     try {
+      if (Util.isRespectMode) {
+        console.log("if (Util.isRespectMode) {", (Util.isRespectMode));
+
+        return
+      }
       //Setting User Id in User Properites
       await FirebaseAnalytics.setUserId({
         userId: params.user_id,
@@ -2156,6 +2161,7 @@ export class Util {
     try {
       console.log("if (!Capacitor.isNativePlatform) return true", !!Capacitor.isNativePlatform, Capacitor.isNativePlatform);
 
+      return true
       if (!!Capacitor.isNativePlatform) return true
       const PortPlugin = registerPlugin<any>("Port");
       const data = await PortPlugin.isAppInstalledCheck();
