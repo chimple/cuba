@@ -10,8 +10,8 @@
     "sortIndex": 3,
     "status": "active",
     "subject": "en",
-    "thumbnail": "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/thumbnails%2Fchapter_icons%2FHaryana_en1_grade_2.png?alt=media&token=4902a209-df89-4bc2-9d9d-6fc647eb90f8"
-  },
+    "thumbnail": "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/thumbnails%2Fchapter_icons%2FHaryana_EN_grade_2.png?alt=media&token=4902a209-df89-4bc2-9d9d-6fc647eb90f8"
+    },
   "links": [
     {
       "rel": "self",
@@ -23,7 +23,7 @@
     {
       "metadata": {
         "title": "Nouns",
-        "id": "en1_00",
+        "id": "en2_00",
         "thumbnail": "thumbnail1"
       },
       "navigation": [
@@ -288,7 +288,7 @@
     {
       "metadata": {
         "title": "Pronouns",
-        "id": "en1_01",
+        "id": "en2_01",
         "thumbnail": "thumbnail1"
       },
       "navigation": [
@@ -473,7 +473,7 @@
     {
       "metadata": {
         "title": "Action Words",
-        "id": "en1_02",
+        "id": "en2_02",
         "thumbnail": "thumbnail1"
       },
       "navigation": [
@@ -642,7 +642,7 @@
     {
       "metadata": {
         "title": "Articles",
-        "id": "en1_03",
+        "id": "en2_03",
         "thumbnail": "thumbnail1"
       },
       "navigation": [
@@ -715,7 +715,7 @@
     {
       "metadata": {
         "title": "Grammar",
-        "id": "en1_04",
+        "id": "en2_04",
         "thumbnail": "thumbnail1"
       },
       "navigation": [
@@ -916,7 +916,7 @@
     {
       "metadata": {
         "title": "Punctuation",
-        "id": "en1_05",
+        "id": "en2_05",
         "thumbnail": "thumbnail1"
       },
       "navigation": [
@@ -1005,7 +1005,7 @@
     {
       "metadata": {
         "title": "Adjectives",
-        "id": "en1_06",
+        "id": "en2_06",
         "thumbnail": "thumbnail1"
       },
       "navigation": [
@@ -1110,7 +1110,7 @@
     {
       "metadata": {
         "title": "Colours",
-        "id": "en1_07",
+        "id": "en2_07",
         "thumbnail": "thumbnail1"
       },
       "navigation": [
@@ -1199,7 +1199,7 @@
     {
       "metadata": {
         "title": "Singular and Plural",
-        "id": "en1_08",
+        "id": "en2_08",
         "thumbnail": "thumbnail1"
       },
       "navigation": [
@@ -1288,7 +1288,7 @@
     {
       "metadata": {
         "title": "Create Sentences",
-        "id": "en1_09",
+        "id": "en2_09",
         "thumbnail": "thumbnail1"
       },
       "navigation": [
@@ -1409,7 +1409,7 @@
     {
       "metadata": {
         "title": "Numbers",
-        "id": "en1_10",
+        "id": "en2_10",
         "thumbnail": "thumbnail1"
       },
       "navigation": [
@@ -1546,7 +1546,7 @@
     {
       "metadata": {
         "title": "Counting",
-        "id": "en1_11",
+        "id": "en2_11",
         "thumbnail": "thumbnail1"
       },
       "navigation": [
@@ -1683,7 +1683,7 @@
     {
       "metadata": {
         "title": "Time",
-        "id": "en1_12",
+        "id": "en2_12",
         "thumbnail": "thumbnail1"
       },
       "navigation": [
@@ -1980,7 +1980,7 @@
     {
       "metadata": {
         "title": "Money",
-        "id": "en1_13",
+        "id": "en2_13",
         "thumbnail": "thumbnail1"
       },
       "navigation": [
@@ -2069,7 +2069,7 @@
     {
       "metadata": {
         "title": "Measurement",
-        "id": "en1_14",
+        "id": "en2_14",
         "thumbnail": "thumbnail1"
       },
       "navigation": [
