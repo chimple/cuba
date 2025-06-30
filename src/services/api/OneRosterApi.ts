@@ -496,8 +496,30 @@ export class OneRosterApi implements ServiceApi {
   getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
-  getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
-    throw new Error("Method not implemented.");
+  async getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
+    try {
+      for (const courseId of this.studentAvailableCourseIds) {
+        const courseJson = await this.loadCourseJson(courseId);
+        const group = courseJson.groups.find((g: any) => g.metadata.id === id);
+        if (group) {
+          return {
+            id: group.metadata.id,
+            name: group.metadata.title,
+            image: Util.getThumbnailUrl({ id: group.metadata.id }),
+            course_id: courseId,
+            created_at: "",
+            updated_at: null,
+            is_deleted: null,
+            sort_index: null,
+            sub_topics: null
+          };
+        }
+      }
+      return undefined;
+    } catch (error) {
+      console.error("Error in getChapterById:", error);
+      return undefined;
+    }
   }
   async getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
     grades: TableTypes<"grade">[];
