@@ -831,14 +831,11 @@ export class OneRosterApi implements ServiceApi {
     const student = await Util.getCurrentStudent();
     const allCourses = await this.getAllCourses();
 
-    if (!student || !student.grade_id) {
-      // Fallback: add digital skills at the end if present
-      const digitalSkills = allCourses.find(c => c.id === "digital_skills");
-      return digitalSkills ? [...allCourses.filter(c => c.id !== "digital_skills"), digitalSkills] : allCourses;
-    }
-
     // Filter by grade_id
-    let filteredCourses = allCourses.filter(course => course.grade_id === student.grade_id);
+    let filteredCourses: TableTypes<"course">[] = [];
+    if (student && student.grade_id) {
+      filteredCourses = allCourses.filter(course => course.grade_id === student.grade_id);
+    }
 
     // Add digital skills at the end if not already included
     const digitalSkills = allCourses.find(c => c.code === "puzzle");
