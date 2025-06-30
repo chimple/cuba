@@ -23,11 +23,11 @@ interface ProgramDetailComponentProps {
 
 interface ProgramStats {
   total_students: number;
-  active_students: number;
-  avg_time_spent: number;
-  active_teachers: number;
-  total_institutes: number;
   total_teachers: number;
+  total_institutes: number;
+  active_student_percentage: number;
+  active_teacher_percentage: number;
+  avg_weekly_time_minutes: number;
 }
 
 interface ProgramData {
@@ -40,7 +40,9 @@ interface ProgramData {
 const formatProgramModel = (value: string) => {
   try {
     return JSON.parse(value)
-      .map((k: string) => PROGRAM_TAB_LABELS[k as keyof typeof PROGRAM_TAB_LABELS])
+      .map(
+        (k: string) => PROGRAM_TAB_LABELS[k as keyof typeof PROGRAM_TAB_LABELS]
+      )
       .filter(Boolean)
       .join(", ");
   } catch {
@@ -68,11 +70,11 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<ProgramStats>({
     total_students: 0,
-    active_students: 0,
-    avg_time_spent: 0,
-    active_teachers: 0,
-    total_institutes: 0,
     total_teachers: 0,
+    total_institutes: 0,
+    active_student_percentage: 0,
+    active_teacher_percentage: 0,
+    avg_weekly_time_minutes: 0,
   });
 
   useEffect(() => {
@@ -85,16 +87,16 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
         setLoading(false);
         return;
       }
-      const result = await api.countProgramStats(id);
+      const result = await api.program_activity_stats(id);
       const countStats = Array.isArray(result) ? result[0] : result;
 
       setStats({
         total_students: countStats.total_students ?? 0,
-        active_students: countStats.active_students ?? 0,
-        avg_time_spent: countStats.avg_time_spent ?? 0,
         total_teachers: countStats.total_teachers ?? 0,
-        active_teachers: countStats.active_teachers ?? 0,
         total_institutes: countStats.total_institutes ?? 0,
+        active_student_percentage: countStats.active_student_percentage ?? 0,
+        active_teacher_percentage: countStats.active_teacher_percentage ?? 0,
+        avg_weekly_time_minutes: countStats.avg_weekly_time_minutes ?? 0,
       });
 
       const updatedProgramDetails = programData.programDetails.map((item) => {
@@ -135,13 +137,14 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
 
   return (
     <div className="program-detail-page">
-
-
       <div className="program-detail-page-header">
         <div className="program-detail-page-header-title">
           {data.programDetails.find((d) => d.label === "Program Name")?.value}
         </div>
-        <IconButton className="program-detail-page-header-icon" sx={{ color: "black" }}>
+        <IconButton
+          className="program-detail-page-header-icon"
+          sx={{ color: "black" }}
+        >
           <BsFillBellFill />
         </IconButton>
       </div>
@@ -151,8 +154,9 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
           crumbs={[
             { label: t("Programs"), onClick: () => history.goBack() },
             {
-              label: data?.programDetails.find((d) => d.label === "Program Name")
-                ?.value ?? "",
+              label:
+                data?.programDetails.find((d) => d.label === "Program Name")
+                  ?.value ?? "",
             },
           ]}
         />
@@ -225,17 +229,23 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
                 >
                   <Box display="flex" justifyContent="space-between" mb={1}>
                     <Typography>{t("Active Students")}</Typography>
-                    <Typography fontWeight="bold">{stats.total_students > 0 ? `${((stats.active_students / stats.total_students) * 100).toFixed(2)}%` : "0.00%"}</Typography>
+                    <Typography fontWeight="bold">
+                      {`${stats.active_student_percentage.toFixed(2)}%`}
+                    </Typography>
                   </Box>
 
                   <Box display="flex" justifyContent="space-between" mb={1}>
                     <Typography>{t("Avg week time in mins")}</Typography>
-                    <Typography fontWeight="bold">{`${stats.avg_time_spent / 60} mins`}</Typography>
+                    <Typography fontWeight="bold">
+                      {`${stats.avg_weekly_time_minutes.toFixed(2)} mins`}
+                    </Typography>
                   </Box>
 
                   <Box display="flex" justifyContent="space-between" mb={2}>
                     <Typography>{t("Active Teachers")}</Typography>
-                    <Typography fontWeight="bold">{stats.active_teachers > 0 ? `${((stats.active_teachers / stats.total_teachers) * 100).toFixed(2)}%` : "0.00%"}</Typography>
+                    <Typography fontWeight="bold">
+                      {`${stats.active_teacher_percentage.toFixed(2)}%`}
+                    </Typography>
                   </Box>
 
                   <Button variant="contained" fullWidth>

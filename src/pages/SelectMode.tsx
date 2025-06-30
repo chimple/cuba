@@ -3,6 +3,7 @@ import { FC, useEffect, useState } from "react";
 import Loading from "../components/Loading";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { useHistory } from "react-router";
+import { RoleType } from "../interface/modelInterfaces";
 import {
   LANGUAGE,
   AVATARS,
@@ -18,6 +19,7 @@ import {
   STAGES,
   CURRENT_CLASS,
   CURRENT_SCHOOL,
+  USER_ROLE
 } from "../common/constants";
 import SelectModeButton from "../components/selectMode/SelectModeButton";
 import { IoMdPeople } from "react-icons/io";
@@ -126,6 +128,16 @@ const SelectMode: FC = () => {
       filteredSchoolIds.includes(entry.school.id)
     );
 
+    const userRole = localStorage.getItem(USER_ROLE);
+    const isOpsRole = userRole === RoleType.SUPER_ADMIN || userRole === RoleType.OPERATIONAL_DIRECTOR;
+    const isProgramUser = await api.isProgramUser();
+
+    // If user is ops or program user
+    if (isOpsRole || isProgramUser) {
+      history.replace(PAGES.SIDEBAR_PAGE);
+      return; 
+    }
+
     const students = await api.getParentStudentProfiles();
     // const isTeacher = await api.isUserTeacher(currUser);
 
@@ -138,7 +150,7 @@ const SelectMode: FC = () => {
       return;
     } else {
       setIsLoading(false);
-    }
+    } 
     // if (!currentUser) {
     //   history.push(PAGES.DISPLAY_STUDENT);
     //   return;

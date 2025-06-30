@@ -62,7 +62,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
       if (result && result.length > 0) {
         setUsers(
           result.map((u: any) => ({
-            fullName: u.name,
+            fullName: u.user?.name,
             role: RoleLabels[u.role as RoleType] || u.role,
           }))
         );

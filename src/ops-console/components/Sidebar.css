@@ -166,3 +166,22 @@
   }
 
 }
+
+.ops-side-menu-switch-user-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 2vh;
+  box-sizing: border-box; 
+  width: calc(100% + 1rem); 
+}
+
+.ops-side-menu-user-switch-icon {
+  font-size: 2rem;
+  color: #7c5db0;
+}
+
+.ops-side-menu-ion-item-container::part(native) {
+  background: white;
+  right: 4%;
+}
