@@ -1,7 +1,7 @@
 import React, { FC, ReactNode } from "react";
-import "./JoinClassInput.css";
+import "./InputWithStatus.css";
 
-type JoinClassInputProps = {
+type InputProps = {
   label: string;
   placeholder: string;
   value: string | number | undefined;
@@ -13,7 +13,7 @@ type JoinClassInputProps = {
   statusIcon?: ReactNode;
 };
 
-const JoinClassInput: FC<JoinClassInputProps> = ({
+const InputWithStatus: FC<InputProps> = ({
   label,
   placeholder,
   value,
@@ -61,4 +61,4 @@ const JoinClassInput: FC<JoinClassInputProps> = ({
   );
 };
 
-export default JoinClassInput;
+export default InputWithStatus;

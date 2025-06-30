@@ -11,7 +11,7 @@ import { NUMBER_REGEX, PAGES } from "../../common/constants";
 import { useHistory, useLocation } from "react-router";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 import { schoolUtil } from "../../utility/schoolUtil";
-import JoinClassInput from "./JoinClassInput";
+import InputWithStatus from "../common/InputWithStatus";
 const urlClassCode: any = {};
 
 const JoinClass: FC<{
@@ -144,7 +144,7 @@ const JoinClass: FC<{
     <div className="join-class-parent-container">
       <h2>{t("Join a Class by entering the details below")}</h2>
       <div className="join-class-container">
-        <JoinClassInput
+        <InputWithStatus
           label={t("Full Name")}
           placeholder={t("Enter the child’s full name") ?? ""}
           value={fullName}
@@ -160,7 +160,7 @@ const JoinClass: FC<{
           }
         />
 
-        <JoinClassInput
+        <InputWithStatus
           label={t("Class Code")}
           placeholder={t("Enter the class code to join a class") ?? ""}
           value={inviteCode}
