@@ -11,6 +11,7 @@ import { NUMBER_REGEX, PAGES } from "../../common/constants";
 import { useHistory, useLocation } from "react-router";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 import { schoolUtil } from "../../utility/schoolUtil";
+import InputWithIcons from "../common/InputWithIcons";
 const urlClassCode: any = {};
 
 const JoinClass: FC<{
@@ -26,6 +27,7 @@ const JoinClass: FC<{
   const scollToRef = useRef<null | HTMLDivElement>(null);
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+  const [fullName, setFullName] = useState("");
 
   const api = ServiceConfig.getI().apiHandler;
 
@@ -53,7 +55,7 @@ const JoinClass: FC<{
       return;
     } else {
       if (!!error) setError("");
-      if (!isNextButtonEnabled()) return;
+      // if (!isNextButtonEnabled()) return;
       setLoading(true);
       try {
         const result = await api.getDataByInviteCode(
@@ -65,7 +67,7 @@ const JoinClass: FC<{
         if (error instanceof Object) {
           let eMsg: string =
             "Error: Invalid inviteCode" === error.toString()
-              ? t("Invalid Code. Please contact your teacher")
+              ? t("Invalid code. Please check and Try again.")
               : error.toString();
           setError(eMsg);
         }
@@ -74,7 +76,7 @@ const JoinClass: FC<{
     }
   };
   const onJoin = async () => {
-    setShowDialogBox(false);
+    // setShowDialogBox(false);
     setLoading(true);
     const student = Util.getCurrentStudent();
     try {
@@ -112,7 +114,8 @@ const JoinClass: FC<{
   const location = useLocation();
 
   useEffect(() => {
-    //Util.isTextFieldFocus(scollToRef, setIsInputFocus);
+    const student = Util.getCurrentStudent();
+    setFullName(student?.name || "");
 
     const urlParams = new URLSearchParams(location.search);
     const joinClassParam = urlParams.get("join-class");
@@ -125,85 +128,83 @@ const JoinClass: FC<{
           : undefined;
       setInviteCode(tempClassCode);
       urlClassCode.inviteCode = tempClassCode;
-      if (classCode != "") {
+      if (classCode && classCode != "") {
         getClassData();
       }
     }
   }, []);
 
-  return (
-    <div className="join-class-main-header">
-      <div className="join-class-header" aria-label="Join Class Header">
-        {/* <div className="join-class-title">
-          {t("Enter the 6 digit code your teacher has given to join the class")}
-        </div> */}
-        <input
-          aria-label="Join Class Header"
-          onChange={(evt) => {
-            const inviteCode = evt.target.value.slice(0, 6);
-            if (!inviteCode) {
-              setInviteCode(undefined);
-              return;
-            }
-            if (!NUMBER_REGEX.test(inviteCode)) {
-              return;
-            }
+  useEffect(() => {
+    if (inviteCode && inviteCode.toString().length === 6) {
+      getClassData();
+    }
+  }, [inviteCode]);
 
-            setInviteCode(parseInt(inviteCode));
-          }}
-          className="join-class-text-box"
-          defaultValue={inviteCode ?? ""}
-          type="tel"
-          placeholder={t("Enter the class code to join the class") as string}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              getClassData();
-            }
-          }}
-          value={inviteCode ?? ""}
-          style={{ width: "63vw" }}
-        />
-        <p className={"error-text "}>{error}</p>
-        <button
-          className={
-            "okay-button " + (!isNextButtonEnabled() ? "disabled-btn" : "")
+  return (
+    <div className="join-class-parent-container">
+      <h2>{t("Join a Class by entering the details below")}</h2>
+      <div className="join-class-container">
+        <InputWithIcons
+          label={t("Full Name")}
+          placeholder={t("Enter the child’s full name") ?? ""}
+          value={fullName}
+          setValue={setFullName}
+          icon="assets/icons/BusinessCard.svg"
+          readOnly={fullName !== ""}
+          statusIcon={
+            fullName && fullName.length >= 3 ? (
+              <img src="assets/icons/CheckIcon.svg" alt="Status icon" />
+            ) : (
+              <img src="assets/icons/Vector.svg" alt="Status icon" />
+            )
           }
-          disabled={!isNextButtonEnabled()}
-          onClick={getClassData}
+        />
+
+        <InputWithIcons
+          label={t("Class Code")}
+          placeholder={t("Enter the class code to join a class") ?? ""}
+          value={inviteCode}
+          setValue={setInviteCode}
+          icon="assets/icons/OpenBook.svg"
+          type="number"
+          maxLength={6}
+          statusIcon={
+            inviteCode?.toString().length === 6 ? (
+              codeResult && !error ? (
+                <img src="assets/icons/CheckIcon.svg" alt="Status icon" />
+              ) : error && error !== "" ? (
+                <img src="assets/icons/Vector.svg" alt="Status icon" />
+              ) : null
+            ) : null
+          }
+        />
+
+        <div className="join-class-message">
+          {codeResult &&
+          !error &&
+          error == "" &&
+          inviteCode?.toString().length === 6
+            ? `${t("School")}: ${codeResult["school_name"]}, ${t("Class")}: ${codeResult["class_name"]}`
+            : error && inviteCode?.toString().length === 6
+              ? error
+              : null}
+        </div>
+        <button
+          className="join-class-confirm-button"
+          onClick={onJoin}
+          disabled={
+            !(
+              codeResult &&
+              !error &&
+              error === "" &&
+              fullName.length >= 3 &&
+              inviteCode?.toString().length === 6
+            )
+          }
         >
-          {t("Okay")}
+          <span className="join-class-confirm-text">{t("Confirm")}</span>
         </button>
-        {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
       </div>
-      <Loading isLoading={loading} />
-      <DialogBoxButtons
-        width={"40vw"}
-        height={"30vh"}
-        message={
-          t("You are Joining ") +
-          (!!codeResult
-            ? t("School") +
-                ": " +
-                codeResult["school_name"] +
-                ", " +
-                t("Class") +
-                ": " +
-                codeResult["class_name"] ?? ""
-            : "")
-        }
-        showDialogBox={showDialogBox}
-        yesText={t("Cancel")}
-        noText={t("Enter the Class")}
-        handleClose={() => {
-          setShowDialogBox(false);
-        }}
-        onYesButtonClicked={() => {
-          setShowDialogBox(false);
-        }}
-        onNoButtonClicked={async () => {
-          await onJoin();
-        }}
-      />
     </div>
   );
 };

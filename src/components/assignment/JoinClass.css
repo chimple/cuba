@@ -1,53 +1,68 @@
-.join-class-header {
-  text-align: center;
+.join-class-parent-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  /* position: relative;
-  /* margin-top: 15vh; 
-  height: 60vh; */
+  justify-content: center; 
+  align-items: center;     
+  height: 100vh;         
+  text-align: center; 
+  margin-top: -40px;
 }
 
-.join-class-title {
-  font-size: var(--text-size);
+.join-class-parent-container h2 {
+  font-size: clamp(19px, 2.2vw, 36px);
+  font-weight: 600;
+  color: #182a4f;
+  margin-bottom: 0;
 }
 
-.join-class-text-box {
-  width: 100%;
-  /* height: max(6vh, 5vw); */
-  height: 10vh;
-  padding: 2vh;
-  padding-left: 4vh;
-  border-radius: 4vw;
-  border: hidden;
-  outline: none;
-  margin-top: 1vh;
-  background-color: white;
-  color: #05342f;
-}
-
-.error-text {
-  color: red;
-  font-size: var(--text-size);
-}
-
-.okay-button {
-  color: white !important;
-  border-radius: var(--border-radius) !important;
-  padding: 4% 0% !important;
-  width: 50%;
-  font-size: var(--text-size);
+.join-class-container {
+  background-color: transparent;
   text-align: center;
-  background-color: #83c327;
-  margin-top: 5%;
-  cursor: pointer;
-  width: 20vw;
-  height: 10vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  width: clamp(360px, 100%, 700px);
+  height: 100%;
+
 }
 
-.okay-button:disabled {
-  opacity: 0.5;
+
+.join-class-message {
+  font-size: 15px;
+  margin-top: -10px;
+  margin-bottom: 5px;
+  height: 22px;
+  color: #182a4f;
+}
+
+.join-class-confirm-button {
+  width: 220px;
+  height: 60px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  border-bottom: 5px solid #8a2901;
+  background: #f34d08;
+  color: #fff;
+  font-size: 32px;
+  font-weight: 600;
+  transition: transform 0.1s ease;
+  transform: translateY(2px);
+}
+.join-class-confirm-text {
+  line-height: 60px;
+  display: inline-block;
+  text-transform: uppercase;
+}
+
+.join-class-confirm-button:disabled {
+  border-bottom: 5px solid #8a8a8a;
+  background: #6d8c87;
+  color: #a8a8a8;
+}
+
+.join-class-confirm-button:active:not(:disabled) {
+  cursor: pointer;
+  border-bottom: 0px solid #8a2901;
+  background: #f34d08;
+  transition: transform 0.1s ease;
+  transform: translateY(2px);
 }
