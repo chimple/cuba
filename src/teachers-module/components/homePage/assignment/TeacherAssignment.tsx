@@ -5,7 +5,7 @@ import { ServiceConfig } from "../../../../services/ServiceConfig";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import SelectIconImage from "../../../../components/displaySubjects/SelectIconImage";
-import { PAGES, TableTypes } from "../../../../common/constants";
+import { CAMERAPERMISSION, PAGES, TableTypes } from "../../../../common/constants";
 import { Util } from "../../../../utility/util";
 import { t } from "i18next";
 import { Toast } from "@capacitor/toast";
@@ -416,6 +416,11 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
     setTimeout(() => setLoading(false), 100);
     if (!permission.granted) {
       Toast.show({ text: t("Camera permission denied. Please enable it in settings") });
+      return;
+    }
+    // Only allow scan if permission is granted
+    if (!localStorage.getItem(CAMERAPERMISSION) || localStorage.getItem(CAMERAPERMISSION) !== "true") {
+      localStorage.setItem(CAMERAPERMISSION, permission.granted ? "true" : "false");
       return;
     }
     await BarcodeScanner.hideBackground(); // Make background transparent
