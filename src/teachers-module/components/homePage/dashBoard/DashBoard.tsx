@@ -176,6 +176,7 @@ const init = async () => {
       totalTimeSpent += summary.timeSpent || 0;
       totalAverageScore += summary.averageScore || 0;
       subjectsCount += 1;
+      
     }
     
     
@@ -195,16 +196,6 @@ const init = async () => {
       mergedBandWiseStudents.get(band)!.push(entry);
     }
 
-    let activeCount = 0;
-      const activeBands = [BANDS.GREENGROUP, BANDS.YELLOWGROUP, BANDS.REDGROUP];
-
-      for (const band of activeBands) {
-        if (mergedBandWiseStudents.has(band)) {
-          activeCount += mergedBandWiseStudents.get(band)?.length || 0;
-          
-        }
-      }
-
     const hasStudentsAndSubject = _students.length > 0 && subjectsCount > 0;
     const averageTimeSpent = hasStudentsAndSubject
       ? Math.round(totalTimeSpent / subjectsCount)
@@ -220,7 +211,7 @@ const init = async () => {
       },
       students: {
         totalStudents: _students.length,
-        stdCompletd: activeCount
+        stdCompletd: totalCompletedStudents
       },
       timeSpent: averageTimeSpent,
       averageScore,
