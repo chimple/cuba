@@ -738,6 +738,7 @@ export enum EVENTS {
   PATHWAY_COMPLETED = "pathway_completed",
   PATHWAY_COURSE_CHANGED = "pathway_course_changed",
   SYNCHING_ERROR = "synching_error",
+  PROFILE_DETAILS_CLICK_ANALYTICS = "profile_details_click_analytics"
 }
 
 export const FCM_TOKENS = "fcmTokens";

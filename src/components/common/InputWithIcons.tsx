@@ -12,6 +12,7 @@ type InputProps = {
   readOnly?: boolean;
   statusIcon?: ReactNode;
   required?: boolean;
+  id?: string;
 };
 
 const InputWithIcons: FC<InputProps> = ({
@@ -24,7 +25,8 @@ const InputWithIcons: FC<InputProps> = ({
   maxLength,
   readOnly = false,
   statusIcon,
-  required
+  required,
+  id
 }) => {
   return (
     <div className="with-icon-input-wrapper">
@@ -38,6 +40,7 @@ const InputWithIcons: FC<InputProps> = ({
         </div>
         <div className="with-icon-divider" />
         <input
+          id={id}
           type={type}
           value={value ?? ""}
           onChange={(e) => {

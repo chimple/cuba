@@ -1,15 +1,29 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { t } from "i18next";
 import "./ProfileDetails.css";
 import InputWithIcons from "../common/InputWithIcons";
 import SelectWithIcons from "../common/SelectWithIcons";
 import { Util } from "../../utility/util";
+import { useFeatureValue } from "@growthbook/growthbook-react";
+import { initializePersonalDetailsClickListener } from "../../analytics/clickUtilsProfileDetails";
 
-type ProfileDetailsProps = {
-  mode: "all-required" | "name-required" | "all-optional";
+const getModeFromFeature = (variation: string): "all-required" | "name-required" | "all-optional" => {
+  switch (variation) {
+    case "After Login Control":
+      return "all-required";
+    case "After Login V1":
+      return "name-required";
+    case "After Login V2":
+      return "all-optional";
+    default:
+      return "all-required";
+  }
 };
 
-const ProfileDetails = ({ mode }: ProfileDetailsProps) => {
+const ProfileDetails = () => {
+  const variation = useFeatureValue<string>("after-login-screen", "After Login Control");
+  const mode = getModeFromFeature(variation);
+
   const [fullName, setFullName] = useState("");
   const [age, setAge] = useState("");
   const [language, setLanguage] = useState("");
@@ -18,6 +32,11 @@ const ProfileDetails = ({ mode }: ProfileDetailsProps) => {
 
   useEffect(() => {
     Util.loadBackgroundImage();
+  }, []);
+
+  useEffect(() => {
+    const cleanup = initializePersonalDetailsClickListener();
+    return cleanup;
   }, []);
 
   useEffect(() => {
@@ -56,6 +75,7 @@ const ProfileDetails = ({ mode }: ProfileDetailsProps) => {
 
           <div className="profiledetails-full-name">
             <InputWithIcons
+              id="click_on_profile_details_full_name"
               label={t("Full Name")}
               placeholder={t("Name Surname")}
               value={fullName}
@@ -68,10 +88,12 @@ const ProfileDetails = ({ mode }: ProfileDetailsProps) => {
           <div className="profiledetails-row-group">
             <div className="profiledetails-flex-item">
               <SelectWithIcons
+                id="click_on_profile_details_age"
                 label={t("Age")}
                 value={age}
                 setValue={setAge}
                 icon="/assets/icons/age.svg"
+                optionId={`click_on_profile_details_age_option_`+ age}
                 options={[
                   { value: "≤4", label: t("≤4 years") },
                   { value: "5", label: t("5 years") },
@@ -85,9 +107,11 @@ const ProfileDetails = ({ mode }: ProfileDetailsProps) => {
 
             <div className="profiledetails-flex-item">
               <SelectWithIcons
+                id="click_on_profile_details_language"
                 label={t("Language")}
                 value={language}
                 setValue={setLanguage}
+                optionId={`click_on_profile_details_language_option_`+ language}
                 icon="/assets/icons/language.svg"
                 options={[
                   { value: "English", label: t("English") },
@@ -111,6 +135,7 @@ const ProfileDetails = ({ mode }: ProfileDetailsProps) => {
               {["GIRL", "BOY", "UNSPECIFIED"].map((g) => (
                 <button
                   key={g}
+                  id={`click_on_profile_details_gender_${g.toLowerCase()}`}
                   type="button"
                   className={`profiledetails-gender-btn ${
                     gender === g ? "selected" : ""
@@ -130,6 +155,7 @@ const ProfileDetails = ({ mode }: ProfileDetailsProps) => {
           <div className="profiledetails-button-group">
             {shouldShowSkip && (
               <button
+                id="click_on_profile_details_skip"
                 className="profiledetails-skip-button"
                 onClick={() => {}}
               >
@@ -137,6 +163,7 @@ const ProfileDetails = ({ mode }: ProfileDetailsProps) => {
               </button>
             )}
             <button
+              id="click_on_profile_details_save"
               className="profiledetails-save-button"
               disabled={!isSaveEnabled}
               onClick={() => {}}

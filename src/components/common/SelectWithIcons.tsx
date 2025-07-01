@@ -12,6 +12,8 @@ type SelectWithIconsProps = {
   icon: string;
   options: Option[];
   required?: boolean;
+  id?: string;
+  optionId?: string;
 };
 
 const SelectWithIcons: React.FC<SelectWithIconsProps> = ({
@@ -20,7 +22,9 @@ const SelectWithIcons: React.FC<SelectWithIconsProps> = ({
   setValue,
   icon,
   options,
-  required
+  required,
+  id,
+  optionId
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -46,6 +50,7 @@ const SelectWithIcons: React.FC<SelectWithIconsProps> = ({
             {required && <span className="select-with-icon-required">*</span>}
         </div>
       <div
+        id={id}
         className="select-with-icon-input-box"
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -68,6 +73,7 @@ const SelectWithIcons: React.FC<SelectWithIconsProps> = ({
         <div className="select-with-icon-dropdown">
           {options.map((opt) => (
             <div
+              id={optionId}
               key={opt.value}
               className={`select-with-icon-option ${value === opt.value ? "selected" : ""}`}
               onClick={() => {

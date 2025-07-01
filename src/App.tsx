@@ -609,7 +609,7 @@ const App: React.FC = () => {
               <ProgramsPage />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.PROFILE_DETAILS} exact={true}>
-              <ProfileDetails mode="all-required" />
+              <ProfileDetails/>
             </ProtectedRoute>
             {/* <ProtectedRoute path={PAGES.PROGRAM_DETAIL_PAGE} exact={true}>
               <ProgramDetailPage />
