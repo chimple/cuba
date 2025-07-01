@@ -3,13 +3,14 @@ import { useHistory } from "react-router";
 import {
   CLASS,
   CURRENT_SCHOOL,
+  IS_OPS_USER,
   MODES,
   PAGES,
   SCHOOL,
   TableTypes,
   USER_ROLE,
 } from "../../common/constants";
-import { ServiceConfig } from "../../services/ServiceConfig";
+import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
 import { RoleType } from "../../interface/modelInterfaces";
 import { AppBar } from "@mui/material";
@@ -17,7 +18,7 @@ import { t } from "i18next";
 import BackButton from "../../components/common/BackButton";
 import "./DisplaySchools.css";
 import Header from "../components/homePage/Header";
-import { IonFabButton, IonIcon, IonPage } from "@ionic/react";
+import { IonFabButton, IonIcon, IonItem, IonPage } from "@ionic/react";
 import { PiUserSwitchFill } from "react-icons/pi";
 import CommonToggle from "../../common/CommonToggle";
 import { schoolUtil } from "../../utility/schoolUtil";
@@ -36,6 +37,8 @@ const DisplaySchools: FC<{}> = () => {
   const auth = ServiceConfig.getI().authHandler;
   const [schoolList, setSchoolList] = useState<SchoolWithRole[]>([]);
   const [user, setUser] = useState<TableTypes<"user">>();
+  const [isAuthorizedForOpsMode, setIsAuthorizedForOpsMode] =
+    useState<boolean>(false);
 
   useEffect(() => {
     lockOrientation();
@@ -47,10 +50,24 @@ const DisplaySchools: FC<{}> = () => {
       ScreenOrientation.lock({ orientation: "portrait" });
     }
   };
+  const switchUserToOps = () => {
+    localStorage.setItem(IS_OPS_USER, "true");
+    ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+    history.replace(PAGES.SIDEBAR_PAGE);
+    return;
+  };
   const initData = async () => {
     const currentUser = await auth.getCurrentUser();
     if (!currentUser) return;
     setUser(currentUser);
+    const userRole = localStorage.getItem(USER_ROLE);
+    const isOpsRole =
+      userRole === RoleType.SUPER_ADMIN ||
+      userRole === RoleType.OPERATIONAL_DIRECTOR;
+    const isProgramUser = await api.isProgramUser();
+    if (isOpsRole || isProgramUser) {
+      setIsAuthorizedForOpsMode(true);
+    }
     const allSchool = await api.getSchoolsForUser(currentUser.id);
     setSchoolList(allSchool);
     const tempSchool = Util.getCurrentSchool();
@@ -111,11 +128,21 @@ const DisplaySchools: FC<{}> = () => {
         disableBackButton={true}
         customText="Select School"
       />
+
       <div className="display-user-switch-user-toggle">
         <div className="display-school-switch-text">
           <PiUserSwitchFill className="display-user-user-switch-icon" />
           <CommonToggle onChange={switchUser} label="Switch to Child's Mode" />
         </div>
+        {!Capacitor.isNativePlatform() && isAuthorizedForOpsMode && (
+          <div className="display-ops-switch-text">
+            <PiUserSwitchFill className="display-user-user-switch-icon" />
+            <CommonToggle
+              onChange={switchUserToOps}
+              label="Switch to Ops Mode"
+            />
+          </div>
+        )}
       </div>
       <hr className="display-school-horizontal-line" />
       {schoolList.length === 0 ? (
