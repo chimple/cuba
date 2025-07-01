@@ -52,7 +52,6 @@ const DisplaySchools: FC<{}> = () => {
   };
   const switchUserToOps = () => {
     localStorage.setItem(IS_OPS_USER, "true");
-    ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
     history.replace(PAGES.SIDEBAR_PAGE);
     return;
   };
