@@ -16,6 +16,7 @@ import {
   TableTypes,
 } from "../common/constants";
 
+const isRespect = Util.isRespectMode;
 const LearningPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const [loading, setLoading] = useState<boolean>(false);
@@ -77,7 +78,6 @@ const LearningPathway: React.FC = () => {
     const currClass = schoolUtil.getCurrentClass();
 
     try {
-      setPathReady(false);
       const userCourses = currClass
         ? await api.getCoursesForClassStudent(currClass.id)
         : await api.getCoursesForPathway(student.id);
@@ -89,24 +89,21 @@ const LearningPathway: React.FC = () => {
 
       if (!learningPath || !learningPath.courses?.courseList?.length) {
         setLoading(true);
+        if(isRespect) setPathReady(false);
         learningPath = await buildInitialLearningPath(userCourses);
         await saveLearningPath(student, learningPath);
-        // Dispatch event to notify that course has changed
-        const event = new CustomEvent("courseChanged", { detail: { currentStudent: student } });
-        window.dispatchEvent(event);
         setLoading(false);
-        setPathReady(true);
+        if(isRespect) setPathReady(true);
       } else {
         const updated = await updateLearningPathIfNeeded(
           learningPath,
           userCourses
         );
         if (updated) await saveLearningPath(student, learningPath);
-        setPathReady(true);
+        if(isRespect) setPathReady(true);
       }
     } catch (error) {
       console.error("Error in Learning Pathway", error);
-      setPathReady(true);
     } finally {
       setLoading(false);
     }
