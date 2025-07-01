@@ -3256,7 +3256,8 @@ export class SqliteApi implements ServiceApi {
     lesson_id: string,
     chapter_id: string,
     course_id: string,
-    type: string
+    type: string,
+    created_at?: string
   ): Promise<boolean> {
     const assignmentUUid = uuidv4();
     const timestamp = new Date().toISOString(); // Cache timestamp for reuse
@@ -3277,7 +3278,7 @@ export class SqliteApi implements ServiceApi {
           school_id,
           lesson_id,
           type,
-          timestamp,
+          created_at ?? timestamp,
           timestamp,
           false,
           chapter_id,
@@ -3296,7 +3297,7 @@ export class SqliteApi implements ServiceApi {
         school_id: school_id,
         lesson_id: lesson_id,
         type: type,
-        created_at: timestamp,
+        created_at: created_at ?? timestamp,
         updated_at: timestamp,
         is_deleted: false,
         chapter_id: chapter_id,
