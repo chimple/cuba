@@ -17,10 +17,12 @@
 }
 .school-list-page-header-title {
   width: max-content;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 600;
 }
-
+.school-list-upload-icon {
+  color: #1a71f6;
+}
 @media (max-width: 768px) and (orientation: landscape) {
   .school-list-page-header-title {
     position: relative;
@@ -149,6 +151,15 @@
 .school-list-bell-icon {
   color: black !important;
 }
-.school-list-upload-text {
+
+.school-list-upload-text1 {
   color: black;
+}
+
+.school-list-upload-text {
+  font-weight: bolder;
+  color: #121619;
+  padding-left: 5vh;
+  padding-top: 3vh;
+  font-size: large;
 }

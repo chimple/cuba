@@ -253,7 +253,7 @@ export class SupabaseApi implements ServiceApi {
     tableNames: TABLES[] = Object.values(TABLES),
     refreshTables: TABLES[] = []
   ): Promise<boolean> {
-    throw new Error("Method not implemented.");
+    return Promise.resolve(true);
   }
   public static i: SupabaseApi;
   public supabase: SupabaseClient<Database> | undefined;

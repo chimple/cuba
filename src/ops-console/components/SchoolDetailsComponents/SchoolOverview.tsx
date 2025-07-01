@@ -140,7 +140,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             className="school-detail-infocard school-card"
             items={schoolDetailsItems}
           />
-          <Box position="relative" width="100%">
+          {/* <Box position="relative" width="100%">
             <InfoCard title={t("Address & Location")} className="address-card">
               <Box>
                 {schooladdressDetailsItems.map((item, idx) => (
@@ -167,7 +167,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                 />
               </Box>
             </InfoCard>
-          </Box>
+          </Box> */}
           <InfoCard title={t("Program Details")} className="program-card">
             <Box className="info-card-items">
               {programDetailsItems.map((item, idx) => (
@@ -207,7 +207,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                 className="school-detail-infocard school-card"
                 items={schoolDetailsItems}
               />
-              <Box position="relative" width="100%">
+              {/* <Box position="relative" width="100%">
                 <InfoCard
                   title={t("Address & Location")}
                   className="address-card"
@@ -237,7 +237,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                     />
                   </Box>
                 </InfoCard>
-              </Box>
+              </Box> */}
             </Box>
           </Grid>
           <Grid item xs={12} md={4}>
