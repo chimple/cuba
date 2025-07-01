@@ -381,7 +381,7 @@ const CreateSelectedAssignment = ({
           }
           // Process lessons asynchronously in parallel
           await Promise.all(
-            subjectData.count.map(async (lessonId) => {
+            subjectData.count.map(async (lessonId, idx) => {
               const tempLes = tempLessons.find(
                 (les: any) => les.id === lessonId
               );
@@ -397,6 +397,7 @@ const CreateSelectedAssignment = ({
                 console.warn(`Chapter not found for lessonId: ${lessonId}`);
                 return;
               }
+              const createdAt = new Date(Date.now() - (idx) * 100).toISOString();
               const res = await api.createAssignment(
                 studentList,
                 currUser.id,
@@ -410,7 +411,8 @@ const CreateSelectedAssignment = ({
                 subjectId,
                 tempLes.plugin_type === ASSIGNMENT_TYPE.LIVEQUIZ
                   ? ASSIGNMENT_TYPE.LIVEQUIZ
-                  : ASSIGNMENT_TYPE.ASSIGNMENT
+                  : ASSIGNMENT_TYPE.ASSIGNMENT,
+                createdAt 
               );
 
               // If the assignment creation was successful, update sync_lesson
