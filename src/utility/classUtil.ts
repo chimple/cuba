@@ -149,7 +149,7 @@ export class ClassUtil {
         differenceInCalendarWeeks(
           new Date(results[0].created_at),
           adjustedoneWeekBack
-        ) > 0
+        ) < 0
       ) {
         greyGroup.push(
           new Map<string, TableTypes<"user"> | TableTypes<"result">[]>([
