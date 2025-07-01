@@ -179,6 +179,7 @@ export class SqliteApi implements ServiceApi {
     } catch (err) {
       console.error("🚀 ~ SqliteApi ~ init ~ err:", err);
     }
+    await this.createSyncTables();
     await this.setUpDatabase();
     return this._db;
   }
