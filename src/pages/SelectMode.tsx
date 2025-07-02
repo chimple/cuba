@@ -69,11 +69,17 @@ const SelectMode: FC = () => {
   const history = useHistory();
 
   const [stage, setStage] = useState(STAGES.MODE);
+  console.log("stage", stage);
+  
   const [isOkayButtonDisabled, setIsOkayButtonDisabled] = useState(true);
   const init = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const setTab = urlParams.get("tab");
     const currentMode = await schoolUtil.getCurrMode();
+    const userRole = localStorage.getItem(USER_ROLE);
+    const isOpsRole = userRole === RoleType.SUPER_ADMIN || userRole === RoleType.OPERATIONAL_DIRECTOR;
+    const isProgramUser = await api.isProgramUser();
+  
     if (setTab) {
       if (setTab === STAGES.STUDENT) {
         setStage(STAGES.STUDENT);
@@ -114,8 +120,15 @@ const SelectMode: FC = () => {
         setStage(STAGES.MODE);
       }
     } else if (currentMode === MODES.TEACHER) {
-      history.replace(PAGES.DISPLAY_SCHOOLS);
+        if (isOpsRole || isProgramUser) {
+          history.replace(PAGES.SIDEBAR_PAGE);
+        return; 
+        }else{
+          history.replace(PAGES.DISPLAY_SCHOOLS);
+        }
     }
+
+
     const currUser = await auth.getCurrentUser();
     if (!currUser) return;
     const allSchool = await api.getSchoolsForUser(currUser.id);
@@ -127,10 +140,6 @@ const SelectMode: FC = () => {
     const matchedSchools = allSchool.filter((entry) =>
       filteredSchoolIds.includes(entry.school.id)
     );
-
-    const userRole = localStorage.getItem(USER_ROLE);
-    const isOpsRole = userRole === RoleType.SUPER_ADMIN || userRole === RoleType.OPERATIONAL_DIRECTOR;
-    const isProgramUser = await api.isProgramUser();
 
     // If user is ops or program user
     if (isOpsRole || isProgramUser) {
