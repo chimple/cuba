@@ -68,8 +68,7 @@ const PathwayStructure: React.FC = () => {
       if (!containerRef.current) return;
 
       try {
-        const currentStudent =
-          updatedStudent || (await Util.getCurrentStudent());
+        const currentStudent = await Util.getCurrentStudent();
         const learningPath = currentStudent?.learning_path
           ? JSON.parse(currentStudent.learning_path)
           : null;

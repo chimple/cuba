@@ -14,7 +14,8 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
   const [currentChapterName, setCurrentChapterName] = useState<string>("");
 
   useEffect(() => {
-    const updateChapter = async (currentStudent: any) => {
+    const updateChapter = async () => {
+      const currentStudent = await Util.getCurrentStudent();
       if (!currentStudent || !currentStudent.learning_path) return;
 
       const learningPath = JSON.parse(currentStudent.learning_path);
@@ -42,13 +43,13 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
 
     const handleCourseChange = async (event: CustomEvent) => {
       const currentStudent = event.detail.currentStudent;
-      await updateChapter(currentStudent);
+      await updateChapter();
     };
 
     // Fetch the initial chapter on component mount
     (async () => {
       const currentStudent = await Util.getCurrentStudent();
-      await updateChapter(currentStudent);
+      await updateChapter();
     })();
 
     // Listen for course changes

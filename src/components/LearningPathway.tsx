@@ -16,11 +16,13 @@ import {
   TableTypes,
 } from "../common/constants";
 
+const isRespect = Util.isRespectMode;
 const LearningPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const [loading, setLoading] = useState<boolean>(false);
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
+  const [pathReady, setPathReady] = useState<boolean>(false);
   const currentStudent = Util.getCurrentStudent();
 
   useEffect(() => {
@@ -79,15 +81,18 @@ const LearningPathway: React.FC = () => {
 
       if (!learningPath || !learningPath.courses?.courseList?.length) {
         setLoading(true);
+        if(isRespect) setPathReady(false);
         learningPath = await buildInitialLearningPath(userCourses);
         await saveLearningPath(student, learningPath);
         setLoading(false);
+        if(isRespect) setPathReady(true);
       } else {
         const updated = await updateLearningPathIfNeeded(
           learningPath,
           userCourses
         );
         if (updated) await saveLearningPath(student, learningPath);
+        if(isRespect) setPathReady(true);
       }
     } catch (error) {
       console.error("Error in Learning Pathway", error);
@@ -226,7 +231,7 @@ const LearningPathway: React.FC = () => {
     };
     await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
   };
-  if (loading) return <Loading isLoading={loading} msg="Loading Lessons" />;
+  if (loading || !pathReady) return <Loading isLoading={loading} msg="Loading Lessons" />;
 
   return (
     <div className="learning-pathway-container">

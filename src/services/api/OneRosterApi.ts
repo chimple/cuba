@@ -496,8 +496,30 @@ export class OneRosterApi implements ServiceApi {
   getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
-  getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
-    throw new Error("Method not implemented.");
+  async getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
+    try {
+      for (const courseId of this.studentAvailableCourseIds) {
+        const courseJson = await this.loadCourseJson(courseId);
+        const group = courseJson.groups.find((g: any) => g.metadata.id === id);
+        if (group) {
+          return {
+            id: group.metadata.id,
+            name: group.metadata.title,
+            image: Util.getThumbnailUrl({ id: group.metadata.id }),
+            course_id: courseId,
+            created_at: "",
+            updated_at: null,
+            is_deleted: null,
+            sort_index: null,
+            sub_topics: null
+          };
+        }
+      }
+      return undefined;
+    } catch (error) {
+      console.error("Error in getChapterById:", error);
+      return undefined;
+    }
   }
   async getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
     grades: TableTypes<"grade">[];
@@ -806,8 +828,22 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   async getCoursesForPathway(studentId: string): Promise<TableTypes<"course">[]> {
-    return await this.getAllCourses();
-    // throw new Error("Method not implemented.");
+    const student = await Util.getCurrentStudent();
+    const allCourses = await this.getAllCourses();
+
+    // Filter by grade_id
+    let filteredCourses: TableTypes<"course">[] = [];
+    if (student && student.grade_id) {
+      filteredCourses = allCourses.filter(course => course.grade_id === student.grade_id);
+    }
+
+    // Add digital skills at the end if not already included
+    const digitalSkills = allCourses.find(c => c.code === "puzzle");
+    if (digitalSkills && !filteredCourses.some(c => c.id === "puzzle")) {
+      filteredCourses = [...filteredCourses, digitalSkills];
+    }
+
+    return filteredCourses;
   }
   async updateLearningPath(student: TableTypes<"user">, learning_path: string): Promise<TableTypes<"user">> {
     try {
@@ -891,43 +927,40 @@ export class OneRosterApi implements ServiceApi {
     chapterId: string
   ): Promise<TableTypes<"lesson">[]> {
     try {
-      const courseJson = await this.loadCourseJson(
-        this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0]
-      );
-      console.log(
-        "getLessonsForChapter data: ",
-        this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0],
-        courseJson.groups
-      );
-      const chapter = courseJson.groups.find(
-        (group: any) => group.metadata.id === chapterId
-      );
-      if (!chapter || !chapter.navigation) return [];
-
-      const lessons: TableTypes<"lesson">[] = chapter.navigation.map(
-        (lesson: any) => ({
-          cocos_chapter_code: lesson.cocosChapterCode,
-          cocos_lesson_id: lesson.cocosLessonCode,
-          cocos_subject_code: lesson.cocosSubjectCode,
-          color: lesson.color,
-          created_at: null,
-          created_by: null,
-          id: lesson.id,
-          image: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
-          is_deleted: null,
-          language_id: lesson.language,
-          name: lesson.title,
-          outcome: lesson.outcome || null,
-          plugin_type: lesson.pluginType,
-          status: lesson.status,
-          chapter_id: chapterId,
-          subject_id: lesson.subject,
-          target_age_from: lesson.targetAgeFrom || null,
-          target_age_to: lesson.targetAgeTo || null,
-        })
-      );
-
-      return lessons;
+      // Search all available courses for the chapter
+      for (const courseId of this.studentAvailableCourseIds) {
+        const courseJson = await this.loadCourseJson(courseId);
+        const chapter = courseJson.groups.find(
+          (group: any) => group.metadata.id === chapterId
+        );
+        if (chapter && chapter.navigation) {
+          const lessons: TableTypes<"lesson">[] = chapter.navigation.map(
+            (lesson: any) => ({
+              cocos_chapter_code: lesson.cocosChapterCode,
+              cocos_lesson_id: lesson.cocosLessonCode,
+              cocos_subject_code: lesson.cocosSubjectCode,
+              color: lesson.color,
+              created_at: null,
+              created_by: null,
+              id: lesson.id,
+              image: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
+              is_deleted: null,
+              language_id: lesson.language,
+              name: lesson.title,
+              outcome: lesson.outcome || null,
+              plugin_type: lesson.pluginType,
+              status: lesson.status,
+              chapter_id: chapterId,
+              subject_id: lesson.subject,
+              target_age_from: lesson.targetAgeFrom || null,
+              target_age_to: lesson.targetAgeTo || null,
+            })
+          );
+          return lessons;
+        }
+      }
+      // If not found in any course
+      return [];
     } catch (error) {
       console.error("Error in getLessonsForChapter:", error);
       return []; // Return empty array on error
