@@ -1819,7 +1819,11 @@ export class SqliteApi implements ServiceApi {
     email: string,
     phoneNum: string,
     languageDocId: string,
-    profilePic: string | undefined
+    profilePic: string | undefined,
+    options?: {
+      age?: string;
+      gender?: string;
+    }
   ): Promise<TableTypes<"user">> {
     const updateUserProfileQuery = `
       UPDATE "user"

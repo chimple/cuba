@@ -304,43 +304,50 @@ const LoginScreen: React.FC = () => {
         // Handle the case where verification succeeded but no user was returned
         throw new Error("Verification failed - no user data");
       }
-
       // Store user data and proceed with navigation
-      localStorage.setItem(CURRENT_USER, JSON.stringify(res.user));
+      const user = res.user;
+      localStorage.setItem(CURRENT_USER, JSON.stringify(user));
 
-      // Log the login event
       Util.logEvent(EVENTS.USER_PROFILE, {
-        user_id: res.user.uid,
-        user_name: res.user.name,
-        user_username: res.user.username,
-        phone_number: res.user.username,
+        user_id: user.uid,
+        user_name: user.name,
+        user_username: user.username,
+        phone_number: user.username,
         user_type: RoleType.PARENT,
         action_type: ACTION.LOGIN,
         login_type: "phone-number",
       });
-      // Finally navigate to next screen
-      const userSchools = await getSchoolsForUser(res.user.user);
-      await redirectUser(userSchools);
+
+      const isNewUser =
+        !user.name || !user.language_id || !user.gender;
+
+      if (isNewUser) {
+        history.replace(PAGES.PROFILE_DETAILS);
+      } else {
+        const userSchools = await getSchoolsForUser(user.user);
+        await redirectUser(userSchools);
+      }
+
       setAnimatedLoading(false);
     } catch (error) {
       // Handle all state updates for error case at once
       const updates = () => {
-        setAnimatedLoading(false);
-        setIsLoading(false);
-        setVerificationCode("");
+      setAnimatedLoading(false);
+      setIsLoading(false);
+      setVerificationCode("");
 
         // Set appropriate error message
-        if (typeof error === "string" && error.includes("code-expired")) {
-          setErrorMessage(
-            t("Verification code has expired. Please request a new one.")
-          );
-        } else {
-          setErrorMessage(t("Incorrect OTP - Please check & try again!"));
-        }
+      if (typeof error === "string" && error.includes("code-expired")) {
+        setErrorMessage(
+          t("Verification code has expired. Please request a new one.")
+        );
+      } else {
+        setErrorMessage(t("Incorrect OTP - Please check & try again!"));
+      }
 
         // Enable resend OTP option
-        setShowResendOtp(true);
-        setCounter(0);
+      setShowResendOtp(true);
+      setCounter(0);
       };
 
       // Execute all state updates together

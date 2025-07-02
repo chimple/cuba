@@ -6,8 +6,14 @@ import SelectWithIcons from "../common/SelectWithIcons";
 import { Util } from "../../utility/util";
 import { useFeatureValue } from "@growthbook/growthbook-react";
 import { initializePersonalDetailsClickListener } from "../../analytics/clickUtilsProfileDetails";
+import { SupabaseAuth } from "../../services/auth/SupabaseAuth";
+import { ServiceConfig } from "../../services/ServiceConfig";
+import { PAGES, TableTypes } from "../../common/constants";
+import { useHistory } from "react-router";
 
-const getModeFromFeature = (variation: string): "all-required" | "name-required" | "all-optional" => {
+const getModeFromFeature = (
+  variation: string
+): "all-required" | "name-required" | "all-optional" => {
   switch (variation) {
     case "After Login Control":
       return "all-required";
@@ -21,13 +27,19 @@ const getModeFromFeature = (variation: string): "all-required" | "name-required"
 };
 
 const ProfileDetails = () => {
-  const variation = useFeatureValue<string>("after-login-screen", "After Login Control");
+  const api = ServiceConfig.getI().apiHandler;
+  const history = useHistory();
+  const variation = useFeatureValue<string>(
+    "after-login-screen",
+    "After Login Control"
+  );
   const mode = getModeFromFeature(variation);
 
   const [fullName, setFullName] = useState("");
   const [age, setAge] = useState("");
-  const [language, setLanguage] = useState("");
   const [gender, setGender] = useState("");
+  const [languageId, setLanguageId] = useState(""); 
+  const [languages, setLanguages] = useState<TableTypes<"language">[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
@@ -41,11 +53,19 @@ const ProfileDetails = () => {
 
   useEffect(() => {
     setHasChanges(true);
-  }, [fullName, age, language, gender]);
+  }, [fullName, age, gender, languageId]);
+
+  useEffect(() => {
+    const loadLanguages = async () => {
+      const langs = await api.getAllLanguages();
+      setLanguages(langs);
+    };
+    loadLanguages();
+  }, []);
 
   const isFormComplete =
     mode === "all-required"
-      ? fullName && age && language && gender
+      ? fullName && age && languageId && gender
       : mode === "name-required"
       ? fullName
       : true;
@@ -55,6 +75,33 @@ const ProfileDetails = () => {
     mode === "all-required" || mode === "name-required"
       ? isFormComplete
       : hasChanges;
+
+  const handleSave = async () => {
+    try {
+      const user = await SupabaseAuth.i.getCurrentUser();
+      if (!user) {
+        console.error("No user found");
+        return;
+      }
+
+      await api.updateUserProfile(
+        user,
+        fullName,
+        user.email ?? "",
+        user.phone ?? "",
+        languageId,
+        undefined,
+        {
+          age,
+          gender,
+        }
+      );
+
+      history.replace(PAGES.HOME);
+    } catch (err) {
+      console.error("Error saving profile:", err);
+    }
+  };
 
   return (
     <div className="profiledetails-container">
@@ -93,7 +140,7 @@ const ProfileDetails = () => {
                 value={age}
                 setValue={setAge}
                 icon="/assets/icons/age.svg"
-                optionId={`click_on_profile_details_age_option_`+ age}
+                optionId={`click_on_profile_details_age_option_` + age}
                 options={[
                   { value: "≤4", label: t("≤4 years") },
                   { value: "5", label: t("5 years") },
@@ -109,16 +156,14 @@ const ProfileDetails = () => {
               <SelectWithIcons
                 id="click_on_profile_details_language"
                 label={t("Language")}
-                value={language}
-                setValue={setLanguage}
-                optionId={`click_on_profile_details_language_option_`+ language}
+                value={languageId}
+                setValue={setLanguageId}
                 icon="/assets/icons/language.svg"
-                options={[
-                  { value: "English", label: t("English") },
-                  { value: "Hindi", label: t("हिंदी") },
-                  { value: "Kannada", label: t("ಕನ್ನಡ") },
-                  { value: "Marathi", label: t("मराठी") },
-                ]}
+                optionId={`click_on_profile_details_language_option_` + languageId}
+                options={languages.map((lang) => ({
+                  value: lang.id,
+                  label: t(lang.name),
+                }))}
                 required={mode === "all-required"}
               />
             </div>
@@ -157,7 +202,7 @@ const ProfileDetails = () => {
               <button
                 id="click_on_profile_details_skip"
                 className="profiledetails-skip-button"
-                onClick={() => {}}
+                onClick={() => history.replace(PAGES.HOME)}
               >
                 {t("SKIP FOR NOW")}
               </button>
@@ -166,7 +211,7 @@ const ProfileDetails = () => {
               id="click_on_profile_details_save"
               className="profiledetails-save-button"
               disabled={!isSaveEnabled}
-              onClick={() => {}}
+              onClick={handleSave}
             >
               {t("SAVE")}
             </button>

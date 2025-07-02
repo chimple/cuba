@@ -403,7 +403,11 @@ export class ApiHandler implements ServiceApi {
     email: string,
     phoneNum: string,
     languageDocId: string,
-    profilePic: string | undefined
+    profilePic: string | undefined,
+    options?: {
+      age?: string;
+      gender?: string;
+    }
   ): Promise<TableTypes<"user">> {
     return await this.s.updateUserProfile(
       user,
@@ -411,9 +415,11 @@ export class ApiHandler implements ServiceApi {
       email,
       phoneNum,
       languageDocId,
-      profilePic
+      profilePic,
+      options
     );
   }
+
   public async getLiveQuizLessons(
     classId: string,
     studentId: string
