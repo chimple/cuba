@@ -30,13 +30,16 @@ const LearningPathway: React.FC = () => {
     updateStarCount(currentStudent);
     fetchLearningPathway(currentStudent);
 
-    // Minimal: Listen for courseChanged and force re-render
-    const handleCourseChanged = () => {
-      setPathReady(false);
-      setTimeout(() => setPathReady(true), 0);
-    };
-    window.addEventListener("courseChanged", handleCourseChanged);
-    return () => window.removeEventListener("courseChanged", handleCourseChanged);
+    // // Minimal: Listen for courseChanged and force re-render
+    // const handleCourseChanged = () => {
+    //   setPathReady(false);
+    //   setTimeout(() => setPathReady(true), 0);
+    // };
+
+    // if(isRespect) {
+    //   window.addEventListener("courseChanged", handleCourseChanged);
+    //   return () => window.removeEventListener("courseChanged", handleCourseChanged);
+    // }
   }, []);
   const updateStarCount = async (currentStudent: TableTypes<"user">) => {
     const storedStarsJson = localStorage.getItem(STARS_COUNT);
