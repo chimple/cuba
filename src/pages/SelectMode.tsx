@@ -69,8 +69,6 @@ const SelectMode: FC = () => {
   const history = useHistory();
 
   const [stage, setStage] = useState(STAGES.MODE);
-  console.log("stage", stage);
-  
   const [isOkayButtonDisabled, setIsOkayButtonDisabled] = useState(true);
   const init = async () => {
     const urlParams = new URLSearchParams(window.location.search);
