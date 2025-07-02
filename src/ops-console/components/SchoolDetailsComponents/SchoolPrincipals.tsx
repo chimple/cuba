@@ -22,10 +22,7 @@ interface SchoolPrincipalsProps {
 
 const ROWS_PER_PAGE = 7;
 
-const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
-  data,
-  isMobile,
-}) => {
+const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({ data }) => {
   const [orderBy, setOrderBy] = useState<string | null>("name");
   const [order, setOrder] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
@@ -42,7 +39,19 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
 
   const allFilteredPrincipals = useMemo(() => {
     const principalsFromProps = data?.principals || [];
-    return principalsFromProps.map((principal) => ({
+    let sortedPrincipals = [...principalsFromProps];
+    if (orderBy) {
+      sortedPrincipals.sort((a, b) => {
+        const valA = a[orderBy as keyof Principal] ?? '';
+        const valB = b[orderBy as keyof Principal] ?? '';
+
+        if (valA < valB) return order === 'asc' ? -1 : 1;
+        if (valA > valB) return order === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return sortedPrincipals.map((principal) => ({
       ...principal,
       id: principal.id,
       name: principal.name || "N/A",
@@ -50,7 +59,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
       phoneNumber: principal.phoneNumber || "N/A",
       emailDisplay: principal.email || "N/A",
     }));
-  }, [data?.principals]);
+  }, [data?.principals, order, orderBy]);
 
   useEffect(() => {
     const newPageCount = Math.ceil(
@@ -108,7 +117,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
             order={order}
             onSort={handleSort}
           />
-          {allFilteredPrincipals.length > 0 && (
+          {allFilteredPrincipals.length > 0 && pageCount > 1 && (
             <div className="schoolPrincipals-school-list-pagination">
               <DataTablePagination
                 page={page}
