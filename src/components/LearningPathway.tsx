@@ -231,7 +231,7 @@ const LearningPathway: React.FC = () => {
     };
     await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
   };
-  if (loading || !pathReady) return <Loading isLoading={true} msg="Loading Lessons" />;
+  if (loading || !pathReady) return <Loading isLoading={loading} msg="Loading Lessons" />;
 
   return (
     <div className="learning-pathway-container">
