@@ -264,6 +264,7 @@ const SideMenu: React.FC<{
       if (classCode !== undefined && classCode !== null) {
         setClassCode(classCode);
       } else {
+        setClassCode(undefined);
         console.warn("Class code is null or undefined");
       }
 
