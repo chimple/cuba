@@ -179,7 +179,6 @@ export class SqliteApi implements ServiceApi {
     } catch (err) {
       console.error("🚀 ~ SqliteApi ~ init ~ err:", err);
     }
-    await this.createSyncTables();
     await this.setUpDatabase();
     return this._db;
   }
@@ -298,7 +297,7 @@ export class SqliteApi implements ServiceApi {
 
   private async pullChanges(tableNames: TABLES[]) {
     if (!this._db) return;
-
+    
     const tables = tableNames.map((t) => `'${t}'`).join(", ");
     const tablePullSync = `SELECT * FROM pull_sync_info WHERE table_name IN (${tables});`;
     let lastPullTables = new Map<string, string>();
@@ -355,12 +354,22 @@ export class SqliteApi implements ServiceApi {
     const pulledRowsSizeInBytes = new TextEncoder().encode(jsonString).length;
     this.updateDebugInfo(0, totalpulledRows, pulledRowsSizeInBytes);
 
-    // Execute batch queries efficiently
+    let _hasRetried = false;
     if (batchQueries.length > 0) {
       try {
         await this._db.executeSet(batchQueries);
       } catch (error) {
-        console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
+        if (!_hasRetried) {
+          _hasRetried = true;
+          await this.createSyncTables();
+          try {
+            await this._db.executeSet(batchQueries);
+          } catch (error) {
+            console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
+          }
+        } else {
+          console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
+        }
       }
     }
   }
@@ -420,29 +429,41 @@ export class SqliteApi implements ServiceApi {
 
   async syncDbNow(
     tableNames: TABLES[] = Object.values(TABLES),
-    refreshTables: TABLES[] = []
+    refreshTables: TABLES[] = [],
+    _hasRetried = false
   ) {
     if (!this._db) return;
-    const refresh_tables = "'" + refreshTables.join("', '") + "'";
-    console.log("logs to check synced tables", JSON.stringify(refresh_tables));
-    await this.executeQuery(
-      `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`
-    );
-    await this.pullChanges(tableNames);
-    const res = await this.pushChanges(tableNames);
-    const tables = "'" + tableNames.join("', '") + "'";
-    console.log("logs to check synced tables1", JSON.stringify(tables));
+    try {
+      const refresh_tables = "'" + refreshTables.join("', '") + "'";
+      console.log(
+        "logs to check synced tables",
+        JSON.stringify(refresh_tables)
+      );
+      await this.executeQuery(
+        `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`
+      );
+      await this.pullChanges(tableNames);
+      const res = await this.pushChanges(tableNames);
+      const tables = "'" + tableNames.join("', '") + "'";
+      console.log("logs to check synced tables1", JSON.stringify(tables));
 
-    const currentTimestamp = new Date();
-    const reducedTimestamp = new Date(currentTimestamp); // clone it
-    reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
-    const formattedTimestamp = reducedTimestamp.toISOString();
+      const currentTimestamp = new Date();
+      const reducedTimestamp = new Date(currentTimestamp); // clone it
+      reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
+      const formattedTimestamp = reducedTimestamp.toISOString();
 
-    this.executeQuery(
-      `UPDATE pull_sync_info SET last_pulled = '${formattedTimestamp}'  WHERE table_name IN (${tables})`
-    );
-    console.log("logs to check synced tables2", JSON.stringify(tables));
-    return res;
+      this.executeQuery(
+        `UPDATE pull_sync_info SET last_pulled = '${formattedTimestamp}'  WHERE table_name IN (${tables})`
+      );
+      console.log("logs to check synced tables2", JSON.stringify(tables));
+      return res;
+    } catch (error) {
+      if (!_hasRetried) {
+        await this.createSyncTables();
+        return this.syncDbNow(tableNames, refreshTables, true);
+      }
+      throw error;
+    }
   }
 
   private async createSyncTables() {

@@ -458,8 +458,10 @@ const LoginScreen: React.FC = () => {
       history.replace(PAGES.SIDEBAR_PAGE);
       return;
     }
+
     await SqliteApi.getInstance();
     ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(APIMode.SQLITE);
+    
     if (userSchools.length > 0) {
       const autoUserSchool = userSchools.find(
         (school) => school.role === RoleType.AUTOUSER
