@@ -76,7 +76,7 @@
 .display-user-switch-user-toggle {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-around;
   gap: 10px;
   margin-top: 2vh;
   padding: 8px 15px 0 15px;
@@ -88,6 +88,13 @@
 }
 
 .display-school-switch-text {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-color);
+  font-size: var(--text-sizeL);
+}
+.display-schools-toggle-ops-switch-text {
   display: flex;
   align-items: center;
   justify-content: space-between;
