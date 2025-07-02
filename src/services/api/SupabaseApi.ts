@@ -322,24 +322,44 @@ export class SupabaseApi implements ServiceApi {
     return imageUrl || null;
   }
 
-  async uploadData(payload: any): Promise<boolean> {
+  async uploadData(payload: any): Promise<boolean | null> {
     try {
       if (!this.supabase) {
         console.error("Supabase client is not initialized.");
         return false;
       }
-      const { data, error } = await this.supabase.functions.invoke(
-        "ops-data-insert",
+      const { data, error: functionError } = await this.supabase.functions.invoke(
+        "ops-data-insert-v2",
         {
           body: payload,
         }
       );
-      if (error) {
-        console.error("Function error:", error);
-        return false;
+      if (functionError) {
+      const msg =
+        typeof functionError === "string"
+          ? functionError.toLowerCase()
+          : functionError?.message?.toLowerCase() ||
+            JSON.stringify(functionError)?.toLowerCase() ||
+            "";
+      if (msg.includes("functionshttperror") || msg.includes("non-2xx")) {
+        console.warn("Silent error:", msg);
+        return null;
       }
-      return true;
-    } catch (error) {
+      console.error("Function error:", functionError);
+      return false;
+    }
+    return true;
+    } catch (error: any) {
+      const msg =
+        typeof error === "string"
+          ? error.toLowerCase()
+          : error?.message?.toLowerCase() ||
+            JSON.stringify(error)?.toLowerCase() ||
+            "";
+      if (msg.includes("functionshttperror") || msg.includes("non-2xx")) {
+        console.warn("Silent error:", msg);
+        return null;
+      }
       console.error("Upload failed:", error);
       return false;
     }
