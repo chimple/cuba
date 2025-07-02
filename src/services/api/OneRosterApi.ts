@@ -2650,10 +2650,11 @@ export class OneRosterApi implements ServiceApi {
       };
 
       const result = await tincan.getStatements(query);
+
       const statements = result?.statements ?? [];
 
       const parsedStatements = statements.map((statement) => {
-        return {
+        let parseStatement: TableTypes<"result"> = {
           id: statement.id || "",
           lesson_id: (statement.object && 'definition' in statement.object && statement.object.definition?.extensions?.["http://example.com/xapi/lessonId"]) || null,
           assignment_id: statement.result?.extensions?.["http://example.com/xapi/assignmentId"] || null,
@@ -2663,16 +2664,17 @@ export class OneRosterApi implements ServiceApi {
           created_at: statement.context?.extensions?.["http://example.com/xapi/createdAt"] || "",
           is_deleted: statement.context?.extensions?.["http://example.com/xapi/isDeleted"] || null,
           school_id: statement.context?.extensions?.["http://example.com/xapi/schoolId"] || null,
+          class_id: statement.context?.extensions?.["http://example.com/xapi/classID"] || null,
           score: statement.result?.score?.raw || null,
           student_id: statement.context?.extensions?.["http://example.com/xapi/studentId"] || "",
           time_spent: this.parseFormattedDuration(statement.result?.duration || "") || null,
           updated_at: statement.context?.extensions?.["http://example.com/xapi/updatedAt"] || null,
           wrong_moves: statement.result?.extensions?.["http://example.com/xapi/wrongMoves"] || null,
         };
+        return parseStatement
       });
 
-      //need to check for playstore
-      // allStatements = allStatements.concat(parsedStatements);
+      allStatements = allStatements.concat(parsedStatements);
 
       // Check if there are more statements to fetch
       hasMore = statements.length === 100;

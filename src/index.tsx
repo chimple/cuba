@@ -23,6 +23,7 @@ import {
   SpeechSynthesisUtterance,
 } from "./utility/WindowsSpeech";
 import { Util } from "./utility/util";
+import { initializeFireBase } from "./services/Firebase";
 
 console.log("Index.tsx called ");
 
@@ -71,6 +72,7 @@ GoogleAuth.initialize({
 });
 
 Util.isRespectMode = await Util.checkRespectApp();
+// Util.isRespectMode = false;
 console.log(
   "Util.isRespectMode = await Util.checkRespectApp();",
   Util.isRespectMode
@@ -87,7 +89,7 @@ if (!Util.isRespectMode) {
         <App />
       </>
     );
-    // initializeFireBase();
+    initializeFireBase();
   });
   root.render(
     <>

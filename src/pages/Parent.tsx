@@ -247,7 +247,7 @@ const Parent: React.FC = () => {
 
                 clickCount.current += 1;
                 // If clicked 7 times, show popup for debug mode
-                if (clickCount.current === 7) {
+                if (clickCount.current === 7 && !Util.isRespectMode) {
                   setShowDialogBox(true);
                   clickCount.current = 0;
                 }

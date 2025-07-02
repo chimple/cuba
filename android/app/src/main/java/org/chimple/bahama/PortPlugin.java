@@ -136,9 +136,6 @@ public class PortPlugin extends Plugin {
       result.put("number", phoneNumber);
       call.resolve(result);
   }
-  public static PortPlugin getInstance() {
-    return instance;
-  }
 
   @PluginMethod
   public void fetchNotificationData(PluginCall call) {

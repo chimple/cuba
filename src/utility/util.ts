@@ -1271,7 +1271,6 @@ export class Util {
   ) => {
     const api = ServiceConfig.getI().apiHandler;
     api.currentStudent = student !== null ? student : undefined;
-
     localStorage.setItem(
       CURRENT_STUDENT,
       JSON.stringify(student)
@@ -1303,7 +1302,7 @@ export class Util {
         languageCode = langDoc.code ?? undefined;
       }
     }
-    const tempLangCode = (Util.isRespectMode ? languageCode : student?.language_id) ?? LANG.ENGLISH;
+    const tempLangCode = (Util.isRespectMode ? student?.language_id : languageCode) ?? LANG.ENGLISH;
     if (!!langFlag) localStorage.setItem(LANGUAGE, tempLangCode);
     if (!!isStudent) await i18n.changeLanguage(tempLangCode);
 
@@ -2161,7 +2160,7 @@ export class Util {
     try {
       console.log("if (!Capacitor.isNativePlatform) return true", !!Capacitor.isNativePlatform, Capacitor.isNativePlatform);
 
-      return true
+      // return true
       if (!!Capacitor.isNativePlatform) return true
       const PortPlugin = registerPlugin<any>("Port");
       const data = await PortPlugin.isAppInstalledCheck();
