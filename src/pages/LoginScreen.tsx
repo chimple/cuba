@@ -420,6 +420,15 @@ const LoginScreen: React.FC = () => {
           action_type: ACTION.LOGIN,
           login_type: "google-signin",
         });
+
+        const isNewUser = !user.name || !user.language_id || !user.gender;
+
+        if (isNewUser) {
+          history.replace(PAGES.PROFILE_DETAILS);
+        } else {
+          const userSchools = await getSchoolsForUser(user);
+          await redirectUser(userSchools);
+        }
       } else {
         setAnimatedLoading(false);
         setIsLoading(false);
@@ -616,6 +625,15 @@ const LoginScreen: React.FC = () => {
           action_type: ACTION.LOGIN,
           login_type: "email",
         });
+        
+        const isNewUser = !user.name || !user.language_id || !user.gender;
+
+        if (isNewUser) {
+          history.replace(PAGES.PROFILE_DETAILS);
+        } else {
+          const userSchools = await getSchoolsForUser(user);
+          await redirectUser(userSchools);
+        }
       } else {
         setAnimatedLoading(false);
         setIsLoading(false);
