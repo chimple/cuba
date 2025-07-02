@@ -50,11 +50,6 @@ const DisplaySchools: FC<{}> = () => {
       ScreenOrientation.lock({ orientation: "portrait" });
     }
   };
-  const switchUserToOps = () => {
-    localStorage.setItem(IS_OPS_USER, "true");
-    history.replace(PAGES.SIDEBAR_PAGE);
-    return;
-  };
   const initData = async () => {
     const currentUser = await auth.getCurrentUser();
     if (!currentUser) return;
@@ -134,11 +129,11 @@ const DisplaySchools: FC<{}> = () => {
           <CommonToggle onChange={switchUser} label="Switch to Child's Mode" />
         </div>
         {!Capacitor.isNativePlatform() && isAuthorizedForOpsMode && (
-          <div className="display-ops-switch-text">
+          <div className="display-schools-toggle-ops-switch-text">
             <PiUserSwitchFill className="display-user-user-switch-icon" />
             <CommonToggle
-              onChange={switchUserToOps}
-              label="Switch to Ops Mode"
+              onChange={() => Util.switchToOpsUser(history)}
+              label={t("switch_to_ops_mode") as string}
             />
           </div>
         )}

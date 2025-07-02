@@ -94,7 +94,7 @@
   color: var(--text-color);
   font-size: var(--text-sizeL);
 }
-.display-ops-switch-text {
+.display-schools-toggle-ops-switch-text {
   display: flex;
   align-items: center;
   justify-content: space-between;

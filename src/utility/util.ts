@@ -55,6 +55,7 @@ import {
   QUIZ_POPUP_SHOWN,
   SCHOOL_LOGIN,
   SHOULD_SHOW_REMOTE_ASSETS,
+  IS_OPS_USER,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -63,7 +64,7 @@ import {
 } from "../interface/curriculumInterfaces";
 import { GUIDRef, RoleType } from "../interface/modelInterfaces";
 import { OneRosterApi } from "../services/api/OneRosterApi";
-import { ServiceConfig } from "../services/ServiceConfig";
+import { APIMode, ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
@@ -1135,6 +1136,12 @@ export class Util {
     } else {
       history.replace(path);
     }
+  }
+
+   public static switchToOpsUser(history: any): void {
+    localStorage.setItem(IS_OPS_USER, "true");
+    ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+    history.replace(PAGES.SIDEBAR_PAGE);
   }
 
   public static setCurrentStudent = async (
