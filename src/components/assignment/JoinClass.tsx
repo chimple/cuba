@@ -150,9 +150,9 @@ const JoinClass: FC<{
           value={fullName}
           setValue={setFullName}
           icon="assets/icons/BusinessCard.svg"
-          readOnly={fullName !== ""}
+          readOnly={fullName === Util.getCurrentStudent()?.name}
           statusIcon={
-            fullName && fullName.length >= 3 ? (
+            fullName.length == 0 ? null : fullName && fullName.length >= 3 ? (
               <img src="assets/icons/CheckIcon.svg" alt="Status icon" />
             ) : (
               <img src="assets/icons/Vector.svg" alt="Status icon" />
@@ -162,7 +162,7 @@ const JoinClass: FC<{
 
         <InputWithIcons
           label={t("Class Code")}
-          placeholder={t("Enter the class code to join a class") ?? ""}
+          placeholder={t("Enter the code to join a class") ?? ""}
           value={inviteCode}
           setValue={setInviteCode}
           icon="assets/icons/OpenBook.svg"
@@ -178,33 +178,32 @@ const JoinClass: FC<{
             ) : null
           }
         />
-
-        <div className="join-class-message">
-          {codeResult &&
-          !error &&
-          error == "" &&
-          inviteCode?.toString().length === 6
-            ? `${t("School")}: ${codeResult["school_name"]}, ${t("Class")}: ${codeResult["class_name"]}`
-            : error && inviteCode?.toString().length === 6
-              ? error
-              : null}
-        </div>
-        <button
-          className="join-class-confirm-button"
-          onClick={onJoin}
-          disabled={
-            !(
-              codeResult &&
-              !error &&
-              error === "" &&
-              fullName.length >= 3 &&
-              inviteCode?.toString().length === 6
-            )
-          }
-        >
-          <span className="join-class-confirm-text">{t("Confirm")}</span>
-        </button>
       </div>
+      <div className="join-class-message">
+        {codeResult &&
+        !error &&
+        error == "" &&
+        inviteCode?.toString().length === 6
+          ? `${t("School")}: ${codeResult["school_name"]}, ${t("Class")}: ${codeResult["class_name"]}`
+          : error && inviteCode?.toString().length === 6
+            ? error
+            : null}
+      </div>
+      <button
+        className="join-class-confirm-button"
+        onClick={onJoin}
+        disabled={
+          !(
+            codeResult &&
+            !error &&
+            error === "" &&
+            fullName.length >= 3 &&
+            inviteCode?.toString().length === 6
+          )
+        }
+      >
+        <span className="join-class-confirm-text">{t("Confirm")}</span>
+      </button>
     </div>
   );
 };
