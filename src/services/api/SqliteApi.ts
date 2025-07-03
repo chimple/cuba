@@ -5341,7 +5341,7 @@ order by
     return await this._serverApi.isProgramManager();
   }
 
-  async getUserSpecialRoles(userId: string): Promise<string[] | undefined> {
+  async getUserSpecialRoles(userId: string): Promise<string[]> {
     return await this._serverApi.getUserSpecialRoles(userId);
   }
 }
