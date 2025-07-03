@@ -107,9 +107,9 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({ data }) => {
 
   const isDataPresent = allFilteredPrincipals.length > 0;
   return (
-    <div className="schoolPrincipals-pageContainer">
+    <div className="school-principals-page-container">
       {isDataPresent ? (
-        <div className="schoolPrincipals-dataTableContainer">
+        <div className="school-principals-data-table-container">
           <DataTableBody
             columns={columns}
             rows={principalsForCurrentPage}
@@ -118,7 +118,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({ data }) => {
             onSort={handleSort}
           />
           {allFilteredPrincipals.length > 0 && pageCount > 1 && (
-            <div className="schoolPrincipals-school-list-pagination">
+            <div className="school-principals-school-list-pagination">
               <DataTablePagination
                 page={page}
                 pageCount={pageCount}
@@ -128,11 +128,11 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({ data }) => {
           )}
         </div>
       ) : (
-        <Box className="schoolPrincipals-emptyStateContainer">
-          <Typography variant="h6" className="schoolPrincipals-emptyStateTitle">
+        <Box className="school-principals-empty-state-container">
+          <Typography variant="h6" className="school-principals-empty-state-title">
             {t("Principals")}
           </Typography>
-          <Typography className="schoolPrincipals-emptyStateMessage">
+          <Typography className="school-principals-empty-state-message">
             {t("No principals data found for the selected school")}
           </Typography>
         </Box>
