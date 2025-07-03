@@ -89,6 +89,17 @@ const handleClick = async (event: MouseEvent) => {
     return {};
   };
 
+  const getClickId = (element: HTMLElement | null): string => {
+    while (element && element !== document.body) {
+      const id = element.getAttribute("id");
+      if (id && id.startsWith("click_on_")) return id;
+      element = element.parentElement;
+    }
+    return "";
+  };
+
+  const identifier = getClickId(target);
+
   const { id, className } = findRelevantParent(target);
 
   const eventData = {
@@ -97,7 +108,7 @@ const handleClick = async (event: MouseEvent) => {
     user_gender: storedStudent.gender,
     user_type: storedStudent.type,
     click_value: textContent,
-    click_identifier: id || className || "null",
+    click_identifier: id || className || identifier || "null",
     page_name: window.location.pathname.replace("/", ""),
     page_path: window.location.pathname,
     complete_path: window.location.href,

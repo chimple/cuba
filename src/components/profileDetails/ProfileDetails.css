@@ -1,9 +1,12 @@
 .profiledetails-container {
   background-color: transparent;
   width: clamp(360px, 90%, 800px);
+  height: 100%;
   margin: auto;
   text-align: left;
   font-family: sans-serif;
+  display: flex;
+  align-items: center;
 }
 
 .profiledetails-required-note {

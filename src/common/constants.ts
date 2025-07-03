@@ -738,7 +738,9 @@ export enum EVENTS {
   PATHWAY_COMPLETED = "pathway_completed",
   PATHWAY_COURSE_CHANGED = "pathway_course_changed",
   SYNCHING_ERROR = "synching_error",
-  PROFILE_DETAILS_CLICK_ANALYTICS = "profile_details_click_analytics"
+  PROFILE_CREATED = "profile_created",
+  PROFILE_UPDATED = "profile_updated",
+  PROFILE_SKIPPED = "profile_skipped",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -867,3 +869,22 @@ export const GRADE1_KANNADA = "a90608de-4376-4baf-82c2-07760b2aa899";
 export const GRADE1_MARATHI = "2cada0d1-db3d-4da0-8ade-e9ba282a3558";
 export const BULK_UPLOAD_TEMPLATE_URL =
   "https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/common-files//Bulk%20School%20&%20Students%20Upload%20Template.xlsx";
+
+export const FORM_MODES = {
+  ALL_REQUIRED: "all-required",
+  NAME_REQUIRED: "name-required",
+  ALL_OPTIONAL: "all-optional",
+};
+
+export const PROFILE_DETAILS_GROWTHBOOK_VARIATION = {
+  AFTER_LOGIN_SCREEN: "after-login-screen",
+  AFTER_LOGIN_CONTROL: "After Login Control",
+  AFTER_LOGIN_V1: "After Login V1",
+  AFTER_LOGIN_V2: "After Login V2",
+}
+
+export const ACTION_TYPES = {
+  PROFILE_CREATED: "profile_created",
+  PROFILE_UPDATED: "profile_updated",
+  PROFILE_SKIPPED: "profile_skipped",
+};

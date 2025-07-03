@@ -5,24 +5,24 @@ import InputWithIcons from "../common/InputWithIcons";
 import SelectWithIcons from "../common/SelectWithIcons";
 import { Util } from "../../utility/util";
 import { useFeatureValue } from "@growthbook/growthbook-react";
-import { initializePersonalDetailsClickListener } from "../../analytics/clickUtilsProfileDetails";
+import { initializeClickListener } from "../../analytics/clickUtil";
 import { SupabaseAuth } from "../../services/auth/SupabaseAuth";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { PAGES, TableTypes } from "../../common/constants";
+import { ACTION_TYPES, EVENTS, FORM_MODES, PAGES, PROFILE_DETAILS_GROWTHBOOK_VARIATION, TableTypes } from "../../common/constants";
 import { useHistory } from "react-router";
 
 const getModeFromFeature = (
   variation: string
-): "all-required" | "name-required" | "all-optional" => {
+) => {
   switch (variation) {
-    case "After Login Control":
-      return "all-required";
-    case "After Login V1":
-      return "name-required";
-    case "After Login V2":
-      return "all-optional";
+    case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_CONTROL:
+      return FORM_MODES.ALL_REQUIRED;
+    case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_V1:
+      return FORM_MODES.NAME_REQUIRED;
+    case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_V2:
+      return FORM_MODES.ALL_OPTIONAL;
     default:
-      return "all-required";
+      return FORM_MODES.ALL_REQUIRED;
   }
 };
 
@@ -30,8 +30,8 @@ const ProfileDetails = () => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const variation = useFeatureValue<string>(
-    "after-login-screen",
-    "After Login Control"
+    PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_SCREEN,
+    PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_CONTROL
   );
   const mode = getModeFromFeature(variation);
 
@@ -47,7 +47,7 @@ const ProfileDetails = () => {
   }, []);
 
   useEffect(() => {
-    const cleanup = initializePersonalDetailsClickListener();
+    const cleanup = initializeClickListener();
     return cleanup;
   }, []);
 
@@ -64,15 +64,16 @@ const ProfileDetails = () => {
   }, []);
 
   const isFormComplete =
-    mode === "all-required"
+    mode === FORM_MODES.ALL_REQUIRED
       ? fullName && age && languageId && gender
-      : mode === "name-required"
+      : mode === FORM_MODES.NAME_REQUIRED
       ? fullName
       : true;
 
-  const shouldShowSkip = mode === "all-optional";
+  const shouldShowSkip = mode === FORM_MODES.ALL_OPTIONAL;
+
   const isSaveEnabled =
-    mode === "all-required" || mode === "name-required"
+    mode === FORM_MODES.ALL_REQUIRED || mode === FORM_MODES.NAME_REQUIRED
       ? isFormComplete
       : hasChanges;
 
@@ -83,7 +84,7 @@ const ProfileDetails = () => {
         console.error("No user found");
         return;
       }
-
+      const isNewProfile = !user.age && !user.gender;
       await api.updateUserProfile(
         user,
         fullName,
@@ -95,6 +96,19 @@ const ProfileDetails = () => {
           age,
           gender,
         }
+      );
+
+      Util.logEvent(isNewProfile ? EVENTS.PROFILE_CREATED : EVENTS.PROFILE_UPDATED,
+      {
+        user_id: user.id,
+        name: fullName,
+        age,
+        gender,
+        language_id: languageId,
+        variation,
+        page_path: window.location.pathname,
+        action_type: isNewProfile ? ACTION_TYPES.PROFILE_CREATED : ACTION_TYPES.PROFILE_UPDATED,
+      }
       );
 
       history.replace(PAGES.HOME);
@@ -114,7 +128,7 @@ const ProfileDetails = () => {
         </div>
 
         <div className="profiledetails-form-fields">
-          {mode !== "all-optional" && (
+          {mode !== FORM_MODES.ALL_OPTIONAL && (
             <div className="profiledetails-required-indicator">
               {t("* Indicates Required Information")}
             </div>
@@ -128,7 +142,7 @@ const ProfileDetails = () => {
               value={fullName}
               setValue={setFullName}
               icon="/assets/icons/BusinessCard.svg"
-              required={mode === "all-required" || mode === "name-required"}
+              required={mode === FORM_MODES.ALL_REQUIRED || mode === FORM_MODES.NAME_REQUIRED}
             />
           </div>
 
@@ -148,7 +162,7 @@ const ProfileDetails = () => {
                   { value: "7", label: t("7 years") },
                   { value: "≥10", label: t("≥10 years") },
                 ]}
-                required={mode === "all-required"}
+                required={mode === FORM_MODES.ALL_REQUIRED}
               />
             </div>
 
@@ -164,7 +178,7 @@ const ProfileDetails = () => {
                   value: lang.id,
                   label: t(lang.name),
                 }))}
-                required={mode === "all-required"}
+                required={mode === FORM_MODES.ALL_REQUIRED}
               />
             </div>
           </div>
@@ -172,7 +186,7 @@ const ProfileDetails = () => {
           <fieldset className="profiledetails-form-group profiledetails-gender-fieldset">
             <legend className="profiledetails-gender-label">
               {t("Gender")}{" "}
-              {mode === "all-required" && (
+              {mode === FORM_MODES.ALL_REQUIRED && (
                 <span className="profiledetails-required">*</span>
               )}
             </legend>
@@ -202,7 +216,15 @@ const ProfileDetails = () => {
               <button
                 id="click_on_profile_details_skip"
                 className="profiledetails-skip-button"
-                onClick={() => history.replace(PAGES.HOME)}
+                onClick={() => {
+                  Util.logEvent(EVENTS.PROFILE_SKIPPED, {
+                    page_path: window.location.pathname,
+                    complete_path: window.location.href,
+                    action_type: "skip_profile",
+                    variation,
+                  });
+                  history.replace(PAGES.HOME);
+                }}
               >
                 {t("SKIP FOR NOW")}
               </button>
