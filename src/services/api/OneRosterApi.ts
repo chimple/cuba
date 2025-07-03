@@ -1480,7 +1480,7 @@ export class OneRosterApi implements ServiceApi {
         objectType: "Activity",
         id: `http://example.com/activity/${lessonId}`,
         definition: {
-          name: { "en-US": `Lesson ${lessonId}` },
+          name: { "en-US": `${lessonId}` },
           extensions: {
             "http://example.com/xapi/courseId": courseId,
             "http://example.com/xapi/lessonId": lessonId,
