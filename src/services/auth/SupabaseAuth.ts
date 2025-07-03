@@ -226,7 +226,7 @@ export class SupabaseAuth implements ServiceAuth {
 
       const api = ServiceConfig.getI().apiHandler;
 
-      const userRole = await api.getUserSpecialRole(
+      const userRole = await api.getUserSpecialRoles(
         authData.data.session?.user.id
       );
       if (userRole) {

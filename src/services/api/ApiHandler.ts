@@ -1261,7 +1261,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.isProgramManager();
   }
 
-  public async getUserSpecialRole(userId: string): Promise<string | undefined> {
-    return await this.s.getUserSpecialRole(userId);
+  public async getUserSpecialRoles(userId: string): Promise<string | undefined> {
+    return await this.s.getUserSpecialRoles(userId);
   }
 }

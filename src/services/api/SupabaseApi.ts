@@ -6555,15 +6555,15 @@ export class SupabaseApi implements ServiceApi {
     return !!(data && data.length > 0);
   }
 
-  async getUserSpecialRole(userId: string): Promise<string | undefined> {
+  async getUserSpecialRoles(userId: string): Promise<string[]> {
   if (!this.supabase) {
     console.error("Supabase client not initialized.");
-    return undefined;
+    return [];
   }
 
   if (!userId) {
-    console.warn("userId is missing. Cannot fetch role.");
-    return undefined;
+    console.warn("userId is missing. Cannot fetch roles.");
+    return [];
   }
 
   try {
@@ -6581,16 +6581,17 @@ export class SupabaseApi implements ServiceApi {
 
     if (error) {
       console.error("Error fetching roles from special_users:", error.message);
-      return undefined;
+      return [];
     }
+
     const roles = (data ?? [])
       .map((item) => item.role)
       .filter((role): role is NonNullable<typeof role> => role !== null);
 
-    return roles[0];
+    return roles;
   } catch (e) {
-    console.error("Unexpected error while fetching user special role:", e);
-    return undefined;
+    console.error("Unexpected error while fetching user special roles:", e);
+    return [];
   }
 }
 }
