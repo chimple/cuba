@@ -133,7 +133,7 @@ const DisplaySchools: FC<{}> = () => {
             <PiUserSwitchFill className="display-user-user-switch-icon" />
             <CommonToggle
               onChange={() => Util.switchToOpsUser(history)}
-              label={t("switch_to_ops_mode") as string}
+              label={t("switch to ops mode") as string}
             />
           </div>
         )}
