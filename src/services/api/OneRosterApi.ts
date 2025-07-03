@@ -764,6 +764,9 @@ export class OneRosterApi implements ServiceApi {
       HOMEHEADERLIST.ASSIGNMENT,
     )
   }
+  getChapterIdbyQrLink(link: string): Promise<TableTypes<"chapter_links"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
   requestNewSchool(name: string, state: string, district: string, city: string, image: File | null, udise_id?: string): Promise<TableTypes<"req_new_school"> | null> {
     throw new Error("Method not implemented.");
   }
