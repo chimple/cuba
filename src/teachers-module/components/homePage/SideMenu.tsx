@@ -336,7 +336,7 @@ const SideMenu: React.FC<{
                 />
                 <CommonToggle
                   onChange={() => Util.switchToOpsUser(history)}
-                  label={t("switch_to_ops_mode") as string}
+                  label={t("switch to ops mode") as string}
                 />
               </IonItem>
             </div>
