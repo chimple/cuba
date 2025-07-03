@@ -5,11 +5,21 @@ import { ServiceConfig } from "../../../../services/ServiceConfig";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import SelectIconImage from "../../../../components/displaySubjects/SelectIconImage";
-import { PAGES, TableTypes } from "../../../../common/constants";
+import { CAMERAPERMISSION, PAGES, TableTypes } from "../../../../common/constants";
 import { Util } from "../../../../utility/util";
 import { t } from "i18next";
 import { Toast } from "@capacitor/toast";
 import AssignmentNextButton from "./AssignmentNextButton";
+import { BarcodeScanner } from "@capacitor-community/barcode-scanner";
+import { App } from '@capacitor/app';
+import QrCode2Icon from '@mui/icons-material/QrCode2';
+import Loading from "../../../../components/Loading";
+
+declare global {
+  interface Window {
+    __qrBackListener?: { remove: () => void } | null;
+  }
+}
 
 export enum TeacherAssignmentPageType {
   MANUAL = "manual",
@@ -24,6 +34,8 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
 
   const [manualAssignments, setManualAssignments] = useState<any>({});
   const [recommendedAssignments, setRecommendedAssignments] = useState<any>({});
+  const [currentUser, setCurrentuser] = useState<TableTypes<"user"> | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const [manualCollapsed, setManualCollapsed] = useState(false);
   const [recommendedCollapsed, setRecommendedCollapsed] = useState(true);
@@ -41,6 +53,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
     let tempLessons: any = {};
     const current_class = await Util.getCurrentClass();
     const currUser = await auth.getCurrentUser();
+    setCurrentuser(currUser as TableTypes<"user">);
     if (!current_class || !current_class.id) {
       history.replace(PAGES.DISPLAY_SCHOOLS);
       return;
@@ -384,7 +397,120 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
     ));
   };
 
+    const stopScan = async () => {
+    // Hide the camera preview and stop scanning
+    await BarcodeScanner.stopScan();
+    BarcodeScanner.showBackground();
+    document.querySelector("html")?.style.setProperty("display", "block");
+    // Remove back button listener if exists
+    if (window.__qrBackListener) {
+      window.__qrBackListener.remove();
+      window.__qrBackListener = null;
+    }
+  };
+
+  const startScan = async () => {
+    // Prepare the scanner
+    setLoading(true);
+    const permission = await BarcodeScanner.checkPermission({ force: true });
+    setTimeout(() => setLoading(false), 100);
+    if (!permission.granted) {
+      Toast.show({ text: t("Camera permission denied. Please enable it in settings") });
+      return;
+    }
+    // Only allow scan if permission is granted
+    if (!localStorage.getItem(CAMERAPERMISSION) || localStorage.getItem(CAMERAPERMISSION) !== "true") {
+      localStorage.setItem(CAMERAPERMISSION, permission.granted ? "true" : "false");
+      return;
+    }
+    await BarcodeScanner.hideBackground(); // Make background transparent
+    document.querySelector("html")?.style.setProperty("display", "none");
+
+    // Add Android back button listener
+    window.__qrBackListener = App.addListener('backButton', async () => {
+      await stopScan();
+    });
+
+    const result = await BarcodeScanner.startScan(); // Start scanning
+    if (result.hasContent) {
+      await processScannedData(result.content);
+    }
+    // Always stop scan and restore UI
+    await stopScan();
+  };
+
+const processScannedData = async (scannedText: string) => {
+  try {
+    // Ensure scannedText uses https if it starts with http
+    let processedText = scannedText;
+    if (processedText.startsWith("http://")) {
+      processedText = processedText.replace(/^http:\/\//, "https://");
+    }
+
+    const result = await api.getChapterIdbyQrLink(processedText);
+    if (!result?.chapter_id) {
+      Toast.show({ text: t("Chapter Not Found") });
+      return;
+    }
+    const lessonList = await api.getLessonsForChapter(result?.chapter_id);
+    if (!lessonList || lessonList.length < 1) {
+      Toast.show({ text: t("No lessons found for this chapter") });
+      return;
+    }
+    // Get course info for this chapter
+    const course = await api.getCourse(result.course_id);
+    if (!course) {
+      Toast.show({ text: t("Course not found for this chapter") });
+      return;
+    }
+    const current_class = await Util.getCurrentClass();
+    const classId = current_class?.id ?? "";
+    // 1. Get previous assignment cart
+    let previous_sync_lesson = currentUser?.id
+      ? await api.getUserAssignmentCart(currentUser?.id)
+      : null;
+      
+      let classSelectedLesson: Map<string, string>;
+      if (previous_sync_lesson?.lessons) {
+        classSelectedLesson = new Map(
+          Object.entries(JSON.parse(previous_sync_lesson.lessons))
+        );
+      } else {
+        classSelectedLesson = new Map();
+      }
+      
+      // 2. Merge new lessons for this chapter into the class's lessons
+      let chapterLessonsMap: Map<string, string[]>;
+      if (classSelectedLesson.has(classId)) {
+      chapterLessonsMap = new Map(
+        Object.entries(JSON.parse(classSelectedLesson.get(classId) || "{}"))
+      );
+    } else {
+      chapterLessonsMap = new Map();
+    }
+    
+    // Add or merge lessons for the scanned chapter
+    const newLessonIds = lessonList.map((l: any) => l.id);
+    const prevLessonIds = chapterLessonsMap.get(result.chapter_id) || [];
+    // Merge and deduplicate
+    const mergedLessonIds = Array.from(new Set([...(prevLessonIds as string[]), ...newLessonIds]));
+    chapterLessonsMap.set(result.chapter_id, mergedLessonIds);
+    
+    // Update the classSelectedLesson map
+    classSelectedLesson.set(classId, JSON.stringify(Object.fromEntries(chapterLessonsMap)));
+    const lessonsJson = JSON.stringify(Object.fromEntries(classSelectedLesson));
+    
+    await api.createOrUpdateAssignmentCart(currentUser?.id!, lessonsJson);
+
+    await init();
+  } catch (error) {
+    Toast.show({ text: t("Something Went wrong") });
+    console.error("Error processing scanned data:", error);
+  }
+};
   return (
+    <>
+    {loading ? <Loading isLoading={loading}/>:
     <div className="teacher-assignments-page">
       <p id="assignment-page-heading">{t("Assignments")}</p>
       <div className="manual-assignments">
@@ -432,23 +558,91 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
         <hr className="styled-line" />
         {!manualCollapsed &&
           (manualAssignments && Object.keys(manualAssignments).length > 0 ? (
-            renderAssignments(
-              manualAssignments,
-              manualAssignments,
-              setManualAssignments,
-              TeacherAssignmentPageType.MANUAL
-            )
+            <>
+              {renderAssignments(
+                manualAssignments,
+                manualAssignments,
+                setManualAssignments,
+                TeacherAssignmentPageType.MANUAL
+              )}
+              <div className="TeacherAssignment-Add-moreAssignments">
+                <p>
+                  {t(
+                    "To add more assignments. Please use the buttons below to add assignments."
+                  )}
+                </p>
+                <div className="TeacherAssignment-add-moreAssignments-button">
+                  <div
+                    className="TeacherAssignment-manual-assignments-icon-btn"
+                    onClick={() => onLibraryClick()}
+                  >
+                    <img
+                      src="assets/icons/bookSelected.png"
+                      alt="Library"
+                      className="TeacherAssignment-addAssignment-icon1"
+                    />
+                    <span
+                      style={{ fontWeight: 500, color: "#444", fontSize: 16 }}
+                    >
+                      {t("Library")}
+                    </span>
+                  </div>
+                  <div
+                    className="TeacherAssignment-manual-assignments-icon-btn"
+                    onClick={startScan}
+                  >
+                    <QrCode2Icon
+                      sx={{ color: "#7C5DB0" }}
+                      className="TeacherAssignment-addAssignment-icon2"
+                    />
+                    <span
+                      style={{ fontWeight: 500, color: "#444", fontSize: 16 }}
+                    >
+                      {t("Scan QR")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </>
           ) : (
-            <p>
-              {t("You have not chosen any assignments. Please go to ")}
-              <span
-                id="manual-assignments-library-text"
-                onClick={() => onLibraryClick()}
-              >
-                {t("Library")}
-              </span>
-              {t(" to choose and assign.")}
-            </p>
+            <div className="TeacherAssignment-Add-moreAssignments">
+              <p>
+                {t(
+                  "You have not chosen any assignments. Please use the buttons below to add assignments."
+                )}
+              </p>
+              <div className="TeacherAssignment-add-moreAssignments-button">
+                <div
+                  className="TeacherAssignment-manual-assignments-icon-btn"
+                  onClick={() => onLibraryClick()}
+                >
+                  <img
+                    src="assets/icons/bookSelected.png"
+                    alt="Library"
+                    className="TeacherAssignment-addAssignment-icon1"
+                  />
+                  <span
+                    style={{ fontWeight: 500, color: "#444", fontSize: 16 }}
+                  >
+                    {t("Library")}
+                  </span>
+                </div>
+                <div
+                  className="TeacherAssignment-manual-assignments-icon-btn"
+                  onClick={startScan}
+                >
+                  <QrCode2Icon
+                    sx={{ color: "#7C5DB0" }}
+                    className="TeacherAssignment-addAssignment-icon2"
+                  />
+                  <span
+                    style={{ fontWeight: 500, color: "#444", fontSize: 16 }}
+                  >
+                    {t("Scan QR")}
+                  </span>
+                </div>
+              </div>
+            </div>
           ))}
       </div>
 
@@ -531,7 +725,8 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           }
         }}
       />
-    </div>
+    </div>}
+    </>
   );
 };
 

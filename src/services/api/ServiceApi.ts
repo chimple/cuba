@@ -1036,7 +1036,8 @@ export interface ServiceApi {
     lesson_id: string,
     chapter_id: string,
     course_id: string,
-    type: string
+    type: string,
+    created_at?: string
   ): Promise<boolean>;
 
   /**
@@ -1366,4 +1367,10 @@ export interface ServiceApi {
    * @param {number} totalStars - total stars.
    */
   updateStudentStars(studentId: string, totalStars: number): Promise<void>;
+
+  /**
+   * gets record from chpater_links table by QRCode link
+   * @param link -Qrlink
+   */
+  getChapterIdbyQrLink(link: string): Promise<TableTypes<"chapter_links"> | undefined>;
 }

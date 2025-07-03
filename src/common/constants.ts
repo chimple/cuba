@@ -53,6 +53,7 @@ export enum TABLES {
   Assignment_cart = "assignment_cart",
   // Chatbot = "chatbot",
   ReqNewSchool = "req_new_school",
+  ChapterLinks= "chapter_links",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -821,3 +822,4 @@ export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
 export const SCHOOL_LOGIN = "schoolLogin";
 export const TRIGGER_DEEPLINK = "sendLaunch";
 export const APP_URL_OPEN = "appUrlOpen";
+export const CAMERAPERMISSION = "cameraPermission";

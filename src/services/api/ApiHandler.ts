@@ -833,7 +833,8 @@ export class ApiHandler implements ServiceApi {
     lesson_id: string,
     chapter_id: string,
     course_id: string,
-    type: string
+    type: string,
+    created_at?: string 
   ): Promise<boolean> {
     return this.s.createAssignment(
       student_list,
@@ -846,7 +847,8 @@ export class ApiHandler implements ServiceApi {
       lesson_id,
       chapter_id,
       course_id,
-      type
+      type,
+      created_at,
     );
   }
   getTeachersForClass(
@@ -1067,5 +1069,8 @@ export class ApiHandler implements ServiceApi {
     totalStars: number
   ): Promise<void> {
     return await this.s.updateStudentStars(studentId, totalStars);
+  }
+  public async getChapterIdbyQrLink(link:string): Promise<TableTypes<"chapter_links"> | undefined> {
+    return await this.s.getChapterIdbyQrLink(link);
   }
 }

@@ -207,3 +207,39 @@
   border-width: 0 3px 3px 0;
   transform: translate(-50%, -50%) rotate(45deg); /* Draw checkmark */
 }
+
+.TeacherAssignment-Add-moreAssignments {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+}
+.TeacherAssignment-add-moreAssignments-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20%;
+  width: 100%;
+}
+.TeacherAssignment-manual-assignments-icon-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.TeacherAssignment-addAssignment-icon1, .TeacherAssignment-addAssignment-icon2 {
+  max-width: 80px;
+  max-height: 80px;
+  width: 80px !important;
+  height: 80px !important;
+  padding: 10px;
+  min-width: 40px;
+  min-height: 40px;
+  border: 0.5px solid var(--text-color);
+  border-radius: 10px;
+}
+.TeacherAssignment-addAssignment-icon2 {
+  padding: 3px !important;
+}

@@ -10,9 +10,11 @@ import {
   DOMAIN,
   EVENTS,
   LANGUAGE,
+  MODES,
   NUMBER_REGEX,
   PAGES,
   TableTypes,
+  USER_DATA,
 } from "../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -40,6 +42,7 @@ import {
 import { RoleType } from "../interface/modelInterfaces";
 // import { Plugins } from "@capacitor/core";
 import { OneRosterAuth } from "../services/auth/OneRosterAuth";
+import { schoolUtil } from "../utility/schoolUtil";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -66,6 +69,9 @@ const Login: React.FC = () => {
   const [counter, setCounter] = useState(59);
   const [showTimer, setShowTimer] = useState<boolean>(false);
   const [showResendOtp, setShowResendOtp] = useState<boolean>(false);
+  const [emailClick, setEmailClick] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
+  const api = ServiceConfig.getI().apiHandler;
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
   const [isInvalidCode, setIsInvalidCode] = useState<{
     isInvalidCode: boolean;
@@ -335,6 +341,39 @@ const Login: React.FC = () => {
     }
   };
 
+  async function getSchoolsForUser(user: TableTypes<"user">) {
+    const userSchools = await api.getSchoolsForUser(user.id);
+    if (userSchools && userSchools.length > 0) {
+      return userSchools;
+    }
+    return [];
+  }
+
+  async function redirectUser(
+    user: TableTypes<"user">,
+    userSchools: {
+      school: TableTypes<"school">;
+      role: RoleType;
+    }[]
+  ) {
+    if (userSchools.length > 0) {
+      const autoUserSchool = userSchools.find(
+        (school) => school.role === RoleType.AUTOUSER
+      );
+
+      if (autoUserSchool) {
+        schoolUtil.setCurrMode(MODES.SCHOOL);
+        history.replace(PAGES.SELECT_MODE);
+        return;
+      }
+      schoolUtil.setCurrMode(MODES.TEACHER);
+      history.replace(PAGES.DISPLAY_SCHOOLS);
+    } else {
+      schoolUtil.setCurrMode(MODES.PARENT);
+      history.replace(PAGES.DISPLAY_STUDENT);
+    }
+  }
+
   const onVerificationCodeSubmit = async () => {
     try {
       setIsLoading(true);
@@ -484,6 +523,37 @@ const Login: React.FC = () => {
       setIsInitialLoading(false);
       setErrorMessage(t("Login unsuccessful. Please try again later."));
       console.log("error", error);
+    }
+  };
+  const handleLogin = async (email: string, password: string) => {
+    try {
+      setEmailClick(false);
+      setIsLoading(true);
+      setIsInitialLoading(true);
+      const result: boolean = await authInstance.signInWithEmail(
+        email,
+        password
+      );
+      if (result) {
+        setIsLoading(true);
+        setIsInitialLoading(true);
+        const storedUser = localStorage.getItem(USER_DATA);
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          const userSchools = await getSchoolsForUser(user);
+          await redirectUser(user, userSchools);
+          localStorage.setItem(CURRENT_USER, JSON.stringify(result));
+        }
+      } else {
+        setEmailClick(true);
+        setError(true);
+        setIsLoading(false);
+        setIsInitialLoading(false);
+      }
+    } catch (error) {
+      setIsLoading(false);
+      setIsInitialLoading(false);
+      setErrorMessage(t("Login unsuccessful. Please try again later."));
     }
   };
 
