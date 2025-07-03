@@ -329,7 +329,7 @@ export class SupabaseApi implements ServiceApi {
         return false;
       }
       const { data, error: functionError } = await this.supabase.functions.invoke(
-        "ops-data-insert-v2",
+        "ops-data-insert",
         {
           body: payload,
         }
