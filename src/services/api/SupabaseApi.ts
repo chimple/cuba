@@ -324,44 +324,27 @@ export class SupabaseApi implements ServiceApi {
 
   async uploadData(payload: any): Promise<boolean | null> {
     try {
-      if (!this.supabase) {
-        console.error("Supabase client is not initialized.");
+      const response = await fetch(process.env.REACT_APP_SUPABASE_OPS_DATA_INSERT_URL ?? "", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${(await this.supabase?.auth.getSession())?.data.session?.access_token || ''}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const responseBody = await response.json().catch(() => ({}));
+      if (response.status === 200) {
+        return true;
+      }
+      if (response.status === 400 || responseBody?.error) {
+        console.error("Handled error:", responseBody?.error || "Bad Request");
         return false;
       }
-      const { data, error: functionError } = await this.supabase.functions.invoke(
-        "ops-data-insert",
-        {
-          body: payload,
-        }
-      );
-      if (functionError) {
-      const msg =
-        typeof functionError === "string"
-          ? functionError.toLowerCase()
-          : functionError?.message?.toLowerCase() ||
-            JSON.stringify(functionError)?.toLowerCase() ||
-            "";
-      if (msg.includes("functionshttperror") || msg.includes("non-2xx")) {
-        console.warn("Silent error:", msg);
-        return null;
-      }
-      console.error("Function error:", functionError);
-      return false;
-    }
-    return true;
-    } catch (error: any) {
-      const msg =
-        typeof error === "string"
-          ? error.toLowerCase()
-          : error?.message?.toLowerCase() ||
-            JSON.stringify(error)?.toLowerCase() ||
-            "";
-      if (msg.includes("functionshttperror") || msg.includes("non-2xx")) {
-        console.warn("Silent error:", msg);
-        return null;
-      }
-      console.error("Upload failed:", error);
-      return false;
+      console.warn("Unhandled error:", response.status, responseBody);
+      return null;
+    } catch (err) {
+      console.error("Network or runtime error:", err);
+      return null;
     }
   }
 
