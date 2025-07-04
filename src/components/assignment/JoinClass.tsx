@@ -79,7 +79,7 @@ const JoinClass: FC<{
     // setShowDialogBox(false);
     setLoading(true);
     const student = Util.getCurrentStudent();
-    if (student?.name === null) {
+    if (student?.name === "" && student?.name == null) {
       await api.updateStudent(
         student,
         fullName,
