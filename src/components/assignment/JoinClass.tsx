@@ -79,6 +79,19 @@ const JoinClass: FC<{
     // setShowDialogBox(false);
     setLoading(true);
     const student = Util.getCurrentStudent();
+    if (student?.name === null) {
+      await api.updateStudent(
+        student,
+        fullName,
+        student.age!,
+        student.gender!,
+        student.avatar!,
+        student.image!,
+        student.curriculum_id!,
+        student.grade_id!,
+        student.language_id!
+      );
+    }
     try {
       if (!student || inviteCode == null) {
         throw new Error("Student or invite code is missing.");
