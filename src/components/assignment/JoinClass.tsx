@@ -28,6 +28,7 @@ const JoinClass: FC<{
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [fullName, setFullName] = useState("");
+  const [currStudent] = useState<any>(Util.getCurrentStudent());
 
   const api = ServiceConfig.getI().apiHandler;
 
@@ -128,8 +129,7 @@ const JoinClass: FC<{
   const location = useLocation();
 
   useEffect(() => {
-    const student = Util.getCurrentStudent();
-    setFullName(student?.name || "");
+    setFullName(currStudent?.name || "");
 
     const urlParams = new URLSearchParams(location.search);
     const joinClassParam = urlParams.get("join-class");
@@ -164,9 +164,9 @@ const JoinClass: FC<{
           value={fullName}
           setValue={setFullName}
           icon="assets/icons/BusinessCard.svg"
-          readOnly={fullName === Util.getCurrentStudent()?.name}
+          readOnly={fullName === currStudent.name}
           statusIcon={
-            fullName.length == 0 ? null : fullName && fullName.length >= 3 ? (
+            fullName.length == 0 ? null : fullName && (fullName.length >= 3||fullName === currStudent.name) ? (
               <img src="assets/icons/CheckIcon.svg" alt="Status icon" />
             ) : (
               <img src="assets/icons/Vector.svg" alt="Status icon" />
@@ -211,7 +211,7 @@ const JoinClass: FC<{
             codeResult &&
             !error &&
             error === "" &&
-            fullName.length >= 3 &&
+            (fullName.length >= 3 || fullName === currStudent.name) &&
             inviteCode?.toString().length === 6
           )
         }
