@@ -322,7 +322,7 @@ export class SupabaseApi implements ServiceApi {
     return imageUrl || null;
   }
 
-  async uploadData(payload: any): Promise<boolean> {
+  async uploadData(payload: any): Promise<boolean | null> {
     try {
       if (!this.supabase) {
         console.error("Supabase client is not initialized.");
@@ -334,14 +334,17 @@ export class SupabaseApi implements ServiceApi {
           body: payload,
         }
       );
-      if (error) {
-        console.error("Function error:", error);
+      if (data.status === 200) {
+        return true;
+      }
+      if (data.status === 400) {
+        console.error("Upload error:", data?.message);
         return false;
       }
-      return true;
+      return null;
     } catch (error) {
-      console.error("Upload failed:", error);
-      return false;
+      console.error("Failed Error:", error);
+      return null;
     }
   }
 
