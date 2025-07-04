@@ -22,22 +22,36 @@ interface SchoolCoordinatorsProps {
 
 const ROWS_PER_PAGE = 7;
 
-const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({ data, isMobile }) => {
-
+const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({ data }) => {
   const [orderBy, setOrderBy] = useState<string | null>("name");
   const [order, setOrder] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
   const [pageCount, setPageCount] = useState(1);
 
-  const handleSort = useCallback((key: string) => {
-    const isAsc = orderBy === key && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(key);
-  }, [order, orderBy]);
+  const handleSort = useCallback(
+    (key: string) => {
+      const isAsc = orderBy === key && order === "asc";
+      setOrder(isAsc ? "desc" : "asc");
+      setOrderBy(key);
+    },
+    [order, orderBy]
+  );
 
   const allCoordinators = useMemo(() => {
     const coordinatorsFromProps = data?.coordinators || [];
-    return coordinatorsFromProps.map(coordinator => ({
+    let sortedCoordinators = [...coordinatorsFromProps];
+    if (orderBy) {
+      sortedCoordinators.sort((a, b) => {
+        const valA = a[orderBy as keyof Coordinator] ?? "";
+        const valB = b[orderBy as keyof Coordinator] ?? "";
+
+        if (valA < valB) return order === "asc" ? -1 : 1;
+        if (valA > valB) return order === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return sortedCoordinators.map((coordinator) => ({
       ...coordinator,
       id: coordinator.id,
       name: coordinator.name || "N/A",
@@ -45,7 +59,7 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({ data, isMobile 
       phoneNumber: coordinator.phoneNumber || "N/A",
       emailDisplay: coordinator.email || "N/A",
     }));
-  }, [data?.coordinators]); 
+  }, [data?.coordinators, order, orderBy]);
 
   useEffect(() => {
     const newPageCount = Math.ceil(allCoordinators.length / ROWS_PER_PAGE);
@@ -63,10 +77,26 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({ data, isMobile 
   }, [allCoordinators, page]);
 
   const columns: Column<Coordinator & { emailDisplay: string }>[] = [
-    { key: "name", label: t("Coordinator Name"), renderCell: (coordinator) => <Typography variant="body2" className="coordinator-name-data">{coordinator.name}</Typography> },
+    {
+      key: "name",
+      label: t("Coordinator Name"),
+      renderCell: (coordinator) => (
+        <Typography variant="body2" className="coordinator-name-data">
+          {coordinator.name}
+        </Typography>
+      ),
+    },
     { key: "gender", label: t("Gender") },
     { key: "phoneNumber", label: t("Phone Number") },
-    { key: "email", label: t("Email"), renderCell: (coordinator) => <Typography variant="body2" className="truncate-text">{coordinator.emailDisplay}</Typography> },
+    {
+      key: "email",
+      label: t("Email"),
+      renderCell: (coordinator) => (
+        <Typography variant="body2" className="truncate-text">
+          {coordinator.emailDisplay}
+        </Typography>
+      ),
+    },
   ];
 
   const handlePageChange = (newPage: number) => {
@@ -76,9 +106,9 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({ data, isMobile 
   const isDataPresent = allCoordinators.length > 0;
 
   return (
-    <div className="schoolCoordinators-pageContainer">
+    <div className="school-coordinators-page-container">
       {isDataPresent ? (
-        <div className="schoolCoordinators-dataTableContainer">
+        <div className="school-coordinators-data-cable-container">
           <DataTableBody
             columns={columns}
             rows={coordinatorsForCurrentPage}
@@ -86,8 +116,8 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({ data, isMobile 
             order={order}
             onSort={handleSort}
           />
-          {allCoordinators.length > 0 && (
-            <div className="schoolCoordinators-school-list-pagination">
+          {allCoordinators.length > 0 && pageCount > 1 && (
+            <div className="school-coordinators-school-list-pagination">
               <DataTablePagination
                 page={page}
                 pageCount={pageCount}
@@ -97,11 +127,14 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({ data, isMobile 
           )}
         </div>
       ) : (
-        <Box className="schoolCoordinators-emptyStateContainer">
-          <Typography variant="h6" className="schoolCoordinators-emptyStateTitle">
+        <Box className="school-coordinators-empty-state-container">
+          <Typography
+            variant="h6"
+            className="school-coordinators-empty-state-title"
+          >
             {t("Coordinators")}
           </Typography>
-          <Typography className="schoolCoordinators-emptyStateMessage">
+          <Typography className="school-coordinators-empty-state-message">
             {t("No coordinators data found for the selected school")}
           </Typography>
         </Box>

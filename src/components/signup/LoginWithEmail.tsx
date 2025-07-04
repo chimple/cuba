@@ -79,7 +79,9 @@ const LoginWithEmail: React.FC<LoginWithEmailProps> = ({
               className="LoginWithEmail-email-input"
             />
           </div>
-          <span
+        </div>
+        <div className="LoginWithEmail-forgotPass-wrapper">
+         <span
             className="LoginWithEmail-forgot-password-email-text"
             onClick={() => onForgotPasswordChange?.()}
           >
@@ -97,7 +99,6 @@ const LoginWithEmail: React.FC<LoginWithEmailProps> = ({
               backgroundColor: isFormValid()
                 ? buttonColors.Valid
                 : buttonColors.Default,
-              marginTop: errorMessage ? "10px" : "0px",
             }}
             className="LoginWithEmail-with-email-button"
           >

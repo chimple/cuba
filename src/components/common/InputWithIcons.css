@@ -1,7 +1,7 @@
 .with-icon-input-wrapper {
   display: flex;
   flex-direction: column;
-  width: clamp(550, 9vw, 800px);
+  font-family: sans-serif;
   margin: clamp(20px, 5vh, 40px) auto;
   position: relative;
 }

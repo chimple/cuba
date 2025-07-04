@@ -160,12 +160,6 @@ const SideMenu: React.FC<{
     schoolUtil.setCurrMode(MODES.PARENT);
     history.replace(PAGES.DISPLAY_STUDENT);
   };
-  const switchUserToOps = () => {
-    localStorage.setItem(IS_OPS_USER, "true");
-    ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
-    history.replace(PAGES.SIDEBAR_PAGE);
-    return;
-  };
   const getClassCodeById = async (class_id: string) => {
     if (class_id) {
       const classCode = await api.getClassCodeById(class_id);
@@ -270,6 +264,7 @@ const SideMenu: React.FC<{
       if (classCode !== undefined && classCode !== null) {
         setClassCode(classCode);
       } else {
+        setClassCode(undefined);
         console.warn("Class code is null or undefined");
       }
 
@@ -340,8 +335,8 @@ const SideMenu: React.FC<{
                   className="icon"
                 />
                 <CommonToggle
-                  onChange={switchUserToOps}
-                  label="Switch to Ops Mode"
+                  onChange={() => Util.switchToOpsUser(history)}
+                  label={t("switch to ops mode") as string}
                 />
               </IonItem>
             </div>
