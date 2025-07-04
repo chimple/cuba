@@ -1,4 +1,4 @@
-.schoolPrincipals-pageContainer {
+.school-coordinators-page-container {
   background-color: #fff;
   display: flex;
   flex-direction: column;
@@ -7,7 +7,7 @@
   padding: 0 1.5rem;
 }
 
-.schoolPrincipals-table-container {
+.school-coordinators-data-cable-container {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
@@ -16,21 +16,21 @@
   margin-top: 1.5rem;
 }
 
-.schoolPrincipals-table-container table {
+.school-coordinators-data-cable-container table {
   width: 100%;
   border-collapse: collapse;
   min-width: 37.5rem;
 }
 
-.schoolPrincipals-table-container th,
-.schoolPrincipals-table-container td {
+.school-coordinators-data-cable-container th,
+.school-coordinators-data-cable-container td {
   padding: 0.75rem 1.5rem;
   text-align: left;
   vertical-align: middle;
   white-space: nowrap;
 }
 
-.schoolPrincipals-table-container th {
+.school-coordinators-data-cable-container th {
   background-color: #f9fafb;
   color: #667085;
   font-weight: 500;
@@ -39,28 +39,28 @@
   border-bottom: 1px solid #eaecf0;
 }
 
-.schoolPrincipals-table-container td {
+.school-coordinators-data-cable-container td {
   color: #344054;
   font-weight: 400;
   font-size: 0.875rem;
   line-height: 1.25rem;
   border-bottom: 1px solid #eaecf0;
 }
-.schoolPrincipals-table-container tbody tr:last-child td {
+.school-coordinators-data-cable-container tbody tr:last-child td {
   border-bottom: none;
 }
-.schoolPrincipals-table-container .principal-name-data.MuiTypography-root {
+.school-coordinators-data-cable-container .principal-name-data.MuiTypography-root {
   font-weight: 500 !important;
   color: #1d2939 !important;
 }
-.schoolPrincipals-table-container .truncate-text {
+.school-coordinators-data-cable-container .truncate-text {
   max-width: 15.625rem;
   overflow: hidden;
   text-overflow: ellipsis;
   display: inline-block;
   vertical-align: middle;
 }
-.schoolPrincipals-footer {
+.school-coordinators-footer {
   flex: 0 0 auto;
   display: flex;
   justify-content: center;
@@ -68,7 +68,7 @@
   width: 100%;
   padding: 0.75rem 0;
 }
-.schoolPrincipals-emptyStateContainer {
+.school-coordinators-empty-state-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -77,14 +77,14 @@
   flex-grow: 1;
 }
 
-.schoolPrincipals-emptyStateTitle.MuiTypography-root {
+.school-coordinators-empty-state-title.MuiTypography-root {
   font-weight: 600 !important;
   color: #1d2939 !important;
   margin-bottom: 1rem !important;
   font-size: 1.125rem;
 }
 
-.schoolPrincipals-emptyStateMessage.MuiTypography-root {
+.school-coordinators-empty-state-message.MuiTypography-root {
   color: #475467 !important;
   font-size: 0.875rem !important;
   max-width: 20rem;
@@ -92,17 +92,17 @@
 }
 
 @media (max-width: 768px) {
-  .schoolPrincipals-pageContainer {
+  .school-coordinators-page-container {
     padding: 0 1rem;
   }
 
-  .schoolPrincipals-table-container {
+  .school-coordinators-data-cable-container {
     margin-top: 1rem;
     overflow-x: auto;
   }
 
-  .schoolPrincipals-table-container th,
-  .schoolPrincipals-table-container td {
+  .school-coordinators-data-cable-container th,
+  .school-coordinators-data-cable-container td {
     padding: 0.625rem 1rem;
   }
 }
