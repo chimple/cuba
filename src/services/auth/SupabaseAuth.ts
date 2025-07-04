@@ -229,11 +229,11 @@ export class SupabaseAuth implements ServiceAuth {
       const userRole = await api.getUserSpecialRoles(
         authData.data.session?.user.id
       );
-      if (userRole?.length > 0) {
-        localStorage.setItem(USER_ROLE, userRole[0]);
-      } else {
-        localStorage.removeItem(USER_ROLE)
-      }
+      if (userRole.length > 0) {
+  localStorage.setItem(USER_ROLE, JSON.stringify(userRole)); 
+} else {
+  localStorage.removeItem(USER_ROLE);
+}
 
       let user = await api.getUserByDocId(authData.data.session?.user.id);
       localStorage.setItem(USER_DATA, JSON.stringify(user));
