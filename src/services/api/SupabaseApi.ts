@@ -324,26 +324,26 @@ export class SupabaseApi implements ServiceApi {
 
   async uploadData(payload: any): Promise<boolean | null> {
     try {
-      const response = await fetch(process.env.REACT_APP_SUPABASE_OPS_DATA_INSERT_URL ?? "", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${(await this.supabase?.auth.getSession())?.data.session?.access_token || ''}`,
-        },
-        body: JSON.stringify(payload),
-      });
-      const responseBody = await response.json().catch(() => ({}));
-      if (response.status === 200) {
-        return true;
-      }
-      if (response.status === 400 || responseBody?.error) {
-        console.error("Handled error:", responseBody?.error || "Bad Request");
+      if (!this.supabase) {
+        console.error("Supabase client is not initialized.");
         return false;
       }
-      console.warn("Unhandled error:", response.status, responseBody);
+      const { data, error } = await this.supabase.functions.invoke(
+        "ops-data-insert",
+        {
+          body: payload,
+        }
+      );
+      if (data.status === 200) {
+        return true;
+      }
+      if (data.status === 400) {
+        console.error("Upload error:", data?.message);
+        return false;
+      }
       return null;
-    } catch (err) {
-      console.error("Network or runtime error:", err);
+    } catch (error) {
+      console.error("Failed Error:", error);
       return null;
     }
   }
