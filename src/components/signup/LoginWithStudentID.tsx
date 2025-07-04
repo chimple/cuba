@@ -96,7 +96,6 @@ const LoginWithStudentID: React.FC<LoginWithStudentIDProps> = ({
               backgroundColor: isFormValid
                 ? buttonColors.Valid
                 : buttonColors.Default,
-              marginTop: "10px",
             }}
             className="LoginWithStudentID-login-with-student-button"
           >

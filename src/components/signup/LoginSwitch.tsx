@@ -2,6 +2,7 @@ import React from "react";
 
 import "./LoginSwitch.css";
 import { t } from "i18next";
+import { Trans } from "react-i18next";
 
 interface LoginSwitchProps {
   loginType: string;
@@ -108,14 +109,19 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
                     />
                     <span className="LoginSwitch-terms-custom-checkbox"></span>
                   </label>
-                  <span>
-                    {t("I agree to the")}{" "}
-                    <span
-                      className="LoginSwitch-terms-link"
-                      onClick={onTermsClick}
-                    >
-                      {t("Terms & Conditions")}
-                    </span>
+                  <span className="LoginSwitch-terms-text">
+                   <Trans
+                      i18nKey="I agree to the <1>Terms & Conditions</1>"
+                      components={{
+                        1: (
+                          <span
+                            className="LoginSwitch-terms-link"
+                            onClick={onTermsClick}
+                            key="terms"
+                          />
+                        ),
+                      }}
+                    />
                   </span>
                 </div>
               </div>
