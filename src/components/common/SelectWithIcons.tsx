@@ -61,9 +61,9 @@ const SelectWithIcons: React.FC<SelectWithIconsProps> = ({
         <div className="select-with-icon-selected-text">{selectedLabel}</div>
         <div className="select-with-icon-status">
             {isOpen ? (
-                <KeyboardArrowUpIcon className="dropdown-icon" />
+                <KeyboardArrowUpIcon className="select-with-icon-dropdown-icon" />
             ) : (
-                <KeyboardArrowDownIcon className="dropdown-icon" />
+                <KeyboardArrowDownIcon className="select-with-icon-dropdown-icon" />
             )}
         </div>
 
@@ -82,7 +82,7 @@ const SelectWithIcons: React.FC<SelectWithIconsProps> = ({
               }}
             >
               <span>{opt.label}</span>
-              {value === opt.value && <span className="checkmark"><DoneIcon/></span>}
+              {value === opt.value && <span className="select-with-icon-checkmark"><DoneIcon/></span>}
             </div>
           ))}
         </div>

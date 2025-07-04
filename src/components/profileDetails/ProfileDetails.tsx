@@ -8,7 +8,7 @@ import { useFeatureValue } from "@growthbook/growthbook-react";
 import { initializeClickListener } from "../../analytics/clickUtil";
 import { SupabaseAuth } from "../../services/auth/SupabaseAuth";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { ACTION_TYPES, EVENTS, FORM_MODES, PAGES, PROFILE_DETAILS_GROWTHBOOK_VARIATION, TableTypes } from "../../common/constants";
+import { ACTION_TYPES, AGE_OPTIONS, EVENTS, FORM_MODES, PAGES, PROFILE_DETAILS_GROWTHBOOK_VARIATION, TableTypes } from "../../common/constants";
 import { useHistory } from "react-router";
 
 const getModeFromFeature = (
@@ -154,14 +154,14 @@ const ProfileDetails = () => {
                 value={age}
                 setValue={setAge}
                 icon="/assets/icons/age.svg"
-                optionId={`click_on_profile_details_age_option_` + age}
+                optionId={`click_on_profile_details_age_option_${age}`}
                 options={[
-                  { value: "≤4", label: t("≤4 years") },
-                  { value: "5", label: t("5 years") },
-                  { value: "6", label: t("6 years") },
-                  { value: "7", label: t("7 years") },
-                  { value: "≥10", label: t("≥10 years") },
-                ]}
+                    { value: AGE_OPTIONS.LESS_THAN_EQUAL_4, label: "≤4 years" },
+                    { value: AGE_OPTIONS.FIVE, label: "5 years" },
+                    { value: AGE_OPTIONS.SIX, label: "6 years" },
+                    { value: AGE_OPTIONS.SEVEN, label: "7 years" },
+                    { value: AGE_OPTIONS.GREATER_THAN_EQUAL_10, label: "≥10 years" },
+                  ]}
                 required={mode === FORM_MODES.ALL_REQUIRED}
               />
             </div>

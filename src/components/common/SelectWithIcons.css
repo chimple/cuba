@@ -123,7 +123,7 @@
   color: #f34d08;
 }
 
-.checkmark {
+.select-with-icon-checkmark {
   font-size: 18px;
   color: #f34d08;
 }
@@ -134,7 +134,7 @@
   justify-content: center;
 }
 
-.dropdown-icon {
+.select-with-icon-dropdown-icon {
   color: #f34d08;
   font-size: 24px;
 }

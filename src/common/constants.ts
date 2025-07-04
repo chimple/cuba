@@ -888,3 +888,11 @@ export const ACTION_TYPES = {
   PROFILE_UPDATED: "profile_updated",
   PROFILE_SKIPPED: "profile_skipped",
 };
+
+export enum AGE_OPTIONS {
+  LESS_THAN_EQUAL_4 = "≤4",
+  FIVE = "5",
+  SIX = "6",
+  SEVEN = "7",
+  GREATER_THAN_EQUAL_10 = "≥10",
+}
