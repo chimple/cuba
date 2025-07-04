@@ -12,7 +12,7 @@ const ClassProfile: FC = () => {
   const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
   const { school: localSchool, classDoc: classData } = location.state as any;
   const currentSchool = localSchool ?? Util.getCurrentSchool();
-  const currentUserRole = JSON.parse(localStorage.getItem(USER_ROLE)!);
+  const currentUserRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
 
   useEffect(() => {
     fetchClassDetails();
