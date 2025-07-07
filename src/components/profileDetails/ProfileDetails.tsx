@@ -28,6 +28,7 @@ const getModeFromFeature = (
 
 const ProfileDetails = () => {
   const api = ServiceConfig.getI().apiHandler;
+  const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
   const variation = useFeatureValue<string>(
     PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_SCREEN,
@@ -79,7 +80,7 @@ const ProfileDetails = () => {
 
   const handleSave = async () => {
     try {
-      const user = await SupabaseAuth.i.getCurrentUser();
+      const user = await auth.getCurrentUser();
       if (!user) {
         console.error("No user found");
         return;
