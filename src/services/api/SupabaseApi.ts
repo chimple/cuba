@@ -2069,17 +2069,32 @@ export class SupabaseApi implements ServiceApi {
     email: string,
     phoneNum: string,
     languageDocId: string,
-    profilePic: string | undefined
+    profilePic: string | undefined,
+    options?: {
+      age?: string;
+      gender?: string;
+    }
   ): Promise<TableTypes<"user">> {
     if (!this.supabase) return user;
 
-    const updatedFields = {
+    const updatedFields: Record<string, any> = {
       name: fullName,
       email,
       phone: phoneNum,
       language_id: languageDocId,
       image: profilePic ?? null,
     };
+
+    if (options?.age !== undefined) {
+      const parsedAge = parseInt(options.age, 10);
+      if (!isNaN(parsedAge)) {
+        updatedFields.age = parsedAge;
+      }
+    }
+
+    if (options?.gender !== undefined) {
+      updatedFields.gender = options.gender;
+    }
 
     const { error } = await this.supabase
       .from("user")
@@ -2090,11 +2105,11 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error updating user profile:", error);
       throw error;
     }
-
     Object.assign(user, updatedFields);
 
     return user;
   }
+
   async updateClassCourseSelection(
     classId: string,
     selectedCourseIds: string[]
