@@ -852,7 +852,9 @@ export class OneRosterApi implements ServiceApi {
     try {
       let current_user = await ServiceConfig.getI().authHandler.getCurrentUser();
       if (current_user) {
-        current_user.learning_path = learning_path
+        current_user.learning_path = learning_path;
+        // Persist to localStorage for testing
+        localStorage.setItem("CURRENT_STUDENT", JSON.stringify(current_user));
       }
       // const updateUserQuery = `UPDATE ${TABLES.User}
       // SET learning_path = ?
@@ -977,8 +979,10 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getUserByDocId(studentId: string): Promise<TableTypes<"user"> | undefined> {
-    throw new Error("Method not implemented.");
+  async getUserByDocId(studentId: string): Promise<TableTypes<"user"> | undefined> {
+    const temp = localStorage.getItem("CURRENT_STUDENT");
+    if (!temp) return undefined;
+    return JSON.parse(temp) as TableTypes<"user">;
   }
   updateRewardAsSeen(studentId: string): Promise<void> {
     throw new Error("Method not implemented.");
