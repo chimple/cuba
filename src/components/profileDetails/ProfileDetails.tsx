@@ -6,7 +6,6 @@ import SelectWithIcons from "../common/SelectWithIcons";
 import { Util } from "../../utility/util";
 import { useFeatureValue } from "@growthbook/growthbook-react";
 import { initializeClickListener } from "../../analytics/clickUtil";
-import { SupabaseAuth } from "../../services/auth/SupabaseAuth";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { ACTION_TYPES, AGE_OPTIONS, EVENTS, FORM_MODES, PAGES, PROFILE_DETAILS_GROWTHBOOK_VARIATION, TableTypes } from "../../common/constants";
 import { useHistory } from "react-router";
@@ -45,24 +44,21 @@ const ProfileDetails = () => {
 
   useEffect(() => {
     Util.loadBackgroundImage();
-  }, []);
-
-  useEffect(() => {
     const cleanup = initializeClickListener();
-    return cleanup;
-  }, []);
-
-  useEffect(() => {
-    setHasChanges(true);
-  }, [fullName, age, gender, languageId]);
-
-  useEffect(() => {
     const loadLanguages = async () => {
       const langs = await api.getAllLanguages();
       setLanguages(langs);
     };
     loadLanguages();
+
+    return () => {
+      cleanup?.();
+    };
   }, []);
+
+  useEffect(() => {
+    setHasChanges(true);
+  }, [fullName, age, gender, languageId]);
 
   const isFormComplete =
     mode === FORM_MODES.ALL_REQUIRED
