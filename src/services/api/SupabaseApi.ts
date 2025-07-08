@@ -330,7 +330,7 @@ export class SupabaseApi implements ServiceApi {
 
     try {
       const { data, error: functionError } =
-        await this.supabase.functions.invoke("ops-data-insert-v3", {
+        await this.supabase.functions.invoke("ops-data-insert", {
           body: payload,
         });
 
@@ -366,16 +366,16 @@ export class SupabaseApi implements ServiceApi {
 
           uploadId = fallbackJob?.id;
           if (uploadId) {
-            console.log(
-              "🔁 Fallback: Retrieved latest upload_id manually:",
-              uploadId
-            );
+            // console.log(
+            //   "🔁 Fallback: Retrieved latest upload_id manually:",
+            //   uploadId
+            // );
           }
         }
       }
 
       if (uploadId) {
-        console.log("📡 Subscribing to status for upload_id:", uploadId);
+        // console.log("📡 Subscribing to status for upload_id:", uploadId);
 
         return new Promise((resolve) => {
           if (!this.supabase) return false;
@@ -391,12 +391,12 @@ export class SupabaseApi implements ServiceApi {
               },
               (payload) => {
                 const status = payload.new.status;
-                console.log("📬 Upload status changed:", status);
+                // console.log("📬 Upload status changed:", status);
                 if (status === "success") {
-                  console.log("✅ Upload completed.");
+                  // console.log("✅ Upload completed.");
                   resolve(true);
                 } else if (status === "failed") {
-                  console.log("❌ Upload failed.");
+                  // console.log("❌ Upload failed.");
                   resolve(false);
                 }
               }
