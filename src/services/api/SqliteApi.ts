@@ -30,6 +30,7 @@ import {
   CHIMPLE_DIGITAL_SKILLS,
   TabType,
   AVATARS,
+  BASE_NAME,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -230,7 +231,9 @@ export class SqliteApi implements ServiceApi {
           );
           console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:", resImport);
           // if (!Capacitor.isNativePlatform())
-          window.location.reload();
+          // window.location.reload();
+          window.location.replace(BASE_NAME || "/");
+          return;
         } catch (error) {
           console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
         }
@@ -354,25 +357,15 @@ export class SqliteApi implements ServiceApi {
     const pulledRowsSizeInBytes = new TextEncoder().encode(jsonString).length;
     this.updateDebugInfo(0, totalpulledRows, pulledRowsSizeInBytes);
 
-    let _hasRetried = false;
-    if (batchQueries.length > 0) {
+     if (batchQueries.length > 0) {
       try {
         await this._db.executeSet(batchQueries);
       } catch (error) {
-        if (!_hasRetried) {
-          _hasRetried = true;
-          await this.createSyncTables();
-          try {
-            await this._db.executeSet(batchQueries);
-          } catch (error) {
-            console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
-          }
-        } else {
-          console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
-        }
+        console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
       }
     }
   }
+
 
   async getTableColumns(tableName: string): Promise<string[] | undefined> {
     const query = `PRAGMA table_info(${tableName})`;
@@ -429,42 +422,31 @@ export class SqliteApi implements ServiceApi {
 
   async syncDbNow(
     tableNames: TABLES[] = Object.values(TABLES),
-    refreshTables: TABLES[] = [],
-    _hasRetried = false
+    refreshTables: TABLES[] = []
   ) {
     if (!this._db) return;
-    try {
-      const refresh_tables = "'" + refreshTables.join("', '") + "'";
-      console.log(
-        "logs to check synced tables",
-        JSON.stringify(refresh_tables)
-      );
-      await this.executeQuery(
-        `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`
-      );
-      await this.pullChanges(tableNames);
-      const res = await this.pushChanges(tableNames);
-      const tables = "'" + tableNames.join("', '") + "'";
-      console.log("logs to check synced tables1", JSON.stringify(tables));
+    const refresh_tables = "'" + refreshTables.join("', '") + "'";
+    console.log("logs to check synced tables", JSON.stringify(refresh_tables));
+    await this.executeQuery(
+      `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`
+    );
+    await this.pullChanges(tableNames);
+    const res = await this.pushChanges(tableNames);
+    const tables = "'" + tableNames.join("', '") + "'";
+    console.log("logs to check synced tables1", JSON.stringify(tables));
 
-      const currentTimestamp = new Date();
-      const reducedTimestamp = new Date(currentTimestamp); // clone it
-      reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
-      const formattedTimestamp = reducedTimestamp.toISOString();
+    const currentTimestamp = new Date();
+    const reducedTimestamp = new Date(currentTimestamp); // clone it
+    reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
+    const formattedTimestamp = reducedTimestamp.toISOString();
 
-      this.executeQuery(
-        `UPDATE pull_sync_info SET last_pulled = '${formattedTimestamp}'  WHERE table_name IN (${tables})`
-      );
-      console.log("logs to check synced tables2", JSON.stringify(tables));
-      return res;
-    } catch (error) {
-      if (!_hasRetried) {
-        await this.createSyncTables();
-        return this.syncDbNow(tableNames, refreshTables, true);
-      }
-      throw error;
-    }
+    this.executeQuery(
+      `UPDATE pull_sync_info SET last_pulled = '${formattedTimestamp}'  WHERE table_name IN (${tables})`
+    );
+    console.log("logs to check synced tables2", JSON.stringify(tables));
+    return res;
   }
+
 
   private async createSyncTables() {
     const createPullSyncInfoTable = `CREATE TABLE IF NOT EXISTS pull_sync_info (
@@ -2243,7 +2225,6 @@ export class SqliteApi implements ServiceApi {
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
     const finalData: { school: TableTypes<"school">; role: RoleType }[] = [];
     const schoolIds: Set<string> = new Set();
-
     let query = `
     SELECT cu.class_id, c.school_id
     FROM ${TABLES.ClassUser} cu
@@ -2308,6 +2289,7 @@ export class SqliteApi implements ServiceApi {
     ORDER BY s.name ASC;
   `;
     const schoolUserRes = await this._db?.query(query);
+
 
     if (
       schoolUserRes &&

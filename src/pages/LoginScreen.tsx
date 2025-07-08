@@ -468,9 +468,11 @@ const LoginScreen: React.FC = () => {
       history.replace(PAGES.SIDEBAR_PAGE);
       return;
     }
-
-    await SqliteApi.getInstance();
+    
+    setAnimatedLoading(true)
+    const sqliteApi = await SqliteApi.getInstance();
     ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(APIMode.SQLITE);
+    setAnimatedLoading(false)
     
     if (userSchools.length > 0) {
       const autoUserSchool = userSchools.find(
