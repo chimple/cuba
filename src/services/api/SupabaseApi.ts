@@ -323,28 +323,120 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async uploadData(payload: any): Promise<boolean | null> {
+    if (!this.supabase) return false;
+
+    let uploadId: string | undefined;
+    let uploadingUser: string | undefined;
+
     try {
-      if (!this.supabase) {
-        console.error("Supabase client is not initialized.");
-        return false;
-      }
-      const { data, error } = await this.supabase.functions.invoke(
-        "ops-data-insert",
-        {
+      const { data, error: functionError } =
+        await this.supabase.functions.invoke("ops-data-insert-v3", {
           body: payload,
+        });
+
+      const msg =
+        typeof functionError === "string"
+          ? functionError.toLowerCase()
+          : functionError?.message?.toLowerCase() ||
+            JSON.stringify(functionError)?.toLowerCase() ||
+            "";
+
+      const isSilent =
+        msg.includes("502") ||
+        msg.includes("timeout") ||
+        msg.includes("non-2xx") ||
+        msg.includes("failed") ||
+        msg.includes("cors policy") ||
+        msg.includes("edge function");
+
+      uploadId = data?.upload_id;
+
+      if (!uploadId) {
+        const { data: session } = await this.supabase.auth.getSession();
+        uploadingUser = session?.session?.user?.id;
+
+        if (uploadingUser) {
+          const { data: fallbackJob } = await this.supabase
+            .from<any, any>("upload_queue")
+            .select("id")
+            .eq("uploading_user", uploadingUser)
+            .order("start_time", { ascending: false })
+            .limit(1)
+            .single();
+
+          uploadId = fallbackJob?.id;
+          if (uploadId) {
+            console.log(
+              "🔁 Fallback: Retrieved latest upload_id manually:",
+              uploadId
+            );
+          }
         }
-      );
-      if (data.status === 200) {
-        return true;
       }
-      if (data.status === 400) {
-        console.error("Upload error:", data?.message);
-        return false;
+
+      if (uploadId) {
+        console.log("📡 Subscribing to status for upload_id:", uploadId);
+
+        return new Promise((resolve) => {
+          if (!this.supabase) return false;
+          this.supabase
+            .channel(`upload-status-${uploadId}`)
+            .on(
+              "postgres_changes",
+              {
+                event: "UPDATE",
+                schema: "public",
+                table: "upload_queue",
+                filter: `id=eq.${uploadId}`,
+              },
+              (payload) => {
+                const status = payload.new.status;
+                console.log("📬 Upload status changed:", status);
+                if (status === "success") {
+                  console.log("✅ Upload completed.");
+                  resolve(true);
+                } else if (status === "failed") {
+                  console.log("❌ Upload failed.");
+                  resolve(false);
+                }
+              }
+            )
+            .subscribe((status) => {
+              if (status !== "SUBSCRIBED") {
+                console.warn("⚠️ Realtime subscription failed:", status);
+                resolve(false);
+              }
+            });
+        });
+      } else {
+        console.warn(
+          "❗ Could not determine upload_id, skipping realtime tracking."
+        );
+        return isSilent ? null : false;
       }
-      return null;
-    } catch (error) {
-      console.error("Failed Error:", error);
-      return null;
+    } catch (error: any) {
+      const msg =
+        typeof error === "string"
+          ? error.toLowerCase()
+          : error?.message?.toLowerCase() ||
+            JSON.stringify(error)?.toLowerCase() ||
+            "";
+
+      const isSilent =
+        msg.includes("502") ||
+        msg.includes("timeout") ||
+        msg.includes("non-2xx") ||
+        msg.includes("failed") ||
+        msg.includes("cors policy") ||
+        msg.includes("edge function");
+
+      if (isSilent) {
+        console.warn("⚠️ Silent catch error:", msg);
+        return null;
+      }
+
+      console.error("🔥 Unexpected error:", error);
+      return false;
     }
   }
 
