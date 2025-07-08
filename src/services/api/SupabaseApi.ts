@@ -357,7 +357,7 @@ export class SupabaseApi implements ServiceApi {
 
         if (uploadingUser) {
           const { data: fallbackJob } = await this.supabase
-            .from<any, any>("upload_queue")
+            .from("upload_queue")
             .select("id")
             .eq("uploading_user", uploadingUser)
             .order("start_time", { ascending: false })
