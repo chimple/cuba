@@ -74,10 +74,6 @@ const SelectMode: FC = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const setTab = urlParams.get("tab");
     const currentMode = await schoolUtil.getCurrMode();
-    const userRole = localStorage.getItem(USER_ROLE);
-    const isOpsRole = userRole === RoleType.SUPER_ADMIN || userRole === RoleType.OPERATIONAL_DIRECTOR;
-    const isProgramUser = await api.isProgramUser();
-  
     if (setTab) {
       if (setTab === STAGES.STUDENT) {
         setStage(STAGES.STUDENT);
