@@ -481,6 +481,7 @@ const LoginScreen: React.FC = () => {
     if (isOpsRole || isProgramUser) {
       localStorage.setItem(IS_OPS_USER, "true");
       await ScreenOrientation.unlock();
+      schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
       history.replace(PAGES.SIDEBAR_PAGE);
       return;
     }
