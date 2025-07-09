@@ -1442,7 +1442,7 @@ export class SqliteApi implements ServiceApi {
     lessonId: string
   ): Promise<TableTypes<"lesson"> | null> {
     const res = await this._db?.query(
-      `select * from ${TABLES.Lesson} where cocos_lesson_id = "${lessonId}"`
+      `select * from ${TABLES.Lesson} where cocos_lesson_id = "${lessonId}" and is_deleted = 0`
     );
     if (!res || !res.values || res.values.length < 1) return null;
     return res.values[0];
@@ -1455,7 +1455,7 @@ export class SqliteApi implements ServiceApi {
     SELECT *
     FROM ${TABLES.UserCourse} AS uc
     JOIN ${TABLES.Course} AS course ON uc.course_id= course.id
-    WHERE uc.user_id = "${studentId}";
+    WHERE uc.user_id = "${studentId}" AND uc.is_deleted = 0;
   `;
     const res = await this._db?.query(query);
     return res?.values ?? [];
@@ -1489,7 +1489,7 @@ export class SqliteApi implements ServiceApi {
 
   async getLesson(id: string): Promise<TableTypes<"lesson"> | undefined> {
     const res = await this._db?.query(
-      `select * from ${TABLES.Lesson} where id = "${id}"`
+      `select * from ${TABLES.Lesson} where id = "${id}" and is_deleted = 0`
     );
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
@@ -1497,7 +1497,7 @@ export class SqliteApi implements ServiceApi {
 
   async getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
     const res = await this._db?.query(
-      `select * from ${TABLES.Chapter} where id = "${id}"`
+      `select * from ${TABLES.Chapter} where id = "${id}" and is_deleted = 0`
     );
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
@@ -1510,7 +1510,7 @@ export class SqliteApi implements ServiceApi {
     SELECT *
     FROM ${TABLES.ChapterLesson} AS cl
     JOIN ${TABLES.Lesson} AS lesson ON cl.lesson_id= lesson.id
-    WHERE cl.chapter_id = "${chapterId}"
+    WHERE cl.chapter_id = "${chapterId}" AND cl.is_deleted = 0
     ORDER BY sort_index ASC;
   `;
     const res = await this._db?.query(query);
@@ -2067,7 +2067,7 @@ export class SqliteApi implements ServiceApi {
 
   async getCourse(id: string): Promise<TableTypes<"course"> | undefined> {
     const res = await this._db?.query(
-      `select * from ${TABLES.Course} where id = "${id}"`
+      `select * from ${TABLES.Course} where id = "${id}" and is_deleted = 0`
     );
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
@@ -2752,7 +2752,7 @@ export class SqliteApi implements ServiceApi {
     JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
     JOIN ${TABLES.Chapter} c ON c.id = cl.chapter_id
     JOIN ${TABLES.Course} co ON co.id = c.course_id
-    WHERE c.id='${chapterId}' and l.id = '${lessonId}'
+    WHERE c.id='${chapterId}' and c.is_deleted = 0 and l.id = '${lessonId}' and l.is_deleted = 0
     `;
     const res = await this._db?.query(query);
     if (!res || !res.values || res.values.length < 1) return data;
@@ -2764,11 +2764,11 @@ export class SqliteApi implements ServiceApi {
   async getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]> {
     try {
       const gradeCoursesRes = await this._db?.query(
-        `SELECT * FROM ${TABLES.Course} WHERE grade_id = "${gradeDocId}"`
+        `SELECT * FROM ${TABLES.Course} WHERE grade_id = "${gradeDocId}" AND is_deleted = 0`
       );
 
       const puzzleCoursesRes = await this._db?.query(
-        `SELECT * FROM ${TABLES.Course} WHERE name = "Digital Skills"`
+        `SELECT * FROM ${TABLES.Course} WHERE name = "Digital Skills"  AND is_deleted = 0`
       );
 
       const courses = [
@@ -2800,7 +2800,7 @@ export class SqliteApi implements ServiceApi {
     JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
     JOIN ${TABLES.Chapter} c ON c.id = cl.chapter_id
     JOIN ${TABLES.Course} co ON co.id = c.course_id
-    WHERE l.id = '${lessonId}'
+    WHERE l.id = '${lessonId} and l.is_deleted = 0'
     `;
     const res = await this._db?.query(query);
     return res?.values ?? [];
@@ -3115,7 +3115,7 @@ export class SqliteApi implements ServiceApi {
   ): Promise<TableTypes<"chapter">[]> {
     const query = `
     SELECT * FROM ${TABLES.Chapter}
-    WHERE course_id = "${courseId}"
+    WHERE course_id = "${courseId}" AND is_deleted = 0
     ORDER BY sort_index ASC;
     `;
     const res = await this._db?.query(query);
@@ -3716,7 +3716,7 @@ order by
         `SELECT cl.lesson_id, c.course_id ,cl.chapter_id
          FROM ${TABLES.ChapterLesson} cl
          JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
-         WHERE cl.lesson_id = "${lessonId}"`
+         WHERE cl.lesson_id = "${lessonId}" AND is_deleted = 0`
       );
       if (!res || !res.values || res.values.length < 1) return;
       const classCourseIds = new Set(class_course.map((course) => course.id));
@@ -3785,7 +3785,7 @@ order by
     const placeholders = lessonIds.map(() => "?").join(", ");
     const query = `SELECT *
       FROM ${TABLES.Lesson}
-      WHERE id IN (${placeholders});`;
+      WHERE id IN (${placeholders}) AND is_deleted = 0;`;
 
     const res = await this._db?.query(query, lessonIds);
 
@@ -4548,7 +4548,7 @@ order by
       SELECT *
       FROM ${TABLES.UserCourse} AS uc
       JOIN ${TABLES.Course} AS course ON uc.course_id = course.id
-      WHERE uc.user_id = "${studentId}"
+      WHERE uc.user_id = "${studentId}"  AND uc.is_deleted = 0
       ORDER BY course.sort_index ASC;
     `;
     const res = await this._db?.query(query);
@@ -4734,7 +4734,9 @@ order by
       console.error("Error setting stars for student:", error);
     }
   }
-  async getChapterIdbyQrLink(link:string): Promise<TableTypes<"chapter_links"> | undefined> {
+  async getChapterIdbyQrLink(
+    link: string
+  ): Promise<TableTypes<"chapter_links"> | undefined> {
     if (!link) return;
     try {
       const res = await this._db?.query(
