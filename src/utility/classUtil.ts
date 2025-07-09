@@ -77,6 +77,10 @@ export class ClassUtil {
           );
         }).length
       : 0;
+    
+    const timeSpentByAllStudents = totalStudents > 0 ? parseFloat((timeSpent / totalStudents).toFixed(2)) : 0;
+    const resultCount = assignmentResult?.length ?? 0;
+    const avgScore = resultCount > 0 ? parseFloat((totalScore / resultCount).toFixed(1)) : 0;
     return {
       assignments: {
         asgnmetCmptd: assignmentsCompletedByAllStudents,
@@ -86,13 +90,8 @@ export class ClassUtil {
         stdCompletd: studentsWhoCompletedAllAssignments,
         totalStudents: totalStudents,
       },
-      timeSpent: parseFloat((timeSpent / totalStudents).toFixed(2)),
-      averageScore:
-        assignmentResult?.length ?? 0 > 0
-          ? parseFloat(
-              (totalScore / (assignmentResult?.length ?? 0)).toFixed(1)
-            )
-          : 0,
+      timeSpent: timeSpentByAllStudents,
+      averageScore: avgScore,
     };
   }
   public async divideStudents(classId: string, courseId: string) {
