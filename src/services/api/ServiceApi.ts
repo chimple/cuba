@@ -1099,12 +1099,12 @@ export interface ServiceApi {
   checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean>;
 
   /**
-   * Checks the user present in class or not.
+   * Checks the teacher present in class or not.
    * @param {string} classId class Id
    * @param {string} userId user Id;
-   * @return returns boolean whether the user is already connected to class or not.
+   * @return returns boolean whether the teacher is already connected to class or not.
    */
-  checkUserExistInClass(classId: string, userId: string): Promise<boolean> 
+  checkTeacherExistInClass(classId: string, userId: string): Promise<boolean> 
 
   /**
    * Checks the user present in school or not.

@@ -4128,7 +4128,7 @@ order by
     }
     return false;
   }
-  async checkUserExistInClass(
+  async checkTeacherExistInClass(
     classId: string,
     userId: string
   ): Promise<boolean> {
@@ -4136,8 +4136,9 @@ order by
       `SELECT * FROM class_user
       WHERE class_id = ?
       AND user_id = ?
+      AND role = ?
       AND is_deleted = false`,
-      [classId, userId]
+      [classId, userId, RoleType.TEACHER]
     );
     return !!(result?.values && result.values.length > 0);
   }

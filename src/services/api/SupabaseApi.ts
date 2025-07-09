@@ -4528,7 +4528,7 @@ export class SupabaseApi implements ServiceApi {
     return teachers && teachers.length > 0;
   }
   
-  async checkUserExistInClass(
+  async checkTeacherExistInClass(
   classId: string,
   userId: string
   ): Promise<boolean> {
@@ -4538,6 +4538,7 @@ export class SupabaseApi implements ServiceApi {
       .select("id")
       .eq("class_id", classId)
       .eq("user_id", userId)
+      .eq("role", RoleType.TEACHER)
       .eq("is_deleted", false)
       .maybeSingle(); // Returns null if no match
 

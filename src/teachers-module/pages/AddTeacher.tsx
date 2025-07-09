@@ -52,7 +52,7 @@ const AddTeacher: React.FC = () => {
       }
 
       if (classDoc && fetchedUser) {
-        const userInClass = await api?.checkUserExistInClass(
+        const userInClass = await api?.checkTeacherExistInClass(
           classDoc?.id,
           fetchedUser.id
         );
