@@ -89,7 +89,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data }) => {
     setOrderBy(key);
   }, [order, orderBy]);
 
-  const allFilteredStudents = useMemo(() => {
+ const allFilteredStudents = useMemo(() => {
     const studentsFromApi: ApiStudentData[] = data?.students || [];
     let filteredApiStudents = [...studentsFromApi];
     if (searchTerm.trim() !== "") {
@@ -121,12 +121,21 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data }) => {
     if (orderBy) {
       filteredApiStudents.sort((a, b) => {
         let valA, valB;
-        if (['name', 'gender', 'phone', 'student_id'].includes(orderBy)) {
-            valA = a.user[orderBy as keyof UserType];
-            valB = b.user[orderBy as keyof UserType];
-        } else {
+        switch (orderBy) {
+          case 'studentIdDisplay':
+            valA = a.user.student_id;
+            valB = b.user.student_id;
+            break;
+          case 'name':
+          case 'gender':
+          case 'phone':
+            valA = a.user[orderBy as 'name' | 'gender' | 'phone'];
+            valB = b.user[orderBy as 'name' | 'gender' | 'phone'];
+            break;
+          default: // Handles 'grade', 'classSection', etc.
             valA = a[orderBy as keyof ApiStudentData];
             valB = b[orderBy as keyof ApiStudentData];
+            break;
         }
         valA = valA ?? '';
         valB = valB ?? '';
