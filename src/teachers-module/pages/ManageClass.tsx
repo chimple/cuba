@@ -34,25 +34,28 @@ const ManageClass: React.FC = () => {
   const tempClass = Util.getCurrentClass();
 
   const init = async () => {
-    try {
-      const user = await auth.getCurrentUser();
-      if (!user) return;
-      setCurrentUser(user);
-      const tempSchool = Util.getCurrentSchool();
-      const tempRole = JSON.parse(localStorage.getItem(USER_ROLE)!);
-      if (tempRole) setUserRole(tempRole as RoleType);
-      if (tempSchool) {
-        setCurrentSchool(tempSchool);
-        const fetchedClasses = await api.getClassesForSchool(
-          tempSchool.id,
-          user.id
-        );
-        if (fetchedClasses) setAllClasses(fetchedClasses);
-      }
-    } catch (error) {
-      console.error("Error initializing data:", error);
+  try {
+    const user = await auth.getCurrentUser();
+    if (!user) return;
+    setCurrentUser(user);
+    const tempSchool = Util.getCurrentSchool();
+    if (tempSchool) {
+      setCurrentSchool(tempSchool);
+      const fetchedClasses = await api.getClassesForSchool(
+        tempSchool.id,
+        user.id
+      );
+      if (fetchedClasses) setAllClasses(fetchedClasses);
     }
-  };
+  } catch (error) {
+    console.error("Error initializing data:", error);
+  }
+};
+
+function hasRole(...rolesToCheck: RoleType[]) {
+  const storedRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+  return rolesToCheck.some((role) => storedRoles.includes(role));
+}
   const onBackButtonClick = () => {
     history.replace(PAGES.HOME_PAGE, {
       tabValue: 0,
@@ -85,13 +88,13 @@ const ManageClass: React.FC = () => {
           school={currentSchool}
         />
       </div>
-      {userRole === RoleType.PRINCIPAL || userRole === RoleType.COORDINATOR ? (
+      {hasRole(RoleType.PRINCIPAL, RoleType.COORDINATOR) && (
         <AddButton
           onClick={() => {
-            history.replace(PAGES.ADD_CLASS, { origin: PAGES.MANAGE_CLASS });
+          history.replace(PAGES.ADD_CLASS, { origin: PAGES.MANAGE_CLASS });
           }}
         />
-      ) : null}
+      )}
     </div>
   );
 };

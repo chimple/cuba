@@ -21,7 +21,7 @@ const ClassUsers: React.FC = () => {
   const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
   const classData = (location.state as TableTypes<"class">) || {};
   const currentSchool = Util.getCurrentSchool();
-  const currentRole = JSON.parse(localStorage.getItem(USER_ROLE)!);
+  const currentRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
   useEffect(() => {
     init();
   }, []);
@@ -100,9 +100,9 @@ const ClassUsers: React.FC = () => {
             <AddButton onClick={addStudent} />
           )}
           {selectedTab === CLASS_USERS.TEACHERS &&
-            !(currentRole === RoleType.TEACHER) && (
-              <AddButton onClick={addTeacher} />
-            )}
+            !currentRoles.includes(RoleType.TEACHER) && (
+            <AddButton onClick={addTeacher} />
+          )}
         </div>
       )}
     </>

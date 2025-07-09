@@ -20,8 +20,7 @@ const UserList: React.FC<{
   const [selectedUser, setSelectedUser] = useState<TableTypes<"user"> | null>(
     null
   );
-  const currentUserRole = JSON.parse(localStorage.getItem(USER_ROLE)!);
-
+  const currentUserRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
   useEffect(() => {
     init();
   }, []);
@@ -113,8 +112,8 @@ const UserList: React.FC<{
                   />
                 </div>
 
-                {(currentUserRole === RoleType.PRINCIPAL ||
-                  currentUserRole === RoleType.COORDINATOR) && (
+                {(currentUserRoles.includes(RoleType.PRINCIPAL) ||
+                  currentUserRoles.includes(RoleType.COORDINATOR)) && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(teacher)}

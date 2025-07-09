@@ -405,8 +405,9 @@ const Login: React.FC = () => {
     }[]
   ) {
 
-    const userRole = localStorage.getItem(USER_ROLE);
-    const isOpsRole = userRole === RoleType.SUPER_ADMIN || userRole === RoleType.OPERATIONAL_DIRECTOR;
+    const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+    const isOpsRole = userRoles.includes(RoleType.SUPER_ADMIN) || userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
+
     const isProgramUser = await api.isProgramUser();
     if (isOpsRole || isProgramUser) {
       localStorage.setItem(IS_OPS_USER, 'true');
