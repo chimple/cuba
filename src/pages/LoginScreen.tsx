@@ -3,7 +3,7 @@ import { Keyboard } from "@capacitor/keyboard";
 import { Toast } from "@capacitor/toast";
 import { useHistory } from "react-router-dom";
 import { Capacitor, registerPlugin } from "@capacitor/core";
-import { IonLoading, IonText } from "@ionic/react";
+import { IonText } from "@ionic/react";
 import { t } from "i18next";
 import React, { useEffect, useRef, useState } from "react";
 
@@ -50,7 +50,11 @@ const LoginScreen: React.FC = () => {
   >("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // Separate error states for each login component
+  const [phoneErrorMessage, setPhoneErrorMessage] = useState<string | null>(null);
+  const [studentErrorMessage, setStudentErrorMessage] = useState<string | null>(null);
+  const [emailErrorMessage, setEmailErrorMessage] = useState<string | null>(null);
+  const [otpErrorMessage, setOtpErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [counter, setCounter] = useState(59);
   const [showTimer, setShowTimer] = useState(false);
@@ -229,7 +233,7 @@ const LoginScreen: React.FC = () => {
       }
 
       if (phoneNumber.length !== 10) {
-        setErrorMessage(t("Please Enter 10 digit Mobile Number"));
+        setPhoneErrorMessage("Please Enter 10 digit Mobile Number");
         return;
       }
 
@@ -248,7 +252,7 @@ const LoginScreen: React.FC = () => {
         setCounter(59);
         setShowTimer(true);
         setLoginType("otp");
-        setErrorMessage(null);
+        setPhoneErrorMessage(null);
         setCurrentPhone(phoneNumber);
         setDisableOtpButtonIfSameNumber(true);
         setAllowSubmittingOtpCounter(counter);
@@ -261,15 +265,15 @@ const LoginScreen: React.FC = () => {
           error.includes("blocked all requests") ||
           error.includes("Timed out waiting for SMS")
         ) {
-          setErrorMessage(
-            t("Something went wrong. Please try again after some time.")
+          setPhoneErrorMessage(
+            "Something went wrong. Please try again after some time."
           );
         } else if (error.includes("E.164 format")) {
-          setErrorMessage(t("Incorrect phone number format"));
+          setPhoneErrorMessage("Incorrect phone number format");
         }
       } else {
-        setErrorMessage(
-          t("Phone Number signin Failed. Please try again later.")
+        setPhoneErrorMessage(
+          "Phone Number signin Failed. Please try again later."
         );
       }
     }
@@ -277,13 +281,19 @@ const LoginScreen: React.FC = () => {
 
   // Handler for going back from OTP
   const handleOtpBack = () => {
+    if(loginType=="otp"){
     setLoginType("phone");
     setVerificationCode("");
     setPhoneNumber("");
     setShowResendOtp(false);
     setShowTimer(false);
-    setErrorMessage(null);
+    setOtpErrorMessage(null);
     setOtpExpiryCounter(15); // Reset the expiry counter
+    }
+    else if(loginType=="forgot-pass"){
+      setLoginType("email");
+      setEmailErrorMessage("");
+    }
   };
 
   // Handler for OTP verification
@@ -291,7 +301,7 @@ const LoginScreen: React.FC = () => {
     try {
       setAnimatedLoading(true);
       setIsLoading(true);
-      setErrorMessage(null); // Clear any previous errors
+      setOtpErrorMessage(null); // Clear any previous errors
 
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
 
@@ -304,43 +314,50 @@ const LoginScreen: React.FC = () => {
         // Handle the case where verification succeeded but no user was returned
         throw new Error("Verification failed - no user data");
       }
-
       // Store user data and proceed with navigation
-      localStorage.setItem(CURRENT_USER, JSON.stringify(res.user));
+      const user = res.user;
+      localStorage.setItem(CURRENT_USER, JSON.stringify(user));
 
-      // Log the login event
       Util.logEvent(EVENTS.USER_PROFILE, {
-        user_id: res.user.uid,
-        user_name: res.user.name,
-        user_username: res.user.username,
-        phone_number: res.user.username,
+        user_id: user.uid,
+        user_name: user.name,
+        user_username: user.username,
+        phone_number: user.username,
         user_type: RoleType.PARENT,
         action_type: ACTION.LOGIN,
         login_type: "phone-number",
       });
-      // Finally navigate to next screen
-      const userSchools = await getSchoolsForUser(res.user.user);
-      await redirectUser(userSchools);
+
+      const isNewUser =
+        !user.name || !user.language_id || !user.gender;
+
+      if (isNewUser) {
+        history.replace(PAGES.PROFILE_DETAILS);
+      } else {
+        const userSchools = await getSchoolsForUser(user.user);
+        await redirectUser(userSchools);
+      }
+
       setAnimatedLoading(false);
     } catch (error) {
       // Handle all state updates for error case at once
       const updates = () => {
-        setAnimatedLoading(false);
-        setIsLoading(false);
-        setVerificationCode("");
+      setAnimatedLoading(false);
+      setIsLoading(false);
+      setVerificationCode("");
 
         // Set appropriate error message
         if (typeof error === "string" && error.includes("code-expired")) {
-          setErrorMessage(
-            t("Verification code has expired. Please request a new one.")
+          setOtpErrorMessage(
+            "Verification code has expired. Please request a new one."
           );
         } else {
-          setErrorMessage(t("Incorrect OTP - Please check & try again!"));
+          setOtpErrorMessage("Incorrect OTP - Please check & try again!");
         }
 
         // Enable resend OTP option
-        setShowResendOtp(true);
-        setCounter(0);
+      setShowResendOtp(true);
+      setCounter(0);
       };
 
       // Execute all state updates together
@@ -366,15 +383,15 @@ const LoginScreen: React.FC = () => {
         setShowResendOtp(false);
         setCounter(59);
         setVerificationCode("");
-        setErrorMessage(null);
+        setOtpErrorMessage(null);
         setOtpExpiryCounter(15); // Reset the expiry counter
       } else {
         setSentOtpLoading(false);
       }
     } catch (error) {
       setSentOtpLoading(false);
-      setErrorMessage(
-        t("Resend Otp Failed!! Please try again after some time.")
+      setOtpErrorMessage(
+        "Resend Otp Failed!! Please try again after some time."
       );
     }
   };
@@ -413,10 +430,19 @@ const LoginScreen: React.FC = () => {
           action_type: ACTION.LOGIN,
           login_type: "google-signin",
         });
+
+        const isNewUser = !user.name || !user.language_id || !user.gender;
+
+        if (isNewUser) {
+          history.replace(PAGES.PROFILE_DETAILS);
+        } else {
+          const userSchools = await getSchoolsForUser(user);
+          await redirectUser(userSchools);
+        }
       } else {
         setAnimatedLoading(false);
         setIsLoading(false);
-        setErrorMessage(t("Google sign in failed. Please try again."));
+        setPhoneErrorMessage("Google sign in failed. Please try again.");
         // Abort the Google sign in process
         setLoginType("phone");
       }
@@ -424,7 +450,7 @@ const LoginScreen: React.FC = () => {
       console.log("Google signIn error", error);
       setAnimatedLoading(false);
       setIsLoading(false);
-      setErrorMessage(t("Google sign in failed. Please try again."));
+      setPhoneErrorMessage("Google sign in failed. Please try again.");
       // Abort the Google sign in process
       setLoginType("phone");
     }
@@ -446,10 +472,10 @@ const LoginScreen: React.FC = () => {
       role: RoleType;
     }[]
   ) {
-    const userRole = localStorage.getItem(USER_ROLE);
+    const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
     const isOpsRole =
-      userRole === RoleType.SUPER_ADMIN ||
-      userRole === RoleType.OPERATIONAL_DIRECTOR;
+    userRoles.includes(RoleType.SUPER_ADMIN) ||
+    userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
     const isProgramUser = await api.isProgramUser();
 
     if (isOpsRole || isProgramUser) {
@@ -458,9 +484,11 @@ const LoginScreen: React.FC = () => {
       history.replace(PAGES.SIDEBAR_PAGE);
       return;
     }
-
-    await SqliteApi.getInstance();
+    
+    setAnimatedLoading(true)
+    const sqliteApi = await SqliteApi.getInstance();
     ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(APIMode.SQLITE);
+    setAnimatedLoading(false)
     
     if (userSchools.length > 0) {
       const autoUserSchool = userSchools.find(
@@ -536,16 +564,12 @@ const LoginScreen: React.FC = () => {
       } else {
         setAnimatedLoading(false);
         setIsLoading(false);
-        setErrorMessage(t("Incorrect credentials - Please check & try again!"));
-        // Abort the student login process
-        setSchoolCode("");
-        setStudentId("");
-        setStudentPassword("");
+        setStudentErrorMessage("Incorrect credentials - Please check & try again!");
       }
     } catch (error) {
       setAnimatedLoading(false);
       setIsLoading(false);
-      setErrorMessage(t("Login unsuccessful. Please try again later."));
+      setStudentErrorMessage("Login unsuccessful. Please try again later.");
       // Abort the student login process
       setSchoolCode("");
       setStudentId("");
@@ -572,13 +596,13 @@ const LoginScreen: React.FC = () => {
       // Email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        setErrorMessage(t("Please enter a valid email address"));
+        setEmailErrorMessage("Please enter a valid email address");
         return;
       }
 
       // Password validation
       if (password.length < 6 || /\s/.test(password)) {
-        setErrorMessage(t("Password must be at least 6 characters"));
+        setEmailErrorMessage("Password must be at least 6 characters");
         return;
       }
 
@@ -609,10 +633,19 @@ const LoginScreen: React.FC = () => {
           action_type: ACTION.LOGIN,
           login_type: "email",
         });
+        
+        const isNewUser = !user.name || !user.language_id || !user.gender;
+
+        if (isNewUser) {
+          history.replace(PAGES.PROFILE_DETAILS);
+        } else {
+          const userSchools = await getSchoolsForUser(user);
+          await redirectUser(userSchools);
+        }
       } else {
         setAnimatedLoading(false);
         setIsLoading(false);
-        setErrorMessage(t("Incorrect credentials - Please check & try again!"));
+        setEmailErrorMessage("Incorrect credentials - Please check & try again!");
         // Abort the email login process
         setEmail("");
         setPassword("");
@@ -620,7 +653,7 @@ const LoginScreen: React.FC = () => {
     } catch (error) {
       setAnimatedLoading(false);
       setIsLoading(false);
-      setErrorMessage(t("Login unsuccessful. Please try again later."));
+      setEmailErrorMessage("Login unsuccessful. Please try again later.");
       // Abort the email login process
       setEmail("");
       setPassword("");
@@ -816,7 +849,7 @@ const LoginScreen: React.FC = () => {
                 onNext={handlePhoneNext}
                 phoneNumber={phoneNumber}
                 setPhoneNumber={setPhoneNumber}
-                errorMessage={errorMessage}
+                errorMessage={phoneErrorMessage && t(phoneErrorMessage) }
                 checkbox={checkbox}
                 onFocus={async () => {
                   if (
@@ -838,7 +871,7 @@ const LoginScreen: React.FC = () => {
                 setStudentId={setStudentId}
                 studentPassword={studentPassword}
                 setStudentPassword={setStudentPassword}
-                errorMessage={errorMessage}
+                errorMessage={studentErrorMessage && t(studentErrorMessage) }
                 checkbox={checkbox}
               />
             )}
@@ -852,7 +885,7 @@ const LoginScreen: React.FC = () => {
                 setEmail={setEmail}
                 password={password}
                 setPassword={setPassword}
-                errorMessage={errorMessage}
+                errorMessage={emailErrorMessage && t(emailErrorMessage) }
                 checkbox={checkbox}
               />
             )}
@@ -860,7 +893,7 @@ const LoginScreen: React.FC = () => {
               <OtpVerification
                 phoneNumber={phoneNumber}
                 onVerify={handleOtpVerification}
-                errorMessage={errorMessage}
+                errorMessage={otpErrorMessage && t(otpErrorMessage) }
                 isLoading={isLoading}
                 verificationCode={verificationCode}
                 setVerificationCode={setVerificationCode}
@@ -887,11 +920,6 @@ const LoginScreen: React.FC = () => {
             otpExpiryCounter={otpExpiryCounter}
           />
           {isInputFocus && <div ref={scollToRef} id="scroll"></div>}
-          <IonLoading
-            id="custom-loading"
-            message="Loading"
-            isOpen={spinnerLoading}
-          />
           <Loading isLoading={sentOtpLoading} />
         </>
       )}

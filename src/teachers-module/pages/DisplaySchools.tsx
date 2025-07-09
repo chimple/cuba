@@ -51,35 +51,40 @@ const DisplaySchools: FC<{}> = () => {
     }
   };
   const initData = async () => {
-    const currentUser = await auth.getCurrentUser();
-    if (!currentUser) return;
-    setUser(currentUser);
-    const userRole = localStorage.getItem(USER_ROLE);
-    const isOpsRole =
-      userRole === RoleType.SUPER_ADMIN ||
-      userRole === RoleType.OPERATIONAL_DIRECTOR;
-    const isProgramUser = await api.isProgramUser();
-    if (isOpsRole || isProgramUser) {
-      setIsAuthorizedForOpsMode(true);
+  const currentUser = await auth.getCurrentUser();
+  if (!currentUser) return;
+  setUser(currentUser);
+
+  const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+
+  const isOpsRole =
+    userRoles.includes(RoleType.SUPER_ADMIN) ||
+    userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
+
+  const isProgramUser = await api.isProgramUser();
+  if (isOpsRole || isProgramUser) {
+    setIsAuthorizedForOpsMode(true);
+  }
+
+  const allSchool = await api.getSchoolsForUser(currentUser.id);
+  setSchoolList(allSchool);
+
+  const tempSchool = Util.getCurrentSchool();
+  if (tempSchool) {
+    const localSchool = allSchool.find(
+      (school) => school.school.id === tempSchool.id
+    );
+    if (localSchool) {
+      const selectedSchool: SchoolWithRole = {
+        school: localSchool.school,
+        role: localSchool.role,
+      };
+      selectSchool(selectedSchool);
     }
-    const allSchool = await api.getSchoolsForUser(currentUser.id);
-    setSchoolList(allSchool);
-    const tempSchool = Util.getCurrentSchool();
-    if (tempSchool) {
-      const localSchool = allSchool.find(
-        (school) => school.school.id === tempSchool.id
-      );
-      if (localSchool) {
-        const selectedSchool: SchoolWithRole = {
-          school: localSchool.school,
-          role: localSchool.role,
-        };
-        selectSchool(selectedSchool);
-      }
-    } else if (allSchool.length === 1) {
-      selectSchool(allSchool[0]);
-    }
-  };
+  } else if (allSchool.length === 1) {
+    selectSchool(allSchool[0]);
+  }
+};
 
   const getClasses = async (schoolId: string) => {
     const tempClasses = await api.getClassesForSchool(schoolId, user?.id!);

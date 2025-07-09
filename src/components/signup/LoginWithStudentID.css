@@ -26,7 +26,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  width: 242px;
+  width: 290px;
 }
 
 .LoginWithStudentID-divider-with-student-id {
@@ -34,7 +34,6 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
 }
 
 .LoginWithStudentID-input-icon-wrapper-student-id {
@@ -42,7 +41,7 @@
   align-items: center;
   background-color: #ffffff;
   border-radius: 10px;
-  width: 242px;
+  width: 290px;
   height: 35px;
   padding-left: 12px;
   overflow: hidden;
@@ -81,15 +80,16 @@
   justify-content: center;
   align-items: center;
   width: 220px !important;
-  height: 50px !important;
+  height: 60px !important;
   color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   font-size: 28px;
   font-weight: 600;
   padding-top: 4px;
-  border-bottom: 7px solid #8a2901;
+  border-bottom: 6px solid #8a2901;
+  margin-top: 10px;
 }
 
 .LoginWithStudentID-login-with-student-button:active {
@@ -110,35 +110,38 @@
 /* Error message */
 .LoginWithStudentID-error-message-student-id {
   color: var(--text-color);
-  font-size: 14px;
+  font-size: 12px;
   margin-top: 4px;
   font-weight: 600;
+  text-align: center;
 }
 
 @media (orientation: landscape) {
+  .LoginWithStudentID-login-method-student-id{
+    top: 38%;
+  }
   .LoginWithStudentID-student-input-wrapper {
     flex-direction: row;
     width: auto;
     justify-content: center;
-    gap: 16px;
+    gap: 14px;
   }
-
-  .LoginWithStudentID-divider-with-student-id {
-    flex-direction: row;
+  .LoginWithStudentID-login-with-student-text {
+    margin-top: 5px;
+  }
+  .LoginWithStudentID-login-method-content-student-id {
+    gap: 10px;
   }
 }
 
 /* Responsive styling */
 @media (max-width: 768px) {
-  .LoginWithStudentID-student-input-wrapper {
-    margin-top: 10px;
-  }
 
   .LoginWithStudentID-login-method-student-id {
     border-top-left-radius: 50% 80px;
     border-top-right-radius: 50% 80px;
     background-size: cover;
-    top: 33%;
+    top: 32%;
     min-height: 220px;
     padding-top: 32px;
     padding-bottom: 24px;
@@ -151,6 +154,7 @@
 
   .LoginWithStudentID-login-with-student-text {
     font-size: 32px;
+    margin-top: -10px;
   }
 }
 
@@ -164,8 +168,8 @@
 
   .LoginWithStudentID-login-with-student-button {
     max-width: 200px;
-    max-height: 45px;
-    margin-top: 4px;
+    max-height: 40px;
+    margin-top: 0px;
     font-size: 24px;
   }
 }

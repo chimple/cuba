@@ -104,16 +104,12 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
     if (isVerified && finalPayload) {
       setStep(FileUploadStep.Uploading);
       const uploadData = async () => {
-        const result = await SupabaseApi.i.uploadData(finalPayload);
-        if (result) {
-          setStep(FileUploadStep.Uploaded);
-        } else {
-          if (result) {
-            setStep(FileUploadStep.Uploaded);
-          } else {
-            setStep(FileUploadStep.UploadError);
-          }
-        }
+        const result = await api.uploadData(finalPayload);
+        if (result === true) {
+        setStep(FileUploadStep.Uploaded); 
+      } else if (result === false) {
+        setStep(FileUploadStep.UploadError);
+      }
       };
       uploadData();
     }

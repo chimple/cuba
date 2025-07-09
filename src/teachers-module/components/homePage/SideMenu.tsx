@@ -84,10 +84,10 @@ const SideMenu: React.FC<{
         console.error("No user is logged in.");
         return;
       }
-      const userRole = localStorage.getItem(USER_ROLE);
+      const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
       const isOpsRole =
-        userRole === RoleType.SUPER_ADMIN ||
-        userRole === RoleType.OPERATIONAL_DIRECTOR;
+        userRoles.includes(RoleType.SUPER_ADMIN) ||
+        userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
       const isProgramUser = await api.isProgramUser();
       if (isOpsRole || isProgramUser) {
         setIsAuthorizedForOpsMode(true);
