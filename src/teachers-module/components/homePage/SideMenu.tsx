@@ -271,6 +271,7 @@ const SideMenu: React.FC<{
       if (classCode !== undefined && classCode !== null) {
         setClassCode(classCode);
       } else {
+        setClassCode(undefined);
         console.warn("Class code is null or undefined");
       }
 
@@ -341,8 +342,8 @@ const SideMenu: React.FC<{
                   className="icon"
                 />
                 <CommonToggle
-                  onChange={switchUserToOps}
-                  label="Switch to Ops Mode"
+                  onChange={() => Util.switchToOpsUser(history)}
+                  label={t("switch to ops mode") as string}
                 />
               </IonItem>
             </div>

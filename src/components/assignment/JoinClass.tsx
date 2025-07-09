@@ -28,6 +28,7 @@ const JoinClass: FC<{
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [fullName, setFullName] = useState("");
+  const [currStudent] = useState<any>(Util.getCurrentStudent());
 
   const api = ServiceConfig.getI().apiHandler;
 
@@ -79,9 +80,23 @@ const JoinClass: FC<{
     // setShowDialogBox(false);
     setLoading(true);
     const student = Util.getCurrentStudent();
+
     try {
       if (!student || inviteCode == null) {
         throw new Error("Student or invite code is missing.");
+      }
+      if (student.name == null || student.name === "") {
+        await api.updateStudent(
+          student,
+          fullName,
+          student.age!,
+          student.gender!,
+          student.avatar!,
+          student.image!,
+          student.curriculum_id!,
+          student.grade_id!,
+          student.language_id!
+        );
       }
       await api.linkStudent(inviteCode, student.id);
       if (!!codeResult) {
@@ -114,8 +129,7 @@ const JoinClass: FC<{
   const location = useLocation();
 
   useEffect(() => {
-    const student = Util.getCurrentStudent();
-    setFullName(student?.name || "");
+    setFullName(currStudent?.name || "");
 
     const urlParams = new URLSearchParams(location.search);
     const joinClassParam = urlParams.get("join-class");
@@ -150,9 +164,9 @@ const JoinClass: FC<{
           value={fullName}
           setValue={setFullName}
           icon="assets/icons/BusinessCard.svg"
-          readOnly={fullName !== ""}
+          readOnly={fullName === currStudent.name}
           statusIcon={
-            fullName && fullName.length >= 3 ? (
+            fullName.length == 0 ? null : fullName && (fullName.length >= 3||fullName === currStudent.name) ? (
               <img src="assets/icons/CheckIcon.svg" alt="Status icon" />
             ) : (
               <img src="assets/icons/Vector.svg" alt="Status icon" />
@@ -162,7 +176,7 @@ const JoinClass: FC<{
 
         <InputWithIcons
           label={t("Class Code")}
-          placeholder={t("Enter the class code to join a class") ?? ""}
+          placeholder={t("Enter the code to join a class") ?? ""}
           value={inviteCode}
           setValue={setInviteCode}
           icon="assets/icons/OpenBook.svg"
@@ -178,33 +192,32 @@ const JoinClass: FC<{
             ) : null
           }
         />
-
-        <div className="join-class-message">
-          {codeResult &&
-          !error &&
-          error == "" &&
-          inviteCode?.toString().length === 6
-            ? `${t("School")}: ${codeResult["school_name"]}, ${t("Class")}: ${codeResult["class_name"]}`
-            : error && inviteCode?.toString().length === 6
-              ? error
-              : null}
-        </div>
-        <button
-          className="join-class-confirm-button"
-          onClick={onJoin}
-          disabled={
-            !(
-              codeResult &&
-              !error &&
-              error === "" &&
-              fullName.length >= 3 &&
-              inviteCode?.toString().length === 6
-            )
-          }
-        >
-          <span className="join-class-confirm-text">{t("Confirm")}</span>
-        </button>
       </div>
+      <div className="join-class-message">
+        {codeResult &&
+        !error &&
+        error == "" &&
+        inviteCode?.toString().length === 6
+          ? `${t("School")}: ${codeResult["school_name"]}, ${t("Class")}: ${codeResult["class_name"]}`
+          : error && inviteCode?.toString().length === 6
+            ? error
+            : null}
+      </div>
+      <button
+        className="join-class-confirm-button"
+        onClick={onJoin}
+        disabled={
+          !(
+            codeResult &&
+            !error &&
+            error === "" &&
+            (fullName.length >= 3 || fullName === currStudent.name) &&
+            inviteCode?.toString().length === 6
+          )
+        }
+      >
+        <span className="join-class-confirm-text">{t("Confirm")}</span>
+      </button>
     </div>
   );
 };

@@ -104,16 +104,12 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
     if (isVerified && finalPayload) {
       setStep(FileUploadStep.Uploading);
       const uploadData = async () => {
-        const result = await SupabaseApi.i.uploadData(finalPayload);
-        if (result) {
-          setStep(FileUploadStep.Uploaded);
-        } else {
-          if (result) {
-            setStep(FileUploadStep.Uploaded);
-          } else {
-            setStep(FileUploadStep.UploadError);
-          }
-        }
+        const result = await api.uploadData(finalPayload);
+        if (result === true) {
+        setStep(FileUploadStep.Uploaded); 
+      } else if (result === false) {
+        setStep(FileUploadStep.UploadError);
+      }
       };
       uploadData();
     }
@@ -233,6 +229,16 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             }
           }
 
+          // --- ⬇️ PROGRAM MODEL VALIDATION ADDED HERE ⬇️ ---
+          if (programModel) {
+            const validProgramModels = ["AT HOME", "AT SCHOOL", "HYBRID"];
+            if (!validProgramModels.includes(programModel.toUpperCase())) {
+              errors.push(
+                'Invalid PROGRAM MODEL. Must be "AT HOME", "AT SCHOOL", or "HYBRID".'
+              );
+            }
+          }
+
           // Validate format
           if (
             programManagerPhone &&
@@ -290,7 +296,8 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           // **Condition 1: If SCHOOL ID (UDISE Code) is present**
           if (schoolId) {
             // Validate only required fields
-            if (!schoolName) errors.push("Missing SCHOOL NAME");
+            if (!academicYear) errors.push("Missing SCHOOL ACADEMIC YEAR");
+            if (!programModel) errors.push("Missing PROGRAM MODEL");
             if (!programManagerPhone)
               errors.push("Missing PROGRAM MANAGER EMAIL OR PHONE NUMBER");
             if (!fieldCoordinatorPhone)
@@ -306,11 +313,15 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             if (!studentLoginType?.trim())
               errors.push("Missing STUDENT LOGIN TYPE");
 
-            // Call API for validation if all required fields are filled
-            const schoolValidation = await api.validateSchoolData(
-              schoolId,
-              schoolName
-            );
+            let schoolValidation;
+            if (schoolName) {
+              schoolValidation = await api.validateSchoolData(
+                schoolId,
+                schoolName
+              );
+            } else {
+              schoolValidation = await api.validateSchoolUdiseCode(schoolId);
+            }
 
             if (schoolValidation.status === "error") {
               errors.push(...(schoolValidation.errors || []));
@@ -359,7 +370,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
         for (let row of processedData) {
           let errors: string[] = [];
           const schoolId = row["SCHOOL ID"]?.toString().trim();
-          const grade = row["GRADE"]?.toString().trim();
+          let grade = row["GRADE"]?.toString().trim();
           const classSection = row["CLASS SECTION"]?.toString().trim();
           let subjectGrade = row["SUBJECT GRADE"]?.toString().trim();
           let curriculum = row["CURRICULUM"]?.toString().trim();
@@ -367,6 +378,23 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           const studentCount = row["STUDENTS COUNT IN CLASS"]
             ?.toString()
             .trim();
+
+          // --- ⬇️ GRADE VALIDATION ADDED HERE ⬇️ ---
+          if (!grade) {
+            errors.push("Missing GRADE.");
+          } else if (!/^\d+$/.test(grade)) {
+            errors.push("GRADE must be a whole number (e.g., 1, 2, 3).");
+          } else {
+            const numericGrade = parseInt(grade, 10);
+            if (numericGrade < 0) {
+              errors.push("GRADE cannot be negative.");
+            } else if (numericGrade > 5) {
+              errors.push("GRADE cannot be more than 5.");
+            } else {
+              grade = numericGrade.toString();
+            }
+          }
+
           const className = `${grade} ${classSection}`.trim();
           if (schoolId && className) {
             const schoolClassKey = `${schoolId}_${className}`;
@@ -375,7 +403,6 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             }
           }
 
-          if (!grade) errors.push("Missing grade");
           if (!curriculum) errors.push("Missing curriculum");
           if (!subject) errors.push("Missing subject");
           if (!studentCount) errors.push("Missing studentCount");
@@ -439,7 +466,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
         for (let row of processedData) {
           let errors: string[] = [];
           const schoolId = row["SCHOOL ID"]?.toString().trim();
-          const grade = row["GRADE"]?.toString().trim();
+          let grade = row["GRADE"]?.toString().trim();
           const classSection = row["CLASS SECTION"]
             ? row["CLASS SECTION"].toString().trim()
             : "";
@@ -448,8 +475,23 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             ?.toString()
             .trim();
           const classId = `${schoolId}_${grade}_${classSection}`;
+
+          if (!grade) {
+            errors.push("Missing GRADE.");
+          } else if (!/^\d+$/.test(grade)) {
+            errors.push("GRADE must be a whole number (e.g., 1, 2, 3).");
+          } else {
+            const numericGrade = parseInt(grade, 10);
+            if (numericGrade < 0) {
+              errors.push("GRADE cannot be negative.");
+            } else if (numericGrade > 5) {
+              errors.push("GRADE cannot be more than 5.");
+            } else {
+              grade = numericGrade.toString();
+            }
+          }
           const className = `${grade} ${classSection}`.trim();
-          if (!grade || grade.trim() === "") errors.push("Missing grade");
+
           if (!teacherName || teacherName.trim() === "")
             errors.push("Missing teacher Name");
           if (!teacherContact || teacherContact.trim() === "")
@@ -550,6 +592,15 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             seenClassIdCombos.add(classPhoneOrIdKey);
           }
 
+          if (!gender) {
+            errors.push("Missing GENDER.");
+          } else {
+            const validGenders = ["MALE", "FEMALE"];
+            if (!validGenders.includes(gender.toUpperCase())) {
+              errors.push('Invalid GENDER. Must be "MALE" or "FEMALE".');
+            }
+          }
+
           // ---------- ✅ Age & Grade validation  ----------
           if (!/^\d+$/.test(age)) {
             errors.push(
@@ -566,15 +617,16 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             }
           }
 
-          if (!grade || grade.trim() === "") errors.push("Missing grade");
-          if (!/^\d+$/.test(grade)) {
-            errors.push("Grade must be a whole number.");
+          if (!grade || grade.trim() === "") {
+            errors.push("Missing GRADE.");
+          } else if (!/^\d+$/.test(grade)) {
+            errors.push("GRADE must be a whole number.");
           } else {
             const numericGrade = parseInt(grade, 10);
             if (numericGrade < 0) {
-              errors.push("grade cannot be negative.");
+              errors.push("GRADE cannot be negative.");
             } else if (numericGrade > 5) {
-              errors.push("grade cannot be more than 5.");
+              errors.push("GRADE cannot be more than 5.");
             } else {
               grade = numericGrade.toString();
             }

@@ -2,7 +2,7 @@ import { t } from 'i18next';
 import { useState } from 'react';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import { ServiceConfig } from '../../services/ServiceConfig';
-import "./LoginWithEmail.css";
+import "./ForgotPass.css";
 
 interface ForgotPassProps {
     onGoBack: () => void;
@@ -24,7 +24,7 @@ const ForgotPass = ({ onGoBack }: ForgotPassProps) => {
         
         if (!validateEmail(forgotEmail)) {
             setForgotError(true);
-            setForgotMessage(t("Please enter a valid email address") || "Please enter a valid email address");
+            setForgotMessage("Please enter a valid email address");
             return;
         }
 
@@ -36,14 +36,14 @@ const ForgotPass = ({ onGoBack }: ForgotPassProps) => {
 
             if (res) {
                 setIsMailSent(true);
-                setForgotMessage(t("Please check your mail and confirm") || "Please check your mail and confirm");
+                setForgotMessage("Please check your mail and confirm")
             } else {
                 setForgotError(true);
-                setForgotMessage(t("Something went wrong. Please try again") || "Something went wrong. Please try again");
+                setForgotMessage("Something went wrong. Please try again.")
             }
         } catch (error) {
             setForgotError(true);
-            setForgotMessage(t("Something went wrong. Please try again") || "Something went wrong. Please try again");
+            setForgotMessage("Something went wrong. Please try again.")
         } finally {
             setForgotLoading(false);
         }
@@ -57,29 +57,29 @@ const ForgotPass = ({ onGoBack }: ForgotPassProps) => {
     };
 
     return (
-        <div className="LoginWithEmail-method-with-email">
+        <div className="ForgotPass-method-with-email">
             {!isMailSent ? (
-                <div className="LoginWithEmail-container-with-email">
-                    <span className="LoginWithEmail-forgot-email-text">{t("We will send a password reset link")}</span>
+                <div className="ForgotPass-container-with-email">
+                    <span className="ForgotPass-forgot-email-text">{t("We will send a password reset link")}</span>
 
-                    <div className="LoginWithEmail-input-wrapper">
-                        <div className="LoginWithEmail-input-icon-wrapper-email">
+                    <div className="ForgotPass-input-wrapper">
+                        <div className="ForgotPass-input-icon-wrapper-email">
                             <EmailOutlinedIcon sx={{ color: "var(--text-color)", fontSize: "22px" }}
-                                className="LoginWithEmail-input-icon-email"
+                                className="ForgotPass-input-icon-email"
                             />
                             <input
                                 type="email"
                                 placeholder={t("Enter your Email ID")||"Enter your Email ID"}
                                 value={forgotEmail}
                                 onChange={(e) => setForgotEmail(e.target.value)}
-                                className="LoginWithEmail-email-input"
+                                className="ForgotPass-email-input"
                             />
                         </div>
                     </div>
-                    <div className="LoginWithEmail-divider-with-email">
+                    <div className="ForgotPass-divider-with-email">
                         {forgotError && (
-                            <span className="LoginWithEmail-error-message-email">
-                                {forgotMessage}
+                            <span className="ForgotPass-Forgoterror-message-email">
+                                {t(forgotMessage)}
                             </span>
                         )}
                         <button
@@ -89,25 +89,25 @@ const ForgotPass = ({ onGoBack }: ForgotPassProps) => {
                                 backgroundColor: isFormValid
                                     ? buttonColors.Valid
                                     : buttonColors.Default,
-                                marginTop: "25px"
+                                marginTop: "5px"
                             }}
-                            className="LoginWithEmail-with-email-button"
+                            className="ForgotPass-with-email-button"
                         >
                             {forgotLoading ? t("sending") : t("send")}
                         </button>
                     </div>
                 </div>
             ) : (
-                <div className="LoginWithEmail-container-with-email">
-                    <span className="LoginWithEmail-forgot-email-text">{t("Please check your mail and confirm.") || "Please check your mail and confirm."}</span>
-                    <div className="LoginWithEmail-divider-with-email">
+                <div className="ForgotPass-container-with-email">
+                    <span className="ForgotPass-forgot-email-text">{t("Please check your mail and confirm.")}</span>
+                    <div className="ForgotPass-divider-with-email">
                         <button
                             onClick={onGoBack}
                             style={{
                                 backgroundColor: buttonColors.Valid,
                                 marginTop: "25px"
                             }}
-                            className="LoginWithEmail-with-email-button"
+                            className="ForgotPass-with-email-button"
                         >
                             {t("Go to Login")}
                         </button>

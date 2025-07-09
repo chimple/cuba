@@ -106,9 +106,9 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({ data }) => {
   const isDataPresent = allCoordinators.length > 0;
 
   return (
-    <div className="schoolCoordinators-pageContainer">
+    <div className="school-coordinators-page-container">
       {isDataPresent ? (
-        <div className="schoolCoordinators-dataTableContainer">
+        <div className="school-coordinators-data-cable-container">
           <DataTableBody
             columns={columns}
             rows={coordinatorsForCurrentPage}
@@ -117,7 +117,7 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({ data }) => {
             onSort={handleSort}
           />
           {allCoordinators.length > 0 && pageCount > 1 && (
-            <div className="schoolCoordinators-school-list-pagination">
+            <div className="school-coordinators-school-list-pagination">
               <DataTablePagination
                 page={page}
                 pageCount={pageCount}
@@ -127,14 +127,14 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({ data }) => {
           )}
         </div>
       ) : (
-        <Box className="schoolCoordinators-emptyStateContainer">
+        <Box className="school-coordinators-empty-state-container">
           <Typography
             variant="h6"
-            className="schoolCoordinators-emptyStateTitle"
+            className="school-coordinators-empty-state-title"
           >
             {t("Coordinators")}
           </Typography>
-          <Typography className="schoolCoordinators-emptyStateMessage">
+          <Typography className="school-coordinators-empty-state-message">
             {t("No coordinators data found for the selected school")}
           </Typography>
         </Box>

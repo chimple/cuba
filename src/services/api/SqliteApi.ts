@@ -30,6 +30,7 @@ import {
   CHIMPLE_DIGITAL_SKILLS,
   TabType,
   AVATARS,
+  BASE_NAME,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -230,7 +231,9 @@ export class SqliteApi implements ServiceApi {
           );
           console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:", resImport);
           // if (!Capacitor.isNativePlatform())
-          window.location.reload();
+          // window.location.reload();
+          window.location.replace(BASE_NAME || "/");
+          return;
         } catch (error) {
           console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
         }
@@ -297,7 +300,7 @@ export class SqliteApi implements ServiceApi {
 
   private async pullChanges(tableNames: TABLES[]) {
     if (!this._db) return;
-
+    
     const tables = tableNames.map((t) => `'${t}'`).join(", ");
     const tablePullSync = `SELECT * FROM pull_sync_info WHERE table_name IN (${tables});`;
     let lastPullTables = new Map<string, string>();
@@ -354,8 +357,7 @@ export class SqliteApi implements ServiceApi {
     const pulledRowsSizeInBytes = new TextEncoder().encode(jsonString).length;
     this.updateDebugInfo(0, totalpulledRows, pulledRowsSizeInBytes);
 
-    // Execute batch queries efficiently
-    if (batchQueries.length > 0) {
+     if (batchQueries.length > 0) {
       try {
         await this._db.executeSet(batchQueries);
       } catch (error) {
@@ -363,6 +365,7 @@ export class SqliteApi implements ServiceApi {
       }
     }
   }
+
 
   async getTableColumns(tableName: string): Promise<string[] | undefined> {
     const query = `PRAGMA table_info(${tableName})`;
@@ -443,6 +446,7 @@ export class SqliteApi implements ServiceApi {
     console.log("logs to check synced tables2", JSON.stringify(tables));
     return res;
   }
+
 
   private async createSyncTables() {
     const createPullSyncInfoTable = `CREATE TABLE IF NOT EXISTS pull_sync_info (
@@ -1819,7 +1823,11 @@ export class SqliteApi implements ServiceApi {
     email: string,
     phoneNum: string,
     languageDocId: string,
-    profilePic: string | undefined
+    profilePic: string | undefined,
+    options?: {
+      age?: string;
+      gender?: string;
+    }
   ): Promise<TableTypes<"user">> {
     const updateUserProfileQuery = `
       UPDATE "user"
@@ -2221,7 +2229,6 @@ export class SqliteApi implements ServiceApi {
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
     const finalData: { school: TableTypes<"school">; role: RoleType }[] = [];
     const schoolIds: Set<string> = new Set();
-
     let query = `
     SELECT cu.class_id, c.school_id
     FROM ${TABLES.ClassUser} cu
@@ -2286,6 +2293,7 @@ export class SqliteApi implements ServiceApi {
     ORDER BY s.name ASC;
   `;
     const schoolUserRes = await this._db?.query(query);
+
 
     if (
       schoolUserRes &&

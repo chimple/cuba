@@ -322,7 +322,7 @@ export class SupabaseApi implements ServiceApi {
     return imageUrl || null;
   }
 
-  async uploadData(payload: any): Promise<boolean> {
+  async uploadData(payload: any): Promise<boolean | null> {
     try {
       if (!this.supabase) {
         console.error("Supabase client is not initialized.");
@@ -334,14 +334,17 @@ export class SupabaseApi implements ServiceApi {
           body: payload,
         }
       );
-      if (error) {
-        console.error("Function error:", error);
+      if (data.status === 200) {
+        return true;
+      }
+      if (data.status === 400) {
+        console.error("Upload error:", data?.message);
         return false;
       }
-      return true;
+      return null;
     } catch (error) {
-      console.error("Upload failed:", error);
-      return false;
+      console.error("Failed Error:", error);
+      return null;
     }
   }
 
@@ -2066,17 +2069,32 @@ export class SupabaseApi implements ServiceApi {
     email: string,
     phoneNum: string,
     languageDocId: string,
-    profilePic: string | undefined
+    profilePic: string | undefined,
+    options?: {
+      age?: string;
+      gender?: string;
+    }
   ): Promise<TableTypes<"user">> {
     if (!this.supabase) return user;
 
-    const updatedFields = {
+    const updatedFields: Record<string, any> = {
       name: fullName,
       email,
       phone: phoneNum,
       language_id: languageDocId,
       image: profilePic ?? null,
     };
+
+    if (options?.age !== undefined) {
+      const parsedAge = parseInt(options.age, 10);
+      if (!isNaN(parsedAge)) {
+        updatedFields.age = parsedAge;
+      }
+    }
+
+    if (options?.gender !== undefined) {
+      updatedFields.gender = options.gender;
+    }
 
     const { error } = await this.supabase
       .from("user")
@@ -2087,11 +2105,11 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error updating user profile:", error);
       throw error;
     }
-
     Object.assign(user, updatedFields);
 
     return user;
   }
+
   async updateClassCourseSelection(
     classId: string,
     selectedCourseIds: string[]
