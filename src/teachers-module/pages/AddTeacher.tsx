@@ -51,9 +51,9 @@ const AddTeacher: React.FC = () => {
         fetchedUser = await api?.getUserByPhoneNumber(inputValue);
       }
 
-      if (school && fetchedUser) {
-        const userInClass = await api?.checkUserExistInSchool(
-          school?.id,
+      if (classDoc && fetchedUser) {
+        const userInClass = await api?.checkUserExistInClass(
+          classDoc?.id,
           fetchedUser.id
         );
 

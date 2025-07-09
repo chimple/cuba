@@ -4527,6 +4527,28 @@ export class SupabaseApi implements ServiceApi {
 
     return teachers && teachers.length > 0;
   }
+  
+  async checkUserExistInClass(
+  classId: string,
+  userId: string
+  ): Promise<boolean> {
+    if (!this.supabase) return false;
+    const { data, error } = await this.supabase
+      .from("class_user")
+      .select("id")
+      .eq("class_id", classId)
+      .eq("user_id", userId)
+      .eq("is_deleted", false)
+      .maybeSingle(); // Returns null if no match
+
+    if (error) {
+      console.error("Error checking user in class:", error);
+      return false;
+    }
+
+    return !!data; // true if found, false if not
+  }
+
   async checkUserIsManagerOrDirector(schoolId, userId): Promise<boolean> {
     if (!this.supabase) return false;
 

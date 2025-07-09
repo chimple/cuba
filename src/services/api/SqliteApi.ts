@@ -4128,6 +4128,20 @@ order by
     }
     return false;
   }
+  async checkUserExistInClass(
+    classId: string,
+    userId: string
+  ): Promise<boolean> {
+    const result = await this.executeQuery(
+      `SELECT * FROM class_user
+      WHERE class_id = ?
+      AND user_id = ?
+      AND is_deleted = false`,
+      [classId, userId]
+    );
+    return !!(result?.values && result.values.length > 0);
+  }
+
   async getAssignmentsByAssignerAndClass(
     userId: string,
     classId: string,
