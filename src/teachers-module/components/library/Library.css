@@ -77,3 +77,10 @@
 .assignment-text {
   font-size: 14px;
 }
+
+.library-title {
+  color: #707070;
+  margin: 20px 20px 0px;
+  font-size: 24px;
+  font-weight: 600;
+}
