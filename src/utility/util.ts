@@ -1879,7 +1879,7 @@ export class Util {
     const api = ServiceConfig.getI().apiHandler;
     api.currentSchool = school !== null ? school : undefined;
     localStorage.setItem(SCHOOL, JSON.stringify(school));
-    localStorage.setItem(USER_ROLE, JSON.stringify(role));
+    localStorage.setItem(USER_ROLE, JSON.stringify([role]));
   };
 
   public static getCurrentSchool(): TableTypes<"school"> | undefined {
