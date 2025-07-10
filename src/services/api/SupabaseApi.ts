@@ -392,21 +392,19 @@ export class SupabaseApi implements ServiceApi {
               (payload) => {
                 const status = payload.new.status;
                 // console.log("📬 Upload status changed:", status);
-                if (status === "success") {
-                  // console.log("✅ Upload completed.");
                   resolve(true);
                 } else if (status === "failed") {
-                  // console.log("❌ Upload failed.");
-                  resolve(false);
-                }
-              }
-            )
-            .subscribe((status) => {
-              if (status !== "SUBSCRIBED") {
-                console.warn("⚠️ Realtime subscription failed:", status);
-                resolve(false);
-              }
-            });
+          setTimeout(async () => {
+            if (!this.supabase) return false;
+            if (!uploadId) {
+              console.warn("❗ uploadId is undefined. Skipping query.");
+              return;
+              // console.log("⏱️ Upload status: Upload failed.");
+              resolve(false);
+            }
+            if (data?.status === "success") {
+              // console.log("⏱️ Upload status: Upload Success.");
+              resolve(true);
         });
       } else {
         console.warn(
