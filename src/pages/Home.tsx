@@ -529,7 +529,6 @@ const Home: FC = () => {
       currentStudent.id,
       currentClass?.id
     );
-    console.log("alokkkkkkkkkkkkkkk001", tempRecommendedLesson);
     return tempRecommendedLesson;
   }
 
