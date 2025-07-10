@@ -114,8 +114,11 @@ const SelectMode: FC = () => {
         setStage(STAGES.MODE);
       }
     } else if (currentMode === MODES.TEACHER) {
-      history.replace(PAGES.DISPLAY_SCHOOLS);
+        history.replace(PAGES.DISPLAY_SCHOOLS);
+    } else if (currentMode === MODES.OPS_CONSOLE) {
+        history.replace(PAGES.SIDEBAR_PAGE);
     }
+
     const currUser = await auth.getCurrentUser();
     if (!currUser) return;
     const allSchool = await api.getSchoolsForUser(currUser.id);
@@ -128,8 +131,10 @@ const SelectMode: FC = () => {
       filteredSchoolIds.includes(entry.school.id)
     );
 
-    const userRole = localStorage.getItem(USER_ROLE);
-    const isOpsRole = userRole === RoleType.SUPER_ADMIN || userRole === RoleType.OPERATIONAL_DIRECTOR;
+    const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+    const isOpsRole =
+      userRoles.includes(RoleType.SUPER_ADMIN) ||
+      userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
     const isProgramUser = await api.isProgramUser();
 
     // If user is ops or program user

@@ -461,7 +461,11 @@ export interface ServiceApi {
     email: string,
     phoneNum: string,
     languageDocId: string,
-    profilePic: string | undefined
+    profilePic: string | undefined,
+    options?: {
+      age?: string;
+      gender?: string;
+    }
   ): Promise<TableTypes<"user">>;
 
   /**
@@ -1718,5 +1722,5 @@ export interface ServiceApi {
    * Checks if the current user is a role.
    * @returns {Promise<string | undefined>} If any special role is there it will return role otherwise it will return undefined.
    */
-  getUserSpecialRole(userId: string): Promise<string | undefined>;
+  getUserSpecialRoles(userId: string): Promise<string[]>;
 }

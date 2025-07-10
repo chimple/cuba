@@ -314,30 +314,37 @@ const LoginScreen: React.FC = () => {
         // Handle the case where verification succeeded but no user was returned
         throw new Error("Verification failed - no user data");
       }
-
       // Store user data and proceed with navigation
-      localStorage.setItem(CURRENT_USER, JSON.stringify(res.user));
+      const user = res.user;
+      localStorage.setItem(CURRENT_USER, JSON.stringify(user));
 
-      // Log the login event
       Util.logEvent(EVENTS.USER_PROFILE, {
-        user_id: res.user.uid,
-        user_name: res.user.name,
-        user_username: res.user.username,
-        phone_number: res.user.username,
+        user_id: user.uid,
+        user_name: user.name,
+        user_username: user.username,
+        phone_number: user.username,
         user_type: RoleType.PARENT,
         action_type: ACTION.LOGIN,
         login_type: "phone-number",
       });
-      // Finally navigate to next screen
-      const userSchools = await getSchoolsForUser(res.user.user);
-      await redirectUser(userSchools);
+
+      const isNewUser =
+        !user.name || !user.language_id || !user.gender;
+
+      if (isNewUser) {
+        history.replace(PAGES.PROFILE_DETAILS);
+      } else {
+        const userSchools = await getSchoolsForUser(user.user);
+        await redirectUser(userSchools);
+      }
+
       setAnimatedLoading(false);
     } catch (error) {
       // Handle all state updates for error case at once
       const updates = () => {
-        setAnimatedLoading(false);
-        setIsLoading(false);
-        setVerificationCode("");
+      setAnimatedLoading(false);
+      setIsLoading(false);
+      setVerificationCode("");
 
         // Set appropriate error message
         if (typeof error === "string" && error.includes("code-expired")) {
@@ -349,8 +356,8 @@ const LoginScreen: React.FC = () => {
         }
 
         // Enable resend OTP option
-        setShowResendOtp(true);
-        setCounter(0);
+      setShowResendOtp(true);
+      setCounter(0);
       };
 
       // Execute all state updates together
@@ -423,6 +430,15 @@ const LoginScreen: React.FC = () => {
           action_type: ACTION.LOGIN,
           login_type: "google-signin",
         });
+
+        const isNewUser = !user.name || !user.language_id || !user.gender;
+
+        if (isNewUser) {
+          history.replace(PAGES.PROFILE_DETAILS);
+        } else {
+          const userSchools = await getSchoolsForUser(user);
+          await redirectUser(userSchools);
+        }
       } else {
         setAnimatedLoading(false);
         setIsLoading(false);
@@ -456,21 +472,24 @@ const LoginScreen: React.FC = () => {
       role: RoleType;
     }[]
   ) {
-    const userRole = localStorage.getItem(USER_ROLE);
+    const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
     const isOpsRole =
-      userRole === RoleType.SUPER_ADMIN ||
-      userRole === RoleType.OPERATIONAL_DIRECTOR;
+    userRoles.includes(RoleType.SUPER_ADMIN) ||
+    userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
     const isProgramUser = await api.isProgramUser();
 
     if (isOpsRole || isProgramUser) {
       localStorage.setItem(IS_OPS_USER, "true");
       await ScreenOrientation.unlock();
+      schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
       history.replace(PAGES.SIDEBAR_PAGE);
       return;
     }
-
-    await SqliteApi.getInstance();
+    
+    setAnimatedLoading(true)
+    const sqliteApi = await SqliteApi.getInstance();
     ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(APIMode.SQLITE);
+    setAnimatedLoading(false)
     
     if (userSchools.length > 0) {
       const autoUserSchool = userSchools.find(
@@ -615,6 +634,15 @@ const LoginScreen: React.FC = () => {
           action_type: ACTION.LOGIN,
           login_type: "email",
         });
+        
+        const isNewUser = !user.name || !user.language_id || !user.gender;
+
+        if (isNewUser) {
+          history.replace(PAGES.PROFILE_DETAILS);
+        } else {
+          const userSchools = await getSchoolsForUser(user);
+          await redirectUser(userSchools);
+        }
       } else {
         setAnimatedLoading(false);
         setIsLoading(false);

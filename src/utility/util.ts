@@ -1141,6 +1141,7 @@ export class Util {
    public static switchToOpsUser(history: any): void {
     localStorage.setItem(IS_OPS_USER, "true");
     ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+    schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
     history.replace(PAGES.SIDEBAR_PAGE);
   }
 
@@ -1879,7 +1880,7 @@ export class Util {
     const api = ServiceConfig.getI().apiHandler;
     api.currentSchool = school !== null ? school : undefined;
     localStorage.setItem(SCHOOL, JSON.stringify(school));
-    localStorage.setItem(USER_ROLE, JSON.stringify(role));
+    localStorage.setItem(USER_ROLE, JSON.stringify([role]));
   };
 
   public static getCurrentSchool(): TableTypes<"school"> | undefined {
