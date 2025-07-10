@@ -110,21 +110,27 @@
   gap: 10px;
   align-items: center;
   cursor: pointer;
-  border-top: 1px solid #eee;
   background: white;
+  position: relative;
+}
+
+.select-with-icon-option::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 1px;
+  width: 130px;
+  background-color: #182A4F;
 }
 
 .select-with-icon-option:hover {
   background-color: #f8f8f8;
 }
 
-.select-with-icon-option.selected {
-  font-weight: bold;
-  color: #f34d08;
-}
-
 .select-with-icon-checkmark {
-  font-size: 18px;
+  font-size: 2px;
   color: #f34d08;
 }
 

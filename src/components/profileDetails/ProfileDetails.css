@@ -40,7 +40,6 @@
 .profiledetails-form-fields {
   flex: 1;
   min-width: 240px;
-  margin-top: 8px;
 }
 
 .profiledetails-full-name .with-icon-input-box {
@@ -122,7 +121,7 @@
 }
 
 .profiledetails-save-button:enabled {
-  background: #f34d08;
+  background: #F35D08;
   color: white;
   border-bottom: 5px solid #8a2901;
   cursor: pointer;
@@ -166,14 +165,14 @@
 
 .profiledetails-gender-btn.selected {
   color: #5D44BD;
-  border: 2px solid #F35908;
+  border: 2px solid #F35D08;
 }
 
 .profiledetails-button-group {
   display: flex;
   gap: 16px;
   justify-content: flex-start;
-  margin-top: 24px;
+  margin-top: 12px;
 }
 
 .profiledetails-skip-button {

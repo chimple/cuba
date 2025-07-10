@@ -9,6 +9,8 @@ import { initializeClickListener } from "../../analytics/clickUtil";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { ACTION_TYPES, AGE_OPTIONS, EVENTS, FORM_MODES, PAGES, PROFILE_DETAILS_GROWTHBOOK_VARIATION, TableTypes } from "../../common/constants";
 import { useHistory } from "react-router";
+import { Capacitor } from "@capacitor/core";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 
 const getModeFromFeature = (
   variation: string
@@ -43,6 +45,7 @@ const ProfileDetails = () => {
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
+    lockOrientation();
     Util.loadBackgroundImage();
     const cleanup = initializeClickListener();
     const loadLanguages = async () => {
@@ -59,6 +62,12 @@ const ProfileDetails = () => {
   useEffect(() => {
     setHasChanges(true);
   }, [fullName, age, gender, languageId]);
+
+  const lockOrientation = () => {
+    if (Capacitor.isNativePlatform()) {
+      ScreenOrientation.lock({ orientation: "landscape" });
+    }
+  };
 
   const isFormComplete =
     mode === FORM_MODES.ALL_REQUIRED
@@ -157,6 +166,8 @@ const ProfileDetails = () => {
                     { value: AGE_OPTIONS.FIVE, label: "5 years" },
                     { value: AGE_OPTIONS.SIX, label: "6 years" },
                     { value: AGE_OPTIONS.SEVEN, label: "7 years" },
+                    { value: AGE_OPTIONS.EIGHT, label: "8 years" },
+                    { value: AGE_OPTIONS.NINE, label: "9 years" },
                     { value: AGE_OPTIONS.GREATER_THAN_EQUAL_10, label: "≥10 years" },
                   ]}
                 required={mode === FORM_MODES.ALL_REQUIRED}
