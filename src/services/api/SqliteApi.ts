@@ -3546,10 +3546,6 @@ export class SqliteApi implements ServiceApi {
       JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
       JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
       JOIN get_user_courses co on co.course_id = c.course_id
-    WHERE
-      l.is_deleted = 0
-      AND cl.is_deleted = 0
-      AND c.is_deleted = 0
     ORDER BY
       c.course_id,
       chapter_index,
