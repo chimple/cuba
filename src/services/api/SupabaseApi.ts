@@ -1697,15 +1697,21 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"lesson">[]> {
     if (!this.supabase) return [] as TableTypes<"lesson">[];
     const { data, error } = await this.supabase
-      .from("lesson")
-      .select("*")
+      .from(TABLES.ChapterLesson)
+      .select("lesson:lesson_id(*)")
       .eq("chapter_id", chapterId)
+      .order("sort_index", { ascending: true })
       .eq("is_deleted", false);
     if (error) {
       console.error("Error fetching chapter:", error);
       return [] as TableTypes<"lesson">[];
     }
-    return data ?? ([] as TableTypes<"lesson">[]);
+    // Extract lessons from the joined result
+    const lessons = (data ?? [])
+      .map((item: any) => item.lesson as TableTypes<"lesson">)
+      .filter((lesson) => !!lesson);
+    
+    return lessons ?? ([] as TableTypes<"lesson">[]);
   }
   async getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
     grades: TableTypes<"grade">[];
@@ -2408,6 +2414,7 @@ export class SupabaseApi implements ServiceApi {
 
     if (error) {
       console.error("Error in isStudentLinked", error);
+      return false;
     }
     return true;
   }

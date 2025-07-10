@@ -2191,7 +2191,7 @@ export class SqliteApi implements ServiceApi {
     const res = await this._db?.query(
       `select * from ${TABLES.ClassUser}
       where user_id = "${studentId}"
-      and role = "${RoleType.STUDENT}"`
+      and role = "${RoleType.STUDENT}" and is_deleted = 0`
     );
     console.log("🚀 ~ SqliteApi ~ isStudentLinked ~ res:", res);
     if (!res || !res.values || res.values.length < 1) return false;
@@ -2488,6 +2488,7 @@ export class SqliteApi implements ServiceApi {
       this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
         id: userData.id,
         is_deleted: true,
+        updated_at: updatedAt,  
       });
     } catch (error) {
       console.error("Error deleting user from class_user", error);
@@ -3259,7 +3260,7 @@ export class SqliteApi implements ServiceApi {
       ON cu.class_id = c.id
       join ${TABLES.School} s
       ON c.school_id = s.id
-      where c.is_deleted = 0 and user_id = "${userId}" and role = "${RoleType.STUDENT}"`
+      where c.is_deleted = 0 and user_id = "${userId}" and role = "${RoleType.STUDENT}" and cu.is_deleted = 0`
     );
     if (!res || !res.values || res.values.length < 1) return data;
     data.classes = res.values;

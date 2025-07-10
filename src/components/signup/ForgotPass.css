@@ -25,6 +25,7 @@
   font-size: 20px;
   color: var(--text-color);
   font-weight: 600;
+  text-align: center;
 }
 
 /* Student input container */
@@ -153,7 +154,7 @@
 /* Responsive styling */
 @media (max-width: 768px) {
   .ForgotPass-forgot-email-text {
-    margin-top: 13%;
+    margin-top: 10%;
   }
 
   .ForgotPass-input-wrapper {
@@ -191,5 +192,11 @@
     max-height: 45px;
     margin-top: 4px;
     font-size: 24px;
+  }
+}
+
+@media (max-width: 400px) and (max-height: 845px) {
+  .ForgotPass-forgot-email-text{
+    margin-top: 5%;
   }
 }
