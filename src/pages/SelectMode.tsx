@@ -67,12 +67,12 @@ const SelectMode: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
-
   const [stage, setStage] = useState(STAGES.MODE);
   const [isOkayButtonDisabled, setIsOkayButtonDisabled] = useState(true);
   const init = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const setTab = urlParams.get("tab");
+    
     const currentMode = await schoolUtil.getCurrMode();
     if (setTab) {
       if (setTab === STAGES.STUDENT) {
@@ -91,13 +91,14 @@ const SelectMode: FC = () => {
     }
 
     if (currentMode == MODES.PARENT) {
-      schoolUtil.setCurrMode(MODES.PARENT);
       const student = Util.getCurrentStudent();
       if (student) {
         history.replace(PAGES.HOME);
         return;
       }
       history.replace(PAGES.DISPLAY_STUDENT);
+      return;
+
     } else if (currentMode == MODES.SCHOOL) {
       const schoolName = localStorage.getItem(CURRENT_SCHOOL_NAME);
       if (schoolName) setCurrentSchoolName(JSON.parse(schoolName));
@@ -115,8 +116,10 @@ const SelectMode: FC = () => {
       }
     } else if (currentMode === MODES.TEACHER) {
         history.replace(PAGES.DISPLAY_SCHOOLS);
+        return;
     } else if (currentMode === MODES.OPS_CONSOLE) {
         history.replace(PAGES.SIDEBAR_PAGE);
+        return;
     }
 
     const currUser = await auth.getCurrentUser();
@@ -139,6 +142,7 @@ const SelectMode: FC = () => {
 
     // If user is ops or program user
     if (isOpsRole || isProgramUser) {
+      schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
       history.replace(PAGES.SIDEBAR_PAGE);
       return; 
     }
