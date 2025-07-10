@@ -899,8 +899,8 @@ export class ApiHandler implements ServiceApi {
   checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean> {
     return this.s.checkUserExistInSchool(schoolId, userId);
   }
-  checkTeacherExistInClass(classId: string, userId: string): Promise<boolean> {
-    return this.s.checkTeacherExistInClass(classId, userId);
+  checkTeacherExistInClass(schoolId: string, classId: string, userId: string): Promise<boolean> {
+    return this.s.checkTeacherExistInClass(schoolId, classId, userId);
   }
   checkUserIsManagerOrDirector(
     schoolId: string,

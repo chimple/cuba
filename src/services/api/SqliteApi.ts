@@ -4129,9 +4129,23 @@ order by
     return false;
   }
   async checkTeacherExistInClass(
+    schoolId: string,
     classId: string,
     userId: string
   ): Promise<boolean> {
+    // Check if the user is present in school_user but not as a parent
+    const schoolUserResult = await this.executeQuery(
+      `SELECT * FROM school_user
+     WHERE school_id = ? AND user_id = ?
+     AND role != ?
+     AND is_deleted = false`,
+      [schoolId, userId, RoleType.PARENT]
+    );
+
+    if (schoolUserResult?.values && schoolUserResult.values.length > 0) {
+      return true;
+    }
+    // Step 2: Check if the user is a teacher in this class
     const result = await this.executeQuery(
       `SELECT * FROM class_user
       WHERE class_id = ?
