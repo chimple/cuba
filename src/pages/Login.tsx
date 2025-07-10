@@ -109,11 +109,9 @@ const Login: React.FC = () => {
   const [schoolCode, setSchoolCode] = useState<string>("");
   const [showStudentCredentialtLogin, setStudentCredentialLogin] =
     useState<boolean>(false);
-  const [isRespectApp, setIsRespectApp] = useState<boolean>(false);
 
   useEffect(() => {
     // init();
-    checkIsRespectAppInstalled();
     setIsLoading(true);
     setIsInvalidCode(verificationCodeMessageFlags);
     console.log("Login Util.isRespectMode ", Util.isRespectMode);
@@ -205,10 +203,6 @@ const Login: React.FC = () => {
     }
   }, [recaptchaVerifier]);
 
-  async function checkIsRespectAppInstalled() {
-    const isRespect = await Util.checkRespectApp();
-    setIsRespectApp(isRespect);
-  }
 
   useEffect(() => {
     if (counter <= 0 && showTimer) {
@@ -709,7 +703,7 @@ const Login: React.FC = () => {
                   isOpen={spinnerLoading}
                 />
 
-                {!isRespectApp ? (
+                {!Util.isRespectMode ? (
                   <>
                     <div id="Google-horizontal-line-main-container">
                       <div id="Google-horizontal-line"></div>
