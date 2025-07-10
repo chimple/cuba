@@ -31,12 +31,13 @@ export class ClassUtil {
       false
     );
     const assignmentIds = assignements?.map((asgmt) => asgmt.id) || [];
-    const assignmentResult =
-      await this.api.getResultByAssignmentIds(assignmentIds);
+    const assignmentResult = await this.api.getResultByAssignmentIds(assignmentIds);
+      
     assignmentResult?.forEach((res) => {
       totalScore = totalScore + (res.score ?? 0);
       timeSpent = timeSpent + (res.time_spent ?? 0) / 60;
     });
+
     const _students = await this.api.getStudentsForClass(classId);
     const totalStudents = _students.length;
     const totalAssignments = assignmentIds.length;
@@ -51,11 +52,13 @@ export class ClassUtil {
       },
       {} as { [key: string]: Set<string> }
     );
+    
     const studentsWhoCompletedAllAssignments = studentsWithCompletedAssignments
       ? Object.keys(studentsWithCompletedAssignments).filter((studentId) => {
           return studentsWithCompletedAssignments[studentId].size > 0;
         }).length
       : 0;
+        
     const assignmentsWithCompletedStudents = assignmentResult?.reduce(
       (acc, result) => {
         const { student_id, assignment_id } = result;
@@ -69,31 +72,32 @@ export class ClassUtil {
       },
       {} as { [key: string]: Set<string> }
     );
-    const assignmentsCompletedByAllStudents = assignmentsWithCompletedStudents
-      ? Object.keys(assignmentsWithCompletedStudents).filter((assignmentId) => {
-          return (
-            assignmentsWithCompletedStudents[assignmentId].size ===
-            totalStudents
-          );
-        }).length
-      : 0;
     
+  
+    const assignmentsCompletedByAllStudents = assignmentsWithCompletedStudents
+      ? Object.keys(assignmentsWithCompletedStudents).length
+      : 0;
+
     const timeSpentByAllStudents = totalStudents > 0 ? parseFloat((timeSpent / totalStudents).toFixed(2)) : 0;
     const resultCount = assignmentResult?.length ?? 0;
     const avgScore = resultCount > 0 ? parseFloat((totalScore / resultCount).toFixed(1)) : 0;
+        
     return {
       assignments: {
-        asgnmetCmptd: assignmentsCompletedByAllStudents,
+        asgnmetCmptd: totalStudents > 0 ? assignmentsCompletedByAllStudents : 0,
         totalAssignments: totalAssignments,
       },
+      
       students: {
-        stdCompletd: studentsWhoCompletedAllAssignments,
+        stdCompletd: totalStudents > 0 ? studentsWhoCompletedAllAssignments : 0,
         totalStudents: totalStudents,
       },
       timeSpent: timeSpentByAllStudents,
-      averageScore: avgScore,
+      averageScore: totalStudents > 0 ? avgScore : 0,
     };
   }
+
+
   public async divideStudents(classId: string, courseId: string) {
     const greenGroup: Map<
       string,
