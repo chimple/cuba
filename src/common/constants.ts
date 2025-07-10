@@ -710,6 +710,7 @@ export enum MODES {
   PARENT = "PARENT",
   SCHOOL = "SCHOOL",
   TEACHER = "TEACHER",
+  OPS_CONSOLE = "OPS_CONSOLE"
 }
 
 export enum ACTION {

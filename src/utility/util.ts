@@ -1141,6 +1141,7 @@ export class Util {
    public static switchToOpsUser(history: any): void {
     localStorage.setItem(IS_OPS_USER, "true");
     ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+    schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
     history.replace(PAGES.SIDEBAR_PAGE);
   }
 

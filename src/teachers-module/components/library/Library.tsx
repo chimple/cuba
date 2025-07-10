@@ -38,7 +38,7 @@ const Library: React.FC = () => {
         <SearchOutlinedIcon style={{ color: "black" }} />
         <span className="text">{t("Search")}...</span>
       </div>
-      <span style={{margin:"20px 20px 0px", fontSize:"24px", fontWeight: "500", color: '#707070'}}>Library</span>
+      <span className="library-title">Library</span>
       </div>
       <div className="course-grid">
         {courses.map(course => (

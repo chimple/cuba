@@ -88,7 +88,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
   >();
   const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
   const localClass = JSON.parse(localStorage.getItem(CLASS)!);
-  const switchUserToOps = async () => {
+  const switchUserToTeacher = async () => {
     if (localSchool && localClass) {
       schoolUtil.setCurrMode(MODES.TEACHER);
       history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
@@ -178,7 +178,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
                 className="icon"
               />
               <CommonToggle
-                onChange={switchUserToOps}
+                onChange={switchUserToTeacher}
                 label="Switch to Teacher's Mode"
               />
             </IonItem>
