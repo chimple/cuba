@@ -19,6 +19,8 @@ import SchoolDetailsPage from "./SchoolDetailsPage";
 import ProgramDetailsPage from "./ProgramDetailsPage";
 import UsersPage from "./UsersPage";
 import NewProgram from "../components/NewProgram";
+import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPage";
+import NewUserPage from "./NewUserPage";
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
@@ -95,6 +97,24 @@ const SidebarPage: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.USERS}`} exact={true}>
               <UsersPage />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE}/:program_id`}
+              exact={true}
+            >
+              {(routeProps) => {
+                return (
+                  <ProgramConnectedSchoolPage
+                    id={routeProps.match.params.program_id}
+                  />
+                );
+              }}
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.USERS}${PAGES.NEW_USERS}`}
+              exact={true}
+            >
+              <NewUserPage />
             </ProtectedRoute>
           </Switch>
         </div>

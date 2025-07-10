@@ -14,8 +14,9 @@ import Breadcrumb from "../components/Breadcrumb";
 import ContactCard from "../components/ContactCard";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
-import { PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
+import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
 import { BsFillBellFill } from "react-icons/bs";
+import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPage";
 
 interface ProgramDetailComponentProps {
   id: string;
@@ -76,6 +77,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
     active_teacher_percentage: 0,
     avg_weekly_time_minutes: 0,
   });
+  const [renderDetails, setRenderDetails] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -113,6 +115,10 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
 
     fetchData();
   }, [id]);
+
+  if (renderDetails) {
+    return <ProgramConnectedSchoolPage id={id} />;
+  }
 
   if (loading) {
     return (
@@ -281,7 +287,15 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
                       {stats.total_teachers}
                     </Typography>
                   </Box>
-                  <Button variant="contained" fullWidth>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    onClick={() =>
+                      history.push(
+                        `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE}/${id}`
+                      )
+                    }
+                  >
                     {t("View Details")}
                   </Button>
                 </Box>
