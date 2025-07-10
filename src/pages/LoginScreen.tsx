@@ -23,7 +23,6 @@ import Loading from "../components/Loading";
 import { schoolUtil } from "../utility/schoolUtil";
 import {
   ACTION,
-  CURRENT_USER,
   DOMAIN,
   EVENTS,
   IS_OPS_USER,
@@ -139,7 +138,7 @@ const LoginScreen: React.FC = () => {
         }
 
         if (Capacitor.isNativePlatform()) {
-          document.addEventListener("visibilitychange", handleVisibilityChange);
+          // document.addEventListener("visibilitychange", handleVisibilityChange);
         }
       } finally {
         setInitializing(false);
@@ -316,7 +315,7 @@ const LoginScreen: React.FC = () => {
       }
       // Store user data and proceed with navigation
       const user = res.user;
-      localStorage.setItem(CURRENT_USER, JSON.stringify(user));
+      localStorage.setItem(USER_DATA,  JSON.stringify(user));
 
       Util.logEvent(EVENTS.USER_PROFILE, {
         user_id: user.uid,
@@ -398,63 +397,59 @@ const LoginScreen: React.FC = () => {
 
   // Handler for Google Sign In
   const handleGoogleSignIn = async () => {
-    try {
-      if (!online) {
-        presentToast({
-          message: t(
-            "Device is offline. Login requires an internet connection"
-          ),
-          color: "danger",
-          duration: 3000,
-          position: "bottom",
-          buttons: [{ text: "Dismiss", role: "cancel" }],
-        });
-        return;
-      }
+  if (!online) {
+    return presentToast({
+      message: t("Device is offline. Login requires an internet connection"),
+      color: "danger",
+      duration: 3000,
+      position: "bottom",
+      buttons: [{ text: "Dismiss", role: "cancel" }],
+    });
+  }
 
-      setAnimatedLoading(true);
-      setIsLoading(true);
-      const result: boolean =
-        await ServiceConfig.getI().authHandler.googleSign();
+  setAnimatedLoading(true);
+  try {
+    const ok = await authInstance.googleSign();
+    if (!ok) throw new Error("Google sign in failed");
 
-      if (result) {
-        setIsLoading(false);
-        const user: any =
-          await ServiceConfig.getI().authHandler.getCurrentUser();
-        const userSchools = await getSchoolsForUser(user);
-        await redirectUser(userSchools);
-        setAnimatedLoading(false);
-        localStorage.setItem(CURRENT_USER, JSON.stringify(result));
-        Util.logEvent(EVENTS.USER_PROFILE, {
-          user_type: RoleType.PARENT,
-          action_type: ACTION.LOGIN,
-          login_type: "google-signin",
-        });
+    // 1) pull down the full user object
+    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
 
-        const isNewUser = !user.name || !user.language_id || !user.gender;
-
-        if (isNewUser) {
-          history.replace(PAGES.PROFILE_DETAILS);
-        } else {
-          const userSchools = await getSchoolsForUser(user);
-          await redirectUser(userSchools);
-        }
-      } else {
-        setAnimatedLoading(false);
-        setIsLoading(false);
-        setPhoneErrorMessage("Google sign in failed. Please try again.");
-        // Abort the Google sign in process
-        setLoginType("phone");
-      }
-    } catch (error) {
-      console.log("Google signIn error", error);
-      setAnimatedLoading(false);
-      setIsLoading(false);
-      setPhoneErrorMessage("Google sign in failed. Please try again.");
-      // Abort the Google sign in process
-      setLoginType("phone");
+    if (!user) {
+      throw new Error("No user returned from authHandler");
     }
-  };
+
+    // 2) store it under USER_DATA
+    localStorage.setItem(USER_DATA, JSON.stringify(user));
+    // localStorage.setItem(USER_ROLE, JSON.stringify(user.roles || []));
+
+    Util.logEvent(EVENTS.USER_PROFILE, {
+      user_type: RoleType.PARENT,
+      action_type: ACTION.LOGIN,
+      login_type: "google-signin",
+    });
+
+    // 3) single redirect block
+    const isNewUser = !user.name || !user.language_id || !user.gender;
+    if (isNewUser) {
+      history.replace(PAGES.PROFILE_DETAILS);
+    } else {
+      const userSchools = await getSchoolsForUser(user);
+      await redirectUser(userSchools);
+    }
+  } catch (e) {
+    presentToast({
+      message: t("Google sign in failed. Please try again."),
+      color: "danger",
+      duration: 3000,
+      position: "bottom",
+      buttons: [{ text: "Dismiss", role: "cancel" }],
+    });
+    setLoginType("phone");
+  } finally {
+    setAnimatedLoading(false);
+  }
+};
 
   // Helper function to get schools for user
   async function getSchoolsForUser(user: TableTypes<"user">) {
@@ -550,7 +545,7 @@ const LoginScreen: React.FC = () => {
         const user = JSON.parse(localStorage.getItem(USER_DATA)!);
         const userSchools = await getSchoolsForUser(user);
         await redirectUser(userSchools);
-        localStorage.setItem(CURRENT_USER, JSON.stringify(result));
+        localStorage.setItem(USER_DATA, JSON.stringify(user));
 
         // Log the login event
         Util.logEvent(EVENTS.USER_PROFILE, {
@@ -614,7 +609,7 @@ const LoginScreen: React.FC = () => {
       );
 
       if (result) {
-        localStorage.setItem(CURRENT_USER, JSON.stringify(result));
+        localStorage.setItem(USER_DATA, JSON.stringify(result));
         setIsLoading(false);
         const user: any =
           await ServiceConfig.getI().authHandler.getCurrentUser();
