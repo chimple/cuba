@@ -3796,7 +3796,7 @@ order by
         `SELECT cl.lesson_id, c.course_id ,cl.chapter_id
          FROM ${TABLES.ChapterLesson} cl
          JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
-         WHERE cl.lesson_id = "${lessonId}" AND is_deleted = 0`
+         WHERE cl.lesson_id = "${lessonId}" AND cl.is_deleted = 0`
       );
       if (!res || !res.values || res.values.length < 1) return;
       const classCourseIds = new Set(class_course.map((course) => course.id));
