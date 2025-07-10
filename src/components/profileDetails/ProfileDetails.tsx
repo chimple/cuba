@@ -11,6 +11,7 @@ import { ACTION_TYPES, AGE_OPTIONS, EVENTS, FORM_MODES, PAGES, PROFILE_DETAILS_G
 import { useHistory } from "react-router";
 import { Capacitor } from "@capacitor/core";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
+import { FaArrowLeftLong } from "react-icons/fa6";
 
 const getModeFromFeature = (
   variation: string
@@ -125,10 +126,23 @@ const ProfileDetails = () => {
 
   return (
     <div className="profiledetails-container">
+      <button
+        className="profiledetails-back-button"
+        onClick={() => {
+          Util.setPathToBackButton(PAGES.HOME, history);
+        }}
+        aria-label="Back"
+        id="click_on_profile_details_back_button"
+      >
+        <FaArrowLeftLong
+          style={{ color: "#f34d08" }}
+          className="profiledetails-back-arrow-icon"
+        />
+      </button>
       <div className="profiledetails-avatar-form">
         <div className="profiledetails-avatar-section">
           <img
-            src="assets/avatars/monkey.png"
+            src="assets/avatars/monkeyAvatar.svg"
             className="profiledetails-avatar-image"
           />
         </div>
@@ -199,23 +213,26 @@ const ProfileDetails = () => {
               )}
             </legend>
             <div className="profiledetails-gender-buttons">
-              {["GIRL", "BOY", "UNSPECIFIED"].map((g) => (
-                <button
-                  key={g}
-                  id={`click_on_profile_details_gender_${g.toLowerCase()}`}
-                  type="button"
-                  className={`profiledetails-gender-btn ${
-                    gender === g ? "selected" : ""
-                  }`}
-                  onClick={() => setGender(g)}
-                >
-                  <img
-                    src={`/assets/icons/${g.toLowerCase()}.svg`}
-                    alt={`${g} icon`}
-                  />{" "}
-                  {t(g)}
-                </button>
-              ))}
+                {["GIRL", "BOY", "UNSPECIFIED"].map((g) => {
+                  const isSelected = gender === g;
+                  const iconName = isSelected ? `${g.toLowerCase()}Selected` : g.toLowerCase();
+                  
+                  return (
+                    <button
+                      key={g}
+                      id={`click_on_profile_details_gender_${g.toLowerCase()}`}
+                      type="button"
+                      className={`profiledetails-gender-btn ${isSelected ? "selected" : ""}`}
+                      onClick={() => setGender(g)}
+                    >
+                      <img
+                        src={`/assets/icons/${iconName}.svg`}
+                        alt={`${g} icon`}
+                      />
+                      {t(g)}
+                    </button>
+                  );
+                })}
             </div>
           </fieldset>
 
