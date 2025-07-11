@@ -323,27 +323,68 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async uploadData(payload: any): Promise<boolean | null> {
+    if (!this.supabase) return false;
+
+    let uploadId: string | undefined;
+    let uploadingUser: string | undefined;
+
     try {
-      if (!this.supabase) {
-        console.error("Supabase client is not initialized.");
-        return false;
-      }
-      const { data, error } = await this.supabase.functions.invoke(
-        "ops-data-insert",
-        {
+      const { data, error: functionError } =
+        await this.supabase.functions.invoke("ops-data-insert", {
           body: payload,
+        });
+      uploadId = data?.upload_id;
+
+      if (!uploadId) {
+        const { data: session } = await this.supabase.auth.getSession();
+        uploadingUser = session?.session?.user?.id;
+
+        if (uploadingUser) {
+          const { data: fallbackJob } = await this.supabase
+            .from("upload_queue")
+            .select("id")
+            .eq("uploading_user", uploadingUser)
+            .order("start_time", { ascending: false })
+            .limit(1)
+            .single();
+
+          uploadId = fallbackJob?.id;
         }
-      );
-      if (data.status === 200) {
-        return true;
       }
-      if (data.status === 400) {
-        console.error("Upload error:", data?.message);
-        return false;
+
+      if (uploadId) {
+        // console.log("📡 Subscribing to status for upload_id:", uploadId);
+        return new Promise((resolve) => {
+          if (!this.supabase) return false;
+          setTimeout(async () => {
+            if (!this.supabase) return false;
+            if (!uploadId) {
+              console.warn("❗ uploadId is undefined. Skipping query.");
+              return;
+            }
+            const { data } = await this.supabase
+              .from("upload_queue")
+              .select("status")
+              .eq("id", uploadId)
+              .single();
+            if (data?.status === "failed") {
+              // console.log("⏱️ Upload status: Upload failed.");
+              resolve(false);
+            }
+            if (data?.status === "success") {
+              // console.log("⏱️ Upload status: Upload Success.");
+              resolve(true);
+            }
+          }, 5000);
+        });
+      } else {
+        console.warn(
+          "❗ Could not determine upload_id, skipping realtime tracking."
+        );
+        return null;
       }
-      return null;
-    } catch (error) {
-      console.error("Failed Error:", error);
+    } catch (error: any) {
+      console.error("🔥 Unexpected error:", error);
       return null;
     }
   }
@@ -4534,6 +4575,46 @@ export class SupabaseApi implements ServiceApi {
 
     return teachers && teachers.length > 0;
   }
+  
+  async checkTeacherExistInClass(
+  schoolId: string,
+  classId: string,
+  userId: string
+  ): Promise<boolean> {
+    if (!this.supabase) return false;
+     //  Check if user is in school_user but NOT as a parent and not deleted
+    const { data: schoolUsers, error: schoolUserError } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select("*")
+      .eq("school_id", schoolId)
+      .eq("user_id", userId)
+      .neq("role", RoleType.PARENT)
+      .eq("is_deleted", false);
+
+    if (schoolUserError) {
+      console.error("Error querying school_user:", schoolUserError);
+      return false;
+    }
+    if (schoolUsers && schoolUsers.length > 0) return true;
+
+    //  Check if user is teacher in this classe
+    const { data, error } = await this.supabase
+      .from("class_user")
+      .select("id")
+      .eq("class_id", classId)
+      .eq("user_id", userId)
+      .eq("role", RoleType.TEACHER)
+      .eq("is_deleted", false)
+      .maybeSingle(); // Returns null if no match
+
+    if (error) {
+      console.error("Error checking user in class:", error);
+      return false;
+    }
+
+    return !!data; // true if found, false if not
+  }
+
   async checkUserIsManagerOrDirector(schoolId, userId): Promise<boolean> {
     if (!this.supabase) return false;
 
@@ -6191,29 +6272,75 @@ async getPrograms({
     }
   }
 
-  async getFilteredSchoolsForSchoolListing(
-    filters: Record<string, string[]>
-  ): Promise<FilteredSchoolsForSchoolListingOps[]> {
+  async createOrAddUserOps(payload: {
+    name: string;
+    email?: string;
+    phone?: string;
+    role: string;
+  }): Promise<{
+    success: boolean;
+    user_id?: string;
+    message?: string;
+    error?: string;
+  }> {
+    if (!this.supabase)
+      return { success: false, error: "Supabase not initialized" };
+    try {
+      const { data, error: functionError } =
+        await this.supabase.functions.invoke("ops_adding_and_creating_user", {
+          body: payload,
+        });
+      return {
+        success: true,
+        user_id: data?.user_id,
+        message: data?.message,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        error: err?.message || "Unexpected error occurred",
+      };
+    }
+  }
+
+  async getFilteredSchoolsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+  }): Promise<FilteredSchoolsForSchoolListingOps[]> {
     if (!this.supabase) {
       console.error("Supabase client is not initialized");
       return [];
     }
 
+    const { filters, programId } = params;
+    const payload: any = {};
+
+    if (filters && Object.keys(filters).length > 0) {
+      payload.filters = filters;
+    }
+
+    if (programId) {
+      payload._program_id = programId;
+    }
+
     try {
-      const { data, error } = await this.supabase.rpc("get_filtered_schools", {
-        filters,
-      });
+      const { data, error } = await this.supabase.rpc(
+        "get_filtered_schools_with_optional_program",
+        payload
+      );
+
       if (error) {
-        console.error("RPC error in getFilteredSchools:", error);
+        console.error("RPC error in get_filtered_schools_with_optional_program:", error);
         return [];
       }
 
       return (data ?? []) as FilteredSchoolsForSchoolListingOps[];
     } catch (err) {
-      console.error("Unexpected error in getFilteredSchools:", err);
+      console.error("Unexpected error in get_filtered_schools_with_optional_program:", err);
       return [];
     }
   }
+
   async createAutoProfile(
     languageDocId: string | undefined
   ): Promise<TableTypes<"user">> {
