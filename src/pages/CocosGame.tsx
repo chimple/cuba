@@ -335,7 +335,7 @@ const CocosGame: React.FC = () => {
 
   let ChapterDetail: Chapter | undefined;
   const api = ServiceConfig.getI().apiHandler;
-  const lesson: Lesson = JSON.parse(state.lesson);
+  const lesson: Lesson = state.lesson ? JSON.parse(state.lesson) : undefined;
 
   const updateLessonAsFavorite = async () => {
     const currentStudent = Util.getCurrentStudent();
