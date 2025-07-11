@@ -1793,6 +1793,56 @@ export type Database = {
         };
         Relationships: [];
       };
+      upload_queue: {
+        Row: {
+          id: string;
+          uploading_user: string | null;
+          start_time: string | null;
+          payload: Record<string, unknown>;
+          status: string | null;
+          error: string | null;
+          process_started_at: string | null;
+          batch_number: number | null;
+          is_locked: boolean | null;
+          locked_at: string | null;
+          locked_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          uploading_user?: string | null;
+          start_time?: string | null;
+          payload: Record<string, unknown>;
+          status?: string | null;
+          error?: string | null;
+          process_started_at?: string | null;
+          batch_number?: number | null;
+          is_locked?: boolean | null;
+          locked_at?: string | null;
+          locked_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          uploading_user?: string | null;
+          start_time?: string | null;
+          payload?: Record<string, unknown>;
+          status?: string | null;
+          error?: string | null;
+          process_started_at?: string | null;
+          batch_number?: number | null;
+          is_locked?: boolean | null;
+          locked_at?: string | null;
+          locked_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "upload_queue_uploading_user_fkey";
+            columns: ["uploading_user"];
+            isOneToOne: false;
+            referencedRelation: "user";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       user: {
         Row: {
           age: number | null;

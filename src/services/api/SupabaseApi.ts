@@ -323,27 +323,68 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async uploadData(payload: any): Promise<boolean | null> {
+    if (!this.supabase) return false;
+
+    let uploadId: string | undefined;
+    let uploadingUser: string | undefined;
+
     try {
-      if (!this.supabase) {
-        console.error("Supabase client is not initialized.");
-        return false;
-      }
-      const { data, error } = await this.supabase.functions.invoke(
-        "ops-data-insert",
-        {
+      const { data, error: functionError } =
+        await this.supabase.functions.invoke("ops-data-insert", {
           body: payload,
+        });
+      uploadId = data?.upload_id;
+
+      if (!uploadId) {
+        const { data: session } = await this.supabase.auth.getSession();
+        uploadingUser = session?.session?.user?.id;
+
+        if (uploadingUser) {
+          const { data: fallbackJob } = await this.supabase
+            .from("upload_queue")
+            .select("id")
+            .eq("uploading_user", uploadingUser)
+            .order("start_time", { ascending: false })
+            .limit(1)
+            .single();
+
+          uploadId = fallbackJob?.id;
         }
-      );
-      if (data.status === 200) {
-        return true;
       }
-      if (data.status === 400) {
-        console.error("Upload error:", data?.message);
-        return false;
+
+      if (uploadId) {
+        // console.log("📡 Subscribing to status for upload_id:", uploadId);
+        return new Promise((resolve) => {
+          if (!this.supabase) return false;
+          setTimeout(async () => {
+            if (!this.supabase) return false;
+            if (!uploadId) {
+              console.warn("❗ uploadId is undefined. Skipping query.");
+              return;
+            }
+            const { data } = await this.supabase
+              .from("upload_queue")
+              .select("status")
+              .eq("id", uploadId)
+              .single();
+            if (data?.status === "failed") {
+              // console.log("⏱️ Upload status: Upload failed.");
+              resolve(false);
+            }
+            if (data?.status === "success") {
+              // console.log("⏱️ Upload status: Upload Success.");
+              resolve(true);
+            }
+          }, 5000);
+        });
+      } else {
+        console.warn(
+          "❗ Could not determine upload_id, skipping realtime tracking."
+        );
+        return null;
       }
-      return null;
-    } catch (error) {
-      console.error("Failed Error:", error);
+    } catch (error: any) {
+      console.error("🔥 Unexpected error:", error);
       return null;
     }
   }
@@ -6290,6 +6331,7 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
   }
+
   async createAutoProfile(
     languageDocId: string | undefined
   ): Promise<TableTypes<"user">> {
