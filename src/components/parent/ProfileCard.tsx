@@ -131,7 +131,7 @@ const ProfileCard: React.FC<{
                 });
                 return;
               }
-              history.replace(PAGES.CREATE_STUDENT, {
+              history.replace(PAGES.PROFILE_DETAILS, {
                 showBackButton: !areProfilesAvailable,
               });
             }}
@@ -176,7 +176,7 @@ const ProfileCard: React.FC<{
           onNoButtonClicked={async ({}) => {
             const api = ServiceConfig.getI().apiHandler;
             await Util.setCurrentStudent(user, undefined, false);
-            history.replace(PAGES.EDIT_STUDENT, {
+            history.replace(PAGES.PROFILE_DETAILS, {
               from: history.location.pathname,
             });
             setShowDialogBox(false);

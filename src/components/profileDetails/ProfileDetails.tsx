@@ -12,6 +12,7 @@ import { useHistory } from "react-router";
 import { Capacitor } from "@capacitor/core";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { FaArrowLeftLong } from "react-icons/fa6";
+import { initializeFireBase } from "../../services/Firebase";
 
 const getModeFromFeature = (
   variation: string
@@ -46,6 +47,7 @@ const ProfileDetails = () => {
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
+    initializeFireBase();
     lockOrientation();
     Util.loadBackgroundImage();
     const cleanup = initializeClickListener();
