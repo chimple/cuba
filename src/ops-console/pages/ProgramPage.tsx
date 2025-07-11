@@ -29,8 +29,6 @@ import {
 } from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
 import { BsFillBellFill } from "react-icons/bs";
-import { SupabaseApi } from "../../services/api/SupabaseApi";
-import { ApiHandler } from "../../services/api/ApiHandler";
 
 type ProgramRow = {
   programName: any;
@@ -149,10 +147,12 @@ const ProgramsPage: React.FC = () => {
       }
 
       const userRole = localStorage.getItem(USER_ROLE);
+
       const isOps =
-        userRole === RoleType.SUPER_ADMIN ||
-        userRole === RoleType.OPERATIONAL_DIRECTOR;
-      setIsOpsRole(isOps);
+        userRole?.includes(RoleType.SUPER_ADMIN) ||
+        userRole?.includes(RoleType.OPERATIONAL_DIRECTOR);
+      setIsOpsRole(!!isOps);
+      
     };
 
     fetchInitialData();
@@ -219,8 +219,7 @@ const ProgramsPage: React.FC = () => {
         devices:
           typeof row.devices_count === "number" ? row.devices_count : "—",
         manager:
-          row.manager_names &&
-          row.manager_names.trim() !== ""
+          row.manager_names && row.manager_names.trim() !== ""
             ? row.manager_names
             : "—",
       })),
