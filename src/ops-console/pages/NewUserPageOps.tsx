@@ -92,24 +92,24 @@ const NewUserPage: React.FC = () => {
   };
 
   return (
-    <Box className="new-user-page-container">
-      <Box className="new-user-header">
+    <Box className="ops-new-user-page-container">
+      <Box className="ops-new-user-header">
         <Typography
           variant={isMobile ? "h5" : "h4"}
-          className="new-user-header_title"
+          className="ops-new-user-header_title"
         >
           {t("New User")}
         </Typography>
-        <Box className="new-user-header_icon-container">
-          <IconButton className="new-user-header_icon">
+        <Box className="ops-new-user-header_icon-container">
+          <IconButton className="ops-new-user-header_icon">
             <BsFillBellFill size={isMobile ? 18 : 22} />
           </IconButton>
         </Box>
       </Box>
 
-      <Box className="new-user-content">
+      <Box className="ops-new-user-content">
         <Breadcrumbs
-          className="new-user-breadcrumbs"
+          className="ops-new-user-breadcrumbs"
           separator={<BiSolidRightArrow size={11} />}
         >
           <Link
@@ -128,10 +128,10 @@ const NewUserPage: React.FC = () => {
           <Grid
             container
             spacing={isMobile ? 1.5 : 2}
-            className="new-user-form_grid"
+            className="ops-new-user-form_grid"
           >
-            <Grid item xs={12} className="new-user-form_group">
-              <Typography className="new-user-form_label">{t("Name")}</Typography>
+            <Grid item xs={12} className="ops-new-user-form_group">
+              <Typography className="ops-new-user-form_label">{t("Name")}</Typography>
               <TextField
                 fullWidth
                 size="small"
@@ -139,8 +139,8 @@ const NewUserPage: React.FC = () => {
                 onChange={handleInputChange("name")}
               />
             </Grid>
-            <Grid item xs={12} className="new-user-form_group">
-              <Typography className="new-user-form_label">
+            <Grid item xs={12} className="ops-new-user-form_group">
+              <Typography className="ops-new-user-form_label">
                 {t("Phone Number")}
               </Typography>
               <TextField
@@ -150,8 +150,8 @@ const NewUserPage: React.FC = () => {
                 onChange={handleInputChange("phone")}
               />
             </Grid>
-            <Grid item xs={12} className="new-user-form_group">
-              <Typography className="new-user-form_label">{t("Email ID")}</Typography>
+            <Grid item xs={12} className="ops-new-user-form_group">
+              <Typography className="ops-new-user-form_label">{t("Email ID")}</Typography>
               <TextField
                 fullWidth
                 size="small"
@@ -159,8 +159,8 @@ const NewUserPage: React.FC = () => {
                 onChange={handleInputChange("email")}
               />
             </Grid>
-            <Grid item xs={12} className="new-user-form_group">
-              <Typography className="new-user-form_label">{t("Roles")}</Typography>
+            <Grid item xs={12} className="ops-new-user-form_group">
+              <Typography className="ops-new-user-form_label">{t("Roles")}</Typography>
               <Select
                 fullWidth
                 size="small"
@@ -185,19 +185,19 @@ const NewUserPage: React.FC = () => {
             </Grid>
           </Grid>
 
-          <Box className="new-user-form-actions">
+          <Box className="ops-new-user-form-actions">
             <Button
               type="button"
               variant="text"
               onClick={handleCancel}
-              className="new-user-form-actions_button--cancel"
+              className="ops-new-user-form-actions_button--cancel"
             >
               {t("Cancel")}
             </Button>
             <Button
               type="submit"
               variant="contained"
-              className="new-user-form-actions_button--save"
+              className="ops-new-user-form-actions_button--save"
             >
               {t("Save")}
             </Button>

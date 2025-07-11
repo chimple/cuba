@@ -1,11 +1,11 @@
-.new-user-page-container {
+.ops-new-user-page-container {
   width: 100%;
   min-height: 100vh;
   background-color: #fafbfc;
   box-sizing: border-box;
 }
 
-.new-user-header {
+.ops-new-user-header {
   width: 100%;
   display: flex;
   align-items: center;
@@ -15,17 +15,17 @@
   box-sizing: border-box;
 }
 
-.new-user-header_title {
+.ops-new-user-header_title {
   font-weight: 700 !important;
   color: #000;
 }
 
-.new-user-header_icon {
+.ops-new-user-header_icon {
   color: #000 !important;
   padding: 8px;
 }
 
-.new-user-content {
+.ops-new-user-content {
   margin-top: 20px;
   padding: 0 32px;
   width: 100%;
@@ -34,16 +34,16 @@
   box-sizing: border-box;
 }
 
-.new-user-breadcrumbs {
+.ops-new-user-breadcrumbs {
   margin-bottom: 24px !important;
 }
 
-.new-user-form_label {
+.ops-new-user-form_label {
   margin-bottom: 4px !important;
   text-align: left;
 }
 
-.new-user-form-actions {
+.ops-new-user-form-actions {
   display: flex;
   gap: 24px;
   margin-top: 48px;
@@ -52,49 +52,49 @@
   justify-content: flex-end;
 }
 
-.new-user-form-actions_button--save {
+.ops-new-user-form-actions_button--save {
   width: 90px;
 }
 
-.new-user-form-actions_button--cancel {
+.ops-new-user-form-actions_button--cancel {
   color: #1666f4 !important;
   width: auto;
   background-color: #FEFEFA !important;
 }
 
 @media (max-width: 600px) {
-  .new-user-header {
+  .ops-new-user-header {
     justify-content: center;
     padding: 24px 16px 0;
   }
 
-  .new-user-header_title {
+  .ops-new-user-header_title {
     width: 100%;
     text-align: center;
   }
 
-  .new-user-header_icon-container {
+  .ops-new-user-header_icon-container {
     position: absolute;
     right: 16px;
     top: 70%;
     transform: translateY(-50%);
   }
 
-  .new-user-content {
+  .ops-new-user-content {
     padding: 0 16px;
   }
 
-  .new-user-breadcrumbs {
+  .ops-new-user-breadcrumbs {
     display: none !important;
   }
 
-  .new-user-form-actions {
+  .ops-new-user-form-actions {
     flex-direction: column-reverse;
     align-items: stretch;
   }
 
-  .new-user-form-actions_button--save,
-  .new-user-form-actions_button--cancel {
+  .ops-new-user-form-actions_button--save,
+  .ops-new-user-form-actions_button--cancel {
     width: 100%;
   }
 }

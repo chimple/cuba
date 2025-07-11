@@ -129,34 +129,34 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
   } = useDataTableLogic(filteredSchools);
 
   return (
-    <div className="program-schools-page-container">
-      <Box className="program-schools-page-header">
-        <Box className="program-schools-header-top">
+    <div className="ops-program-schools-page-container">
+      <Box className="ops-program-schools-page-header">
+        <Box className="ops-program-schools-header-top">
           {isMobile ? (
             <>
               <Box sx={{ width: 40 }} />
-              <Typography className="program-schools-title-mobile">
+              <Typography className="ops-program-schools-title-mobile">
                 {programName}
               </Typography>
-              <IconButton className="program-schools-icon-button">
+              <IconButton className="ops-program-schools-icon-button">
                 <NotificationsIcon />
               </IconButton>
             </>
           ) : (
             <>
-              <Typography className="program-schools-title">
+              <Typography className="ops-program-schools-title">
                 {programName}
               </Typography>
-              <IconButton className="program-schools-icon-button">
+              <IconButton className="ops-program-schools-icon-button">
                 <NotificationsIcon />
               </IconButton>
             </>
           )}
         </Box>
 
-        <Box className="program-schools-page-header-row">
+        <Box className="ops-program-schools-page-header-row">
           {!isMobile && (
-            <div className="program-schools-page-container-two">
+            <div className="ops-program-schools-page-container-two">
               <Breadcrumb
                 crumbs={[
                   {
@@ -172,8 +172,8 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
               />
             </div>
           )}
-          <div className="program-schools-header-and-search-filter">
-            <div className="program-schools-button-and-search-filter">
+          <div className="ops-program-schools-header-and-search-filter">
+            <div className="ops-program-schools-button-and-search-filter">
               {loadingFilters ? (
                 <CircularProgress />
               ) : (
@@ -189,7 +189,7 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
         </Box>
       </Box>
 
-      <div className="program-schools-table-container">
+      <div className="ops-program-schools-table-container">
         {loadingData ? (
           <Box
             display="flex"
@@ -220,7 +220,7 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
       </div>
 
       {!loadingData && filteredSchools.length > 0 && (
-        <div className="program-schools-list-footer">
+        <div className="ops-program-schools-list-footer">
           <DataTablePagination
             pageCount={pageCount}
             page={page}

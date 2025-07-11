@@ -1,4 +1,4 @@
-.program-schools-page-container {
+.ops-program-schools-page-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -6,7 +6,7 @@
   overflow: hidden;
 }
 
-.program-schools-page-header {
+.ops-program-schools-page-header {
   flex-shrink: 0;
   position: sticky;
   top: 0;
@@ -17,31 +17,31 @@
   box-sizing: border-box;
 }
 
-.program-schools-header-top {
+.ops-program-schools-header-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
 }
 
-.program-schools-title-mobile {
+.ops-program-schools-title-mobile {
   font-size: 21px !important;
   font-weight: 700 !important;
   text-align: center;
 }
 
-.program-schools-icon-button {
+.ops-program-schools-icon-button {
   color: black !important;
   width: 40px;
   height: 40px;
 }
 
-.program-schools-title {
+.ops-program-schools-title {
   font-size: 30px !important;
   font-weight: 700 !important;
 }
 
-.program-schools-page-header-row {
+.ops-program-schools-page-header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -50,12 +50,12 @@
   padding-right: 0px;
 }
 
-.program-schools-page-container-two {
+.ops-program-schools-page-container-two {
   flex: 1;
   min-width: 250px;
 }
 
-.program-schools-header-and-search-filter {
+.ops-program-schools-header-and-search-filter {
   flex: 1;
   min-width: 300px;
   display: flex;
@@ -63,7 +63,7 @@
   padding-right: 0px;
 }
 
-.program-schools-button-and-search-filter {
+.ops-program-schools-button-and-search-filter {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -74,14 +74,14 @@
   justify-content: flex-end;
 }
 
-.program-schools-table-container {
+.ops-program-schools-table-container {
   flex-grow: 1;
   overflow-y: hidden;
   padding: 0 32px;
   background-color: white;
 }
 
-.program-schools-list-footer {
+.ops-program-schools-list-footer {
   flex-shrink: 0;
   position: sticky;
   bottom: 0;
@@ -90,7 +90,7 @@
 }
 
 @media screen and (orientation: portrait) {
-  .program-schools-page-header {
+  .ops-program-schools-page-header {
     padding: 16px 20px !important;
   }
 }
@@ -102,11 +102,11 @@
     display: flex;
     flex-direction: row;
   }
-  .program-schools-button-and-search-filter {
+  .ops-program-schools-button-and-search-filter {
     padding-right: 0px !important;
     padding-left: 0px !important;
   }
-  .program-schools-header-and-search-filter {
+  .ops-program-schools-header-and-search-filter {
     padding-right: 0px !important;
     padding-left: 7px !important;
   }
