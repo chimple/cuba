@@ -3893,7 +3893,6 @@ order by
          FROM ${TABLES.Result}
          WHERE student_id = ?
          AND course_id = ?
-         AND assignment_id IN (${assignmentholders})
          ORDER BY created_at DESC
          LIMIT 5
        )
@@ -3904,7 +3903,7 @@ order by
        FROM non_null_assignments
        ORDER BY created_at DESC
        LIMIT 10;`,
-      [studentId, courseId, studentId, courseId, ...assignmentIds]
+      [studentId, courseId, studentId, courseId]
     );
     return res?.values ?? [];
   }
