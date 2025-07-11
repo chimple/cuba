@@ -4114,7 +4114,8 @@ export class SupabaseApi implements ServiceApi {
     startDate: string,
     endDate: string,
     isClassWise: boolean,
-    isLiveQuiz: boolean
+    isLiveQuiz: boolean,
+    allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
     if (!this.supabase) return;
 
@@ -4137,10 +4138,12 @@ export class SupabaseApi implements ServiceApi {
       query = query.eq("is_class_wise", true);
     }
 
-    if (isLiveQuiz) {
-      query = query.eq("type", "liveQuiz");
-    } else {
-      query = query.neq("type", "liveQuiz");
+    if(!allAssignments){
+      if (isLiveQuiz) {
+        query = query.eq("type", "liveQuiz");
+      } else {
+        query = query.neq("type", "liveQuiz");
+      }
     }
 
     query = query.order("created_at", { ascending: false });

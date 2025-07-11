@@ -262,7 +262,8 @@ if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
     endTimeStamp,
     startTimeStamp,
     false,
-    false
+    false,
+    true
   ) || [];
 
   // Get unique assignment IDs and lesson IDs
