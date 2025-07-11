@@ -6222,26 +6222,71 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  async getFilteredSchoolsForSchoolListing(
-    filters: Record<string, string[]>
-  ): Promise<FilteredSchoolsForSchoolListingOps[]> {
+  async createOrAddUserOps(payload: {
+    name: string;
+    email?: string;
+    phone?: string;
+    role: string;
+  }): Promise<{
+    success: boolean;
+    user_id?: string;
+    message?: string;
+    error?: string;
+  }> {
+    if (!this.supabase)
+      return { success: false, error: "Supabase not initialized" };
+    try {
+      const { data, error: functionError } =
+        await this.supabase.functions.invoke("ops_adding_and_creating_user", {
+          body: payload,
+        });
+      return {
+        success: true,
+        user_id: data?.user_id,
+        message: data?.message,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        error: err?.message || "Unexpected error occurred",
+      };
+    }
+  }
+
+  async getFilteredSchoolsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+  }): Promise<FilteredSchoolsForSchoolListingOps[]> {
     if (!this.supabase) {
       console.error("Supabase client is not initialized");
       return [];
     }
 
+    const { filters, programId } = params;
+    const payload: any = {};
+
+    if (filters && Object.keys(filters).length > 0) {
+      payload.filters = filters;
+    }
+
+    if (programId) {
+      payload._program_id = programId;
+    }
+
     try {
-      const { data, error } = await this.supabase.rpc("get_filtered_schools", {
-        filters,
-      });
+      const { data, error } = await this.supabase.rpc(
+        "get_filtered_schools_with_optional_program",
+        payload
+      );
+
       if (error) {
-        console.error("RPC error in getFilteredSchools:", error);
+        console.error("RPC error in get_filtered_schools_with_optional_program:", error);
         return [];
       }
 
       return (data ?? []) as FilteredSchoolsForSchoolListingOps[];
     } catch (err) {
-      console.error("Unexpected error in getFilteredSchools:", err);
+      console.error("Unexpected error in get_filtered_schools_with_optional_program:", err);
       return [];
     }
   }
