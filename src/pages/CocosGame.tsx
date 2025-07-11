@@ -111,7 +111,6 @@ const CocosGame: React.FC = () => {
     try {
       const urlParams = new URLSearchParams(window.location.search);
       let fromPath: string = state?.from ?? PAGES.HOME;
-
       console.log("Checking fromPath conditions", fromPath);
 
       // Reset to home if trying to go back to an unloaded game screen
@@ -161,9 +160,16 @@ const CocosGame: React.FC = () => {
 
   const gameExit = async (e: any) => {
     const api = ServiceConfig.getI().apiHandler;
+    if (!api.currentStudent) {
+      console.error("[ERROR] currentStudent is undefined in gameExit");
+      setShowDialogBox(false);
+      setIsLoading(false);
+      push();
+      return;
+    }
     const data = e.detail as CocosLessonData;
     await Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
-      user_id: api.currentStudent!.id,
+      user_id: api.currentStudent.id,
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
       chapter_id: data.chapterId,
@@ -513,10 +519,14 @@ const CocosGame: React.FC = () => {
               yesText={t("Like the Game")}
               lessonName={lessonDetail?.name ?? ""}
               noText={t("Continue Playing")}
-              handleClose={(e: any) => {
-                setShowDialogBox(true);
-                //  saveTempData(gameResult.detail, undefined);
-                // push();
+              handleClose={async (e: any) => {
+                setShowDialogBox(false);
+                setIsLoading(true);
+                if (gameResult && gameResult.detail) {
+                  await gameExit({ detail: gameResult.detail });
+                } else {
+                  push();
+                }
               }}
               onYesButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
