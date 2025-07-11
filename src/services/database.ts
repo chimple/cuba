@@ -2139,13 +2139,6 @@ export type Database = {
         };
         Returns: Json;
       };
-      get_admin_view_users: {
-        Args: { _current_user_id: string };
-        Returns: {
-          name: string;
-          role: string;
-        }[];
-      };
       get_program_activity_stats: {
         Args: { p_program_id: string };
         Returns: {
@@ -2263,6 +2256,21 @@ export type Database = {
       };
       get_filtered_schools: {
         Args: { filters: Json };
+        Returns: {
+          sch_id: string;
+          school_name: string;
+          district: string;
+          num_students: number;
+          num_teachers: number;
+          program_managers: string[];
+          field_coordinators: string[];
+        }[];
+      };
+      get_filtered_schools_with_optional_program: {
+        Args: {
+          filters?: Json;
+          _program_id?: string | null;
+        };
         Returns: {
           sch_id: string;
           school_name: string;

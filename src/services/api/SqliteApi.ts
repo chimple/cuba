@@ -4966,7 +4966,7 @@ order by
     return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
   }
 
-  async createOrGetUser(payload: {
+  async createOrAddUserOps(payload: {
     name: string;
     email?: string;
     phone?: string;
@@ -4977,7 +4977,7 @@ order by
     message?: string;
     error?: string;
   }> {
-    return await this._serverApi.createOrGetUser(payload);
+    return await this._serverApi.createOrAddUserOps(payload);
   }
 
   async getTeacherInfoBySchoolId(schoolId: string): Promise<

@@ -22,7 +22,7 @@ import { t } from "i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { RoleLabels, RoleType } from "../../interface/modelInterfaces";
 import "./UsersPage.css";
-import NewUserPage from "./NewUserPage";
+import NewUserPage from "./NewUserPageOps";
 import { useHistory } from "react-router-dom";
 
 interface User {
@@ -150,7 +150,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
               className="user-add-mobile"
               onClick={() =>
                 history.push(
-                  `${PAGES.SIDEBAR_PAGE}${PAGES.USERS}${PAGES.NEW_USERS}`
+                  `${PAGES.SIDEBAR_PAGE}${PAGES.USERS}${PAGES.NEW_USERS_OPS}`
                 )
               }
             >
@@ -165,7 +165,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
               className="user-add-desktop"
               onClick={() =>
                 history.push(
-                  `${PAGES.SIDEBAR_PAGE}${PAGES.USERS}${PAGES.NEW_USERS}`
+                  `${PAGES.SIDEBAR_PAGE}${PAGES.USERS}${PAGES.NEW_USERS_OPS}`
                 )
               }
             >

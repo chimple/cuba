@@ -19,8 +19,8 @@ import SchoolDetailsPage from "./SchoolDetailsPage";
 import ProgramDetailsPage from "./ProgramDetailsPage";
 import UsersPage from "./UsersPage";
 import NewProgram from "../components/NewProgram";
-import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPage";
-import NewUserPage from "./NewUserPage";
+import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPageOps";
+import NewUserPage from "./NewUserPageOps";
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
@@ -99,7 +99,7 @@ const SidebarPage: React.FC = () => {
               <UsersPage />
             </ProtectedRoute>
             <ProtectedRoute
-              path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE}/:program_id`}
+              path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS}/:program_id`}
               exact={true}
             >
               {(routeProps) => {
@@ -111,7 +111,7 @@ const SidebarPage: React.FC = () => {
               }}
             </ProtectedRoute>
             <ProtectedRoute
-              path={`${path}${PAGES.USERS}${PAGES.NEW_USERS}`}
+              path={`${path}${PAGES.USERS}${PAGES.NEW_USERS_OPS}`}
               exact={true}
             >
               <NewUserPage />

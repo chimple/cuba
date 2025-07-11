@@ -6222,7 +6222,7 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  async createOrGetUser(payload: {
+  async createOrAddUserOps(payload: {
     name: string;
     email?: string;
     phone?: string;
@@ -6237,7 +6237,7 @@ export class SupabaseApi implements ServiceApi {
       return { success: false, error: "Supabase not initialized" };
     try {
       const { data, error: functionError } =
-        await this.supabase.functions.invoke("create_user_full", {
+        await this.supabase.functions.invoke("ops_adding_and_creating_user", {
           body: payload,
         });
       return {
@@ -6274,7 +6274,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     try {
-      const { data, error } = await this.supabase.rpc<any, any>(
+      const { data, error } = await this.supabase.rpc(
         "get_filtered_schools_with_optional_program",
         payload
       );

@@ -1643,7 +1643,7 @@ export interface ServiceApi {
    * @param {string} payload.role - Role of the user.
    * @returns {Promise<{ success: boolean; user_id?: string; message?: string; error?: string; }>}
    */
-    createOrGetUser(
+    createOrAddUserOps(
       payload: {
         name: string;
         email?: string;

@@ -17,7 +17,7 @@ import {
 import { BsFillBellFill } from "react-icons/bs";
 import { BiSolidRightArrow } from "react-icons/bi";
 import { useHistory } from "react-router-dom";
-import "./NewUserPage.css";
+import "./NewUserPageOps.css";
 import CommonDialogBox from "../../common/CommonDialogBox";
 import { SupabaseApi } from "../../services/api/SupabaseApi";
 import { PAGES } from "../../common/constants";
@@ -74,16 +74,17 @@ const NewUserPage: React.FC = () => {
       return;
     }
     const { success, error, user_id, message } =
-      await api.createOrGetUser(form);
+      await api.createOrAddUserOps(form);
     const readableMsgMap: Record<string, string> = {
       "success-created": "User successfully created.",
       "success-added-to-special_users": "Role successfully added to user.",
       "success-user-already-exists": "User already exists with this role.",
     };
     const displayMsg =
-      readableMsgMap[message as keyof typeof readableMsgMap] ??
-      "User created successfully.";
+      readableMsgMap[message as keyof typeof readableMsgMap]
     setSuccessDialog({ open: true, message: displayMsg });
+    console.log("Returned message key:", message);
+
   };
 
   const handleCancel = () => {
@@ -186,13 +187,6 @@ const NewUserPage: React.FC = () => {
 
           <Box className="new-user-form-actions">
             <Button
-              type="submit"
-              variant="contained"
-              className="new-user-form-actions_button--save"
-            >
-              {t("Save")}
-            </Button>
-            <Button
               type="button"
               variant="text"
               onClick={handleCancel}
@@ -200,23 +194,30 @@ const NewUserPage: React.FC = () => {
             >
               {t("Cancel")}
             </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              className="new-user-form-actions_button--save"
+            >
+              {t("Save")}
+            </Button>
           </Box>
         </form>
       </Box>
       <CommonDialogBox
         showConfirmFlag={showAlert}
         onDidDismiss={() => setShowAlert(false)}
-        header="Missing Contact Info!"
-        message="Please input proper name and role with least a phone number or email address."
-        rightButtonText="OK"
+        header={t("Missing Contact Info!") ?? ""}
+        message={t("Please input proper name and role with least a phone number or email address.") ?? ""}
+        rightButtonText={t("OK") ?? ""}
         rightButtonHandler={() => setShowAlert(false)}
       />
       <CommonDialogBox
         showConfirmFlag={successDialog.open}
         onDidDismiss={() => setSuccessDialog({ open: false, message: "" })}
-        header="Success"
-        message={successDialog.message}
-        rightButtonText="OK"
+        header={t("Success") ?? ""}
+        message={t(successDialog.message)}
+        rightButtonText={t("OK") ?? ""}
         rightButtonHandler={() => {
           setSuccessDialog({ open: false, message: "" });
           history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.USERS}`);

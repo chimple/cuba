@@ -2066,7 +2066,7 @@ export class FirebaseApi implements ServiceApi {
     throw new Error("getFilteredSchoolsForSchoolListing() is not implemented.");
   }
 
-  async createOrGetUser(
+  async createOrAddUserOps(
     payload: {
       name: string;
       email?: string;

@@ -49,6 +49,7 @@
   margin-top: 48px;
   flex-direction: row;
   align-items: center;
+  justify-content: flex-end;
 }
 
 .new-user-form-actions_button--save {
@@ -58,6 +59,7 @@
 .new-user-form-actions_button--cancel {
   color: #1666f4 !important;
   width: auto;
+  background-color: #FEFEFA !important;
 }
 
 @media (max-width: 600px) {
@@ -87,7 +89,7 @@
   }
 
   .new-user-form-actions {
-    flex-direction: column;
+    flex-direction: column-reverse;
     align-items: stretch;
   }
 

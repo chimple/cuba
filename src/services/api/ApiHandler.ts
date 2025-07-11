@@ -1211,7 +1211,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getFilteredSchoolsForSchoolListing(params);
   }
 
-  public async createOrGetUser(
+  public async createOrAddUserOps(
     payload: {
       name: string;
       email?: string;
@@ -1224,7 +1224,7 @@ export class ApiHandler implements ServiceApi {
     message?: string;
     error?: string;
   }> {
-    return await this.s.createOrGetUser(payload);
+    return await this.s.createOrAddUserOps(payload);
   }
 
   public async getTeacherInfoBySchoolId(schoolId: string): Promise<

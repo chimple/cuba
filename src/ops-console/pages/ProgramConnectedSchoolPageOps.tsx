@@ -10,7 +10,7 @@ import {
   useTheme,
   IconButton,
 } from "@mui/material";
-import "./ProgramConnectedSchoolPage.css";
+import "./ProgramConnectedSchoolPageOps.css";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
 import { useHistory } from "react-router";

@@ -16,7 +16,7 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
 import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
 import { BsFillBellFill } from "react-icons/bs";
-import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPage";
+import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPageOps";
 
 interface ProgramDetailComponentProps {
   id: string;
@@ -292,7 +292,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
                     fullWidth
                     onClick={() =>
                       history.push(
-                        `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE}/${id}`
+                        `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS}/${id}`
                       )
                     }
                   >
