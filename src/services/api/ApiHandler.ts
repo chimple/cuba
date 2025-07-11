@@ -1109,13 +1109,17 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getProgramFilterOptions();
   }
   async getPrograms(params: {
-    currentUserId: string;
-    filters?: Record<string, string[]>;
-    searchTerm?: string;
-    tab?: TabType;
-  }): Promise<{ data: any[] }> {
-    return await this.s.getPrograms(params);
-  }
+  currentUserId: string;
+  filters?: Record<string, string[]>;
+  searchTerm?: string;
+  tab?: TabType;
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  order?: "asc" | "desc";
+}): Promise<{ data: any[] }> {
+  return await this.s.getPrograms(params);
+}
 
   public async insertProgram(payload: any): Promise<boolean | null> {
     return await this.s.insertProgram(payload);

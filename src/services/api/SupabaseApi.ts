@@ -5556,43 +5556,52 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  async getPrograms({
-    currentUserId,
-    filters = {},
-    searchTerm = "",
-    tab = PROGRAM_TAB.ALL,
-  }: {
-    currentUserId: string;
-    filters?: Record<string, string[]>;
-    searchTerm?: string;
-    tab?: TabType;
-  }): Promise<{ data: any[] }> {
-    if (!this.supabase) {
-      console.error("Supabase client not initialized");
-      return { data: [] };
-    }
-
-    try {
-      // Call the RPC with currentUserId and pass filters as JSON
-      const { data, error } = await this.supabase.rpc("get_programs_for_user", {
-        _current_user_id: currentUserId,
-        _filters: filters,
-        _search_term: searchTerm,
-        _tab: tab,
-      });
-
-      if (error) {
-        console.error("Error calling get_programs_for_user RPC:", error);
-        return { data: [] };
-      }
-
-      // data will contain programs with manager_names already attached
-      return { data: data || [] };
-    } catch (err) {
-      console.error("Unexpected error in getPrograms:", err);
-      return { data: [] };
-    }
+async getPrograms({
+  currentUserId,
+  filters = {},
+  searchTerm = "",
+  tab = PROGRAM_TAB.ALL,
+  limit = 10,
+  offset = 0,
+  orderBy = "name",
+  order = "asc",
+}: {
+  currentUserId: string;
+  filters?: Record<string, string[]>;
+  searchTerm?: string;
+  tab?: TabType;
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  order?: "asc" | "desc";
+}): Promise<{ data: any[] }> {
+  if (!this.supabase) {
+    console.error("Supabase client not initialized");
+    return { data: [] };
   }
+
+  try {
+    const { data, error } = await this.supabase.rpc("get_programs_for_user", {
+      _current_user_id: currentUserId,
+      _filters: filters,
+      _search_term: searchTerm,
+      _tab: tab,
+      _limit: limit,
+      _offset: offset,
+      _order_by: orderBy,
+      _order: order,
+    });
+
+    if (error) {
+      console.error("Error calling get_programs_for_user RPC:", error);
+      return { data: [] };
+    }
+    return { data: data || [] };
+  } catch (err) {
+    console.error("Unexpected error in getPrograms:", err);
+    return { data: [] };
+  }
+}
 
   async getProgramManagers(): Promise<{ name: string; id: string }[]> {
     if (!this.supabase) {

@@ -4820,19 +4820,36 @@ order by
     return await this._serverApi.getProgramFilterOptions();
   }
   async getPrograms(params: {
-    currentUserId: string;
-    filters?: Record<string, string[]>;
-    searchTerm?: string;
-    tab?: TabType;
-  }): Promise<{ data: any[] }> {
-    const { currentUserId, filters, searchTerm, tab } = params;
-    return await this._serverApi.getPrograms({
-      currentUserId,
-      filters,
-      searchTerm,
-      tab,
-    });
-  }
+  currentUserId: string;
+  filters?: Record<string, string[]>;
+  searchTerm?: string;
+  tab?: TabType;
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  order?: "asc" | "desc";
+}): Promise<{ data: any[] }> {
+  const {
+    currentUserId,
+    filters,
+    searchTerm,
+    tab,
+    limit,
+    offset,
+    orderBy,
+    order,
+  } = params;
+  return await this._serverApi.getPrograms({
+    currentUserId,
+    filters,
+    searchTerm,
+    tab,
+    limit,
+    offset,
+    orderBy,
+    order,
+  });
+}
 
   async insertProgram(payload: any): Promise<boolean | null> {
     return await this._serverApi.insertProgram(payload);
