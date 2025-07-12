@@ -899,7 +899,11 @@ export class ApiHandler implements ServiceApi {
   checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean> {
     return this.s.checkUserExistInSchool(schoolId, userId);
   }
-  checkTeacherExistInClass(schoolId: string, classId: string, userId: string): Promise<boolean> {
+  checkTeacherExistInClass(
+    schoolId: string,
+    classId: string,
+    userId: string
+  ): Promise<boolean> {
     return this.s.checkTeacherExistInClass(schoolId, classId, userId);
   }
   checkUserIsManagerOrDirector(
@@ -1202,23 +1206,19 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getSchoolFilterOptionsForSchoolListing();
   }
 
-  async getFilteredSchoolsForSchoolListing(
-    params: {
-      filters?: Record<string, string[]>;
-      programId?: string;
-    }
-  ): Promise<FilteredSchoolsForSchoolListingOps[]> {
+  async getFilteredSchoolsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+  }): Promise<FilteredSchoolsForSchoolListingOps[]> {
     return await this.s.getFilteredSchoolsForSchoolListing(params);
   }
 
-  public async createOrAddUserOps(
-    payload: {
-      name: string;
-      email?: string;
-      phone?: string;
-      role: string;
-    }
-  ): Promise<{
+  public async createOrAddUserOps(payload: {
+    name: string;
+    email?: string;
+    phone?: string;
+    role: string;
+  }): Promise<{
     success: boolean;
     user_id?: string;
     message?: string;
@@ -1271,10 +1271,23 @@ export class ApiHandler implements ServiceApi {
     return await this.s.program_activity_stats(programId);
   }
 
-  public async getManagersAndCoordinators(): Promise<
-    { user: TableTypes<"user">; role: string }[]
-  > {
-    return await this.s.getManagersAndCoordinators();
+  public async getManagersAndCoordinators(
+    page: number = 1,
+    search: string = "",
+    limit: number = 10,
+    sortBy: keyof TableTypes<"user"> = "name",
+    sortOrder: "asc" | "desc" = "asc"
+  ): Promise<{
+    data: { user: TableTypes<"user">; role: string; allRoles: string }[];
+    totalCount: number;
+  }> {
+    return await this.s.getManagersAndCoordinators(
+      page,
+      search,
+      limit,
+      sortBy,
+      sortOrder
+    );
   }
 
   public async school_activity_stats(schoolId: string): Promise<{

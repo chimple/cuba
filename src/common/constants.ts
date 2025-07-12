@@ -712,7 +712,7 @@ export enum MODES {
   PARENT = "PARENT",
   SCHOOL = "SCHOOL",
   TEACHER = "TEACHER",
-  OPS_CONSOLE = "OPS_CONSOLE"
+  OPS_CONSOLE = "OPS_CONSOLE",
 }
 
 export enum ACTION {
@@ -884,7 +884,7 @@ export const PROFILE_DETAILS_GROWTHBOOK_VARIATION = {
   AFTER_LOGIN_CONTROL: "After Login Control",
   AFTER_LOGIN_V1: "After Login V1",
   AFTER_LOGIN_V2: "After Login V2",
-}
+};
 
 export const ACTION_TYPES = {
   PROFILE_CREATED: "profile_created",
@@ -899,3 +899,10 @@ export enum AGE_OPTIONS {
   SEVEN = "7",
   GREATER_THAN_EQUAL_10 = "≥10",
 }
+
+export const ROLE_PRIORITY: Record<string, number> = {
+  super_admin: 1,
+  operational_director: 2,
+  program_manager: 3,
+  field_coordinator: 4,
+};

@@ -1106,7 +1106,11 @@ export interface ServiceApi {
    * @param {string} userId user Id;
    * @return returns boolean whether the teacher is already connected to class or not.
    */
-  checkTeacherExistInClass(schoolId: string, classId: string, userId: string): Promise<boolean> 
+  checkTeacherExistInClass(
+    schoolId: string,
+    classId: string,
+    userId: string
+  ): Promise<boolean>;
 
   /**
    * Checks the user present in school or not.
@@ -1643,19 +1647,17 @@ export interface ServiceApi {
    * @param {string} payload.role - Role of the user.
    * @returns {Promise<{ success: boolean; user_id?: string; message?: string; error?: string; }>}
    */
-    createOrAddUserOps(
-      payload: {
-        name: string;
-        email?: string;
-        phone?: string;
-        role: string;
-      }
-    ): Promise<{
-      success: boolean;
-      user_id?: string;
-      message?: string;
-      error?: string;
-    }>;
+  createOrAddUserOps(payload: {
+    name: string;
+    email?: string;
+    phone?: string;
+    role: string;
+  }): Promise<{
+    success: boolean;
+    user_id?: string;
+    message?: string;
+    error?: string;
+  }>;
 
   //  * Fetch detailed teacher information for a given school ID.
   //  * @param {string} schoolId - The ID of the school to fetch.
@@ -1722,15 +1724,29 @@ export interface ServiceApi {
   }>;
 
   /**
-   * Retrieve the list of managers and coordinators associated with the current user.
+   * Retrieve the list of managers and coordinators associated with the current user,
+   * with support for pagination, search, and sorting.
    *
-   * @returns {Promise<{ name: string; role: string }[]>}
-   *   Promise resolving to an array of objects, each containing the user's name and their role
-   *   (e.g., "Program Manager", "Field Coordinator").
+   * @param page - The page number for pagination (default: 1).
+   * @param search - Search term to filter by user name (default: "").
+   * @param limit - Number of users per page (default: 10).
+   * @param sortBy - Field to sort by (default: "name").
+   * @param sortOrder - Sort order: "asc" or "desc" (default: "asc").
+   *
+   * @returns Promise resolving to an object containing:
+   *   - data: Array of user objects with their highest role and all assigned roles.
+   *   - totalCount: Total number of matching users.
    */
-  getManagersAndCoordinators(): Promise<
-    { user: TableTypes<"user">; role: string }[]
-  >;
+  getManagersAndCoordinators(
+    page?: number,
+    search?: string,
+    limit?: number,
+    sortBy?: keyof TableTypes<"user">,
+    sortOrder?: "asc" | "desc"
+  ): Promise<{
+    data: { user: TableTypes<"user">; role: string; allRoles: string }[];
+    totalCount: number;
+  }>;
 
   /**
    * Count total and active students, total and active teachers, and average time spent for a given school.
