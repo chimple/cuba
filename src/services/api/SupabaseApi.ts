@@ -6515,10 +6515,9 @@ export class SupabaseApi implements ServiceApi {
     if (!_currentUser) throw new Error("User not logged in");
     const userId = _currentUser.id;
     const roles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
-    const isOps =
-      roles.includes(RoleType.SUPER_ADMIN) ||
-      roles.includes(RoleType.OPERATIONAL_DIRECTOR);
-    if (isOps) {
+    const isSuperAdmin = roles.includes(RoleType.SUPER_ADMIN);
+    const isOpsDirector = roles.includes(RoleType.OPERATIONAL_DIRECTOR);
+    if (isSuperAdmin || isOpsDirector) {
       const { data: specialUsers } = await this.supabase
         .from("special_users")
         .select("user_id, role")
@@ -6551,13 +6550,18 @@ export class SupabaseApi implements ServiceApi {
           userRoleMap.get(u.user)!.add(u.role);
         }
       }
-      const userIds = Array.from(userRoleMap.keys());
+      let userIds = Array.from(userRoleMap.keys());
+      if (isOpsDirector && !isSuperAdmin) {
+        userIds = userIds.filter((id) => {
+          const roles = userRoleMap.get(id);
+          return roles && !roles.has(RoleType.SUPER_ADMIN);
+        });
+      }
       let query = this.supabase
         .from("user")
         .select("*", { count: "exact" })
         .in("id", userIds)
         .eq("is_deleted", false);
-
       if (search && search.length >= 3) {
         query = query.ilike("name", `%${search}%`);
       }
@@ -6585,26 +6589,23 @@ export class SupabaseApi implements ServiceApi {
       return { data: finalResult, totalCount: count || 0 };
     }
     if (roles.includes(RoleType.PROGRAM_MANAGER)) {
-      const { data: programs, error: programError } = await this.supabase
+      const { data: programs } = await this.supabase
         .from("program_user")
         .select("program_id")
         .eq("user", userId)
         .eq("role", "program_manager")
         .eq("is_deleted", false);
-      if (programError || !programs || programs.length === 0) {
+      if (!programs || programs.length === 0) {
         return { data: [], totalCount: 0 };
       }
       const programIds = programs.map((p) => p.program_id);
-      const { data: coordinators, error: coordError } = await this.supabase
+      const { data: coordinators } = await this.supabase
         .from("program_user")
         .select("role, user(*)")
         .in("program_id", programIds)
         .eq("role", "field_coordinator")
         .eq("is_deleted", false);
-      if (coordError || !coordinators) {
-        return { data: [], totalCount: 0 };
-      }
-      const filtered = coordinators.filter((c) => c.user !== null);
+      const filtered = (coordinators || []).filter((c) => c.user !== null);
       const paginated = filtered.slice((page - 1) * limit, page * limit);
       return {
         data: paginated.map((c) => ({
