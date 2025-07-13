@@ -115,7 +115,7 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
                       alt={course.name || "Default Subject Icon"}
                       className="subject-icon-in-display-subject-page"
                     />
-                    <div> {course.name}</div>
+                    <span> {course.name}</span>
                   </div>
                   {canModify && (
                     <IonIcon

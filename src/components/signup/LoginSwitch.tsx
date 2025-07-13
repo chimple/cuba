@@ -3,10 +3,11 @@ import React from "react";
 import "./LoginSwitch.css";
 import { t } from "i18next";
 import { Trans } from "react-i18next";
+import { LOGIN_TYPES } from "../../common/constants";
 
 interface LoginSwitchProps {
-  loginType: "phone" | "student" | "email" | "otp" | "forgot-pass";
-  onSwitch: (type: "phone" | "student" | "email") => void;
+  loginType: LOGIN_TYPES.PHONE | LOGIN_TYPES.STUDENT | LOGIN_TYPES.EMAIL | LOGIN_TYPES.OTP | LOGIN_TYPES.FORGET_PASS;
+  onSwitch: (type: LOGIN_TYPES.PHONE | LOGIN_TYPES.STUDENT | LOGIN_TYPES.EMAIL) => void;
   checkbox: boolean;
   onCheckboxChange: (checked: boolean) => void;
   onTermsClick: () => void;
@@ -31,9 +32,9 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
 }) => {
   return (
     <div className="LoginSwitch-other-ways">
-      {loginType !== "forgot-pass" && (
+      {loginType !== LOGIN_TYPES.FORGET_PASS && (
         <>
-          {loginType !== "otp" ? (
+          {loginType !== LOGIN_TYPES.OTP ? (
             <>
               <div className="LoginSwitch-other-ways-header">
                 <img src="/assets/loginAssets/LoginStripe1.svg" alt="" />
@@ -57,7 +58,7 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
                   <span>{t("Google")}</span>
                 </div>
                 
-                <div className="LoginSwitch-switch-option" onClick={() => onSwitch("student")}>
+                <div className="LoginSwitch-switch-option" onClick={() => onSwitch(LOGIN_TYPES.STUDENT)}>
                   <img
                     className="LoginSwitch-switch-option-img"
                     src="/assets/loginAssets/Student_ID.svg"
@@ -65,13 +66,13 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
                   />
                   <span>{t("student id")}</span>
                 </div>
-                <div className="LoginSwitch-switch-option" onClick={() => onSwitch("email")}>
+                <div className="LoginSwitch-switch-option" onClick={() => onSwitch(LOGIN_TYPES.EMAIL)}>
                   <img
                     className="LoginSwitch-switch-option-img"
                     src="/assets/loginAssets/Email.svg"
                     alt=""
                   />
-                  <span>{t("Email")}</span>
+                  <span>{t(LOGIN_TYPES.EMAIL)}</span>
                 </div>
               </div>
               <div className="LoginSwitch-terms-condition">

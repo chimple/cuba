@@ -13,7 +13,7 @@ td:first-child {
   transform: inherit;
   align-content: center;
   height: 50px;
-  padding-left: 5vh;
+  padding-left: 5vw;
 }
 
 .lesson-name-text {

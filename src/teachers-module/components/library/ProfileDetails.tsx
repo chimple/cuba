@@ -28,8 +28,8 @@ const ProfileDetails: React.FC<ProfileDetailsProps> = ({
   const containerStyle = isAddStudentRoute ? {
         display: "flex",
         alignItems: "flex-start",
-        gap: "1rem",
-        marginRight: "26vw",
+        gap: "2rem",
+        marginRight: "33vw",
   } : undefined;
 
   return (
@@ -46,9 +46,11 @@ const ProfileDetails: React.FC<ProfileDetailsProps> = ({
           alt=''
           className="profile-details-img"
         />
-        <div className="overlay">
-          <IonIcon className="camera-icon" icon={camera} size="large" />
-        </div>
+        {isAddStudentRoute && (
+          <div className="overlay">
+            <IonIcon className="camera-icon" icon={camera} size="large" />
+          </div>
+        )}
       </label>
       {isEditMode && (
         <input

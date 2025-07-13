@@ -11,16 +11,9 @@
 .manage-class-button {
   border: 1px solid #7C5DB0;
   border-radius: 5px;
-  width: 150px;
-  height: 34px;
+  width: fit-content;
 }
 
-.manage-class-button {
-  border: 1px solid #7C5DB0;
-  border-radius: 5px;
-  width: 150px;
-  height: 34px;
-}
 .class-divider {
   background-color:#9473CB;
   height: 0.5px;
@@ -28,4 +21,14 @@
 }
 .class-iconlabel {
   padding-left: 10px;
+  font-size: 22px;
+  color: #707070;
+  font-weight: 600;
+}
+
+.classsection-class {
+  display: flex;
+  align-items: center;
+  padding-top: 8px;
+  padding-left: 9px;
 }

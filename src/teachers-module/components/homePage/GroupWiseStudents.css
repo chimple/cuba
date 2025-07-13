@@ -28,10 +28,11 @@
 .group-wise-content {
   position: relative;
   display: flex;
-  align-items: center;
+  /* align-items: center; */
   height: auto;
   overflow-x: scroll;
   flex: 5;
+  /* padding: 2px 0px; */
 }
 .student-avatar-container {
   display: flex;
@@ -46,7 +47,7 @@
 
 .student-avatar-container .avatar {
   width: auto;  
-  height: 45px; 
+  height: 7.3vh; 
   border-radius: 50%;
   border: 1px solid #707070;
   aspect-ratio: 1;
@@ -59,11 +60,12 @@
   overflow: hidden;
   text-overflow: ellipsis; 
   font-size: 1.9vh;
+  font-weight: 600;
 }
 
 .avatars-wrapper {
   display: flex;
-  align-items: center;
+  /* align-items: center; */
   overflow-x: auto;         
   padding-left: 6px;
   width: 90%;

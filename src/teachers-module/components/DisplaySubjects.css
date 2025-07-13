@@ -31,7 +31,6 @@
   box-shadow: 0 0.15vh 0.6vh rgba(0, 0, 0, 0.1);
   cursor: pointer;
   transition: background-color 0.3s;
-  color: black;
 }
 
 .subject-item-in-display-subject-page:hover {
@@ -39,7 +38,7 @@
 }
 
 .subject-icon-in-display-subject-page {
-  width: clamp(30px, 4vw, 50px);
+  width: clamp(50px, 4vw, 50px);
   height: 20%;
   margin-right: 1.5vh;
 }
@@ -47,8 +46,8 @@
 .subject-item-in-display-subject-page {
   flex-grow: 1;
   font-size: 1rem;
-  color: var(--text-color);
-  padding: 0 3vw;
+  color: #707070;
+  padding: 0 5vw;
 }
 
 .subject-item-in-display-subject-page .MuiSvgIcon-root {
@@ -71,7 +70,8 @@
 
 .main-title-in-display-subject-page {
   color: #707070;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
+  font-weight: 600;
   margin: 0;
 }
 
@@ -142,8 +142,14 @@
   gap: 3vw;
 }
 
+.subject-name-div span {
+  color: #707070;
+  font-size: 18px;
+  font-weight: 400;
+}
+
 .display-subIcon {
   color: #019541;
   width: 30px;
-  height: 25px;
+  height: 30px;
 }

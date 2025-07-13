@@ -27,6 +27,7 @@
   justify-content: space-around;
   height: auto; /* Let it expand based on content */
   flex-wrap: wrap;
+  margin-top: -4px;
 }
 
 .summary-item {
@@ -44,7 +45,7 @@
 }
 
 .summary-item .CircularProgressbar .CircularProgressbar-text {
-  font-size: 25px;
+  font-size: 32px;
   /* alignment-baseline: ideographic; */
 }
 
@@ -58,8 +59,9 @@
 
 .summary-label {
   text-align: center;
-  font-size: 10px;
-  color: #666;
+  font-size: 12px;
+  font-weight: 600;
+  color: #707070;
   line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;

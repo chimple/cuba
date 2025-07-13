@@ -50,8 +50,8 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
     name: option.label,
   }));
   return (
-    <div className="add-studentsection__form">
-      <form>
+    <div className="add-studentsection__container">
+      <form className="addstudentsection__form" style={{display: "flex", flexDirection: "column", gap:"10px"}}>
         <div className="add-studentsection__group">
           <label htmlFor="name">{t("Name")}</label>
           <input
@@ -79,7 +79,7 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
           />
         </div>
         <hr className="horizontal-line" />
-        <div className="add-student__group">
+        <div className="add-studentsection__group">
           <label htmlFor="studentId">{t("Student Id")}</label>
           <input
             type="text"
@@ -92,7 +92,7 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
           />
         </div>
         <hr className="horizontal-line" />
-        <div className="add-student__group">
+        <div className="add-studentsection__group">
           <label>{t("Gender")}</label>
           <IonRadioGroup
             value={gender}
@@ -112,7 +112,7 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
           </IonRadioGroup>
         </div>
         <hr className="horizontal-line" />
-        <div className="add-student__group">
+        <div className="add-studentsection__group">
           <label>{t("Preferred Language")}</label>
           <CustomDropdown
             options={mappedLanguageOptions}
