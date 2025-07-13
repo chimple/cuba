@@ -4975,13 +4975,18 @@ order by
   }
 
   async getFilteredSchoolsForSchoolListing(
-    params: {
-      filters?: Record<string, string[]>;
-      programId?: string;
-    }
-  ): Promise<FilteredSchoolsForSchoolListingOps[]> {
-    return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
+  params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: "asc" | "desc";
+    search?: string;
   }
+): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
+  return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
+}
 
   async createOrAddUserOps(payload: {
     name: string;

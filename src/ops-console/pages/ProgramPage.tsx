@@ -5,10 +5,8 @@ import {
   Box,
   Typography,
   Button,
-  Skeleton,
   CircularProgress,
   useMediaQuery,
-  useTheme,
   IconButton,
 } from "@mui/material";
 import "./ProgramPage.css";
@@ -82,7 +80,6 @@ const ProgramsPage: React.FC = () => {
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
-  const theme = useTheme();
   const isSmallScreen = useMediaQuery("(max-width: 900px)");
 
   const [activeTabIndex, setActiveTabIndex] = useState(0);

@@ -2378,23 +2378,6 @@ export type Database = {
           name: string;
         }[];
       };
-      // get_programs_for_user: {
-      //   Args: {
-      //     _current_user_id: string;
-      //     _filters: Json;
-      //     _tab: string;
-      //     _search_term: string;
-      //   };
-      //   Returns: {
-      //     id: string;
-      //     name: string;
-      //     state: string;
-      //     institutes_count: number;
-      //     students_count: number;
-      //     devices_count: number;
-      //     manager_names: string;
-      //   }[];
-      // };
       get_programs_for_user: {
         Args: {
           _current_user_id: string;

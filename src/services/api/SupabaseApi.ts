@@ -6303,43 +6303,65 @@ async getPrograms({
     }
   }
 
-  async getFilteredSchoolsForSchoolListing(params: {
-    filters?: Record<string, string[]>;
-    programId?: string;
-  }): Promise<FilteredSchoolsForSchoolListingOps[]> {
-    if (!this.supabase) {
-      console.error("Supabase client is not initialized");
-      return [];
-    }
-
-    const { filters, programId } = params;
-    const payload: any = {};
-
-    if (filters && Object.keys(filters).length > 0) {
-      payload.filters = filters;
-    }
-
-    if (programId) {
-      payload._program_id = programId;
-    }
-
-    try {
-      const { data, error } = await this.supabase.rpc(
-        "get_filtered_schools_with_optional_program",
-        payload
-      );
-
-      if (error) {
-        console.error("RPC error in get_filtered_schools_with_optional_program:", error);
-        return [];
-      }
-
-      return (data ?? []) as FilteredSchoolsForSchoolListingOps[];
-    } catch (err) {
-      console.error("Unexpected error in get_filtered_schools_with_optional_program:", err);
-      return [];
-    }
+ async getFilteredSchoolsForSchoolListing(params: {
+  filters?: Record<string, string[]>;
+  programId?: string;
+  page?: number;
+  page_size?: number;
+  order_by?: string;
+  order_dir?: "asc" | "desc";
+  search?: string;
+}): Promise<{
+  data: FilteredSchoolsForSchoolListingOps[];
+  total: number;
+}> {
+  if (!this.supabase) {
+    console.error("Supabase client is not initialized");
+    return { data: [], total: 0 };
   }
+
+  const {
+    filters,
+    programId,
+    page,
+    page_size,
+    order_by,
+    order_dir,
+    search,
+  } = params;
+  const payload: any = {};
+
+  if (filters && Object.keys(filters).length > 0) payload.filters = filters;
+  if (programId) payload._program_id = programId;
+  if (page) payload.page = page;
+  if (page_size) payload.page_size = page_size;
+  if (order_by) payload.order_by = order_by;
+  if (order_dir) payload.order_dir = order_dir;
+  if (search) payload.search = search;
+
+  try {
+    const { data, error } = await this.supabase.rpc(
+      "get_filtered_schools_with_optional_program",
+      payload
+    );
+    if (error) {
+      console.error("RPC error in get_filtered_schools_with_optional_program:", error);
+      return { data: [], total: 0 };
+    }
+
+    if (!data || typeof data !== "object" || !("data" in data) || !("total" in data)) {
+      throw new Error("Supabase RPC did not return expected { data, total } shape");
+    }
+
+    return {
+      data: (data.data ?? []) as FilteredSchoolsForSchoolListingOps[],
+      total: typeof data.total === "number" ? data.total : 0,
+    };
+  } catch (err) {
+    console.error("Unexpected error in get_filtered_schools_with_optional_program:", err);
+    return { data: [], total: 0 };
+  }
+}
 
   async createAutoProfile(
     languageDocId: string | undefined
