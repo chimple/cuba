@@ -1,0 +1,107 @@
+.program-user-details-page {
+  background-color: #FAFAFA;
+  padding: clamp(18px, 2vw, 32px) clamp(20px, 2vw, 32px);  display: flex;
+  flex-direction: column;
+}
+.program-user-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.program-user-title {
+  font-size: 30px !important;
+  font-weight: 700 !important;
+}
+.program-user-title-mobile {
+  font-size: 25px !important;
+  font-weight: 700 !important;
+  text-align: center;
+}
+
+.program-user-detail-page-Breadcrumb {
+  padding: 20px 0;
+  /* padding-left: 2%; */
+}
+
+
+.program-user-card {
+  width: clamp(300px, 95%, 560px);
+  height: clmap(400px, 95%, 730px);
+  padding: clamp(18px, 2vw, 32px) clamp(5px, 2vw, 32px);  display: flex;
+  border-radius: 12px;
+  display: flex;
+  justify-content: left;
+  flex-direction: column;
+  background-color: #fff;
+  /* padding-left: 2%; */
+}
+
+.program-user-image-container {
+  display: flex;
+  margin-left: 0;
+  padding-bottom: 20px;
+}
+
+.program-user-profile-img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.program-user-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+}
+
+.program-user-form-section label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #000;
+  text-align: left;
+}
+
+.program-user-form-section input, .program-user-form-section select
+{
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  font-weight: 500;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #3D3D3D;
+}
+
+.program-user-button-row {
+  display: flex;
+  justify-content: right;
+  margin-top: 30px;
+  gap: 30px;
+}
+
+.program-user-delete-btn, .program-user-cancel-btn {
+  background: none;
+  border: none;
+  color: red;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+}
+.program-user-cancel-btn{
+  color: #1976d2;
+}
+
+.program-user-edit-btn, .program-user-save-btn {
+  background-color: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+

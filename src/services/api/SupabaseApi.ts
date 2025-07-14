@@ -6668,4 +6668,24 @@ export class SupabaseApi implements ServiceApi {
     return [];
   }
 }
+
+    try {
+      const { error } = await this.supabase
+          role: role as
+            | RoleType.PROGRAM_MANAGER
+            | RoleType.OPERATIONAL_DIRECTOR,
+          updated_at: updatedAt,
+        })
+        .eq("user_id", userId)
+        .eq("is_deleted", false);
+    }
+      if (error) {
+    }
+    }
+        .eq("user", userId)
+  }
+        .from("program_user")
+  }
+      console.error("Supabase client not initialized.");
+      console.error("Unexpected error while deleting user:", e);
 }

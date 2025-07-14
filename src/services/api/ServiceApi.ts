@@ -1732,4 +1732,36 @@ export interface ServiceApi {
    * @returns {Promise<string | undefined>} If any special role is there it will return role otherwise it will return undefined.
    */
   getUserSpecialRoles(userId: string): Promise<string[]>;
+
+  /**
+   * Updates the role of a special user in special users table.
+   * @param {string} userId - user Id.
+   * @param {number} role - user Role.
+   */
+  updateSpecialUserRole(userId: string, role: string): Promise<void>;
+  /**
+   * Delete the user from special_users table.
+   * @param {string} userId - user Id.
+   */
+  deleteSpecialUser(userId:string):Promise<void>;
+
+  /**
+   * Updates the role of a special user in program users table.
+   * @param {string} userId - user Id.
+   * @param {number} role - user Role.
+   */
+  updateProgramUserRole(userId: string, role: string): Promise<void>;
+
+  /**
+   * Delete the user from program_user table.
+   * @param {string} userId - user Id.
+   */
+  deleteProgramUser(userId:string):Promise<void>;
+
+  /**
+   * Delete the user from school_user table by role.
+   * @param {string} userId - user Id.
+   * @param {number} role - user Role.
+   */
+  deleteUserFromSchoolsWithRole(userId: string, role: string):Promise<void>;
 }

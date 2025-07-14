@@ -3352,7 +3352,7 @@ export type Database = {
         | "program_manager"
         | "operational_director"
         | "field_coordinator";
-      special_roles: "super_admin" | "operational_director" | "program_manager";
+      special_roles: "super_admin" | "operational_director" | "program_manager" | "field_coordinator";
     };
     CompositeTypes: {
       [_ in never]: never;

@@ -5359,4 +5359,20 @@ order by
   async getUserSpecialRoles(userId: string): Promise<string[]> {
     return await this._serverApi.getUserSpecialRoles(userId);
   }
+  async updateSpecialUserRole(userId: string, role: string): Promise<void> {
+    return await this._serverApi.updateSpecialUserRole(userId, role);
+  }
+  async deleteSpecialUser(userId:string):Promise<void>{
+    return await this._serverApi.deleteSpecialUser(userId);
+  }
+  async updateProgramUserRole(userId: string, role: string): Promise<void> {
+    return await this._serverApi.updateProgramUserRole(userId, role);
+  }
+  async deleteProgramUser(userId:string):Promise<void>{
+    return await this._serverApi.deleteProgramUser(userId);
+  }
+  async deleteUserFromSchoolsWithRole(userId: string, role: string):Promise<void>{
+    return await this._serverApi.deleteUserFromSchoolsWithRole(userId, role);
+  }
+
 }
