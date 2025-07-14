@@ -28,7 +28,8 @@ export class ClassUtil {
       currentDateTimeStamp,
       oneWeekBackTimeStamp,
       true,
-      false
+      false,
+      true
     );
     const assignmentIds = assignements?.map((asgmt) => asgmt.id) || [];
     const assignmentResult = await this.api.getResultByAssignmentIds(assignmentIds);
@@ -131,7 +132,8 @@ export class ClassUtil {
       currentDateTimeStamp,
       oneWeekBackTimeStamp,
       true,
-      false
+      false,
+      true
     );
     const assignmentIds = (assignements?.map((asgmt) => asgmt.id) || []).slice(
       0,
@@ -479,7 +481,8 @@ export class ClassUtil {
       endTimeStamp,
       startTimeStamp,
       /* isClassWise = */ false,
-      isLiveQuiz
+      isLiveQuiz,
+      true
     );
 
     const assignmentIds = _assignments?.map((asgmt) => asgmt.id) || [];

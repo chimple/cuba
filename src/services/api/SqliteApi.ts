@@ -3916,7 +3916,8 @@ order by
     startDate: string,
     endDate: string,
     isClassWise: boolean,
-    isLiveQuiz: boolean
+    isLiveQuiz: boolean,
+    allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
     let query = `SELECT * FROM ${TABLES.Assignment} WHERE class_id = ? AND created_at BETWEEN ? AND ?`;
     const params: any[] = [classId, endDate, startDate];
@@ -3933,10 +3934,12 @@ order by
     if (isClassWise) {
       query += ` AND is_class_wise = 1`;
     }
-    if (isLiveQuiz) {
+    if(!allAssignments) {
+      if (isLiveQuiz) {
       query += ` AND type = 'liveQuiz'`;
     } else {
       query += ` AND type != 'liveQuiz'`;
+    }
     }
     query += ` ORDER BY created_at DESC`;
 

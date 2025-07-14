@@ -821,7 +821,8 @@ export class ApiHandler implements ServiceApi {
     startDate: string,
     endDate: string,
     isClassWise: boolean,
-    isLiveQuiz: boolean
+    isLiveQuiz: boolean,
+    allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
     return this.s.getAssignmentOrLiveQuizByClassByDate(
       classId,
@@ -829,7 +830,8 @@ export class ApiHandler implements ServiceApi {
       startDate,
       endDate,
       isClassWise,
-      isLiveQuiz
+      isLiveQuiz,
+      allAssignments
     );
   }
 
