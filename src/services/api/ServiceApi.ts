@@ -1305,6 +1305,14 @@ export interface ServiceApi {
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }>;
 
+   /**
+   * To validate given program name exist in the program table or not
+   * @param {string } programName -    program name
+   */
+  validateProgramName(
+    programName: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
   /**
    * To validate given UDISE school Id  exist in the given school table or not
    * @param {string } schoolId -    school id(UDISE)
