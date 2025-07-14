@@ -111,7 +111,6 @@ const CocosGame: React.FC = () => {
     try {
       const urlParams = new URLSearchParams(window.location.search);
       let fromPath: string = state?.from ?? PAGES.HOME;
-
       console.log("Checking fromPath conditions", fromPath);
 
       // Reset to home if trying to go back to an unloaded game screen
@@ -513,10 +512,8 @@ const CocosGame: React.FC = () => {
               yesText={t("Like the Game")}
               lessonName={lessonDetail?.name ?? ""}
               noText={t("Continue Playing")}
-              handleClose={(e: any) => {
+              handleClose={async (e: any) => {
                 setShowDialogBox(true);
-                //  saveTempData(gameResult.detail, undefined);
-                // push();
               }}
               onYesButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
