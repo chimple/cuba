@@ -3329,6 +3329,10 @@ export type Database = {
         Args: { input_school_udise_code: string };
         Returns: Json;
       };
+      validate_program_name: {
+        Args: { input_program_name: string };
+        Returns: Json;
+      };
       validate_user_contacts_rpc: {
         Args: {
           program_manager_contact: string;

@@ -5111,6 +5111,45 @@ export class SupabaseApi implements ServiceApi {
       };
     }
   }
+  async validateProgramName(
+    programName: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "validate_program_name",
+        {
+          input_program_name: programName,
+        }
+      );
+      // Narrow the type from Json to expected shape
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "status" in data &&
+        typeof (data as any).status === "string"
+      ) {
+        return data as { status: string; errors?: string[]; message?: string };
+      }
+
+      // Fallback if data isn't in expected shape
+      return {
+        status: "error",
+        errors: ["Unexpected response format from Supabase function 1111"],
+      };
+    } catch (error) {
+      return {
+        status: "error",
+        errors: [String(error)],
+      };
+    }
+  }
 
   async validateSchoolUdiseCode(
     schoolId: string

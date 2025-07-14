@@ -1033,6 +1033,11 @@ export class ApiHandler implements ServiceApi {
       phoneNumber
     );
   }
+  async validateProgramName(
+    programName: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateProgramName(programName);
+  }
   async validateSchoolUdiseCode(
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }> {
