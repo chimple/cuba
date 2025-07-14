@@ -14,9 +14,8 @@ import { IonAlert } from "@ionic/react";
 
 const UserDetailsPage: React.FC = () => {
   const [user, setUser] = useState<any>();
-  // const [userRole, setUserRole] = useState<string>("");
+  const [userRole, setUserRole] = useState<string>("");
   const selectRef = useRef<HTMLSelectElement>(null);
-  const [selectedRole, setSelectedRole] = useState<string>("");
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -30,38 +29,75 @@ const UserDetailsPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const userData = (location.state as any)?.userData;
+  const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
     if (userData) {
       setUser(userData.user);
-      setSelectedRole(userData.userRole);
+      setUserRole(userData.userRole);
     }
   }, [userData]);
 
   const confirmDelete = async () => {
-    if (user) {
-      const api = ServiceConfig.getI().apiHandler;
-      await api.deleteSpecialUser(user.id);
-      await api.deleteProgramUser(user.id);
-      if (userData.userRole === RoleType.FIELD_COORDINATOR) {
-        await api.deleteUserFromSchoolsWithRole(
-          user.id,
-          RoleType.FIELD_COORDINATOR
-        );
-      }
+    if (!user) return;
+
+    const deleteTasks: Promise<any>[] = [
+      api.deleteSpecialUser(user.id),
+      api.deleteProgramUser(user.id),
+    ];
+    if (userData.userRole === RoleType.FIELD_COORDINATOR) {
+      deleteTasks.push(
+        api.deleteUserFromSchoolsWithRole(user.id, RoleType.FIELD_COORDINATOR)
+      );
+    }
+
+    try {
+      await Promise.all(deleteTasks);
       setShowConfirm(false);
       history.goBack();
+    } catch (error) {
+      console.error("Failed to delete user completely:", error);
     }
   };
 
+  const onSave = async () => {
+    const selectedRole = selectRef.current?.value || userRole;
+    try {
+      await Promise.all([
+        api.updateUserProfile(
+          user,
+          user.name,
+          user.email,
+          user.phone,
+          user.languageDocId,
+          user.profilePic
+        ),
+        api.updateSpecialUserRole(user.id, selectedRole),
+        api.updateProgramUserRole(user.id, selectedRole),
+      ]);
+
+      setUserRole(selectedRole);
+      setIsEdit(false);
+    } catch (error) {
+      console.error("Failed to update user info:", error);
+    }
+  };
+
+  const isEditDisabled =
+    userData?.userRole === RoleType.SUPER_ADMIN ||
+    userData?.userRole === RoleType.OPERATIONAL_DIRECTOR;
+
+  const isSaveDisabled =
+    user?.name === userData?.user?.name && userRole === userData?.userRole;
+
   return (
-    <div className="program-user-details-page">
-      <div className="program-user-page-header">
-        <Box className="program-user-header-top">
+    <div className="user-details-page">
+      <div className="user-details-page-header">
+        <Box className="user-details-header-top">
           {isMobile ? (
             <>
               <Box sx={{ width: 40 }} />
-              <Typography className="program-user-title-mobile">
+              <Typography className="user-details-title-mobile">
                 {t("Users")}
               </Typography>
               <IconButton className="user-icon-button">
@@ -70,7 +106,7 @@ const UserDetailsPage: React.FC = () => {
             </>
           ) : (
             <>
-              <Typography className="program-user-title">
+              <Typography className="user-details-title">
                 {t("Users")}
               </Typography>
               <IconButton className="user-icon-button">
@@ -80,7 +116,7 @@ const UserDetailsPage: React.FC = () => {
           )}
         </Box>
       </div>
-      <div className="program-user-detail-page-Breadcrumb">
+      <div className="user-details-page-Breadcrumb">
         <Breadcrumb
           crumbs={[
             { label: t("Users"), onClick: () => history.goBack() },
@@ -91,20 +127,20 @@ const UserDetailsPage: React.FC = () => {
         />
       </div>
 
-      <div className="program-user-card">
-        <div className="program-user-image-container">
+      <div className="user-details-card">
+        <div className="user-details-image-container">
           <img
-            className="program-user-profile-img"
+            className="user-details-profile-img"
             src={
               user?.image && user.image.trim() !== ""
                 ? user.image
-                : require("../assets/icons/profile.svg").default
+                : "/assets/profile.svg"
             }
             alt="Profile"
           />
         </div>
 
-        <div className="program-user-form-section">
+        <div className="user-details-form-section">
           <label>{t("Name")}</label>
           <input
             type="text"
@@ -138,54 +174,37 @@ const UserDetailsPage: React.FC = () => {
           <label>{t("Assigned Role")}</label>
           <select
             ref={selectRef}
-            value={selectedRole}
+            value={userRole}
             disabled={!isEdit}
-            onChange={(e) => setSelectedRole(e.target.value)}
+            onChange={(e) => setUserRole(e.target.value)}
           >
-            {isEdit &&
-            RoleType.SUPER_ADMIN !== selectedRole &&
-            RoleType.OPERATIONAL_DIRECTOR !== selectedRole
+            {isEdit
               ? availableEditRoles.map((role: string) => (
                   <option key={role} value={role}>
                     {RoleLabels[role as RoleType]}
                   </option>
                 ))
               : [
-                  <option key={selectedRole} value={selectedRole}>
-                    {RoleLabels[selectedRole as RoleType]}
+                  <option key={userRole} value={userRole}>
+                    {RoleLabels[userRole as RoleType]}
                   </option>,
                 ]}
           </select>
         </div>
 
-        <div className="program-user-button-row">
+        <div className="user-details-button-row">
           {isEdit ? (
             <>
-              <button className="program-user-cancel-btn" onClick={() => setIsEdit(false)}>
+              <button
+                className="user-details-cancel-btn"
+                onClick={() => setIsEdit(false)}
+              >
                 {t("Cancel")}
               </button>
               <button
-                className="program-user-save-btn"
-                onClick={async () => {
-                  const api = ServiceConfig.getI().apiHandler;
-
-                  const latestSelectedRole =
-                    selectRef.current?.value || selectedRole;
-
-                  await api.updateUserProfile(
-                    user,
-                    user.name,
-                    user.email,
-                    user.phone,
-                    user.languageDocId,
-                    user.profilePic
-                  );
-                  await api.updateSpecialUserRole(user.id, latestSelectedRole);
-                  await api.updateProgramUserRole(user.id, latestSelectedRole);
-
-                  setSelectedRole(latestSelectedRole); // keep state in sync
-                  setIsEdit(false);
-                }}
+                className="user-details-save-btn"
+                onClick={onSave}
+                disabled={isSaveDisabled}
               >
                 {t("Save")}
               </button>
@@ -193,30 +212,35 @@ const UserDetailsPage: React.FC = () => {
           ) : (
             <>
               <button
-                className="program-user-delete-btn"
+                className="user-details-delete-btn"
+                disabled={isEditDisabled}
                 onClick={() => setShowConfirm(true)}
               >
                 {t("Delete")}
               </button>
-              <button className="program-user-edit-btn" onClick={() => setIsEdit(true)}>
+              <button
+                className="user-details-edit-btn"
+                disabled={isEditDisabled}
+                onClick={() => setIsEdit(true)}
+              >
                 {t("Edit")}
               </button>
-
               <IonAlert
                 isOpen={showConfirm}
                 onDidDismiss={() => setShowConfirm(false)}
-                cssClass="custom-alert"
+                cssClass="user-details-custom-alert"
+                header={t("Delete User") ?? ""}
                 message={t("Are you sure you want to delete this user?") || ""}
                 buttons={[
                   {
-                    text: t("Delete"),
-                    cssClass: "alert-delete-button",
-                    handler: confirmDelete,
+                    text: t("Cancel") || "",
+                    cssClass: "user-details-alert-cancel-button",
+                    handler: () => setShowConfirm(false),
                   },
                   {
-                    text: t("Cancel") || "",
-                    cssClass: "alert-cancel-button",
-                    handler: () => setShowConfirm(false),
+                    text: t("Delete"),
+                    cssClass: "user-details-alert-delete-button",
+                    handler: confirmDelete,
                   },
                 ]}
               />

@@ -6680,8 +6680,8 @@ export class SupabaseApi implements ServiceApi {
         .from("special_users")
         .update({
           role: role as
-            | RoleType.PROGRAM_MANAGER
-            | RoleType.OPERATIONAL_DIRECTOR,
+            RoleType.PROGRAM_MANAGER
+            | RoleType.FIELD_COORDINATOR,
           updated_at: updatedAt,
         })
         .eq("user_id", userId)
@@ -6703,7 +6703,8 @@ export class SupabaseApi implements ServiceApi {
       const { error } = await this.supabase
         .from("special_users")
         .update({ is_deleted: true })
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .eq("is_deleted", false);
       if (error) {
         console.error("Error deleting user in special_users:", error.message);
       }
@@ -6723,8 +6724,8 @@ export class SupabaseApi implements ServiceApi {
         .from("program_user")
         .update({
           role: role as
-            | RoleType.PROGRAM_MANAGER
-            | RoleType.OPERATIONAL_DIRECTOR,
+            RoleType.PROGRAM_MANAGER
+            | RoleType.FIELD_COORDINATOR,
           updated_at: updatedAt,
         })
         .eq("user", userId)
@@ -6747,7 +6748,8 @@ export class SupabaseApi implements ServiceApi {
       const { error } = await this.supabase
         .from("program_user")
         .update({ is_deleted: true })
-        .eq("user", userId);
+        .eq("user", userId)
+        .eq("is_deleted", false);
       if (error) {
         console.error("Error deleting user in program_user:", error.message);
       }
@@ -6769,7 +6771,8 @@ export class SupabaseApi implements ServiceApi {
         .from("school_user")
         .update({ is_deleted: true })
         .eq("user", userId)
-        .eq("role", role);
+        .eq("role", role)
+        .eq("is_deleted", false);
       if (error) {
         console.error("Error deleting user in program_user:", error.message);
       }
