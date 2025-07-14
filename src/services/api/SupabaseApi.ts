@@ -1751,7 +1751,6 @@ export class SupabaseApi implements ServiceApi {
     const lessons = (data ?? [])
       .map((item: any) => item.lesson as TableTypes<"lesson">)
       .filter((lesson) => !!lesson);
-    
     return lessons ?? ([] as TableTypes<"lesson">[]);
   }
   async getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
@@ -4578,14 +4577,13 @@ export class SupabaseApi implements ServiceApi {
 
     return teachers && teachers.length > 0;
   }
-  
   async checkTeacherExistInClass(
-  schoolId: string,
-  classId: string,
-  userId: string
+    schoolId: string,
+    classId: string,
+    userId: string
   ): Promise<boolean> {
     if (!this.supabase) return false;
-     //  Check if user is in school_user but NOT as a parent and not deleted
+    //  Check if user is in school_user but NOT as a parent and not deleted
     const { data: schoolUsers, error: schoolUserError } = await this.supabase
       .from(TABLES.SchoolUser)
       .select("*")
@@ -5665,8 +5663,10 @@ export class SupabaseApi implements ServiceApi {
       if (data && typeof data === "object") {
         for (const key in data) {
           const val = data[key];
-          if (Array.isArray(val) && val.every((v) => typeof v === "string")) {
-            parsed[key] = val;
+          if (Array.isArray(val)) {
+            parsed[key] = val.filter(
+              (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+            );
           } else {
             parsed[key] = [];
           }
@@ -6296,14 +6296,26 @@ async getPrograms({
         return {};
       }
 
-      const parsed: Record<string, string[]> = {};
+      const parsed: Record<string, string[]> = {
+        state: [],
+        district: [],
+        block: [],
+        village: [],
+        programType: [],
+        partner: [],
+        programManager: [],
+        fieldCoordinator: [],
+        cluster: [],
+      };
+
       if (data && typeof data === "object") {
-        for (const key in data) {
+        for (const key in parsed) {
           const val = data[key];
-          parsed[key] =
-            Array.isArray(val) && val.every((v) => typeof v === "string")
-              ? val
-              : [];
+          parsed[key] = Array.isArray(val)
+            ? val.filter(
+                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+              )
+            : [];
         }
       }
 
@@ -6562,111 +6574,112 @@ async getPrograms({
   }
 
   async getManagersAndCoordinators(): Promise<
-  { user: TableTypes<"user">; role: string }[]
-> {
-  if (!this.supabase) {
-    console.error("Supabase client not initialized.");
-    return [];
+    { user: TableTypes<"user">; role: string }[]
+  > {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return [];
+    }
+
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw new Error("User is not Logged in");
+
+    const userId = _currentUser.id;
+    const roles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+
+    const isOpsRole =
+      roles.includes(RoleType.SUPER_ADMIN) ||
+      roles.includes(RoleType.OPERATIONAL_DIRECTOR);
+
+    if (isOpsRole) {
+      const { data: programUsers, error: programError } = await this.supabase
+        .from("program_user")
+        .select("role, user")
+        .eq("is_deleted", false);
+
+      const { data: specialUsers, error: specialError } = await this.supabase
+        .from("special_users")
+        .select("role, user_id")
+        .eq("is_deleted", false);
+
+      if (programError || specialError) {
+        console.error("Error fetching users", programError || specialError);
+        return [];
+      }
+
+      const combined = [
+        ...(programUsers || []).map((u) => ({ id: u.user, role: u.role })),
+        ...(specialUsers || []).map((u) => ({ id: u.user_id, role: u.role })),
+      ];
+
+      const uniqueUsers = Array.from(
+        new Map(combined.map((u) => [u.id, u])).values()
+      );
+
+      const userIds = uniqueUsers.map((u) => u.id);
+      const { data: userDetails, error: userError } = await this.supabase
+        .from("user")
+        .select("*")
+        .in("id", userIds)
+        .eq("is_deleted", false);
+
+      if (userError) {
+        console.error("Error fetching user names", userError);
+        return [];
+      }
+
+      const userMap = new Map(
+        (userDetails || [])
+          .filter((u) => u.id !== null)
+          .map((u) => [u.id as string, u])
+      );
+
+      const finalResult: { user: any; role: string }[] = uniqueUsers
+        .filter((u) => u.id !== null && u.role !== null)
+        .map((u) => ({
+          user: userMap.get(u.id as string) ?? {},
+          role: u.role as string,
+        }));
+
+      return finalResult;
+    } else {
+      // Checks for the Program manager role
+      const { data: programs, error: programError } = await this.supabase
+        .from("program_user")
+        .select("program_id")
+        .eq("user", userId)
+        .eq("role", RoleType.PROGRAM_MANAGER)
+        .eq("is_deleted", false);
+
+      if (programError || !programs) {
+        console.error("Error fetching programs", programError);
+        return [];
+      }
+
+      const programIds = programs.map((p) => p.program_id);
+      if (programIds.length === 0) return [];
+
+      const { data: coordinators, error: coordError } = await this.supabase
+        .from("program_user")
+        .select("role, user(*)")
+        .in("program_id", programIds)
+        .eq("role", RoleType.FIELD_COORDINATOR)
+        .eq("is_deleted", false);
+
+      if (coordError || !coordinators) {
+        console.error("Error fetching coordinators", coordError);
+        return [];
+      }
+
+      return (coordinators || [])
+        .filter((c) => c.user !== null && c.role !== null)
+        .map((c) => ({
+          user: c.user!,
+          role: c.role!,
+        })) as { user: TableTypes<"user">; role: string }[];
+    }
   }
-
-  const _currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-  if (!_currentUser) throw new Error("User is not Logged in");
-
-  const userId = _currentUser.id;
-  const roles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
-
-  const isOpsRole =
-    roles.includes(RoleType.SUPER_ADMIN) ||
-    roles.includes(RoleType.OPERATIONAL_DIRECTOR);
-
-  if (isOpsRole) {
-    const { data: programUsers, error: programError } = await this.supabase
-      .from("program_user")
-      .select("role, user")
-      .eq("is_deleted", false);
-
-    const { data: specialUsers, error: specialError } = await this.supabase
-      .from("special_users")
-      .select("role, user_id")
-      .eq("is_deleted", false);
-
-    if (programError || specialError) {
-      console.error("Error fetching users", programError || specialError);
-      return [];
-    }
-
-    const combined = [
-      ...(programUsers || []).map((u) => ({ id: u.user, role: u.role })),
-      ...(specialUsers || []).map((u) => ({ id: u.user_id, role: u.role })),
-    ];
-
-    const uniqueUsers = Array.from(
-      new Map(combined.map((u) => [u.id, u])).values()
-    );
-
-    const userIds = uniqueUsers.map((u) => u.id);
-    const { data: userDetails, error: userError } = await this.supabase
-      .from("user")
-      .select("*")
-      .in("id", userIds)
-      .eq("is_deleted", false);
-
-    if (userError) {
-      console.error("Error fetching user names", userError);
-      return [];
-    }
-
-    const userMap = new Map(
-      (userDetails || [])
-        .filter((u) => u.id !== null)
-        .map((u) => [u.id as string, u])
-    );
-
-    const finalResult: { user: any; role: string }[] = uniqueUsers
-      .filter((u) => u.id !== null && u.role !== null)
-      .map((u) => ({
-        user: userMap.get(u.id as string) ?? {},
-        role: u.role as string,
-      }));
-
-    return finalResult;
-  } else {
-    // Checks for the Program manager role
-    const { data: programs, error: programError } = await this.supabase
-      .from("program_user")
-      .select("program_id")
-      .eq("user", userId)
-      .eq("role", RoleType.PROGRAM_MANAGER)
-      .eq("is_deleted", false);
-
-    if (programError || !programs) {
-      console.error("Error fetching programs", programError);
-      return [];
-    }
-
-    const programIds = programs.map((p) => p.program_id);
-    if (programIds.length === 0) return [];
-
-    const { data: coordinators, error: coordError } = await this.supabase
-      .from("program_user")
-      .select("role, user(*)")
-      .in("program_id", programIds)
-      .eq("role", RoleType.FIELD_COORDINATOR)
-      .eq("is_deleted", false);
-
-    if (coordError || !coordinators) {
-      console.error("Error fetching coordinators", coordError);
-      return [];
-    }
-
-    return (coordinators || [])
-      .filter((c) => c.user !== null && c.role !== null)
-      .map((c) => ({
-        user: c.user!,
-        role: c.role!,
-      })) as { user: TableTypes<"user">; role: string }[];
-  }
-}
 
   async program_activity_stats(programId: string): Promise<{
     total_students: number;
@@ -6797,42 +6810,45 @@ async getPrograms({
   }
 
   async getUserSpecialRoles(userId: string): Promise<string[]> {
-  if (!this.supabase) {
-    console.error("Supabase client not initialized.");
-    return [];
-  }
-
-  if (!userId) {
-    console.warn("userId is missing. Cannot fetch roles.");
-    return [];
-  }
-
-  try {
-    const { data, error } = await this.supabase
-      .from("special_users")
-      .select("role")
-      .eq("user_id", userId)
-      .in("role", [
-        "super_admin",
-        "operational_director",
-        "program_manager",
-        "field_coordinator",
-      ])
-      .eq("is_deleted", false);
-
-    if (error) {
-      console.error("Error fetching roles from special_users:", error.message);
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
       return [];
     }
 
-    const roles = (data ?? [])
-      .map((item) => item.role)
-      .filter((role): role is NonNullable<typeof role> => role !== null);
+    if (!userId) {
+      console.warn("userId is missing. Cannot fetch roles.");
+      return [];
+    }
 
-    return roles;
-  } catch (e) {
-    console.error("Unexpected error while fetching user special roles:", e);
-    return [];
+    try {
+      const { data, error } = await this.supabase
+        .from("special_users")
+        .select("role")
+        .eq("user_id", userId)
+        .in("role", [
+          "super_admin",
+          "operational_director",
+          "program_manager",
+          "field_coordinator",
+        ])
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.error(
+          "Error fetching roles from special_users:",
+          error.message
+        );
+        return [];
+      }
+
+      const roles = (data ?? [])
+        .map((item) => item.role)
+        .filter((role): role is NonNullable<typeof role> => role !== null);
+
+      return roles;
+    } catch (e) {
+      console.error("Unexpected error while fetching user special roles:", e);
+      return [];
+    }
   }
-}
 }

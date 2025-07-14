@@ -22,10 +22,10 @@ import { FileUploadOutlined } from "@mui/icons-material";
 import { BsFillBellFill } from "react-icons/bs";
 
 const filterConfigsForSchool = [
-  { key: "Partner", label: t("Select Partner") },
-  { key: "Program Manager", label: t("Select Program Manager") },
-  { key: "Field Coordinator", label: t("Select Field Coordinator") },
-  { key: "Program Type", label: t("Select Program Type") },
+  { key: "partner", label: t("Select Partner") },
+  { key: "programManager", label: t("Select Program Manager") },
+  { key: "fieldCoordinator", label: t("Select Field Coordinator") },
+  { key: "programType", label: t("Select Program Type") },
   { key: "state", label: t("Select State") },
   { key: "district", label: t("Select District") },
   { key: "block", label: t("Select Block") },
@@ -44,6 +44,7 @@ const INITIAL_FILTERS: Filters = {
   district: [],
   block: [],
   village: [],
+  cluster: [],
 };
 
 const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([value, label]) => ({
@@ -84,14 +85,15 @@ const SchoolList: React.FC = () => {
         const data = await api.getSchoolFilterOptionsForSchoolListing();
         if (data) {
           setFilterOptions({
-            programType: data.program_type || [],
+            programType: data.programType || [],
             partner: data.partner || [],
-            programManager: data.program_manager || [],
-            fieldCoordinator: data.field_coordinator || [],
+            programManager: data.programManager || [],
+            fieldCoordinator: data.fieldCoordinator || [],
             state: data.state || [],
             district: data.district || [],
             block: data.block || [],
             village: data.village || [],
+            cluster: data.cluster || [],
           });
         }
       } catch (error) {
@@ -169,7 +171,16 @@ const SchoolList: React.FC = () => {
     } finally {
       setIsDataLoading(false);
     }
-  }, [api, filters, page, pageSize, orderBy, orderDir, searchTerm, selectedTab]);
+  }, [
+    api,
+    filters,
+    page,
+    pageSize,
+    orderBy,
+    orderDir,
+    searchTerm,
+    selectedTab,
+  ]);
 
   const columns: Column<Record<string, any>>[] = [
     {
