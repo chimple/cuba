@@ -2101,7 +2101,7 @@ export class FirebaseApi implements ServiceApi {
     sortBy: keyof TableTypes<"user"> = "name",
     sortOrder: "asc" | "desc" = "asc"
   ): Promise<{
-    data: { user: TableTypes<"user">; role: string; allRoles: string }[];
+    data: { user: TableTypes<"user">; role: string }[];
     totalCount: number;
   }> {
     throw new Error("Method not implemented.");

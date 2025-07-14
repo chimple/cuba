@@ -37,7 +37,7 @@ const columns = [
   { key: "role", label: "Roles", width: "70%" },
 ];
 
-const ROWS_PER_PAGE = 10;
+const ROWS_PER_PAGE = 8;
 
 function useDebouncedValue<T>(value: T, delay = 300): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -82,10 +82,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
         setUsers(
           result.data.map((u: any) => ({
             fullName: u.user?.name,
-            role: u.allRoles
-              .split(",")
-              .map((r: string) => RoleLabels[r.trim() as RoleType] || r.trim())
-              .join(", "),
+            role: RoleLabels[u.role as RoleType] || u.role,
           }))
         );
         const totalPages = Math.ceil(result.totalCount / ROWS_PER_PAGE);

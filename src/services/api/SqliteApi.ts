@@ -5363,7 +5363,7 @@ order by
     sortBy: keyof TableTypes<"user"> = "name",
     sortOrder: "asc" | "desc" = "asc"
   ): Promise<{
-    data: { user: TableTypes<"user">; role: string; allRoles: string }[];
+    data: { user: TableTypes<"user">; role: string }[];
     totalCount: number;
   }> {
     return await this._serverApi.getManagersAndCoordinators(

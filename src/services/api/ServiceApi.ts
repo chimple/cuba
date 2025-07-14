@@ -1744,7 +1744,7 @@ export interface ServiceApi {
     sortBy?: keyof TableTypes<"user">,
     sortOrder?: "asc" | "desc"
   ): Promise<{
-    data: { user: TableTypes<"user">; role: string; allRoles: string }[];
+    data: { user: TableTypes<"user">; role: string }[];
     totalCount: number;
   }>;
 

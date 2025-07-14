@@ -6503,7 +6503,7 @@ export class SupabaseApi implements ServiceApi {
     sortBy: keyof TableTypes<"user"> = "name",
     sortOrder: "asc" | "desc" = "asc"
   ): Promise<{
-    data: { user: TableTypes<"user">; role: string; allRoles: string }[];
+    data: { user: TableTypes<"user">; role: string }[];
     totalCount: number;
   }> {
     if (!this.supabase) {
@@ -6524,20 +6524,23 @@ export class SupabaseApi implements ServiceApi {
         .from("special_users")
         .select("user_id, role")
         .eq("is_deleted", false);
+      if (!specialUsers) return { data: [], totalCount: 0 };
       const userRoleMap = new Map<string, Set<string>>();
-      for (const u of specialUsers || []) {
-        if (u.user_id && u.role) {
-          if (!userRoleMap.has(u.user_id)) {
-            userRoleMap.set(u.user_id, new Set());
+      for (const entry of specialUsers) {
+        const userId = entry.user_id;
+        const role = entry.role;
+        if (userId && role) {
+          if (!userRoleMap.has(userId)) {
+            userRoleMap.set(userId, new Set());
           }
-          userRoleMap.get(u.user_id)!.add(u.role);
+          userRoleMap.get(userId)!.add(role);
         }
       }
       let userIds = Array.from(userRoleMap.keys());
       if (isOpsDirector && !isSuperAdmin) {
         userIds = userIds.filter((id) => {
-          const roles = userRoleMap.get(id);
-          return roles && !roles.has(RoleType.SUPER_ADMIN);
+          const userRoles = userRoleMap.get(id);
+          return userRoles && !userRoles.has(RoleType.SUPER_ADMIN);
         });
       }
       let query = this.supabase
@@ -6561,7 +6564,7 @@ export class SupabaseApi implements ServiceApi {
               : best,
           allRolesArr[0] ?? ""
         );
-        return { user: u, role: highestRole, allRoles: allRolesArr.join(", ") };
+        return { user: u, role: highestRole };
       });
       return { data: finalResult, totalCount: count || 0 };
     }
@@ -6599,7 +6602,6 @@ export class SupabaseApi implements ServiceApi {
         data: coordinators.map((c) => ({
           user: c.user!,
           role: c.role!,
-          allRoles: c.role!,
         })),
         totalCount: count || 0,
       };

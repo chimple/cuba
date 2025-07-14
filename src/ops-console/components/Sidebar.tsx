@@ -147,9 +147,12 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
 
         <ul className="sidebar-nav-list">
           {navItems.map((item) => {
+            const userRoles = JSON.parse(
+              localStorage.getItem(USER_ROLE) || "[]"
+            );
             if (
               item.label === NavItems.USERS &&
-              localStorage.getItem(USER_ROLE) === RoleType.FIELD_COORDINATOR
+              userRoles.includes(RoleType.FIELD_COORDINATOR)
             ) {
               return null;
             }
