@@ -160,16 +160,9 @@ const CocosGame: React.FC = () => {
 
   const gameExit = async (e: any) => {
     const api = ServiceConfig.getI().apiHandler;
-    if (!api.currentStudent) {
-      console.error("[ERROR] currentStudent is undefined in gameExit");
-      setShowDialogBox(false);
-      setIsLoading(false);
-      push();
-      return;
-    }
     const data = e.detail as CocosLessonData;
     await Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
-      user_id: api.currentStudent.id,
+      user_id: api.currentStudent!.id,
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
       chapter_id: data.chapterId,
@@ -520,13 +513,7 @@ const CocosGame: React.FC = () => {
               lessonName={lessonDetail?.name ?? ""}
               noText={t("Continue Playing")}
               handleClose={async (e: any) => {
-                setShowDialogBox(false);
-                setIsLoading(true);
-                if (gameResult && gameResult.detail) {
-                  await gameExit({ detail: gameResult.detail });
-                } else {
-                  push();
-                }
+                setShowDialogBox(true);
               }}
               onYesButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
