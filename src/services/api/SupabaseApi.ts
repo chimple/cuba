@@ -6517,37 +6517,20 @@ export class SupabaseApi implements ServiceApi {
     const roles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
     const isSuperAdmin = roles.includes(RoleType.SUPER_ADMIN);
     const isOpsDirector = roles.includes(RoleType.OPERATIONAL_DIRECTOR);
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
     if (isSuperAdmin || isOpsDirector) {
       const { data: specialUsers } = await this.supabase
         .from("special_users")
         .select("user_id, role")
         .eq("is_deleted", false);
-      const { data: programUsers } = await this.supabase
-        .from("program_user")
-        .select("user, role")
-        .eq("is_deleted", false);
       const userRoleMap = new Map<string, Set<string>>();
       for (const u of specialUsers || []) {
-        if (
-          u.user_id &&
-          u.role &&
-          typeof u.user_id === "string" &&
-          typeof u.role === "string"
-        ) {
-          if (!userRoleMap.has(u.user_id))
+        if (u.user_id && u.role) {
+          if (!userRoleMap.has(u.user_id)) {
             userRoleMap.set(u.user_id, new Set());
+          }
           userRoleMap.get(u.user_id)!.add(u.role);
-        }
-      }
-      for (const u of programUsers || []) {
-        if (
-          u.user &&
-          u.role &&
-          typeof u.user === "string" &&
-          typeof u.role === "string"
-        ) {
-          if (!userRoleMap.has(u.user)) userRoleMap.set(u.user, new Set());
-          userRoleMap.get(u.user)!.add(u.role);
         }
       }
       let userIds = Array.from(userRoleMap.keys());
@@ -6565,8 +6548,6 @@ export class SupabaseApi implements ServiceApi {
       if (search && search.length >= 3) {
         query = query.ilike("name", `%${search}%`);
       }
-      const from = (page - 1) * limit;
-      const to = from + limit - 1;
       const { data: userDetails, count } = await query
         .order(sortBy, { ascending: sortOrder === "asc" })
         .range(from, to);
@@ -6580,11 +6561,7 @@ export class SupabaseApi implements ServiceApi {
               : best,
           allRolesArr[0] ?? ""
         );
-        return {
-          user: u,
-          role: highestRole,
-          allRoles: allRolesArr.join(", "),
-        };
+        return { user: u, role: highestRole, allRoles: allRolesArr.join(", ") };
       });
       return { data: finalResult, totalCount: count || 0 };
     }
@@ -6599,21 +6576,32 @@ export class SupabaseApi implements ServiceApi {
         return { data: [], totalCount: 0 };
       }
       const programIds = programs.map((p) => p.program_id);
-      const { data: coordinators } = await this.supabase
+      let query = this.supabase
         .from("program_user")
-        .select("role, user(*)")
+        .select("role, user!inner(*)", { count: "exact" })
         .in("program_id", programIds)
         .eq("role", "field_coordinator")
-        .eq("is_deleted", false);
-      const filtered = (coordinators || []).filter((c) => c.user !== null);
-      const paginated = filtered.slice((page - 1) * limit, page * limit);
+        .eq("is_deleted", false)
+        .eq("user.is_deleted", false);
+      if (search && search.length >= 3) {
+        query = query.ilike("user.name", `%${search}%`);
+      }
+      const { data: coordinators, count } = await query
+        .order(sortBy, {
+          referencedTable: "user",
+          ascending: sortOrder === "asc",
+        })
+        .range(from, to);
+      if (!coordinators) {
+        return { data: [], totalCount: 0 };
+      }
       return {
-        data: paginated.map((c) => ({
+        data: coordinators.map((c) => ({
           user: c.user!,
           role: c.role!,
           allRoles: c.role!,
         })),
-        totalCount: filtered.length,
+        totalCount: count || 0,
       };
     }
     return { data: [], totalCount: 0 };

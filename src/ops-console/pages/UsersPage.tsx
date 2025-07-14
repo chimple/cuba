@@ -60,7 +60,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
   const [users, setUsers] = useState<User[]>(initialUsers ?? []);
   const [loading, setLoading] = useState(initialUsers ? false : true);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [sortBy, setSortBy] = useState<keyof User>("fullName");
+  const [sortBy, setSortBy] = useState("");
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
