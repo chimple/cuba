@@ -4,6 +4,7 @@ import { PAGES, CLASS } from "../../../common/constants";
 import { useHistory } from "react-router-dom";
 import { t } from "i18next";
 import "./DeleteClassDialog.css";
+import { Util } from "../../../utility/util";
 
 const DeleteClassDialog: FC<{ classId: string }> = ({ classId }) => {
   const api = ServiceConfig.getI()?.apiHandler;
@@ -25,9 +26,17 @@ const DeleteClassDialog: FC<{ classId: string }> = ({ classId }) => {
   };
 
   const confirmDelete = async () => {
-    try {
+    try { 
       await api.deleteClass(classId);
-      localStorage.removeItem(CLASS);
+      let temp = localStorage.getItem("CLASSES");
+      if (temp) {
+        const classes = JSON.parse(temp);
+        const updatedClasses = classes.filter((cls: any) => cls.id !== classId);
+        localStorage.setItem("CLASSES", JSON.stringify(updatedClasses));
+        localStorage.setItem(CLASS, JSON.stringify(updatedClasses[0] || {}));
+        api.currentClass = updatedClasses[0];
+        Util.setCurrentClass(updatedClasses[0]);
+      }
       history.replace(PAGES.MANAGE_CLASS);
     } catch (error) {
       console.error("Failed to delete class", error);
