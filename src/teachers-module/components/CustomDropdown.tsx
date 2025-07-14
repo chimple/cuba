@@ -46,7 +46,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
           onOptionSelect(options.find((option) => option.id === e.detail.value)!)
         }
         interface="popover" // or "action-sheet", "alert"
-        className="custom-select"
+        className="customdropdown-select"
         {...selectProps} // Pass down all other props
       >
         {options.map((option) => (

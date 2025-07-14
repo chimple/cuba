@@ -37,7 +37,7 @@ ion-select::part(icon) {
   display: none;
 }
 
-.custom-select {
+.customdropdown-select {
   --placeholder-color: #999;
   --color: #333;
   --background: #f0f0f0;
@@ -55,12 +55,12 @@ ion-popover {
   --ion-background-color: white;
 }
 
-.custom-select::part(text) {
+.customdropdown-select::part(text) {
   font-size: 18px;
   font-weight: 400;
 }
 
-.custom-select::part(placeholder) {
+.customdropdown-select::part(placeholder) {
   font-size: 18px;
   font-weight: 400;
 }
@@ -74,7 +74,7 @@ ion-popover {
   margin-left: 4px;       
 }
 
-.custom-select::part(text) {
+.customdropdown-select::part(text) {
   width: auto !important;          
   white-space: nowrap;           
   overflow: visible !important;   
