@@ -4,11 +4,13 @@ import "./TressureBox.css";
 interface TressureBoxProps {
   startNumber: number;
   endNumber: number;
+  animate?: boolean;
 }
 
 const TressureBox: React.FC<TressureBoxProps> = ({
   startNumber,
   endNumber,
+  animate = true,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentNumber, setCurrentNumber] = useState<number>(startNumber);
@@ -20,7 +22,12 @@ const TressureBox: React.FC<TressureBoxProps> = ({
   }, [startNumber]);
 
   useEffect(() => {
-    if (startNumber === endNumber) return;
+    if (!animate || startNumber === endNumber) {
+      setCurrentNumber(endNumber);
+      setIsUpdating(false);
+      setIsConfettiVisible(false);
+      return;
+    }
 
     setIsUpdating(true);
     setIsConfettiVisible(true);
@@ -47,7 +54,7 @@ const TressureBox: React.FC<TressureBoxProps> = ({
     const interval = setInterval(updateNumber, 3000);
 
     return () => clearInterval(interval);
-  }, [startNumber, endNumber]);
+  }, [startNumber, endNumber, animate]);
   useEffect(() => {
     const itemHeight = 50;
     const container = containerRef.current;
