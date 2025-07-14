@@ -71,7 +71,7 @@ GoogleAuth.initialize({
   // grantOfflineAccess: true,
 });
 
-Util.isRespectMode = await Util.checkRespectApp();
+// Util.isRespectMode = await Util.checkRespectApp();
 // Util.isRespectMode = false;
 console.log(
   "Util.isRespectMode = await Util.checkRespectApp();",

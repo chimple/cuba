@@ -105,10 +105,9 @@ export class Util {
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = "lastModalShown";
   static isDeepLink: boolean = false;
-  static isRespectMode: boolean = true;
+  static isRespectMode: boolean = localStorage.getItem("isRespectMode") === "true";
 
   public api = ServiceConfig.getI().apiHandler;
-
 
   // public static convertCourses(_courses: Course1[]): Course1[] {
   //   let courses: Course1[] = [];
@@ -2161,7 +2160,7 @@ export class Util {
       console.log("if (!Capacitor.isNativePlatform) return true", !!Capacitor.isNativePlatform, Capacitor.isNativePlatform);
 
       // return true
-      // if (!!Capacitor.isNativePlatform) return true
+      if (!!Capacitor.isNativePlatform) return true
       const PortPlugin = registerPlugin<any>("Port");
       const data = await PortPlugin.isAppInstalledCheck();
       console.log("data isRespect data--> ", JSON.stringify(data));
