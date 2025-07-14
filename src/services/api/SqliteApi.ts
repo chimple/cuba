@@ -3895,7 +3895,6 @@ order by
          FROM ${TABLES.Result}
          WHERE student_id = ?
          AND course_id = ?
-         AND assignment_id IN (${assignmentholders})
          ORDER BY created_at DESC
          LIMIT 5
        )
@@ -3906,7 +3905,7 @@ order by
        FROM non_null_assignments
        ORDER BY created_at DESC
        LIMIT 10;`,
-      [studentId, courseId, studentId, courseId, ...assignmentIds]
+      [studentId, courseId, studentId, courseId]
     );
     return res?.values ?? [];
   }
@@ -3917,7 +3916,8 @@ order by
     startDate: string,
     endDate: string,
     isClassWise: boolean,
-    isLiveQuiz: boolean
+    isLiveQuiz: boolean,
+    allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
     let query = `SELECT * FROM ${TABLES.Assignment} WHERE class_id = ? AND created_at BETWEEN ? AND ?`;
     const params: any[] = [classId, endDate, startDate];
@@ -3934,10 +3934,12 @@ order by
     if (isClassWise) {
       query += ` AND is_class_wise = 1`;
     }
-    if (isLiveQuiz) {
+    if(!allAssignments) {
+      if (isLiveQuiz) {
       query += ` AND type = 'liveQuiz'`;
     } else {
       query += ` AND type != 'liveQuiz'`;
+    }
     }
     query += ` ORDER BY created_at DESC`;
 
@@ -4553,6 +4555,20 @@ order by
 
     return { status: "success" };
   }
+  async validateProgramName(
+    programName: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const validatedData =
+      await this._serverApi.validateProgramName(programName);
+    if (validatedData.status === "error") {
+      const errors = validatedData.errors?.map((err: any) =>
+        typeof err === "string" ? err : err.message || JSON.stringify(err)
+      );
+      return { status: "error", errors };
+    }
+
+    return { status: "success" };
+  }
   async validateClassNameWithSchoolID(
     schoolId: string,
     className: string
@@ -4958,9 +4974,26 @@ order by
   }
 
   async getFilteredSchoolsForSchoolListing(
-    filters: Record<string, string[]>
+    params: {
+      filters?: Record<string, string[]>;
+      programId?: string;
+    }
   ): Promise<FilteredSchoolsForSchoolListingOps[]> {
-    return await this._serverApi.getFilteredSchoolsForSchoolListing(filters);
+    return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
+  }
+
+  async createOrAddUserOps(payload: {
+    name: string;
+    email?: string;
+    phone?: string;
+    role: string;
+  }): Promise<{
+    success: boolean;
+    user_id?: string;
+    message?: string;
+    error?: string;
+  }> {
+    return await this._serverApi.createOrAddUserOps(payload);
   }
 
   async getTeacherInfoBySchoolId(schoolId: string): Promise<

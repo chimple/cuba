@@ -1793,6 +1793,56 @@ export type Database = {
         };
         Relationships: [];
       };
+      upload_queue: {
+        Row: {
+          id: string;
+          uploading_user: string | null;
+          start_time: string | null;
+          payload: Record<string, unknown>;
+          status: string | null;
+          error: string | null;
+          process_started_at: string | null;
+          batch_number: number | null;
+          is_locked: boolean | null;
+          locked_at: string | null;
+          locked_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          uploading_user?: string | null;
+          start_time?: string | null;
+          payload: Record<string, unknown>;
+          status?: string | null;
+          error?: string | null;
+          process_started_at?: string | null;
+          batch_number?: number | null;
+          is_locked?: boolean | null;
+          locked_at?: string | null;
+          locked_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          uploading_user?: string | null;
+          start_time?: string | null;
+          payload?: Record<string, unknown>;
+          status?: string | null;
+          error?: string | null;
+          process_started_at?: string | null;
+          batch_number?: number | null;
+          is_locked?: boolean | null;
+          locked_at?: string | null;
+          locked_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "upload_queue_uploading_user_fkey";
+            columns: ["uploading_user"];
+            isOneToOne: false;
+            referencedRelation: "user";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       user: {
         Row: {
           age: number | null;
@@ -2139,13 +2189,6 @@ export type Database = {
         };
         Returns: Json;
       };
-      get_admin_view_users: {
-        Args: { _current_user_id: string };
-        Returns: {
-          name: string;
-          role: string;
-        }[];
-      };
       get_program_activity_stats: {
         Args: { p_program_id: string };
         Returns: {
@@ -2263,6 +2306,21 @@ export type Database = {
       };
       get_filtered_schools: {
         Args: { filters: Json };
+        Returns: {
+          sch_id: string;
+          school_name: string;
+          district: string;
+          num_students: number;
+          num_teachers: number;
+          program_managers: string[];
+          field_coordinators: string[];
+        }[];
+      };
+      get_filtered_schools_with_optional_program: {
+        Args: {
+          filters?: Json;
+          _program_id?: string | null;
+        };
         Returns: {
           sch_id: string;
           school_name: string;
@@ -3327,6 +3385,10 @@ export type Database = {
       };
       validate_school_udise_code: {
         Args: { input_school_udise_code: string };
+        Returns: Json;
+      };
+      validate_program_name: {
+        Args: { input_program_name: string };
         Returns: Json;
       };
       validate_user_contacts_rpc: {

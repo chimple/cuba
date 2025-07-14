@@ -323,27 +323,68 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async uploadData(payload: any): Promise<boolean | null> {
+    if (!this.supabase) return false;
+
+    let uploadId: string | undefined;
+    let uploadingUser: string | undefined;
+
     try {
-      if (!this.supabase) {
-        console.error("Supabase client is not initialized.");
-        return false;
-      }
-      const { data, error } = await this.supabase.functions.invoke(
-        "ops-data-insert",
-        {
+      const { data, error: functionError } =
+        await this.supabase.functions.invoke("ops-data-insert", {
           body: payload,
+        });
+      uploadId = data?.upload_id;
+
+      if (!uploadId) {
+        const { data: session } = await this.supabase.auth.getSession();
+        uploadingUser = session?.session?.user?.id;
+
+        if (uploadingUser) {
+          const { data: fallbackJob } = await this.supabase
+            .from("upload_queue")
+            .select("id")
+            .eq("uploading_user", uploadingUser)
+            .order("start_time", { ascending: false })
+            .limit(1)
+            .single();
+
+          uploadId = fallbackJob?.id;
         }
-      );
-      if (data.status === 200) {
-        return true;
       }
-      if (data.status === 400) {
-        console.error("Upload error:", data?.message);
-        return false;
+
+      if (uploadId) {
+        // console.log("📡 Subscribing to status for upload_id:", uploadId);
+        return new Promise((resolve) => {
+          if (!this.supabase) return false;
+          setTimeout(async () => {
+            if (!this.supabase) return false;
+            if (!uploadId) {
+              console.warn("❗ uploadId is undefined. Skipping query.");
+              return;
+            }
+            const { data } = await this.supabase
+              .from("upload_queue")
+              .select("status")
+              .eq("id", uploadId)
+              .single();
+            if (data?.status === "failed") {
+              // console.log("⏱️ Upload status: Upload failed.");
+              resolve(false);
+            }
+            if (data?.status === "success") {
+              // console.log("⏱️ Upload status: Upload Success.");
+              resolve(true);
+            }
+          }, 5000);
+        });
+      } else {
+        console.warn(
+          "❗ Could not determine upload_id, skipping realtime tracking."
+        );
+        return null;
       }
-      return null;
-    } catch (error) {
-      console.error("Failed Error:", error);
+    } catch (error: any) {
+      console.error("🔥 Unexpected error:", error);
       return null;
     }
   }
@@ -4120,7 +4161,8 @@ export class SupabaseApi implements ServiceApi {
     startDate: string,
     endDate: string,
     isClassWise: boolean,
-    isLiveQuiz: boolean
+    isLiveQuiz: boolean,
+    allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
     if (!this.supabase) return;
 
@@ -4143,10 +4185,12 @@ export class SupabaseApi implements ServiceApi {
       query = query.eq("is_class_wise", true);
     }
 
-    if (isLiveQuiz) {
-      query = query.eq("type", "liveQuiz");
-    } else {
-      query = query.neq("type", "liveQuiz");
+    if(!allAssignments){
+      if (isLiveQuiz) {
+        query = query.eq("type", "liveQuiz");
+      } else {
+        query = query.neq("type", "liveQuiz");
+      }
     }
 
     query = query.order("created_at", { ascending: false });
@@ -5141,6 +5185,45 @@ export class SupabaseApi implements ServiceApi {
       return {
         status: "error",
         errors: ["Unexpected response format from Supabase function"],
+      };
+    } catch (error) {
+      return {
+        status: "error",
+        errors: [String(error)],
+      };
+    }
+  }
+  async validateProgramName(
+    programName: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "validate_program_name",
+        {
+          input_program_name: programName,
+        }
+      );
+      // Narrow the type from Json to expected shape
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "status" in data &&
+        typeof (data as any).status === "string"
+      ) {
+        return data as { status: string; errors?: string[]; message?: string };
+      }
+
+      // Fallback if data isn't in expected shape
+      return {
+        status: "error",
+        errors: ["Unexpected response format from Supabase function 1111"],
       };
     } catch (error) {
       return {
@@ -6234,29 +6317,75 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  async getFilteredSchoolsForSchoolListing(
-    filters: Record<string, string[]>
-  ): Promise<FilteredSchoolsForSchoolListingOps[]> {
+  async createOrAddUserOps(payload: {
+    name: string;
+    email?: string;
+    phone?: string;
+    role: string;
+  }): Promise<{
+    success: boolean;
+    user_id?: string;
+    message?: string;
+    error?: string;
+  }> {
+    if (!this.supabase)
+      return { success: false, error: "Supabase not initialized" };
+    try {
+      const { data, error: functionError } =
+        await this.supabase.functions.invoke("ops_adding_and_creating_user", {
+          body: payload,
+        });
+      return {
+        success: true,
+        user_id: data?.user_id,
+        message: data?.message,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        error: err?.message || "Unexpected error occurred",
+      };
+    }
+  }
+
+  async getFilteredSchoolsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+  }): Promise<FilteredSchoolsForSchoolListingOps[]> {
     if (!this.supabase) {
       console.error("Supabase client is not initialized");
       return [];
     }
 
+    const { filters, programId } = params;
+    const payload: any = {};
+
+    if (filters && Object.keys(filters).length > 0) {
+      payload.filters = filters;
+    }
+
+    if (programId) {
+      payload._program_id = programId;
+    }
+
     try {
-      const { data, error } = await this.supabase.rpc("get_filtered_schools", {
-        filters,
-      });
+      const { data, error } = await this.supabase.rpc(
+        "get_filtered_schools_with_optional_program",
+        payload
+      );
+
       if (error) {
-        console.error("RPC error in getFilteredSchools:", error);
+        console.error("RPC error in get_filtered_schools_with_optional_program:", error);
         return [];
       }
 
       return (data ?? []) as FilteredSchoolsForSchoolListingOps[];
     } catch (err) {
-      console.error("Unexpected error in getFilteredSchools:", err);
+      console.error("Unexpected error in get_filtered_schools_with_optional_program:", err);
       return [];
     }
   }
+
   async createAutoProfile(
     languageDocId: string | undefined
   ): Promise<TableTypes<"user">> {

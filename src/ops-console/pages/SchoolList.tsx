@@ -24,6 +24,7 @@ import { useDataTableLogic } from "../OpsUtility/useDataTableLogic";
 import { Add, FileUploadOutlined } from "@mui/icons-material";
 import { BsFillBellFill } from "react-icons/bs";
 import SkeltonLoading from "../../components/SkeltonLoading";
+import { SupabaseApi } from "../../services/api/SupabaseApi";
 
 type Filters = Record<string, string[]>;
 
@@ -105,7 +106,9 @@ const SchoolList: React.FC = () => {
       );
 
       const filteredSchools =
-        await api.getFilteredSchoolsForSchoolListing(cleanedFilters);
+        await api.getFilteredSchoolsForSchoolListing({
+          filters: cleanedFilters,
+        });
       const enrichedSchools = filteredSchools.map((school: any) => ({
         ...school,
         id: school.sch_id,
