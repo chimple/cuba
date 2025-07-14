@@ -1119,13 +1119,17 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getProgramFilterOptions();
   }
   async getPrograms(params: {
-    currentUserId: string;
-    filters?: Record<string, string[]>;
-    searchTerm?: string;
-    tab?: TabType;
-  }): Promise<{ data: any[] }> {
-    return await this.s.getPrograms(params);
-  }
+  currentUserId: string;
+  filters?: Record<string, string[]>;
+  searchTerm?: string;
+  tab?: TabType;
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  order?: "asc" | "desc";
+}): Promise<{ data: any[] }> {
+  return await this.s.getPrograms(params);
+}
 
   public async insertProgram(payload: any): Promise<boolean | null> {
     return await this.s.insertProgram(payload);
@@ -1210,13 +1214,18 @@ export class ApiHandler implements ServiceApi {
   }
 
   async getFilteredSchoolsForSchoolListing(
-    params: {
-      filters?: Record<string, string[]>;
-      programId?: string;
-    }
-  ): Promise<FilteredSchoolsForSchoolListingOps[]> {
-    return await this.s.getFilteredSchoolsForSchoolListing(params);
+  params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: "asc" | "desc";
+    search?: string;
   }
+): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
+  return await this.s.getFilteredSchoolsForSchoolListing(params);
+}
 
   public async createOrAddUserOps(
     payload: {
