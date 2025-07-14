@@ -472,21 +472,24 @@ const LoginScreen: React.FC = () => {
       role: RoleType;
     }[]
   ) {
-    const userRole = localStorage.getItem(USER_ROLE);
+    const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
     const isOpsRole =
-      userRole === RoleType.SUPER_ADMIN ||
-      userRole === RoleType.OPERATIONAL_DIRECTOR;
+    userRoles.includes(RoleType.SUPER_ADMIN) ||
+    userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
     const isProgramUser = await api.isProgramUser();
 
     if (isOpsRole || isProgramUser) {
       localStorage.setItem(IS_OPS_USER, "true");
       await ScreenOrientation.unlock();
+      schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
       history.replace(PAGES.SIDEBAR_PAGE);
       return;
     }
-
-    await SqliteApi.getInstance();
+    
+    setAnimatedLoading(true)
+    const sqliteApi = await SqliteApi.getInstance();
     ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(APIMode.SQLITE);
+    setAnimatedLoading(false)
     
     if (userSchools.length > 0) {
       const autoUserSchool = userSchools.find(

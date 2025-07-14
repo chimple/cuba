@@ -27,7 +27,7 @@ const SchoolUserList: React.FC<{
     null
   );
   const auth = ServiceConfig.getI()?.authHandler;
-  const currentUserRole = JSON.parse(localStorage.getItem(USER_ROLE)!);
+  const currentUserRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
   useEffect(() => {
     init();
   }, []);
@@ -112,8 +112,8 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {(currentUserRole === RoleType.PRINCIPAL ||
-                  currentUserRole === RoleType.COORDINATOR) && (
+                {(currentUserRoles.includes(RoleType.PRINCIPAL) ||
+                  currentUserRoles.includes(RoleType.COORDINATOR)) && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(principal)}
@@ -141,8 +141,8 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {(currentUserRole === RoleType.PRINCIPAL ||
-                  currentUserRole === RoleType.COORDINATOR) && (
+                {(currentUserRoles.includes(RoleType.PRINCIPAL) ||
+                  currentUserRoles.includes(RoleType.COORDINATOR)) && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(coordinator)}
@@ -170,8 +170,8 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {(currentUserRole === RoleType.PRINCIPAL ||
-                  currentUserRole === RoleType.COORDINATOR) && (
+                {(currentUserRoles.includes(RoleType.PRINCIPAL) ||
+                  currentUserRoles.includes(RoleType.COORDINATOR)) && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(sponsor)}

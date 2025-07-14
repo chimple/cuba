@@ -821,7 +821,8 @@ export class ApiHandler implements ServiceApi {
     startDate: string,
     endDate: string,
     isClassWise: boolean,
-    isLiveQuiz: boolean
+    isLiveQuiz: boolean,
+    allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
     return this.s.getAssignmentOrLiveQuizByClassByDate(
       classId,
@@ -829,7 +830,8 @@ export class ApiHandler implements ServiceApi {
       startDate,
       endDate,
       isClassWise,
-      isLiveQuiz
+      isLiveQuiz,
+      allAssignments
     );
   }
 
@@ -898,6 +900,9 @@ export class ApiHandler implements ServiceApi {
   }
   checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean> {
     return this.s.checkUserExistInSchool(schoolId, userId);
+  }
+  checkTeacherExistInClass(schoolId: string, classId: string, userId: string): Promise<boolean> {
+    return this.s.checkTeacherExistInClass(schoolId, classId, userId);
   }
   checkUserIsManagerOrDirector(
     schoolId: string,
@@ -1032,6 +1037,11 @@ export class ApiHandler implements ServiceApi {
       studentName,
       phoneNumber
     );
+  }
+  async validateProgramName(
+    programName: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateProgramName(programName);
   }
   async validateSchoolUdiseCode(
     schoolId: string
@@ -1200,9 +1210,28 @@ export class ApiHandler implements ServiceApi {
   }
 
   async getFilteredSchoolsForSchoolListing(
-    filters: Record<string, string[]>
+    params: {
+      filters?: Record<string, string[]>;
+      programId?: string;
+    }
   ): Promise<FilteredSchoolsForSchoolListingOps[]> {
-    return await this.s.getFilteredSchoolsForSchoolListing(filters);
+    return await this.s.getFilteredSchoolsForSchoolListing(params);
+  }
+
+  public async createOrAddUserOps(
+    payload: {
+      name: string;
+      email?: string;
+      phone?: string;
+      role: string;
+    }
+  ): Promise<{
+    success: boolean;
+    user_id?: string;
+    message?: string;
+    error?: string;
+  }> {
+    return await this.s.createOrAddUserOps(payload);
   }
 
   public async getTeacherInfoBySchoolId(schoolId: string): Promise<
@@ -1267,7 +1296,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.isProgramManager();
   }
 
-  public async getUserSpecialRole(userId: string): Promise<string | undefined> {
-    return await this.s.getUserSpecialRole(userId);
+  public async getUserSpecialRoles(userId: string): Promise<string[]> {
+    return await this.s.getUserSpecialRoles(userId);
   }
 }

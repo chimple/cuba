@@ -323,27 +323,68 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async uploadData(payload: any): Promise<boolean | null> {
+    if (!this.supabase) return false;
+
+    let uploadId: string | undefined;
+    let uploadingUser: string | undefined;
+
     try {
-      if (!this.supabase) {
-        console.error("Supabase client is not initialized.");
-        return false;
-      }
-      const { data, error } = await this.supabase.functions.invoke(
-        "ops-data-insert",
-        {
+      const { data, error: functionError } =
+        await this.supabase.functions.invoke("ops-data-insert", {
           body: payload,
+        });
+      uploadId = data?.upload_id;
+
+      if (!uploadId) {
+        const { data: session } = await this.supabase.auth.getSession();
+        uploadingUser = session?.session?.user?.id;
+
+        if (uploadingUser) {
+          const { data: fallbackJob } = await this.supabase
+            .from("upload_queue")
+            .select("id")
+            .eq("uploading_user", uploadingUser)
+            .order("start_time", { ascending: false })
+            .limit(1)
+            .single();
+
+          uploadId = fallbackJob?.id;
         }
-      );
-      if (data.status === 200) {
-        return true;
       }
-      if (data.status === 400) {
-        console.error("Upload error:", data?.message);
-        return false;
+
+      if (uploadId) {
+        // console.log("📡 Subscribing to status for upload_id:", uploadId);
+        return new Promise((resolve) => {
+          if (!this.supabase) return false;
+          setTimeout(async () => {
+            if (!this.supabase) return false;
+            if (!uploadId) {
+              console.warn("❗ uploadId is undefined. Skipping query.");
+              return;
+            }
+            const { data } = await this.supabase
+              .from("upload_queue")
+              .select("status")
+              .eq("id", uploadId)
+              .single();
+            if (data?.status === "failed") {
+              // console.log("⏱️ Upload status: Upload failed.");
+              resolve(false);
+            }
+            if (data?.status === "success") {
+              // console.log("⏱️ Upload status: Upload Success.");
+              resolve(true);
+            }
+          }, 5000);
+        });
+      } else {
+        console.warn(
+          "❗ Could not determine upload_id, skipping realtime tracking."
+        );
+        return null;
       }
-      return null;
-    } catch (error) {
-      console.error("Failed Error:", error);
+    } catch (error: any) {
+      console.error("🔥 Unexpected error:", error);
       return null;
     }
   }
@@ -1697,15 +1738,21 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"lesson">[]> {
     if (!this.supabase) return [] as TableTypes<"lesson">[];
     const { data, error } = await this.supabase
-      .from("lesson")
-      .select("*")
+      .from(TABLES.ChapterLesson)
+      .select("lesson:lesson_id(*)")
       .eq("chapter_id", chapterId)
+      .order("sort_index", { ascending: true })
       .eq("is_deleted", false);
     if (error) {
       console.error("Error fetching chapter:", error);
       return [] as TableTypes<"lesson">[];
     }
-    return data ?? ([] as TableTypes<"lesson">[]);
+    // Extract lessons from the joined result
+    const lessons = (data ?? [])
+      .map((item: any) => item.lesson as TableTypes<"lesson">)
+      .filter((lesson) => !!lesson);
+    
+    return lessons ?? ([] as TableTypes<"lesson">[]);
   }
   async getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
     grades: TableTypes<"grade">[];
@@ -2408,6 +2455,7 @@ export class SupabaseApi implements ServiceApi {
 
     if (error) {
       console.error("Error in isStudentLinked", error);
+      return false;
     }
     return true;
   }
@@ -4114,7 +4162,8 @@ export class SupabaseApi implements ServiceApi {
     startDate: string,
     endDate: string,
     isClassWise: boolean,
-    isLiveQuiz: boolean
+    isLiveQuiz: boolean,
+    allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
     if (!this.supabase) return;
 
@@ -4137,10 +4186,12 @@ export class SupabaseApi implements ServiceApi {
       query = query.eq("is_class_wise", true);
     }
 
-    if (isLiveQuiz) {
-      query = query.eq("type", "liveQuiz");
-    } else {
-      query = query.neq("type", "liveQuiz");
+    if(!allAssignments){
+      if (isLiveQuiz) {
+        query = query.eq("type", "liveQuiz");
+      } else {
+        query = query.neq("type", "liveQuiz");
+      }
     }
 
     query = query.order("created_at", { ascending: false });
@@ -4527,6 +4578,46 @@ export class SupabaseApi implements ServiceApi {
 
     return teachers && teachers.length > 0;
   }
+  
+  async checkTeacherExistInClass(
+  schoolId: string,
+  classId: string,
+  userId: string
+  ): Promise<boolean> {
+    if (!this.supabase) return false;
+     //  Check if user is in school_user but NOT as a parent and not deleted
+    const { data: schoolUsers, error: schoolUserError } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select("*")
+      .eq("school_id", schoolId)
+      .eq("user_id", userId)
+      .neq("role", RoleType.PARENT)
+      .eq("is_deleted", false);
+
+    if (schoolUserError) {
+      console.error("Error querying school_user:", schoolUserError);
+      return false;
+    }
+    if (schoolUsers && schoolUsers.length > 0) return true;
+
+    //  Check if user is teacher in this classe
+    const { data, error } = await this.supabase
+      .from("class_user")
+      .select("id")
+      .eq("class_id", classId)
+      .eq("user_id", userId)
+      .eq("role", RoleType.TEACHER)
+      .eq("is_deleted", false)
+      .maybeSingle(); // Returns null if no match
+
+    if (error) {
+      console.error("Error checking user in class:", error);
+      return false;
+    }
+
+    return !!data; // true if found, false if not
+  }
+
   async checkUserIsManagerOrDirector(schoolId, userId): Promise<boolean> {
     if (!this.supabase) return false;
 
@@ -5096,6 +5187,45 @@ export class SupabaseApi implements ServiceApi {
       return {
         status: "error",
         errors: ["Unexpected response format from Supabase function"],
+      };
+    } catch (error) {
+      return {
+        status: "error",
+        errors: [String(error)],
+      };
+    }
+  }
+  async validateProgramName(
+    programName: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "validate_program_name",
+        {
+          input_program_name: programName,
+        }
+      );
+      // Narrow the type from Json to expected shape
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "status" in data &&
+        typeof (data as any).status === "string"
+      ) {
+        return data as { status: string; errors?: string[]; message?: string };
+      }
+
+      // Fallback if data isn't in expected shape
+      return {
+        status: "error",
+        errors: ["Unexpected response format from Supabase function 1111"],
       };
     } catch (error) {
       return {
@@ -6175,29 +6305,75 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  async getFilteredSchoolsForSchoolListing(
-    filters: Record<string, string[]>
-  ): Promise<FilteredSchoolsForSchoolListingOps[]> {
+  async createOrAddUserOps(payload: {
+    name: string;
+    email?: string;
+    phone?: string;
+    role: string;
+  }): Promise<{
+    success: boolean;
+    user_id?: string;
+    message?: string;
+    error?: string;
+  }> {
+    if (!this.supabase)
+      return { success: false, error: "Supabase not initialized" };
+    try {
+      const { data, error: functionError } =
+        await this.supabase.functions.invoke("ops_adding_and_creating_user", {
+          body: payload,
+        });
+      return {
+        success: true,
+        user_id: data?.user_id,
+        message: data?.message,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        error: err?.message || "Unexpected error occurred",
+      };
+    }
+  }
+
+  async getFilteredSchoolsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+  }): Promise<FilteredSchoolsForSchoolListingOps[]> {
     if (!this.supabase) {
       console.error("Supabase client is not initialized");
       return [];
     }
 
+    const { filters, programId } = params;
+    const payload: any = {};
+
+    if (filters && Object.keys(filters).length > 0) {
+      payload.filters = filters;
+    }
+
+    if (programId) {
+      payload._program_id = programId;
+    }
+
     try {
-      const { data, error } = await this.supabase.rpc("get_filtered_schools", {
-        filters,
-      });
+      const { data, error } = await this.supabase.rpc(
+        "get_filtered_schools_with_optional_program",
+        payload
+      );
+
       if (error) {
-        console.error("RPC error in getFilteredSchools:", error);
+        console.error("RPC error in get_filtered_schools_with_optional_program:", error);
         return [];
       }
 
       return (data ?? []) as FilteredSchoolsForSchoolListingOps[];
     } catch (err) {
-      console.error("Unexpected error in getFilteredSchools:", err);
+      console.error("Unexpected error in get_filtered_schools_with_optional_program:", err);
       return [];
     }
   }
+
   async createAutoProfile(
     languageDocId: string | undefined
   ): Promise<TableTypes<"user">> {
@@ -6355,95 +6531,111 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async getManagersAndCoordinators(): Promise<
-    { user: TableTypes<"user">; role: string }[]
-  > {
-    if (!this.supabase) {
-      console.error("Supabase client not initialized.");
+  { user: TableTypes<"user">; role: string }[]
+> {
+  if (!this.supabase) {
+    console.error("Supabase client not initialized.");
+    return [];
+  }
+
+  const _currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+  if (!_currentUser) throw new Error("User is not Logged in");
+
+  const userId = _currentUser.id;
+  const roles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+
+  const isOpsRole =
+    roles.includes(RoleType.SUPER_ADMIN) ||
+    roles.includes(RoleType.OPERATIONAL_DIRECTOR);
+
+  if (isOpsRole) {
+    const { data: programUsers, error: programError } = await this.supabase
+      .from("program_user")
+      .select("role, user")
+      .eq("is_deleted", false);
+
+    const { data: specialUsers, error: specialError } = await this.supabase
+      .from("special_users")
+      .select("role, user_id")
+      .eq("is_deleted", false);
+
+    if (programError || specialError) {
+      console.error("Error fetching users", programError || specialError);
       return [];
     }
-    const _currentUser =
-      await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!_currentUser) throw new Error("User is not Logged in");
-    const userId = _currentUser.id;
-    const role = localStorage.getItem(USER_ROLE);
-    // Checks for the Highest Roles
-    if (
-      role === RoleType.SUPER_ADMIN ||
-      role === RoleType.OPERATIONAL_DIRECTOR
-    ) {
-      const { data: programUsers, error: programError } = await this.supabase
-        .from("program_user")
-        .select("role, user")
-        .eq("is_deleted", false);
-      const { data: specialUsers, error: specialError } = await this.supabase
-        .from("special_users")
-        .select("role, user_id")
-        .eq("is_deleted", false);
-      if (programError || specialError) {
-        console.error("Error fetching users", programError || specialError);
-        return [];
-      }
-      const combined = [
-        ...(programUsers || []).map((u) => ({ id: u.user, role: u.role })),
-        ...(specialUsers || []).map((u) => ({ id: u.user_id, role: u.role })),
-      ];
-      const uniqueUsers = Array.from(
-        new Map(combined.map((u) => [u.id, u])).values()
-      );
-      const userIds = uniqueUsers.map((u) => u.id);
-      const { data: userDetails, error: userError } = await this.supabase
-        .from("user")
-        .select("*")
-        .in("id", userIds)
-        .eq("is_deleted", false);
-      if (userError) {
-        console.error("Error fetching user names", userError);
-        return [];
-      }
-      const userMap = new Map(
-        (userDetails || [])
-          .filter((u) => u.id !== null)
-          .map((u) => [u.id as string, u])
-      );
-      const finalResult: { user: any; role: string }[] = uniqueUsers
-        .filter((u) => u.id !== null && u.role !== null)
-        .map((u) => ({
-          user: userMap.get(u.id as string) ?? {},
-          role: u.role as string,
-        }));
-      return finalResult;
-    } else {
-      // Checks for the Program manager role
-      const { data: programs, error: programError } = await this.supabase
-        .from("program_user")
-        .select("program_id")
-        .eq("user", userId)
-        .eq("role", "program_manager")
-        .eq("is_deleted", false);
-      if (programError || !programs) {
-        console.error("Error fetching programs", programError);
-        return [];
-      }
-      const programIds = programs.map((p) => p.program_id);
-      if (programIds.length === 0) return [];
-      const { data: coordinators, error: coordError } = await this.supabase
-        .from("program_user")
-        .select("role, user(*)")
-        .in("program_id", programIds)
-        .eq("role", "field_coordinator")
-        .eq("is_deleted", false);
-      if (coordError || !coordinators) {
-        console.error("Error fetching coordinators", coordError);
-        return [];
-      }
-      return (coordinators || [])
-        .filter((c) => c.user !== null && c.role !== null)
-        .map((c) => ({
-          user: c.user!,
-          role: c.role!,
-        })) as { user: TableTypes<"user">; role: string }[];
+
+    const combined = [
+      ...(programUsers || []).map((u) => ({ id: u.user, role: u.role })),
+      ...(specialUsers || []).map((u) => ({ id: u.user_id, role: u.role })),
+    ];
+
+    const uniqueUsers = Array.from(
+      new Map(combined.map((u) => [u.id, u])).values()
+    );
+
+    const userIds = uniqueUsers.map((u) => u.id);
+    const { data: userDetails, error: userError } = await this.supabase
+      .from("user")
+      .select("*")
+      .in("id", userIds)
+      .eq("is_deleted", false);
+
+    if (userError) {
+      console.error("Error fetching user names", userError);
+      return [];
     }
+
+    const userMap = new Map(
+      (userDetails || [])
+        .filter((u) => u.id !== null)
+        .map((u) => [u.id as string, u])
+    );
+
+    const finalResult: { user: any; role: string }[] = uniqueUsers
+      .filter((u) => u.id !== null && u.role !== null)
+      .map((u) => ({
+        user: userMap.get(u.id as string) ?? {},
+        role: u.role as string,
+      }));
+
+    return finalResult;
+  } else {
+    // Checks for the Program manager role
+    const { data: programs, error: programError } = await this.supabase
+      .from("program_user")
+      .select("program_id")
+      .eq("user", userId)
+      .eq("role", RoleType.PROGRAM_MANAGER)
+      .eq("is_deleted", false);
+
+    if (programError || !programs) {
+      console.error("Error fetching programs", programError);
+      return [];
+    }
+
+    const programIds = programs.map((p) => p.program_id);
+    if (programIds.length === 0) return [];
+
+    const { data: coordinators, error: coordError } = await this.supabase
+      .from("program_user")
+      .select("role, user(*)")
+      .in("program_id", programIds)
+      .eq("role", RoleType.FIELD_COORDINATOR)
+      .eq("is_deleted", false);
+
+    if (coordError || !coordinators) {
+      console.error("Error fetching coordinators", coordError);
+      return [];
+    }
+
+    return (coordinators || [])
+      .filter((c) => c.user !== null && c.role !== null)
+      .map((c) => ({
+        user: c.user!,
+        role: c.role!,
+      })) as { user: TableTypes<"user">; role: string }[];
   }
+}
 
   async program_activity_stats(programId: string): Promise<{
     total_students: number;
@@ -6573,40 +6765,43 @@ export class SupabaseApi implements ServiceApi {
     return !!(data && data.length > 0);
   }
 
-  async getUserSpecialRole(userId: string): Promise<string | undefined> {
-    if (!this.supabase) {
-      console.error("Supabase client not initialized.");
-      return undefined;
-    }
-
-    if (!userId) {
-      console.warn("userId is missing. Cannot fetch role.");
-      return undefined;
-    }
-
-    try {
-      const { data, error } = await this.supabase
-        .from("special_users")
-        .select("role")
-        .eq("user_id", userId)
-        .in("role", [
-          "super_admin",
-          "operational_director",
-          "program_manager",
-          "field_coordinator",
-        ])
-        .eq("is_deleted", false)
-        .limit(1)
-        .single();
-
-      if (error) {
-        console.error("Error fetching role from special_users:", error.message);
-        return undefined;
-      }
-      return data?.role ?? undefined;
-    } catch (e) {
-      console.error("Unexpected error while fetching user special role:", e);
-      return undefined;
-    }
+  async getUserSpecialRoles(userId: string): Promise<string[]> {
+  if (!this.supabase) {
+    console.error("Supabase client not initialized.");
+    return [];
   }
+
+  if (!userId) {
+    console.warn("userId is missing. Cannot fetch roles.");
+    return [];
+  }
+
+  try {
+    const { data, error } = await this.supabase
+      .from("special_users")
+      .select("role")
+      .eq("user_id", userId)
+      .in("role", [
+        "super_admin",
+        "operational_director",
+        "program_manager",
+        "field_coordinator",
+      ])
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching roles from special_users:", error.message);
+      return [];
+    }
+
+    const roles = (data ?? [])
+      .map((item) => item.role)
+      .filter((role): role is NonNullable<typeof role> => role !== null);
+
+    return roles;
+  } catch (e) {
+    console.error("Unexpected error while fetching user special roles:", e);
+    return [];
+  }
+}
 }

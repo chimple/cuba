@@ -3,6 +3,7 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import { StudentLessonResult } from "../../common/courseConstants";
 import {
+  FilteredSchoolsForSchoolListingOps,
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODEL,
@@ -978,7 +979,8 @@ export interface ServiceApi {
     startDate: string,
     endDate: string,
     isClassWise: boolean,
-    isLiveQuiz: boolean
+    isLiveQuiz: boolean,
+    allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined>;
 
   /**
@@ -1097,6 +1099,15 @@ export interface ServiceApi {
    * @return returns boolean whether the user is already connected to school or not.
    */
   checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean>;
+
+  /**
+   * Checks the teacher present in class or not.
+   * @param {string} schoolId school Id
+   * @param {string} classId class Id
+   * @param {string} userId user Id;
+   * @return returns boolean whether the teacher is already connected to class or not.
+   */
+  checkTeacherExistInClass(schoolId: string, classId: string, userId: string): Promise<boolean> 
 
   /**
    * Checks the user present in school or not.
@@ -1292,6 +1303,14 @@ export interface ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+   /**
+   * To validate given program name exist in the program table or not
+   * @param {string } programName -    program name
+   */
+  validateProgramName(
+    programName: string
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1614,12 +1633,38 @@ export interface ServiceApi {
   getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>>;
 
   /**
-   * Fetch a list of schools filtered by given criteria.
+   * Fetch a list of schools filtered by given criteria and optionally by program ID.
    *
-   * @param filters - An object where keys are filter categories and values are arrays of selected filter options.
-   * @returns Promise resolving to a filtered list of schools matching the provided filter criteria.
+   * @param params - An object containing filters (keys as categories and values as selected options) and an optional programId.
+   * @returns Promise resolving to a filtered list of schools matching the provided criteria.
    */
-  getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>);
+  getFilteredSchoolsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+  }): Promise<FilteredSchoolsForSchoolListingOps[]>;
+
+  /**
+   * Creates or gets a user based on the provided payload.
+   * @param {Object} payload - The user creation payload.
+   * @param {string} payload.name - Name of the user.
+   * @param {string} [payload.email] - Optional email address.
+   * @param {string} [payload.phone] - Optional phone number.
+   * @param {string} payload.role - Role of the user.
+   * @returns {Promise<{ success: boolean; user_id?: string; message?: string; error?: string; }>}
+   */
+    createOrAddUserOps(
+      payload: {
+        name: string;
+        email?: string;
+        phone?: string;
+        role: string;
+      }
+    ): Promise<{
+      success: boolean;
+      user_id?: string;
+      message?: string;
+      error?: string;
+    }>;
 
   //  * Fetch detailed teacher information for a given school ID.
   //  * @param {string} schoolId - The ID of the school to fetch.
@@ -1722,5 +1767,5 @@ export interface ServiceApi {
    * Checks if the current user is a role.
    * @returns {Promise<string | undefined>} If any special role is there it will return role otherwise it will return undefined.
    */
-  getUserSpecialRole(userId: string): Promise<string | undefined>;
+  getUserSpecialRoles(userId: string): Promise<string[]>;
 }
