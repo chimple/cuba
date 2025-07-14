@@ -6667,10 +6667,18 @@ export class SupabaseApi implements ServiceApi {
     console.error("Unexpected error while fetching user special roles:", e);
     return [];
   }
-}
+  }
 
+  async updateSpecialUserRole(userId: string, role: string): Promise<void> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return;
+    }
+    const updatedAt = new Date().toISOString();
     try {
       const { error } = await this.supabase
+        .from("special_users")
+        .update({
           role: role as
             | RoleType.PROGRAM_MANAGER
             | RoleType.OPERATIONAL_DIRECTOR,
@@ -6678,14 +6686,95 @@ export class SupabaseApi implements ServiceApi {
         })
         .eq("user_id", userId)
         .eq("is_deleted", false);
-    }
+
       if (error) {
+        console.error("Error updating role in special_users:", error.message);
+      }
+    } catch (e) {
+      console.error("Unexpected error while updating user role:", e);
     }
-    }
-        .eq("user", userId)
   }
-        .from("program_user")
-  }
+  async deleteSpecialUser(userId: string): Promise<void> {
+    if (!this.supabase) {
       console.error("Supabase client not initialized.");
+      return;
+    }
+    try {
+      const { error } = await this.supabase
+        .from("special_users")
+        .update({ is_deleted: true })
+        .eq("user_id", userId);
+      if (error) {
+        console.error("Error deleting user in special_users:", error.message);
+      }
+    } catch (e) {
       console.error("Unexpected error while deleting user:", e);
+    }
+  }
+
+  async updateProgramUserRole(userId: string, role: string): Promise<void> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return;
+    }
+    const updatedAt = new Date().toISOString();
+    try {
+      const { error } = await this.supabase
+        .from("program_user")
+        .update({
+          role: role as
+            | RoleType.PROGRAM_MANAGER
+            | RoleType.OPERATIONAL_DIRECTOR,
+          updated_at: updatedAt,
+        })
+        .eq("user", userId)
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.error("Error updating role in program_user:", error.message);
+      }
+    } catch (e) {
+      console.error("Unexpected error while updating user role:", e);
+    }
+  }
+
+  async deleteProgramUser(userId: string): Promise<void> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return;
+    }
+    try {
+      const { error } = await this.supabase
+        .from("program_user")
+        .update({ is_deleted: true })
+        .eq("user", userId);
+      if (error) {
+        console.error("Error deleting user in program_user:", error.message);
+      }
+    } catch (e) {
+      console.error("Unexpected error while deleting user:", e);
+    }
+  }
+
+  async deleteUserFromSchoolsWithRole(
+    userId: string,
+    role: string
+  ): Promise<void> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return;
+    }
+    try {
+      const { error } = await this.supabase
+        .from("school_user")
+        .update({ is_deleted: true })
+        .eq("user", userId)
+        .eq("role", role);
+      if (error) {
+        console.error("Error deleting user in program_user:", error.message);
+      }
+    } catch (e) {
+      console.error("Unexpected error while deleting user:", e);
+    }
+  }
 }
