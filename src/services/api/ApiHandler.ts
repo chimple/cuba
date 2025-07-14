@@ -258,8 +258,8 @@ export class ApiHandler implements ServiceApi {
   ): Promise<boolean> {
     return await this.s.checkCourseInClasses(classIds, courseId);
   }
-  public async deleteUserFromClass(userId: string): Promise<void> {
-    return await this.s.deleteUserFromClass(userId);
+  public async deleteUserFromClass(userId: string, class_id: string): Promise<void> {
+    return await this.s.deleteUserFromClass(userId, class_id);
   }
   public async isUserTeacher(userId: string): Promise<boolean> {
     return await this.s.isUserTeacher(userId);

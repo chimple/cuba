@@ -870,7 +870,7 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  async deleteUserFromClass(userId: string): Promise<void> {
+  async deleteUserFromClass(userId: string, class_id:string): Promise<void> {
     if (!this.supabase) return;
 
     const updatedAt = new Date().toISOString();
@@ -882,7 +882,9 @@ export class SupabaseApi implements ServiceApi {
           is_deleted: true,
           updated_at: updatedAt,
         })
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .eq("class_id", class_id)
+        .eq("is_deleted", false);
 
       if (error) {
         console.error("Error deleting user from class_user:", error);

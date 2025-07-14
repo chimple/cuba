@@ -44,7 +44,7 @@ const UserList: React.FC<{
     if (selectedUser) {
       try {
         if (userType === CLASS_USERS.STUDENTS) {
-          await api?.deleteUserFromClass(selectedUser.id);
+          await api?.deleteUserFromClass(selectedUser.id, classDoc.id);
           setAllStudents((prev) =>
             prev?.filter((student) => student.id !== selectedUser.id)
           );

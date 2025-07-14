@@ -2465,19 +2465,18 @@ export class SqliteApi implements ServiceApi {
       console.error("Error removing courses from school_course", error);
     }
   }
-  async deleteUserFromClass(userId: string): Promise<void> {
+  async deleteUserFromClass(userId: string, class_id:string): Promise<void> {
     const updatedAt = new Date().toISOString();
     try {
       await this.executeQuery(
-        `UPDATE class_user SET is_deleted = 1 , updated_at = ? WHERE user_id = ?`,
-        [updatedAt, userId]
+        `UPDATE class_user SET is_deleted = 1, updated_at = ? WHERE user_id = ? AND class_id = ? AND is_deleted = 0`,
+        [updatedAt, userId, class_id]
       );
       const query = `
       SELECT *
       FROM ${TABLES.ClassUser}
-      WHERE user_id = ?
-    `;
-      const res = await this._db?.query(query, [userId]);
+      WHERE user_id = ? AND class_id = ? AND updated_at = ? AND is_deleted = 1`;
+      const res = await this._db?.query(query, [userId, class_id, updatedAt]);
       let userData;
       if (res && res.values && res.values.length > 0) {
         userData = res.values[0];
