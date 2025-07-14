@@ -70,7 +70,7 @@ const SchoolList: React.FC = () => {
   const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
   const [tempFilters, setTempFilters] = useState<Filters>(INITIAL_FILTERS);
   const [filterOptions, setFilterOptions] = useState<Filters>(INITIAL_FILTERS);
-  const [orderBy, setOrderBy] = useState("name");
+  const [orderBy, setOrderBy] = useState("");
   const [orderDir, setOrderDir] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
   const [pageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -169,7 +169,16 @@ const SchoolList: React.FC = () => {
     } finally {
       setIsDataLoading(false);
     }
-  }, [api, filters, page, pageSize, orderBy, orderDir, searchTerm, selectedTab]);
+  }, [
+    api,
+    filters,
+    page,
+    pageSize,
+    orderBy,
+    orderDir,
+    searchTerm,
+    selectedTab,
+  ]);
 
   const columns: Column<Record<string, any>>[] = [
     {

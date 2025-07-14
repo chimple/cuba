@@ -39,7 +39,7 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
   const [loadingData, setLoadingData] = useState(true);
   const [programName, setProgramName] = useState("");
   const [page, setPage] = useState(1);
-  const [orderBy, setOrderBy] = useState("name");
+  const [orderBy, setOrderBy] = useState("");
   const [orderDir, setOrderDir] = useState<"asc" | "desc">("asc");
   const [total, setTotal] = useState(0);
 
@@ -236,16 +236,7 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
       </Box>
 
       <div className="ops-program-schools-table-container">
-        {loadingData ? (
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            height="100%"
-          >
-            <CircularProgress />
-          </Box>
-        ) : filteredSchools.length === 0 ? (
+        {!loadingData && filteredSchools.length === 0 ? (
           <Box
             display="flex"
             justifyContent="center"
@@ -261,6 +252,7 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
             orderBy={orderBy}
             order={orderDir}
             onSort={handleSort}
+            loading={loadingData}
           />
         )}
       </div>
