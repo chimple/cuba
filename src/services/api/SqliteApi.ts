@@ -4865,19 +4865,36 @@ order by
     return await this._serverApi.getProgramFilterOptions();
   }
   async getPrograms(params: {
-    currentUserId: string;
-    filters?: Record<string, string[]>;
-    searchTerm?: string;
-    tab?: TabType;
-  }): Promise<{ data: any[] }> {
-    const { currentUserId, filters, searchTerm, tab } = params;
-    return await this._serverApi.getPrograms({
-      currentUserId,
-      filters,
-      searchTerm,
-      tab,
-    });
-  }
+  currentUserId: string;
+  filters?: Record<string, string[]>;
+  searchTerm?: string;
+  tab?: TabType;
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  order?: "asc" | "desc";
+}): Promise<{ data: any[] }> {
+  const {
+    currentUserId,
+    filters,
+    searchTerm,
+    tab,
+    limit,
+    offset,
+    orderBy,
+    order,
+  } = params;
+  return await this._serverApi.getPrograms({
+    currentUserId,
+    filters,
+    searchTerm,
+    tab,
+    limit,
+    offset,
+    orderBy,
+    order,
+  });
+}
 
   async insertProgram(payload: any): Promise<boolean | null> {
     return await this._serverApi.insertProgram(payload);
@@ -4974,13 +4991,18 @@ order by
   }
 
   async getFilteredSchoolsForSchoolListing(
-    params: {
-      filters?: Record<string, string[]>;
-      programId?: string;
-    }
-  ): Promise<FilteredSchoolsForSchoolListingOps[]> {
-    return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
+  params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: "asc" | "desc";
+    search?: string;
   }
+): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
+  return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
+}
 
   async createOrAddUserOps(payload: {
     name: string;

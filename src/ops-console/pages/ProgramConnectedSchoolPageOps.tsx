@@ -66,7 +66,7 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
         programId:id
       });
 
-      const formatted = result.map((school: any) => ({
+      const formatted = (result.data ?? []).map((school: any) => ({
         ...school,
         id: school.sch_id,
         students: school.num_students || 0,

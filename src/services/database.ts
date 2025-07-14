@@ -2384,6 +2384,10 @@ export type Database = {
           _filters: Json;
           _tab: string;
           _search_term: string;
+          _limit: number;
+          _offset: number;
+          _order_by: string;
+          _order: string;
         };
         Returns: {
           id: string;
@@ -2393,6 +2397,7 @@ export type Database = {
           students_count: number;
           devices_count: number;
           manager_names: string;
+          total_count: number;
         }[];
       };
       get_programs_with_count: {

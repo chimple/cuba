@@ -2004,19 +2004,27 @@ export class FirebaseApi implements ServiceApi {
   getProgramFilterOptions(): Promise<Record<string, string[]>> {
     throw new Error("Method not implemented.");
   }
-  async getPrograms({
-    currentUserId,
-    filters = {},
-    searchTerm = "",
-    tab = "ALL",
-  }: {
-    currentUserId: string;
-    filters?: Record<string, string[]>;
-    searchTerm?: string;
-    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
-  }): Promise<{ data: any[] }> {
-    throw new Error("Method not implemented.");
-  }
+ async getPrograms({
+  currentUserId,
+  filters = {},
+  searchTerm = "",
+  tab = "ALL",
+  limit = 10,
+  offset = 0,
+  orderBy = "name",
+  order = "asc",
+}: {
+  currentUserId: string;
+  filters?: Record<string, string[]>;
+  searchTerm?: string;
+  tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  order?: "asc" | "desc";
+}): Promise<{ data: any[] }> {
+  throw new Error("Method not implemented.");
+}
 
   insertProgram(payload: any): Promise<boolean | any> {
     throw new Error("Method not implemented.");
