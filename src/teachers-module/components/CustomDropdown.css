@@ -23,6 +23,7 @@ ion-select::part(text) {
 .icon-container {
   display: flex;
   color: #707070;
+  margin-left: 4px;
 }
 
 ion-select::part(text) {
@@ -68,10 +69,6 @@ ion-popover {
 .sort-type-container ion-select {
   flex: 0 1 auto;          
   margin-right: 4px;      
-}
-
-.icon-container {
-  margin-left: 4px;       
 }
 
 .customdropdown-select::part(text) {
