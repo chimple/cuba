@@ -2181,6 +2181,12 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
+  public async getUserRoleForSchool(
+    userId: string,
+    schoolId: string
+  ): Promise<RoleType | undefined> {
+    return await this._serverApi.getUserRoleForSchool(userId, schoolId);
+  }
 
   async isStudentLinked(
     studentId: string,
@@ -2470,7 +2476,7 @@ export class SqliteApi implements ServiceApi {
       console.error("Error removing courses from school_course", error);
     }
   }
-  async deleteUserFromClass(userId: string, class_id:string): Promise<void> {
+  async deleteUserFromClass(userId: string, class_id: string): Promise<void> {
     const updatedAt = new Date().toISOString();
     try {
       await this.executeQuery(
@@ -2489,7 +2495,7 @@ export class SqliteApi implements ServiceApi {
       this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
         id: userData.id,
         is_deleted: true,
-        updated_at: updatedAt,  
+        updated_at: updatedAt,
       });
     } catch (error) {
       console.error("Error deleting user from class_user", error);
@@ -3938,12 +3944,12 @@ order by
     if (isClassWise) {
       query += ` AND is_class_wise = 1`;
     }
-    if(!allAssignments) {
+    if (!allAssignments) {
       if (isLiveQuiz) {
-      query += ` AND type = 'liveQuiz'`;
-    } else {
-      query += ` AND type != 'liveQuiz'`;
-    }
+        query += ` AND type = 'liveQuiz'`;
+      } else {
+        query += ` AND type != 'liveQuiz'`;
+      }
     }
     query += ` ORDER BY created_at DESC`;
 
@@ -4869,36 +4875,36 @@ order by
     return await this._serverApi.getProgramFilterOptions();
   }
   async getPrograms(params: {
-  currentUserId: string;
-  filters?: Record<string, string[]>;
-  searchTerm?: string;
-  tab?: TabType;
-  limit?: number;
-  offset?: number;
-  orderBy?: string;
-  order?: "asc" | "desc";
-}): Promise<{ data: any[] }> {
-  const {
-    currentUserId,
-    filters,
-    searchTerm,
-    tab,
-    limit,
-    offset,
-    orderBy,
-    order,
-  } = params;
-  return await this._serverApi.getPrograms({
-    currentUserId,
-    filters,
-    searchTerm,
-    tab,
-    limit,
-    offset,
-    orderBy,
-    order,
-  });
-}
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    searchTerm?: string;
+    tab?: TabType;
+    limit?: number;
+    offset?: number;
+    orderBy?: string;
+    order?: "asc" | "desc";
+  }): Promise<{ data: any[] }> {
+    const {
+      currentUserId,
+      filters,
+      searchTerm,
+      tab,
+      limit,
+      offset,
+      orderBy,
+      order,
+    } = params;
+    return await this._serverApi.getPrograms({
+      currentUserId,
+      filters,
+      searchTerm,
+      tab,
+      limit,
+      offset,
+      orderBy,
+      order,
+    });
+  }
 
   async insertProgram(payload: any): Promise<boolean | null> {
     return await this._serverApi.insertProgram(payload);
@@ -4994,8 +5000,7 @@ order by
     return await this._serverApi.getSchoolFilterOptionsForSchoolListing();
   }
 
-  async getFilteredSchoolsForSchoolListing(
-  params: {
+  async getFilteredSchoolsForSchoolListing(params: {
     filters?: Record<string, string[]>;
     programId?: string;
     page?: number;
@@ -5003,10 +5008,9 @@ order by
     order_by?: string;
     order_dir?: "asc" | "desc";
     search?: string;
+  }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
+    return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
   }
-): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
-  return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
-}
 
   async createOrAddUserOps(payload: {
     name: string;
@@ -5423,17 +5427,19 @@ order by
   async updateSpecialUserRole(userId: string, role: string): Promise<void> {
     return await this._serverApi.updateSpecialUserRole(userId, role);
   }
-  async deleteSpecialUser(userId:string):Promise<void>{
+  async deleteSpecialUser(userId: string): Promise<void> {
     return await this._serverApi.deleteSpecialUser(userId);
   }
   async updateProgramUserRole(userId: string, role: string): Promise<void> {
     return await this._serverApi.updateProgramUserRole(userId, role);
   }
-  async deleteProgramUser(userId:string):Promise<void>{
+  async deleteProgramUser(userId: string): Promise<void> {
     return await this._serverApi.deleteProgramUser(userId);
   }
-  async deleteUserFromSchoolsWithRole(userId: string, role: string):Promise<void>{
+  async deleteUserFromSchoolsWithRole(
+    userId: string,
+    role: string
+  ): Promise<void> {
     return await this._serverApi.deleteUserFromSchoolsWithRole(userId, role);
   }
-
 }

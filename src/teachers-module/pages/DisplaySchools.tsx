@@ -1,36 +1,27 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, useRef } from "react";
 import { useHistory } from "react-router";
-import {
-  CLASS,
-  CURRENT_SCHOOL,
-  IS_OPS_USER,
-  MODES,
-  PAGES,
-  SCHOOL,
-  TableTypes,
-  USER_ROLE,
-} from "../../common/constants";
-import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
+import { PAGES, TableTypes, USER_ROLE, MODES } from "../../common/constants";
+import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
-import { RoleType } from "../../interface/modelInterfaces";
-import { AppBar } from "@mui/material";
 import { t } from "i18next";
-import BackButton from "../../components/common/BackButton";
 import "./DisplaySchools.css";
 import Header from "../components/homePage/Header";
-import { IonFabButton, IonIcon, IonItem, IonPage } from "@ionic/react";
+import { IonFabButton, IonIcon, IonPage } from "@ionic/react";
 import { PiUserSwitchFill } from "react-icons/pi";
 import CommonToggle from "../../common/CommonToggle";
 import { schoolUtil } from "../../utility/schoolUtil";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
-import AddButton from "../../common/AddButton";
 import { addOutline } from "ionicons/icons";
+import { RoleType } from "../../interface/modelInterfaces";
 
 interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;
 }
+
+const PAGE_SIZE = 20;
+
 const DisplaySchools: FC<{}> = () => {
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
@@ -39,6 +30,11 @@ const DisplaySchools: FC<{}> = () => {
   const [user, setUser] = useState<TableTypes<"user">>();
   const [isAuthorizedForOpsMode, setIsAuthorizedForOpsMode] =
     useState<boolean>(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     lockOrientation();
@@ -50,41 +46,71 @@ const DisplaySchools: FC<{}> = () => {
       ScreenOrientation.lock({ orientation: "portrait" });
     }
   };
+
+  const fetchSchools = async (pageNo: number, userId: string) => {
+    setLoading(true);
+    const result = await api.getSchoolsForUser(userId, {
+      page: pageNo,
+      page_size: PAGE_SIZE,
+    });
+    if (result.length < PAGE_SIZE) setHasMore(false);
+    setSchoolList((prev) => (pageNo === 1 ? result : [...prev, ...result]));
+    setLoading(false);
+  };
+
   const initData = async () => {
-  const currentUser = await auth.getCurrentUser();
-  if (!currentUser) return;
-  setUser(currentUser);
+    const currentUser = await auth.getCurrentUser();
+    if (!currentUser) return;
+    setUser(currentUser);
 
-  const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
-
-  const isOpsRole =
-    userRoles.includes(RoleType.SUPER_ADMIN) ||
-    userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
-
-  const isProgramUser = await api.isProgramUser();
-  if (isOpsRole || isProgramUser) {
-    setIsAuthorizedForOpsMode(true);
-  }
-
-  const allSchool = await api.getSchoolsForUser(currentUser.id);
-  setSchoolList(allSchool);
-
-  const tempSchool = Util.getCurrentSchool();
-  if (tempSchool) {
-    const localSchool = allSchool.find(
-      (school) => school.school.id === tempSchool.id
+    const userRoles: string[] = JSON.parse(
+      localStorage.getItem(USER_ROLE) ?? "[]"
     );
-    if (localSchool) {
-      const selectedSchool: SchoolWithRole = {
-        school: localSchool.school,
-        role: localSchool.role,
-      };
-      selectSchool(selectedSchool);
+
+    const isOpsRole =
+      userRoles.includes(RoleType.SUPER_ADMIN) ||
+      userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
+
+    const isProgramUser = await api.isProgramUser();
+    if (isOpsRole || isProgramUser) setIsAuthorizedForOpsMode(true);
+
+    setPage(1);
+    setHasMore(true);
+    await fetchSchools(1, currentUser.id);
+
+    const tempSchool = Util.getCurrentSchool();
+    if (tempSchool) {
+       if (!user) return;
+      const role = await api.getUserRoleForSchool(user.id, tempSchool.id);
+      if (role) {
+        selectSchool({ school: tempSchool, role });
+      }
+    } else if (schoolList.length === 1) {
+      selectSchool(schoolList[0]);
     }
-  } else if (allSchool.length === 1) {
-    selectSchool(allSchool[0]);
-  }
-};
+  };
+
+  // Infinite scroll listener
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const handleScroll = () => {
+      if (loading || !hasMore) return;
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
+        setPage((p) => p + 1);
+      }
+    };
+    el.addEventListener("scroll", handleScroll);
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [loading, hasMore]);
+
+  // Fetch next page on page increment
+  useEffect(() => {
+    if (!user) return;
+    if (page === 1) return;
+    fetchSchools(page, user.id);
+  }, [page, user]);
 
   const getClasses = async (schoolId: string) => {
     const tempClasses = await api.getClassesForSchool(schoolId, user?.id!);
@@ -144,7 +170,7 @@ const DisplaySchools: FC<{}> = () => {
         )}
       </div>
       <hr className="display-school-horizontal-line" />
-      {schoolList.length === 0 ? (
+      {schoolList.length === 0 && !loading ? (
         <div className="no-schools-container">
           <div className="create-school-button">
             <IonFabButton
@@ -163,7 +189,11 @@ const DisplaySchools: FC<{}> = () => {
         </div>
       ) : (
         <>
-          <div className="all-school-display-container">
+          <div
+            className="all-school-display-container"
+            ref={scrollRef}
+            style={{ overflowY: "auto", maxHeight: "calc(100vh - 200px)" }}
+          >
             <div className="all-school-display">
               {schoolList.map((school) => (
                 <div
@@ -183,6 +213,18 @@ const DisplaySchools: FC<{}> = () => {
                   </div>
                 </div>
               ))}
+              {loading && (
+                <div style={{ textAlign: "center", padding: "8px" }}>
+                  {t("Loading...")}
+                </div>
+              )}
+              {!hasMore && schoolList.length > 0 && (
+                <div
+                  style={{ textAlign: "center", padding: "8px", color: "#888" }}
+                >
+                  {t("No more schools")}
+                </div>
+              )}
             </div>
           </div>
         </>

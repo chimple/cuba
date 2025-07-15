@@ -2501,13 +2501,14 @@ export class SupabaseApi implements ServiceApi {
     return filtered;
   }
   async getSchoolsForUser(
-  userId: string
+  userId: string,
+  options?: { page?: number; page_size?: number }
 ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
   if (!this.supabase) return [];
- 
 
+  // Special users
   const { data: specialUser, error: specialError } = await this.supabase
-    .from(TABLES.SpecialUsers)           
+    .from(TABLES.SpecialUsers)
     .select("role")
     .eq("user_id", userId)
     .eq("is_deleted", false)
@@ -2522,22 +2523,34 @@ export class SupabaseApi implements ServiceApi {
       role === RoleType.SUPER_ADMIN ||
       role === RoleType.OPERATIONAL_DIRECTOR
     ) {
+      const page = options?.page ?? 1;
+      const page_size = options?.page_size ?? 100;
+      const from = (page - 1) * page_size;
+      const to = from + page_size - 1;
+
       const { data: allSchools, error: allErr } = await this.supabase
         .from(TABLES.School)
         .select("*")
-        .eq("is_deleted", false);
+        .eq("is_deleted", false)
+        .order("name", { ascending: true })
+        .range(from, to);
 
       if (allErr) {
         console.error("Error fetching all schools:", allErr);
         return [];
       }
-      return allSchools.map((school) => ({ school, role }));
+      return (allSchools ?? []).map((school) => ({ school, role }));
     }
 
     if (
       role === RoleType.PROGRAM_MANAGER ||
       role === RoleType.FIELD_COORDINATOR
     ) {
+      const page = options?.page ?? 1;
+      const page_size = options?.page_size ?? 20;
+      const from = (page - 1) * page_size;
+      const to = from + page_size - 1;
+
       const { data: progUsers, error: puErr } = await this.supabase
         .from(TABLES.ProgramUser)
         .select("program_id")
@@ -2546,24 +2559,30 @@ export class SupabaseApi implements ServiceApi {
 
       if (puErr) {
         console.error("Error fetching program_user:", puErr);
-      } else if (progUsers?.length) {
+        return [];
+      }
+      if (progUsers?.length) {
         const programIds = progUsers.map((pu) => pu.program_id);
         const { data: progSchools, error: psErr } = await this.supabase
           .from(TABLES.School)
           .select("*")
           .in("program_id", programIds)
-          .eq("is_deleted", false);
+          .eq("is_deleted", false)
+          .order("name", { ascending: true })
+          .range(from, to);
 
         if (psErr) {
           console.error("Error fetching program schools:", psErr);
-        } else {
-          const unique = new Map<string, { school: any; role: RoleType }>();
-          for (const school of progSchools) {
-            unique.set(school.id, { school, role });
-          }
-          return Array.from(unique.values());
+          return [];
         }
+        // Deduplicate by school id
+        const unique = new Map<string, { school: any; role: RoleType }>();
+        for (const school of progSchools ?? []) {
+          unique.set(school.id, { school, role });
+        }
+        return Array.from(unique.values());
       }
+      return [];
     }
   }
 
@@ -2849,6 +2868,55 @@ export class SupabaseApi implements ServiceApi {
     }
     return studentInfoList;
   }
+
+  async getUserRoleForSchool(
+  userId: string,
+  schoolId: string
+): Promise<RoleType | undefined> {
+  if (!this.supabase) return;
+
+  // Check special users
+  const { data: specialUser } = await this.supabase
+    .from(TABLES.SpecialUsers)
+    .select("role")
+    .eq("user_id", userId)
+    .eq("is_deleted", false)
+    .single();
+  if (specialUser?.role) return specialUser.role as RoleType;
+
+  // Check class_user → teacher
+  const { data: classUsers } = await this.supabase
+    .from(TABLES.ClassUser)
+    .select("class_id")
+    .eq("user_id", userId)
+    .eq("role", RoleType.TEACHER)
+    .eq("is_deleted", false);
+  if (classUsers?.length) {
+    const classIds = classUsers.map((cu) => cu.class_id);
+    const { data: classes } = await this.supabase
+      .from(TABLES.Class)
+      .select("id, school_id")
+      .in("id", classIds)
+      .eq("is_deleted", false);
+    if (classes?.some((c) => c.school_id === schoolId)) {
+      return RoleType.TEACHER;
+    }
+  }
+
+  // Check school_user (not parent)
+  const { data: schoolUser } = await this.supabase
+    .from(TABLES.SchoolUser)
+    .select("role")
+    .eq("user_id", userId)
+    .eq("school_id", schoolId)
+    .neq("role", RoleType.PARENT)
+    .eq("is_deleted", false)
+    .single();
+  if (schoolUser?.role) return schoolUser.role as RoleType;
+
+  return undefined;
+}
+
 
   async getTeacherInfoBySchoolId(
     schoolId: string
