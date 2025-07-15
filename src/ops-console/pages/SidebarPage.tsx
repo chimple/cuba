@@ -19,6 +19,8 @@ import SchoolDetailsPage from "./SchoolDetailsPage";
 import ProgramDetailsPage from "./ProgramDetailsPage";
 import UsersPage from "./UsersPage";
 import NewProgram from "../components/NewProgram";
+import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPageOps";
+import NewUserPage from "./NewUserPageOps";
 import UserDetailsPage from "./UserDetailsPage";
 
 const SidebarPage: React.FC = () => {
@@ -96,6 +98,24 @@ const SidebarPage: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.USERS}`} exact={true}>
               <UsersPage />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS}/:program_id`}
+              exact={true}
+            >
+              {(routeProps) => {
+                return (
+                  <ProgramConnectedSchoolPage
+                    id={routeProps.match.params.program_id}
+                  />
+                );
+              }}
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.USERS}${PAGES.NEW_USERS_OPS}`}
+              exact={true}
+            >
+              <NewUserPage />
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.ADMIN_USERS}${PAGES.USER_DETAILS}`}
