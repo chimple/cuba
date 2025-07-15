@@ -675,7 +675,9 @@ export const NUMBER_NAME = [
 
 //Setting student max profile as 1 for OneRoaster
 // export const MAX_STUDENTS_ALLOWED = Util.isRespectMode ? 1 : 3;
-export const MAX_STUDENTS_ALLOWED = 1;
+export const MAX_STUDENTS_ALLOWED = 3;
+export const MAX_STUDENTS_ALLOWED_RESPECT = 1;
+
 export const INSTANT_SEARCH_INDEX_NAME =
   process.env.REACT_APP_ALGOLIA_INDEX_NAME ?? "";
 
