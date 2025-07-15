@@ -88,7 +88,8 @@ const UserDetailsPage: React.FC = () => {
     userData?.userRole === RoleType.OPERATIONAL_DIRECTOR;
 
   const isSaveDisabled =
-    user?.name === userData?.user?.name && userRole === userData?.userRole;
+    !user?.name?.trim() ||
+    (user.name === userData?.user?.name && userRole === userData?.userRole);
 
   return (
     <div className="user-details-page">
