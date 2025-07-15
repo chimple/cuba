@@ -22,6 +22,7 @@ const LearningPathway: React.FC = () => {
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
   const currentStudent = Util.getCurrentStudent();
+  const [pathwayReady, setPathwayReady] = useState(false);
 
   useEffect(() => {
     if (!currentStudent?.id) return;
@@ -81,6 +82,7 @@ const LearningPathway: React.FC = () => {
         learningPath = await buildInitialLearningPath(userCourses);
         await saveLearningPath(student, learningPath);
         setLoading(false);
+        if (Util.isRespectMode) setPathwayReady(true); // Mark pathway as ready in respect mode
       } else {
         const updated = await updateLearningPathIfNeeded(
           learningPath,
@@ -207,7 +209,9 @@ const updateLearningPathIfNeeded = async (
     };
     await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
   };
-  if (loading) return <Loading isLoading={loading} msg="Loading Lessons" />;
+  if (loading || (Util.isRespectMode && !pathwayReady)) {
+    return <Loading isLoading={loading} msg="Loading Lessons" />;
+  }
 
   return (
     <div className="learning-pathway-container">
