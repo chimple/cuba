@@ -54,6 +54,7 @@ import {
   ASSIGNMENT_POPUP_SHOWN,
   QUIZ_POPUP_SHOWN,
   SCHOOL_LOGIN,
+  isRespectMode,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -2164,6 +2165,7 @@ export class Util {
       const PortPlugin = registerPlugin<any>("Port");
       const data = await PortPlugin.isAppInstalledCheck();
       console.log("data isRespect data--> ", JSON.stringify(data));
+      localStorage.setItem(isRespectMode, data.isRespect);  
       return data.isRespect;
     } catch (error) {
       console.log("error isRespect data--> ", JSON.stringify(error));
