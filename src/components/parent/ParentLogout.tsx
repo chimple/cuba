@@ -26,8 +26,6 @@ const ParentLogout: React.FC<{}> = ({}) => {
     localStorage.removeItem(CURRENT_USER);
     localStorage.removeItem(CURRENT_MODE);
     localStorage.removeItem(SCHOOL_LOGIN);
-    localStorage.setItem("isRespectMode", "false");
-    ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(APIMode.SUPABASE);
     history.replace(PAGES.APP_LANG_SELECTION);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };

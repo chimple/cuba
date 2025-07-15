@@ -538,6 +538,22 @@ export class FirebaseAuth implements ServiceAuth {
     this._currentUser = undefined;
   }
 
+  async refreshSession(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  async doRefreshSession(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  async signInWithEmail(email: string, password: string): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  async sendResetPasswordEmail(email: string): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  async updateUser(attributes: any): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+
   private updateUserFcm = async (userId: string) => {
     const token = await Util.getToken();
     if (!!token) {

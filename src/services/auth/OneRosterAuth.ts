@@ -7,6 +7,10 @@ import i18n from "../../i18n";
 import { ConfirmationResult } from "@firebase/auth";
 import { Database } from "../database";
 import { UserAttributes } from "@supabase/supabase-js";
+import { ServiceConfig, APIMode } from "../ServiceConfig";
+import { SupabaseAuth } from "./SupabaseAuth";
+import { AuthHandler } from "./AuthHandler";
+import { SqliteApi } from "../api/SqliteApi";
 
 export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
@@ -97,8 +101,19 @@ export class OneRosterAuth implements ServiceAuth {
     this._currentUser = user
   }
 
-  googleSign(): Promise<any> {
-    throw new Error("Method not implemented.");
+  async googleSign(): Promise<any> {
+        localStorage.setItem("isRespectMode", "false");
+        AuthHandler.i.switchMode(APIMode.SUPABASE);
+        await SqliteApi.getInstance();
+        const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
+        serviceInstance.switchMode(APIMode.SQLITE)
+        console.log("Supabase Auth Loginwithrespect ", serviceInstance);
+        // root.render(
+        //   <BrowserRouter>
+        //     <App />
+        //   </BrowserRouter>
+        // );
+        return await SupabaseAuth.i.googleSign();
   }
 
   phoneNumberSignIn(phoneNumber: any, recaptchaVerifier: any): Promise<any> {
