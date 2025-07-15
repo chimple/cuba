@@ -190,3 +190,11 @@
       top: 28%;
     }
 }
+@media screen and (min-width: 533px) and (max-width: 700px) and (min-height: 940px) and (max-height: 1200px){
+  .LoginWithStudentID-login-method-student-id{
+    top: 35%;
+  }
+  .LoginWithStudentID-login-method-content-student-id{
+    margin-top: 3%;
+  }
+}

@@ -190,8 +190,9 @@ export interface ServiceApi {
   /**
    * To delete a 'user' with a given student ID from the class_user table.
    * @param {string } studentId - Student Id
+   * @param {string } class_id - Student Id
    */
-  deleteUserFromClass(userId: string): Promise<void>;
+  deleteUserFromClass(userId: string, class_id: string): Promise<void>;
 
   /**
    * To delete `Profile` for given student Id
@@ -1493,14 +1494,18 @@ export interface ServiceApi {
   getProgramFilterOptions(): Promise<Record<string, string[]>>;
 
   /**
-   * Fetches programs with optional filters, search term, and tab category.
+   * Fetches programs with optional filters, search term, tab category, pagination, and sorting.
    * Retrieves program details along with the names of program managers.
    *
-   * @param {Object} params - Parameters to filter and search programs.
+   * @param {Object} params - Parameters to filter, search, paginate, and sort programs.
    * @param {string} params.currentUserId - ID of the current user making the request.
    * @param {Record<string, string[]>} [params.filters] - Key-value pairs to filter programs.
    * @param {string} [params.searchTerm] - Text to search in program names.
    * @param {'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID'} [params.tab='ALL'] - Program type tab filter.
+   * @param {number} [params.limit] - Max number of results to return (for pagination).
+   * @param {number} [params.offset] - Number of results to skip (for pagination).
+   * @param {string} [params.orderBy] - Field name to sort by.
+   * @param {'asc' | 'desc'} [params.order] - Sort order.
    * @returns {Promise<{ data: any[] }>} Promise resolving to an object containing an array of programs with manager names.
    */
   getPrograms(params: {
@@ -1508,6 +1513,10 @@ export interface ServiceApi {
     filters?: Record<string, string[]>;
     searchTerm?: string;
     tab?: TabType;
+    limit?: number;
+    offset?: number;
+    orderBy?: string;
+    order?: "asc" | "desc";
   }): Promise<{ data: any[] }>;
 
   /**
@@ -1632,16 +1641,25 @@ export interface ServiceApi {
    */
   getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>>;
 
-  /**
-   * Fetch a list of schools filtered by given criteria and optionally by program ID.
-   *
-   * @param params - An object containing filters (keys as categories and values as selected options) and an optional programId.
-   * @returns Promise resolving to a filtered list of schools matching the provided criteria.
-   */
-  getFilteredSchoolsForSchoolListing(params: {
-    filters?: Record<string, string[]>;
-    programId?: string;
-  }): Promise<FilteredSchoolsForSchoolListingOps[]>;
+/**
+ * Fetch a list of schools filtered by given criteria, with pagination, sorting, and search.
+ *
+ * @param params - An object containing filters (keys as categories and values as selected options), 
+ *   an optional programId, pagination, sorting, and search options.
+ * @returns Promise resolving to an object with the filtered list of schools and the total count.
+ */
+getFilteredSchoolsForSchoolListing(params: {
+  filters?: Record<string, string[]>;
+  programId?: string;
+  page?: number;
+  page_size?: number;
+  order_by?: string;
+  order_dir?: "asc" | "desc";
+  search?: string;
+}): Promise<{
+  data: FilteredSchoolsForSchoolListingOps[];
+  total: number;
+}>;
 
   /**
    * Creates or gets a user based on the provided payload.

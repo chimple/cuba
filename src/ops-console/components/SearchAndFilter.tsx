@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Stack,
   TextField,
@@ -21,6 +21,8 @@ interface SearchAndFilterProps {
   onFilterClick: () => void;
 }
 
+const DEBOUNCE_MS = 400;
+
 const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   searchTerm,
   onSearchChange,
@@ -35,6 +37,23 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   );
   const hasFilters = Object.values(filters).some((values) => values.length > 0);
 
+  const [inputValue, setInputValue] = useState(searchTerm);
+
+  useEffect(() => {
+    setInputValue(searchTerm); 
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (inputValue !== searchTerm) {
+        onSearchChange({
+          target: { value: inputValue }
+        } as React.ChangeEvent<HTMLInputElement>);
+      }
+    }, DEBOUNCE_MS);
+    return () => clearTimeout(handler);
+  }, [inputValue]);
+
   const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   return (
@@ -43,14 +62,13 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
       spacing={isPortraitMobile ? 1 : 2}
       className="search-filter-container-SearchAndFilter"
       alignItems="center"
-      // width="100%"
     >
       {isPortraitMobile ? (
         <TextField
           variant="outlined"
           placeholder={t("Search") || "Search"}
-          onChange={onSearchChange}
-          value={searchTerm}
+          onChange={e => setInputValue(e.target.value)}
+          value={inputValue}
           className="search-input-SearchAndFilter"
           size="small"
           InputProps={{
@@ -67,8 +85,8 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
           <TextField
             variant="outlined"
             placeholder={t("Search") || "Search"}
-            onChange={onSearchChange}
-            value={searchTerm}
+            onChange={e => setInputValue(e.target.value)}
+            value={inputValue}
             className="search-input-SearchAndFilter"
             size="small"
             InputProps={{
@@ -101,8 +119,8 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
         <TextField
           variant="outlined"
           placeholder={t("Search") || "Search"}
-          onChange={onSearchChange}
-          value={searchTerm}
+          onChange={e => setInputValue(e.target.value)}
+          value={inputValue}
           className="search-input-SearchAndFilter"
           InputProps={{
             startAdornment: (
