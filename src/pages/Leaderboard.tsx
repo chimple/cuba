@@ -588,8 +588,10 @@ const Leaderboard: React.FC = () => {
             <div
               id="leaderboard-switch-user-button"
               onClick={async () => {
-                Util.setCurrentStudent(null);
-                localStorage.removeItem(CURRENT_STUDENT);
+                if(!Util.isRespectMode) {
+                  Util.setCurrentStudent(null);
+                  localStorage.removeItem(CURRENT_STUDENT);
+                }
                 if (studentMode !== MODES.SCHOOL) {
                   schoolUtil.removeCurrentClass();
                 }
