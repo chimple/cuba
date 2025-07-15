@@ -62,8 +62,9 @@ const UserDetailsPage: React.FC = () => {
 
   const onSave = async () => {
     const selectedRole = selectRef.current?.value || userRole;
-    try {
-      await Promise.all([
+    const updateTasks: Promise<any>[] = [];
+    if (user.name !== userData?.user?.name) {
+      updateTasks.push(
         api.updateUserProfile(
           user,
           user.name,
@@ -71,12 +72,22 @@ const UserDetailsPage: React.FC = () => {
           user.phone,
           user.languageDocId,
           user.profilePic
-        ),
-        api.updateSpecialUserRole(user.id, selectedRole),
-        api.updateProgramUserRole(user.id, selectedRole),
-      ]);
+        )
+      );
+    }
+    if (userData?.userRole !== selectedRole) {
+      updateTasks.push(api.updateProgramUserRole(user.id, selectedRole));
+      updateTasks.push(api.updateSpecialUserRole(user.id, selectedRole));
+    }
+    if (updateTasks.length === 0) {
+      setIsEdit(false);
+      return;
+    }
 
+    try {
+      await Promise.all(updateTasks);
       setUserRole(selectedRole);
+      userData.userRole = selectedRole
       setIsEdit(false);
     } catch (error) {
       console.error("Failed to update user info:", error);
