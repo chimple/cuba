@@ -1308,4 +1308,20 @@ export class ApiHandler implements ServiceApi {
   public async getUserSpecialRoles(userId: string): Promise<string[]> {
     return await this.s.getUserSpecialRoles(userId);
   }
+  public async updateSpecialUserRole(userId: string, role: string): Promise<void> {
+    return await this.s.updateSpecialUserRole(userId, role);
+  }
+  public async deleteSpecialUser(userId:string):Promise<void>{
+    return await this.s.deleteSpecialUser(userId);
+  }
+  public async updateProgramUserRole(userId: string, role: string): Promise<void> {
+    return await this.s.updateProgramUserRole(userId, role);
+  }
+  public async deleteProgramUser(userId:string):Promise<void>{
+    return await this.s.deleteProgramUser(userId);
+  }
+  public async deleteUserFromSchoolsWithRole(userId: string, role: string):Promise<void>{
+    return await this.s.deleteUserFromSchoolsWithRole(userId, role);
+  }
+
 }

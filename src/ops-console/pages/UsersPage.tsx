@@ -66,6 +66,9 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
       if (result && result.length > 0) {
         setUsers(
           result.map((u: any) => ({
+            id: u.user?.id,
+            user:u.user,
+            userRole: u.role,
             fullName: u.user?.name,
             role: RoleLabels[u.role as RoleType] || u.role,
           }))
@@ -214,6 +217,7 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
             orderBy={"fullName"}
             order={order}
             onSort={handleSort}
+            detailPageRouteBase="users"
           />
         )}
       </div>

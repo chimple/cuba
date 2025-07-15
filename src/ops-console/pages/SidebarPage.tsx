@@ -21,6 +21,7 @@ import UsersPage from "./UsersPage";
 import NewProgram from "../components/NewProgram";
 import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPageOps";
 import NewUserPage from "./NewUserPageOps";
+import UserDetailsPage from "./UserDetailsPage";
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
@@ -115,6 +116,11 @@ const SidebarPage: React.FC = () => {
               exact={true}
             >
               <NewUserPage />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.ADMIN_USERS}${PAGES.USER_DETAILS}`}
+              exact={true}>
+              <UserDetailsPage/>
             </ProtectedRoute>
           </Switch>
         </div>

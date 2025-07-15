@@ -468,6 +468,7 @@ export enum PAGES {
   SCHOOL_LIST = "/school-list",
   SCHOOL_DETAILS = "/school-details",
   USERS = "/users",
+  USER_DETAILS = "/user-details",
   PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS = "/program-connected-school-list-page-ops",
   NEW_USERS_OPS = "/new-user-ops",
 }
