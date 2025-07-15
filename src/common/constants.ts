@@ -461,6 +461,8 @@ export enum PAGES {
   SCHOOL_DETAILS = "/school-details",
   USERS = "/users",
   USER_DETAILS = "/user-details",
+  PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS = "/program-connected-school-list-page-ops",
+  NEW_USERS_OPS = "/new-user-ops",
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -711,6 +713,7 @@ export enum MODES {
   PARENT = "PARENT",
   SCHOOL = "SCHOOL",
   TEACHER = "TEACHER",
+  OPS_CONSOLE = "OPS_CONSOLE"
 }
 
 export enum ACTION {

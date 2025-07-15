@@ -19,6 +19,8 @@ import SchoolDetailsPage from "./SchoolDetailsPage";
 import ProgramDetailsPage from "./ProgramDetailsPage";
 import UsersPage from "./UsersPage";
 import NewProgram from "../components/NewProgram";
+import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPageOps";
+import NewUserPage from "./NewUserPageOps";
 import UserDetailsPage from "./UserDetailsPage";
 
 const SidebarPage: React.FC = () => {
@@ -96,11 +98,6 @@ const SidebarPage: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.USERS}`} exact={true}>
               <UsersPage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.ADMIN_USERS}${PAGES.USER_DETAILS}`}
-              exact={true}>
-              <UserDetailsPage/>
             </ProtectedRoute>
           </Switch>
         </div>

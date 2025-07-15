@@ -12,7 +12,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
 }
 
 .LoginWithEmail-with-email-text {
@@ -39,6 +39,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  max-width: 325px;
 }
 
 .LoginWithEmail-divider-with-email {
@@ -90,7 +91,6 @@
   font-weight: 600;
   text-decoration: underline;
   text-align: right;
-  margin-right: 10%;
 }
 
 /* START button */
@@ -153,7 +153,9 @@
     justify-content: center;
     gap: 65px;
   }
-
+  .LoginWithEmail-forgotPass-wrapper{
+    max-width: 725px;
+  }
   .LoginWithEmail-input-icon-wrapper-email {
     width: 325px;
     height: 40px;
@@ -161,9 +163,6 @@
   }
   .LoginWithEmail-error-message-email{
     margin-top: -20px;
-  }
-  .LoginWithEmail-forgot-password-email-text{
-    margin-right: 25%;
   }
   .LoginWithEmail-divider-with-email{
     margin-top: -15px;
@@ -198,9 +197,6 @@
     font-size: 32px;
     margin-top: -10px;
   }
-  .LoginWithEmail-forgot-password-email-text{
-    margin-right: 20%;
-  }
 }
 @media (max-width: 500px) {
   .LoginWithEmail-forgot-email-text {
@@ -230,9 +226,6 @@
     font-size: 32px;
     margin-top: -10px;
   }
-  .LoginWithEmail-forgot-password-email-text{
-    margin-right: 10%;
-  }
 }
 
 @media (max-height: 500px) {
@@ -242,9 +235,6 @@
   .LoginWithEmail-container-with-email{
     margin-top: 0px;
     gap: 5px;
-  }
-  .LoginWithEmail-forgot-password-email-text{
-    margin-right: 10%;
   }
   .LoginWithEmail-input-wrapper{
     margin-top: 5px;
@@ -257,5 +247,40 @@
     max-width: 200px;
     max-height: 40px;
     font-size: 24px;
+  }
+}
+
+@media (max-width: 400px) and (max-height: 845px) {
+  .LoginWithEmail-container-with-email{
+    gap:5px;
+  }
+  .LoginWithEmail-with-email-text{
+    font-size: 20px;
+    margin-top: -20px;
+  }
+  .LoginWithEmail-input-wrapper{
+    margin-top: 10px;
+    gap: 10px;
+  }
+  .LoginWithEmail-input-icon-wrapper-email{
+    width: 310px;
+    height:40px;
+  }
+  .LoginWithEmail-with-email-button{
+    max-height: 45px;
+    font-size: 28px;
+  }
+  .LoginWithEmail-divider-with-email{
+    gap: 0px;
+  }
+}
+
+@media screen and (min-width: 533px) and (max-width: 700px) and (min-height: 940px) and (max-height: 1200px) {
+  .LoginWithEmail-method-with-email{
+    top:35%;
+  }
+  .LoginWithEmail-container-with-email{
+    gap: 15px;
+    margin-top: 2%;
   }
 }

@@ -17,11 +17,13 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import DataTableBody from "../components/DataTableBody";
 import DataTablePagination from "../components/DataTablePagination";
 import { SupabaseApi } from "../../services/api/SupabaseApi";
-import { USER_ROLE } from "../../common/constants";
+import { PAGES, USER_ROLE } from "../../common/constants";
 import { t } from "i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { RoleLabels, RoleType } from "../../interface/modelInterfaces";
 import "./UsersPage.css";
+import NewUserPage from "./NewUserPageOps";
+import { useHistory } from "react-router-dom";
 
 interface User {
   fullName: string;
@@ -46,6 +48,8 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
 
   const [users, setUsers] = useState<User[]>(initialUsers ?? []);
   const [loading, setLoading] = useState(initialUsers ? false : true);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const history = useHistory();
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -144,7 +148,15 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
                 ),
               }}
             />
-            <Button variant="outlined" className="user-add-mobile">
+            <Button
+              variant="outlined"
+              className="user-add-mobile"
+              onClick={() =>
+                history.push(
+                  `${PAGES.SIDEBAR_PAGE}${PAGES.USERS}${PAGES.NEW_USERS_OPS}`
+                )
+              }
+            >
               <AddIcon sx={{ fontSize: 25 }} />
             </Button>
           </Box>
@@ -154,6 +166,11 @@ const UsersPage: React.FC<UsersPageProps> = ({ initialUsers }) => {
               variant="outlined"
               startIcon={<AddIcon sx={{ color: "#1976d2", fontSize: 25 }} />}
               className="user-add-desktop"
+              onClick={() =>
+                history.push(
+                  `${PAGES.SIDEBAR_PAGE}${PAGES.USERS}${PAGES.NEW_USERS_OPS}`
+                )
+              }
             >
               {t("New User")}
             </Button>
