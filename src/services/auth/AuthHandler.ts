@@ -1,6 +1,10 @@
 import { ServiceAuth, OneRosterUser } from "./ServiceAuth";
 import { TableTypes } from "../../common/constants";
 import { UserAttributes } from "@supabase/supabase-js";
+import { APIMode } from "../ServiceConfig";
+import { FirebaseAuth } from "./FirebaseAuth";
+import { SupabaseAuth } from "./SupabaseAuth";
+import { OneRosterAuth } from "./OneRosterAuth";
 
 export class AuthHandler implements ServiceAuth {
   public static i: AuthHandler;
@@ -89,5 +93,23 @@ export class AuthHandler implements ServiceAuth {
 
   async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
     return await this.s.loginWithRespect();
+  }
+
+  public switchMode(newMode: APIMode) {
+    console.debug(`[AuthHandler] switchMode called. Switching to ${APIMode[newMode]}`);
+    switch (newMode) {
+      case APIMode.FIREBASE:
+        // this.s = FirebaseAuth.getInstance();
+        break;
+      case APIMode.ONEROSTER:
+        this.s = OneRosterAuth.getInstance();
+        break;
+      case APIMode.SUPABASE:
+        this.s = SupabaseAuth.getInstance();
+        break;
+      default:
+        // this.s = FirebaseAuth.getInstance();
+        break;
+    }
   }
 }

@@ -4,6 +4,7 @@ import {
   CLASS,
   LANGUAGE,
   MAX_STUDENTS_ALLOWED,
+  MAX_STUDENTS_ALLOWED_RESPECT,
   MODES,
   PAGES,
   PARENTHEADERLIST,
@@ -100,7 +101,8 @@ const Parent: React.FC = () => {
     const userProfilePromise: TableTypes<"user">[] =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];
-    for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
+    const max_students_allowed = Util.isRespectMode ? MAX_STUDENTS_ALLOWED_RESPECT : MAX_STUDENTS_ALLOWED;
+    for (let i = 0; i < max_students_allowed; i++) {
       finalUser.push(userProfilePromise[i]);
     }
     setUserProfile(finalUser);

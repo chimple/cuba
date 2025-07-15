@@ -106,7 +106,10 @@ export class Util {
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = "lastModalShown";
   static isDeepLink: boolean = false;
-  static isRespectMode: boolean = localStorage.getItem("isRespectMode") === "true";
+  // Always get respect mode from localStorage
+  static get isRespectMode(): boolean {
+    return localStorage.getItem("isRespectMode") === "true";
+  }
 
   public api = ServiceConfig.getI().apiHandler;
 
@@ -1006,9 +1009,8 @@ export class Util {
   ) {
     try {
       if (Util.isRespectMode) {
-        console.log("if (Util.isRespectMode) {", (Util.isRespectMode));
-
-        return
+        console.log("Respect mode enabled, skipping logEvent");
+        return;
       }
       //Setting User Id in User Properites
       await FirebaseAnalytics.setUserId({
