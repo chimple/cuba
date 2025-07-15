@@ -2214,6 +2214,11 @@ export class SqliteApi implements ServiceApi {
       TRIM(a.ends_at) = '' OR
       datetime(a.ends_at) > datetime('${nowIso}')
     )
+    AND (
+      a.starts_at IS NULL OR
+      TRIM(a.starts_at) = '' OR
+      datetime(a.starts_at) <= datetime('${nowIso}')
+    )
   ORDER BY a.created_at DESC;
 `;
 
