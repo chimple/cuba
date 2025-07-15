@@ -36,7 +36,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   };
   return (
     <div
-      className="sort-type-container"
+      className="custom-dropdown-container"
       style={{ borderBottom: !isDownBorder ? "0px" : "none" }}
     >
       <IonSelect
