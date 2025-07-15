@@ -190,7 +190,7 @@ const DisplaySchools: FC<{}> = () => {
       ) : (
         <>
           <div
-            className="all-school-display-container"
+           className="all-school-display-container display-all-schools-scroll"
             ref={scrollRef}
             style={{ overflowY: "auto", maxHeight: "calc(100vh - 200px)" }}
           >
@@ -213,17 +213,15 @@ const DisplaySchools: FC<{}> = () => {
                   </div>
                 </div>
               ))}
-              {loading && (
-                <div style={{ textAlign: "center", padding: "8px" }}>
-                  {t("Loading...")}
-                </div>
-              )}
+               {loading && (
+              <div className="display-loading-text">
+                {t("Loading...")}
+              </div>  
+            )}
               {!hasMore && schoolList.length > 0 && (
-                <div
-                  style={{ textAlign: "center", padding: "8px", color: "#888" }}
-                >
-                  {t("No more schools")}
-                </div>
+                <div className="display-no-more-schools">
+                {t("No more schools")}
+              </div>
               )}
             </div>
           </div>
