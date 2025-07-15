@@ -1793,6 +1793,56 @@ export type Database = {
         };
         Relationships: [];
       };
+      upload_queue: {
+        Row: {
+          id: string;
+          uploading_user: string | null;
+          start_time: string | null;
+          payload: Record<string, unknown>;
+          status: string | null;
+          error: string | null;
+          process_started_at: string | null;
+          batch_number: number | null;
+          is_locked: boolean | null;
+          locked_at: string | null;
+          locked_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          uploading_user?: string | null;
+          start_time?: string | null;
+          payload: Record<string, unknown>;
+          status?: string | null;
+          error?: string | null;
+          process_started_at?: string | null;
+          batch_number?: number | null;
+          is_locked?: boolean | null;
+          locked_at?: string | null;
+          locked_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          uploading_user?: string | null;
+          start_time?: string | null;
+          payload?: Record<string, unknown>;
+          status?: string | null;
+          error?: string | null;
+          process_started_at?: string | null;
+          batch_number?: number | null;
+          is_locked?: boolean | null;
+          locked_at?: string | null;
+          locked_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "upload_queue_uploading_user_fkey";
+            columns: ["uploading_user"];
+            isOneToOne: false;
+            referencedRelation: "user";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       user: {
         Row: {
           age: number | null;
@@ -2139,13 +2189,6 @@ export type Database = {
         };
         Returns: Json;
       };
-      get_admin_view_users: {
-        Args: { _current_user_id: string };
-        Returns: {
-          name: string;
-          role: string;
-        }[];
-      };
       get_program_activity_stats: {
         Args: { p_program_id: string };
         Returns: {
@@ -2273,6 +2316,21 @@ export type Database = {
           field_coordinators: string[];
         }[];
       };
+      get_filtered_schools_with_optional_program: {
+        Args: {
+          filters?: Json;
+          _program_id?: string | null;
+        };
+        Returns: {
+          sch_id: string;
+          school_name: string;
+          district: string;
+          num_students: number;
+          num_teachers: number;
+          program_managers: string[];
+          field_coordinators: string[];
+        }[];
+      };
       get_latest_results_by_student: {
         Args: { student_uuid: string };
         Returns: {
@@ -2326,6 +2384,10 @@ export type Database = {
           _filters: Json;
           _tab: string;
           _search_term: string;
+          _limit: number;
+          _offset: number;
+          _order_by: string;
+          _order: string;
         };
         Returns: {
           id: string;
@@ -2335,6 +2397,7 @@ export type Database = {
           students_count: number;
           devices_count: number;
           manager_names: string;
+          total_count: number;
         }[];
       };
       get_programs_with_count: {
@@ -3329,6 +3392,10 @@ export type Database = {
         Args: { input_school_udise_code: string };
         Returns: Json;
       };
+      validate_program_name: {
+        Args: { input_program_name: string };
+        Returns: Json;
+      };
       validate_user_contacts_rpc: {
         Args: {
           program_manager_contact: string;
@@ -3352,7 +3419,7 @@ export type Database = {
         | "program_manager"
         | "operational_director"
         | "field_coordinator";
-      special_roles: "super_admin" | "operational_director" | "program_manager";
+      special_roles: "super_admin" | "operational_director" | "program_manager" | "field_coordinator";
     };
     CompositeTypes: {
       [_ in never]: never;

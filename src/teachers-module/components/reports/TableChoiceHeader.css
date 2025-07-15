@@ -114,7 +114,7 @@ nav-btn:hover {
 
 .date-range {
   padding: 0 6px;
-  font-size: 1.9vh;
+  font-size: 1.5vh;
   background-color: #f3ebff;
   height: 2.5vh;
   max-width: 120px;
@@ -131,7 +131,7 @@ nav-btn:hover {
   background-color: #F2EBFE;
   border-radius: 15px;
   overflow: hidden;
-  width: 36vw;
+  width: auto;
   height: 25px;
   font-size: 1.2vh;
   font-weight: 600;

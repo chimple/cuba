@@ -1,15 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import DataTableBody, { Column } from "../components/DataTableBody";
 import DataTablePagination from "../components/DataTablePagination";
-import { useDataTableLogic } from "../OpsUtility/useDataTableLogic";
 import {
   Box,
   Typography,
   Button,
-  Skeleton,
   CircularProgress,
   useMediaQuery,
-  useTheme,
   IconButton,
 } from "@mui/material";
 import "./ProgramPage.css";
@@ -40,11 +37,28 @@ type ProgramRow = {
 };
 
 const columns: Column<ProgramRow>[] = [
-  { key: "programName", label: "Program Name", align: "left", width: "30%" },
-  { key: "institutes", label: "No of Institutes", align: "left" },
-  { key: "students", label: "No of Students", align: "left" },
-  { key: "devices", label: "No of Devices", align: "left" },
-  { key: "manager", label: "Program Manager", align: "left", width: "25%" },
+  {
+    key: "programName",
+    label: "Program Name",
+    align: "left",
+    width: "30%",
+    sortable: true,
+  },
+  {
+    key: "institutes",
+    label: "No of Institutes",
+    align: "left",
+    sortable: true,
+  },
+  { key: "students", label: "No of Students", align: "left", sortable: true },
+  { key: "devices", label: "No of Devices", align: "left", sortable: true },
+  {
+    key: "manager",
+    label: "Program Manager",
+    align: "left",
+    width: "25%",
+    sortable: false,
+  },
 ];
 
 const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([key, label]) => ({
@@ -52,11 +66,20 @@ const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([key, label]) => ({
   label,
 }));
 
+const orderByMap: Record<string, string> = {
+  programName: "name",
+  institutes: "institutes_count",
+  students: "students_count",
+  devices: "devices_count",
+  manager: "manager_names",
+};
+
+const PAGE_SIZE = 8;
+
 const ProgramsPage: React.FC = () => {
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
-  const theme = useTheme();
   const isSmallScreen = useMediaQuery("(max-width: 900px)");
 
   const [activeTabIndex, setActiveTabIndex] = useState(0);
@@ -82,12 +105,20 @@ const ProgramsPage: React.FC = () => {
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [programs, setPrograms] = useState<any[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loadingPrograms, setLoadingPrograms] = useState(false);
   const [loadingFilters, setLoadingFilters] = useState(false);
-  const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>({});
+  const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>(
+    {}
+  );
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isProgramManager, setIsProgramManager] = useState(false);
   const [isOpsRole, setIsOpsRole] = useState(false);
+
+  const [page, setPage] = useState(1);
+  const [orderBy, setOrderBy] = useState("name");
+  const [order, setOrder] = useState<"asc" | "desc">("asc");
+
   const tab: TabType = tabOptions[activeTabIndex].value;
   const tableScrollRef = React.useRef<HTMLDivElement>(null);
 
@@ -113,9 +144,12 @@ const ProgramsPage: React.FC = () => {
       }
 
       const userRole = localStorage.getItem(USER_ROLE);
+
       const isOps =
-        userRole === RoleType.SUPER_ADMIN || userRole === RoleType.OPERATIONAL_DIRECTOR;
-      setIsOpsRole(isOps);
+        userRole?.includes(RoleType.SUPER_ADMIN) ||
+        userRole?.includes(RoleType.OPERATIONAL_DIRECTOR);
+      setIsOpsRole(!!isOps);
+      
     };
 
     fetchInitialData();
@@ -129,6 +163,7 @@ const ProgramsPage: React.FC = () => {
       try {
         if (!currentUserId) {
           setPrograms([]);
+          setTotalCount(0);
           return;
         }
         const { data } = await api.getPrograms({
@@ -136,42 +171,72 @@ const ProgramsPage: React.FC = () => {
           filters,
           searchTerm,
           tab,
+          limit: PAGE_SIZE,
+          offset: (page - 1) * PAGE_SIZE,
+          orderBy,
+          order,
         });
         setPrograms(data);
+        setTotalCount(data.length > 0 ? data[0].total_count : 0);
       } catch (error) {
         console.error("Failed to fetch programs:", error);
+        setPrograms([]);
+        setTotalCount(0);
       } finally {
-        setPage(1);
         setLoadingPrograms(false);
       }
     };
     fetchPrograms();
-  }, [filters, searchTerm, tab]);
+  }, [filters, searchTerm, tab, page, orderBy, order]);
 
-  const transformedRows = useMemo(() => programs.map((row) => ({
-    id: row.id,
-    programName: {
-      value: row.name,
-      render: (
-        <Box display="flex" flexDirection="column" alignItems="flex-start">
-          <Typography variant="subtitle2">{row.name}</Typography>
-          <Typography variant="body2" color="text.secondary" textAlign={"left"}>
-            {row.state}
-          </Typography>
-        </Box>
-      ),
-    },
-    institutes: row.institutes_count ?? 0,
-    students: row.students_count ?? 0,
-    devices: row.devices_count ?? 0,
-    manager: row.manager_names,
-  })), [programs]);
+  // Memo for rendering
+  const transformedRows = useMemo(
+    () =>
+      programs.map((row) => ({
+        id: row.id,
+        programName: {
+          value: row.name,
+          render: (
+            <Box display="flex" flexDirection="column" alignItems="flex-start">
+              <Typography variant="subtitle2">{row.name}</Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                textAlign={"left"}
+              >
+                {row.state}
+              </Typography>
+            </Box>
+          ),
+        },
+        institutes:
+          typeof row.institutes_count === "number" ? row.institutes_count : "—",
+        students:
+          typeof row.students_count === "number" ? row.students_count : "—",
+        devices:
+          typeof row.devices_count === "number" ? row.devices_count : "—",
+        manager:
+          row.manager_names && row.manager_names.trim() !== ""
+            ? row.manager_names
+            : "—",
+      })),
+    [programs]
+  );
 
-  const { orderBy, order, page, setPage, handleSort, paginatedRows } =
-    useDataTableLogic(transformedRows);
+  const handleSort = (col: string) => {
+    const backendOrderBy = orderByMap[col] || "name";
+    if (orderBy === backendOrderBy) {
+      setOrder(order === "asc" ? "desc" : "asc");
+    } else {
+      setOrderBy(backendOrderBy);
+      setOrder("asc");
+    }
+    setPage(1);
+  };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTabIndex(newValue);
+    setPage(1);
   };
 
   const handleFilterChange = (name: string, value: any) => {
@@ -187,6 +252,7 @@ const ProgramsPage: React.FC = () => {
       setTempFilters(updatedFilters);
       return updatedFilters;
     });
+    setPage(1);
   };
 
   const onFilterClick = () => setIsFilterOpen(true);
@@ -198,6 +264,7 @@ const ProgramsPage: React.FC = () => {
   const handleApplyFilters = () => {
     setFilters(tempFilters);
     setIsFilterOpen(false);
+    setPage(1);
   };
 
   const handleCancelFilters = () => {
@@ -214,10 +281,12 @@ const ProgramsPage: React.FC = () => {
     setTempFilters(reset);
     setFilters(reset);
     setIsFilterOpen(false);
+    setPage(1);
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
+    setPage(1);
   };
 
   const autocompleteStyles = {
@@ -274,7 +343,9 @@ const ProgramsPage: React.FC = () => {
                 }}
               >
                 <Add />
-                {!isSmallScreen && <span style={{ color: "black" }}>{t("New Program")}</span>}
+                {!isSmallScreen && (
+                  <span style={{ color: "black" }}>{t("New Program")}</span>
+                )}
               </Button>
             )}
             {loadingFilters ? (
@@ -309,18 +380,7 @@ const ProgramsPage: React.FC = () => {
       </div>
 
       <div className="program-table">
-        {loadingPrograms ? (
-          <Box padding={2}>
-            {[...Array(10)].map((_, i) => (
-              <Skeleton
-                key={i}
-                variant="rectangular"
-                height={40}
-                sx={{ mb: 1 }}
-              />
-            ))}
-          </Box>
-        ) : programs.length === 0 ? (
+        {programs.length === 0 && !loadingPrograms ? (
           <Box padding={4} textAlign="center">
             <Typography variant="h6" color="text.secondary">
               {t("No programs found")}
@@ -329,12 +389,13 @@ const ProgramsPage: React.FC = () => {
         ) : (
           <DataTableBody
             columns={columns}
-            rows={paginatedRows}
+            rows={transformedRows}
             orderBy={orderBy}
             order={order}
             onSort={handleSort}
             detailPageRouteBase="programs"
             ref={tableScrollRef}
+            loading={loadingPrograms}
           />
         )}
       </div>
@@ -342,7 +403,7 @@ const ProgramsPage: React.FC = () => {
       <div className="program-page-pagination">
         <DataTablePagination
           page={page}
-          pageCount={Math.ceil(programs.length / 10)}
+          pageCount={Math.ceil(totalCount / PAGE_SIZE)}
           onPageChange={(newPage) => {
             setPage(newPage);
             tableScrollRef.current?.scrollTo?.({ top: 0, behavior: "smooth" });

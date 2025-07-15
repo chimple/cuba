@@ -45,7 +45,7 @@
 }
 
 .header-class-name {
-  font-size: clamp(16px, 5vh, 16px); /* Dynamic font size */
+  font-size: clamp(18px, 5vh, 18px); /* Dynamic font size */
   font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
@@ -55,13 +55,13 @@
 }
 
 .header-school-name {
-  font-size: clamp(15px, 5vh, 18px); /* Dynamic font size */
+  font-size: clamp(15px, 5vh, 22px); /* Dynamic font size */
   font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: 100%;
+  width: 56vw;
 }
 
 #header-menu-element {

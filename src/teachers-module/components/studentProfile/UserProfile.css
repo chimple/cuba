@@ -46,7 +46,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 150px;
-  font-size: clamp(15px, 5vh, 30px);
+  font-size: clamp(15px, 5vh, 26px);
+  font-weight: 600;
   color: #707070;
 }
 

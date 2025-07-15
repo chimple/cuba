@@ -3,6 +3,7 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import { StudentLessonResult } from "../../common/courseConstants";
 import {
+  FilteredSchoolsForSchoolListingOps,
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODEL,
@@ -189,8 +190,9 @@ export interface ServiceApi {
   /**
    * To delete a 'user' with a given student ID from the class_user table.
    * @param {string } studentId - Student Id
+   * @param {string } class_id - Student Id
    */
-  deleteUserFromClass(userId: string): Promise<void>;
+  deleteUserFromClass(userId: string, class_id: string): Promise<void>;
 
   /**
    * To delete `Profile` for given student Id
@@ -978,7 +980,8 @@ export interface ServiceApi {
     startDate: string,
     endDate: string,
     isClassWise: boolean,
-    isLiveQuiz: boolean
+    isLiveQuiz: boolean,
+    allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined>;
 
   /**
@@ -1097,6 +1100,15 @@ export interface ServiceApi {
    * @return returns boolean whether the user is already connected to school or not.
    */
   checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean>;
+
+  /**
+   * Checks the teacher present in class or not.
+   * @param {string} schoolId school Id
+   * @param {string} classId class Id
+   * @param {string} userId user Id;
+   * @return returns boolean whether the teacher is already connected to class or not.
+   */
+  checkTeacherExistInClass(schoolId: string, classId: string, userId: string): Promise<boolean> 
 
   /**
    * Checks the user present in school or not.
@@ -1294,6 +1306,14 @@ export interface ServiceApi {
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }>;
 
+   /**
+   * To validate given program name exist in the program table or not
+   * @param {string } programName -    program name
+   */
+  validateProgramName(
+    programName: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
   /**
    * To validate given UDISE school Id  exist in the given school table or not
    * @param {string } schoolId -    school id(UDISE)
@@ -1474,14 +1494,18 @@ export interface ServiceApi {
   getProgramFilterOptions(): Promise<Record<string, string[]>>;
 
   /**
-   * Fetches programs with optional filters, search term, and tab category.
+   * Fetches programs with optional filters, search term, tab category, pagination, and sorting.
    * Retrieves program details along with the names of program managers.
    *
-   * @param {Object} params - Parameters to filter and search programs.
+   * @param {Object} params - Parameters to filter, search, paginate, and sort programs.
    * @param {string} params.currentUserId - ID of the current user making the request.
    * @param {Record<string, string[]>} [params.filters] - Key-value pairs to filter programs.
    * @param {string} [params.searchTerm] - Text to search in program names.
    * @param {'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID'} [params.tab='ALL'] - Program type tab filter.
+   * @param {number} [params.limit] - Max number of results to return (for pagination).
+   * @param {number} [params.offset] - Number of results to skip (for pagination).
+   * @param {string} [params.orderBy] - Field name to sort by.
+   * @param {'asc' | 'desc'} [params.order] - Sort order.
    * @returns {Promise<{ data: any[] }>} Promise resolving to an object containing an array of programs with manager names.
    */
   getPrograms(params: {
@@ -1489,6 +1513,10 @@ export interface ServiceApi {
     filters?: Record<string, string[]>;
     searchTerm?: string;
     tab?: TabType;
+    limit?: number;
+    offset?: number;
+    orderBy?: string;
+    order?: "asc" | "desc";
   }): Promise<{ data: any[] }>;
 
   /**
@@ -1613,13 +1641,48 @@ export interface ServiceApi {
    */
   getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>>;
 
+/**
+ * Fetch a list of schools filtered by given criteria, with pagination, sorting, and search.
+ *
+ * @param params - An object containing filters (keys as categories and values as selected options), 
+ *   an optional programId, pagination, sorting, and search options.
+ * @returns Promise resolving to an object with the filtered list of schools and the total count.
+ */
+getFilteredSchoolsForSchoolListing(params: {
+  filters?: Record<string, string[]>;
+  programId?: string;
+  page?: number;
+  page_size?: number;
+  order_by?: string;
+  order_dir?: "asc" | "desc";
+  search?: string;
+}): Promise<{
+  data: FilteredSchoolsForSchoolListingOps[];
+  total: number;
+}>;
+
   /**
-   * Fetch a list of schools filtered by given criteria.
-   *
-   * @param filters - An object where keys are filter categories and values are arrays of selected filter options.
-   * @returns Promise resolving to a filtered list of schools matching the provided filter criteria.
+   * Creates or gets a user based on the provided payload.
+   * @param {Object} payload - The user creation payload.
+   * @param {string} payload.name - Name of the user.
+   * @param {string} [payload.email] - Optional email address.
+   * @param {string} [payload.phone] - Optional phone number.
+   * @param {string} payload.role - Role of the user.
+   * @returns {Promise<{ success: boolean; user_id?: string; message?: string; error?: string; }>}
    */
-  getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>);
+    createOrAddUserOps(
+      payload: {
+        name: string;
+        email?: string;
+        phone?: string;
+        role: string;
+      }
+    ): Promise<{
+      success: boolean;
+      user_id?: string;
+      message?: string;
+      error?: string;
+    }>;
 
   //  * Fetch detailed teacher information for a given school ID.
   //  * @param {string} schoolId - The ID of the school to fetch.
@@ -1723,4 +1786,36 @@ export interface ServiceApi {
    * @returns {Promise<string | undefined>} If any special role is there it will return role otherwise it will return undefined.
    */
   getUserSpecialRoles(userId: string): Promise<string[]>;
+
+  /**
+   * Updates the role of a special user in special users table.
+   * @param {string} userId - user Id.
+   * @param {number} role - user Role.
+   */
+  updateSpecialUserRole(userId: string, role: string): Promise<void>;
+  /**
+   * Delete the user from special_users table.
+   * @param {string} userId - user Id.
+   */
+  deleteSpecialUser(userId:string):Promise<void>;
+
+  /**
+   * Updates the role of a special user in program users table.
+   * @param {string} userId - user Id.
+   * @param {number} role - user Role.
+   */
+  updateProgramUserRole(userId: string, role: string): Promise<void>;
+
+  /**
+   * Delete the user from program_user table.
+   * @param {string} userId - user Id.
+   */
+  deleteProgramUser(userId:string):Promise<void>;
+
+  /**
+   * Delete the user from school_user table by role.
+   * @param {string} userId - user Id.
+   * @param {number} role - user Role.
+   */
+  deleteUserFromSchoolsWithRole(userId: string, role: string):Promise<void>;
 }

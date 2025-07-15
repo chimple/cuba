@@ -2214,6 +2214,11 @@ export class SqliteApi implements ServiceApi {
       TRIM(a.ends_at) = '' OR
       datetime(a.ends_at) > datetime('${nowIso}')
     )
+    AND (
+      a.starts_at IS NULL OR
+      TRIM(a.starts_at) = '' OR
+      datetime(a.starts_at) <= datetime('${nowIso}')
+    )
   ORDER BY a.created_at DESC;
 `;
 
@@ -2465,19 +2470,18 @@ export class SqliteApi implements ServiceApi {
       console.error("Error removing courses from school_course", error);
     }
   }
-  async deleteUserFromClass(userId: string): Promise<void> {
+  async deleteUserFromClass(userId: string, class_id:string): Promise<void> {
     const updatedAt = new Date().toISOString();
     try {
       await this.executeQuery(
-        `UPDATE class_user SET is_deleted = 1 , updated_at = ? WHERE user_id = ?`,
-        [updatedAt, userId]
+        `UPDATE class_user SET is_deleted = 1, updated_at = ? WHERE user_id = ? AND class_id = ? AND is_deleted = 0`,
+        [updatedAt, userId, class_id]
       );
       const query = `
       SELECT *
       FROM ${TABLES.ClassUser}
-      WHERE user_id = ?
-    `;
-      const res = await this._db?.query(query, [userId]);
+      WHERE user_id = ? AND class_id = ? AND updated_at = ? AND is_deleted = 1`;
+      const res = await this._db?.query(query, [userId, class_id, updatedAt]);
       let userData;
       if (res && res.values && res.values.length > 0) {
         userData = res.values[0];
@@ -3895,7 +3899,6 @@ order by
          FROM ${TABLES.Result}
          WHERE student_id = ?
          AND course_id = ?
-         AND assignment_id IN (${assignmentholders})
          ORDER BY created_at DESC
          LIMIT 5
        )
@@ -3906,7 +3909,7 @@ order by
        FROM non_null_assignments
        ORDER BY created_at DESC
        LIMIT 10;`,
-      [studentId, courseId, studentId, courseId, ...assignmentIds]
+      [studentId, courseId, studentId, courseId]
     );
     return res?.values ?? [];
   }
@@ -3917,7 +3920,8 @@ order by
     startDate: string,
     endDate: string,
     isClassWise: boolean,
-    isLiveQuiz: boolean
+    isLiveQuiz: boolean,
+    allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
     let query = `SELECT * FROM ${TABLES.Assignment} WHERE class_id = ? AND created_at BETWEEN ? AND ?`;
     const params: any[] = [classId, endDate, startDate];
@@ -3934,10 +3938,12 @@ order by
     if (isClassWise) {
       query += ` AND is_class_wise = 1`;
     }
-    if (isLiveQuiz) {
+    if(!allAssignments) {
+      if (isLiveQuiz) {
       query += ` AND type = 'liveQuiz'`;
     } else {
       query += ` AND type != 'liveQuiz'`;
+    }
     }
     query += ` ORDER BY created_at DESC`;
 
@@ -4130,6 +4136,35 @@ order by
     }
     return false;
   }
+  async checkTeacherExistInClass(
+    schoolId: string,
+    classId: string,
+    userId: string
+  ): Promise<boolean> {
+    // Check if the user is present in school_user but not as a parent
+    const schoolUserResult = await this.executeQuery(
+      `SELECT * FROM school_user
+     WHERE school_id = ? AND user_id = ?
+     AND role != ?
+     AND is_deleted = false`,
+      [schoolId, userId, RoleType.PARENT]
+    );
+
+    if (schoolUserResult?.values && schoolUserResult.values.length > 0) {
+      return true;
+    }
+    // Step 2: Check if the user is a teacher in this class
+    const result = await this.executeQuery(
+      `SELECT * FROM class_user
+      WHERE class_id = ?
+      AND user_id = ?
+      AND role = ?
+      AND is_deleted = false`,
+      [classId, userId, RoleType.TEACHER]
+    );
+    return !!(result?.values && result.values.length > 0);
+  }
+
   async getAssignmentsByAssignerAndClass(
     userId: string,
     classId: string,
@@ -4524,6 +4559,20 @@ order by
 
     return { status: "success" };
   }
+  async validateProgramName(
+    programName: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    const validatedData =
+      await this._serverApi.validateProgramName(programName);
+    if (validatedData.status === "error") {
+      const errors = validatedData.errors?.map((err: any) =>
+        typeof err === "string" ? err : err.message || JSON.stringify(err)
+      );
+      return { status: "error", errors };
+    }
+
+    return { status: "success" };
+  }
   async validateClassNameWithSchoolID(
     schoolId: string,
     className: string
@@ -4820,19 +4869,36 @@ order by
     return await this._serverApi.getProgramFilterOptions();
   }
   async getPrograms(params: {
-    currentUserId: string;
-    filters?: Record<string, string[]>;
-    searchTerm?: string;
-    tab?: TabType;
-  }): Promise<{ data: any[] }> {
-    const { currentUserId, filters, searchTerm, tab } = params;
-    return await this._serverApi.getPrograms({
-      currentUserId,
-      filters,
-      searchTerm,
-      tab,
-    });
-  }
+  currentUserId: string;
+  filters?: Record<string, string[]>;
+  searchTerm?: string;
+  tab?: TabType;
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  order?: "asc" | "desc";
+}): Promise<{ data: any[] }> {
+  const {
+    currentUserId,
+    filters,
+    searchTerm,
+    tab,
+    limit,
+    offset,
+    orderBy,
+    order,
+  } = params;
+  return await this._serverApi.getPrograms({
+    currentUserId,
+    filters,
+    searchTerm,
+    tab,
+    limit,
+    offset,
+    orderBy,
+    order,
+  });
+}
 
   async insertProgram(payload: any): Promise<boolean | null> {
     return await this._serverApi.insertProgram(payload);
@@ -4929,9 +4995,31 @@ order by
   }
 
   async getFilteredSchoolsForSchoolListing(
-    filters: Record<string, string[]>
-  ): Promise<FilteredSchoolsForSchoolListingOps[]> {
-    return await this._serverApi.getFilteredSchoolsForSchoolListing(filters);
+  params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: "asc" | "desc";
+    search?: string;
+  }
+): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
+  return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
+}
+
+  async createOrAddUserOps(payload: {
+    name: string;
+    email?: string;
+    phone?: string;
+    role: string;
+  }): Promise<{
+    success: boolean;
+    user_id?: string;
+    message?: string;
+    error?: string;
+  }> {
+    return await this._serverApi.createOrAddUserOps(payload);
   }
 
   async getTeacherInfoBySchoolId(schoolId: string): Promise<
@@ -5332,4 +5420,20 @@ order by
   async getUserSpecialRoles(userId: string): Promise<string[]> {
     return await this._serverApi.getUserSpecialRoles(userId);
   }
+  async updateSpecialUserRole(userId: string, role: string): Promise<void> {
+    return await this._serverApi.updateSpecialUserRole(userId, role);
+  }
+  async deleteSpecialUser(userId:string):Promise<void>{
+    return await this._serverApi.deleteSpecialUser(userId);
+  }
+  async updateProgramUserRole(userId: string, role: string): Promise<void> {
+    return await this._serverApi.updateProgramUserRole(userId, role);
+  }
+  async deleteProgramUser(userId:string):Promise<void>{
+    return await this._serverApi.deleteProgramUser(userId);
+  }
+  async deleteUserFromSchoolsWithRole(userId: string, role: string):Promise<void>{
+    return await this._serverApi.deleteUserFromSchoolsWithRole(userId, role);
+  }
+
 }

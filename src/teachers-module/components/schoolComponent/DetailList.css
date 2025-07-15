@@ -12,6 +12,7 @@
   color: #707070;
   font-weight: 600;
   font-size: 14px;
+  padding-right: 5px;
 }
 
 .header-text {
@@ -78,7 +79,7 @@
 .detail-container {
   display: flex;
   justify-content: space-between;
-  padding: 0px 20px;
+  padding: 0px 23px;
   align-items: center;
 }
 .detail-section {
@@ -90,6 +91,6 @@
 
 .detail-school-name {
   color: #707070;
-  font-size: 16px;
+  font-size: 22px;
   font-weight: 400;
 }
