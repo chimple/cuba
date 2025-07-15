@@ -27,10 +27,10 @@ const ClassSection: React.FC<ClassSectionProps> = ({
 }) => {
   return (
     <>
-      <IonItem lines="none">
+      <div className="classsection-class">
         <img src="assets/icons/classIcon.svg" alt="SCHOOL" className="icon" />
-        <IonLabel color="dark" className="class-iconlabel">{t("Class")}</IonLabel>
-      </IonItem>
+        <span className="class-iconlabel">{t("Class")}</span>
+      </div>
       <div className="school-dropdown">
         <CustomDropdown
           icon=""
@@ -56,8 +56,8 @@ const ClassSection: React.FC<ClassSectionProps> = ({
       </div>
       <div className="manage-classes">
         <div className="manage-class-button">
-          <IonButton fill="clear" color="" onClick={handleManageClassClick}>
-            <IonLabel color="dark">{t("Manage Classes")}</IonLabel>
+          <IonButton fill="clear" color="" onClick={handleManageClassClick} style={{ textTransform: "none" }}>
+            <IonLabel style={{color: "#707070", fontSize: "18px"}}>{t("Manage Classes")}</IonLabel>
           </IonButton>
         </div>
       </div>

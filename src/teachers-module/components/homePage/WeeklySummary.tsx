@@ -94,7 +94,7 @@ const WeeklySummary: React.FC<WeeklySummaryProps> = ({ weeklySummary }) => {
   return (
     <div className="weekly-summary-container">
       <h3 className="weekly-summary-header">
-        {t("Weekly Assignments Summary")} {oneWeekBackDate} - {currentDate}
+        {t("Weekly Summary")} {oneWeekBackDate} - {currentDate}
       </h3>
       <div className="weekly-summary">
         {getData().map((item, index) => (
