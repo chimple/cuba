@@ -211,7 +211,6 @@ export class SupabaseAuth implements ServiceAuth {
   async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
 
 
-    Util.isRespectMode = true
     const serviceInstance = ServiceConfig.getInstance(APIMode.ONEROSTER);
     serviceInstance.switchMode(APIMode.ONEROSTER)
     console.log("Supabase Auth Loginwithrespect ", serviceInstance);

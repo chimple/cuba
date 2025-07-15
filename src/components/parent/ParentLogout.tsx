@@ -9,6 +9,7 @@ import {
   CURRENT_MODE,
   CURRENT_STUDENT,
   CURRENT_USER,
+  isRespectMode,
   PAGES,
   SCHOOL_LOGIN,
 } from "../../common/constants";
@@ -25,6 +26,7 @@ const ParentLogout: React.FC<{}> = ({}) => {
     localStorage.removeItem(CURRENT_USER);
     localStorage.removeItem(CURRENT_MODE);
     localStorage.removeItem(SCHOOL_LOGIN);
+    localStorage.removeItem(isRespectMode);
     history.replace(PAGES.APP_LANG_SELECTION);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };

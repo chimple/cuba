@@ -823,3 +823,4 @@ export const SCHOOL_LOGIN = "schoolLogin";
 export const TRIGGER_DEEPLINK = "sendLaunch";
 export const APP_URL_OPEN = "appUrlOpen";
 export const CAMERAPERMISSION = "cameraPermission";
+export const isRespectMode = "isRespectMode"

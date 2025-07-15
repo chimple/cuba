@@ -7,15 +7,17 @@ export class AuthHandler implements ServiceAuth {
 
   private s: ServiceAuth;
 
-  private constructor() { }
+  private constructor(service: ServiceAuth) {
+    this.s = service;
+  }
   refreshSession(): Promise<void> {
     throw new Error("Method not implemented.");
   }
 
-  public static getInstance(s: ServiceAuth): AuthHandler {
-    if (!AuthHandler.i) {
-      AuthHandler.i = new AuthHandler();
-      AuthHandler.i.s = s;
+  public static getInstance(service: ServiceAuth): AuthHandler {
+    // Only create a new instance if the service has changed
+    if (!AuthHandler.i || AuthHandler.i.s !== service) {
+      AuthHandler.i = new AuthHandler(service);
     }
     return AuthHandler.i;
   }

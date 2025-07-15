@@ -22,6 +22,18 @@ export class ApiHandler implements ServiceApi {
 
   private s: ServiceApi;
 
+  private constructor(service: ServiceApi) {
+    this.s= service;
+  }
+
+    public static getInstance(service: ServiceApi): ApiHandler {
+    // Only create a new instance if the service has changed
+    if (!ApiHandler.i || ApiHandler.i.s !== service) {
+      ApiHandler.i = new ApiHandler(service);
+    }
+    return ApiHandler.i;
+  }
+
   public getAssignmentById(
     id: string
   ): Promise<TableTypes<"assignment"> | undefined> {
@@ -78,7 +90,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<string | undefined> {
     return this.s.joinLiveQuiz(assignmentId, studentId);
   }
-  private constructor() {}
+  // private constructor() {}
   public async updateRewardsForStudent(
     studentId: string,
     unlockedReward: LeaderboardRewards
@@ -639,14 +651,6 @@ export class ApiHandler implements ServiceApi {
 
   public async deleteProfile(studentId: string) {
     return await this.s.deleteProfile(studentId);
-  }
-
-  public static getInstance(s: ServiceApi): ApiHandler {
-    if (!ApiHandler.i) {
-      ApiHandler.i = new ApiHandler();
-      ApiHandler.i.s = s;
-    }
-    return ApiHandler.i;
   }
 
   public async getLanguageWithId(

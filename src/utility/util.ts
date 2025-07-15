@@ -54,6 +54,7 @@ import {
   ASSIGNMENT_POPUP_SHOWN,
   QUIZ_POPUP_SHOWN,
   SCHOOL_LOGIN,
+  isRespectMode,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -105,10 +106,9 @@ export class Util {
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = "lastModalShown";
   static isDeepLink: boolean = false;
-  static isRespectMode: boolean = true;
+  static isRespectMode: boolean = localStorage.getItem("isRespectMode") === "true";
 
   public api = ServiceConfig.getI().apiHandler;
-
 
   // public static convertCourses(_courses: Course1[]): Course1[] {
   //   let courses: Course1[] = [];
@@ -2156,7 +2156,7 @@ export class Util {
     return courseJson
   }
 
-  public static async checkRespectApp() {
+  public static async checkRespectApp(): Promise<boolean> {
     try {
       console.log("if (!Capacitor.isNativePlatform) return true", !!Capacitor.isNativePlatform, Capacitor.isNativePlatform);
 
@@ -2165,6 +2165,7 @@ export class Util {
       const PortPlugin = registerPlugin<any>("Port");
       const data = await PortPlugin.isAppInstalledCheck();
       console.log("data isRespect data--> ", JSON.stringify(data));
+      localStorage.setItem(isRespectMode, data.isRespect);  
       return data.isRespect;
     } catch (error) {
       console.log("error isRespect data--> ", JSON.stringify(error));

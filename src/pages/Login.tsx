@@ -890,6 +890,7 @@ const Login: React.FC = () => {
                           try {
                             setIsLoading(true);
                             setIsInitialLoading(true);
+                            localStorage.setItem("isRespectMode", "true");
                             const result: any =
                               await ServiceConfig.getI().authHandler.loginWithRespect();
                             console.log(
