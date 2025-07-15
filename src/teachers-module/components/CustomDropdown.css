@@ -5,7 +5,7 @@ ion-select {
   text-align: left;
 }
 
-.sort-type-container {
+.custom-dropdown-container {
   display: flex;
   border-bottom: 4px solid black;
   align-items: center;
@@ -66,7 +66,7 @@ ion-popover {
   font-weight: 400;
 }
 
-.sort-type-container ion-select {
+.custom-dropdown-container ion-select {
   flex: 0 1 auto;          
   margin-right: 4px;      
 }
