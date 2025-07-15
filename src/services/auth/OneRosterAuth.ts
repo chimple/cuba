@@ -151,6 +151,7 @@ export class OneRosterAuth implements ServiceAuth {
       sfx_off: (Util.getCurrentSound() === 0),
       student_id: registration,
       updated_at: null,
+      learning_path: Util.getCurrentStudent()?.learning_path
     };
     return Promise.resolve(user);
   }

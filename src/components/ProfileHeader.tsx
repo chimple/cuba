@@ -52,7 +52,9 @@ const ProfileHeader: React.FC = () => {
         name={t("Sign Out")}
         iconSrc="assets/icons/SignOutIcon.svg"
         onClick={async () => {
-          localStorage.removeItem(CURRENT_STUDENT);
+          if(!Util.isRespectMode) {
+            localStorage.removeItem(CURRENT_STUDENT);
+          }
           const user = await auth.getCurrentUser();
           if (!!user && !!user.language_id) {
             const langDoc = await api.getLanguageWithId(user.language_id);
