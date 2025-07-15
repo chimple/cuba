@@ -1,5 +1,4 @@
 import React from "react";
-import { ListItemIcon, ListItemText } from "@mui/material";
 import { useHistory } from "react-router-dom";
 import SchoolIcon from "@mui/icons-material/School";
 import {
@@ -10,8 +9,6 @@ import {
 } from "../../../common/constants";
 import { t } from "i18next";
 import "./DetailList.css";
-import { Groups3 } from "@mui/icons-material";
-import { Util } from "../../../utility/util";
 
 interface DetailListProps {
   type: IconType;
@@ -22,7 +19,6 @@ interface DetailListProps {
 const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
   const history = useHistory();
 
-  // If there is no school data after filtering, show a message
   if (data.length === 0) {
     return <div className="no-school-available">{t("School is not Available")}</div>;
   }
@@ -33,8 +29,8 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
         school: item.school,
         role: item.role,
       });
-    } else if (type === IconType.CLASS) {
-      history.replace(PAGES.CLASS_PROFILE, { school: school, classDoc: item });
+    } else {
+      history.replace(PAGES.CLASS_PROFILE, { school, classDoc: item });
     }
   };
 
@@ -44,25 +40,23 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
         school: item.school,
         role: item.role,
       });
-    } else if (type === IconType.CLASS) {
+    } else {
       history.replace(PAGES.CLASS_USERS, item);
     }
   };
 
   const handleSubjectIconClick = (item: any) => {
     if (type === IconType.SCHOOL) {
-      const schoolId = item.school.id;
-      history.replace(`${PAGES.SUBJECTS_PAGE}`, { schoolId: schoolId });
-    } else if (type === IconType.CLASS) {
-      const classId = item.id;
-      history.replace(`${PAGES.SUBJECTS_PAGE}`, { classId: classId });
+      history.replace(PAGES.SUBJECTS_PAGE, { schoolId: item.school.id });
+    } else {
+      history.replace(PAGES.SUBJECTS_PAGE, { classId: item.id });
     }
   };
 
   return (
     <div className="detail-list-div">
       <div className="detail-list__header">
-        <div></div>
+        <div />
         <div className="detail-list__icon-container">
           <div>{t("Users")}</div>
           <div>{t("Subjects")}</div>
@@ -70,42 +64,56 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
       </div>
 
       <div className="main-list">
-        <div>
-          {data.map((item) => {
-            const icon = type === IconType.SCHOOL && <SchoolIcon />;
-            const name =
-              type === IconType.SCHOOL
-                ? (item as SchoolWithRole).school.name
-                : (item as TableTypes<"class">).name;
-            const id =
-              type === IconType.SCHOOL
-                ? (item as SchoolWithRole).school.id
-                : (item as TableTypes<"class">).id;
+        {data.map((item) => {
+          const rawName =
+            type === IconType.SCHOOL
+              ? (item as SchoolWithRole).school.name
+              : (item as TableTypes<"class">).name;
 
-            return (
-              <div key={id}>
+          const translated = t(rawName);
+
+          const displayName =
+            translated.length > 22
+              ? `${translated.slice(0, 22)}…`
+              : translated;
+
+          const id =
+            type === IconType.SCHOOL
+              ? (item as SchoolWithRole).school.id
+              : (item as TableTypes<"class">).id;
+
+          return (
+            <div key={id}>
+              <div className="detail-container">
                 <div
-                  className="detail-container"
+                  className="detail-section"
+                  onClick={() => handleItemClick(item)}
                 >
-                  <div className="detail-section"
-                    onClick={() => handleItemClick(item)}
-                  >
-                    {type === IconType.SCHOOL && (
-                      <img src="assets/icons/scholarIcon.svg" alt="" className="list-icon" />
-                    )}
-                    <span className="detail-school-name">{name}</span>
-                  </div>
-                  <div className="class-icons">
-                      <img src="assets/icons/schoolUserIcon.svg" alt="User_Icon" onClick={() => handleUserIconClick(item)} className="class-user-icon" />
-                      
-                      <img src="assets/icons/subjectUserIcon.svg" alt="User_Subject"className="class-subjects-icon" onClick={() => handleSubjectIconClick(item)} />
-                    </div>
-                  </div>
-                <hr className="horizontal-line" />
+                  {type === IconType.SCHOOL && (
+                    <SchoolIcon className="list-icon" />
+                  )}
+                  <span className="detail-school-name">{displayName}</span>
+                </div>
+
+                <div className="class-icons">
+                  <img
+                    src="assets/icons/schoolUserIcon.svg"
+                    alt="User_Icon"
+                    onClick={() => handleUserIconClick(item)}
+                    className="class-user-icon"
+                  />
+                  <img
+                    src="assets/icons/subjectUserIcon.svg"
+                    alt="User_Subject"
+                    onClick={() => handleSubjectIconClick(item)}
+                    className="class-subjects-icon"
+                  />
+                </div>
               </div>
-            );
-          })}
-        </div>
+              <hr className="horizontal-line" />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

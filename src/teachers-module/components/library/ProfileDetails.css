@@ -1,5 +1,5 @@
 .profile-details {
-  text-align: center;
+  text-align: justify;
   margin-top: 1.2vh;
 }
 
@@ -38,8 +38,8 @@
   margin-top: 0 !important;
   margin-left: 0 !important;
   align-items: center;
-  justify-content: center;
   height: 100px;
+  padding-left: 1rem;
 }
 
 .profile-container {
@@ -48,12 +48,31 @@
 }
 
 .camera-icon {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   color: black;
 }
 
 .profile-details-data {
-  display: flex;
-  align-items: end;
+  position: relative;      /* ← new */
+  display: inline-block;   /* so it wraps tightly around the img */
 }
+
+.profile-details-data .overlay {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;           /* center its children */
+  align-items: center;
+  justify-content: center;
+  width: 80px;             /* match your img width */
+  height: 80px;            /* match your img height */
+  border-radius: 50%;      /* keep it circular, if you like */
+  pointer-events: none;    /* clicks pass through to label */
+}
+
+.profile-details-data:hover .overlay {
+  opacity: 1;
+}
+

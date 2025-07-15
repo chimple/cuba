@@ -30,9 +30,13 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   disableTranslation = false,
   ...selectProps // Spread any additional IonSelect props
 }) => {
+  const renderLabel = (raw: string) => {
+    const lbl = disableTranslation ? raw : t(raw);
+    return lbl.length > 20 ? lbl.slice(0, 20) + "…" : lbl;
+  };
   return (
     <div
-      className="sort-type-container"
+      className="custom-dropdown-container"
       style={{ borderBottom: !isDownBorder ? "0px" : "none" }}
     >
       <IonSelect
@@ -42,7 +46,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
           onOptionSelect(options.find((option) => option.id === e.detail.value)!)
         }
         interface="popover" // or "action-sheet", "alert"
-        className="custom-select"
+        className="customdropdown-select"
         {...selectProps} // Pass down all other props
       >
         {options.map((option) => (
@@ -51,7 +55,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
             value={option.id}
             disabled={(option as any).disabled}
           >
-            {disableTranslation ? option.name : t(option.name)}
+            {renderLabel(option.name)}
           </IonSelectOption>
         ))}
       </IonSelect>

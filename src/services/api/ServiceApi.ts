@@ -190,8 +190,9 @@ export interface ServiceApi {
   /**
    * To delete a 'user' with a given student ID from the class_user table.
    * @param {string } studentId - Student Id
+   * @param {string } class_id - Student Id
    */
-  deleteUserFromClass(userId: string): Promise<void>;
+  deleteUserFromClass(userId: string, class_id: string): Promise<void>;
 
   /**
    * To delete `Profile` for given student Id
@@ -979,7 +980,8 @@ export interface ServiceApi {
     startDate: string,
     endDate: string,
     isClassWise: boolean,
-    isLiveQuiz: boolean
+    isLiveQuiz: boolean,
+    allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined>;
 
   /**
@@ -1302,6 +1304,14 @@ export interface ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+   /**
+   * To validate given program name exist in the program table or not
+   * @param {string } programName -    program name
+   */
+  validateProgramName(
+    programName: string
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1776,4 +1786,36 @@ getFilteredSchoolsForSchoolListing(params: {
    * @returns {Promise<string | undefined>} If any special role is there it will return role otherwise it will return undefined.
    */
   getUserSpecialRoles(userId: string): Promise<string[]>;
+
+  /**
+   * Updates the role of a special user in special users table.
+   * @param {string} userId - user Id.
+   * @param {number} role - user Role.
+   */
+  updateSpecialUserRole(userId: string, role: string): Promise<void>;
+  /**
+   * Delete the user from special_users table.
+   * @param {string} userId - user Id.
+   */
+  deleteSpecialUser(userId:string):Promise<void>;
+
+  /**
+   * Updates the role of a special user in program users table.
+   * @param {string} userId - user Id.
+   * @param {number} role - user Role.
+   */
+  updateProgramUserRole(userId: string, role: string): Promise<void>;
+
+  /**
+   * Delete the user from program_user table.
+   * @param {string} userId - user Id.
+   */
+  deleteProgramUser(userId:string):Promise<void>;
+
+  /**
+   * Delete the user from school_user table by role.
+   * @param {string} userId - user Id.
+   * @param {number} role - user Role.
+   */
+  deleteUserFromSchoolsWithRole(userId: string, role: string):Promise<void>;
 }

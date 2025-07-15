@@ -23,10 +23,10 @@ import { BsFillBellFill } from "react-icons/bs";
 import { useLocation, useHistory } from "react-router";
 
 const filterConfigsForSchool = [
-  { key: "Partner", label: t("Select Partner") },
-  { key: "Program Manager", label: t("Select Program Manager") },
-  { key: "Field Coordinator", label: t("Select Field Coordinator") },
-  { key: "Program Type", label: t("Select Program Type") },
+  { key: "partner", label: t("Select Partner") },
+  { key: "programManager", label: t("Select Program Manager") },
+  { key: "fieldCoordinator", label: t("Select Field Coordinator") },
+  { key: "programType", label: t("Select Program Type") },
   { key: "state", label: t("Select State") },
   { key: "district", label: t("Select District") },
   { key: "block", label: t("Select Block") },
@@ -45,6 +45,7 @@ const INITIAL_FILTERS: Filters = {
   district: [],
   block: [],
   village: [],
+  cluster: [],
 };
 
 const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([value, label]) => ({
@@ -90,7 +91,7 @@ const SchoolList: React.FC = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [tempFilters, setTempFilters] = useState<Filters>(INITIAL_FILTERS);
   const [filterOptions, setFilterOptions] = useState<Filters>(INITIAL_FILTERS);
-  const [orderBy, setOrderBy] = useState("name");
+  const [orderBy, setOrderBy] = useState("");
   const [orderDir, setOrderDir] = useState<"asc" | "desc">("asc");
   const [pageSize] = useState(DEFAULT_PAGE_SIZE);
 
@@ -113,14 +114,15 @@ const SchoolList: React.FC = () => {
         const data = await api.getSchoolFilterOptionsForSchoolListing();
         if (data) {
           setFilterOptions({
-            programType: data.program_type || [],
+            programType: data.programType || [],
             partner: data.partner || [],
-            programManager: data.program_manager || [],
-            fieldCoordinator: data.field_coordinator || [],
+            programManager: data.programManager || [],
+            fieldCoordinator: data.fieldCoordinator || [],
             state: data.state || [],
             district: data.district || [],
             block: data.block || [],
             village: data.village || [],
+            cluster: data.cluster || [],
           });
         }
       } catch (error) {
@@ -198,7 +200,16 @@ const SchoolList: React.FC = () => {
     } finally {
       setIsDataLoading(false);
     }
-  }, [api, filters, page, pageSize, orderBy, orderDir, searchTerm, selectedTab]);
+  }, [
+    api,
+    filters,
+    page,
+    pageSize,
+    orderBy,
+    orderDir,
+    searchTerm,
+    selectedTab,
+  ]);
 
   const columns: Column<Record<string, any>>[] = [
     {

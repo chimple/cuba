@@ -3,10 +3,11 @@ import React from "react";
 import "./LoginSwitch.css";
 import { t } from "i18next";
 import { Trans } from "react-i18next";
+import { LOGIN_TYPES } from "../../common/constants";
 
 interface LoginSwitchProps {
-  loginType: string;
-  onSwitch: (type: string) => void;
+  loginType: LOGIN_TYPES.PHONE | LOGIN_TYPES.STUDENT | LOGIN_TYPES.EMAIL | LOGIN_TYPES.OTP | LOGIN_TYPES.FORGET_PASS;
+  onSwitch: (type: LOGIN_TYPES.PHONE | LOGIN_TYPES.STUDENT | LOGIN_TYPES.EMAIL) => void;
   checkbox: boolean;
   onCheckboxChange: (checked: boolean) => void;
   onTermsClick: () => void;
@@ -31,9 +32,9 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
 }) => {
   return (
     <div className="LoginSwitch-other-ways">
-      {loginType !== "forgot-pass" && (
+      {loginType !== LOGIN_TYPES.FORGET_PASS && (
         <>
-          {loginType !== "otp" ? (
+          {loginType !== LOGIN_TYPES.OTP ? (
             <>
               <div className="LoginSwitch-other-ways-header">
                 <img src="/assets/loginAssets/LoginStripe1.svg" alt="" />
@@ -41,62 +42,38 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
                 <img src="/assets/loginAssets/LoginStripe2.svg" alt="" />
               </div>
               <div className="LoginSwitch-other-ways-options">
-                {loginType !== "google" && (
-                  <div
-                    className={`LoginSwitch-switch-option ${!checkbox ? "disabled" : ""}`}
-                    onClick={() => checkbox && onGoogleSignIn()}
-                    style={{
-                      opacity: checkbox ? 1 : 0.5,
-                      cursor: checkbox ? "pointer" : "not-allowed",
-                    }}
-                  >
-                    <img
-                      className="LoginSwitch-switch-option-img"
-                      src="/assets/loginAssets/Google.svg"
-                      alt="google"
-                    />
-                    <span>{t("Google")}</span>
-                  </div>
-                )}
-                {loginType !== "phone" && (
-                  <div
-                    className="LoginSwitch-switch-option"
-                    onClick={() => onSwitch("phone")}
-                  >
-                    <img
-                      src="/assets/loginAssets/Mobile.svg"
-                      alt=""
-                      className="LoginSwitch-switch-option-img"
-                    />
-                    <span>{t("Mobile")}</span>
-                  </div>
-                )}
-                {loginType !== "student" && (
-                  <div
-                    className="LoginSwitch-switch-option"
-                    onClick={() => onSwitch("student")}
-                  >
-                    <img
-                      className="LoginSwitch-switch-option-img"
-                      src="/assets/loginAssets/Student_ID.svg"
-                      alt="studentId"
-                    />
-                    <span>{t("student id")}</span>
-                  </div>
-                )}
-                {loginType !== "email" && (
-                  <div
-                    className="LoginSwitch-switch-option"
-                    onClick={() => onSwitch("email")}
-                  >
-                    <img
-                      className="LoginSwitch-switch-option-img"
-                      src="/assets/loginAssets/Email.svg"
-                      alt=""
-                    />
-                    <span>{t("Email")}</span>
-                  </div>
-                )}
+                <div
+                  className={`LoginSwitch-switch-option ${!checkbox ? "disabled" : ""}`}
+                  onClick={() => checkbox && onGoogleSignIn()}
+                  style={{
+                    opacity: checkbox ? 1 : 0.5,
+                    cursor: checkbox ? "pointer" : "not-allowed",
+                  }}
+                >
+                  <img
+                    className="LoginSwitch-switch-option-img"
+                    src="/assets/loginAssets/Google.svg"
+                    alt="google"
+                  />
+                  <span>{t("Google")}</span>
+                </div>
+                
+                <div className="LoginSwitch-switch-option" onClick={() => onSwitch(LOGIN_TYPES.STUDENT)}>
+                  <img
+                    className="LoginSwitch-switch-option-img"
+                    src="/assets/loginAssets/Student_ID.svg"
+                    alt="studentId"
+                  />
+                  <span>{t("student id")}</span>
+                </div>
+                <div className="LoginSwitch-switch-option" onClick={() => onSwitch(LOGIN_TYPES.EMAIL)}>
+                  <img
+                    className="LoginSwitch-switch-option-img"
+                    src="/assets/loginAssets/Email.svg"
+                    alt=""
+                  />
+                  <span>{t(LOGIN_TYPES.EMAIL)}</span>
+                </div>
               </div>
               <div className="LoginSwitch-terms-condition">
                 <div className="LoginSwitch-terms-checkbox-label">
@@ -131,16 +108,18 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
               <div className="LoginSwitch-otp-expiry-header">
                 <img src="/assets/loginAssets/LoginStripe1.svg" alt="" />
                 <span className="LoginSwitch-otp-expiry-text">
-                  {t("Your OTP will expire in {{minutes}} minutes", { minutes: otpExpiryCounter })}
+                  {t("Your OTP will expire in {{minutes}} minutes", {
+                    minutes: otpExpiryCounter,
+                  })}
                 </span>
                 <img src="/assets/loginAssets/LoginStripe2.svg" alt="" />
               </div>
               <button
-                disabled={(counter ?? 0) > 0 ? true : false}
+                disabled={!(showResendOtp && (counter ?? 0) <= 0)}
                 className="LoginSwitch-otp-resend-link"
                 onClick={onResend}
               >
-                  {t("Resend OTP")}
+                {t("Resend OTP")}
               </button>
             </div>
           )}

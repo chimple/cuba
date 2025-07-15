@@ -34,7 +34,7 @@ const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
           ? t("Doing Good")
           : t("Not Tracked")}
         <span style={{ marginLeft: "10px" }}>
-          {studentsProgress.length} / {studentLength}
+          {studentsProgress.length}/{studentLength}
         </span>
       </div>
 
@@ -54,8 +54,8 @@ const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
                   }}
                 />
                 <span className="avatar-name">
-                  {student.name && student.name.length > 12
-                    ? student.name.substring(0, 12) + "..."
+                  {student.name && student.name.length > 8
+                    ? student.name.substring(0, 8) + "..."
                     : student.name ?? ""}
                 </span>
               </div>

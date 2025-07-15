@@ -20,6 +20,14 @@ export enum MUTATE_TYPES {
   DELETE = "delete",
 }
 
+export enum LOGIN_TYPES {
+  PHONE="phone",
+  STUDENT= "student",
+  EMAIL= 'email',
+  OTP= 'otp',
+  FORGET_PASS= "forget_pass"
+}
+
 export enum TABLES {
   Curriculum = "curriculum",
   Subject = "subject",
@@ -461,6 +469,7 @@ export enum PAGES {
   SCHOOL_LIST = "/school-list",
   SCHOOL_DETAILS = "/school-details",
   USERS = "/users",
+  USER_DETAILS = "/user-details",
   PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS = "/program-connected-school-list-page-ops",
   NEW_USERS_OPS = "/new-user-ops",
 }

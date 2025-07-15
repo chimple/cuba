@@ -106,10 +106,10 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
       const uploadData = async () => {
         const result = await api.uploadData(finalPayload);
         if (result === true) {
-        setStep(FileUploadStep.Uploaded); 
-      } else if (result === false) {
-        setStep(FileUploadStep.UploadError);
-      }
+          setStep(FileUploadStep.Uploaded);
+        } else if (result === false) {
+          setStep(FileUploadStep.UploadError);
+        }
       };
       uploadData();
     }
@@ -160,6 +160,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
     let validatedSchoolIds: Set<string> = new Set(); // Store valid school IDs
     let studentLoginTypeMap = new Map<string, string>(); // schoolId -> login type
     let validatedSchoolClassPairs: Set<string> = new Set(); // Store validated class-school pairs
+    let validatedProgramNames = new Set<string>();
 
     const validatedSheets = {
       school: [] as any[],
@@ -215,6 +216,9 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             ?.toString()
             .trim();
           const studentLoginType = row["STUDENT LOGIN TYPE"]?.toString().trim();
+          const isWhatsappEnabled = row["IS WHATSAPP ENABLED"]
+            ?.toString()
+            .trim();
           if (schoolId && studentLoginType) {
             studentLoginTypeMap.set(schoolId, studentLoginType);
           }
@@ -229,7 +233,18 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             }
           }
 
-          // --- ⬇️ PROGRAM MODEL VALIDATION ADDED HERE ⬇️ ---
+          if (isWhatsappEnabled) {
+            const validIsWhatsappEnabled = ["YES", "NO"];
+            if (
+              !validIsWhatsappEnabled.includes(isWhatsappEnabled.toUpperCase())
+            ) {
+              errors.push(
+                'Invalid is Whatsapp Enabled value. Must be "YES" or "NO".'
+              );
+            }
+          } else {
+            errors.push("Missing FIELD is Whatsapp Enabled information");
+          }
           if (programModel) {
             const validProgramModels = ["AT HOME", "AT SCHOOL", "HYBRID"];
             if (!validProgramModels.includes(programModel.toUpperCase())) {
@@ -237,6 +252,21 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                 'Invalid PROGRAM MODEL. Must be "AT HOME", "AT SCHOOL", or "HYBRID".'
               );
             }
+          }
+          if (programName) {
+            const programValidation =
+              await api.validateProgramName(programName);
+            if (programValidation.status === "error") {
+              errors.push(
+                ...(programValidation.errors || [
+                  "Program name not found in database",
+                ])
+              );
+            } else {
+              validatedProgramNames.add(programName);
+            }
+          } else {
+            errors.push("Missing PROGRAM NAME");
           }
 
           // Validate format
@@ -319,8 +349,8 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                 schoolId,
                 schoolName
               );
-            } else {
-              schoolValidation = await api.validateSchoolUdiseCode(schoolId);
+            }else{
+              errors.push("Missing SCHOOL NAME");
             }
 
             if (schoolValidation.status === "error") {
