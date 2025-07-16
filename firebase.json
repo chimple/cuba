@@ -39,6 +39,11 @@
       "public": "build",
       "site": "cuba-stage-dev-supabase",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    },
+    {
+      "public": "build",
+      "site": "ibiza-stage-supabase-master-play",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
     }
   ]
 }
