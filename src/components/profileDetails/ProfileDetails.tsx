@@ -25,6 +25,7 @@ import { Capacitor } from "@capacitor/core";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { initializeFireBase } from "../../services/Firebase";
+import Loading from "../Loading";
 
 const getModeFromFeature = (variation: string) => {
   switch (variation) {
@@ -43,6 +44,7 @@ const ProfileDetails = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
+  const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
   const currentStudent = Util.getCurrentStudent();
   const location = useLocation();
   const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
@@ -121,6 +123,7 @@ const ProfileDetails = () => {
 
   const handleSave = async () => {
     try {
+      setIsCreatingProfile(true)
       let _studentName = fullName?.trim();
       const state = history.location.state as any;
       const tmpPath = state?.from ?? PAGES.HOME;
@@ -175,7 +178,6 @@ const ProfileDetails = () => {
           page_path: window.location.pathname,
           action_type: ACTION_TYPES.PROFILE_CREATED,
         });
-        //Setting the Current Student
         const langIndex = languages?.findIndex(
           (lang) => lang.id === languages[0].id
         );
@@ -188,12 +190,15 @@ const ProfileDetails = () => {
         );
       }
       history.replace(tmpPath);
+      setIsCreatingProfile(false)
     } catch (err) {
       console.error("Error saving profile:", err);
+      setIsCreatingProfile(false)
     }
   };
 
   return (
+
     <div className="profiledetails-container">
       <button
         className="profiledetails-back-button"
@@ -348,7 +353,9 @@ const ProfileDetails = () => {
           </div>
         </div>
       </div>
+       <Loading isLoading={isCreatingProfile} />
     </div>
+         
   );
 };
 
