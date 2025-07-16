@@ -870,7 +870,7 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  async deleteUserFromClass(userId: string, class_id:string): Promise<void> {
+  async deleteUserFromClass(userId: string, class_id: string): Promise<void> {
     if (!this.supabase) return;
 
     const updatedAt = new Date().toISOString();
@@ -4187,7 +4187,7 @@ export class SupabaseApi implements ServiceApi {
       query = query.eq("is_class_wise", true);
     }
 
-    if(!allAssignments){
+    if (!allAssignments) {
       if (isLiveQuiz) {
         query = query.eq("type", "liveQuiz");
       } else {
@@ -5206,12 +5206,9 @@ export class SupabaseApi implements ServiceApi {
     }
 
     try {
-      const { data, error } = await this.supabase.rpc(
-        "validate_program_name",
-        {
-          input_program_name: programName,
-        }
-      );
+      const { data, error } = await this.supabase.rpc("validate_program_name", {
+        input_program_name: programName,
+      });
       // Narrow the type from Json to expected shape
       if (
         typeof data === "object" &&
@@ -5681,52 +5678,52 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-async getPrograms({
-  currentUserId,
-  filters = {},
-  searchTerm = "",
-  tab = PROGRAM_TAB.ALL,
-  limit = 10,
-  offset = 0,
-  orderBy = "name",
-  order = "asc",
-}: {
-  currentUserId: string;
-  filters?: Record<string, string[]>;
-  searchTerm?: string;
-  tab?: TabType;
-  limit?: number;
-  offset?: number;
-  orderBy?: string;
-  order?: "asc" | "desc";
-}): Promise<{ data: any[] }> {
-  if (!this.supabase) {
-    console.error("Supabase client not initialized");
-    return { data: [] };
-  }
-
-  try {
-    const { data, error } = await this.supabase.rpc("get_programs_for_user", {
-      _current_user_id: currentUserId,
-      _filters: filters,
-      _search_term: searchTerm,
-      _tab: tab,
-      _limit: limit,
-      _offset: offset,
-      _order_by: orderBy,
-      _order: order,
-    });
-
-    if (error) {
-      console.error("Error calling get_programs_for_user RPC:", error);
+  async getPrograms({
+    currentUserId,
+    filters = {},
+    searchTerm = "",
+    tab = PROGRAM_TAB.ALL,
+    limit = 10,
+    offset = 0,
+    orderBy = "name",
+    order = "asc",
+  }: {
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    searchTerm?: string;
+    tab?: TabType;
+    limit?: number;
+    offset?: number;
+    orderBy?: string;
+    order?: "asc" | "desc";
+  }): Promise<{ data: any[] }> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized");
       return { data: [] };
     }
-    return { data: data || [] };
-  } catch (err) {
-    console.error("Unexpected error in getPrograms:", err);
-    return { data: [] };
+
+    try {
+      const { data, error } = await this.supabase.rpc("get_programs_for_user", {
+        _current_user_id: currentUserId,
+        _filters: filters,
+        _search_term: searchTerm,
+        _tab: tab,
+        _limit: limit,
+        _offset: offset,
+        _order_by: orderBy,
+        _order: order,
+      });
+
+      if (error) {
+        console.error("Error calling get_programs_for_user RPC:", error);
+        return { data: [] };
+      }
+      return { data: data || [] };
+    } catch (err) {
+      console.error("Unexpected error in getPrograms:", err);
+      return { data: [] };
+    }
   }
-}
 
   async getProgramManagers(): Promise<{ name: string; id: string }[]> {
     if (!this.supabase) {
@@ -6302,7 +6299,6 @@ async getPrograms({
         state: [],
         district: [],
         block: [],
-        village: [],
         programType: [],
         partner: [],
         programManager: [],
@@ -6359,65 +6355,71 @@ async getPrograms({
     }
   }
 
- async getFilteredSchoolsForSchoolListing(params: {
-  filters?: Record<string, string[]>;
-  programId?: string;
-  page?: number;
-  page_size?: number;
-  order_by?: string;
-  order_dir?: "asc" | "desc";
-  search?: string;
-}): Promise<{
-  data: FilteredSchoolsForSchoolListingOps[];
-  total: number;
-}> {
-  if (!this.supabase) {
-    console.error("Supabase client is not initialized");
-    return { data: [], total: 0 };
-  }
-
-  const {
-    filters,
-    programId,
-    page,
-    page_size,
-    order_by,
-    order_dir,
-    search,
-  } = params;
-  const payload: any = {};
-
-  if (filters && Object.keys(filters).length > 0) payload.filters = filters;
-  if (programId) payload._program_id = programId;
-  if (page) payload.page = page;
-  if (page_size) payload.page_size = page_size;
-  if (order_by) payload.order_by = order_by;
-  if (order_dir) payload.order_dir = order_dir;
-  if (search) payload.search = search;
-
-  try {
-    const { data, error } = await this.supabase.rpc(
-      "get_filtered_schools_with_optional_program",
-      payload
-    );
-    if (error) {
-      console.error("RPC error in get_filtered_schools_with_optional_program:", error);
+  async getFilteredSchoolsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: "asc" | "desc";
+    search?: string;
+  }): Promise<{
+    data: FilteredSchoolsForSchoolListingOps[];
+    total: number;
+  }> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized");
       return { data: [], total: 0 };
     }
 
-    if (!data || typeof data !== "object" || !("data" in data) || !("total" in data)) {
-      throw new Error("Supabase RPC did not return expected { data, total } shape");
-    }
+    const { filters, programId, page, page_size, order_by, order_dir, search } =
+      params;
+    const payload: any = {};
 
-    return {
-      data: (data.data ?? []) as FilteredSchoolsForSchoolListingOps[],
-      total: typeof data.total === "number" ? data.total : 0,
-    };
-  } catch (err) {
-    console.error("Unexpected error in get_filtered_schools_with_optional_program:", err);
-    return { data: [], total: 0 };
+    if (filters && Object.keys(filters).length > 0) payload.filters = filters;
+    if (programId) payload._program_id = programId;
+    if (page) payload.page = page;
+    if (page_size) payload.page_size = page_size;
+    if (order_by) payload.order_by = order_by;
+    if (order_dir) payload.order_dir = order_dir;
+    if (search) payload.search = search;
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "get_filtered_schools_with_optional_program",
+        payload
+      );
+      if (error) {
+        console.error(
+          "RPC error in get_filtered_schools_with_optional_program:",
+          error
+        );
+        return { data: [], total: 0 };
+      }
+
+      if (
+        !data ||
+        typeof data !== "object" ||
+        !("data" in data) ||
+        !("total" in data)
+      ) {
+        throw new Error(
+          "Supabase RPC did not return expected { data, total } shape"
+        );
+      }
+
+      return {
+        data: (data.data ?? []) as FilteredSchoolsForSchoolListingOps[],
+        total: typeof data.total === "number" ? data.total : 0,
+      };
+    } catch (err) {
+      console.error(
+        "Unexpected error in get_filtered_schools_with_optional_program:",
+        err
+      );
+      return { data: [], total: 0 };
+    }
   }
-}
 
   async createAutoProfile(
     languageDocId: string | undefined
@@ -6852,7 +6854,7 @@ async getPrograms({
       console.error("Unexpected error while fetching user special roles:", e);
       return [];
     }
-    }
+  }
 
   async updateSpecialUserRole(userId: string, role: string): Promise<void> {
     if (!this.supabase) {
@@ -6864,9 +6866,7 @@ async getPrograms({
       const { error } = await this.supabase
         .from("special_users")
         .update({
-          role: role as
-            RoleType.PROGRAM_MANAGER
-            | RoleType.FIELD_COORDINATOR,
+          role: role as RoleType.PROGRAM_MANAGER | RoleType.FIELD_COORDINATOR,
           updated_at: updatedAt,
         })
         .eq("user_id", userId)
@@ -6908,9 +6908,7 @@ async getPrograms({
       const { error } = await this.supabase
         .from("program_user")
         .update({
-          role: role as
-            RoleType.PROGRAM_MANAGER
-            | RoleType.FIELD_COORDINATOR,
+          role: role as RoleType.PROGRAM_MANAGER | RoleType.FIELD_COORDINATOR,
           updated_at: updatedAt,
         })
         .eq("user", userId)
