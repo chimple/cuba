@@ -1,4 +1,3 @@
-/* ImageDropdown.css */
 .imageDropdown-container {
   display: flex;
   align-items: center;
@@ -27,7 +26,7 @@
   color: #333;
 }
 
-.dropdown-icon {
+.imageDropdown-icon {
   width: auto;
   max-width: 5vh;
   height: min(4vh, 30px);
@@ -48,7 +47,7 @@
   border-color: none;
   border-width: 0;
 }
-.selected-value {
+.imageDropdown-selected {
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -56,14 +55,14 @@
   text-overflow: ellipsis;
   /* margin-left: 1rem; */
 }
-.dropdown-text {
+.imageDropdown-text {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   line-height: 1.2;
 }
 
-.subject-text {
+.imageDropdown-subject-text {
   font-size: 2vh;
   font-weight: 500;
   color: #333;

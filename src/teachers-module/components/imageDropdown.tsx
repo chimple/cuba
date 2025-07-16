@@ -59,12 +59,12 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
           }}
           renderValue={(value) =>
             selectedValue?.id ? (
-              <div className="selected-value">
+              <div className="imageDropdown-selected">
                 {selectedValue.icon && (
                   <img
                     src={selectedValue.icon}
                     alt={selectedValue.name}
-                    className="dropdown-icon"
+                    className="imageDropdown-icon"
                   />
                 )}
                 <span>{selectedValue.name}</span>
@@ -74,7 +74,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
                 <img
                   src={options[0]?.icon || ""}
                   alt="placeholder-icon"
-                  className="dropdown-icon"
+                  className="imageDropdown-icon"
                 />
                 <span>{placeholder}</span>
               </div>
@@ -102,11 +102,11 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
                 <img
                   src={option.icon}
                   alt={option.name}
-                  className="dropdown-icon"
+                  className="imageDropdown-icon"
                 />
               )}
-              <div className="dropdown-text">
-                <span className="subject-text">
+              <div className="imageDropdown-text">
+                <span className="imageDropdown-subject-text">
                   {splitText(option.name, option.subjectDetail).subject}
                 </span>
                 <span className="grade-text">
