@@ -172,6 +172,7 @@ const JoinClass: FC<{
               <img src="assets/icons/Vector.svg" alt="Status icon" />
             )
           }
+          required = {true}
         />
 
         <InputWithIcons
@@ -191,6 +192,7 @@ const JoinClass: FC<{
               ) : null
             ) : null
           }
+          required = {true}
         />
       </div>
       <div className="join-class-message">
