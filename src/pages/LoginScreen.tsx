@@ -330,16 +330,9 @@ const LoginScreen: React.FC = () => {
         login_type: "phone-number",
       });
 
-      const isNewUser =
-        !user.name || !user.language_id || !user.gender;
-
-      if (isNewUser) {
-        history.replace(PAGES.PROFILE_DETAILS);
-      } else {
         const userSchools = await getSchoolsForUser(user.user);
         await redirectUser(userSchools);
-      }
-
+      
       setAnimatedLoading(false);
     } catch (error) {
       // Handle all state updates for error case at once
@@ -434,13 +427,8 @@ const LoginScreen: React.FC = () => {
     });
 
     // 3) single redirect block
-    const isNewUser = !user.name || !user.language_id || !user.gender;
-    if (isNewUser) {
-      history.replace(PAGES.PROFILE_DETAILS);
-    } else {
       const userSchools = await getSchoolsForUser(user);
       await redirectUser(userSchools);
-    }
   } catch (e) {
     presentToast({
       message: t("Google sign in failed. Please try again."),
@@ -635,15 +623,6 @@ const LoginScreen: React.FC = () => {
           action_type: ACTION.LOGIN,
           login_type: LOGIN_TYPES.EMAIL,
         });
-        
-        const isNewUser = !user.name || !user.language_id || !user.gender;
-
-        if (isNewUser) {
-          history.replace(PAGES.PROFILE_DETAILS);
-        } else {
-          const userSchools = await getSchoolsForUser(user);
-          await redirectUser(userSchools);
-        }
       } else {
         setAnimatedLoading(false);
         setIsLoading(false);

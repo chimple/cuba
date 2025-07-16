@@ -481,7 +481,7 @@ export class SqliteApi implements ServiceApi {
     return await this.syncDbNow([tableName]);
   }
 
-  async createProfile(
+    async createProfile(
     name: string,
     age: number | undefined,
     gender: string | undefined,
@@ -558,11 +558,6 @@ export class SqliteApi implements ServiceApi {
       ]
     );
 
-    let courses;
-    if (gradeDocId && boardDocId) {
-      courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
-    }
-
     await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
     await this.updatePushChanges(TABLES.ParentUser, MUTATE_TYPES.INSERT, {
       id: parentUserId,
@@ -572,33 +567,85 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
       is_deleted: false,
     });
-
-    for (const course of courses) {
-      const newUserCourse: TableTypes<"user_course"> = {
-        course_id: course.id,
-        created_at: new Date().toISOString(),
-        id: uuidv4(),
-        is_deleted: false,
-        updated_at: new Date().toISOString(),
-        user_id: studentId,
-        is_firebase: null,
-      };
-      await this.executeQuery(
-        `
+    let courses: TableTypes<"course">[] = [];
+    if (gradeDocId && boardDocId) {
+      courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
+      for (const course of courses) {
+        const newUserCourse: TableTypes<"user_course"> = {
+          course_id: course.id,
+          created_at: new Date().toISOString(),
+          id: uuidv4(),
+          is_deleted: false,
+          updated_at: new Date().toISOString(),
+          user_id: studentId,
+          is_firebase: null,
+        };
+        await this.executeQuery(
+          `
       INSERT INTO user_course (id, user_id, course_id)
     VALUES (?, ?, ?);
   `,
-        [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
-      );
-      this.updatePushChanges(
-        TABLES.UserCourse,
-        MUTATE_TYPES.INSERT,
-        newUserCourse
-      );
-    }
+          [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
+        );
+        this.updatePushChanges(
+          TABLES.UserCourse,
+          MUTATE_TYPES.INSERT,
+          newUserCourse
+        );
+      }
+    } else {
+      const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
+      const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+      const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
+      const language = await this.getLanguageWithId(languageDocId!);
+      let langCourse;
+      if (language && language.code !== COURSES.ENGLISH) {
+        // Map language code to courseId
+        const thirdLanguageCourseMap: Record<string, string> = {
+          hi: CHIMPLE_HINDI,
+          kn: GRADE1_KANNADA,
+          mr: GRADE1_MARATHI,
+        };
 
+        const courseId = thirdLanguageCourseMap[language.code ?? ""];
+        if (courseId) {
+          langCourse = await this.getCourse(courseId);
+        }
+      }
+      const coursesToAdd = [
+        englishCourse,
+        mathsCourse,
+        langCourse,
+        digitalSkillsCourse,
+      ].filter(Boolean);
+      for (const course of coursesToAdd) {
+        const newUserCourse: TableTypes<"user_course"> = {
+          course_id: course.id,
+          created_at: new Date().toISOString(),
+          id: uuidv4(),
+          is_deleted: false,
+          updated_at: new Date().toISOString(),
+          user_id: studentId,
+          is_firebase: null,
+        };
+        await this.executeQuery(
+          `
+      INSERT INTO user_course (id, user_id, course_id)
+    VALUES (?, ?, ?);
+  `,
+          [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
+        );
+        this.updatePushChanges(
+          TABLES.UserCourse,
+          MUTATE_TYPES.INSERT,
+          newUserCourse
+        );
+      }
+    }
     return newStudent;
   }
+
+
 
   async addProfileImages(
     id: string,
@@ -1866,7 +1913,7 @@ export class SqliteApi implements ServiceApi {
     return user;
   }
 
-  async updateStudent(
+    async updateStudent(
     student: TableTypes<"user">,
     name: string,
     age: number,
