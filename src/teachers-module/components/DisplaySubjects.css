@@ -135,14 +135,14 @@
 .selected-subject {
   color: black;
 }
-.display-subject-name {
+.subject-name-div {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 3vw;
 }
 
-.display-subject-name span {
+.subject-name-div span {
   color: #707070;
   font-size: 18px;
   font-weight: 400;

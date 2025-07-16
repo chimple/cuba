@@ -10,7 +10,6 @@
   flex-direction: column;
   min-height: 100px;
   height: auto; 
-  padding: 6px;
 }
 
 .weekly-summary-header {
@@ -27,13 +26,14 @@
   justify-content: space-around;
   height: auto; /* Let it expand based on content */
   flex-wrap: wrap;
-  margin-top: -4px;
 }
 
 .summary-item {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 25%;
+  padding-bottom: 5px;
 }
 
 .summary-item .CircularProgressbar {
@@ -45,7 +45,7 @@
 }
 
 .summary-item .CircularProgressbar .CircularProgressbar-text {
-  font-size: 32px;
+  font-size: 25px;
   /* alignment-baseline: ideographic; */
 }
 
@@ -59,8 +59,7 @@
 
 .summary-label {
   text-align: center;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--text-sizeM);
   color: #707070;
   line-height: 1.2;
   overflow: hidden;

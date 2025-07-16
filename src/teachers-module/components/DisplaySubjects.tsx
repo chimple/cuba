@@ -109,7 +109,7 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
                   onClick={() => triggerRemoveSubject(course.id)}
                   style={{ cursor: canModify ? "pointer" : "not-allowed" }}
                 >
-                  <div className="display-subject-name">
+                  <div className="subject-name-div">
                     <img
                       src={course?.image || "assets/icons/DefaultIcon.png"}
                       alt={course.name || "Default Subject Icon"}

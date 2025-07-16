@@ -7,7 +7,7 @@ import {
   IonSelectOption,
 } from "@ionic/react";
 import "./CustomDropdown.css";
-import { arrowDown, caretDownSharp, options } from "ionicons/icons";
+import { arrowDown, caretDownSharp } from "ionicons/icons";
 import { ArrowDownward } from "@mui/icons-material";
 import { t } from "i18next";
 
@@ -60,7 +60,8 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
         ))}
       </IonSelect>
       <div className="icon-container">
-        <img src="assets/icons/iconDown.png" alt="Drop_Down" width='16px' height='16px' />
+        <IonIcon icon={caretDownSharp} />
+        {/* <img src="assets/icons/iconDown.png" alt="Drop_Down" width='16px' height='16px' /> */}
       </div>
     </div>
   );
