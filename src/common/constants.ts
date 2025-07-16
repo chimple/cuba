@@ -907,5 +907,7 @@ export enum AGE_OPTIONS {
   FIVE = "5",
   SIX = "6",
   SEVEN = "7",
+  EIGHT = "8",
+  NINE = "9",
   GREATER_THAN_EQUAL_10 = "≥10",
 }

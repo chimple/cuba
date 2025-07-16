@@ -28,6 +28,14 @@ const SelectWithIcons: React.FC<SelectWithIconsProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const labelRef = useRef<HTMLDivElement>(null);
+  const [labelWidth, setLabelWidth] = useState(0);
+
+  useEffect(() => {
+    if (labelRef.current) {
+      setLabelWidth(labelRef.current.offsetWidth);
+    }
+  }, [label]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -44,8 +52,8 @@ const SelectWithIcons: React.FC<SelectWithIconsProps> = ({
   : "Select one";
 
   return (
-    <div className="select-with-icon-input-wrapper" ref={dropdownRef}>
-        <div className="select-with-icon-floating-label">
+     <div className="select-with-icon-input-wrapper" ref={dropdownRef} style={{ "--label-width": `${labelWidth}px` } as React.CSSProperties}>
+        <div className="select-with-icon-floating-label" ref={labelRef}>
             {label}
             {required && <span className="select-with-icon-required">*</span>}
         </div>
