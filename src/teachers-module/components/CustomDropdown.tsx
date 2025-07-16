@@ -10,8 +10,6 @@ import "./CustomDropdown.css";
 import { arrowDown, caretDownSharp } from "ionicons/icons";
 import { ArrowDownward } from "@mui/icons-material";
 import { t } from "i18next";
-
-// Extend the IonSelect properties to accept all its props
 interface CustomDropdownProps extends React.ComponentProps<typeof IonSelect> {
   icon?: string;
   options: { id: string | number; name: string }[];
@@ -47,7 +45,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
         }
         interface="popover" // or "action-sheet", "alert"
         className="customdropdown-select"
-        {...selectProps} // Pass down all other props
+        {...selectProps} 
       >
         {options.map((option) => (
           <IonSelectOption
@@ -61,7 +59,6 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
       </IonSelect>
       <div className="icon-container">
         <IonIcon icon={caretDownSharp} />
-        {/* <img src="assets/icons/iconDown.png" alt="Drop_Down" width='16px' height='16px' /> */}
       </div>
     </div>
   );

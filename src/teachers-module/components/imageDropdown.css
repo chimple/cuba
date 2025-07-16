@@ -2,7 +2,7 @@
 .imageDropdown-container {
   display: flex;
   align-items: center;
-  border-bottom: 4px solid black;
+  border-bottom: 2px solid #9473CB;
   /* width: clamp(170px, 200px, 300px); */
   height: min(5vh, 40px);
   min-height: 35px;
