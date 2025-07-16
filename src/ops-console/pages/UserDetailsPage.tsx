@@ -10,7 +10,9 @@ import { t } from "i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory, useLocation } from "react-router";
 import { RoleLabels, RoleType } from "../../interface/modelInterfaces";
-import { IonAlert } from "@ionic/react";
+import { IonAlert, IonIcon } from "@ionic/react";
+import { PROFILETYPE } from "../../common/constants";
+import EditIcon from "@mui/icons-material/Edit";
 
 const UserDetailsPage: React.FC = () => {
   const [user, setUser] = useState<any>();
@@ -18,6 +20,8 @@ const UserDetailsPage: React.FC = () => {
   const selectRef = useRef<HTMLSelectElement>(null);
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [newImageUrl, setNewImageUrl] = useState<string | null>(null);
 
   const [availableEditRoles] = useState([
     RoleType.PROGRAM_MANAGER,
@@ -63,7 +67,10 @@ const UserDetailsPage: React.FC = () => {
   const onSave = async () => {
     const selectedRole = selectRef.current?.value || userRole;
     const updateTasks: Promise<any>[] = [];
-    if (user.name !== userData?.user?.name) {
+    if (
+      user.name !== userData?.user?.name ||
+      newImageUrl !== userData.user.image
+    ) {
       updateTasks.push(
         api.updateUserProfile(
           user,
@@ -71,7 +78,7 @@ const UserDetailsPage: React.FC = () => {
           user.email,
           user.phone,
           user.languageDocId,
-          user.profilePic
+          newImageUrl ?? user.image
         )
       );
     }
@@ -87,10 +94,31 @@ const UserDetailsPage: React.FC = () => {
     try {
       await Promise.all(updateTasks);
       setUserRole(selectedRole);
-      userData.userRole = selectedRole
+      userData.userRole = selectedRole;
+      userData.user.image = user.image;
       setIsEdit(false);
     } catch (error) {
       console.error("Failed to update user info:", error);
+    }
+  };
+
+  const handleProfileImageChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    const api = ServiceConfig.getI().apiHandler;
+    const imageUrl = await api.addProfileImages(
+      user.id,
+      file,
+      PROFILETYPE.USER
+    );
+
+    if (imageUrl) {
+      const updatedUser = { ...user, image: imageUrl };
+      setUser(updatedUser);
+      setNewImageUrl(imageUrl);
     }
   };
 
@@ -100,7 +128,9 @@ const UserDetailsPage: React.FC = () => {
 
   const isSaveDisabled =
     !user?.name?.trim() ||
-    (user.name === userData?.user?.name && userRole === userData?.userRole);
+    (user.name === userData?.user?.name &&
+      userRole === userData?.userRole &&
+      user.image === userData?.user?.image);
 
   return (
     <div className="user-details-page">
@@ -140,7 +170,11 @@ const UserDetailsPage: React.FC = () => {
       </div>
 
       <div className="user-details-card">
-        <div className="user-details-image-container">
+        <div
+          className="user-details-image-container"
+          onClick={() => isEdit && fileInputRef.current?.click()}
+          style={{ cursor: isEdit ? "pointer" : "default" }}
+        >
           <img
             className="user-details-profile-img"
             src={
@@ -149,6 +183,14 @@ const UserDetailsPage: React.FC = () => {
                 : "/assets/profile.svg"
             }
             alt="Profile"
+          />
+          {isEdit && <EditIcon className="pencil-icon" />}
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            style={{ display: "none" }}
+            onChange={handleProfileImageChange}
           />
         </div>
 
