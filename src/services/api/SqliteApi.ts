@@ -558,6 +558,11 @@ export class SqliteApi implements ServiceApi {
       ]
     );
 
+    let courses:TableTypes<"course">[] = [];
+    if (gradeDocId && boardDocId) {
+      courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
+    }
+
     await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
     await this.updatePushChanges(TABLES.ParentUser, MUTATE_TYPES.INSERT, {
       id: parentUserId,
@@ -567,81 +572,31 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
       is_deleted: false,
     });
-    let courses: TableTypes<"course">[] = [];
-    if (gradeDocId && boardDocId) {
-      courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
-      for (const course of courses) {
-        const newUserCourse: TableTypes<"user_course"> = {
-          course_id: course.id,
-          created_at: new Date().toISOString(),
-          id: uuidv4(),
-          is_deleted: false,
-          updated_at: new Date().toISOString(),
-          user_id: studentId,
-          is_firebase: null,
-        };
-        await this.executeQuery(
-          `
-      INSERT INTO user_course (id, user_id, course_id)
-    VALUES (?, ?, ?);
-  `,
-          [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
-        );
-        this.updatePushChanges(
-          TABLES.UserCourse,
-          MUTATE_TYPES.INSERT,
-          newUserCourse
-        );
-      }
-    } else {
-      const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
-      const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
-      const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
-      const language = await this.getLanguageWithId(languageDocId!);
-      let langCourse;
-      if (language && language.code !== COURSES.ENGLISH) {
-        // Map language code to courseId
-        const thirdLanguageCourseMap: Record<string, string> = {
-          hi: CHIMPLE_HINDI,
-          kn: GRADE1_KANNADA,
-          mr: GRADE1_MARATHI,
-        };
 
-        const courseId = thirdLanguageCourseMap[language.code ?? ""];
-        if (courseId) {
-          langCourse = await this.getCourse(courseId);
-        }
-      }
-      const coursesToAdd = [
-        englishCourse,
-        mathsCourse,
-        langCourse,
-        digitalSkillsCourse,
-      ].filter(Boolean);
-      for (const course of coursesToAdd) {
-        const newUserCourse: TableTypes<"user_course"> = {
-          course_id: course.id,
-          created_at: new Date().toISOString(),
-          id: uuidv4(),
-          is_deleted: false,
-          updated_at: new Date().toISOString(),
-          user_id: studentId,
-          is_firebase: null,
-        };
-        await this.executeQuery(
-          `
+    for (const course of courses) {
+      const newUserCourse: TableTypes<"user_course"> = {
+        course_id: course.id,
+        created_at: new Date().toISOString(),
+        id: uuidv4(),
+        is_deleted: false,
+        updated_at: new Date().toISOString(),
+        user_id: studentId,
+        is_firebase: null,
+      };
+      await this.executeQuery(
+        `
       INSERT INTO user_course (id, user_id, course_id)
     VALUES (?, ?, ?);
   `,
-          [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
-        );
-        this.updatePushChanges(
-          TABLES.UserCourse,
-          MUTATE_TYPES.INSERT,
-          newUserCourse
-        );
-      }
+        [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
+      );
+      this.updatePushChanges(
+        TABLES.UserCourse,
+        MUTATE_TYPES.INSERT,
+        newUserCourse
+      );
     }
+
     return newStudent;
   }
 
@@ -1918,8 +1873,8 @@ export class SqliteApi implements ServiceApi {
     gender: string,
     avatar: string,
     image: string | undefined,
-    boardDocId: string | undefined,
-    gradeDocId: string | undefined,
+    boardDocId: string| undefined,
+    gradeDocId: string| undefined,
     languageDocId: string
   ): Promise<TableTypes<"user">> {
     const updateUserQuery = `
@@ -2510,7 +2465,7 @@ export class SqliteApi implements ServiceApi {
       console.error("Error removing courses from school_course", error);
     }
   }
-  async deleteUserFromClass(userId: string, class_id: string): Promise<void> {
+  async deleteUserFromClass(userId: string, class_id:string): Promise<void> {
     const updatedAt = new Date().toISOString();
     try {
       await this.executeQuery(
@@ -2529,7 +2484,7 @@ export class SqliteApi implements ServiceApi {
       this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
         id: userData.id,
         is_deleted: true,
-        updated_at: updatedAt,
+        updated_at: updatedAt,  
       });
     } catch (error) {
       console.error("Error deleting user from class_user", error);
@@ -3978,12 +3933,12 @@ order by
     if (isClassWise) {
       query += ` AND is_class_wise = 1`;
     }
-    if (!allAssignments) {
+    if(!allAssignments) {
       if (isLiveQuiz) {
-        query += ` AND type = 'liveQuiz'`;
-      } else {
-        query += ` AND type != 'liveQuiz'`;
-      }
+      query += ` AND type = 'liveQuiz'`;
+    } else {
+      query += ` AND type != 'liveQuiz'`;
+    }
     }
     query += ` ORDER BY created_at DESC`;
 
@@ -4909,36 +4864,36 @@ order by
     return await this._serverApi.getProgramFilterOptions();
   }
   async getPrograms(params: {
-    currentUserId: string;
-    filters?: Record<string, string[]>;
-    searchTerm?: string;
-    tab?: TabType;
-    limit?: number;
-    offset?: number;
-    orderBy?: string;
-    order?: "asc" | "desc";
-  }): Promise<{ data: any[] }> {
-    const {
-      currentUserId,
-      filters,
-      searchTerm,
-      tab,
-      limit,
-      offset,
-      orderBy,
-      order,
-    } = params;
-    return await this._serverApi.getPrograms({
-      currentUserId,
-      filters,
-      searchTerm,
-      tab,
-      limit,
-      offset,
-      orderBy,
-      order,
-    });
-  }
+  currentUserId: string;
+  filters?: Record<string, string[]>;
+  searchTerm?: string;
+  tab?: TabType;
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  order?: "asc" | "desc";
+}): Promise<{ data: any[] }> {
+  const {
+    currentUserId,
+    filters,
+    searchTerm,
+    tab,
+    limit,
+    offset,
+    orderBy,
+    order,
+  } = params;
+  return await this._serverApi.getPrograms({
+    currentUserId,
+    filters,
+    searchTerm,
+    tab,
+    limit,
+    offset,
+    orderBy,
+    order,
+  });
+}
 
   async insertProgram(payload: any): Promise<boolean | null> {
     return await this._serverApi.insertProgram(payload);
@@ -5034,7 +4989,8 @@ order by
     return await this._serverApi.getSchoolFilterOptionsForSchoolListing();
   }
 
-  async getFilteredSchoolsForSchoolListing(params: {
+  async getFilteredSchoolsForSchoolListing(
+  params: {
     filters?: Record<string, string[]>;
     programId?: string;
     page?: number;
@@ -5042,9 +4998,10 @@ order by
     order_by?: string;
     order_dir?: "asc" | "desc";
     search?: string;
-  }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
-    return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
   }
+): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
+  return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
+}
 
   async createOrAddUserOps(payload: {
     name: string;

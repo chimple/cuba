@@ -131,7 +131,7 @@ const ProfileCard: React.FC<{
                 });
                 return;
               }
-              history.replace(PAGES.CREATE_STUDENT, {
+              history.replace(PAGES.EDIT_STUDENT, {
                 showBackButton: !areProfilesAvailable,
               });
             }}
