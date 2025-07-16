@@ -21,7 +21,8 @@ const UserDetailsPage: React.FC = () => {
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [newImageUrl, setNewImageUrl] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const [availableEditRoles] = useState([
     RoleType.PROGRAM_MANAGER,
@@ -67,9 +68,22 @@ const UserDetailsPage: React.FC = () => {
   const onSave = async () => {
     const selectedRole = selectRef.current?.value || userRole;
     const updateTasks: Promise<any>[] = [];
+    let imageUrl: string | null = null;
+
+    if (selectedFile) {
+      imageUrl = await api.addProfileImages(
+        user.id,
+        selectedFile,
+        PROFILETYPE.USER
+      );
+      if (imageUrl) {
+        setUser((prev) => ({ ...prev, image: imageUrl }));
+      }
+    }
+
     if (
       user.name !== userData?.user?.name ||
-      newImageUrl !== userData.user.image
+      (imageUrl && imageUrl !== userData.user.image)
     ) {
       updateTasks.push(
         api.updateUserProfile(
@@ -78,7 +92,7 @@ const UserDetailsPage: React.FC = () => {
           user.email,
           user.phone,
           user.languageDocId,
-          newImageUrl ?? user.image
+          imageUrl ?? user.image
         )
       );
     }
@@ -95,31 +109,29 @@ const UserDetailsPage: React.FC = () => {
       await Promise.all(updateTasks);
       setUserRole(selectedRole);
       userData.userRole = selectedRole;
-      userData.user.image = user.image;
+      userData.user.image = imageUrl ?? user.image;
       setIsEdit(false);
+      setPreviewUrl(null);
+      setSelectedFile(null);
     } catch (error) {
       console.error("Failed to update user info:", error);
     }
   };
 
-  const handleProfileImageChange = async (
+  const handleProfileImageChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
-    if (!file || !user) return;
+    if (!file) return;
 
-    const api = ServiceConfig.getI().apiHandler;
-    const imageUrl = await api.addProfileImages(
-      user.id,
-      file,
-      PROFILETYPE.USER
-    );
+    setSelectedFile(file);
 
-    if (imageUrl) {
-      const updatedUser = { ...user, image: imageUrl };
-      setUser(updatedUser);
-      setNewImageUrl(imageUrl);
-    }
+    // Show preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const isEditDisabled =
@@ -130,7 +142,7 @@ const UserDetailsPage: React.FC = () => {
     !user?.name?.trim() ||
     (user.name === userData?.user?.name &&
       userRole === userData?.userRole &&
-      user.image === userData?.user?.image);
+      previewUrl == null);
 
   return (
     <div className="user-details-page">
@@ -178,9 +190,10 @@ const UserDetailsPage: React.FC = () => {
           <img
             className="user-details-profile-img"
             src={
-              user?.image && user.image.trim() !== ""
+              previewUrl ||
+              (user?.image && user.image.trim() !== ""
                 ? user.image
-                : "/assets/profile.svg"
+                : "/assets/profile.svg")
             }
             alt="Profile"
           />
