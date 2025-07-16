@@ -29,6 +29,14 @@ const DeleteClassDialog: FC<{ classId: string }> = ({ classId }) => {
     try { 
       await api.deleteClass(classId);
       let temp = localStorage.getItem("CLASSES");
+      const tempDeleted = localStorage.getItem('deleted_classes');
+      if(tempDeleted) {
+        const deletedClasses = JSON.parse(tempDeleted);
+        deletedClasses.push(classId);
+        localStorage.setItem('deleted_classes', JSON.stringify(deletedClasses));
+      } else {
+        localStorage.setItem('deleted_classes', JSON.stringify([classId]));
+      }
       if (temp) {
         const classes = JSON.parse(temp);
         const updatedClasses = classes.filter((cls: any) => cls.id !== classId);

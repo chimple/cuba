@@ -2367,7 +2367,14 @@ export class SqliteApi implements ServiceApi {
     ) {
       return [];
     }
-
+    const deletedClass = localStorage.getItem('deleted_classes')
+    if (deletedClass) {
+      const deletedClasses = JSON.parse(deletedClass);
+      const filteredClassList = allClassesRes.values.filter((item) =>
+        !deletedClasses.includes(item.id)
+      );
+      return filteredClassList;
+    }
     return allClassesRes.values;
   }
 
