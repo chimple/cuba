@@ -197,7 +197,7 @@ const UserDetailsPage: React.FC = () => {
             }
             alt="Profile"
           />
-          {isEdit && <EditIcon className="pencil-icon" />}
+          {isEdit && <EditIcon className="user-details-pencil-icon" />}
           <input
             type="file"
             accept="image/*"
