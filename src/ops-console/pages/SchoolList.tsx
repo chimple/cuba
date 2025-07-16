@@ -30,7 +30,6 @@ const filterConfigsForSchool = [
   { key: "state", label: t("Select State") },
   { key: "district", label: t("Select District") },
   { key: "block", label: t("Select Block") },
-  { key: "village", label: t("Select Village") },
   { key: "cluster", label: t("Select Cluster") },
 ];
 
@@ -44,7 +43,6 @@ const INITIAL_FILTERS: Filters = {
   state: [],
   district: [],
   block: [],
-  village: [],
   cluster: [],
 };
 
@@ -121,7 +119,6 @@ const SchoolList: React.FC = () => {
             state: data.state || [],
             district: data.district || [],
             block: data.block || [],
-            village: data.village || [],
             cluster: data.cluster || [],
           });
         }
@@ -379,7 +376,6 @@ const SchoolList: React.FC = () => {
                 state: [],
                 district: [],
                 block: [],
-                village: [],
                 programType: [],
                 partner: [],
                 programManager: [],

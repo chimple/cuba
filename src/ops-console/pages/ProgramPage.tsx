@@ -115,6 +115,7 @@ const [orderBy, setOrderBy] = useState("name");
 const [order, setOrder] = useState<"asc" | "desc">("asc");
 
 
+
   const tab: TabType = tabOptions[activeTabIndex].value;
   const tableScrollRef = React.useRef<HTMLDivElement>(null);
 
@@ -145,7 +146,6 @@ const [order, setOrder] = useState<"asc" | "desc">("asc");
         userRole?.includes(RoleType.SUPER_ADMIN) ||
         userRole?.includes(RoleType.OPERATIONAL_DIRECTOR);
       setIsOpsRole(!!isOps);
-      
     };
 
     fetchInitialData();
@@ -282,7 +282,6 @@ const [order, setOrder] = useState<"asc" | "desc">("asc");
       state: [],
       district: [],
       block: [],
-      village: [],
       cluster: [],
     };
     setTempFilters(reset);
@@ -309,7 +308,6 @@ const [order, setOrder] = useState<"asc" | "desc">("asc");
     { key: "state", label: t("Select State") },
     { key: "district", label: t("Select District") },
     { key: "block", label: t("Select Block") },
-    { key: "village", label: t("Select Village") },
     { key: "cluster", label: t("Select Cluster") },
   ];
 
