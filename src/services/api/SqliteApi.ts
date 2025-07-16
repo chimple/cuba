@@ -4130,6 +4130,35 @@ order by
     }
     return false;
   }
+  async checkTeacherExistInClass(
+    schoolId: string,
+    classId: string,
+    userId: string
+  ): Promise<boolean> {
+    // Check if the user is present in school_user but not as a parent
+    const schoolUserResult = await this.executeQuery(
+      `SELECT * FROM school_user
+     WHERE school_id = ? AND user_id = ?
+     AND role != ?
+     AND is_deleted = false`,
+      [schoolId, userId, RoleType.PARENT]
+    );
+
+    if (schoolUserResult?.values && schoolUserResult.values.length > 0) {
+      return true;
+    }
+    // Step 2: Check if the user is a teacher in this class
+    const result = await this.executeQuery(
+      `SELECT * FROM class_user
+      WHERE class_id = ?
+      AND user_id = ?
+      AND role = ?
+      AND is_deleted = false`,
+      [classId, userId, RoleType.TEACHER]
+    );
+    return !!(result?.values && result.values.length > 0);
+  }
+
   async getAssignmentsByAssignerAndClass(
     userId: string,
     classId: string,
@@ -4943,9 +4972,26 @@ order by
   }
 
   async getFilteredSchoolsForSchoolListing(
-    filters: Record<string, string[]>
+    params: {
+      filters?: Record<string, string[]>;
+      programId?: string;
+    }
   ): Promise<FilteredSchoolsForSchoolListingOps[]> {
-    return await this._serverApi.getFilteredSchoolsForSchoolListing(filters);
+    return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
+  }
+
+  async createOrAddUserOps(payload: {
+    name: string;
+    email?: string;
+    phone?: string;
+    role: string;
+  }): Promise<{
+    success: boolean;
+    user_id?: string;
+    message?: string;
+    error?: string;
+  }> {
+    return await this._serverApi.createOrAddUserOps(payload);
   }
 
   async getTeacherInfoBySchoolId(schoolId: string): Promise<
