@@ -34,6 +34,8 @@ import {
   USER_ROLE,
   CURRENT_USER,
   LOGIN_TYPES,
+  TABLES,
+  REFRESH_TABLES_ON_LOGIN,
 } from "../common/constants";
 import { APP_LANGUAGES } from "../common/constants";
 import "./LoginScreen.css";
@@ -44,6 +46,7 @@ import { SqliteApi } from "../services/api/SqliteApi";
 
 const LoginScreen: React.FC = () => {
   const history = useHistory();
+  const hasRedirected = useRef(false);
   const api = ServiceConfig.getI().apiHandler;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [loginType, setLoginType] = useState<
@@ -117,97 +120,69 @@ const LoginScreen: React.FC = () => {
   }, [loadingMessages.length]);
 
   useEffect(() => {
-    // Combine all initial async setup in one effect
-    const initialize = async () => {
-      try {
-        if (Capacitor.isNativePlatform()) {
-          await ScreenOrientation.lock({ orientation: "portrait" });
-        }
-        const appLang = localStorage.getItem(LANGUAGE);
-        if (!appLang) {
-          localStorage.setItem(LANGUAGE, "en");
-          setCurrentLang("en");
-          await i18n.changeLanguage("en");
-        } else {
-          setCurrentLang(appLang);
-          await i18n.changeLanguage(appLang);
-        }
-        const authHandler = ServiceConfig.getI().authHandler;
-        const isUserLoggedIn = await authHandler.isUserLoggedIn();
-        if (isUserLoggedIn) {
-          history.replace(PAGES.SELECT_MODE);
-          return;
-        }
+      const initialize = async () => {
+    // lock orientation, set language
+    if (Capacitor.isNativePlatform()) {
+      await ScreenOrientation.lock({ orientation: "portrait" });
+    }
+    const lang = localStorage.getItem(LANGUAGE) || "en";
+    localStorage.setItem(LANGUAGE, lang);
+    await i18n.changeLanguage(lang);
+    setCurrentLang(lang);
 
-        if (Capacitor.isNativePlatform()) {
-          // document.addEventListener("visibilitychange", handleVisibilityChange);
-        }
-      } finally {
-        setInitializing(false);
-      }
-    };
-    initialize();
-    return () => {
-      if (Capacitor.isNativePlatform()) {
-        document.removeEventListener(
-          "visibilitychange",
-          handleVisibilityChange
-        );
-      }
-    };
-  }, []);
-
-  // Handle visibility change (when app goes into background or foreground)
-  const handleVisibilityChange = () => {
-    if (document.visibilityState === "visible") {
-      // App came to foreground
-      const authHandler = ServiceConfig.getI().authHandler;
-      authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
-        if (isUserLoggedIn) {
-          history.replace(PAGES.SELECT_MODE);
-        }
-      });
+    // if already logged in, do full finalizeRedirect
+    if (await authInstance.isUserLoggedIn()) {
+      await finalizeLoginAndRedirect();
+      return;
     }
   };
+  initialize()
+  .finally(() => setInitializing(false));
+ }, []);
+
+  // Handle visibility change (when app goes into background or foreground)
+  // useEffect(() => {
+  //   function handleVisibilityChange() {
+  //     if (
+  //       document.visibilityState === "visible" &&
+  //       !hasRedirected.current
+  //     ) {
+  //       hasRedirected.current = true;
+  //       history.replace(PAGES.SELECT_MODE);
+  //     }
+  //   }
+  //   document.addEventListener("visibilitychange", handleVisibilityChange);
+  //   return () => {
+  //     document.removeEventListener("visibilitychange", handleVisibilityChange);
+  //   };
+  // }, []);
 
   const authInstance = ServiceConfig.getI().authHandler;
   const countryCode = "";
 
   // Timer effect for OTP resend
   useEffect(() => {
-    let interval: NodeJS.Timer | null = null;
-
+    let interval: NodeJS.Timeout;
     if (showTimer && counter > 0) {
-      interval = setInterval(() => {
-        setCounter((prevCounter) => {
-          if (prevCounter <= 1) {
-            setShowResendOtp(true);
-            return 0;
-          }
-          return prevCounter - 1;
-        });
-      }, 1000);
+      interval = setInterval(() => setCounter(c => {
+        if (c <= 1) {
+          setShowResendOtp(true);
+          clearInterval(interval);
+          return 0;
+        }
+        return c - 1;
+      }), 1000);
     }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [counter, showTimer]);
+    return () => clearInterval(interval);
+  }, [showTimer, counter])
 
   // Timer effect for OTP expiration
   useEffect(() => {
     if (loginType === LOGIN_TYPES.OTP) {
-      const expiryTimer = setInterval(() => {
-        setOtpExpiryCounter((prev) => {
-          if (prev <= 0) {
-            clearInterval(expiryTimer);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 60000); // Update every minute
-
-      return () => clearInterval(expiryTimer);
+      const expiry = setInterval(() => {
+        setOtpExpiryCounter(c => Math.max(0, c - 1));
+      }, 60000);
+      return () => clearInterval(expiry);
     }
   }, [loginType]);
 
@@ -425,7 +400,6 @@ const LoginScreen: React.FC = () => {
     // 2) store it under USER_DATA
     localStorage.setItem(CURRENT_USER, JSON.stringify(user));
     localStorage.setItem(USER_DATA, JSON.stringify(user));
-    // localStorage.setItem(USER_ROLE, JSON.stringify(user.roles || []));
 
     Util.logEvent(EVENTS.USER_PROFILE, {
       user_type: RoleType.PARENT,
@@ -433,14 +407,8 @@ const LoginScreen: React.FC = () => {
       login_type: "google-signin",
     });
 
-    // 3) single redirect block
-    const isNewUser = !user.name || !user.language_id || !user.gender;
-    if (isNewUser) {
-      history.replace(PAGES.PROFILE_DETAILS);
-    } else {
-      const userSchools = await getSchoolsForUser(user);
-      await redirectUser(userSchools);
-    }
+    await finalizeLoginAndRedirect();
+    return
   } catch (e) {
     presentToast({
       message: t("Google sign in failed. Please try again."),
@@ -453,6 +421,42 @@ const LoginScreen: React.FC = () => {
   } finally {
     setAnimatedLoading(false);
   }
+};
+
+const finalizeLoginAndRedirect = async () => {
+  if (hasRedirected.current) return;
+  hasRedirected.current = true;
+
+  // 1) sync only the tables you want
+  await api.syncDB(Object.values(TABLES), REFRESH_TABLES_ON_LOGIN);
+
+  // 2) load user + roles + schools
+  const user = JSON.parse(localStorage.getItem(USER_DATA)!);
+  const roles: string[]  = JSON.parse(localStorage.getItem(USER_ROLE) || "[]");
+  const isOps   = roles.includes(RoleType.SUPER_ADMIN)
+               || roles.includes(RoleType.OPERATIONAL_DIRECTOR);
+  const isProg  = await api.isProgramUser();
+  const schools = await api.getSchoolsForUser(user.id);
+
+  // 3) pick exactly one target
+  let target: string;
+  if (isOps || isProg) {
+    target = PAGES.SIDEBAR_PAGE;
+    localStorage.setItem(IS_OPS_USER, "true");
+    await ScreenOrientation.unlock();
+  }
+  else if (schools.length === 0) {
+    target = PAGES.DISPLAY_STUDENT;
+  }
+  else {
+    const hasAuto = schools.some(s => s.role === RoleType.AUTOUSER);
+    target = hasAuto
+      ? PAGES.SELECT_MODE
+      : PAGES.DISPLAY_SCHOOLS;
+  }
+
+  // 4) do the single navigation
+  history.replace(target);
 };
 
   // Helper function to get schools for user
