@@ -26,6 +26,7 @@ public class MainActivity extends BridgeActivity {
     // private RespectClientManager respectClientManager; // Declare RespectClientManager
     public static MainActivity instance;
     static String activity_id = "";
+    static JSONObject deepLinkData = new JSONObject();
     static boolean isRespect = false;
 
     @Override
@@ -80,7 +81,6 @@ public class MainActivity extends BridgeActivity {
         }
 
         Uri data = intent.getData();
-        JSONObject deepLinkData = new JSONObject();
         try {
             for (String key : data.getQueryParameterNames()) {
                 if (key.equals("activity_id")) {

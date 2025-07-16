@@ -4,6 +4,7 @@ import static android.content.Intent.getIntent;
 import static android.content.Intent.getIntentOld;
 
 import static org.chimple.bahama.MainActivity.activity_id;
+import static org.chimple.bahama.MainActivity.deepLinkData;
 import static org.chimple.bahama.MainActivity.isRespect;
 
 import android.annotation.SuppressLint;
@@ -169,7 +170,7 @@ public class PortPlugin extends Plugin {
       call.reject(e.toString());
     }
   }
-  
+
 @PluginMethod
 public void shareContentWithAndroidShare(PluginCall call) {
     try {
@@ -237,9 +238,16 @@ public void shareUserId(PluginCall call) {
     @PluginMethod
     public void sendLaunchData(PluginCall call) {
         JSObject result = new JSObject();
+        String endpoint = deepLinkData.optString("endpoint", "");
+        String auth = deepLinkData.optString("auth", "");
+        String actor = deepLinkData.optString("actor", "");
+        String registration = deepLinkData.optString("registration", "");
 
         Log.d(TAG, "Received activity_id: " + activity_id);
-
+        result.put("endpoint", endpoint);
+        result.put("auth", auth);
+        result.put("actor", actor);
+        result.put("registration", registration);
         result.put("lessonId", activity_id);
         call.resolve(result);
     }
