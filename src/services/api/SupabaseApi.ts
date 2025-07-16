@@ -2524,7 +2524,7 @@ export class SupabaseApi implements ServiceApi {
       role === RoleType.OPERATIONAL_DIRECTOR
     ) {
       const page = options?.page ?? 1;
-      const page_size = options?.page_size ?? 100;
+      const page_size = options?.page_size ?? 20;
       const from = (page - 1) * page_size;
       const to = from + page_size - 1;
 
@@ -2884,6 +2884,18 @@ export class SupabaseApi implements ServiceApi {
     .single();
   if (specialUser?.role) return specialUser.role as RoleType;
 
+  // Check school_user (not parent)
+  const { data: schoolUser } = await this.supabase
+    .from(TABLES.SchoolUser)
+    .select("role")
+    .eq("user_id", userId)
+    .eq("school_id", schoolId)
+    .neq("role", RoleType.PARENT)
+    .eq("is_deleted", false)
+    .single();
+  if (schoolUser?.role) return schoolUser.role as RoleType;
+  
+
   // Check class_user → teacher
   const { data: classUsers } = await this.supabase
     .from(TABLES.ClassUser)
@@ -2903,16 +2915,6 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  // Check school_user (not parent)
-  const { data: schoolUser } = await this.supabase
-    .from(TABLES.SchoolUser)
-    .select("role")
-    .eq("user_id", userId)
-    .eq("school_id", schoolId)
-    .neq("role", RoleType.PARENT)
-    .eq("is_deleted", false)
-    .single();
-  if (schoolUser?.role) return schoolUser.role as RoleType;
 
   return undefined;
 }
