@@ -1975,8 +1975,8 @@ export class SupabaseApi implements ServiceApi {
     gender: string,
     avatar: string,
     image: string | undefined,
-    boardDocId: string | undefined,
-    gradeDocId: string | undefined,
+    boardDocId: string,
+    gradeDocId: string,
     languageDocId: string
   ): Promise<TableTypes<"user">> {
     if (!this.supabase) return student;

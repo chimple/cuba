@@ -558,7 +558,7 @@ export class SqliteApi implements ServiceApi {
       ]
     );
 
-    let courses:TableTypes<"course">[] = [];
+    let courses;
     if (gradeDocId && boardDocId) {
       courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
     }
@@ -1873,8 +1873,8 @@ export class SqliteApi implements ServiceApi {
     gender: string,
     avatar: string,
     image: string | undefined,
-    boardDocId: string| undefined,
-    gradeDocId: string| undefined,
+    boardDocId: string,
+    gradeDocId: string,
     languageDocId: string
   ): Promise<TableTypes<"user">> {
     const updateUserQuery = `
@@ -1897,8 +1897,8 @@ export class SqliteApi implements ServiceApi {
       gender,
       avatar,
       image ?? null,
-      boardDocId ?? null,
-      gradeDocId ?? null,
+      boardDocId,
+      gradeDocId,
       languageDocId,
       student.id,
     ]);
@@ -1913,8 +1913,8 @@ export class SqliteApi implements ServiceApi {
     student.gender = gender;
     student.avatar = avatar;
     student.image = image ?? null;
-    student.curriculum_id = boardDocId ?? null;
-    student.grade_id = gradeDocId ?? null;
+    student.curriculum_id = boardDocId;
+    student.grade_id = gradeDocId;
     student.language_id = languageDocId;
 
     if (courses && courses.length > 0) {

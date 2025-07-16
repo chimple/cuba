@@ -444,10 +444,10 @@ const App: React.FC = () => {
               <AppLangSelection />
             </Route> */}
             <ProtectedRoute path={PAGES.CREATE_STUDENT} exact={true}>
-              <ProfileDetails />
+              <EditStudent />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.EDIT_STUDENT} exact={true}>
-              <ProfileDetails />
+              <EditStudent />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.DISPLAY_STUDENT} exact={true}>
               <DisplayStudents />
@@ -608,9 +608,9 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.PROGRAM_PAGE} exact={true}>
               <ProgramsPage />
             </ProtectedRoute>
-            {/* <ProtectedRoute path={PAGES.PROFILE_DETAILS} exact={true}>
+            <ProtectedRoute path={PAGES.PROFILE_DETAILS} exact={true}>
               <ProfileDetails/>
-            </ProtectedRoute> */}
+            </ProtectedRoute>
             {/* <ProtectedRoute path={PAGES.PROGRAM_DETAIL_PAGE} exact={true}>
               <ProgramDetailPage />
             </ProtectedRoute> */}

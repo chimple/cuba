@@ -886,31 +886,31 @@ export class Util {
   ) {
     try {
       //Setting User Id in User Properites
-      // await FirebaseAnalytics.setUserId({
-      //   userId: params.user_id,
-      // });
-      // // if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
-      // // Util.port.shareUserId({ userId: params.user_id });
-      // await FirebaseCrashlytics.setUserId({
-      //   userId: params.user_id,
-      // });
+      await FirebaseAnalytics.setUserId({
+        userId: params.user_id,
+      });
+      if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+      Util.port.shareUserId({ userId: params.user_id });
+      await FirebaseCrashlytics.setUserId({
+        userId: params.user_id,
+      });
 
-      // await FirebaseAnalytics.setScreenName({
-      //   screenName: window.location.pathname,
-      //   nameOverride: window.location.pathname,
-      // });
+      await FirebaseAnalytics.setScreenName({
+        screenName: window.location.pathname,
+        nameOverride: window.location.pathname,
+      });
 
-      // await FirebaseAnalytics.logEvent({
-      //   name: eventName,
-      //   params: params,
-      // });
+      await FirebaseAnalytics.logEvent({
+        name: eventName,
+        params: params,
+      });
     } catch (error) {
-      // console.error(
-      //   "Error logging event to firebase analytics ",
-      //   eventName,
-      //   ":",
-      //   error
-      // );
+      console.error(
+        "Error logging event to firebase analytics ",
+        eventName,
+        ":",
+        error
+      );
     }
   }
   public static async setUserProperties(currentUser: TableTypes<"user">) {
@@ -1549,8 +1549,8 @@ export class Util {
     }
   }
   public static async fetchNotificationData() {
-    // if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
-    // return Util.port.fetchNotificationData();
+    if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+    return Util.port.fetchNotificationData();
   }
   public static async migrate() {
     if (
@@ -1569,7 +1569,7 @@ export class Util {
     if (!isExists) return { migrated: false };
 
     if (!Util.port) {
-      // Util.port = registerPlugin<PortPlugin>("Port");
+      Util.port = registerPlugin<PortPlugin>("Port");
     }
     try {
       const port = await Util.port.getMigrateUsers();
@@ -2028,7 +2028,7 @@ export class Util {
   }) {
     try {
       if (!Util.port) {
-        // Util.port = registerPlugin<PortPlugin>("Port");
+        Util.port = registerPlugin<PortPlugin>("Port");
       }
       await Util.port.saveProceesedXlsxFile({
         fileData: data.fileData,
