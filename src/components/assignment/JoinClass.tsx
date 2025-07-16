@@ -24,7 +24,7 @@ const JoinClass: FC<{
   const [error, setError] = useState("");
   const [schoolName, setSchoolName] = useState<string>();
   const [isInputFocus, setIsInputFocus] = useState(false);
-  const scollToRef = useRef<null | HTMLDivElement>(null);
+  const scrollToRef = useRef<null | HTMLDivElement>(null);
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [fullName, setFullName] = useState("");
@@ -148,6 +148,36 @@ const JoinClass: FC<{
     }
   }, []);
 
+
+useEffect(() => {
+  if (Capacitor.isNativePlatform()) {
+    // Disable default keyboard scroll behavior
+    Keyboard.setScroll({ isDisabled: true });
+    Keyboard.addListener("keyboardWillShow", () => {
+      setIsInputFocus(true);
+      setTimeout(() => {
+        scrollToRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+          inline: "nearest",
+        });
+      }, 100);
+    });
+
+     Keyboard.addListener("keyboardWillHide", () => {
+      setIsInputFocus(false);
+      // Restore scroll to top or re-render the layout
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    });
+
+  }
+}, []);
+
+
+
   useEffect(() => {
     if (inviteCode && inviteCode.toString().length === 6) {
       getClassData();
@@ -156,6 +186,7 @@ const JoinClass: FC<{
 
   return (
     <div className="join-class-parent-container">
+      {isInputFocus && <div className="scroll-keyboard-for-join-class" ref={scrollToRef}></div>}
       <h2>{t("Join a Class by entering the details below")}</h2>
       <div className="join-class-container">
         <InputWithIcons
@@ -172,6 +203,7 @@ const JoinClass: FC<{
               <img src="assets/icons/Vector.svg" alt="Status icon" />
             )
           }
+          
         />
 
         <InputWithIcons
@@ -191,8 +223,12 @@ const JoinClass: FC<{
               ) : null
             ) : null
           }
+          
         />
+        
+
       </div>
+
       <div className="join-class-message">
         {codeResult &&
         !error &&
