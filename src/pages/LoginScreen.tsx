@@ -23,6 +23,7 @@ import Loading from "../components/Loading";
 import { schoolUtil } from "../utility/schoolUtil";
 import {
   ACTION,
+  CURRENT_USER,
   DOMAIN,
   EVENTS,
   IS_OPS_USER,
@@ -32,8 +33,6 @@ import {
   TableTypes,
   USER_DATA,
   USER_ROLE,
-  CURRENT_USER,
-  LOGIN_TYPES,
 } from "../common/constants";
 import { APP_LANGUAGES } from "../common/constants";
 import "./LoginScreen.css";
@@ -47,8 +46,8 @@ const LoginScreen: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [loginType, setLoginType] = useState<
-    LOGIN_TYPES.PHONE | LOGIN_TYPES.STUDENT | LOGIN_TYPES.EMAIL | LOGIN_TYPES.OTP | LOGIN_TYPES.FORGET_PASS
-  >(LOGIN_TYPES.PHONE);
+    "phone" | "student" | "email" | "otp" | "forgot-pass"
+  >("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   // Separate error states for each login component
@@ -140,7 +139,7 @@ const LoginScreen: React.FC = () => {
         }
 
         if (Capacitor.isNativePlatform()) {
-          // document.addEventListener("visibilitychange", handleVisibilityChange);
+          document.addEventListener("visibilitychange", handleVisibilityChange);
         }
       } finally {
         setInitializing(false);
@@ -196,7 +195,7 @@ const LoginScreen: React.FC = () => {
 
   // Timer effect for OTP expiration
   useEffect(() => {
-    if (loginType === LOGIN_TYPES.OTP) {
+    if (loginType === "otp") {
       const expiryTimer = setInterval(() => {
         setOtpExpiryCounter((prev) => {
           if (prev <= 0) {
@@ -213,7 +212,7 @@ const LoginScreen: React.FC = () => {
 
   // Handler for switching login types
   const handleSwitch = (type: string) => {
-    if (type === LOGIN_TYPES.PHONE || type === LOGIN_TYPES.STUDENT || type === LOGIN_TYPES.EMAIL)
+    if (type === "phone" || type === "student" || type === "email")
       setLoginType(type);
   };
 
@@ -252,7 +251,7 @@ const LoginScreen: React.FC = () => {
         setSpinnerLoading(false);
         setCounter(59);
         setShowTimer(true);
-        setLoginType(LOGIN_TYPES.OTP);
+        setLoginType("otp");
         setPhoneErrorMessage(null);
         setCurrentPhone(phoneNumber);
         setDisableOtpButtonIfSameNumber(true);
@@ -282,8 +281,8 @@ const LoginScreen: React.FC = () => {
 
   // Handler for going back from OTP
   const handleOtpBack = () => {
-    if(loginType===LOGIN_TYPES.OTP){
-    setLoginType(LOGIN_TYPES.PHONE);
+    if(loginType=="otp"){
+    setLoginType("phone");
     setVerificationCode("");
     setPhoneNumber("");
     setShowResendOtp(false);
@@ -291,8 +290,8 @@ const LoginScreen: React.FC = () => {
     setOtpErrorMessage(null);
     setOtpExpiryCounter(15); // Reset the expiry counter
     }
-    else if(loginType===LOGIN_TYPES.FORGET_PASS){
-      setLoginType(LOGIN_TYPES.EMAIL);
+    else if(loginType=="forgot-pass"){
+      setLoginType("email");
       setEmailErrorMessage("");
     }
   };
@@ -318,7 +317,6 @@ const LoginScreen: React.FC = () => {
       // Store user data and proceed with navigation
       const user = res.user;
       localStorage.setItem(CURRENT_USER, JSON.stringify(user));
-      localStorage.setItem(USER_DATA,  JSON.stringify(user));
 
       Util.logEvent(EVENTS.USER_PROFILE, {
         user_id: user.uid,
@@ -329,10 +327,8 @@ const LoginScreen: React.FC = () => {
         action_type: ACTION.LOGIN,
         login_type: "phone-number",
       });
-
         const userSchools = await getSchoolsForUser(user.user);
         await redirectUser(userSchools);
-
       setAnimatedLoading(false);
     } catch (error) {
       // Handle all state updates for error case at once
@@ -393,55 +389,54 @@ const LoginScreen: React.FC = () => {
 
   // Handler for Google Sign In
   const handleGoogleSignIn = async () => {
-  if (!online) {
-    return presentToast({
-      message: t("Device is offline. Login requires an internet connection"),
-      color: "danger",
-      duration: 3000,
-      position: "bottom",
-      buttons: [{ text: "Dismiss", role: "cancel" }],
-    });
-  }
+    try {
+      if (!online) {
+        presentToast({
+          message: t(
+            "Device is offline. Login requires an internet connection"
+          ),
+          color: "danger",
+          duration: 3000,
+          position: "bottom",
+          buttons: [{ text: "Dismiss", role: "cancel" }],
+        });
+        return;
+      }
 
-  setAnimatedLoading(true);
-  try {
-    const ok = await authInstance.googleSign();
-    if (!ok) throw new Error("Google sign in failed");
+      setAnimatedLoading(true);
+      setIsLoading(true);
+      const result: boolean =
+        await ServiceConfig.getI().authHandler.googleSign();
 
-    // 1) pull down the full user object
-    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
-
-    if (!user) {
-      throw new Error("No user returned from authHandler");
+      if (result) {
+        setIsLoading(false);
+        const user: any =
+          await ServiceConfig.getI().authHandler.getCurrentUser();
+        const userSchools = await getSchoolsForUser(user);
+        await redirectUser(userSchools);
+        setAnimatedLoading(false);
+        localStorage.setItem(CURRENT_USER, JSON.stringify(result));
+        Util.logEvent(EVENTS.USER_PROFILE, {
+          user_type: RoleType.PARENT,
+          action_type: ACTION.LOGIN,
+          login_type: "google-signin",
+        });
+      } else {
+        setAnimatedLoading(false);
+        setIsLoading(false);
+        setPhoneErrorMessage("Google sign in failed. Please try again.");
+        // Abort the Google sign in process
+        setLoginType("phone");
+      }
+    } catch (error) {
+      console.log("Google signIn error", error);
+      setAnimatedLoading(false);
+      setIsLoading(false);
+      setPhoneErrorMessage("Google sign in failed. Please try again.");
+      // Abort the Google sign in process
+      setLoginType("phone");
     }
-
-    // 2) store it under USER_DATA
-    localStorage.setItem(CURRENT_USER, JSON.stringify(user));
-    localStorage.setItem(USER_DATA, JSON.stringify(user));
-    // localStorage.setItem(USER_ROLE, JSON.stringify(user.roles || []));
-
-    Util.logEvent(EVENTS.USER_PROFILE, {
-      user_type: RoleType.PARENT,
-      action_type: ACTION.LOGIN,
-      login_type: "google-signin",
-    });
-   
-      const userSchools = await getSchoolsForUser(user);
-      await redirectUser(userSchools);
-    
-  } catch (e) {
-    presentToast({
-      message: t("Google sign in failed. Please try again."),
-      color: "danger",
-      duration: 3000,
-      position: "bottom",
-      buttons: [{ text: "Dismiss", role: "cancel" }],
-    });
-    setLoginType(LOGIN_TYPES.PHONE);
-  } finally {
-    setAnimatedLoading(false);
-  }
-};
+  };
 
   // Helper function to get schools for user
   async function getSchoolsForUser(user: TableTypes<"user">) {
@@ -539,7 +534,6 @@ const LoginScreen: React.FC = () => {
         const userSchools = await getSchoolsForUser(user);
         await redirectUser(userSchools);
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
-        localStorage.setItem(USER_DATA, JSON.stringify(user));
 
         // Log the login event
         Util.logEvent(EVENTS.USER_PROFILE, {
@@ -604,7 +598,6 @@ const LoginScreen: React.FC = () => {
 
       if (result) {
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
-        localStorage.setItem(USER_DATA, JSON.stringify(result));
         setIsLoading(false);
         const user: any =
           await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -621,9 +614,8 @@ const LoginScreen: React.FC = () => {
           user_username: user.username,
           user_type: RoleType.PARENT,
           action_type: ACTION.LOGIN,
-          login_type: LOGIN_TYPES.EMAIL,
+          login_type: "email",
         });
-        
       } else {
         setAnimatedLoading(false);
         setIsLoading(false);
@@ -777,7 +769,7 @@ const LoginScreen: React.FC = () => {
             </div>
           </div>
           <div className="Loginscreen-login-header">
-            {loginType === LOGIN_TYPES.OTP || loginType === LOGIN_TYPES.FORGET_PASS ? (
+            {loginType === "otp" || loginType === "forgot-pass" ? (
               <button
                 className="Loginscreen-otp-back-button"
                 onClick={handleOtpBack}
@@ -798,13 +790,13 @@ const LoginScreen: React.FC = () => {
               onChange={handleLanguageChange}
             />
           </div>
-          {loginType !== LOGIN_TYPES.OTP ? (
+          {loginType !== "otp" ? (
             <img
               src={"/assets/loginAssets/ChimpleLogo.svg"}
               alt="Chimple Logo"
               className="Loginscreen-chimple-login-logo"
               style={
-                (loginType as string) !== LOGIN_TYPES.PHONE
+                (loginType as string) !== "phone"
                   ? {
                       maxWidth: window.matchMedia("(orientation: landscape)")
                       .matches
@@ -826,7 +818,7 @@ const LoginScreen: React.FC = () => {
           )}
 
           <>
-            {loginType === LOGIN_TYPES.PHONE && (
+            {loginType === "phone" && (
               <LoginWithPhone
                 onNext={handlePhoneNext}
                 phoneNumber={phoneNumber}
@@ -844,7 +836,7 @@ const LoginScreen: React.FC = () => {
                 }}
               />
             )}
-            {loginType === LOGIN_TYPES.STUDENT && (
+            {loginType === "student" && (
               <LoginWithStudentID
                 onLogin={handleStudentLogin}
                 schoolCode={schoolCode}
@@ -857,11 +849,11 @@ const LoginScreen: React.FC = () => {
                 checkbox={checkbox}
               />
             )}
-            {loginType === LOGIN_TYPES.EMAIL && (
+            {loginType === "email" && (
               <LoginWithEmail
                 onLogin={handleEmailLogin}
                 onForgotPasswordChange={() => {
-                  setLoginType(LOGIN_TYPES.FORGET_PASS);
+                  setLoginType("forgot-pass");
                 }}
                 email={email}
                 setEmail={setEmail}
@@ -871,7 +863,7 @@ const LoginScreen: React.FC = () => {
                 checkbox={checkbox}
               />
             )}
-            {loginType === LOGIN_TYPES.OTP && (
+            {loginType === "otp" && (
               <OtpVerification
                 phoneNumber={phoneNumber}
                 onVerify={handleOtpVerification}
@@ -881,10 +873,10 @@ const LoginScreen: React.FC = () => {
                 setVerificationCode={setVerificationCode}
               />
             )}
-            {loginType === LOGIN_TYPES.FORGET_PASS && (
+            {loginType === "forgot-pass" && (
               <ForgotPass
                 onGoBack={() => {
-                  setLoginType(LOGIN_TYPES.EMAIL);
+                  setLoginType("email");
                 }}
               />
             )}
@@ -894,7 +886,7 @@ const LoginScreen: React.FC = () => {
             onSwitch={handleSwitch}
             checkbox={checkbox}
             onCheckboxChange={setCheckbox}
-            onResend={loginType===LOGIN_TYPES.OTP ? handleResendOtp:()=>{}}
+            onResend={loginType=="otp" ? handleResendOtp:()=>{}}
             showResendOtp={showResendOtp}
             counter={counter}
             onTermsClick={() => setShowTandC(true)}
