@@ -20,6 +20,7 @@ import SelectedFilters from "../components/SelectedFilters";
 import FileUpload from "../components/FileUpload";
 import { FileUploadOutlined } from "@mui/icons-material";
 import { BsFillBellFill } from "react-icons/bs";
+import { useLocation, useHistory } from "react-router";
 
 const filterConfigsForSchool = [
   { key: "partner", label: t("Select Partner") },
@@ -55,7 +56,28 @@ const DEFAULT_PAGE_SIZE = 8;
 const SchoolList: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
 
-  const [selectedTab, setSelectedTab] = useState(PROGRAM_TAB.ALL);
+  const location = useLocation();
+  const history = useHistory();
+  const qs = new URLSearchParams(location.search);
+
+  function parseJSONParam<T>(param: string | null, fallback: T): T {
+    try { return param ? (JSON.parse(param) as T) : fallback; }
+    catch { return fallback; }
+  }
+  const [selectedTab, setSelectedTab] = useState(() => {
+    const v = qs.get("tab") || PROGRAM_TAB.ALL;
+    return Object.values(PROGRAM_TAB).includes(v as PROGRAM_TAB) ? (v as PROGRAM_TAB) : PROGRAM_TAB.ALL;
+  });
+  const [searchTerm, setSearchTerm] = useState(() => qs.get("search") || "");
+  const [filters, setFilters] = useState<Filters>(() =>
+    parseJSONParam(qs.get("filters"), INITIAL_FILTERS)
+  );
+  const [page, setPage] = useState(() => {
+    const p = parseInt(qs.get("page") || "", 10);
+    return isNaN(p) || p < 1 ? 1 : p;
+  });
+
+
   const [schools, setSchools] = useState<any[]>([]);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false);
@@ -64,17 +86,24 @@ const SchoolList: React.FC = () => {
   const isLoading = isFilterLoading || isDataLoading;
 
   const [showUploadPage, setShowUploadPage] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
   const [tempFilters, setTempFilters] = useState<Filters>(INITIAL_FILTERS);
   const [filterOptions, setFilterOptions] = useState<Filters>(INITIAL_FILTERS);
   const [orderBy, setOrderBy] = useState("");
   const [orderDir, setOrderDir] = useState<"asc" | "desc">("asc");
-  const [page, setPage] = useState(1);
   const [pageSize] = useState(DEFAULT_PAGE_SIZE);
 
   const isSmallScreen = useMediaQuery("(max-width: 900px)");
+
+    useEffect(() => {
+    const params = new URLSearchParams();
+    if (selectedTab !== PROGRAM_TAB.ALL) params.set("tab", String(selectedTab));
+    if (searchTerm) params.set("search", searchTerm);
+    if (Object.values(filters).some(arr => arr.length))
+      params.set("filters", JSON.stringify(filters));
+    if (page !== 1) params.set("page", String(page));
+    history.replace({ search: params.toString() });
+  }, [selectedTab, searchTerm, filters, page, history]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -225,9 +254,6 @@ const SchoolList: React.FC = () => {
     setPage(1);
   };
 
-  useEffect(() => {
-    setPage(1);
-  }, [filters, selectedTab, searchTerm]);
 
   function onCancleClick(): void {
     setShowUploadPage(false);
@@ -305,7 +331,9 @@ const SchoolList: React.FC = () => {
 
               <SearchAndFilter
                 searchTerm={searchTerm}
-                onSearchChange={(e) => setSearchTerm(e.target.value)}
+                onSearchChange={(e) => {setSearchTerm(e.target.value)
+                  setPage(1);
+                }}
                 filters={filters}
                 onFilterClick={() => setIsFilterOpen(true)}
               />
@@ -323,6 +351,7 @@ const SchoolList: React.FC = () => {
                 setTempFilters(updated);
                 return updated;
               });
+              setPage(1);
             }}
           />
 
@@ -340,6 +369,7 @@ const SchoolList: React.FC = () => {
             onApply={() => {
               setFilters(tempFilters);
               setIsFilterOpen(false);
+              setPage(1);
             }}
             onCancel={() => {
               const empty = {
@@ -354,6 +384,7 @@ const SchoolList: React.FC = () => {
               setTempFilters(empty);
               setFilters(empty);
               setIsFilterOpen(false);
+               setPage(1);
             }}
             autocompleteStyles={{}}
             filterConfigs={filterConfigsForSchool}

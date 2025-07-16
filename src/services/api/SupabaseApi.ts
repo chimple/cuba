@@ -2501,93 +2501,178 @@ export class SupabaseApi implements ServiceApi {
     return filtered;
   }
   async getSchoolsForUser(
-    userId: string
-  ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
-    if (!this.supabase) return [];
+  userId: string,
+  options?: { page?: number; page_size?: number }
+): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
+  if (!this.supabase) return [];
 
-    const finalData: { school: TableTypes<"school">; role: RoleType }[] = [];
-    const schoolIds: Set<string> = new Set();
+  // Special users
+  const { data: specialUser, error: specialError } = await this.supabase
+    .from(TABLES.SpecialUsers)
+    .select("role")
+    .eq("user_id", userId)
+    .eq("is_deleted", false)
+    .single();
 
-    // Fetch class_user with TEACHER role
-    const { data: classUsers, error: classUserError } = await this.supabase
-      .from(TABLES.ClassUser)
-      .select("class_id")
-      .eq("user_id", userId)
-      .eq("role", RoleType.TEACHER)
-      .eq("is_deleted", false);
+  if (specialError) {
+    console.error("Error fetching special_users:", specialError);
+  } else if (specialUser) {
+    const role = specialUser.role as RoleType;
 
-    if (classUserError) {
-      console.error("Error fetching class users:", classUserError);
-    } else if (classUsers?.length) {
-      const classIds = classUsers.map((cu) => cu.class_id);
-      const { data: classes, error: classError } = await this.supabase
-        .from(TABLES.Class)
-        .select("school_id")
-        .in("id", classIds)
-        .eq("is_deleted", false);
+    if (
+      role === RoleType.SUPER_ADMIN ||
+      role === RoleType.OPERATIONAL_DIRECTOR
+    ) {
+      const page = options?.page ?? 1;
+      const page_size = options?.page_size ?? 20;
+      const from = (page - 1) * page_size;
+      const to = from + page_size - 1;
 
-      if (classError) {
-        console.error("Error fetching classes:", classError);
-      } else {
-        const schoolIdList = classes.map((c) => c.school_id);
-        const { data: schools, error: schoolError } = await this.supabase
-          .from(TABLES.School)
-          .select("*")
-          .in("id", schoolIdList)
-          .eq("is_deleted", false);
-
-        if (schoolError) {
-          console.error("Error fetching schools:", schoolError);
-        } else {
-          for (const school of schools) {
-            if (!schoolIds.has(school.id)) {
-              schoolIds.add(school.id);
-              finalData.push({ school, role: RoleType.TEACHER });
-            }
-          }
-        }
-      }
-    }
-
-    // From school_user (excluding parent)
-    const { data: schoolUsers, error: schoolUserError } = await this.supabase
-      .from(TABLES.SchoolUser)
-      .select("role, school_id")
-      .eq("user_id", userId)
-      .neq("role", RoleType.PARENT)
-      .eq("is_deleted", false);
-
-    if (schoolUserError) {
-      console.error("Error fetching school users:", schoolUserError);
-    } else if (schoolUsers?.length) {
-      const schoolUserIds = schoolUsers.map((su) => su.school_id);
-      const { data: schools, error: schoolFetchError } = await this.supabase
+      const { data: allSchools, error: allErr } = await this.supabase
         .from(TABLES.School)
         .select("*")
-        .in("id", schoolUserIds)
+        .eq("is_deleted", false)
+        .order("name", { ascending: true })
+        .range(from, to);
+
+      if (allErr) {
+        console.error("Error fetching all schools:", allErr);
+        return [];
+      }
+      return (allSchools ?? []).map((school) => ({ school, role }));
+    }
+
+    if (
+      role === RoleType.PROGRAM_MANAGER ||
+      role === RoleType.FIELD_COORDINATOR
+    ) {
+      const page = options?.page ?? 1;
+      const page_size = options?.page_size ?? 20;
+      const from = (page - 1) * page_size;
+      const to = from + page_size - 1;
+
+      const { data: progUsers, error: puErr } = await this.supabase
+        .from(TABLES.ProgramUser)
+        .select("program_id")
+        .eq("user_id", userId)
         .eq("is_deleted", false);
 
-      if (schoolFetchError) {
-        console.error("Error fetching schools:", schoolFetchError);
-      } else {
-        for (const su of schoolUsers) {
-          const school = schools.find((s) => s.id === su.school_id);
-          const role = su.role as RoleType;
+      if (puErr) {
+        console.error("Error fetching program_user:", puErr);
+        return [];
+      }
+      if (progUsers?.length) {
+        const programIds = progUsers.map((pu) => pu.program_id);
+        const { data: progSchools, error: psErr } = await this.supabase
+          .from(TABLES.School)
+          .select("*")
+          .in("program_id", programIds)
+          .eq("is_deleted", false)
+          .order("name", { ascending: true })
+          .range(from, to);
 
-          if (school && !schoolIds.has(school.id)) {
+        if (psErr) {
+          console.error("Error fetching program schools:", psErr);
+          return [];
+        }
+        // Deduplicate by school id
+        const unique = new Map<string, { school: any; role: RoleType }>();
+        for (const school of progSchools ?? []) {
+          unique.set(school.id, { school, role });
+        }
+        return Array.from(unique.values());
+      }
+      return [];
+    }
+  }
+
+  // — Fallback to original logic:
+
+  const finalData: { school: TableTypes<"school">; role: RoleType }[] = [];
+  const schoolIds: Set<string> = new Set();
+
+  // Fetch class_user with TEACHER role
+  const { data: classUsers, error: classUserError } = await this.supabase
+    .from(TABLES.ClassUser)
+    .select("class_id")
+    .eq("user_id", userId)
+    .eq("role", RoleType.TEACHER)
+    .eq("is_deleted", false);
+
+  if (classUserError) {
+    console.error("Error fetching class users:", classUserError);
+  } else if (classUsers?.length) {
+    const classIds = classUsers.map((cu) => cu.class_id);
+    const { data: classes, error: classError } = await this.supabase
+      .from(TABLES.Class)
+      .select("school_id")
+      .in("id", classIds)
+      .eq("is_deleted", false);
+
+    if (classError) {
+      console.error("Error fetching classes:", classError);
+    } else {
+      const schoolIdList = classes.map((c) => c.school_id);
+      const { data: schools, error: schoolError } = await this.supabase
+        .from(TABLES.School)
+        .select("*")
+        .in("id", schoolIdList)
+        .eq("is_deleted", false);
+
+      if (schoolError) {
+        console.error("Error fetching schools:", schoolError);
+      } else {
+        for (const school of schools) {
+          if (!schoolIds.has(school.id)) {
             schoolIds.add(school.id);
-            finalData.push({ school, role });
-          } else if (school) {
-            const existing = finalData.find((e) => e.school.id === school.id);
-            if (existing) {
-              existing.role = role; // override
-            }
+            finalData.push({ school, role: RoleType.TEACHER });
           }
         }
       }
     }
-    return finalData;
   }
+
+  // From school_user (excluding parent)
+  const { data: schoolUsers, error: schoolUserError } = await this.supabase
+    .from(TABLES.SchoolUser)
+    .select("role, school_id")
+    .eq("user_id", userId)
+    .neq("role", RoleType.PARENT)
+    .eq("is_deleted", false);
+
+  if (schoolUserError) {
+    console.error("Error fetching school users:", schoolUserError);
+  } else if (schoolUsers?.length) {
+    const schoolUserIds = schoolUsers.map((su) => su.school_id);
+    const { data: schools, error: schoolFetchError } = await this.supabase
+      .from(TABLES.School)
+      .select("*")
+      .in("id", schoolUserIds)
+      .eq("is_deleted", false);
+
+    if (schoolFetchError) {
+      console.error("Error fetching schools:", schoolFetchError);
+    } else {
+      for (const su of schoolUsers) {
+        const school = schools.find((s) => s.id === su.school_id);
+        const role = su.role as RoleType;
+
+        if (school && !schoolIds.has(school.id)) {
+          schoolIds.add(school.id);
+          finalData.push({ school, role });
+        } else if (school) {
+          const existing = finalData.find((e) => e.school.id === school.id);
+          if (existing) {
+            existing.role = role; // override
+          }
+        }
+      }
+    }
+  }
+
+  return finalData;
+}
+
   public set currentMode(value: MODES) {
     this._currentMode = value;
   }
@@ -2783,6 +2868,57 @@ export class SupabaseApi implements ServiceApi {
     }
     return studentInfoList;
   }
+
+  async getUserRoleForSchool(
+  userId: string,
+  schoolId: string
+): Promise<RoleType | undefined> {
+  if (!this.supabase) return;
+
+  // Check special users
+  const { data: specialUser } = await this.supabase
+    .from(TABLES.SpecialUsers)
+    .select("role")
+    .eq("user_id", userId)
+    .eq("is_deleted", false)
+    .single();
+  if (specialUser?.role) return specialUser.role as RoleType;
+
+  // Check school_user (not parent)
+  const { data: schoolUser } = await this.supabase
+    .from(TABLES.SchoolUser)
+    .select("role")
+    .eq("user_id", userId)
+    .eq("school_id", schoolId)
+    .neq("role", RoleType.PARENT)
+    .eq("is_deleted", false)
+    .single();
+  if (schoolUser?.role) return schoolUser.role as RoleType;
+  
+
+  // Check class_user → teacher
+  const { data: classUsers } = await this.supabase
+    .from(TABLES.ClassUser)
+    .select("class_id")
+    .eq("user_id", userId)
+    .eq("role", RoleType.TEACHER)
+    .eq("is_deleted", false);
+  if (classUsers?.length) {
+    const classIds = classUsers.map((cu) => cu.class_id);
+    const { data: classes } = await this.supabase
+      .from(TABLES.Class)
+      .select("id, school_id")
+      .in("id", classIds)
+      .eq("is_deleted", false);
+    if (classes?.some((c) => c.school_id === schoolId)) {
+      return RoleType.TEACHER;
+    }
+  }
+
+
+  return undefined;
+}
+
 
   async getTeacherInfoBySchoolId(
     schoolId: string

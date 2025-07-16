@@ -63,6 +63,7 @@ export enum TABLES {
   // Chatbot = "chatbot",
   ReqNewSchool = "req_new_school",
   Program = "program",
+  SpecialUsers = "special_users"
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
