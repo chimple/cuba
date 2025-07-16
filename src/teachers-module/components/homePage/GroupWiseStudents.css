@@ -47,7 +47,7 @@
 
 .student-avatar-container .avatar {
   width: auto;  
-  height: 7.3vh; 
+  height: 75%; 
   border-radius: 50%;
   border: 1px solid #707070;
   aspect-ratio: 1;
@@ -59,7 +59,7 @@
   white-space: nowrap; 
   overflow: hidden;
   text-overflow: ellipsis; 
-  font-size: 1.9vh;
+  font-size: 1.8vh;
   font-weight: 600;
 }
 
