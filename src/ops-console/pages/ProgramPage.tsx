@@ -90,7 +90,6 @@ const ProgramsPage: React.FC = () => {
     state: [],
     district: [],
     block: [],
-    village: [],
     cluster: [],
   });
   const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({
@@ -100,7 +99,6 @@ const ProgramsPage: React.FC = () => {
     state: [],
     district: [],
     block: [],
-    village: [],
     cluster: [],
   });
   const [searchTerm, setSearchTerm] = useState("");
@@ -149,7 +147,6 @@ const ProgramsPage: React.FC = () => {
         userRole?.includes(RoleType.SUPER_ADMIN) ||
         userRole?.includes(RoleType.OPERATIONAL_DIRECTOR);
       setIsOpsRole(!!isOps);
-      
     };
 
     fetchInitialData();
@@ -275,7 +272,6 @@ const ProgramsPage: React.FC = () => {
       state: [],
       district: [],
       block: [],
-      village: [],
       cluster: [],
     };
     setTempFilters(reset);
@@ -302,7 +298,6 @@ const ProgramsPage: React.FC = () => {
     { key: "state", label: t("Select State") },
     { key: "district", label: t("Select District") },
     { key: "block", label: t("Select Block") },
-    { key: "village", label: t("Select Village") },
     { key: "cluster", label: t("Select Cluster") },
   ];
 
