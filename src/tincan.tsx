@@ -1,4 +1,6 @@
 import { TinCan } from 'tincants';
+import {Plugins} from '@capacitor/core';
+const { Port } = Plugins;
 
 interface Actor {
   name: string | string[];
@@ -12,18 +14,26 @@ interface IRecordStoreCfg {
   registration?: string;
 }
 
-function getDeeplinkParams(params: Partial<IRecordStoreCfg>): IRecordStoreCfg {
+function getDeeplinkParams(): IRecordStoreCfg {
+
+  const result = Port.sendLaunchData();
+
+  let actor : Actor = {name:'',mbox:''};
+  try {
+    actor = result.actor ? JSON.parse(result.actor) : {name: '', mbox: ''};
+  } catch (error) {
+    actor = {name: '', mbox: ''};
+  }
+
   return {
-    endpoint: params.endpoint ?? 'https://chimple.lrs.io/xapi/',
-    auth: params.auth ?? 'Basic ' + btoa('chimp:chimpoo'),
-    actor: params.actor ?? { name: '', mbox: '' },
-    registration: params.registration ?? '',
+    endpoint: result.endpoint ?? 'https://chimple.lrs.io/xapi/',
+    auth: result.auth ?? 'Basic ' + btoa('chimp:chimpoo'),
+    actor: actor,
+    registration: result.registration ?? '',
   };
 }
 
-const deeplinkParams: Partial<IRecordStoreCfg> = {};
-
-const lrs: IRecordStoreCfg = getDeeplinkParams(deeplinkParams);
+const lrs: IRecordStoreCfg = getDeeplinkParams();
 
 // Create the tincan instance
 const tincan = new TinCan({});
