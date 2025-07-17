@@ -28,8 +28,8 @@ import { OpsUtil } from "../OpsUtility/OpsUtil";
 const validateEmailOrPhone = (value: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (emailRegex.test(value)) return true;
-  const phoneValidation = OpsUtil.validateAndFormatPhoneNumber(value, "IN");
-  return phoneValidation.valid;
+  const digitsOnly = value.replace(/\D/g, "");
+  return /^\d{10}$/.test(digitsOnly);
 };
 
 const roles = [
@@ -68,7 +68,7 @@ const NewUserPage: React.FC = () => {
     (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
       let value = event.target.value;
       if (field === "phone") {
-        value = value.replace(/\D/g, "").slice(0, 10);
+        value = value.replace(/\D/g, "");
       }
       setForm((prev) => ({
         ...prev,
@@ -105,12 +105,21 @@ const NewUserPage: React.FC = () => {
       return;
     }
 
-    if (phone && !validateEmailOrPhone(phone)) {
-      setValidationDialog({
-        open: true,
-        message: "Please enter a valid phone number",
-      });
-      return;
+    if (phone) {
+      if (phone.length > 10) {
+        setValidationDialog({
+          open: true,
+          message: "Phone number cannot be more than 10 digits.",
+        });
+        return;
+      }
+      if (!validateEmailOrPhone(phone)) {
+        setValidationDialog({
+          open: true,
+          message: "Please enter a valid phone number",
+        });
+        return;
+      }
     }
 
     const { success, error, user_id, message } =
