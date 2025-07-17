@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       assignment: {
         Row: {
+          batch_id: string | null
           chapter_id: string | null;
           class_id: string;
           course_id: string | null;
@@ -30,6 +31,7 @@ export type Database = {
           updated_at: string | null;
         };
         Insert: {
+          batch_id: string | null
           chapter_id?: string | null;
           class_id: string;
           course_id?: string | null;
@@ -49,6 +51,7 @@ export type Database = {
           updated_at?: string | null;
         };
         Update: {
+          batch_id: string | null
           chapter_id?: string | null;
           class_id?: string;
           course_id?: string | null;
