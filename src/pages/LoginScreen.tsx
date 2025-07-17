@@ -29,13 +29,11 @@ import {
   LANGUAGE,
   MODES,
   PAGES,
-  TableTypes,
   USER_DATA,
   USER_ROLE,
   CURRENT_USER,
   LOGIN_TYPES,
-  TABLES,
-  REFRESH_TABLES_ON_LOGIN,
+  TableTypes,
 } from "../common/constants";
 import { APP_LANGUAGES } from "../common/constants";
 import "./LoginScreen.css";
@@ -46,7 +44,6 @@ import { SqliteApi } from "../services/api/SqliteApi";
 
 const LoginScreen: React.FC = () => {
   const history = useHistory();
-  const hasRedirected = useRef(false);
   const api = ServiceConfig.getI().apiHandler;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [loginType, setLoginType] = useState<
@@ -120,25 +117,89 @@ const LoginScreen: React.FC = () => {
   }, [loadingMessages.length]);
 
   useEffect(() => {
-      const initialize = async () => {
-    // lock orientation, set language
-    if (Capacitor.isNativePlatform()) {
-      await ScreenOrientation.lock({ orientation: "portrait" });
-    }
-    const lang = localStorage.getItem(LANGUAGE) || "en";
-    localStorage.setItem(LANGUAGE, lang);
-    await i18n.changeLanguage(lang);
-    setCurrentLang(lang);
+    // Combine all initial async setup in one effect
+    const initialize = async () => {
+      try {
+        if (Capacitor.isNativePlatform()) {
+          await ScreenOrientation.lock({ orientation: "portrait" });
+        }
+        const appLang = localStorage.getItem(LANGUAGE);
+        if (!appLang) {
+          localStorage.setItem(LANGUAGE, "en");
+          setCurrentLang("en");
+          await i18n.changeLanguage("en");
+        } else {
+          setCurrentLang(appLang);
+          await i18n.changeLanguage(appLang);
+        }
+        const authHandler = ServiceConfig.getI().authHandler;
+        const isUserLoggedIn = await authHandler.isUserLoggedIn();
+        if (isUserLoggedIn) {
+          history.replace(PAGES.SELECT_MODE);
+          return;
+        }
 
-    // if already logged in, do full finalizeRedirect
-    if (await authInstance.isUserLoggedIn()) {
-      await finalizeLoginAndRedirect();
-      return;
+        if (Capacitor.isNativePlatform()) {
+          // document.addEventListener("visibilitychange", handleVisibilityChange);
+        }
+      } finally {
+        setInitializing(false);
+      }
+    };
+    initialize();
+    return () => {
+      if (Capacitor.isNativePlatform()) {
+        document.removeEventListener(
+          "visibilitychange",
+          handleVisibilityChange
+        );
+      }
+    };
+  }, []);
+
+  // Handle visibility change (when app goes into background or foreground)
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === "visible") {
+      // App came to foreground
+      const authHandler = ServiceConfig.getI().authHandler;
+      authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
+        if (isUserLoggedIn) {
+          history.replace(PAGES.SELECT_MODE);
+        }
+      });
     }
   };
-  initialize()
-  .finally(() => setInitializing(false));
- }, []);
+
+  const getSchoolsForUser = async (userId: string) => {
+    return (await api.getSchoolsForUser(userId)) || [];
+  };
+
+  const redirectUser = async (schools: { role: RoleType }[]) => {
+    const roles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) || "[]");
+    const isOps = roles.includes(RoleType.SUPER_ADMIN) || roles.includes(RoleType.OPERATIONAL_DIRECTOR);
+    const isProg = await api.isProgramUser();
+
+    if (isOps || isProg) {
+      localStorage.setItem(IS_OPS_USER, "true");
+      await ScreenOrientation.unlock();
+      schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
+      return history.replace(PAGES.SIDEBAR_PAGE);
+    }
+
+    if (schools.length === 0) {
+      schoolUtil.setCurrMode(MODES.PARENT);
+      return history.replace(PAGES.DISPLAY_STUDENT);
+    }
+
+    const auto = schools.find(s => s.role === RoleType.AUTOUSER);
+    if (auto) {
+      schoolUtil.setCurrMode(MODES.SCHOOL);
+      return history.replace(PAGES.SELECT_MODE);
+    }
+
+    schoolUtil.setCurrMode(MODES.TEACHER);
+    return history.replace(PAGES.DISPLAY_SCHOOLS);
+  };
 
   const authInstance = ServiceConfig.getI().authHandler;
   const countryCode = "";
@@ -360,20 +421,14 @@ const LoginScreen: React.FC = () => {
       buttons: [{ text: "Dismiss", role: "cancel" }],
     });
   }
-
   setAnimatedLoading(true);
   try {
     const ok = await authInstance.googleSign();
     if (!ok) throw new Error("Google sign in failed");
 
-    // 1) pull down the full user object
-    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
+    const user = await authInstance.getCurrentUser();
+    if (!user) throw new Error("No user returned from auth handler");
 
-    if (!user) {
-      throw new Error("No user returned from authHandler");
-    }
-
-    // 2) store it under USER_DATA
     localStorage.setItem(CURRENT_USER, JSON.stringify(user));
     localStorage.setItem(USER_DATA, JSON.stringify(user));
 
@@ -383,11 +438,10 @@ const LoginScreen: React.FC = () => {
       login_type: "google-signin",
     });
 
-    // 3) single redirect block
-      const userSchools = await getSchoolsForUser(user);
-      await redirectUser(userSchools);
-    await finalizeLoginAndRedirect();
-    return
+    // now safe to use user.id
+    const schools = await getSchoolsForUser(user.id);
+    await redirectUser(schools);
+
   } catch (e) {
     presentToast({
       message: t("Google sign in failed. Please try again."),
@@ -401,95 +455,6 @@ const LoginScreen: React.FC = () => {
     setAnimatedLoading(false);
   }
 };
-
-const finalizeLoginAndRedirect = async () => {
-  if (hasRedirected.current) return;
-  hasRedirected.current = true;
-
-  // 1) sync only the tables you want
-  await api.syncDB(Object.values(TABLES), REFRESH_TABLES_ON_LOGIN);
-
-  // 2) load user + roles + schools
-  const user = JSON.parse(localStorage.getItem(USER_DATA)!);
-  const roles: string[]  = JSON.parse(localStorage.getItem(USER_ROLE) || "[]");
-  const isOps   = roles.includes(RoleType.SUPER_ADMIN)
-               || roles.includes(RoleType.OPERATIONAL_DIRECTOR);
-  const isProg  = await api.isProgramUser();
-  const schools = await api.getSchoolsForUser(user.id);
-
-  // 3) pick exactly one target
-  let target: string;
-  if (isOps || isProg) {
-    target = PAGES.SIDEBAR_PAGE;
-    localStorage.setItem(IS_OPS_USER, "true");
-    await ScreenOrientation.unlock();
-  }
-  else if (schools.length === 0) {
-    target = PAGES.DISPLAY_STUDENT;
-  }
-  else {
-    const hasAuto = schools.some(s => s.role === RoleType.AUTOUSER);
-    target = hasAuto
-      ? PAGES.SELECT_MODE
-      : PAGES.DISPLAY_SCHOOLS;
-  }
-
-  // 4) do the single navigation
-  history.replace(target);
-};
-
-  // Helper function to get schools for user
-  async function getSchoolsForUser(user: TableTypes<"user">) {
-    const userSchools = await api.getSchoolsForUser(user.id);
-    if (userSchools && userSchools.length > 0) {
-      return userSchools;
-    }
-    return [];
-  }
-
-  // Helper function to redirect user based on role
-  async function redirectUser(
-    userSchools: {
-      school: TableTypes<"school">;
-      role: RoleType;
-    }[]
-  ) {
-    const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
-    const isOpsRole =
-    userRoles.includes(RoleType.SUPER_ADMIN) ||
-    userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
-    const isProgramUser = await api.isProgramUser();
-
-    if (isOpsRole || isProgramUser) {
-      localStorage.setItem(IS_OPS_USER, "true");
-      await ScreenOrientation.unlock();
-      schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
-      history.replace(PAGES.SIDEBAR_PAGE);
-      return;
-    }
-    
-    setAnimatedLoading(true)
-    const sqliteApi = await SqliteApi.getInstance();
-    ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(APIMode.SQLITE);
-    setAnimatedLoading(false)
-    
-    if (userSchools.length > 0) {
-      const autoUserSchool = userSchools.find(
-        (school) => school.role === RoleType.AUTOUSER
-      );
-
-      if (autoUserSchool) {
-        schoolUtil.setCurrMode(MODES.SCHOOL);
-        history.replace(PAGES.SELECT_MODE);
-        return;
-      }
-      schoolUtil.setCurrMode(MODES.TEACHER);
-      history.replace(PAGES.DISPLAY_SCHOOLS);
-    } else {
-      schoolUtil.setCurrMode(MODES.PARENT);
-      history.replace(PAGES.DISPLAY_STUDENT);
-    }
-  }
 
   // Language dropdown options
   const langOptions: LanguageOption[] = Object.entries(APP_LANGUAGES).map(
