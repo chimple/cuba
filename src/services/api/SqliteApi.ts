@@ -3952,6 +3952,7 @@ order by
          FROM ${TABLES.Result}
          WHERE student_id = ?
          AND course_id = ?
+         AND assignment_id IS NOT NULL
          ORDER BY created_at DESC
          LIMIT 5
        )
