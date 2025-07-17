@@ -5940,7 +5940,7 @@ export class SupabaseApi implements ServiceApi {
         end_date: payload.endDate,
 
         is_deleted: false,
-        is_ops: true,
+        is_ops: null,
       };
 
       // Step 1: Insert the program
@@ -5963,7 +5963,7 @@ export class SupabaseApi implements ServiceApi {
           program_id: programId,
           user: userId,
           is_deleted: false,
-          is_ops: true,
+          is_ops: null,
           role: RoleType.PROGRAM_MANAGER,
         })
       );
