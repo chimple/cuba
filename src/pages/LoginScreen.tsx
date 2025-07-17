@@ -205,27 +205,35 @@ const LoginScreen: React.FC = () => {
 
   // Timer effect for OTP resend
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: NodeJS.Timeout | null = null;
     if (showTimer && counter > 0) {
-      interval = setInterval(() => setCounter(c => {
-        if (c <= 1) {
-          setShowResendOtp(true);
-          clearInterval(interval);
-          return 0;
-        }
-        return c - 1;
-      }), 1000);
+      interval = setInterval(() => {
+        setCounter((prevCounter) => {
+          if (prevCounter <= 1) {
+            setShowResendOtp(true);
+            return 0;
+          }
+          return prevCounter - 1;
+        });
+      }, 1000);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [showTimer, counter])
 
   // Timer effect for OTP expiration
   useEffect(() => {
     if (loginType === LOGIN_TYPES.OTP) {
-      const expiry = setInterval(() => {
-        setOtpExpiryCounter(c => Math.max(0, c - 1));
+      const expiryTimer = setInterval(() => {
+        setOtpExpiryCounter((prev) => {
+          if (prev <= 0) {
+            clearInterval(expiryTimer);
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 60000);
-      return () => clearInterval(expiry);
     }
   }, [loginType]);
 
