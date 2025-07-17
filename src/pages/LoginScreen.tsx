@@ -33,7 +33,6 @@ import {
   USER_ROLE,
   CURRENT_USER,
   LOGIN_TYPES,
-  TableTypes,
 } from "../common/constants";
 import { APP_LANGUAGES } from "../common/constants";
 import "./LoginScreen.css";
