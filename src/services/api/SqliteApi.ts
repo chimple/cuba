@@ -31,6 +31,7 @@ import {
   TabType,
   AVATARS,
   BASE_NAME,
+  DELETED_CLASSES,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -2367,7 +2368,7 @@ export class SqliteApi implements ServiceApi {
     ) {
       return [];
     }
-    const deletedClass = localStorage.getItem('deleted_classes')
+    const deletedClass = sessionStorage.getItem(DELETED_CLASSES)
     if (deletedClass) {
       const deletedClasses = JSON.parse(deletedClass);
       const filteredClassList = allClassesRes.values.filter((item) =>

@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import { ServiceConfig } from "../../../services/ServiceConfig";
-import { PAGES, CLASS } from "../../../common/constants";
+import { PAGES, CLASS, DELETED_CLASSES, CLASSES } from "../../../common/constants";
 import { useHistory } from "react-router-dom";
 import { t } from "i18next";
 import "./DeleteClassDialog.css";
@@ -29,18 +29,18 @@ const DeleteClassDialog: FC<{ classId: string }> = ({ classId }) => {
     try { 
       await api.deleteClass(classId);
       let temp = localStorage.getItem("CLASSES");
-      const tempDeleted = localStorage.getItem('deleted_classes');
+      const tempDeleted = sessionStorage.getItem(DELETED_CLASSES);
       if(tempDeleted) {
         const deletedClasses = JSON.parse(tempDeleted);
         deletedClasses.push(classId);
-        localStorage.setItem('deleted_classes', JSON.stringify(deletedClasses));
+        sessionStorage.setItem(DELETED_CLASSES, JSON.stringify(deletedClasses));
       } else {
-        localStorage.setItem('deleted_classes', JSON.stringify([classId]));
+        sessionStorage.setItem(DELETED_CLASSES, JSON.stringify([classId]));
       }
       if (temp) {
         const classes = JSON.parse(temp);
         const updatedClasses = classes.filter((cls: any) => cls.id !== classId);
-        localStorage.setItem("CLASSES", JSON.stringify(updatedClasses));
+        localStorage.setItem(CLASSES, JSON.stringify(updatedClasses));
         localStorage.setItem(CLASS, JSON.stringify(updatedClasses[0] || {}));
         api.currentClass = updatedClasses[0];
         Util.setCurrentClass(updatedClasses[0]);
