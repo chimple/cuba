@@ -2287,5 +2287,8 @@ export class Util {
     };
 
     await Util.logEvent(EVENTS.ASSIGNMENT_DEEPLINK_CLICKED, eventData);
+    if (currentUser) {
+      window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT);
+    }
   }
 }
