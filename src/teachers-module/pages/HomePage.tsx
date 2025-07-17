@@ -76,18 +76,8 @@ const HomePage: React.FC = () => {
           teacher_school_id: currentSchool?.id,
         });
         setGbUpdated(true);
-      };
-      // const currentClass = localStorage.getItem(CLASS);
-      // if (!currentClass) {
-      //   setCurrentClass(null);
-      //   return;
-      // }
-      // const tempClass = JSON.parse(currentClass) as TableTypes<"class">;
-      
-      // console.log("CurrentClass: ", tempClass);
-      // api.currentClass = tempClass
+      }
 
-      
     } catch (error) {
       console.error("Failed to load class details", error);
     }
@@ -98,10 +88,6 @@ const HomePage: React.FC = () => {
       ScreenOrientation.lock({ orientation: "portrait" });
     }
     const currentUser = await auth.getCurrentUser();
-    // const currentClassLocal = localStorage.getItem(CLASS);
-    // if (currentClassLocal) {
-    //   setCurrentClass(JSON.parse(currentClassLocal) as TableTypes<"class">);
-    // }
     await Util.handleClassAndSubjects(
       currentSchool?.id!,
       currentUser?.id!,
