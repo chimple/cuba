@@ -598,6 +598,7 @@
   "Program Manager": "कार्यक्रम व्यवस्थापक",
   "Program Name": "कार्यक्रमाचे नाव",
   "Program Name is required": "कार्यक्रमाचे नाव आवश्यक आहे",
+  "Phone number cannot be more than 10 digits.": "फोन नंबर 10 आकड्यांपेक्षा जास्त नसावा.",
   "Program Type": "कार्यक्रमाचा प्रकार",
   "Principals": "मुख्याध्यापक",
   "Program Details": "कार्यक्रम तपशील",

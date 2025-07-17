@@ -544,6 +544,7 @@
   "Password is too short.": "Password is too short.",
   "Password must be at least 6 characters": "Password must be at least 6 characters",
   "Password reset successful. Redirecting to login": "Password reset successful. Redirecting to login",
+  "Phone number cannot be more than 10 digits.": "Phone number cannot be more than 10 digits.",
   "Password": "Password",
   "Passwords do not match.": "Passwords do not match.",
   "Penguin": "Penguin",
