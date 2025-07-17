@@ -140,23 +140,6 @@ const LoginScreen: React.FC = () => {
   .finally(() => setInitializing(false));
  }, []);
 
-  // Handle visibility change (when app goes into background or foreground)
-  // useEffect(() => {
-  //   function handleVisibilityChange() {
-  //     if (
-  //       document.visibilityState === "visible" &&
-  //       !hasRedirected.current
-  //     ) {
-  //       hasRedirected.current = true;
-  //       history.replace(PAGES.SELECT_MODE);
-  //     }
-  //   }
-  //   document.addEventListener("visibilitychange", handleVisibilityChange);
-  //   return () => {
-  //     document.removeEventListener("visibilitychange", handleVisibilityChange);
-  //   };
-  // }, []);
-
   const authInstance = ServiceConfig.getI().authHandler;
   const countryCode = "";
 
