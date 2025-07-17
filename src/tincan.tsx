@@ -14,17 +14,14 @@ interface IRecordStoreCfg {
   registration?: string;
 }
 
-function getDeeplinkParams(): IRecordStoreCfg {
-
-  const result = Port.sendLaunchData();
-
+async function getDeeplinkParams(): Promise<IRecordStoreCfg> {
+  const result = await Port.sendLaunchData();
   let actor : Actor = {name:'',mbox:''};
   try {
     actor = result.actor ? JSON.parse(result.actor) : {name: '', mbox: ''};
   } catch (error) {
     actor = {name: '', mbox: ''};
   }
-
   return {
     endpoint: result.endpoint ?? 'https://chimple.lrs.io/xapi/',
     auth: result.auth ?? 'Basic ' + btoa('chimp:chimpoo'),
@@ -33,12 +30,22 @@ function getDeeplinkParams(): IRecordStoreCfg {
   };
 }
 
-const lrs: IRecordStoreCfg = getDeeplinkParams();
+let tincan;
 
-// Create the tincan instance
-const tincan = new TinCan({});
+export async function reinitializeTincan() {
+  try {
+    const lrs = await getDeeplinkParams();
+    tincan = new TinCan({});
+    tincan.addRecordStore(lrs);
+    return tincan;
+  } catch (error){
+    console.error('Failed to reinitialize tincan',error);
+    return null;
+  }
+}
 
-tincan.addRecordStore(lrs);
+(async () => {
+ tincan = await reinitializeTincan();
+})();
 
-// Export the tincan instance
 export default tincan;

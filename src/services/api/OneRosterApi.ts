@@ -33,7 +33,7 @@ import { AvatarObj } from "../../components/animation/Avatar";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { DocumentData } from "firebase/firestore";
 import { RoleType } from "../../interface/modelInterfaces";
-import tincan from "../../tincan";
+import { reinitializeTincan } from "../../tincan";
 import { Util } from "../../utility/util";
 import ApiDataProcessor from "./ApiDataProcessor";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
@@ -1401,7 +1401,8 @@ export class OneRosterApi implements ServiceApi {
     });
 
     try {
-      await tincan.sendStatement(statement);
+      const tincanInstance = await reinitializeTincan();
+      await tincanInstance.sendStatement(statement);
       console.log("updateResult ~ statement Success", statement);
 
       const newResult: TableTypes<"result"> = {
@@ -2557,8 +2558,8 @@ export class OneRosterApi implements ServiceApi {
           since: since,
         }
       };
-
-      const result = await tincan.getStatements(query);
+      const tincanInstance = await reinitializeTincan();
+      const result = await tincanInstance.getStatements(query);
       const statements = result?.statements ?? [];
 
       const parsedStatements = statements.map((statement) => {
