@@ -203,7 +203,7 @@ useEffect(() => {
               <img src="assets/icons/Vector.svg" alt="Status icon" />
             )
           }
-          
+          required = {true}
         />
 
         <InputWithIcons
@@ -223,7 +223,7 @@ useEffect(() => {
               ) : null
             ) : null
           }
-          
+          required = {true}
         />
         
 

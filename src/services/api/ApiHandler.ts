@@ -232,10 +232,18 @@ export class ApiHandler implements ServiceApi {
   }
 
   public async getSchoolsForUser(
-    userId: string
-  ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
-    return await this.s.getSchoolsForUser(userId);
-  }
+  userId: string,
+  options?: { page?: number; page_size?: number }
+): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
+  return await this.s.getSchoolsForUser(userId, options);
+}
+public async getUserRoleForSchool(
+  userId: string,
+  schoolId: string
+): Promise<RoleType | undefined> {
+  return await this.s.getUserRoleForSchool(userId, schoolId);
+}
+
   public async getCoursesByClassId(
     classid: string
   ): Promise<TableTypes<"class_course">[]> {
@@ -352,8 +360,8 @@ export class ApiHandler implements ServiceApi {
     gender: string,
     avatar: string,
     image: string | undefined,
-    boardDocId: string,
-    gradeDocId: string,
+    boardDocId: string | undefined,
+    gradeDocId: string | undefined,
     languageDocId: string
   ): Promise<TableTypes<"user">> {
     return await this.s.updateStudent(

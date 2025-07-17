@@ -1,32 +1,23 @@
 import React from "react";
 import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
 import "./imageDropdown.css";
-import {ALL_SUBJECT} from '../../common/constants'
-import { t } from "i18next";
 
 interface DropdownOption {
   id: string | number;
   name: string;
-  icon?: string; // Optional image URL
+  icon?: string;
   subjectDetail?: string;
-  disabled?: boolean;
 }
 
 interface ImageDropdownProps {
   options: DropdownOption[];
-  selectedValue: DropdownOption & { disabled?: boolean };
+  selectedValue: DropdownOption;
   onOptionSelect: (selected: DropdownOption) => void;
   placeholder?: string;
   isDownBorder?: boolean;
 }
 
 const splitText = (name: string, subjectDetail?: string) => {
-  // for 'All Subjects'
-  if (name === ALL_SUBJECT.name) {
-    return { subject: name.trim(), grade: ALL_SUBJECT.subjectDetail };
-  }
-
-  // Split subjectDetail into parts by the first space after the subject
   const subjectDetailParts = subjectDetail?.split(name)?.[1]?.trim();
   return {
     subject: name.trim(),
@@ -43,103 +34,91 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
 }) => {
   const handleChange = (event: SelectChangeEvent<string | number>) => {
     const selectedOption = options.find(
-      (option) => option.id === event.target.value
+      (opt) => opt.id === event.target.value
     );
-    if (selectedOption) {
-      onOptionSelect(selectedOption);
-    }
+    if (selectedOption) onOptionSelect(selectedOption);
   };
 
   return (
-    <div
-      className="imageDropdown-container"
-      // style={{ borderBottom: isDownBorder ? "0px" : "none" }}
-    >
-      <Select
-        value={selectedValue?.id || ""}
-        onChange={handleChange}
-        displayEmpty
-        IconComponent={() => (
-        <img
-          src="/assets/icons/iconDown.png"
-          alt="down-icon"
-          className="image-subject-dropdown-icon"
-        />
-        )}
-        MenuProps={{
-          PaperProps: {
-            sx: {
-              "& .MuiList-root": {
-                listStyle: "none",
-                margin: 0,
-                padding: 0,
-                position: "relative",
-                outline: 0,
+    <div className="imageDropdown-wrapper">
+      <div className="imageDropdown-container">
+        <Select
+          value={selectedValue?.id || ""}
+          onChange={handleChange}
+          displayEmpty
+          MenuProps={{
+            PaperProps: {
+              sx: {
+                "& .MuiList-root": {
+                  listStyle: "none",
+                  margin: 0,
+                  padding: 0,
+                },
               },
             },
-          },
-        }}
-        renderValue={(value) =>
-          selectedValue?.id ? (
-            <div className="selectedImageDropdown-value">
-              {selectedValue.icon && (
+          }}
+          renderValue={(value) =>
+            selectedValue?.id ? (
+              <div className="imageDropdown-selected">
+                {selectedValue.icon && (
+                  <img
+                    src={selectedValue.icon}
+                    alt={selectedValue.name}
+                    className="imageDropdown-icon"
+                  />
+                )}
+                <span>{selectedValue.name}</span>
+              </div>
+            ) : (
+              <div className="placeholder">
                 <img
-                  src={selectedValue.icon}
-                  alt={selectedValue.name}
+                  src={options[0]?.icon || ""}
+                  alt="placeholder-icon"
+                  className="imageDropdown-icon"
+                />
+                <span>{placeholder}</span>
+              </div>
+            )
+          }
+          className="imageDropdown-select"
+          sx={{
+            boxShadow: "none",
+            ".MuiOutlinedInput-notchedOutline": { border: "none" },
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              borderColor: "transparent",
+            },
+            "&.Mui-focused": {
+              boxShadow: "none",
+            },
+          }}
+        >
+          {options.map((option) => (
+            <MenuItem
+              key={option.id}
+              value={option.id}
+              className="menu-item-in-image-dropdown"
+            >
+              {option.icon && (
+                <img
+                  src={option.icon}
+                  alt={option.name}
                   className="imageDropdown-icon"
                 />
               )}
-              <span>{selectedValue.name}</span>
-            </div>
-          ) : (
-            <div className="placeholder">
-              <img
-                src={options[0]?.icon || ""}
-                alt="placeholder-icon"
-                className="imageDropdown-icon"
-              />
-              <span>{t(placeholder)}</span>
-            </div>
-          )
-        }
-        className="imageDropdown-select"
-        sx={{
-          boxShadow: "none",
-          ".MuiOutlinedInput-notchedOutline": { border: "none" },
-          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-            borderColor: "transparent",
-          },
-          "&.Mui-focused": {
-            boxShadow: "none",
-          },
-        }}
-      >
-        {options.map((option) => (
-          <MenuItem
-    key={option.id}
-    value={option.id} disabled={option.disabled}
-    className="menu-item-in-image-dropdown"
-  >
-    <div className="image-drop-content">
-      {option.icon && (
-        <img
-          src={option.icon}
-          alt={option.name}
-          className="imageDropdown-icon"
-        />
-      )}
-      <div className="dropdown-text">
-        <span className="imgDropsubject-text">
-          {splitText(option.name, option.subjectDetail).subject}
-        </span>
-        <span className="grade-text">
-          {splitText(option.name, option.subjectDetail).grade}
-        </span>
+              <div className="imageDropdown-text">
+                <span className="imageDropdown-subject-text">
+                  {splitText(option.name, option.subjectDetail).subject}
+                </span>
+                <span className="grade-text">
+                  {splitText(option.name, option.subjectDetail).grade}
+                </span>
+              </div>
+            </MenuItem>
+          ))}
+        </Select>
       </div>
-    </div>
-  </MenuItem>
-        ))}
-      </Select>
+
+      {isDownBorder && <hr />}
     </div>
   );
 };
