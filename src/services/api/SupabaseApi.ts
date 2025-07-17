@@ -6734,30 +6734,39 @@ export class SupabaseApi implements ServiceApi {
     const from = (page - 1) * limit;
     const to = from + limit - 1;
     if (isSuperAdmin || isOpsDirector) {
-      const { data, count, error } = await this.supabase
-        .from("special_users")
-        .select("role, user:user_id(*)", { count: "exact" })
-        .eq("special_users.is_deleted", false)
-        .eq("user.is_deleted", false)
-        .order("name", {
-          ascending: sortOrder === "asc",
-          referencedTable: "user",
-        })
-        .range(from, to);
-      if (!data) return { data: [], totalCount: 0 };
-      let filteredData = data;
+      let query = this.supabase
+        .from("user")
+        .select(
+          `
+          *,
+          special_users!inner (
+            role
+          )
+        `,
+          { count: "exact" }
+        )
+        .eq("is_deleted", false)
+        .ilike("name", `%${search}%`)
+        .eq("special_users.is_deleted", false);
       if (isOpsDirector && !isSuperAdmin) {
-        filteredData = data.filter((d) => d.role !== RoleType.SUPER_ADMIN);
+        query = query.neq("special_users.role", RoleType.SUPER_ADMIN);
       }
-      const result: { user: TableTypes<"user">; role: string }[] = [];
-      for (const d of filteredData) {
-        if (d.user && typeof d.user === "object" && !Array.isArray(d.user)) {
-          result.push({
-            user: d.user as TableTypes<"user">,
-            role: d.role || "",
-          });
-        }
+      const { data, count, error } = await query
+        .order(sortBy, { ascending: sortOrder === "asc" })
+        .range(from, to);
+      if (error) {
+        console.error("Supabase fetch error:", error);
+        return { data: [], totalCount: 0 };
       }
+      if (!data) return { data: [], totalCount: 0 };
+      const result = data.map((d) => {
+        const { special_users, ...userObject } = d;
+        const role = special_users[0]?.role || "";
+        return {
+          user: userObject as TableTypes<"user">,
+          role,
+        };
+      });
       return { data: result, totalCount: count || 0 };
     }
     if (roles.includes(RoleType.PROGRAM_MANAGER)) {

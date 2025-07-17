@@ -62,7 +62,9 @@ const UsersPage: React.FC = () => {
 
   const [page, setPage] = useState(Number(qPage) || 1);
   const [search, setSearch] = useState((qSearch as string) || "");
-  const [sortBy, setSortBy] = useState((qSortBy as string) || "");
+  const [sortBy, setSortBy] = useState<string | null>(
+    (qSortBy as string) || null
+  );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">(
     (qSortOrder as "asc" | "desc") || "asc"
   );
@@ -72,7 +74,6 @@ const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Update query string when values change
   useEffect(() => {
     const query = queryString.stringify({
       page,
@@ -90,7 +91,7 @@ const UsersPage: React.FC = () => {
         page,
         debouncedSearch.length >= 3 ? debouncedSearch : "",
         ROWS_PER_PAGE,
-        sortBy === "fullName" ? "name" : "name",
+        sortBy === "fullName" || !sortBy ? "name" : "name",
         sortOrder
       );
 
@@ -227,11 +228,13 @@ const UsersPage: React.FC = () => {
           <DataTableBody
             columns={columns}
             rows={users}
-            orderBy={sortBy}
+            orderBy={sortBy ? sortBy : null}
             order={sortOrder}
             onSort={(key) => {
-              setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-              setSortBy(key as keyof User);
+              if (key === "fullName") {
+                setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+                setSortBy(key as keyof User);
+              }
             }}
             detailPageRouteBase="users"
           />
