@@ -101,6 +101,10 @@ const CocosGame: React.FC = () => {
     initialCount++;
     localStorage.setItem(LESSONS_PLAYED_COUNT, initialCount.toString());
     console.log("---------count of LESSONS PLAYED", initialCount);
+    if(Util.isDeepLink) {
+      const PortPlugin = registerPlugin<any>("Port");
+      PortPlugin.returnDataToRespect();
+    }
   };
 
   const push = () => {
@@ -158,6 +162,10 @@ const CocosGame: React.FC = () => {
     killGame(e);
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
     setShowDialogBox(false);
+    if(Util.isDeepLink) {
+      const PortPlugin = registerPlugin<any>("Port");
+      PortPlugin.returnDataToRespect();
+    }
     push();
   };
   const handleLessonEndListner = (event) => {

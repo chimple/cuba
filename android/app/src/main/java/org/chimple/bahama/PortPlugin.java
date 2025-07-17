@@ -7,6 +7,7 @@ import static org.chimple.bahama.MainActivity.activity_id;
 import static org.chimple.bahama.MainActivity.isRespect;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -246,6 +247,7 @@ public void shareUserId(PluginCall call) {
 
     @PluginMethod
     public static void sendLaunch() {
+        Log.d(TAG, "Calling Send Launch: " + activity_id);
         if (getInstance().bridge != null) {
             String jsonPayload = "{}"; // Empty JSON payload
             getInstance().bridge.triggerDocumentJSEvent("sendLaunch", jsonPayload);
@@ -266,4 +268,15 @@ public void shareUserId(PluginCall call) {
 
 
 
+    @PluginMethod
+    public void returnDataToRespect(PluginCall call) {
+        Log.d(TAG, "Calling returnDataToRespect");
+        Activity activity = getActivity();
+        if (activity != null) {
+            activity.finish();
+            call.resolve();
+        } else {
+            call.reject("Activity not found");
+        }
+    }
 }
