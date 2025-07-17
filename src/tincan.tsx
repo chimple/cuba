@@ -22,9 +22,17 @@ async function getDeeplinkParams(): Promise<IRecordStoreCfg> {
   } catch (error) {
     actor = {name: '', mbox: ''};
   }
+
+  if (result.endpoint == undefined || result.endpoint == '' || result.endpoint == null) {
+    result.endpoint = 'https://chimple.lrs.io/xapi/';
+  }
+  if (result.auth == undefined || result.auth == '' || result.auth == null) {
+    result.auth = 'Basic ' + btoa('chimp:chimpoo');
+  }
+
   return {
-    endpoint: result.endpoint ?? 'https://chimple.lrs.io/xapi/',
-    auth: result.auth ?? 'Basic ' + btoa('chimp:chimpoo'),
+    endpoint: result.endpoint,
+    auth: result.auth,
     actor: actor,
     registration: result.registration ?? '',
   };
