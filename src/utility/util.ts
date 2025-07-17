@@ -56,6 +56,7 @@ import {
   SCHOOL_LOGIN,
   SHOULD_SHOW_REMOTE_ASSETS,
   IS_OPS_USER,
+  BATCH_ID,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1849,6 +1850,12 @@ export class Util {
   }
 
   public static onAppUrlOpen(event: URLOpenListenerEvent) {
+    const url = new URL(event.url);
+    const batchId = url.searchParams.get(BATCH_ID);
+    if (batchId) {
+      Util.handleAssignmentDeeplink(batchId);
+      return;
+    }
     const slug = event.url.split(".cc").pop();
     if (slug?.startsWith(PAGES.JOIN_CLASS)) {
       const newSearParams = new URLSearchParams(new URL(event.url).search);
@@ -2265,5 +2272,20 @@ export class Util {
         "url(/pathwayAssets/pathwayBackground.svg)"
       );
     }
+  }
+  public static async handleAssignmentDeeplink(batchId: string) {
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+
+    const timestamp = new Date().toISOString();
+    const eventData = {
+      user_id: currentUser?.id ?? "anonymous",
+      batch_id: batchId,
+      user_name: currentUser?.name ?? "",
+      phone: currentUser?.phone || null,
+      email: currentUser?.email || null,
+      timestamp: timestamp,
+    };
+
+    await Util.logEvent(EVENTS.ASSIGNMENT_DEEPLINK_CLICKED, eventData);
   }
 }

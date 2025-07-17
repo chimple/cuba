@@ -754,6 +754,7 @@ export enum EVENTS {
   PROFILE_CREATED = "profile_created",
   PROFILE_UPDATED = "profile_updated",
   PROFILE_SKIPPED = "profile_skipped",
+  ASSIGNMENT_DEEPLINK_CLICKED = "assignment_deeplink_clicked",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -841,6 +842,7 @@ export const CURRENT_SELECTED_COURSE = "currentSelectedCourse";
 export const CURRENT_SELECTED_CHAPTER = "currentSelectedChapter";
 export const CURRENT_STAGE = "currentStage";
 export const CURRENT_SELECTED_GRADE = "currentSelectedGrade";
+export const BATCH_ID = "batch_id";
 export interface HomeWeeklySummary {
   assignments: {
     asgnmetCmptd: number;
