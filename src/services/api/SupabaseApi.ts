@@ -4586,7 +4586,7 @@ export class SupabaseApi implements ServiceApi {
       if (results == null || results.error || !results.data) {
         throw results?.error ?? "";
       }
-      const data = results.data[0];
+      const data = results.data;
       return data;
     } catch (error) {
       throw error;
@@ -4602,7 +4602,7 @@ export class SupabaseApi implements ServiceApi {
       if (results == null || results.error || !results.data) {
         throw results?.error ?? "";
       }
-      const data = results.data[0];
+      const data = results.data;
       return data;
     } catch (error) {
       throw error;

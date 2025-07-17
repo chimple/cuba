@@ -56,7 +56,6 @@ import {
   SCHOOL_LOGIN,
   SHOULD_SHOW_REMOTE_ASSETS,
   IS_OPS_USER,
-  BATCH_ID,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1849,27 +1848,37 @@ export class Util {
     return;
   }
 
-  public static onAppUrlOpen(event: URLOpenListenerEvent) {
+  public static async onAppUrlOpen(event: URLOpenListenerEvent) {
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     const url = new URL(event.url);
-    const batchId = url.searchParams.get(BATCH_ID);
-    if (batchId) {
-      Util.handleAssignmentDeeplink(batchId);
-      return;
-    }
     const slug = event.url.split(".cc").pop();
-    if (slug?.startsWith(PAGES.JOIN_CLASS)) {
-      const newSearParams = new URLSearchParams(new URL(event.url).search);
+    // Determine target page for logging
+    let destinationPage = "";
+
+    if (slug?.includes(PAGES.ASSIGNMENT)) {
+      destinationPage = PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT;
+    } else if (slug?.includes(PAGES.JOIN_CLASS)) {
+      const newSearchParams = new URLSearchParams(url.search);
       const currentParams = new URLSearchParams(window.location.search);
-      currentParams.set("classCode", newSearParams.get("classCode") ?? "");
+      currentParams.set("classCode", newSearchParams.get("classCode") ?? "");
       currentParams.set("page", PAGES.JOIN_CLASS);
       const currentStudent = Util.getCurrentStudent();
-      if (currentStudent) {
-        window.location.replace(PAGES.HOME + "?" + currentParams.toString());
-      } else {
-        window.location.replace(
-          PAGES.DISPLAY_STUDENT + "?" + currentParams.toString()
-        );
-      }
+      destinationPage = currentStudent
+        ? PAGES.HOME + "?" + currentParams.toString()
+        : PAGES.DISPLAY_STUDENT + "?" + currentParams.toString();
+    } else {
+      // Fallback for other deeplinks
+      destinationPage = PAGES.HOME;
+    }
+
+    await Util.handleDeeplinkClick(
+      url,
+      currentUser as TableTypes<"user">,
+      destinationPage
+    );
+
+    if (destinationPage && currentUser) {
+      window.location.replace(destinationPage);
     }
   }
   public static addRefreshTokenToLocalStorage(refreshToken: string) {
@@ -2273,22 +2282,29 @@ export class Util {
       );
     }
   }
-  public static async handleAssignmentDeeplink(batchId: string) {
-    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-
+  public static async handleDeeplinkClick(
+    url: URL,
+    currentUser: TableTypes<"user"> | null,
+    destinationPage: string
+  ) {
     const timestamp = new Date().toISOString();
+
+    // Convert all query parameters to an object
+    const queryParams: Record<string, string | null> = {};
+    for (const [key, value] of url.searchParams.entries()) {
+      queryParams[key] = value;
+    }
+
     const eventData = {
       user_id: currentUser?.id ?? "anonymous",
-      batch_id: batchId,
       user_name: currentUser?.name ?? "",
       phone: currentUser?.phone || null,
       email: currentUser?.email || null,
-      timestamp: timestamp,
+      timestamp,
+      destinationPage: destinationPage,
+      ...queryParams,
     };
 
-    await Util.logEvent(EVENTS.ASSIGNMENT_DEEPLINK_CLICKED, eventData);
-    if (currentUser) {
-      window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT);
-    }
+    await Util.logEvent(EVENTS.DEEPLINK_CLICKED, eventData);
   }
 }
