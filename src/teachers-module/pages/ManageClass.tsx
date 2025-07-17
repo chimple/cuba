@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   CLASS,
+  CLASSES,
   IconType,
   PAGES,
   SCHOOL,
@@ -47,7 +48,7 @@ const ManageClass: React.FC = () => {
       );
       if (fetchedClasses) {
         setAllClasses(fetchedClasses);
-        localStorage.setItem("CLASSES", JSON.stringify(fetchedClasses));
+        localStorage.setItem(CLASSES, JSON.stringify(fetchedClasses));
       }
     }
   } catch (error) {
