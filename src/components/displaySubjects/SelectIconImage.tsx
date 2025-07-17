@@ -22,39 +22,56 @@ const SelectIconImage: FC<{
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
     useEffect(() => {
-      const preloadImage = (src: string): Promise<boolean> =>
-        new Promise((resolve) => {
+     const preloadImage = (src: string, timeout = 5000): Promise<boolean> => {
+        return new Promise((resolve) => {
           const img = new Image();
-          img.src = src;
-          img.onload = () => resolve(true);
-          img.onerror = () => resolve(false);
-        });
+          let isComplete = false;
 
-      const loadImages = async () => {
-        setIsLoading(true);
+          const timeoutId = window.setTimeout(() => {
+            if (!isComplete) {
+              img.onload = img.onerror = null;
+              resolve(false);
+            }
+          }, timeout);
 
-        // Check localSrc first
-        if (localSrc) {
-          const localLoaded = await preloadImage(localSrc);
-          if (localLoaded) {
-            setActiveSrc(localSrc);
-            setIsLoading(false);
-            return;
-          }
+          img.onload = () => {
+            isComplete = true;
+            window.clearTimeout(timeoutId);
+            resolve(true);
+          };
+
+      img.onerror = () => {
+          isComplete = true;
+          window.clearTimeout(timeoutId);
+          resolve(false);
+        };
+
+        img.src = src;
+      });
+    };
+
+const loadImages = async () => {
+  setIsLoading(true);
+
+    try {
+          const [localLoaded, webLoaded] = await Promise.all([
+            localSrc ? preloadImage(localSrc) : Promise.resolve(false),
+            webSrc ? preloadImage(webSrc) : Promise.resolve(false),
+          ]);
+
+          const sourceToUse = localLoaded && localSrc 
+            ? localSrc 
+            : webLoaded && webSrc 
+              ? webSrc 
+              : defaultSrc;
+
+          setActiveSrc(sourceToUse);
+        } catch (error) {
+          console.error('Image loading error:', error);
+          setActiveSrc(defaultSrc);
+        } finally {
+          setIsLoading(false);
         }
-
-        // Check webSrc if localSrc failed
-        if (webSrc) {
-          const webLoaded = await preloadImage(webSrc);
-          if (webLoaded) {
-            setActiveSrc(webSrc);
-            setIsLoading(false);
-            return;
-          }
-        }
-        // Fallback to defaultSrc if both localSrc and webSrc failed
-        setActiveSrc(defaultSrc);
-        setIsLoading(false);
       };
 
       loadImages();
