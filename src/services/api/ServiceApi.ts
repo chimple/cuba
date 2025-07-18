@@ -438,8 +438,8 @@ export interface ServiceApi {
     gender: string,
     avatar: string,
     image: string | undefined,
-    boardDocId: string,
-    gradeDocId: string,
+    boardDocId: string | undefined,
+    gradeDocId: string | undefined,
     languageDocId: string
   ): Promise<TableTypes<"user">>;
 
@@ -1010,7 +1010,9 @@ export interface ServiceApi {
   getStudentLastTenResults(
     studentId: string,
     courseId: string,
-    assignmentIds: string[]
+    assignmentIds: string[],
+    startDate: string,
+    endDate: string,
   ): Promise<TableTypes<"result">[]>;
   /**
    * Creates a class for the given school
@@ -1076,7 +1078,8 @@ export interface ServiceApi {
     lesson_id: string,
     chapter_id: string,
     course_id: string,
-    type: string
+    type: string,
+    batch_id: string
   ): Promise<boolean>;
 
   /**

@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       assignment: {
         Row: {
+          batch_id: string | null
           chapter_id: string | null;
           class_id: string;
           course_id: string | null;
@@ -30,6 +31,7 @@ export type Database = {
           updated_at: string | null;
         };
         Insert: {
+          batch_id: string | null
           chapter_id?: string | null;
           class_id: string;
           course_id?: string | null;
@@ -49,6 +51,7 @@ export type Database = {
           updated_at?: string | null;
         };
         Update: {
+          batch_id: string | null
           chapter_id?: string | null;
           class_id?: string;
           course_id?: string | null;
@@ -2472,7 +2475,7 @@ export type Database = {
           stars: number | null;
           student_id: string | null;
           updated_at: string | null;
-        }[];
+        };
       };
       get_user_by_phone: {
         Args: { phone_number: string };
@@ -2509,7 +2512,7 @@ export type Database = {
           stars: number | null;
           student_id: string | null;
           updated_at: string | null;
-        }[];
+        };
       };
       get_users_for_parent_or_self_or_school: {
         Args: { p_uid: string; p_updated_at: string };

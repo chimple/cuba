@@ -81,16 +81,20 @@
   justify-content: space-between;
   padding: 0px 23px;
   align-items: center;
+  width: 100%;
+  flex-wrap: nowrap;
 }
 .detail-section {
   display: flex;
   align-items: center;
   gap: 12px;
-  justify-content: center;
+  /* justify-content: center; */
+  width: 70%;
 }
 
 .detail-school-name {
   color: #707070;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 400;
+  width: 100%;
 }

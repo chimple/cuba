@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   CLASS,
+  CLASSES,
   IconType,
   PAGES,
   SCHOOL,
@@ -45,7 +46,10 @@ const ManageClass: React.FC = () => {
         tempSchool.id,
         user.id
       );
-      if (fetchedClasses) setAllClasses(fetchedClasses);
+      if (fetchedClasses) {
+        setAllClasses(fetchedClasses);
+        localStorage.setItem(CLASSES, JSON.stringify(fetchedClasses));
+      }
     }
   } catch (error) {
     console.error("Error initializing data:", error);

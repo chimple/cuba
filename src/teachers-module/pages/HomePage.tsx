@@ -11,6 +11,7 @@ import TeacherAssignment from "../components/homePage/assignment/TeacherAssignme
 import Library from "../components/library/Library";
 import ReportTable from "../components/reports/ReportsTable";
 import {
+  CLASS,
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   PAGES,
   TableTypes,
@@ -68,12 +69,15 @@ const HomePage: React.FC = () => {
       if (!tempClass) {
         setCurrentClass(null);
       }
-      if (tempClass) setCurrentClass(tempClass);
-      updateLocalAttributes({
-        teacher_class_id: tempClass?.id,
-        teacher_school_id: currentSchool?.id,
-      });
-      setGbUpdated(true);
+      if (tempClass) {
+        setCurrentClass(tempClass);
+        updateLocalAttributes({
+          teacher_class_id: tempClass?.id,
+          teacher_school_id: currentSchool?.id,
+        });
+        setGbUpdated(true);
+      }
+
     } catch (error) {
       console.error("Failed to load class details", error);
     }

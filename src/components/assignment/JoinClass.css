@@ -63,3 +63,12 @@
   transition: transform 0.1s ease;
   transform: translateY(2px);
 }
+
+.scroll-keyboard-for-join-class {
+  height: 0px;
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+  margin-top: -40px;
+}
+
+

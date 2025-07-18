@@ -363,8 +363,8 @@ public async getUserRoleForSchool(
     gender: string,
     avatar: string,
     image: string | undefined,
-    boardDocId: string,
-    gradeDocId: string,
+    boardDocId: string | undefined,
+    gradeDocId: string | undefined,
     languageDocId: string
   ): Promise<TableTypes<"user">> {
     return await this.s.updateStudent(
@@ -854,9 +854,11 @@ public async getUserRoleForSchool(
   getStudentLastTenResults(
     studentId: string,
     courseId: string,
-    assignmentIds: string[]
+    assignmentIds: string[],
+     startDate: string,
+    endDate: string,
   ): Promise<TableTypes<"result">[]> {
-    return this.s.getStudentLastTenResults(studentId, courseId, assignmentIds);
+    return this.s.getStudentLastTenResults(studentId, courseId, assignmentIds,startDate,endDate);
   }
   getResultByAssignmentIds(
     assignmentIds: string[]
@@ -879,7 +881,8 @@ public async getUserRoleForSchool(
     lesson_id: string,
     chapter_id: string,
     course_id: string,
-    type: string
+    type: string,
+    batch_id: string
   ): Promise<boolean> {
     return this.s.createAssignment(
       student_list,
@@ -892,7 +895,8 @@ public async getUserRoleForSchool(
       lesson_id,
       chapter_id,
       course_id,
-      type
+      type,
+      batch_id
     );
   }
   getTeachersForClass(

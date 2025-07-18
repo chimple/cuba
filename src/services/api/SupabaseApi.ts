@@ -1976,8 +1976,8 @@ export class SupabaseApi implements ServiceApi {
     gender: string,
     avatar: string,
     image: string | undefined,
-    boardDocId: string,
-    gradeDocId: string,
+    boardDocId: string | undefined,
+    gradeDocId: string | undefined,
     languageDocId: string
   ): Promise<TableTypes<"user">> {
     if (!this.supabase) return student;
@@ -4337,7 +4337,9 @@ export class SupabaseApi implements ServiceApi {
   async getStudentLastTenResults(
     studentId: string,
     courseId: string,
-    assignmentIds: string[]
+    assignmentIds: string[],
+    startDate: string,
+    endDate: string,
   ): Promise<TableTypes<"result">[]> {
     if (!this.supabase) return [];
 
@@ -4472,7 +4474,8 @@ export class SupabaseApi implements ServiceApi {
     lesson_id: string,
     chapter_id: string,
     course_id: string,
-    type: string
+    type: string,
+    batch_id: string
   ): Promise<boolean> {
     if (!this.supabase) return false;
 
@@ -4496,6 +4499,7 @@ export class SupabaseApi implements ServiceApi {
             chapter_id,
             course_id,
             type,
+            batch_id: batch_id ?? null,
             created_at: timestamp,
             updated_at: timestamp,
             is_deleted: false,
@@ -4581,7 +4585,7 @@ export class SupabaseApi implements ServiceApi {
       if (results == null || results.error || !results.data) {
         throw results?.error ?? "";
       }
-      const data = results.data[0];
+      const data = results.data;
       return data;
     } catch (error) {
       throw error;
@@ -4597,7 +4601,7 @@ export class SupabaseApi implements ServiceApi {
       if (results == null || results.error || !results.data) {
         throw results?.error ?? "";
       }
-      const data = results.data[0];
+      const data = results.data;
       return data;
     } catch (error) {
       throw error;
@@ -5937,7 +5941,7 @@ export class SupabaseApi implements ServiceApi {
         end_date: payload.endDate,
 
         is_deleted: false,
-        is_ops: true,
+        is_ops: null,
       };
 
       // Step 1: Insert the program
@@ -5960,7 +5964,7 @@ export class SupabaseApi implements ServiceApi {
           program_id: programId,
           user: userId,
           is_deleted: false,
-          is_ops: true,
+          is_ops: null,
           role: RoleType.PROGRAM_MANAGER,
         })
       );
