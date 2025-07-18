@@ -356,23 +356,31 @@ export class SupabaseApi implements ServiceApi {
         // console.log("📡 Subscribing to status for upload_id:", uploadId);
         return new Promise((resolve) => {
           if (!this.supabase) return false;
-          setTimeout(async () => {
-            if (!this.supabase) return false;
+          const interval = setInterval(async () => {
+            if (!this.supabase) return resolve(false);
             if (!uploadId) {
               console.warn("❗ uploadId is undefined. Skipping query.");
+              clearInterval(interval);
               return;
             }
-            const { data } = await this.supabase
+            const { data, error } = await this.supabase
               .from("upload_queue")
               .select("status")
               .eq("id", uploadId)
               .single();
+            if (error) {
+              console.error("Error polling upload status:", error.message);
+              clearInterval(interval);
+              return resolve(false);
+            }
             if (data?.status === "failed") {
               // console.log("⏱️ Upload status: Upload failed.");
+              clearInterval(interval);
               resolve(false);
             }
             if (data?.status === "success") {
               // console.log("⏱️ Upload status: Upload Success.");
+               clearInterval(interval);
               resolve(true);
             }
           }, 5000);
