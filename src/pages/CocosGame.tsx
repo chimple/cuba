@@ -152,7 +152,7 @@ const CocosGame: React.FC = () => {
   };
 
   const gameExit = async (e: any) => {
-    
+
     const api = ServiceConfig.getI().apiHandler;
     const data = e.detail as CocosLessonData;
     killGame(e);
@@ -162,6 +162,8 @@ const CocosGame: React.FC = () => {
       const PortPlugin = registerPlugin<any>("Port");
       PortPlugin.returnDataToRespect();
     }
+    Util.isDeepLink = false;
+    PortPlugin.sendLaunchData().lessonId = "";
     push();
   };
 
@@ -170,6 +172,8 @@ const CocosGame: React.FC = () => {
       const PortPlugin = registerPlugin<any>("Port");
       PortPlugin.returnDataToRespect();
     }
+    Util.isDeepLink = false;
+    PortPlugin.sendLaunchData().lessonId = "";
   }
   const handleLessonEndListner = (event) => {
     saveTempData(event.detail);
@@ -208,17 +212,17 @@ const CocosGame: React.FC = () => {
     const currentStudent = Util.getCurrentStudent();
     let lesson;
     const lessonNormal: Lesson = state.lesson ? JSON.parse(state.lesson) : undefined;
-    
+
     if(Util.isDeepLink) {
       const deeplinkdata = await PortPlugin.sendLaunchData();
       const deeplinkLesson = await api.getLesson(deeplinkdata.lessonId);
       lesson = deeplinkLesson;
-    
-    }       
+
+    }
     else {
       lesson = lessonNormal;
     }
-    
+
     if (currentStudent != null && lesson && lesson.id) {
       const result = await api.updateFavoriteLesson(
         currentStudent.id,
@@ -304,7 +308,7 @@ const CocosGame: React.FC = () => {
         classId,
         schoolId
       );
-      
+
       console.log(
         "🚀 ~ file: CocosGame.tsx:88 ~ saveTempData ~ result:",
         result
