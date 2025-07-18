@@ -4340,9 +4340,7 @@ export class SupabaseApi implements ServiceApi {
   async getStudentLastTenResults(
     studentId: string,
     courseId: string,
-    assignmentIds: string[],
-    startDate: string,
-    endDate: string,
+    assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
     if (!this.supabase) return [];
 

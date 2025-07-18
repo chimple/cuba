@@ -144,9 +144,7 @@ export class ClassUtil {
       const results = await this.api.getStudentLastTenResults(
         student.id,
         courseId,
-        assignmentIds,
-        currentDateTimeStamp,
-        oneWeekBackTimeStamp,
+        assignmentIds
       );
       const selfPlayedLength = results.filter(
         (result) => result.assignment_id === null
