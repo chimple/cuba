@@ -20,6 +20,14 @@ export enum MUTATE_TYPES {
   DELETE = "delete",
 }
 
+export enum LOGIN_TYPES {
+  PHONE="phone",
+  STUDENT= "student",
+  EMAIL= 'email',
+  OTP= 'otp',
+  FORGET_PASS= "forget_pass"
+}
+
 export enum TABLES {
   Curriculum = "curriculum",
   Subject = "subject",
@@ -55,6 +63,7 @@ export enum TABLES {
   // Chatbot = "chatbot",
   ReqNewSchool = "req_new_school",
   Program = "program",
+  SpecialUsers = "special_users"
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -460,6 +469,7 @@ export enum PAGES {
   SCHOOL_LIST = "/school-list",
   SCHOOL_DETAILS = "/school-details",
   USERS = "/users",
+  USER_DETAILS = "/user-details",
   PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS = "/program-connected-school-list-page-ops",
   NEW_USERS_OPS = "/new-user-ops",
 }
@@ -561,6 +571,8 @@ export const TYPE = "type";
 export const APP_NAME = "Kids";
 export const SCHOOL = "school";
 export const CLASS = "class";
+export const CLASSES = "classes";
+export const DELETED_CLASSES = "deleted_classes";
 export const USER_ROLE = "userRole";
 export const CURRENT_TEACHER = "currentTeacher";
 export const CURRENT_COURSE = "currentCourse";
@@ -744,6 +756,7 @@ export enum EVENTS {
   PROFILE_CREATED = "profile_created",
   PROFILE_UPDATED = "profile_updated",
   PROFILE_SKIPPED = "profile_skipped",
+  DEEPLINK_CLICKED = "deeplink_clicked",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -897,5 +910,7 @@ export enum AGE_OPTIONS {
   FIVE = "5",
   SIX = "6",
   SEVEN = "7",
+  EIGHT = "8",
+  NINE = "9",
   GREATER_THAN_EQUAL_10 = "≥10",
 }

@@ -8,6 +8,7 @@
 }
 .type-dropdown {
   align-content: center;
+  width: auto;
 }
 .no-students-container {
   height: 100%;
@@ -49,6 +50,7 @@ tbody {
   display: flex;
   justify-content: space-between;
   margin: 5px 0px;
+  width: 100%;
 }
 .table-container-body {
   display: flex;

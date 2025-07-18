@@ -15,7 +15,7 @@
 .manage-school-button {
   border: 1px solid #7C5DB0;
   border-radius: 5px;
-  width: 150px;
+  width: fit-content;
   height: 34px;
 }
 .school-divider {
@@ -25,4 +25,14 @@
 }
 .school-iconlabel {
   padding-left: 10px;
+  font-size: 22px;
+  color: #707070;
+  font-weight: 600;
+}
+
+.schoolsection-school {
+  display: flex;
+  align-items: center;
+  padding-top: 8px;
+  padding-left: 9px;
 }

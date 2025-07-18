@@ -196,22 +196,21 @@ const init = async () => {
       mergedBandWiseStudents.get(band)!.push(entry);
     }
 
-    const hasStudentsAndSubject = _students.length > 0 && subjectsCount > 0;
+    const hasStudentsAndSubject = _students.length > 0;
     const averageTimeSpent = hasStudentsAndSubject
-      ? Math.round(totalTimeSpent / subjectsCount)
-      : 0;
+      ? parseFloat((totalTimeSpent / subjectsCount).toFixed(2)) : 0
     const averageScore = hasStudentsAndSubject
       ? Math.round(totalAverageScore / subjectsCount)
       : 0;
-
+    // debugger;
     const aggregatedSummary: HomeWeeklySummary = {
       assignments: {
         totalAssignments,
-        asgnmetCmptd: totalCompletedAssignments,
+        asgnmetCmptd: _students.length > 0 ? totalCompletedAssignments : 0,
       },
       students: {
         totalStudents: _students.length,
-        stdCompletd: totalCompletedStudents
+        stdCompletd: _students.length < totalCompletedStudents ? _students.length : totalCompletedStudents
       },
       timeSpent: averageTimeSpent,
       averageScore,

@@ -200,3 +200,9 @@
     margin-top: 5%;
   }
 }
+
+@media screen and (min-width: 533px) and (max-width: 700px) and (min-height: 940px) and (max-height: 1200px){
+  .ForgotPass-method-with-email{
+    top: 37%;
+  }
+}

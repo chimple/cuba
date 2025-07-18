@@ -13,11 +13,12 @@
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
+  text-align: justify;
 }
 .profile-name {
   font-size: 26px;
   font-weight: 600;
-  text-align: justify;
+  /* text-align: justify; */
 }
 .profile-email {
   font-size: 14px;

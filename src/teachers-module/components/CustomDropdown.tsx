@@ -7,11 +7,9 @@ import {
   IonSelectOption,
 } from "@ionic/react";
 import "./CustomDropdown.css";
-import { arrowDown, caretDownSharp, options } from "ionicons/icons";
+import { arrowDown, caretDownSharp } from "ionicons/icons";
 import { ArrowDownward } from "@mui/icons-material";
 import { t } from "i18next";
-
-// Extend the IonSelect properties to accept all its props
 interface CustomDropdownProps extends React.ComponentProps<typeof IonSelect> {
   icon?: string;
   options: { id: string | number; name: string }[];
@@ -30,9 +28,13 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   disableTranslation = false,
   ...selectProps // Spread any additional IonSelect props
 }) => {
+  const renderLabel = (raw: string) => {
+    const lbl = disableTranslation ? raw : t(raw);
+    return lbl.length > 20 ? lbl.slice(0, 20) + "…" : lbl;
+  };
   return (
     <div
-      className="sort-type-container"
+      className="custom-dropdown-container"
       style={{ borderBottom: !isDownBorder ? "0px" : "none" }}
     >
       <IonSelect
@@ -42,8 +44,8 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
           onOptionSelect(options.find((option) => option.id === e.detail.value)!)
         }
         interface="popover" // or "action-sheet", "alert"
-        className="custom-select"
-        {...selectProps} // Pass down all other props
+        className="customdropdown-select"
+        {...selectProps} 
       >
         {options.map((option) => (
           <IonSelectOption
@@ -51,12 +53,12 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
             value={option.id}
             disabled={(option as any).disabled}
           >
-            {disableTranslation ? option.name : t(option.name)}
+            {renderLabel(option.name)}
           </IonSelectOption>
         ))}
       </IonSelect>
       <div className="icon-container">
-        <img src="assets/icons/iconDown.png" alt="Drop_Down" width='16px' height='16px' />
+        <IonIcon icon={caretDownSharp} />
       </div>
     </div>
   );

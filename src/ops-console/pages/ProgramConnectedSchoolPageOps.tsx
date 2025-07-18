@@ -18,11 +18,11 @@ import { PAGES } from "../../common/constants";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import Breadcrumb from "../components/Breadcrumb";
 import SearchAndFilter from "../components/SearchAndFilter";
-import { SupabaseApi } from "../../services/api/SupabaseApi";
 
 interface ProgramConnectedSchoolPageProps {
   id: string;
 }
+const DEFAULT_PAGE_SIZE = 8;
 
 const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
   id,
@@ -38,9 +38,14 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
   const [schools, setSchools] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [programName, setProgramName] = useState("");
+  const [page, setPage] = useState(1);
+  const [orderBy, setOrderBy] = useState("");
+  const [orderDir, setOrderDir] = useState<"asc" | "desc">("asc");
+  const [total, setTotal] = useState(0);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
+    setPage(1);
   };
 
   const onFilterClick = () => {
@@ -62,11 +67,25 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
           ?.value ?? "";
       setProgramName(name);
 
-      const result = await api.getFilteredSchoolsForSchoolListing({
-        programId:id
+      let backendOrderBy = orderBy;
+      if (backendOrderBy === "name") backendOrderBy = "school_name";
+      if (backendOrderBy === "students") backendOrderBy = "num_students";
+      if (backendOrderBy === "teachers") backendOrderBy = "num_teachers";
+
+      const response = await api.getFilteredSchoolsForSchoolListing({
+        programId: id,
+        filters: cleanedFilters,
+        page,
+        page_size: DEFAULT_PAGE_SIZE,
+        order_by: backendOrderBy,
+        order_dir: orderDir,
+        search: searchTerm,
       });
 
-      const formatted = result.map((school: any) => ({
+      const data = response?.data || [];
+      setTotal(response?.total || 0);
+
+      const formatted = data.map((school: any) => ({
         ...school,
         id: school.sch_id,
         students: school.num_students || 0,
@@ -102,7 +121,7 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
 
   useEffect(() => {
     fetchSchools();
-  }, [id, filters]);
+  }, [id, filters, searchTerm, orderBy, orderDir, page]);
 
   const filteredSchools = useMemo(() => {
     return schools.filter((school) =>
@@ -111,22 +130,49 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
   }, [schools, searchTerm]);
 
   const columns: Column<Record<string, any>>[] = [
-    { key: "name", label: t("Schools") },
-    { key: "students", label: t("No of Students") },
-    { key: "teachers", label: t("No of Teachers") },
-    { key: "programManagers", label: t("Program Manager") },
-    { key: "fieldCoordinators", label: t("Field Coordinator") },
+    {
+      key: "name",
+      label: t("Schools"),
+      sortable: true,
+      orderBy: "name",
+    },
+    {
+      key: "students",
+      label: t("No of Students"),
+      sortable: true,
+      orderBy: "students",
+    },
+    {
+      key: "teachers",
+      label: t("No of Teachers"),
+      sortable: true,
+      orderBy: "teachers",
+    },
+    {
+      key: "programManagers",
+      label: t("Program Manager"),
+      sortable: false,
+    },
+    {
+      key: "fieldCoordinators",
+      label: t("Field Coordinator"),
+      sortable: false,
+    },
   ];
 
-  const {
-    orderBy,
-    order,
-    page,
-    pageCount,
-    setPage,
-    handleSort,
-    paginatedRows,
-  } = useDataTableLogic(filteredSchools);
+  const handleSort = (colKey: string) => {
+    const sortableKeys = ["name", "students", "teachers"];
+    if (!sortableKeys.includes(colKey)) return;
+    if (orderBy === colKey) {
+      setOrderDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setOrderBy(colKey);
+      setOrderDir("asc");
+    }
+    setPage(1);
+  };
+
+  const pageCount = Math.ceil(total / DEFAULT_PAGE_SIZE);
 
   return (
     <div className="ops-program-schools-page-container">
@@ -190,16 +236,7 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
       </Box>
 
       <div className="ops-program-schools-table-container">
-        {loadingData ? (
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            height="100%"
-          >
-            <CircularProgress />
-          </Box>
-        ) : filteredSchools.length === 0 ? (
+        {!loadingData && filteredSchools.length === 0 ? (
           <Box
             display="flex"
             justifyContent="center"
@@ -211,10 +248,11 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
         ) : (
           <DataTableBody
             columns={columns}
-            rows={paginatedRows}
+            rows={filteredSchools}
             orderBy={orderBy}
-            order={order}
+            order={orderDir}
             onSort={handleSort}
+            loading={loadingData}
           />
         )}
       </div>

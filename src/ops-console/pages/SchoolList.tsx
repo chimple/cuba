@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Box,
   Button,
@@ -12,19 +12,26 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
 import "./SchoolList.css";
 import DataTablePagination from "../components/DataTablePagination";
-import { IonPage } from "@ionic/react";
 import DataTableBody, { Column } from "../components/DataTableBody";
-import Loading from "../../components/Loading";
 import { t } from "i18next";
 import SearchAndFilter from "../components/SearchAndFilter";
 import FilterSlider from "../components/FilterSlider";
 import SelectedFilters from "../components/SelectedFilters";
 import FileUpload from "../components/FileUpload";
-import { useDataTableLogic } from "../OpsUtility/useDataTableLogic";
-import { Add, FileUploadOutlined } from "@mui/icons-material";
+import { FileUploadOutlined } from "@mui/icons-material";
 import { BsFillBellFill } from "react-icons/bs";
-import SkeltonLoading from "../../components/SkeltonLoading";
-import { SupabaseApi } from "../../services/api/SupabaseApi";
+import { useLocation, useHistory } from "react-router";
+
+const filterConfigsForSchool = [
+  { key: "partner", label: t("Select Partner") },
+  { key: "programManager", label: t("Select Program Manager") },
+  { key: "fieldCoordinator", label: t("Select Field Coordinator") },
+  { key: "programType", label: t("Select Program Type") },
+  { key: "state", label: t("Select State") },
+  { key: "district", label: t("Select District") },
+  { key: "block", label: t("Select Block") },
+  { key: "cluster", label: t("Select Cluster") },
+];
 
 type Filters = Record<string, string[]>;
 
@@ -36,7 +43,7 @@ const INITIAL_FILTERS: Filters = {
   state: [],
   district: [],
   block: [],
-  village: [],
+  cluster: [],
 };
 
 const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([value, label]) => ({
@@ -44,25 +51,60 @@ const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([value, label]) => ({
   value: value as PROGRAM_TAB,
 }));
 
+const DEFAULT_PAGE_SIZE = 8;
+
 const SchoolList: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
 
-  const [selectedTab, setSelectedTab] = useState(PROGRAM_TAB.ALL);
+  const location = useLocation();
+  const history = useHistory();
+  const qs = new URLSearchParams(location.search);
+
+  function parseJSONParam<T>(param: string | null, fallback: T): T {
+    try { return param ? (JSON.parse(param) as T) : fallback; }
+    catch { return fallback; }
+  }
+  const [selectedTab, setSelectedTab] = useState(() => {
+    const v = qs.get("tab") || PROGRAM_TAB.ALL;
+    return Object.values(PROGRAM_TAB).includes(v as PROGRAM_TAB) ? (v as PROGRAM_TAB) : PROGRAM_TAB.ALL;
+  });
+  const [searchTerm, setSearchTerm] = useState(() => qs.get("search") || "");
+  const [filters, setFilters] = useState<Filters>(() =>
+    parseJSONParam(qs.get("filters"), INITIAL_FILTERS)
+  );
+  const [page, setPage] = useState(() => {
+    const p = parseInt(qs.get("page") || "", 10);
+    return isNaN(p) || p < 1 ? 1 : p;
+  });
+
 
   const [schools, setSchools] = useState<any[]>([]);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false);
+  const [total, setTotal] = useState(0);
 
   const isLoading = isFilterLoading || isDataLoading;
 
   const [showUploadPage, setShowUploadPage] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
   const [tempFilters, setTempFilters] = useState<Filters>(INITIAL_FILTERS);
   const [filterOptions, setFilterOptions] = useState<Filters>(INITIAL_FILTERS);
+  const [orderBy, setOrderBy] = useState("");
+  const [orderDir, setOrderDir] = useState<"asc" | "desc">("asc");
+  const [pageSize] = useState(DEFAULT_PAGE_SIZE);
+
   const isSmallScreen = useMediaQuery("(max-width: 900px)");
-  // Fetch filter options
+
+    useEffect(() => {
+    const params = new URLSearchParams();
+    if (selectedTab !== PROGRAM_TAB.ALL) params.set("tab", String(selectedTab));
+    if (searchTerm) params.set("search", searchTerm);
+    if (Object.values(filters).some(arr => arr.length))
+      params.set("filters", JSON.stringify(filters));
+    if (page !== 1) params.set("page", String(page));
+    history.replace({ search: params.toString() });
+  }, [selectedTab, searchTerm, filters, page, history]);
+
   useEffect(() => {
     const fetchFilterOptions = async () => {
       setIsFilterLoading(true);
@@ -70,14 +112,14 @@ const SchoolList: React.FC = () => {
         const data = await api.getSchoolFilterOptionsForSchoolListing();
         if (data) {
           setFilterOptions({
-            programType: data.program_type || [],
+            programType: data.programType || [],
             partner: data.partner || [],
-            programManager: data.program_manager || [],
-            fieldCoordinator: data.field_coordinator || [],
+            programManager: data.programManager || [],
+            fieldCoordinator: data.fieldCoordinator || [],
             state: data.state || [],
             district: data.district || [],
             block: data.block || [],
-            village: data.village || [],
+            cluster: data.cluster || [],
           });
         }
       } catch (error) {
@@ -92,8 +134,9 @@ const SchoolList: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, [selectedTab, filters]);
-  const fetchData = async () => {
+  }, [selectedTab, filters, page, orderBy, orderDir, searchTerm]);
+
+  const fetchData = useCallback(async () => {
     setIsDataLoading(true);
     try {
       const tabModelFilter = { model: [selectedTab] };
@@ -103,11 +146,24 @@ const SchoolList: React.FC = () => {
         )
       );
 
-      const filteredSchools =
-        await api.getFilteredSchoolsForSchoolListing({
-          filters: cleanedFilters,
-        });
-      const enrichedSchools = filteredSchools.map((school: any) => ({
+      let backendOrderBy = orderBy;
+      if (backendOrderBy === "name") backendOrderBy = "school_name";
+      if (backendOrderBy === "students") backendOrderBy = "num_students";
+      if (backendOrderBy === "teachers") backendOrderBy = "num_teachers";
+
+      const response = await api.getFilteredSchoolsForSchoolListing({
+        filters: cleanedFilters,
+        page,
+        page_size: pageSize,
+        order_by: backendOrderBy,
+        order_dir: orderDir,
+        search: searchTerm,
+      });
+
+      const data = response?.data || [];
+      setTotal(response?.total || 0);
+
+      const enrichedSchools = data.map((school: any) => ({
         ...school,
         id: school.sch_id,
         students: school.num_students || 0,
@@ -136,51 +192,74 @@ const SchoolList: React.FC = () => {
       setSchools(enrichedSchools);
     } catch (error) {
       console.error("Failed to fetch filtered schools:", error);
+      setSchools([]);
+      setTotal(0);
     } finally {
       setIsDataLoading(false);
     }
-  };
+  }, [
+    api,
+    filters,
+    page,
+    pageSize,
+    orderBy,
+    orderDir,
+    searchTerm,
+    selectedTab,
+  ]);
 
   const columns: Column<Record<string, any>>[] = [
-    { key: "name", label: t("Schools"), width: "30%" },
-    { key: "students", label: t("No of Students"), width: "fit-content" },
-    { key: "teachers", label: t("No of Teachers"), width: "fit-content" },
-    { key: "programManagers", label: t("Program Manager") },
-    { key: "fieldCoordinators", label: t("Field Coordinator") },
+    {
+      key: "name",
+      label: t("Schools"),
+      width: "30%",
+      sortable: true,
+      orderBy: "name",
+    },
+    {
+      key: "students",
+      label: t("No of Students"),
+      width: "fit-content",
+      sortable: true,
+      orderBy: "students",
+    },
+    {
+      key: "teachers",
+      label: t("No of Teachers"),
+      width: "fit-content",
+      sortable: true,
+      orderBy: "teachers",
+    },
+    {
+      key: "programManagers",
+      label: t("Program Manager"),
+      sortable: false,
+    },
+    {
+      key: "fieldCoordinators",
+      label: t("Field Coordinator"),
+      sortable: false,
+    },
   ];
 
-  const filterConfigsForSchool = [
-    { key: "Partner", label: t("Select Partner") },
-    { key: "Program Manager", label: t("Select Program Manager") },
-    { key: "Field Coordinator", label: t("Select Field Coordinator") },
-    { key: "Program Type", label: t("Select Program Type") },
-    { key: "state", label: t("Select State") },
-    { key: "district", label: t("Select District") },
-    { key: "block", label: t("Select Block") },
-    { key: "village", label: t("Select Village") },
-    { key: "cluster", label: t("Select Cluster") },
-  ];
+  const handleSort = (colKey: string) => {
+    const sortableKeys = ["name", "students", "teachers", "district"];
+    if (!sortableKeys.includes(colKey)) return;
+    if (orderBy === colKey) {
+      setOrderDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setOrderBy(colKey);
+      setOrderDir("asc");
+    }
+    setPage(1);
+  };
 
-  // Apply client-side search
-  const filteredSchools = useMemo(() => {
-    return schools.filter((school) =>
-      school.name.value.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [schools, searchTerm]);
-
-  const {
-    orderBy,
-    order,
-    page,
-    pageCount,
-    setPage,
-    handleSort,
-    paginatedRows,
-  } = useDataTableLogic(filteredSchools);
 
   function onCancleClick(): void {
     setShowUploadPage(false);
   }
+
+  const pageCount = Math.ceil(total / pageSize);
 
   if (showUploadPage) {
     return (
@@ -208,8 +287,8 @@ const SchoolList: React.FC = () => {
               <Tabs
                 value={selectedTab}
                 onChange={(e, val) => {
-                  setPage(1);
                   setSelectedTab(val);
+                  setPage(1);
                 }}
                 indicatorColor="primary"
                 variant="scrollable"
@@ -252,7 +331,9 @@ const SchoolList: React.FC = () => {
 
               <SearchAndFilter
                 searchTerm={searchTerm}
-                onSearchChange={(e) => setSearchTerm(e.target.value)}
+                onSearchChange={(e) => {setSearchTerm(e.target.value)
+                  setPage(1);
+                }}
                 filters={filters}
                 onFilterClick={() => setIsFilterOpen(true)}
               />
@@ -270,6 +351,7 @@ const SchoolList: React.FC = () => {
                 setTempFilters(updated);
                 return updated;
               });
+              setPage(1);
             }}
           />
 
@@ -287,13 +369,13 @@ const SchoolList: React.FC = () => {
             onApply={() => {
               setFilters(tempFilters);
               setIsFilterOpen(false);
+              setPage(1);
             }}
             onCancel={() => {
               const empty = {
                 state: [],
                 district: [],
                 block: [],
-                village: [],
                 programType: [],
                 partner: [],
                 programManager: [],
@@ -302,38 +384,37 @@ const SchoolList: React.FC = () => {
               setTempFilters(empty);
               setFilters(empty);
               setIsFilterOpen(false);
+               setPage(1);
             }}
             autocompleteStyles={{}}
             filterConfigs={filterConfigsForSchool}
           />
         </div>
-        {isLoading && (
-          <SkeltonLoading isLoading={isLoading} header={PAGES.SCHOOL_LIST} />
-        )}
-        {!isLoading && filteredSchools.length === 0 && (
+
+        <div className="school-list-table-container">
+          <DataTableBody
+            columns={columns}
+            rows={schools}
+            orderBy={orderBy}
+            order={orderDir}
+            onSort={handleSort}
+            loading={isLoading}
+          />
+        </div>
+
+        {!isLoading && schools.length === 0 && (
           <Typography align="center" sx={{ mt: 4 }}>
             {t("No schools found.")}
           </Typography>
         )}
-        {!isLoading && filteredSchools.length > 0 && (
-          <>
-            <div className="school-list-table-container">
-              <DataTableBody
-                columns={columns}
-                rows={paginatedRows}
-                orderBy={orderBy}
-                order={order}
-                onSort={handleSort}
-              />
-            </div>
-            <div className="school-list-footer">
-              <DataTablePagination
-                pageCount={pageCount}
-                page={page}
-                onPageChange={(val) => setPage(val)}
-              />
-            </div>
-          </>
+        {!isLoading && schools.length > 0 && (
+          <div className="school-list-footer">
+            <DataTablePagination
+              pageCount={pageCount}
+              page={page}
+              onPageChange={(val) => setPage(val)}
+            />
+          </div>
         )}
       </div>
     </div>
