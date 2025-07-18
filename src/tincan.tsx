@@ -31,7 +31,7 @@ async function getDeeplinkParams(): Promise<IRecordStoreCfg> {
   }
 
   return {
-    endpoint: result.endpoint,
+    endpoint: 'https://chimple.lrs.io/xapi/',
     auth: result.auth,
     actor: actor,
     registration: result.registration ?? '',
