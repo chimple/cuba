@@ -195,6 +195,8 @@ const ProfileDetails = () => {
     } catch (err) {
       console.error("Error saving profile:", err);
       setIsCreatingProfile(false)
+    } finally {
+      setIsCreatingProfile(false);
     }
   };
 
