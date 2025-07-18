@@ -851,9 +851,11 @@ public async getUserRoleForSchool(
   getStudentLastTenResults(
     studentId: string,
     courseId: string,
-    assignmentIds: string[]
+    assignmentIds: string[],
+     startDate: string,
+    endDate: string,
   ): Promise<TableTypes<"result">[]> {
-    return this.s.getStudentLastTenResults(studentId, courseId, assignmentIds);
+    return this.s.getStudentLastTenResults(studentId, courseId, assignmentIds,startDate,endDate);
   }
   getResultByAssignmentIds(
     assignmentIds: string[]
