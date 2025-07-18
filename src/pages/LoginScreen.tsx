@@ -116,12 +116,14 @@ const LoginScreen: React.FC = () => {
   }, [loadingMessages.length]);
 
   useEffect(() => {
-    // Combine all initial async setup in one effect
     const initialize = async () => {
       try {
+        // lock orientation if native
         if (Capacitor.isNativePlatform()) {
           await ScreenOrientation.lock({ orientation: "portrait" });
         }
+
+        // language
         const appLang = localStorage.getItem(LANGUAGE);
         if (!appLang) {
           localStorage.setItem(LANGUAGE, "en");
@@ -131,27 +133,22 @@ const LoginScreen: React.FC = () => {
           setCurrentLang(appLang);
           await i18n.changeLanguage(appLang);
         }
+
+        // if already logged in, jump straight to select‐mode
         const authHandler = ServiceConfig.getI().authHandler;
-        const isUserLoggedIn = await authHandler.isUserLoggedIn();
-        if (isUserLoggedIn) {
+        if (await authHandler.isUserLoggedIn()) {
           history.replace(PAGES.SELECT_MODE);
           return;
-        }
-
-        if (Capacitor.isNativePlatform()) {
-          // document.addEventListener("visibilitychange", handleVisibilityChange);
         }
       } finally {
         setInitializing(false);
       }
     };
     initialize();
+
     return () => {
       if (Capacitor.isNativePlatform()) {
-        document.removeEventListener(
-          "visibilitychange",
-          handleVisibilityChange
-        );
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
       }
     };
   }, []);
@@ -167,37 +164,6 @@ const LoginScreen: React.FC = () => {
         }
       });
     }
-  };
-
-  const getSchoolsForUser = async (userId: string) => {
-    return (await api.getSchoolsForUser(userId)) || [];
-  };
-
-  const redirectUser = async (schools: { role: RoleType }[]) => {
-    const roles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) || "[]");
-    const isOps = roles.includes(RoleType.SUPER_ADMIN) || roles.includes(RoleType.OPERATIONAL_DIRECTOR);
-    const isProg = await api.isProgramUser();
-
-    if (isOps || isProg) {
-      localStorage.setItem(IS_OPS_USER, "true");
-      await ScreenOrientation.unlock();
-      schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
-      return history.replace(PAGES.SIDEBAR_PAGE);
-    }
-
-    if (schools.length === 0) {
-      schoolUtil.setCurrMode(MODES.PARENT);
-      return history.replace(PAGES.DISPLAY_STUDENT);
-    }
-
-    const auto = schools.find(s => s.role === RoleType.AUTOUSER);
-    if (auto) {
-      schoolUtil.setCurrMode(MODES.SCHOOL);
-      return history.replace(PAGES.SELECT_MODE);
-    }
-
-    schoolUtil.setCurrMode(MODES.TEACHER);
-    return history.replace(PAGES.DISPLAY_SCHOOLS);
   };
 
   const authInstance = ServiceConfig.getI().authHandler;
@@ -234,6 +200,7 @@ const LoginScreen: React.FC = () => {
           return prev - 1;
         });
       }, 60000);
+      return () => clearInterval(expiryTimer);
     }
   }, [loginType]);
 
@@ -356,7 +323,7 @@ const LoginScreen: React.FC = () => {
         login_type: "phone-number",
       });
 
-        const userSchools = await getSchoolsForUser(user.user);
+        const userSchools = await getSchoolsForUser(user.id);
         await redirectUser(userSchools);
       
       setAnimatedLoading(false);
@@ -463,6 +430,47 @@ const LoginScreen: React.FC = () => {
   }
 };
 
+  const getSchoolsForUser = async (userId: string) => {
+    return (await api.getSchoolsForUser(userId)) || [];
+  };
+
+  const redirectUser = async (schools: { role: RoleType }[]) => {
+    const roles = JSON.parse(localStorage.getItem(USER_ROLE) || "[]") as string[];
+    const isOps =
+      roles.includes(RoleType.SUPER_ADMIN) ||
+      roles.includes(RoleType.OPERATIONAL_DIRECTOR);
+    const isProg = await api.isProgramUser();
+
+    // OPERATIONS/PROGRAM console
+    if (isOps || isProg) {
+      localStorage.setItem(IS_OPS_USER, "true");
+      await ScreenOrientation.unlock();
+      schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
+      return history.replace(PAGES.SIDEBAR_PAGE);
+    }
+
+    // **SWITCH TO SQLITE** before any parent/teacher flows
+    const sqliteApi = await SqliteApi.getInstance();
+    ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(APIMode.SQLITE);
+
+    // NO SCHOOLS → parent
+    if (schools.length === 0) {
+      schoolUtil.setCurrMode(MODES.PARENT);
+      return history.replace(PAGES.DISPLAY_STUDENT);
+    }
+
+    // AUTOUSER → school‐mode
+    const auto = schools.find((s) => s.role === RoleType.AUTOUSER);
+    if (auto) {
+      schoolUtil.setCurrMode(MODES.SCHOOL);
+      return history.replace(PAGES.SELECT_MODE);
+    }
+
+    // else teacher
+    schoolUtil.setCurrMode(MODES.TEACHER);
+    return history.replace(PAGES.DISPLAY_SCHOOLS);
+  };
+
   // Language dropdown options
   const langOptions: LanguageOption[] = Object.entries(APP_LANGUAGES).map(
     ([id, displayName]) => ({ id, displayName })
@@ -503,7 +511,7 @@ const LoginScreen: React.FC = () => {
         setAnimatedLoading(false);
         setIsLoading(false);
         const user = JSON.parse(localStorage.getItem(USER_DATA)!);
-        const userSchools = await getSchoolsForUser(user);
+        const userSchools = await getSchoolsForUser(user.id);
         await redirectUser(userSchools);
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
         localStorage.setItem(USER_DATA, JSON.stringify(user));
@@ -576,7 +584,7 @@ const LoginScreen: React.FC = () => {
         const user: any =
           await ServiceConfig.getI().authHandler.getCurrentUser();
         if (user) {
-          const userSchools = await getSchoolsForUser(user);
+          const userSchools = await getSchoolsForUser(user.id);
           await redirectUser(userSchools);
         }
         setAnimatedLoading(false);
