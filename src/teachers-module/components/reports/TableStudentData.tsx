@@ -3,12 +3,11 @@ import "./TableStudentData.css";
 import { TABLEDROPDOWN } from "../../../common/constants";
 
 interface TableStudentDataProps {
-  studentData: Record<string, any[]>; 
+  studentData: Record<string, any[]>;
   isScore: boolean;
   assignmentMap: Record<string, { belongsToClass: boolean }>;
   assignmentUserRecords?: { assignment_id: string; user_id: string }[];
   selectedType: string;
-  headerDetails?: Map<string, any>[]; 
 }
 
 function getColor(totalScore: number, count: number) {
@@ -23,43 +22,8 @@ function TableStudentData({
   studentData,
   isScore,
   assignmentMap,
-  selectedType,
-  headerDetails
+  selectedType
 }: TableStudentDataProps) {
-
-  const isAllSubjectsMode = 
-    (selectedType === TABLEDROPDOWN.WEEKLY || selectedType === TABLEDROPDOWN.MONTHLY) &&
-    headerDetails !== undefined;
-
-  if (isAllSubjectsMode) {
-    // For each column (weekly or monthly header), sum across all subjects' assignments
-    return (
-      <>
-        {headerDetails.map((map, index) => {
-          let totalCount = 0;
-          let totalScore = 0;
-
-          map.forEach((_, assignmentId) => {
-            const results = studentData[assignmentId] || [];
-            totalCount += results.length;
-            totalScore += results.reduce((sum, r) => sum + (r.score || 0), 0);
-          });
-
-          const bgColor = getColor(totalScore, totalCount);
-
-          return (
-            <td key={index} className="square-cell" style={{ backgroundColor: bgColor }}>
-              <div className="square-cell-container">
-                {isScore ? totalScore : totalCount}
-              </div>
-            </td>
-          );
-        })}
-      </>
-    );
-  }
-
-  // Default rendering (non-all-subjects)
   return (
     <>
       {Object.keys(studentData).map((assignmentId) => {

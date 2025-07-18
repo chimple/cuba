@@ -8,7 +8,6 @@ import {
   HomeWeeklySummary,
   PAGES,
   TableTypes,
-  ALL_SUBJECT
 } from "../../../../common/constants";
 import {
   IonContent,
@@ -34,7 +33,7 @@ const DashBoard: React.FC = ({}) => {
     useState<TableTypes<"course">>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<TableTypes<"user">[]>();
-  const [subjects, setSubjects] = useState<TableTypes<"course">[]>([]);;
+  const [subjects, setSubjects] = useState<TableTypes<"course">[]>([]);
   const [weeklySummary, setWeeklySummary] = useState<HomeWeeklySummary>();
   const [studentProgress, setStudentProgress] = useState<Map<any, any>>();
   const api = ServiceConfig.getI().apiHandler;
@@ -43,23 +42,23 @@ const DashBoard: React.FC = ({}) => {
   const [mappedSubjectOptions, setMappedSubjectOptions] = useState<
     { icon: string; id: string; name: string; subjectDetail: string }[]
   >([]);
+
   useEffect(() => {
-  if (subjects.length > 0) {
-    init();
-  }
-}, [selectedSubject, subjects]);
+    if (selectedSubject) {
+      init();
+    }
+  }, [selectedSubject]);
 
   useEffect(() => {
     initSubject();
   }, []);
-  
+
   const initSubject = async () => {
     const current_class = Util.getCurrentClass();
     const _subjects = await api.getCoursesForClassStudent(
       current_class?.id ?? ""
     );
-    
-    setSubjects(_subjects);    
+    setSubjects(_subjects);
 
     const curriculumIds = Array.from(
       new Set(_subjects.map((s) => s.curriculum_id))
@@ -71,7 +70,6 @@ const DashBoard: React.FC = ({}) => {
     const filteredGradeIds = gradeIds.filter((id): id is string => id !== null);
 
     try {
-      // Fetch curriculums and grades
       const [curriculums, grades] = await Promise.all([
         api.getCurriculumsByIds(filteredCurriculumIds),
         api.getGradesByIds(filteredGradeIds),
@@ -85,7 +83,6 @@ const DashBoard: React.FC = ({}) => {
         return {
           id: subject.id,
           subjectDetail: `${subject.name} ${curriculum?.name ?? "Unknown"}-${grade?.name ?? "Unknown"}`,
-          // icon: curriculum?.image,
           icon: subject?.image || "/assets/icons/DefaultIcon.png",
           name: subject.name,
         };
@@ -101,135 +98,24 @@ const DashBoard: React.FC = ({}) => {
     );
   };
 
-const init = async () => {
-  setIsLoading(true);
-  const _students = await api.getStudentsForClass(current_class?.id ?? "");
-  setStudents(_students);
-  const _classUtil = new ClassUtil();
-
-  if (selectedSubject?.id === ALL_SUBJECT.id) {
-    const studentBandMap = new Map<string, { band: string; entry: any }>();
-
-    // Store results per student using Map for deduping
-    const studentResultsMap = new Map<string, Map<string, TableTypes<"result">>>();
-
-    const bandOrder = [
-      BANDS.REDGROUP,
-      BANDS.YELLOWGROUP,
-      BANDS.GREENGROUP,
-      BANDS.GREYGROUP,
-    ];
-    const bandPriority = Object.fromEntries(
-      bandOrder.map((band, i) => [band, i + 1])
+  const init = async () => {
+    setIsLoading(true);
+    const _students = await api.getStudentsForClass(current_class?.id ?? "");
+    setStudents(_students);
+    const _classUtil = new ClassUtil();
+    const _studentProgress = await _classUtil.divideStudents(
+      current_class?.id ?? "",
+      selectedSubject?.id ?? ""
     );
-
-    let totalAssignments = 0;
-    let totalCompletedAssignments = 0;
-    let totalCompletedStudents = 0;
-    let totalTimeSpent = 0;
-    let totalAverageScore = 0;
-    let subjectsCount = 0;
-
-    const visibleSubjects = subjects.filter(
-      (subject) => subject.name && subject.name !== ALL_SUBJECT.name
+    const _weeklySummary = await _classUtil.getWeeklySummary(
+      current_class?.id ?? "",
+      selectedSubject?.id ?? ""
     );
-
-    for (const subject of visibleSubjects) {
-      const progress = await _classUtil.divideStudents(
-        current_class?.id ?? "",
-        subject.id
-      );
-      const summary = await _classUtil.getWeeklySummary(
-        current_class?.id ?? "",
-        subject.id
-      );
-
-      for (const [band, studentsInBand] of progress.entries()) {
-        for (const entry of studentsInBand) {
-          const student = entry.get("student") as TableTypes<"user">;
-
-          // Ensure band-priority logic
-          const existing = studentBandMap.get(student.id);
-          if (!existing || bandPriority[band] < bandPriority[existing.band]) {
-            studentBandMap.set(student.id, { band, entry });
-          }
-
-          // Get all results for this student & add to their Map
-          const resultList = entry.get("results") as TableTypes<"result">[];
-          let resultsMap = studentResultsMap.get(student.id);
-          if (!resultsMap) {
-            resultsMap = new Map<string, TableTypes<"result">>();
-            studentResultsMap.set(student.id, resultsMap);
-          }
-
-          // Deduplicate by some stable key (e.g. lesson_id)
-          for (const result of resultList) {
-            const key = result.lesson_id ?? result.id ?? JSON.stringify(result); // fallback to unique string
-            resultsMap.set(key, result); // Map will auto-replace duplicates
-          }
-        }
-      }
-
-      totalAssignments += summary.assignments.totalAssignments || 0;
-      totalCompletedAssignments += summary.assignments.asgnmetCmptd || 0;
-      totalCompletedStudents += summary.students.stdCompletd || 0;
-      totalTimeSpent += summary.timeSpent || 0;
-      totalAverageScore += summary.averageScore || 0;
-      subjectsCount += 1;
-      
-    }
-    
-    
-
-    // Merge into final band-wise map
-    const mergedBandWiseStudents = new Map<string, any[]>();
-    for (const band of bandOrder) {
-      mergedBandWiseStudents.set(band, []);
-    }
-
-    for (const { band, entry } of studentBandMap.values()) {
-      const student = entry.get("student") as TableTypes<"user">;
-      const resultsMap = studentResultsMap.get(student.id) || new Map();
-
-      // Convert Map back to an array
-      entry.set("results", Array.from(resultsMap.values()));
-      mergedBandWiseStudents.get(band)!.push(entry);
-    }
-
-    const hasStudentsAndSubject = _students.length > 0;
-    const averageTimeSpent = hasStudentsAndSubject
-      ? parseFloat((totalTimeSpent / subjectsCount).toFixed(2)) : 0
-    const averageScore = hasStudentsAndSubject
-      ? Math.round(totalAverageScore / subjectsCount)
-      : 0;
-    // debugger;
-    const aggregatedSummary: HomeWeeklySummary = {
-      assignments: {
-        totalAssignments,
-        asgnmetCmptd: _students.length > 0 ? totalCompletedAssignments : 0,
-      },
-      students: {
-        totalStudents: _students.length,
-        stdCompletd: _students.length < totalCompletedStudents ? _students.length : totalCompletedStudents
-      },
-      timeSpent: averageTimeSpent,
-      averageScore,
-    };
-    setWeeklySummary(aggregatedSummary);
-    setStudentProgress(mergedBandWiseStudents);
-  } else {
-    // Single-subject branch stays unchanged
-    const _studentProgress = await _classUtil.divideStudents(current_class?.id ?? "",selectedSubject?.id ?? "");
-    const _weeklySummary = await _classUtil.getWeeklySummary(current_class?.id ?? "",selectedSubject?.id ?? "");
 
     setWeeklySummary(_weeklySummary);
     setStudentProgress(_studentProgress);
-  }
-
-  setIsLoading(false);
-};
-
-
+    setIsLoading(false);
+  };
 
   const handleSelectSubject = (subject) => {
     if (subject) {
@@ -245,8 +131,6 @@ const init = async () => {
     });
   };
 
-  const subjectOptionsWithAll = [{ ...ALL_SUBJECT }, ...(mappedSubjectOptions ?? [])];
-
   return !isLoading ? (
     <IonContent>
       <IonRefresher slot="fixed" onIonRefresh={onRefresh}>
@@ -255,23 +139,22 @@ const init = async () => {
       <main className="dashboard-container">
         <div className="dashboard-container-subject-dropdown">
           <ImageDropdown
-          options={subjectOptionsWithAll}
-          selectedValue={{
-            id: selectedSubject?.id ?? "",
-            name: selectedSubject?.name ?? "",
-            icon:
-              (selectedSubject as any)?.icon ??
-              subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.icon ??
-              "",
-            subjectDetail:
-              (selectedSubject as any)?.subject ??
-              subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.subjectDetail ??
-              "",
-          }}
-          onOptionSelect={handleSelectSubject}
-          placeholder={t("Select Language") as string}
-        />
-
+            options={mappedSubjectOptions}
+            selectedValue={{
+              id: selectedSubject?.id ?? "",
+              name: selectedSubject?.name ?? "",
+              icon:
+                (selectedSubject as any)?.icon ??
+                mappedSubjectOptions.find((option) => option.id === selectedSubject?.id)?.icon ??
+                "",
+              subjectDetail:
+                (selectedSubject as any)?.subject ??
+                mappedSubjectOptions.find((option) => option.id === selectedSubject?.id)?.subjectDetail ??
+                "",
+            }}
+            onOptionSelect={handleSelectSubject}
+            placeholder={t("Select Language") as string}
+          />
         </div>
         <WeeklySummary weeklySummary={weeklySummary} />
         <GroupWiseStudents
