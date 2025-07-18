@@ -756,6 +756,7 @@ export enum EVENTS {
   PROFILE_CREATED = "profile_created",
   PROFILE_UPDATED = "profile_updated",
   PROFILE_SKIPPED = "profile_skipped",
+  DEEPLINK_CLICKED = "deeplink_clicked",
 }
 
 export const FCM_TOKENS = "fcmTokens";

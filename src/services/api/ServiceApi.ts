@@ -1076,7 +1076,8 @@ export interface ServiceApi {
     lesson_id: string,
     chapter_id: string,
     course_id: string,
-    type: string
+    type: string,
+    batch_id: string
   ): Promise<boolean>;
 
   /**

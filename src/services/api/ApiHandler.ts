@@ -876,7 +876,8 @@ public async getUserRoleForSchool(
     lesson_id: string,
     chapter_id: string,
     course_id: string,
-    type: string
+    type: string,
+    batch_id: string
   ): Promise<boolean> {
     return this.s.createAssignment(
       student_list,
@@ -889,7 +890,8 @@ public async getUserRoleForSchool(
       lesson_id,
       chapter_id,
       course_id,
-      type
+      type,
+      batch_id
     );
   }
   getTeachersForClass(

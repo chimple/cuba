@@ -3396,7 +3396,8 @@ export class SqliteApi implements ServiceApi {
     lesson_id: string,
     chapter_id: string,
     course_id: string,
-    type: string
+    type: string,
+    batch_id:string
   ): Promise<boolean> {
     const assignmentUUid = uuidv4();
     const timestamp = new Date().toISOString(); // Cache timestamp for reuse
@@ -3405,8 +3406,8 @@ export class SqliteApi implements ServiceApi {
       // Insert into assignment table
       await this.executeQuery(
         `INSERT INTO assignment
-          (id, created_by, starts_at, ends_at, is_class_wise, class_id, school_id, lesson_id, type, created_at, updated_at, is_deleted, chapter_id, course_id)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          (id, created_by, starts_at, ends_at, is_class_wise, class_id, school_id, lesson_id, type, created_at, updated_at, is_deleted, chapter_id, course_id, batch_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           assignmentUUid,
           userId,
@@ -3422,6 +3423,7 @@ export class SqliteApi implements ServiceApi {
           false,
           chapter_id,
           course_id,
+          batch_id
         ]
       );
 
@@ -3441,6 +3443,7 @@ export class SqliteApi implements ServiceApi {
         is_deleted: false,
         chapter_id: chapter_id,
         course_id: course_id,
+        batch_id: batch_id ?? null,
         source: null,
         firebase_id: null,
         is_firebase: null,
