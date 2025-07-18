@@ -158,8 +158,19 @@ const CocosGame: React.FC = () => {
     killGame(e);
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
     setShowDialogBox(false);
+    if(Util.isDeepLink) {
+      const PortPlugin = registerPlugin<any>("Port");
+      PortPlugin.returnDataToRespect();
+    }
     push();
   };
+
+  const sendDataToRespect = () => {
+    if(Util.isDeepLink) {
+      const PortPlugin = registerPlugin<any>("Port");
+      PortPlugin.returnDataToRespect();
+    }
+  }
   const handleLessonEndListner = (event) => {
     saveTempData(event.detail);
     setGameResult(event);
@@ -355,6 +366,7 @@ const CocosGame: React.FC = () => {
                     initialCount.toString()
                   );
                 }
+                sendDataToRespect();
                 push();
               }}
               onContinueButtonClicked={async (e: any) => {
@@ -365,6 +377,7 @@ const CocosGame: React.FC = () => {
                   "------------------the game result ",
                   gameResult.detail.score
                 );
+                sendDataToRespect();
                 push();
               }}
             />
