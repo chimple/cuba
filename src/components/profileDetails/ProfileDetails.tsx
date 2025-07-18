@@ -122,8 +122,9 @@ const ProfileDetails = () => {
       : hasChanges;
 
   const handleSave = async () => {
+    if (isCreatingProfile) return;
     try {
-      setIsCreatingProfile(true)
+      setIsCreatingProfile(true);
       let _studentName = fullName?.trim();
       const state = history.location.state as any;
       const tmpPath = state?.from ?? PAGES.HOME;
@@ -194,6 +195,8 @@ const ProfileDetails = () => {
     } catch (err) {
       console.error("Error saving profile:", err);
       setIsCreatingProfile(false)
+    } finally {
+      setIsCreatingProfile(false);
     }
   };
 
@@ -345,7 +348,7 @@ const ProfileDetails = () => {
             <button
               id="click_on_profile_details_save"
               className="profiledetails-save-button"
-              disabled={!isSaveEnabled}
+              disabled={!isSaveEnabled || isCreatingProfile}
               onClick={handleSave}
             >
               {t("SAVE")}
