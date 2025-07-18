@@ -3945,35 +3945,40 @@ order by
   async getStudentLastTenResults(
     studentId: string,
     courseId: string,
-    assignmentIds: string[]
+    assignmentIds: string[],
+    startDate: string,
+    endDate: string
   ): Promise<TableTypes<"result">[]> {
     const assignmentholders = assignmentIds.map(() => "?").join(", ");
     const res = await this._db?.query(
       `WITH null_assignments AS (
-         SELECT *
-         FROM ${TABLES.Result}
-         WHERE student_id = ?
-         AND course_id = ?
-         AND assignment_id IS NULL
-         ORDER BY created_at DESC
-         LIMIT 5
-       ),
-       non_null_assignments AS (
-         SELECT *
-         FROM ${TABLES.Result}
-         WHERE student_id = ?
-         AND course_id = ?
-         AND assignment_id IS NOT NULL
-         ORDER BY created_at DESC
-         LIMIT 5
-       )
-       SELECT *
-       FROM null_assignments
-       UNION ALL
-       SELECT *
-       FROM non_null_assignments
-       ORDER BY created_at DESC
-       LIMIT 10;`,
+      SELECT *
+      FROM ${TABLES.Result}
+      WHERE student_id = ?
+        AND course_id = ?
+        AND assignment_id IS NULL
+      ORDER BY created_at DESC
+      LIMIT 5
+    ),
+    non_null_assignments AS (
+      SELECT *
+      FROM ${TABLES.Result}
+      WHERE student_id = ?
+        AND course_id = ?
+        AND assignment_id IN (${assignmentholders})
+      ORDER BY created_at DESC
+      LIMIT 5
+    )
+    SELECT *
+    FROM (
+      SELECT * FROM null_assignments
+      UNION ALL
+      SELECT * FROM non_null_assignments
+    ) AS combined
+    WHERE created_at BETWEEN ? AND ?
+    ORDER BY created_at DESC
+    LIMIT 10;
+    `,
       [studentId, courseId, studentId, courseId]
     );
     return res?.values ?? [];
@@ -5463,10 +5468,23 @@ order by
     return await this._serverApi.program_activity_stats(programId);
   }
 
-  async getManagersAndCoordinators(): Promise<
-    { user: TableTypes<"user">; role: string }[]
-  > {
-    return await this._serverApi.getManagersAndCoordinators();
+  async getManagersAndCoordinators(
+    page: number = 1,
+    search: string = "",
+    limit: number = 10,
+    sortBy: keyof TableTypes<"user"> = "name",
+    sortOrder: "asc" | "desc" = "asc"
+  ): Promise<{
+    data: { user: TableTypes<"user">; role: string }[];
+    totalCount: number;
+  }> {
+    return await this._serverApi.getManagersAndCoordinators(
+      page,
+      search,
+      limit,
+      sortBy,
+      sortOrder
+    );
   }
 
   async school_activity_stats(schoolId: string): Promise<{
