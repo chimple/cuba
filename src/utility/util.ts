@@ -106,11 +106,10 @@ export class Util {
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = "lastModalShown";
   static isDeepLink: boolean = false;
-  // Always get respect mode from localStorage
+  static isDeepLinkPending: boolean = false;
   static get isRespectMode(): boolean {
     return localStorage.getItem("isRespectMode") === "true";
   }
-
   public api = ServiceConfig.getI().apiHandler;
 
   // public static convertCourses(_courses: Course1[]): Course1[] {
@@ -2167,7 +2166,7 @@ export class Util {
       const PortPlugin = registerPlugin<any>("Port");
       const data = await PortPlugin.isAppInstalledCheck();
       console.log("data isRespect data--> ", JSON.stringify(data));
-      localStorage.setItem(isRespectMode, data.isRespect);  
+      localStorage.setItem(isRespectMode, data.isRespect);
       return data.isRespect;
     } catch (error) {
       console.log("error isRespect data--> ", JSON.stringify(error));
