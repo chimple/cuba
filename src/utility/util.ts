@@ -793,6 +793,11 @@ export class Util {
       if (!window.cc) {
         return;
       }
+      const currentScene = window.cc.director.getScene();
+      if (currentScene) {
+        currentScene.destroyAllChildren?.();
+        currentScene.destroy?.();
+      }
       const settings = window._CCSettings;
       const launchScene = settings.launchScene;
       const bundle = window.cc.assetManager.bundles.find(function (b) {

@@ -164,6 +164,7 @@ const CocosGame: React.FC = () => {
     }
     Util.isDeepLink = false;
     PortPlugin.sendLaunchData().lessonId = "";
+    CapApp.exitApp();
     push();
   };
 
@@ -371,6 +372,7 @@ const CocosGame: React.FC = () => {
                   );
                 }
                 sendDataToRespect();
+                CapApp.exitApp();
                 push();
               }}
               onContinueButtonClicked={async (e: any) => {
@@ -382,6 +384,7 @@ const CocosGame: React.FC = () => {
                   gameResult.detail.score
                 );
                 sendDataToRespect();
+                CapApp.exitApp();
                 push();
               }}
             />

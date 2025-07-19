@@ -152,8 +152,34 @@ const App: React.FC = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
   const [isActive, setIsActive] = useState(true);
+  const DEEPLINK_PENDING_KEY = "deeplinkPending";
+  const [isAuthGlobal, setIsAuthGlobal] = useState<Boolean | null>(null);
+  const [gameRouteKey, setGameRouteKey] = useState(0);
   const handleLessonClick = useHandleLessonClick();
 
+  useEffect(() => {
+    let pollInterval: NodeJS.Timeout | null = null;
+    async function pollAuthAndLaunch() {
+      if (localStorage.getItem(DEEPLINK_PENDING_KEY) === "true") {
+        const authHandler = ServiceConfig.getI()?.authHandler;
+        const isUserLoggedIn = await authHandler?.isUserLoggedIn();
+        if (isUserLoggedIn) {
+          handleLessonClick(null, true, undefined, true);
+          localStorage.removeItem(DEEPLINK_PENDING_KEY);
+          if (pollInterval) clearInterval(pollInterval);
+        }
+      } else {
+        console.log("No pending deeplink flag.");
+      }
+    }
+    if (localStorage.getItem(DEEPLINK_PENDING_KEY) === "true") {
+      console.log("Starting polling for auth...");
+      pollInterval = setInterval(pollAuthAndLaunch, 1000);
+    }
+    return () => {
+      if (pollInterval) clearInterval(pollInterval);
+    };
+  }, []);
 
   useEffect(() => {
     const handleOnline = () => {
@@ -260,14 +286,74 @@ const App: React.FC = () => {
     });
     updateAvatarSuggestionJson();
 
-    const sendLaunch = async () => {
+    const sendLaunch = async (event) => {
       const authHandler = ServiceConfig.getI()?.authHandler;
       const isUserLoggedIn = await authHandler?.isUserLoggedIn();
-      if (!isUserLoggedIn) {
-        await Toast.show({
-          text: "Couldn't launch the lesson, please sign in with RESPECT.",
-          duration: "long",
+      // Always fetch latest deeplink data from PortPlugin
+      let params = "";
+      let courseId, chapterId, lessonId;
+      try {
+        // Use portPlugin instance with correct type
+        const portPlugin = registerPlugin<any>("Port");
+        const data = await portPlugin.sendLaunchData();
+        lessonId = data.lessonId;
+        // Fetch lesson details from API using lessonId
+        const api = ServiceConfig.getI().apiHandler;
+        let lessonObj: any = undefined;
+        if (lessonId) {
+          lessonObj = await api.getLesson(lessonId);
+        }
+        if (
+          lessonObj !== undefined &&
+          lessonObj.cocos_subject_code &&
+          lessonObj.cocos_chapter_code &&
+          lessonObj.cocos_lesson_id
+        ) {
+          courseId = lessonObj.cocos_subject_code;
+          chapterId = lessonObj.cocos_chapter_code;
+          lessonId = lessonObj.cocos_lesson_id;
+          params = `?courseid=${courseId}&chapterid=${chapterId}&lessonid=${lessonId}`;
+          // Persist params for future launches
+          localStorage.setItem("deeplinkParams", JSON.stringify({ courseId, chapterId, lessonId }));
+        } else {
+          console.warn("Lesson object from API is incomplete:", lessonObj);
+        }
+      } catch (err) {
+        console.error("Error calling PortPlugin.sendLaunchData:", err);
+        // Fallback to localStorage if available
+        const storedParams = localStorage.getItem("deeplinkParams");
+        if (storedParams) {
+          try {
+            const parsed = JSON.parse(storedParams);
+            if (parsed.courseId && parsed.chapterId && parsed.lessonId) {
+              courseId = parsed.courseId;
+              chapterId = parsed.chapterId;
+              lessonId = parsed.lessonId;
+              params = `?courseid=${courseId}&chapterid=${chapterId}&lessonid=${lessonId}`;
+            } else {
+              console.warn("Stored params incomplete:", parsed);
+            }
+          } catch (err2) {
+            console.error("Error parsing stored params:", err2);
+          }
+        }
+      }
+      if (isUserLoggedIn) {
+        handleLessonClick(null, true, undefined, true);
+        if (params) {
+          window.location.href = PAGES.GAME + params;
+          setGameRouteKey(prev => prev + 1);
+          history.push(PAGES.GAME + params, {
+          url: "chimple-lib/index.html" + params,
+          lessonId: lessonId,
+          courseDocId: courseId,
+          from: history.location.pathname + `?${CONTINUE}=true`,
         });
+        } else {
+          console.warn("No parameters found for lesson/game route. Not navigating.");
+        }
+      } else {
+        localStorage.setItem(DEEPLINK_PENDING_KEY, "true");
       }
     };
     document.addEventListener("sendLaunch", sendLaunch);
@@ -482,6 +568,7 @@ const App: React.FC = () => {
             const lessonId = parts[2];
 
             const params = `?courseid=${courseId}&chapterid=${chapterId}&lessonid=${lessonId}`;
+            setGameRouteKey(prev => prev + 1);
             history.replace(PAGES.GAME + params, {
               url: "chimple-lib/index.html" + params,
               from: history.location.pathname + `?${CONTINUE}=true`,
@@ -507,6 +594,27 @@ const App: React.FC = () => {
       window.removeEventListener("appUrlOpen", handleDeepLink);
     };
   }, []);
+  useEffect(() => {
+    // Check authentication globally
+    const checkAuthGlobal = async () => {
+      try {
+        const authHandler = ServiceConfig.getI()?.authHandler;
+        const isUserLoggedIn = await authHandler?.isUserLoggedIn();
+        setIsAuthGlobal(!!isUserLoggedIn);
+      } catch {
+        setIsAuthGlobal(false);
+      }
+    };
+    checkAuthGlobal();
+  }, []);
+
+  useEffect(() => {
+    // Launch deeplink lesson after login, globally
+    if (isAuthGlobal === true && localStorage.getItem(DEEPLINK_PENDING_KEY) === "true") {
+      handleLessonClick(null, true, undefined, true);
+      localStorage.removeItem(DEEPLINK_PENDING_KEY);
+    }
+  }, [isAuthGlobal]);
 
   return (
     <IonApp>
@@ -523,7 +631,7 @@ const App: React.FC = () => {
               <Login />
             </Route>
             <ProtectedRoute path={PAGES.GAME} exact={true}>
-              <CocosGame />
+              <CocosGame key={gameRouteKey}/>
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.END} exact={true}>
               <End />
