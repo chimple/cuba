@@ -264,6 +264,7 @@ const App: React.FC = () => {
       const authHandler = ServiceConfig.getI()?.authHandler;
       const isUserLoggedIn = await authHandler?.isUserLoggedIn();
       if (!isUserLoggedIn) {
+        Util.pendingDeepLink = true;
         await Toast.show({
           text: "Couldn't launch the lesson, please sign in with RESPECT.",
           duration: "long",

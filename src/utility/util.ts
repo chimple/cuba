@@ -100,6 +100,7 @@ export class Util {
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = "lastModalShown";
   static isDeepLink: boolean = false;
+  static pendingDeepLink:boolean = false;
 
   public api = ServiceConfig.getI().apiHandler;
 

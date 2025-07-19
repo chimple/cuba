@@ -264,10 +264,6 @@ public void shareUserId(PluginCall call) {
         call.resolve(result);
     }
 
-
-
-
-
     @PluginMethod
     public void returnDataToRespect(PluginCall call) {
         Log.d(TAG, "Calling returnDataToRespect");
@@ -279,4 +275,25 @@ public void shareUserId(PluginCall call) {
             call.reject("Activity not found");
         }
     }
+
+//    @PluginMethod
+//    public void simulateDeepLink(PluginCall call) {
+//        Log.d(TAG, "Simulating deep link via PortPlugin");
+//        MainActivity activity = MainActivity.instance;
+//        if (activity != null) {
+//            // Create a fake intent with the same data as the original deep link
+//            Intent intent = new Intent();
+//            // Reuse the last known activity_id or any other params you want
+//            if (activity_id != null && !activity_id.isEmpty()) {
+//                Uri uri = Uri.parse("yourapp://something?activity_id=" + activity_id);
+//                intent.setData(uri);
+//                activity.handleDeepLink(intent);
+//                call.resolve();
+//            } else {
+//                call.reject("No activity_id found to simulate deep link");
+//            }
+//        } else {
+//            call.reject("MainActivity instance is null");
+//        }
+//    }
 }

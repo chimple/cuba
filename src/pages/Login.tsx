@@ -14,7 +14,7 @@ import {
   PAGES,
   TableTypes,
 } from "../common/constants";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, registerPlugin } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
 import TextBox from "../components/TextBox";
 import React from "react";
@@ -40,7 +40,6 @@ import {
 import { RoleType } from "../interface/modelInterfaces";
 // import { Plugins } from "@capacitor/core";
 import { OneRosterAuth } from "../services/auth/OneRosterAuth";
-
 declare global {
   // eslint-disable-next-line no-var
   var recaptchaVerifier: any;
@@ -829,6 +828,68 @@ const Login: React.FC = () => {
                                 JSON.stringify(result)
                               );
                               history.replace(PAGES.DISPLAY_STUDENT);
+                              
+                                // Check for pending deep link
+                                console.log("in login.tsx pendingDeepLink is :", Util.pendingDeepLink);
+
+                                if (Util.pendingDeepLink) {
+                                  const isUserLoggedIn = await ServiceConfig.getI().authHandler.isUserLoggedIn();
+                                  if (isUserLoggedIn && history.location.pathname === PAGES.DISPLAY_STUDENT) {
+                                    Util.pendingDeepLink = false;
+                                    try {
+                                      console.log("launching pending deeplink");
+                                      const PortPlugin = registerPlugin<any>("Port");
+                                      // await PortPlugin.sendLaunch();
+                                      // await PortPlugin.simulateDeepLink();
+                                      const data = await PortPlugin.sendLaunchData();
+                                      const api = ServiceConfig.getI().apiHandler;
+                                      const lesson = await api.getLesson(data.lessonId);
+                                      console.log("lesson object --> ", JSON.stringify(lesson, null, 2));
+                                      document.dispatchEvent(new CustomEvent("sendLaunch"));
+                                      
+                                    } catch (e) {
+                                      console.error("Failed to launch deep link:", e);
+                                    }
+                                  }
+                                  else{
+                                    console.log("isUserLoogeIn :", isUserLoggedIn);
+                                    console.log("path is", history.location.pathname);
+                                  }
+                                }
+                                // if (Util.pendingDeepLink) {
+                                //   Util.pendingDeepLink = false;
+                                //   const PortPlugin = registerPlugin<any>("Port");
+                                //   setTimeout(() => {
+                                //     PortPlugin.sendLaunch();
+                                //   }, 8000);
+                                //   // document.dispatchEvent(new CustomEvent("sendLaunch"));
+
+
+                                  
+
+                                //   // const data = await newPortPlugin.sendLaunchData();
+                                //   // const api = ServiceConfig.getI().apiHandler;    
+                              
+                                //   // console.log("LessonCard course:", JSON.stringify(data));
+                                
+                                //   // if (true) {
+                                //   //   const lesson = await api.getLesson(data.lessonId);
+                                //   //   console.log("lesson object --> ", JSON.stringify(lesson, null, 2));
+                              
+                                //   //   const params = `?courseid=${lesson?.cocos_subject_code}&chapterid=${lesson?.cocos_chapter_code}&lessonid=${lesson?.cocos_lesson_id}`;
+                                //   //   Util.isDeepLink = true;
+                              
+                                //   //     history.push(PAGES.GAME + params, {
+                                //   //       url: "chimple-lib/index.html" + params,
+                                //   //       lessonId: lesson?.cocos_lesson_id,
+                                //   //       courseDocId: lesson?.subject_id,
+                                //   //       from: history.location.pathname + `?${CONTINUE}=true`,
+                                //   //     });
+                              
+                                //   //   console.log("LessonCard course:", JSON.stringify(history));
+                              
+                                //   //   }
+                                // }
                             } else {
                               setIsLoading(false);
                               setIsInitialLoading(false);

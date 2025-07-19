@@ -7,6 +7,7 @@ import { use } from "i18next";
 import { useHandleLessonClick } from "./utility/lessonUtils";
 
 export default function ProtectedRoute({ children, ...rest }) {
+  console.log("inside protectedroute component");
   const [isAuth, setIsAuth] = useState<Boolean | null>(null); // initially undefined
   const [isTcAccept, setTcAccept] = useState<any>();
   const handleLessonClick = useHandleLessonClick();
@@ -24,6 +25,7 @@ export default function ProtectedRoute({ children, ...rest }) {
     };
   }, []);
   const checkAuth = async () => {
+    console.log("inside checkAuth function in protectedroute");
     try {
       const authHandler = ServiceConfig.getI()?.authHandler;
       const isUserLoggedIn = await authHandler?.isUserLoggedIn();

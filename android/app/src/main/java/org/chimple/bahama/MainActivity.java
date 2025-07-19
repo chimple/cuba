@@ -28,6 +28,7 @@ public class MainActivity extends BridgeActivity {
     static String activity_id = "";
     static boolean isRespect = false;
 
+    String TAG = "MainActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         instance = this;
@@ -74,7 +75,16 @@ public class MainActivity extends BridgeActivity {
         handleDeepLink(intent);
     }
 
-    private void handleDeepLink(Intent intent) {
+    public void handleDeepLink(Intent intent) {
+        Bundle extras = intent.getExtras();
+        Log.d("MainActivity", "intent is extra are null");
+        if (extras != null) {
+            for (String key : extras.keySet()) {
+                Object value = extras.get(key);
+                Log.d("MainActivity", "Extra: " + key + " = " + String.valueOf(value));
+            }
+        }
+        Log.d("TAG", "intent is " + intent);
         if (intent == null || intent.getData() == null) {
             return;
         }
