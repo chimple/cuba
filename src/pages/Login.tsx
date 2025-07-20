@@ -814,12 +814,9 @@ const Login: React.FC = () => {
                           try {
                             setIsLoading(true);
                             setIsInitialLoading(true);
-                            const result: any =
-                              await ServiceConfig.getI().authHandler.loginWithRespect();
-                            console.log(
-                              "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
-                              result
-                            );
+                            await ServiceConfig.getI().authHandler.loginWithRespect();
+                            const result: any = await OneRosterAuth.getInstance().getCurrentUser();
+                            console.log("🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:", result);
 
                             if (!!result) {
                               setIsLoading(false);
@@ -829,7 +826,7 @@ const Login: React.FC = () => {
                                 JSON.stringify(result)
                               );
                               history.replace(PAGES.DISPLAY_STUDENT);
-  
+
                             if (Util.isDeepLinkPending) {
                             // Reset the flag BEFORE dispatching to avoid double-trigger/race conditions
                               Util.isDeepLinkPending = false;
@@ -848,7 +845,7 @@ const Login: React.FC = () => {
                                   } catch (e) {
                                     console.error("Failed to dispatch sendLaunch event:", e);
                                   }
-                                }, 500); // 500ms is usually enough for navigation/render to complete
+                                }, 700); // 700ms is usually enough for navigation/render to complete
                               }
                             } else {
                               setIsLoading(false);

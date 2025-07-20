@@ -83,6 +83,7 @@ import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { URLOpenListenerEvent } from "@capacitor/app";
 import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
+import { OneRosterAuth } from "../services/auth/OneRosterAuth";
 
 
 declare global {
@@ -1628,7 +1629,11 @@ export class Util {
         return true;
       }
 
-      const student = await Util.getCurrentStudent();
+      let student = await Util.getCurrentStudent();
+
+      if(!student) {
+        student = await OneRosterAuth.getInstance().getCurrentUser();
+      }
 
       if (!student) {
         console.error("Student is undefined or null");

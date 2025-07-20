@@ -1,6 +1,7 @@
 import { IonContent, IonPage, useIonToast } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router";
+import { CURRENT_USER } from "../common/constants";
 import {
   EVENTS,
   GAME_END,
@@ -25,6 +26,7 @@ import { t } from "i18next";
 import { AvatarObj } from "../components/animation/Avatar";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
+import { parseJSON } from "date-fns";
 const CocosGame: React.FC = () => {
   const history = useHistory();
   console.log("cocos game", history.location.state);
@@ -252,16 +254,17 @@ const CocosGame: React.FC = () => {
       }
 
       const assignment = state?.assignment;
-      const currentStudent = api.currentStudent!;
+      const currentStudent = localStorage.getItem(CURRENT_USER);
+      const currentStudentObj = currentStudent ? JSON.parse(currentStudent) : undefined;
       const data = lessonData;
       let assignmentId = assignment ? assignment?.id : null;
-      const isStudentLinked = await api.isStudentLinked(currentStudent?.id);
+      const isStudentLinked = await api.isStudentLinked(currentStudentObj?.id? currentStudentObj.id : "");
       let classId;
       let schoolId;
       let chapter_id;
       if (isStudentLinked) {
         const studentResult = await api.getStudentClassesAndSchools(
-          currentStudent.id
+          currentStudentObj?.id? currentStudentObj.id : ""
         );
         if (!!studentResult && studentResult.classes.length > 0) {
           classId = studentResult.classes[0]?.id;
@@ -271,7 +274,7 @@ const CocosGame: React.FC = () => {
           const result = await api.getPendingAssignmentForLesson(
             lesson?.id || "",
             classId,
-            currentStudent?.id
+            currentStudentObj?.id? currentStudentObj.id : ""
           );
           if (result) {
             assignmentId = result?.id;
@@ -282,7 +285,7 @@ const CocosGame: React.FC = () => {
         chapter_id = await api.getChapterIDByLessonID(
           lesson?.id || "",
           undefined,
-          currentStudent?.id
+          currentStudentObj?.id
         );
       }
       let avatarObj = AvatarObj.getInstance();
@@ -296,7 +299,7 @@ const CocosGame: React.FC = () => {
       avatarObj.weeklyTimeSpent["sec"] = computeSec;
       avatarObj.weeklyPlayedLesson++;
       const result = await api.updateResult(
-        currentStudent?.id,
+        currentStudentObj?.id? currentStudentObj.id : "",
         courseDocId,
         lesson?.id,
         data.score!,
