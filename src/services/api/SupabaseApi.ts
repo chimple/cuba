@@ -354,29 +354,47 @@ export class SupabaseApi implements ServiceApi {
       }
 
       if (uploadId) {
-        // console.log("📡 Subscribing to status for upload_id:", uploadId);
+        console.log(
+          "📡 Subscribing to realtime status for upload_id:",
+          uploadId
+        );
         return new Promise((resolve) => {
-          if (!this.supabase) return false;
-          setTimeout(async () => {
-            if (!this.supabase) return false;
-            if (!uploadId) {
-              console.warn("❗ uploadId is undefined. Skipping query.");
-              return;
-            }
-            const { data } = await this.supabase
-              .from("upload_queue")
-              .select("status")
-              .eq("id", uploadId)
-              .single();
-            if (data?.status === "failed") {
-              // console.log("⏱️ Upload status: Upload failed.");
-              resolve(false);
-            }
-            if (data?.status === "success") {
-              // console.log("⏱️ Upload status: Upload Success.");
-              resolve(true);
-            }
-          }, 5000);
+          const supabase = this.supabase;
+          if (!supabase) return resolve(false);
+          const channel = supabase
+            .channel(`upload-status-${uploadId}`)
+            .on(
+              "postgres_changes",
+              {
+                event: "UPDATE",
+                schema: "public",
+                table: "upload_queue",
+                filter: `id=eq.${uploadId}`,
+              },
+              (payload) => {
+                const status = payload.new?.status;
+                console.log("🔄 Realtime update received:", status);
+                if (status === "success") {
+                  console.log("✅ Upload completed successfully.");
+                  supabase.removeChannel(channel);
+                  resolve(true);
+                } else if (status === "failed") {
+                  console.log("❌ Upload failed.");
+                  supabase.removeChannel(channel);
+                  resolve(false);
+                }
+              }
+            )
+            .subscribe((status) => {
+              if (status !== "SUBSCRIBED") {
+                console.error("⚠️ Realtime subscription failed:", status);
+                resolve(false);
+              } else {
+                console.log(
+                  "📡 Realtime subscription active for upload_queue."
+                );
+              }
+            });
         });
       } else {
         console.warn(
@@ -4339,7 +4357,7 @@ export class SupabaseApi implements ServiceApi {
     courseId: string,
     assignmentIds: string[],
     startDate: string,
-    endDate: string,
+    endDate: string
   ): Promise<TableTypes<"result">[]> {
     if (!this.supabase) return [];
 
@@ -6803,12 +6821,15 @@ export class SupabaseApi implements ServiceApi {
       if (!coordinators) {
         return { data: [], totalCount: 0 };
       }
+      const uniqueUsersMap = new Map();
+      for (const c of coordinators) {
+        if (!uniqueUsersMap.has(c.user.id)) {
+          uniqueUsersMap.set(c.user.id, { user: c.user, role: c.role });
+        }
+      }
       return {
-        data: coordinators.map((c) => ({
-          user: c.user!,
-          role: c.role!,
-        })),
-        totalCount: count || 0,
+        data: Array.from(uniqueUsersMap.values()),
+        totalCount: uniqueUsersMap.size,
       };
     }
     return { data: [], totalCount: 0 };
