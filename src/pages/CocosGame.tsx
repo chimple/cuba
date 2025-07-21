@@ -34,7 +34,8 @@ const CocosGame: React.FC = () => {
   const iFrameUrl = state?.url;
   console.log("iFrameUrl", state?.url, iFrameUrl);
   const [isLoading, setIsLoading] = useState<any>();
-  const [present] = useIonToast();
+  const [isStatementSent, setIsStatementSent] = useState(false);
+  const [present, dismiss] = useIonToast();
   const [showDialogBox, setShowDialogBox] = useState(false);
   // let gameResult : any;
   const [gameResult, setGameResult] = useState<any>();
@@ -178,8 +179,27 @@ const CocosGame: React.FC = () => {
     PortPlugin.sendLaunchData().lessonId = "";
   }
   const handleLessonEndListner = (event) => {
-    saveTempData(event.detail);
-    setGameResult(event);
+    setIsStatementSent(false);
+    setIsLoading(true);
+    // Show toast while saving the statement
+    present({
+      message: "Please wait, Saving the Game Result.",
+      duration: 0, // will show until statement saved
+      position: "bottom",
+      color: "primary",
+      buttons: [],
+    });
+    // Save temp data and send statement before showing dialog
+    saveTempData(event.detail).then(() => {
+      setIsStatementSent(true);
+      setIsLoading(false);
+      setGameResult(event);
+      dismiss();
+    }).catch((err) => {
+      setIsLoading(false);
+      dismiss();
+      console.error("Error saving temp data and sending statement", err);
+    });
   };
   async function init() {
     const currentStudent = Util.getCurrentStudent();
@@ -341,7 +361,7 @@ const CocosGame: React.FC = () => {
     <IonPage id="cocos-game-page">
       <IonContent>
         <Loading isLoading={isLoading} />
-        {showDialogBox && (
+        {showDialogBox && isStatementSent && (
           <div>
             <ScoreCard
               title={t("🎉Congratulations🎊")}
@@ -358,7 +378,6 @@ const CocosGame: React.FC = () => {
               }}
               onYesButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
-                console.log("--------------line 200 game result", gameResult);
                 setIsLoading(true);
                 await updateLessonAsFavorite();
                 console.log(
