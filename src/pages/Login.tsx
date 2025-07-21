@@ -815,7 +815,9 @@ const Login: React.FC = () => {
                             setIsLoading(true);
                             setIsInitialLoading(true);
                             await ServiceConfig.getI().authHandler.loginWithRespect();
-                            const result: any = await OneRosterAuth.getInstance().getCurrentUser();
+                            const auth = ServiceConfig.getI().authHandler;
+                            const currUser = await auth.getCurrentUser();
+                            const result: any = currUser;
                             console.log("🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:", result);
 
                             if (!!result) {

@@ -1632,7 +1632,9 @@ export class Util {
       let student = await Util.getCurrentStudent();
 
       if(!student) {
-        student = await OneRosterAuth.getInstance().getCurrentUser();
+        const auth = ServiceConfig.getI().authHandler;
+        const currUser = await auth.getCurrentUser();
+        student = currUser;
       }
 
       if (!student) {
