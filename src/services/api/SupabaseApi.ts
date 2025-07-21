@@ -1290,7 +1290,7 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase) return;
 
     const res = await this.supabase.rpc("delete_student", {
-      student_id: studentId,
+      p_student_id: studentId,
     });
     if (res.error) {
       throw res.error;

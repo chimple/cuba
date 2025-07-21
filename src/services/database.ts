@@ -2243,7 +2243,7 @@ export type Database = {
         Returns: string;
       };
       delete_student: {
-        Args: { student_id: string };
+        Args: { p_student_id: string };
         Returns: undefined;
       };
       delete_user: {
