@@ -558,7 +558,7 @@ if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
   </div>
 
   {selectedType === TABLEDROPDOWN.CHAPTER ? (
-    <div style={{width: '45%'}} className="chapter-type-row"> {/* ✅ Only for CHAPTER */}
+    <div >
       <ImageDropdown
           options={subjectOptionsWithAll}
           selectedValue={{
@@ -576,15 +576,16 @@ if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
           onOptionSelect={handleSelectSubject}
           placeholder={t("Select Language") as string}
         />
-
-      <CustomDropdown
-        options={mappedChaptersOptions ?? []}
-        onOptionSelect={handleSelectChapter}
-        selectedValue={{
-          id: selectedChapter?.id ?? "",
-          name: selectedChapter?.name ?? "",
-        }}
-      />
+      <div className="custom-chapter-dropdown">
+        <CustomDropdown
+          options={mappedChaptersOptions ?? []}
+          onOptionSelect={handleSelectChapter}
+          selectedValue={{
+            id: selectedChapter?.id ?? "",
+            name: selectedChapter?.name ?? "",
+          }}
+        />
+      </div>
     </div>
   ) : (
     <ImageDropdown
