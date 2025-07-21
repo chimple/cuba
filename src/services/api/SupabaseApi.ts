@@ -6813,9 +6813,12 @@ export class SupabaseApi implements ServiceApi {
         console.error("Error fetching coordinators", coordError);
         return [];
       }
-
-      return (coordinators || [])
-        .filter((c) => c.user !== null && c.role !== null)
+      const uniqueCoordinatorMap = new Map(
+        (coordinators || [])
+          .filter((c) => c.user && c.user.id) 
+          .map((c) => [c.user!.id, c]) 
+      );
+      return Array.from(uniqueCoordinatorMap.values())
         .map((c) => ({
           user: c.user!,
           role: c.role!,
