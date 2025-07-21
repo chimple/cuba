@@ -70,6 +70,7 @@ const SelectMode: FC = () => {
   const [stage, setStage] = useState(STAGES.MODE);
   const [isOkayButtonDisabled, setIsOkayButtonDisabled] = useState(true);
   const init = async () => {
+    
     const urlParams = new URLSearchParams(window.location.search);
     const setTab = urlParams.get("tab");
     
@@ -115,9 +116,13 @@ const SelectMode: FC = () => {
         setStage(STAGES.MODE);
       }
     } else if (currentMode === MODES.TEACHER) {
-        history.replace(PAGES.DISPLAY_SCHOOLS);
-        return;
-    } else if (currentMode === MODES.OPS_CONSOLE) {
+      const teacherHomePage = JSON.parse(localStorage.getItem(USER_SELECTION_STAGE) ?? "false");
+      if (teacherHomePage) {
+        return history.replace(PAGES.HOME_PAGE);
+      } else {
+        return history.replace(PAGES.DISPLAY_SCHOOLS);
+      }
+    }else if (currentMode === MODES.OPS_CONSOLE) {
         history.replace(PAGES.SIDEBAR_PAGE);
         return;
     }

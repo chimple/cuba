@@ -144,7 +144,9 @@ export class ClassUtil {
       const results = await this.api.getStudentLastTenResults(
         student.id,
         courseId,
-        assignmentIds
+        assignmentIds,
+        currentDateTimeStamp,
+        oneWeekBackTimeStamp,
       );
       const selfPlayedLength = results.filter(
         (result) => result.assignment_id === null
@@ -482,7 +484,7 @@ export class ClassUtil {
       startTimeStamp,
       /* isClassWise = */ false,
       isLiveQuiz,
-      true
+      false
     );
 
     const assignmentIds = _assignments?.map((asgmt) => asgmt.id) || [];

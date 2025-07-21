@@ -21,11 +21,11 @@ export enum MUTATE_TYPES {
 }
 
 export enum LOGIN_TYPES {
-  PHONE="phone",
-  STUDENT= "student",
-  EMAIL= 'email',
-  OTP= 'otp',
-  FORGET_PASS= "forget_pass"
+  PHONE = "phone",
+  STUDENT = "student",
+  EMAIL = "email",
+  OTP = "otp",
+  FORGET_PASS = "forget_pass",
 }
 
 export enum TABLES {
@@ -571,6 +571,8 @@ export const TYPE = "type";
 export const APP_NAME = "Kids";
 export const SCHOOL = "school";
 export const CLASS = "class";
+export const CLASSES = "classes";
+export const DELETED_CLASSES = "deleted_classes";
 export const USER_ROLE = "userRole";
 export const CURRENT_TEACHER = "currentTeacher";
 export const CURRENT_COURSE = "currentCourse";
@@ -722,7 +724,7 @@ export enum MODES {
   PARENT = "PARENT",
   SCHOOL = "SCHOOL",
   TEACHER = "TEACHER",
-  OPS_CONSOLE = "OPS_CONSOLE"
+  OPS_CONSOLE = "OPS_CONSOLE",
 }
 
 export enum ACTION {
@@ -754,6 +756,7 @@ export enum EVENTS {
   PROFILE_CREATED = "profile_created",
   PROFILE_UPDATED = "profile_updated",
   PROFILE_SKIPPED = "profile_skipped",
+  DEEPLINK_CLICKED = "deeplink_clicked",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -894,7 +897,7 @@ export const PROFILE_DETAILS_GROWTHBOOK_VARIATION = {
   AFTER_LOGIN_CONTROL: "After Login Control",
   AFTER_LOGIN_V1: "After Login V1",
   AFTER_LOGIN_V2: "After Login V2",
-}
+};
 
 export const ACTION_TYPES = {
   PROFILE_CREATED: "profile_created",
@@ -911,3 +914,10 @@ export enum AGE_OPTIONS {
   NINE = "9",
   GREATER_THAN_EQUAL_10 = "≥10",
 }
+
+export const ROLE_PRIORITY: Record<string, number> = {
+  super_admin: 1,
+  operational_director: 2,
+  program_manager: 3,
+  field_coordinator: 4,
+};

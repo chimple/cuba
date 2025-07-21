@@ -411,6 +411,7 @@ const placeElement = (element: SVGGElement, x: number, y: number) => {
         <PathwayModal
           text={modalText}
           onClose={() => setModalOpen(false)}
+          onConfirm={() => setModalOpen(false)}
           animate={shouldAnimate}
         />
       )}
