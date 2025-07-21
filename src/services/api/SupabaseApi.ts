@@ -4339,7 +4339,7 @@ export class SupabaseApi implements ServiceApi {
     courseId: string,
     assignmentIds: string[],
     startDate: string,
-    endDate: string,
+    endDate: string
   ): Promise<TableTypes<"result">[]> {
     if (!this.supabase) return [];
 
@@ -6803,11 +6803,22 @@ export class SupabaseApi implements ServiceApi {
       if (!coordinators) {
         return { data: [], totalCount: 0 };
       }
+      const uniqueUsers = new Map<
+        string,
+        { user: TableTypes<"user">; role: string }
+      >();
+      coordinators.forEach((c) => {
+        if (c.user && !uniqueUsers.has(c.user.id)) {
+          uniqueUsers.set(c.user.id, {
+            user: c.user,
+            role: c.role!,
+          });
+        }
+      });
+
+      const uniqueData = Array.from(uniqueUsers.values());
       return {
-        data: coordinators.map((c) => ({
-          user: c.user!,
-          role: c.role!,
-        })),
+        data: uniqueData,
         totalCount: count || 0,
       };
     }
