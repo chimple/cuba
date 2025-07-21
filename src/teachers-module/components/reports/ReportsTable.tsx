@@ -16,12 +16,11 @@ import { Util } from "../../../utility/util";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import Loading from "../../../components/Loading";
 import { ClassUtil } from "../../../utility/classUtil";
-import { addMonths, subDays, subMonths, addDays } from "date-fns";
+import { addMonths, subDays, subMonths } from "date-fns";
 import { t } from "i18next";
 import CustomDropdown from "../CustomDropdown";
 import { blue } from "@mui/material/colors";
 import { useHistory } from "react-router";
-import ImageDropdown from "../imageDropdown";
 
 interface ReportTableProps {
   handleButtonClick;
@@ -36,7 +35,7 @@ type AssignmentHeader = {
   headerName: string;
   startAt: string;
   endAt: string;
-  belongsToClass?: boolean;
+  belongsToClass?: boolean; 
 };
 
 const ReportTable: React.FC<ReportTableProps> = ({
@@ -56,7 +55,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
     selectedTypeProp ?? TABLEDROPDOWN.WEEKLY
   );
   const [sortType, setSortType] = useState<TABLESORTBY>(
-    sortTypeProp ?? TABLESORTBY.NAME
+    sortTypeProp ?? TABLESORTBY.HIGHSCORE
   );
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAssignments, setIsAssignments] = useState<boolean>(
@@ -71,11 +70,16 @@ const ReportTable: React.FC<ReportTableProps> = ({
   const [reportData, setReportData] = useState<
     Map<string, { student: TableTypes<"user">; results: Record<string, any[]> }>
   >(new Map());
-  console.log("reportData", reportData);
-  
   const [mappedSubjectOptions, setMappedSubjectOptions] = useState<
-    { icon: string; id: string; name: string; subjectDetail: string }[]
+    { id: string; name: string }[]
   >([]);
+  console.log("mappedSubjectOptions", mappedSubjectOptions);
+  
+  const subjectOptionsWithAll =
+  selectedType === TABLEDROPDOWN.CHAPTER
+    ? mappedSubjectOptions // No "All Subjects"
+    : [{ id: "all", name: "All Subjects" }, ...mappedSubjectOptions];
+
   const [mappedChaptersOptions, setMappedChaptersOptions] = useState<
     { id: string; name: string }[]
   >([]);
@@ -88,7 +92,6 @@ const ReportTable: React.FC<ReportTableProps> = ({
     endDate: endDateProp ?? new Date(),
     isStudentProfilePage: false,
   });
-
   const api = ServiceConfig.getI().apiHandler;
   useEffect(() => {
     init();
@@ -108,6 +111,19 @@ const ReportTable: React.FC<ReportTableProps> = ({
     initChapters();
   }, [selectedSubject]);
 
+  useEffect(() => {
+  if (selectedType === TABLEDROPDOWN.CHAPTER) {
+      // Set first subject as selected if not already
+      if (
+        mappedSubjectOptions.length > 0 &&
+        selectedSubject?.id === "all"
+      ) {
+        handleSelectSubject(mappedSubjectOptions[0]);
+      }
+    }
+  }, [selectedType]);
+
+
   const initChapters = async () => {
     const _chapters = await api.getChaptersForCourse(selectedSubject?.id ?? "");
     var _mappedChaptersOptions = _chapters?.map((option) => ({
@@ -118,60 +134,38 @@ const ReportTable: React.FC<ReportTableProps> = ({
     setChapters(_chapters);
     setSelectedChapter(_chapters[0]);
   };
-
   const initData = async () => {
-    const current_class = Util.getCurrentClass();
+    var current_class = Util.getCurrentClass();
     const _subjects = await api.getCoursesForClassStudent(
       current_class?.id ?? ""
     );
-    setSubjects(_subjects);
-
-    const curriculumIds = Array.from(
-      new Set(_subjects.map((s) => s.curriculum_id))
-    );
-    const gradeIds = Array.from(new Set(_subjects.map((s) => s.grade_id)));
-    const filteredCurriculumIds = curriculumIds.filter(
-      (id): id is string => id !== null
-    );
-    const filteredGradeIds = gradeIds.filter((id): id is string => id !== null);
-
-    try {
-      const [curriculums, grades] = await Promise.all([
-        api.getCurriculumsByIds(filteredCurriculumIds),
-        api.getGradesByIds(filteredGradeIds),
-      ]);
-
-      const curriculumMap = new Map(curriculums.map((c) => [c.id, c]));
-      const gradeMap = new Map(grades.map((g) => [g.id, g]));
-      const _mappedSubjectOptions = _subjects.map((subject) => {
-        const curriculum = curriculumMap.get(subject.curriculum_id ?? "");
-        const grade = gradeMap.get(subject.grade_id ?? "");
-        return {
-          id: subject.id,
-          subjectDetail: `${subject.name} ${curriculum?.name ?? "Unknown"}-${grade?.name ?? "Unknown"}`,
-          icon: subject?.image || "/assets/icons/DefaultIcon.png",
-          name: subject.name,
-        };
-      });
-
-      setMappedSubjectOptions(_mappedSubjectOptions);
-    } catch (error) {
-      console.error("Error fetching curriculums or grades:", error);
-      setMappedSubjectOptions([]);
-    }
-    setSelectedSubject(
-      Util.getCurrentCourse(current_class?.id) ?? _subjects[0]
-    );
+    setSubjects(_subjects);    
+    var current_course = Util.getCurrentCourse(current_class?.id);
+    setSelectedSubject(current_course ?? _subjects[0]);
+    const _chapters = await api.getChaptersForCourse(_subjects[0]?.id);
+    setChapters(_chapters);
+    setSelectedChapter(_chapters[0]);
+    var _mappedSubjectOptions = _subjects?.map((option) => ({
+      id: option.id,
+      name: option.name,
+    }));
+    var _mappedChaptersOptions = _chapters?.map((option) => ({
+      id: option.id,
+      name: option.name ?? "",
+    }));
+    setMappedChaptersOptions(_mappedChaptersOptions);
+    setMappedSubjectOptions(_mappedSubjectOptions);
+    setIsLoading(false);
   };
 
   const init = async () => {
-    const current_class = Util.getCurrentClass();
-    const _classUtil = new ClassUtil();
+    // setIsLoading(true);
+    var current_class = Util.getCurrentClass();
+    var _classUtil = new ClassUtil();
     setExpandedRow(null);
-
     switch (selectedType) {
       case TABLEDROPDOWN.WEEKLY:
-        const weeklyReport = await _classUtil.getWeeklyReport(
+        var _weeklyData = await _classUtil.getWeeklyReport(
           current_class?.id ?? "",
           selectedSubject?.id ?? "",
           dateRange.startDate,
@@ -179,12 +173,11 @@ const ReportTable: React.FC<ReportTableProps> = ({
           sortType,
           isAssignments
         );
-        setReportData(weeklyReport.ReportData);
-        setHeaderData(weeklyReport.HeaderData.slice(0, 7));
+        setReportData(_weeklyData.ReportData);
+        setHeaderData(_weeklyData.HeaderData.slice(0, 7));
         break;
-
       case TABLEDROPDOWN.MONTHLY:
-        const monthlyReport = await _classUtil.getMonthlyReport(
+        var _monthlyData = await _classUtil.getMonthlyReport(
           current_class?.id ?? "",
           selectedSubject?.id ?? "",
           dateRange.startDate,
@@ -192,27 +185,26 @@ const ReportTable: React.FC<ReportTableProps> = ({
           sortType,
           isAssignments
         );
-        setReportData(monthlyReport.ReportData);
-        setHeaderData(monthlyReport.HeaderData);
-        break;
 
+        setReportData(_monthlyData.ReportData);
+        setHeaderData(_monthlyData.HeaderData);
+
+        break;
       case TABLEDROPDOWN.ASSIGNMENTS:
-      case TABLEDROPDOWN.LIVEQUIZ:
-        const isLiveQuiz = selectedType === TABLEDROPDOWN.LIVEQUIZ;
-        const assignmentReport = await _classUtil.getAssignmentOrLiveQuizReportForReport(
-          current_class?.id ?? "",
-          selectedSubject?.id ?? "",
-          dateRange.startDate,
-          dateRange.endDate,
-          isLiveQuiz,
-          sortType
-        );
-        setReportData(assignmentReport.ReportData);
-        setHeaderData(assignmentReport.HeaderData);
+        var _assignmentData =
+          await _classUtil.getAssignmentOrLiveQuizReportForReport(
+            current_class?.id ?? "",
+            selectedSubject?.id ?? "",
+            dateRange.startDate,
+            dateRange.endDate,
+            false,
+            sortType
+          );
+        setReportData(_assignmentData.ReportData);
+        setHeaderData(_assignmentData.HeaderData);
         break;
-
       case TABLEDROPDOWN.CHAPTER:
-        const chapterReport = await _classUtil.getChapterWiseReport(
+        var _reportData = await _classUtil.getChapterWiseReport(
           current_class?.id ?? "",
           dateRange.startDate,
           dateRange.endDate,
@@ -221,11 +213,24 @@ const ReportTable: React.FC<ReportTableProps> = ({
           sortType,
           isAssignments
         );
-        setReportData(chapterReport.ReportData);
-        setHeaderData(chapterReport.HeaderData);
+        setReportData(_reportData.ReportData);
+        setHeaderData(_reportData.HeaderData);
         break;
+      case TABLEDROPDOWN.LIVEQUIZ:
+        var _liveQuizData =
+          await _classUtil.getAssignmentOrLiveQuizReportForReport(
+            current_class?.id ?? "",
+            selectedSubject?.id ?? "",
+            dateRange.startDate,
+            dateRange.endDate,
+            true,
+            sortType
+          );
+        setReportData(_liveQuizData.ReportData);
+        setHeaderData(_liveQuizData.HeaderData);
+        break;
+      default:
     }
-
     setIsLoading(false);
   };
 
@@ -236,11 +241,9 @@ const ReportTable: React.FC<ReportTableProps> = ({
       Util.setCurrentCourse(current_class?.id, subject);
     }
   };
-
   const handleSelectChapter = async (chapter) => {
     if (chapter) setSelectedChapter(chapter);
   };
-
   const handleViewClickDetails = (student: TableTypes<"user">) => {
     history.replace(PAGES.STUDENT_REPORT, {
       student: student,
@@ -252,7 +255,10 @@ const ReportTable: React.FC<ReportTableProps> = ({
     });
   };
 
+
   const handleTypeSelect = async (type) => {
+    console.log("type", type);
+    
     if (type) {
       if (type.name === TABLEDROPDOWN.CHAPTER) {
         const _chapters = await api.getChaptersForCourse(
@@ -265,20 +271,18 @@ const ReportTable: React.FC<ReportTableProps> = ({
     }
   };
 
+
   const handleNameSort = async (type) => {
     if (type) {
       setSortType(type.name);
     }
   };
-
   const handleIsAssignmets = (_isAssignments) => {
     setIsAssignments(_isAssignments);
   };
-
   const handleDateSelect = (dateRange) => {
     setDateRange(dateRange);
   };
-
   const handleRowClick = (key) => {
     if (expandedRow === key) {
       setExpandedRow(null);
@@ -286,21 +290,19 @@ const ReportTable: React.FC<ReportTableProps> = ({
       setExpandedRow(key);
     }
   };
-
   function getAssignmentMapObject() {
     const assignmentMapObject: Record<string, { belongsToClass: boolean }> = {};
 
     headerData.forEach((mapItem) => {
       mapItem.forEach((value, assignmentId) => {
         assignmentMapObject[assignmentId] = {
-          belongsToClass: value.belongsToClass ?? true,
+          belongsToClass: value.belongsToClass ?? true, // no error now
         };
       });
     });
 
     return assignmentMapObject;
   }
-
   const assignmentMapObject = getAssignmentMapObject();
   return !isLoading ? (
     reportData.size == 0 ? (
@@ -325,26 +327,20 @@ const ReportTable: React.FC<ReportTableProps> = ({
             />
           </div>
 
-          {selectedType === TABLEDROPDOWN.CHAPTER ? (
-            <div style={{width: '45%'}} className="chapter-type-row">
-              <ImageDropdown
-                options={mappedSubjectOptions}
-                selectedValue={{
-                  id: selectedSubject?.id ?? "",
-                  name: selectedSubject?.name ?? "",
-                  icon:
-                    (selectedSubject as any)?.icon ??
-                    mappedSubjectOptions.find((option) => option.id === selectedSubject?.id)?.icon ??
-                    "",
-                  subjectDetail:
-                    (selectedSubject as any)?.subject ??
-                    mappedSubjectOptions.find((option) => option.id === selectedSubject?.id)?.subjectDetail ??
-                    "",
-                }}
-                onOptionSelect={handleSelectSubject}
-                placeholder={t("Select Language") as string}
-              />
+          <div>
+          
+            <CustomDropdown
+              options={subjectOptionsWithAll}
+              onOptionSelect={handleSelectSubject}
+              selectedValue={{
+                id: selectedSubject?.id ?? "all",
+                name: selectedSubject?.name ?? "All Subjects",
+              }}
+              disableTranslation={true}
+            />
 
+
+            {selectedType == TABLEDROPDOWN.CHAPTER ? (
               <CustomDropdown
                 options={mappedChaptersOptions ?? []}
                 onOptionSelect={handleSelectChapter}
@@ -353,26 +349,8 @@ const ReportTable: React.FC<ReportTableProps> = ({
                   name: selectedChapter?.name ?? "",
                 }}
               />
-            </div>
-          ) : (
-            <ImageDropdown
-              options={mappedSubjectOptions}
-              selectedValue={{
-                id: selectedSubject?.id ?? "",
-                name: selectedSubject?.name ?? "",
-                icon:
-                  (selectedSubject as any)?.icon ??
-                  mappedSubjectOptions.find((option) => option.id === selectedSubject?.id)?.icon ??
-                  "",
-                subjectDetail:
-                  (selectedSubject as any)?.subject ??
-                  mappedSubjectOptions.find((option) => option.id === selectedSubject?.id)?.subjectDetail ??
-                  "",
-              }}
-              onOptionSelect={handleSelectSubject}
-              placeholder={t("Select Language") as string}
-            />
-          )}
+            ) : null}
+          </div>
         </div>
         <div className="table-container-body">
           <div
@@ -382,7 +360,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                 selectedType === TABLEDROPDOWN.CHAPTER ? "65vh" : "70vh",
             }}
           >
-            <table className="Reports-Table-capture-report-table">
+            <table>
               <thead>
                 <tr>
                   <th>
@@ -398,7 +376,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                     />
                   </th>
 
-                  <TableRightHeader 
+                   <TableRightHeader 
                     headerDetails={headerData}
                     dateRangeValue={dateRange} />
                 </tr>
@@ -410,8 +388,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                       <td
                         style={{
                           borderRight:
-                            expandedRow === key ? "0" : "",
-                          borderBottom: expandedRow === key ? "0" : "2px solid #EFF2F4"
+                            expandedRow === key ? "0" : "1px solid grey",
                         }}
                         onClick={() => {
                           if (

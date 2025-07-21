@@ -53,8 +53,8 @@ const TableRightHeader: React.FC<TableRightHeaderProps> = ({
               {/* <span>{formatDate(startDate)}</span> */}
             </div>
             <div className="tableRightHeaderText">
-              {/* {t(headerName)} */}
-              {displayName}
+              {t(headerName)}
+              {/* {displayName} */}
             </div>
             {/* <div className="belowText">
               <span>&nbsp;</span>
