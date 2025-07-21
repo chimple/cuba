@@ -125,6 +125,9 @@ const Home: FC = () => {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
+    const studentDetails = student;
+    updateLocalAttributes({studentDetails});
+    setGbUpdated(true);
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
     initData();
