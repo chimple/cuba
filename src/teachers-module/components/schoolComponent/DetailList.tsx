@@ -65,17 +65,10 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
 
       <div className="main-list">
         {data.map((item) => {
-          const rawName =
+          const name =
             type === IconType.SCHOOL
               ? (item as SchoolWithRole).school.name
               : (item as TableTypes<"class">).name;
-
-          const translated = t(rawName);
-
-          const displayName =
-            translated.length > 22
-              ? `${translated.slice(0, 22)}…`
-              : translated;
 
           const id =
             type === IconType.SCHOOL
@@ -92,7 +85,7 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
                   {type === IconType.SCHOOL && (
                     <SchoolIcon className="list-icon" />
                   )}
-                  <span className="detail-school-name">{displayName}</span>
+                  <span className="detail-school-name">{name}</span>
                 </div>
 
                 <div className="class-icons">

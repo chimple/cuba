@@ -7103,7 +7103,7 @@ export class SupabaseApi implements ServiceApi {
       const { error } = await this.supabase
         .from("school_user")
         .update({ is_deleted: true })
-        .eq("user", userId)
+        .eq("user_id", userId)
         .eq("role", role)
         .eq("is_deleted", false);
       if (error) {

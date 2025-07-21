@@ -1,4 +1,5 @@
 import { FC } from "react";
+import { IonAlert, AlertButton } from "@ionic/react";
 import { t } from "i18next";
 import "./CommonDialogBox.css";
 
@@ -21,35 +22,34 @@ const CommonDialogBox: FC<{
   rightButtonText,
   rightButtonHandler,
 }) => {
-  if (!showConfirmFlag) return null;
+  const buttons: AlertButton[] = [];
+
+  if (leftButtonText) {
+    buttons.push({
+      text: t(leftButtonText),
+      cssClass: "custom-dailog-alert-delete-button",
+      handler: leftButtonHandler,
+    });
+  }
+
+  if (rightButtonText) {
+    buttons.push({
+      text: t(rightButtonText),
+      cssClass: "custom-dailog-alert-cancel-button",
+      handler: rightButtonHandler,
+    });
+  }
 
   return (
-    <div className="custom-dialog-overlay" onClick={onDidDismiss}>
-      <div
-        className="custom-dialog-box"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {header && <h3 className="custom-dialog-header">{t(header)}</h3>}
-        <p className="custom-dialog-message">{t(message)}</p>
-        <div className="custom-dialog-buttons">
-          {leftButtonText && (
-            <button
-              className="custom-dialog-button custom-dialog-cancel"
-              onClick={leftButtonHandler}
-            >
-              {t(leftButtonText)}
-            </button>
-          )}
-          {rightButtonText && (
-            <button
-              className="custom-dialog-button custom-dialog-confirm"
-              onClick={rightButtonHandler}
-            >
-              {t(rightButtonText)}
-            </button>
-          )}
-        </div>
-      </div>
+    <div>
+      <IonAlert
+        isOpen={showConfirmFlag}
+        header={header}
+        onDidDismiss={onDidDismiss}
+        cssClass="custom-dailog-alert"
+        message={t(message) || ""}
+        buttons={buttons}
+      />
     </div>
   );
 };
