@@ -814,12 +814,11 @@ const Login: React.FC = () => {
                           try {
                             setIsLoading(true);
                             setIsInitialLoading(true);
-                            const result: any =
-                              await ServiceConfig.getI().authHandler.loginWithRespect();
-                            console.log(
-                              "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
-                              result
-                            );
+                            await ServiceConfig.getI().authHandler.loginWithRespect();
+                            const auth = ServiceConfig.getI().authHandler;
+                            const currUser = await auth.getCurrentUser();
+                            const result: any = currUser;
+                            console.log("🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:", result);
 
                             if (!!result) {
                               setIsLoading(false);
@@ -829,6 +828,27 @@ const Login: React.FC = () => {
                                 JSON.stringify(result)
                               );
                               history.replace(PAGES.DISPLAY_STUDENT);
+
+                            if (Util.isDeepLinkPending) {
+                            // Reset the flag BEFORE dispatching to avoid double-trigger/race conditions
+                              Util.isDeepLinkPending = false;
+
+                              // Wait for navigation to DISPLAY_STUDENT to complete before dispatching the event
+                              setTimeout(() => {
+                                  try {
+                                    if (history.location.pathname === PAGES.DISPLAY_STUDENT) {
+                                      document.dispatchEvent(new CustomEvent("sendLaunch"));
+                                      console.log("DeepLink sendLaunch event dispatched after RESPECT login.");
+                                    } else {
+                                      console.warn(
+                                        "Deeplink launch skipped: not on the expected student dashboard page after RESPECT login"
+                                      );
+                                    }
+                                  } catch (e) {
+                                    console.error("Failed to dispatch sendLaunch event:", e);
+                                  }
+                                }, 700); // 700ms is usually enough for navigation/render to complete
+                              }
                             } else {
                               setIsLoading(false);
                               setIsInitialLoading(false);

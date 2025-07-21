@@ -83,6 +83,7 @@ import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { URLOpenListenerEvent } from "@capacitor/app";
 import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
+import { OneRosterAuth } from "../services/auth/OneRosterAuth";
 
 
 declare global {
@@ -100,6 +101,7 @@ export class Util {
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = "lastModalShown";
   static isDeepLink: boolean = false;
+  static isDeepLinkPending: boolean = false;
 
   public api = ServiceConfig.getI().apiHandler;
 
@@ -1627,7 +1629,13 @@ export class Util {
         return true;
       }
 
-      const student = await Util.getCurrentStudent();
+      let student = await Util.getCurrentStudent();
+
+      if(!student) {
+        const auth = ServiceConfig.getI().authHandler;
+        const currUser = await auth.getCurrentUser();
+        student = currUser;
+      }
 
       if (!student) {
         console.error("Student is undefined or null");
