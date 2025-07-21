@@ -47,7 +47,6 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
           <IonSelectOption
             key={option.id}
             value={option.id}
-            disabled={(option as any).disabled}
           >
             {disableTranslation ? option.name : t(option.name)}
           </IonSelectOption>

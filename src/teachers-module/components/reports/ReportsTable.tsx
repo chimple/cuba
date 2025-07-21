@@ -73,13 +73,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
   const [mappedSubjectOptions, setMappedSubjectOptions] = useState<
     { id: string; name: string }[]
   >([]);
-  console.log("mappedSubjectOptions", mappedSubjectOptions);
   
-  const subjectOptionsWithAll =
-  selectedType === TABLEDROPDOWN.CHAPTER
-    ? mappedSubjectOptions // No "All Subjects"
-    : [{ id: "all", name: "All Subjects" }, ...mappedSubjectOptions];
-
   const [mappedChaptersOptions, setMappedChaptersOptions] = useState<
     { id: string; name: string }[]
   >([]);
@@ -111,18 +105,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
     initChapters();
   }, [selectedSubject]);
 
-  useEffect(() => {
-  if (selectedType === TABLEDROPDOWN.CHAPTER) {
-      // Set first subject as selected if not already
-      if (
-        mappedSubjectOptions.length > 0 &&
-        selectedSubject?.id === "all"
-      ) {
-        handleSelectSubject(mappedSubjectOptions[0]);
-      }
-    }
-  }, [selectedType]);
-
+ 
 
   const initChapters = async () => {
     const _chapters = await api.getChaptersForCourse(selectedSubject?.id ?? "");
@@ -318,23 +301,24 @@ const ReportTable: React.FC<ReportTableProps> = ({
                 id: key,
                 name: value,
               }))}
-              onOptionSelect={handleTypeSelect}
-              placeholder={t(selectedType)??""}
               selectedValue={{
                 id: selectedType,
                 name: selectedType,
               }}
+              onOptionSelect={handleTypeSelect}
+              placeholder={t(selectedType)??""}
+             
             />
           </div>
 
           <div>
           
             <CustomDropdown
-              options={subjectOptionsWithAll}
+              options={mappedSubjectOptions ?? []}
               onOptionSelect={handleSelectSubject}
               selectedValue={{
-                id: selectedSubject?.id ?? "all",
-                name: selectedSubject?.name ?? "All Subjects",
+                id: selectedSubject?.id ?? "",
+                name: selectedSubject?.name ?? ""
               }}
               disableTranslation={true}
             />
