@@ -5,6 +5,7 @@
   font-family: Arial, sans-serif;
   height: 100%;
   justify-content: space-around;
+  min-width: 180px;
 }
 
 .toggle-container {
@@ -187,7 +188,7 @@ nav-btn:hover {
   background-color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 6px 12px;
+  /* padding: 6px 12px; */
   min-width: 130px;
   display: flex;
   align-items: center;
