@@ -361,6 +361,7 @@ export class SupabaseApi implements ServiceApi {
         return new Promise((resolve) => {
           const supabase = this.supabase;
           if (!supabase) return resolve(false);
+          let resolved = false;
           const channel = supabase
             .channel(`upload-status-${uploadId}`)
             .on(
@@ -371,28 +372,33 @@ export class SupabaseApi implements ServiceApi {
                 table: "upload_queue",
                 filter: `id=eq.${uploadId}`,
               },
-              (payload) => {
+              async (payload) => {
                 const status = payload.new?.status;
                 console.log("🔄 Realtime update received:", status);
                 if (status === "success") {
                   console.log("✅ Upload completed successfully.");
-                  supabase.removeChannel(channel);
-                  resolve(true);
+                  if (!resolved) {
+                    resolved = true;
+                    await supabase.removeChannel(channel);
+                    resolve(true);
+                  }
                 } else if (status === "failed") {
                   console.log("❌ Upload failed.");
-                  supabase.removeChannel(channel);
-                  resolve(false);
+                  if (!resolved) {
+                    resolved = true;
+                    await supabase.removeChannel(channel);
+                    resolve(false);
+                  }
                 }
               }
             )
             .subscribe((status) => {
-              if (status !== "SUBSCRIBED") {
-                console.error("⚠️ Realtime subscription failed:", status);
-                resolve(false);
-              } else {
+              if (status === "SUBSCRIBED") {
                 console.log(
                   "📡 Realtime subscription active for upload_queue."
                 );
+              } else if (!resolved) {
+                console.warn("⚠️ Realtime subscription failed:", status);
               }
             });
         });
