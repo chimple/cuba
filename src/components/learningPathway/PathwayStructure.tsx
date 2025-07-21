@@ -17,7 +17,7 @@ const PathwayStructure: React.FC = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
 
-  const inactiveText = t("Lesson inactive, play the nearest active lesson");
+  const inactiveText = t("This lesson is locked. Play the current active lesson.");
   const rewardText = t("Complete these 5 lessons to earn rewards");
   const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
 
