@@ -216,9 +216,12 @@ const AddStudent: React.FC = () => {
         isBackButton={true}
         showSchool={true}
         showClass={true}
+        className={currentClass?.name}
+        schoolName={currentSchool?.name}
         onBackButtonClick={handleBack}
       />
-      <div className="profile-details-container">
+      <div className="profile-details-centered">
+        <span className="add-student-text">Add Student</span>
         <ProfileDetails
           imgSrc={profilePic || ""}
           imgAlt="Profile Pic"

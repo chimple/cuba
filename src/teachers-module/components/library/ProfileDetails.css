@@ -32,14 +32,11 @@
   margin-top: 20px; 
 } */
 
-/* ProfileDetails.css */
 .profile-details {
   cursor: pointer;
-  margin-top: 0 !important;
   margin-left: 0 !important;
-  align-items: center;
+  justify-content: center;
   height: 100px;
-  padding-left: 1rem;
 }
 
 .profile-container {
@@ -63,13 +60,13 @@
   top: 45%;
   left: 50%;
   transform: translate(-50%, -50%);
-  display: flex;           /* center its children */
+  display: flex;          
   align-items: center;
   justify-content: center;
-  width: 80px;             /* match your img width */
-  height: 80px;            /* match your img height */
-  border-radius: 50%;      /* keep it circular, if you like */
-  pointer-events: none;    /* clicks pass through to label */
+  width: 80px;             
+  height: 80px;           
+  border-radius: 50%;     
+  pointer-events: none;   
 }
 
 .profile-details-data:hover .overlay {

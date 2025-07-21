@@ -240,3 +240,23 @@ form {
   flex-direction: column;
   align-items: center;
 }
+
+.profile-details-centered {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin: 20px auto;
+  gap: 16px;
+}
+
+.add-student-text {
+  position: absolute;
+  right: 100%;
+  margin-right: 16px;
+  margin-top: 20px;
+  transform: translateY(-50%);
+  font-size: 18px;
+  font-weight: bold;
+  color: #707070;
+  white-space: nowrap;
+}

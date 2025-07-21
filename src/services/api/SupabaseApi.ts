@@ -354,29 +354,47 @@ export class SupabaseApi implements ServiceApi {
       }
 
       if (uploadId) {
-        // console.log("📡 Subscribing to status for upload_id:", uploadId);
+        console.log(
+          "📡 Subscribing to realtime status for upload_id:",
+          uploadId
+        );
         return new Promise((resolve) => {
-          if (!this.supabase) return false;
-          setTimeout(async () => {
-            if (!this.supabase) return false;
-            if (!uploadId) {
-              console.warn("❗ uploadId is undefined. Skipping query.");
-              return;
-            }
-            const { data } = await this.supabase
-              .from("upload_queue")
-              .select("status")
-              .eq("id", uploadId)
-              .single();
-            if (data?.status === "failed") {
-              // console.log("⏱️ Upload status: Upload failed.");
-              resolve(false);
-            }
-            if (data?.status === "success") {
-              // console.log("⏱️ Upload status: Upload Success.");
-              resolve(true);
-            }
-          }, 5000);
+          const supabase = this.supabase;
+          if (!supabase) return resolve(false);
+          const channel = supabase
+            .channel(`upload-status-${uploadId}`)
+            .on(
+              "postgres_changes",
+              {
+                event: "UPDATE",
+                schema: "public",
+                table: "upload_queue",
+                filter: `id=eq.${uploadId}`,
+              },
+              (payload) => {
+                const status = payload.new?.status;
+                console.log("🔄 Realtime update received:", status);
+                if (status === "success") {
+                  console.log("✅ Upload completed successfully.");
+                  supabase.removeChannel(channel);
+                  resolve(true);
+                } else if (status === "failed") {
+                  console.log("❌ Upload failed.");
+                  supabase.removeChannel(channel);
+                  resolve(false);
+                }
+              }
+            )
+            .subscribe((status) => {
+              if (status !== "SUBSCRIBED") {
+                console.error("⚠️ Realtime subscription failed:", status);
+                resolve(false);
+              } else {
+                console.log(
+                  "📡 Realtime subscription active for upload_queue."
+                );
+              }
+            });
         });
       } else {
         console.warn(
@@ -7086,7 +7104,7 @@ export class SupabaseApi implements ServiceApi {
       const { error } = await this.supabase
         .from("school_user")
         .update({ is_deleted: true })
-        .eq("user", userId)
+        .eq("user_id", userId)
         .eq("role", role)
         .eq("is_deleted", false);
       if (error) {

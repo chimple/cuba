@@ -83,13 +83,32 @@
   font-size: 2vh;
   color: #707070;
 }
-.profile-details-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 .usergender-options input[type="radio"] {
-  accent-color: black;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #333;
+  border-radius: 50%;
+  background-color: transparent;
+  position: relative;
+  cursor: pointer;
+}
+
+.usergender-options input[type="radio"]:checked::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background-color: black;
+  border-radius: 50%;
+  display: block;
+  transform: translate(-50%, -50%);
+}
+.usergender-options input[type="radio"]:checked {
+  background-color: transparent;
 }
 .usergender-options {
   display: flex;
@@ -101,4 +120,24 @@
   align-items: center;
   gap: 5px;
   font-size: 18px;
+}
+
+.profile-details-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+  gap: 16px;
+}
+
+.add-student-text {
+  position: absolute;
+  right: 100%;
+  margin-right: 16px;
+  margin-top: 20px;
+  transform: translateY(-50%);
+  font-size: 18px;
+  font-weight: bold;
+  color: #707070;
+  white-space: nowrap;
 }
