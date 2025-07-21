@@ -6742,11 +6742,11 @@ export class SupabaseApi implements ServiceApi {
         .from("user")
         .select(
           `
-          *,
-          special_users!inner (
-            role
-          )
-        `,
+        *,
+        special_users!inner (
+          role
+        )
+      `,
           { count: "exact" }
         )
         .eq("is_deleted", false)
@@ -6784,47 +6784,40 @@ export class SupabaseApi implements ServiceApi {
         return { data: [], totalCount: 0 };
       }
       const programIds = programs.map((p) => p.program_id);
-      let query = this.supabase
-        .from("program_user")
-        .select("role, user!inner(*)", { count: "exact" })
-        .in("program_id", programIds)
-        .eq("role", "field_coordinator")
-        .eq("is_deleted", false)
-        .eq("user.is_deleted", false);
-      if (search && search.length >= 3) {
-        query = query.ilike("user.name", `%${search}%`);
-      }
-      const { data: coordinators, count } = await query
-        .order(sortBy, {
-          referencedTable: "user",
-          ascending: sortOrder === "asc",
-        })
-        .range(from, to);
-      if (!coordinators) {
+      const offset = (page - 1) * limit;
+
+      const { data: rpcData, error } = await this.supabase.rpc(
+        "get_coordinators_for_programs",
+        {
+          p_program_ids: programIds,
+          p_search_term: search,
+          p_sort_by: sortBy,
+          p_sort_order: sortOrder,
+          p_limit: limit,
+          p_offset: offset,
+        }
+      );
+      console.log("fdsfds", rpcData, error);
+      if (error) {
+        console.error("Supabase RPC error:", error);
         return { data: [], totalCount: 0 };
       }
-      const uniqueUsers = new Map<
-        string,
-        { user: TableTypes<"user">; role: string }
-      >();
-      coordinators.forEach((c) => {
-        if (c.user && !uniqueUsers.has(c.user.id)) {
-          uniqueUsers.set(c.user.id, {
-            user: c.user,
-            role: c.role!,
-          });
-        }
+      if (!rpcData || rpcData.length === 0) {
+        return { data: [], totalCount: 0 };
+      }
+      const totalCount = rpcData[0].total_count || 0;
+      const result = rpcData.map((d) => {
+        const { total_count, role, ...userObject } = d;
+        return {
+          user: userObject as unknown as TableTypes<"user">,
+          role: role,
+        };
       });
 
-      const uniqueData = Array.from(uniqueUsers.values());
-      return {
-        data: uniqueData,
-        totalCount: count || 0,
-      };
+      return { data: result, totalCount: totalCount };
     }
     return { data: [], totalCount: 0 };
   }
-
   async program_activity_stats(programId: string): Promise<{
     total_students: number;
     total_teachers: number;

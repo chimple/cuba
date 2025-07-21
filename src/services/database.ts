@@ -2447,6 +2447,39 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: Json;
       };
+      get_coordinators_for_programs: {
+        Args: {
+          p_program_ids: string[]
+          p_search_term: string
+          p_sort_by: string
+          p_sort_order: string
+          p_limit: number
+          p_offset: number
+        }
+        Returns: {
+          id: string
+          created_at: string
+          updated_at: string
+          name: string
+          email: string
+          age: number
+          avatar: string
+          is_deleted: boolean
+          curriculum_id: string
+          fcm_token: string
+          firebase_id: string
+          gender: string
+          language_id: string
+          phone_number: string
+          designation: string
+          grade_id: string
+          image: string
+          is_firebase: boolean
+          is_ops: boolean
+          role: string
+          total_count: number
+        }[]
+      }
       get_user_by_email: {
         Args: { p_email: string };
         Returns: {
