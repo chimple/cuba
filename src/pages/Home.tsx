@@ -697,7 +697,9 @@ const Home: FC = () => {
             )}
 
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
-            {currentHeader === HOMEHEADERLIST.LIVEQUIZ && <LiveQuiz />}
+            {currentHeader === HOMEHEADERLIST.LIVEQUIZ && (
+              <LiveQuiz liveQuizCount={setPendingLiveQuizCount} />
+            )}
 
             {/* 
             {value === SUBTAB.SUGGESTIONS &&
