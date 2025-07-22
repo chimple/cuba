@@ -326,92 +326,100 @@ export class SupabaseApi implements ServiceApi {
   async uploadData(payload: any): Promise<boolean | null> {
     if (!this.supabase) return false;
 
-    let uploadId: string | undefined;
-    let uploadingUser: string | undefined;
-
-    try {
-      const { data, error: functionError } =
-        await this.supabase.functions.invoke("ops-data-insert", {
-          body: payload,
-        });
-      uploadId = data?.upload_id;
-
-      if (!uploadId) {
-        const { data: session } = await this.supabase.auth.getSession();
-        uploadingUser = session?.session?.user?.id;
-
-        if (uploadingUser) {
-          const { data: fallbackJob } = await this.supabase
-            .from("upload_queue")
-            .select("id")
-            .eq("uploading_user", uploadingUser)
-            .order("start_time", { ascending: false })
-            .limit(1)
-            .single();
-
-          uploadId = fallbackJob?.id;
-        }
-      }
-
-      if (uploadId) {
-        console.log(
-          "📡 Subscribing to realtime status for upload_id:",
-          uploadId
-        );
-        return new Promise((resolve) => {
-          const supabase = this.supabase;
-          if (!supabase) return resolve(false);
-          let resolved = false;
-          const channel = supabase
-            .channel(`upload-status-${uploadId}`)
+    const supabase = this.supabase;
+    let resolved = false;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const uploadingUser = sessionData?.session?.user?.id;
+    return new Promise(async (resolve) => {
+      let uploadId: string | undefined;
+      const fallbackChannel = uploadingUser
+        ? supabase
+            .channel(`upload-fallback-${uploadingUser}`)
             .on(
               "postgres_changes",
               {
                 event: "UPDATE",
                 schema: "public",
                 table: "upload_queue",
-                filter: `id=eq.${uploadId}`,
+                filter: `uploading_user=eq.${uploadingUser}`,
               },
               async (payload) => {
                 const status = payload.new?.status;
-                console.log("🔄 Realtime update received:", status);
-                if (status === "success") {
-                  console.log("✅ Upload completed successfully.");
-                  if (!resolved) {
-                    resolved = true;
-                    await supabase.removeChannel(channel);
-                    resolve(true);
-                  }
-                } else if (status === "failed") {
-                  console.log("❌ Upload failed.");
-                  if (!resolved) {
-                    resolved = true;
-                    await supabase.removeChannel(channel);
-                    resolve(false);
-                  }
+                const id = payload.new?.id;
+                console.log(
+                  "🔄 [Fallback] Realtime update:",
+                  status,
+                  "ID:",
+                  id
+                );
+                if (
+                  (status === "success" || status === "failed") &&
+                  !resolved
+                ) {
+                  resolved = true;
+                  await fallbackChannel?.unsubscribe();
+                  resolve(status === "success");
                 }
               }
             )
-            .subscribe((status) => {
-              if (status === "SUBSCRIBED") {
-                console.log(
-                  "📡 Realtime subscription active for upload_queue."
-                );
-              } else if (!resolved) {
-                console.warn("⚠️ Realtime subscription failed:", status);
+            .subscribe()
+        : null;
+      const { data, error: functionError } = await supabase.functions.invoke(
+        "ops-data-insert",
+        {
+          body: payload,
+        }
+      );
+      uploadId = data?.upload_id;
+      if (uploadId) {
+        console.log("📡 Received upload_id:", uploadId);
+        if (fallbackChannel) {
+          await fallbackChannel.unsubscribe();
+        }
+        const { data: row } = await supabase
+          .from("upload_queue")
+          .select("status")
+          .eq("id", uploadId)
+          .single();
+        if (row?.status === "success") {
+          console.log("✅ Already succeeded before subscription.");
+          return resolve(true);
+        }
+        if (row?.status === "failed") {
+          console.log("❌ Already failed before subscription.");
+          return resolve(false);
+        }
+        const directChannel = supabase
+          .channel(`upload-status-${uploadId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "upload_queue",
+              filter: `id=eq.${uploadId}`,
+            },
+            async (payload) => {
+              const status = payload.new?.status;
+              console.log("🔄 Realtime update received:", status);
+              if ((status === "success" || status === "failed") && !resolved) {
+                resolved = true;
+                await directChannel.unsubscribe();
+                resolve(status === "success");
               }
-            });
-        });
+            }
+          )
+          .subscribe((status) => {
+            if (status === "SUBSCRIBED") {
+              console.log("📡 Realtime subscription active.");
+            } else {
+              console.warn("⚠️ Subscription status:", status);
+            }
+          });
       } else {
-        console.warn(
-          "❗ Could not determine upload_id, skipping realtime tracking."
-        );
-        return null;
+        console.warn("❗ No upload_id returned — using fallback listener.");
       }
-    } catch (error: any) {
-      console.error("🔥 Unexpected error:", error);
-      return null;
-    }
+    });
   }
 
   async getTablesData(
