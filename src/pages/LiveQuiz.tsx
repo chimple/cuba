@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react"; // --- FIX ---: Import useRef
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
   HOMEHEADERLIST,
@@ -30,6 +30,8 @@ const LiveQuiz: React.FC<LiveQuizProps> = ({ liveQuizCount }) => {
   const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
   const api = ServiceConfig.getI().apiHandler;
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const isMounted = useRef(true);
 
   useEffect(() => {
     if (liveQuizCount) {
@@ -63,7 +65,6 @@ const LiveQuiz: React.FC<LiveQuizProps> = ({ liveQuizCount }) => {
         api.getLiveQuizLessons(_class.id, student.id)
       )
     );
-
     const allLiveQuizzes = quizChunks.flat();
     allLiveQuizzes.sort(
       (a, b) =>
@@ -89,6 +90,7 @@ const LiveQuiz: React.FC<LiveQuizProps> = ({ liveQuizCount }) => {
   }, [init]);
 
   useEffect(() => {
+    isMounted.current = true;
     const student = Util.getCurrentStudent();
     if (!currentClass || !student) return;
 
@@ -96,13 +98,9 @@ const LiveQuiz: React.FC<LiveQuizProps> = ({ liveQuizCount }) => {
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
       }
-
       debounceTimer.current = setTimeout(() => {
-        console.log(
-          "Debounced update: Event storm has passed. Re-fetching active quizzes."
-        );
         init();
-      }, 500);
+      }, 1000); 
     };
 
     api.assignmentListner(currentClass.id, (payload) => {
@@ -116,13 +114,14 @@ const LiveQuiz: React.FC<LiveQuizProps> = ({ liveQuizCount }) => {
         const assignment = await api.getAssignmentById(
           assignmentUser.assignment_id
         );
-        if (assignment && assignment.type === LIVE_QUIZ) {
+        if (isMounted.current && assignment && assignment.type === LIVE_QUIZ) {
           handleQuizUpdate();
         }
       }
     });
 
     return () => {
+      isMounted.current = false;
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
       }
@@ -160,4 +159,5 @@ const LiveQuiz: React.FC<LiveQuizProps> = ({ liveQuizCount }) => {
     </div>
   );
 };
+
 export default LiveQuiz;
