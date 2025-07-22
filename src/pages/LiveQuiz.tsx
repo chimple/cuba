@@ -40,6 +40,7 @@ const LiveQuiz: React.FC<LiveQuizProps> = ({ liveQuizCount }) => {
   }, [assignments, liveQuizCount]);
 
   const init = useCallback(async () => {
+    setLoading(true);
     const student = Util.getCurrentStudent();
     if (!student) {
       history.replace(PAGES.SELECT_MODE);
@@ -85,7 +86,6 @@ const LiveQuiz: React.FC<LiveQuizProps> = ({ liveQuizCount }) => {
   }, [api, history]);
 
   useEffect(() => {
-    setLoading(true);
     init();
   }, [init]);
 
