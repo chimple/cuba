@@ -358,6 +358,9 @@ export class SupabaseApi implements ServiceApi {
                 ) {
                   resolved = true;
                   await fallbackChannel?.unsubscribe();
+                  console.log(
+                    `✅ / ❌ Fallback resolved with status: ${status}`
+                  );
                   resolve(status === "success");
                 }
               }
