@@ -86,7 +86,6 @@ const EditClass: FC = () => {
         await api.updateClass(currentClass.id, className);
         const updatedClass = { ...currentClass, name: className };
         Util.setCurrentClass(updatedClass);
-        window.dispatchEvent(new Event(CLASS_OR_SCHOOL_CHANGE_EVENT));
  
          if (navigationState?.stage === School_Creation_Stages.CREATE_CLASS) {
            Util.setNavigationState(School_Creation_Stages.CLASS_COURSE);
