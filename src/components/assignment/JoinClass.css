@@ -65,13 +65,12 @@
 }
 
 .assignment-join-class-container-scroll {
-  transition: top 0.3s ease-in-out;
+  transition: transform  0.3s ease-in-out;
   position: relative;
-  top: 0px;
 }
 
 .assignment-join-class-container-scroll.shift-up {
-  transform: translateY(-110px);
+  transform: translateY(-30vh);
 }
 
 
