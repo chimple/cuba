@@ -683,17 +683,7 @@ const Home: FC = () => {
             {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
 
             {currentHeader === HOMEHEADERLIST.ASSIGNMENT && (
-              <AssignmentPage
-                onNewAssignment={(newAssignment) => {
-                  setPendingAssignments((prev) => {
-                    if (!prev.some((a) => a.id === newAssignment.id)) {
-                      return [...prev, newAssignment];
-                    }
-                    return prev;
-                  });
-                }}
-                assignmentCount={setPendingAssignmentCount}
-              />
+              <AssignmentPage assignmentCount={setPendingAssignmentCount} />
             )}
 
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
