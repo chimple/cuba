@@ -51,7 +51,7 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
   }));
   return (
     <div className="add-studentsection__container">
-      <form className="addstudentsection__form" style={{display: "flex", flexDirection: "column", gap:"10px"}}>
+      <form className="addstudentsection__form" >
         <div className="add-studentsection__group">
           <label htmlFor="name">{t("Name")}</label>
           <input

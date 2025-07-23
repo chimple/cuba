@@ -31,6 +31,7 @@ import {
   TabType,
   AVATARS,
   BASE_NAME,
+  DELETED_CLASSES,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -481,7 +482,7 @@ export class SqliteApi implements ServiceApi {
     return await this.syncDbNow([tableName]);
   }
 
-  async createProfile(
+    async createProfile(
     name: string,
     age: number | undefined,
     gender: string | undefined,
@@ -558,11 +559,6 @@ export class SqliteApi implements ServiceApi {
       ]
     );
 
-    let courses;
-    if (gradeDocId && boardDocId) {
-      courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
-    }
-
     await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
     await this.updatePushChanges(TABLES.ParentUser, MUTATE_TYPES.INSERT, {
       id: parentUserId,
@@ -572,33 +568,85 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
       is_deleted: false,
     });
-
-    for (const course of courses) {
-      const newUserCourse: TableTypes<"user_course"> = {
-        course_id: course.id,
-        created_at: new Date().toISOString(),
-        id: uuidv4(),
-        is_deleted: false,
-        updated_at: new Date().toISOString(),
-        user_id: studentId,
-        is_firebase: null,
-      };
-      await this.executeQuery(
-        `
+    let courses: TableTypes<"course">[] = [];
+    if (gradeDocId && boardDocId) {
+      courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
+      for (const course of courses) {
+        const newUserCourse: TableTypes<"user_course"> = {
+          course_id: course.id,
+          created_at: new Date().toISOString(),
+          id: uuidv4(),
+          is_deleted: false,
+          updated_at: new Date().toISOString(),
+          user_id: studentId,
+          is_firebase: null,
+        };
+        await this.executeQuery(
+          `
       INSERT INTO user_course (id, user_id, course_id)
     VALUES (?, ?, ?);
   `,
-        [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
-      );
-      this.updatePushChanges(
-        TABLES.UserCourse,
-        MUTATE_TYPES.INSERT,
-        newUserCourse
-      );
-    }
+          [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
+        );
+        this.updatePushChanges(
+          TABLES.UserCourse,
+          MUTATE_TYPES.INSERT,
+          newUserCourse
+        );
+      }
+    } else {
+      const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
+      const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+      const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
+      const language = await this.getLanguageWithId(languageDocId!);
+      let langCourse;
+      if (language && language.code !== COURSES.ENGLISH) {
+        // Map language code to courseId
+        const thirdLanguageCourseMap: Record<string, string> = {
+          hi: CHIMPLE_HINDI,
+          kn: GRADE1_KANNADA,
+          mr: GRADE1_MARATHI,
+        };
 
+        const courseId = thirdLanguageCourseMap[language.code ?? ""];
+        if (courseId) {
+          langCourse = await this.getCourse(courseId);
+        }
+      }
+      const coursesToAdd = [
+        englishCourse,
+        mathsCourse,
+        langCourse,
+        digitalSkillsCourse,
+      ].filter(Boolean);
+      for (const course of coursesToAdd) {
+        const newUserCourse: TableTypes<"user_course"> = {
+          course_id: course.id,
+          created_at: new Date().toISOString(),
+          id: uuidv4(),
+          is_deleted: false,
+          updated_at: new Date().toISOString(),
+          user_id: studentId,
+          is_firebase: null,
+        };
+        await this.executeQuery(
+          `
+      INSERT INTO user_course (id, user_id, course_id)
+    VALUES (?, ?, ?);
+  `,
+          [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
+        );
+        this.updatePushChanges(
+          TABLES.UserCourse,
+          MUTATE_TYPES.INSERT,
+          newUserCourse
+        );
+      }
+    }
     return newStudent;
   }
+
+
 
   async addProfileImages(
     id: string,
@@ -1866,7 +1914,7 @@ export class SqliteApi implements ServiceApi {
     return user;
   }
 
-  async updateStudent(
+    async updateStudent(
     student: TableTypes<"user">,
     name: string,
     age: number,
@@ -2181,6 +2229,12 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
+  public async getUserRoleForSchool(
+    userId: string,
+    schoolId: string
+  ): Promise<RoleType | undefined> {
+    return await this._serverApi.getUserRoleForSchool(userId, schoolId);
+  }
 
   async isStudentLinked(
     studentId: string,
@@ -2372,7 +2426,14 @@ export class SqliteApi implements ServiceApi {
     ) {
       return [];
     }
-
+    const deletedClass = sessionStorage.getItem(DELETED_CLASSES)
+    if (deletedClass) {
+      const deletedClasses = JSON.parse(deletedClass);
+      const filteredClassList = allClassesRes.values.filter((item) =>
+        !deletedClasses.includes(item.id)
+      );
+      return filteredClassList;
+    }
     return allClassesRes.values;
   }
 
@@ -2470,7 +2531,7 @@ export class SqliteApi implements ServiceApi {
       console.error("Error removing courses from school_course", error);
     }
   }
-  async deleteUserFromClass(userId: string, class_id:string): Promise<void> {
+  async deleteUserFromClass(userId: string, class_id: string): Promise<void> {
     const updatedAt = new Date().toISOString();
     try {
       await this.executeQuery(
@@ -2489,7 +2550,7 @@ export class SqliteApi implements ServiceApi {
       this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
         id: userData.id,
         is_deleted: true,
-        updated_at: updatedAt,  
+        updated_at: updatedAt,
       });
     } catch (error) {
       console.error("Error deleting user from class_user", error);
@@ -3335,7 +3396,8 @@ export class SqliteApi implements ServiceApi {
     lesson_id: string,
     chapter_id: string,
     course_id: string,
-    type: string
+    type: string,
+    batch_id:string
   ): Promise<boolean> {
     const assignmentUUid = uuidv4();
     const timestamp = new Date().toISOString(); // Cache timestamp for reuse
@@ -3344,8 +3406,8 @@ export class SqliteApi implements ServiceApi {
       // Insert into assignment table
       await this.executeQuery(
         `INSERT INTO assignment
-          (id, created_by, starts_at, ends_at, is_class_wise, class_id, school_id, lesson_id, type, created_at, updated_at, is_deleted, chapter_id, course_id)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          (id, created_by, starts_at, ends_at, is_class_wise, class_id, school_id, lesson_id, type, created_at, updated_at, is_deleted, chapter_id, course_id, batch_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           assignmentUUid,
           userId,
@@ -3361,6 +3423,7 @@ export class SqliteApi implements ServiceApi {
           false,
           chapter_id,
           course_id,
+          batch_id
         ]
       );
 
@@ -3380,6 +3443,7 @@ export class SqliteApi implements ServiceApi {
         is_deleted: false,
         chapter_id: chapter_id,
         course_id: course_id,
+        batch_id: batch_id ?? null,
         source: null,
         firebase_id: null,
         is_firebase: null,
@@ -3881,34 +3945,40 @@ order by
   async getStudentLastTenResults(
     studentId: string,
     courseId: string,
-    assignmentIds: string[]
+    assignmentIds: string[],
+    startDate: string,
+    endDate: string
   ): Promise<TableTypes<"result">[]> {
     const assignmentholders = assignmentIds.map(() => "?").join(", ");
     const res = await this._db?.query(
       `WITH null_assignments AS (
-         SELECT *
-         FROM ${TABLES.Result}
-         WHERE student_id = ?
-         AND course_id = ?
-         AND assignment_id IS NULL
-         ORDER BY created_at DESC
-         LIMIT 5
-       ),
-       non_null_assignments AS (
-         SELECT *
-         FROM ${TABLES.Result}
-         WHERE student_id = ?
-         AND course_id = ?
-         ORDER BY created_at DESC
-         LIMIT 5
-       )
-       SELECT *
-       FROM null_assignments
-       UNION ALL
-       SELECT *
-       FROM non_null_assignments
-       ORDER BY created_at DESC
-       LIMIT 10;`,
+      SELECT *
+      FROM ${TABLES.Result}
+      WHERE student_id = ?
+        AND course_id = ?
+        AND assignment_id IS NULL
+      ORDER BY created_at DESC
+      LIMIT 5
+    ),
+    non_null_assignments AS (
+      SELECT *
+      FROM ${TABLES.Result}
+      WHERE student_id = ?
+        AND course_id = ?
+        AND assignment_id IN (${assignmentholders})
+      ORDER BY created_at DESC
+      LIMIT 5
+    )
+    SELECT *
+    FROM (
+      SELECT * FROM null_assignments
+      UNION ALL
+      SELECT * FROM non_null_assignments
+    ) AS combined
+    WHERE created_at BETWEEN ? AND ?
+    ORDER BY created_at DESC
+    LIMIT 10;
+    `,
       [studentId, courseId, studentId, courseId]
     );
     return res?.values ?? [];
@@ -3938,12 +4008,12 @@ order by
     if (isClassWise) {
       query += ` AND is_class_wise = 1`;
     }
-    if(!allAssignments) {
+    if (!allAssignments) {
       if (isLiveQuiz) {
-      query += ` AND type = 'liveQuiz'`;
-    } else {
-      query += ` AND type != 'liveQuiz'`;
-    }
+        query += ` AND type = 'liveQuiz'`;
+      } else {
+        query += ` AND type != 'liveQuiz'`;
+      }
     }
     query += ` ORDER BY created_at DESC`;
 
@@ -4869,36 +4939,36 @@ order by
     return await this._serverApi.getProgramFilterOptions();
   }
   async getPrograms(params: {
-  currentUserId: string;
-  filters?: Record<string, string[]>;
-  searchTerm?: string;
-  tab?: TabType;
-  limit?: number;
-  offset?: number;
-  orderBy?: string;
-  order?: "asc" | "desc";
-}): Promise<{ data: any[] }> {
-  const {
-    currentUserId,
-    filters,
-    searchTerm,
-    tab,
-    limit,
-    offset,
-    orderBy,
-    order,
-  } = params;
-  return await this._serverApi.getPrograms({
-    currentUserId,
-    filters,
-    searchTerm,
-    tab,
-    limit,
-    offset,
-    orderBy,
-    order,
-  });
-}
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    searchTerm?: string;
+    tab?: TabType;
+    limit?: number;
+    offset?: number;
+    orderBy?: string;
+    order?: "asc" | "desc";
+  }): Promise<{ data: any[] }> {
+    const {
+      currentUserId,
+      filters,
+      searchTerm,
+      tab,
+      limit,
+      offset,
+      orderBy,
+      order,
+    } = params;
+    return await this._serverApi.getPrograms({
+      currentUserId,
+      filters,
+      searchTerm,
+      tab,
+      limit,
+      offset,
+      orderBy,
+      order,
+    });
+  }
 
   async insertProgram(payload: any): Promise<boolean | null> {
     return await this._serverApi.insertProgram(payload);
@@ -4994,8 +5064,7 @@ order by
     return await this._serverApi.getSchoolFilterOptionsForSchoolListing();
   }
 
-  async getFilteredSchoolsForSchoolListing(
-  params: {
+  async getFilteredSchoolsForSchoolListing(params: {
     filters?: Record<string, string[]>;
     programId?: string;
     page?: number;
@@ -5003,10 +5072,9 @@ order by
     order_by?: string;
     order_dir?: "asc" | "desc";
     search?: string;
+  }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
+    return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
   }
-): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
-  return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
-}
 
   async createOrAddUserOps(payload: {
     name: string;
@@ -5400,10 +5468,23 @@ order by
     return await this._serverApi.program_activity_stats(programId);
   }
 
-  async getManagersAndCoordinators(): Promise<
-    { user: TableTypes<"user">; role: string }[]
-  > {
-    return await this._serverApi.getManagersAndCoordinators();
+  async getManagersAndCoordinators(
+    page: number = 1,
+    search: string = "",
+    limit: number = 10,
+    sortBy: keyof TableTypes<"user"> = "name",
+    sortOrder: "asc" | "desc" = "asc"
+  ): Promise<{
+    data: { user: TableTypes<"user">; role: string }[];
+    totalCount: number;
+  }> {
+    return await this._serverApi.getManagersAndCoordinators(
+      page,
+      search,
+      limit,
+      sortBy,
+      sortOrder
+    );
   }
 
   async school_activity_stats(schoolId: string): Promise<{
@@ -5423,17 +5504,19 @@ order by
   async updateSpecialUserRole(userId: string, role: string): Promise<void> {
     return await this._serverApi.updateSpecialUserRole(userId, role);
   }
-  async deleteSpecialUser(userId:string):Promise<void>{
+  async deleteSpecialUser(userId: string): Promise<void> {
     return await this._serverApi.deleteSpecialUser(userId);
   }
   async updateProgramUserRole(userId: string, role: string): Promise<void> {
     return await this._serverApi.updateProgramUserRole(userId, role);
   }
-  async deleteProgramUser(userId:string):Promise<void>{
+  async deleteProgramUser(userId: string): Promise<void> {
     return await this._serverApi.deleteProgramUser(userId);
   }
-  async deleteUserFromSchoolsWithRole(userId: string, role: string):Promise<void>{
+  async deleteUserFromSchoolsWithRole(
+    userId: string,
+    role: string
+  ): Promise<void> {
     return await this._serverApi.deleteUserFromSchoolsWithRole(userId, role);
   }
-
 }

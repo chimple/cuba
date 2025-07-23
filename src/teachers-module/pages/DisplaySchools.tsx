@@ -1,116 +1,130 @@
-import { FC, useEffect, useState } from "react";
-import { useHistory } from "react-router";
-import {
-  CLASS,
-  CURRENT_SCHOOL,
-  IS_OPS_USER,
-  MODES,
-  PAGES,
-  SCHOOL,
-  TableTypes,
-  USER_ROLE,
-} from "../../common/constants";
-import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
+import { FC, useEffect, useState, useRef } from "react";
+import { useHistory, useLocation } from "react-router";
+import { PAGES, TableTypes, USER_ROLE, MODES, USER_SELECTION_STAGE } from "../../common/constants";
+import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
-import { RoleType } from "../../interface/modelInterfaces";
-import { AppBar } from "@mui/material";
 import { t } from "i18next";
-import BackButton from "../../components/common/BackButton";
 import "./DisplaySchools.css";
 import Header from "../components/homePage/Header";
-import { IonFabButton, IonIcon, IonItem, IonPage } from "@ionic/react";
+import { IonFabButton, IonIcon, IonPage } from "@ionic/react";
 import { PiUserSwitchFill } from "react-icons/pi";
 import CommonToggle from "../../common/CommonToggle";
 import { schoolUtil } from "../../utility/schoolUtil";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
-import AddButton from "../../common/AddButton";
 import { addOutline } from "ionicons/icons";
-
+import { RoleType } from "../../interface/modelInterfaces";
 interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;
 }
-const DisplaySchools: FC<{}> = () => {
+const PAGE_SIZE = 20;
+const DisplaySchools: FC = () => {
   const history = useHistory();
+  const location = useLocation();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const [schoolList, setSchoolList] = useState<SchoolWithRole[]>([]);
   const [user, setUser] = useState<TableTypes<"user">>();
-  const [isAuthorizedForOpsMode, setIsAuthorizedForOpsMode] =
-    useState<boolean>(false);
-
+  const [isAuthorizedForOpsMode, setIsAuthorizedForOpsMode] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+ 
+  useEffect(() => {
+    (async () => {
+      const mode = await schoolUtil.getCurrMode();
+      const done = JSON.parse(localStorage.getItem(USER_SELECTION_STAGE) ?? "false");
+      if (mode === MODES.TEACHER && done && location.pathname !== PAGES.HOME_PAGE) {
+        history.replace(PAGES.HOME_PAGE);
+      }
+    })();
+  }, [location.pathname, history]);
+  
   useEffect(() => {
     lockOrientation();
     initData();
   }, []);
-
   const lockOrientation = () => {
     if (Capacitor.isNativePlatform()) {
       ScreenOrientation.lock({ orientation: "portrait" });
     }
   };
+  const fetchSchools = async (pageNo: number, userId: string) => {
+    setLoading(true);
+    const result = await api.getSchoolsForUser(userId, {
+      page: pageNo,
+      page_size: PAGE_SIZE,
+    });
+    if (result.length < PAGE_SIZE) setHasMore(false);
+    setSchoolList(prev => (pageNo === 1 ? result : [...prev, ...result]));
+    setLoading(false);
+  };
   const initData = async () => {
-  const currentUser = await auth.getCurrentUser();
-  if (!currentUser) return;
-  setUser(currentUser);
-
-  const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
-
-  const isOpsRole =
-    userRoles.includes(RoleType.SUPER_ADMIN) ||
-    userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
-
-  const isProgramUser = await api.isProgramUser();
-  if (isOpsRole || isProgramUser) {
-    setIsAuthorizedForOpsMode(true);
-  }
-
-  const allSchool = await api.getSchoolsForUser(currentUser.id);
-  setSchoolList(allSchool);
-
-  const tempSchool = Util.getCurrentSchool();
-  if (tempSchool) {
-    const localSchool = allSchool.find(
-      (school) => school.school.id === tempSchool.id
-    );
-    if (localSchool) {
-      const selectedSchool: SchoolWithRole = {
-        school: localSchool.school,
-        role: localSchool.role,
-      };
-      selectSchool(selectedSchool);
+    const currentUser = await auth.getCurrentUser();
+    if (!currentUser) return;
+    setUser(currentUser);
+    const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+    const isOpsRole =
+      userRoles.includes(RoleType.SUPER_ADMIN) ||
+      userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
+    const isProgramUser = await api.isProgramUser();
+    if (isOpsRole || isProgramUser) setIsAuthorizedForOpsMode(true);
+    setPage(1);
+    setHasMore(true);
+    await fetchSchools(1, currentUser.id);
+    // if they’d already picked a school previously
+    const tempSchool = Util.getCurrentSchool();
+    if (tempSchool) {
+      const role = await api.getUserRoleForSchool(currentUser.id, tempSchool.id);
+      if (role) {
+        return selectSchool({ school: tempSchool, role });
+      }
     }
-  } else if (allSchool.length === 1) {
-    selectSchool(allSchool[0]);
-  }
-};
-
-  const getClasses = async (schoolId: string) => {
-    const tempClasses = await api.getClassesForSchool(schoolId, user?.id!);
-    if (tempClasses.length > 0) {
-      return tempClasses;
-    } else {
-      return [];
+    if (schoolList.length === 1) {
+      return selectSchool(schoolList[0]);
     }
   };
-  const switchUser = async () => {
+  // infinite scroll listener
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const handleScroll = () => {
+      if (loading || !hasMore) return;
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
+        setPage(p => p + 1);
+      }
+    };
+    el.addEventListener("scroll", handleScroll);
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [loading, hasMore]);
+  // fetch next page if page++
+  useEffect(() => {
+    if (!user || page === 1) return;
+    fetchSchools(page, user.id);
+  }, [page, user]);
+  // helper: get classes
+  const getClasses = async (schoolId: string) => {
+    const classes = await api.getClassesForSchool(schoolId, user!.id);
+    return classes.length ? classes : [];
+  };
+  const switchUser = () => {
     schoolUtil.setCurrMode(MODES.PARENT);
     history.replace(PAGES.DISPLAY_STUDENT);
   };
+  
   async function selectSchool(school: SchoolWithRole) {
     Util.setCurrentSchool(school.school, school.role);
-
     await Util.handleClassAndSubjects(
       school.school.id,
-      user?.id!,
+      user!.id,
       history,
       PAGES.DISPLAY_SCHOOLS
     );
-
+    localStorage.setItem(USER_SELECTION_STAGE, JSON.stringify(true));
     const tempClass = Util.getCurrentClass();
     if (tempClass) {
-      Util.setCurrentClass(tempClass);
       history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
     } else {
       const classes = await getClasses(school.school.id);
@@ -127,7 +141,6 @@ const DisplaySchools: FC<{}> = () => {
         disableBackButton={true}
         customText="Select School"
       />
-
       <div className="display-user-switch-user-toggle">
         <div className="display-school-switch-text">
           <PiUserSwitchFill className="display-user-user-switch-icon" />
@@ -144,15 +157,15 @@ const DisplaySchools: FC<{}> = () => {
         )}
       </div>
       <hr className="display-school-horizontal-line" />
-      {schoolList.length === 0 ? (
+      {schoolList.length === 0 && !loading ? (
         <div className="no-schools-container">
           <div className="create-school-button">
             <IonFabButton
-              onClick={() => {
+              onClick={() =>
                 history.replace(PAGES.REQ_ADD_SCHOOL, {
                   origin: PAGES.DISPLAY_SCHOOLS,
-                });
-              }}
+                })
+              }
             >
               <IonIcon icon={addOutline} />
             </IonFabButton>
@@ -162,43 +175,41 @@ const DisplaySchools: FC<{}> = () => {
           </div>
         </div>
       ) : (
-        <>
-          <div className="all-school-display-container">
-            <div className="all-school-display">
-              {schoolList.map((school) => (
-                <div
-                  key={school.school.id}
-                  onClick={() => selectSchool(school)}
-                >
-                  <div className="display-school-single-school">
-                    <div className="display-school-image">
-                      <img
-                        className="school-image-p"
-                        src={school.school.image ?? "assets/icons/school.png"}
-                      ></img>
-                    </div>
-                    <div className="display-school-name">
-                      {school.school.name}
-                    </div>
+        <div
+          className="all-school-display-container display-all-schools-scroll"
+          ref={scrollRef}
+          style={{ overflowY: "auto", maxHeight: "calc(100vh - 200px)" }}
+        >
+          <div className="all-school-display">
+            {schoolList.map((school) => (
+              <div
+                key={school.school.id}
+                onClick={() => selectSchool(school)}
+              >
+                <div className="display-school-single-school">
+                  <div className="display-school-image">
+                    <img
+                      className="school-image-p"
+                      src={
+                        school.school.image ?? "assets/icons/school.png"
+                      }
+                      alt=""
+                    />
+                  </div>
+                  <div className="display-school-name">
+                    {school.school.name}
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
+            {loading && <div className="display-loading-text">{t("Loading...")}</div>}
+            {!hasMore && schoolList.length > 0 && (
+              <div className="display-no-more-schools">{t("No more schools")}</div>
+            )}
           </div>
-        </>
+        </div>
       )}
-      {/* comment out the plus icon */}
-      {/* {schoolList.length > 0 && (
-        <AddButton
-          onClick={() => {
-            history.replace(PAGES.ADD_SCHOOL, {
-              origin: PAGES.DISPLAY_SCHOOLS,
-            });
-          }}
-        />
-      )} */}
     </IonPage>
   );
 };
-
 export default DisplaySchools;

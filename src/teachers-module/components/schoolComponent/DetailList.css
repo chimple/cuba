@@ -81,16 +81,24 @@
   justify-content: space-between;
   padding: 0px 23px;
   align-items: center;
+  width: 100%;
+  flex-wrap: nowrap;
 }
 .detail-section {
   display: flex;
   align-items: center;
   gap: 12px;
-  justify-content: center;
+  width: 70%;
+  overflow: hidden;
 }
 
 .detail-school-name {
   color: #707070;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 }

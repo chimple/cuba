@@ -438,8 +438,8 @@ export interface ServiceApi {
     gender: string,
     avatar: string,
     image: string | undefined,
-    boardDocId: string,
-    gradeDocId: string,
+    boardDocId: string | undefined,
+    gradeDocId: string | undefined,
     languageDocId: string
   ): Promise<TableTypes<"user">>;
 
@@ -544,14 +544,32 @@ export interface ServiceApi {
     studentId: string
   ): Promise<TableTypes<"assignment">[]>;
   /**
-   * This function gets all the schools for the teacher or principal
-   * @param {User} user user firebase documentId;
-   * @return A promise to an array of schools
+   * Gets schools for a user (teacher, principal, or ops user).
+   *
+   * If pagination options are provided, returns only the requested page.
+   * If not, returns all schools for the user (legacy behavior).
+   *
+   * @param {string} userId - User's unique ID
+   * @param {Object} [options] - Optional pagination settings
+   * @param {number} [options.page] - The page number to fetch (1-based)
+   * @param {number} [options.page_size] - Number of schools per page
+   * @returns {Promise<{ school: TableTypes<"school">; role: RoleType }[]>}
    */
-
   getSchoolsForUser(
-    userId: string
+    userId: string,
+    options?: { page?: number; page_size?: number }
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]>;
+
+  /**
+   * Get a user's role for a given school.
+   * @param userId - The user's id
+   * @param schoolId - The school's id
+   * @returns Promise of RoleType (or undefined if no role found)
+   */
+  getUserRoleForSchool(
+    userId: string,
+    schoolId: string
+  ): Promise<RoleType | undefined>;
 
   /**
    * This function sets the current mode for the user
@@ -992,7 +1010,9 @@ export interface ServiceApi {
   getStudentLastTenResults(
     studentId: string,
     courseId: string,
-    assignmentIds: string[]
+    assignmentIds: string[],
+    startDate: string,
+    endDate: string,
   ): Promise<TableTypes<"result">[]>;
   /**
    * Creates a class for the given school
@@ -1058,7 +1078,8 @@ export interface ServiceApi {
     lesson_id: string,
     chapter_id: string,
     course_id: string,
-    type: string
+    type: string,
+    batch_id: string
   ): Promise<boolean>;
 
   /**
@@ -1108,7 +1129,11 @@ export interface ServiceApi {
    * @param {string} userId user Id;
    * @return returns boolean whether the teacher is already connected to class or not.
    */
-  checkTeacherExistInClass(schoolId: string, classId: string, userId: string): Promise<boolean> 
+  checkTeacherExistInClass(
+    schoolId: string,
+    classId: string,
+    userId: string
+  ): Promise<boolean>;
 
   /**
    * Checks the user present in school or not.
@@ -1306,7 +1331,7 @@ export interface ServiceApi {
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }>;
 
-   /**
+  /**
    * To validate given program name exist in the program table or not
    * @param {string } programName -    program name
    */
@@ -1641,25 +1666,25 @@ export interface ServiceApi {
    */
   getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>>;
 
-/**
- * Fetch a list of schools filtered by given criteria, with pagination, sorting, and search.
- *
- * @param params - An object containing filters (keys as categories and values as selected options), 
- *   an optional programId, pagination, sorting, and search options.
- * @returns Promise resolving to an object with the filtered list of schools and the total count.
- */
-getFilteredSchoolsForSchoolListing(params: {
-  filters?: Record<string, string[]>;
-  programId?: string;
-  page?: number;
-  page_size?: number;
-  order_by?: string;
-  order_dir?: "asc" | "desc";
-  search?: string;
-}): Promise<{
-  data: FilteredSchoolsForSchoolListingOps[];
-  total: number;
-}>;
+  /**
+   * Fetch a list of schools filtered by given criteria, with pagination, sorting, and search.
+   *
+   * @param params - An object containing filters (keys as categories and values as selected options),
+   *   an optional programId, pagination, sorting, and search options.
+   * @returns Promise resolving to an object with the filtered list of schools and the total count.
+   */
+  getFilteredSchoolsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: "asc" | "desc";
+    search?: string;
+  }): Promise<{
+    data: FilteredSchoolsForSchoolListingOps[];
+    total: number;
+  }>;
 
   /**
    * Creates or gets a user based on the provided payload.
@@ -1670,19 +1695,17 @@ getFilteredSchoolsForSchoolListing(params: {
    * @param {string} payload.role - Role of the user.
    * @returns {Promise<{ success: boolean; user_id?: string; message?: string; error?: string; }>}
    */
-    createOrAddUserOps(
-      payload: {
-        name: string;
-        email?: string;
-        phone?: string;
-        role: string;
-      }
-    ): Promise<{
-      success: boolean;
-      user_id?: string;
-      message?: string;
-      error?: string;
-    }>;
+  createOrAddUserOps(payload: {
+    name: string;
+    email?: string;
+    phone?: string;
+    role: string;
+  }): Promise<{
+    success: boolean;
+    user_id?: string;
+    message?: string;
+    error?: string;
+  }>;
 
   //  * Fetch detailed teacher information for a given school ID.
   //  * @param {string} schoolId - The ID of the school to fetch.
@@ -1749,15 +1772,29 @@ getFilteredSchoolsForSchoolListing(params: {
   }>;
 
   /**
-   * Retrieve the list of managers and coordinators associated with the current user.
+   * Retrieve the list of managers and coordinators associated with the current user,
+   * with support for pagination, search, and sorting.
    *
-   * @returns {Promise<{ name: string; role: string }[]>}
-   *   Promise resolving to an array of objects, each containing the user's name and their role
-   *   (e.g., "Program Manager", "Field Coordinator").
+   * @param page - The page number for pagination (default: 1).
+   * @param search - Search term to filter by user name (default: "").
+   * @param limit - Number of users per page (default: 10).
+   * @param sortBy - Field to sort by (default: "name").
+   * @param sortOrder - Sort order: "asc" or "desc" (default: "asc").
+   *
+   * @returns Promise resolving to an object containing:
+   *   - data: Array of user objects with their highest role and all assigned roles.
+   *   - totalCount: Total number of matching users.
    */
-  getManagersAndCoordinators(): Promise<
-    { user: TableTypes<"user">; role: string }[]
-  >;
+  getManagersAndCoordinators(
+    page?: number,
+    search?: string,
+    limit?: number,
+    sortBy?: keyof TableTypes<"user">,
+    sortOrder?: "asc" | "desc"
+  ): Promise<{
+    data: { user: TableTypes<"user">; role: string }[];
+    totalCount: number;
+  }>;
 
   /**
    * Count total and active students, total and active teachers, and average time spent for a given school.
@@ -1797,7 +1834,7 @@ getFilteredSchoolsForSchoolListing(params: {
    * Delete the user from special_users table.
    * @param {string} userId - user Id.
    */
-  deleteSpecialUser(userId:string):Promise<void>;
+  deleteSpecialUser(userId: string): Promise<void>;
 
   /**
    * Updates the role of a special user in program users table.
@@ -1810,12 +1847,12 @@ getFilteredSchoolsForSchoolListing(params: {
    * Delete the user from program_user table.
    * @param {string} userId - user Id.
    */
-  deleteProgramUser(userId:string):Promise<void>;
+  deleteProgramUser(userId: string): Promise<void>;
 
   /**
    * Delete the user from school_user table by role.
    * @param {string} userId - user Id.
    * @param {number} role - user Role.
    */
-  deleteUserFromSchoolsWithRole(userId: string, role: string):Promise<void>;
+  deleteUserFromSchoolsWithRole(userId: string, role: string): Promise<void>;
 }

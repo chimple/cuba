@@ -8,6 +8,7 @@
 }
 .type-dropdown {
   align-content: center;
+  width: clamp(155px, 30vw, 200px);
 }
 .no-students-container {
   height: 100%;
@@ -49,6 +50,8 @@ tbody {
   display: flex;
   justify-content: space-between;
   margin: 5px 0px;
+  width: 100%;
+  /* gap: 8px; */
 }
 .table-container-body {
   display: flex;
@@ -105,4 +108,16 @@ td {
   background-color: transparent;
   color: #4b79f0;
   border: 0;
+}
+ion-select::part(placeholder),
+ion-select::part(text) {
+  color: #7B7676;
+  flex: 0 0 auto;
+  padding-right: 0;
+  font-size: clamp(15px, 3vw, 18px);
+}
+
+.custom-chapter-dropdown {
+  padding: 0 10px;
+  width: clamp(155px, 30vw, 200px);
 }

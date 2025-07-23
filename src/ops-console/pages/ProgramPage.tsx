@@ -17,7 +17,7 @@ import HeaderTab from "../components/HeaderTab";
 import { Add } from "@mui/icons-material";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
-import { useHistory } from "react-router";
+import { useHistory, useLocation  } from "react-router";
 import {
   PAGES,
   PROGRAM_TAB,
@@ -82,42 +82,39 @@ const ProgramsPage: React.FC = () => {
   const auth = ServiceConfig.getI().authHandler;
   const isSmallScreen = useMediaQuery("(max-width: 900px)");
 
-  const [activeTabIndex, setActiveTabIndex] = useState(0);
-  const [filters, setFilters] = useState<Record<string, string[]>>({
-    partner: [],
-    program_type: [],
-    model: [],
-    state: [],
-    district: [],
-    block: [],
-    village: [],
-    cluster: [],
-  });
-  const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({
-    partner: [],
-    program_type: [],
-    model: [],
-    state: [],
-    district: [],
-    block: [],
-    village: [],
-    cluster: [],
-  });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [programs, setPrograms] = useState<any[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [loadingPrograms, setLoadingPrograms] = useState(false);
-  const [loadingFilters, setLoadingFilters] = useState(false);
-  const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>(
-    {}
-  );
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [isProgramManager, setIsProgramManager] = useState(false);
-  const [isOpsRole, setIsOpsRole] = useState(false);
+const location = useLocation();
+const qs = new URLSearchParams(location.search);
 
-  const [page, setPage] = useState(1);
-  const [orderBy, setOrderBy] = useState("name");
-  const [order, setOrder] = useState<"asc" | "desc">("asc");
+function parseJSONParam<T>(param: string | null, fallback: T): T {
+  try { return param ? (JSON.parse(param) as T) : fallback; }
+  catch { return fallback; }
+}
+
+const [activeTabIndex, setActiveTabIndex] = useState(() => {
+  const n = parseInt(qs.get("tab") || "", 10);
+  return isNaN(n) ? 0 : n;
+});
+const [filters, setFilters] = useState<Record<string, string[]>>(
+  () => parseJSONParam(qs.get("filters"), {})
+);
+const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({});
+const [searchTerm, setSearchTerm] = useState(() => qs.get("search") || "");
+const [programs, setPrograms] = useState<any[]>([]);
+const [totalCount, setTotalCount] = useState(0);
+const [loadingPrograms, setLoadingPrograms] = useState(false);
+const [loadingFilters, setLoadingFilters] = useState(false);
+const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>({});
+const [isFilterOpen, setIsFilterOpen] = useState(false);
+const [isProgramManager, setIsProgramManager] = useState(false);
+const [isOpsRole, setIsOpsRole] = useState(false);
+const [page, setPage] = useState(() => {
+  const p = parseInt(qs.get("page") || "", 10);
+  return isNaN(p) || p < 1 ? 1 : p;
+});
+const [orderBy, setOrderBy] = useState("name");
+const [order, setOrder] = useState<"asc" | "desc">("asc");
+
+
 
   const tab: TabType = tabOptions[activeTabIndex].value;
   const tableScrollRef = React.useRef<HTMLDivElement>(null);
@@ -149,11 +146,21 @@ const ProgramsPage: React.FC = () => {
         userRole?.includes(RoleType.SUPER_ADMIN) ||
         userRole?.includes(RoleType.OPERATIONAL_DIRECTOR);
       setIsOpsRole(!!isOps);
-      
     };
 
     fetchInitialData();
   }, []);
+
+  useEffect(() => {
+  const params = new URLSearchParams();
+  if (page !== 1) params.set("page", String(page));
+  if (searchTerm) params.set("search", searchTerm);
+  if (Object.values(filters).some(arr => arr.length))
+    params.set("filters", JSON.stringify(filters));
+  if (activeTabIndex !== 0) params.set("tab", String(activeTabIndex));
+  history.replace({ search: params.toString() });
+}, [page, searchTerm, filters, activeTabIndex, history]);
+
 
   useEffect(() => {
     const fetchPrograms = async () => {
@@ -275,7 +282,6 @@ const ProgramsPage: React.FC = () => {
       state: [],
       district: [],
       block: [],
-      village: [],
       cluster: [],
     };
     setTempFilters(reset);
@@ -302,7 +308,6 @@ const ProgramsPage: React.FC = () => {
     { key: "state", label: t("Select State") },
     { key: "district", label: t("Select District") },
     { key: "block", label: t("Select Block") },
-    { key: "village", label: t("Select Village") },
     { key: "cluster", label: t("Select Cluster") },
   ];
 
