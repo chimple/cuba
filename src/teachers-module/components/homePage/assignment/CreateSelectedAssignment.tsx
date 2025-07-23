@@ -569,14 +569,14 @@ const CreateSelectedAssignment = ({
               >
                 <h4>{groupWiseStudents[category].title}</h4>
                 <div className="select-all">
-                  {/* <div>
+                  <div className="select-all-student-count">
                     {
                       groupWiseStudents[category].students.filter(
                         (student) => student.selected
                       ).length
                     }
                     /{groupWiseStudents[category].students.length}
-                  </div> */}
+                  </div>
                   <img
                   src={
                   groupWiseStudents[category].isCollapsed

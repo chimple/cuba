@@ -8,7 +8,7 @@
 }
 .type-dropdown {
   align-content: center;
-  width: clamp(155px, 30vw, 200px);
+  width: clamp(170px, 32vw, 200px);
 }
 .no-students-container {
   height: 100%;
@@ -70,6 +70,8 @@ td:first-child {
   transform: inherit;
   background-color: white;
   z-index: 2;
+  font-weight: 400;
+  color:#4A4949;
 }
 
 table {
@@ -109,12 +111,13 @@ td {
   color: #4b79f0;
   border: 0;
 }
-ion-select::part(placeholder),
-ion-select::part(text) {
+.type-dropdown ion-select::part(placeholder),
+.type-dropdown ion-select::part(text) {
   color: #7B7676;
   flex: 0 0 auto;
   padding-right: 0;
-  font-size: clamp(15px, 3vw, 18px);
+  font-size: clamp(16px, 3vw, 18px);
+  font-weight: 600;
 }
 
 .custom-chapter-dropdown {

@@ -188,7 +188,7 @@ const HomePage: React.FC = () => {
         <BottomNavigation
           value={tabValue}
           onChange={handleChange}
-          className="bottom-nav"
+          className="homepage-bottom-nav"
           showLabels
           style={{ height: "10vh" }}
         >
