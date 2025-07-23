@@ -190,6 +190,9 @@ useEffect(() => {
     }
   }, [inviteCode]);
 
+  const isFormValid = codeResult && error === "" && (fullName.length >= 3 || fullName === currStudent.name) &&
+      inviteCode?.toString().length === 6;
+
   return (
     <div className="join-class-parent-container">
       {isInputFocus && <div className="scroll-keyboard-for-join-class" ref={scrollToRef}></div>}
@@ -248,16 +251,7 @@ useEffect(() => {
       <button
         className="join-class-confirm-button"
         onClick={onJoin}
-        disabled={
-          loading ||
-          !(
-            codeResult &&
-            !error &&
-            error === "" &&
-            (fullName.length >= 3 || fullName === currStudent.name) &&
-            inviteCode?.toString().length === 6
-          )
-        }
+        disabled={loading || !isFormValid}
       >
         <span className="join-class-confirm-text">{t("Confirm")}</span>
       </button>
