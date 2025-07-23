@@ -78,6 +78,7 @@ const JoinClass: FC<{
   };
   const onJoin = async () => {
     // setShowDialogBox(false);
+    if (loading) return;
     setLoading(true);
     const student = Util.getCurrentStudent();
 
@@ -243,6 +244,7 @@ useEffect(() => {
         className="join-class-confirm-button"
         onClick={onJoin}
         disabled={
+          loading ||
           !(
             codeResult &&
             !error &&
