@@ -106,13 +106,18 @@ const init = async () => {
     const _students = await api.getStudentsForClass(current_class?.id ?? "");
     setStudents(_students);
     const _classUtil = new ClassUtil();
+    const subject_ids = subjects.map(item => item.id);
+    const selectedsubjectIds: string[] =
+    selectedSubject?.id === ALL_SUBJECT.id || !selectedSubject?.id
+    ? subject_ids
+    : [selectedSubject.id];
     const _studentProgress = await _classUtil.divideStudents(
       current_class?.id ?? "",
-      selectedSubject?.id ?? ""
+      selectedsubjectIds
     );
     const _weeklySummary = await _classUtil.getWeeklySummary(
       current_class?.id ?? "",
-      selectedSubject?.id ?? ""
+      selectedsubjectIds
     );
 
     setWeeklySummary(_weeklySummary);

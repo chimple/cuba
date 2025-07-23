@@ -994,7 +994,7 @@ export interface ServiceApi {
    */
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId: string,
+     courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -1009,7 +1009,7 @@ export interface ServiceApi {
    */
   getStudentLastTenResults(
     studentId: string,
-    courseId: string,
+    courseIds: string[],
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]>;
   /**
@@ -1187,7 +1187,7 @@ export interface ServiceApi {
    */
   getStudentResultByDate(
     studentId: string,
-    course_id: string,
+    courseIds: string[],
     startDate: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined>;

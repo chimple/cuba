@@ -828,7 +828,7 @@ public async getUserRoleForSchool(
   }
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId: any,
+    courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -837,7 +837,7 @@ public async getUserRoleForSchool(
   ): Promise<TableTypes<"assignment">[] | undefined> {
     return this.s.getAssignmentOrLiveQuizByClassByDate(
       classId,
-      courseId,
+      courseIds,
       startDate,
       endDate,
       isClassWise,
@@ -853,10 +853,10 @@ public async getUserRoleForSchool(
   }
   getStudentLastTenResults(
     studentId: string,
-    courseId: string,
+    courseIds: string[],
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
-    return this.s.getStudentLastTenResults(studentId, courseId, assignmentIds);
+    return this.s.getStudentLastTenResults(studentId, courseIds, assignmentIds);
   }
   getResultByAssignmentIds(
     assignmentIds: string[]
@@ -954,13 +954,13 @@ public async getUserRoleForSchool(
   }
   getStudentResultByDate(
     studentId: string,
-    course_id: string,
+    courseIds: string[],
     startDate: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined> {
     return this.s.getStudentResultByDate(
       studentId,
-      course_id,
+      courseIds,
       startDate,
       endDate
     );

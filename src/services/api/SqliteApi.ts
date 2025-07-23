@@ -4013,16 +4013,17 @@ order by
 
   async getStudentLastTenResults(
     studentId: string,
-    courseId: string,
+    courseIds: string[],
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
     const assignmentholders = assignmentIds.map(() => "?").join(", ");
+    const courseholders = courseIds.map(() => "?").join(", ");
     const res = await this._db?.query(
       `WITH null_assignments AS (
          SELECT *
          FROM ${TABLES.Result}
          WHERE student_id = ?
-         AND course_id = ?
+         AND course_id IN (${courseholders})
          AND assignment_id IS NULL
          ORDER BY created_at DESC
          LIMIT 5
@@ -4031,8 +4032,8 @@ order by
          SELECT *
          FROM ${TABLES.Result}
          WHERE student_id = ?
-         AND course_id = ?
-         AND assignment_id IS NOT NULL
+         AND course_id IN (${courseholders})
+         AND assignment_id IN (${assignmentholders})
          ORDER BY created_at DESC
          LIMIT 5
        )
@@ -4043,32 +4044,23 @@ order by
        FROM non_null_assignments
        ORDER BY created_at DESC
        LIMIT 10;`,
-      [studentId, courseId, studentId, courseId]
+      [studentId,...courseIds, studentId,...courseIds,...assignmentIds]
     );
     return res?.values ?? [];
   }
 
   async getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId: any,
+     courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
     isLiveQuiz: boolean,
     allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
-    let query = `SELECT * FROM ${TABLES.Assignment} WHERE class_id = ? AND created_at BETWEEN ? AND ?`;
-    const params: any[] = [classId, endDate, startDate];
-
-    // Handle courseId parameter
-    if (typeof courseId === "string") {
-      query += ` AND course_id = ?`;
-      params.push(courseId);
-    } else if (Array.isArray(courseId) && courseId.length > 0) {
-      query += ` AND course_id IN (${courseId.map(() => "?").join(",")})`;
-      params.push(...courseId);
-    }
-
+     const courseholders = courseIds.map(() => "?").join(", ");
+    let query = `SELECT * FROM ${TABLES.Assignment} WHERE class_id = ? AND created_at BETWEEN ? AND ? AND course_id IN (${courseholders}) `;
+    const params: any[] = [classId, endDate, startDate,...courseIds];
     if (isClassWise) {
       query += ` AND is_class_wise = 1`;
     }
@@ -4080,29 +4072,34 @@ order by
       }
     }
     query += ` ORDER BY created_at DESC`;
-
     const res = await this._db?.query(query, params);
     return res?.values;
   }
 
   async getStudentResultByDate(
-    studentId: string,
-    course_id: string,
-    startDate: string,
-    endDate: string
-  ): Promise<TableTypes<"result">[] | undefined> {
-    const query = `SELECT *
-       FROM ${TABLES.Result}
-       WHERE student_id = '${studentId}'
-       AND course_id = '${course_id}'
-       AND created_at BETWEEN '${startDate}' AND '${endDate}'
-       ORDER BY created_at DESC;`;
+  studentId: string,
+  courseIds: string[],
+  startDate: string,
+  endDate: string
+): Promise<TableTypes<"result">[] | undefined> {
+  const courseholders = courseIds.map(() => "?").join(", ");
+  
+  const query = `
+    SELECT *
+    FROM ${TABLES.Result}
+    WHERE student_id = ?
+    AND course_id IN (${courseholders})
+    AND created_at BETWEEN ? AND ?
+    ORDER BY created_at DESC;
+  `;
 
-    const res = await this._db?.query(query);
+  const params = [studentId, ...courseIds, startDate, endDate];
 
-    if (!res || !res.values || res.values.length < 1) return;
-    return res.values;
-  }
+  const res = await this._db?.query(query, params);
+
+  if (!res || !res.values || res.values.length < 1) return;
+  return res.values;
+}
 
   async getLastAssignmentsForRecommendations(
     classId: string

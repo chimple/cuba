@@ -80,7 +80,7 @@ const StudentReport: React.FC = () => {
     var _classUtil = new ClassUtil();
     var result = await _classUtil.getStudentProgressForStudentTable(
       student.id,
-      selectedSubject?.id ?? "",
+      [selectedSubject?.id ?? ""],
       startDate ?? "",
       endDate ?? ""
     );
