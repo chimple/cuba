@@ -64,11 +64,19 @@
   transform: translateY(2px);
 }
 
-.scroll-keyboard-for-join-class {
-  height: 0px;
-  overflow-y: scroll;
-  scroll-behavior: smooth;
-  margin-top: -40px;
+.assignment-join-class-container-scroll {
+  transition: transform  0.3s ease-in-out;
+  position: relative;
 }
+
+.assignment-join-class-container-scroll.shift-up {
+  transform: translateY(-24vh);
+}
+
+
+
+
+
+
 
 
