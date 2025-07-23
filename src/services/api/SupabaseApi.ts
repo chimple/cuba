@@ -326,92 +326,104 @@ export class SupabaseApi implements ServiceApi {
   async uploadData(payload: any): Promise<boolean | null> {
     if (!this.supabase) return false;
 
-    let uploadId: string | undefined;
-    let uploadingUser: string | undefined;
-
-    try {
-      const { data, error: functionError } =
-        await this.supabase.functions.invoke("ops-data-insert", {
-          body: payload,
-        });
-      uploadId = data?.upload_id;
-
-      if (!uploadId) {
-        const { data: session } = await this.supabase.auth.getSession();
-        uploadingUser = session?.session?.user?.id;
-
-        if (uploadingUser) {
-          const { data: fallbackJob } = await this.supabase
-            .from("upload_queue")
-            .select("id")
-            .eq("uploading_user", uploadingUser)
-            .order("start_time", { ascending: false })
-            .limit(1)
-            .single();
-
-          uploadId = fallbackJob?.id;
-        }
-      }
-
-      if (uploadId) {
-        console.log(
-          "📡 Subscribing to realtime status for upload_id:",
-          uploadId
-        );
-        return new Promise((resolve) => {
-          const supabase = this.supabase;
-          if (!supabase) return resolve(false);
-          let resolved = false;
-          const channel = supabase
-            .channel(`upload-status-${uploadId}`)
+    const supabase = this.supabase;
+    let resolved = false;
+    const currentuserData =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    const uploadingUser = currentuserData?.id;
+    return new Promise(async (resolve) => {
+      let uploadId: string | undefined;
+      const fallbackChannel = uploadingUser
+        ? supabase
+            .channel(`upload-fallback-${uploadingUser}`)
             .on(
               "postgres_changes",
               {
                 event: "UPDATE",
                 schema: "public",
                 table: "upload_queue",
-                filter: `id=eq.${uploadId}`,
+                filter: `uploading_user=eq.${uploadingUser}`,
               },
               async (payload) => {
                 const status = payload.new?.status;
-                console.log("🔄 Realtime update received:", status);
-                if (status === "success") {
-                  console.log("✅ Upload completed successfully.");
-                  if (!resolved) {
-                    resolved = true;
-                    await supabase.removeChannel(channel);
-                    resolve(true);
-                  }
-                } else if (status === "failed") {
-                  console.log("❌ Upload failed.");
-                  if (!resolved) {
-                    resolved = true;
-                    await supabase.removeChannel(channel);
-                    resolve(false);
-                  }
+                const id = payload.new?.id;
+                console.log(
+                  "🔄 [Fallback] Realtime update:",
+                  status,
+                  "ID:",
+                  id
+                );
+                if (
+                  (status === "success" || status === "failed") &&
+                  !resolved
+                ) {
+                  resolved = true;
+                  await fallbackChannel?.unsubscribe();
+                  console.log(
+                    `✅ / ❌ Fallback resolved with status: ${status}`
+                  );
+                  resolve(status === "success");
                 }
               }
             )
-            .subscribe((status) => {
-              if (status === "SUBSCRIBED") {
-                console.log(
-                  "📡 Realtime subscription active for upload_queue."
-                );
-              } else if (!resolved) {
-                console.warn("⚠️ Realtime subscription failed:", status);
+            .subscribe()
+        : null;
+      const { data, error: functionError } = await supabase.functions.invoke(
+        "ops-data-insert",
+        {
+          body: payload,
+        }
+      );
+      uploadId = data?.upload_id;
+      if (uploadId) {
+        console.log("📡 Received upload_id:", uploadId);
+        if (fallbackChannel) {
+          await fallbackChannel.unsubscribe();
+        }
+        const { data: row } = await supabase
+          .from("upload_queue")
+          .select("status")
+          .eq("id", uploadId)
+          .single();
+        if (row?.status === "success") {
+          console.log("✅ Already succeeded before subscription.");
+          return resolve(true);
+        }
+        if (row?.status === "failed") {
+          console.log("❌ Already failed before subscription.");
+          return resolve(false);
+        }
+        const directChannel = supabase
+          .channel(`upload-status-${uploadId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "upload_queue",
+              filter: `id=eq.${uploadId}`,
+            },
+            async (payload) => {
+              const status = payload.new?.status;
+              console.log("🔄 Realtime update received:", status);
+              if ((status === "success" || status === "failed") && !resolved) {
+                resolved = true;
+                await directChannel.unsubscribe();
+                resolve(status === "success");
               }
-            });
-        });
+            }
+          )
+          .subscribe((status) => {
+            if (status === "SUBSCRIBED") {
+              console.log("📡 Realtime subscription active.");
+            } else {
+              console.warn("⚠️ Subscription status:", status);
+            }
+          });
       } else {
-        console.warn(
-          "❗ Could not determine upload_id, skipping realtime tracking."
-        );
-        return null;
+        console.warn("❗ No upload_id returned — using fallback listener.");
       }
-    } catch (error: any) {
-      console.error("🔥 Unexpected error:", error);
-      return null;
-    }
+    });
   }
 
   async getTablesData(
@@ -6798,45 +6810,62 @@ export class SupabaseApi implements ServiceApi {
       return { data: result, totalCount: count || 0 };
     }
     if (roles.includes(RoleType.PROGRAM_MANAGER)) {
-      const { data: programs } = await this.supabase
+      const { data: programs, error: programsError } = await this.supabase
         .from("program_user")
         .select("program_id")
         .eq("user", userId)
-        .eq("role", "program_manager")
+        .eq("role", RoleType.PROGRAM_MANAGER)
         .eq("is_deleted", false);
+      if (programsError) {
+        console.error(
+          "Error fetching program manager's programs:",
+          programsError
+        );
+        return { data: [], totalCount: 0 };
+      }
       if (!programs || programs.length === 0) {
         return { data: [], totalCount: 0 };
       }
       const programIds = programs.map((p) => p.program_id);
       let query = this.supabase
-        .from("program_user")
-        .select("role, user!inner(*)", { count: "exact" })
-        .in("program_id", programIds)
-        .eq("role", "field_coordinator")
-        .eq("is_deleted", false)
-        .eq("user.is_deleted", false);
-      if (search && search.length >= 3) {
-        query = query.ilike("user.name", `%${search}%`);
+        .from("user")
+        .select(
+          `
+        *,
+        program_user!inner(role)
+        `,
+          { count: "exact" }
+        )
+        .in("program_user.program_id", programIds)
+        .eq("program_user.role", RoleType.FIELD_COORDINATOR)
+        .eq("program_user.is_deleted", false)
+        .eq("is_deleted", false);
+      if (search) {
+        query = query.ilike("name", `%${search}%`);
       }
-      const { data: coordinators, count } = await query
-        .order(sortBy, {
-          referencedTable: "user",
-          ascending: sortOrder === "asc",
-        })
+      const {
+        data: users,
+        count,
+        error,
+      } = await query
+        .order(sortBy, { ascending: sortOrder === "asc" })
         .range(from, to);
-      if (!coordinators) {
+      if (error) {
+        console.error("Error fetching field coordinators:", error);
         return { data: [], totalCount: 0 };
       }
-      const uniqueUsersMap = new Map();
-      for (const c of coordinators) {
-        if (!uniqueUsersMap.has(c.user.id)) {
-          uniqueUsersMap.set(c.user.id, { user: c.user, role: c.role });
-        }
+      if (!users) {
+        return { data: [], totalCount: 0 };
       }
-      return {
-        data: Array.from(uniqueUsersMap.values()),
-        totalCount: uniqueUsersMap.size,
-      };
+      const result = users.map((u) => {
+        const { program_user, ...userObject } = u;
+        const role = program_user[0]?.role || RoleType.FIELD_COORDINATOR;
+        return {
+          user: userObject as TableTypes<"user">,
+          role,
+        };
+      });
+      return { data: result, totalCount: count || 0 };
     }
     return { data: [], totalCount: 0 };
   }
