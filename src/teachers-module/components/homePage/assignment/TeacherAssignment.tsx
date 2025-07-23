@@ -357,7 +357,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
                   defaultSrc={"assets/icons/DefaultIcon.png"}
                   webSrc={assignment?.image}
                   imageWidth="100px"
-                  imageHeight="auto"
+                  imageHeight="100px"
                 />
                 <span className="assignment-list-item-name">
                   {assignment?.name}

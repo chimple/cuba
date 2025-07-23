@@ -43,6 +43,7 @@
   color: #7c5db0;
   align-items: center;
   justify-content: center;
+  color: black;
 }
 
 .home-container-body {
@@ -59,4 +60,7 @@
 }
 .assignSelectedIcon{
   width: clamp(40px, 3.5vw, 50px);
+}
+.bottom-nav .MuiBottomNavigationAction-label {
+  color: #707070;
 }

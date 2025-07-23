@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   border-bottom: 2px solid #9473CB;
-  width: clamp(155px, 30vw, 200px);
+  width: clamp(160px, 30vw, 200px);
   height: min(5vh, 40px);
   min-height: 35px;
 }

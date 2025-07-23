@@ -5,6 +5,8 @@ import { PAGES, TableTypes } from "../../../common/constants";
 import { t } from "i18next";
 import { useHistory } from "react-router-dom";
 import ProfileDetails from "../library/ProfileDetails";
+import {caretDownSharp } from "ionicons/icons";
+import { IonIcon } from "@ionic/react";
 
 const UserProfile: React.FC<{
   student: TableTypes<"user">;
@@ -150,6 +152,7 @@ const UserProfile: React.FC<{
             </span>
             <span className="userprofile-value">
               {isEditing ? (
+                 <div className="dropdown-with-icon">
                 <select
                   name="class"
                   value={classDoc?.id}
@@ -161,6 +164,8 @@ const UserProfile: React.FC<{
                     </option>
                   ))}
                 </select>
+                <IonIcon icon={caretDownSharp} className="dropdown-icon" />
+                </div>
               ) : (
                 classDoc?.name
               )}

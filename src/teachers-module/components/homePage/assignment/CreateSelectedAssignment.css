@@ -94,16 +94,17 @@
 
 .assign-selected-button {
   position: absolute;
-  top: 90vh;
-  left: 15vw;
-  width: 70vw;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50vw;
+  height: 50px;
   padding: 10px;
   background-color: #7C5DB0;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  margin-top: 20px;
   font-size: 22px;
   font-weight: bolder;
 }
@@ -184,4 +185,8 @@
   border: solid white;
   border-width: 0 3px 3px 0;
   transform: translate(-50%, -50%) rotate(45deg); /* Draw checkmark */
+}
+
+.select-all-student-count{
+  text-align: left;
 }
