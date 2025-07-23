@@ -44,7 +44,8 @@ const mockClassDoc: TableTypes<"class"> = {
   is_ops: null,
   ops_created_by: null,
   standard: null,
-  status: null
+  status: null,
+  group_id: null
 };
 
 const meta: Meta<typeof TeacherProfileSection> = {

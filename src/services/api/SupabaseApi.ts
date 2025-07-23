@@ -3103,6 +3103,7 @@ export class SupabaseApi implements ServiceApi {
       name: className,
       image: null,
       school_id: schoolId,
+      group_id: null,
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
@@ -6570,7 +6571,7 @@ export class SupabaseApi implements ServiceApi {
       }
 
       return {
-        data: (data.data ?? []) as FilteredSchoolsForSchoolListingOps[],
+        data: (data.data ?? []) as unknown as FilteredSchoolsForSchoolListingOps[],
         total: typeof data.total === "number" ? data.total : 0,
       };
     } catch (err) {
@@ -6879,14 +6880,23 @@ export class SupabaseApi implements ServiceApi {
           avg_weekly_time_minutes: 0,
         };
       }
-      return {
-        total_students: data.total_students ?? 0,
-        total_teachers: data.total_teachers ?? 0,
-        total_institutes: data.total_institutes ?? 0,
-        active_student_percentage: data.active_student_percentage ?? 0,
-        active_teacher_percentage: data.active_teacher_percentage ?? 0,
-        avg_weekly_time_minutes: data.avg_weekly_time_minutes ?? 0,
-      };
+    const stats = data as unknown as {
+      total_students: number;
+      total_teachers: number;
+      total_institutes: number;
+      active_student_percentage: number;
+      active_teacher_percentage: number;
+      avg_weekly_time_minutes: number;
+    };
+
+    return {
+      total_students: stats.total_students ?? 0,
+      total_teachers: stats.total_teachers ?? 0,
+      total_institutes: stats.total_institutes ?? 0,
+      active_student_percentage: stats.active_student_percentage ?? 0,
+      active_teacher_percentage: stats.active_teacher_percentage ?? 0,
+      avg_weekly_time_minutes: stats.avg_weekly_time_minutes ?? 0,
+    };  
     } catch (err) {
       console.error("Unexpected error:", err);
       return {
@@ -6930,11 +6940,15 @@ export class SupabaseApi implements ServiceApi {
           avg_weekly_time_minutes: 0,
         };
       }
-
+      const stats = data as unknown as {
+        active_student_percentage: number;
+        active_teacher_percentage: number;
+        avg_weekly_time_minutes: number;
+      };
       return {
-        active_student_percentage: data?.active_student_percentage ?? 0,
-        active_teacher_percentage: data?.active_teacher_percentage ?? 0,
-        avg_weekly_time_minutes: data?.avg_weekly_time_minutes ?? 0,
+        active_student_percentage: stats?.active_student_percentage ?? 0,
+        active_teacher_percentage: stats?.active_teacher_percentage ?? 0,
+        avg_weekly_time_minutes: stats?.avg_weekly_time_minutes ?? 0,
       };
     } catch (err) {
       console.error("Unexpected error:", err);

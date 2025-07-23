@@ -7,11 +7,52 @@ export type Json =
   | Json[];
 
 export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)";
+  };
   public: {
     Tables: {
+      announcement: {
+        Row: {
+          created_at: string;
+          custom_icon: string | null;
+          id: string;
+          image_url: string | null;
+          message: string | null;
+          send_at: string | null;
+          target_ids: string[] | null;
+          title: string | null;
+          type: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          custom_icon?: string | null;
+          id?: string;
+          image_url?: string | null;
+          message?: string | null;
+          send_at?: string | null;
+          target_ids?: string[] | null;
+          title?: string | null;
+          type?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          custom_icon?: string | null;
+          id?: string;
+          image_url?: string | null;
+          message?: string | null;
+          send_at?: string | null;
+          target_ids?: string[] | null;
+          title?: string | null;
+          type?: string | null;
+        };
+        Relationships: [];
+      };
       assignment: {
         Row: {
-          batch_id: string | null
+          batch_id: string | null;
           chapter_id: string | null;
           class_id: string;
           course_id: string | null;
@@ -31,7 +72,7 @@ export type Database = {
           updated_at: string | null;
         };
         Insert: {
-          batch_id: string | null
+          batch_id?: string | null;
           chapter_id?: string | null;
           class_id: string;
           course_id?: string | null;
@@ -51,7 +92,7 @@ export type Database = {
           updated_at?: string | null;
         };
         Update: {
-          batch_id: string | null
+          batch_id?: string | null;
           chapter_id?: string | null;
           class_id?: string;
           course_id?: string | null;
@@ -349,6 +390,71 @@ export type Database = {
           },
         ];
       };
+      chapter_links: {
+        Row: {
+          chapter_id: string | null;
+          course_id: string | null;
+          created_at: string;
+          curriculum_id: string | null;
+          grade_id: string | null;
+          id: string;
+          is_deleted: boolean | null;
+          link: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          chapter_id?: string | null;
+          course_id?: string | null;
+          created_at?: string;
+          curriculum_id?: string | null;
+          grade_id?: string | null;
+          id?: string;
+          is_deleted?: boolean | null;
+          link?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          chapter_id?: string | null;
+          course_id?: string | null;
+          created_at?: string;
+          curriculum_id?: string | null;
+          grade_id?: string | null;
+          id?: string;
+          is_deleted?: boolean | null;
+          link?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "chapter_links_chapter_id_fkey";
+            columns: ["chapter_id"];
+            isOneToOne: false;
+            referencedRelation: "chapter";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "chapter_links_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "course";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "chapter_links_curriculum_id_fkey";
+            columns: ["curriculum_id"];
+            isOneToOne: false;
+            referencedRelation: "curriculum";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "chapter_links_grade_id_fkey";
+            columns: ["grade_id"];
+            isOneToOne: false;
+            referencedRelation: "grade";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       chatbot: {
         Row: {
           chatbot_doc: Json | null;
@@ -381,6 +487,7 @@ export type Database = {
           academic_year: string | null;
           created_at: string;
           firebase_id: string | null;
+          group_id: string | null;
           id: string;
           image: string | null;
           is_deleted: boolean | null;
@@ -397,6 +504,7 @@ export type Database = {
           academic_year?: string | null;
           created_at?: string;
           firebase_id?: string | null;
+          group_id?: string | null;
           id?: string;
           image?: string | null;
           is_deleted?: boolean | null;
@@ -413,6 +521,7 @@ export type Database = {
           academic_year?: string | null;
           created_at?: string;
           firebase_id?: string | null;
+          group_id?: string | null;
           id?: string;
           image?: string | null;
           is_deleted?: boolean | null;
@@ -1207,6 +1316,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "program_user_program_id_fkey";
+            columns: ["program_id"];
+            isOneToOne: false;
+            referencedRelation: "program";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "program_user_user_fkey";
             columns: ["user"];
             isOneToOne: false;
@@ -1763,6 +1879,18 @@ export type Database = {
         };
         Relationships: [];
       };
+      student_exists: {
+        Row: {
+          exists: boolean | null;
+        };
+        Insert: {
+          exists?: boolean | null;
+        };
+        Update: {
+          exists?: boolean | null;
+        };
+        Relationships: [];
+      };
       subject: {
         Row: {
           created_at: string;
@@ -1798,43 +1926,43 @@ export type Database = {
       };
       upload_queue: {
         Row: {
-          id: string;
-          uploading_user: string | null;
-          start_time: string | null;
-          payload: Record<string, unknown>;
-          status: string | null;
-          error: string | null;
-          process_started_at: string | null;
           batch_number: number | null;
+          error: string | null;
+          id: string;
           is_locked: boolean | null;
           locked_at: string | null;
           locked_by: string | null;
+          payload: Json;
+          process_started_at: string | null;
+          start_time: string | null;
+          status: string | null;
+          uploading_user: string | null;
         };
         Insert: {
-          id?: string;
-          uploading_user?: string | null;
-          start_time?: string | null;
-          payload: Record<string, unknown>;
-          status?: string | null;
-          error?: string | null;
-          process_started_at?: string | null;
           batch_number?: number | null;
+          error?: string | null;
+          id?: string;
           is_locked?: boolean | null;
           locked_at?: string | null;
           locked_by?: string | null;
+          payload: Json;
+          process_started_at?: string | null;
+          start_time?: string | null;
+          status?: string | null;
+          uploading_user?: string | null;
         };
         Update: {
-          id?: string;
-          uploading_user?: string | null;
-          start_time?: string | null;
-          payload?: Record<string, unknown>;
-          status?: string | null;
-          error?: string | null;
-          process_started_at?: string | null;
           batch_number?: number | null;
+          error?: string | null;
+          id?: string;
           is_locked?: boolean | null;
           locked_at?: string | null;
           locked_by?: string | null;
+          payload?: Json;
+          process_started_at?: string | null;
+          start_time?: string | null;
+          status?: string | null;
+          uploading_user?: string | null;
         };
         Relationships: [
           {
@@ -2192,39 +2320,14 @@ export type Database = {
         };
         Returns: Json;
       };
-      get_program_activity_stats: {
-        Args: { p_program_id: string };
-        Returns: {
-          total_students: number;
-          total_teachers: number;
-          total_institutes: number;
-          active_student_percentage: number;
-          active_teacher_percentage: number;
-          avg_weekly_time_minutes: number;
-        };
-      };
-      get_school_activity_stats: {
+      count_users_by_school: {
         Args: { p_school_id: string };
-        Returns: {
-          active_student_percentage: number;
-          active_teacher_percentage: number;
-          avg_weekly_time_minutes: number;
-        };
-      };
-      count_total_and_active_students_by_program: {
-        Args: { p_program_id: string };
         Returns: {
           total_students: number;
           active_students: number;
-          avg_time_spent: number;
-        }[];
-      };
-      count_total_and_active_teachers_by_program: {
-        Args: { p_program_id: string };
-        Returns: {
           total_teachers: number;
           active_teachers: number;
-          total_institutes: number;
+          avg_time_spent: number;
         }[];
       };
       create_user: {
@@ -2238,9 +2341,17 @@ export type Database = {
         Args: { input_firebase_id: string };
         Returns: string;
       };
+      delete_group_assignment_message: {
+        Args: { queue_name: string; msg_id: number };
+        Returns: boolean;
+      };
       delete_school_firebase_trigger: {
         Args: { input_firebase_id: string };
         Returns: string;
+      };
+      delete_student: {
+        Args: { student_id: string };
+        Returns: undefined;
       };
       delete_student_profile: {
         Args: { p_student_id: string };
@@ -2249,6 +2360,10 @@ export type Database = {
       delete_user: {
         Args: { uuid: string };
         Returns: boolean;
+      };
+      enqueue_message: {
+        Args: { queue_name: string; payload: Json; delay_seconds?: number };
+        Returns: number;
       };
       execute_saved_query: {
         Args: { p_query_id: string };
@@ -2307,32 +2422,17 @@ export type Database = {
           total_time_spent: number;
         }[];
       };
-      get_filtered_schools: {
-        Args: { filters: Json };
-        Returns: {
-          sch_id: string;
-          school_name: string;
-          district: string;
-          num_students: number;
-          num_teachers: number;
-          program_managers: string[];
-          field_coordinators: string[];
-        }[];
-      };
       get_filtered_schools_with_optional_program: {
         Args: {
           filters?: Json;
-          _program_id?: string | null;
+          _program_id?: string;
+          page?: number;
+          page_size?: number;
+          order_by?: string;
+          order_dir?: string;
+          search?: string;
         };
-        Returns: {
-          sch_id: string;
-          school_name: string;
-          district: string;
-          num_students: number;
-          num_teachers: number;
-          program_managers: string[];
-          field_coordinators: string[];
-        }[];
+        Returns: Json;
       };
       get_latest_results_by_student: {
         Args: { student_uuid: string };
@@ -2367,6 +2467,10 @@ export type Database = {
           total_time_spent: number;
         }[];
       };
+      get_program_activity_stats: {
+        Args: { p_program_id: string };
+        Returns: Json;
+      };
       get_program_filter_options: {
         Args: Record<PropertyKey, never>;
         Returns: Json;
@@ -2375,22 +2479,12 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: Json;
       };
-      get_program_managers: {
-        Args: Record<PropertyKey, never>;
-        Returns: {
-          name: string;
-        }[];
-      };
-      get_programs_for_user: {
+      get_program_for_user_v2: {
         Args: {
           _current_user_id: string;
           _filters: Json;
           _tab: string;
           _search_term: string;
-          _limit: number;
-          _offset: number;
-          _order_by: string;
-          _order: string;
         };
         Returns: {
           id: string;
@@ -2400,19 +2494,34 @@ export type Database = {
           students_count: number;
           devices_count: number;
           manager_names: string;
-          total_count: number;
         }[];
       };
-      get_programs_with_count: {
+      get_program_managers: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          name: string;
+          id: string;
+        }[];
+      };
+      get_programs_for_user: {
         Args: {
+          _current_user_id: string;
           _filters: Json;
-          _search: string;
+          _search_term: string;
           _tab: string;
-          _limit: number;
-          _offset: number;
+          _limit?: number;
+          _offset?: number;
+          _order_by?: string;
+          _order?: string;
         };
         Returns: {
-          programs: Json;
+          id: string;
+          name: string;
+          state: string;
+          institutes_count: number;
+          students_count: number;
+          devices_count: number;
+          manager_names: string;
           total_count: number;
         }[];
       };
@@ -2439,9 +2548,32 @@ export type Database = {
           user_data: Database["public"]["Tables"]["user"]["Row"][];
         }[];
       };
+      get_school_activity_stats: {
+        Args: { p_school_id: string };
+        Returns: Json;
+      };
       get_school_filter_options: {
         Args: Record<PropertyKey, never>;
         Returns: Json;
+      };
+      get_schools_by_filters_with_program_id: {
+        Args: { filters?: Json; _program_id?: string };
+        Returns: {
+          sch_id: string;
+          school_name: string;
+          district: string;
+          num_students: number;
+          num_teachers: number;
+          program_managers: string[];
+          field_coordinators: string[];
+        }[];
+      };
+      get_schools_for_user: {
+        Args: { in_user_id: string; in_page?: number; in_page_size?: number };
+        Returns: {
+          school: Json;
+          role: string;
+        }[];
       };
       get_unique_geo_data: {
         Args: Record<PropertyKey, never>;
@@ -2547,6 +2679,17 @@ export type Database = {
       getDataByInviteCode: {
         Args: { invite_code: number };
         Returns: Json;
+      };
+      getfiltered_schools: {
+        Args: { filters: Json };
+        Returns: {
+          sch_id: string;
+          school_name: string;
+          num_students: number;
+          num_teachers: number;
+          program_managers: string[];
+          field_coordinators: string[];
+        }[];
       };
       insert_firebase_assignment_trigger: {
         Args: {
@@ -2673,6 +2816,38 @@ export type Database = {
         };
         Returns: string;
       };
+      invoke_master_checker_edge_function: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
+      is_program_admin_for_class: {
+        Args: { p_class_id: string; p_user_id: string };
+        Returns: boolean;
+      };
+      is_program_admin_for_class_user: {
+        Args: { p_class_user_id: string; p_user_id: string };
+        Returns: boolean;
+      };
+      is_program_admin_for_school: {
+        Args: { p_school_id: string; p_user_id: string };
+        Returns: boolean;
+      };
+      is_program_admin_for_school_user: {
+        Args: { p_school_user_id: string; p_user_id: string };
+        Returns: boolean;
+      };
+      is_program_manager_or_field_coordinator: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
+      is_special_user_privileged: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
+      is_super_admin_or_operational_director: {
+        Args: { p_user_id: string };
+        Returns: boolean;
+      };
       isUserExists: {
         Args: { user_phone: string; user_email: string };
         Returns: boolean;
@@ -2685,167 +2860,14 @@ export type Database = {
         Args: { invite_code: number; student_id: string };
         Returns: boolean;
       };
-      reseach_get_assignment_users: {
-        Args: { p_updated_at: string };
+      read_group_assignment_queue: {
+        Args: { queue_name: string; vt: number; qty: number };
         Returns: {
-          assignment_id: string;
-          created_at: string | null;
-          id: string;
-          is_deleted: boolean | null;
-          is_firebase: boolean | null;
-          updated_at: string | null;
-          user_id: string;
-        }[];
-      };
-      reseach_get_class_user: {
-        Args: { p_updated_at?: string };
-        Returns: {
-          class_id: string;
-          created_at: string | null;
-          id: string;
-          is_deleted: boolean | null;
-          is_firebase: boolean | null;
-          is_ops: boolean | null;
-          ops_created_by: string | null;
-          role: Database["public"]["Enums"]["role"];
-          updated_at: string | null;
-          user_id: string;
-        }[];
-      };
-      reseach_get_favorite_lessons: {
-        Args: { p_updated_at?: string };
-        Returns: {
-          created_at: string | null;
-          id: string;
-          is_deleted: boolean | null;
-          is_firebase: boolean | null;
-          lesson_id: string;
-          updated_at: string | null;
-          user_id: string;
-        }[];
-      };
-      reseach_get_live_quiz_rooms: {
-        Args: { p_updated_at?: string };
-        Returns: {
-          assignment_id: string;
-          class_id: string;
-          course_id: string;
-          created_at: string | null;
-          id: string;
-          is_deleted: boolean | null;
-          lesson_id: string;
-          participants: string[] | null;
-          results: Json | null;
-          school_id: string;
-          starts_at: string;
-          updated_at: string | null;
-        }[];
-      };
-      reseach_get_parent_users: {
-        Args: { p_updated_at?: string };
-        Returns: {
-          created_at: string | null;
-          id: string;
-          is_deleted: boolean | null;
-          is_firebase: boolean | null;
-          is_ops: boolean | null;
-          ops_created_by: string | null;
-          parent_id: string;
-          student_id: string;
-          updated_at: string | null;
-        }[];
-      };
-      reseach_get_results: {
-        Args: { p_updated_at: string };
-        Returns: {
-          assignment_id: string | null;
-          chapter_id: string | null;
-          class_id: string | null;
-          correct_moves: number | null;
-          course_id: string | null;
-          created_at: string;
-          firebase_id: string | null;
-          id: string;
-          is_deleted: boolean | null;
-          is_firebase: boolean | null;
-          lesson_id: string | null;
-          school_id: string | null;
-          score: number | null;
-          student_id: string;
-          time_spent: number | null;
-          updated_at: string | null;
-          wrong_moves: number | null;
-        }[];
-      };
-      reseach_get_school_users: {
-        Args: { p_updated_at?: string };
-        Returns: {
-          created_at: string;
-          id: string;
-          is_deleted: boolean | null;
-          is_firebase: boolean | null;
-          is_ops: boolean | null;
-          ops_created_by: string | null;
-          role: Database["public"]["Enums"]["role"];
-          school_id: string;
-          updated_at: string | null;
-          user_id: string;
-        }[];
-      };
-      reseach_get_schools: {
-        Args: { p_updated_at: string };
-        Returns: {
-          academic_year: string | null;
-          address: string | null;
-          created_at: string;
-          firebase_id: string | null;
-          group1: string | null;
-          group2: string | null;
-          group3: string | null;
-          group4: string | null;
-          id: string;
-          image: string | null;
-          is_deleted: boolean | null;
-          is_firebase: boolean | null;
-          is_ops: boolean | null;
-          language: string | null;
-          model: Database["public"]["Enums"]["program_model"] | null;
-          name: string;
-          ops_created_by: string | null;
-          program_id: string | null;
-          student_login_type: Database["public"]["Enums"]["login_type"] | null;
-          udise: string | null;
-          updated_at: string | null;
-        }[];
-      };
-      reseach_get_users: {
-        Args: { p_updated_at: string };
-        Returns: {
-          age: number | null;
-          avatar: string | null;
-          created_at: string;
-          curriculum_id: string | null;
-          email: string | null;
-          fcm_token: string | null;
-          firebase_id: string | null;
-          gender: string | null;
-          grade_id: string | null;
-          id: string;
-          image: string | null;
-          is_deleted: boolean | null;
-          is_firebase: boolean | null;
-          is_ops: boolean | null;
-          is_tc_accepted: boolean | null;
-          language_id: string | null;
-          learning_path: string | null;
-          music_off: boolean | null;
-          name: string | null;
-          ops_created_by: string | null;
-          phone: string | null;
-          sfx_off: boolean | null;
-          stars: number | null;
-          student_id: string | null;
-          updated_at: string | null;
+          msg_id: number;
+          read_ct: number;
+          enqueued_at: string;
+          visible_at: string;
+          message: Json;
         }[];
       };
       resend_otp: {
@@ -2882,6 +2904,7 @@ export type Database = {
       sql_get_assignments: {
         Args: { p_updated_at: string };
         Returns: {
+          batch_id: string | null;
           chapter_id: string | null;
           class_id: string;
           course_id: string | null;
@@ -2945,6 +2968,7 @@ export type Database = {
           academic_year: string | null;
           created_at: string;
           firebase_id: string | null;
+          group_id: string | null;
           id: string;
           image: string | null;
           is_deleted: boolean | null;
@@ -3326,6 +3350,36 @@ export type Database = {
           updated_at: string | null;
         }[];
       };
+      sql_get_users_test: {
+        Args: { p_updated_at: string };
+        Returns: {
+          age: number | null;
+          avatar: string | null;
+          created_at: string;
+          curriculum_id: string | null;
+          email: string | null;
+          fcm_token: string | null;
+          firebase_id: string | null;
+          gender: string | null;
+          grade_id: string | null;
+          id: string;
+          image: string | null;
+          is_deleted: boolean | null;
+          is_firebase: boolean | null;
+          is_ops: boolean | null;
+          is_tc_accepted: boolean | null;
+          language_id: string | null;
+          learning_path: string | null;
+          music_off: boolean | null;
+          name: string | null;
+          ops_created_by: string | null;
+          phone: string | null;
+          sfx_off: boolean | null;
+          stars: number | null;
+          student_id: string | null;
+          updated_at: string | null;
+        }[];
+      };
       update_class_firebase_trigger: {
         Args: {
           p_firebase_class_id: string;
@@ -3387,16 +3441,16 @@ export type Database = {
         };
         Returns: Json;
       };
+      validate_program_name: {
+        Args: { input_program_name: string };
+        Returns: Json;
+      };
       validate_school_data_rpc: {
         Args: { input_school_id: string; input_school_name: string };
         Returns: Json;
       };
       validate_school_udise_code: {
         Args: { input_school_udise_code: string };
-        Returns: Json;
-      };
-      validate_program_name: {
-        Args: { input_program_name: string };
         Returns: Json;
       };
       validate_user_contacts_rpc: {
@@ -3421,8 +3475,13 @@ export type Database = {
         | "autouser"
         | "program_manager"
         | "operational_director"
+        | "field_coordinator"
+        | "super_admin";
+      special_roles:
+        | "super_admin"
+        | "operational_director"
+        | "program_manager"
         | "field_coordinator";
-      special_roles: "super_admin" | "operational_director" | "program_manager" | "field_coordinator";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -3430,21 +3489,28 @@ export type Database = {
   };
 };
 
-type DefaultSchema = Database[Extract<keyof Database, "public">];
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<
+  keyof Database,
+  "public"
+>];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database;
+    schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R;
     }
     ? R
@@ -3462,14 +3528,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database;
+    schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I;
     }
     ? I
@@ -3485,14 +3553,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database;
+    schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U;
     }
     ? U
@@ -3508,14 +3578,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database;
+    schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never;
@@ -3523,14 +3595,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database;
+    schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never;
@@ -3551,6 +3625,13 @@ export const Constants = {
         "autouser",
         "program_manager",
         "operational_director",
+        "field_coordinator",
+        "super_admin",
+      ],
+      special_roles: [
+        "super_admin",
+        "operational_director",
+        "program_manager",
         "field_coordinator",
       ],
     },
