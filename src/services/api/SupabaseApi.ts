@@ -6809,45 +6809,62 @@ export class SupabaseApi implements ServiceApi {
       return { data: result, totalCount: count || 0 };
     }
     if (roles.includes(RoleType.PROGRAM_MANAGER)) {
-      const { data: programs } = await this.supabase
+      const { data: programs, error: programsError } = await this.supabase
         .from("program_user")
         .select("program_id")
         .eq("user", userId)
-        .eq("role", "program_manager")
+        .eq("role", RoleType.PROGRAM_MANAGER)
         .eq("is_deleted", false);
+      if (programsError) {
+        console.error(
+          "Error fetching program manager's programs:",
+          programsError
+        );
+        return { data: [], totalCount: 0 };
+      }
       if (!programs || programs.length === 0) {
         return { data: [], totalCount: 0 };
       }
       const programIds = programs.map((p) => p.program_id);
       let query = this.supabase
-        .from("program_user")
-        .select("role, user!inner(*)", { count: "exact" })
-        .in("program_id", programIds)
-        .eq("role", "field_coordinator")
-        .eq("is_deleted", false)
-        .eq("user.is_deleted", false);
-      if (search && search.length >= 3) {
-        query = query.ilike("user.name", `%${search}%`);
+        .from("user")
+        .select(
+          `
+        *,
+        program_user!inner(role)
+        `,
+          { count: "exact" }
+        )
+        .in("program_user.program_id", programIds)
+        .eq("program_user.role", RoleType.FIELD_COORDINATOR)
+        .eq("program_user.is_deleted", false)
+        .eq("is_deleted", false);
+      if (search) {
+        query = query.ilike("name", `%${search}%`);
       }
-      const { data: coordinators, count } = await query
-        .order(sortBy, {
-          referencedTable: "user",
-          ascending: sortOrder === "asc",
-        })
+      const {
+        data: users,
+        count,
+        error,
+      } = await query
+        .order(sortBy, { ascending: sortOrder === "asc" })
         .range(from, to);
-      if (!coordinators) {
+      if (error) {
+        console.error("Error fetching field coordinators:", error);
         return { data: [], totalCount: 0 };
       }
-      const uniqueUsersMap = new Map();
-      for (const c of coordinators) {
-        if (!uniqueUsersMap.has(c.user.id)) {
-          uniqueUsersMap.set(c.user.id, { user: c.user, role: c.role });
-        }
+      if (!users) {
+        return { data: [], totalCount: 0 };
       }
-      return {
-        data: Array.from(uniqueUsersMap.values()),
-        totalCount: uniqueUsersMap.size,
-      };
+      const result = users.map((u) => {
+        const { program_user, ...userObject } = u;
+        const role = program_user[0]?.role || RoleType.FIELD_COORDINATOR;
+        return {
+          user: userObject as TableTypes<"user">,
+          role,
+        };
+      });
+      return { data: result, totalCount: count || 0 };
     }
     return { data: [], totalCount: 0 };
   }
