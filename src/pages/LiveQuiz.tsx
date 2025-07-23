@@ -1,15 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { ServiceConfig } from "../services/ServiceConfig";
-import { HOMEHEADERLIST, PAGES, TableTypes } from "../common/constants";
+import {
+  HOMEHEADERLIST,
+  PAGES,
+  TableTypes,
+  LIVE_QUIZ,
+} from "../common/constants";
 import { useHistory } from "react-router";
 import { Util } from "../utility/util";
-import { StudentLessonResult } from "../common/courseConstants";
 import { t } from "i18next";
 import LessonSlider from "../components/LessonSlider";
 import "./LiveQuiz.css";
 import SkeltonLoading from "../components/SkeltonLoading";
 
-const LiveQuiz: React.FC = () => {
+interface LiveQuizProps {
+  liveQuizCount: (count: number) => void;
+}
+
+const LiveQuiz: React.FC<LiveQuizProps> = ({ liveQuizCount }) => {
   const history = useHistory();
   const [loading, setLoading] = useState(true);
   const [liveQuizzes, setLiveQuizzes] = useState<TableTypes<"lesson">[]>([]);
@@ -19,13 +27,19 @@ const LiveQuiz: React.FC = () => {
   const [assignments, setAssignments] = useState<TableTypes<"assignment">[]>(
     []
   );
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
   const api = ServiceConfig.getI().apiHandler;
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const isMounted = useRef(true);
 
   useEffect(() => {
-    init();
-  }, []);
+    if (liveQuizCount) {
+      liveQuizCount(assignments.length);
+    }
+  }, [assignments, liveQuizCount]);
 
-  const init = async (fromCache: boolean = true) => {
+  const init = useCallback(async () => {
     setLoading(true);
     const student = Util.getCurrentStudent();
     if (!student) {
@@ -34,45 +48,86 @@ const LiveQuiz: React.FC = () => {
     }
 
     const studentResult = await api.getStudentResultInMap(student.id);
-
-    if (!!studentResult) {
+    if (studentResult) {
       setLessonResultMap(studentResult);
     }
 
-    const linked = await api.isStudentLinked(student.id, fromCache);
-    if (!linked) {
-      setLoading(false);
-      return;
-    }
     const linkedData = await api.getStudentClassesAndSchools(student.id);
-
-    if (!!linkedData && !!linkedData.classes && linkedData.classes.length > 0) {
-      const classId = linkedData.classes[0];
-      const allLiveQuizzes: TableTypes<"assignment">[] = [];
-      await Promise.all(
-        linkedData.classes.map(async (_class) => {
-          const res = await api.getLiveQuizLessons(classId.id, student.id);
-          allLiveQuizzes.push(...res);
-        })
-      );
-      setAssignments(allLiveQuizzes);
-      const _lessons: TableTypes<"lesson">[] = [];
-      await Promise.all(
-        allLiveQuizzes.map(async (_assignment) => {
-          const res = await api.getLesson(_assignment.lesson_id);
-          if (!!res) {
-            // res.assignment = _assignment;
-            _lessons.push(res);
-          }
-        })
-      );
-      setLiveQuizzes(_lessons);
-      setLoading(false);
-    } else {
+    if (!linkedData?.classes?.length) {
       setLoading(false);
       return;
     }
-  };
+
+    const classDoc = linkedData.classes[0];
+    setCurrentClass(classDoc);
+
+    const quizChunks = await Promise.all(
+      linkedData.classes.map((_class) =>
+        api.getLiveQuizLessons(_class.id, student.id)
+      )
+    );
+    const allLiveQuizzes = quizChunks.flat();
+    allLiveQuizzes.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
+    const lessonPromises = allLiveQuizzes.map((assignment) =>
+      api.getLesson(assignment.lesson_id)
+    );
+    const resolvedLessons = await Promise.all(lessonPromises);
+    const _lessons = resolvedLessons.filter(
+      (lesson): lesson is TableTypes<"lesson"> => lesson !== null
+    );
+
+    setAssignments(allLiveQuizzes);
+    setLiveQuizzes(_lessons);
+    setLoading(false);
+  }, [api, history]);
+
+  useEffect(() => {
+    init();
+  }, [init]);
+
+  useEffect(() => {
+    isMounted.current = true;
+    const student = Util.getCurrentStudent();
+    if (!currentClass || !student) return;
+
+    const handleQuizUpdate = () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+      debounceTimer.current = setTimeout(() => {
+        init();
+      }, 1000); 
+    };
+
+    api.assignmentListner(currentClass.id, (payload) => {
+      if (payload && payload.type === LIVE_QUIZ) {
+        handleQuizUpdate();
+      }
+    });
+
+    api.assignmentUserListner(student.id, async (assignmentUser) => {
+      if (assignmentUser) {
+        const assignment = await api.getAssignmentById(
+          assignmentUser.assignment_id
+        );
+        if (isMounted.current && assignment && assignment.type === LIVE_QUIZ) {
+          handleQuizUpdate();
+        }
+      }
+    });
+
+    return () => {
+      isMounted.current = false;
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+      api.removeAssignmentChannel();
+    };
+  }, [currentClass, init, api]);
 
   return (
     <div>
@@ -104,4 +159,5 @@ const LiveQuiz: React.FC = () => {
     </div>
   );
 };
+
 export default LiveQuiz;
