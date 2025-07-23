@@ -28,10 +28,6 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
   disableTranslation = false,
   ...selectProps // Spread any additional IonSelect props
 }) => {
-  const renderLabel = (raw: string) => {
-    const lbl = disableTranslation ? raw : t(raw);
-    return lbl.length > 20 ? lbl.slice(0, 20) + "…" : lbl;
-  };
   return (
     <div
       className="custom-dropdown-container"
@@ -51,9 +47,8 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
           <IonSelectOption
             key={option.id}
             value={option.id}
-            disabled={(option as any).disabled}
           >
-            {renderLabel(option.name)}
+            {disableTranslation ? option.name : t(option.name)}
           </IonSelectOption>
         ))}
       </IonSelect>

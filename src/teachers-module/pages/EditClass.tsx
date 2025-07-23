@@ -130,8 +130,10 @@ const EditClass: FC = () => {
       <div className="class-div">
         {isEditMode ? t("Edit Class") : t("Create Class")}
       </div>
+      <hr className="class-profile-horizontal-line" />
 
       <EditClassField className={className} setClassName={setClassName} />
+      <hr className="class-profile-horizontal-line" />
 
       <div className="update-button-container">
         <button

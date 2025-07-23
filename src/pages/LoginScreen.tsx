@@ -29,7 +29,6 @@ import {
   LANGUAGE,
   MODES,
   PAGES,
-  TableTypes,
   USER_DATA,
   USER_ROLE,
   CURRENT_USER,
@@ -117,12 +116,14 @@ const LoginScreen: React.FC = () => {
   }, [loadingMessages.length]);
 
   useEffect(() => {
-    // Combine all initial async setup in one effect
     const initialize = async () => {
       try {
+        // lock orientation if native
         if (Capacitor.isNativePlatform()) {
           await ScreenOrientation.lock({ orientation: "portrait" });
         }
+
+        // language
         const appLang = localStorage.getItem(LANGUAGE);
         if (!appLang) {
           localStorage.setItem(LANGUAGE, "en");
@@ -132,27 +133,22 @@ const LoginScreen: React.FC = () => {
           setCurrentLang(appLang);
           await i18n.changeLanguage(appLang);
         }
+
+        // if already logged in, jump straight to select‐mode
         const authHandler = ServiceConfig.getI().authHandler;
-        const isUserLoggedIn = await authHandler.isUserLoggedIn();
-        if (isUserLoggedIn) {
+        if (await authHandler.isUserLoggedIn()) {
           history.replace(PAGES.SELECT_MODE);
           return;
-        }
-
-        if (Capacitor.isNativePlatform()) {
-          // document.addEventListener("visibilitychange", handleVisibilityChange);
         }
       } finally {
         setInitializing(false);
       }
     };
     initialize();
+
     return () => {
       if (Capacitor.isNativePlatform()) {
-        document.removeEventListener(
-          "visibilitychange",
-          handleVisibilityChange
-        );
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
       }
     };
   }, []);
@@ -175,8 +171,7 @@ const LoginScreen: React.FC = () => {
 
   // Timer effect for OTP resend
   useEffect(() => {
-    let interval: NodeJS.Timer | null = null;
-
+    let interval: NodeJS.Timeout | null = null;
     if (showTimer && counter > 0) {
       interval = setInterval(() => {
         setCounter((prevCounter) => {
@@ -188,11 +183,10 @@ const LoginScreen: React.FC = () => {
         });
       }, 1000);
     }
-
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [counter, showTimer]);
+  }, [showTimer, counter])
 
   // Timer effect for OTP expiration
   useEffect(() => {
@@ -205,8 +199,7 @@ const LoginScreen: React.FC = () => {
           }
           return prev - 1;
         });
-      }, 60000); // Update every minute
-
+      }, 60000);
       return () => clearInterval(expiryTimer);
     }
   }, [loginType]);
@@ -330,7 +323,7 @@ const LoginScreen: React.FC = () => {
         login_type: "phone-number",
       });
 
-        const userSchools = await getSchoolsForUser(user.user);
+        const userSchools = await getSchoolsForUser(user.id);
         await redirectUser(userSchools);
       
       setAnimatedLoading(false);
@@ -402,23 +395,16 @@ const LoginScreen: React.FC = () => {
       buttons: [{ text: "Dismiss", role: "cancel" }],
     });
   }
-
   setAnimatedLoading(true);
   try {
     const ok = await authInstance.googleSign();
     if (!ok) throw new Error("Google sign in failed");
 
-    // 1) pull down the full user object
-    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
+    const user = await authInstance.getCurrentUser();
+    if (!user) throw new Error("No user returned from auth handler");
 
-    if (!user) {
-      throw new Error("No user returned from authHandler");
-    }
-
-    // 2) store it under USER_DATA
     localStorage.setItem(CURRENT_USER, JSON.stringify(user));
     localStorage.setItem(USER_DATA, JSON.stringify(user));
-    // localStorage.setItem(USER_ROLE, JSON.stringify(user.roles || []));
 
     Util.logEvent(EVENTS.USER_PROFILE, {
       user_type: RoleType.PARENT,
@@ -426,9 +412,10 @@ const LoginScreen: React.FC = () => {
       login_type: "google-signin",
     });
 
-    // 3) single redirect block
-      const userSchools = await getSchoolsForUser(user);
-      await redirectUser(userSchools);
+    // now safe to use user.id
+    const schools = await getSchoolsForUser(user.id);
+    await redirectUser(schools);
+
   } catch (e) {
     presentToast({
       message: t("Google sign in failed. Please try again."),
@@ -443,58 +430,46 @@ const LoginScreen: React.FC = () => {
   }
 };
 
-  // Helper function to get schools for user
-  async function getSchoolsForUser(user: TableTypes<"user">) {
-    const userSchools = await api.getSchoolsForUser(user.id);
-    if (userSchools && userSchools.length > 0) {
-      return userSchools;
-    }
-    return [];
-  }
+  const getSchoolsForUser = async (userId: string) => {
+    return (await api.getSchoolsForUser(userId)) || [];
+  };
 
-  // Helper function to redirect user based on role
-  async function redirectUser(
-    userSchools: {
-      school: TableTypes<"school">;
-      role: RoleType;
-    }[]
-  ) {
-    const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
-    const isOpsRole =
-    userRoles.includes(RoleType.SUPER_ADMIN) ||
-    userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
-    const isProgramUser = await api.isProgramUser();
+  const redirectUser = async (schools: { role: RoleType }[]) => {
+    const roles = JSON.parse(localStorage.getItem(USER_ROLE) || "[]") as string[];
+    const isOps =
+      roles.includes(RoleType.SUPER_ADMIN) ||
+      roles.includes(RoleType.OPERATIONAL_DIRECTOR);
+    const isProg = await api.isProgramUser();
 
-    if (isOpsRole || isProgramUser) {
+    // OPERATIONS/PROGRAM console
+    if (isOps || isProg) {
       localStorage.setItem(IS_OPS_USER, "true");
       await ScreenOrientation.unlock();
       schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
-      history.replace(PAGES.SIDEBAR_PAGE);
-      return;
+      return history.replace(PAGES.SIDEBAR_PAGE);
     }
-    
-    setAnimatedLoading(true)
+
+    // **SWITCH TO SQLITE** before any parent/teacher flows
     const sqliteApi = await SqliteApi.getInstance();
     ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(APIMode.SQLITE);
-    setAnimatedLoading(false)
-    
-    if (userSchools.length > 0) {
-      const autoUserSchool = userSchools.find(
-        (school) => school.role === RoleType.AUTOUSER
-      );
 
-      if (autoUserSchool) {
-        schoolUtil.setCurrMode(MODES.SCHOOL);
-        history.replace(PAGES.SELECT_MODE);
-        return;
-      }
-      schoolUtil.setCurrMode(MODES.TEACHER);
-      history.replace(PAGES.DISPLAY_SCHOOLS);
-    } else {
+    // NO SCHOOLS → parent
+    if (schools.length === 0) {
       schoolUtil.setCurrMode(MODES.PARENT);
-      history.replace(PAGES.DISPLAY_STUDENT);
+      return history.replace(PAGES.DISPLAY_STUDENT);
     }
-  }
+
+    // AUTOUSER → school‐mode
+    const auto = schools.find((s) => s.role === RoleType.AUTOUSER);
+    if (auto) {
+      schoolUtil.setCurrMode(MODES.SCHOOL);
+      return history.replace(PAGES.SELECT_MODE);
+    }
+
+    // else teacher
+    schoolUtil.setCurrMode(MODES.TEACHER);
+    return history.replace(PAGES.DISPLAY_SCHOOLS);
+  };
 
   // Language dropdown options
   const langOptions: LanguageOption[] = Object.entries(APP_LANGUAGES).map(
@@ -536,7 +511,7 @@ const LoginScreen: React.FC = () => {
         setAnimatedLoading(false);
         setIsLoading(false);
         const user = JSON.parse(localStorage.getItem(USER_DATA)!);
-        const userSchools = await getSchoolsForUser(user);
+        const userSchools = await getSchoolsForUser(user.id);
         await redirectUser(userSchools);
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
         localStorage.setItem(USER_DATA, JSON.stringify(user));
@@ -609,7 +584,7 @@ const LoginScreen: React.FC = () => {
         const user: any =
           await ServiceConfig.getI().authHandler.getCurrentUser();
         if (user) {
-          const userSchools = await getSchoolsForUser(user);
+          const userSchools = await getSchoolsForUser(user.id);
           await redirectUser(userSchools);
         }
         setAnimatedLoading(false);

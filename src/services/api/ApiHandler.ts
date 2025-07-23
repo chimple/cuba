@@ -266,7 +266,10 @@ public async getUserRoleForSchool(
   ): Promise<boolean> {
     return await this.s.checkCourseInClasses(classIds, courseId);
   }
-  public async deleteUserFromClass(userId: string, class_id: string): Promise<void> {
+  public async deleteUserFromClass(
+    userId: string,
+    class_id: string
+  ): Promise<void> {
     return await this.s.deleteUserFromClass(userId, class_id);
   }
   public async isUserTeacher(userId: string): Promise<boolean> {
@@ -876,7 +879,8 @@ public async getUserRoleForSchool(
     lesson_id: string,
     chapter_id: string,
     course_id: string,
-    type: string
+    type: string,
+    batch_id: string
   ): Promise<boolean> {
     return this.s.createAssignment(
       student_list,
@@ -889,7 +893,8 @@ public async getUserRoleForSchool(
       lesson_id,
       chapter_id,
       course_id,
-      type
+      type,
+      batch_id
     );
   }
   getTeachersForClass(
@@ -909,7 +914,11 @@ public async getUserRoleForSchool(
   checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean> {
     return this.s.checkUserExistInSchool(schoolId, userId);
   }
-  checkTeacherExistInClass(schoolId: string, classId: string, userId: string): Promise<boolean> {
+  checkTeacherExistInClass(
+    schoolId: string,
+    classId: string,
+    userId: string
+  ): Promise<boolean> {
     return this.s.checkTeacherExistInClass(schoolId, classId, userId);
   }
   checkUserIsManagerOrDirector(
@@ -1127,17 +1136,17 @@ public async getUserRoleForSchool(
     return await this.s.getProgramFilterOptions();
   }
   async getPrograms(params: {
-  currentUserId: string;
-  filters?: Record<string, string[]>;
-  searchTerm?: string;
-  tab?: TabType;
-  limit?: number;
-  offset?: number;
-  orderBy?: string;
-  order?: "asc" | "desc";
-}): Promise<{ data: any[] }> {
-  return await this.s.getPrograms(params);
-}
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    searchTerm?: string;
+    tab?: TabType;
+    limit?: number;
+    offset?: number;
+    orderBy?: string;
+    order?: "asc" | "desc";
+  }): Promise<{ data: any[] }> {
+    return await this.s.getPrograms(params);
+  }
 
   public async insertProgram(payload: any): Promise<boolean | null> {
     return await this.s.insertProgram(payload);
@@ -1221,8 +1230,7 @@ public async getUserRoleForSchool(
     return await this.s.getSchoolFilterOptionsForSchoolListing();
   }
 
-  async getFilteredSchoolsForSchoolListing(
-  params: {
+  async getFilteredSchoolsForSchoolListing(params: {
     filters?: Record<string, string[]>;
     programId?: string;
     page?: number;
@@ -1230,19 +1238,16 @@ public async getUserRoleForSchool(
     order_by?: string;
     order_dir?: "asc" | "desc";
     search?: string;
+  }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
+    return await this.s.getFilteredSchoolsForSchoolListing(params);
   }
-): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
-  return await this.s.getFilteredSchoolsForSchoolListing(params);
-}
 
-  public async createOrAddUserOps(
-    payload: {
-      name: string;
-      email?: string;
-      phone?: string;
-      role: string;
-    }
-  ): Promise<{
+  public async createOrAddUserOps(payload: {
+    name: string;
+    email?: string;
+    phone?: string;
+    role: string;
+  }): Promise<{
     success: boolean;
     user_id?: string;
     message?: string;
@@ -1295,10 +1300,23 @@ public async getUserRoleForSchool(
     return await this.s.program_activity_stats(programId);
   }
 
-  public async getManagersAndCoordinators(): Promise<
-    { user: TableTypes<"user">; role: string }[]
-  > {
-    return await this.s.getManagersAndCoordinators();
+  public async getManagersAndCoordinators(
+    page: number = 1,
+    search: string = "",
+    limit: number = 10,
+    sortBy: keyof TableTypes<"user"> = "name",
+    sortOrder: "asc" | "desc" = "asc"
+  ): Promise<{
+    data: { user: TableTypes<"user">; role: string }[];
+    totalCount: number;
+  }> {
+    return await this.s.getManagersAndCoordinators(
+      page,
+      search,
+      limit,
+      sortBy,
+      sortOrder
+    );
   }
 
   public async school_activity_stats(schoolId: string): Promise<{
@@ -1316,20 +1334,28 @@ public async getUserRoleForSchool(
   public async getUserSpecialRoles(userId: string): Promise<string[]> {
     return await this.s.getUserSpecialRoles(userId);
   }
-  public async updateSpecialUserRole(userId: string, role: string): Promise<void> {
+  public async updateSpecialUserRole(
+    userId: string,
+    role: string
+  ): Promise<void> {
     return await this.s.updateSpecialUserRole(userId, role);
   }
-  public async deleteSpecialUser(userId:string):Promise<void>{
+  public async deleteSpecialUser(userId: string): Promise<void> {
     return await this.s.deleteSpecialUser(userId);
   }
-  public async updateProgramUserRole(userId: string, role: string): Promise<void> {
+  public async updateProgramUserRole(
+    userId: string,
+    role: string
+  ): Promise<void> {
     return await this.s.updateProgramUserRole(userId, role);
   }
-  public async deleteProgramUser(userId:string):Promise<void>{
+  public async deleteProgramUser(userId: string): Promise<void> {
     return await this.s.deleteProgramUser(userId);
   }
-  public async deleteUserFromSchoolsWithRole(userId: string, role: string):Promise<void>{
+  public async deleteUserFromSchoolsWithRole(
+    userId: string,
+    role: string
+  ): Promise<void> {
     return await this.s.deleteUserFromSchoolsWithRole(userId, role);
   }
-
 }

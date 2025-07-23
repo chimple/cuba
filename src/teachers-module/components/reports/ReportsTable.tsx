@@ -141,15 +141,13 @@ const ReportTable: React.FC<ReportTableProps> = ({
     setChapters(_chapters);
     setSelectedChapter(_chapters[0]);
   };
-  const initData = async () => {
-      const current_class = Util.getCurrentClass();
-      const _subjects = await api.getCoursesForClassStudent(
-        current_class?.id ?? ""
-      );
-      
-      setSubjects(_subjects);    
-  
-      const curriculumIds = Array.from(
+   const initData = async () => {
+    var current_class = Util.getCurrentClass();
+    const _subjects = await api.getCoursesForClassStudent(
+      current_class?.id ?? ""
+    );
+    setSubjects(_subjects); 
+    const curriculumIds = Array.from(
         new Set(_subjects.map((s) => s.curriculum_id))
       );
       const gradeIds = Array.from(new Set(_subjects.map((s) => s.grade_id)));
@@ -157,14 +155,16 @@ const ReportTable: React.FC<ReportTableProps> = ({
         (id): id is string => id !== null
       );
       const filteredGradeIds = gradeIds.filter((id): id is string => id !== null);
-  
-      try {
-        // Fetch curriculums and grades
+
+        var current_course = Util.getCurrentCourse(current_class?.id);
+        setSelectedSubject(current_course ?? _subjects[0]);
+        const _chapters = await api.getChaptersForCourse(_subjects[0]?.id);
         const [curriculums, grades] = await Promise.all([
-          api.getCurriculumsByIds(filteredCurriculumIds),
-          api.getGradesByIds(filteredGradeIds),
-        ]);
-  
+              api.getCurriculumsByIds(filteredCurriculumIds),
+              api.getGradesByIds(filteredGradeIds),
+            ]);
+        setChapters(_chapters);
+        setSelectedChapter(_chapters[0]);
         const curriculumMap = new Map(curriculums.map((c) => [c.id, c]));
         const gradeMap = new Map(grades.map((g) => [g.id, g]));
         const _mappedSubjectOptions = _subjects.map((subject) => {
@@ -178,198 +178,24 @@ const ReportTable: React.FC<ReportTableProps> = ({
             name: subject.name,
           };
         });
-  
-        setMappedSubjectOptions(_mappedSubjectOptions);
-      } catch (error) {
-        console.error("Error fetching curriculums or grades:", error);
-        setMappedSubjectOptions([]);
-      }
-      setSelectedSubject(
-        Util.getCurrentCourse(current_class?.id) ?? _subjects[0]
-      );
-    };
+    var _mappedChaptersOptions = _chapters?.map((option) => ({
+      id: option.id,
+      name: option.name ?? "",
+    }));
+    setMappedChaptersOptions(_mappedChaptersOptions);
+    setMappedSubjectOptions(_mappedSubjectOptions);
+    setIsLoading(false);
+  };
 
     
   const init = async () => {
-  const current_class = Util.getCurrentClass();
-  const _classUtil = new ClassUtil();
-  setExpandedRow(null);
-
-  const isAllSubjects = selectedSubject?.id === ALL_SUBJECT.id;
-  const allSubjects = subjects ?? [];
-
-  type ReportResponse = {
-  ReportData: Map<string, { student: TableTypes<"user">; results: Record<string, any[]> }>;
-  HeaderData: Map<string, AssignmentHeader>[];
-};
-
-let reportResults: ReportResponse[] = [];
-  let mergedReportData = new Map();
-  let mergedHeaderData: Map<string, AssignmentHeader>[] = [];
-
-  const mergeReports = (reports) => {
-  reports.forEach((report) => {
-    report?.ReportData?.forEach((value, key) => {
-      if (!mergedReportData.has(key)) {
-        // First subject for this student
-        mergedReportData.set(key, {
-          student: value.student,
-          results: { ...value.results },
-        });
-      } else {
-        const existing = mergedReportData.get(key);
-        const mergedResults = { ...existing.results };
-
-        // Deep merge each day's results
-        for (const day in value.results) {
-          if (!mergedResults[day]) {
-            mergedResults[day] = [...value.results[day]];
-          } else {
-            mergedResults[day] = [...mergedResults[day], ...value.results[day]];
-          }
-        }
-
-        mergedReportData.set(key, {
-          student: value.student,
-          results: mergedResults,
-        });
-      }
-    });
-
-    report?.HeaderData?.forEach((map, index) => {
-      if (!mergedHeaderData[index]) mergedHeaderData[index] = new Map();
-      map.forEach((v, k) => mergedHeaderData[index].set(k, v));
-    });
-  });
-};
-
-
-// Special handling for Assignment Report with All Subjects
-if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
-  // Get all subject IDs
-  const allSubjectIds = subjects?.map(subject => subject.id) || [];
-  
-  // Date adjustments
-  const adjustedStartDate = subDays(new Date(dateRange.startDate), 1);
-  const adjustedEndDate = addDays(new Date(dateRange.endDate), 1);
-  const startTimeStamp = adjustedStartDate.toISOString().replace("T", " ").replace("Z", "+00");
-  const endTimeStamp = adjustedEndDate.toISOString().replace("T", " ").replace("Z", "+00");
-
-  // Single query for all assignments across subjects
-  const _assignments = await api.getAssignmentOrLiveQuizByClassByDate(
-    current_class?.id ?? "",
-    allSubjectIds,
-    endTimeStamp,
-    startTimeStamp,
-    false,
-    false,
-    true
-  ) || [];
-
-  // Get unique assignment IDs and lesson IDs
-  const assignmentIds = _assignments.map(asgmt => asgmt.id);
-  const lessonIds = [...new Set(_assignments.map(res => res.lesson_id))];
-
-  // Parallel data fetching
-  const [assignmentResults, lessonDetails, assignmentUserRecords, _students] = await Promise.all([
-    api.getResultByAssignmentIds(assignmentIds),
-    api.getLessonsBylessonIds(lessonIds),
-    api.getAssignmentUserByAssignmentIds(assignmentIds),
-    api.getStudentsForClass(current_class?.id ?? "")
-  ]);
-
-  // Initialize student results
-  let resultsByStudent = new Map<
-    string,
-    { student: TableTypes<"user">; results: Record<string, any[]> }
-  >();
-
-  // Sort students by name if needed
-  const students = sortType === TABLESORTBY.NAME 
-    ? [..._students].sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-    : _students;
-
-  // Initialize results structure
-  students.forEach(student => {
-    resultsByStudent.set(student.id, {
-      student,
-      results: Object.fromEntries(assignmentIds.map(id => [id, []]))
-    });
-  });
-
-  // Process assignment results
-  assignmentResults?.forEach(result => {
-    const studentId = result.student_id;
-    const assignmentId = result.assignment_id;
-    if (studentId && assignmentId && resultsByStudent.has(studentId)) {
-      resultsByStudent.get(studentId)!.results[assignmentId].push(result);
-    }
-  });
-
-  // Create headers - single flat array of assignments
-  const assignmentHeaders: Map<string, AssignmentHeader>[] = [];
-  
-  _assignments.forEach(assignment => {
-    const lesson = lessonDetails?.find(l => l.id === assignment.lesson_id);
-    const map = new Map<string, AssignmentHeader>();
-    map.set(assignment.id, {
-      headerName: lesson?.name || "Assignment",
-      startAt: _classUtil.formatDate(assignment.starts_at),
-      endAt: assignment.ends_at ? _classUtil.formatDate(assignment.ends_at) : "",
-      belongsToClass: Boolean(assignment.is_class_wise)
-    });
-    assignmentHeaders.push(map);
-  });
-
-  // Handle sorting
-  if (sortType === TABLESORTBY.LOWSCORE || sortType === TABLESORTBY.HIGHSCORE) {
-    resultsByStudent = _classUtil.sortStudentsByTotalScoreAssignment(resultsByStudent);
-    if (sortType === TABLESORTBY.HIGHSCORE) {
-      resultsByStudent = new Map([...resultsByStudent.entries()].reverse());
-    }
-  }
-
-  // Handle individual assignments
-  resultsByStudent.forEach((studentData, studentId) => {
-    assignmentIds.forEach(assignmentId => {
-      const assignment = _assignments.find(a => a.id === assignmentId);
-      if (assignment && !assignment.is_class_wise) {
-        const isAssigned = assignmentUserRecords?.some(
-          record => record.assignment_id === assignmentId && record.user_id === studentId
-        );
-        if (!isAssigned && studentData.results[assignmentId].length === 0) {
-          studentData.results[assignmentId].push({ assignment_id: assignmentId, score: null });
-        }
-      }
-    });
-  });
-
-  setReportData(resultsByStudent);
-  setHeaderData(assignmentHeaders);
-  setIsLoading(false);
-  return;
-}
-
-  switch (selectedType) {
-    case TABLEDROPDOWN.WEEKLY:
-      if (isAllSubjects) {
-        reportResults = await Promise.all(
-          allSubjects.map((subject) =>
-            _classUtil.getWeeklyReport(
-              current_class?.id ?? "",
-              subject.id,
-              dateRange.startDate,
-              dateRange.endDate,
-              sortType,
-              isAssignments
-            )
-          )
-        );
-        mergeReports(reportResults);
-        setReportData(mergedReportData);
-        setHeaderData(mergedHeaderData.slice(0, 7));
-      } else {
-        const report = await _classUtil.getWeeklyReport(
+    // setIsLoading(true);
+    var current_class = Util.getCurrentClass();
+    var _classUtil = new ClassUtil();
+    setExpandedRow(null);
+    switch (selectedType) {
+      case TABLEDROPDOWN.WEEKLY:
+        var _weeklyData = await _classUtil.getWeeklyReport(
           current_class?.id ?? "",
           selectedSubject?.id ?? "",
           dateRange.startDate,
@@ -377,30 +203,11 @@ if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
           sortType,
           isAssignments
         );
-        setReportData(report.ReportData);
-        setHeaderData(report.HeaderData.slice(0, 7));
-      }
-      break;
-
-    case TABLEDROPDOWN.MONTHLY:
-      if (isAllSubjects) {
-        reportResults = await Promise.all(
-          allSubjects.map((subject) =>
-            _classUtil.getMonthlyReport(
-              current_class?.id ?? "",
-              subject.id,
-              dateRange.startDate,
-              dateRange.endDate,
-              sortType,
-              isAssignments
-            )
-          )
-        );
-        mergeReports(reportResults);
-        setReportData(mergedReportData);
-        setHeaderData(mergedHeaderData);
-      } else {
-        const report = await _classUtil.getMonthlyReport(
+        setReportData(_weeklyData.ReportData);
+        setHeaderData(_weeklyData.HeaderData.slice(0, 7));
+        break;
+      case TABLEDROPDOWN.MONTHLY:
+        var _monthlyData = await _classUtil.getMonthlyReport(
           current_class?.id ?? "",
           selectedSubject?.id ?? "",
           dateRange.startDate,
@@ -408,61 +215,55 @@ if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
           sortType,
           isAssignments
         );
-        setReportData(report.ReportData);
-        setHeaderData(report.HeaderData);
-      }
-      break;
 
-    case TABLEDROPDOWN.ASSIGNMENTS:
-    case TABLEDROPDOWN.LIVEQUIZ:
-      const isLiveQuiz = selectedType === TABLEDROPDOWN.LIVEQUIZ;
-      if (isAllSubjects) {
-        reportResults = await Promise.all(
-          allSubjects.map((subject) =>
-            _classUtil.getAssignmentOrLiveQuizReportForReport(
-              current_class?.id ?? "",
-              subject.id,
-              dateRange.startDate,
-              dateRange.endDate,
-              isLiveQuiz,
-              sortType
-            )
-          )
-        );
-        mergeReports(reportResults);
-        setReportData(mergedReportData);
-        setHeaderData(mergedHeaderData);
-      } else {
-        const report = await _classUtil.getAssignmentOrLiveQuizReportForReport(
+        setReportData(_monthlyData.ReportData);
+        setHeaderData(_monthlyData.HeaderData);
+
+        break;
+      case TABLEDROPDOWN.ASSIGNMENTS:
+        var _assignmentData =
+          await _classUtil.getAssignmentOrLiveQuizReportForReport(
+            current_class?.id ?? "",
+            selectedSubject?.id ?? "",
+            dateRange.startDate,
+            dateRange.endDate,
+            false,
+            sortType
+          );
+        setReportData(_assignmentData.ReportData);
+        setHeaderData(_assignmentData.HeaderData);
+        break;
+      case TABLEDROPDOWN.CHAPTER:
+        var _reportData = await _classUtil.getChapterWiseReport(
           current_class?.id ?? "",
-          selectedSubject?.id ?? "",
           dateRange.startDate,
           dateRange.endDate,
-          isLiveQuiz,
-          sortType
+          selectedSubject?.id ?? "",
+          selectedChapter?.id ?? "",
+          sortType,
+          isAssignments
         );
-        setReportData(report.ReportData);
-        setHeaderData(report.HeaderData);
-      }
-      break;
+        setReportData(_reportData.ReportData);
+        setHeaderData(_reportData.HeaderData);
+        break;
+      case TABLEDROPDOWN.LIVEQUIZ:
+        var _liveQuizData =
+          await _classUtil.getAssignmentOrLiveQuizReportForReport(
+            current_class?.id ?? "",
+            selectedSubject?.id ?? "",
+            dateRange.startDate,
+            dateRange.endDate,
+            true,
+            sortType
+          );
+        setReportData(_liveQuizData.ReportData);
+        setHeaderData(_liveQuizData.HeaderData);
+        break;
+      default:
+    }
+    setIsLoading(false);
+  };
 
-    case TABLEDROPDOWN.CHAPTER:
-      const report = await _classUtil.getChapterWiseReport(
-        current_class?.id ?? "",
-        dateRange.startDate,
-        dateRange.endDate,
-        selectedSubject?.id ?? "",
-        selectedChapter?.id ?? "",
-        sortType,
-        isAssignments
-      );
-      setReportData(report.ReportData);
-      setHeaderData(report.HeaderData);
-      break;
-  }
-
-  setIsLoading(false);
-};
 
 
   const handleSelectSubject = async (subject) => {
@@ -558,7 +359,7 @@ if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
   </div>
 
   {selectedType === TABLEDROPDOWN.CHAPTER ? (
-    <div style={{width: '45%'}} className="chapter-type-row"> {/* ✅ Only for CHAPTER */}
+    <div >
       <ImageDropdown
           options={subjectOptionsWithAll}
           selectedValue={{
@@ -576,15 +377,16 @@ if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
           onOptionSelect={handleSelectSubject}
           placeholder={t("Select Language") as string}
         />
-
-      <CustomDropdown
-        options={mappedChaptersOptions ?? []}
-        onOptionSelect={handleSelectChapter}
-        selectedValue={{
-          id: selectedChapter?.id ?? "",
-          name: selectedChapter?.name ?? "",
-        }}
-      />
+      <div className="custom-chapter-dropdown">
+        <CustomDropdown
+          options={mappedChaptersOptions ?? []}
+          onOptionSelect={handleSelectChapter}
+          selectedValue={{
+            id: selectedChapter?.id ?? "",
+            name: selectedChapter?.name ?? "",
+          }}
+        />
+      </div>
     </div>
   ) : (
     <ImageDropdown
@@ -675,10 +477,6 @@ if (selectedType === TABLEDROPDOWN.ASSIGNMENTS && isAllSubjects) {
                           }
                           assignmentMap={assignmentMapObject}
                           selectedType={selectedType}
-                          headerDetails={selectedType === TABLEDROPDOWN.ASSIGNMENTS && selectedSubject?.id === ALL_SUBJECT.id ? 
-                            headerData : 
-                            undefined
-                          }
 />
                       )}
                     </tr>

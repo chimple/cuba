@@ -31,6 +31,7 @@ import {
   TabType,
   AVATARS,
   BASE_NAME,
+  DELETED_CLASSES,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -1162,6 +1163,93 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
+  // async deleteProfile(studentId: string) {
+  //   if (!this._db) return;
+  //   try {
+  //     const authHandler = ServiceConfig.getI()?.authHandler;
+  //     const currentUser = await authHandler?.getCurrentUser();
+  //     if (!currentUser) return;
+  //     await this._serverApi.deleteProfile(studentId);
+
+  //     const localParentId = currentUser.id;
+
+  //     // Check if the student is connected to any class
+  //     const classResult = await this._db.query(
+  //       `SELECT class_id FROM class_user WHERE user_id = ? AND is_deleted = 0 LIMIT 1`,
+  //       [studentId]
+  //     );
+  //     const localClassId =
+  //       classResult?.values && classResult.values.length > 0
+  //         ? classResult.values[0].class_id
+  //         : null;
+  //     if (localClassId) {
+  //       // Remove the student's connection to the class
+  //       await this.executeQuery(`DELETE FROM class_user WHERE user_id = ?`, [
+  //         studentId,
+  //       ]);
+
+  //       // Check if any other child of the parent is connected to the same class
+  //       const otherChildrenConnected = await this._db.query(
+  //         `
+  //         SELECT 1
+  //          FROM class_user cu
+  //          JOIN parent_user pu ON cu.user_id = pu.student_id
+  //          WHERE cu.class_id = ?
+  //          AND pu.parent_id = ?
+  //          AND pu.student_id != ?
+  //          AND cu.is_deleted = 0
+  //          AND pu.is_deleted = 0
+  //        `,
+  //         [localClassId, localParentId, studentId]
+  //       );
+  //       // If no other child is connected, remove the parent's connection from the class
+  //       if (
+  //         otherChildrenConnected.values == null ||
+  //         otherChildrenConnected.values.length < 1 ||
+  //         !otherChildrenConnected.values[0]
+  //       ) {
+  //         await this.executeQuery(
+  //           `
+  //         DELETE FROM class_user
+  //         WHERE class_id = ?
+  //         AND user_id = ?
+  //         AND role = 'parent'`,
+  //           [localClassId, localParentId]
+  //         );
+  //       }
+  //     }
+
+  //     // Remove the student's connection to the parent and other related records
+  //     await this.executeQuery(`DELETE FROM parent_user WHERE student_id = ?`, [
+  //       studentId,
+  //     ]);
+  //     await this.executeQuery(`DELETE FROM user_badge WHERE user_id = ?`, [
+  //       studentId,
+  //     ]);
+  //     await this.executeQuery(`DELETE FROM user_bonus WHERE user_id = ?`, [
+  //       studentId,
+  //     ]);
+  //     await this.executeQuery(`DELETE FROM user_course WHERE user_id = ?`, [
+  //       studentId,
+  //     ]);
+  //     await this.executeQuery(`DELETE FROM user_sticker WHERE user_id = ?`, [
+  //       studentId,
+  //     ]);
+  //     await this.executeQuery(`DELETE FROM assignment_user WHERE user_id = ?`, [
+  //       studentId,
+  //     ]);
+  //     await this.executeQuery(`DELETE FROM favorite_lesson WHERE user_id = ?`, [
+  //       studentId,
+  //     ]);
+  //     await this.executeQuery(`DELETE FROM result WHERE student_id = ?`, [
+  //       studentId,
+  //     ]);
+  //     await this.executeQuery(`DELETE FROM user WHERE id = ?`, [studentId]);
+  //   } catch (error) {
+  //     console.error("🚀 ~ SqliteApi ~ deleteProfile ~ error:", error);
+  //   }
+  // }
+
   async deleteProfile(studentId: string) {
     if (!this._db) return;
     try {
@@ -1171,35 +1259,37 @@ export class SqliteApi implements ServiceApi {
       await this._serverApi.deleteProfile(studentId);
 
       const localParentId = currentUser.id;
+      const timestamp = new Date().toISOString()
 
-      // Check if the student is connected to any class
-      const classResult = await this._db.query(
-        `SELECT class_id FROM class_user WHERE user_id = ? AND is_deleted = 0 LIMIT 1`,
+      // Get all class_ids the student is connected to
+      const classResults = await this._db.query(
+        `SELECT DISTINCT class_id FROM class_user WHERE user_id = ? AND is_deleted = 0`,
         [studentId]
       );
-      const localClassId =
-        classResult?.values && classResult.values.length > 0
-          ? classResult.values[0].class_id
-          : null;
-      if (localClassId) {
-        // Remove the student's connection to the class
-        await this.executeQuery(`DELETE FROM class_user WHERE user_id = ?`, [
-          studentId,
-        ]);
 
-        // Check if any other child of the parent is connected to the same class
+      const classIds: string[] =
+        classResults?.values?.map((row) => row.class_id) ?? [];
+
+      for (const classId of classIds) {
+        // Soft delete student from class_user
+        await this.executeQuery(
+          `UPDATE class_user SET is_deleted = 1, updated_at = ? WHERE user_id = ? AND class_id = ? AND is_deleted = 0`,
+          [timestamp, studentId, classId]
+        );
+
+        // Check if other children of the parent are connected to the same class
         const otherChildrenConnected = await this._db.query(
           `
-          SELECT 1
-           FROM class_user cu
-           JOIN parent_user pu ON cu.user_id = pu.student_id
-           WHERE cu.class_id = ?
-           AND pu.parent_id = ?
-           AND pu.student_id != ?
-           AND cu.is_deleted = 0
-           AND pu.is_deleted = 0
-         `,
-          [localClassId, localParentId, studentId]
+        SELECT 1
+        FROM class_user cu
+        JOIN parent_user pu ON cu.user_id = pu.student_id
+        WHERE cu.class_id = ?
+        AND pu.parent_id = ?
+        AND pu.student_id != ?
+        AND cu.is_deleted = 0
+        AND pu.is_deleted = 0
+        `,
+          [classId, localParentId, studentId]
         );
         // If no other child is connected, remove the parent's connection from the class
         if (
@@ -1209,41 +1299,21 @@ export class SqliteApi implements ServiceApi {
         ) {
           await this.executeQuery(
             `
-          DELETE FROM class_user
-          WHERE class_id = ?
-          AND user_id = ?
-          AND role = 'parent'`,
-            [localClassId, localParentId]
+          UPDATE class_user
+          SET is_deleted = 1,
+              updated_at = ?
+          WHERE class_id = ? AND user_id = ? AND role = 'parent' AND is_deleted = 0
+          `,
+            [timestamp, classId, localParentId]
           );
         }
       }
 
-      // Remove the student's connection to the parent and other related records
-      await this.executeQuery(`DELETE FROM parent_user WHERE student_id = ?`, [
-        studentId,
-      ]);
-      await this.executeQuery(`DELETE FROM user_badge WHERE user_id = ?`, [
-        studentId,
-      ]);
-      await this.executeQuery(`DELETE FROM user_bonus WHERE user_id = ?`, [
-        studentId,
-      ]);
-      await this.executeQuery(`DELETE FROM user_course WHERE user_id = ?`, [
-        studentId,
-      ]);
-      await this.executeQuery(`DELETE FROM user_sticker WHERE user_id = ?`, [
-        studentId,
-      ]);
-      await this.executeQuery(`DELETE FROM assignment_user WHERE user_id = ?`, [
-        studentId,
-      ]);
-      await this.executeQuery(`DELETE FROM favorite_lesson WHERE user_id = ?`, [
-        studentId,
-      ]);
-      await this.executeQuery(`DELETE FROM result WHERE student_id = ?`, [
-        studentId,
-      ]);
-      await this.executeQuery(`DELETE FROM user WHERE id = ?`, [studentId]);
+      // Soft delete the parent-student connection
+      await this.executeQuery(
+        `UPDATE parent_user SET is_deleted = 1, updated_at = ? WHERE student_id = ? AND parent_id = ? AND is_deleted = 0`,
+        [timestamp, studentId, localParentId]
+      );
     } catch (error) {
       console.error("🚀 ~ SqliteApi ~ deleteProfile ~ error:", error);
     }
@@ -2425,7 +2495,14 @@ export class SqliteApi implements ServiceApi {
     ) {
       return [];
     }
-
+    const deletedClass = sessionStorage.getItem(DELETED_CLASSES)
+    if (deletedClass) {
+      const deletedClasses = JSON.parse(deletedClass);
+      const filteredClassList = allClassesRes.values.filter((item) =>
+        !deletedClasses.includes(item.id)
+      );
+      return filteredClassList;
+    }
     return allClassesRes.values;
   }
 
@@ -3388,7 +3465,8 @@ export class SqliteApi implements ServiceApi {
     lesson_id: string,
     chapter_id: string,
     course_id: string,
-    type: string
+    type: string,
+    batch_id:string
   ): Promise<boolean> {
     const assignmentUUid = uuidv4();
     const timestamp = new Date().toISOString(); // Cache timestamp for reuse
@@ -3397,8 +3475,8 @@ export class SqliteApi implements ServiceApi {
       // Insert into assignment table
       await this.executeQuery(
         `INSERT INTO assignment
-          (id, created_by, starts_at, ends_at, is_class_wise, class_id, school_id, lesson_id, type, created_at, updated_at, is_deleted, chapter_id, course_id)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          (id, created_by, starts_at, ends_at, is_class_wise, class_id, school_id, lesson_id, type, created_at, updated_at, is_deleted, chapter_id, course_id, batch_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           assignmentUUid,
           userId,
@@ -3414,6 +3492,7 @@ export class SqliteApi implements ServiceApi {
           false,
           chapter_id,
           course_id,
+          batch_id
         ]
       );
 
@@ -3433,6 +3512,7 @@ export class SqliteApi implements ServiceApi {
         is_deleted: false,
         chapter_id: chapter_id,
         course_id: course_id,
+        batch_id: batch_id ?? null,
         source: null,
         firebase_id: null,
         is_firebase: null,
@@ -5452,10 +5532,23 @@ order by
     return await this._serverApi.program_activity_stats(programId);
   }
 
-  async getManagersAndCoordinators(): Promise<
-    { user: TableTypes<"user">; role: string }[]
-  > {
-    return await this._serverApi.getManagersAndCoordinators();
+  async getManagersAndCoordinators(
+    page: number = 1,
+    search: string = "",
+    limit: number = 10,
+    sortBy: keyof TableTypes<"user"> = "name",
+    sortOrder: "asc" | "desc" = "asc"
+  ): Promise<{
+    data: { user: TableTypes<"user">; role: string }[];
+    totalCount: number;
+  }> {
+    return await this._serverApi.getManagersAndCoordinators(
+      page,
+      search,
+      limit,
+      sortBy,
+      sortOrder
+    );
   }
 
   async school_activity_stats(schoolId: string): Promise<{

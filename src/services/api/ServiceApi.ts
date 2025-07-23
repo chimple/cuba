@@ -1076,7 +1076,8 @@ export interface ServiceApi {
     lesson_id: string,
     chapter_id: string,
     course_id: string,
-    type: string
+    type: string,
+    batch_id: string
   ): Promise<boolean>;
 
   /**
@@ -1769,15 +1770,29 @@ export interface ServiceApi {
   }>;
 
   /**
-   * Retrieve the list of managers and coordinators associated with the current user.
+   * Retrieve the list of managers and coordinators associated with the current user,
+   * with support for pagination, search, and sorting.
    *
-   * @returns {Promise<{ name: string; role: string }[]>}
-   *   Promise resolving to an array of objects, each containing the user's name and their role
-   *   (e.g., "Program Manager", "Field Coordinator").
+   * @param page - The page number for pagination (default: 1).
+   * @param search - Search term to filter by user name (default: "").
+   * @param limit - Number of users per page (default: 10).
+   * @param sortBy - Field to sort by (default: "name").
+   * @param sortOrder - Sort order: "asc" or "desc" (default: "asc").
+   *
+   * @returns Promise resolving to an object containing:
+   *   - data: Array of user objects with their highest role and all assigned roles.
+   *   - totalCount: Total number of matching users.
    */
-  getManagersAndCoordinators(): Promise<
-    { user: TableTypes<"user">; role: string }[]
-  >;
+  getManagersAndCoordinators(
+    page?: number,
+    search?: string,
+    limit?: number,
+    sortBy?: keyof TableTypes<"user">,
+    sortOrder?: "asc" | "desc"
+  ): Promise<{
+    data: { user: TableTypes<"user">; role: string }[];
+    totalCount: number;
+  }>;
 
   /**
    * Count total and active students, total and active teachers, and average time spent for a given school.
