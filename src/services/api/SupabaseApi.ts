@@ -1295,7 +1295,7 @@ export class SupabaseApi implements ServiceApi {
   async deleteProfile(studentId: string) {
     if (!this.supabase) return;
 
-    const res = await this.supabase.rpc("delete_student", {
+    const res = await this.supabase.rpc("delete_student_profile", {
       p_student_id: studentId,
     });
     if (res.error) {

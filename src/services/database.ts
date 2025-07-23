@@ -2242,7 +2242,7 @@ export type Database = {
         Args: { input_firebase_id: string };
         Returns: string;
       };
-      delete_student: {
+      delete_student_profile: {
         Args: { p_student_id: string };
         Returns: undefined;
       };
