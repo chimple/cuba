@@ -31,6 +31,7 @@ const JoinClass: FC<{
   const [currStudent] = useState<any>(Util.getCurrentStudent());
 
   const api = ServiceConfig.getI().apiHandler;
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const isNextButtonEnabled = () => {
     let tempInviteCode = urlClassCode.inviteCode
@@ -154,16 +155,14 @@ useEffect(() => {
     Keyboard.setScroll({ isDisabled: true });
     const handleKeyboardShow = () => {
       setIsInputFocus(true);
-      // Add shift-up class to container
-      const container = document.querySelector(".assignment-join-class-container-scroll");
-      container?.classList.add("shift-up");
     };
 
     const handleKeyboardHide = () => {
       setIsInputFocus(false);
-      // Remove shift-up class
-      const container = document.querySelector(".assignment-join-class-container-scroll");
-      container?.classList.remove("shift-up");
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
     };
 
     const showSub = Keyboard.addListener("keyboardWillShow", handleKeyboardShow);
@@ -174,7 +173,6 @@ useEffect(() => {
       hideSub.remove();
     };
   }
-  
 }, []);
 
 
@@ -188,9 +186,7 @@ useEffect(() => {
 
   return (
     <div className="join-class-parent-container">
-     
-      {isInputFocus && <div className="scroll-keyboard-for-join-class" ref={scrollToRef}></div>}
-      <div className="assignment-join-class-container-scroll">
+      <div className={`assignment-join-class-container-scroll ${isInputFocus ? "shift-up" : ""}`} ref={containerRef}>
       <h2>{t("Join a Class by entering the details below")}</h2>
       <div className="join-class-container">
         <InputWithIcons
