@@ -164,11 +164,6 @@ useEffect(() => {
       // Remove shift-up class
       const container = document.querySelector(".assignment-join-class-container-scroll");
       container?.classList.remove("shift-up");
-
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
     };
 
     const showSub = Keyboard.addListener("keyboardWillShow", handleKeyboardShow);
@@ -180,8 +175,6 @@ useEffect(() => {
     };
   }
   
- 
-
 }, []);
 
 
