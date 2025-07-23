@@ -18,6 +18,7 @@ const JoinClass: FC<{
   onClassJoin: () => void;
 }> = ({ onClassJoin }) => {
   const [loading, setLoading] = useState(false);
+  const isJoining = useRef(false);
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [inviteCode, setInviteCode] = useState<number>();
   const [codeResult, setCodeResult] = useState();
@@ -78,7 +79,8 @@ const JoinClass: FC<{
   };
   const onJoin = async () => {
     // setShowDialogBox(false);
-    if (loading) return;
+    if (isJoining.current) return;
+    isJoining.current = true;
     setLoading(true);
     const student = Util.getCurrentStudent();
 
@@ -123,6 +125,9 @@ const JoinClass: FC<{
       // window.location.reload();
     } catch (error) {
       if (error instanceof Object) setError(error.toString());
+    } finally {
+      setLoading(false);
+      isJoining.current = false;
     }
 
     setLoading(false);
