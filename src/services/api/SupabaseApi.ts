@@ -328,8 +328,9 @@ export class SupabaseApi implements ServiceApi {
 
     const supabase = this.supabase;
     let resolved = false;
-    const sessionData = await ServiceConfig.getI().authHandler.getCurrentUser();
-    const uploadingUser = sessionData?.id;
+    const currentuserData =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    const uploadingUser = currentuserData?.id;
     return new Promise(async (resolve) => {
       let uploadId: string | undefined;
       const fallbackChannel = uploadingUser
