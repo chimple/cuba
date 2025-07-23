@@ -76,9 +76,13 @@ export class ClassUtil {
     
   
     const assignmentsCompletedByAllStudents = assignmentsWithCompletedStudents
-      ? Object.keys(assignmentsWithCompletedStudents).length
+      ? Object.keys(assignmentsWithCompletedStudents).filter((assignmentId) => {
+          return (
+            assignmentsWithCompletedStudents[assignmentId].size ===
+            totalStudents
+          );
+        }).length
       : 0;
-
     const timeSpentByAllStudents = totalStudents > 0 ? parseFloat((timeSpent / totalStudents).toFixed(2)) : 0;
     const resultCount = assignmentResult?.length ?? 0;
     const avgScore = resultCount > 0 ? parseFloat((totalScore / resultCount).toFixed(1)) : 0;
