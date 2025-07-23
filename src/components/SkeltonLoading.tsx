@@ -169,14 +169,14 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
   function skeltonHome() {
     return (
       <div className="skelton-home-screen">
-        <div id="skelton-home-screen-div">
+        {/* <div id="skelton-home-screen-div">
           <img
             id="skelton-home-screen-char"
             src={"/assets/animation/chimple_avatar.png"}
             loading="lazy"
             alt=""
           />
-        </div>
+        </div> */}
         {/* <Skeleton className="skelton-home-screen-avatar" /> */}
         {/* <Skeleton className="skelton-home-screen-diloag" /> */}
       </div>
