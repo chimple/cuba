@@ -28,7 +28,7 @@
   outline: none;
 }
 
-.custom-radio-btn::part(container) {
+.add-student-radio-btn::part(container) {
   width: 18px;
   height: 18px;
   border: 1px solid #333;
@@ -41,17 +41,17 @@
   transition: none;
 }
 
-.custom-radio-btn[aria-checked="true"]::part(container) {
+.add-student-radio-btn[aria-checked="true"]::part(container) {
   background-color: transparent !important;
   border: 1px solid #333 !important;
   box-shadow: none !important;
 }
 
-.custom-radio-btn::part(mark) {
+.add-student-radio-btn::part(mark) {
   display: none;
 }
 
-.custom-radio-btn[aria-checked="true"]::part(mark) {
+.add-student-radio-btn[aria-checked="true"]::part(mark) {
   display: block;
   width: 8px;
   height: 8px;

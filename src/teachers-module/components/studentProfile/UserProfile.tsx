@@ -152,7 +152,7 @@ const UserProfile: React.FC<{
             </span>
             <span className="userprofile-value">
               {isEditing ? (
-                 <div className="dropdown-with-icon">
+                 <div className="userprofile-dropdown-with-icon">
                 <select
                   name="class"
                   value={classDoc?.id}
@@ -164,7 +164,7 @@ const UserProfile: React.FC<{
                     </option>
                   ))}
                 </select>
-                <IonIcon icon={caretDownSharp} className="dropdown-icon" />
+                <IonIcon icon={caretDownSharp} className="userprofile-dropdown-icon" />
                 </div>
               ) : (
                 classDoc?.name

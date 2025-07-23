@@ -153,24 +153,24 @@
   border: none;
 }
 
-.dropdown-icon {
+.userprofile-dropdown-icon {
   color: #707070;
   width: 16px;
 }
 
-.dropdown-with-icon {
+.userprofile-dropdown-with-icon {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.dropdown-with-icon select {
+.userprofile-dropdown-with-icon select {
   border: none;
   background-color: transparent;
   font-size: 20px;
   color: #707070;
 }
-.dropdown-with-icon select option {
+.userprofile-dropdown-with-icon select option {
   font-size: 1.8vh;
   color: #333;
 }

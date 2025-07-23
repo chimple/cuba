@@ -62,7 +62,7 @@ const DeleteClassDialog: FC<{ classId: string }> = ({ classId }) => {
         <div className="modal-overlay">
           <div className="modal-box">
             <div className="modal-header">{t("Cannot Delete Class")}</div>
-            <div className="modal-message modal-message-left">
+            <div className="modal-message delete-class-modal-message">
               {t("Delete all students to delete class")}
             </div>
             <div className="modal-buttons">
