@@ -1471,7 +1471,7 @@ export interface ServiceApi {
    */
   validateUserContacts(
     programManagerPhone: string,
-    fieldCoordinatorPhone: string
+    fieldCoordinatorPhone?: string
   ): Promise<{ status: string; errors?: string[] }>;
   /**
    * setting a stars for the student

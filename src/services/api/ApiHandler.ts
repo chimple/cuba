@@ -1096,7 +1096,7 @@ public async getUserRoleForSchool(
   }
   async validateUserContacts(
     programManagerPhone: string,
-    fieldCoordinatorPhone: string
+    fieldCoordinatorPhone?: string
   ): Promise<{ status: string; errors?: string[] }> {
     return this.s.validateUserContacts(
       programManagerPhone,

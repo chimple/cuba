@@ -4785,7 +4785,7 @@ order by
 
   async validateUserContacts(
     programManagerPhone: string,
-    fieldCoordinatorPhone: string
+    fieldCoordinatorPhone?: string
   ): Promise<{ status: string; errors?: string[] }> {
     const response = await this._serverApi.validateUserContacts(
       programManagerPhone,
