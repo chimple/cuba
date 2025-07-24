@@ -77,6 +77,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
             };
           }
           l.lesson[0].selected = true;
+          l.lesson[0].source = "manual";
           tempLessons[courseId].lessons.push(l.lesson[0]);
         }
         updateSelectedLesson(TeacherAssignmentPageType.MANUAL, tempLessons);
@@ -148,6 +149,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           updatedRecommendedAssignments[subjectId].lessons.map((assignment) => ({
             ...assignment,
             selected: false,
+            source: "recommended",
           }));
       });
       setRecommendedAssignments(updatedRecommendedAssignments);
@@ -162,6 +164,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           updatedRecommendedAssignments[subjectId].lessons.map((assignment) => ({
             ...assignment,
             selected: true,
+            source: "recommended",
           }));
       });
       setRecommendedAssignments(updatedRecommendedAssignments);

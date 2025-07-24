@@ -410,7 +410,8 @@ const CreateSelectedAssignment = ({
                 subjectId,
                 tempLes.plugin_type === ASSIGNMENT_TYPE.LIVEQUIZ
                   ? ASSIGNMENT_TYPE.LIVEQUIZ
-                  : ASSIGNMENT_TYPE.ASSIGNMENT
+                  : ASSIGNMENT_TYPE.ASSIGNMENT,
+                tempLessons[0].source,
               );
 
               // If the assignment creation was successful, update sync_lesson

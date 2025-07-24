@@ -764,6 +764,13 @@ export interface HomeWeeklySummary {
   averageScore: number;
 }
 
+export enum AssignmentSource {
+  MANUAL = "manual",
+  RECOMMENDED = "recommended",
+  CHATBOT = "chatbot",
+  QR_CODE = "qr_code",
+}
+
 export const LidoActivityEndKey = "lidoActivityEnd";
 export const LidoLessonEndKey = "lidoLessonEnd";
 export const LidoNextContainerKey = "lidoNextContainer";
