@@ -4375,7 +4375,8 @@ export class SupabaseApi implements ServiceApi {
   async getStudentLastTenResults(
     studentId: string,
     courseIds: string[],
-    assignmentIds: string[]
+    assignmentIds: string[],
+    classId
   ): Promise<TableTypes<"result">[]> {
     if (!this.supabase) return [];
 
@@ -4385,6 +4386,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("student_id", studentId)
       .in("course_id", courseIds)
+      .eq("class_id", classId)
       .is("assignment_id", null)
       .eq("is_deleted", false)
       .order("created_at", { ascending: false })
@@ -4402,6 +4404,7 @@ export class SupabaseApi implements ServiceApi {
         .select("*")
         .eq("student_id", studentId)
         .in("course_id", courseIds)
+        .eq("class_id", classId)
         .in("assignment_id", assignmentIds)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false })

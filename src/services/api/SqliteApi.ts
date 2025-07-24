@@ -4024,7 +4024,7 @@ order by
      FROM ${TABLES.Result}
      WHERE student_id = ?
      AND course_id IN (${courseholders})
-     AND class_id = '${classId}'
+     AND class_id = ?
      AND assignment_id IS NULL
      AND is_deleted = false
      ORDER BY created_at DESC
@@ -4035,7 +4035,7 @@ order by
      FROM ${TABLES.Result}
      WHERE student_id = ?
      AND course_id IN (${courseholders})
-     AND class_id = '${classId}'
+     AND class_id = ?
      AND assignment_id IN (${assignmentholders})
      AND is_deleted = false
      ORDER BY created_at DESC
@@ -4048,7 +4048,15 @@ order by
    FROM non_null_assignments
    ORDER BY created_at DESC
    LIMIT 10;`,
-      [studentId, ...courseIds, studentId, ...courseIds, ...assignmentIds]
+      [
+        studentId,
+        ...courseIds,
+        classId,
+        studentId,
+        ...courseIds,
+        classId,
+        ...assignmentIds,
+      ]
     );
     return res?.values ?? [];
   }
