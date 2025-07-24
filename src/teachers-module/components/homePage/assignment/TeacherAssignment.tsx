@@ -10,6 +10,7 @@ import { Util } from "../../../../utility/util";
 import { t } from "i18next";
 import { Toast } from "@capacitor/toast";
 import AssignmentNextButton from "./AssignmentNextButton";
+import { AssignmentSource } from "../../../../common/constants";
 
 export enum TeacherAssignmentPageType {
   MANUAL = "manual",
@@ -77,7 +78,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
             };
           }
           l.lesson[0].selected = true;
-          l.lesson[0].source = "manual";
+          l.lesson[0].source = AssignmentSource.MANUAL;
           tempLessons[courseId].lessons.push(l.lesson[0]);
         }
         updateSelectedLesson(TeacherAssignmentPageType.MANUAL, tempLessons);
@@ -149,7 +150,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           updatedRecommendedAssignments[subjectId].lessons.map((assignment) => ({
             ...assignment,
             selected: false,
-            source: "recommended",
+            source: AssignmentSource.RECOMMENDED,
           }));
       });
       setRecommendedAssignments(updatedRecommendedAssignments);
@@ -164,7 +165,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           updatedRecommendedAssignments[subjectId].lessons.map((assignment) => ({
             ...assignment,
             selected: true,
-            source: "recommended",
+            source: AssignmentSource.RECOMMENDED,
           }));
       });
       setRecommendedAssignments(updatedRecommendedAssignments);
