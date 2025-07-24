@@ -212,47 +212,45 @@ const CocosGame: React.FC = () => {
       const { courses } = learningPath;
       const currentCourse = courses.courseList[courses.currentCourseIndex];
 
-      const prevLessonId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .path[
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].currentIndex
-        ].lesson_id;
-      const prevChapterId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .path[
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].currentIndex
-        ].chapter_id;
-      const prevCourseId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .course_id;
-      const prevPathId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .path_id;
-      // Update currentIndex
-      currentCourse.currentIndex += 1;
+      // Mark the current lesson as completed
+      const currentLessonObj = currentCourse.path[currentCourse.currentIndex];
+      if (currentLessonObj) {
+        currentLessonObj.completed = true;
+      }
 
-      // Check if currentIndex exceeds pathEndIndex
-      if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
-        currentCourse.startIndex = currentCourse.currentIndex;
-        currentCourse.pathEndIndex += 5;
-
-        // Ensure pathEndIndex does not exceed the path length
-        if (currentCourse.pathEndIndex > currentCourse.path.length) {
-          currentCourse.pathEndIndex = currentCourse.path.length - 1;
+      // Progression logic: check if all lessons in the current window are completed
+      const LessonSlice = currentCourse.path.slice(
+        currentCourse.startIndex,
+        currentCourse.pathEndIndex + 1
+      );
+      if (LessonSlice.every((lesson) => lesson.completed)) {
+        // Move window by 5 lessons
+        let newStart = currentCourse.startIndex + 5;
+        let newEnd = currentCourse.pathEndIndex + 5;
+        const totalLessons = currentCourse.path.length;
+        if (newStart >= totalLessons) {
+          newStart = totalLessons - 5 < 0 ? 0 : totalLessons - 5;
+          newEnd = totalLessons - 1;
+        } else if (newEnd >= totalLessons) {
+          newEnd = totalLessons - 1;
         }
+        currentCourse.startIndex = newStart;
+        currentCourse.pathEndIndex = newEnd;
+        currentCourse.currentIndex = newStart;
+      } else {
+        // Update currentIndex for next lesson
+        currentCourse.currentIndex += 1;
+      }
 
+      // If window moved past end, handle course completion
+      if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
         // Move to the next course
         courses.currentCourseIndex += 1;
-
         await api.setStarsForStudents(currentStudent.id, 10);
-        // Loop back to the first course if at the last course
         if (courses.currentCourseIndex >= courses.courseList.length) {
           courses.currentCourseIndex = 0;
         }
+        // Log events
         const pathwayEndData = {
           user_id: currentStudent.id,
           current_path_id:
@@ -279,10 +277,10 @@ const CocosGame: React.FC = () => {
                 learningPath.courses.currentCourseIndex
               ].currentIndex
             ].chapter_id,
-          prev_path_id: prevPathId,
-          prev_course_id: prevCourseId,
-          prev_lesson_id: prevLessonId,
-          prev_chapter_id: prevChapterId,
+          prev_path_id: currentCourse.path_id,
+          prev_course_id: currentCourse.course_id,
+          prev_lesson_id: currentLessonObj?.lesson_id,
+          prev_chapter_id: currentLessonObj?.chapter_id,
         };
         await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
         await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);

@@ -77,19 +77,24 @@ const LearningPathway: React.FC = () => {
         ? JSON.parse(student.learning_path)
         : null;
 
+      let rebuilt = false;
       if (!learningPath || !learningPath.courses?.courseList?.length) {
         setLoading(true);
         learningPath = await buildInitialLearningPath(userCourses);
         await saveLearningPath(student, learningPath);
-        setLoading(false);
-        if (Util.isRespectMode) setPathwayReady(true); // Mark pathway as ready in respect mode
+        rebuilt = true;
       } else {
         const updated = await updateLearningPathIfNeeded(
           learningPath,
           userCourses
         );
-        if (updated) await saveLearningPath(student, learningPath);
+        if (updated) {
+          await saveLearningPath(student, learningPath);
+          rebuilt = true;
+        }
       }
+      // Always mark pathway as ready in respect mode after loading
+      if (Util.isRespectMode) setPathwayReady(true);
     } catch (error) {
       console.error("Error in Learning Pathway", error);
     } finally {
@@ -184,13 +189,10 @@ const updateLearningPathIfNeeded = async (
     // Extract lesson IDs
     const LessonIds = LessonSlice.map((item: any) => item.lesson_id);
 
-
     const eventData = {
       user_id: student.id,
       path_id:
-          path.courses.courseList[
-            path.courses.currentCourseIndex
-          ].path_id, 
+        path.courses.courseList[path.courses.currentCourseIndex].path_id,
       current_course_id:
         path.courses.courseList[path.courses.currentCourseIndex].course_id,
       current_lesson_id:
@@ -209,6 +211,61 @@ const updateLearningPathIfNeeded = async (
     };
     await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
   };
+
+  // Mark a lesson as completed in the pathway
+  const markLessonCompleted = async (lessonId: string) => {
+    // Get current learning path from student
+    let learningPath = currentStudent?.learning_path
+      ? JSON.parse(currentStudent.learning_path)
+      : null;
+    if (!learningPath) return;
+    const currentCourse = learningPath.courses.courseList[learningPath.courses.currentCourseIndex];
+    // Find the lesson in the current course path
+    const lessonObj = currentCourse.path.find((l: any) => l.lesson_id === lessonId);
+    if (lessonObj) {
+      lessonObj.completed = true;
+      await saveLearningPath(currentStudent, learningPath);
+      await checkAndAdvanceLessonWindow(currentStudent, learningPath);
+    }
+  };
+
+  // Call this function when all 5 lessons are completed to show the next set
+  const advanceLessonWindow = async (student: any, path: any) => {
+    const currentCourse = path.courses.courseList[path.courses.currentCourseIndex];
+    const totalLessons = currentCourse.path.length;
+    // Move window by 5 lessons
+    let newStart = currentCourse.startIndex + 5;
+    let newEnd = currentCourse.pathEndIndex + 5;
+    if (newStart >= totalLessons) {
+      // All lessons completed, optionally handle course completion here
+      newStart = totalLessons - 5 < 0 ? 0 : totalLessons - 5;
+      newEnd = totalLessons - 1;
+    } else if (newEnd >= totalLessons) {
+      newEnd = totalLessons - 1;
+    }
+    currentCourse.startIndex = newStart;
+    currentCourse.pathEndIndex = newEnd;
+    // Optionally reset currentIndex to newStart or keep as is
+    currentCourse.currentIndex = newStart;
+    await saveLearningPath(student, path);
+  };
+
+  // Helper: Call this after a lesson is completed
+  const checkAndAdvanceLessonWindow = async (student: any, path: any) => {
+    const currentCourse = path.courses.courseList[path.courses.currentCourseIndex];
+    const LessonSlice = currentCourse.path.slice(
+      currentCourse.startIndex,
+      currentCourse.pathEndIndex + 1
+    );
+    // If every lesson in the slice is completed, advance window
+    if (LessonSlice.every((lesson: any) => lesson.completed)) {
+      await advanceLessonWindow(student, path);
+    }
+  };
+
+  // Example usage:
+  // After marking a lesson as completed, call:
+  // checkAndAdvanceLessonWindow(currentStudent, learningPath);
   if (loading || (Util.isRespectMode && !pathwayReady)) {
     return <Loading isLoading={loading} msg="Loading Lessons" />;
   }
