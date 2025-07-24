@@ -3,6 +3,7 @@ import { IonButton } from "@ionic/react";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import EditClassField from "../components/classComponents/EditClassField";
 import {
+  CLASS_OR_SCHOOL_CHANGE_EVENT,
   PAGES,
   School_Creation_Stages,
   TableTypes,
@@ -13,11 +14,18 @@ import { Util } from "../../utility/util";
 import "./EditClass.css";
 import { t } from "i18next";
 
+type LocationState = {
+  school?: TableTypes<"school">;
+  classDoc?: TableTypes<"class">;
+  origin?: string;
+};
+
 const EditClass: FC = () => {
-  const location = useLocation();
+  const location = useLocation<LocationState>();
   const api = ServiceConfig.getI()?.apiHandler;
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
-  const [className, setClassName] = useState<string>("");
+  const incoming = location.state?.classDoc ?? Util.getCurrentClass();
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(incoming ?? null);
+  const [className, setClassName] = useState<string>(incoming?.name ?? "");
   const { school: localSchool = null, classDoc: tempClass = null } =
     (location.state || {}) as any;
   const currentSchool =
@@ -71,29 +79,31 @@ const EditClass: FC = () => {
       console.error("unable to create a class", error);
     }
   };
+
   const handleUpdateClass = async () => {
-    try {
-      if (currentClass) {
+     try {
+       if (currentClass) {
         await api.updateClass(currentClass.id, className);
         const updatedClass = { ...currentClass, name: className };
-        if (navigationState?.stage === School_Creation_Stages.CREATE_CLASS) {
-          Util.setNavigationState(School_Creation_Stages.CLASS_COURSE);
-          history.replace(PAGES.SUBJECTS_PAGE, {
-            classId: updatedClass.id,
-            origin: PAGES.ADD_CLASS,
-            isSelect: true,
+        Util.setCurrentClass(updatedClass);
+ 
+         if (navigationState?.stage === School_Creation_Stages.CREATE_CLASS) {
+           Util.setNavigationState(School_Creation_Stages.CLASS_COURSE);
+           history.replace(PAGES.SUBJECTS_PAGE, {
+             classId: updatedClass.id,
+             origin: PAGES.ADD_CLASS,
+             isSelect: true,
+           });
+         } else {
+          history.replace(PAGES.HOME_PAGE, {
+            tabValue: 0,
           });
-        } else {
-          history.replace(PAGES.CLASS_PROFILE, {
-            school: currentSchool,
-            classDoc: updatedClass,
-          });
-        }
-      }
-    } catch (error) {
-      console.error("unable to update a class", error);
-    }
-  };
+         }
+       }
+     } catch (error) {
+       console.error("unable to update a class", error);
+     }
+   };
 
   const onBackButtonClick = () => {
     if (paramOrigin === PAGES.MANAGE_CLASS) {
