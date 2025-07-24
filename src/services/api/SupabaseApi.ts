@@ -4329,7 +4329,7 @@ export class SupabaseApi implements ServiceApi {
   }
   async getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId: any,
+     courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -4342,16 +4342,17 @@ export class SupabaseApi implements ServiceApi {
       .from("assignment")
       .select("*")
       .eq("class_id", classId)
+      .in("course_id", courseIds)
       .gte("created_at", endDate)
       .lte("created_at", startDate)
       .eq("is_deleted", false);
 
     // Handle both string and array courseIds
-    if (typeof courseId === "string") {
-      query = query.eq("course_id", courseId);
-    } else if (Array.isArray(courseId) && courseId.length > 0) {
-      query = query.in("course_id", courseId);
-    }
+    // if (typeof courseId === "string") {
+    //   query = query.eq("course_id", courseId);
+    // } else if (Array.isArray(courseId) && courseId.length > 0) {
+    //   query = query.in("course_id", courseId);
+    // }
 
     if (isClassWise) {
       query = query.eq("is_class_wise", true);
@@ -4373,10 +4374,8 @@ export class SupabaseApi implements ServiceApi {
   }
   async getStudentLastTenResults(
     studentId: string,
-    courseId: string,
-    assignmentIds: string[],
-    startDate: string,
-    endDate: string
+    courseIds: string[],
+    assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
     if (!this.supabase) return [];
 
@@ -4385,7 +4384,7 @@ export class SupabaseApi implements ServiceApi {
       .from("result")
       .select("*")
       .eq("student_id", studentId)
-      .eq("course_id", courseId)
+      .in("course_id", courseIds)
       .is("assignment_id", null)
       .eq("is_deleted", false)
       .order("created_at", { ascending: false })
@@ -4402,7 +4401,7 @@ export class SupabaseApi implements ServiceApi {
         .from("result")
         .select("*")
         .eq("student_id", studentId)
-        .eq("course_id", courseId)
+        .in("course_id", courseIds)
         .in("assignment_id", assignmentIds)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false })
@@ -4894,8 +4893,8 @@ export class SupabaseApi implements ServiceApi {
   }
   async getStudentResultByDate(
     studentId: string,
+    courseIds: string[],
     startDate: string,
-    course_id: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined> {
     if (!this.supabase) return;
@@ -4904,7 +4903,7 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.Result)
       .select("*")
       .eq("student_id", studentId)
-      .eq("course_id", course_id)
+      .in("course_id", courseIds)
       .gte("created_at", startDate)
       .lte("created_at", endDate)
       .eq("is_deleted", false)
