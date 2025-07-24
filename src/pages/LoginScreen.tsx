@@ -42,6 +42,7 @@ import { FaArrowLeftLong } from "react-icons/fa6";
 import { SqliteApi } from "../services/api/SqliteApi";
 
 const LoginScreen: React.FC = () => {
+  // const hasNavigatedRef = useRef(false);
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
@@ -386,62 +387,59 @@ const LoginScreen: React.FC = () => {
 
   // Handler for Google Sign In
   const handleGoogleSignIn = async () => {
-  if (!online) {
-    return presentToast({
-      message: t("Device is offline. Login requires an internet connection"),
-      color: "danger",
-      duration: 3000,
-      position: "bottom",
-      buttons: [{ text: "Dismiss", role: "cancel" }],
-    });
-  }
-  setAnimatedLoading(true);
-  try {
-    const ok = await authInstance.googleSign();
-    if (!ok) throw new Error("Google sign in failed");
+    if (!online) {
+      return presentToast({
+        message: t("Device is offline. Login requires an internet connection"),
+        color: "danger", duration: 3000, position: "bottom",
+        buttons: [{ text: "Dismiss", role: "cancel" }],
+      });
+    }
+    setAnimatedLoading(true);
+    try {
+      const ok = await authInstance.googleSign()
+      if (!ok) throw new Error("Google failed");
+      const user = await authInstance.getCurrentUser();
+      if (!user) throw new Error("no user");
 
-    const user = await authInstance.getCurrentUser();
-    if (!user) throw new Error("No user returned from auth handler");
+      localStorage.setItem(CURRENT_USER, JSON.stringify(user));
+      localStorage.setItem(USER_DATA, JSON.stringify(user));
 
-    localStorage.setItem(CURRENT_USER, JSON.stringify(user));
-    localStorage.setItem(USER_DATA, JSON.stringify(user));
+      const schools = await getSchoolsForUser(user.id);
+      const rolesArr = Array.from(new Set(schools.map((s) => s.role)));
+      localStorage.setItem(USER_ROLE, JSON.stringify(rolesArr));
 
-    Util.logEvent(EVENTS.USER_PROFILE, {
-      user_type: RoleType.PARENT,
-      action_type: ACTION.LOGIN,
-      login_type: "google-signin",
-    });
+      Util.logEvent(EVENTS.USER_PROFILE, {
+        user_type: RoleType.PARENT,
+        action_type: ACTION.LOGIN,
+        login_type: "google-signin",
+      });
 
-    // now safe to use user.id
-    const schools = await getSchoolsForUser(user.id);
-    await redirectUser(schools);
+      await redirectUser(schools);
 
-  } catch (e) {
-    presentToast({
-      message: t("Google sign in failed. Please try again."),
-      color: "danger",
-      duration: 3000,
-      position: "bottom",
-      buttons: [{ text: "Dismiss", role: "cancel" }],
-    });
-    setLoginType(LOGIN_TYPES.PHONE);
-  } finally {
-    setAnimatedLoading(false);
-  }
-};
+    } catch {
+      presentToast({
+        message: t("Google sign in failed. Please try again."),
+        color: "danger", duration: 3000, position: "bottom",
+        buttons: [{ text: "Dismiss", role: "cancel" }],
+      });
+      setLoginType(LOGIN_TYPES.PHONE);
+    } finally {
+      setAnimatedLoading(false);
+    }
+  };
 
   const getSchoolsForUser = async (userId: string) => {
     return (await api.getSchoolsForUser(userId)) || [];
   };
 
   const redirectUser = async (schools: { role: RoleType }[]) => {
-    const roles = JSON.parse(localStorage.getItem(USER_ROLE) || "[]") as string[];
-    const isOps =
-      roles.includes(RoleType.SUPER_ADMIN) ||
-      roles.includes(RoleType.OPERATIONAL_DIRECTOR);
+    // prevent double‐nav
+
+    const rolesInStore = JSON.parse(localStorage.getItem(USER_ROLE) || "[]") as string[];
+    const isOps = rolesInStore.includes(RoleType.SUPER_ADMIN)
+               || rolesInStore.includes(RoleType.OPERATIONAL_DIRECTOR);
     const isProg = await api.isProgramUser();
 
-    // OPERATIONS/PROGRAM console
     if (isOps || isProg) {
       localStorage.setItem(IS_OPS_USER, "true");
       await ScreenOrientation.unlock();
@@ -449,28 +447,25 @@ const LoginScreen: React.FC = () => {
       return history.replace(PAGES.SIDEBAR_PAGE);
     }
 
-    // **SWITCH TO SQLITE** before any parent/teacher flows
-    const sqliteApi = await SqliteApi.getInstance();
-    ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(APIMode.SQLITE);
+    // switch to SQLITE for parent/teacher
+    await SqliteApi.getInstance();
+    // ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(APIMode.SQLITE);
+    ServiceConfig.getInstance(APIMode.SQLITE);
 
-    // NO SCHOOLS → parent
     if (schools.length === 0) {
       schoolUtil.setCurrMode(MODES.PARENT);
       return history.replace(PAGES.DISPLAY_STUDENT);
     }
 
-    // AUTOUSER → school‐mode
-    const auto = schools.find((s) => s.role === RoleType.AUTOUSER);
+    const auto = schools.find(s => s.role === RoleType.AUTOUSER);
     if (auto) {
       schoolUtil.setCurrMode(MODES.SCHOOL);
       return history.replace(PAGES.SELECT_MODE);
     }
 
-    // else teacher
     schoolUtil.setCurrMode(MODES.TEACHER);
-    return history.replace(PAGES.DISPLAY_SCHOOLS);
+    return history.push(PAGES.DISPLAY_SCHOOLS);
   };
-
   // Language dropdown options
   const langOptions: LanguageOption[] = Object.entries(APP_LANGUAGES).map(
     ([id, displayName]) => ({ id, displayName })
