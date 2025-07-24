@@ -7161,4 +7161,37 @@ export class SupabaseApi implements ServiceApi {
       console.error("Unexpected error while deleting user:", e);
     }
   }
+  async getChaptersByIds(
+    chapterIds: string[]
+  ): Promise<TableTypes<"chapter">[]> {
+    if (!this.supabase) {
+      console.error(
+        "getChaptersByIds failed: Supabase client not initialized."
+      );
+      return [];
+    }
+
+    if (!chapterIds || chapterIds.length === 0) {
+      console.warn("getChaptersByIds was called with no chapter IDs.");
+      return [];
+    }
+
+    try {
+      const { data, error } = await this.supabase
+        .from(TABLES.Chapter)
+        .select("*")
+        .in("id", chapterIds)
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.warn("Error fetching chapters by IDs:", chapterIds);
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error("Error fetching chapters", error);
+      return [];
+    }
+  }
 }

@@ -1358,4 +1358,8 @@ public async getUserRoleForSchool(
   ): Promise<void> {
     return await this.s.deleteUserFromSchoolsWithRole(userId, role);
   }
+  public async getChaptersByIds(
+    chapterIds: string[]){
+    return await this.s.getChaptersByIds(chapterIds);
+    }
 }
