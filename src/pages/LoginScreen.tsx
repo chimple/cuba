@@ -42,7 +42,6 @@ import { FaArrowLeftLong } from "react-icons/fa6";
 import { SqliteApi } from "../services/api/SqliteApi";
 
 const LoginScreen: React.FC = () => {
-  // const hasNavigatedRef = useRef(false);
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
@@ -457,7 +456,7 @@ const LoginScreen: React.FC = () => {
       return history.replace(PAGES.DISPLAY_STUDENT);
     }
 
-    const auto = schools.find(s => s.role === RoleType.AUTOUSER);
+    const auto = schools.find((s) => s.role === RoleType.AUTOUSER);
     if (auto) {
       schoolUtil.setCurrMode(MODES.SCHOOL);
       return history.replace(PAGES.SELECT_MODE);
