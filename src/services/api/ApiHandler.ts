@@ -854,9 +854,15 @@ export class ApiHandler implements ServiceApi {
   getStudentLastTenResults(
     studentId: string,
     courseIds: string[],
-    assignmentIds: string[]
+    assignmentIds: string[],
+    classId
   ): Promise<TableTypes<"result">[]> {
-    return this.s.getStudentLastTenResults(studentId, courseIds, assignmentIds);
+    return this.s.getStudentLastTenResults(
+      studentId,
+      courseIds,
+      assignmentIds,
+      classId
+    );
   }
   getResultByAssignmentIds(
     assignmentIds: string[]

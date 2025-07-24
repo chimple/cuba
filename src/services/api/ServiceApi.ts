@@ -1010,7 +1010,8 @@ export interface ServiceApi {
   getStudentLastTenResults(
     studentId: string,
     courseIds: string[],
-    assignmentIds: string[]
+    assignmentIds: string[],
+    classId
   ): Promise<TableTypes<"result">[]>;
   /**
    * Creates a class for the given school
