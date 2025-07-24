@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import "./StudentProfile.css";
-import { CLASS, PAGES, SCHOOL, TableTypes } from "../../common/constants";
+import { CLASS, PAGES, PROFILETYPE, SCHOOL, TableTypes } from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import Header from "../components/homePage/Header";
 import { IonPage } from "@ionic/react";
@@ -18,6 +18,7 @@ const StudentProfile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [allClasses, setAllClasses] = useState<TableTypes<"class">[]>([]);
   const tempClass = history.location.state!["classDoc"] as TableTypes<"class">;
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const paramStudentId = history.location.state!["studentId"] as string;
   const api = ServiceConfig.getI()?.apiHandler;
@@ -64,6 +65,11 @@ const StudentProfile: React.FC = () => {
 
   const handleUpdateClick = async () => {
     if (student) {
+
+      let imageURL = student.image;
+      if (selectedFile) {
+        imageURL = await api.addProfileImages(student.id, selectedFile, PROFILETYPE.USER);
+      }
       try {
         const updatedStudent = await api.updateStudentFromSchoolMode(
           student,
@@ -71,7 +77,7 @@ const StudentProfile: React.FC = () => {
           student.age!,
           student.gender!,
           student.avatar!,
-          undefined,
+          imageURL!,
           student.curriculum_id!,
           student.grade_id!,
           student.language_id!,
@@ -107,6 +113,7 @@ const StudentProfile: React.FC = () => {
             setStudent={setStudent}
             setIsEditing={setIsEditing}
             setCurrentClass={setCurrentClass}
+            setSelectedFile={setSelectedFile}
             allClasses={allClasses}
           />
         )}

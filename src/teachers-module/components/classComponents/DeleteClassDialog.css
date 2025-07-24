@@ -39,6 +39,9 @@
   font-weight: 400;
   line-height: 25px;
 }
+.delete-class-modal-message{
+  text-align: center;
+}
 
 .modal-buttons {
   display: flex;

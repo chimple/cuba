@@ -6,7 +6,8 @@
 }
  
 .tableRightHeaderText {
-  color: #707070;
+  color: #4A4949;
+  font-weight: 400;
   writing-mode: vertical-rl;
   width: fit-content;
   height: 80%;
@@ -43,6 +44,7 @@
   border-right: 1px solid #ddd;
   text-align: center;
   font-weight: bold;
+  padding: 0 10px;
 }
 
 .assignment-subheaders {

@@ -264,7 +264,14 @@ const UserDetailsPage: React.FC = () => {
             <>
               <button
                 className="user-details-cancel-btn"
-                onClick={() => setIsEdit(false)}
+                onClick={() => {
+                setUser(userData.user);
+                setUserRole(userData.userRole);
+                setPreviewUrl(null);
+                setSelectedFile(null);
+                setIsEdit(false);
+              }}
+                // onClick={() => setIsEdit(false)}
               >
                 {t("Cancel")}
               </button>
