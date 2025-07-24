@@ -482,7 +482,7 @@ export class SqliteApi implements ServiceApi {
     return await this.syncDbNow([tableName]);
   }
 
-    async createProfile(
+  async createProfile(
     name: string,
     age: number | undefined,
     gender: string | undefined,
@@ -645,8 +645,6 @@ export class SqliteApi implements ServiceApi {
     }
     return newStudent;
   }
-
-
 
   async addProfileImages(
     id: string,
@@ -1259,7 +1257,7 @@ export class SqliteApi implements ServiceApi {
       await this._serverApi.deleteProfile(studentId);
 
       const localParentId = currentUser.id;
-      const timestamp = new Date().toISOString()
+      const timestamp = new Date().toISOString();
 
       // Get all class_ids the student is connected to
       const classResults = await this._db.query(
@@ -1983,7 +1981,7 @@ export class SqliteApi implements ServiceApi {
     return user;
   }
 
-    async updateStudent(
+  async updateStudent(
     student: TableTypes<"user">,
     name: string,
     age: number,
@@ -2495,11 +2493,11 @@ export class SqliteApi implements ServiceApi {
     ) {
       return [];
     }
-    const deletedClass = sessionStorage.getItem(DELETED_CLASSES)
+    const deletedClass = sessionStorage.getItem(DELETED_CLASSES);
     if (deletedClass) {
       const deletedClasses = JSON.parse(deletedClass);
-      const filteredClassList = allClassesRes.values.filter((item) =>
-        !deletedClasses.includes(item.id)
+      const filteredClassList = allClassesRes.values.filter(
+        (item) => !deletedClasses.includes(item.id)
       );
       return filteredClassList;
     }
@@ -3466,7 +3464,7 @@ export class SqliteApi implements ServiceApi {
     chapter_id: string,
     course_id: string,
     type: string,
-    batch_id:string
+    batch_id: string
   ): Promise<boolean> {
     const assignmentUUid = uuidv4();
     const timestamp = new Date().toISOString(); // Cache timestamp for reuse
@@ -3492,7 +3490,7 @@ export class SqliteApi implements ServiceApi {
           false,
           chapter_id,
           course_id,
-          batch_id
+          batch_id,
         ]
       );
 
@@ -4020,47 +4018,54 @@ order by
     const courseholders = courseIds.map(() => "?").join(", ");
     const res = await this._db?.query(
       `WITH null_assignments AS (
-         SELECT *
-         FROM ${TABLES.Result}
-         WHERE student_id = ?
-         AND course_id IN (${courseholders})
-         AND assignment_id IS NULL
-         ORDER BY created_at DESC
-         LIMIT 5
-       ),
-       non_null_assignments AS (
-         SELECT *
-         FROM ${TABLES.Result}
-         WHERE student_id = ?
-         AND course_id IN (${courseholders})
-         AND assignment_id IN (${assignmentholders})
-         ORDER BY created_at DESC
-         LIMIT 5
-       )
-       SELECT *
-       FROM null_assignments
-       UNION ALL
-       SELECT *
-       FROM non_null_assignments
-       ORDER BY created_at DESC
-       LIMIT 10;`,
-      [studentId,...courseIds, studentId,...courseIds,...assignmentIds]
+     SELECT *
+     FROM ${TABLES.Result}
+     WHERE student_id = ?
+     AND course_id IN (${courseholders})
+     AND assignment_id IS NULL
+     AND is_deleted = false
+     ORDER BY created_at DESC
+     LIMIT 5
+   ),
+   non_null_assignments AS (
+     SELECT *
+     FROM ${TABLES.Result}
+     WHERE student_id = ?
+     AND course_id IN (${courseholders})
+     AND assignment_id IN (${assignmentholders})
+     AND is_deleted = false
+     ORDER BY created_at DESC
+     LIMIT 5
+   )
+   SELECT *
+   FROM null_assignments
+   UNION ALL
+   SELECT *
+   FROM non_null_assignments
+   ORDER BY created_at DESC
+   LIMIT 10;`,
+      [studentId, ...courseIds, studentId, ...courseIds, ...assignmentIds]
     );
     return res?.values ?? [];
   }
 
   async getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-     courseIds: string[],
+    courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
     isLiveQuiz: boolean,
     allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
-     const courseholders = courseIds.map(() => "?").join(", ");
-    let query = `SELECT * FROM ${TABLES.Assignment} WHERE class_id = ? AND created_at BETWEEN ? AND ? AND course_id IN (${courseholders}) `;
-    const params: any[] = [classId, endDate, startDate,...courseIds];
+    const courseholders = courseIds.map(() => "?").join(", ");
+    let query = `SELECT * FROM ${TABLES.Assignment} 
+             WHERE class_id = ? 
+             AND created_at BETWEEN ? AND ? 
+             AND course_id IN (${courseholders}) 
+             AND is_deleted = false`;
+
+    const params: any[] = [classId, endDate, startDate, ...courseIds];
     if (isClassWise) {
       query += ` AND is_class_wise = 1`;
     }
@@ -4077,14 +4082,14 @@ order by
   }
 
   async getStudentResultByDate(
-  studentId: string,
-  courseIds: string[],
-  startDate: string,
-  endDate: string
-): Promise<TableTypes<"result">[] | undefined> {
-  const courseholders = courseIds.map(() => "?").join(", ");
-  
-  const query = `
+    studentId: string,
+    courseIds: string[],
+    startDate: string,
+    endDate: string
+  ): Promise<TableTypes<"result">[] | undefined> {
+    const courseholders = courseIds.map(() => "?").join(", ");
+
+    const query = `
     SELECT *
     FROM ${TABLES.Result}
     WHERE student_id = ?
@@ -4093,13 +4098,13 @@ order by
     ORDER BY created_at DESC;
   `;
 
-  const params = [studentId, ...courseIds, startDate, endDate];
+    const params = [studentId, ...courseIds, startDate, endDate];
 
-  const res = await this._db?.query(query, params);
+    const res = await this._db?.query(query, params);
 
-  if (!res || !res.values || res.values.length < 1) return;
-  return res.values;
-}
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values;
+  }
 
   async getLastAssignmentsForRecommendations(
     classId: string

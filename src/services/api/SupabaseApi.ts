@@ -4400,7 +4400,7 @@ export class SupabaseApi implements ServiceApi {
         .from("result")
         .select("*")
         .eq("student_id", studentId)
-        .eq("course_id", courseIds)
+        .in("course_id", courseIds)
         .in("assignment_id", assignmentIds)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false })
