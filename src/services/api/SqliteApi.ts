@@ -4099,12 +4099,12 @@ order by
     FROM ${TABLES.Result}
     WHERE student_id = ?
     AND course_id IN (${courseholders})
-    AND class_id = '${classId}'
+    AND class_id = ?
     AND created_at BETWEEN ? AND ?
     ORDER BY created_at DESC;
   `;
 
-    const params = [studentId, ...courseIds, startDate, endDate];
+    const params = [studentId, ...courseIds, classId, startDate, endDate];
 
     const res = await this._db?.query(query, params);
 
