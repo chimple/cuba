@@ -232,17 +232,17 @@ export class ApiHandler implements ServiceApi {
   }
 
   public async getSchoolsForUser(
-  userId: string,
-  options?: { page?: number; page_size?: number }
-): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
-  return await this.s.getSchoolsForUser(userId, options);
-}
-public async getUserRoleForSchool(
-  userId: string,
-  schoolId: string
-): Promise<RoleType | undefined> {
-  return await this.s.getUserRoleForSchool(userId, schoolId);
-}
+    userId: string,
+    options?: { page?: number; page_size?: number }
+  ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
+    return await this.s.getSchoolsForUser(userId, options);
+  }
+  public async getUserRoleForSchool(
+    userId: string,
+    schoolId: string
+  ): Promise<RoleType | undefined> {
+    return await this.s.getUserRoleForSchool(userId, schoolId);
+  }
 
   public async getCoursesByClassId(
     classid: string
@@ -855,10 +855,16 @@ public async getUserRoleForSchool(
     studentId: string,
     courseId: string,
     assignmentIds: string[],
-     startDate: string,
-    endDate: string,
+    startDate: string,
+    endDate: string
   ): Promise<TableTypes<"result">[]> {
-    return this.s.getStudentLastTenResults(studentId, courseId, assignmentIds,startDate,endDate);
+    return this.s.getStudentLastTenResults(
+      studentId,
+      courseId,
+      assignmentIds,
+      startDate,
+      endDate
+    );
   }
   getResultByAssignmentIds(
     assignmentIds: string[]
@@ -958,13 +964,15 @@ public async getUserRoleForSchool(
     studentId: string,
     course_id: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
     return this.s.getStudentResultByDate(
       studentId,
       course_id,
       startDate,
-      endDate
+      endDate,
+      classId
     );
   }
   getLessonsBylessonIds(
@@ -983,13 +991,15 @@ public async getUserRoleForSchool(
     chapter_id: string,
     course_id: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
     return this.s.getResultByChapterByDate(
       chapter_id,
       course_id,
       startDate,
-      endDate
+      endDate,
+      classId
     );
   }
   createClassCode(classId: string): Promise<number> {

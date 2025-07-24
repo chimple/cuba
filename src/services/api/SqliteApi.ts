@@ -482,7 +482,7 @@ export class SqliteApi implements ServiceApi {
     return await this.syncDbNow([tableName]);
   }
 
-    async createProfile(
+  async createProfile(
     name: string,
     age: number | undefined,
     gender: string | undefined,
@@ -645,8 +645,6 @@ export class SqliteApi implements ServiceApi {
     }
     return newStudent;
   }
-
-
 
   async addProfileImages(
     id: string,
@@ -1259,7 +1257,7 @@ export class SqliteApi implements ServiceApi {
       await this._serverApi.deleteProfile(studentId);
 
       const localParentId = currentUser.id;
-      const timestamp = new Date().toISOString()
+      const timestamp = new Date().toISOString();
 
       // Get all class_ids the student is connected to
       const classResults = await this._db.query(
@@ -1983,7 +1981,7 @@ export class SqliteApi implements ServiceApi {
     return user;
   }
 
-    async updateStudent(
+  async updateStudent(
     student: TableTypes<"user">,
     name: string,
     age: number,
@@ -2495,11 +2493,11 @@ export class SqliteApi implements ServiceApi {
     ) {
       return [];
     }
-    const deletedClass = sessionStorage.getItem(DELETED_CLASSES)
+    const deletedClass = sessionStorage.getItem(DELETED_CLASSES);
     if (deletedClass) {
       const deletedClasses = JSON.parse(deletedClass);
-      const filteredClassList = allClassesRes.values.filter((item) =>
-        !deletedClasses.includes(item.id)
+      const filteredClassList = allClassesRes.values.filter(
+        (item) => !deletedClasses.includes(item.id)
       );
       return filteredClassList;
     }
@@ -3466,7 +3464,7 @@ export class SqliteApi implements ServiceApi {
     chapter_id: string,
     course_id: string,
     type: string,
-    batch_id:string
+    batch_id: string
   ): Promise<boolean> {
     const assignmentUUid = uuidv4();
     const timestamp = new Date().toISOString(); // Cache timestamp for reuse
@@ -3492,7 +3490,7 @@ export class SqliteApi implements ServiceApi {
           false,
           chapter_id,
           course_id,
-          batch_id
+          batch_id,
         ]
       );
 
@@ -4094,11 +4092,13 @@ order by
     studentId: string,
     course_id: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
     const query = `SELECT *
        FROM ${TABLES.Result}
        WHERE student_id = '${studentId}'
+       AND class_id = '${classId}'
        AND course_id = '${course_id}'
        AND created_at BETWEEN '${startDate}' AND '${endDate}'
        ORDER BY created_at DESC;`;
@@ -4450,12 +4450,14 @@ order by
     chapter_id: string,
     course_id: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
     const query = `SELECT *
        FROM ${TABLES.Result}
        WHERE chapter_id = '${chapter_id}'
        AND course_id = '${course_id}'
+       AND class_id ='${classId}'
        AND created_at BETWEEN '${startDate}' AND '${endDate}'
        ORDER BY created_at DESC;`;
 

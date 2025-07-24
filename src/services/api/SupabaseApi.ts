@@ -4883,7 +4883,8 @@ export class SupabaseApi implements ServiceApi {
     studentId: string,
     startDate: string,
     course_id: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
     if (!this.supabase) return;
 
@@ -4892,6 +4893,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("student_id", studentId)
       .eq("course_id", course_id)
+      .eq("class_id", classId)
       .gte("created_at", startDate)
       .lte("created_at", endDate)
       .eq("is_deleted", false)
@@ -4994,7 +4996,8 @@ export class SupabaseApi implements ServiceApi {
     chapter_id: string,
     course_id: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
     if (!this.supabase) return;
 
@@ -5004,6 +5007,7 @@ export class SupabaseApi implements ServiceApi {
         .select("*")
         .eq("chapter_id", chapter_id)
         .eq("course_id", course_id)
+        .eq("class_id", classId)
         .gte("created_at", startDate)
         .lte("created_at", endDate)
         .eq("is_deleted", false)

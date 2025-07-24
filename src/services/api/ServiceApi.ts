@@ -1012,7 +1012,7 @@ export interface ServiceApi {
     courseId: string,
     assignmentIds: string[],
     startDate: string,
-    endDate: string,
+    endDate: string
   ): Promise<TableTypes<"result">[]>;
   /**
    * Creates a class for the given school
@@ -1191,7 +1191,8 @@ export interface ServiceApi {
     studentId: string,
     course_id: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined>;
 
   /**
@@ -1224,7 +1225,8 @@ export interface ServiceApi {
     chapter_id: string,
     course_id: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined>;
 
   /**
