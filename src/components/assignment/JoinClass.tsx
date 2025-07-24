@@ -18,7 +18,6 @@ const JoinClass: FC<{
   onClassJoin: () => void;
 }> = ({ onClassJoin }) => {
   const [loading, setLoading] = useState(false);
-  const isJoining = useRef(false);
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [inviteCode, setInviteCode] = useState<number>();
   const [codeResult, setCodeResult] = useState();
@@ -79,9 +78,8 @@ const JoinClass: FC<{
   };
   const onJoin = async () => {
     // setShowDialogBox(false);
-    if (isJoining.current) return;
-    isJoining.current = true;
-    setLoading(true);
+    if (loading) return;
+     setLoading(true);
     const student = Util.getCurrentStudent();
 
     try {
@@ -127,8 +125,7 @@ const JoinClass: FC<{
       if (error instanceof Object) setError(error.toString());
     } finally {
       setLoading(false);
-      isJoining.current = false;
-    }
+      }
 
     setLoading(false);
   };
@@ -252,7 +249,7 @@ useEffect(() => {
         className="join-class-confirm-button"
         onClick={onJoin}
         disabled={loading || !isFormValid}
-      >
+        >
         <span className="join-class-confirm-text">{t("Confirm")}</span>
       </button>
     </div>
