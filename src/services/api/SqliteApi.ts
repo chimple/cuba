@@ -2658,6 +2658,7 @@ export class SqliteApi implements ServiceApi {
       name: className,
       image: null,
       school_id: schoolId,
+      group_id: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
 

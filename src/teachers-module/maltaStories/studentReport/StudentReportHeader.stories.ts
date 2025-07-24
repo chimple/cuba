@@ -56,7 +56,8 @@ export const Test2: Story = {
       is_ops: null,
       ops_created_by: null,
       standard: null,
-      status: null
+      status: null,
+      group_id: null
     },
     selectedSubject: {
       code: "en",
@@ -140,7 +141,8 @@ export const Test3: Story = {
       is_ops: null,
       ops_created_by: null,
       standard: null,
-      status: null
+      status: null,
+      group_id: null
     },
     selectedSubject: {
       code: "en",
@@ -205,7 +207,8 @@ export const Test4: Story = {
       is_ops: null,
       ops_created_by: null,
       standard: null,
-      status: null
+      status: null,
+      group_id: null
     },
     selectedSubject: {
       code: "en",
