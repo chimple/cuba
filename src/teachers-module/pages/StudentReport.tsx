@@ -82,7 +82,7 @@ const StudentReport: React.FC = () => {
     const classToUse = tempClass ?? Util.getCurrentClass();
     var result = await _classUtil.getStudentProgressForStudentTable(
       student.id,
-      selectedSubject?.id ?? "",
+      [selectedSubject?.id ?? ""],
       startDate ?? "",
       endDate ?? "",
       classToUse?.id

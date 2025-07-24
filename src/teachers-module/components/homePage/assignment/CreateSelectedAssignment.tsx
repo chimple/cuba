@@ -88,7 +88,7 @@ const CreateSelectedAssignment = ({
 
     const _studentProgress = await _classUtil.divideStudents(
       current_class.id,
-      classCourses[0].course_id
+      [classCourses[0].course_id]
     );
 
     let _studentList =

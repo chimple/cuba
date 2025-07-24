@@ -828,7 +828,7 @@ export class ApiHandler implements ServiceApi {
   }
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId: any,
+    courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -837,7 +837,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"assignment">[] | undefined> {
     return this.s.getAssignmentOrLiveQuizByClassByDate(
       classId,
-      courseId,
+      courseIds,
       startDate,
       endDate,
       isClassWise,
@@ -853,18 +853,10 @@ export class ApiHandler implements ServiceApi {
   }
   getStudentLastTenResults(
     studentId: string,
-    courseId: string,
-    assignmentIds: string[],
-    startDate: string,
-    endDate: string
+    courseIds: string[],
+    assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
-    return this.s.getStudentLastTenResults(
-      studentId,
-      courseId,
-      assignmentIds,
-      startDate,
-      endDate
-    );
+    return this.s.getStudentLastTenResults(studentId, courseIds, assignmentIds);
   }
   getResultByAssignmentIds(
     assignmentIds: string[]
@@ -962,14 +954,14 @@ export class ApiHandler implements ServiceApi {
   }
   getStudentResultByDate(
     studentId: string,
-    course_id: string,
+    courseIds: string[],
     startDate: string,
     endDate: string,
     classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
     return this.s.getStudentResultByDate(
       studentId,
-      course_id,
+      courseIds,
       startDate,
       endDate,
       classId

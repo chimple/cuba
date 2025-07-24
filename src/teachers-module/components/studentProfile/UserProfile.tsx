@@ -15,12 +15,21 @@ const UserProfile: React.FC<{
   setStudent: React.Dispatch<React.SetStateAction<TableTypes<"user"> | undefined>>;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
   setCurrentClass: React.Dispatch<React.SetStateAction<TableTypes<"class"> | undefined>>;
+  setSelectedFile: React.Dispatch<React.SetStateAction<File | null>>;
   allClasses: TableTypes<"class">[];
-}> = ({ student, classDoc, isEditing, setStudent, setIsEditing, setCurrentClass, allClasses }) => {
+}> = ({
+  student,
+  classDoc,
+  isEditing,
+  setStudent,
+  setIsEditing,
+  setCurrentClass,
+  setSelectedFile,
+  allClasses,
+}) => {
   const history = useHistory();
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
-
 
   const handleEditClick = () => {
     setIsEditing(true);
@@ -61,6 +70,7 @@ const UserProfile: React.FC<{
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
+      setSelectedFile(file);
       reader.onloadend = () => {
         setProfilePic(reader.result as string);
       };
@@ -86,7 +96,7 @@ const UserProfile: React.FC<{
         <div className="profile-details-container">
           {isEditing && <span className="add-student-text">Edit Student</span>}
           <ProfileDetails
-            imgSrc={profilePic || "assets/avatars/" + (student.avatar ?? "") + ".png"}
+            imgSrc={profilePic || student.image || "assets/avatars/" + (student.avatar ?? "") + ".png"}
             imgAlt="Profile Pic"
             onImageChange={handleProfilePicChange}
             isEditMode={isEditing}

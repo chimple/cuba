@@ -1307,7 +1307,7 @@ export class SupabaseApi implements ServiceApi {
   async deleteProfile(studentId: string) {
     if (!this.supabase) return;
 
-    const res = await this.supabase.rpc("delete_student", {
+    const res = await this.supabase.rpc("delete_student_profile", {
       p_student_id: studentId,
     });
     if (res.error) {
@@ -3115,6 +3115,7 @@ export class SupabaseApi implements ServiceApi {
       name: className,
       image: null,
       school_id: schoolId,
+      group_id: null,
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
@@ -4328,7 +4329,7 @@ export class SupabaseApi implements ServiceApi {
   }
   async getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId: any,
+    courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -4341,16 +4342,17 @@ export class SupabaseApi implements ServiceApi {
       .from("assignment")
       .select("*")
       .eq("class_id", classId)
+      .in("course_id", courseIds)
       .gte("created_at", endDate)
       .lte("created_at", startDate)
       .eq("is_deleted", false);
 
     // Handle both string and array courseIds
-    if (typeof courseId === "string") {
-      query = query.eq("course_id", courseId);
-    } else if (Array.isArray(courseId) && courseId.length > 0) {
-      query = query.in("course_id", courseId);
-    }
+    // if (typeof courseId === "string") {
+    //   query = query.eq("course_id", courseId);
+    // } else if (Array.isArray(courseId) && courseId.length > 0) {
+    //   query = query.in("course_id", courseId);
+    // }
 
     if (isClassWise) {
       query = query.eq("is_class_wise", true);
@@ -4372,10 +4374,8 @@ export class SupabaseApi implements ServiceApi {
   }
   async getStudentLastTenResults(
     studentId: string,
-    courseId: string,
-    assignmentIds: string[],
-    startDate: string,
-    endDate: string
+    courseIds: string[],
+    assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
     if (!this.supabase) return [];
 
@@ -4384,7 +4384,7 @@ export class SupabaseApi implements ServiceApi {
       .from("result")
       .select("*")
       .eq("student_id", studentId)
-      .eq("course_id", courseId)
+      .in("course_id", courseIds)
       .is("assignment_id", null)
       .eq("is_deleted", false)
       .order("created_at", { ascending: false })
@@ -4401,7 +4401,7 @@ export class SupabaseApi implements ServiceApi {
         .from("result")
         .select("*")
         .eq("student_id", studentId)
-        .eq("course_id", courseId)
+        .in("course_id", courseIds)
         .in("assignment_id", assignmentIds)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false })
@@ -4893,8 +4893,8 @@ export class SupabaseApi implements ServiceApi {
   }
   async getStudentResultByDate(
     studentId: string,
+    courseIds: string[],
     startDate: string,
-    course_id: string,
     endDate: string,
     classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
@@ -4904,8 +4904,8 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.Result)
       .select("*")
       .eq("student_id", studentId)
-      .eq("course_id", course_id)
       .eq("class_id", classId)
+      .in("course_id", courseIds)
       .gte("created_at", startDate)
       .lte("created_at", endDate)
       .eq("is_deleted", false)
@@ -6586,7 +6586,8 @@ export class SupabaseApi implements ServiceApi {
       }
 
       return {
-        data: (data.data ?? []) as FilteredSchoolsForSchoolListingOps[],
+        data: (data.data ??
+          []) as unknown as FilteredSchoolsForSchoolListingOps[],
         total: typeof data.total === "number" ? data.total : 0,
       };
     } catch (err) {
@@ -6912,13 +6913,22 @@ export class SupabaseApi implements ServiceApi {
           avg_weekly_time_minutes: 0,
         };
       }
+      const stats = data as unknown as {
+        total_students: number;
+        total_teachers: number;
+        total_institutes: number;
+        active_student_percentage: number;
+        active_teacher_percentage: number;
+        avg_weekly_time_minutes: number;
+      };
+
       return {
-        total_students: data.total_students ?? 0,
-        total_teachers: data.total_teachers ?? 0,
-        total_institutes: data.total_institutes ?? 0,
-        active_student_percentage: data.active_student_percentage ?? 0,
-        active_teacher_percentage: data.active_teacher_percentage ?? 0,
-        avg_weekly_time_minutes: data.avg_weekly_time_minutes ?? 0,
+        total_students: stats.total_students ?? 0,
+        total_teachers: stats.total_teachers ?? 0,
+        total_institutes: stats.total_institutes ?? 0,
+        active_student_percentage: stats.active_student_percentage ?? 0,
+        active_teacher_percentage: stats.active_teacher_percentage ?? 0,
+        avg_weekly_time_minutes: stats.avg_weekly_time_minutes ?? 0,
       };
     } catch (err) {
       console.error("Unexpected error:", err);
@@ -6963,11 +6973,15 @@ export class SupabaseApi implements ServiceApi {
           avg_weekly_time_minutes: 0,
         };
       }
-
+      const stats = data as unknown as {
+        active_student_percentage: number;
+        active_teacher_percentage: number;
+        avg_weekly_time_minutes: number;
+      };
       return {
-        active_student_percentage: data?.active_student_percentage ?? 0,
-        active_teacher_percentage: data?.active_teacher_percentage ?? 0,
-        avg_weekly_time_minutes: data?.avg_weekly_time_minutes ?? 0,
+        active_student_percentage: stats?.active_student_percentage ?? 0,
+        active_teacher_percentage: stats?.active_teacher_percentage ?? 0,
+        avg_weekly_time_minutes: stats?.avg_weekly_time_minutes ?? 0,
       };
     } catch (err) {
       console.error("Unexpected error:", err);

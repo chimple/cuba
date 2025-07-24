@@ -6,7 +6,7 @@ import { addDays, addMonths, format, subDays, subWeeks } from "date-fns";
 export class ClassUtil {
   private api = ServiceConfig.getI().apiHandler;
 
-  async getWeeklySummary(classId: string, courseId: string) {
+  async getWeeklySummary(classId: string, courseId: string[]) {
     var currentDate = new Date();
     var totalScore = 0;
     var timeSpent = 0;
@@ -76,9 +76,13 @@ export class ClassUtil {
     );
 
     const assignmentsCompletedByAllStudents = assignmentsWithCompletedStudents
-      ? Object.keys(assignmentsWithCompletedStudents).length
+      ? Object.keys(assignmentsWithCompletedStudents).filter((assignmentId) => {
+          return (
+            assignmentsWithCompletedStudents[assignmentId].size ===
+            totalStudents
+          );
+        }).length
       : 0;
-
     const timeSpentByAllStudents =
       totalStudents > 0
         ? parseFloat((timeSpent / totalStudents).toFixed(2))
@@ -102,7 +106,7 @@ export class ClassUtil {
     };
   }
 
-  public async divideStudents(classId: string, courseId: string) {
+  public async divideStudents(classId: string, courseIds: string[]) {
     const greenGroup: Map<
       string,
       TableTypes<"user"> | TableTypes<"result">[]
@@ -131,7 +135,7 @@ export class ClassUtil {
       .replace("Z", "+00");
     const assignements = await this.api.getAssignmentOrLiveQuizByClassByDate(
       classId,
-      courseId,
+      courseIds,
       currentDateTimeStamp,
       oneWeekBackTimeStamp,
       true,
@@ -146,10 +150,8 @@ export class ClassUtil {
     const studentResultsPromises = _students.map(async (student) => {
       const results = await this.api.getStudentLastTenResults(
         student.id,
-        courseId,
-        assignmentIds,
-        currentDateTimeStamp,
-        oneWeekBackTimeStamp
+        courseIds,
+        assignmentIds
       );
       const selfPlayedLength = results.filter(
         (result) => result.assignment_id === null
@@ -262,7 +264,7 @@ export class ClassUtil {
   }
   public async getWeeklyReport(
     classId: string,
-    courseId: string,
+    courseIds: string[],
     startDate: Date,
     endDate: Date,
     sortBy: TABLESORTBY,
@@ -305,7 +307,7 @@ export class ClassUtil {
     for (const student of _students) {
       var res = await this.api.getStudentResultByDate(
         student.id,
-        courseId,
+        courseIds,
         startTimeStamp,
         endTimeStamp,
         classId
@@ -358,7 +360,7 @@ export class ClassUtil {
 
   public async getMonthlyReport(
     classId: string,
-    courseId: string,
+    courseIds: string[],
     startDate: Date,
     endDate: Date,
     sortBy: TABLESORTBY,
@@ -400,7 +402,7 @@ export class ClassUtil {
     for (const student of _students) {
       var res = await this.api.getStudentResultByDate(
         student.id,
-        courseId,
+        courseIds,
         startTimeStamp,
         endTimeStamp,
         classId
@@ -489,7 +491,7 @@ export class ClassUtil {
       startTimeStamp,
       /* isClassWise = */ false,
       isLiveQuiz,
-      true
+      false
     );
 
     const assignmentIds = _assignments?.map((asgmt) => asgmt.id) || [];
@@ -605,7 +607,7 @@ export class ClassUtil {
   }
   public async getStudentProgressForStudentTable(
     studentId: string,
-    courseId: string,
+    courseIds: string[],
     startDate: string,
     endDate: string,
     classId: string
@@ -622,7 +624,7 @@ export class ClassUtil {
       .replace("Z", "+00");
     var res = await this.api.getStudentResultByDate(
       studentId,
-      courseId,
+      courseIds,
       startTimeStamp,
       endTimeStamp,
       classId
