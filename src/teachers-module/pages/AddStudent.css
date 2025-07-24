@@ -127,7 +127,7 @@
 .gender-options {
   display: flex;
   justify-content: space-around;
-  margin-top: 1vh;
+  padding-bottom : 10px;
 }
 
 .gender-options label {

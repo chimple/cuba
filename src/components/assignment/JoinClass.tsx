@@ -31,6 +31,7 @@ const JoinClass: FC<{
   const [currStudent] = useState<any>(Util.getCurrentStudent());
 
   const api = ServiceConfig.getI().apiHandler;
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const isNextButtonEnabled = () => {
     let tempInviteCode = urlClassCode.inviteCode
@@ -151,30 +152,29 @@ const JoinClass: FC<{
 
 useEffect(() => {
   if (Capacitor.isNativePlatform()) {
-    // Disable default keyboard scroll behavior
     Keyboard.setScroll({ isDisabled: true });
-    Keyboard.addListener("keyboardWillShow", () => {
+    const handleKeyboardShow = () => {
       setIsInputFocus(true);
-      setTimeout(() => {
-        scrollToRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-          inline: "nearest",
-        });
-      }, 100);
-    });
+    };
 
-     Keyboard.addListener("keyboardWillHide", () => {
+    const handleKeyboardHide = () => {
       setIsInputFocus(false);
-      // Restore scroll to top or re-render the layout
       window.scrollTo({
         top: 0,
         behavior: "smooth",
       });
-    });
+    };
 
+    const showSub = Keyboard.addListener("keyboardWillShow", handleKeyboardShow);
+    const hideSub = Keyboard.addListener("keyboardWillHide", handleKeyboardHide);
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
   }
 }, []);
+
 
 
 
@@ -186,7 +186,7 @@ useEffect(() => {
 
   return (
     <div className="join-class-parent-container">
-      {isInputFocus && <div className="scroll-keyboard-for-join-class" ref={scrollToRef}></div>}
+      <div className={`assignment-join-class-container-scroll ${isInputFocus ? "shift-up" : ""}`} ref={containerRef}>
       <h2>{t("Join a Class by entering the details below")}</h2>
       <div className="join-class-container">
         <InputWithIcons
@@ -254,6 +254,8 @@ useEffect(() => {
       >
         <span className="join-class-confirm-text">{t("Confirm")}</span>
       </button>
+
+      </div>
     </div>
   );
 };

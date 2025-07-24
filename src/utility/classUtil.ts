@@ -489,7 +489,7 @@ export class ClassUtil {
       startTimeStamp,
       /* isClassWise = */ false,
       isLiveQuiz,
-      false
+      true
     );
 
     const assignmentIds = _assignments?.map((asgmt) => asgmt.id) || [];
