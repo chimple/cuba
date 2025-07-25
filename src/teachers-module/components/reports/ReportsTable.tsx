@@ -436,7 +436,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                       sortBy={sortType}
                       dateRangeValue={dateRange}
                       isAssignmentReport={
-                        selectedType == TABLEDROPDOWN.ASSIGNMENTS
+                        selectedType === TABLEDROPDOWN.ASSIGNMENTS || selectedType === TABLEDROPDOWN.LIVEQUIZ
                       }
                     />
                   </th>
