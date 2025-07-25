@@ -5601,4 +5601,34 @@ order by
   ): Promise<void> {
     return await this._serverApi.deleteUserFromSchoolsWithRole(userId, role);
   }
+  async getChaptersByIds(
+    chapterIds: string[]
+  ): Promise<TableTypes<"chapter">[]> {
+    if (!chapterIds || chapterIds.length === 0) {
+      console.warn("getChaptersByIds was called with no chapter IDs.");
+      return [];
+    }
+
+    try {
+      const placeholders = chapterIds.map(() => '?').join(', ');
+
+      const query = 
+      `SELECT *
+        FROM ${TABLES.Chapter}
+        WHERE id IN (${placeholders})
+          AND is_deleted = 0;`
+
+      const res = await this.executeQuery(query, chapterIds);
+
+      if (!res || !res.values) {
+        console.warn("No chapters found for the provided ChapterIDs");
+        return [];
+      }
+
+      return res.values as TableTypes<"chapter">[];
+    } catch (error) {
+      console.error("Error fetching chapters", error);
+      return [];
+    }
+  }
 }

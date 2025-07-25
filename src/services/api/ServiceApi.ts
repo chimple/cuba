@@ -1856,4 +1856,10 @@ export interface ServiceApi {
    * @param {number} role - user Role.
    */
   deleteUserFromSchoolsWithRole(userId: string, role: string): Promise<void>;
+  /**
+   * Fetches chapters by chapterIDs array.
+   * @param {string[]} chapterIds - Array of chapter IDs to fetch.
+   * @returns {Promise<TableTypes<"chapter">[]>} - A promise that resolves to an array of chapter objects.
+   */
+  getChaptersByIds(chapterIds: string[]): Promise<TableTypes<"chapter">[]>;
 }
