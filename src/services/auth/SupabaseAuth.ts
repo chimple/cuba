@@ -13,6 +13,7 @@ import {
   MODES,
   SCHOOL_LOGIN,
   PAGES,
+  USER_ROLE,
 } from "../../common/constants";
 import { SupabaseClient, UserAttributes } from "@supabase/supabase-js";
 import { ServiceConfig } from "../ServiceConfig";
@@ -37,7 +38,6 @@ export class SupabaseAuth implements ServiceAuth {
       SupabaseAuth.i._auth = SupabaseAuth.i._supabaseDb?.auth;
       SupabaseAuth?.i?._auth?.onAuthStateChange((event, session) => {
         if (event === "TOKEN_REFRESHED") {
-          console.log("Session refreshed:", session?.refresh_token);
           if (session?.refresh_token)
             Util.addRefreshTokenToLocalStorage(session?.refresh_token);
         }
@@ -72,7 +72,7 @@ export class SupabaseAuth implements ServiceAuth {
       await api.subscribeToClassTopic();
       return true;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: SupabaseAuth.ts:143 ~ SupabaseAuth ~ Emailsignin ~ error:",
         error
       );
@@ -101,7 +101,7 @@ export class SupabaseAuth implements ServiceAuth {
       Util.storeLoginDetails(email, password);
       return true;
     } catch (error) {
-      console.log(
+      console.error(
         "🚀 ~ file: SupabaseAuth.ts:166 ~ SupabaseAuth ~ Emailsignin ~ error:",
         error
       );
@@ -164,7 +164,6 @@ export class SupabaseAuth implements ServiceAuth {
         user_phone: "",
       });
 
-      console.log("🚀 ~ SupabaseAuth ~ googleSign ~ isUserExists:", rpcRes);
       if (!rpcRes?.data) {
         const createdUser = await api.createUserDoc({
           age: null,
@@ -176,7 +175,7 @@ export class SupabaseAuth implements ServiceAuth {
           id: data.user?.id ?? authUser.id,
           image: authUser.imageUrl,
           is_deleted: false,
-          is_tc_accepted: false,
+          is_tc_accepted: true,
           language_id: null,
           name: authUser.name,
           updated_at: new Date().toISOString(),
@@ -186,6 +185,12 @@ export class SupabaseAuth implements ServiceAuth {
           sfx_off: false,
           fcm_token: null,
           student_id: null,
+          firebase_id: null,
+          is_firebase: null,
+          is_ops: null,
+          learning_path: null,
+          ops_created_by: null,
+          stars: null,
         });
         this._currentUser = createdUser;
       }
@@ -197,8 +202,11 @@ export class SupabaseAuth implements ServiceAuth {
       if (rpcRes?.data) {
         await api.subscribeToClassTopic();
       }
-    } catch (error) {
-      console.error("🚀 ~ SupabaseAuth ~ googleSign ~ error:", error);
+    } catch (error: any) {
+      console.error(
+        "🚀 ~ SupabaseAuth ~ googleSign ~ error:",
+        error?.stack || error
+      );
       return false;
     }
     return true;
@@ -215,7 +223,18 @@ export class SupabaseAuth implements ServiceAuth {
       // await this.doRefreshSession();
       const authData = await this._auth?.getSession();
       if (!authData || !authData.data.session?.user?.id) return;
+
       const api = ServiceConfig.getI().apiHandler;
+
+      const userRole = await api.getUserSpecialRoles(
+        authData.data.session?.user.id
+      );
+      if (userRole.length > 0) {
+  localStorage.setItem(USER_ROLE, JSON.stringify(userRole)); 
+} else {
+  localStorage.removeItem(USER_ROLE);
+}
+
       let user = await api.getUserByDocId(authData.data.session?.user.id);
       localStorage.setItem(USER_DATA, JSON.stringify(user));
       this._currentUser = user;
@@ -230,7 +249,6 @@ export class SupabaseAuth implements ServiceAuth {
 
     const item = localStorage.getItem(REFRESH_TOKEN);
     if (!item) {
-      console.log("No refresh token found.");
       return;
     }
 
@@ -261,7 +279,6 @@ export class SupabaseAuth implements ServiceAuth {
           const { access_token, refresh_token } = data.session;
           this._auth?.setSession({ access_token, refresh_token });
           Util.addRefreshTokenToLocalStorage(refresh_token);
-          console.log("Session refreshed successfully:", refresh_token);
         }
       }
     } catch (error) {
@@ -311,7 +328,7 @@ export class SupabaseAuth implements ServiceAuth {
       if (!error) return true;
       return false;
     } catch (error) {
-      console.log("Failed with ");
+      console.error("Failed with ", error);
     }
   }
 
@@ -341,7 +358,6 @@ export class SupabaseAuth implements ServiceAuth {
         user_email: "",
         user_phone: user?.user?.phone ?? "",
       });
-      console.log("🚀 ~ SupabaseAuth ~ PhoneSignIn ~ isUserExists:", rpcRes);
 
       if (!rpcRes?.data) {
         const createdUser = await api.createUserDoc({
@@ -354,7 +370,7 @@ export class SupabaseAuth implements ServiceAuth {
           id: user.user?.id ?? "",
           image: null,
           is_deleted: false,
-          is_tc_accepted: false,
+          is_tc_accepted: true,
           language_id: null,
           name: null,
           updated_at: new Date().toISOString(),
@@ -364,6 +380,12 @@ export class SupabaseAuth implements ServiceAuth {
           sfx_off: false,
           fcm_token: null,
           student_id: null,
+          firebase_id: null,
+          is_firebase: null,
+          is_ops: null,
+          learning_path: null,
+          ops_created_by: null,
+          stars: null,
         });
         this._currentUser = createdUser;
       }

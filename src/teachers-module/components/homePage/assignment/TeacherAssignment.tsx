@@ -2,14 +2,14 @@ import { FC, MouseEvent, useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import "./TeacherAssignment.css";
 import { ServiceConfig } from "../../../../services/ServiceConfig";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import SelectIconImage from "../../../../components/displaySubjects/SelectIconImage";
 import { PAGES, TableTypes } from "../../../../common/constants";
 import { Util } from "../../../../utility/util";
 import { t } from "i18next";
 import { Toast } from "@capacitor/toast";
 import AssignmentNextButton from "./AssignmentNextButton";
+import { checkmarkCircle, ellipseOutline } from 'ionicons/icons';
+import { IonIcon } from "@ionic/react";
 
 export enum TeacherAssignmentPageType {
   MANUAL = "manual",
@@ -136,7 +136,6 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           const i = allChapters.findIndex((chapter) => chapter.id === chapterId);
           const nextChapter = allChapters[i + 1];
 
-          console.log("Getting first lesson for next chapter");
           const lessonList = await api.getLessonsForChapter(nextChapter.id);
           recommendedAssignments[course.id].lessons.push(lessonList[0]);
         }
@@ -168,7 +167,6 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           }));
       });
       setRecommendedAssignments(updatedRecommendedAssignments);
-      console.log("Updated Recommended Assignments:", updatedRecommendedAssignments);
       updateSelectedLesson(
         TeacherAssignmentPageType.RECOMMENDED,
         updatedRecommendedAssignments
@@ -325,15 +323,15 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
         >
           <h4>{assignments[subjectId]?.name}</h4>
           {assignments[subjectId].isCollapsed ? (
-            <KeyboardArrowDownIcon style={{ marginLeft: "auto" }} />
+            <img src="assets/icons/iconDown.png" alt="DropDown_Icon" style={{width: "16px", height: "16px", marginLeft: "auto"}} />
           ) : (
-            <KeyboardArrowUpIcon style={{ marginLeft: "auto" }} />
+            <img src="assets/icons/iconDown.png" alt="DropDown_Icon" style={{width: "16px", height: "16px", marginLeft: "auto"}} />
           )}
-          <h4>
+          {/* <h4>
             {selectedLessonsCount?.[type]?.[subjectId]?.count?.length ?? 0}/
             {assignments[subjectId]?.lessons?.length ?? 0}
-          </h4>
-          {!assignments[subjectId].isCollapsed && (
+          </h4> */}
+          {/* {!assignments[subjectId].isCollapsed && (
             <div className="select-all-container">
               <input
                 className="select-all-container-checkbox"
@@ -350,37 +348,37 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
                 }
               />
             </div>
-          )}
+          )} */}
         </div>
         {!assignments[subjectId].isCollapsed && (
           <div>
-            {assignments[subjectId].lessons.map((assignment: any, index: number) => (
-              <div key={index} className="assignment-list-item">
+            {assignments[subjectId].lessons.map((assignment: any, index: number) => {
+              const isSelected = assignment?.selected;
+              return (
+                <div key={index} className="assignment-list-item">
                 <SelectIconImage
                   defaultSrc={"assets/icons/DefaultIcon.png"}
                   webSrc={assignment?.image}
                   imageWidth="100px"
-                  imageHeight="auto"
+                  imageHeight="100px"
                 />
                 <span className="assignment-list-item-name">
                   {assignment?.name}
                 </span>
-                <input
-                  className="assignment-list-item-checkbox"
-                  type="checkbox"
-                  checked={assignment?.selected}
-                  onChange={() =>
+                <IonIcon
+                  icon={isSelected ? checkmarkCircle : ellipseOutline}
+                  className={`subject-page-checkbox ${isSelected ? "selected" : ""}`}
+                  onClick={() =>
                     toggleAssignmentSelection(
-                      type,
-                      assignments,
-                      setCategory,
-                      subjectId,
-                      index
-                    )
-                  }
-                />
+                    type,
+                    assignments,
+                    setCategory,
+                    subjectId,
+                    index
+                  )}
+                 />
               </div>
-            ))}
+            )})}
           </div>
         )}
       </div>
@@ -403,15 +401,12 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           </p>
           <div>
             {manualCollapsed ? (
-              <KeyboardArrowDownIcon />
+              <img src="assets/icons/iconDown.png" alt="DropDown_Icon" style={{width: "16px", height: "16px"}} />
             ) : (
               <div className="select-all-container">
-                <h3 className="recommended-assignments-headings">
-                  {selectedLessonsCount?.[TeacherAssignmentPageType.MANUAL]?.count ?? 0}/
-                  {Object.keys(manualAssignments).reduce((total, subjectId) => {
-                    return total + manualAssignments[subjectId].lessons.length;
-                  }, 0)}
-                </h3>
+                <label className="recommended-assignments-headings">
+                  {t("Select All")}
+                </label>
                 <input
                   className="select-all-container-checkbox"
                   type="checkbox"
@@ -425,9 +420,6 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
                     )
                   }
                 />
-                <label className="recommended-assignments-headings">
-                  {t("Select All")}
-                </label>
               </div>
             )}
           </div>
@@ -470,15 +462,18 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           </p>
           <div>
             {recommendedCollapsed ? (
-              <KeyboardArrowDownIcon />
+              <img src="assets/icons/iconDown.png" alt="DropDown_Icon" style={{width: "16px", height: "16px"}} />
             ) : (
               <div className="select-all-container">
-                <h3 className="recommended-assignments-headings">
+                {/* <h3 className="recommended-assignments-headings">
                   {selectedLessonsCount?.[TeacherAssignmentPageType.RECOMMENDED]?.count ?? 0}/
                   {Object.keys(recommendedAssignments).reduce((total, subjectId) => {
                     return total + recommendedAssignments[subjectId].lessons.length;
                   }, 0)}
-                </h3>
+                </h3> */}
+                <label className="recommended-assignments-headings">
+                  {t("Select All")}
+                </label>
                 <input
                   className="select-all-container-checkbox"
                   type="checkbox"
@@ -492,9 +487,6 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
                     )
                   }
                 />
-                <label className="recommended-assignments-headings">
-                  {t("Select All")}
-                </label>
               </div>
             )}
           </div>

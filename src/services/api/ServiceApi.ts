@@ -3,12 +3,16 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import { StudentLessonResult } from "../../common/courseConstants";
 import {
+  FilteredSchoolsForSchoolListingOps,
   LeaderboardDropdownList,
   LeaderboardRewards,
+  MODEL,
   MODES,
   PROFILETYPE,
+  SchoolRoleMap,
   TABLES,
   TableTypes,
+  TabType,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -52,30 +56,42 @@ export interface ServiceApi {
     languageDocId: string | undefined
   ): Promise<TableTypes<"user">>;
   /**
-   * Creates a new school and returns the school object
-   * @param {string} name - name of the school
-   * @param {string} group1 - state of school
-   * @param {string} group1 - district of school
-   * @param {string} group1 - city of school
-   * @param {string[]} courseIds - school course ids
-   * @returns {TableTypes<"school">} School Object
+   * Creates a new school and returns the created school object.
+   * @param {string} name - Name of the school.
+   * @param {string} group1 - State of the school.
+   * @param {string} group2 - District of the school.
+   * @param {string} group3 - City of the school.
+   * @param {string | null} group4 - Additional grouping, if any.
+   * @param {File | null} image - Optional image file for the school.
+   * @param {string | null} program_id - Linked program ID if any.
+   * @param {string | null} udise - School's UDISE code (11 digits).
+   * @param {string | null} address - Full address of the school.
+   * @returns {Promise<TableTypes<"school">>} The created school object.
    */
   createSchool(
     name: string,
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    group4: string | null,
+    image: File | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">>;
   /**
-   * updates a school details and returns the school object
-   * @param {TableTypes<"school">} school - school object
-   * @param {string} name - name of the school
-   * @param {string} group1 - state of school
-   * @param {string} group1 - district of school
-   * @param {string} group1 - city of school
-   * @param {string} image - image of school
-   * @returns {TableTypes<"school">} Updated School Object
+   * Updates the school details and returns the updated school object.
+   * @param {TableTypes<"school">} school - The existing school object.
+   * @param {string} name - Name of the school.
+   * @param {string} group1 - State of the school.
+   * @param {string} group2 - District of the school.
+   * @param {string} group3 - City of the school.
+   * @param {string | null} group4 - Additional grouping, if any.
+   * @param {File | null} image - Optional image file for the school.
+   * @param {string | null} program_id - Linked program ID if any.
+   * @param {string | null} udise - School's UDISE code (11 digits).
+   * @param {string | null} address - Full address of the school.
+   * @returns {Promise<TableTypes<"school">>} The updated school object.
    */
   updateSchoolProfile(
     school: TableTypes<"school">,
@@ -83,7 +99,11 @@ export interface ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    image: File | null,
+    group4: string | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">>;
 
   requestNewSchool(
@@ -170,8 +190,9 @@ export interface ServiceApi {
   /**
    * To delete a 'user' with a given student ID from the class_user table.
    * @param {string } studentId - Student Id
+   * @param {string } class_id - Student Id
    */
-  deleteUserFromClass(userId: string): Promise<void>;
+  deleteUserFromClass(userId: string, class_id: string): Promise<void>;
 
   /**
    * To delete `Profile` for given student Id
@@ -417,8 +438,8 @@ export interface ServiceApi {
     gender: string,
     avatar: string,
     image: string | undefined,
-    boardDocId: string,
-    gradeDocId: string,
+    boardDocId: string | undefined,
+    gradeDocId: string | undefined,
     languageDocId: string
   ): Promise<TableTypes<"user">>;
 
@@ -442,7 +463,11 @@ export interface ServiceApi {
     email: string,
     phoneNum: string,
     languageDocId: string,
-    profilePic: string | undefined
+    profilePic: string | undefined,
+    options?: {
+      age?: string;
+      gender?: string;
+    }
   ): Promise<TableTypes<"user">>;
 
   /**
@@ -519,14 +544,32 @@ export interface ServiceApi {
     studentId: string
   ): Promise<TableTypes<"assignment">[]>;
   /**
-   * This function gets all the schools for the teacher or principal
-   * @param {User} user user firebase documentId;
-   * @return A promise to an array of schools
+   * Gets schools for a user (teacher, principal, or ops user).
+   *
+   * If pagination options are provided, returns only the requested page.
+   * If not, returns all schools for the user (legacy behavior).
+   *
+   * @param {string} userId - User's unique ID
+   * @param {Object} [options] - Optional pagination settings
+   * @param {number} [options.page] - The page number to fetch (1-based)
+   * @param {number} [options.page_size] - Number of schools per page
+   * @returns {Promise<{ school: TableTypes<"school">; role: RoleType }[]>}
    */
-
   getSchoolsForUser(
-    userId: string
+    userId: string,
+    options?: { page?: number; page_size?: number }
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]>;
+
+  /**
+   * Get a user's role for a given school.
+   * @param userId - The user's id
+   * @param schoolId - The school's id
+   * @returns Promise of RoleType (or undefined if no role found)
+   */
+  getUserRoleForSchool(
+    userId: string,
+    schoolId: string
+  ): Promise<RoleType | undefined>;
 
   /**
    * This function sets the current mode for the user
@@ -951,11 +994,12 @@ export interface ServiceApi {
    */
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId: string,
+    courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
-    isLiveQuiz: boolean
+    isLiveQuiz: boolean,
+    allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined>;
 
   /**
@@ -965,8 +1009,9 @@ export interface ServiceApi {
    */
   getStudentLastTenResults(
     studentId: string,
-    courseId: string,
-    assignmentIds: string[]
+    courseIds: string[],
+    assignmentIds: string[],
+    classId
   ): Promise<TableTypes<"result">[]>;
   /**
    * Creates a class for the given school
@@ -1033,7 +1078,7 @@ export interface ServiceApi {
     chapter_id: string,
     course_id: string,
     type: string,
-    source: string,
+    batch_id: string
   ): Promise<boolean>;
 
   /**
@@ -1075,6 +1120,19 @@ export interface ServiceApi {
    * @return returns boolean whether the user is already connected to school or not.
    */
   checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean>;
+
+  /**
+   * Checks the teacher present in class or not.
+   * @param {string} schoolId school Id
+   * @param {string} classId class Id
+   * @param {string} userId user Id;
+   * @return returns boolean whether the teacher is already connected to class or not.
+   */
+  checkTeacherExistInClass(
+    schoolId: string,
+    classId: string,
+    userId: string
+  ): Promise<boolean>;
 
   /**
    * Checks the user present in school or not.
@@ -1130,9 +1188,10 @@ export interface ServiceApi {
    */
   getStudentResultByDate(
     studentId: string,
-    course_id: string,
+    courseIds: string[],
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined>;
 
   /**
@@ -1165,7 +1224,8 @@ export interface ServiceApi {
     chapter_id: string,
     course_id: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined>;
 
   /**
@@ -1182,9 +1242,9 @@ export interface ServiceApi {
     schoolIds: string[]
   ): Promise<TableTypes<"school">[] | undefined>;
   /**
-   * This function gets all the principals for the school.
+   * This function gets all the teachers for the school.
    * @param {string} schoolId school Id;
-   * @return A promise to an array of principals.
+   * @return A promise to an array of teachers.
    */
   getPrincipalsForSchool(
     schoolId: string
@@ -1258,6 +1318,56 @@ export interface ServiceApi {
     schoolName: string
   ): Promise<{ status: string; errors?: string[] }>;
 
+  /**
+   * To validate given phone number and student already exist in the given class or not
+   * @param {string } phoneNumber - phone number
+   * @param {string } studentName - student Name
+   * @param {string } className  -  class Name
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateParentAndStudentInClass(
+    phoneNumber: string,
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given program name exist in the program table or not
+   * @param {string } programName -    program name
+   */
+  validateProgramName(
+    programName: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given UDISE school Id  exist in the given school table or not
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateSchoolUdiseCode(
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given UDISE school Id a exist in the given school table or not
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateClassNameWithSchoolID(
+    schoolId: string,
+    className: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given student already exist in the given class or not
+   * @param {string } studentName - student Name
+   * @param {string } className  -  class Name
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateStudentInClassWithoutPhone(
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
 
   /**
    * To validate given phone number and student already exist in the given class or not
@@ -1273,7 +1383,7 @@ export interface ServiceApi {
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }>;
 
-   /**
+  /**
    * To validate given UDISE school Id  exist in the given school table or not
    * @param {string } schoolId -    school id(UDISE)
    */
@@ -1287,7 +1397,50 @@ export interface ServiceApi {
    */
   validateClassNameWithSchoolID(
     schoolId: string,
+    className: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given student already exist in the given class or not
+   * @param {string } studentName - student Name
+   * @param {string } className  -  class Name
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateStudentInClassWithoutPhone(
+    studentName: string,
     className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given phone number and student already exist in the given class or not
+   * @param {string } phoneNumber - phone number
+   * @param {string } studentName - student Name
+   * @param {string } className  -  class Name
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateParentAndStudentInClass(
+    phoneNumber: string,
+    studentName: string,
+    className: string,
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given UDISE school Id  exist in the given school table or not
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateSchoolUdiseCode(
+    schoolId: string
+  ): Promise<{ status: string; errors?: string[] }>;
+
+  /**
+   * To validate given UDISE school Id a exist in the given school table or not
+   * @param {string } schoolId -    school id(UDISE)
+   */
+  validateClassNameWithSchoolID(
+    schoolId: string,
+    className: string
   ): Promise<{ status: string; errors?: string[] }>;
 
   /**
@@ -1306,12 +1459,14 @@ export interface ServiceApi {
    * To validate that the given subject belongs to that curriculum or not
    * @param {string } curriculumName - curriculum Name
    * @param {string } subjectName - subject Name
+   * @param {string } gradeName - subject grade Name
    */
   validateClassCurriculumAndSubject(
     curriculumName: string,
     subjectName: string,
     gradeName: string
   ): Promise<{ status: string; errors?: string[] }>;
+
   /**
    * To validate that the given user phone or mail is exist or not
    * @param {string } programManagerPhone - programManager Phone
@@ -1357,10 +1512,354 @@ export interface ServiceApi {
     student: TableTypes<"user">,
     learning_path: string
   ): Promise<TableTypes<"user">>;
+
+  /**
+   * Fetches available program filter options.
+   * @returns {Promise<Record<string, string[]>>} Promise resolving to a record of filter keys and their possible values.
+   */
+  getProgramFilterOptions(): Promise<Record<string, string[]>>;
+
+  /**
+   * Fetches programs with optional filters, search term, tab category, pagination, and sorting.
+   * Retrieves program details along with the names of program managers.
+   *
+   * @param {Object} params - Parameters to filter, search, paginate, and sort programs.
+   * @param {string} params.currentUserId - ID of the current user making the request.
+   * @param {Record<string, string[]>} [params.filters] - Key-value pairs to filter programs.
+   * @param {string} [params.searchTerm] - Text to search in program names.
+   * @param {'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID'} [params.tab='ALL'] - Program type tab filter.
+   * @param {number} [params.limit] - Max number of results to return (for pagination).
+   * @param {number} [params.offset] - Number of results to skip (for pagination).
+   * @param {string} [params.orderBy] - Field name to sort by.
+   * @param {'asc' | 'desc'} [params.order] - Sort order.
+   * @returns {Promise<{ data: any[] }>} Promise resolving to an object containing an array of programs with manager names.
+   */
+  getPrograms(params: {
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    searchTerm?: string;
+    tab?: TabType;
+    limit?: number;
+    offset?: number;
+    orderBy?: string;
+    order?: "asc" | "desc";
+  }): Promise<{ data: any[] }>;
+
+  /**
+   * Inserts or updates a program record in the database via Supabase Edge Function.
+   * @param {any} payload - The mapped program data in JSON format.
+   * @param {string} [id] - Optional program ID; if provided, updates the existing record, otherwise inserts a new one
+   */
+  insertProgram(payload: any, id?: string): Promise<boolean | null>;
+
+  /**
+   * Get all program managers
+   */
+  getProgramManagers(): Promise<{ name: string; id: string }[]>;
+
+  /**
+   * Get unique geo data
+   */
+  getUniqueGeoData(): Promise<{
+    Country: string[];
+    State: string[];
+    Block: string[];
+    Cluster: string[];
+    District: string[];
+  }>;
+
+  /**
+   * This function gets the program for a given school.
+   * @param {string} schoolId - The school ID
+   * @returns {Promise<TableTypes<"program"> | undefined>} - A promise resolving to the program, or undefined if not found
+   */
+  getProgramForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"program"> | undefined>;
+
+  /**
+   * This function gets all program managers (users) for the given school.
+   * @param {string} schoolId - The school ID
+   * @returns {Promise<TableTypes<"user">[]>} - A promise resolving to an array of users (program managers)
+   */
+  // In ServiceApi
+  getProgramManagersForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined>;
   /**
    * Updates the total stars for a student.
    * @param {string} studentId - student Id.
    * @param {number} totalStars - total stars.
    */
   updateStudentStars(studentId: string, totalStars: number): Promise<void>;
+  /**
+   * Fetches all schools available to the admin user with pagination.
+   * @param {number} limit - Number of schools to fetch.
+   * @param {number} offset - Offset for pagination.
+   * @returns {Promise<TableTypes<"school">[]>} - A promise that resolves to a list of schools.
+   */
+  getSchoolsForAdmin(
+    limit: number,
+    offset: number
+  ): Promise<TableTypes<"school">[]>;
+
+  /**
+   * Retrieves teachers for each given school.
+   * @param {string[]} schoolIds - List of school IDs to fetch teacher.
+   * @returns {Promise<SchoolRoleMap[]>} - A promise resolving to role data for teachers.
+   */
+  getTeachersForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]>;
+
+  /**
+   * Retrieves students for each given school.
+   * @param {string[]} schoolIds - List of school IDs to fetch student.
+   * @returns {Promise<SchoolRoleMap[]>} - A promise resolving to role data for students.
+   */
+  getStudentsForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]>;
+
+  /**
+   * Retrieves program managers assigned to the given schools.
+   * @param {string[]} schoolIds - List of school IDs to fetch program manager.
+   * @returns {Promise<SchoolRoleMap[]>} - A promise resolving to role data for program managers.
+   */
+  getProgramManagersForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]>;
+
+  /**
+   * Retrieves field coordinators assigned to the given schools.
+   * @param {string[]} schoolIds - List of school IDs to fetch field coordinator data for.
+   * @returns {Promise<SchoolRoleMap[]>} - A promise resolving to role data for field coordinators.
+   */
+  getFieldCoordinatorsForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]>;
+
+  /**
+   * Fetches schools by operational model ("AT_HOME" or "AT_SCHOOL") with pagination.
+   * @param {MODEL} model - The model type to filter schools ("AT_HOME" or "AT_SCHOOL").
+   * @param {number} limit - Number of schools to fetch.
+   * @param {number} offset - Offset for pagination.
+   * @returns {Promise<TableTypes<"school">[]>} - A promise that resolves to a list of schools filtered by model.
+   */
+  getSchoolsByModel(
+    model: MODEL,
+    limit: number,
+    offset: number
+  ): Promise<TableTypes<"school">[]>;
+
+  /**
+   * Fetch detailed information for a given program by ID.
+   * @param {string} programId - The ID of the program to fetch.
+   * @returns Promise resolving to program details, location, partner, and managers or null if not found.
+   */
+  getProgramData(programId: string): Promise<{
+    programDetails: { id: string; label: string; value: string }[];
+    locationDetails: { id: string; label: string; value: string }[];
+    partnerDetails: { id: string; label: string; value: string }[];
+    programManagers: { name: string; role: string; phone: string }[];
+  } | null>;
+
+  /**
+
+   * Fetch available filter options for schools.
+   * Each key in the returned object represents a filter category,
+   * and the value is an array of possible filter values.
+   * 
+   * @returns Promise resolving to an object where keys are filter categories
+   * and values are arrays of filter option strings.
+   */
+  getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>>;
+
+  /**
+   * Fetch a list of schools filtered by given criteria, with pagination, sorting, and search.
+   *
+   * @param params - An object containing filters (keys as categories and values as selected options),
+   *   an optional programId, pagination, sorting, and search options.
+   * @returns Promise resolving to an object with the filtered list of schools and the total count.
+   */
+  getFilteredSchoolsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: "asc" | "desc";
+    search?: string;
+  }): Promise<{
+    data: FilteredSchoolsForSchoolListingOps[];
+    total: number;
+  }>;
+
+  /**
+   * Creates or gets a user based on the provided payload.
+   * @param {Object} payload - The user creation payload.
+   * @param {string} payload.name - Name of the user.
+   * @param {string} [payload.email] - Optional email address.
+   * @param {string} [payload.phone] - Optional phone number.
+   * @param {string} payload.role - Role of the user.
+   * @returns {Promise<{ success: boolean; user_id?: string; message?: string; error?: string; }>}
+   */
+  createOrAddUserOps(payload: {
+    name: string;
+    email?: string;
+    phone?: string;
+    role: string;
+  }): Promise<{
+    success: boolean;
+    user_id?: string;
+    message?: string;
+    error?: string;
+  }>;
+
+  //  * Fetch detailed teacher information for a given school ID.
+  //  * @param {string} schoolId - The ID of the school to fetch.
+  //  * @returns Promise resolving to user details, grade, and classSection.
+  //  */
+  getTeacherInfoBySchoolId(schoolId: string): Promise<
+    {
+      user: TableTypes<"user">;
+      grade: number;
+      classSection: string;
+    }[]
+  >;
+
+  /**
+   * Fetch detailed student information for a given school ID.
+   * @param {string} schoolId - The ID of the school to fetch.
+   * @returns Promise resolving to user details, grade, and classSection.
+   */
+  getStudentInfoBySchoolId(schoolId: string): Promise<
+    {
+      user: TableTypes<"user">;
+      grade: number;
+      classSection: string;
+    }[]
+  >;
+
+  getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
+
+  /**
+   * Creates a auto student profile for a parent and returns the student object
+   * @param {string} languageDocId -  languageDocId is `Language` doc id
+   * @returns {User} Student User Object
+   */
+  createAutoProfile(
+    languageDocId: string | undefined
+  ): Promise<TableTypes<"user">>;
+
+  /**
+   * Checks if the current user is a program user.
+   * @returns {Promise<boolean>} A promise that resolves to true if the user is a program user, false otherwise.
+   */
+  isProgramUser(): Promise<boolean>;
+
+  /**
+   * Count total and active students, total and active teachers, and total institutes for a given program.
+   *
+   * @param {string} programId - The ID of the program.
+   * @returns {Promise<{
+   *   total_students: number;
+   *   active_students: number;
+   *   avg_time_spent: number;
+   *   total_teachers: number;
+   *   active_teachers: number;
+   *   total_institutes: number;
+   * }>} Promise resolving to an object with student, teacher, and institute statistics.
+   */
+  program_activity_stats(programId: string): Promise<{
+    total_students: number;
+    total_teachers: number;
+    total_institutes: number;
+    active_student_percentage: number;
+    active_teacher_percentage: number;
+    avg_weekly_time_minutes: number;
+  }>;
+
+  /**
+   * Retrieve the list of managers and coordinators associated with the current user,
+   * with support for pagination, search, and sorting.
+   *
+   * @param page - The page number for pagination (default: 1).
+   * @param search - Search term to filter by user name (default: "").
+   * @param limit - Number of users per page (default: 10).
+   * @param sortBy - Field to sort by (default: "name").
+   * @param sortOrder - Sort order: "asc" or "desc" (default: "asc").
+   *
+   * @returns Promise resolving to an object containing:
+   *   - data: Array of user objects with their highest role and all assigned roles.
+   *   - totalCount: Total number of matching users.
+   */
+  getManagersAndCoordinators(
+    page?: number,
+    search?: string,
+    limit?: number,
+    sortBy?: keyof TableTypes<"user">,
+    sortOrder?: "asc" | "desc"
+  ): Promise<{
+    data: { user: TableTypes<"user">; role: string }[];
+    totalCount: number;
+  }>;
+
+  /**
+   * Count total and active students, total and active teachers, and average time spent for a given school.
+   *
+   * @param {string} schoolId - The ID of the school.
+   * @returns {Promise<{
+   *   active_students: number;
+   *   avg_time_spent: number;
+   *   active_teachers: number;
+   * }>} Promise resolving to an object with student and teacher statistics.
+   */
+  school_activity_stats(schoolId: string): Promise<{
+    active_student_percentage: number;
+    active_teacher_percentage: number;
+    avg_weekly_time_minutes: number;
+  }>;
+
+  /**
+   * Checks if the current user is a program manager.
+   * @returns {Promise<boolean>} A promise that resolves to true if the user is a program manager, false otherwise.
+   */
+  isProgramManager(): Promise<boolean>;
+
+  /**
+   * Checks if the current user is a role.
+   * @returns {Promise<string | undefined>} If any special role is there it will return role otherwise it will return undefined.
+   */
+  getUserSpecialRoles(userId: string): Promise<string[]>;
+
+  /**
+   * Updates the role of a special user in special users table.
+   * @param {string} userId - user Id.
+   * @param {number} role - user Role.
+   */
+  updateSpecialUserRole(userId: string, role: string): Promise<void>;
+  /**
+   * Delete the user from special_users table.
+   * @param {string} userId - user Id.
+   */
+  deleteSpecialUser(userId: string): Promise<void>;
+
+  /**
+   * Updates the role of a special user in program users table.
+   * @param {string} userId - user Id.
+   * @param {number} role - user Role.
+   */
+  updateProgramUserRole(userId: string, role: string): Promise<void>;
+
+  /**
+   * Delete the user from program_user table.
+   * @param {string} userId - user Id.
+   */
+  deleteProgramUser(userId: string): Promise<void>;
+
+  /**
+   * Delete the user from school_user table by role.
+   * @param {string} userId - user Id.
+   * @param {number} role - user Role.
+   */
+  deleteUserFromSchoolsWithRole(userId: string, role: string): Promise<void>;
+  /**
+   * Fetches chapters by chapterIDs array.
+   * @param {string[]} chapterIds - Array of chapter IDs to fetch.
+   * @returns {Promise<TableTypes<"chapter">[]>} - A promise that resolves to an array of chapter objects.
+   */
+  getChaptersByIds(chapterIds: string[]): Promise<TableTypes<"chapter">[]>;
 }

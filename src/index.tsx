@@ -21,6 +21,10 @@ import {
   SpeechSynthesis,
   SpeechSynthesisUtterance,
 } from "./utility/WindowsSpeech";
+import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
+import { Util } from "./utility/util";
+import { EVENTS, IS_OPS_USER } from "./common/constants";
+import { GbProvider } from "./growthbook/Growthbook";
 
 // Extend React's JSX namespace to include Stencil components
 declare global {
@@ -65,24 +69,43 @@ GoogleAuth.initialize({
   scopes: ["profile", "email"],
   // grantOfflineAccess: true,
 });
-SqliteApi.getInstance().then(() => {
-  ServiceConfig.getInstance(APIMode.SQLITE);
-  root.render(
-    <>
-      <App />
-    </>
-  );
-  // initializeFireBase();
-});
+
+const gb = new GrowthBook({
+  apiHost: "https://cdn.growthbook.io",
+  clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
+  enableDevMode: true,
+  trackingCallback: (experiment, result) => {
+    Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
+      experimentId: experiment.key,
+      variationId: result.key,
+    });
+  },
+ });
+ gb.init({
+  streaming: true,
+ });
+
+// Default to Supabase
+const serviceInstance = ServiceConfig.getInstance(APIMode.SUPABASE);
+const authHandler = ServiceConfig.getI()?.authHandler;
+const isUserLoggedIn = await authHandler?.isUserLoggedIn();
+// Check role
+const isOpsUser = localStorage.getItem(IS_OPS_USER) === 'true';
+
+if (!isOpsUser && isUserLoggedIn) {
+  // Initialize SQLite only if needed
+  SplashScreen.show();
+  await SqliteApi.getInstance();
+  serviceInstance.switchMode(APIMode.SQLITE);
+  SplashScreen.hide();
+}
 
 root.render(
-  <>
-    <IonLoading
-      message={`<img class="loading" src="assets/loading.gif"></img>`}
-      isOpen={true}
-      spinner={null}
-    />
-  </>
+  <GrowthBookProvider growthbook={gb}>
+    <GbProvider>
+      <App />
+    </GbProvider>
+  </GrowthBookProvider>
 );
 
 // If you want your app to work offline and load faster, you can change

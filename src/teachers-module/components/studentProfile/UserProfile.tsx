@@ -5,6 +5,8 @@ import { PAGES, TableTypes } from "../../../common/constants";
 import { t } from "i18next";
 import { useHistory } from "react-router-dom";
 import ProfileDetails from "../library/ProfileDetails";
+import {caretDownSharp } from "ionicons/icons";
+import { IonIcon } from "@ionic/react";
 
 const UserProfile: React.FC<{
   student: TableTypes<"user">;
@@ -13,12 +15,21 @@ const UserProfile: React.FC<{
   setStudent: React.Dispatch<React.SetStateAction<TableTypes<"user"> | undefined>>;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
   setCurrentClass: React.Dispatch<React.SetStateAction<TableTypes<"class"> | undefined>>;
+  setSelectedFile: React.Dispatch<React.SetStateAction<File | null>>;
   allClasses: TableTypes<"class">[];
-}> = ({ student, classDoc, isEditing, setStudent, setIsEditing, setCurrentClass, allClasses }) => {
+}> = ({
+  student,
+  classDoc,
+  isEditing,
+  setStudent,
+  setIsEditing,
+  setCurrentClass,
+  setSelectedFile,
+  allClasses,
+}) => {
   const history = useHistory();
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
-
 
   const handleEditClick = () => {
     setIsEditing(true);
@@ -26,7 +37,6 @@ const UserProfile: React.FC<{
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    console.log("Input Changed:", name, value);
     setStudent((prevState) => {
       if (!prevState) return prevState;
 
@@ -60,6 +70,7 @@ const UserProfile: React.FC<{
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
+      setSelectedFile(file);
       reader.onloadend = () => {
         setProfilePic(reader.result as string);
       };
@@ -83,8 +94,9 @@ const UserProfile: React.FC<{
     <>
       <div className="first-content">
         <div className="profile-details-container">
+          {isEditing && <span className="add-student-text">Edit Student</span>}
           <ProfileDetails
-            imgSrc={profilePic || "assets/avatars/" + (student.avatar ?? "") + ".png"}
+            imgSrc={profilePic || student.image || "assets/avatars/" + (student.avatar ?? "") + ".png"}
             imgAlt="Profile Pic"
             onImageChange={handleProfilePicChange}
             isEditMode={isEditing}
@@ -99,18 +111,18 @@ const UserProfile: React.FC<{
             )}
           </div>
           {!isEditing && (
-            <EditIcon className="edit-icon" onClick={handleEditClick} />
+            <img src="assets/icons/editIcon.svg" alt="Edit_Icon" className="edit-icon" onClick={handleEditClick} />
           )}
         </div>
       </div>
-      <div className="profile-content">
-        <div className="profile-card">
+      <div className="userprofile-content">
+        <div className="userprofile-card">
           {/* Name */}
-          <div className="profile-row">
-            <p className="profile-label">
-              <strong>{t("Name") + ":"}</strong>
-            </p>
-            <p className="profile-value">
+          <div className="userprofile-row">
+            <span className="userprofile-label">
+              <span>{t("Name") + ":"}</span>
+            </span>
+            <span className="userprofile-value">
               {isEditing ? (
                 <input
                   type="text"
@@ -121,15 +133,15 @@ const UserProfile: React.FC<{
               ) : (
                 student.name
               )}
-            </p>
+            </span>
           </div>
           <hr className="horizontal-line" />
           {/* Age */}
-          <div className="profile-row">
-            <p className="profile-label">
-              <strong>{t("Age") + ":"}</strong>
-            </p>
-            <p className="profile-value">
+          <div className="userprofile-row">
+            <span className="userprofile-label">
+              <span>{t("Age") + ":"}</span>
+            </span>
+            <span className="userprofile-value">
               {isEditing ? (
                 <input
                   type="number"
@@ -140,16 +152,17 @@ const UserProfile: React.FC<{
               ) : (
                 student.age
               )}
-            </p>
+            </span>
           </div>
           <hr className="horizontal-line" />
           {/* Class */}
-          <div className="profile-row">
-            <p className="profile-label">
-              <strong>{t("Class") + ":"}</strong>
-            </p>
-            <p className="profile-value">
+          <div className="userprofile-row">
+            <span className="userprofile-label">
+              <span>{t("Class") + ":"}</span>
+            </span>
+            <span className="userprofile-value">
               {isEditing ? (
+                 <div className="userprofile-dropdown-with-icon">
                 <select
                   name="class"
                   value={classDoc?.id}
@@ -161,18 +174,20 @@ const UserProfile: React.FC<{
                     </option>
                   ))}
                 </select>
+                <IonIcon icon={caretDownSharp} className="userprofile-dropdown-icon" />
+                </div>
               ) : (
                 classDoc?.name
               )}
-            </p>
+            </span>
           </div>
           <hr className="horizontal-line" />
           {/* Student ID */}
-          <div className="profile-row">
-            <p className="profile-label">
-              <strong>{t("Student Id") + ":"}</strong>
-            </p>
-            <p className="profile-value">
+          <div className="userprofile-row">
+            <span className="userprofile-label">
+              <span>{t("Student Id") + ":"}</span>
+            </span>
+            <span className="userprofile-value">
               {isEditing ? (
                 <input
                   type="text"
@@ -183,17 +198,17 @@ const UserProfile: React.FC<{
               ) : (
                 student.student_id
               )}
-            </p>
+            </span>
           </div>
           <hr className="horizontal-line" />
           {/* Gender */}
-          <div className="profile-row">
-            <p className="profile-label">
-              <strong>{t("Gender") + ":"}</strong>
-            </p>
-            <p className="profile-value">
+          <div className="userprofile-row">
+            <span className="userprofile-label">
+              <span>{t("Gender") + ":"}</span>
+            </span>
+            <span className="userprofile-value">
               {isEditing ? (
-                <div className="gender-options">
+                <div className="usergender-options">
                   <label>
                     <input
                       type="radio"
@@ -228,7 +243,7 @@ const UserProfile: React.FC<{
               ) : (
                 t(student.gender ?? "")
               )}
-            </p>
+            </span>
           </div>
         </div>
       </div>

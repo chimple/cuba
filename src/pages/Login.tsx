@@ -10,15 +10,17 @@ import {
   CURRENT_USER,
   DOMAIN,
   EVENTS,
+  IS_OPS_USER,
   LANGUAGE,
   MODES,
   NUMBER_REGEX,
   PAGES,
   TableTypes,
   USER_DATA,
+  USER_ROLE,
 } from "../common/constants";
 import { Capacitor, registerPlugin } from "@capacitor/core";
-import { ServiceConfig } from "../services/ServiceConfig";
+import { APIMode, ServiceConfig } from "../services/ServiceConfig";
 import TextBox from "../components/TextBox";
 import React from "react";
 import Loading from "../components/Loading";
@@ -184,7 +186,6 @@ const Login: React.FC = () => {
     authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
       const apiHandler = ServiceConfig.getI().apiHandler;
       const appLang = localStorage.getItem(LANGUAGE);
-
 
       async function init() {
         const currentStudent = Util.getCurrentStudent();
@@ -403,6 +404,18 @@ const Login: React.FC = () => {
       role: RoleType;
     }[]
   ) {
+
+    const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+    const isOpsRole = userRoles.includes(RoleType.SUPER_ADMIN) || userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
+
+    const isProgramUser = await api.isProgramUser();
+    if (isOpsRole || isProgramUser) {
+      localStorage.setItem(IS_OPS_USER, 'true');
+      ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+      history.replace(PAGES.SIDEBAR_PAGE);
+      return;
+    }
+
     if (userSchools.length > 0) {
       const autoUserSchool = userSchools.find(
         (school) => school.role === RoleType.AUTOUSER
@@ -576,7 +589,13 @@ const Login: React.FC = () => {
       if (result) {
         setIsLoading(true);
         setIsInitialLoading(true);
-        history.replace(PAGES.SELECT_MODE);
+        const storedUser = localStorage.getItem(USER_DATA);
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          const userSchools = await getSchoolsForUser(user);
+          await redirectUser(user, userSchools);
+          localStorage.setItem(CURRENT_USER, JSON.stringify(result));
+        }
       } else {
         setEmailClick(true);
         setError(true);

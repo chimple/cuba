@@ -12,6 +12,8 @@ import { Util } from "../../utility/util";
 import { t } from "i18next";
 
 const SearchLesson: React.FC = ({}) => {
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
+  const currentSchool = Util.getCurrentSchool();
   const dataToContinue: any = {};
   const history = useHistory();
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,6 +26,20 @@ const SearchLesson: React.FC = ({}) => {
   const [selectedLesson, setSelectedLesson] = useState<Map<string, string>>(
     new Map()
   );
+
+  useEffect(() => {
+    const fetchClassDetails = async () => {
+      try {
+        const tempClass = await Util.getCurrentClass();
+        setCurrentClass(tempClass || null);
+      } catch (err) {
+        console.error("ShowChapters → Failed to load current class:", err);
+        setCurrentClass(null);
+      }
+    };
+    fetchClassDetails();
+  }, []);
+
   useEffect(() => {
     if (inputEl.current) {
       inputEl.current.setFocus();
@@ -77,6 +93,10 @@ const SearchLesson: React.FC = ({}) => {
         onButtonClick={() => {
           history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
         }}
+        showSchool={true}
+        showClass={true}
+        className={currentClass?.name}
+        schoolName={currentSchool?.name}
       />
       <main className="container-body">
         <IonSearchbar

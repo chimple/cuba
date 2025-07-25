@@ -9,7 +9,10 @@
   display: flex;
   align-items: center;
   gap: 4vw;
-  color: var(--text-color);
+  color: #707070;
+  font-weight: 600;
+  font-size: 14px;
+  padding-right: 5px;
 }
 
 .header-text {
@@ -22,23 +25,22 @@
   display: flex;
   align-items: center;
   gap: 4vw;
-  margin: 0 19px;
+  margin: 0 10px;
   justify-content: flex-start;
 }
 
 .class-user-icon{
-  font-size: 1.5rem;
+  width: 20px;
+  height: 20px;
   margin-left: 8px;
-  color: black;
   margin-right: 8px;
 }
 
 .class-subjects-icon{
-  font-size: 1.5rem;
+  width: 20px;
+  height: 20px;
   margin-left: 8px;
-  color: black;
   margin-right: 8px;
-  transform: translateX(6px);
 }
 
 .horizontal-line {
@@ -47,12 +49,6 @@
   box-sizing: border-box;
   background: lightgrey;
   margin: 8px 15px 0 15px;
-}
-.detail-item {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin: 0 10px;
 }
 .name-div span {
   white-space: nowrap;
@@ -79,4 +75,30 @@
 
 .no-school-available {
   text-align: center;
+}
+.detail-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 0px 23px;
+  align-items: center;
+  width: 100%;
+  flex-wrap: nowrap;
+}
+.detail-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 70%;
+  overflow: hidden;
+}
+
+.detail-school-name {
+  color: #707070;
+  font-size: 18px;
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 }

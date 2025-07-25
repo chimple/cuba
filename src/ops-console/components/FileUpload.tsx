@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as XLSX from "xlsx";
+import * as XLSX from "xlsx-js-style";
 import { Capacitor } from "@capacitor/core";
 import "./FileUpload.css";
 import UploadIcon from "../assets/icons/upload_icon.png";
@@ -14,9 +14,15 @@ import VerifiedPage from "./FileVerifiedComponent";
 import ErrorPage from "./FileErrorComponent";
 import VerificationInProgress from "./VerificationInProgress";
 import { useHistory } from "react-router-dom";
-import { FileUploadStep, PAGES } from "../../common/constants";
+import {
+  BULK_UPLOAD_TEMPLATE_URL,
+  FileUploadStep,
+  PAGES,
+} from "../../common/constants";
 
-const FileUpload: React.FC = () => {
+const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
+  onCancleClick,
+}) => {
   const api = ServiceConfig.getI()?.apiHandler;
   const [file, setFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
@@ -65,6 +71,31 @@ const FileUpload: React.FC = () => {
     Marathi: "मराठी",
   };
 
+  const createStyledCell = (message, isError) => {
+    const color = isError ? "FF0000" : "00A000";
+    return {
+      v: message,
+      t: "s",
+      s: {
+        font: {
+          color: { rgb: color },
+          bold: true,
+        },
+        alignment: {
+          horizontal: "left",
+          vertical: "center",
+          wrapText: true,
+        },
+        border: {
+          top: { style: "thin", color: { rgb: color } },
+          bottom: { style: "thin", color: { rgb: color } },
+          left: { style: "thin", color: { rgb: color } },
+          right: { style: "thin", color: { rgb: color } },
+        },
+      },
+    };
+  };
+
   useEffect(() => {
     setVerifyingProgressState(progressRef.current);
   }, [progressRef.current]);
@@ -73,20 +104,24 @@ const FileUpload: React.FC = () => {
     if (isVerified && finalPayload) {
       setStep(FileUploadStep.Uploading);
       const uploadData = async () => {
-        const result = await SupabaseApi.i.uploadData(finalPayload);
-        if (result) {
+        const result = await api.uploadData(finalPayload);
+        if (result === true) {
           setStep(FileUploadStep.Uploaded);
-        } else {
-          if (result) {
-            setStep(FileUploadStep.Uploaded);
-          } else {
-            setStep(FileUploadStep.UploadError);
-          }
+        } else if (result === false) {
+          setStep(FileUploadStep.UploadError);
         }
       };
       uploadData();
     }
   }, [isVerified, finalPayload]);
+  useEffect(() => {
+    if (step === FileUploadStep.Uploaded) {
+      const timer = setTimeout(() => {
+        onCancleClick?.();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [step, history]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -125,6 +160,7 @@ const FileUpload: React.FC = () => {
     let validatedSchoolIds: Set<string> = new Set(); // Store valid school IDs
     let studentLoginTypeMap = new Map<string, string>(); // schoolId -> login type
     let validatedSchoolClassPairs: Set<string> = new Set(); // Store validated class-school pairs
+    let validatedProgramNames = new Set<string>();
 
     const validatedSheets = {
       school: [] as any[],
@@ -180,6 +216,9 @@ const FileUpload: React.FC = () => {
             ?.toString()
             .trim();
           const studentLoginType = row["STUDENT LOGIN TYPE"]?.toString().trim();
+          const isWhatsappEnabled = row["IS WHATSAPP ENABLED"]
+            ?.toString()
+            .trim();
           if (schoolId && studentLoginType) {
             studentLoginTypeMap.set(schoolId, studentLoginType);
           }
@@ -192,6 +231,42 @@ const FileUpload: React.FC = () => {
             } else {
               seenSchoolIds.add(schoolId);
             }
+          }
+
+          if (isWhatsappEnabled) {
+            const validIsWhatsappEnabled = ["YES", "NO"];
+            if (
+              !validIsWhatsappEnabled.includes(isWhatsappEnabled.toUpperCase())
+            ) {
+              errors.push(
+                'Invalid is Whatsapp Enabled value. Must be "YES" or "NO".'
+              );
+            }
+          } else {
+            errors.push("Missing FIELD is Whatsapp Enabled information");
+          }
+          if (programModel) {
+            const validProgramModels = ["AT HOME", "AT SCHOOL", "HYBRID"];
+            if (!validProgramModels.includes(programModel.toUpperCase())) {
+              errors.push(
+                'Invalid PROGRAM MODEL. Must be "AT HOME", "AT SCHOOL", or "HYBRID".'
+              );
+            }
+          }
+          if (programName) {
+            const programValidation =
+              await api.validateProgramName(programName);
+            if (programValidation.status === "error") {
+              errors.push(
+                ...(programValidation.errors || [
+                  "Program name not found in database",
+                ])
+              );
+            } else {
+              validatedProgramNames.add(programName);
+            }
+          } else {
+            errors.push("Missing PROGRAM NAME");
           }
 
           // Validate format
@@ -251,7 +326,8 @@ const FileUpload: React.FC = () => {
           // **Condition 1: If SCHOOL ID (UDISE Code) is present**
           if (schoolId) {
             // Validate only required fields
-            if (!schoolName) errors.push("Missing SCHOOL NAME");
+            if (!academicYear) errors.push("Missing SCHOOL ACADEMIC YEAR");
+            if (!programModel) errors.push("Missing PROGRAM MODEL");
             if (!programManagerPhone)
               errors.push("Missing PROGRAM MANAGER EMAIL OR PHONE NUMBER");
             if (!fieldCoordinatorPhone)
@@ -267,11 +343,15 @@ const FileUpload: React.FC = () => {
             if (!studentLoginType?.trim())
               errors.push("Missing STUDENT LOGIN TYPE");
 
-            // Call API for validation if all required fields are filled
-            const schoolValidation = await api.validateSchoolData(
-              schoolId,
-              schoolName
-            );
+            let schoolValidation;
+            if (schoolName) {
+              schoolValidation = await api.validateSchoolData(
+                schoolId,
+                schoolName
+              );
+            }else{
+              errors.push("Missing SCHOOL NAME");
+            }
 
             if (schoolValidation.status === "error") {
               errors.push(...(schoolValidation.errors || []));
@@ -303,12 +383,14 @@ const FileUpload: React.FC = () => {
               errors.push("Missing STUDENT LOGIN TYPE");
           }
 
-          row["Updated"] =
-            errors.length > 0
-              ? `❌ Errors: ${errors.join(", ")}`
-              : "✅ School Validated";
           if (errors.length > 0) {
+            row["Updated"] = createStyledCell(
+              `❌ Errors: ${errors.join(", ")}`,
+              true
+            );
             validSheetCountRef.current = 1;
+          } else {
+            row["Updated"] = createStyledCell("✅ School Validated", false);
           }
         }
       }
@@ -318,7 +400,7 @@ const FileUpload: React.FC = () => {
         for (let row of processedData) {
           let errors: string[] = [];
           const schoolId = row["SCHOOL ID"]?.toString().trim();
-          const grade = row["GRADE"]?.toString().trim();
+          let grade = row["GRADE"]?.toString().trim();
           const classSection = row["CLASS SECTION"]?.toString().trim();
           let subjectGrade = row["SUBJECT GRADE"]?.toString().trim();
           let curriculum = row["CURRICULUM"]?.toString().trim();
@@ -326,6 +408,23 @@ const FileUpload: React.FC = () => {
           const studentCount = row["STUDENTS COUNT IN CLASS"]
             ?.toString()
             .trim();
+
+          // --- ⬇️ GRADE VALIDATION ADDED HERE ⬇️ ---
+          if (!grade) {
+            errors.push("Missing GRADE.");
+          } else if (!/^\d+$/.test(grade)) {
+            errors.push("GRADE must be a whole number (e.g., 1, 2, 3).");
+          } else {
+            const numericGrade = parseInt(grade, 10);
+            if (numericGrade < 0) {
+              errors.push("GRADE cannot be negative.");
+            } else if (numericGrade > 5) {
+              errors.push("GRADE cannot be more than 5.");
+            } else {
+              grade = numericGrade.toString();
+            }
+          }
+
           const className = `${grade} ${classSection}`.trim();
           if (schoolId && className) {
             const schoolClassKey = `${schoolId}_${className}`;
@@ -334,7 +433,6 @@ const FileUpload: React.FC = () => {
             }
           }
 
-          if (!grade) errors.push("Missing grade");
           if (!curriculum) errors.push("Missing curriculum");
           if (!subject) errors.push("Missing subject");
           if (!studentCount) errors.push("Missing studentCount");
@@ -382,12 +480,14 @@ const FileUpload: React.FC = () => {
           if (validationResponse.status === "error") {
             errors.push(...(validationResponse.errors || []));
           }
-          row["Updated"] =
-            errors.length > 0
-              ? `❌ Errors: ${errors.join(", ")}`
-              : "✅ Class Validated";
           if (errors.length > 0) {
-            validSheetCountRef.current = 2;
+            row["Updated"] = createStyledCell(
+              `❌ Errors: ${errors.join(", ")}`,
+              true
+            );
+            validSheetCountRef.current = 1;
+          } else {
+            row["Updated"] = createStyledCell("✅ Class Validated", false);
           }
         }
       }
@@ -396,7 +496,7 @@ const FileUpload: React.FC = () => {
         for (let row of processedData) {
           let errors: string[] = [];
           const schoolId = row["SCHOOL ID"]?.toString().trim();
-          const grade = row["GRADE"]?.toString().trim();
+          let grade = row["GRADE"]?.toString().trim();
           const classSection = row["CLASS SECTION"]
             ? row["CLASS SECTION"].toString().trim()
             : "";
@@ -405,8 +505,23 @@ const FileUpload: React.FC = () => {
             ?.toString()
             .trim();
           const classId = `${schoolId}_${grade}_${classSection}`;
+
+          if (!grade) {
+            errors.push("Missing GRADE.");
+          } else if (!/^\d+$/.test(grade)) {
+            errors.push("GRADE must be a whole number (e.g., 1, 2, 3).");
+          } else {
+            const numericGrade = parseInt(grade, 10);
+            if (numericGrade < 0) {
+              errors.push("GRADE cannot be negative.");
+            } else if (numericGrade > 5) {
+              errors.push("GRADE cannot be more than 5.");
+            } else {
+              grade = numericGrade.toString();
+            }
+          }
           const className = `${grade} ${classSection}`.trim();
-          if (!grade || grade.trim() === "") errors.push("Missing grade");
+
           if (!teacherName || teacherName.trim() === "")
             errors.push("Missing teacher Name");
           if (!teacherContact || teacherContact.trim() === "")
@@ -450,12 +565,14 @@ const FileUpload: React.FC = () => {
           if (!className || className.trim() === "") {
             errors.push("Class name should not be empty");
           }
-          row["Updated"] =
-            errors.length > 0
-              ? `❌ Errors: ${errors.join(", ")}`
-              : "✅ Teacher Validated";
           if (errors.length > 0) {
-            validSheetCountRef.current = 3;
+            row["Updated"] = createStyledCell(
+              `❌ Errors: ${errors.join(", ")}`,
+              true
+            );
+            validSheetCountRef.current = 1;
+          } else {
+            row["Updated"] = createStyledCell("✅ Teacher Validated", false);
           }
         }
       }
@@ -505,6 +622,15 @@ const FileUpload: React.FC = () => {
             seenClassIdCombos.add(classPhoneOrIdKey);
           }
 
+          if (!gender) {
+            errors.push("Missing GENDER.");
+          } else {
+            const validGenders = ["MALE", "FEMALE"];
+            if (!validGenders.includes(gender.toUpperCase())) {
+              errors.push('Invalid GENDER. Must be "MALE" or "FEMALE".');
+            }
+          }
+
           // ---------- ✅ Age & Grade validation  ----------
           if (!/^\d+$/.test(age)) {
             errors.push(
@@ -521,15 +647,16 @@ const FileUpload: React.FC = () => {
             }
           }
 
-          if (!grade || grade.trim() === "") errors.push("Missing grade");
-          if (!/^\d+$/.test(grade)) {
-            errors.push("Grade must be a whole number.");
+          if (!grade || grade.trim() === "") {
+            errors.push("Missing GRADE.");
+          } else if (!/^\d+$/.test(grade)) {
+            errors.push("GRADE must be a whole number.");
           } else {
             const numericGrade = parseInt(grade, 10);
             if (numericGrade < 0) {
-              errors.push("grade cannot be negative.");
+              errors.push("GRADE cannot be negative.");
             } else if (numericGrade > 5) {
-              errors.push("grade cannot be more than 5.");
+              errors.push("GRADE cannot be more than 5.");
             } else {
               grade = numericGrade.toString();
             }
@@ -626,14 +753,14 @@ const FileUpload: React.FC = () => {
               }
             }
           }
-
-          // ✅ Final status update
-          row["Updated"] =
-            errors.length > 0
-              ? `❌ Errors: ${errors.join(", ")}`
-              : "✅ Student Validated";
           if (errors.length > 0) {
-            validSheetCountRef.current = 4;
+            row["Updated"] = createStyledCell(
+              `❌ Errors: ${errors.join(", ")}`,
+              true
+            );
+            validSheetCountRef.current = 1;
+          } else {
+            row["Updated"] = createStyledCell("✅ Student Validated", false);
           }
         }
       }
@@ -680,39 +807,13 @@ const FileUpload: React.FC = () => {
       const blob = new Blob([processedDataRef.current], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
-
-      if (Capacitor.isNativePlatform()) {
-        const fileDataBase64 = await blobToBase64(blob);
-        await Util.triggerSaveProceesedXlsxFile({ fileData: fileDataBase64 });
-        progressRef.current = 100;
-        setVerifyingProgressState(progressRef.current);
-      } else {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "processed_data.xlsx";
-        document.body.appendChild(a);
-        a.click();
-        URL.revokeObjectURL(url);
-        progressRef.current = 100;
-        setVerifyingProgressState(progressRef.current);
-      }
+      Util.handleBlobDownloadAndSave(blob, "ProcessedFile.xlsx");
+      progressRef.current = 100;
+      setVerifyingProgressState(progressRef.current);
     } catch (error) {
       console.error("Download failed:", error);
     }
   };
-
-  function blobToBase64(blob: Blob): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(blob);
-      reader.onloadend = () => {
-        const base64Data = reader.result as string;
-        resolve(base64Data.split(",")[1]);
-      };
-      reader.onerror = reject;
-    });
-  }
 
   const handleNext = async () => {
     setStep(FileUploadStep.Verifying);
@@ -744,7 +845,7 @@ const FileUpload: React.FC = () => {
             onChange={handleFileUpload}
           />
           <p className="file-upload-text">
-            <span>{t("Click to upload")}</span> {t("Student Data")}
+            <span>{t("Click to upload student data")}</span>
           </p>
           <p className="upload-file-size">{t("Maximum file size")} 50MB</p>
         </label>
@@ -790,7 +891,7 @@ const FileUpload: React.FC = () => {
           ) : progress === 100 ? (
             <div className="file-upload-actions">
               <button
-                onClick={() => setFile(null)}
+                onClick={onCancleClick}
                 className="file-upload-btn file-upload-cancel-btn"
               >
                 {t("Cancel")}
@@ -805,7 +906,7 @@ const FileUpload: React.FC = () => {
             </div>
           ) : (
             <button
-              onClick={() => history.replace(PAGES.MANAGE_SCHOOL)}
+              onClick={onCancleClick}
               className="file-upload-btn file-upload-long-cancel-btn"
             >
               {t("Cancel")}
@@ -815,7 +916,10 @@ const FileUpload: React.FC = () => {
       </div>
 
       {!isReupload && (
-        <a className="download-upload-template">
+        <a
+          className="download-upload-template"
+          onClick={() => Util.downloadFileFromUrl(BULK_UPLOAD_TEMPLATE_URL)}
+        >
           <FaCloudDownloadAlt /> {t("Download Bulk Upload Template")}
         </a>
       )}
@@ -868,7 +972,7 @@ const FileUpload: React.FC = () => {
   if (step === FileUploadStep.UploadError) {
     return (
       <ErrorPage
-        reUplod={() => history.replace(PAGES.UPLOAD_PAGE)}
+        reUplod={() => onReuploadTriggered()}
         message={t(
           "Upload failed. Please try again later. You may retry or contact support if the problem continues."
         )}

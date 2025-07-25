@@ -1,4 +1,4 @@
-.profile-content {
+.userprofile-content {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -21,21 +21,17 @@
   color: black;
 }
 
-.profile-card {
+.userprofile-card {
   width: 300px;
-  border: 1px solid #ccc;
   padding: 10px;
-  margin: 20px 0;
-  text-align: left;
   border-radius: 2vh;
-  box-shadow: 1px 1px 2px 0;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-.profile-row {
+.userprofile-row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 10px;
-  flex-direction: row;
+  flex-direction: column;
 }
 
 .first-content {
@@ -50,29 +46,38 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 150px;
-  font-size: clamp(15px, 5vh, 30px);
-  color: var(--text-color);
+  font-size: clamp(15px, 5vh, 26px);
+  font-weight: 600;
+  color: #707070;
 }
 
-.profile-label {
+.userprofile-label {
   width: 30%;
   text-align: left;
 }
+.userprofile-label span {
+  color: #707070;
+}
 
-.profile-value {
-  max-width: 150px;
-  text-align: right;
+.userprofile-value {
+  color: #707070;
+  font-size: 18px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-height: 16px;
+  display: block; 
 }
 
-.profile-value input,
-.profile-value select {
+.userprofile-value input,
+.userprofile-value select {
   border: none;
   background-color: transparent;
-  font-size: 2vh;
-  color: #333;
+  color: #707070;
+  font-size: 20px;
+  text-align: center;
+  box-sizing: border-box;
+  appearance: none;
 }
 
 .profile-info input {
@@ -80,10 +85,92 @@
   border-bottom: 0.2vh solid #333;
   background-color: transparent;
   font-size: 2vh;
-  color: #333;
+  color: #707070;
 }
-.profile-details-container {
+.usergender-options input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1px solid #333;
+  border-radius: 50%;
+  background-color: transparent;
+  position: relative;
+  cursor: pointer;
+}
+
+.usergender-options input[type="radio"]:checked::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background-color: black;
+  border-radius: 50%;
+  display: block;
+  transform: translate(-50%, -50%);
+}
+.usergender-options input[type="radio"]:checked {
+  background-color: transparent;
+  border: 1px solid #333;
+}
+.usergender-options {
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: space-between;
+}
+.usergender-options label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 18px;
+}
+
+.profile-details-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+  gap: 16px;
+}
+
+.add-student-text {
+  position: absolute;
+  right: 100%;
+  margin-right: 16px;
+  margin-top: 20px;
+  transform: translateY(-50%);
+  font-size: 18px;
+  font-weight: bold;
+  color: #707070;
+  white-space: nowrap;
+}
+
+.userprofile-value input:focus,
+.userprofile-value select:focus {
+  outline: none;
+  border: none;
+}
+
+.userprofile-dropdown-icon {
+  color: #707070;
+  width: 16px;
+}
+
+.userprofile-dropdown-with-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.userprofile-dropdown-with-icon select {
+  border: none;
+  background-color: transparent;
+  font-size: 20px;
+  color: #707070;
+}
+.userprofile-dropdown-with-icon select option {
+  font-size: 1.8vh;
+  color: #333;
 }
