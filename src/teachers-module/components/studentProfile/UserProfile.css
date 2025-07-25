@@ -61,10 +61,12 @@
 
 .userprofile-value {
   color: #707070;
-  font-size: 20px;
+  font-size: 18px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-height: 16px;
+  display: block; 
 }
 
 .userprofile-value input,
@@ -74,6 +76,8 @@
   color: #707070;
   font-size: 20px;
   text-align: center;
+  box-sizing: border-box;
+  appearance: none;
 }
 
 .profile-info input {
@@ -83,13 +87,33 @@
   font-size: 2vh;
   color: #707070;
 }
-.profile-details-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 .usergender-options input[type="radio"] {
-  accent-color: black;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1px solid #333;
+  border-radius: 50%;
+  background-color: transparent;
+  position: relative;
+  cursor: pointer;
+}
+
+.usergender-options input[type="radio"]:checked::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background-color: black;
+  border-radius: 50%;
+  display: block;
+  transform: translate(-50%, -50%);
+}
+.usergender-options input[type="radio"]:checked {
+  background-color: transparent;
+  border: 1px solid #333;
 }
 .usergender-options {
   display: flex;
@@ -101,4 +125,52 @@
   align-items: center;
   gap: 5px;
   font-size: 18px;
+}
+
+.profile-details-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+  gap: 16px;
+}
+
+.add-student-text {
+  position: absolute;
+  right: 100%;
+  margin-right: 16px;
+  margin-top: 20px;
+  transform: translateY(-50%);
+  font-size: 18px;
+  font-weight: bold;
+  color: #707070;
+  white-space: nowrap;
+}
+
+.userprofile-value input:focus,
+.userprofile-value select:focus {
+  outline: none;
+  border: none;
+}
+
+.userprofile-dropdown-icon {
+  color: #707070;
+  width: 16px;
+}
+
+.userprofile-dropdown-with-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.userprofile-dropdown-with-icon select {
+  border: none;
+  background-color: transparent;
+  font-size: 20px;
+  color: #707070;
+}
+.userprofile-dropdown-with-icon select option {
+  font-size: 1.8vh;
+  color: #333;
 }

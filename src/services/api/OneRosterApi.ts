@@ -1095,7 +1095,7 @@ export class OneRosterApi implements ServiceApi {
   }
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId: string,
+     courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -1106,7 +1106,8 @@ export class OneRosterApi implements ServiceApi {
   }
   getStudentLastTenResults(
     studentId: string,
-    assignmentIds: string[]
+    assignmentIds: string[],
+    courseIds: string[],
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
   }
@@ -1117,7 +1118,7 @@ export class OneRosterApi implements ServiceApi {
   }
   getStudentResultByDate(
     studentId: string,
-    course_id: string,
+    courseIds: string[],
     startDate: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined> {

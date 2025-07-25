@@ -2,8 +2,6 @@ import React from "react";
 import "./ProfileDetails.css";
 import { IonIcon } from "@ionic/react";
 import { camera } from "ionicons/icons";
-import { t } from "i18next";
-import { useLocation } from "react-router-dom";
 
 interface ProfileDetailsProps {
   width?: string;
@@ -22,35 +20,19 @@ const ProfileDetails: React.FC<ProfileDetailsProps> = ({
   className,
   isEditMode,
 }) => {
-  const location = useLocation();
-  const isAddStudentRoute = location.pathname === "/add_student"
-
-  const containerStyle = isAddStudentRoute ? {
-        display: "flex",
-        alignItems: "flex-start",
-        gap: "2rem",
-        marginRight: "33vw",
-  } : undefined;
-
   return (
     <div className={`profile-details ${className || ""}`}>
-      <div style={containerStyle}>
-        {isAddStudentRoute && (
-          <h2 style={{ color: '#707070', fontSize: '20px', fontWeight: "600" }}>
-            {t("Add Student")}
-          </h2>
-        )}
       <label htmlFor="profilePic" className="profile-details-data">
         <img
           src={imgSrc}
           alt=''
           className="profile-details-img"
         />
-        {isAddStudentRoute && (
+        {isEditMode &&
           <div className="overlay">
             <IonIcon className="camera-icon" icon={camera} size="large" />
           </div>
-        )}
+        }
       </label>
       {isEditMode && (
         <input
@@ -62,7 +44,6 @@ const ProfileDetails: React.FC<ProfileDetailsProps> = ({
           style={{ display: "none" }}
         />
       )}
-      </div>
     </div>
   );
 };

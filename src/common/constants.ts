@@ -21,11 +21,11 @@ export enum MUTATE_TYPES {
 }
 
 export enum LOGIN_TYPES {
-  PHONE="phone",
-  STUDENT= "student",
-  EMAIL= 'email',
-  OTP= 'otp',
-  FORGET_PASS= "forget_pass"
+  PHONE = "phone",
+  STUDENT = "student",
+  EMAIL = "email",
+  OTP = "otp",
+  FORGET_PASS = "forget_pass",
 }
 
 export enum TABLES {
@@ -724,7 +724,7 @@ export enum MODES {
   PARENT = "PARENT",
   SCHOOL = "SCHOOL",
   TEACHER = "TEACHER",
-  OPS_CONSOLE = "OPS_CONSOLE"
+  OPS_CONSOLE = "OPS_CONSOLE",
 }
 
 export enum ACTION {
@@ -914,3 +914,10 @@ export enum AGE_OPTIONS {
   NINE = "9",
   GREATER_THAN_EQUAL_10 = "≥10",
 }
+
+export const ROLE_PRIORITY: Record<string, number> = {
+  super_admin: 1,
+  operational_director: 2,
+  program_manager: 3,
+  field_coordinator: 4,
+};

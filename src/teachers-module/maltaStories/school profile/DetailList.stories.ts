@@ -78,7 +78,8 @@ const mockClasses: TableTypes<"class">[] = [
     is_ops: null,
     ops_created_by: null,
     standard: null,
-    status: null
+    status: null,
+    group_id: null
   },
   {
     id: "2",
@@ -94,7 +95,8 @@ const mockClasses: TableTypes<"class">[] = [
     is_ops: null,
     ops_created_by: null,
     standard: null,
-    status: null
+    status: null,
+    group_id: null
   },
 ];
 
