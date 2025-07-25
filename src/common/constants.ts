@@ -894,10 +894,10 @@ export const FORM_MODES = {
 
 export const PROFILE_DETAILS_GROWTHBOOK_VARIATION = {
   AFTER_LOGIN_SCREEN: "after-login-screen",
-  AFTER_LOGIN_CONTROL: "After Login Control",
-  AFTER_LOGIN_V1: "After Login V1",
-  AFTER_LOGIN_V2: "After Login V2",
-}
+  AFTER_LOGIN_CONTROL: "control",
+  AFTER_LOGIN_V1: "v1",
+  AFTER_LOGIN_V2: "v2",
+};
 
 export const ACTION_TYPES = {
   PROFILE_CREATED: "profile_created",
