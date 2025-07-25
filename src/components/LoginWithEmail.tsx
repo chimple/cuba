@@ -104,7 +104,8 @@ const LoginWithEmail: React.FC<LoginProps> = ({
           <img
             id="login-with-email-chimple-logo"
             alt="Chimple Brand Logo"
-            src="assets/icons/ChimpleBrandLogo.svg"
+            src="assets/icons/Pangolim1.png"
+            // src="assets/icons/Pangolim.jpg"
           />
         </div>
         <div className="login-header-right" />

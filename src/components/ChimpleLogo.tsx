@@ -7,8 +7,8 @@ const ChimpleLogo: React.FC<{ header: string; msg: string | string[] }> = ({
     <div id="logo-header">
       <img
         id="chimple-logo"
-        alt="assets/icons/ChimpleBrandLogo.svg"
-        src="assets/icons/ChimpleBrandLogo.svg"
+        src="assets/icons/Pangolim1.png"
+        // src="assets/icons/Pangolim.jpg"
       />
       <div id="logo-heading">{header}</div>
       {typeof msg === "string" ? (

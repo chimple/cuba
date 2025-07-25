@@ -16,7 +16,10 @@ const HotUpdate: FC<{}> = () => {
   );
   const [isLoading, setIsLoading] = useState(true);
   const can_hot_update = useFeatureIsOn("can_hot_update");
-  const hot_update_server = useFeatureValue("hot_update_url", "https://chimple-prod-hot-update.web.app/v7");
+  const hot_update_server = useFeatureValue(
+    "hot_update_url",
+    "https://chimple-prod-hot-update.web.app/v7"
+  );
   const init = async () => {
     try {
       if (!Capacitor.isNativePlatform()) {
@@ -27,7 +30,7 @@ const HotUpdate: FC<{}> = () => {
       //   REMOTE_CONFIG_KEYS.CAN_HOT_UPDATE
       // );
       const canHotUpdate = can_hot_update;
-      const hotUpdateServer = hot_update_server
+      const hotUpdateServer = hot_update_server;
       // const hotUpdateServer = HOT_UPDATE_SERVER;
       if (!canHotUpdate || !hotUpdateServer) {
         push();
@@ -53,7 +56,7 @@ const HotUpdate: FC<{}> = () => {
   }, []);
   return isLoading ? (
     <IonLoading
-      message={`<img class="loading" src="assets/loading.gif"></img>`}
+      message={`<img class="loading" src="assets/icons/Pangolim1.png"></img>`}
       isOpen={true}
       spinner={null}
     />

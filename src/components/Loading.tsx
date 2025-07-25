@@ -8,18 +8,13 @@ interface LoadingProps extends LoadingOptions {
   msg?: string;
 }
 
-const Loading: React.FC<LoadingProps> = ({
-  isLoading,
-  msg = "",
-}) => {
+const Loading: React.FC<LoadingProps> = ({ isLoading, msg = "" }) => {
   return isLoading ? (
     <div>
       <IonLoading
         isOpen={isLoading}
         spinner={null}
-        message={
-          `<img class="loading" src="assets/loading.gif"></img> <br/><p class="loading-msg">${t(msg)}</p>`
-        }
+        message={`<img class="loading" src="assets/icons/Pangolim1.png"></img> <br/><p class="loading-msg">${t(msg)}</p>`}
       />
     </div>
   ) : null;

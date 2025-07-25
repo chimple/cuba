@@ -12,7 +12,9 @@ import DropDown from "../components/DropDown";
 const AppLangSelection: React.FC = () => {
   const history = useHistory();
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [langList, setLangList] = useState<{ id: string; displayName: string }[]>([]);
+  const [langList, setLangList] = useState<
+    { id: string; displayName: string }[]
+  >([]);
   const [currentAppLang, setCurrentAppLang] = useState<string>();
 
   useEffect(() => {
@@ -59,7 +61,8 @@ const AppLangSelection: React.FC = () => {
             <img
               id="app-lang-chimple-logo"
               alt="Chimple Brand Logo"
-              src="assets/icons/ChimpleBrandLogo.svg"
+              src="assets/icons/Pangolim1.png"
+              // src="assets/icons/Pangolim.jpg"
             />
             <div id="app-lang-element">
               <p id="app-lang-text">{i18n.t("Choose your language")}</p>

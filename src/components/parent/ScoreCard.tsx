@@ -55,7 +55,9 @@ const ScoreCard: React.FC<{
             gap: "6%",
           },
           "& .MuiDialogContent-root": { padding: "0vh 6vh !important" },
-          "& .MuiDialogActions-spacing": { justifyContent: "space-between !important" },
+          "& .MuiDialogActions-spacing": {
+            justifyContent: "space-between !important",
+          },
         }}
       >
         <DialogContent
@@ -67,7 +69,7 @@ const ScoreCard: React.FC<{
         >
           <DialogContentText className="dialog-content-text">
             <div className="score-card-icons">
-              <img src="assets/loading.gif" className="image-icon" />
+              <img src="assets/icons/Pangolim1.png" className="image-icon" />
               <div className="star-images-component">
                 <ScoreCardStarIcons score={score} />
               </div>

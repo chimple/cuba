@@ -52,7 +52,7 @@ export enum TABLES {
   Assignment_cart = "assignment_cart",
   // Chatbot = "chatbot",
   ReqNewSchool = "req_new_school",
-  ChapterLinks= "chapter_links",
+  ChapterLinks = "chapter_links",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -81,6 +81,7 @@ export enum APP_LANGUAGES {
   hi = "हिन्दी",
   kn = "ಕನ್ನಡ",
   mr = "मराठी",
+  pt = "Português",
 }
 export enum HOMEHEADERLIST {
   SUGGESTIONS = "SUGGESTIONS",
@@ -427,6 +428,7 @@ export enum LANG {
   HINDI = "hi",
   KANNADA = "kn",
   MARATHI = "mr",
+  Português = "pt",
   SIERRA_LEONE = "sl_en",
 }
 export enum SCORECOLOR {

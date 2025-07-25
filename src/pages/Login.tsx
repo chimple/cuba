@@ -185,7 +185,6 @@ const Login: React.FC = () => {
       const apiHandler = ServiceConfig.getI().apiHandler;
       const appLang = localStorage.getItem(LANGUAGE);
 
-
       async function init() {
         const currentStudent = Util.getCurrentStudent();
         if (!currentStudent) {
@@ -753,7 +752,8 @@ const Login: React.FC = () => {
               <img
                 id="login-chimple-logo"
                 alt="Chimple Brand Logo"
-                src="assets/icons/ChimpleBrandLogo.svg"
+                src="assets/icons/Pangolim1.png"
+                // src="assets/icons/Pangolim.jpg"
               />
               {/* <div id="chimple-brand-text1">{t("Welcome to Chimple!")}</div> */}
               <p id="chimple-brand-text2">

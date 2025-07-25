@@ -78,7 +78,7 @@ SqliteApi.getInstance().then(() => {
 root.render(
   <>
     <IonLoading
-      message={`<img class="loading" src="assets/loading.gif"></img>`}
+      message={`<img class="loading" src="assets/icons/Pangolim1.png"></img>`}
       isOpen={true}
       spinner={null}
     />
