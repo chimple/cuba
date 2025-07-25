@@ -77,12 +77,12 @@ const JoinClass: FC<{
     }
   };
   const onJoin = async () => {
-    // setShowDialogBox(false);
     if (loading) return;
-     setLoading(true);
-    const student = Util.getCurrentStudent();
+    setLoading(true);
 
     try {
+      const student = Util.getCurrentStudent();
+
       if (!student || inviteCode == null) {
         throw new Error("Student or invite code is missing.");
       }
@@ -99,6 +99,22 @@ const JoinClass: FC<{
           student.language_id!
         );
       }
+
+      if (!codeResult) {
+        throw new Error("Code result is missing.");
+      }
+
+      const alreadyInClass = await api.isStudentAlreadyInClass(
+        codeResult["class_id"],
+        student.id
+      );
+
+      if (alreadyInClass) {
+        onClassJoin();
+        window.dispatchEvent(new CustomEvent("JoinClassListner", { detail: "Joined" }));
+        return;
+      }
+
       await api.linkStudent(inviteCode, student.id);
       if (!!codeResult) {
         Util.subscribeToClassTopic(
@@ -122,12 +138,11 @@ const JoinClass: FC<{
       // history.replace("/");
       // window.location.reload();
     } catch (error) {
+      console.error("Join class failed:", error);
       if (error instanceof Object) setError(error.toString());
     } finally {
       setLoading(false);
-      }
-
-    setLoading(false);
+    }
   };
   const location = useLocation();
 

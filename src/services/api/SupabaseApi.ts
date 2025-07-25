@@ -7101,4 +7101,27 @@ export class SupabaseApi implements ServiceApi {
       console.error("Unexpected error while deleting user:", e);
     }
   }
+
+  async isStudentAlreadyInClass(
+    classId: string,
+    userId: string
+  ): Promise<boolean> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return false;
+    }
+    const rpcName = "is_student_already_in_class";
+    const { data, error } = await this.supabase.rpc(rpcName, {
+      _class_id: classId,
+      _user_id: userId,
+    });
+
+    if (error) {
+      console.error("Error checking if student is already in class:", error);
+      return false;
+    }
+
+    return data === true;
+  }
+
 }

@@ -2381,6 +2381,13 @@ export type Database = {
           name: string;
         }[];
       };
+      is_student_already_in_class: {
+        Args: {
+          _class_id: string;
+          _user_id: string;
+        };
+        Returns: boolean;
+      };
       get_programs_for_user: {
         Args: {
           _current_user_id: string;
