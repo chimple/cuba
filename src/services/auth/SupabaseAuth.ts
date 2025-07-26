@@ -36,15 +36,26 @@ export class SupabaseAuth implements ServiceAuth {
       SupabaseAuth.i = new SupabaseAuth();
       SupabaseAuth.i._supabaseDb = SupabaseApi.getInstance().supabase;
       SupabaseAuth.i._auth = SupabaseAuth.i._supabaseDb?.auth;
+      const raw = localStorage.getItem(CURRENT_USER);
+      if (raw) {
+        try {
+          SupabaseAuth.i._currentUser = JSON.parse(raw);
+        } catch { /* ignore */ }
+      }
       SupabaseAuth?.i?._auth?.onAuthStateChange((event, session) => {
-        if (event === "TOKEN_REFRESHED") {
-          if (session?.refresh_token)
-            Util.addRefreshTokenToLocalStorage(session?.refresh_token);
+        if (event === "TOKEN_REFRESHED" && session?.refresh_token) {
+          Util.addRefreshTokenToLocalStorage(session.refresh_token);
         }
       });
     }
 
     return SupabaseAuth.i;
+  }
+  /** whenever we assign currentUser we push it into localStorage, */
+  set currentUser(user: TableTypes<"user">) {
+    this._currentUser = user;
+    localStorage.setItem(CURRENT_USER, JSON.stringify(user));
+    localStorage.setItem(USER_DATA, JSON.stringify(user));
   }
   async loginWithEmailAndPassword(email: any, password: any): Promise<boolean> {
     try {
@@ -136,110 +147,142 @@ export class SupabaseAuth implements ServiceAuth {
     return true;
   }
   async googleSign(): Promise<boolean> {
-    try {
-      if (!this._auth) return false;
-      const api = ServiceConfig.getI().apiHandler;
-      const authUser = await GoogleAuth.signIn();
-      console.log(
-        "🚀 ~ SupabaseAuth ~ googleSign ~ authUser:",
-        authUser.authentication.refreshToken
-      );
+  if (!this._auth || !this._supabaseDb) return false;
+  const api = ServiceConfig.getI().apiHandler;
 
-      const { data, error } = await this._auth.signInWithIdToken({
-        provider: "google",
-        token: authUser.authentication.idToken,
-        access_token: authUser.authentication.accessToken,
-      });
+  try {
+    // 1) Google OAuth
+    const authUser = await GoogleAuth.signIn();
+    const { data, error } = await this._auth.signInWithIdToken({
+      provider: "google",
+      token: authUser.authentication.idToken,
+      access_token: authUser.authentication.accessToken,
+    });
+    if (error) throw error;
 
-      if (data.session?.refresh_token)
-        Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
+    // store new refresh token
+    if (data.session?.refresh_token) {
+      Util.addRefreshTokenToLocalStorage(data.session.refresh_token);
       console.log(
         "🚀 ~ SupabaseAuth ~ googleSign ~ data, error:",
         data,
         error,
         data.session?.refresh_token
       );
-      const rpcRes = await this._supabaseDb?.rpc("isUserExists", {
-        user_email: authUser.email,
-        user_phone: "",
+    }
+
+    const userId = data.user!.id;
+
+    // 2) check if already in your users table
+    const rpcRes = await this._supabaseDb.rpc(
+      "isUserExists",
+      { user_email: authUser.email, user_phone: "" }
+    );
+    const existsRes = rpcRes.data as boolean | null;
+
+    let userDoc: TableTypes<"user"> | undefined;
+
+    if (existsRes) {
+      // fetch existing
+      userDoc = await api.getUserByDocId(userId);
+      if (!userDoc) {
+        console.error(
+          "[SupabaseAuth] rpc said user exists, but getUserByDocId returned undefined"
+        );
+        return false;
+      }
+      // subscribe only if they already existed
+      await api.subscribeToClassTopic();
+    } else {
+      // create new row
+      await api.createUserDoc({
+        age: null,
+        avatar: null,
+        created_at: new Date().toISOString(),
+        curriculum_id: null,
+        gender: null,
+        grade_id: null,
+        id: userId,
+        image: authUser.imageUrl,
+        is_deleted: false,
+        is_tc_accepted: true,
+        language_id: null,
+        name: authUser.name,
+        updated_at: new Date().toISOString(),
+        email: authUser.email,
+        phone: data.user!.phone ?? null,
+        music_off: false,
+        sfx_off: false,
+        fcm_token: null,
+        student_id: null,
+        firebase_id: null,
+        is_firebase: null,
+        is_ops: null,
+        learning_path: null,
+        ops_created_by: null,
+        stars: null,
       });
 
-      if (!rpcRes?.data) {
-        const createdUser = await api.createUserDoc({
-          age: null,
-          avatar: null,
-          created_at: new Date().toISOString(),
-          curriculum_id: null,
-          gender: null,
-          grade_id: null,
-          id: data.user?.id ?? authUser.id,
-          image: authUser.imageUrl,
-          is_deleted: false,
-          is_tc_accepted: true,
-          language_id: null,
-          name: authUser.name,
-          updated_at: new Date().toISOString(),
-          email: authUser.email,
-          phone: data.user?.phone ?? null,
-          music_off: false,
-          sfx_off: false,
-          fcm_token: null,
-          student_id: null,
-          firebase_id: null,
-          is_firebase: null,
-          is_ops: null,
-          learning_path: null,
-          ops_created_by: null,
-          stars: null,
-        });
-        this._currentUser = createdUser;
+      // **immediately re‐fetch** what you just created
+      userDoc = await api.getUserByDocId(userId);
+      if (!userDoc) {
+        console.error("[SupabaseAuth] failed to fetch newly created user");
+        return false;
       }
-      await api.updateFcmToken(data.user?.id ?? authUser.id);
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(
-        Object.values(TABLES),
-        REFRESH_TABLES_ON_LOGIN
-      );
-      if (rpcRes?.data) {
-        await api.subscribeToClassTopic();
-      }
-    } catch (error: any) {
-      console.error(
-        "🚀 ~ SupabaseAuth ~ googleSign ~ error:",
-        error?.stack || error
-      );
-      return false;
     }
+
+    // 3) final checks & setup
+    this.currentUser = userDoc;
+    await api.updateFcmToken(userId);
+    await api.syncDB(Object.values(TABLES), REFRESH_TABLES_ON_LOGIN);
+
     return true;
+
+  } catch (err) {
+    console.error("SupabaseAuth.googleSign error:", err);
+    return false;
   }
-
-  async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
-    if (this._currentUser) return this._currentUser;
-    if (!navigator.onLine) {
-      const api = ServiceConfig.getI().apiHandler;
-      let user = localStorage.getItem(USER_DATA);
-      if (user) this._currentUser = JSON.parse(user) as TableTypes<"user">;
-      return this._currentUser;
-    } else {
-      // await this.doRefreshSession();
-      const authData = await this._auth?.getSession();
-      if (!authData || !authData.data.session?.user?.id) return;
-
-      const api = ServiceConfig.getI().apiHandler;
-
-      const userRole = await api.getUserSpecialRoles(
-        authData.data.session?.user.id
-      );
-      if (userRole.length > 0) {
-  localStorage.setItem(USER_ROLE, JSON.stringify(userRole)); 
-} else {
-  localStorage.removeItem(USER_ROLE);
 }
 
-      let user = await api.getUserByDocId(authData.data.session?.user.id);
-      localStorage.setItem(USER_DATA, JSON.stringify(user));
-      this._currentUser = user;
+  async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
+    // in‑memory
+    if (this._currentUser) {
       return this._currentUser;
     }
+
+    // offline fallback
+    if (!navigator.onLine) {
+      const raw = localStorage.getItem(CURRENT_USER);
+      if (!raw) return;
+      try {
+        this._currentUser = JSON.parse(raw);
+        return this._currentUser;
+      } catch {
+        return;
+      }
+    }
+
+    // online: ensure tokens fresh, then fetch from your users table
+    await this.doRefreshSession();
+    const sess = await this._auth!.getSession();
+    const id = sess?.data.session?.user?.id;
+    if (!id) return;
+
+    const api = ServiceConfig.getI().apiHandler;
+    // get any special roles
+    const roles = await api.getUserSpecialRoles(id);
+    if (roles.length) {
+      localStorage.setItem(USER_ROLE, JSON.stringify(roles));
+    } else {
+      localStorage.removeItem(USER_ROLE);
+    }
+
+    // fetch user doc
+    const userDoc = await api.getUserByDocId(id);
+    if (userDoc) {
+      this.currentUser = userDoc;
+    }
+    return userDoc;
   }
   async doRefreshSession(): Promise<void> {
     if (!navigator.onLine) {
@@ -292,12 +335,9 @@ export class SupabaseAuth implements ServiceAuth {
     }
   }
 
-  set currentUser(user: TableTypes<"user">) {
-    this._currentUser = user;
-  }
-
   async isUserLoggedIn(): Promise<boolean> {
     if (this._currentUser) return true;
+    if (localStorage.getItem(CURRENT_USER)) return true;
     if (navigator.onLine) {
       await this.doRefreshSession();
       // const authData = await this._auth?.getUser();

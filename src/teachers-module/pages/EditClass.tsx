@@ -82,11 +82,14 @@ const EditClass: FC = () => {
 
   const handleUpdateClass = async () => {
      try {
+      const localClasses = localStorage.getItem("classes");
+      const temp = JSON.parse(localClasses || "[]");
        if (currentClass) {
         await api.updateClass(currentClass.id, className);
         const updatedClass = { ...currentClass, name: className };
-        Util.setCurrentClass(updatedClass);
- 
+        Util.setCurrentClass(updatedClass);                     
+        localStorage.setItem("classes", JSON.stringify(temp));
+        window.dispatchEvent(new Event(CLASS_OR_SCHOOL_CHANGE_EVENT));
          if (navigationState?.stage === School_Creation_Stages.CREATE_CLASS) {
            Util.setNavigationState(School_Creation_Stages.CLASS_COURSE);
            history.replace(PAGES.SUBJECTS_PAGE, {

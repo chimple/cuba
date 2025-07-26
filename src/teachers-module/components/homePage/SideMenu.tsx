@@ -73,6 +73,11 @@ const SideMenu: React.FC<{
 
   useEffect(() => {
     fetchData();
+    const handler = () => fetchData();
+    window.addEventListener(CLASS_OR_SCHOOL_CHANGE_EVENT, handler);
+    return () => {
+      window.removeEventListener(CLASS_OR_SCHOOL_CHANGE_EVENT, handler);
+    };
   }, []);
 
   const api = ServiceConfig.getI()?.apiHandler;
@@ -108,6 +113,14 @@ const SideMenu: React.FC<{
           tempSchool.id,
           currentUser.id
         );
+        const localClasses = localStorage.getItem("classes");
+        const tempUpdatedClasses = localClasses ? JSON.parse(localClasses) : [];
+        if (tempUpdatedClasses && tempUpdatedClasses.length > 0) {
+          setClassData(tempUpdatedClasses.map((item: any) => ({
+            id: item.id,
+            name: item.name,
+          })));
+        }
         teacher_class_ids = classes.map((item) => item.id);
         const classMap = classes.map((classItem: any) => ({
           id: classItem.id,
@@ -195,6 +208,7 @@ const SideMenu: React.FC<{
       });
 
       const classes = await api.getClassesForSchool(school.id, currentUserId);
+      console.log("classes❤️❤️❤️", classes);
       if (!classes || classes.length === 0) {
         console.warn("No classes found for the selected school");
         Util.setCurrentClass(null);
@@ -243,6 +257,8 @@ const SideMenu: React.FC<{
       }
 
       const currentClass = await api.getClassById(classIdStr);
+      console.log("currentClass💕💕💕", currentClass);
+
       if (!currentClass || !currentClass.id) {
         console.warn("Class not found or invalid response");
         return;
@@ -256,6 +272,7 @@ const SideMenu: React.FC<{
       }
 
       setCurrentClassId(currentClass.id);
+      console.log("currentClassI😍😍😍😍", currentClass);
       setcurrentClassDetail({
         id: currentClass.id,
         name: name || currentClass.name,
@@ -294,6 +311,7 @@ const SideMenu: React.FC<{
         aria-label={String(t("Menu"))}
         contentId="main-content"
         id="main-container"
+        onIonDidOpen={() => fetchData()}
       >
         <div aria-label={String(t("Menu"))} className="side-menu-container">
           <ProfileSection fullName={fullName} email={email} />

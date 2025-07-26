@@ -448,8 +448,7 @@ const LoginScreen: React.FC = () => {
 
     // switch to SQLITE for parent/teacher
     await SqliteApi.getInstance();
-    // ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(APIMode.SQLITE);
-    ServiceConfig.getInstance(APIMode.SQLITE);
+    ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(APIMode.SQLITE);
 
     if (schools.length === 0) {
       schoolUtil.setCurrMode(MODES.PARENT);
@@ -463,7 +462,7 @@ const LoginScreen: React.FC = () => {
     }
 
     schoolUtil.setCurrMode(MODES.TEACHER);
-    return history.push(PAGES.DISPLAY_SCHOOLS);
+    return history.replace(PAGES.DISPLAY_SCHOOLS);
   };
   // Language dropdown options
   const langOptions: LanguageOption[] = Object.entries(APP_LANGUAGES).map(
