@@ -80,32 +80,31 @@ const gb = new GrowthBook({
       variationId: result.key,
     });
   },
- });
- gb.init({
+});
+gb.init({
   streaming: true,
- });
+});
 
-// Default to Supabase
-const serviceInstance = ServiceConfig.getInstance(APIMode.SUPABASE);
-const authHandler = ServiceConfig.getI()?.authHandler;
-const isUserLoggedIn = await authHandler?.isUserLoggedIn();
-// Check role
-const isOpsUser = localStorage.getItem(IS_OPS_USER) === 'true';
-
-if (!isOpsUser && isUserLoggedIn) {
-  // Initialize SQLite only if needed
-  SplashScreen.show();
-  await SqliteApi.getInstance();
-  serviceInstance.switchMode(APIMode.SQLITE);
-  SplashScreen.hide();
-}
-
+SqliteApi.getInstance().then(() => {
+  ServiceConfig.getInstance(APIMode.SQLITE);
+  root.render(
+    <>
+      <GrowthBookProvider growthbook={gb}>
+        <GbProvider>
+          <App />
+        </GbProvider>
+      </GrowthBookProvider>
+    </>
+  );
+});
 root.render(
-  <GrowthBookProvider growthbook={gb}>
-    <GbProvider>
-      <App />
-    </GbProvider>
-  </GrowthBookProvider>
+  <>
+    <IonLoading
+      message={`<img class="loading" src="assets/loading.gif"></img>`}
+      isOpen={true}
+      spinner={null}
+    />
+  </>
 );
 
 // If you want your app to work offline and load faster, you can change

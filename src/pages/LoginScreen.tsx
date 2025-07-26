@@ -46,14 +46,24 @@ const LoginScreen: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [loginType, setLoginType] = useState<
-    LOGIN_TYPES.PHONE | LOGIN_TYPES.STUDENT | LOGIN_TYPES.EMAIL | LOGIN_TYPES.OTP | LOGIN_TYPES.FORGET_PASS
+    | LOGIN_TYPES.PHONE
+    | LOGIN_TYPES.STUDENT
+    | LOGIN_TYPES.EMAIL
+    | LOGIN_TYPES.OTP
+    | LOGIN_TYPES.FORGET_PASS
   >(LOGIN_TYPES.PHONE);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   // Separate error states for each login component
-  const [phoneErrorMessage, setPhoneErrorMessage] = useState<string | null>(null);
-  const [studentErrorMessage, setStudentErrorMessage] = useState<string | null>(null);
-  const [emailErrorMessage, setEmailErrorMessage] = useState<string | null>(null);
+  const [phoneErrorMessage, setPhoneErrorMessage] = useState<string | null>(
+    null
+  );
+  const [studentErrorMessage, setStudentErrorMessage] = useState<string | null>(
+    null
+  );
+  const [emailErrorMessage, setEmailErrorMessage] = useState<string | null>(
+    null
+  );
   const [otpErrorMessage, setOtpErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [counter, setCounter] = useState(59);
@@ -148,7 +158,10 @@ const LoginScreen: React.FC = () => {
 
     return () => {
       if (Capacitor.isNativePlatform()) {
-        document.removeEventListener("visibilitychange", handleVisibilityChange);
+        document.removeEventListener(
+          "visibilitychange",
+          handleVisibilityChange
+        );
       }
     };
   }, []);
@@ -186,7 +199,7 @@ const LoginScreen: React.FC = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [showTimer, counter])
+  }, [showTimer, counter]);
 
   // Timer effect for OTP expiration
   useEffect(() => {
@@ -206,7 +219,11 @@ const LoginScreen: React.FC = () => {
 
   // Handler for switching login types
   const handleSwitch = (type: string) => {
-    if (type === LOGIN_TYPES.PHONE || type === LOGIN_TYPES.STUDENT || type === LOGIN_TYPES.EMAIL)
+    if (
+      type === LOGIN_TYPES.PHONE ||
+      type === LOGIN_TYPES.STUDENT ||
+      type === LOGIN_TYPES.EMAIL
+    )
       setLoginType(type);
   };
 
@@ -275,16 +292,15 @@ const LoginScreen: React.FC = () => {
 
   // Handler for going back from OTP
   const handleOtpBack = () => {
-    if(loginType===LOGIN_TYPES.OTP){
-    setLoginType(LOGIN_TYPES.PHONE);
-    setVerificationCode("");
-    setPhoneNumber("");
-    setShowResendOtp(false);
-    setShowTimer(false);
-    setOtpErrorMessage(null);
-    setOtpExpiryCounter(15); // Reset the expiry counter
-    }
-    else if(loginType===LOGIN_TYPES.FORGET_PASS){
+    if (loginType === LOGIN_TYPES.OTP) {
+      setLoginType(LOGIN_TYPES.PHONE);
+      setVerificationCode("");
+      setPhoneNumber("");
+      setShowResendOtp(false);
+      setShowTimer(false);
+      setOtpErrorMessage(null);
+      setOtpExpiryCounter(15); // Reset the expiry counter
+    } else if (loginType === LOGIN_TYPES.FORGET_PASS) {
       setLoginType(LOGIN_TYPES.EMAIL);
       setEmailErrorMessage("");
     }
@@ -311,7 +327,7 @@ const LoginScreen: React.FC = () => {
       // Store user data and proceed with navigation
       const user = res.user;
       localStorage.setItem(CURRENT_USER, JSON.stringify(user));
-      localStorage.setItem(USER_DATA,  JSON.stringify(user));
+      localStorage.setItem(USER_DATA, JSON.stringify(user));
 
       Util.logEvent(EVENTS.USER_PROFILE, {
         user_id: user.uid,
@@ -323,16 +339,16 @@ const LoginScreen: React.FC = () => {
         login_type: "phone-number",
       });
 
-        const userSchools = await getSchoolsForUser(user.id);
-        await redirectUser(userSchools);
-      
+      const userSchools = await getSchoolsForUser(user.id);
+      await redirectUser(userSchools, res.isSpl);
+
       setAnimatedLoading(false);
     } catch (error) {
       // Handle all state updates for error case at once
       const updates = () => {
-      setAnimatedLoading(false);
-      setIsLoading(false);
-      setVerificationCode("");
+        setAnimatedLoading(false);
+        setIsLoading(false);
+        setVerificationCode("");
 
         // Set appropriate error message
         if (typeof error === "string" && error.includes("code-expired")) {
@@ -344,8 +360,8 @@ const LoginScreen: React.FC = () => {
         }
 
         // Enable resend OTP option
-      setShowResendOtp(true);
-      setCounter(0);
+        setShowResendOtp(true);
+        setCounter(0);
       };
 
       // Execute all state updates together
@@ -386,89 +402,79 @@ const LoginScreen: React.FC = () => {
 
   // Handler for Google Sign In
   const handleGoogleSignIn = async () => {
-  if (!online) {
-    return presentToast({
-      message: t("Device is offline. Login requires an internet connection"),
-      color: "danger",
-      duration: 3000,
-      position: "bottom",
-      buttons: [{ text: "Dismiss", role: "cancel" }],
-    });
-  }
-  setAnimatedLoading(true);
-  try {
-    const ok = await authInstance.googleSign();
-    if (!ok) throw new Error("Google sign in failed");
+    if (!online) {
+      return presentToast({
+        message: t("Device is offline. Login requires an internet connection"),
+        color: "danger",
+        duration: 3000,
+        position: "bottom",
+        buttons: [{ text: "Dismiss", role: "cancel" }],
+      });
+    }
+    setAnimatedLoading(true);
+    try {
+      const ok = await authInstance.googleSign();
+      if (!ok.success) throw new Error("Google sign in failed");
 
-    const user = await authInstance.getCurrentUser();
-    if (!user) throw new Error("No user returned from auth handler");
+      const user = await authInstance.getCurrentUser();
+      if (!user) throw new Error("No user returned from auth handler");
 
-    localStorage.setItem(CURRENT_USER, JSON.stringify(user));
-    localStorage.setItem(USER_DATA, JSON.stringify(user));
+      localStorage.setItem(CURRENT_USER, JSON.stringify(user));
+      localStorage.setItem(USER_DATA, JSON.stringify(user));
 
-    Util.logEvent(EVENTS.USER_PROFILE, {
-      user_type: RoleType.PARENT,
-      action_type: ACTION.LOGIN,
-      login_type: "google-signin",
-    });
+      Util.logEvent(EVENTS.USER_PROFILE, {
+        user_type: RoleType.PARENT,
+        action_type: ACTION.LOGIN,
+        login_type: "google-signin",
+      });
 
-    // now safe to use user.id
-    const schools = await getSchoolsForUser(user.id);
-    await redirectUser(schools);
-
-  } catch (e) {
-    presentToast({
-      message: t("Google sign in failed. Please try again."),
-      color: "danger",
-      duration: 3000,
-      position: "bottom",
-      buttons: [{ text: "Dismiss", role: "cancel" }],
-    });
-    setLoginType(LOGIN_TYPES.PHONE);
-  } finally {
-    setAnimatedLoading(false);
-  }
-};
+      // now safe to use user.id
+      const schools = await getSchoolsForUser(user.id);
+      await redirectUser(schools, ok.isSpl);
+    } catch (e) {
+      presentToast({
+        message: t("Google sign in failed. Please try again."),
+        color: "danger",
+        duration: 3000,
+        position: "bottom",
+        buttons: [{ text: "Dismiss", role: "cancel" }],
+      });
+      setLoginType(LOGIN_TYPES.PHONE);
+    } finally {
+      setAnimatedLoading(false);
+    }
+  };
 
   const getSchoolsForUser = async (userId: string) => {
     return (await api.getSchoolsForUser(userId)) || [];
   };
 
-  const redirectUser = async (schools: { role: RoleType }[]) => {
-    const roles = JSON.parse(localStorage.getItem(USER_ROLE) || "[]") as string[];
-    const isOps =
-      roles.includes(RoleType.SUPER_ADMIN) ||
-      roles.includes(RoleType.OPERATIONAL_DIRECTOR);
-    const isProg = await api.isProgramUser();
-
-    // OPERATIONS/PROGRAM console
-    if (isOps || isProg) {
+  const redirectUser = async (
+    schools: { role: RoleType }[],
+    isOpsUser: boolean
+  ) => {
+    if (isOpsUser) {
       localStorage.setItem(IS_OPS_USER, "true");
       await ScreenOrientation.unlock();
       schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
       return history.replace(PAGES.SIDEBAR_PAGE);
+    } else {
+      if (schools.length === 0) {
+        schoolUtil.setCurrMode(MODES.PARENT);
+        return history.replace(PAGES.DISPLAY_STUDENT);
+      }
+
+      // AUTOUSER → school‐mode
+      const auto = schools.find((s) => s.role === RoleType.AUTOUSER);
+      if (auto) {
+        schoolUtil.setCurrMode(MODES.SCHOOL);
+        return history.replace(PAGES.SELECT_MODE);
+      }
+
+      // else teacher
+      schoolUtil.setCurrMode(MODES.TEACHER);
+      return history.replace(PAGES.DISPLAY_SCHOOLS);
     }
-
-    // **SWITCH TO SQLITE** before any parent/teacher flows
-    const sqliteApi = await SqliteApi.getInstance();
-    ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(APIMode.SQLITE);
-
-    // NO SCHOOLS → parent
-    if (schools.length === 0) {
-      schoolUtil.setCurrMode(MODES.PARENT);
-      return history.replace(PAGES.DISPLAY_STUDENT);
-    }
-
-    // AUTOUSER → school‐mode
-    const auto = schools.find((s) => s.role === RoleType.AUTOUSER);
-    if (auto) {
-      schoolUtil.setCurrMode(MODES.SCHOOL);
-      return history.replace(PAGES.SELECT_MODE);
-    }
-
-    // else teacher
-    schoolUtil.setCurrMode(MODES.TEACHER);
-    return history.replace(PAGES.DISPLAY_SCHOOLS);
   };
 
   // Language dropdown options
@@ -502,17 +508,18 @@ const LoginScreen: React.FC = () => {
 
       setAnimatedLoading(true);
       setIsLoading(true);
-      const result: boolean = await authInstance.loginWithEmailAndPassword(
-        schoolCode.trimEnd() + studentId.trimEnd() + DOMAIN,
-        studentPassword.trimEnd()
-      );
+      const { success: result, isSpl: isOps } =
+        await authInstance.loginWithEmailAndPassword(
+          schoolCode.trimEnd() + studentId.trimEnd() + DOMAIN,
+          studentPassword.trimEnd()
+        );
 
       if (result) {
         setAnimatedLoading(false);
         setIsLoading(false);
         const user = JSON.parse(localStorage.getItem(USER_DATA)!);
         const userSchools = await getSchoolsForUser(user.id);
-        await redirectUser(userSchools);
+        await redirectUser(userSchools, isOps);
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
         localStorage.setItem(USER_DATA, JSON.stringify(user));
 
@@ -528,7 +535,9 @@ const LoginScreen: React.FC = () => {
       } else {
         setAnimatedLoading(false);
         setIsLoading(false);
-        setStudentErrorMessage("Incorrect credentials - Please check & try again!");
+        setStudentErrorMessage(
+          "Incorrect credentials - Please check & try again!"
+        );
       }
     } catch (error) {
       setAnimatedLoading(false);
@@ -572,10 +581,8 @@ const LoginScreen: React.FC = () => {
 
       setAnimatedLoading(true);
       setIsLoading(true);
-      const result: boolean = await authInstance.signInWithEmail(
-        email,
-        password
-      );
+      const { success: result, isSpl: isOpsUser } =
+        await authInstance.signInWithEmail(email, password);
 
       if (result) {
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
@@ -585,7 +592,7 @@ const LoginScreen: React.FC = () => {
           await ServiceConfig.getI().authHandler.getCurrentUser();
         if (user) {
           const userSchools = await getSchoolsForUser(user.id);
-          await redirectUser(userSchools);
+          await redirectUser(userSchools, isOpsUser);
         }
         setAnimatedLoading(false);
 
@@ -601,7 +608,9 @@ const LoginScreen: React.FC = () => {
       } else {
         setAnimatedLoading(false);
         setIsLoading(false);
-        setEmailErrorMessage("Incorrect credentials - Please check & try again!");
+        setEmailErrorMessage(
+          "Incorrect credentials - Please check & try again!"
+        );
         // Abort the email login process
         setEmail("");
         setPassword("");
@@ -751,7 +760,8 @@ const LoginScreen: React.FC = () => {
             </div>
           </div>
           <div className="Loginscreen-login-header">
-            {loginType === LOGIN_TYPES.OTP || loginType === LOGIN_TYPES.FORGET_PASS ? (
+            {loginType === LOGIN_TYPES.OTP ||
+            loginType === LOGIN_TYPES.FORGET_PASS ? (
               <button
                 className="Loginscreen-otp-back-button"
                 onClick={handleOtpBack}
@@ -781,9 +791,9 @@ const LoginScreen: React.FC = () => {
                 (loginType as string) !== LOGIN_TYPES.PHONE
                   ? {
                       maxWidth: window.matchMedia("(orientation: landscape)")
-                      .matches
-                      ? "120px"
-                      : "138px",
+                        .matches
+                        ? "120px"
+                        : "138px",
                     }
                   : undefined
               }
@@ -805,7 +815,7 @@ const LoginScreen: React.FC = () => {
                 onNext={handlePhoneNext}
                 phoneNumber={phoneNumber}
                 setPhoneNumber={setPhoneNumber}
-                errorMessage={phoneErrorMessage && t(phoneErrorMessage) }
+                errorMessage={phoneErrorMessage && t(phoneErrorMessage)}
                 checkbox={checkbox}
                 onFocus={async () => {
                   if (
@@ -827,7 +837,7 @@ const LoginScreen: React.FC = () => {
                 setStudentId={setStudentId}
                 studentPassword={studentPassword}
                 setStudentPassword={setStudentPassword}
-                errorMessage={studentErrorMessage && t(studentErrorMessage) }
+                errorMessage={studentErrorMessage && t(studentErrorMessage)}
                 checkbox={checkbox}
               />
             )}
@@ -841,7 +851,7 @@ const LoginScreen: React.FC = () => {
                 setEmail={setEmail}
                 password={password}
                 setPassword={setPassword}
-                errorMessage={emailErrorMessage && t(emailErrorMessage) }
+                errorMessage={emailErrorMessage && t(emailErrorMessage)}
                 checkbox={checkbox}
               />
             )}
@@ -849,7 +859,7 @@ const LoginScreen: React.FC = () => {
               <OtpVerification
                 phoneNumber={phoneNumber}
                 onVerify={handleOtpVerification}
-                errorMessage={otpErrorMessage && t(otpErrorMessage) }
+                errorMessage={otpErrorMessage && t(otpErrorMessage)}
                 isLoading={isLoading}
                 verificationCode={verificationCode}
                 setVerificationCode={setVerificationCode}
@@ -868,7 +878,9 @@ const LoginScreen: React.FC = () => {
             onSwitch={handleSwitch}
             checkbox={checkbox}
             onCheckboxChange={setCheckbox}
-            onResend={loginType===LOGIN_TYPES.OTP ? handleResendOtp:()=>{}}
+            onResend={
+              loginType === LOGIN_TYPES.OTP ? handleResendOtp : () => {}
+            }
             showResendOtp={showResendOtp}
             counter={counter}
             onTermsClick={() => setShowTandC(true)}
