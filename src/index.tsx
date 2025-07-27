@@ -43,7 +43,7 @@ if (typeof window !== "undefined") {
     (window as any).SpeechSynthesisUtterance = SpeechSynthesisUtterance;
   }
 }
-
+SplashScreen.show();
 if (Capacitor.isNativePlatform()) {
   await ScreenOrientation.lock({ orientation: "landscape" });
 }
@@ -61,7 +61,6 @@ window.onunhandledrejection = (event: PromiseRejectionEvent) => {
 window.onerror = (message, source, lineno, colno, error) => {
   recordExecption(message.toString, error.toString());
 };
-SplashScreen.hide();
 const container = document.getElementById("root");
 const root = createRoot(container!);
 GoogleAuth.initialize({
@@ -84,28 +83,38 @@ const gb = new GrowthBook({
 gb.init({
   streaming: true,
 });
+const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
+const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
 
-SqliteApi.getInstance().then(() => {
-  ServiceConfig.getInstance(APIMode.SQLITE);
+if (isOpsUser) {
+  serviceInstance.switchMode(APIMode.SUPABASE);
+
   root.render(
-    <>
+    <GrowthBookProvider growthbook={gb}>
+      <GbProvider>
+        <App />
+      </GbProvider>
+    </GrowthBookProvider>
+  );
+
+  SplashScreen.hide();
+} else {
+  SplashScreen.show();
+
+  SqliteApi.getInstance().then(() => {
+    serviceInstance.switchMode(APIMode.SQLITE);
+
+    root.render(
       <GrowthBookProvider growthbook={gb}>
         <GbProvider>
           <App />
         </GbProvider>
       </GrowthBookProvider>
-    </>
-  );
-});
-root.render(
-  <>
-    <IonLoading
-      message={`<img class="loading" src="assets/loading.gif"></img>`}
-      isOpen={true}
-      spinner={null}
-    />
-  </>
-);
+    );
+
+    SplashScreen.hide();
+  });
+}
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
