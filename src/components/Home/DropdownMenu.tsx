@@ -154,11 +154,31 @@ const DropdownMenu: FC = () => {
   };
 
   useEffect(() => {
-    if (expanded && selected) {
-      const selectedRef = itemRefs.current[selected.course.id];
-      selectedRef?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [expanded, selected]);
+
+    const preloadImage = (src: string) => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve(true);
+          img.onerror = () => resolve(false);
+          img.src = src;
+        });
+      };
+
+      courseDetails.forEach(async (detail) => {
+        const sources = [
+          `courses/chapter_icons/${detail.course.code}.webp`,
+          detail.course.image || ''
+        ].filter(Boolean);
+
+        await Promise.any(sources.map(preloadImage));
+      });
+
+      if (expanded && selected) {
+        const selectedRef = itemRefs.current[selected.course.id];
+        selectedRef?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, [expanded, selected, courseDetails]);
+
 
   return (
     <div className="dropdown-main">
@@ -192,11 +212,13 @@ const DropdownMenu: FC = () => {
                   onClick={() => handleSelect(detail, index)}
                 >
                   <SelectIconImage
+                    key={detail.course.id} // Important for cache invalidation
                     localSrc={`courses/chapter_icons/${detail.course.code}.webp`}
-                    defaultSrc={"assets/icons/DefaultIcon.png"}
+                    defaultSrc="assets/icons/DefaultIcon.png"
                     webSrc={detail.course.image || "assets/icons/DefaultIcon.png"}
                     imageWidth="85%"
                   />
+                  
                   <div className="truncate-style">
                     {truncateName(detail.course.name)}
                   </div>

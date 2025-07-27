@@ -1956,7 +1956,7 @@ export class FirebaseApi implements ServiceApi {
   }
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId: string,
+     courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -1966,7 +1966,7 @@ export class FirebaseApi implements ServiceApi {
   }
   getStudentLastTenResults(
     studentId: string,
-    courseId: string,
+    courseIds: string[],
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
@@ -1978,7 +1978,7 @@ export class FirebaseApi implements ServiceApi {
   }
   getStudentResultByDate(
     studentId: string,
-    course_id: string,
+    courseIds: string[],
     startDate: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined> {
@@ -2004,27 +2004,27 @@ export class FirebaseApi implements ServiceApi {
   getProgramFilterOptions(): Promise<Record<string, string[]>> {
     throw new Error("Method not implemented.");
   }
- async getPrograms({
-  currentUserId,
-  filters = {},
-  searchTerm = "",
-  tab = "ALL",
-  limit = 10,
-  offset = 0,
-  orderBy = "name",
-  order = "asc",
-}: {
-  currentUserId: string;
-  filters?: Record<string, string[]>;
-  searchTerm?: string;
-  tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
-  limit?: number;
-  offset?: number;
-  orderBy?: string;
-  order?: "asc" | "desc";
-}): Promise<{ data: any[] }> {
-  throw new Error("Method not implemented.");
-}
+  async getPrograms({
+    currentUserId,
+    filters = {},
+    searchTerm = "",
+    tab = "ALL",
+    limit = 10,
+    offset = 0,
+    orderBy = "name",
+    order = "asc",
+  }: {
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    searchTerm?: string;
+    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
+    limit?: number;
+    offset?: number;
+    orderBy?: string;
+    order?: "asc" | "desc";
+  }): Promise<{ data: any[] }> {
+    throw new Error("Method not implemented.");
+  }
 
   insertProgram(payload: any): Promise<boolean | any> {
     throw new Error("Method not implemented.");
@@ -2065,23 +2065,19 @@ export class FirebaseApi implements ServiceApi {
     throw new Error("getSchoolFilterOptions() is not implemented.");
   }
 
-  async getFilteredSchoolsForSchoolListing(
-    params: {
-      filters?: Record<string, string[]>;
-      programId?: string;
-    }
-  ): Promise<FilteredSchoolsForSchoolListingOps[]> {
+  async getFilteredSchoolsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+  }): Promise<FilteredSchoolsForSchoolListingOps[]> {
     throw new Error("getFilteredSchoolsForSchoolListing() is not implemented.");
   }
 
-  async createOrAddUserOps(
-    payload: {
-      name: string;
-      email?: string;
-      phone?: string;
-      role: string;
-    }
-  ): Promise<{
+  async createOrAddUserOps(payload: {
+    name: string;
+    email?: string;
+    phone?: string;
+    role: string;
+  }): Promise<{
     success: boolean;
     user_id?: string;
     message?: string;
@@ -2106,8 +2102,16 @@ export class FirebaseApi implements ServiceApi {
   }
 
   public async getManagersAndCoordinators(
-    userId: string
-  ): Promise<{ user: TableTypes<"user">; role: string }[]> {
+    userId: string,
+    page: number = 1,
+    search: string = "",
+    limit: number = 10,
+    sortBy: keyof TableTypes<"user"> = "name",
+    sortOrder: "asc" | "desc" = "asc"
+  ): Promise<{
+    data: { user: TableTypes<"user">; role: string }[];
+    totalCount: number;
+  }> {
     throw new Error("Method not implemented.");
   }
 

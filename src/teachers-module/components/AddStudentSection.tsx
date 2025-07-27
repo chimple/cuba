@@ -51,7 +51,7 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
   }));
   return (
     <div className="add-studentsection__container">
-      <form className="addstudentsection__form" style={{display: "flex", flexDirection: "column", gap:"10px"}}>
+      <form className="addstudentsection__form" >
         <div className="add-studentsection__group">
           <label htmlFor="name">{t("Name")}</label>
           <input
@@ -100,13 +100,13 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
           >
             <div className="gender-options">
               <label className="radio-label">
-                <IonRadio value="male" className="custom-radio" /> {t("male")}
+                <IonRadio value="male" className="add-student-radio-btn" /> {t("male")}
               </label>
               <label className="radio-label">
-                <IonRadio value="female" className="custom-radio" /> {t("female")}
+                <IonRadio value="female" className="add-student-radio-btn" /> {t("female")}
               </label>
               <label className="radio-label">
-                <IonRadio value="other" className="custom-radio" /> {t("Other")}
+                <IonRadio value="other" className="add-student-radio-btn" /> {t("Other")}
               </label>
             </div>
           </IonRadioGroup>

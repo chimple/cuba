@@ -25,22 +25,21 @@
 }
 
 .profiledetails-avatar-section {
-  flex: 0 0 140px;
+  flex: 0 0 156px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .profiledetails-avatar-image {
-  width: 140px;
-  height: 140px;
+  width: 156px;
+  height: 156px;
   border-radius: 50%;
 }
 
 .profiledetails-form-fields {
   flex: 1;
   min-width: 240px;
-  margin-top: 8px;
 }
 
 .profiledetails-full-name .with-icon-input-box {
@@ -122,7 +121,7 @@
 }
 
 .profiledetails-save-button:enabled {
-  background: #f34d08;
+  background: #F35D08;
   color: white;
   border-bottom: 5px solid #8a2901;
   cursor: pointer;
@@ -137,9 +136,9 @@
 }
 
 .profiledetails-gender-label {
-  font-size: 16px;
+  font-size: 14px;
   color: #182a4f;
-  margin-left: 16px;
+  margin-left: 10px;
   font-weight: 500;
 }
 
@@ -166,14 +165,14 @@
 
 .profiledetails-gender-btn.selected {
   color: #5D44BD;
-  border: 2px solid #F35908;
+  border: 2px solid #F35D08;
 }
 
 .profiledetails-button-group {
   display: flex;
   gap: 16px;
   justify-content: flex-start;
-  margin-top: 24px;
+  margin-top: 12px;
 }
 
 .profiledetails-skip-button {
@@ -191,4 +190,27 @@
 .profiledetails-required-indicator{
     font-size: 12px;
     color: #182A4F;
+}
+
+.profiledetails-back-button {
+  position: absolute;
+  top: 18px;
+  left: 25px;
+  width: 60px;
+  height: 35px;
+  background: #FFFFFF;
+  border: 2px solid #F34D08;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.profiledetails-back-arrow-icon {
+  color: #F34D08;
+  width: 20px;
+  height: 20px;
 }

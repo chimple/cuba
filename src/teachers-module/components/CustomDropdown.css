@@ -17,7 +17,7 @@ ion-select::part(text) {
   color: #7B7676;
   flex: 0 0 auto;
   padding-right: 0;
-  font-size: 2.7vh;
+  font-size: clamp(20px, 2.5vw, 23px);
 }
 
 .icon-container {
@@ -29,7 +29,7 @@ ion-select::part(text) {
 ion-select::part(text) {
   color: #707070;
   text-align: left;
-  width: clamp(150px, 7vw, 300px);
+  width: clamp(190px, 7vw, 300px);
 }
 
 ion-select::part(icon) {
@@ -50,30 +50,8 @@ ion-select::part(icon) {
 
 ion-modal,
 ion-popover {
-  --width: 34vh;
+  --width: clamp(200px, 60vw, 260px);
   --max-height: 90%;
   --backdrop-opacity: 0.32;
   --ion-background-color: white;
-}
-
-.customdropdown-select::part(text) {
-  font-size: 18px;
-  font-weight: 400;
-}
-
-.customdropdown-select::part(placeholder) {
-  font-size: 18px;
-  font-weight: 400;
-}
-
-.custom-dropdown-container ion-select {
-  flex: 0 1 auto;          
-  margin-right: 4px;      
-}
-
-.customdropdown-select::part(text) {
-  width: auto !important;          
-  white-space: nowrap;           
-  overflow: visible !important;   
-  text-overflow: clip !important; 
 }

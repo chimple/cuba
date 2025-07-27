@@ -24,6 +24,7 @@ import CalendarPicker from "../../../../common/CalendarPicker";
 import { Toast } from "@capacitor/toast";
 import { addMonths, format } from "date-fns";
 import { Trans } from "react-i18next";
+import { v4 as uuidv4 } from "uuid";
 interface LessonDetail {
   subject: string;
   chapter: string;
@@ -59,6 +60,9 @@ const CreateSelectedAssignment = ({
   const [shareTextLessonDetails, setShareTextLessonDetails] = useState<
     LessonDetail[]
   >([]);
+  const [assignmentBatchId, setAssignmentBatchId] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     init();
@@ -84,7 +88,7 @@ const CreateSelectedAssignment = ({
 
     const _studentProgress = await _classUtil.divideStudents(
       current_class.id,
-      classCourses[0].course_id
+      [classCourses[0].course_id]
     );
 
     let _studentList =
@@ -323,7 +327,7 @@ const CreateSelectedAssignment = ({
       text += `\n`;
     });
 
-    text += `${t("Please click this link to access your Homework")}: https://chimple.cc/assignment`;
+    text += `${t("Please click this link to access your Homework")}: https://chimple.cc/assignment?batch_id=${assignmentBatchId}`;
 
     return text.trim();
   };
@@ -350,6 +354,8 @@ const CreateSelectedAssignment = ({
         setIsLoading(false);
         return;
       }
+      const batchId = uuidv4();
+      setAssignmentBatchId(batchId);
       const previous_sync_lesson = currUser?.id
         ? await api.getUserAssignmentCart(currUser?.id)
         : null;
@@ -410,7 +416,8 @@ const CreateSelectedAssignment = ({
                 subjectId,
                 tempLes.plugin_type === ASSIGNMENT_TYPE.LIVEQUIZ
                   ? ASSIGNMENT_TYPE.LIVEQUIZ
-                  : ASSIGNMENT_TYPE.ASSIGNMENT
+                  : ASSIGNMENT_TYPE.ASSIGNMENT,
+                batchId
               );
 
               // If the assignment creation was successful, update sync_lesson
@@ -562,14 +569,14 @@ const CreateSelectedAssignment = ({
               >
                 <h4>{groupWiseStudents[category].title}</h4>
                 <div className="select-all">
-                  {/* <div>
+                  <div className="select-all-student-count">
                     {
                       groupWiseStudents[category].students.filter(
                         (student) => student.selected
                       ).length
                     }
                     /{groupWiseStudents[category].students.length}
-                  </div> */}
+                  </div>
                   <img
                   src={
                   groupWiseStudents[category].isCollapsed

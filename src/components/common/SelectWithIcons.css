@@ -9,8 +9,8 @@
   position: absolute;
   top: -11px;
   left: 10px;
-  padding: 0 6px;
-  font-size: 13px;
+  padding: 0 10px;
+  font-size: 14px;
   color: #182a4f;
   z-index: 2;
   font-weight: 500;
@@ -22,8 +22,7 @@
   top: -1px;
   left: 12px;
   height: 2px;
-  width: fit-content;
-  min-width: 65px;
+  width: var(--label-width, 65px);
   background-color: white;
   z-index: 1;
 }
@@ -110,22 +109,32 @@
   gap: 10px;
   align-items: center;
   cursor: pointer;
-  border-top: 1px solid #eee;
   background: white;
+  position: relative;
+}
+
+.select-with-icon-option::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 1px;
+  width: 130px;
+  background-color: #182A4F;
 }
 
 .select-with-icon-option:hover {
   background-color: #f8f8f8;
 }
 
-.select-with-icon-option.selected {
-  font-weight: bold;
-  color: #f34d08;
-}
-
 .select-with-icon-checkmark {
-  font-size: 18px;
-  color: #f34d08;
+  position: absolute;
+  right: 20px;
+  font-size: 2px;
+  color: #f35d08;
+  display: flex;
+  align-items: center;
 }
 
 .select-with-icon-status {

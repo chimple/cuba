@@ -63,3 +63,20 @@
   transition: transform 0.1s ease;
   transform: translateY(2px);
 }
+
+.assignment-join-class-container-scroll {
+  transition: transform  0.3s ease-in-out;
+  position: relative;
+}
+
+.assignment-join-class-container-scroll.shift-up {
+  transform: translateY(-24vh);
+}
+
+
+
+
+
+
+
+

@@ -1,16 +1,10 @@
-/* ImageDropdown.css */
 .imageDropdown-container {
   display: flex;
   align-items: center;
   border-bottom: 2px solid #9473CB;
-  /* width: clamp(170px, 200px, 300px); */
+  width: clamp(160px, 30vw, 200px);
   height: min(5vh, 40px);
   min-height: 35px;
-}
-
-.image-drop-content {
-  display: flex;
-  align-items: center;
 }
 
 .imageDropdown-select {
@@ -20,7 +14,7 @@
   border-radius: 8px solid transparent;
   padding: 0.8vh 1vw;
   color: #333;
-  font-size: 2vh;
+  font-size: 2.7vh;
   height: 5vh;
 }
 
@@ -37,46 +31,47 @@
   max-width: 5vh;
   height: min(4vh, 30px);
   min-height: 25px;
-  margin-right: 10px;
+  /* margin-right: 1rem; */
   border-radius: 50%;
 }
 
 .icon-container {
   display: flex;
   align-items: center;
-  margin-left: 10px;
+  /* margin-left: 10px; */
   color: #707070;
 }
-.selectedImageDropdown-value {
+.imageDropdown-container
+  .css-1m5xwth-MuiInputBase-root-MuiOutlinedInput-root-MuiSelect-root.Mui-focused
+  .MuiOutlinedInput-notchedOutline {
+  border-color: none;
+  border-width: 0;
+}
+.imageDropdown-selected {
   display: flex;
   align-items: center;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  margin-left: -15px;
+  color:#333;
+  font-weight: 400;
 }
-.selectedImageDropdown-value span {
-  color: #707070;
-  font-size: 2.5vh;
-}
-.dropdown-text {
+.imageDropdown-text {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   line-height: 1.2;
 }
 
-.subject-text {
+.imageDropdown-subject-text {
   font-size: 2vh;
   font-weight: 500;
-  color: #707070;
+  color: #333;
 }
 
 .imageDropdown-container .grade-text {
   font-size: 1.6vh;
   font-weight: 400;
-  color: #707070;
-}
-.image-subject-dropdown-icon {
-  width: 16px;
-  height: 16px;
+  color: #666;
 }

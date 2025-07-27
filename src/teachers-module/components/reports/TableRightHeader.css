@@ -1,21 +1,24 @@
 .tableRightHeader {
   position: relative;
   text-align: center;
-  height: 120px; 
+  height: 150px; 
   overflow: hidden;
 }
-
+ 
 .tableRightHeaderText {
-  contain: size;
-  color: #707070;
+  color: #4A4949;
+  font-weight: 400;
   writing-mode: vertical-rl;
-  width: 100%;
+  width: fit-content;
   height: 80%;
-  display: flex;
-  justify-content: space-around;
+  margin: 0 auto;                 
+  text-align: left;   
   overflow: hidden;
   text-overflow: ellipsis;
-  align-items: center;
+  white-space: nowrap;
+  line-height: 1.2;
+  font-size: 14px;
+  font-style: normal;
 }
 
 .aboveText, .belowText {
@@ -24,6 +27,8 @@
   /* position: absolute; */
   width: 100%; /* Full width to align with th */
   text-align: center;
+  margin-top: -10px;
+  margin-bottom: 10px;
 }
 
 .aboveText {
@@ -39,6 +44,7 @@
   border-right: 1px solid #ddd;
   text-align: center;
   font-weight: bold;
+  padding: 0 10px;
 }
 
 .assignment-subheaders {

@@ -438,8 +438,8 @@ export interface ServiceApi {
     gender: string,
     avatar: string,
     image: string | undefined,
-    boardDocId: string,
-    gradeDocId: string,
+    boardDocId: string | undefined,
+    gradeDocId: string | undefined,
     languageDocId: string
   ): Promise<TableTypes<"user">>;
 
@@ -994,7 +994,7 @@ export interface ServiceApi {
    */
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId: string,
+    courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -1009,8 +1009,9 @@ export interface ServiceApi {
    */
   getStudentLastTenResults(
     studentId: string,
-    courseId: string,
-    assignmentIds: string[]
+    courseIds: string[],
+    assignmentIds: string[],
+    classId
   ): Promise<TableTypes<"result">[]>;
   /**
    * Creates a class for the given school
@@ -1076,7 +1077,8 @@ export interface ServiceApi {
     lesson_id: string,
     chapter_id: string,
     course_id: string,
-    type: string
+    type: string,
+    batch_id: string
   ): Promise<boolean>;
 
   /**
@@ -1186,9 +1188,10 @@ export interface ServiceApi {
    */
   getStudentResultByDate(
     studentId: string,
-    course_id: string,
+    courseIds: string[],
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined>;
 
   /**
@@ -1221,7 +1224,8 @@ export interface ServiceApi {
     chapter_id: string,
     course_id: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined>;
 
   /**
@@ -1769,15 +1773,29 @@ export interface ServiceApi {
   }>;
 
   /**
-   * Retrieve the list of managers and coordinators associated with the current user.
+   * Retrieve the list of managers and coordinators associated with the current user,
+   * with support for pagination, search, and sorting.
    *
-   * @returns {Promise<{ name: string; role: string }[]>}
-   *   Promise resolving to an array of objects, each containing the user's name and their role
-   *   (e.g., "Program Manager", "Field Coordinator").
+   * @param page - The page number for pagination (default: 1).
+   * @param search - Search term to filter by user name (default: "").
+   * @param limit - Number of users per page (default: 10).
+   * @param sortBy - Field to sort by (default: "name").
+   * @param sortOrder - Sort order: "asc" or "desc" (default: "asc").
+   *
+   * @returns Promise resolving to an object containing:
+   *   - data: Array of user objects with their highest role and all assigned roles.
+   *   - totalCount: Total number of matching users.
    */
-  getManagersAndCoordinators(): Promise<
-    { user: TableTypes<"user">; role: string }[]
-  >;
+  getManagersAndCoordinators(
+    page?: number,
+    search?: string,
+    limit?: number,
+    sortBy?: keyof TableTypes<"user">,
+    sortOrder?: "asc" | "desc"
+  ): Promise<{
+    data: { user: TableTypes<"user">; role: string }[];
+    totalCount: number;
+  }>;
 
   /**
    * Count total and active students, total and active teachers, and average time spent for a given school.
@@ -1838,4 +1856,10 @@ export interface ServiceApi {
    * @param {number} role - user Role.
    */
   deleteUserFromSchoolsWithRole(userId: string, role: string): Promise<void>;
+  /**
+   * Fetches chapters by chapterIDs array.
+   * @param {string[]} chapterIds - Array of chapter IDs to fetch.
+   * @returns {Promise<TableTypes<"chapter">[]>} - A promise that resolves to an array of chapter objects.
+   */
+  getChaptersByIds(chapterIds: string[]): Promise<TableTypes<"chapter">[]>;
 }

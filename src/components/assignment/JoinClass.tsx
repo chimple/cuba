@@ -24,13 +24,14 @@ const JoinClass: FC<{
   const [error, setError] = useState("");
   const [schoolName, setSchoolName] = useState<string>();
   const [isInputFocus, setIsInputFocus] = useState(false);
-  const scollToRef = useRef<null | HTMLDivElement>(null);
+  const scrollToRef = useRef<null | HTMLDivElement>(null);
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [fullName, setFullName] = useState("");
   const [currStudent] = useState<any>(Util.getCurrentStudent());
 
   const api = ServiceConfig.getI().apiHandler;
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const isNextButtonEnabled = () => {
     let tempInviteCode = urlClassCode.inviteCode
@@ -78,7 +79,8 @@ const JoinClass: FC<{
   };
   const onJoin = async () => {
     // setShowDialogBox(false);
-    setLoading(true);
+    if (loading) return;
+     setLoading(true);
     const student = Util.getCurrentStudent();
 
     try {
@@ -122,7 +124,9 @@ const JoinClass: FC<{
       // window.location.reload();
     } catch (error) {
       if (error instanceof Object) setError(error.toString());
-    }
+    } finally {
+      setLoading(false);
+      }
 
     setLoading(false);
   };
@@ -148,14 +152,47 @@ const JoinClass: FC<{
     }
   }, []);
 
+
+useEffect(() => {
+  if (Capacitor.isNativePlatform()) {
+    Keyboard.setScroll({ isDisabled: true });
+    const handleKeyboardShow = () => {
+      setIsInputFocus(true);
+    };
+
+    const handleKeyboardHide = () => {
+      setIsInputFocus(false);
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    };
+
+    const showSub = Keyboard.addListener("keyboardWillShow", handleKeyboardShow);
+    const hideSub = Keyboard.addListener("keyboardWillHide", handleKeyboardHide);
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }
+}, []);
+
+
+
+
   useEffect(() => {
     if (inviteCode && inviteCode.toString().length === 6) {
       getClassData();
     }
   }, [inviteCode]);
 
+  const isFormValid = codeResult && error === "" && (fullName.length >= 3 || fullName === currStudent.name) &&
+      inviteCode?.toString().length === 6;
+
   return (
     <div className="join-class-parent-container">
+      <div className={`assignment-join-class-container-scroll ${isInputFocus ? "shift-up" : ""}`} ref={containerRef}>
       <h2>{t("Join a Class by entering the details below")}</h2>
       <div className="join-class-container">
         <InputWithIcons
@@ -172,6 +209,7 @@ const JoinClass: FC<{
               <img src="assets/icons/Vector.svg" alt="Status icon" />
             )
           }
+          required = {true}
         />
 
         <InputWithIcons
@@ -191,8 +229,12 @@ const JoinClass: FC<{
               ) : null
             ) : null
           }
+          required = {true}
         />
+        
+
       </div>
+
       <div className="join-class-message">
         {codeResult &&
         !error &&
@@ -206,18 +248,12 @@ const JoinClass: FC<{
       <button
         className="join-class-confirm-button"
         onClick={onJoin}
-        disabled={
-          !(
-            codeResult &&
-            !error &&
-            error === "" &&
-            (fullName.length >= 3 || fullName === currStudent.name) &&
-            inviteCode?.toString().length === 6
-          )
-        }
-      >
+        disabled={loading || !isFormValid}
+        >
         <span className="join-class-confirm-text">{t("Confirm")}</span>
       </button>
+
+      </div>
     </div>
   );
 };
