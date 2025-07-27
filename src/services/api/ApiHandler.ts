@@ -232,17 +232,17 @@ export class ApiHandler implements ServiceApi {
   }
 
   public async getSchoolsForUser(
-  userId: string,
-  options?: { page?: number; page_size?: number }
-): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
-  return await this.s.getSchoolsForUser(userId, options);
-}
-public async getUserRoleForSchool(
-  userId: string,
-  schoolId: string
-): Promise<RoleType | undefined> {
-  return await this.s.getUserRoleForSchool(userId, schoolId);
-}
+    userId: string,
+    options?: { page?: number; page_size?: number }
+  ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
+    return await this.s.getSchoolsForUser(userId, options);
+  }
+  public async getUserRoleForSchool(
+    userId: string,
+    schoolId: string
+  ): Promise<RoleType | undefined> {
+    return await this.s.getUserRoleForSchool(userId, schoolId);
+  }
 
   public async getCoursesByClassId(
     classid: string
@@ -1019,6 +1019,12 @@ public async getUserRoleForSchool(
     role: RoleType
   ): Promise<void> {
     return this.s.addUserToSchool(schoolId, userId, role);
+  }
+  async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    studentLoginType: string;
+    schoolModel: string;
+  } | null> {
+    return this.s.getSchoolDetailsByUdise(udiseCode);
   }
   async deleteUserFromSchool(
     schoolId: string,

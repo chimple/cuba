@@ -994,7 +994,7 @@ export interface ServiceApi {
    */
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-     courseIds: string[],
+    courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -1853,4 +1853,13 @@ export interface ServiceApi {
    * @param {number} role - user Role.
    */
   deleteUserFromSchoolsWithRole(userId: string, role: string): Promise<void>;
+
+  /**
+   * Fetch student login type and program model by UDISE code.
+   * @param {string} udiseCode - UDISE code of the school.
+   * @returns {Promise<{ studentLoginType: string; programId: string; programModel: string } | null>}
+   */
+  getSchoolDetailsByUdise(
+    udiseCode: string
+  ): Promise<{ studentLoginType: string; schoolModel: string } | null>;
 }

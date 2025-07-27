@@ -3956,6 +3956,38 @@ export class SupabaseApi implements ServiceApi {
       throw new Error("Unexpected error updating rewards as seen.");
     }
   }
+  async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    studentLoginType: string;
+    schoolModel: string;
+  } | null> {
+    if (!this.supabase) return null;
+
+    try {
+      // Fetch student_login_type and program_model directly from school table
+      const { data: schoolData, error } = await this.supabase
+        .from("school")
+        .select("student_login_type, model")
+        .eq("udise", udiseCode)
+        .eq("is_deleted", false)
+        .single();
+      console.log("schoolData", schoolData);
+      if (error || !schoolData) {
+        console.error("Error fetching school data:", error);
+        return null;
+      }
+
+      const { student_login_type, model } = schoolData;
+
+      return {
+        studentLoginType: student_login_type || "",
+        schoolModel: model || "",
+      };
+    } catch (err) {
+      console.error("Unexpected error in getSchoolDetailsByUdise:", err);
+      return null;
+    }
+  }
+
   async getUserByDocId(
     studentId: string
   ): Promise<TableTypes<"user"> | undefined> {
@@ -4329,7 +4361,7 @@ export class SupabaseApi implements ServiceApi {
   }
   async getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-     courseIds: string[],
+    courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -6582,7 +6614,8 @@ export class SupabaseApi implements ServiceApi {
       }
 
       return {
-        data: (data.data ?? []) as unknown as FilteredSchoolsForSchoolListingOps[],
+        data: (data.data ??
+          []) as unknown as FilteredSchoolsForSchoolListingOps[],
         total: typeof data.total === "number" ? data.total : 0,
       };
     } catch (err) {
@@ -6908,23 +6941,23 @@ export class SupabaseApi implements ServiceApi {
           avg_weekly_time_minutes: 0,
         };
       }
-    const stats = data as unknown as {
-      total_students: number;
-      total_teachers: number;
-      total_institutes: number;
-      active_student_percentage: number;
-      active_teacher_percentage: number;
-      avg_weekly_time_minutes: number;
-    };
+      const stats = data as unknown as {
+        total_students: number;
+        total_teachers: number;
+        total_institutes: number;
+        active_student_percentage: number;
+        active_teacher_percentage: number;
+        avg_weekly_time_minutes: number;
+      };
 
-    return {
-      total_students: stats.total_students ?? 0,
-      total_teachers: stats.total_teachers ?? 0,
-      total_institutes: stats.total_institutes ?? 0,
-      active_student_percentage: stats.active_student_percentage ?? 0,
-      active_teacher_percentage: stats.active_teacher_percentage ?? 0,
-      avg_weekly_time_minutes: stats.avg_weekly_time_minutes ?? 0,
-    };  
+      return {
+        total_students: stats.total_students ?? 0,
+        total_teachers: stats.total_teachers ?? 0,
+        total_institutes: stats.total_institutes ?? 0,
+        active_student_percentage: stats.active_student_percentage ?? 0,
+        active_teacher_percentage: stats.active_teacher_percentage ?? 0,
+        avg_weekly_time_minutes: stats.avg_weekly_time_minutes ?? 0,
+      };
     } catch (err) {
       console.error("Unexpected error:", err);
       return {
