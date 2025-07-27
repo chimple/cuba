@@ -190,7 +190,7 @@ const DisplaySchools: FC<{}> = () => {
       ) : (
         <>
           <div
-           className="all-school-display-container display-all-schools-scroll"
+            className="all-school-display-container display-all-schools-scroll"
             ref={scrollRef}
             style={{ overflowY: "auto", maxHeight: "calc(100vh - 200px)" }}
           >
@@ -205,7 +205,7 @@ const DisplaySchools: FC<{}> = () => {
                       <img
                         className="school-image-p"
                         src={school.school.image ?? "assets/icons/school.png"}
-                      ></img>
+                      />
                     </div>
                     <div className="display-school-name">
                       {school.school.name}
@@ -213,17 +213,19 @@ const DisplaySchools: FC<{}> = () => {
                   </div>
                 </div>
               ))}
-               {loading && (
-              <div className="display-loading-text">
+            </div>
+
+            {loading && (
+              <div className="display-loading-text bottom-loader">
                 {t("Loading...")}
-              </div>  
+              </div>
             )}
-              {!hasMore && schoolList.length > 0 && (
-                <div className="display-no-more-schools">
+
+            {!hasMore && schoolList.length > 0 && (
+              <div className="display-no-more-schools">
                 {t("No more schools")}
               </div>
-              )}
-            </div>
+            )}
           </div>
         </>
       )}

@@ -153,3 +153,10 @@
   overflow-y: auto;
   max-height: calc(100vh - 200px);
 }
+
+.display-loading-text.bottom-loader {
+  text-align: center;
+  padding: 16px;
+  font-size: 14px;
+  color: #888;
+}
