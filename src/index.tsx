@@ -43,7 +43,7 @@ if (typeof window !== "undefined") {
     (window as any).SpeechSynthesisUtterance = SpeechSynthesisUtterance;
   }
 }
-
+SplashScreen.show();
 if (Capacitor.isNativePlatform()) {
   await ScreenOrientation.lock({ orientation: "landscape" });
 }
@@ -61,7 +61,6 @@ window.onunhandledrejection = (event: PromiseRejectionEvent) => {
 window.onerror = (message, source, lineno, colno, error) => {
   recordExecption(message.toString, error.toString());
 };
-SplashScreen.hide();
 const container = document.getElementById("root");
 const root = createRoot(container!);
 GoogleAuth.initialize({
@@ -80,33 +79,42 @@ const gb = new GrowthBook({
       variationId: result.key,
     });
   },
- });
- gb.init({
+});
+gb.init({
   streaming: true,
- });
+});
+const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
+const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
 
-// Default to Supabase
-const serviceInstance = ServiceConfig.getInstance(APIMode.SUPABASE);
-const authHandler = ServiceConfig.getI()?.authHandler;
-const isUserLoggedIn = await authHandler?.isUserLoggedIn();
-// Check role
-const isOpsUser = localStorage.getItem(IS_OPS_USER) === 'true';
+if (isOpsUser) {
+  serviceInstance.switchMode(APIMode.SUPABASE);
 
-if (!isOpsUser && isUserLoggedIn) {
-  // Initialize SQLite only if needed
-  SplashScreen.show();
-  await SqliteApi.getInstance();
-  serviceInstance.switchMode(APIMode.SQLITE);
+  root.render(
+    <GrowthBookProvider growthbook={gb}>
+      <GbProvider>
+        <App />
+      </GbProvider>
+    </GrowthBookProvider>
+  );
+
   SplashScreen.hide();
-}
+} else {
+  SplashScreen.show();
 
-root.render(
-  <GrowthBookProvider growthbook={gb}>
-    <GbProvider>
-      <App />
-    </GbProvider>
-  </GrowthBookProvider>
-);
+  SqliteApi.getInstance().then(() => {
+    serviceInstance.switchMode(APIMode.SQLITE);
+
+    root.render(
+      <GrowthBookProvider growthbook={gb}>
+        <GbProvider>
+          <App />
+        </GbProvider>
+      </GrowthBookProvider>
+    );
+
+    SplashScreen.hide();
+  });
+}
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

@@ -5,16 +5,19 @@ import { PAGES, TableTypes } from "../../../common/constants";
 import { t } from "i18next";
 import { useHistory } from "react-router-dom";
 import ProfileDetails from "../library/ProfileDetails";
-import {caretDownSharp } from "ionicons/icons";
-import { IonIcon } from "@ionic/react";
+import CustomDropdown from "../CustomDropdown";
 
 const UserProfile: React.FC<{
   student: TableTypes<"user">;
   classDoc: TableTypes<"class"> | undefined;
   isEditing: boolean;
-  setStudent: React.Dispatch<React.SetStateAction<TableTypes<"user"> | undefined>>;
+  setStudent: React.Dispatch<
+    React.SetStateAction<TableTypes<"user"> | undefined>
+  >;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
-  setCurrentClass: React.Dispatch<React.SetStateAction<TableTypes<"class"> | undefined>>;
+  setCurrentClass: React.Dispatch<
+    React.SetStateAction<TableTypes<"class"> | undefined>
+  >;
   setSelectedFile: React.Dispatch<React.SetStateAction<File | null>>;
   allClasses: TableTypes<"class">[];
 }> = ({
@@ -44,7 +47,8 @@ const UserProfile: React.FC<{
 
       if (name === "age") {
         const ageValue = parseInt(value);
-        updatedValue = (ageValue >= 0 && ageValue <= 99) ? ageValue : prevState.age;
+        updatedValue =
+          ageValue >= 0 && ageValue <= 99 ? ageValue : prevState.age;
       }
 
       return {
@@ -77,9 +81,8 @@ const UserProfile: React.FC<{
       reader.readAsDataURL(file);
     }
   };
-  const handleClassChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedClassId = e.target.value;
-    const selectedClass = allClasses.find(cls => cls.id === selectedClassId);
+  const handleClassChange = (selectedClassId: string | number) => {
+    const selectedClass = allClasses.find((cls) => cls.id === selectedClassId);
     setStudent((prevState) => {
       if (!prevState) return prevState;
 
@@ -96,22 +99,25 @@ const UserProfile: React.FC<{
         <div className="profile-details-container">
           {isEditing && <span className="add-student-text">Edit Student</span>}
           <ProfileDetails
-            imgSrc={profilePic || student.image || "assets/avatars/" + (student.avatar ?? "") + ".png"}
+            imgSrc={
+              profilePic ||
+              student.image ||
+              "assets/avatars/" + (student.avatar ?? "") + ".png"
+            }
             imgAlt="Profile Pic"
             onImageChange={handleProfilePicChange}
             isEditMode={isEditing}
           />
         </div>
         <div className="profile-info">
-          <div className="student-name1">
-            {isEditing ? (
-              ""
-            ) : (
-              student.name
-            )}
-          </div>
+          <div className="student-name1">{isEditing ? "" : student.name}</div>
           {!isEditing && (
-            <img src="assets/icons/editIcon.svg" alt="Edit_Icon" className="edit-icon" onClick={handleEditClick} />
+            <img
+              src="assets/icons/editIcon.svg"
+              alt="Edit_Icon"
+              className="edit-icon"
+              onClick={handleEditClick}
+            />
           )}
         </div>
       </div>
@@ -162,19 +168,21 @@ const UserProfile: React.FC<{
             </span>
             <span className="userprofile-value">
               {isEditing ? (
-                 <div className="userprofile-dropdown-with-icon">
-                <select
-                  name="class"
-                  value={classDoc?.id}
-                  onChange={handleClassChange}
-                >
-                  {allClasses.map((cls) => (
-                    <option key={cls.id} value={cls.id}>
-                      {cls.name}
-                    </option>
-                  ))}
-                </select>
-                <IonIcon icon={caretDownSharp} className="userprofile-dropdown-icon" />
+                <div className="userprofile-dropdown">
+                  <CustomDropdown
+                    options={allClasses.map((cls) => ({
+                      id: cls.id,
+                      name: cls.name,
+                    }))}
+                    selectedValue={{
+                      id: classDoc?.id ?? "",
+                      name: classDoc?.name ?? t("Select Class"),
+                    }}
+                    onOptionSelect={(selected) =>
+                      handleClassChange(selected?.id)
+                    }
+                    isDownBorder={false}
+                  />
                 </div>
               ) : (
                 classDoc?.name
