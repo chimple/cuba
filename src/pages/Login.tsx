@@ -404,13 +404,16 @@ const Login: React.FC = () => {
       role: RoleType;
     }[]
   ) {
-
-    const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
-    const isOpsRole = userRoles.includes(RoleType.SUPER_ADMIN) || userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
+    const userRoles: string[] = JSON.parse(
+      localStorage.getItem(USER_ROLE) ?? "[]"
+    );
+    const isOpsRole =
+      userRoles.includes(RoleType.SUPER_ADMIN) ||
+      userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
 
     const isProgramUser = await api.isProgramUser();
     if (isOpsRole || isProgramUser) {
-      localStorage.setItem(IS_OPS_USER, 'true');
+      localStorage.setItem(IS_OPS_USER, "true");
       ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
       history.replace(PAGES.SIDEBAR_PAGE);
       return;
@@ -554,10 +557,11 @@ const Login: React.FC = () => {
       setIsLoading(true);
       setIsInitialLoading(true);
       // const _authHandler = ServiceConfig.getI().authHandler;
-      const result: boolean = await authInstance.loginWithEmailAndPassword(
-        schoolCode.trimEnd() + studentId.trimEnd() + DOMAIN,
-        studentPassword.trimEnd()
-      );
+      const { success: result, isSpl: isOps } =
+        await authInstance.loginWithEmailAndPassword(
+          schoolCode.trimEnd() + studentId.trimEnd() + DOMAIN,
+          studentPassword.trimEnd()
+        );
       if (result) {
         setIsLoading(false);
         setIsInitialLoading(false);
@@ -582,10 +586,9 @@ const Login: React.FC = () => {
       setEmailClick(false);
       setIsLoading(true);
       setIsInitialLoading(true);
-      const result: boolean = await authInstance.signInWithEmail(
-        email,
-        password
-      );
+      const { success: result, isSpl: isOpsUser } =
+        await authInstance.signInWithEmail(email, password);
+
       if (result) {
         setIsLoading(true);
         setIsInitialLoading(true);
@@ -710,7 +713,7 @@ const Login: React.FC = () => {
                         setIsInitialLoading(true);
                         setEmailClick(false);
                         const _authHandler = ServiceConfig.getI().authHandler;
-                        const result: boolean = await _authHandler.googleSign();
+                        const result = await _authHandler.googleSign();
 
                         if (result) {
                           setIsLoading(false);
@@ -921,8 +924,7 @@ const Login: React.FC = () => {
                             setIsInitialLoading(true);
                             const _authHandler =
                               ServiceConfig.getI().authHandler;
-                            const result: boolean =
-                              await _authHandler.googleSign();
+                            const result = await _authHandler.googleSign();
                             if (result) {
                               setIsLoading(false);
                               setIsInitialLoading(false);
