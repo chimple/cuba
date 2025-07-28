@@ -90,7 +90,8 @@
 }
 
 .learning-pathway-OK-button {
-    width: 130px;
+    width: 30vw;
+    max-width: 130px;
     height: 44px;
     flex-shrink: 0;
     border-radius: 10px;
