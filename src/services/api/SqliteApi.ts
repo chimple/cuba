@@ -5056,10 +5056,6 @@ order by
     return await this._serverApi.insertProgram(payload);
   }
 
-  async isStudentAlreadyInClass(classId: string, userId: string): Promise<boolean | null> {
-    return await this._serverApi.isStudentAlreadyInClass(classId, userId);
-  }
-
   async getProgramManagers(): Promise<{ name: string; id: string }[]> {
     return await this._serverApi.getProgramManagers();
   }

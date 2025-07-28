@@ -1162,10 +1162,6 @@ export class ApiHandler implements ServiceApi {
     return await this.s.insertProgram(payload);
   }
 
-  public async isStudentAlreadyInClass(classId: string, userId: string): Promise<boolean | null> {
-    return await this.s.isStudentAlreadyInClass(classId, userId);
-  }
-  
   public async getProgramManagers(): Promise<{ name: string; id: string }[]> {
     return await this.s.getProgramManagers();
   }

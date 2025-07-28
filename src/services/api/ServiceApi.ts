@@ -1553,14 +1553,6 @@ export interface ServiceApi {
   insertProgram(payload: any, id?: string): Promise<boolean | null>;
 
   /**
-   * Checks if a student is already enrolled in a given class.
-   * @param {string} classId - The ID of the class to check.
-   * @param {string} userId - The ID of the student/user.
-   * @returns {Promise<boolean | null>} - Returns `true` if the student is already in the class, `false` if not, or `null` on error.
-   */
-  isStudentAlreadyInClass(classId: string, userId: string): Promise<boolean | null>;
-
-  /**
    * Get all program managers
    */
   getProgramManagers(): Promise<{ name: string; id: string }[]>;

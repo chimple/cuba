@@ -1190,10 +1190,6 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  isStudentAlreadyInClass(classId: string, userId: string): Promise<boolean | null> {
-    throw new Error("Method not implemented.");
-  }
-
   getProgramManagers(): Promise<{ name: string; id: string }[]> {
     throw new Error("Method not implemented.");
   }

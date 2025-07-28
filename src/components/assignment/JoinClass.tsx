@@ -78,9 +78,10 @@ const JoinClass: FC<{
     }
   };
   const onJoin = async () => {
+    // setShowDialogBox(false);
     if (loading) return;
     setLoading(true);
-
+    
     try {
       const student = Util.getCurrentStudent();
 
@@ -100,22 +101,6 @@ const JoinClass: FC<{
           student.language_id!
         );
       }
-
-      if (!codeResult) {
-        throw new Error("Code result is missing.");
-      }
-
-      const alreadyInClass = await api.isStudentAlreadyInClass(
-        codeResult["class_id"],
-        student.id
-      );
-
-      if (alreadyInClass) {
-        onClassJoin();
-        window.dispatchEvent(new CustomEvent("JoinClassListner", { detail: "Joined" }));
-        return;
-      }
-
       await api.linkStudent(inviteCode, student.id);
       if (!!codeResult) {
         Util.subscribeToClassTopic(
