@@ -2848,13 +2848,6 @@ export type Database = {
         Args: { p_user_id: string };
         Returns: boolean;
       };
-      is_student_already_in_class: {
-        Args: {
-          _class_id: string;
-          _user_id: string;
-        };
-        Returns: boolean;
-      };
       isUserExists: {
         Args: { user_phone: string; user_email: string };
         Returns: boolean;

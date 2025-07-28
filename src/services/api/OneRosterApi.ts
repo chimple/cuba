@@ -1189,7 +1189,6 @@ export class OneRosterApi implements ServiceApi {
   insertProgram(payload: any): Promise<boolean | any> {
     throw new Error("Method not implemented.");
   }
-
   getProgramManagers(): Promise<{ name: string; id: string }[]> {
     throw new Error("Method not implemented.");
   }

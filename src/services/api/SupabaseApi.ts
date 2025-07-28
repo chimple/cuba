@@ -7202,5 +7202,4 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
   }
-
 }
