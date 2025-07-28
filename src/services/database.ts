@@ -2840,6 +2840,10 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
       };
+      is_special_or_program_user: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
       is_special_user_privileged: {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
