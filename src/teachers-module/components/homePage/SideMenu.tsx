@@ -256,7 +256,6 @@ const SideMenu: React.FC<{
       }
 
       const currentClass = await api.getClassById(classIdStr);
-      console.log("currentClass💕💕💕", currentClass);
 
       if (!currentClass || !currentClass.id) {
         console.warn("Class not found or invalid response");
@@ -271,7 +270,6 @@ const SideMenu: React.FC<{
       }
 
       setCurrentClassId(currentClass.id);
-      console.log("currentClassI😍😍😍😍", currentClass);
       setcurrentClassDetail({
         id: currentClass.id,
         name: name || currentClass.name,
