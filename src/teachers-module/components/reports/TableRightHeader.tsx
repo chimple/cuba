@@ -38,12 +38,7 @@ const TableRightHeader: React.FC<TableRightHeaderProps> = ({
         if (!details) return null;
 
         const { headerName } = details;
-        const translated = t(headerName);
-        const displayName =
-          translated.length > 8
-            ? `${translated.slice(0, 8)}…`
-            : translated;
-
+      
         const displayDate = new Date(startDate);
         displayDate.setDate(startDate.getDate() + index);
 
@@ -51,6 +46,7 @@ const TableRightHeader: React.FC<TableRightHeaderProps> = ({
           <th className="tableRightHeader" key={assignmentId || index}>
             <div className="aboveText">
               {/* <span>{formatDate(startDate)}</span> */}
+              <span>{formatDate(displayDate)}</span>
             </div>
             <div className="tableRightHeaderText">
               {t(headerName)}
