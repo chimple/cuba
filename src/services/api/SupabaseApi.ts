@@ -4406,7 +4406,8 @@ export class SupabaseApi implements ServiceApi {
   async getStudentLastTenResults(
     studentId: string,
     courseIds: string[],
-    assignmentIds: string[]
+    assignmentIds: string[],
+    classId
   ): Promise<TableTypes<"result">[]> {
     if (!this.supabase) return [];
 
@@ -4416,6 +4417,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("student_id", studentId)
       .in("course_id", courseIds)
+      .eq("class_id", classId)
       .is("assignment_id", null)
       .eq("is_deleted", false)
       .order("created_at", { ascending: false })
@@ -4433,6 +4435,7 @@ export class SupabaseApi implements ServiceApi {
         .select("*")
         .eq("student_id", studentId)
         .in("course_id", courseIds)
+        .eq("class_id", classId)
         .in("assignment_id", assignmentIds)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false })
@@ -4926,7 +4929,8 @@ export class SupabaseApi implements ServiceApi {
     studentId: string,
     courseIds: string[],
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
     if (!this.supabase) return;
 
@@ -4934,6 +4938,7 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.Result)
       .select("*")
       .eq("student_id", studentId)
+      .eq("class_id", classId)
       .in("course_id", courseIds)
       .gte("created_at", startDate)
       .lte("created_at", endDate)
@@ -5037,7 +5042,8 @@ export class SupabaseApi implements ServiceApi {
     chapter_id: string,
     course_id: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
     if (!this.supabase) return;
 
@@ -5047,6 +5053,7 @@ export class SupabaseApi implements ServiceApi {
         .select("*")
         .eq("chapter_id", chapter_id)
         .eq("course_id", course_id)
+        .eq("class_id", classId)
         .gte("created_at", startDate)
         .lte("created_at", endDate)
         .eq("is_deleted", false)
@@ -7191,6 +7198,39 @@ export class SupabaseApi implements ServiceApi {
       }
     } catch (e) {
       console.error("Unexpected error while deleting user:", e);
+    }
+  }
+  async getChaptersByIds(
+    chapterIds: string[]
+  ): Promise<TableTypes<"chapter">[]> {
+    if (!this.supabase) {
+      console.error(
+        "getChaptersByIds failed: Supabase client not initialized."
+      );
+      return [];
+    }
+
+    if (!chapterIds || chapterIds.length === 0) {
+      console.warn("getChaptersByIds was called with no chapter IDs.");
+      return [];
+    }
+
+    try {
+      const { data, error } = await this.supabase
+        .from(TABLES.Chapter)
+        .select("*")
+        .in("id", chapterIds)
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.warn("Error fetching chapters by IDs:", chapterIds);
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error("Error fetching chapters", error);
+      return [];
     }
   }
 }

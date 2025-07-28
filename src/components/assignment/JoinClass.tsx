@@ -79,7 +79,8 @@ const JoinClass: FC<{
   };
   const onJoin = async () => {
     // setShowDialogBox(false);
-    setLoading(true);
+    if (loading) return;
+     setLoading(true);
     const student = Util.getCurrentStudent();
 
     try {
@@ -123,7 +124,9 @@ const JoinClass: FC<{
       // window.location.reload();
     } catch (error) {
       if (error instanceof Object) setError(error.toString());
-    }
+    } finally {
+      setLoading(false);
+      }
 
     setLoading(false);
   };
@@ -184,6 +187,9 @@ useEffect(() => {
     }
   }, [inviteCode]);
 
+  const isFormValid = codeResult && error === "" && (fullName.length >= 3 || fullName === currStudent.name) &&
+      inviteCode?.toString().length === 6;
+
   return (
     <div className="join-class-parent-container">
       <div className={`assignment-join-class-container-scroll ${isInputFocus ? "shift-up" : ""}`} ref={containerRef}>
@@ -242,16 +248,8 @@ useEffect(() => {
       <button
         className="join-class-confirm-button"
         onClick={onJoin}
-        disabled={
-          !(
-            codeResult &&
-            !error &&
-            error === "" &&
-            (fullName.length >= 3 || fullName === currStudent.name) &&
-            inviteCode?.toString().length === 6
-          )
-        }
-      >
+        disabled={loading || !isFormValid}
+        >
         <span className="join-class-confirm-text">{t("Confirm")}</span>
       </button>
 

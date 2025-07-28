@@ -32,8 +32,9 @@ export class ClassUtil {
       true
     );
     const assignmentIds = assignements?.map((asgmt) => asgmt.id) || [];
-    const assignmentResult = await this.api.getResultByAssignmentIds(assignmentIds);
-      
+    const assignmentResult =
+      await this.api.getResultByAssignmentIds(assignmentIds);
+
     assignmentResult?.forEach((res) => {
       totalScore = totalScore + (res.score ?? 0);
       timeSpent = timeSpent + (res.time_spent ?? 0) / 60;
@@ -53,13 +54,13 @@ export class ClassUtil {
       },
       {} as { [key: string]: Set<string> }
     );
-    
+
     const studentsWhoCompletedAllAssignments = studentsWithCompletedAssignments
       ? Object.keys(studentsWithCompletedAssignments).filter((studentId) => {
           return studentsWithCompletedAssignments[studentId].size > 0;
         }).length
       : 0;
-        
+
     const assignmentsWithCompletedStudents = assignmentResult?.reduce(
       (acc, result) => {
         const { student_id, assignment_id } = result;
@@ -73,8 +74,7 @@ export class ClassUtil {
       },
       {} as { [key: string]: Set<string> }
     );
-    
-  
+
     const assignmentsCompletedByAllStudents = assignmentsWithCompletedStudents
       ? Object.keys(assignmentsWithCompletedStudents).filter((assignmentId) => {
           return (
@@ -83,16 +83,20 @@ export class ClassUtil {
           );
         }).length
       : 0;
-    const timeSpentByAllStudents = totalStudents > 0 ? parseFloat((timeSpent / totalStudents).toFixed(2)) : 0;
+    const timeSpentByAllStudents =
+      totalStudents > 0
+        ? parseFloat((timeSpent / totalStudents).toFixed(2))
+        : 0;
     const resultCount = assignmentResult?.length ?? 0;
-    const avgScore = resultCount > 0 ? parseFloat((totalScore / resultCount).toFixed(1)) : 0;
-        
+    const avgScore =
+      resultCount > 0 ? parseFloat((totalScore / resultCount).toFixed(1)) : 0;
+
     return {
       assignments: {
         asgnmetCmptd: totalStudents > 0 ? assignmentsCompletedByAllStudents : 0,
         totalAssignments: totalAssignments,
       },
-      
+
       students: {
         stdCompletd: totalStudents > 0 ? studentsWhoCompletedAllAssignments : 0,
         totalStudents: totalStudents,
@@ -101,7 +105,6 @@ export class ClassUtil {
       averageScore: totalStudents > 0 ? avgScore : 0,
     };
   }
-
 
   public async divideStudents(classId: string, courseIds: string[]) {
     const greenGroup: Map<
@@ -148,7 +151,8 @@ export class ClassUtil {
       const results = await this.api.getStudentLastTenResults(
         student.id,
         courseIds,
-        assignmentIds
+        assignmentIds,
+        classId
       );
       const selfPlayedLength = results.filter(
         (result) => result.assignment_id === null
@@ -306,7 +310,8 @@ export class ClassUtil {
         student.id,
         courseIds,
         startTimeStamp,
-        endTimeStamp
+        endTimeStamp,
+        classId
       );
       res = isAssignments
         ? res?.filter((item) => item.assignment_id !== null)
@@ -400,7 +405,8 @@ export class ClassUtil {
         student.id,
         courseIds,
         startTimeStamp,
-        endTimeStamp
+        endTimeStamp,
+        classId
       );
       res = isAssignments
         ? res?.filter((item) => item.assignment_id !== null)
@@ -456,7 +462,7 @@ export class ClassUtil {
     startDate: Date,
     endDate: Date,
     isLiveQuiz: boolean,
-    sortBy: TABLESORTBY,
+    sortBy: TABLESORTBY
   ) {
     const adjustedStartDate = subDays(new Date(startDate), 1);
     const adjustedEndDate = addDays(new Date(endDate), 1);
@@ -604,7 +610,8 @@ export class ClassUtil {
     studentId: string,
     courseIds: string[],
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ) {
     const adjustedStartDate = subDays(new Date(startDate ?? ""), 1);
     const adjustedEndDate = addDays(new Date(endDate ?? ""), 1);
@@ -620,7 +627,8 @@ export class ClassUtil {
       studentId,
       courseIds,
       startTimeStamp,
-      endTimeStamp
+      endTimeStamp,
+      classId
     );
     const lessonIds = res?.map((item) => item.lesson_id ?? "");
     var lessons = await this.api.getLessonsBylessonIds(lessonIds ?? []);
@@ -672,7 +680,8 @@ export class ClassUtil {
       chapterId,
       courseId,
       startTimeStamp,
-      endTimeStamp
+      endTimeStamp,
+      classId
     );
     chapterResults = isAssignments
       ? chapterResults?.filter((item) => item.assignment_id !== null)
@@ -755,42 +764,48 @@ export class ClassUtil {
     return groups;
   }
   public sortStudentsByTotalScoreAssignment = (
-        studentsMap: Map<string, { student: TableTypes<"user">; results: Record<string, any[]> }>
-      ): Map<string, { student: TableTypes<"user">; results: Record<string, any[]> }> => {
-        // Convert Map to array of entries
-        const studentsArray = Array.from(studentsMap.entries());
-        
-        // Calculate total score for each student
-        const studentsWithScores = studentsArray.map(([studentId, studentData]) => {
-          let totalScore = 0;
-          let validResults = 0;
-      
-          // Sum scores from all assignments
-          Object.values(studentData.results).forEach(assignmentResults => {
-            assignmentResults.forEach(result => {
-              if (result.score !== null && !isNaN(result.score)) {
-                totalScore += result.score;
-                validResults++;
-              }
-            });
-          });
-      
+    studentsMap: Map<
+      string,
+      { student: TableTypes<"user">; results: Record<string, any[]> }
+    >
+  ): Map<
+    string,
+    { student: TableTypes<"user">; results: Record<string, any[]> }
+  > => {
+    // Convert Map to array of entries
+    const studentsArray = Array.from(studentsMap.entries());
+
+    // Calculate total score for each student
+    const studentsWithScores = studentsArray.map(([studentId, studentData]) => {
+      let totalScore = 0;
+      let validResults = 0;
+
+      // Sum scores from all assignments
+      Object.values(studentData.results).forEach((assignmentResults) => {
+        assignmentResults.forEach((result) => {
+          if (result.score !== null && !isNaN(result.score)) {
+            totalScore += result.score;
+            validResults++;
+          }
+        });
+      });
+
       // Calculate average score (or 0 if no valid results)
       const averageScore = validResults > 0 ? totalScore / validResults : 0;
-      
+
       return {
         studentId,
         studentData,
-        averageScore
+        averageScore,
       };
     });
-    
+
     // Sort by average score (ascending for LOWSCORE)
     studentsWithScores.sort((a, b) => a.averageScore - b.averageScore);
-    
+
     // Convert back to Map
     return new Map(
-      studentsWithScores.map(item => [item.studentId, item.studentData])
+      studentsWithScores.map((item) => [item.studentId, item.studentData])
     );
   };
 }

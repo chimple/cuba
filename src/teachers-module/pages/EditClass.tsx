@@ -24,8 +24,8 @@ const EditClass: FC = () => {
   const location = useLocation<LocationState>();
   const api = ServiceConfig.getI()?.apiHandler;
   const incoming = location.state?.classDoc ?? Util.getCurrentClass();
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(incoming ?? null);
-  const [className, setClassName] = useState<string>(incoming?.name ?? "");
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
+  const [className, setClassName] = useState<string>("");
   const { school: localSchool = null, classDoc: tempClass = null } =
     (location.state || {}) as any;
   const currentSchool =

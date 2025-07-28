@@ -96,18 +96,20 @@ const HomePage: React.FC = () => {
     setTabValue(newValue);
   };
   const renderComponent = () => {
+    const key = currentClass?.id || "";
     switch (tabValue) {
       case 0:
-        return <DashBoard />;
+        return <DashBoard key={key} />;
       case 1:
-        return <Library />;
+        return <Library key={key} />;
       case 2:
         return (
-          <TeacherAssignment onLibraryClick={() => setTabValue(1)} />
+          <TeacherAssignment key={key} onLibraryClick={() => setTabValue(1)} />
         );
       case 3:
         return (
           <ReportTable
+            key={key}
             handleButtonClick={() => setTabValue(1)}
             isAssignmentsProp={location.state?.isAssignments}
             selectedTypeProp={location.state?.selectedType}
@@ -117,9 +119,9 @@ const HomePage: React.FC = () => {
           />
         );
       case 4:
-        return <ComingSoon />;
+        return <ComingSoon key={key} />;
       default:
-        return <Library />;
+        return <Library key={key} />;
     }
   };
   const dataURLtoFile = (dataUrl: string, filename: string): File => {

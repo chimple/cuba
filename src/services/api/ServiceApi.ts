@@ -1010,7 +1010,8 @@ export interface ServiceApi {
   getStudentLastTenResults(
     studentId: string,
     courseIds: string[],
-    assignmentIds: string[]
+    assignmentIds: string[],
+    classId
   ): Promise<TableTypes<"result">[]>;
   /**
    * Creates a class for the given school
@@ -1189,7 +1190,8 @@ export interface ServiceApi {
     studentId: string,
     courseIds: string[],
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined>;
 
   /**
@@ -1222,7 +1224,8 @@ export interface ServiceApi {
     chapter_id: string,
     course_id: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined>;
 
   /**
@@ -1862,4 +1865,10 @@ export interface ServiceApi {
   getSchoolDetailsByUdise(
     udiseCode: string
   ): Promise<{ studentLoginType: string; schoolModel: string } | null>;
+  /**
+   * Fetches chapters by chapterIDs array.
+   * @param {string[]} chapterIds - Array of chapter IDs to fetch.
+   * @returns {Promise<TableTypes<"chapter">[]>} - A promise that resolves to an array of chapter objects.
+   */
+  getChaptersByIds(chapterIds: string[]): Promise<TableTypes<"chapter">[]>;
 }

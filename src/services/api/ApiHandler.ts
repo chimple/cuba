@@ -854,9 +854,15 @@ export class ApiHandler implements ServiceApi {
   getStudentLastTenResults(
     studentId: string,
     courseIds: string[],
-    assignmentIds: string[]
+    assignmentIds: string[],
+    classId
   ): Promise<TableTypes<"result">[]> {
-    return this.s.getStudentLastTenResults(studentId, courseIds, assignmentIds);
+    return this.s.getStudentLastTenResults(
+      studentId,
+      courseIds,
+      assignmentIds,
+      classId
+    );
   }
   getResultByAssignmentIds(
     assignmentIds: string[]
@@ -956,13 +962,15 @@ export class ApiHandler implements ServiceApi {
     studentId: string,
     courseIds: string[],
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
     return this.s.getStudentResultByDate(
       studentId,
       courseIds,
       startDate,
-      endDate
+      endDate,
+      classId
     );
   }
   getLessonsBylessonIds(
@@ -981,13 +989,15 @@ export class ApiHandler implements ServiceApi {
     chapter_id: string,
     course_id: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
     return this.s.getResultByChapterByDate(
       chapter_id,
       course_id,
       startDate,
-      endDate
+      endDate,
+      classId
     );
   }
   createClassCode(classId: string): Promise<number> {
@@ -1364,4 +1374,8 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return await this.s.deleteUserFromSchoolsWithRole(userId, role);
   }
+  public async getChaptersByIds(
+    chapterIds: string[]){
+    return await this.s.getChaptersByIds(chapterIds);
+    }
 }
