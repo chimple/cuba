@@ -1033,7 +1033,8 @@ export interface ServiceApi {
     chapter_id: string,
     course_id: string,
     type: string,
-    created_at?: string
+    source: string,
+    created_at?: string,
   ): Promise<boolean>;
 
   /**

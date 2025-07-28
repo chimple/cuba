@@ -829,7 +829,8 @@ export class ApiHandler implements ServiceApi {
     chapter_id: string,
     course_id: string,
     type: string,
-    created_at?: string 
+    source: string,
+    created_at?: string,
   ): Promise<boolean> {
     return this.s.createAssignment(
       student_list,
@@ -843,6 +844,7 @@ export class ApiHandler implements ServiceApi {
       chapter_id,
       course_id,
       type,
+      source,
       created_at,
     );
   }

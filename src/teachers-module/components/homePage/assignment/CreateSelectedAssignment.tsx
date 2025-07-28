@@ -8,6 +8,7 @@ import {
 } from "ionicons/icons";
 import {
   ASSIGNMENT_TYPE,
+  AssignmentSource,
   BANDS,
   BANDWISECOLOR,
   PAGES,
@@ -340,30 +341,44 @@ const CreateSelectedAssignment = ({
       }
       setIsLoading(true);
 
-      // Get current class and user
+      const localQRList = localStorage.getItem("qr_lessons");
+      const tempQRLessons = JSON.parse(localQRList || "{}");
+
+      const parsedQRLessons: Record<string, Record<string, string[]>> = {};
+      for (const [classId, value] of Object.entries(tempQRLessons)) {
+        if (typeof value === "string") {
+          try {
+            parsedQRLessons[classId] = JSON.parse(value);
+          } catch (e) {
+            console.warn(`Invalid JSON for classId ${classId}:`, e);
+          }
+        } else {
+          console.warn(`Expected string for classId ${classId}, got`, typeof value);
+        }
+      }
+
       const current_class = await Util.getCurrentClass();
       const currUser = await auth.getCurrentUser();
 
-      // Guard clases for missing data
       if (!currUser || !current_class) {
         console.error("Current user or class not found");
         setIsLoading(false);
         return;
       }
-      const previous_sync_lesson = currUser?.id
-        ? await api.getUserAssignmentCart(currUser?.id)
-        : null;
+
+      const previous_sync_lesson = await api.getUserAssignmentCart(currUser.id);
       const all_sync_lesson: Map<string, string> = new Map(
         previous_sync_lesson?.lessons
           ? Object.entries(JSON.parse(previous_sync_lesson.lessons))
           : []
       );
-      const sync_lesson_data = all_sync_lesson.get(current_class?.id ?? "");
+
+      const sync_lesson_data = all_sync_lesson.get(current_class.id ?? "");
       let sync_lesson: Map<string, string[]> = new Map(
         sync_lesson_data ? Object.entries(JSON.parse(sync_lesson_data)) : []
       );
 
-      // Iterate through assignment types (manual/recommended)
+      const assignmentPromises: Promise<any>[] = [];
       for (const type of Object.keys(selectedAssignments)) {
         for (const subjectId of Object.keys(selectedAssignments[type])) {
           const subjectData = selectedAssignments[type][subjectId];
@@ -379,25 +394,27 @@ const CreateSelectedAssignment = ({
             console.warn(`No lessons found for subjectId ${subjectId}`);
             continue;
           }
-          // Process lessons asynchronously in parallel
-          await Promise.all(
-            subjectData.count.map(async (lessonId, idx) => {
-              const tempLes = tempLessons.find(
-                (les: any) => les.id === lessonId
-              );
+
+          subjectData.count.forEach((lessonId: string, idx: number) => {
+            const promise = (async () => {
+              const tempLes = tempLessons.find((les: any) => les.id === lessonId);
               if (!tempLes) {
                 console.warn(`Lesson not found for lessonId: ${lessonId}`);
                 return;
               }
 
-              const tempChapterId =
-                (await api.getChapterByLesson(tempLes.id, current_class.id)) ??
-                "";
+              const tempChapterId: any = await api.getChapterByLesson(tempLes.id, current_class.id);
               if (!tempChapterId) {
                 console.warn(`Chapter not found for lessonId: ${lessonId}`);
                 return;
               }
-              const createdAt = new Date(Date.now() - (idx) * 100).toISOString();
+
+              const isQRMatch =
+                parsedQRLessons[current_class.id]?.[tempChapterId]?.includes(lessonId);
+
+              const source = isQRMatch ? AssignmentSource.QR_CODE : (tempLessons[0].source || "NA");
+              const createdAt = new Date(Date.now() - idx * 100).toISOString();
+
               const res = await api.createAssignment(
                 studentList,
                 currUser.id,
@@ -412,36 +429,36 @@ const CreateSelectedAssignment = ({
                 tempLes.plugin_type === ASSIGNMENT_TYPE.LIVEQUIZ
                   ? ASSIGNMENT_TYPE.LIVEQUIZ
                   : ASSIGNMENT_TYPE.ASSIGNMENT,
-                createdAt 
+                source,
+                createdAt
               );
 
-              // If the assignment creation was successful, update sync_lesson
               for (const [chapter, lessons] of sync_lesson.entries()) {
-                const lessonIndex = lessons.findIndex((id) => id === lessonId);
+                const lessonIndex = lessons.indexOf(lessonId);
                 if (lessonIndex !== -1) {
-                  lessons.splice(lessonIndex, 1); // Remove lessonId from lessons array
-                  sync_lesson.set(chapter, lessons); // Update sync_lesson with modified array
+                  lessons.splice(lessonIndex, 1);
+                  sync_lesson.set(chapter, lessons);
                 }
               }
-            })
-          );
-          setIsLoading(false);
-          setShowConfirm(true);
+            })();
+            assignmentPromises.push(promise);
+          });
         }
       }
-      const _selectedLesson = JSON.stringify(Object.fromEntries(sync_lesson));
-      all_sync_lesson.set(current_class?.id ?? "", _selectedLesson);
-      const _totalSelectedLesson = JSON.stringify(
-        Object.fromEntries(all_sync_lesson)
-      );
 
-      const res = await api.createOrUpdateAssignmentCart(
-        currUser?.id,
-        _totalSelectedLesson
-      );
+      await Promise.all(assignmentPromises);
+
+      const _selectedLesson = JSON.stringify(Object.fromEntries(sync_lesson));
+      all_sync_lesson.set(current_class.id ?? "", _selectedLesson);
+
+      const _totalSelectedLesson = JSON.stringify(Object.fromEntries(all_sync_lesson));
+      await api.createOrUpdateAssignmentCart(currUser.id, _totalSelectedLesson);
+
+      setShowConfirm(true);
     } catch (error) {
-      setIsLoading(false);
       console.error("Error creating assignments:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -450,7 +467,7 @@ const CreateSelectedAssignment = ({
       <div>
         <CommonDialogBox
           header={
-            t("Assignments are assigned Successfully.") ??""
+            t("Assignments are assigned Successfully.") ?? ""
           }
           message={t("Would you like to share the assignments?")}
           showConfirmFlag={showConfirm}
@@ -586,8 +603,8 @@ const CreateSelectedAssignment = ({
                     checked={
                       groupWiseStudents[category].students.length > 0
                         ? groupWiseStudents[category].students.every(
-                            (student) => student.selected
-                          )
+                          (student) => student.selected
+                        )
                         : true
                     }
                     // checked={true}

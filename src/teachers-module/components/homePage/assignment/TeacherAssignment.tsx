@@ -5,7 +5,7 @@ import { ServiceConfig } from "../../../../services/ServiceConfig";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import SelectIconImage from "../../../../components/displaySubjects/SelectIconImage";
-import { CAMERAPERMISSION, PAGES, TableTypes } from "../../../../common/constants";
+import { AssignmentSource, CAMERAPERMISSION, PAGES, TableTypes } from "../../../../common/constants";
 import { Util } from "../../../../utility/util";
 import { t } from "i18next";
 import { Toast } from "@capacitor/toast";
@@ -90,6 +90,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
             };
           }
           l.lesson[0].selected = true;
+          l.lesson[0].source = AssignmentSource.MANUAL;
           tempLessons[courseId].lessons.push(l.lesson[0]);
         }
         updateSelectedLesson(TeacherAssignmentPageType.MANUAL, tempLessons);
@@ -161,6 +162,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           updatedRecommendedAssignments[subjectId].lessons.map((assignment) => ({
             ...assignment,
             selected: false,
+            source: AssignmentSource.RECOMMENDED,
           }));
       });
       setRecommendedAssignments(updatedRecommendedAssignments);
@@ -175,6 +177,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           updatedRecommendedAssignments[subjectId].lessons.map((assignment) => ({
             ...assignment,
             selected: true,
+            source: AssignmentSource.RECOMMENDED,
           }));
       });
       setRecommendedAssignments(updatedRecommendedAssignments);
@@ -499,7 +502,7 @@ const processScannedData = async (scannedText: string) => {
     // Update the classSelectedLesson map
     classSelectedLesson.set(classId, JSON.stringify(Object.fromEntries(chapterLessonsMap)));
     const lessonsJson = JSON.stringify(Object.fromEntries(classSelectedLesson));
-    
+    localStorage.setItem("qr_lessons", lessonsJson);
     await api.createOrUpdateAssignmentCart(currentUser?.id!, lessonsJson);
 
     await init();

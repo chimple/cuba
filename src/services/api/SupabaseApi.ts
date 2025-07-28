@@ -1417,7 +1417,8 @@ export class SupabaseApi implements ServiceApi {
     lesson_id: string,
     chapter_id: string,
     course_id: string,
-    type: string
+    type: string,
+    source: string,
   ): Promise<boolean> {
     throw new Error("Method not implemented.");
   }

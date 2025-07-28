@@ -3257,7 +3257,8 @@ export class SqliteApi implements ServiceApi {
     chapter_id: string,
     course_id: string,
     type: string,
-    created_at?: string
+    source: string,
+    created_at?: string,
   ): Promise<boolean> {
     const assignmentUUid = uuidv4();
     const timestamp = new Date().toISOString(); // Cache timestamp for reuse
@@ -3302,7 +3303,7 @@ export class SqliteApi implements ServiceApi {
         is_deleted: false,
         chapter_id: chapter_id,
         course_id: course_id,
-        source: null,
+        source: source,
       };
 
       const res = await this.updatePushChanges(
