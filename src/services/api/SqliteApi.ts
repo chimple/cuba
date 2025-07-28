@@ -2770,14 +2770,14 @@ export class SqliteApi implements ServiceApi {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
-    // Parameterized, safe, and correct
-    await this.executeQuery(
-      `UPDATE class
-      SET name = ?
-      WHERE id = ?
-      AND is_deleted = 0;`,
-      [className, classId]
-    );
+
+    const updatedClassQuery = `
+    UPDATE class SET name = "${className}"
+    WHERE id = "${classId}";
+    `;
+    const res = await this.executeQuery(updatedClassQuery);
+    console.log("🚀 ~ SqliteApi ~ updateClass ~ res:", res);
+
     this.updatePushChanges(TABLES.Class, MUTATE_TYPES.UPDATE, {
       name: className,
       id: classId,
