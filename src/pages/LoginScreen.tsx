@@ -419,12 +419,8 @@ const LoginScreen: React.FC = () => {
       const user = await authInstance.getCurrentUser();
       if (!user) throw new Error("No user returned from auth handler");
 
-        localStorage.setItem(CURRENT_USER, JSON.stringify(user));
-        localStorage.setItem(USER_DATA, JSON.stringify(user));
-
-      const schools = await getSchoolsForUser(user.id);
-      const rolesArr = Array.from(new Set(schools.map((s) => s.role)));
-      localStorage.setItem(USER_ROLE, JSON.stringify(rolesArr));
+      localStorage.setItem(CURRENT_USER, JSON.stringify(user));
+      localStorage.setItem(USER_DATA, JSON.stringify(user));
 
       Util.logEvent(EVENTS.USER_PROFILE, {
         user_type: RoleType.PARENT,
@@ -480,6 +476,7 @@ const LoginScreen: React.FC = () => {
       return history.replace(PAGES.DISPLAY_SCHOOLS);
     }
   };
+
   // Language dropdown options
   const langOptions: LanguageOption[] = Object.entries(APP_LANGUAGES).map(
     ([id, displayName]) => ({ id, displayName })
