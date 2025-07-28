@@ -103,7 +103,7 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
                   />
                 </div>
               </div>
-              <hr className="horizontal-line" />
+              <hr className="detail-horizontal-line" />
             </div>
           );
         })}

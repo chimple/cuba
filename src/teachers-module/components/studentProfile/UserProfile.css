@@ -153,24 +153,10 @@
   border: none;
 }
 
-.userprofile-dropdown-icon {
-  color: #707070;
-  width: 16px;
+.userprofile-dropdown{
+  margin-left: 33%;
 }
 
-.userprofile-dropdown-with-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.userprofile-dropdown-with-icon select {
-  border: none;
-  background-color: transparent;
-  font-size: 20px;
-  color: #707070;
-}
-.userprofile-dropdown-with-icon select option {
-  font-size: 1.8vh;
-  color: #333;
+.userprofile-dropdown .custom-dropdown-container {
+  width: 60%;
 }
