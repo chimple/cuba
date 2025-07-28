@@ -69,8 +69,22 @@
   position: relative;
 }
 
-.assignment-join-class-container-scroll.shift-up {
+/* .assignment-join-class-container-scroll.shift-up {
   transform: translateY(-24vh);
+} */
+
+/* Tablet (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .assignment-join-class-container-scroll.shift-up {
+    transform: translateY(-20vh); /* Tablet */
+  }
+}
+
+/* Mobile (<= 767px) */
+@media (min-width: 300px) and (max-width: 767px) {
+  .assignment-join-class-container-scroll.shift-up {
+    transform: translateY(-30vh); /* Mobile */
+  }
 }
 
 
