@@ -113,20 +113,17 @@ const SideMenu: React.FC<{
           tempSchool.id,
           currentUser.id
         );
-        const localClasses = localStorage.getItem("classes");
-        const tempUpdatedClasses = localClasses ? JSON.parse(localClasses) : [];
-        if (tempUpdatedClasses && tempUpdatedClasses.length > 0) {
-          setClassData(tempUpdatedClasses.map((item: any) => ({
-            id: item.id,
-            name: item.name,
-          })));
-        }
-        teacher_class_ids = classes.map((item) => item.id);
         const classMap = classes.map((classItem: any) => ({
           id: classItem.id,
           name: classItem.name,
         }));
-        setClassData(classMap);
+        const updated = Util.getCurrentClass();
+        const patchedList = updated
+          ? classMap.map(c => (c.id === updated.id ? updated : c))
+          : classMap;
+
+        setClassData(patchedList);
+        teacher_class_ids = classes.map((item) => item.id);
         const tempClass = Util.getCurrentClass();
         if (!tempClass) {
           return;

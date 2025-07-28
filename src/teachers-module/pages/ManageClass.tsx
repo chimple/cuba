@@ -48,6 +48,7 @@ const ManageClass: React.FC = () => {
         user.id
       );
       if (fetchedClasses) {
+        console.log("Fetched classes:", fetchedClasses); 
         setAllClasses(fetchedClasses);
         localStorage.setItem(CLASSES, JSON.stringify(fetchedClasses));
       }
@@ -71,13 +72,18 @@ function hasRole(...rolesToCheck: RoleType[]) {
       history.replace(PAGES.DISPLAY_SCHOOLS);
       return;
     }
-    init();
-    // re-run whenever a class is updated
-    const onChange = () => init();
-    window.addEventListener(CLASS_OR_SCHOOL_CHANGE_EVENT, onChange);
-    return () => {
-      window.removeEventListener(CLASS_OR_SCHOOL_CHANGE_EVENT, onChange);
-    };
+    // wrapper so we can `await`
+    (async () => {
+      await init();
+
+      // 2) right after the fetch, overwrite the one you just edited
+      const updated = Util.getCurrentClass();
+      if (updated) {
+        setAllClasses(prev =>
+          prev.map(c => c.id === updated.id ? updated : c)
+        );
+      }
+    })();
   }, []);
 
   return (

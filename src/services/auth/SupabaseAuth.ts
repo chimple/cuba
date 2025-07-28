@@ -161,22 +161,31 @@ export class SupabaseAuth implements ServiceAuth {
     return true;
   }
   async googleSign(): Promise<{ success: boolean; isSpl: boolean }> {
-  try {
-    if (!this._auth) return { success: false, isSpl: false };
-    const api = ServiceConfig.getI().apiHandler;
-    const authUser = await GoogleAuth.signIn();
-    const { data, error } = await this._auth.signInWithIdToken({
-      provider: "google",
-      token: authUser.authentication.idToken,
-      access_token: authUser.authentication.accessToken,
-    });
-    if (error) throw error;
+    try {
+      if (!this._auth) return { success: false, isSpl: false };
+      const api = ServiceConfig.getI().apiHandler;
+      const authUser = await GoogleAuth.signIn();
+      const { data, error } = await this._auth.signInWithIdToken({
+        provider: "google",
+        token: authUser.authentication.idToken,
+        access_token: authUser.authentication.accessToken,
+      });
+      if (error) throw error;
 
-    const userId = data.user?.id!;
-    let profile = await api.getUserByDocId(userId);
+      const userId = data.user?.id!;
 
-    if (!profile) {
-      const created = await api.createUserDoc({
+      if (data.session?.refresh_token) {
+        Util.addRefreshTokenToLocalStorage(data.session.refresh_token);
+      }
+      const rpcRes = await this._supabaseDb?.rpc("isUserExists", {
+        user_email: authUser.email,
+        user_phone: "",
+      });
+      // Trying to load the profile row
+      let profile = await api.getUserByDocId(userId);
+
+      if (!profile) {
+        const created = await api.createUserDoc({
           age: null,
           avatar: null,
           created_at: new Date().toISOString(),
@@ -202,43 +211,45 @@ export class SupabaseAuth implements ServiceAuth {
           learning_path: null,
           ops_created_by: null,
           stars: null,
-      });
-      if (!created) throw new Error("createUserDoc failed");
-      profile = await api.getUserByDocId(userId);
-      if (!profile) throw new Error(`User record still missing for id ${userId}`);
+        });
+        if (!created) throw new Error("createUserDoc failed");
+        profile = await api.getUserByDocId(userId);
+        if (!profile) throw new Error(`User record still missing for id ${userId}`);
+      }
+
+      // Prime your in‑memory cache and localStorage
+      this._currentUser = profile;
+      localStorage.setItem(USER_DATA, JSON.stringify(profile));
+
+      // Load and store any special/program roles
+      const roles = await api.getUserSpecialRoles(userId);
+      if (roles.length) {
+        localStorage.setItem(USER_ROLE, JSON.stringify(roles));
+      } else {
+        localStorage.removeItem(USER_ROLE);
+      }
+      const isSpl = await this._supabaseDb?.rpc("is_special_or_program_user");
+      const isSplValue = isSpl?.data === true;
+      if (isSplValue) {
+        ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+      } else {
+        await ServiceConfig.getI().apiHandler.syncDB(
+          Object.values(TABLES),
+          REFRESH_TABLES_ON_LOGIN
+        );
+      }
+
+      // Subscribe to class topic only if user already existed
+      await api.updateFcmToken(userId);
+        if (rpcRes?.data) {
+        await api.subscribeToClassTopic();
+      }
+      return { success: true, isSpl: isSplValue };
+    } catch (err: any) {
+      console.error("🚀 ~ SupabaseAuth ~ googleSign ~ error:", err);
+      return { success: false, isSpl: false };
     }
-
-    this._currentUser = profile;
-    localStorage.setItem(USER_DATA, JSON.stringify(profile));
-
-    const roles = await api.getUserSpecialRoles(userId);
-    if (roles.length) {
-      localStorage.setItem(USER_ROLE, JSON.stringify(roles));
-    } else {
-      localStorage.removeItem(USER_ROLE);
-    }
-
-    if (data.session?.refresh_token) {
-      Util.addRefreshTokenToLocalStorage(data.session.refresh_token);
-    }
-
-    const { data: isSplFlag } = await this._supabaseDb!
-      .rpc("is_special_or_program_user");
-    if (isSplFlag) {
-      ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
-    } else {
-      await api.syncDB(Object.values(TABLES), REFRESH_TABLES_ON_LOGIN);
-    }
-
-    await api.updateFcmToken(userId);
-    await api.subscribeToClassTopic();
-
-    return { success: true, isSpl: !!isSplFlag };
-  } catch (err: any) {
-    console.error("🚀 ~ SupabaseAuth ~ googleSign ~ error:", err);
-    return { success: false, isSpl: false };
   }
-}
   async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
     if (this._currentUser) return this._currentUser;
     if (!navigator.onLine) {
