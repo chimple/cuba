@@ -16,7 +16,7 @@ import {
   USER_ROLE,
 } from "../../common/constants";
 import { SupabaseClient, UserAttributes } from "@supabase/supabase-js";
-import { ServiceConfig } from "../ServiceConfig";
+import { APIMode, ServiceConfig } from "../ServiceConfig";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Util } from "../../utility/util";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
@@ -46,9 +46,13 @@ export class SupabaseAuth implements ServiceAuth {
 
     return SupabaseAuth.i;
   }
-  async loginWithEmailAndPassword(email: any, password: any): Promise<boolean> {
+  async loginWithEmailAndPassword(
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; isSpl: boolean }> {
+    let isSpl = false;
     try {
-      if (!this._auth) return false;
+      if (!this._auth) return { success: false, isSpl };
       if (!email || !password) {
         throw new Error("Email and password are required.");
       }
@@ -63,25 +67,41 @@ export class SupabaseAuth implements ServiceAuth {
       if (data.session?.refresh_token) {
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
       }
+      if (this._supabaseDb) {
+        const { data: isSplResult, error: isSplError } =
+          await this._supabaseDb.rpc("is_special_or_program_user");
+        if (isSplError) {
+          console.error("Error checking special/program user:", isSplError);
+        } else {
+          isSpl = isSplResult;
+        }
+      } else {
+        console.error("Supabase DB client is not initialized.");
+      }
+      if (isSpl) {
+        ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+      } else {
+        await api.syncDB(Object.values(TABLES), REFRESH_TABLES_ON_LOGIN);
+      }
       await api.updateFcmToken(data?.user?.id ?? "");
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(
-        Object.values(TABLES),
-        REFRESH_TABLES_ON_LOGIN
-      );
       Util.storeLoginDetails(email, password);
       await api.subscribeToClassTopic();
-      return true;
+      return { success: true, isSpl };
     } catch (error) {
       console.error(
         "🚀 ~ file: SupabaseAuth.ts:143 ~ SupabaseAuth ~ Emailsignin ~ error:",
         error
       );
-      return false;
+      return { success: false, isSpl };
     }
   }
-  async signInWithEmail(email: string, password: string): Promise<boolean> {
+  async signInWithEmail(
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; isSpl: boolean }> {
+    let isSplValue = false;
     try {
-      if (!this._auth) return false;
+      if (!this._auth) return { success: false, isSpl: isSplValue };
       const { data, error } = await this._auth.signInWithPassword({
         email,
         password,
@@ -93,19 +113,25 @@ export class SupabaseAuth implements ServiceAuth {
       if (data.session?.refresh_token) {
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
       }
+      const isSpl = await this._supabaseDb?.rpc("is_special_or_program_user");
+      isSplValue = isSpl?.data === true;
+      if (isSplValue) {
+        ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+      } else {
+        await ServiceConfig.getI().apiHandler.syncDB(
+          Object.values(TABLES),
+          REFRESH_TABLES_ON_LOGIN
+        );
+      }
       await api.updateFcmToken(data?.user?.id ?? "");
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(
-        Object.values(TABLES),
-        REFRESH_TABLES_ON_LOGIN
-      );
       Util.storeLoginDetails(email, password);
-      return true;
+      return { success: true, isSpl: isSplValue };
     } catch (error) {
       console.error(
         "🚀 ~ file: SupabaseAuth.ts:166 ~ SupabaseAuth ~ Emailsignin ~ error:",
         error
       );
-      return false;
+      return { success: false, isSpl: isSplValue };
     }
   }
   async sendResetPasswordEmail(email: string): Promise<boolean> {
@@ -135,30 +161,21 @@ export class SupabaseAuth implements ServiceAuth {
     }
     return true;
   }
-  async googleSign(): Promise<boolean> {
+  async googleSign(): Promise<{ success: boolean; isSpl: boolean }> {
     try {
-      if (!this._auth) return false;
+      if (!this._auth) return { success: false, isSpl: false };
+
       const api = ServiceConfig.getI().apiHandler;
       const authUser = await GoogleAuth.signIn();
-      console.log(
-        "🚀 ~ SupabaseAuth ~ googleSign ~ authUser:",
-        authUser.authentication.refreshToken
-      );
-
       const { data, error } = await this._auth.signInWithIdToken({
         provider: "google",
         token: authUser.authentication.idToken,
         access_token: authUser.authentication.accessToken,
       });
 
-      if (data.session?.refresh_token)
+      if (data.session?.refresh_token) {
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
-      console.log(
-        "🚀 ~ SupabaseAuth ~ googleSign ~ data, error:",
-        data,
-        error,
-        data.session?.refresh_token
-      );
+      }
       const rpcRes = await this._supabaseDb?.rpc("isUserExists", {
         user_email: authUser.email,
         user_phone: "",
@@ -194,22 +211,30 @@ export class SupabaseAuth implements ServiceAuth {
         });
         this._currentUser = createdUser;
       }
+
+      const isSpl = await this._supabaseDb?.rpc("is_special_or_program_user");
+      const isSplValue = isSpl?.data === true;
+      if (isSplValue) {
+        ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+      } else {
+        await ServiceConfig.getI().apiHandler.syncDB(
+          Object.values(TABLES),
+          REFRESH_TABLES_ON_LOGIN
+        );
+      }
+
       await api.updateFcmToken(data.user?.id ?? authUser.id);
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(
-        Object.values(TABLES),
-        REFRESH_TABLES_ON_LOGIN
-      );
       if (rpcRes?.data) {
         await api.subscribeToClassTopic();
       }
+      return { success: true, isSpl: isSplValue };
     } catch (error: any) {
       console.error(
         "🚀 ~ SupabaseAuth ~ googleSign ~ error:",
         error?.stack || error
       );
-      return false;
+      return { success: false, isSpl: false };
     }
-    return true;
   }
 
   async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
@@ -230,10 +255,10 @@ export class SupabaseAuth implements ServiceAuth {
         authData.data.session?.user.id
       );
       if (userRole.length > 0) {
-  localStorage.setItem(USER_ROLE, JSON.stringify(userRole)); 
-} else {
-  localStorage.removeItem(USER_ROLE);
-}
+        localStorage.setItem(USER_ROLE, JSON.stringify(userRole));
+      } else {
+        localStorage.removeItem(USER_ROLE);
+      }
 
       let user = await api.getUserByDocId(authData.data.session?.user.id);
       localStorage.setItem(USER_DATA, JSON.stringify(user));
@@ -335,7 +360,7 @@ export class SupabaseAuth implements ServiceAuth {
   async proceedWithVerificationCode(
     phoneNumber: any,
     verificationCode: any
-  ): Promise<{ user: any; isUserExist: boolean } | undefined> {
+  ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean } | undefined> {
     try {
       if (!this._auth) return;
       const api = ServiceConfig.getI().apiHandler;
@@ -389,17 +414,35 @@ export class SupabaseAuth implements ServiceAuth {
         });
         this._currentUser = createdUser;
       }
+      let isSpl = false;
+      if (this._supabaseDb) {
+        const { data: isSplResult, error: isSplError } =
+          await this._supabaseDb.rpc("is_special_or_program_user");
+        if (isSplError) {
+          console.error("Error checking special/program user:", isSplError);
+        } else {
+          isSpl = isSplResult;
+        }
+      }
+      if (isSpl) {
+        ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+      } else {
+        await ServiceConfig.getI().apiHandler.syncDB(
+          Object.values(TABLES),
+          REFRESH_TABLES_ON_LOGIN
+        );
+      }
       await api.updateFcmToken(user?.user?.id ?? "");
-      const isSynced = await ServiceConfig.getI().apiHandler.syncDB(
-        Object.values(TABLES),
-        REFRESH_TABLES_ON_LOGIN
-      );
       if (rpcRes?.data) {
         await api.subscribeToClassTopic();
       }
-      return { user: user, isUserExist: rpcRes?.data ?? false };
+      return {
+        user: user,
+        isUserExist: rpcRes?.data ?? false,
+        isSpl: isSpl,
+      };
     } catch (error) {
-      return { user: null, isUserExist: false };
+      return { user: null, isUserExist: false, isSpl: false };
     }
   }
 
