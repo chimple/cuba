@@ -276,11 +276,8 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             const firstPM =
               collectedPMs.length > 0 ? collectedPMs[0] : undefined;
 
-            // ✅ SOLUTION: Add this 'if' check.
-            // Only proceed with FC validation if a PM exists to validate against.
             if (firstPM) {
               for (const fc of seenFCContacts) {
-                // Now TypeScript knows `firstPM` is a `string` inside this block.
                 const validation = await api.validateUserContacts(firstPM, fc);
                 if (validation.status === "error" && validation.errors) {
                   const fcError = validation.errors.find((e) =>

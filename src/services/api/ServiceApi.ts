@@ -1857,7 +1857,7 @@ export interface ServiceApi {
   /**
    * Fetch student login type and program model by UDISE code.
    * @param {string} udiseCode - UDISE code of the school.
-   * @returns {Promise<{ studentLoginType: string; programId: string; programModel: string } | null>}
+   * @returns {Promise<{ studentLoginType: schoolModel: string } | null>}
    */
   getSchoolDetailsByUdise(
     udiseCode: string
