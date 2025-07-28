@@ -906,13 +906,13 @@ export const ACTION_TYPES = {
 };
 
 export enum AGE_OPTIONS {
-  LESS_THAN_EQUAL_4 = "≤4",
+  LESS_THAN_EQUAL_4 = "4",
   FIVE = "5",
   SIX = "6",
   SEVEN = "7",
   EIGHT = "8",
   NINE = "9",
-  GREATER_THAN_EQUAL_10 = "≥10",
+  GREATER_THAN_EQUAL_10 = "10",
 }
 
 export const ROLE_PRIORITY: Record<string, number> = {

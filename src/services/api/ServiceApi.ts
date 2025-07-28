@@ -1474,7 +1474,7 @@ export interface ServiceApi {
    */
   validateUserContacts(
     programManagerPhone: string,
-    fieldCoordinatorPhone: string
+    fieldCoordinatorPhone?: string
   ): Promise<{ status: string; errors?: string[] }>;
   /**
    * setting a stars for the student
@@ -1856,6 +1856,15 @@ export interface ServiceApi {
    * @param {number} role - user Role.
    */
   deleteUserFromSchoolsWithRole(userId: string, role: string): Promise<void>;
+
+  /**
+   * Fetch student login type and program model by UDISE code.
+   * @param {string} udiseCode - UDISE code of the school.
+   * @returns {Promise<{ studentLoginType: schoolModel: string } | null>}
+   */
+  getSchoolDetailsByUdise(
+    udiseCode: string
+  ): Promise<{ studentLoginType: string; schoolModel: string } | null>;
   /**
    * Fetches chapters by chapterIDs array.
    * @param {string[]} chapterIds - Array of chapter IDs to fetch.
