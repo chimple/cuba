@@ -5605,11 +5605,11 @@ order by
       return null;
     }
 
-    const { student_login_type, school_model } = schoolRes.values[0];
+    const { student_login_type, model } = schoolRes.values[0];
 
     return {
       studentLoginType: student_login_type || "",
-      schoolModel: school_model || "",
+      schoolModel: model || "",
     };
   }
 }

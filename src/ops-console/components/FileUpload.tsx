@@ -725,10 +725,6 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           studentId: string | undefined,
           errors: string[]
         ) {
-          console.log(
-            "Validating student data with login type:",
-            studentLoginType
-          );
           if (!studentLoginType || studentLoginType.trim() === "") {
             errors.push(
               "Student login type is missing for this school. Please check the school details."
@@ -749,23 +745,13 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
               );
             } else {
               try {
-                console.log(
-                  "Validation result 122:",
-                  parentContact,
-                  className,
-                  studentName,
-                  schoolId
-                );
-
                 const result = await api.validateParentAndStudentInClass(
                   parentContact,
                   className,
                   studentName,
                   schoolId
                 );
-                console.log("Validation result 123:", result);
                 if (result?.status === "error") {
-                  console.log("Validation errors:", result.errors);
                   errors.push(...(result.errors || []));
                 }
               } catch (e) {
@@ -893,7 +879,6 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                   schoolModel,
                   studentLoginType,
                 });
-                console.log("Testingerer", schoolDetailsCache);
 
                 if (schoolModel)
                   schoolProgramModelMap.set(schoolId, schoolModel);

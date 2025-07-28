@@ -3970,7 +3970,6 @@ export class SupabaseApi implements ServiceApi {
         .eq("udise", udiseCode)
         .eq("is_deleted", false)
         .single();
-      console.log("schoolData", schoolData);
       if (error || !schoolData) {
         console.error("Error fetching school data:", error);
         return null;
