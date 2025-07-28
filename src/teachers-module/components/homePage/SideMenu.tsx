@@ -208,7 +208,6 @@ const SideMenu: React.FC<{
       });
 
       const classes = await api.getClassesForSchool(school.id, currentUserId);
-      console.log("classes❤️❤️❤️", classes);
       if (!classes || classes.length === 0) {
         console.warn("No classes found for the selected school");
         Util.setCurrentClass(null);
