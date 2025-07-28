@@ -102,3 +102,10 @@
   flex: 1;
   min-width: 0;
 }
+.detail-horizontal-line{
+  height: 0.6px;
+  border-width: 0;
+  box-sizing: border-box;
+  background: lightgrey;
+  margin: 5px 15px;
+}
