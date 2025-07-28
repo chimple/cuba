@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   CLASS,
+  CLASS_OR_SCHOOL_CHANGE_EVENT,
   CLASSES,
   IconType,
   PAGES,
@@ -71,6 +72,12 @@ function hasRole(...rolesToCheck: RoleType[]) {
       return;
     }
     init();
+    // re-run whenever a class is updated
+    const onChange = () => init();
+    window.addEventListener(CLASS_OR_SCHOOL_CHANGE_EVENT, onChange);
+    return () => {
+      window.removeEventListener(CLASS_OR_SCHOOL_CHANGE_EVENT, onChange);
+    };
   }, []);
 
   return (

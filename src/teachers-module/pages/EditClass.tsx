@@ -4,6 +4,7 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import EditClassField from "../components/classComponents/EditClassField";
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
+  CLASSES,
   PAGES,
   School_Creation_Stages,
   TableTypes,
@@ -81,32 +82,29 @@ const EditClass: FC = () => {
   };
 
   const handleUpdateClass = async () => {
-     try {
-      const localClasses = localStorage.getItem("classes");
-      const temp = JSON.parse(localClasses || "[]");
-       if (currentClass) {
-        await api.updateClass(currentClass.id, className);
-        const updatedClass = { ...currentClass, name: className };
-        Util.setCurrentClass(updatedClass);                     
-        localStorage.setItem("classes", JSON.stringify(temp));
-        window.dispatchEvent(new Event(CLASS_OR_SCHOOL_CHANGE_EVENT));
-         if (navigationState?.stage === School_Creation_Stages.CREATE_CLASS) {
-           Util.setNavigationState(School_Creation_Stages.CLASS_COURSE);
-           history.replace(PAGES.SUBJECTS_PAGE, {
-             classId: updatedClass.id,
-             origin: PAGES.ADD_CLASS,
-             isSelect: true,
-           });
-         } else {
-          history.replace(PAGES.HOME_PAGE, {
-            tabValue: 0,
-          });
-         }
-       }
-     } catch (error) {
-       console.error("unable to update a class", error);
-     }
-   };
+    if (!currentClass) return;
+
+    try {
+      setIsSaving(true);
+      await api.updateClass(currentClass.id, className);
+      const raw = localStorage.getItem(CLASSES) || "[]";
+      const temp: Array<{ id: string; name: string }> = JSON.parse(raw);
+      const updatedList = temp.map(c =>
+        c.id === currentClass.id
+        ? { ...c, name: className }
+        : c
+      );
+      localStorage.setItem(CLASSES, JSON.stringify(updatedList));
+      const updatedClass = { ...currentClass, name: className };
+      Util.setCurrentClass(updatedClass);
+      window.dispatchEvent(new Event(CLASS_OR_SCHOOL_CHANGE_EVENT));
+      history.replace(PAGES.MANAGE_CLASS);
+    } catch (error) {
+      console.error("unable to update a class", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const onBackButtonClick = () => {
     if (paramOrigin === PAGES.MANAGE_CLASS) {
