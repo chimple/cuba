@@ -4013,7 +4013,8 @@ order by
   async getStudentLastTenResults(
     studentId: string,
     courseIds: string[],
-    assignmentIds: string[]
+    assignmentIds: string[],
+    classId
   ): Promise<TableTypes<"result">[]> {
     const assignmentholders = assignmentIds.map(() => "?").join(", ");
     const courseholders = courseIds.map(() => "?").join(", ");
@@ -4023,6 +4024,7 @@ order by
      FROM ${TABLES.Result}
      WHERE student_id = ?
      AND course_id IN (${courseholders})
+     AND class_id = ?
      AND assignment_id IS NULL
      AND is_deleted = false
      ORDER BY created_at DESC
@@ -4033,6 +4035,7 @@ order by
      FROM ${TABLES.Result}
      WHERE student_id = ?
      AND course_id IN (${courseholders})
+     AND class_id = ?
      AND assignment_id IN (${assignmentholders})
      AND is_deleted = false
      ORDER BY created_at DESC
@@ -4045,7 +4048,15 @@ order by
    FROM non_null_assignments
    ORDER BY created_at DESC
    LIMIT 10;`,
-      [studentId, ...courseIds, studentId, ...courseIds, ...assignmentIds]
+      [
+        studentId,
+        ...courseIds,
+        classId,
+        studentId,
+        ...courseIds,
+        classId,
+        ...assignmentIds,
+      ]
     );
     return res?.values ?? [];
   }
@@ -4086,7 +4097,8 @@ order by
     studentId: string,
     courseIds: string[],
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
     const courseholders = courseIds.map(() => "?").join(", ");
 
@@ -4095,11 +4107,12 @@ order by
     FROM ${TABLES.Result}
     WHERE student_id = ?
     AND course_id IN (${courseholders})
+    AND class_id = ?
     AND created_at BETWEEN ? AND ?
     ORDER BY created_at DESC;
   `;
 
-    const params = [studentId, ...courseIds, startDate, endDate];
+    const params = [studentId, ...courseIds, classId, startDate, endDate];
 
     const res = await this._db?.query(query, params);
 
@@ -4448,12 +4461,14 @@ order by
     chapter_id: string,
     course_id: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
     const query = `SELECT *
        FROM ${TABLES.Result}
        WHERE chapter_id = '${chapter_id}'
        AND course_id = '${course_id}'
+       AND class_id ='${classId}'
        AND created_at BETWEEN '${startDate}' AND '${endDate}'
        ORDER BY created_at DESC;`;
 
@@ -5585,5 +5600,35 @@ order by
     role: string
   ): Promise<void> {
     return await this._serverApi.deleteUserFromSchoolsWithRole(userId, role);
+  }
+  async getChaptersByIds(
+    chapterIds: string[]
+  ): Promise<TableTypes<"chapter">[]> {
+    if (!chapterIds || chapterIds.length === 0) {
+      console.warn("getChaptersByIds was called with no chapter IDs.");
+      return [];
+    }
+
+    try {
+      const placeholders = chapterIds.map(() => '?').join(', ');
+
+      const query = 
+      `SELECT *
+        FROM ${TABLES.Chapter}
+        WHERE id IN (${placeholders})
+          AND is_deleted = 0;`
+
+      const res = await this.executeQuery(query, chapterIds);
+
+      if (!res || !res.values) {
+        console.warn("No chapters found for the provided ChapterIDs");
+        return [];
+      }
+
+      return res.values as TableTypes<"chapter">[];
+    } catch (error) {
+      console.error("Error fetching chapters", error);
+      return [];
+    }
   }
 }

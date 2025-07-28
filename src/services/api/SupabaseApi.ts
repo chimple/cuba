@@ -4329,7 +4329,7 @@ export class SupabaseApi implements ServiceApi {
   }
   async getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-     courseIds: string[],
+    courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -4375,7 +4375,8 @@ export class SupabaseApi implements ServiceApi {
   async getStudentLastTenResults(
     studentId: string,
     courseIds: string[],
-    assignmentIds: string[]
+    assignmentIds: string[],
+    classId
   ): Promise<TableTypes<"result">[]> {
     if (!this.supabase) return [];
 
@@ -4385,6 +4386,7 @@ export class SupabaseApi implements ServiceApi {
       .select("*")
       .eq("student_id", studentId)
       .in("course_id", courseIds)
+      .eq("class_id", classId)
       .is("assignment_id", null)
       .eq("is_deleted", false)
       .order("created_at", { ascending: false })
@@ -4402,6 +4404,7 @@ export class SupabaseApi implements ServiceApi {
         .select("*")
         .eq("student_id", studentId)
         .in("course_id", courseIds)
+        .eq("class_id", classId)
         .in("assignment_id", assignmentIds)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false })
@@ -4895,7 +4898,8 @@ export class SupabaseApi implements ServiceApi {
     studentId: string,
     courseIds: string[],
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
     if (!this.supabase) return;
 
@@ -4903,6 +4907,7 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.Result)
       .select("*")
       .eq("student_id", studentId)
+      .eq("class_id", classId)
       .in("course_id", courseIds)
       .gte("created_at", startDate)
       .lte("created_at", endDate)
@@ -5006,7 +5011,8 @@ export class SupabaseApi implements ServiceApi {
     chapter_id: string,
     course_id: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
     if (!this.supabase) return;
 
@@ -5016,6 +5022,7 @@ export class SupabaseApi implements ServiceApi {
         .select("*")
         .eq("chapter_id", chapter_id)
         .eq("course_id", course_id)
+        .eq("class_id", classId)
         .gte("created_at", startDate)
         .lte("created_at", endDate)
         .eq("is_deleted", false)
@@ -6582,7 +6589,8 @@ export class SupabaseApi implements ServiceApi {
       }
 
       return {
-        data: (data.data ?? []) as unknown as FilteredSchoolsForSchoolListingOps[],
+        data: (data.data ??
+          []) as unknown as FilteredSchoolsForSchoolListingOps[],
         total: typeof data.total === "number" ? data.total : 0,
       };
     } catch (err) {
@@ -6908,23 +6916,23 @@ export class SupabaseApi implements ServiceApi {
           avg_weekly_time_minutes: 0,
         };
       }
-    const stats = data as unknown as {
-      total_students: number;
-      total_teachers: number;
-      total_institutes: number;
-      active_student_percentage: number;
-      active_teacher_percentage: number;
-      avg_weekly_time_minutes: number;
-    };
+      const stats = data as unknown as {
+        total_students: number;
+        total_teachers: number;
+        total_institutes: number;
+        active_student_percentage: number;
+        active_teacher_percentage: number;
+        avg_weekly_time_minutes: number;
+      };
 
-    return {
-      total_students: stats.total_students ?? 0,
-      total_teachers: stats.total_teachers ?? 0,
-      total_institutes: stats.total_institutes ?? 0,
-      active_student_percentage: stats.active_student_percentage ?? 0,
-      active_teacher_percentage: stats.active_teacher_percentage ?? 0,
-      avg_weekly_time_minutes: stats.avg_weekly_time_minutes ?? 0,
-    };  
+      return {
+        total_students: stats.total_students ?? 0,
+        total_teachers: stats.total_teachers ?? 0,
+        total_institutes: stats.total_institutes ?? 0,
+        active_student_percentage: stats.active_student_percentage ?? 0,
+        active_teacher_percentage: stats.active_teacher_percentage ?? 0,
+        avg_weekly_time_minutes: stats.avg_weekly_time_minutes ?? 0,
+      };
     } catch (err) {
       console.error("Unexpected error:", err);
       return {
@@ -7159,6 +7167,39 @@ export class SupabaseApi implements ServiceApi {
       }
     } catch (e) {
       console.error("Unexpected error while deleting user:", e);
+    }
+  }
+  async getChaptersByIds(
+    chapterIds: string[]
+  ): Promise<TableTypes<"chapter">[]> {
+    if (!this.supabase) {
+      console.error(
+        "getChaptersByIds failed: Supabase client not initialized."
+      );
+      return [];
+    }
+
+    if (!chapterIds || chapterIds.length === 0) {
+      console.warn("getChaptersByIds was called with no chapter IDs.");
+      return [];
+    }
+
+    try {
+      const { data, error } = await this.supabase
+        .from(TABLES.Chapter)
+        .select("*")
+        .in("id", chapterIds)
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.warn("Error fetching chapters by IDs:", chapterIds);
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error("Error fetching chapters", error);
+      return [];
     }
   }
 }

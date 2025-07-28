@@ -59,15 +59,31 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
 
   const updateLessonChapterAndCourseMaps = useCallback(async (assignments: TableTypes<"assignment">[]) => {
     // Update lessonChapterMap
+    const chapterIds = Array.from(
+      new Set(
+        assignments
+          .map(assignment => assignment.chapter_id)
+          .filter((id): id is string => !!id) // Filter out any null or undefined ids
+      )
+    );
+
+    const chapters = await api.getChaptersByIds(chapterIds);
+
+    const chapterIdMap = chapters.reduce((acc, chapter) => {
+      acc[chapter.id] = chapter;
+      return acc;
+    }, {} as { [id: string]: TableTypes<"chapter"> });
+
+    // Build the final lessonChapterMap by iterating through assignments
     const chapterMap: { [lessonId: string]: TableTypes<"chapter"> } = {};
-    await Promise.all(assignments.map(async (assignment) => {
-      if (assignment.chapter_id && assignment.lesson_id) {
-        const chapter = await api.getChapterById(assignment.chapter_id);
+    assignments.forEach((assignment) => {
+      if (assignment.lesson_id && assignment.chapter_id) {
+        const chapter = chapterIdMap[assignment.chapter_id];
         if (chapter) {
           chapterMap[assignment.lesson_id] = chapter;
         }
       }
-    }));
+    });
     setLessonChapterMap(chapterMap);
 
     // Update assignmentLessonCourseMap
