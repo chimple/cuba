@@ -4800,7 +4800,7 @@ order by
 
   async validateUserContacts(
     programManagerPhone: string,
-    fieldCoordinatorPhone: string
+    fieldCoordinatorPhone?: string
   ): Promise<{ status: string; errors?: string[] }> {
     const response = await this._serverApi.validateUserContacts(
       programManagerPhone,
@@ -5600,6 +5600,32 @@ order by
     role: string
   ): Promise<void> {
     return await this._serverApi.deleteUserFromSchoolsWithRole(userId, role);
+  }
+  /**
+   * Fetches school login type and program model using UDISE code from SQLite
+   * @param {string} udiseCode - The UDISE ID of the school
+   * @returns An object with studentLoginType, programId, and programModel if found, else null
+   */
+  async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    studentLoginType: string;
+    schoolModel: string;
+  } | null> {
+    // Step 1: Get school info by UDISE code
+    const schoolRes = await this.executeQuery(
+      `SELECT student_login_type, model FROM school WHERE udise = ? AND is_deleted = 0`,
+      [udiseCode]
+    );
+
+    if (!schoolRes?.values?.length) {
+      return null;
+    }
+
+    const { student_login_type, model } = schoolRes.values[0];
+
+    return {
+      studentLoginType: student_login_type || "",
+      schoolModel: model || "",
+    };
   }
   async getChaptersByIds(
     chapterIds: string[]
