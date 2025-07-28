@@ -185,7 +185,7 @@ export class SupabaseAuth implements ServiceAuth {
       let profile = await api.getUserByDocId(userId);
 
       if (!profile) {
-        const created = await api.createUserDoc({
+        const createdUser = await api.createUserDoc({
           age: null,
           avatar: null,
           created_at: new Date().toISOString(),
@@ -212,9 +212,9 @@ export class SupabaseAuth implements ServiceAuth {
           ops_created_by: null,
           stars: null,
         });
-        if (!created) throw new Error("createUserDoc failed");
+        if (!createdUser) throw new Error("createUserDoc failed");
         profile = await api.getUserByDocId(userId);
-        if (!profile) throw new Error(`User record still missing for id ${userId}`);
+        if (!createdUser) throw new Error(`User record still missing for id ${userId}`);
       }
 
       // Prime your in‑memory cache and localStorage

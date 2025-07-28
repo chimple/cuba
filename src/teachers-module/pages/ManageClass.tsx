@@ -48,7 +48,6 @@ const ManageClass: React.FC = () => {
         user.id
       );
       if (fetchedClasses) {
-        console.log("Fetched classes:", fetchedClasses); 
         setAllClasses(fetchedClasses);
         localStorage.setItem(CLASSES, JSON.stringify(fetchedClasses));
       }
