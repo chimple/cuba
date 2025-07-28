@@ -79,7 +79,7 @@ const LessonCard: React.FC<{
   }, [lesson]);
 
   const getDate = () => {
-    const res = assignment?.updated_at;
+    const res = assignment?.starts_at;
     if (!!res) {
       const dateObj = new Date(res);
       setDate(dateObj);
