@@ -197,12 +197,16 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
   }, [currentClass, api, handleAssignmentUpdate, assignments, updateLessonChapterAndCourseMaps]);
 
   useEffect(() => {
-    const syncAssignments = async () =>{
-      await api.syncDB(Object.values(TABLES), [TABLES.Assignment]);
-    }
-    syncAssignments();
     Util.loadBackgroundImage();
     init(false);
+
+    api.syncDB(Object.values(TABLES), [TABLES.Assignment])
+      .then(() => {
+        init(false);
+      })
+      .catch((error) => {
+        console.error('Error syncing assignments:', error);
+      });
   }, []);
 
   useEffect(() => {
