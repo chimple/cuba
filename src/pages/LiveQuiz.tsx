@@ -33,11 +33,6 @@ const LiveQuiz: React.FC<LiveQuizProps> = ({ liveQuizCount }) => {
 
   const isMounted = useRef(true);
 
-  useEffect(() => {
-    if (liveQuizCount) {
-      liveQuizCount(assignments.length);
-    }
-  }, [assignments, liveQuizCount]);
 
   const init = useCallback(async () => {
     setLoading(true);
@@ -81,6 +76,7 @@ const LiveQuiz: React.FC<LiveQuizProps> = ({ liveQuizCount }) => {
     );
 
     setAssignments(allLiveQuizzes);
+    liveQuizCount?.(allLiveQuizzes.length);
     setLiveQuizzes(_lessons);
     setLoading(false);
   }, [api, history]);
