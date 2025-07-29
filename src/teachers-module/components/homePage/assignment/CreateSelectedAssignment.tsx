@@ -86,10 +86,9 @@ const CreateSelectedAssignment = ({
 
     const classCourses = await api.getCoursesByClassId(current_class.id);
 
-    const _studentProgress = await _classUtil.divideStudents(
-      current_class.id,
-      [classCourses[0].course_id]
-    );
+    const _studentProgress = await _classUtil.divideStudents(current_class.id, [
+      classCourses[0].course_id,
+    ]);
 
     let _studentList =
       await _classUtil.groupStudentsByCategoryInList(_studentProgress);
@@ -311,7 +310,9 @@ const CreateSelectedAssignment = ({
     groupedDetails.forEach((subjectDetails) => {
       text += `*${t("Subject")}: ${subjectDetails.subject}*\n`;
       subjectDetails.chapters.forEach((chapter, chapterIndex) => {
-        text += `   ${chapterIndex + 1}. _*${t("Chapter")}*_: ${chapter.name}\n`;
+        text += `   ${chapterIndex + 1}. _*${t("Chapter")}*_: ${
+          chapter.name
+        }\n`;
         chapter.lessons.forEach((lesson, lessonIndex) => {
           const lessonNumber = `${chapterIndex + 1}.${lessonIndex + 1}`;
           const formattedLesson = `${lessonNumber} ${lesson}`;
@@ -327,7 +328,9 @@ const CreateSelectedAssignment = ({
       text += `\n`;
     });
 
-    text += `${t("Please click this link to access your Homework")}: https://chimple.cc/assignment?batch_id=${assignmentBatchId}`;
+    text += `${t(
+      "Please click this link to access your Homework"
+    )}: https://chimple.cc/assignment?batch_id=${assignmentBatchId}`;
 
     return text.trim();
   };
@@ -403,7 +406,9 @@ const CreateSelectedAssignment = ({
                 console.warn(`Chapter not found for lessonId: ${lessonId}`);
                 return;
               }
-              const createdAt = new Date(Date.now() - (idx) * 100).toISOString();
+              // ✨ MODIFICATION: Create a staggered timestamp for ordering
+              const createdAt = new Date(Date.now() - idx * 100).toISOString();
+
               const res = await api.createAssignment(
                 studentList,
                 currUser.id,
@@ -442,7 +447,7 @@ const CreateSelectedAssignment = ({
         Object.fromEntries(all_sync_lesson)
       );
 
-      const res = await api.createOrUpdateAssignmentCart(
+      await api.createOrUpdateAssignmentCart(
         currUser?.id,
         _totalSelectedLesson
       );
@@ -456,9 +461,7 @@ const CreateSelectedAssignment = ({
     <div className="assignments-container">
       <div>
         <CommonDialogBox
-          header={
-            t("Assignments are assigned Successfully.") ??""
-          }
+          header={t("Assignments are assigned Successfully.") ?? ""}
           message={t("Would you like to share the assignments?")}
           showConfirmFlag={showConfirm}
           leftButtonText={t("Cancel") ?? ""}
@@ -485,7 +488,7 @@ const CreateSelectedAssignment = ({
       <div>
         <p id="create-assignment-heading">{t("Assignments")}</p>
         <section className="assignments-dates">
-          <span style={{color: "#4A4949", fontSize: "11px"}}>
+          <span style={{ color: "#4A4949", fontSize: "11px" }}>
             <Trans i18nKey="assignments_date_message" />
           </span>
           <div className="date-created-assignment">
@@ -528,9 +531,10 @@ const CreateSelectedAssignment = ({
                         ? format(new Date(startDate), "yyyy-MM-dd")
                         : new Date().toISOString().split("T")[0]
                     }
-                    maxDate={
-                      format(addMonths(new Date(startDate), 1), "yyyy-MM-dd")
-                    }
+                    maxDate={format(
+                      addMonths(new Date(startDate), 1),
+                      "yyyy-MM-dd"
+                    )}
                     startDate={startDate}
                   />
                 ) : (
@@ -560,7 +564,9 @@ const CreateSelectedAssignment = ({
           {Object.keys(groupWiseStudents).map((category) => (
             <div
               key={category}
-              className={`assignment-category ${category.replace(" ", "-").toLowerCase()}`}
+              className={`assignment-category ${category
+                .replace(" ", "-")
+                .toLowerCase()}`}
             >
               <div
                 className="category-header"
@@ -580,12 +586,14 @@ const CreateSelectedAssignment = ({
                     /{groupWiseStudents[category].students.length}
                   </div>
                   <img
-                  src={
-                  groupWiseStudents[category].isCollapsed
-                  ? "assets/icons/iconDown.png"
-                  : "assets/icons/iconUp.png"
-                  }
-                  alt="toggle-icon" style={{ width: "15px", height: "15px" }} />
+                    src={
+                      groupWiseStudents[category].isCollapsed
+                        ? "assets/icons/iconDown.png"
+                        : "assets/icons/iconUp.png"
+                    }
+                    alt="toggle-icon"
+                    style={{ width: "15px", height: "15px" }}
+                  />
                   <input
                     className="select-all-checkbox"
                     type="checkbox"
