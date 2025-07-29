@@ -18,6 +18,8 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
 import Loading from "../Loading";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
+import { updateLocalAttributes } from "../../growthbook/Growthbook";
+import { useGbContext } from "../../growthbook/Growthbook";
 
 const ProfileCard: React.FC<{
   width: string;
@@ -39,6 +41,7 @@ const ProfileCard: React.FC<{
   studentCurrMode,
 }) => {
   const history = useHistory();
+    const { setGbUpdated } = useGbContext();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [showWarningDialogBox, setShowWarningDialogBox] =
     useState<boolean>(false);
@@ -176,6 +179,10 @@ const ProfileCard: React.FC<{
           onNoButtonClicked={async ({}) => {
             const api = ServiceConfig.getI().apiHandler;
             await Util.setCurrentStudent(user, undefined, false);
+            const student = Util.getCurrentStudent();
+            const studentDetails = student;
+            updateLocalAttributes({ studentDetails });
+            setGbUpdated(true);
             history.replace(PAGES.EDIT_STUDENT, {
               from: history.location.pathname,
             });

@@ -29,6 +29,9 @@ const LearningPathway: React.FC = () => {
     if (!currentStudent?.id) return;
     updateStarCount(currentStudent);
     fetchLearningPathway(currentStudent);
+    const studentDetails = currentStudent;
+    updateLocalAttributes({ studentDetails });
+    setGbUpdated(true);
   }, []);
   const updateStarCount = async (currentStudent: TableTypes<"user">) => {
     const storedStarsJson = localStorage.getItem(STARS_COUNT);
