@@ -172,8 +172,6 @@ export class SupabaseAuth implements ServiceAuth {
       });
       if (error) throw error;
 
-      const userId = data.user?.id!;
-
       if (data.session?.refresh_token) {
         Util.addRefreshTokenToLocalStorage(data.session.refresh_token);
       }
@@ -181,10 +179,8 @@ export class SupabaseAuth implements ServiceAuth {
         user_email: authUser.email,
         user_phone: "",
       });
-      // Trying to load the profile row
-      let profile = await api.getUserByDocId(userId);
 
-      if (!profile) {
+      if (!rpcRes?.data) {
         const createdUser = await api.createUserDoc({
           age: null,
           avatar: null,
@@ -212,22 +208,16 @@ export class SupabaseAuth implements ServiceAuth {
           ops_created_by: null,
           stars: null,
         });
-        if (!createdUser) throw new Error("createUserDoc failed");
-        profile = await api.getUserByDocId(userId);
-        if (!createdUser) throw new Error(`User record still missing for id ${userId}`);
+        this._currentUser = createdUser;
       }
 
-      // Prime your in‑memory cache and localStorage
-      this._currentUser = profile;
-      localStorage.setItem(USER_DATA, JSON.stringify(profile));
+      // Switch into Supabase‑mode so getCurrentUser() reads remotely
+      ServiceConfig.getI().switchMode(APIMode.SUPABASE);
 
-      // Load and store any special/program roles
-      const roles = await api.getUserSpecialRoles(userId);
-      if (roles.length) {
-        localStorage.setItem(USER_ROLE, JSON.stringify(roles));
-      } else {
-        localStorage.removeItem(USER_ROLE);
-      }
+      // Load profile & roles via getCurrentUser()
+      const fetchProfile = await this.getCurrentUser();
+      if (!fetchProfile) throw new Error("Failed to load current user after sign‑in");
+
       const isSpl = await this._supabaseDb?.rpc("is_special_or_program_user");
       const isSplValue = isSpl?.data === true;
       if (isSplValue) {
@@ -238,15 +228,16 @@ export class SupabaseAuth implements ServiceAuth {
           REFRESH_TABLES_ON_LOGIN
         );
       }
-
-      // Subscribe to class topic only if user already existed
-      await api.updateFcmToken(userId);
-        if (rpcRes?.data) {
+      await api.updateFcmToken(data.user?.id ?? authUser.id);
+      if (rpcRes?.data) {
         await api.subscribeToClassTopic();
       }
       return { success: true, isSpl: isSplValue };
-    } catch (err: any) {
-      console.error("🚀 ~ SupabaseAuth ~ googleSign ~ error:", err);
+    } catch (error: any) {
+      console.error(
+        "🚀 ~ SupabaseAuth ~ googleSign ~ error:",
+        error?.stack || error
+      );
       return { success: false, isSpl: false };
     }
   }
