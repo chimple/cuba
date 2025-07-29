@@ -173,7 +173,7 @@ export class SupabaseAuth implements ServiceAuth {
       if (error) throw error;
 
       if (data.session?.refresh_token) {
-        Util.addRefreshTokenToLocalStorage(data.session.refresh_token);
+        Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
       }
       const rpcRes = await this._supabaseDb?.rpc("isUserExists", {
         user_email: authUser.email,
