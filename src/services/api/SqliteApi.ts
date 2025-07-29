@@ -3717,7 +3717,7 @@ order by
         const chapterData = res.values[0];
         return {
           id: chapterData[0],
-          name: chapterData[1],
+          name: chapterData.name,
           image: chapterData[2],
           course_id: chapterData[3],
           created_at: chapterData[4],
