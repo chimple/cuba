@@ -3956,6 +3956,37 @@ export class SupabaseApi implements ServiceApi {
       throw new Error("Unexpected error updating rewards as seen.");
     }
   }
+  async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    studentLoginType: string;
+    schoolModel: string;
+  } | null> {
+    if (!this.supabase) return null;
+
+    try {
+      // Fetch student_login_type and program_model directly from school table
+      const { data: schoolData, error } = await this.supabase
+        .from("school")
+        .select("student_login_type, model")
+        .eq("udise", udiseCode)
+        .eq("is_deleted", false)
+        .single();
+      if (error || !schoolData) {
+        console.error("Error fetching school data:", error);
+        return null;
+      }
+
+      const { student_login_type, model } = schoolData;
+
+      return {
+        studentLoginType: student_login_type || "",
+        schoolModel: model || "",
+      };
+    } catch (err) {
+      console.error("Unexpected error in getSchoolDetailsByUdise:", err);
+      return null;
+    }
+  }
+
   async getUserByDocId(
     studentId: string
   ): Promise<TableTypes<"user"> | undefined> {

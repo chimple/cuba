@@ -1030,6 +1030,12 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return this.s.addUserToSchool(schoolId, userId, role);
   }
+  async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    studentLoginType: string;
+    schoolModel: string;
+  } | null> {
+    return this.s.getSchoolDetailsByUdise(udiseCode);
+  }
   async deleteUserFromSchool(
     schoolId: string,
     userId: string,
@@ -1106,7 +1112,7 @@ export class ApiHandler implements ServiceApi {
   }
   async validateUserContacts(
     programManagerPhone: string,
-    fieldCoordinatorPhone: string
+    fieldCoordinatorPhone?: string
   ): Promise<{ status: string; errors?: string[] }> {
     return this.s.validateUserContacts(
       programManagerPhone,
