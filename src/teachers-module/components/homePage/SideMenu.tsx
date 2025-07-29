@@ -84,12 +84,8 @@ const SideMenu: React.FC<{
         console.error("No user is logged in.");
         return;
       }
-      const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
-      const isOpsRole =
-        userRoles.includes(RoleType.SUPER_ADMIN) ||
-        userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
-      const isProgramUser = await api.isProgramUser();
-      if (isOpsRole || isProgramUser) {
+      const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
+      if (isOpsUser) {
         setIsAuthorizedForOpsMode(true);
       }
       setFullName(currentUser.name || "");
@@ -160,7 +156,7 @@ const SideMenu: React.FC<{
     schoolUtil.setCurrMode(MODES.PARENT);
     history.replace(PAGES.DISPLAY_STUDENT);
   };
- 
+
   const getClassCodeById = async (class_id: string) => {
     if (class_id) {
       const classCode = await api.getClassCodeById(class_id);

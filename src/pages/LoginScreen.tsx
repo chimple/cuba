@@ -339,7 +339,7 @@ const LoginScreen: React.FC = () => {
         login_type: "phone-number",
       });
 
-      const userSchools = await getSchoolsForUser(user.id);
+      const userSchools = await getSchoolsForUser(user.user.id);
       await redirectUser(userSchools, res.isSpl);
 
       setAnimatedLoading(false);
