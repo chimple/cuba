@@ -82,90 +82,101 @@ const SideMenu: React.FC<{
 
   const api = ServiceConfig.getI()?.apiHandler;
   const fetchData = async () => {
-    try {
-      const currentUser =
-        await ServiceConfig.getI()?.authHandler.getCurrentUser();
-      if (!currentUser) {
-        console.error("No user is logged in.");
-        return;
-      }
-      const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
-      const isOpsRole =
-        userRoles.includes(RoleType.SUPER_ADMIN) ||
-        userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
-      const isProgramUser = await api.isProgramUser();
-      if (isOpsRole || isProgramUser) {
-        setIsAuthorizedForOpsMode(true);
-      }
-      setFullName(currentUser.name || "");
-      setEmail(currentUser.email || currentUser.phone || "");
-      setCurrentUserId(currentUser.id);
-      let teacher_class_ids: string[] = [];
-      const schoolList: any = [];
-      const roleMap = {};
-
-      const tempSchool = Util.getCurrentSchool();
-      if (tempSchool) {
-        setsetcurrentSchoolDetail({ id: tempSchool.id, name: tempSchool.name });
-
-        // Fetch classes for the current school
-        const classes = await api.getClassesForSchool(
-          tempSchool.id,
-          currentUser.id
-        );
-        const classMap = classes.map((classItem: any) => ({
-          id: classItem.id,
-          name: classItem.name,
-        }));
-        const updated = Util.getCurrentClass();
-        const patchedList = updated
-          ? classMap.map(c => (c.id === updated.id ? updated : c))
-          : classMap;
-
-        setClassData(patchedList);
-        teacher_class_ids = classes.map((item) => item.id);
-        const tempClass = Util.getCurrentClass();
-        if (!tempClass) {
-          return;
-        }
-        setCurrentClassId(tempClass.id);
-        setcurrentClassDetail({
-          id: tempClass.id,
-          name: tempClass.name,
-        });
-        const classCode = await getClassCodeById(tempClass?.id!);
-        setClassCode(classCode);
-      }
-
-      const allSchools = await api.getSchoolsForUser(currentUser.id);
-      if (allSchools && allSchools.length > 0) {
-        const schoolMap = allSchools.map(({ school }: any) => ({
-          id: school.id,
-          name: school.name,
-        }));
-        setSchoolData(schoolMap);
-
-        const roles = allSchools.map(({ school, role }: any) => ({
-          schoolId: school.id,
-          role,
-        }));
-        roles.forEach((obj) => {
-          schoolList.push(obj.schoolId);
-          roleMap[`${obj.schoolId}_role`] = obj.role;
-        });
-        const teacher_school_and_classes = {
-          teacher_school_list: schoolList,
-          roleMap,
-          teacher_class_ids,
-        };
-        updateLocalAttributes(teacher_school_and_classes);
-        setGbUpdated(true);
-        setSchoolRoles(roles);
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
+  try {
+    const currentUser =
+      await ServiceConfig.getI()?.authHandler.getCurrentUser();
+    if (!currentUser) {
+      console.error("No user is logged in.");
+      return;
     }
-  };
+
+    const userRoles: string[] = JSON.parse(
+      localStorage.getItem(USER_ROLE) ?? "[]"
+    );
+    const isOpsRole =
+      userRoles.includes(RoleType.SUPER_ADMIN) ||
+      userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
+    const isProgramUser = await api.isProgramUser();
+    if (isOpsRole || isProgramUser) {
+      setIsAuthorizedForOpsMode(true);
+    }
+    setFullName(currentUser.name || "");
+    setEmail(currentUser.email || currentUser.phone || "");
+    setCurrentUserId(currentUser.id);
+
+    let teacher_class_ids: string[] = [];
+    const schoolList: any = [];
+    const roleMap: Record<string, RoleType> = {};
+
+    const updatedClass = Util.getCurrentClass();
+
+    const tempSchool = Util.getCurrentSchool();
+    if (tempSchool) {
+      setsetcurrentSchoolDetail({
+        id: tempSchool.id,
+        name: tempSchool.name,
+      });
+
+      const classes = await api.getClassesForSchool(
+        tempSchool.id,
+        currentUser.id
+      );
+      const classMap = classes.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+      }));
+
+      const patchedList = updatedClass
+        ? classMap.map(c => (c.id === updatedClass.id ? updatedClass : c))
+        : classMap;
+      setClassData(patchedList);
+
+      teacher_class_ids = classes.map(item => item.id);
+      if (!updatedClass) {
+        const first = classes[0];
+        if (first) {
+          setCurrentClassId(first.id);
+          setcurrentClassDetail({ id: first.id, name: first.name });
+          setClassCode(await getClassCodeById(first.id));
+        }
+      } else {
+        setCurrentClassId(updatedClass.id);
+        setcurrentClassDetail({
+          id: updatedClass.id,
+          name: updatedClass.name,
+        });
+        setClassCode(await getClassCodeById(updatedClass.id));
+      }
+    }
+
+    const allSchools = await api.getSchoolsForUser(currentUser.id);
+    if (allSchools && allSchools.length > 0) {
+      const schoolMap = allSchools.map(({ school }: any) => ({
+        id: school.id,
+        name: school.name,
+      }));
+      setSchoolData(schoolMap);
+
+      const roles = allSchools.map(({ school, role }: any) => ({
+        schoolId: school.id,
+        role,
+      }));
+      roles.forEach(obj => {
+        schoolList.push(obj.schoolId);
+        roleMap[`${obj.schoolId}_role`] = obj.role;
+      });
+      updateLocalAttributes({
+        teacher_school_list: schoolList,
+        roleMap,
+        teacher_class_ids,
+      });
+      setGbUpdated(true);
+      setSchoolRoles(roles);
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+};
   const switchUser = async () => {
     schoolUtil.setCurrMode(MODES.PARENT);
     history.replace(PAGES.DISPLAY_STUDENT);
