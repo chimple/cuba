@@ -180,8 +180,11 @@ export class SupabaseAuth implements ServiceAuth {
         user_phone: "",
       });
 
+      // Load or create your “app user” row
+      let userRow!: TableTypes<"user">;
+
       if (!rpcRes?.data) {
-        const createdUser = await api.createUserDoc({
+        const createdUser = await SupabaseApi.getInstance().createUserDoc({
           age: null,
           avatar: null,
           created_at: new Date().toISOString(),
@@ -207,32 +210,36 @@ export class SupabaseAuth implements ServiceAuth {
           learning_path: null,
           ops_created_by: null,
           stars: null,
-        });
-        this._currentUser = createdUser;
+       });
+       if (!createdUser) {
+        throw new Error("googleSign: createUserDoc returned undefined");
+       }
+      // await (await SqliteApi.getInstance()).createUserDoc(createdUser);
+       userRow = createdUser;
+      } else {
+        const remote = await SupabaseApi.getInstance().getUserByDocId(data.user!.id);
+        if (!remote) {
+          throw new Error("googleSign: getUserByDocId returned undefined");
+        };
+        await (await SqliteApi.getInstance()).createUserDoc(remote);
+        userRow = remote;
       }
-
-      // Switch into Supabase‑mode so getCurrentUser() reads remotely
-      ServiceConfig.getI().switchMode(APIMode.SUPABASE);
-
-      // Load profile & roles via getCurrentUser()
-      const fetchProfile = await this.getCurrentUser();
-      if (!fetchProfile) throw new Error("Failed to load current user after sign‑in");
+      // Cache it for getCurrentUser() and localStorage
+      this._currentUser = userRow;
 
       const isSpl = await this._supabaseDb?.rpc("is_special_or_program_user");
       const isSplValue = isSpl?.data === true;
       if (isSplValue) {
         ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
       } else {
-        await ServiceConfig.getI().apiHandler.syncDB(
-          Object.values(TABLES),
-          REFRESH_TABLES_ON_LOGIN
-        );
+        await api.syncDB(Object.values(TABLES), REFRESH_TABLES_ON_LOGIN);
       }
+
       await api.updateFcmToken(data.user?.id ?? authUser.id);
       if (rpcRes?.data) {
         await api.subscribeToClassTopic();
       }
-      return { success: true, isSpl: isSplValue };
+      return { success: true, isSpl:isSplValue };
     } catch (error: any) {
       console.error(
         "🚀 ~ SupabaseAuth ~ googleSign ~ error:",
