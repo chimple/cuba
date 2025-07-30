@@ -1149,7 +1149,7 @@ export class OneRosterApi implements ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     throw new Error("Method not implemented.");
   }
   validateSchoolUdiseCode(
@@ -1167,7 +1167,7 @@ export class OneRosterApi implements ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     throw new Error("Method not implemented.");
   }
   validateClassCurriculumAndSubject(
