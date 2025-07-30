@@ -190,7 +190,7 @@ const updateLearningPathIfNeeded = async (
       path_id:
           path.courses.courseList[
             path.courses.currentCourseIndex
-          ].path_id, 
+          ].path_id,
       current_course_id:
         path.courses.courseList[path.courses.currentCourseIndex].course_id,
       current_lesson_id:
@@ -209,8 +209,9 @@ const updateLearningPathIfNeeded = async (
     };
     await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
   };
-  if (loading || (Util.isRespectMode && !pathwayReady)) {
-    return <Loading isLoading={loading} msg="Loading Lessons" />;
+  if (loading && !pathwayReady) {
+    if( Util.isRespectMode )
+      return <Loading isLoading={loading} msg="Loading Lessons" />;
   }
 
   return (
