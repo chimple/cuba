@@ -511,6 +511,9 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                 );
               }
             }
+            if (schoolId && programModel) {
+              schoolProgramModelMap.set(schoolId, programModel.toUpperCase());
+            }
             if (schoolId && studentLoginType) {
               studentLoginTypeMap.set(schoolId, studentLoginType);
             }
