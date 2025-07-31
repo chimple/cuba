@@ -214,7 +214,6 @@ export class SupabaseAuth implements ServiceAuth {
        if (!createdUser) {
         throw new Error("googleSign: createUserDoc returned undefined");
        }
-      // await (await SqliteApi.getInstance()).createUserDoc(createdUser);
        userRow = createdUser;
       } else {
         // returning user: fetch from SupabaseApi directly… 
