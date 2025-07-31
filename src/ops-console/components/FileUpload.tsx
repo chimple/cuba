@@ -806,14 +806,17 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
               try {
                 const result = await api.validateParentAndStudentInClass(
                   parentContact,
-                  className,
                   studentName,
+                  className,
                   schoolId
                 );
                 if (result?.status === "error") {
                   if (result.message) {
                     errors.push(result.message);
                   }
+                  if (result.errors && result.errors.length > 0) {
+                  errors.push(...result.errors);
+                }
                 }
               } catch (e) {
                 errors.push(
@@ -836,6 +839,9 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
               if (result?.status === "error") {
                 if (result.message) {
                   errors.push(result.message);
+                }
+                if (result.errors && result.errors.length > 0) {
+                  errors.push(...result.errors);
                 }
               }
             } catch (e) {
