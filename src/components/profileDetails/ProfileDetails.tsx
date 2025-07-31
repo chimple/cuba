@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState,useRef  } from "react";
 import { t } from "i18next";
 import "./ProfileDetails.css";
 import InputWithIcons from "../common/InputWithIcons";
@@ -6,6 +6,7 @@ import SelectWithIcons from "../common/SelectWithIcons";
 import { Util } from "../../utility/util";
 import { useFeatureValue } from "@growthbook/growthbook-react";
 import { initializeProfileClickListener } from "../../analytics/profileClickUtil";
+import { useGrowthBook } from "@growthbook/growthbook-react";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import {
   ACTION,
@@ -44,6 +45,8 @@ const ProfileDetails = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
+  const growthbook = useGrowthBook();
+  const profileRef = useRef<HTMLDivElement>(null);
   const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
   const currentStudent = Util.getCurrentStudent();
   const location = useLocation();
@@ -85,16 +88,21 @@ const ProfileDetails = () => {
     initializeFireBase();
     lockOrientation();
     Util.loadBackgroundImage();
-    const cleanup = initializeProfileClickListener();
     const loadLanguages = async () => {
       const langs = await api.getAllLanguages();
       setLanguages(langs);
     };
     loadLanguages();
-
-    return () => {
-      cleanup?.();
-    };
+    if (currentStudent?.id && growthbook) {
+      growthbook.setAttributes({
+        ...growthbook.getAttributes(),
+        parent_id: currentStudent?.id
+      });
+    }
+    if (profileRef.current) {
+      const cleanup = initializeProfileClickListener(profileRef.current);
+      return cleanup;
+    }
   }, []);
 
   useEffect(() => {
@@ -202,7 +210,7 @@ const ProfileDetails = () => {
 
   return (
 
-    <div className="profiledetails-container">
+    <div  ref={profileRef} className="profiledetails-container">
       <button
         className="profiledetails-back-button"
         onClick={() => {
