@@ -1225,6 +1225,9 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return await this.s.updateStudentStars(studentId, totalStars);
   }
+  public async getChapterIdbyQrLink(link:string): Promise<TableTypes<"chapter_links"> | undefined> {
+    return await this.s.getChapterIdbyQrLink(link);
+  }
   public async getSchoolsByModel(
     model: MODEL,
     limit: number = 10,

@@ -7249,4 +7249,7 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
   }
+  async getChapterIdbyQrLink(link: string): Promise<TableTypes<"chapter_links"> | undefined> {
+      throw new Error("Method not implemented.");
+  }
 }
