@@ -11,12 +11,12 @@ const SelectIcon: React.FC<SelectIconProps> = ({ onClick, isSelected }) => {
   return (
     <div className="select-icon-container" onClick={onClick}>
       <div
-        className="select-icon"
-        style={{ backgroundColor: isSelected ? "#7c5db0" : "#EFE8F8" }}
+        className="select-Assignmenticon"
+        style={{ backgroundColor: isSelected ? "#7c5db0" : "#fff" }}
       >
-        <AssignmentRoundedIcon />
+        <img src="assets/icons/assignmentSelect.svg" alt="Assignment_Icon" />
         <span
-          style={{ color: isSelected ? "white" : "black" }}
+          style={{ color: isSelected ? "white" : "#4A4949" }}
           className="select-text"
         >
           {isSelected ? t("Remove") : t("Add")}
