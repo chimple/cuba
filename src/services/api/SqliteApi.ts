@@ -3372,7 +3372,6 @@ export class SqliteApi implements ServiceApi {
       classes: [],
       schools: [],
     };
-    await this.syncDbNow();
     const res = await this._db?.query(
       `select c.*,
       JSON_OBJECT(
@@ -5104,7 +5103,9 @@ order by
       console.error("Error setting stars for student:", error);
     }
   }
-  async getChapterIdbyQrLink(link:string): Promise<TableTypes<"chapter_links"> | undefined> {
+  async getChapterIdbyQrLink(
+    link: string
+  ): Promise<TableTypes<"chapter_links"> | undefined> {
     if (!link) return;
     try {
       const res = await this._db?.query(
