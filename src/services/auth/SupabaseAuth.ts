@@ -21,6 +21,7 @@ import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Util } from "../../utility/util";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 import { schoolUtil } from "../../utility/schoolUtil";
+import { SqliteApi } from "../api/SqliteApi";
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
