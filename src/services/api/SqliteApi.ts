@@ -3372,6 +3372,7 @@ export class SqliteApi implements ServiceApi {
       classes: [],
       schools: [],
     };
+    await this.syncDbNow();
     const res = await this._db?.query(
       `select c.*,
       JSON_OBJECT(
@@ -3390,7 +3391,7 @@ export class SqliteApi implements ServiceApi {
       ON cu.class_id = c.id
       join ${TABLES.School} s
       ON c.school_id = s.id
-      where c.is_deleted = 0 and user_id = "${userId}" and role = "${RoleType.STUDENT}" and cu.is_deleted = 0`
+      where c.is_deleted = 0 and user_id = "${userId}" and role = "${RoleType.STUDENT}" and cu.is_deleted = 0 order by cu.updated_at desc`
     );
     if (!res || !res.values || res.values.length < 1) return data;
     data.classes = res.values;
@@ -3466,7 +3467,7 @@ export class SqliteApi implements ServiceApi {
     course_id: string,
     type: string,
     batch_id: string,
-    created_at?: string,
+    created_at?: string
   ): Promise<boolean> {
     const assignmentUUid = uuidv4();
     const timestamp = new Date().toISOString(); // Cache timestamp for reuse
@@ -5637,13 +5638,12 @@ order by
     }
 
     try {
-      const placeholders = chapterIds.map(() => '?').join(', ');
+      const placeholders = chapterIds.map(() => "?").join(", ");
 
-      const query = 
-      `SELECT *
+      const query = `SELECT *
         FROM ${TABLES.Chapter}
         WHERE id IN (${placeholders})
-          AND is_deleted = 0;`
+          AND is_deleted = 0;`;
 
       const res = await this.executeQuery(query, chapterIds);
 
