@@ -456,7 +456,7 @@ const processScannedData = async (scannedText: string) => {
       return;
     }
     // Get course info for this chapter
-    const course = await api.getCourse(result.course_id);
+    const course = await api.getCourse(result.course_id?? "");
     if (!course) {
       Toast.show({ text: t("Course not found for this chapter") });
       return;
