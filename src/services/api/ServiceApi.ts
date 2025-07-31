@@ -1078,7 +1078,8 @@ export interface ServiceApi {
     chapter_id: string,
     course_id: string,
     type: string,
-    batch_id: string
+    batch_id: string,
+    created_at?: string,
   ): Promise<boolean>;
 
   /**
@@ -1330,7 +1331,7 @@ export interface ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }>;
+  ): Promise<{ status: string; errors?: string[]; message?: string }>;
 
   /**
    * To validate given program name exist in the program table or not
@@ -1367,7 +1368,7 @@ export interface ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }>;
+  ): Promise<{ status: string; errors?: string[]; message?: string }>;
 
   /**
    * To validate given phone number and student already exist in the given class or not

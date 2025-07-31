@@ -1,6 +1,13 @@
 import { FC, useEffect, useState, useRef } from "react";
 import { useHistory, useLocation } from "react-router";
-import { PAGES, TableTypes, USER_ROLE, MODES, USER_SELECTION_STAGE } from "../../common/constants";
+import {
+  PAGES,
+  TableTypes,
+  USER_ROLE,
+  MODES,
+  USER_SELECTION_STAGE,
+  IS_OPS_USER,
+} from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
 import { t } from "i18next";
@@ -31,17 +38,23 @@ const DisplaySchools: FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
- 
+
   useEffect(() => {
     (async () => {
       const mode = await schoolUtil.getCurrMode();
-      const done = JSON.parse(localStorage.getItem(USER_SELECTION_STAGE) ?? "false");
-      if (mode === MODES.TEACHER && done && location.pathname !== PAGES.HOME_PAGE) {
+      const done = JSON.parse(
+        localStorage.getItem(USER_SELECTION_STAGE) ?? "false"
+      );
+      if (
+        mode === MODES.TEACHER &&
+        done &&
+        location.pathname !== PAGES.HOME_PAGE
+      ) {
         history.replace(PAGES.HOME_PAGE);
       }
     })();
   }, [location.pathname, history]);
-  
+
   useEffect(() => {
     lockOrientation();
     initData();
@@ -58,26 +71,25 @@ const DisplaySchools: FC = () => {
       page_size: PAGE_SIZE,
     });
     if (result.length < PAGE_SIZE) setHasMore(false);
-    setSchoolList(prev => (pageNo === 1 ? result : [...prev, ...result]));
+    setSchoolList((prev) => (pageNo === 1 ? result : [...prev, ...result]));
     setLoading(false);
   };
   const initData = async () => {
     const currentUser = await auth.getCurrentUser();
     if (!currentUser) return;
     setUser(currentUser);
-    const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
-    const isOpsRole =
-      userRoles.includes(RoleType.SUPER_ADMIN) ||
-      userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
-    const isProgramUser = await api.isProgramUser();
-    if (isOpsRole || isProgramUser) setIsAuthorizedForOpsMode(true);
+    const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
+    if (isOpsUser) setIsAuthorizedForOpsMode(true);
     setPage(1);
     setHasMore(true);
     await fetchSchools(1, currentUser.id);
     // if they’d already picked a school previously
     const tempSchool = Util.getCurrentSchool();
     if (tempSchool) {
-      const role = await api.getUserRoleForSchool(currentUser.id, tempSchool.id);
+      const role = await api.getUserRoleForSchool(
+        currentUser.id,
+        tempSchool.id
+      );
       if (role) {
         return selectSchool({ school: tempSchool, role });
       }
@@ -93,7 +105,7 @@ const DisplaySchools: FC = () => {
     const handleScroll = () => {
       if (loading || !hasMore) return;
       if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
-        setPage(p => p + 1);
+        setPage((p) => p + 1);
       }
     };
     el.addEventListener("scroll", handleScroll);
@@ -113,7 +125,7 @@ const DisplaySchools: FC = () => {
     schoolUtil.setCurrMode(MODES.PARENT);
     history.replace(PAGES.DISPLAY_STUDENT);
   };
-  
+
   async function selectSchool(school: SchoolWithRole) {
     Util.setCurrentSchool(school.school, school.role);
     await Util.handleClassAndSubjects(
@@ -182,17 +194,12 @@ const DisplaySchools: FC = () => {
         >
           <div className="all-school-display">
             {schoolList.map((school) => (
-              <div
-                key={school.school.id}
-                onClick={() => selectSchool(school)}
-              >
+              <div key={school.school.id} onClick={() => selectSchool(school)}>
                 <div className="display-school-single-school">
                   <div className="display-school-image">
                     <img
                       className="school-image-p"
-                      src={
-                        school.school.image ?? "assets/icons/school.png"
-                      }
+                      src={school.school.image ?? "assets/icons/school.png"}
                       alt=""
                     />
                   </div>
@@ -202,9 +209,13 @@ const DisplaySchools: FC = () => {
                 </div>
               </div>
             ))}
-            {loading && <div className="display-loading-text">{t("Loading...")}</div>}
+            {loading && (
+              <div className="display-loading-text">{t("Loading...")}</div>
+            )}
             {!hasMore && schoolList.length > 0 && (
-              <div className="display-no-more-schools">{t("No more schools")}</div>
+              <div className="display-no-more-schools">
+                {t("No more schools")}
+              </div>
             )}
           </div>
         </div>

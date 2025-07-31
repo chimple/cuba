@@ -886,7 +886,8 @@ export class ApiHandler implements ServiceApi {
     chapter_id: string,
     course_id: string,
     type: string,
-    batch_id: string
+    batch_id: string,
+    created_at?: string,
   ): Promise<boolean> {
     return this.s.createAssignment(
       student_list,
@@ -900,7 +901,8 @@ export class ApiHandler implements ServiceApi {
       chapter_id,
       course_id,
       type,
-      batch_id
+      batch_id,
+      created_at,
     );
   }
   getTeachersForClass(
@@ -1063,7 +1065,7 @@ export class ApiHandler implements ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     return this.s.validateParentAndStudentInClass(
       schoolId,
       className,
@@ -1092,7 +1094,7 @@ export class ApiHandler implements ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     return this.s.validateStudentInClassWithoutPhone(
       studentName,
       className,

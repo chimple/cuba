@@ -333,6 +333,47 @@ export class SupabaseApi implements ServiceApi {
     const uploadingUser = currentuserData?.id;
     return new Promise(async (resolve) => {
       let uploadId: string | undefined;
+      let directChannel: RealtimeChannel | null = null;
+      let subscriptionFailCount = 0;
+      const subscribeToDirectChannel = (): RealtimeChannel => {
+        const channel = supabase
+          .channel(`upload-status-${uploadId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "upload_queue",
+              filter: `id=eq.${uploadId}`,
+            },
+            async (payload) => {
+              const status = payload.new?.status;
+              console.log("🔄 Realtime update received:", status);
+              if ((status === "success" || status === "failed") && !resolved) {
+                resolved = true;
+                await channel.unsubscribe();
+                resolve(status === "success");
+              }
+            }
+          )
+          .subscribe(async (status) => {
+            if (status === "SUBSCRIBED") {
+              console.log("📡 Realtime subscription active.");
+              subscriptionFailCount = 0;
+            } else {
+              subscriptionFailCount++;
+              console.warn("⚠️ Subscription status:", status);
+              if (subscriptionFailCount > 2) {
+                console.warn(
+                  "🔁 Reinitializing subscription due to failures..."
+                );
+                await channel.unsubscribe();
+                directChannel = subscribeToDirectChannel();
+              }
+            }
+          });
+        return channel;
+      };
       const fallbackChannel = uploadingUser
         ? supabase
             .channel(`upload-fallback-${uploadingUser}`)
@@ -393,33 +434,7 @@ export class SupabaseApi implements ServiceApi {
           console.log("❌ Already failed before subscription.");
           return resolve(false);
         }
-        const directChannel = supabase
-          .channel(`upload-status-${uploadId}`)
-          .on(
-            "postgres_changes",
-            {
-              event: "UPDATE",
-              schema: "public",
-              table: "upload_queue",
-              filter: `id=eq.${uploadId}`,
-            },
-            async (payload) => {
-              const status = payload.new?.status;
-              console.log("🔄 Realtime update received:", status);
-              if ((status === "success" || status === "failed") && !resolved) {
-                resolved = true;
-                await directChannel.unsubscribe();
-                resolve(status === "success");
-              }
-            }
-          )
-          .subscribe((status) => {
-            if (status === "SUBSCRIBED") {
-              console.log("📡 Realtime subscription active.");
-            } else {
-              console.warn("⚠️ Subscription status:", status);
-            }
-          });
+        directChannel = subscribeToDirectChannel();
       } else {
         console.warn("❗ No upload_id returned — using fallback listener.");
       }
@@ -4545,7 +4560,8 @@ export class SupabaseApi implements ServiceApi {
     chapter_id: string,
     course_id: string,
     type: string,
-    batch_id: string
+    batch_id: string,
+    created_at?: string
   ): Promise<boolean> {
     if (!this.supabase) return false;
 
@@ -4570,7 +4586,7 @@ export class SupabaseApi implements ServiceApi {
             course_id,
             type,
             batch_id: batch_id ?? null,
-            created_at: timestamp,
+            created_at: created_at ?? timestamp,
             updated_at: timestamp,
             is_deleted: false,
           },
@@ -5366,7 +5382,7 @@ export class SupabaseApi implements ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     if (!this.supabase) {
       return {
         status: "error",
@@ -5527,7 +5543,7 @@ export class SupabaseApi implements ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     if (!this.supabase) {
       return {
         status: "error",

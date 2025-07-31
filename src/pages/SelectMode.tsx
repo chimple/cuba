@@ -19,7 +19,7 @@ import {
   STAGES,
   CURRENT_CLASS,
   CURRENT_SCHOOL,
-  USER_ROLE
+  IS_OPS_USER,
 } from "../common/constants";
 import SelectModeButton from "../components/selectMode/SelectModeButton";
 import { IoMdPeople } from "react-icons/io";
@@ -70,10 +70,8 @@ const SelectMode: FC = () => {
   const [stage, setStage] = useState(STAGES.MODE);
   const [isOkayButtonDisabled, setIsOkayButtonDisabled] = useState(true);
   const init = async () => {
-    
     const urlParams = new URLSearchParams(window.location.search);
     const setTab = urlParams.get("tab");
-    
     const currentMode = await schoolUtil.getCurrMode();
     if (setTab) {
       if (setTab === STAGES.STUDENT) {
@@ -99,7 +97,6 @@ const SelectMode: FC = () => {
       }
       history.replace(PAGES.DISPLAY_STUDENT);
       return;
-
     } else if (currentMode == MODES.SCHOOL) {
       const schoolName = localStorage.getItem(CURRENT_SCHOOL_NAME);
       if (schoolName) setCurrentSchoolName(JSON.parse(schoolName));
@@ -116,15 +113,10 @@ const SelectMode: FC = () => {
         setStage(STAGES.MODE);
       }
     } else if (currentMode === MODES.TEACHER) {
-      const teacherHomePage = JSON.parse(localStorage.getItem(USER_SELECTION_STAGE) ?? "false");
-      if (teacherHomePage) {
-        return history.replace(PAGES.HOME_PAGE);
-      } else {
-        return history.replace(PAGES.DISPLAY_SCHOOLS);
-      }
-    }else if (currentMode === MODES.OPS_CONSOLE) {
-        history.replace(PAGES.SIDEBAR_PAGE);
-        return;
+      return history.replace(PAGES.DISPLAY_SCHOOLS);
+    } else if (currentMode === MODES.OPS_CONSOLE) {
+      history.replace(PAGES.SIDEBAR_PAGE);
+      return;
     }
 
     const currUser = await auth.getCurrentUser();
@@ -139,66 +131,57 @@ const SelectMode: FC = () => {
       filteredSchoolIds.includes(entry.school.id)
     );
 
-    const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
-    const isOpsRole =
-      userRoles.includes(RoleType.SUPER_ADMIN) ||
-      userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
-    const isProgramUser = await api.isProgramUser();
-
+    const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
     // If user is ops or program user
-    if (isOpsRole || isProgramUser) {
+    if (isOpsUser) {
       schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
       history.replace(PAGES.SIDEBAR_PAGE);
-      return; 
-    }
-
-    const students = await api.getParentStudentProfiles();
-    // const isTeacher = await api.isUserTeacher(currUser);
-
-    if (!allSchool || allSchool.length < 1) {
-      api.currentMode = MODES.PARENT;
-      schoolUtil.setCurrMode(MODES.PARENT);
-      if (!!students && students.length == 0) {
-        history.replace(PAGES.CREATE_STUDENT);
-      } else history.replace(PAGES.DISPLAY_STUDENT);
       return;
     } else {
-      setIsLoading(false);
-    } 
-    // if (!currentUser) {
-    //   history.push(PAGES.DISPLAY_STUDENT);
-    //   return;
-    // }
-    for (let i = 0; i < matchedSchools.length; i++) {
-      const element = matchedSchools[i];
-      tempSchoolList.push({
-        id: element.school.id,
-        displayName: element.school.name,
-        school: element.school,
-      });
-    }
-    setCurrentUser(currUser);
-    setSchoolList(tempSchoolList);
-    if (matchedSchools.length > 0) {
-      const selectedUser = localStorage.getItem(USER_SELECTION_STAGE);
-      if (tempSchoolList.length === 1) {
-        setCurrentSchool(tempSchoolList[0].school);
-        await displayClasses(tempSchoolList[0].school, currUser);
-        if (selectedUser) {
-          setStage(STAGES.STUDENT);
-        } else {
-          setStage(STAGES.CLASS);
-        }
+      const students = await api.getParentStudentProfiles();
+
+      if (!allSchool || allSchool.length < 1) {
+        api.currentMode = MODES.PARENT;
+        schoolUtil.setCurrMode(MODES.PARENT);
+        if (!!students && students.length == 0) {
+          history.replace(PAGES.CREATE_STUDENT);
+        } else history.replace(PAGES.DISPLAY_STUDENT);
+        return;
       } else {
-        if (selectedUser) {
-          setStage(STAGES.STUDENT);
-        } else {
-          setStage(STAGES.SCHOOL);
-        }
+        setIsLoading(false);
       }
-    } else if (allSchool.length === 0) {
-      onParentSelect();
+      for (let i = 0; i < matchedSchools.length; i++) {
+        const element = matchedSchools[i];
+        tempSchoolList.push({
+          id: element.school.id,
+          displayName: element.school.name,
+          school: element.school,
+        });
+      }
+      setCurrentUser(currUser);
+      setSchoolList(tempSchoolList);
+      if (matchedSchools.length > 0) {
+        const selectedUser = localStorage.getItem(USER_SELECTION_STAGE);
+        if (tempSchoolList.length === 1) {
+          setCurrentSchool(tempSchoolList[0].school);
+          await displayClasses(tempSchoolList[0].school, currUser);
+          if (selectedUser) {
+            setStage(STAGES.STUDENT);
+          } else {
+            setStage(STAGES.CLASS);
+          }
+        } else {
+          if (selectedUser) {
+            setStage(STAGES.STUDENT);
+          } else {
+            setStage(STAGES.SCHOOL);
+          }
+        }
+      } else if (allSchool.length === 0) {
+        onParentSelect();
+      }
     }
+
     setIsLoading(false);
   };
 

@@ -82,33 +82,23 @@ const SideMenu: React.FC<{
 
   const api = ServiceConfig.getI()?.apiHandler;
   const fetchData = async () => {
-  try {
-    const currentUser =
-      await ServiceConfig.getI()?.authHandler.getCurrentUser();
-    if (!currentUser) {
-      console.error("No user is logged in.");
-      return;
-    }
-
-    const userRoles: string[] = JSON.parse(
-      localStorage.getItem(USER_ROLE) ?? "[]"
-    );
-    const isOpsRole =
-      userRoles.includes(RoleType.SUPER_ADMIN) ||
-      userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
-    const isProgramUser = await api.isProgramUser();
-    if (isOpsRole || isProgramUser) {
-      setIsAuthorizedForOpsMode(true);
-    }
-    setFullName(currentUser.name || "");
-    setEmail(currentUser.email || currentUser.phone || "");
-    setCurrentUserId(currentUser.id);
-
-    let teacher_class_ids: string[] = [];
-    const schoolList: any = [];
-    const roleMap: Record<string, RoleType> = {};
-
-    const updatedClass = Util.getCurrentClass();
+    try {
+      const currentUser =
+        await ServiceConfig.getI()?.authHandler.getCurrentUser();
+      if (!currentUser) {
+        console.error("No user is logged in.");
+        return;
+      }
+      const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
+      if (isOpsUser) {
+        setIsAuthorizedForOpsMode(true);
+      }
+      setFullName(currentUser.name || "");
+      setEmail(currentUser.email || currentUser.phone || "");
+      setCurrentUserId(currentUser.id);
+      let teacher_class_ids: string[] = [];
+      const schoolList: any = [];
+      const roleMap = {};
 
     const tempSchool = Util.getCurrentSchool();
     if (tempSchool) {
@@ -181,7 +171,7 @@ const SideMenu: React.FC<{
     schoolUtil.setCurrMode(MODES.PARENT);
     history.replace(PAGES.DISPLAY_STUDENT);
   };
- 
+
   const getClassCodeById = async (class_id: string) => {
     if (class_id) {
       const classCode = await api.getClassCodeById(class_id);
