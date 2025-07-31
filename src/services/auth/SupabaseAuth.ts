@@ -21,7 +21,6 @@ import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Util } from "../../utility/util";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 import { schoolUtil } from "../../utility/schoolUtil";
-import { SqliteApi } from "../api/SqliteApi";
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -185,7 +184,7 @@ export class SupabaseAuth implements ServiceAuth {
       let userRow!: TableTypes<"user">;
 
       if (!rpcRes?.data) {
-        const createdUser = await SupabaseApi.getInstance().createUserDoc({
+        const createdUser = await api.createUserDoc({
           age: null,
           avatar: null,
           created_at: new Date().toISOString(),
@@ -218,11 +217,13 @@ export class SupabaseAuth implements ServiceAuth {
       // await (await SqliteApi.getInstance()).createUserDoc(createdUser);
        userRow = createdUser;
       } else {
+        // returning user: fetch from SupabaseApi directly… 
         const remote = await SupabaseApi.getInstance().getUserByDocId(data.user!.id);
         if (!remote) {
           throw new Error("googleSign: getUserByDocId returned undefined");
         };
-        await (await SqliteApi.getInstance()).createUserDoc(remote);
+        // then seed into the dynamic api (SQLite or Supabase)
+        await api.createUserDoc(remote);
         userRow = remote;
       }
       // Cache it for getCurrentUser() and localStorage
