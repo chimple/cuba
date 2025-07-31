@@ -15,13 +15,14 @@
 /* PathwayModal content */
 .PathwayModal-content {
   position: relative;
-  width: 365px;
-  height: 133px;
+  width: 476px;
+  height: 196px;
   background: #fffdee;
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
   border-radius: 21px;
   display: flex;
-  background-image:url(../../../public/pathwayAssets/BackgroundPopup.svg);
+  flex-direction: column;
+  /* background-image:url(../../../public/pathwayAssets/BackgroundPopup.svg); */
   justify-content: center;
   align-items: center;
   text-align: center;
@@ -29,21 +30,42 @@
   font-size: 16px;
   color: #333;
   overflow: hidden;
+  background-size: contain
+}
+.PathwayModal-content.slide-in {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translate3d(100vw, 0, 0);
+  -webkit-transform: translate3d(100vw, 0, 0);
+  animation: slideInRightToCenter 0.5s cubic-bezier(1,1,1,1) forwards;
+  -webkit-animation: slideInRightToCenter 0.5s cubic-bezier(1,1,1,1) forwards;
+}
+
+.PathwayModal-content.slide-out {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  animation: slideOutCenterToRight 0.5s cubic-bezier(1,1,1,1) forwards;
+  -webkit-animation: slideOutCenterToRight 0.5s cubic-bezier(1,1,1,1) forwards;
 }
 
 /* Text inside modal */
 .PathwayModal-text {
   font-weight: bold;
   z-index: 1;
+  font-size: 18px;
+  color: #182A4F;
+  text-align: center;
 }
 
 /* Close button */
 .PathwayModal-close {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 24px;
-  height: 24px;
+  top: 16px;
+  right: 14px;
+  width: 44px;
+  height: 44px;
   background: #fffdee;
   border-radius: 50%;
   border: none;
@@ -55,20 +77,88 @@
   z-index: 1;
 }
 
-.PathwayModal-close::before,
-.PathwayModal-close::after {
-  content: "";
-  position: absolute;
-  width: 12px;
-  height: 2px;
-  background-color: #ff5400;
-  border-radius: 1px;
-}
-
 .PathwayModal-close::before {
   transform: rotate(45deg);
 }
 
 .PathwayModal-close::after {
   transform: rotate(-45deg);
+}
+
+.PathwayModal-width {
+  width: 40vw;
+}
+
+.learning-pathway-OK-button {
+    width: 30vw;
+    max-width: 130px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    border-bottom: 5px solid #8a2901;
+    background: #f34d08;
+    color: #fff;
+    font-size: 26px;
+    font-weight: 600;
+    transition: transform 0.1s ease;
+    transform: translateY(2px);
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%) translateY(2px); 
+}
+.learning-pathway-OK-button:active {
+  border-bottom: 2px solid #8a2901 !important;
+  transition:
+    background 0.1s,
+    color 0.1s;
+}
+.learning-pathway-ok-text {
+  line-height: 30px;
+  display: inline-block;
+  text-transform: uppercase;
+}
+
+@keyframes slideInRightToCenter {
+  from {
+    transform: translate3d(100vw, 0, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+@-webkit-keyframes slideInRightToCenter {
+  from {
+    -webkit-transform: translate3d(100vw, 0, 0);
+    opacity: 0;
+  }
+  to {
+    -webkit-transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutCenterToRight {
+  from {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(100vw, 0, 0);
+    opacity: 0;
+  }
+}
+@-webkit-keyframes slideOutCenterToRight {
+  from {
+    -webkit-transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  to {
+    -webkit-transform: translate3d(100vw, 0, 0);
+    opacity: 0;
+  }
 }
