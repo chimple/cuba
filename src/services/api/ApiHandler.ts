@@ -1067,10 +1067,10 @@ export class ApiHandler implements ServiceApi {
     schoolId: string
   ): Promise<{ status: string; errors?: string[]; message?: string }> {
     return this.s.validateParentAndStudentInClass(
-      schoolId,
-      className,
+      phoneNumber,
       studentName,
-      phoneNumber
+      className,
+      schoolId
     );
   }
   async validateProgramName(
