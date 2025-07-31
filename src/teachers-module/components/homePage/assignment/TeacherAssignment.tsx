@@ -12,14 +12,15 @@ import { BarcodeScanner } from "@capacitor-community/barcode-scanner";
 import { App } from '@capacitor/app';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
 import Loading from "../../../../components/Loading";
+import { checkmarkCircle, ellipseOutline } from 'ionicons/icons';
+import { IonIcon } from "@ionic/react";
 
 declare global {
   interface Window {
     __qrBackListener?: { remove: () => void } | null;
   }
 }
-import { checkmarkCircle, ellipseOutline } from 'ionicons/icons';
-import { IonIcon } from "@ionic/react";
+
 
 export enum TeacherAssignmentPageType {
   MANUAL = "manual",
