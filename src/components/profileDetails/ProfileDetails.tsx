@@ -5,7 +5,7 @@ import InputWithIcons from "../common/InputWithIcons";
 import SelectWithIcons from "../common/SelectWithIcons";
 import { Util } from "../../utility/util";
 import { useFeatureValue } from "@growthbook/growthbook-react";
-import { initializeProfileClickListener } from "../../analytics/profileClickUtil";
+import { logProfileClick } from "../../analytics/profileClickUtil";
 import { useGrowthBook } from "@growthbook/growthbook-react";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import {
@@ -99,11 +99,7 @@ const ProfileDetails = () => {
         parent_id: currentStudent?.id
       });
     }
-    if (profileRef.current) {
-      const cleanup = initializeProfileClickListener(profileRef.current);
-      return cleanup;
-    }
-  }, []);
+   }, []);
 
   useEffect(() => {
     setHasChanges(true);
@@ -210,7 +206,7 @@ const ProfileDetails = () => {
 
   return (
 
-    <div  ref={profileRef} className="profiledetails-container">
+    <div ref={profileRef} className="profiledetails-container"  onClick={logProfileClick}>
       <button
         className="profiledetails-back-button"
         onClick={() => {
