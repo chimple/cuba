@@ -89,6 +89,7 @@ const LearningPathway: React.FC = () => {
           userCourses
         );
         if (updated) await saveLearningPath(student, learningPath);
+        if (Util.isRespectMode) setPathwayReady(true);
       }
     } catch (error) {
       console.error("Error in Learning Pathway", error);
@@ -209,9 +210,8 @@ const updateLearningPathIfNeeded = async (
     };
     await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
   };
-  if (loading && !pathwayReady) {
-    if( Util.isRespectMode )
-      return <Loading isLoading={loading} msg="Loading Lessons" />;
+   if (loading || (Util.isRespectMode && !pathwayReady)) {
+    return <Loading isLoading={loading} msg="Loading Lessons" />;
   }
 
   return (
