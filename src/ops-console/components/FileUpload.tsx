@@ -511,6 +511,9 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                 );
               }
             }
+            if (schoolId && programModel) {
+              schoolProgramModelMap.set(schoolId, programModel.toUpperCase());
+            }
             if (schoolId && studentLoginType) {
               studentLoginTypeMap.set(schoolId, studentLoginType);
             }
@@ -808,7 +811,9 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                   schoolId
                 );
                 if (result?.status === "error") {
-                  errors.push(...(result.errors || []));
+                  if (result.message) {
+                    errors.push(result.message);
+                  }
                 }
               } catch (e) {
                 errors.push(
@@ -829,7 +834,9 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                 schoolId
               );
               if (result?.status === "error") {
-                errors.push(...(result.errors || []));
+                if (result.message) {
+                  errors.push(result.message);
+                }
               }
             } catch (e) {
               errors.push("Error while validating student in class.");
