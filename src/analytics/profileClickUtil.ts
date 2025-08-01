@@ -50,7 +50,7 @@ export const logProfileClick = async (event: React.MouseEvent<HTMLElement>) => {
     page_path: window.location.pathname,
     complete_path: window.location.href,
     action_type: event.type,
+    input_value: (event.target as HTMLInputElement).value || "null",
   };
-  console.log("Profile Click Event Data:", eventData);
   Util.logEvent(EVENTS.PROFILE_CLICKS_ANALYTICS, eventData);
 };

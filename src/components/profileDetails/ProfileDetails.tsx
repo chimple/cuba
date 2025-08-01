@@ -82,6 +82,15 @@ const ProfileDetails = () => {
   );
   const [languages, setLanguages] = useState<TableTypes<"language">[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
+  const labelRef = useRef<HTMLDivElement>(null);
+  const [labelWidth, setLabelWidth] = useState(0);
+
+  useEffect(() => {
+    if (labelRef.current) {
+      setLabelWidth(labelRef.current.offsetWidth);
+    }
+  }, [labelRef.current?.offsetWidth]);
+
 
   useEffect(() => {
     initializeFireBase();
@@ -230,7 +239,7 @@ const ProfileDetails = () => {
         <div className="profiledetails-form-fields">
           {mode !== FORM_MODES.ALL_OPTIONAL && (
             <div className="profiledetails-required-indicator">
-              {t("* Indicates Required Information")}
+              {`* ${t("Indicates Required Information")}`}
             </div>
           )}
 
@@ -295,21 +304,23 @@ const ProfileDetails = () => {
 
           <fieldset className="profiledetails-form-group profiledetails-gender-fieldset">
             <legend className="profiledetails-gender-label">
-              {t("Gender")}{" "}
-              {mode === FORM_MODES.ALL_REQUIRED && (
-                <span className="profiledetails-required">*</span>
-              )}
+              <div className="profiledetails-gender-label-text" ref={labelRef}>
+                {t("Gender")}
+                {mode === FORM_MODES.ALL_REQUIRED && (
+                  <span className="profiledetails-required">*</span>
+                )}
+              </div>
             </legend>
             <div className="profiledetails-gender-buttons">
               {[
-                { label: t("GIRL"), value: GENDER.GIRL },
-                { label: t("BOY"), value: GENDER.BOY },
-                { label: t("UNSPECIFIED"), value: GENDER.OTHER },
-              ].map(({ label, value }) => {
+                { label: t("GIRL"), value: GENDER.GIRL, name: 'GIRL' },
+                { label: t("BOY"), value: GENDER.BOY, name: 'BOY' },
+                { label: t("UNSPECIFIED"), value: GENDER.OTHER, name: 'UNSPECIFIED' },
+              ].map(({ label, value, name }) => {
                 const isSelected = gender === value;
                 const iconName = isSelected
-                  ? `${label.toLowerCase()}Selected`
-                  : label.toLowerCase();
+                  ? `${name.toLowerCase()}Selected`
+                  : name.toLowerCase();
 
                 return (
                   <button
