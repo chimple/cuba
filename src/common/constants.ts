@@ -640,3 +640,68 @@ export const CURRENT_STAGE = "currentStage";
 export const CURRENT_SELECTED_GRADE = "currentSelectedGrade";
 export const QUIZ_POPUP_SHOWN = "quizPopupShown";
 export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
+export const GrowthBookAttributes = "growthBookAttributes";
+export const SCHOOL_LOGIN = "schoolLogin";
+export const CAMERAPERMISSION = "cameraPermission";
+
+export const ALL_SUBJECT = {
+  id: "all",
+  name: "All Subjects",
+  icon: SelectIconImage,
+  subjectDetail: "All Grades",
+};
+export const CAN_ACCESS_REMOTE_ASSETS = "can_access_remote_assets";
+export const LEARNING_PATH_ASSETS = "learning_path_assets";
+export const SHOULD_SHOW_REMOTE_ASSETS = "shouldShowRemoteAssets";
+export const CHIMPLE_ENGLISH = "63e40488-3c1a-47ab-aa8a-6f07ad21709f";
+export const CHIMPLE_MATHS = "9d2474bd-b9c6-43ea-8415-242668807ba0";
+export const CHIMPLE_DIGITAL_SKILLS = "19bb079f-bc69-44e4-bc1d-0b77f2683b6c";
+export const CHIMPLE_HINDI = "7e9d65fa-ac2e-452e-bca4-1499d5c174e0";
+export const GRADE1_KANNADA = "a90608de-4376-4baf-82c2-07760b2aa899";
+export const GRADE1_MARATHI = "2cada0d1-db3d-4da0-8ade-e9ba282a3558";
+export const BULK_UPLOAD_TEMPLATE_URL =
+  "https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/common-files//Bulk%20School%20&%20Students%20Upload%20Template.xlsx";
+
+export const FORM_MODES = {
+  ALL_REQUIRED: "all-required",
+  NAME_REQUIRED: "name-required",
+  ALL_OPTIONAL: "all-optional",
+};
+
+export const PROFILE_DETAILS_GROWTHBOOK_VARIATION = {
+  AFTER_LOGIN_ONBOARDING: "after-login-onboarding",
+  AFTER_LOGIN_CONTROL: "after_login_control",
+  AFTER_LOGIN_V1: "after_login_v1",
+  AFTER_LOGIN_V2: "after_login_v2",
+  AFTER_LOGIN_V3: "after_login_v3",
+};
+
+export const ACTION_TYPES = {
+  PROFILE_CREATED: "profile_created",
+  PROFILE_UPDATED: "profile_updated",
+  PROFILE_SKIPPED: "profile_skipped",
+};
+
+export enum AGE_OPTIONS {
+  LESS_THAN_EQUAL_4 = "4",
+  FIVE = "5",
+  SIX = "6",
+  SEVEN = "7",
+  EIGHT = "8",
+  NINE = "9",
+  GREATER_THAN_EQUAL_10 = "10",
+}
+
+export const ROLE_PRIORITY: Record<string, number> = {
+  super_admin: 1,
+  operational_director: 2,
+  program_manager: 3,
+  field_coordinator: 4,
+};
+
+export enum AssignmentSource {
+  MANUAL = "manual",
+  RECOMMENDED = "recommended",
+  CHATBOT = "chatbot",
+  QR_CODE = "qr_code",
+}
