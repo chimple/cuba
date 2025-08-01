@@ -248,7 +248,8 @@ const CocosGame: React.FC = () => {
         // Move to the next course
         courses.currentCourseIndex += 1;
 
-        await api.setStarsForStudents(currentStudent.id, 10);
+        if(!Util.isRespectMode)
+          await api.setStarsForStudents(currentStudent.id, 10);
         // Loop back to the first course if at the last course
         if (courses.currentCourseIndex >= courses.courseList.length) {
           courses.currentCourseIndex = 0;
