@@ -30,11 +30,11 @@ import Loading from "../Loading";
 
 const getModeFromFeature = (variation: string) => {
   switch (variation) {
-    case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_CONTROL:
-      return FORM_MODES.ALL_REQUIRED;
     case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_V1:
-      return FORM_MODES.NAME_REQUIRED;
+      return FORM_MODES.ALL_REQUIRED;
     case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_V2:
+      return FORM_MODES.NAME_REQUIRED;
+    case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_V3:
       return FORM_MODES.ALL_OPTIONAL;
     default:
       return FORM_MODES.ALL_REQUIRED;
@@ -52,7 +52,7 @@ const ProfileDetails = () => {
   const location = useLocation();
   const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
   const variation = useFeatureValue<string>(
-    PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_SCREEN,
+    PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_ONBOARDING,
     PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_CONTROL
   );
   const mode = getModeFromFeature(variation);
@@ -93,12 +93,6 @@ const ProfileDetails = () => {
       setLanguages(langs);
     };
     loadLanguages();
-    if (currentStudent?.id && growthbook) {
-      growthbook.setAttributes({
-        ...growthbook.getAttributes(),
-        parent_id: currentStudent?.id
-      });
-    }
    }, []);
 
   useEffect(() => {
