@@ -73,6 +73,11 @@ const SideMenu: React.FC<{
 
   useEffect(() => {
     fetchData();
+    const handler = () => fetchData();
+    window.addEventListener(CLASS_OR_SCHOOL_CHANGE_EVENT, handler);
+    return () => {
+      window.removeEventListener(CLASS_OR_SCHOOL_CHANGE_EVENT, handler);
+    };
   }, []);
 
   const api = ServiceConfig.getI()?.apiHandler;
@@ -99,6 +104,8 @@ const SideMenu: React.FC<{
       if (tempSchool) {
         setsetcurrentSchoolDetail({ id: tempSchool.id, name: tempSchool.name });
 
+        const updatedClass = Util.getCurrentClass();
+
         // Fetch classes for the current school
         const classes = await api.getClassesForSchool(
           tempSchool.id,
@@ -109,17 +116,26 @@ const SideMenu: React.FC<{
           id: classItem.id,
           name: classItem.name,
         }));
-        setClassData(classMap);
-        const tempClass = Util.getCurrentClass();
-        if (!tempClass) {
+        const patchedList = updatedClass
+          ? classMap.map(c => (c.id === updatedClass.id ? updatedClass : c))
+          : classMap;
+        setClassData(patchedList);
+
+        if (!updatedClass) {
           return;
         }
-        setCurrentClassId(tempClass.id);
+
+        // setClassData(classMap);
+        // const tempClass = Util.getCurrentClass();
+        // if (!tempClass) {
+        //   return;
+        // }
+        setCurrentClassId(updatedClass.id);
         setcurrentClassDetail({
-          id: tempClass.id,
-          name: tempClass.name,
+          id: updatedClass.id,
+          name: updatedClass.name,
         });
-        const classCode = await getClassCodeById(tempClass?.id!);
+        const classCode = await getClassCodeById(updatedClass?.id!);
         setClassCode(classCode);
       }
 
