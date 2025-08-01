@@ -3372,7 +3372,6 @@ export class SqliteApi implements ServiceApi {
       classes: [],
       schools: [],
     };
-    await this.syncDbNow();
     const res = await this._db?.query(
       `select c.*,
       JSON_OBJECT(
