@@ -29,7 +29,8 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       if (storedAttributes) {
         const attributes = JSON.parse(storedAttributes);
         setGrowthbookAttributes(attributes);
-        setGbUpdated(false)
+      } else {
+        setGbUpdated(false);
       }
     }
   }, [gbUpdated])
@@ -107,6 +108,7 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       ...roleMap,
       ...courseCounts,
     });
+    setGbUpdated(false);
   };
 
   return (
