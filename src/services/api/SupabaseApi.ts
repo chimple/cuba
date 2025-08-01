@@ -2605,7 +2605,7 @@ export class SupabaseApi implements ServiceApi {
         const { data: progUsers, error: puErr } = await this.supabase
           .from(TABLES.ProgramUser)
           .select("program_id")
-          .eq("user_id", userId)
+          .eq("user", userId)
           .eq("is_deleted", false);
 
         if (puErr) {

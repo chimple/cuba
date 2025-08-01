@@ -98,7 +98,6 @@ const CocosGame: React.FC = () => {
         window.location.reload();
       } else {
         history.replace(fromPath + "&isReload=false");
-        window.location.reload();
       }
       setIsLoading(false);
     } else {
