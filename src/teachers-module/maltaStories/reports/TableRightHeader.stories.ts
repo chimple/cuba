@@ -32,11 +32,6 @@ const meta = {
 
   args: {
     headerDetails: [],
-    dateRangeValue: {
-    startDate: new Date("2025-06-11"),
-    endDate: new Date("2025-06-17"),
-    isStudentProfilePage: false,
-  },
   },
 } satisfies Meta<typeof TableRightHeader>;
 export default meta;
