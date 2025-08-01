@@ -44,7 +44,6 @@
   font-weight: bold;
   color: var(--text-color);
   z-index: 2;
-  font-family: "BalooRegular2";
 }
 
 .scroll-container {
@@ -64,7 +63,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: "BalooRegular2";
   font-size: clamp(20px, 5vh, 24px);
   color: var(--text-color);
   font-weight: bold;

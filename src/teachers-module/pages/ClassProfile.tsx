@@ -12,7 +12,7 @@ const ClassProfile: FC = () => {
   const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
   const { school: localSchool, classDoc: classData } = location.state as any;
   const currentSchool = localSchool ?? Util.getCurrentSchool();
-  const currentUserRole = JSON.parse(localStorage.getItem(USER_ROLE)!);
+  const currentUserRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
 
   useEffect(() => {
     fetchClassDetails();
@@ -45,13 +45,13 @@ const ClassProfile: FC = () => {
         schoolName={currentSchool?.name}
       />
       <div className="class-name-div">{t("Class")}</div>
-      <hr className="horizontal-line" />
+      <hr className="class-profile-horizontal-line" />
 
       <div className="profile-div">
         <div className="class-profile-header">{t("Class") + ":"}</div>
         <div className="name-div"> {currentClass?.name}</div>
       </div>
-      <hr className="horizontal-line" />
+      <hr className="class-profile-horizontal-line" />
 
       <div className="edit-delete-section">
         <div onClick={handleEditClass}>{t("Edit")}</div>

@@ -1,0 +1,56 @@
+
+.data-tablebody-container {
+  height: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: auto;
+  scrollbar-gutter: stable;
+  margin-bottom: 8px;
+}
+
+.data-tablebody-head-cell {
+  position: sticky;
+  top: 0;
+  z-index: 2; 
+  background-color: #dde1e6 !important;
+  font-size: 14px;
+  padding: 16px 12px;
+  height: 48px;
+}
+
+.data-tablebody-head-cell:first-child {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 10; 
+  background-color: #dde1e6 !important;
+}
+
+.data-tablebody-cell {
+  font-size: 14px;
+  padding: 12px 12px;
+  height: 48px;
+}
+
+
+.data-tablebody-cell:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1; 
+  background-color: #ffffff;
+  padding-left: 16px;
+}
+
+.data-tablebody-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+.data-tablebody-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 8px;
+}
+
+.data-tablebody-container::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 8px;
+}

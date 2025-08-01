@@ -25,7 +25,6 @@ const DashBoardStudentProgres: React.FC<DashBoardStudentProgresProps> = ({
   const init = async () => {
     const resultList = studentProgress.get("results") as TableTypes<"result">[];
     const promises = resultList.map(async (result) => {
-      // console.log(result);
       const _res = new Map<string, string>();
       try {
         const lesson = await api.getLesson(result.lesson_id ?? "");

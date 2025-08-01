@@ -106,7 +106,7 @@ const ProfileCard: React.FC<{
             }
             alt=""
           />
-          <p id="profile-card-user-name">{user.name}</p>
+          <p id="profile-card-user-name">{user.name ? user.name : "\u00A0"}</p>
         </div>
       ) : (
         <div id="profile-card-new-user">
