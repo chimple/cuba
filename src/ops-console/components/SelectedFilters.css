@@ -1,0 +1,15 @@
+.selected-filters-container-SelectedFilters {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-chip-SelectedFilters {
+  background-color: #e8f4ff !important;
+  color: #1a73e8 !important;
+}
+
+.filter-chip-SelectedFilters .MuiChip-deleteIcon {
+  color: #1a73e8 !important;
+}

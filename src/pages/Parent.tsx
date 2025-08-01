@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "./Parent.css";
 import {
   CLASS,
+  EDIT_STUDENTS_MAP,
   LANGUAGE,
   MAX_STUDENTS_ALLOWED,
   MODES,
@@ -100,11 +101,15 @@ const Parent: React.FC = () => {
     const userProfilePromise: TableTypes<"user">[] =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];
+    const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
+    const mergedStudents = Util.mergeStudentsByUpdatedAt(
+      userProfilePromise,
+      storedMapStr
+    );
     for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
-      finalUser.push(userProfilePromise[i]);
+      finalUser.push(mergedStudents[i]);
     }
     setUserProfile(finalUser);
-    // });
   }
   async function init(): Promise<void> {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-// import "./AddStudentSection.css";
+import "./AddStudentSection.css";
 import { t } from "i18next";
 import { IonIcon, IonItem, IonRadio, IonRadioGroup, IonSelect, IonSelectOption } from "@ionic/react";
 import DropDown from "../../components/DropDown";
@@ -50,46 +50,70 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
     name: option.label,
   }));
   return (
-    <div className="add-student-form">
-      <form>
-        <div className="input-group">
+    <div className="add-studentsection__container">
+      <form className="addstudentsection__form" >
+        <div className="add-studentsection__group">
           <label htmlFor="name">{t("Name")}</label>
           <input
             type="text"
             id="name"
             name="name"
+            className="add-studentsection__groupInput"
             placeholder={t("Enter Name") || ""}
             value={fullName}
             onChange={(e) => onFullNameChange(e.target.value)}
           />
         </div>
-
-        <div className="input-group">
+        <hr className="horizontal-line" />
+        <div className="add-studentsection__group">
           <label htmlFor="age">{t("Age")}</label>
           <input
             type="number"
             id="age"
             name="age"
+            className="add-studentsection__groupInput"
             placeholder={t("Enter Age") || ""}
             value={age}
             onChange={(e) => handleAgeChange(e.target.value)}
             maxLength={2}
           />
         </div>
-
-        <div className="input-group">
+        <hr className="horizontal-line" />
+        <div className="add-studentsection__group">
           <label htmlFor="studentId">{t("Student Id")}</label>
           <input
             type="text"
             id="studentId"
             name="studentId"
+            className="add-studentsection__groupInput"
             placeholder={t("Enter student id") || ""}
             value={studentId}
             onChange={(e) => onStudentIdChange(e.target.value)}
           />
         </div>
-        <div className="input-group">
-          <label>{t("Select Language")}</label>
+        <hr className="horizontal-line" />
+        <div className="add-studentsection__group">
+          <label>{t("Gender")}</label>
+          <IonRadioGroup
+            value={gender}
+            onIonChange={(e) => onGenderChange(e.detail.value)}
+          >
+            <div className="gender-options">
+              <label className="radio-label">
+                <IonRadio value="male" className="add-student-radio-btn" /> {t("male")}
+              </label>
+              <label className="radio-label">
+                <IonRadio value="female" className="add-student-radio-btn" /> {t("female")}
+              </label>
+              <label className="radio-label">
+                <IonRadio value="other" className="add-student-radio-btn" /> {t("Other")}
+              </label>
+            </div>
+          </IonRadioGroup>
+        </div>
+        <hr className="horizontal-line" />
+        <div className="add-studentsection__group">
+          <label>{t("Preferred Language")}</label>
           <CustomDropdown
             options={mappedLanguageOptions}
             selectedValue={{
@@ -103,25 +127,6 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
             }}
             placeholder={t("Select Language") as string}
           />
-        </div>
-        <div className="input-group">
-          <label>{t("Gender")}</label>
-          <IonRadioGroup
-            value={gender}
-            onIonChange={(e) => onGenderChange(e.detail.value)}
-          >
-            <div className="gender-options">
-              <label className="radio-label">
-                <IonRadio value="male" className="custom-radio" /> {t("male")}
-              </label>
-              <label className="radio-label">
-                <IonRadio value="female" className="custom-radio" /> {t("female")}
-              </label>
-              <label className="radio-label">
-                <IonRadio value="other" className="custom-radio" /> {t("Other")}
-              </label>
-            </div>
-          </IonRadioGroup>
         </div>
       </form>
     </div>

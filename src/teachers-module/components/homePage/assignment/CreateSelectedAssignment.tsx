@@ -8,6 +8,7 @@ import {
 } from "ionicons/icons";
 import {
   ASSIGNMENT_TYPE,
+  AssignmentSource,
   BANDS,
   BANDWISECOLOR,
   PAGES,
@@ -24,6 +25,7 @@ import CalendarPicker from "../../../../common/CalendarPicker";
 import { Toast } from "@capacitor/toast";
 import { addMonths, format } from "date-fns";
 import { Trans } from "react-i18next";
+import { v4 as uuidv4 } from "uuid";
 interface LessonDetail {
   subject: string;
   chapter: string;
@@ -59,6 +61,9 @@ const CreateSelectedAssignment = ({
   const [shareTextLessonDetails, setShareTextLessonDetails] = useState<
     LessonDetail[]
   >([]);
+  const [assignmentBatchId, setAssignmentBatchId] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     init();
@@ -82,10 +87,9 @@ const CreateSelectedAssignment = ({
 
     const classCourses = await api.getCoursesByClassId(current_class.id);
 
-    const _studentProgress = await _classUtil.divideStudents(
-      current_class.id,
-      classCourses[0].course_id
-    );
+    const _studentProgress = await _classUtil.divideStudents(current_class.id, [
+      classCourses[0].course_id,
+    ]);
 
     let _studentList =
       await _classUtil.groupStudentsByCategoryInList(_studentProgress);
@@ -307,7 +311,9 @@ const CreateSelectedAssignment = ({
     groupedDetails.forEach((subjectDetails) => {
       text += `*${t("Subject")}: ${subjectDetails.subject}*\n`;
       subjectDetails.chapters.forEach((chapter, chapterIndex) => {
-        text += `   ${chapterIndex + 1}. _*${t("Chapter")}*_: ${chapter.name}\n`;
+        text += `   ${chapterIndex + 1}. _*${t("Chapter")}*_: ${
+          chapter.name
+        }\n`;
         chapter.lessons.forEach((lesson, lessonIndex) => {
           const lessonNumber = `${chapterIndex + 1}.${lessonIndex + 1}`;
           const formattedLesson = `${lessonNumber} ${lesson}`;
@@ -323,7 +329,9 @@ const CreateSelectedAssignment = ({
       text += `\n`;
     });
 
-    text += `${t("Please click this link to access your Homework")}: https://chimple.cc/assignment`;
+    text += `${t(
+      "Please click this link to access your Homework"
+    )}: https://chimple.cc/assignment?batch_id=${assignmentBatchId}`;
 
     return text.trim();
   };
@@ -350,6 +358,8 @@ const CreateSelectedAssignment = ({
         setIsLoading(false);
         return;
       }
+      const batchId = uuidv4();
+      setAssignmentBatchId(batchId);
       const previous_sync_lesson = currUser?.id
         ? await api.getUserAssignmentCart(currUser?.id)
         : null;
@@ -359,7 +369,8 @@ const CreateSelectedAssignment = ({
           : []
       );
       const sync_lesson_data = all_sync_lesson.get(current_class?.id ?? "");
-      let sync_lesson: Map<string, string[]> = new Map(
+
+      let sync_lesson: Map<string, Record<string, string[]>> = new Map(
         sync_lesson_data ? Object.entries(JSON.parse(sync_lesson_data)) : []
       );
 
@@ -381,7 +392,7 @@ const CreateSelectedAssignment = ({
           }
           // Process lessons asynchronously in parallel
           await Promise.all(
-            subjectData.count.map(async (lessonId) => {
+            subjectData.count.map(async (lessonId, idx) => {
               const tempLes = tempLessons.find(
                 (les: any) => les.id === lessonId
               );
@@ -397,6 +408,26 @@ const CreateSelectedAssignment = ({
                 console.warn(`Chapter not found for lessonId: ${lessonId}`);
                 return;
               }
+              // ✨ MODIFICATION: Create a staggered timestamp for ordering
+              const createdAt = new Date(Date.now() - idx * 100).toISOString();
+
+              // 🌟 Determine Source (manual, qr_code, recommended)
+              let source: string | null = null;
+
+              const chapterSourceMap = sync_lesson.get(tempChapterId as string) ?? {};
+
+              if (chapterSourceMap[AssignmentSource.MANUAL]?.includes(lessonId)) {
+                source = AssignmentSource.MANUAL;
+              } else if (
+                chapterSourceMap[AssignmentSource.QR_CODE]?.includes(lessonId)
+              ) {
+                source = AssignmentSource.QR_CODE;
+              } else if (
+                tempLes?.source === AssignmentSource.RECOMMENDED
+              ) {
+                source = AssignmentSource.RECOMMENDED;
+              }
+
               const res = await api.createAssignment(
                 studentList,
                 currUser.id,
@@ -410,16 +441,18 @@ const CreateSelectedAssignment = ({
                 subjectId,
                 tempLes.plugin_type === ASSIGNMENT_TYPE.LIVEQUIZ
                   ? ASSIGNMENT_TYPE.LIVEQUIZ
-                  : ASSIGNMENT_TYPE.ASSIGNMENT
+                  : ASSIGNMENT_TYPE.ASSIGNMENT,
+                batchId,
+                source, 
+                createdAt
               );
 
-              // If the assignment creation was successful, update sync_lesson
-              for (const [chapter, lessons] of sync_lesson.entries()) {
-                const lessonIndex = lessons.findIndex((id) => id === lessonId);
-                if (lessonIndex !== -1) {
-                  lessons.splice(lessonIndex, 1); // Remove lessonId from lessons array
-                  sync_lesson.set(chapter, lessons); // Update sync_lesson with modified array
-                }
+              // ❌ Remove lesson from sync_lesson under correct source
+              if (source && chapterSourceMap[source]) {
+                chapterSourceMap[source] = chapterSourceMap[source].filter(
+                  (id) => id !== lessonId
+                );
+                sync_lesson.set(tempChapterId as string, chapterSourceMap);
               }
             })
           );
@@ -433,7 +466,7 @@ const CreateSelectedAssignment = ({
         Object.fromEntries(all_sync_lesson)
       );
 
-      const res = await api.createOrUpdateAssignmentCart(
+      await api.createOrUpdateAssignmentCart(
         currUser?.id,
         _totalSelectedLesson
       );
@@ -447,9 +480,7 @@ const CreateSelectedAssignment = ({
     <div className="assignments-container">
       <div>
         <CommonDialogBox
-          header={
-            t("Assignments are assigned Successfully.") ??""
-          }
+          header={t("Assignments are assigned Successfully.") ?? ""}
           message={t("Would you like to share the assignments?")}
           showConfirmFlag={showConfirm}
           leftButtonText={t("Cancel") ?? ""}
@@ -476,13 +507,13 @@ const CreateSelectedAssignment = ({
       <div>
         <p id="create-assignment-heading">{t("Assignments")}</p>
         <section className="assignments-dates">
-          <p>
+          <span style={{ color: "#4A4949", fontSize: "11px" }}>
             <Trans i18nKey="assignments_date_message" />
-          </p>
-          <div className="date-selection">
+          </span>
+          <div className="date-created-assignment">
             <div>
               <b>{t("Start Date")}</b>
-              <div className="date-input">
+              <div className="createselectAssignmentDate-input">
                 {showStartDatePicker ? (
                   <CalendarPicker
                     value={startDate}
@@ -493,13 +524,13 @@ const CreateSelectedAssignment = ({
                     maxDate={maxEndDate}
                   />
                 ) : (
-                  <p
+                  <span
                     onClick={() => {
                       setShowStartDatePicker(true);
                     }}
                   >
                     {startDate}
-                  </p>
+                  </span>
                 )}
                 <IonIcon icon={calendarOutline} size={"2vw"} />
               </div>
@@ -507,7 +538,7 @@ const CreateSelectedAssignment = ({
             <div className="vertical-line"></div>
             <div>
               <b>{t("End Date")}</b>
-              <div className="date-input">
+              <div className="createselectAssignmentDate-input">
                 {showEndDatePicker ? (
                   <CalendarPicker
                     value={endDate}
@@ -515,24 +546,24 @@ const CreateSelectedAssignment = ({
                     onCancel={() => setShowEndDatePicker(false)}
                     mode="end"
                     minDate={
-                      format(startDate ?? "", "yyyy-MM-dd")
-                        ? format(startDate ?? "", "yyyy-MM-dd")
+                      startDate
+                        ? format(new Date(startDate), "yyyy-MM-dd")
                         : new Date().toISOString().split("T")[0]
                     }
                     maxDate={format(
-                      addMonths(startDate ?? "", 1),
+                      addMonths(new Date(startDate), 1),
                       "yyyy-MM-dd"
                     )}
                     startDate={startDate}
                   />
                 ) : (
-                  <p
+                  <span
                     onClick={() => {
                       setShowEndDatePicker(true);
                     }}
                   >
                     {endDate}
-                  </p>
+                  </span>
                 )}
                 <IonIcon icon={calendarOutline} />
               </div>
@@ -552,7 +583,9 @@ const CreateSelectedAssignment = ({
           {Object.keys(groupWiseStudents).map((category) => (
             <div
               key={category}
-              className={`assignment-category ${category.replace(" ", "-").toLowerCase()}`}
+              className={`assignment-category ${category
+                .replace(" ", "-")
+                .toLowerCase()}`}
             >
               <div
                 className="category-header"
@@ -563,7 +596,7 @@ const CreateSelectedAssignment = ({
               >
                 <h4>{groupWiseStudents[category].title}</h4>
                 <div className="select-all">
-                  <div>
+                  <div className="select-all-student-count">
                     {
                       groupWiseStudents[category].students.filter(
                         (student) => student.selected
@@ -571,12 +604,14 @@ const CreateSelectedAssignment = ({
                     }
                     /{groupWiseStudents[category].students.length}
                   </div>
-                  <IonIcon
-                    icon={
+                  <img
+                    src={
                       groupWiseStudents[category].isCollapsed
-                        ? chevronDownOutline
-                        : chevronUpOutline
+                        ? "assets/icons/iconDown.png"
+                        : "assets/icons/iconUp.png"
                     }
+                    alt="toggle-icon"
+                    style={{ width: "15px", height: "15px" }}
                   />
                   <input
                     className="select-all-checkbox"
