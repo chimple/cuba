@@ -14,10 +14,11 @@
 .child-Name {
   white-space: nowrap;
   display: block;
-  max-width: 20vh;
+  max-width: 30vh;
   text-overflow: ellipsis;
   overflow: hidden;
 }
+
 
 .badge-notification {
   color: white;
