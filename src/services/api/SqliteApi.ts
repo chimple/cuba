@@ -400,7 +400,6 @@ export class SqliteApi implements ServiceApi {
         console.log("🚀 ~ Api ~ pushChanges ~ isMutated:", mutate);
         if (!mutate || mutate.error) {
           if (
-            data.table_name === TABLES.Result &&
             mutate?.error?.code === "23505"
           ) {
           } else {
