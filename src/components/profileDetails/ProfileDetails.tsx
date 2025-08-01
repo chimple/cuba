@@ -5,7 +5,6 @@ import InputWithIcons from "../common/InputWithIcons";
 import SelectWithIcons from "../common/SelectWithIcons";
 import { Util } from "../../utility/util";
 import { useFeatureValue } from "@growthbook/growthbook-react";
-import { initializeClickListener } from "../../analytics/clickUtil";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import {
   ACTION,
@@ -96,7 +95,6 @@ const ProfileDetails = () => {
     initializeFireBase();
     lockOrientation();
     Util.loadBackgroundImage();
-    const cleanup = initializeClickListener();
     const loadLanguages = async () => {
       const langs = await api.getAllLanguages();
       setLanguages(langs);
