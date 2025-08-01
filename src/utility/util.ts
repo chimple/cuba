@@ -368,6 +368,16 @@ export class Util {
       "/";
     return path;
   }
+  // public static async getLessonPath(lessonId: string): Promise<string> {
+  //   const path = `/assets/lessonBundles/${lessonId}/index.xml`;
+
+  //   const res = await fetch(path);
+  //   if (!res.ok) {
+  //     throw new Error("Lesson file not found");
+  //   }
+
+  //   return `/assets/lessonBundles/${lessonId}`;
+  // }
 
   public static async downloadZipBundle(
     lessonIds: string[],
