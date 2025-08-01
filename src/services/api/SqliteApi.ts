@@ -4328,23 +4328,22 @@ order by
     individualAssignments: TableTypes<"assignment">[];
   }> {
     const query = `
-    SELECT *
-    FROM ${TABLES.Assignment}
-    WHERE created_by = '${userId}'
-      AND (class_id = '${classId}' OR is_class_wise = 1)
-      AND created_at >= '${startDate}'
-      AND created_at <= '${endDate}'
-    ORDER BY is_class_wise DESC, created_at ASC;
-  `;
-
+      SELECT *
+      FROM ${TABLES.Assignment}
+      WHERE created_by = '${userId}'
+        AND (class_id = '${classId}')
+        AND created_at >= '${startDate}T00:00:00'
+        AND created_at <= '${endDate}T23:59:59.999'
+      ORDER BY is_class_wise DESC, created_at ASC;
+    `;
     const res = await this._db?.query(query);
     const assignments = res?.values ?? [];
 
     const classWiseAssignments = assignments.filter(
-      (assignment) => assignment.is_class_wise
+      (assignment) => assignment.is_class_wise === 1
     );
     const individualAssignments = assignments.filter(
-      (assignment) => !assignment.is_class_wise
+      (assignment) => assignment.is_class_wise === 0
     );
 
     return { classWiseAssignments, individualAssignments };
