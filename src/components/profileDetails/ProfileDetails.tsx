@@ -76,7 +76,7 @@ const ProfileDetails = () => {
       : undefined
   );
   const [languageId, setLanguageId] = useState(
-    isEdit ? currentStudent?.language_id : null
+    isEdit ? currentStudent?.language_id ?? "" : ""
   );
   const [languages, setLanguages] = useState<TableTypes<"language">[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
@@ -140,7 +140,7 @@ const ProfileDetails = () => {
           undefined,
           undefined,
           undefined,
-          languageId?? currentStudent.language_id!
+          languageId || currentStudent.language_id!
         );
         const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
         const studentsMap = storedMapStr ? JSON.parse(storedMapStr) : {};
@@ -166,7 +166,7 @@ const ProfileDetails = () => {
           undefined,
           undefined,
           undefined,
-          languageId ?? languages[0].id
+          languageId || languages[0].id
         );
         Util.logEvent(EVENTS.PROFILE_CREATED, {
           user_id: user?.id,
@@ -275,11 +275,11 @@ const ProfileDetails = () => {
               <SelectWithIcons
                 id="click_on_profile_details_language"
                 label={t("Language")}
-                value={languageId ?? ""}
+                value={languageId}
                 setValue={setLanguageId}
                 icon="/assets/icons/language.svg"
                 optionId={
-                  `click_on_profile_details_language_option_` + languageId
+                  `click_on_profile_details_language_option_` + (languageId || "")
                 }
                 options={languages.map((lang) => ({
                   value: lang.id,
