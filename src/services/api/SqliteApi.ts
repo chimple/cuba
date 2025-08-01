@@ -61,7 +61,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 3;
+  private DB_VERSION = 4;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -3466,6 +3466,7 @@ export class SqliteApi implements ServiceApi {
     course_id: string,
     type: string,
     batch_id: string,
+    source: string | null,
     created_at?: string
   ): Promise<boolean> {
     const assignmentUUid = uuidv4();
@@ -3475,8 +3476,8 @@ export class SqliteApi implements ServiceApi {
       // Insert into assignment table
       await this.executeQuery(
         `INSERT INTO assignment
-          (id, created_by, starts_at, ends_at, is_class_wise, class_id, school_id, lesson_id, type, created_at, updated_at, is_deleted, chapter_id, course_id, batch_id)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          (id, created_by, starts_at, ends_at, is_class_wise, class_id, school_id, lesson_id, type, created_at, updated_at, is_deleted, chapter_id, course_id, source, batch_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           assignmentUUid,
           userId,
@@ -3492,6 +3493,7 @@ export class SqliteApi implements ServiceApi {
           false,
           chapter_id,
           course_id,
+          source ?? null,
           batch_id,
         ]
       );
@@ -3513,7 +3515,7 @@ export class SqliteApi implements ServiceApi {
         chapter_id: chapter_id,
         course_id: course_id,
         batch_id: batch_id ?? null,
-        source: null,
+        source: source ?? null,
         firebase_id: null,
         is_firebase: null,
       };
@@ -5101,6 +5103,23 @@ order by
       });
     } catch (error) {
       console.error("Error setting stars for student:", error);
+    }
+  }
+  async getChapterIdbyQrLink(
+    link: string
+  ): Promise<TableTypes<"chapter_links"> | undefined> {
+    if (!link) return;
+    try {
+      const res = await this._db?.query(
+        `SELECT * FROM ${TABLES.ChapterLinks} WHERE link = ? AND is_deleted = 0 LIMIT 1;`,
+        [link]
+      );
+
+      if (!res || !res.values || res.values.length < 1) return;
+      return res.values[0];
+    } catch (error) {
+      console.error("Error fetching chapter by QR link:", error);
+      return;
     }
   }
   async getSchoolsForAdmin(

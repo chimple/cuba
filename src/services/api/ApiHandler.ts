@@ -887,6 +887,7 @@ export class ApiHandler implements ServiceApi {
     course_id: string,
     type: string,
     batch_id: string,
+    source: string | null,
     created_at?: string,
   ): Promise<boolean> {
     return this.s.createAssignment(
@@ -902,6 +903,7 @@ export class ApiHandler implements ServiceApi {
       course_id,
       type,
       batch_id,
+      source,
       created_at,
     );
   }
@@ -1067,10 +1069,10 @@ export class ApiHandler implements ServiceApi {
     schoolId: string
   ): Promise<{ status: string; errors?: string[]; message?: string }> {
     return this.s.validateParentAndStudentInClass(
-      schoolId,
-      className,
+      phoneNumber,
       studentName,
-      phoneNumber
+      className,
+      schoolId
     );
   }
   async validateProgramName(
@@ -1224,6 +1226,9 @@ export class ApiHandler implements ServiceApi {
     totalStars: number
   ): Promise<void> {
     return await this.s.updateStudentStars(studentId, totalStars);
+  }
+  public async getChapterIdbyQrLink(link:string): Promise<TableTypes<"chapter_links"> | undefined> {
+    return await this.s.getChapterIdbyQrLink(link);
   }
   public async getSchoolsByModel(
     model: MODEL,

@@ -62,6 +62,7 @@ export enum TABLES {
   Assignment_cart = "assignment_cart",
   // Chatbot = "chatbot",
   ReqNewSchool = "req_new_school",
+  ChapterLinks= "chapter_links",
   Program = "program",
   SpecialUsers = "special_users"
 }
@@ -868,6 +869,7 @@ export const QUIZ_POPUP_SHOWN = "quizPopupShown";
 export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
 export const GrowthBookAttributes = "growthBookAttributes";
 export const SCHOOL_LOGIN = "schoolLogin";
+export const CAMERAPERMISSION = "cameraPermission";
 
 export const ALL_SUBJECT = {
   id: "all",
@@ -922,3 +924,10 @@ export const ROLE_PRIORITY: Record<string, number> = {
   program_manager: 3,
   field_coordinator: 4,
 };
+
+export enum AssignmentSource {
+  MANUAL = "manual",
+  RECOMMENDED = "recommended",
+  CHATBOT = "chatbot",
+  QR_CODE = "qr_code",
+}
