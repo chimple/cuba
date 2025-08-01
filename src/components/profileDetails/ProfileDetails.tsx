@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { MouseEvent, useEffect, useState, useRef } from "react";
 import { t } from "i18next";
 import "./ProfileDetails.css";
 import InputWithIcons from "../common/InputWithIcons";
@@ -26,6 +26,7 @@ import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { initializeFireBase } from "../../services/Firebase";
 import Loading from "../Loading";
+import { logProfileClick } from "../../analytics/profileClickUtil";
 
 const getModeFromFeature = (variation: string) => {
   switch (variation) {
@@ -43,6 +44,7 @@ const getModeFromFeature = (variation: string) => {
 const ProfileDetails = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
+  const profileRef = useRef<HTMLDivElement>(null);
   const history = useHistory();
   const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
   const currentStudent = Util.getCurrentStudent();
@@ -257,15 +259,15 @@ const ProfileDetails = () => {
                 icon="/assets/icons/age.svg"
                 optionId={`click_on_profile_details_age_option_${age}`}
                 options={[
-                  { value: AGE_OPTIONS.LESS_THAN_EQUAL_4, label: "≤4 years" },
-                  { value: AGE_OPTIONS.FIVE, label: "5 years" },
-                  { value: AGE_OPTIONS.SIX, label: "6 years" },
-                  { value: AGE_OPTIONS.SEVEN, label: "7 years" },
-                  { value: AGE_OPTIONS.EIGHT, label: "8 years" },
-                  { value: AGE_OPTIONS.NINE, label: "9 years" },
+                  { value: AGE_OPTIONS.LESS_THAN_EQUAL_4, label: `≤${t('4 years')}` },
+                  { value: AGE_OPTIONS.FIVE, label: t('5 years') },
+                  { value: AGE_OPTIONS.SIX, label: t('6 years') },
+                  { value: AGE_OPTIONS.SEVEN, label: t('7 years') },
+                  { value: AGE_OPTIONS.EIGHT, label: t('8 years') },
+                  { value: AGE_OPTIONS.NINE, label: t('9 years') },
                   {
                     value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
-                    label: "≥10 years",
+                    label: `≥${t('10 years')}`,
                   },
                 ]}
                 required={mode === FORM_MODES.ALL_REQUIRED}
@@ -300,9 +302,9 @@ const ProfileDetails = () => {
             </legend>
             <div className="profiledetails-gender-buttons">
               {[
-                { label: "GIRL", value: GENDER.GIRL },
-                { label: "BOY", value: GENDER.BOY },
-                { label: "UNSPECIFIED", value: GENDER.OTHER },
+                { label: t("GIRL"), value: GENDER.GIRL },
+                { label: t("BOY"), value: GENDER.BOY },
+                { label: t("UNSPECIFIED"), value: GENDER.OTHER },
               ].map(({ label, value }) => {
                 const isSelected = gender === value;
                 const iconName = isSelected
@@ -334,12 +336,16 @@ const ProfileDetails = () => {
                 id="click_on_profile_details_skip"
                 className="profiledetails-skip-button"
                 onClick={() => {
-                  Util.logEvent(EVENTS.PROFILE_SKIPPED, {
-                    page_path: window.location.pathname,
-                    complete_path: window.location.href,
-                    action_type: "skip_profile",
-                    variation,
-                  });
+                  try {
+                    Util.logEvent(EVENTS.PROFILE_SKIPPED, {
+                      page_path: window.location.pathname,
+                      complete_path: window.location.href,
+                      action_type: "skip_profile",
+                      variation,
+                    });
+                  } catch (e) {
+                    console.error("Logging failed", e);
+                  }
                   history.replace(PAGES.HOME);
                 }}
               >
