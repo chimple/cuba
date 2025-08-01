@@ -399,9 +399,7 @@ export class SqliteApi implements ServiceApi {
         );
         console.log("🚀 ~ Api ~ pushChanges ~ isMutated:", mutate);
         if (!mutate || mutate.error) {
-          if (
-            mutate?.error?.code === "23505"
-          ) {
+          if (mutate?.error?.code === "23505") {
           } else {
             return false;
           }
@@ -2011,8 +2009,8 @@ export class SqliteApi implements ServiceApi {
       gender,
       avatar,
       image ?? null,
-      boardDocId,
-      gradeDocId,
+      boardDocId ?? null,
+      gradeDocId ?? null,
       languageDocId,
       student.id,
     ]);
@@ -2027,8 +2025,8 @@ export class SqliteApi implements ServiceApi {
     student.gender = gender;
     student.avatar = avatar;
     student.image = image ?? null;
-    student.curriculum_id = boardDocId;
-    student.grade_id = gradeDocId;
+    student.curriculum_id = boardDocId ?? null;
+    student.grade_id = gradeDocId ?? null;
     student.language_id = languageDocId;
 
     if (courses && courses.length > 0) {
@@ -4327,23 +4325,22 @@ order by
     individualAssignments: TableTypes<"assignment">[];
   }> {
     const query = `
-    SELECT *
-    FROM ${TABLES.Assignment}
-    WHERE created_by = '${userId}'
-      AND (class_id = '${classId}' OR is_class_wise = 1)
-      AND created_at >= '${startDate}'
-      AND created_at <= '${endDate}'
-    ORDER BY is_class_wise DESC, created_at ASC;
-  `;
-
+      SELECT *
+      FROM ${TABLES.Assignment}
+      WHERE created_by = '${userId}'
+        AND (class_id = '${classId}')
+        AND created_at >= '${startDate}T00:00:00'
+        AND created_at <= '${endDate}T23:59:59.999'
+      ORDER BY is_class_wise DESC, created_at ASC;
+    `;
     const res = await this._db?.query(query);
     const assignments = res?.values ?? [];
 
     const classWiseAssignments = assignments.filter(
-      (assignment) => assignment.is_class_wise
+      (assignment) => assignment.is_class_wise === 1
     );
     const individualAssignments = assignments.filter(
-      (assignment) => !assignment.is_class_wise
+      (assignment) => assignment.is_class_wise === 0
     );
 
     return { classWiseAssignments, individualAssignments };
