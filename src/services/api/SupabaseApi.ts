@@ -4561,6 +4561,7 @@ export class SupabaseApi implements ServiceApi {
     course_id: string,
     type: string,
     batch_id: string,
+    source : string | null,
     created_at?: string
   ): Promise<boolean> {
     if (!this.supabase) return false;
@@ -4585,6 +4586,7 @@ export class SupabaseApi implements ServiceApi {
             chapter_id,
             course_id,
             type,
+            source: source?? null,
             batch_id: batch_id ?? null,
             created_at: created_at ?? timestamp,
             updated_at: timestamp,

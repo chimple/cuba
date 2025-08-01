@@ -923,3 +923,10 @@ export const ROLE_PRIORITY: Record<string, number> = {
   program_manager: 3,
   field_coordinator: 4,
 };
+
+export enum AssignmentSource {
+  MANUAL = "manual",
+  RECOMMENDED = "recommended",
+  CHATBOT = "chatbot",
+  QR_CODE = "qr_code",
+}

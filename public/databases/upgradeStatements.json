@@ -52,7 +52,8 @@
       "ALTER TABLE user ADD COLUMN is_firebase BOOLEAN;",
       "ALTER TABLE user ADD COLUMN is_ops BOOLEAN;",
       "ALTER TABLE user ADD COLUMN ops_created_by TEXT;",
-      "ALTER TABLE assignment ADD COLUMN batch_id TEXT;"
+      "ALTER TABLE assignment ADD COLUMN batch_id TEXT;",
+      "ALTER TABLE assignment ADD COLUMN source TEXT;"
     ],
     "tableChanges": {}
 }
