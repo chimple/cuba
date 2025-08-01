@@ -200,7 +200,12 @@ const ProfileDetails = () => {
 
   return (
 
-    <div ref={profileRef} className="profiledetails-container"  onClick={logProfileClick}>
+    <div ref={profileRef} className="profiledetails-container" 
+        onClick={(e) => {
+        logProfileClick(e).catch((err) =>
+          console.error("Error in logProfileClick", err)
+        );
+      }}>
       <button
         className="profiledetails-back-button"
         onClick={() => {
