@@ -70,7 +70,17 @@ function hasRole(...rolesToCheck: RoleType[]) {
       history.replace(PAGES.DISPLAY_SCHOOLS);
       return;
     }
-    init();
+    // wrapper so we can `await`
+    (async () => {
+      await init();
+      // Right after the fetch, overwrite the one you just edited
+      const updated = Util.getCurrentClass();
+      if (updated) {
+        setAllClasses(prev =>
+          prev.map(c => c.id === updated.id ? updated : c)
+        );
+      }
+    })();
   }, []);
 
   return (
