@@ -443,7 +443,6 @@ const ReportTable: React.FC<ReportTableProps> = ({
 
                   <TableRightHeader
                     headerDetails={headerData}
-                    dateRangeValue={dateRange}
                   />
                 </tr>
               </thead>
