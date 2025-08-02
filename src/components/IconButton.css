@@ -14,8 +14,8 @@
 .child-Name {
   white-space: nowrap;
   display: block;
-  max-width: 20vh;
-  text-overflow: ellipsis;
+  /* max-width: 20vh; */
+  /* text-overflow: ellipsis; */
   overflow: hidden;
 }
 
