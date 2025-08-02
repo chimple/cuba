@@ -117,8 +117,8 @@ const DisplaySchools: FC = () => {
     fetchSchools(page, user.id);
   }, [page, user]);
   // helper: get classes
-  const getClasses = async (schoolId: string) => {
-    const classes = await api.getClassesForSchool(schoolId, user!.id);
+  const getClasses = async (schoolId: string,userId:string) => {
+    const classes = await api.getClassesForSchool(schoolId, userId);
     return classes.length ? classes : [];
   };
   const switchUser = () => {
@@ -128,9 +128,11 @@ const DisplaySchools: FC = () => {
 
   async function selectSchool(school: SchoolWithRole) {
     Util.setCurrentSchool(school.school, school.role);
+     const currentUser = user || await auth.getCurrentUser(); 
+     if(!currentUser)return
     await Util.handleClassAndSubjects(
       school.school.id,
-      user!.id,
+      currentUser?.id,
       history,
       PAGES.DISPLAY_SCHOOLS
     );
@@ -139,7 +141,7 @@ const DisplaySchools: FC = () => {
     if (tempClass) {
       history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
     } else {
-      const classes = await getClasses(school.school.id);
+      const classes = await getClasses(school.school.id,currentUser?.id);
       if (classes.length > 0) {
         Util.setCurrentClass(classes[0]);
         history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
