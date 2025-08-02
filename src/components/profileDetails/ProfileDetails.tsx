@@ -87,6 +87,42 @@ const ProfileDetails = () => {
   const [labelWidth, setLabelWidth] = useState(0);
   const [parentHasStudent, setParentHasStudent] = useState<boolean>(false);
 
+  const initialValues = useRef({
+    fullName: isEdit ? currentStudent?.name ?? "" : "",
+    age: isEdit ? currentStudent?.age ?? undefined : undefined,
+    gender: isEdit ? (currentStudent?.gender as GENDER) : undefined,
+    languageId: isEdit ? currentStudent?.language_id ?? "" : "",
+  });
+
+  useEffect(() => {
+    if (isEdit && currentStudent) {
+      initialValues.current = {
+        fullName: currentStudent?.name ?? "",
+        age: currentStudent?.age ?? undefined,
+        gender: currentStudent?.gender as GENDER,
+        languageId: currentStudent?.language_id ?? "",
+      };
+    }
+  }, [isEdit, currentStudent]);
+
+  useEffect(() => {
+    const initial = initialValues.current;
+
+    if (!initial) {
+      setHasChanges(false);
+      return;
+    }
+
+    const changed =
+      fullName !== initial.fullName ||
+      age !== initial.age ||
+      gender !== initial.gender ||
+      languageId !== initial.languageId;
+
+    setHasChanges(changed);
+  }, [fullName, age, gender, languageId]);
+
+
   useEffect(() => {
     if (labelRef.current) {
       setLabelWidth(labelRef.current.offsetWidth);
@@ -118,10 +154,6 @@ const ProfileDetails = () => {
     isParentHasStudent();
    }, []);
 
-  useEffect(() => {
-    setHasChanges(true);
-  }, [fullName, age, gender, languageId]);
-
   const lockOrientation = () => {
     if (Capacitor.isNativePlatform()) {
       ScreenOrientation.lock({ orientation: "landscape" });
@@ -138,8 +170,8 @@ const ProfileDetails = () => {
   const shouldShowSkip = mode === FORM_MODES.ALL_OPTIONAL;
 
   const isSaveEnabled =
-    mode === FORM_MODES.ALL_REQUIRED || mode === FORM_MODES.NAME_REQUIRED
-      ? isFormComplete
+    (mode === FORM_MODES.ALL_REQUIRED || mode === FORM_MODES.NAME_REQUIRED)
+      ? isFormComplete && hasChanges
       : hasChanges;
 
   const handleSave = async () => {
@@ -266,20 +298,22 @@ const ProfileDetails = () => {
           console.error("Error in logProfileClick", err)
         );
       }}>
-      <button
-        className="profiledetails-back-button"
-        onClick={() => {
-           const targetPage = parentHasStudent ? PAGES.PARENT : PAGES.HOME;
-           Util.setPathToBackButton(targetPage, history);
-        }}
-        aria-label="Back"
-        id="click_on_profile_details_back_button"
-      >
-        <FaArrowLeftLong
-          style={{ color: "#f34d08" }}
-          className="profiledetails-back-arrow-icon"
-        />
-      </button>
+      {parentHasStudent && (
+        <button
+          className="profiledetails-back-button"
+          onClick={() => {
+            const targetPage = parentHasStudent ? PAGES.PARENT : PAGES.HOME;
+            Util.setPathToBackButton(targetPage, history);
+          }}
+          aria-label="Back"
+          id="click_on_profile_details_back_button"
+        >
+          <FaArrowLeftLong
+            style={{ color: "#f34d08" }}
+            className="profiledetails-back-arrow-icon"
+          />
+        </button>
+      )}
       <div className="profiledetails-avatar-form">
         <div className="profiledetails-avatar-section">
           <img
