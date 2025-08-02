@@ -11,6 +11,7 @@ import {
   ACTION_TYPES,
   AGE_OPTIONS,
   AVATARS,
+  CURRENT_STUDENT,
   EDIT_STUDENTS_MAP,
   EVENTS,
   FORM_MODES,
@@ -211,6 +212,8 @@ const ProfileDetails = () => {
           tmpPath === PAGES.HOME ? true : false
         );
       }
+      Util.setCurrentStudent(null);
+      localStorage.removeItem(CURRENT_STUDENT);
       history.replace(tmpPath);
       setIsCreatingProfile(false)
     } catch (err) {
