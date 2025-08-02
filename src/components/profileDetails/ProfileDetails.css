@@ -174,7 +174,7 @@
 
 .profiledetails-gender-btn.selected {
   color: #5D44BD;
-  border: 2px solid #F35D08;
+  border: 1px solid #F35D08;
 }
 
 .profiledetails-button-group {
@@ -194,7 +194,15 @@
   font-size: 26px;
   font-weight: 600;
   cursor: pointer;
+  transition:
+    background 0.1s,
+    color 0.1s;
 }
+
+.profiledetails-skip-button:active {
+  border-bottom: 3px solid #CA3AE6;
+}
+
 
 .profiledetails-required-indicator{
     font-size: 12px;
