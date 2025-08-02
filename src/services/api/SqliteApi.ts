@@ -2007,10 +2007,11 @@ export class SqliteApi implements ServiceApi {
         image = ?,
         curriculum_id = ?,
         grade_id = ?,
-        language_id = ?
+        language_id = ?,
+        updated_at = ?
       WHERE id = ?;
     `;
-
+    const now = new Date().toISOString();
     await this.executeQuery(updateUserQuery, [
       name,
       age,
@@ -2020,6 +2021,7 @@ export class SqliteApi implements ServiceApi {
       boardDocId ?? null,
       gradeDocId ?? null,
       languageDocId,
+      now,
       student.id,
     ]);
 
@@ -2036,6 +2038,7 @@ export class SqliteApi implements ServiceApi {
     student.curriculum_id = boardDocId ?? null;
     student.grade_id = gradeDocId ?? null;
     student.language_id = languageDocId;
+    student.updated_at = now;
 
     if (courses && courses.length > 0) {
       const now = new Date().toISOString();
@@ -2087,6 +2090,7 @@ export class SqliteApi implements ServiceApi {
       curriculum_id: boardDocId,
       grade_id: gradeDocId,
       language_id: languageDocId,
+      updated_at: now,
       id: student.id,
     });
     return student;
