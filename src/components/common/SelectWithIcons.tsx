@@ -3,6 +3,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import DoneIcon from '@mui/icons-material/Done';
 import "./SelectWithIcons.css";
+import { t } from "i18next";
 
 type Option = { value: string; label: string };
 type SelectWithIconsProps = {
@@ -49,7 +50,7 @@ const SelectWithIcons: React.FC<SelectWithIconsProps> = ({
 
   const selectedLabel = value
   ? options.find((opt) => opt.value === value)?.label
-  : "Select one";
+  : t("Select one");
 
   return (
      <div className="select-with-icon-input-wrapper" ref={dropdownRef} style={{ "--label-width": `${labelWidth}px` } as React.CSSProperties}>

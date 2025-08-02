@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
+import { MouseEvent, useEffect, useState, useRef } from "react";
 import { t } from "i18next";
 import "./ProfileDetails.css";
 import InputWithIcons from "../common/InputWithIcons";
 import SelectWithIcons from "../common/SelectWithIcons";
 import { Util } from "../../utility/util";
 import { useFeatureValue } from "@growthbook/growthbook-react";
-import { initializeClickListener } from "../../analytics/clickUtil";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import {
   ACTION,
@@ -16,6 +15,7 @@ import {
   EVENTS,
   FORM_MODES,
   GENDER,
+  LANGUAGE,
   PAGES,
   PROFILE_DETAILS_GROWTHBOOK_VARIATION,
   TableTypes,
@@ -26,14 +26,16 @@ import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { initializeFireBase } from "../../services/Firebase";
 import Loading from "../Loading";
+import { logProfileClick } from "../../analytics/profileClickUtil";
+import i18n from "../../i18n";
 
 const getModeFromFeature = (variation: string) => {
   switch (variation) {
-    case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_CONTROL:
-      return FORM_MODES.ALL_REQUIRED;
     case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_V1:
-      return FORM_MODES.NAME_REQUIRED;
+      return FORM_MODES.ALL_REQUIRED;
     case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_V2:
+      return FORM_MODES.NAME_REQUIRED;
+    case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_V3:
       return FORM_MODES.ALL_OPTIONAL;
     default:
       return FORM_MODES.ALL_REQUIRED;
@@ -43,13 +45,14 @@ const getModeFromFeature = (variation: string) => {
 const ProfileDetails = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
+  const profileRef = useRef<HTMLDivElement>(null);
   const history = useHistory();
   const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
   const currentStudent = Util.getCurrentStudent();
   const location = useLocation();
   const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
   const variation = useFeatureValue<string>(
-    PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_SCREEN,
+    PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_ONBOARDING,
     PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_CONTROL
   );
   const mode = getModeFromFeature(variation);
@@ -80,22 +83,40 @@ const ProfileDetails = () => {
   );
   const [languages, setLanguages] = useState<TableTypes<"language">[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
+  const labelRef = useRef<HTMLDivElement>(null);
+  const [labelWidth, setLabelWidth] = useState(0);
+  const [parentHasStudent, setParentHasStudent] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (labelRef.current) {
+      setLabelWidth(labelRef.current.offsetWidth);
+    }
+  }, [labelRef.current?.offsetWidth]);
+
+  useEffect(() => {
+    if (isEdit) {
+      const langCode = localStorage.getItem("language");
+      if (langCode && i18n.language !== langCode) {
+        i18n.changeLanguage(langCode);
+      }
+    }
+  }, [isEdit]);
 
   useEffect(() => {
     initializeFireBase();
     lockOrientation();
     Util.loadBackgroundImage();
-    const cleanup = initializeClickListener();
     const loadLanguages = async () => {
       const langs = await api.getAllLanguages();
       setLanguages(langs);
     };
     loadLanguages();
-
-    return () => {
-      cleanup?.();
-    };
-  }, []);
+    const isParentHasStudent = async () => {
+      const student = await api.getParentStudentProfiles();
+      setParentHasStudent(student.length > 0);
+    }
+    isParentHasStudent();
+   }, []);
 
   useEffect(() => {
     setHasChanges(true);
@@ -200,13 +221,56 @@ const ProfileDetails = () => {
     }
   };
 
+  const handleSkip = async () => {
+    if (isCreatingProfile) return;
+    try {
+      setIsCreatingProfile(true);
+      if (parentHasStudent) {
+        history.replace(PAGES.HOME);
+        return;
+      }
+      const languageCode = localStorage.getItem(LANGUAGE);
+      const allLanguages = await api.getAllLanguages();
+      const selectedLanguage = allLanguages.find(
+        (lang) => lang.code === languageCode
+      );
+      // Create auto profile with default/null values
+      const student = await api.createAutoProfile(selectedLanguage?.id);
+      // Set as current student
+      await Util.setCurrentStudent(
+        student,
+        selectedLanguage?.code ?? undefined,
+        true
+      );
+      Util.logEvent(EVENTS.PROFILE_SKIPPED, {
+        user_id: student?.id,
+        name: fullName,
+        variation,
+        page_path: window.location.pathname,
+        action_type: ACTION_TYPES.PROFILE_SKIPPED,
+      });
+      // Redirect to home page
+      history.replace(PAGES.HOME);
+    } catch (err) {
+      console.error("Error skipping profile:", err);
+    } finally {
+      setIsCreatingProfile(false);
+    }
+  };
+
   return (
 
-    <div className="profiledetails-container">
+    <div ref={profileRef} className="profiledetails-container" 
+        onClick={(e) => {
+        logProfileClick(e).catch((err) =>
+          console.error("Error in logProfileClick", err)
+        );
+      }}>
       <button
         className="profiledetails-back-button"
         onClick={() => {
-          Util.setPathToBackButton(PAGES.HOME, history);
+           const targetPage = parentHasStudent ? PAGES.PARENT : PAGES.HOME;
+           Util.setPathToBackButton(targetPage, history);
         }}
         aria-label="Back"
         id="click_on_profile_details_back_button"
@@ -227,7 +291,7 @@ const ProfileDetails = () => {
         <div className="profiledetails-form-fields">
           {mode !== FORM_MODES.ALL_OPTIONAL && (
             <div className="profiledetails-required-indicator">
-              {t("* Indicates Required Information")}
+              {`* ${t("Indicates Required Information")}`}
             </div>
           )}
 
@@ -256,15 +320,15 @@ const ProfileDetails = () => {
                 icon="/assets/icons/age.svg"
                 optionId={`click_on_profile_details_age_option_${age}`}
                 options={[
-                  { value: AGE_OPTIONS.LESS_THAN_EQUAL_4, label: "≤4 years" },
-                  { value: AGE_OPTIONS.FIVE, label: "5 years" },
-                  { value: AGE_OPTIONS.SIX, label: "6 years" },
-                  { value: AGE_OPTIONS.SEVEN, label: "7 years" },
-                  { value: AGE_OPTIONS.EIGHT, label: "8 years" },
-                  { value: AGE_OPTIONS.NINE, label: "9 years" },
+                  { value: AGE_OPTIONS.LESS_THAN_EQUAL_4, label: `≤${t('4 years')}` },
+                  { value: AGE_OPTIONS.FIVE, label: t('5 years') },
+                  { value: AGE_OPTIONS.SIX, label: t('6 years') },
+                  { value: AGE_OPTIONS.SEVEN, label: t('7 years') },
+                  { value: AGE_OPTIONS.EIGHT, label: t('8 years') },
+                  { value: AGE_OPTIONS.NINE, label: t('9 years') },
                   {
                     value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
-                    label: "≥10 years",
+                    label: `≥${t('10 years')}`,
                   },
                 ]}
                 required={mode === FORM_MODES.ALL_REQUIRED}
@@ -292,21 +356,23 @@ const ProfileDetails = () => {
 
           <fieldset className="profiledetails-form-group profiledetails-gender-fieldset">
             <legend className="profiledetails-gender-label">
-              {t("Gender")}{" "}
-              {mode === FORM_MODES.ALL_REQUIRED && (
-                <span className="profiledetails-required">*</span>
-              )}
+              <div className="profiledetails-gender-label-text" ref={labelRef}>
+                {t("Gender")}
+                {mode === FORM_MODES.ALL_REQUIRED && (
+                  <span className="profiledetails-required">*</span>
+                )}
+              </div>
             </legend>
             <div className="profiledetails-gender-buttons">
               {[
-                { label: "GIRL", value: GENDER.GIRL },
-                { label: "BOY", value: GENDER.BOY },
-                { label: "UNSPECIFIED", value: GENDER.OTHER },
-              ].map(({ label, value }) => {
+                { label: t("GIRL"), value: GENDER.GIRL, name: 'GIRL' },
+                { label: t("BOY"), value: GENDER.BOY, name: 'BOY' },
+                { label: t("UNSPECIFIED"), value: GENDER.OTHER, name: 'UNSPECIFIED' },
+              ].map(({ label, value, name }) => {
                 const isSelected = gender === value;
                 const iconName = isSelected
-                  ? `${label.toLowerCase()}Selected`
-                  : label.toLowerCase();
+                  ? `${name.toLowerCase()}Selected`
+                  : name.toLowerCase();
 
                 return (
                   <button
@@ -332,15 +398,7 @@ const ProfileDetails = () => {
               <button
                 id="click_on_profile_details_skip"
                 className="profiledetails-skip-button"
-                onClick={() => {
-                  Util.logEvent(EVENTS.PROFILE_SKIPPED, {
-                    page_path: window.location.pathname,
-                    complete_path: window.location.href,
-                    action_type: "skip_profile",
-                    variation,
-                  });
-                  history.replace(PAGES.HOME);
-                }}
+                onClick={handleSkip}
               >
                 {t("SKIP FOR NOW")}
               </button>
