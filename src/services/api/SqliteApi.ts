@@ -32,6 +32,7 @@ import {
   AVATARS,
   BASE_NAME,
   DELETED_CLASSES,
+  EVENTS,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -55,6 +56,7 @@ import { RoleType } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
 import { Table } from "@mui/material";
 import { create } from "domain";
+import { error } from "console";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -399,6 +401,12 @@ export class SqliteApi implements ServiceApi {
         );
         console.log("🚀 ~ Api ~ pushChanges ~ isMutated:", mutate);
         if (!mutate || mutate.error) {
+          const _currentUser =
+            await ServiceConfig.getI().authHandler.getCurrentUser();
+          Util.logEvent(EVENTS.ERROR_LOGS, {
+            user_id: _currentUser?.id,
+            ...mutate?.error
+          });
           if (mutate?.error?.code === "23505") {
           } else {
             return false;
