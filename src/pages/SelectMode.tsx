@@ -69,6 +69,11 @@ const SelectMode: FC = () => {
   const history = useHistory();
   const [stage, setStage] = useState(STAGES.MODE);
   const [isOkayButtonDisabled, setIsOkayButtonDisabled] = useState(true);
+  useEffect(() => {
+    if (currClass && stage === STAGES.STUDENT) {
+      displayStudents(currClass);
+    }
+  }, [currClass, stage]);
   const init = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const setTab = urlParams.get("tab");
@@ -111,6 +116,8 @@ const SelectMode: FC = () => {
       if (schoolName && className) {
         const selectedUser = localStorage.getItem(USER_SELECTION_STAGE);
         if (selectedUser) {
+          const parsedClass = JSON.parse(className);
+          setCurrClass(parsedClass);
           setStage(STAGES.STUDENT);
         } else {
           setStage(STAGES.CLASS);
