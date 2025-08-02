@@ -333,8 +333,8 @@ const LoginScreen: React.FC = () => {
       let studentDetails = user?.user;
       studentDetails.parent_id = user?.user.id;
       updateLocalAttributes({
-        studentDetails
-      })
+        studentDetails,
+      });
       setGbUpdated(true);
       Util.logEvent(EVENTS.USER_PROFILE, {
         user_id: user.uid,
@@ -428,11 +428,11 @@ const LoginScreen: React.FC = () => {
 
       localStorage.setItem(CURRENT_USER, JSON.stringify(user));
       localStorage.setItem(USER_DATA, JSON.stringify(user));
-      let studentDetails : any = user;
+      let studentDetails: any = user;
       studentDetails.parent_id = user.id;
       updateLocalAttributes({
-        studentDetails
-      })
+        studentDetails,
+      });
       setGbUpdated(true);
       Util.logEvent(EVENTS.USER_PROFILE, {
         user_type: RoleType.PARENT,
@@ -479,6 +479,7 @@ const LoginScreen: React.FC = () => {
       // AUTOUSER → school‐mode
       const auto = schools.find((s) => s.role === RoleType.AUTOUSER);
       if (auto) {
+        await ScreenOrientation.lock({ orientation: "landscape" });
         schoolUtil.setCurrMode(MODES.SCHOOL);
         return history.replace(PAGES.SELECT_MODE);
       }
@@ -534,11 +535,11 @@ const LoginScreen: React.FC = () => {
         await redirectUser(userSchools, isOps);
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
         localStorage.setItem(USER_DATA, JSON.stringify(user));
-        let studentDetails : any = user;
+        let studentDetails: any = user;
         studentDetails.parent_id = user.uid;
         updateLocalAttributes({
-          studentDetails
-        })
+          studentDetails,
+        });
         setGbUpdated(true);
         // Log the login event
         Util.logEvent(EVENTS.USER_PROFILE, {
@@ -612,11 +613,11 @@ const LoginScreen: React.FC = () => {
           await redirectUser(userSchools, isOpsUser);
         }
         setAnimatedLoading(false);
-        let studentDetails : any = user;
+        let studentDetails: any = user;
         studentDetails.parent_id = user.uid;
         updateLocalAttributes({
-          studentDetails
-        })
+          studentDetails,
+        });
         setGbUpdated(true);
         // Log the login event
         Util.logEvent(EVENTS.USER_PROFILE, {
