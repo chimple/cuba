@@ -13,6 +13,7 @@ type InputProps = {
   statusIcon?: ReactNode;
   required?: boolean;
   id?: string;
+  labelOffsetClass?: string;
 };
 
 const InputWithIcons: FC<InputProps> = ({
@@ -26,11 +27,12 @@ const InputWithIcons: FC<InputProps> = ({
   readOnly = false,
   statusIcon,
   required,
-  id
+  id,
+  labelOffsetClass = "",
 }) => {
   return (
     <div className="with-icon-input-wrapper">
-      <label className="with-icon-input-label">
+      <label className={`with-icon-input-label ${labelOffsetClass ?? ""}`}>
         {label}
         {required && <span className="with-icon-required">*</span>}
       </label>

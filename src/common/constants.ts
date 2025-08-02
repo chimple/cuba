@@ -758,6 +758,7 @@ export enum EVENTS {
   PROFILE_UPDATED = "profile_updated",
   PROFILE_SKIPPED = "profile_skipped",
   DEEPLINK_CLICKED = "deeplink_clicked",
+  PROFILE_CLICKS_ANALYTICS = "profile_clicks_analytics",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -895,10 +896,11 @@ export const FORM_MODES = {
 };
 
 export const PROFILE_DETAILS_GROWTHBOOK_VARIATION = {
-  AFTER_LOGIN_SCREEN: "after-login-screen",
-  AFTER_LOGIN_CONTROL: "After Login Control",
-  AFTER_LOGIN_V1: "After Login V1",
-  AFTER_LOGIN_V2: "After Login V2",
+  AFTER_LOGIN_ONBOARDING: "after-login-onboarding",
+  AFTER_LOGIN_CONTROL: "after_login_control",
+  AFTER_LOGIN_V1: "after_login_v1",
+  AFTER_LOGIN_V2: "after_login_v2",
+  AFTER_LOGIN_V3: "after_login_v3",
 };
 
 export const ACTION_TYPES = {
