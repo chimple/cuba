@@ -530,7 +530,10 @@ export interface PortPlugin {
   }): Promise<void>;
   shareUserId(options: { userId: string }): Promise<void>;
   saveProceesedXlsxFile(options: { fileData: string }): Promise<void>;
+
+  copyLessonBundle(options: { folderName: string }): Promise<void>;
 }
+
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [
   "54abf22e-7102-4e14-915b-acd8eab47d56", //English

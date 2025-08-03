@@ -360,13 +360,77 @@ export class Util {
     localStorage.setItem(lessonIdStorageKey, JSON.stringify(updatedItems));
   };
 
-  public static async getLessonPath(lessonId: string): Promise<string> {
-    const path =
-      (localStorage.getItem("gameUrl") ??
-        "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-      lessonId +
-      "/";
-    return path;
+  // public static async getLessonPath(lessonId: string): Promise<string> {
+  //   const path =
+  //     (localStorage.getItem("gameUrl") ??
+  //       "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
+  //     lessonId +
+  //     "/";
+  //   return path;
+  // public static async getLessonPath(data: {
+  //   lessonId: string;
+  // }): Promise<string> {
+  //   const path =
+  //     (localStorage.getItem("gameUrl") ??
+  //       "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
+  //     data.lessonId +
+  //     "/";
+  //   return path;
+  // }
+  public static async getLessonPath(data: { lessonId: string }) {
+    try {
+      const folderName = data.lessonId;
+      const basePath =
+        "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/";
+      const fullPath = basePath + folderName + "/";
+      const internalPath = folderName;
+
+      let folderExists = false;
+
+      try {
+        await Filesystem.readdir({
+          path: internalPath,
+          directory: Directory.External,
+        });
+        console.log("✅ Folder already exists, skipping copy.");
+        folderExists = true;
+      } catch (e) {
+        console.log("📁 Folder not found, copying...");
+      }
+
+      if (!folderExists) {
+        if (!Util.port) {
+          Util.port = registerPlugin<PortPlugin>("Port");
+        }
+        await new Promise<void>((resolve, reject) => {
+          Util.port
+            .copyLessonBundle({ folderName })
+            .then(() => {
+              console.log("✅ Native plugin resolved.");
+              resolve();
+            })
+            .catch((err) => {
+              console.error("❌ Native plugin failed:", err);
+              reject(err);
+            });
+        });
+        try {
+          await Filesystem.readdir({
+            path: internalPath,
+            directory: Directory.External,
+          });
+        } catch (e) {
+          console.error("❌ Copy finished, but folder still not found");
+          throw new Error("Folder copy failed or path not accessible yet.");
+        }
+      }
+
+      console.log("pathhh", fullPath);
+      return fullPath;
+    } catch (error) {
+      console.error("❌ Lesson copy failed:", error);
+      throw error;
+    }
   }
 
   public static async downloadZipBundle(

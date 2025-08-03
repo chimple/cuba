@@ -7,14 +7,17 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
+import android.util.Pair;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResult;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -27,10 +30,16 @@ import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
 import com.google.android.gms.auth.api.phone.SmsRetriever;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
+import java.util.concurrent.Executor;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -337,6 +346,92 @@ public void shareContentWithAndroidShare(PluginCall call) {
             call.reject("Error saving file: " + e.getMessage());
         }
     }
+    @PluginMethod
+    public void copyLessonBundle(PluginCall call) {
+        String folderName = call.getString("folderName");
+
+        if (folderName == null || folderName.isEmpty()) {
+            call.reject("folderName is required");
+            return;
+        }
+
+        Context context = getContext();
+        Executor executor = ContextCompat.getMainExecutor(context);
+
+        executor.execute(() -> {
+            try {
+                String assetPath = "public/assets/lessonBundles/" + folderName;
+                File destFolder = new File(context.getExternalFilesDir(null), folderName);
+
+                Log.d("PortPlugin", "📁 Copying folder: " + folderName);
+                Log.d("PortPlugin", "📦 Asset path: " + assetPath);
+                Log.d("PortPlugin", "📍 Destination: " + destFolder.getAbsolutePath());
+
+                if (!destFolder.exists() && !destFolder.mkdirs()) {
+                    call.reject("Failed to create destination folder: " + destFolder.getAbsolutePath());
+                    return;
+                }
+
+                AssetManager assetManager = context.getAssets();
+
+                // Recursively copy all files/folders
+                LinkedList<Pair<String, File>> stack = new LinkedList<>();
+                stack.push(new Pair<>(assetPath, destFolder));
+
+                while (!stack.isEmpty()) {
+                    Pair<String, File> current = stack.pop();
+                    String currentAssetPath = current.first;
+                    File currentDestDir = current.second;
+
+                    String[] items = assetManager.list(currentAssetPath);
+
+                    if (items == null || items.length == 0) {
+                        // Copy file
+                        try (InputStream in = assetManager.open(currentAssetPath);
+                             OutputStream out = new FileOutputStream(currentDestDir)) {
+
+                            byte[] buffer = new byte[8192];
+                            int length;
+                            while ((length = in.read(buffer)) > 0) {
+                                out.write(buffer, 0, length);
+                            }
+
+                            Log.d("PortPlugin", "✅ Copied file: " + currentDestDir.getAbsolutePath());
+                        }
+                    } else {
+                        // Copy folder
+                        for (String item : items) {
+                            String subAssetPath = currentAssetPath + "/" + item;
+                            File subDest = new File(currentDestDir, item);
+
+                            String[] subItems = assetManager.list(subAssetPath);
+                            if (subItems != null && subItems.length > 0) {
+                                subDest.mkdirs();
+                                stack.push(new Pair<>(subAssetPath, subDest));
+                            } else {
+                                try (InputStream in = assetManager.open(subAssetPath);
+                                     OutputStream out = new FileOutputStream(subDest)) {
+
+                                    byte[] buffer = new byte[8192];
+                                    int length;
+                                    while ((length = in.read(buffer)) > 0) {
+                                        out.write(buffer, 0, length);
+                                    }
+
+                                    Log.d("PortPlugin", "✅ Copied file: " + subDest.getAbsolutePath());
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Log.d("PortPlugin", "✅ Copy complete for: " + folderName);
+                call.resolve();
+            } catch (Exception e) {
+                Log.e("PortPlugin", "❌ Error copying folder", e);
+                call.reject("Error copying folder: " + e.getMessage());
+            }
+        });
+    }
+
 }
-
-

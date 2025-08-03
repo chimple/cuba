@@ -97,7 +97,6 @@ const DisplayChapters: FC<{}> = () => {
         getLocalGradeMap();
       }
     }
-
   }, [getCourseByUrl, localGradeMap, currentCourse]);
 
   const init = async () => {
@@ -170,6 +169,7 @@ const DisplayChapters: FC<{}> = () => {
         setCourses(undefined);
       }
     } else {
+      //  history.replace(PAGES.SELECT_MODE);
       console.warn("Course not found in local data.");
     }
     setIsLoading(false);

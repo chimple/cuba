@@ -13,12 +13,14 @@ import {
   TableTypes,
 } from "../common/constants";
 import Loading from "../components/Loading";
+import ScoreCard from "../components/parent/ScoreCard";
 import { IonPage, useIonToast } from "@ionic/react";
 import { Capacitor } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { Lesson } from "../interface/curriculumInterfaces";
 import { AvatarObj } from "../components/animation/Avatar";
 import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
+import { t } from "i18next";
 
 const LidoPlayer: FC = () => {
   const history = useHistory();
@@ -29,6 +31,8 @@ const LidoPlayer: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [basePath, setBasePath] = useState<string>();
   const [xmlPath, setXmlPath] = useState<string>();
+  const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
+  const [gameResult, setGameResult] = useState<any>(null);
 
   const urlSearchParams = new URLSearchParams(window.location.search);
   const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
@@ -37,16 +41,32 @@ const LidoPlayer: FC = () => {
   };
 
   const gameCompleted = (e: any) => {
-    push();
+    console.log("Game completed", e.detail);
+    // ✅ Show ScoreCard after game completed
+    setGameResult(e.detail);
+    setShowDialogBox(true);
   };
-
   const push = () => {
     const fromPath: string = state?.from ?? PAGES.HOME;
-    Util.setPathToBackButton(fromPath, history);
+
+    console.log("fromPath", fromPath);
+
+    try {
+      // Defensive check: empty, malformed, or suspicious path
+      if (!fromPath || typeof fromPath !== "string" || fromPath.length < 2) {
+        throw new Error("Invalid fromPath");
+      }
+
+      Util.setPathToBackButton(fromPath, history);
+    } catch (error) {
+      console.warn("Navigation error:", error);
+      history.replace(PAGES.HOME);
+      return;
+    }
   };
-  const onActivityEnd = (e: any) => {
-    // push();
-  };
+
+  const onActivityEnd = (e: any) => {};
+
   const courseDetail: TableTypes<"course"> = state.course
     ? JSON.parse(state.course)
     : undefined;
@@ -59,12 +79,10 @@ const LidoPlayer: FC = () => {
 
   const onLessonEnd = async (e: any) => {
     const lessonData = e.detail;
-
     const api = ServiceConfig.getI().apiHandler;
     const courseDocId: string | undefined = state.courseDocId;
     const lesson: Lesson = JSON.parse(state.lesson);
     const assignment = state.assignment;
-    // const currentStudent = api.currentStudent;
     const currentStudent = Util.getCurrentStudent()!;
     const data = lessonData;
     let assignmentId = assignment ? assignment.id : null;
@@ -87,9 +105,7 @@ const LidoPlayer: FC = () => {
           classId,
           currentStudent.id
         );
-        if (result) {
-          assignmentId = result?.id;
-        }
+        if (result) assignmentId = result?.id;
       }
       chapter_id = await api.getChapterByLesson(lesson.id, classId);
     } else {
@@ -108,7 +124,7 @@ const LidoPlayer: FC = () => {
     avatarObj.weeklyTimeSpent["min"] = computeMinutes;
     avatarObj.weeklyTimeSpent["sec"] = computeSec;
     avatarObj.weeklyPlayedLesson++;
-    const result = await api.updateResult(
+    await api.updateResult(
       currentStudent.id,
       courseDocId,
       lesson.id,
@@ -124,11 +140,8 @@ const LidoPlayer: FC = () => {
 
     Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.id,
-      // assignment_id: lesson.assignment?.id,
       chapter_id: data.chapterId,
-      // chapter_name: ChapterDetail ? ChapterDetail.name : "",
       lesson_id: data.lessonId,
-      // lesson_name: lesson.name,
       lesson_type: data.lessonType,
       lesson_session_id: data.lessonSessionId,
       ml_partner_id: data.mlPartnerId,
@@ -151,6 +164,7 @@ const LidoPlayer: FC = () => {
       played_from: playedFrom,
       assignment_type: assignmentType,
     });
+
     let tempAssignmentCompletedIds = localStorage.getItem(
       ASSIGNMENT_COMPLETED_IDS
     );
@@ -163,21 +177,18 @@ const LidoPlayer: FC = () => {
     if (!assignmentCompletedIds[api.currentStudent?.id!]) {
       assignmentCompletedIds[api.currentStudent?.id!] = [];
     }
-    // assignmentCompletedIds[api.currentStudent?.id!].push(lesson.assignment?.id);
     localStorage.setItem(
       ASSIGNMENT_COMPLETED_IDS,
       JSON.stringify(assignmentCompletedIds)
     );
   };
+
   const onGameExit = (e: any) => {
     console.log("onGameExit", e.detail);
     const api = ServiceConfig.getI().apiHandler;
-    const lessonData = e.detail;
-
-    const data = lessonData;
+    const data = e.detail;
     Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: api.currentStudent!.id,
-      // assignment_id: lessonDetail.assignment?.id,
       left_game_no: data.currentGameNumber,
       left_game_name: data.gameName,
       chapter_id: data.chapterId,
@@ -213,18 +224,15 @@ const LidoPlayer: FC = () => {
     window.addEventListener(LidoGameCompletedKey, gameCompleted);
     window.addEventListener(LidoActivityChangeKey, onActivityEnd);
     window.addEventListener(LidoLessonEndKey, onLessonEnd);
-    window.addEventListener(LidoActivityEndKey, (e: any) => {
-      //   setCurrentIndex(e.detail.index);
-    });
+    window.addEventListener(LidoActivityEndKey, (e: any) => {});
+
     return () => {
-      window.addEventListener(LidoGameExitKey, onGameExit);
+      window.removeEventListener(LidoGameExitKey, onGameExit);
       window.removeEventListener(LidoNextContainerKey, onNextContainer);
       window.removeEventListener(LidoGameCompletedKey, gameCompleted);
       window.removeEventListener(LidoActivityChangeKey, onActivityEnd);
       window.removeEventListener(LidoLessonEndKey, onLessonEnd);
-      window.removeEventListener(LidoActivityEndKey, (e: any) => {
-        //   setCurrentIndex(e.detail.index);
-      });
+      window.removeEventListener(LidoActivityEndKey, (e: any) => {});
     };
   }, []);
 
@@ -234,12 +242,7 @@ const LidoPlayer: FC = () => {
       color: "danger",
       duration: 3000,
       position: "bottom",
-      buttons: [
-        {
-          text: "Dismiss",
-          role: "cancel",
-        },
-      ],
+      buttons: [{ text: "Dismiss", role: "cancel" }],
     });
   };
 
@@ -255,12 +258,14 @@ const LidoPlayer: FC = () => {
       return;
     }
     if (Capacitor.isNativePlatform()) {
-      const path = await Util.getLessonPath(lessonId);
+      const path = await Util.getLessonPath({ lessonId: lessonId });
       setBasePath(path);
     } else {
-      const path =
-        "https://raw.githubusercontent.com/chimple/lido-player/refs/heads/main/src/components/root/assets/xmlData.xml";
-      setXmlPath(path);
+      const path = `/assets/lessonBundles/${lessonId}/index.xml`;
+      setBasePath(path);
+      // const path =
+      //   "https://raw.githubusercontent.com/chimple/lido-player/refs/heads/main/src/components/root/assets/xmlData.xml";
+      // setXmlPath(path);
     }
     setIsLoading(false);
   }
@@ -268,6 +273,28 @@ const LidoPlayer: FC = () => {
   return (
     <IonPage>
       <Loading isLoading={isLoading} />
+      {showDialogBox && (
+        <ScoreCard
+          title={t("🎉Congratulations🎊")}
+          score={Math.round(gameResult?.score ?? 0)}
+          message={t("You Completed the Lesson:")}
+          showDialogBox={showDialogBox}
+          yesText={t("Like the Game")}
+          lessonName={lessonDetail?.name ?? ""}
+          noText={t("Continue Playing")}
+          handleClose={() => setShowDialogBox(false)}
+          onYesButtonClicked={async () => {
+            setShowDialogBox(false);
+            setIsLoading(true);
+            push();
+          }}
+          onContinueButtonClicked={() => {
+            setShowDialogBox(false);
+            setIsLoading(true);
+            push();
+          }}
+        />
+      )}
       {(xmlPath || basePath) && (
         <lido-standalone xml-path={xmlPath} base-url={basePath} />
       )}
