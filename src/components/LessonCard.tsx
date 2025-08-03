@@ -236,7 +236,10 @@ const LessonCard: React.FC<{
         >
           <div
             style={{
-              background: lesson?.color ?? lessonCardColor,
+              background:
+                lesson?.color && lesson.color !== "null"
+                  ? lesson.color
+                  : lessonCardColor,
               borderRadius: "7vh",
               width: width,
               height: height,
@@ -296,13 +299,14 @@ const LessonCard: React.FC<{
 
             <div id="lesson-card-image">
               <SelectIconImage
-                localSrc={
-                  "courses/" +
-                  lesson.cocos_subject_code +
-                  "/icons/" +
-                  lesson.id +
-                  ".webp"
-                }
+                // localSrc={
+                //   "courses/" +
+                //   lesson.cocos_subject_code +
+                //   "/icons/" +
+                //   lesson.id +
+                //   ".webp"
+                // }
+                localSrc={"assets/icons/" + lesson.cocos_lesson_id + ".png"}
                 defaultSrc={"assets/icons/DefaultIcon.png"}
                 webSrc={lesson.image || "assets/icons/DefaultIcon.png"}
                 imageWidth={"60%"}

@@ -43,7 +43,7 @@ const PathwayStructure: React.FC = () => {
     if (height) image.setAttribute("height", `${height}`);
     if (x) image.setAttribute("x", `${x}`);
     if (y) image.setAttribute("y", `${y}`);
-    if (opacity !== undefined){
+    if (opacity !== undefined) {
       image.setAttribute("opacity", opacity.toString());
     }
     // ✅ Add onerror fallback
@@ -235,7 +235,7 @@ const PathwayStructure: React.FC = () => {
               }
             });
             const chimple = createSVGImage(
-              "/pathwayAssets/mascot.svg",
+              "/pathwayAssets/Pangolim1.svg",
               75,
               81,
               x,

@@ -116,38 +116,38 @@ const LearningPathway: React.FC = () => {
     };
   };
 
-const updateLearningPathIfNeeded = async (
-  learningPath: any,
-  userCourses: any[]
-) => {
-  const oldCourseList = learningPath.courses?.courseList || [];
+  const updateLearningPathIfNeeded = async (
+    learningPath: any,
+    userCourses: any[]
+  ) => {
+    const oldCourseList = learningPath.courses?.courseList || [];
 
-  // Check if lengths and course IDs/order match
-  const isSameLengthAndOrder =
-    oldCourseList.length === userCourses.length &&
-    userCourses.every(
-      (course, index) => course.id === oldCourseList[index]?.course_id
-    );
+    // Check if lengths and course IDs/order match
+    const isSameLengthAndOrder =
+      oldCourseList.length === userCourses.length &&
+      userCourses.every(
+        (course, index) => course.id === oldCourseList[index]?.course_id
+      );
 
-  // Check if any course is missing path_id
-  const isPathIdMissing = oldCourseList.some((course) => !course.path_id);
+    // Check if any course is missing path_id
+    const isPathIdMissing = oldCourseList.some((course) => !course.path_id);
 
-  if (isSameLengthAndOrder && !isPathIdMissing) {
-    return false; // No need to rebuild
-  }
+    if (isSameLengthAndOrder && !isPathIdMissing) {
+      return false; // No need to rebuild
+    }
 
-  // If path_id is missing or courses mismatch, rebuild everything
-  const newLearningPath = await buildInitialLearningPath(userCourses);
-  learningPath.courses.courseList = newLearningPath.courses.courseList;
+    // If path_id is missing or courses mismatch, rebuild everything
+    const newLearningPath = await buildInitialLearningPath(userCourses);
+    learningPath.courses.courseList = newLearningPath.courses.courseList;
 
-  // Dispatch event to notify that course has changed
-  const event = new CustomEvent("courseChanged", {
-    detail: { currentStudent },
-  });
-  window.dispatchEvent(event);
+    // Dispatch event to notify that course has changed
+    const event = new CustomEvent("courseChanged", {
+      detail: { currentStudent },
+    });
+    window.dispatchEvent(event);
 
-  return true;
-};
+    return true;
+  };
 
   const buildLessonPath = async (courseId: string) => {
     const chapters = await api.getChaptersForCourse(courseId);
@@ -171,7 +171,8 @@ const updateLearningPathIfNeeded = async (
       undefined
     );
 
-    const currentCourse = path.courses.courseList[path.courses.currentCourseIndex];
+    const currentCourse =
+      path.courses.courseList[path.courses.currentCourseIndex];
     const currentPath = currentCourse.path;
 
     const LessonSlice = currentPath.slice(
@@ -182,13 +183,9 @@ const updateLearningPathIfNeeded = async (
     // Extract lesson IDs
     const LessonIds = LessonSlice.map((item: any) => item.lesson_id);
 
-
     const eventData = {
       user_id: student.id,
-      path_id:
-          path.courses.courseList[
-            path.courses.currentCourseIndex
-          ].path_id, 
+      path_id: path.courses.courseList[path.courses.currentCourseIndex].path_id,
       current_course_id:
         path.courses.courseList[path.courses.currentCourseIndex].course_id,
       current_lesson_id:

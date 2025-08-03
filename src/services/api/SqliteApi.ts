@@ -18,6 +18,8 @@ import {
   PROFILETYPE,
   STARS_COUNT,
   LATEST_STARS,
+  grade5,
+  grade6,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -1167,8 +1169,11 @@ export class SqliteApi implements ServiceApi {
     }
 
     let courseIds: TableTypes<"course">[] = [];
+
     let isGrade1: boolean = false;
     let isGrade2: boolean = false;
+    let isGrade5: boolean = false;
+    let isGrade6: boolean = false;
 
     if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
       isGrade1 = true;
@@ -1178,11 +1183,25 @@ export class SqliteApi implements ServiceApi {
       gradeDocId === aboveGrade3
     ) {
       isGrade2 = true;
+    } else if (gradeDocId === grade5) {
+      isGrade5 = true;
+    } else if (gradeDocId === grade6) {
+      isGrade6 = true;
     } else {
       isGrade2 = true;
     }
 
-    const gradeLevel = isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId;
+    console.log("fdsfsfdsfs", gradeDocId);
+    const gradeLevel = isGrade1
+      ? grade1
+      : isGrade2
+        ? grade2
+        : isGrade5
+          ? grade5
+          : isGrade6
+            ? grade6
+            : gradeDocId;
+
     const gradeCourses = await this.getCoursesByGrade(gradeLevel);
     const curriculumCourses = gradeCourses.filter(
       (course: TableTypes<"course">) => {
@@ -1219,7 +1238,7 @@ export class SqliteApi implements ServiceApi {
         courseIds.push(course);
       });
     });
-
+    console.log("courseIdscourseIds", courseIds);
     return courseIds;
   }
 
@@ -1837,7 +1856,7 @@ export class SqliteApi implements ServiceApi {
         language_id = ?
       WHERE id = ?;
     `;
-
+    console.log("boardDocId and gradeDocId", boardDocId, gradeDocId);
     await this.executeQuery(updateUserQuery, [
       name,
       age,
@@ -4734,7 +4753,9 @@ order by
       console.error("Error setting stars for student:", error);
     }
   }
-  async getChapterIdbyQrLink(link:string): Promise<TableTypes<"chapter_links"> | undefined> {
+  async getChapterIdbyQrLink(
+    link: string
+  ): Promise<TableTypes<"chapter_links"> | undefined> {
     if (!link) return;
     try {
       const res = await this._db?.query(
