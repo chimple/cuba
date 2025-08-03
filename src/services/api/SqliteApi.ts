@@ -2233,6 +2233,7 @@ export class SqliteApi implements ServiceApi {
           MUTATE_TYPES.INSERT,
           newClassUser
         );
+        await this._serverApi.addParentToNewClass(newClassId, student.id);
       }
       return student;
     } catch (error) {
@@ -5686,5 +5687,8 @@ order by
       console.error("Error fetching chapters", error);
       return [];
     }
+  }
+  async addParentToNewClass(classID:string, studentId:string){
+    throw new Error ("Method not implemented.");
   }
 }

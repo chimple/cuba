@@ -2291,6 +2291,10 @@ export type Database = {
       };
     };
     Functions: {
+      add_parent_to_newclass: {
+        Args: { _class_id: string; _student_id: string };
+        Returns: undefined;
+      };
       call_send_badges: {
         Args: Record<PropertyKey, never>;
         Returns: undefined;
