@@ -7254,4 +7254,19 @@ export class SupabaseApi implements ServiceApi {
   async getChapterIdbyQrLink(link: string): Promise<TableTypes<"chapter_links"> | undefined> {
       throw new Error("Method not implemented.");
   }
+  async addParentToNewClass(classID:string, studentId:string){
+    try {
+        if (!this.supabase) return;
+         const { error } = await this.supabase.rpc('add_parent_to_newclass', {
+         _class_id: classID,
+         _student_id: studentId
+       });
+
+        if (error) {
+          console.log('Failed to add parent to class:', error.message);
+        }
+    } catch (error) {
+      console.error('Error in addParentToNewClass:', error);
+    }
+  }
 }

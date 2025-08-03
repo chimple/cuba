@@ -1879,4 +1879,10 @@ export interface ServiceApi {
    * @returns {Promise<TableTypes<"chapter">[]>} - A promise that resolves to an array of chapter objects.
    */
   getChaptersByIds(chapterIds: string[]): Promise<TableTypes<"chapter">[]>;
+  /**
+   * Adds Parent to new class (new classUser record).
+   * @param {string} classID
+   * @param {string} studentID
+   */
+  addParentToNewClass(classID:string, studentID:string): Promise<void>;
 }
