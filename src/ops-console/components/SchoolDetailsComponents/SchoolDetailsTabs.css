@@ -1,0 +1,74 @@
+.school-detail-role-tabs-wrapper {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.school-detail-role-tabs-container {
+  display: flex;
+  gap: 8px;
+  height: 43px;
+  background-color: #f9f9f9;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: none;
+  min-width: 0;
+  border-radius: 4px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.school-detail-role-tabs-container::-webkit-scrollbar {
+  display: none;
+}
+
+.school-detail-role-tab-button {
+  padding: 8px 18px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: medium;
+  background-color: transparent;
+  color: #555;
+  border: none;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+  flex-shrink: 0;
+}
+
+.school-detail-role-tab-button.selectedtab {
+  background-color: #2563eb;
+  color: white;
+}
+
+.school-detail-tab-content {
+  margin-top: 15px;
+  width: 100%;
+  background: white;
+  border-radius: 0 0 8px 8px;
+  min-height: 200px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+  overflow-y: auto !important;
+  height: calc(100vh - 165px);
+}
+
+@media (max-width: 600px) {
+  .school-detail-tertiary-header {
+    border-radius: 4px;
+    overflow-x: visible;
+    min-width: 0;
+  }
+  .school-detail-role-tabs-wrapper {
+    min-width: 0;
+  }
+  .school-detail-role-tabs-container {
+    min-width: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+}

@@ -1,0 +1,16 @@
+.detail-item-root {
+  text-align: left;
+  margin-bottom: 8px; 
+}
+
+.detail-item-label {
+  color: rgba(0, 0, 0, 0.6); /* MUI's text.secondary default */
+  font-size: 0.875rem; /* body2 font size */
+  text-align: left;
+  margin-bottom: 2px;
+}
+
+.detail-item-value {
+  font-size: 1rem; /* body1 font size */
+  text-align: left;
+}

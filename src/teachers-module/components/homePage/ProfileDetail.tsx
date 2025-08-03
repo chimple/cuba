@@ -10,6 +10,8 @@ interface ProfileDetailsProps {
 
 const ProfileDetail: React.FC<ProfileDetailsProps> = ({ fullName, email }) => {
   const history = useHistory();
+
+  const displayName = fullName.length > 12 ? `${fullName.slice(0, 12)}...` : fullName;
   return (
     <div className="side-menu-header">
       <IonToolbar>
@@ -22,7 +24,7 @@ const ProfileDetail: React.FC<ProfileDetailsProps> = ({ fullName, email }) => {
               onClick={() => history.replace("/user-profile")}
               className="profile-name"
             >
-              {fullName}
+              {displayName}
             </div>
             <div className="profile-email">{email}</div>
           </IonLabel>

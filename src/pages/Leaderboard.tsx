@@ -37,6 +37,7 @@ import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 import { App } from "@capacitor/app";
 import { school } from "../stories/school/SchoolClassSubjectsTab.stories";
+import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -56,6 +57,7 @@ const Leaderboard: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
+  const { setGbUpdated } = useGbContext();
 
   const [weeklyList, setWeeklyList] = useState<
     {
@@ -73,11 +75,7 @@ const Leaderboard: React.FC = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    const body = document.querySelector("body");
-    body?.style.setProperty(
-      "background-image",
-      "url(/pathwayAssets/pathwayBackground.svg)"
-    );
+    Util.loadBackgroundImage();
     inti();
     const urlParams = new URLSearchParams(window.location.search);
     const rewardsTab = urlParams.get("tab");
@@ -99,7 +97,7 @@ const Leaderboard: React.FC = () => {
     }
   }, [tabIndex]);
 
-  useEffect(() => {}, []);
+  useEffect(() => { }, []);
   const urlOpen = () => {
     App.addListener("appUrlOpen", (event) => {
       const url = new URL(event.url);
@@ -189,14 +187,22 @@ const Leaderboard: React.FC = () => {
     setIsLoading(false);
     const tempLeaderboardData: LeaderboardInfo = (leaderboardDataInfo.weekly
       .length <= 0 ||
-    leaderboardDataInfo.allTime.length <= 0 ||
-    leaderboardDataInfo.monthly.length <= 0
+      leaderboardDataInfo.allTime.length <= 0 ||
+      leaderboardDataInfo.monthly.length <= 0
       ? await api.getLeaderboardResults(classId, leaderboardDropdownType)
       : leaderboardDataInfo) || {
       weekly: [],
       allTime: [],
       monthly: [],
     };
+
+    const leaderboardAttributes = {
+      leaderboard_position_weekly: tempLeaderboardData.weekly.findIndex((item) => item.userId === currentStudent.id) + 1,
+      leaderboard_position_monthly: tempLeaderboardData.monthly.findIndex((item) => item.userId === currentStudent.id) + 1,
+      leaderboard_position_all: tempLeaderboardData.allTime.findIndex((item) => item.userId === currentStudent.id) + 1,
+    }
+    updateLocalAttributes(leaderboardAttributes);
+    setGbUpdated(true);
 
     // if (isWeeklyFlag) {
     //   setLeaderboardDataInfo(tempLeaderboardData);
@@ -270,11 +276,11 @@ const Leaderboard: React.FC = () => {
             [
               t("Time Spent"),
               computeMinutes +
-                t(" min") +
-                " " +
-                computeSeconds +
-                " " +
-                t("sec"),
+              t(" min") +
+              " " +
+              computeSeconds +
+              " " +
+              t("sec"),
             ],
           ];
           tempLeaderboardDataArray.push([
@@ -318,7 +324,7 @@ const Leaderboard: React.FC = () => {
                   currentStudent!,
                   // weeklyList[0] === weeklyList[selectedValue],
                   weeklyList[selectedValue].type ??
-                    LeaderboardDropdownList.WEEKLY,
+                  LeaderboardDropdownList.WEEKLY,
                   currentClassAndSchool?.classes[0].id || ""
                 );
                 //  }
@@ -336,8 +342,8 @@ const Leaderboard: React.FC = () => {
               src={
                 (studentMode === MODES.SCHOOL && currentStudent?.image) ||
                 "assets/avatars/" +
-                  (currentStudent?.avatar ?? AVATARS[0]) +
-                  ".png"
+                (currentStudent?.avatar ?? AVATARS[0]) +
+                ".png"
               }
               alt=""
             />
@@ -412,18 +418,18 @@ const Leaderboard: React.FC = () => {
                     headerRowIndicator === 0
                       ? "rgb(200 200 200)"
                       : Number(currentUserDataContent[0][1]) ===
-                            headerRowIndicator ||
-                          currentUserDataContent[0][1] ===
-                            headerRowIndicator + "+"
+                        headerRowIndicator ||
+                        currentUserDataContent[0][1] ===
+                        headerRowIndicator + "+"
                         ? "#FF7925"
                         : "",
                   padding:
                     headerRowIndicator === 0
                       ? "1vh 2vh"
                       : Number(currentUserDataContent[0][1]) ===
-                            headerRowIndicator ||
-                          currentUserDataContent[0][1] ===
-                            headerRowIndicator + "+"
+                        headerRowIndicator ||
+                        currentUserDataContent[0][1] ===
+                        headerRowIndicator + "+"
                         ? "0vh 2vh"
                         : "1vh 2vh ",
                   position: "sticky",
@@ -567,10 +573,10 @@ const Leaderboard: React.FC = () => {
                     value={LEADERBOARDHEADERLIST.LEADERBOARD}
                     label={t(LEADERBOARDHEADERLIST.LEADERBOARD)}
                     id="parent-page-tab-bar"
-                    // sx={{
-                    //   // fontSize:"5vh"
-                    //   marginRight: "5vw",
-                    // }}
+                  // sx={{
+                  //   // fontSize:"5vh"
+                  //   marginRight: "5vw",
+                  // }}
                   />
                   {/* <Tab
                     id="parent-page-tab-bar"
@@ -622,7 +628,7 @@ const Leaderboard: React.FC = () => {
                 alt={"assets/icons/SignOutIcon.svg"}
                 src={"assets/icons/SignOutIcon.svg"}
               />
-              <p className="child-Name">{t("Switch Profile")}</p>
+              <p className="leaderboard-switch-text">{t("Switch Profile")}</p>
             </div>
           </div>
           <Box sx={{}}>
