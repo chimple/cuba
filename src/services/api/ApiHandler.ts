@@ -918,8 +918,8 @@ export class ApiHandler implements ServiceApi {
   getUserByPhoneNumber(phone: string): Promise<TableTypes<"user"> | undefined> {
     return this.s.getUserByPhoneNumber(phone);
   }
-  addTeacherToClass(classId: string, userId: string): Promise<void> {
-    return this.s.addTeacherToClass(classId, userId);
+  addTeacherToClass(classId: string, user: TableTypes<"user">): Promise<void> {
+    return this.s.addTeacherToClass(classId, user);
   }
   checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean> {
     return this.s.checkUserExistInSchool(schoolId, userId);
@@ -1029,10 +1029,10 @@ export class ApiHandler implements ServiceApi {
   }
   async addUserToSchool(
     schoolId: string,
-    userId: string,
+    user: TableTypes<"user">,
     role: RoleType
   ): Promise<void> {
-    return this.s.addUserToSchool(schoolId, userId, role);
+    return this.s.addUserToSchool(schoolId, user, role);
   }
   async getSchoolDetailsByUdise(udiseCode: string): Promise<{
     studentLoginType: string;

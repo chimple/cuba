@@ -65,24 +65,34 @@ const AddSchoolUser: React.FC = () => {
   const handleSearch = async () => {
     try {
       setIsLoading(true);
+      setShowUserNotFoundAlert(false);
+      setUser(undefined);
 
-      let fetchedUser;
+      let finalUser: TableTypes<"user"> | undefined;
+
       if (useEmail) {
-        fetchedUser = await api?.getUserByEmail(inputValue);
+        finalUser = await api?.getUserByEmail(inputValue);
       } else {
-        fetchedUser = await api?.getUserByPhoneNumber(inputValue);
+        // getUserByPhoneNumber returns an ARRAY of users, or a single object. We must handle both.
+        const result = await api?.getUserByPhoneNumber(inputValue);
+        if (Array.isArray(result) && result.length > 0) {
+          finalUser = result[0];
+        } else if (result && !Array.isArray(result)) {
+          finalUser = result as TableTypes<"user">;
+        }
       }
 
-      if (school && fetchedUser) {
+      if (school && finalUser) {
         const userInSchool = await api?.checkUserExistInSchool(
-          school?.id,
-          fetchedUser.id
+          school.id,
+          finalUser.id 
         );
+
         if (userInSchool) {
           setShowAlert(true);
           setUser(undefined);
         } else {
-          setUser(fetchedUser);
+          setUser(finalUser);
         }
       } else {
         setShowUserNotFoundAlert(true);
@@ -94,13 +104,11 @@ const AddSchoolUser: React.FC = () => {
       setIsLoading(false);
     }
   };
-
   const handleAddSchoolUser = async () => {
     try {
       setIsLoading(true);
-
       if (school && user) {
-        await api?.addUserToSchool(school.id, user.id, currentRole);
+        await api?.addUserToSchool(school.id, user, currentRole);
 
         await api.updateSchoolLastModified(school.id);
         await api.updateUserLastModified(user.id);
