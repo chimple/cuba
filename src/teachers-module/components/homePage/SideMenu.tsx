@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   IonMenu,
   IonHeader,
@@ -8,15 +8,17 @@ import {
   IonLabel,
   IonItem,
 } from "@ionic/react";
-import { ServiceConfig } from "../../../services/ServiceConfig";
+import { APIMode, ServiceConfig } from "../../../services/ServiceConfig";
 import { Util } from "../../../utility/util";
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   CURRENT_MODE,
   CURRENT_USER,
+  IS_OPS_USER,
   MODES,
   PAGES,
   SCHOOL,
+  USER_ROLE,
 } from "../../../common/constants";
 import ProfileSection from "./ProfileDetail";
 import SchoolSection from "./SchoolSection";
@@ -31,14 +33,21 @@ import { Capacitor } from "@capacitor/core";
 import DialogBoxButtons from "../../../components/parent/DialogBoxButtons​";
 import { ImSwitch } from "react-icons/im";
 import { t } from "i18next";
+import {
+  updateLocalAttributes,
+  useGbContext,
+} from "../../../growthbook/Growthbook";
 
 const SideMenu: React.FC<{
   handleManageSchoolClick: () => void;
   handleManageClassClick: () => void;
 }> = ({ handleManageSchoolClick, handleManageClassClick }) => {
+  const menuRef = useRef<HTMLIonMenuElement>(null);
   const [fullName, setFullName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [isAuthorizedForOpsMode, setIsAuthorizedForOpsMode] =
+    useState<boolean>(false);
   const [schoolData, setSchoolData] = useState<
     { id: string | number; name: string }[]
   >([]);
@@ -60,9 +69,15 @@ const SideMenu: React.FC<{
   }>({ id: "", name: "" });
   const [currentClassId, setCurrentClassId] = useState<string>("");
   const history = useHistory();
+  const { setGbUpdated } = useGbContext();
 
   useEffect(() => {
     fetchData();
+    const handler = () => fetchData();
+    window.addEventListener(CLASS_OR_SCHOOL_CHANGE_EVENT, handler);
+    return () => {
+      window.removeEventListener(CLASS_OR_SCHOOL_CHANGE_EVENT, handler);
+    };
   }, []);
 
   const api = ServiceConfig.getI()?.apiHandler;
@@ -74,34 +89,53 @@ const SideMenu: React.FC<{
         console.error("No user is logged in.");
         return;
       }
+      const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
+      if (isOpsUser) {
+        setIsAuthorizedForOpsMode(true);
+      }
       setFullName(currentUser.name || "");
       setEmail(currentUser.email || currentUser.phone || "");
       setCurrentUserId(currentUser.id);
+      let teacher_class_ids: string[] = [];
+      const schoolList: any = [];
+      const roleMap = {};
 
       const tempSchool = Util.getCurrentSchool();
       if (tempSchool) {
         setsetcurrentSchoolDetail({ id: tempSchool.id, name: tempSchool.name });
+
+        const updatedClass = Util.getCurrentClass();
 
         // Fetch classes for the current school
         const classes = await api.getClassesForSchool(
           tempSchool.id,
           currentUser.id
         );
+        teacher_class_ids = classes.map((item) => item.id);
         const classMap = classes.map((classItem: any) => ({
           id: classItem.id,
           name: classItem.name,
         }));
-        setClassData(classMap);
-        const tempClass = Util.getCurrentClass();
-        if (!tempClass) {
+        const patchedList = updatedClass
+          ? classMap.map(c => (c.id === updatedClass.id ? updatedClass : c))
+          : classMap;
+        setClassData(patchedList);
+
+        if (!updatedClass) {
           return;
         }
-        setCurrentClassId(tempClass.id);
+
+        // setClassData(classMap);
+        // const tempClass = Util.getCurrentClass();
+        // if (!tempClass) {
+        //   return;
+        // }
+        setCurrentClassId(updatedClass.id);
         setcurrentClassDetail({
-          id: tempClass.id,
-          name: tempClass.name,
+          id: updatedClass.id,
+          name: updatedClass.name,
         });
-        const classCode = await getClassCodeById(tempClass?.id!);
+        const classCode = await getClassCodeById(updatedClass?.id!);
         setClassCode(classCode);
       }
 
@@ -117,6 +151,17 @@ const SideMenu: React.FC<{
           schoolId: school.id,
           role,
         }));
+        roles.forEach((obj) => {
+          schoolList.push(obj.schoolId);
+          roleMap[`${obj.schoolId}_role`] = obj.role;
+        });
+        const teacher_school_and_classes = {
+          teacher_school_list: schoolList,
+          roleMap,
+          teacher_class_ids,
+        };
+        updateLocalAttributes(teacher_school_and_classes);
+        setGbUpdated(true);
         setSchoolRoles(roles);
       }
     } catch (error) {
@@ -127,6 +172,7 @@ const SideMenu: React.FC<{
     schoolUtil.setCurrMode(MODES.PARENT);
     history.replace(PAGES.DISPLAY_STUDENT);
   };
+
   const getClassCodeById = async (class_id: string) => {
     if (class_id) {
       const classCode = await api.getClassCodeById(class_id);
@@ -202,12 +248,25 @@ const SideMenu: React.FC<{
         return;
       }
 
-      const currentClass = await api.getClassById(String(id));
-      if (!currentClass?.id) {
-        console.warn("Class not found");
+      const classIdStr = String(id).trim();
+      if (!classIdStr) {
+        console.warn("Class ID is empty after conversion");
         return;
       }
+
+      const currentClass = await api.getClassById(classIdStr);
+      if (!currentClass || !currentClass.id) {
+        console.warn("Class not found or invalid response");
+        return;
+      }
+
       Util.setCurrentClass(currentClass);
+
+      if (!currentClass.id) {
+        console.warn("Missing class ID after setting current class");
+        return;
+      }
+
       setCurrentClassId(currentClass.id);
       setcurrentClassDetail({
         id: currentClass.id,
@@ -215,7 +274,13 @@ const SideMenu: React.FC<{
       });
 
       const classCode = await getClassCodeById(currentClass.id);
-      setClassCode(classCode);
+      if (classCode !== undefined && classCode !== null) {
+        setClassCode(classCode);
+      } else {
+        setClassCode(undefined);
+        console.warn("Class code is null or undefined");
+      }
+
       Util.dispatchClassOrSchoolChangeEvent();
     } catch (error) {
       console.error("Error handling class selection:", error);
@@ -230,13 +295,14 @@ const SideMenu: React.FC<{
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.removeItem(CURRENT_USER);
     localStorage.removeItem(CURRENT_MODE);
-    history.replace(PAGES.APP_LANG_SELECTION);
+    history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };
 
   return (
     <>
       <IonMenu
+        ref={menuRef}
         aria-label={String(t("Menu"))}
         contentId="main-content"
         id="main-container"
@@ -262,13 +328,32 @@ const SideMenu: React.FC<{
           </div>
           <div className="side-menu-switch-user-toggle">
             <IonItem className="side-menu-ion-item-container">
-              <PiUserSwitchFill className="side-menu-user-switch-icon" />
+              <img
+                src="assets/icons/userSwitch.svg"
+                alt="SCHOOL"
+                className="icon"
+              />
               <CommonToggle
                 onChange={switchUser}
                 label="Switch to Child's Mode"
               />
             </IonItem>
           </div>
+          {!Capacitor.isNativePlatform() && isAuthorizedForOpsMode && (
+            <div className="side-menu-switch-user-toggle">
+              <IonItem className="side-menu-ion-item-container">
+                <img
+                  src="assets/icons/userSwitch.svg"
+                  alt="OPS"
+                  className="icon"
+                />
+                <CommonToggle
+                  onChange={() => Util.switchToOpsUser(history)}
+                  label={t("switch to ops mode") as string}
+                />
+              </IonItem>
+            </div>
+          )}
           <div
             className="teacher-logout-btn"
             onClick={() => setShowDialogBox(true)}
@@ -291,17 +376,13 @@ const SideMenu: React.FC<{
         </div>
       </IonMenu>
 
-      <div aria-label={String(t("Menu"))} id="main-content">
-        <IonHeader aria-label={String(t("Menu"))}>
-          <div aria-label={String(t("Menu"))}>
-            <IonMenuButton
-              aria-label={String(t("Menu"))}
-              id="menu-button"
-              slot="start"
-            />
-          </div>
-        </IonHeader>
-      </div>
+      <img
+        src="assets/icons/hamburgerMenu.svg"
+        alt={String(t("Menu"))}
+        id="menu-button"
+        className="sidemenu-hamburger"
+        onClick={() => menuRef.current?.open()}
+      />
     </>
   );
 };

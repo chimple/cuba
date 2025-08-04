@@ -33,8 +33,14 @@ export const Test2: Story = {
       sfx_off: true,
       student_id: "student_id",
       updated_at: "20-07-2024",
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null
     },
-    mappedSubjectOptions: [{ id: "a", name: "Digital" }],
+    mappedSubjectOptions: [{ id: "a", name: "Digital", icon: "/assets/icons/DefaultIcon.png", subjectDetail: "Digital Skills - Grade 4", }],
     onSubjectChange: () => {},
     currentClass: {
       created_at: "20-07-2024",
@@ -44,6 +50,14 @@ export const Test2: Story = {
       name: "chimple",
       school_id: "school_id",
       updated_at: "20-07-2024",
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+      standard: null,
+      status: null,
+      group_id: null
     },
     selectedSubject: {
       code: "en",
@@ -59,6 +73,7 @@ export const Test2: Story = {
       sort_index: 1,
       subject_id: "subject_id",
       updated_at: "20-07-2024",
+      firebase_id: null
     },
   },
 };
@@ -84,12 +99,33 @@ export const Test3: Story = {
       sfx_off: true,
       student_id: "student_id",
       updated_at: "20-07-2024",
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null
     },
     mappedSubjectOptions: [
-      { id: "a", name: "Digital Skills" },
-      { id: "b", name: "Maths" },
-      { id: "a", name: "English" },
-    ],
+  {
+    id: "a",
+    name: "Digital Skills",
+    icon: "/assets/icons/DefaultIcon.png",
+    subjectDetail: "Digital Skills - Grade 4",
+  },
+  {
+    id: "b",
+    name: "Maths",
+    icon: "/assets/icons/DefaultIcon.png",
+    subjectDetail: "Maths - Grade 5",
+  },
+  {
+    id: "c",
+    name: "English",
+    icon: "/assets/icons/DefaultIcon.png",
+    subjectDetail: "English - Grade 6",
+  },
+],
     onSubjectChange: () => {},
     currentClass: {
       created_at: "20-07-2024",
@@ -99,6 +135,14 @@ export const Test3: Story = {
       name: "chimple",
       school_id: "school_id",
       updated_at: "20-07-2024",
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+      standard: null,
+      status: null,
+      group_id: null
     },
     selectedSubject: {
       code: "en",
@@ -114,6 +158,7 @@ export const Test3: Story = {
       sort_index: 1,
       subject_id: "subject_id",
       updated_at: "20-07-2024",
+      firebase_id: null
     },
   },
 };
@@ -139,8 +184,14 @@ export const Test4: Story = {
       sfx_off: true,
       student_id: "student_id",
       updated_at: "20-07-2024",
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null
     },
-    mappedSubjectOptions: [{ id: "a", name: "Digital Skills" },{ id: "a", name: "Kannada" }],
+    mappedSubjectOptions: [{ id: "a", name: "Digital Skills",icon: "/assets/icons/DefaultIcon.png" ,subjectDetail: "Digital Skills - Grade 4", },{ id: "a", name: "Kannada", icon: "/assets/icons/DefaultIcon.png", subjectDetail: "Kannada - Grade 5" }],
     onSubjectChange: () => {},
     currentClass: {
       created_at: "20-07-2024",
@@ -150,6 +201,14 @@ export const Test4: Story = {
       name: "chimple",
       school_id: "school_id",
       updated_at: "20-07-2024",
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+      standard: null,
+      status: null,
+      group_id: null
     },
     selectedSubject: {
       code: "en",
@@ -165,6 +224,7 @@ export const Test4: Story = {
       sort_index: 1,
       subject_id: "subject_id",
       updated_at: "20-07-2024",
+      firebase_id: null
     },
   },
 };
