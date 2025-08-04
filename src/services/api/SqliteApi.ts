@@ -2174,14 +2174,20 @@ export class SqliteApi implements ServiceApi {
         id: student.id,
       });
       // Check if the class has changed
-      // const currentClassId = await this.getCurrentClassIdForStudent(student.id); // Assume this function retrieves the current class ID
-      const currentClassId = Util.getCurrentClass();
-      if (currentClassId?.id !== newClassId) {
+      const currentClassIdQuery = `
+        SELECT class_id FROM class_user
+        WHERE user_id = ? AND is_deleted = 0 AND role = 'student'
+        LIMIT 1
+      `;
+      const currentClassRes = await this.executeQuery(currentClassIdQuery, [student.id]);
+      const currentClassId = currentClassRes?.values?.[0]?.class_id;
+
+      if (currentClassId !== newClassId) {
         // Update class_user table to set previous record as deleted
         const currentClassUserId = `SELECT id FROM class_user where user_id =? AND class_id = ? AND is_deleted = 0`;
         var data = await this.executeQuery(currentClassUserId, [
           student.id,
-          currentClassId?.id,
+          currentClassId,
         ]);
         const deleteOldClassUserQuery = `
           UPDATE class_user
