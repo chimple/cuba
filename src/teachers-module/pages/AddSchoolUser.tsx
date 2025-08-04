@@ -65,34 +65,24 @@ const AddSchoolUser: React.FC = () => {
   const handleSearch = async () => {
     try {
       setIsLoading(true);
-      setShowUserNotFoundAlert(false);
-      setUser(undefined);
 
-      let finalUser: TableTypes<"user"> | undefined;
-
+      let fetchedUser;
       if (useEmail) {
-        finalUser = await api?.getUserByEmail(inputValue);
+        fetchedUser = await api?.getUserByEmail(inputValue);
       } else {
-        // getUserByPhoneNumber returns an ARRAY of users, or a single object. We must handle both.
-        const result = await api?.getUserByPhoneNumber(inputValue);
-        if (Array.isArray(result) && result.length > 0) {
-          finalUser = result[0];
-        } else if (result && !Array.isArray(result)) {
-          finalUser = result as TableTypes<"user">;
-        }
+        fetchedUser = await api?.getUserByPhoneNumber(inputValue);
       }
 
-      if (school && finalUser) {
+      if (school && fetchedUser) {
         const userInSchool = await api?.checkUserExistInSchool(
-          school.id,
-          finalUser.id 
+          school?.id,
+          fetchedUser.id
         );
-
         if (userInSchool) {
           setShowAlert(true);
           setUser(undefined);
         } else {
-          setUser(finalUser);
+          setUser(fetchedUser);
         }
       } else {
         setShowUserNotFoundAlert(true);
