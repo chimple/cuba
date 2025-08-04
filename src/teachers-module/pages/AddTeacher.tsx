@@ -39,7 +39,7 @@ const AddTeacher: React.FC = () => {
     history.replace(`${PAGES.CLASS_USERS}?tab=Teachers`, classDoc);
   };
 
-   const handleSearch = async () => {
+  const handleSearch = async () => {
     try {
       setIsLoading(true);
 
@@ -50,12 +50,13 @@ const AddTeacher: React.FC = () => {
         fetchedUser = await api?.getUserByPhoneNumber(inputValue);
       }
 
-      if (school && fetchedUser) {
-        const userInSchool = await api?.checkUserExistInSchool(
-          school?.id,
+      if (school && classDoc && fetchedUser) {
+        const userInClass = await api?.checkTeacherExistInClass(
+          school.id,
+          classDoc.id,
           fetchedUser.id
         );
-        if (userInSchool) {
+        if (userInClass) {
           setShowAlert(true);
           setUser(undefined);
         } else {
