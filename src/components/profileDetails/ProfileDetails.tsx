@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState,useRef  } from "react";
 import { t } from "i18next";
 import "./ProfileDetails.css";
 import InputWithIcons from "../common/InputWithIcons";
 import SelectWithIcons from "../common/SelectWithIcons";
 import { Util } from "../../utility/util";
 import { useFeatureValue } from "@growthbook/growthbook-react";
-import { initializeClickListener } from "../../analytics/clickUtil";
+import { logProfileClick } from "../../analytics/profileClickUtil";
+import { useGrowthBook } from "@growthbook/growthbook-react";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import {
   ACTION,
@@ -29,11 +30,11 @@ import Loading from "../Loading";
 
 const getModeFromFeature = (variation: string) => {
   switch (variation) {
-    case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_CONTROL:
-      return FORM_MODES.ALL_REQUIRED;
     case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_V1:
-      return FORM_MODES.NAME_REQUIRED;
+      return FORM_MODES.ALL_REQUIRED;
     case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_V2:
+      return FORM_MODES.NAME_REQUIRED;
+    case PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_V3:
       return FORM_MODES.ALL_OPTIONAL;
     default:
       return FORM_MODES.ALL_REQUIRED;
@@ -44,12 +45,14 @@ const ProfileDetails = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
+  const growthbook = useGrowthBook();
+  const profileRef = useRef<HTMLDivElement>(null);
   const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
   const currentStudent = Util.getCurrentStudent();
   const location = useLocation();
   const isEdit = location.pathname === PAGES.EDIT_STUDENT && !!currentStudent;
   const variation = useFeatureValue<string>(
-    PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_SCREEN,
+    PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_ONBOARDING,
     PROFILE_DETAILS_GROWTHBOOK_VARIATION.AFTER_LOGIN_CONTROL
   );
   const mode = getModeFromFeature(variation);
@@ -85,17 +88,12 @@ const ProfileDetails = () => {
     initializeFireBase();
     lockOrientation();
     Util.loadBackgroundImage();
-    const cleanup = initializeClickListener();
     const loadLanguages = async () => {
       const langs = await api.getAllLanguages();
       setLanguages(langs);
     };
     loadLanguages();
-
-    return () => {
-      cleanup?.();
-    };
-  }, []);
+   }, []);
 
   useEffect(() => {
     setHasChanges(true);
@@ -202,7 +200,12 @@ const ProfileDetails = () => {
 
   return (
 
-    <div className="profiledetails-container">
+    <div ref={profileRef} className="profiledetails-container" 
+        onClick={(e) => {
+        logProfileClick(e).catch((err) =>
+          console.error("Error in logProfileClick", err)
+        );
+      }}>
       <button
         className="profiledetails-back-button"
         onClick={() => {

@@ -76,6 +76,12 @@ const SelectMode: FC = () => {
     if (setTab) {
       if (setTab === STAGES.STUDENT) {
         setStage(STAGES.STUDENT);
+        const className = localStorage.getItem(CURRENT_CLASS_NAME);
+        if (className) {
+          const parsedClass = JSON.parse(className);
+          setCurrClass(parsedClass);
+          await displayStudents(parsedClass);
+        }
       } else if (setTab === STAGES.CLASS) {
         setStage(STAGES.CLASS);
       }
@@ -238,7 +244,7 @@ const SelectMode: FC = () => {
     const element = await api.getStudentsForClass(curClass.id);
     if (!element) return;
     setCurrentStudents(element);
-    localStorage.setItem(SELECTED_STUDENTS, JSON.stringify(element));
+    // localStorage.setItem(SELECTED_STUDENTS, JSON.stringify(element));
     return;
   };
   const onStudentClick = async (student: TableTypes<"user">) => {

@@ -1073,6 +1073,7 @@ export interface ServiceApi {
     course_id: string,
     type: string,
     batch_id: string,
+    source: string | null,
     created_at?: string,
   ): Promise<boolean>;
 
@@ -1325,7 +1326,7 @@ export interface ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }>;
+  ): Promise<{ status: string; errors?: string[]; message?: string }>;
 
   /**
    * To validate given program name exist in the program table or not
@@ -1362,7 +1363,7 @@ export interface ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }>;
+  ): Promise<{ status: string; errors?: string[]; message?: string }>;
 
   /**
    * To validate given phone number and student already exist in the given class or not
@@ -1587,6 +1588,12 @@ export interface ServiceApi {
    * @param {number} totalStars - total stars.
    */
   updateStudentStars(studentId: string, totalStars: number): Promise<void>;
+
+  /**
+   * gets record from chpater_links table by QRCode link
+   * @param link -Qrlink
+   */
+  getChapterIdbyQrLink(link: string): Promise<TableTypes<"chapter_links"> | undefined>;
   /**
    * Fetches all schools available to the admin user with pagination.
    * @param {number} limit - Number of schools to fetch.

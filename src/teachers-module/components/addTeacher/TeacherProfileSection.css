@@ -98,9 +98,6 @@ td {
   text-align: center;
 }
 
-th {
-  border-right: 2px solid #EFF2F4;
-}
 .teacher-profile-section {
   max-height: 85vh;
   overflow-y: auto;
@@ -123,6 +120,8 @@ th {
 .assignments-table th {
   background-color: #f0f0f0;
   border-bottom: 1px solid #ddd;
+  transform: none;
+  height: 50px;
 }
 .teacher-profile-img {
   width: 100px;

@@ -61,7 +61,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 3;
+  private DB_VERSION = 4;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -3390,7 +3390,7 @@ export class SqliteApi implements ServiceApi {
       ON cu.class_id = c.id
       join ${TABLES.School} s
       ON c.school_id = s.id
-      where c.is_deleted = 0 and user_id = "${userId}" and role = "${RoleType.STUDENT}" and cu.is_deleted = 0`
+      where c.is_deleted = 0 and user_id = "${userId}" and role = "${RoleType.STUDENT}" and cu.is_deleted = 0 order by cu.updated_at desc`
     );
     if (!res || !res.values || res.values.length < 1) return data;
     data.classes = res.values;
@@ -3466,7 +3466,8 @@ export class SqliteApi implements ServiceApi {
     course_id: string,
     type: string,
     batch_id: string,
-    created_at?: string,
+    source: string | null,
+    created_at?: string
   ): Promise<boolean> {
     const assignmentUUid = uuidv4();
     const timestamp = new Date().toISOString(); // Cache timestamp for reuse
@@ -3475,8 +3476,8 @@ export class SqliteApi implements ServiceApi {
       // Insert into assignment table
       await this.executeQuery(
         `INSERT INTO assignment
-          (id, created_by, starts_at, ends_at, is_class_wise, class_id, school_id, lesson_id, type, created_at, updated_at, is_deleted, chapter_id, course_id, batch_id)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          (id, created_by, starts_at, ends_at, is_class_wise, class_id, school_id, lesson_id, type, created_at, updated_at, is_deleted, chapter_id, course_id, source, batch_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           assignmentUUid,
           userId,
@@ -3492,6 +3493,7 @@ export class SqliteApi implements ServiceApi {
           false,
           chapter_id,
           course_id,
+          source ?? null,
           batch_id,
         ]
       );
@@ -3513,7 +3515,7 @@ export class SqliteApi implements ServiceApi {
         chapter_id: chapter_id,
         course_id: course_id,
         batch_id: batch_id ?? null,
-        source: null,
+        source: source ?? null,
         firebase_id: null,
         is_firebase: null,
       };
@@ -4326,23 +4328,22 @@ order by
     individualAssignments: TableTypes<"assignment">[];
   }> {
     const query = `
-    SELECT *
-    FROM ${TABLES.Assignment}
-    WHERE created_by = '${userId}'
-      AND (class_id = '${classId}' OR is_class_wise = 1)
-      AND created_at >= '${startDate}'
-      AND created_at <= '${endDate}'
-    ORDER BY is_class_wise DESC, created_at ASC;
-  `;
-
+      SELECT *
+      FROM ${TABLES.Assignment}
+      WHERE created_by = '${userId}'
+        AND (class_id = '${classId}')
+        AND created_at >= '${startDate}T00:00:00'
+        AND created_at <= '${endDate}T23:59:59.999'
+      ORDER BY is_class_wise DESC, created_at ASC;
+    `;
     const res = await this._db?.query(query);
     const assignments = res?.values ?? [];
 
     const classWiseAssignments = assignments.filter(
-      (assignment) => assignment.is_class_wise
+      (assignment) => assignment.is_class_wise === 1
     );
     const individualAssignments = assignments.filter(
-      (assignment) => !assignment.is_class_wise
+      (assignment) => assignment.is_class_wise === 0
     );
 
     return { classWiseAssignments, individualAssignments };
@@ -4682,7 +4683,7 @@ order by
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     const validatedData = await this._serverApi.validateParentAndStudentInClass(
       schoolId,
       studentName,
@@ -4748,7 +4749,7 @@ order by
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     const validatedData =
       await this._serverApi.validateStudentInClassWithoutPhone(
         studentName,
@@ -5101,6 +5102,23 @@ order by
       });
     } catch (error) {
       console.error("Error setting stars for student:", error);
+    }
+  }
+  async getChapterIdbyQrLink(
+    link: string
+  ): Promise<TableTypes<"chapter_links"> | undefined> {
+    if (!link) return;
+    try {
+      const res = await this._db?.query(
+        `SELECT * FROM ${TABLES.ChapterLinks} WHERE link = ? AND is_deleted = 0 LIMIT 1;`,
+        [link]
+      );
+
+      if (!res || !res.values || res.values.length < 1) return;
+      return res.values[0];
+    } catch (error) {
+      console.error("Error fetching chapter by QR link:", error);
+      return;
     }
   }
   async getSchoolsForAdmin(
@@ -5637,13 +5655,12 @@ order by
     }
 
     try {
-      const placeholders = chapterIds.map(() => '?').join(', ');
+      const placeholders = chapterIds.map(() => "?").join(", ");
 
-      const query = 
-      `SELECT *
+      const query = `SELECT *
         FROM ${TABLES.Chapter}
         WHERE id IN (${placeholders})
-          AND is_deleted = 0;`
+          AND is_deleted = 0;`;
 
       const res = await this.executeQuery(query, chapterIds);
 

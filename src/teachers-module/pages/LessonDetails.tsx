@@ -119,8 +119,8 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
       />
       <div className="lesson-details-body">
         <div className="lesson-card-info">
-          <div className="lesson-card">
-            <div className="play-ion" onClick={onPlayClick}>
+          <div className="lesson-card" onClick={onPlayClick}>
+            <div className="play-ion">
               <div className="lesson-info-text">{t("Click to play")}</div>
               <img src="assets/icons/lessonplayEye.svg" alt="View_lesson" />
             </div>

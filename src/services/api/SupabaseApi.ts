@@ -4542,6 +4542,7 @@ export class SupabaseApi implements ServiceApi {
     course_id: string,
     type: string,
     batch_id: string,
+    source : string | null,
     created_at?: string
   ): Promise<boolean> {
     if (!this.supabase) return false;
@@ -4566,6 +4567,7 @@ export class SupabaseApi implements ServiceApi {
             chapter_id,
             course_id,
             type,
+            source: source?? null,
             batch_id: batch_id ?? null,
             created_at: created_at ?? timestamp,
             updated_at: timestamp,
@@ -5363,7 +5365,7 @@ export class SupabaseApi implements ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     if (!this.supabase) {
       return {
         status: "error",
@@ -5524,7 +5526,7 @@ export class SupabaseApi implements ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     if (!this.supabase) {
       return {
         status: "error",
@@ -7229,5 +7231,8 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error fetching chapters", error);
       return [];
     }
+  }
+  async getChapterIdbyQrLink(link: string): Promise<TableTypes<"chapter_links"> | undefined> {
+      throw new Error("Method not implemented.");
   }
 }
