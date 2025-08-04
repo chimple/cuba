@@ -831,36 +831,18 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   async getCoursesForPathway(studentId: string): Promise<TableTypes<"course">[]> {
-    const student = await Util.getCurrentStudent();
     const allCourses = await this.getAllCourses();
-    
-    // Get grade-based courses for this specific student
-    let courses = student?.grade_id 
-      ? allCourses.filter(course => course.grade_id === student.grade_id)
-      : [];
-
-    // Add additional courses from localStorage for this specific student
     const storedCourses = localStorage.getItem(USER_COURSES);
-    if (storedCourses) {
-      try {
-        const additionalCourseIds = JSON.parse(storedCourses);
-        const additionalCourses = allCourses.filter(course => 
-          additionalCourseIds.includes(course.id) && 
-          !courses.some(c => c.id === course.id) // Avoid duplicates
-        );
-        courses = [...courses, ...additionalCourses];
-      } catch (e) {
-        console.error("Error parsing stored courses:", e);
-      }
+    
+    if (!storedCourses) return [];
+    
+    try {
+      const courseIds = JSON.parse(storedCourses);
+      return allCourses.filter(course => courseIds.includes(course.id));
+    } catch (e) {
+      console.error("Error parsing stored courses:", e);
+      return [];
     }
-
-    // Add puzzle course if not already included
-    const puzzleCourse = allCourses.find(course => course.code === "puzzle");
-    if (puzzleCourse && !courses.some(c => c.id === puzzleCourse.id)) {
-      courses.push(puzzleCourse);
-    }
-
-    return courses;
   }
   async updateLearningPath(student: TableTypes<"user">, learning_path: string): Promise<TableTypes<"user">> {
     try {
