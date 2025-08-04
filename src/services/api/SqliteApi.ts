@@ -4175,12 +4175,12 @@ order by
   ): Promise<TableTypes<"user"> | undefined> {
     return this._serverApi.getUserByPhoneNumber(phone);
   }
-  async addTeacherToClass(classId: string, userId: string): Promise<void> {
+  async addTeacherToClass(classId: string, user: TableTypes<"user">): Promise<void> {
     const classUserId = uuidv4();
     const classUser = {
       id: classUserId,
       class_id: classId,
-      user_id: userId,
+      user_id: user.id,
       role: RoleType.TEACHER,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -4208,8 +4208,8 @@ order by
       MUTATE_TYPES.INSERT,
       classUser
     );
-    var user_doc = await this._serverApi.getUserByDocId(userId);
-    if (user_doc) {
+    // var user_doc = await this._serverApi.getUserByDocId(userId);
+    if (user) {
       await this.executeQuery(
         `
         INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id,created_at,updated_at)
@@ -4217,16 +4217,16 @@ order by
         ON CONFLICT (id) DO NOTHING;
         `,
         [
-          user_doc.id,
-          user_doc.name,
-          user_doc.age,
-          user_doc.gender,
-          user_doc.avatar,
-          user_doc.image,
-          user_doc.curriculum_id,
-          user_doc.language_id,
-          user_doc.created_at,
-          user_doc.updated_at,
+          user.id,
+          user.name,
+          user.age,
+          user.gender,
+          user.avatar,
+          user.image,
+          user.curriculum_id,
+          user.language_id,
+          user.created_at,
+          user.updated_at,
         ]
       );
     }
@@ -4563,14 +4563,14 @@ order by
   }
   async addUserToSchool(
     schoolId: string,
-    userId: string,
+    user: TableTypes<"user">,
     role: RoleType
   ): Promise<void> {
     const schoolUserId = uuidv4();
     const schoolUser = {
       id: schoolUserId,
       school_id: schoolId,
-      user_id: userId,
+      user_id: user.id,
       role: role,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -4598,8 +4598,8 @@ order by
       MUTATE_TYPES.INSERT,
       schoolUser
     );
-    var user_doc = await this._serverApi.getUserByDocId(userId);
-    if (user_doc) {
+    // var user_doc = await this._serverApi.getUserByDocId(userId);
+    if (user) {
       await this.executeQuery(
         `
         INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id,created_at,updated_at)
@@ -4607,16 +4607,16 @@ order by
         ON CONFLICT (id) DO NOTHING;
         `,
         [
-          user_doc.id,
-          user_doc.name,
-          user_doc.age,
-          user_doc.gender,
-          user_doc.avatar,
-          user_doc.image,
-          user_doc.curriculum_id,
-          user_doc.language_id,
-          user_doc.created_at,
-          user_doc.updated_at,
+          user.id,
+          user.name,
+          user.age,
+          user.gender,
+          user.avatar,
+          user.image,
+          user.curriculum_id,
+          user.language_id,
+          user.created_at,
+          user.updated_at,
         ]
       );
     }
@@ -5688,7 +5688,7 @@ order by
       return [];
     }
   }
-  async addParentToNewClass(classID:string, studentId:string){
-    throw new Error ("Method not implemented.");
+  async addParentToNewClass(classID: string, studentId: string) {
+    throw new Error("Method not implemented.");
   }
 }

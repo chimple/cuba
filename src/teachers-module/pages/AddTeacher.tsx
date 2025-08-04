@@ -42,27 +42,35 @@ const AddTeacher: React.FC = () => {
   const handleSearch = async () => {
     try {
       setIsLoading(true);
+      // Reset state on each new search for a clean UI
+      setShowUserNotFoundAlert(false);
+      setUser(undefined);
 
-      let fetchedUser;
+      let finalUser: TableTypes<"user"> | undefined;
 
       if (useEmail) {
-        fetchedUser = await api?.getUserByEmail(inputValue);
+        finalUser = await api?.getUserByEmail(inputValue);
       } else {
-        fetchedUser = await api?.getUserByPhoneNumber(inputValue);
+        // getUserByPhoneNumber returns an ARRAY of users, or a single object. We must handle both.
+        const result = await api?.getUserByPhoneNumber(inputValue);
+        if (Array.isArray(result) && result.length > 0) {
+          finalUser = result[0];
+        } else if (result && !Array.isArray(result)) {
+          finalUser = result as TableTypes<"user">;
+        }
       }
 
-      if (school && classDoc && fetchedUser) {
-        const userInClass = await api?.checkTeacherExistInClass(
+      if (school && finalUser) {
+        const userInSchool = await api?.checkUserExistInSchool(
           school.id,
-          classDoc.id,
-          fetchedUser.id
+          finalUser.id
         );
 
-        if (userInClass) {
+        if (userInSchool) {
           setShowAlert(true);
           setUser(undefined);
         } else {
-          setUser(fetchedUser);
+          setUser(finalUser);
         }
       } else {
         setShowUserNotFoundAlert(true);
@@ -74,12 +82,11 @@ const AddTeacher: React.FC = () => {
       setIsLoading(false);
     }
   };
-
   const handleAddTeacher = async () => {
     setIsLoading(true);
 
     if (classDoc && user) {
-      await api.addTeacherToClass(classDoc.id, user.id);
+      await api.addTeacherToClass(classDoc.id, user);
 
       await api.updateSchoolLastModified(school.id);
       await api.updateClassLastModified(classDoc.id);
@@ -126,7 +133,11 @@ const AddTeacher: React.FC = () => {
                 }}
               />
               <p>{user.name}</p>
-              <button onClick={handleAddTeacher} disabled={isLoading} className="add-teacher-btn">
+              <button
+                onClick={handleAddTeacher}
+                disabled={isLoading}
+                className="add-teacher-btn"
+              >
                 {isLoading ? t("Adding") + "..." : t("Add")}
               </button>
             </div>
