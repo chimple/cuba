@@ -831,22 +831,18 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   async getCoursesForPathway(studentId: string): Promise<TableTypes<"course">[]> {
-    const student = await Util.getCurrentStudent();
     const allCourses = await this.getAllCourses();
-
-    // Filter by grade_id
-    let filteredCourses: TableTypes<"course">[] = [];
-    if (student && student.grade_id) {
-      filteredCourses = allCourses.filter(course => course.grade_id === student.grade_id);
+    const storedCourses = localStorage.getItem(USER_COURSES);
+    
+    if (!storedCourses) return [];
+    
+    try {
+      const courseIds = JSON.parse(storedCourses);
+      return allCourses.filter(course => courseIds.includes(course.id));
+    } catch (e) {
+      console.error("Error parsing stored courses:", e);
+      return [];
     }
-
-    // Add digital skills at the end if not already included
-    const digitalSkills = allCourses.find(c => c.code === "puzzle");
-    if (digitalSkills && !filteredCourses.some(c => c.id === "puzzle")) {
-      filteredCourses = [...filteredCourses, digitalSkills];
-    }
-
-    return filteredCourses;
   }
   async updateLearningPath(student: TableTypes<"user">, learning_path: string): Promise<TableTypes<"user">> {
     try {
