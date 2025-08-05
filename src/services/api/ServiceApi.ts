@@ -545,19 +545,13 @@ export interface ServiceApi {
   ): Promise<TableTypes<"assignment">[]>;
   /**
    * Gets schools for a user (teacher, principal, or ops user).
-   *
-   * If pagination options are provided, returns only the requested page.
-   * If not, returns all schools for the user (legacy behavior).
+   * returns all schools for the user (legacy behavior).
    *
    * @param {string} userId - User's unique ID
-   * @param {Object} [options] - Optional pagination settings
-   * @param {number} [options.page] - The page number to fetch (1-based)
-   * @param {number} [options.page_size] - Number of schools per page
    * @returns {Promise<{ school: TableTypes<"school">; role: RoleType }[]>}
    */
   getSchoolsForUser(
     userId: string,
-    options?: { page?: number; page_size?: number }
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]>;
 
   /**
