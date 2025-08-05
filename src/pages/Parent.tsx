@@ -41,6 +41,7 @@ import DeleteParentAccount from "../components/parent/DeleteParentAccount";
 import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
 import DebugMode from "../teachers-module/components/DebugMode";
 import { Capacitor } from "@capacitor/core";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 const Parent: React.FC = () => {
@@ -91,6 +92,15 @@ const Parent: React.FC = () => {
   const [tabs, setTabs] = useState({});
   const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
   const localClass = JSON.parse(localStorage.getItem(CLASS)!);
+
+  const lockOrientationSafe = async (orientation: "portrait" | "landscape") => {
+    try {
+      await ScreenOrientation.unlock();
+      await ScreenOrientation.lock({ orientation });
+    } catch (e) {
+      console.warn("Orientation lock failed", e);
+    }
+  };
   useEffect(() => {
     setIsLoading(true);
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
@@ -322,9 +332,11 @@ const Parent: React.FC = () => {
               onIonChangeClick={async () => {
                 const isNativePlatform = Capacitor.isNativePlatform();
                 if (localSchool && localClass) {
+                  if (isNativePlatform) {
+                    await lockOrientationSafe("portrait");
+                  }
                   schoolUtil.setCurrMode(MODES.TEACHER);
                   history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
-                  isNativePlatform && window.location.reload();
                 } else if (schools && schools.length > 0) {
                   if (schools?.length === 1) {
                     Util.setCurrentSchool(schools[0].school, schools[0].role);
@@ -334,19 +346,25 @@ const Parent: React.FC = () => {
                     );
                     if (tempClasses.length > 0) {
                       Util.setCurrentClass(tempClasses[0]);
+                      if (isNativePlatform) {
+                        await lockOrientationSafe("portrait");
+                      }
                       schoolUtil.setCurrMode(MODES.TEACHER);
                       history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
-                      isNativePlatform && window.location.reload();
                     }
                   } else {
+                    if (isNativePlatform) {
+                      await lockOrientationSafe("portrait");
+                    }
                     schoolUtil.setCurrMode(MODES.TEACHER);
                     history.replace(PAGES.DISPLAY_SCHOOLS);
-                    isNativePlatform && window.location.reload();
                   }
                 } else {
+                  if (isNativePlatform) {
+                    await lockOrientationSafe("portrait");
+                  }
                   schoolUtil.setCurrMode(MODES.TEACHER);
                   history.replace(PAGES.DISPLAY_SCHOOLS);
-                  isNativePlatform && window.location.reload();
                 }
               }}
             />
