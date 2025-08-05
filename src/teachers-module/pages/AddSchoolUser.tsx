@@ -100,7 +100,7 @@ const AddSchoolUser: React.FC = () => {
       setIsLoading(true);
 
       if (school && user) {
-        await api?.addUserToSchool(school.id, user.id, currentRole);
+        await api?.addUserToSchool(school.id, user, currentRole);
 
         await api.updateSchoolLastModified(school.id);
         await api.updateUserLastModified(user.id);
