@@ -4676,7 +4676,7 @@ export class SupabaseApi implements ServiceApi {
       throw error;
     }
   }
-  async addTeacherToClass(classId: string, userId: string): Promise<void> {
+  async addTeacherToClass(classId: string, user: TableTypes<"user">): Promise<void> {
     if (!this.supabase) return;
 
     const classUserId = uuidv4();
@@ -4685,7 +4685,7 @@ export class SupabaseApi implements ServiceApi {
     const classUser = {
       id: classUserId,
       class_id: classId,
-      user_id: userId,
+      user_id: user.id,
       role: RoleType.TEACHER as Database["public"]["Enums"]["role"],
       created_at: now,
       updated_at: now,
@@ -4703,25 +4703,22 @@ export class SupabaseApi implements ServiceApi {
       throw insertError;
     }
 
-    // Fetch user doc from your server API
-    const user_doc = await this.getUserByDocId(userId);
-
     // Insert into user table with upsert logic (on conflict do nothing)
-    if (user_doc) {
+    if (user) {
       const { error: userInsertError } = await this.supabase
         .from(TABLES.User)
         .upsert(
           {
-            id: user_doc.id,
-            name: user_doc.name,
-            age: user_doc.age,
-            gender: user_doc.gender,
-            avatar: user_doc.avatar,
-            image: user_doc.image,
-            curriculum_id: user_doc.curriculum_id,
-            language_id: user_doc.language_id,
-            created_at: user_doc.created_at,
-            updated_at: user_doc.updated_at,
+            id: user.id,
+            name: user.name,
+            age: user.age,
+            gender: user.gender,
+            avatar: user.avatar,
+            image: user.image,
+            curriculum_id: user.curriculum_id,
+            language_id: user.language_id,
+            created_at: user.created_at,
+            updated_at: user.updated_at,
           },
           { ignoreDuplicates: true }
         );
@@ -5192,7 +5189,7 @@ export class SupabaseApi implements ServiceApi {
   }
   async addUserToSchool(
     schoolId: string,
-    userId: string,
+    user: TableTypes<"user">,
     role: RoleType
   ): Promise<void> {
     if (!this.supabase) return;
@@ -5203,7 +5200,7 @@ export class SupabaseApi implements ServiceApi {
     const schoolUser = {
       id: schoolUserId,
       school_id: schoolId,
-      user_id: userId,
+      user_id: user.id,
       role: role as Database["public"]["Enums"]["role"],
       created_at: timestamp,
       updated_at: timestamp,
@@ -5219,20 +5216,18 @@ export class SupabaseApi implements ServiceApi {
       return;
     }
 
-    const user_doc = await this.getUserByDocId(userId);
-
-    if (user_doc) {
+    if (user) {
       const cleanUserDoc = {
-        id: user_doc.id,
-        name: user_doc.name ?? null,
-        age: user_doc.age ?? null,
-        gender: user_doc.gender ?? null,
-        avatar: user_doc.avatar ?? null,
-        image: user_doc.image ?? null,
-        curriculum_id: user_doc.curriculum_id ?? null,
-        language_id: user_doc.language_id ?? null,
-        created_at: user_doc.created_at ?? timestamp,
-        updated_at: user_doc.updated_at ?? timestamp,
+        id: user.id,
+        name: user.name ?? null,
+        age: user.age ?? null,
+        gender: user.gender ?? null,
+        avatar: user.avatar ?? null,
+        image: user.image ?? null,
+        curriculum_id: user.curriculum_id ?? null,
+        language_id: user.language_id ?? null,
+        created_at: user.created_at ?? timestamp,
+        updated_at: user.updated_at ?? timestamp,
       };
 
       const { error: userInsertError } = await this.supabase
