@@ -866,9 +866,28 @@ export class OneRosterApi implements ServiceApi {
     }
     return student;
   }
-  updateStudentStars(studentId: string, totalStars: number): Promise<void> {
-    throw new Error("Method not implemented.");
+  async updateStudentStars(studentId: string, _totalStars: number): Promise<void> {
+  if (Util.isRespectMode) {
+    const scoresJson = localStorage.getItem("STUDENT_LESSON_SCORES");
+    let calculatedStars = 0;
+    if (scoresJson) {
+      const scoresMap = JSON.parse(scoresJson);
+      const lessonScores = scoresMap[studentId] || {};
+      (Object.values(lessonScores) as number[]).forEach((score) => {
+        if (score > 75) calculatedStars += 3;
+        else if (score > 50) calculatedStars += 2;
+        else if (score > 25) calculatedStars += 1;
+      });
+    }
+    // Store in LATEST_STARS
+    const latestStarsJson = localStorage.getItem("LATEST_STARS");
+    const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
+    latestStarsMap[studentId] = calculatedStars;
+    localStorage.setItem("LATEST_STARS", JSON.stringify(latestStarsMap));
+    return;
   }
+  return;
+}
   async getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;

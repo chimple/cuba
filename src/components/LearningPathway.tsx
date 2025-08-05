@@ -30,6 +30,18 @@ const LearningPathway: React.FC = () => {
     fetchLearningPathway(currentStudent);
   }, []);
   const updateStarCount = async (currentStudent: TableTypes<"user">) => {
+
+    if (Util.isRespectMode) {
+    await api.updateStudentStars(currentStudent.id, 0); // This will update LATEST_STARS
+    // Now read from LATEST_STARS
+    const latestStarsJson = localStorage.getItem("LATEST_STARS");
+    const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
+    const totalStars = parseInt(latestStarsMap[currentStudent.id] || "0", 10);
+    setFrom(totalStars);
+    setTo(totalStars);
+    return totalStars;
+  }
+
     const storedStarsJson = localStorage.getItem(STARS_COUNT);
     const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
     const localStorageStars = parseInt(

@@ -455,6 +455,21 @@ const CocosGame: React.FC = () => {
         played_from: playedFrom,
         assignment_type: assignmentType,
       });
+
+       const scoresKey = "STUDENT_LESSON_SCORES";
+      const studentId = currentStudent.id;
+      const lessonId = lesson?.id;
+      if (studentId && lessonId) {
+        // Get existing scores object or create new
+        const scoresJson = localStorage.getItem(scoresKey);
+        const scoresMap = scoresJson ? JSON.parse(scoresJson) : {};
+        // Use a composite key or nested object
+        if (!scoresMap[studentId]) scoresMap[studentId] = {};
+        scoresMap[studentId][lessonId] = data.score ?? 0;
+        localStorage.setItem(scoresKey, JSON.stringify(scoresMap));
+      }
+
+
       const result = await api.updateResult(
         currentStudent?.id,
         courseDocId,
