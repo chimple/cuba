@@ -79,7 +79,7 @@ const AddTeacher: React.FC = () => {
     setIsLoading(true);
 
     if (classDoc && user) {
-      await api.addTeacherToClass(classDoc.id, user.id);
+      await api.addTeacherToClass(classDoc.id, user);
 
       await api.updateSchoolLastModified(school.id);
       await api.updateClassLastModified(classDoc.id);
