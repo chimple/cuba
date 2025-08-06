@@ -216,46 +216,17 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
     Util.loadBackgroundImage();
     init(false);
 
-    const student = Util.getCurrentStudent();
-    if (!student) {
-      history.replace(PAGES.SELECT_MODE);
-      return;
-    }
+    const syncData = async () => {
+      try {
+        await api.syncDB(Object.values(TABLES));
+        init(false);
+      } catch (error) {
+        console.error("Error syncing:", error);
+        init(false);
+      }
+    };
 
-    api
-      .getStudentClassesAndSchools(student.id)
-      .then(async (linkedData) => {
-        const classDoc = linkedData?.classes?.[0];
-
-        if (classDoc?.status === "migrated") {
-          const alreadySynced = localStorage.getItem(
-            "alreadySyncedAfterMigration"
-          );
-          if (alreadySynced !== "true") {
-            console.log("Class migrated. Syncing full DB...");
-            await api.syncDB(Object.values(TABLES)); // Sync full DB
-            localStorage.setItem("alreadySyncedAfterMigration", "true");
-            console.log("Full DB sync complete after migration.");
-          } else {
-            console.log("Already synced after migration. Skipping full sync.");
-          }
-        }
-
-        // Always sync assignment table as per original flow
-        const check = api
-          .syncDB(Object.values(TABLES), [TABLES.Assignment])
-          .then((res) => {
-            console.log("Assignment sync:", res);
-            init(false);
-          })
-          .catch((error) => {
-            console.error("Error syncing assignments:", error);
-          });
-      })
-      .catch((error) => {
-        console.error("Error checking class status:", error);
-        init(false); // Always fallback to init
-      });
+    syncData();
   }, []);
 
   useEffect(() => {
