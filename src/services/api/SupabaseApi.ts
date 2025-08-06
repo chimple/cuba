@@ -4722,6 +4722,9 @@ export class SupabaseApi implements ServiceApi {
       throw insertError;
     }
 
+    // Fetch user doc from your server API
+    // const user_doc = await this.getUserByDocId(userId);
+
     // Insert into user table with upsert logic (on conflict do nothing)
     if (user) {
       const { error: userInsertError } = await this.supabase
@@ -5147,7 +5150,6 @@ export class SupabaseApi implements ServiceApi {
       .eq("role", RoleType.PRINCIPAL)
       .eq("is_deleted", false)
       .order("created_at", { ascending: true });
-
     if (error) {
       console.error("Error fetching principals:", error);
       return;
@@ -5234,6 +5236,8 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error inserting into school_user:", insertError);
       return;
     }
+
+    // const user_doc = await this.getUserByDocId(user.id);
 
     if (user) {
       const cleanUserDoc = {
