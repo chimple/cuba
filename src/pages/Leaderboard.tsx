@@ -15,6 +15,7 @@ import {
   CLASS,
   CURRENT_CLASS,
   STAGES,
+  TABLES,
 } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 import BackButton from "../components/common/BackButton";
@@ -97,7 +98,7 @@ const Leaderboard: React.FC = () => {
     }
   }, [tabIndex]);
 
-  useEffect(() => { }, []);
+  useEffect(() => {}, []);
   const urlOpen = () => {
     App.addListener("appUrlOpen", (event) => {
       const url = new URL(event.url);
@@ -187,8 +188,8 @@ const Leaderboard: React.FC = () => {
     setIsLoading(false);
     const tempLeaderboardData: LeaderboardInfo = (leaderboardDataInfo.weekly
       .length <= 0 ||
-      leaderboardDataInfo.allTime.length <= 0 ||
-      leaderboardDataInfo.monthly.length <= 0
+    leaderboardDataInfo.allTime.length <= 0 ||
+    leaderboardDataInfo.monthly.length <= 0
       ? await api.getLeaderboardResults(classId, leaderboardDropdownType)
       : leaderboardDataInfo) || {
       weekly: [],
@@ -197,10 +198,19 @@ const Leaderboard: React.FC = () => {
     };
 
     const leaderboardAttributes = {
-      leaderboard_position_weekly: tempLeaderboardData.weekly.findIndex((item) => item.userId === currentStudent.id) + 1,
-      leaderboard_position_monthly: tempLeaderboardData.monthly.findIndex((item) => item.userId === currentStudent.id) + 1,
-      leaderboard_position_all: tempLeaderboardData.allTime.findIndex((item) => item.userId === currentStudent.id) + 1,
-    }
+      leaderboard_position_weekly:
+        tempLeaderboardData.weekly.findIndex(
+          (item) => item.userId === currentStudent.id
+        ) + 1,
+      leaderboard_position_monthly:
+        tempLeaderboardData.monthly.findIndex(
+          (item) => item.userId === currentStudent.id
+        ) + 1,
+      leaderboard_position_all:
+        tempLeaderboardData.allTime.findIndex(
+          (item) => item.userId === currentStudent.id
+        ) + 1,
+    };
     updateLocalAttributes(leaderboardAttributes);
     setGbUpdated(true);
 
@@ -276,11 +286,11 @@ const Leaderboard: React.FC = () => {
             [
               t("Time Spent"),
               computeMinutes +
-              t(" min") +
-              " " +
-              computeSeconds +
-              " " +
-              t("sec"),
+                t(" min") +
+                " " +
+                computeSeconds +
+                " " +
+                t("sec"),
             ],
           ];
           tempLeaderboardDataArray.push([
@@ -306,7 +316,6 @@ const Leaderboard: React.FC = () => {
   let currentUserHeaderRowIndicator = -1;
 
   function leaderboardUI() {
-
     return (
       <div id="leaderboard-UI">
         <div id="leaderboard-left-UI">
@@ -324,7 +333,7 @@ const Leaderboard: React.FC = () => {
                   currentStudent!,
                   // weeklyList[0] === weeklyList[selectedValue],
                   weeklyList[selectedValue].type ??
-                  LeaderboardDropdownList.WEEKLY,
+                    LeaderboardDropdownList.WEEKLY,
                   currentClassAndSchool?.classes[0].id || ""
                 );
                 //  }
@@ -342,8 +351,8 @@ const Leaderboard: React.FC = () => {
               src={
                 (studentMode === MODES.SCHOOL && currentStudent?.image) ||
                 "assets/avatars/" +
-                (currentStudent?.avatar ?? AVATARS[0]) +
-                ".png"
+                  (currentStudent?.avatar ?? AVATARS[0]) +
+                  ".png"
               }
               alt=""
             />
@@ -418,18 +427,18 @@ const Leaderboard: React.FC = () => {
                     headerRowIndicator === 0
                       ? "rgb(200 200 200)"
                       : Number(currentUserDataContent[0][1]) ===
-                        headerRowIndicator ||
-                        currentUserDataContent[0][1] ===
-                        headerRowIndicator + "+"
+                            headerRowIndicator ||
+                          currentUserDataContent[0][1] ===
+                            headerRowIndicator + "+"
                         ? "#FF7925"
                         : "",
                   padding:
                     headerRowIndicator === 0
                       ? "1vh 2vh"
                       : Number(currentUserDataContent[0][1]) ===
-                        headerRowIndicator ||
-                        currentUserDataContent[0][1] ===
-                        headerRowIndicator + "+"
+                            headerRowIndicator ||
+                          currentUserDataContent[0][1] ===
+                            headerRowIndicator + "+"
                         ? "0vh 2vh"
                         : "1vh 2vh ",
                   position: "sticky",
@@ -573,10 +582,10 @@ const Leaderboard: React.FC = () => {
                     value={LEADERBOARDHEADERLIST.LEADERBOARD}
                     label={t(LEADERBOARDHEADERLIST.LEADERBOARD)}
                     id="parent-page-tab-bar"
-                  // sx={{
-                  //   // fontSize:"5vh"
-                  //   marginRight: "5vw",
-                  // }}
+                    // sx={{
+                    //   // fontSize:"5vh"
+                    //   marginRight: "5vw",
+                    // }}
                   />
                   {/* <Tab
                     id="parent-page-tab-bar"
@@ -621,6 +630,8 @@ const Leaderboard: React.FC = () => {
                     history
                   );
                 }
+                console.log("Called");
+                await api.syncDB(Object.values(TABLES));
               }}
             >
               <img
