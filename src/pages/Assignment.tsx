@@ -26,7 +26,7 @@ import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErro
 
 // Extend props to accept a callback for new assignments.
 interface AssignmentPageProps {
-  assignmentCount: any
+  assignmentCount: any;
 }
 
 const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
@@ -57,44 +57,52 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const isMounted = useRef(true);
 
-  const updateLessonChapterAndCourseMaps = useCallback(async (assignments: TableTypes<"assignment">[]) => {
-    // Update lessonChapterMap
-    const chapterIds = Array.from(
-      new Set(
-        assignments
-          .map(assignment => assignment.chapter_id)
-          .filter((id): id is string => !!id) // Filter out any null or undefined ids
-      )
-    );
+  const updateLessonChapterAndCourseMaps = useCallback(
+    async (assignments: TableTypes<"assignment">[]) => {
+      // Update lessonChapterMap
+      const chapterIds = Array.from(
+        new Set(
+          assignments
+            .map((assignment) => assignment.chapter_id)
+            .filter((id): id is string => !!id) // Filter out any null or undefined ids
+        )
+      );
 
-    const chapters = await api.getChaptersByIds(chapterIds);
+      const chapters = await api.getChaptersByIds(chapterIds);
 
-    const chapterIdMap = chapters.reduce((acc, chapter) => {
-      acc[chapter.id] = chapter;
-      return acc;
-    }, {} as { [id: string]: TableTypes<"chapter"> });
+      const chapterIdMap = chapters.reduce(
+        (acc, chapter) => {
+          acc[chapter.id] = chapter;
+          return acc;
+        },
+        {} as { [id: string]: TableTypes<"chapter"> }
+      );
 
-    // Build the final lessonChapterMap by iterating through assignments
-    const chapterMap: { [lessonId: string]: TableTypes<"chapter"> } = {};
-    assignments.forEach((assignment) => {
-      if (assignment.lesson_id && assignment.chapter_id) {
-        const chapter = chapterIdMap[assignment.chapter_id];
-        if (chapter) {
-          chapterMap[assignment.lesson_id] = chapter;
+      // Build the final lessonChapterMap by iterating through assignments
+      const chapterMap: { [lessonId: string]: TableTypes<"chapter"> } = {};
+      assignments.forEach((assignment) => {
+        if (assignment.lesson_id && assignment.chapter_id) {
+          const chapter = chapterIdMap[assignment.chapter_id];
+          if (chapter) {
+            chapterMap[assignment.lesson_id] = chapter;
+          }
         }
-      }
-    });
-    setLessonChapterMap(chapterMap);
+      });
+      setLessonChapterMap(chapterMap);
 
-    // Update assignmentLessonCourseMap
-    const lessonCourseMap: { [lessonId: string]: { course_id: string } } = {};
-    assignments.forEach((assignment) => {
-      if (assignment.lesson_id && assignment.course_id) {
-        lessonCourseMap[assignment.lesson_id] = { course_id: assignment.course_id };
-      }
-    });
-    setAssignmentLessonCourseMap(lessonCourseMap);
-  }, [api]);
+      // Update assignmentLessonCourseMap
+      const lessonCourseMap: { [lessonId: string]: { course_id: string } } = {};
+      assignments.forEach((assignment) => {
+        if (assignment.lesson_id && assignment.course_id) {
+          lessonCourseMap[assignment.lesson_id] = {
+            course_id: assignment.course_id,
+          };
+        }
+      });
+      setAssignmentLessonCourseMap(lessonCourseMap);
+    },
+    [api]
+  );
 
   const init = useCallback(
     async (fromCache: boolean = true) => {
@@ -179,7 +187,9 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
 
     api.assignmentUserListner(student.id, async (assignmentUser) => {
       if (assignmentUser) {
-        const assignment = await api.getAssignmentById(assignmentUser.assignment_id);
+        const assignment = await api.getAssignmentById(
+          assignmentUser.assignment_id
+        );
         if (isMounted.current && assignment && assignment.type !== LIVE_QUIZ) {
           await updateLessonChapterAndCourseMaps([...assignments, assignment]);
           handleAssignmentUpdate();
@@ -194,18 +204,57 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
       }
       api.removeAssignmentChannel();
     };
-  }, [currentClass, api, handleAssignmentUpdate, assignments, updateLessonChapterAndCourseMaps]);
+  }, [
+    currentClass,
+    api,
+    handleAssignmentUpdate,
+    assignments,
+    updateLessonChapterAndCourseMaps,
+  ]);
 
   useEffect(() => {
     Util.loadBackgroundImage();
     init(false);
 
-    api.syncDB(Object.values(TABLES), [TABLES.Assignment])
-      .then(() => {
-        init(false);
+    const student = Util.getCurrentStudent();
+    if (!student) {
+      history.replace(PAGES.SELECT_MODE);
+      return;
+    }
+
+    api
+      .getStudentClassesAndSchools(student.id)
+      .then(async (linkedData) => {
+        const classDoc = linkedData?.classes?.[0];
+
+        if (classDoc?.status === "migrated") {
+          const alreadySynced = localStorage.getItem(
+            "alreadySyncedAfterMigration"
+          );
+          if (alreadySynced !== "true") {
+            console.log("Class migrated. Syncing full DB...");
+            await api.syncDB(Object.values(TABLES)); // Sync full DB
+            localStorage.setItem("alreadySyncedAfterMigration", "true");
+            console.log("Full DB sync complete after migration.");
+          } else {
+            console.log("Already synced after migration. Skipping full sync.");
+          }
+        }
+
+        // Always sync assignment table as per original flow
+        const check = api
+          .syncDB(Object.values(TABLES), [TABLES.Assignment])
+          .then((res) => {
+            console.log("Assignment sync:", res);
+            init(false);
+          })
+          .catch((error) => {
+            console.error("Error syncing assignments:", error);
+          });
       })
       .catch((error) => {
-        console.error('Error syncing assignments:', error);
+        console.error("Error checking class status:", error);
+        init(false); // Always fallback to init
       });
   }, []);
 
