@@ -52,7 +52,7 @@
 
 /* Text inside modal */
 .PathwayModal-text {
-  font-weight: 500;
+  font-weight: 600;
   z-index: 1;
   font-size: 18px;
   color: #182A4F;
@@ -160,11 +160,5 @@
   to {
     -webkit-transform: translate3d(100vw, 0, 0);
     opacity: 0;
-  }
-}
-
-@media only screen and (orientation: landscape) and (max-height: 450px) {
-  .PathwayModal-text {
-    font-weight: 600;
   }
 }
