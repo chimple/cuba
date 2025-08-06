@@ -869,7 +869,6 @@ export class OneRosterApi implements ServiceApi {
     return student;
   }
   async updateStudentStars(studentId: string, _totalStars: number): Promise<void> {  
-  if (Util.isRespectMode) {
     const scoresJson = localStorage.getItem(STUDENT_LESSON_SCORES);
     let calculatedStars = 0;
     if (scoresJson) {
@@ -887,8 +886,6 @@ export class OneRosterApi implements ServiceApi {
     latestStarsMap[studentId] = calculatedStars;
     localStorage.setItem(LATEST_STARS, JSON.stringify(latestStarsMap));
     return;
-  }
-  return;
 }
   async getChaptersForCourse(courseId: string): Promise<
     {
