@@ -630,7 +630,6 @@ const Leaderboard: React.FC = () => {
                     history
                   );
                 }
-                console.log("Called");
                 await api.syncDB(Object.values(TABLES));
               }}
             >
