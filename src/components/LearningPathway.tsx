@@ -34,7 +34,7 @@ const LearningPathway: React.FC = () => {
     if (Util.isRespectMode) {
     await api.updateStudentStars(currentStudent.id, 0); // This will update LATEST_STARS
     // Now read from LATEST_STARS
-    const latestStarsJson = localStorage.getItem("LATEST_STARS");
+    const latestStarsJson = localStorage.getItem(LATEST_STARS);
     const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
     const totalStars = parseInt(latestStarsMap[currentStudent.id] || "0", 10);
     setFrom(totalStars);

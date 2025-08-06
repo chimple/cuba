@@ -19,7 +19,8 @@ import {
   SOUND,
   TableTypes,
   USER_COURSES,
-  STUDENT_LESSON_SCORES
+  STUDENT_LESSON_SCORES,
+  LATEST_STARS
 } from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
 import Assignment from "../../models/assignment";
@@ -881,10 +882,10 @@ export class OneRosterApi implements ServiceApi {
       });
     }
     // Store in LATEST_STARS
-    const latestStarsJson = localStorage.getItem("LATEST_STARS");
+    const latestStarsJson = localStorage.getItem(LATEST_STARS);
     const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
     latestStarsMap[studentId] = calculatedStars;
-    localStorage.setItem("LATEST_STARS", JSON.stringify(latestStarsMap));
+    localStorage.setItem(LATEST_STARS, JSON.stringify(latestStarsMap));
     return;
   }
   return;
