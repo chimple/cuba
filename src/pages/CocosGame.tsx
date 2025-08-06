@@ -455,6 +455,7 @@ const CocosGame: React.FC = () => {
         played_from: playedFrom,
         assignment_type: assignmentType,
       });
+
       const result = await api.updateResult(
         currentStudent?.id,
         courseDocId,

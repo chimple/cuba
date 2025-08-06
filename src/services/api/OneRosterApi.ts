@@ -19,6 +19,8 @@ import {
   SOUND,
   TableTypes,
   USER_COURSES,
+  STUDENT_LESSON_SCORES,
+  LATEST_STARS
 } from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
 import Assignment from "../../models/assignment";
@@ -819,7 +821,7 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   setStarsForStudents(studentId: string, starsCount: number): Promise<void> {
-    throw new Error("Method not implemented.");
+    return Promise.resolve();
   }
   countAllPendingPushes(): Promise<number> {
     throw new Error("Method not implemented.");
@@ -866,9 +868,25 @@ export class OneRosterApi implements ServiceApi {
     }
     return student;
   }
-  updateStudentStars(studentId: string, totalStars: number): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
+  async updateStudentStars(studentId: string, _totalStars: number): Promise<void> {  
+    const scoresJson = localStorage.getItem(STUDENT_LESSON_SCORES);
+    let calculatedStars = 0;
+    if (scoresJson) {
+      const scoresMap = JSON.parse(scoresJson);
+      const lessonScores = scoresMap[studentId] || {};
+      (Object.values(lessonScores) as number[]).forEach((score) => {
+        if (score > 75) calculatedStars += 3;
+        else if (score > 50) calculatedStars += 2;
+        else if (score > 25) calculatedStars += 1;
+      });
+    }
+    // Store in LATEST_STARS
+    const latestStarsJson = localStorage.getItem(LATEST_STARS);
+    const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
+    latestStarsMap[studentId] = calculatedStars;
+    localStorage.setItem(LATEST_STARS, JSON.stringify(latestStarsMap));
+    return;
+}
   async getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;
@@ -1440,6 +1458,15 @@ export class OneRosterApi implements ServiceApi {
       throw new Error("Student information is missing.");
     }
 
+    const studentLessonScores = STUDENT_LESSON_SCORES;
+    if (studentId && lessonId) {
+      const scoresJson = localStorage.getItem(studentLessonScores);
+      const scoresMap = scoresJson ? JSON.parse(scoresJson) : {};
+      if (!scoresMap[studentId]) scoresMap[studentId] = {};
+      scoresMap[studentId][lessonId] = score ?? 0;
+      localStorage.setItem(studentLessonScores, JSON.stringify(scoresMap));
+    }
+
     const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();
     const userEmail = `${loggedStudent?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
     const agentEmail = `mailto:${userEmail}`;
@@ -1958,6 +1985,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<Result | undefined> {
     // if (!this.preQuizMap[studentId]) {
     //   this.preQuizMap[studentId] = {};
+    // }
     // }
     // if (this.preQuizMap[studentId][subjectCode])
     //   return this.preQuizMap[studentId][subjectCode];
