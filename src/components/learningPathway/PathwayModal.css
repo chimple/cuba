@@ -162,3 +162,9 @@
     opacity: 0;
   }
 }
+
+@media only screen and (orientation: landscape) and (max-height: 450px) {
+  .PathwayModal-text {
+    font-weight: 600;
+  }
+}
