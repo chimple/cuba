@@ -4214,6 +4214,7 @@ order by
       MUTATE_TYPES.INSERT,
       classUser
     );
+    // var user_doc = await this._serverApi.getUserByDocId(userId);
     if (user) {
       await this.executeQuery(
         `
@@ -4603,6 +4604,7 @@ order by
       MUTATE_TYPES.INSERT,
       schoolUser
     );
+    // var user_doc = await this._serverApi.getUserByDocId(userId);
     if (user) {
       await this.executeQuery(
         `
@@ -5692,7 +5694,7 @@ order by
       return [];
     }
   }
-  async addParentToNewClass(classID:string, studentId:string){
-    throw new Error ("Method not implemented.");
+  async addParentToNewClass(classID: string, studentId: string) {
+    throw new Error("Method not implemented.");
   }
 }

@@ -1110,7 +1110,7 @@ export interface ServiceApi {
    * Adding a teacher to class.
    * @param {string} schoolId school Id
    * @param {string} classId class Id
-   * @param {TableTypes<"user">} user user object;
+   * @param {string} user user;
    * @return void.
    */
   addTeacherToClass(classId: string, user: TableTypes<"user">): Promise<void>;
@@ -1270,7 +1270,7 @@ export interface ServiceApi {
   /**
    * Adding a principal or coordinator or sponsor to school.
    * @param {string} schoolId school Id
-   * @param {TableTypes<"user">} user user object;
+   * @param {string} user user ;
    * @param {string} role role
    * @return void.
    */
