@@ -1104,7 +1104,7 @@ export interface ServiceApi {
    * Adding a teacher to class.
    * @param {string} schoolId school Id
    * @param {string} classId class Id
-   * @param {TableTypes<"user">} user user object;
+   * @param {string} user user;
    * @return void.
    */
   addTeacherToClass(classId: string, user: TableTypes<"user">): Promise<void>;
@@ -1264,7 +1264,7 @@ export interface ServiceApi {
   /**
    * Adding a principal or coordinator or sponsor to school.
    * @param {string} schoolId school Id
-   * @param {TableTypes<"user">} user user object;
+   * @param {string} user user ;
    * @param {string} role role
    * @return void.
    */
@@ -1873,4 +1873,10 @@ export interface ServiceApi {
    * @returns {Promise<TableTypes<"chapter">[]>} - A promise that resolves to an array of chapter objects.
    */
   getChaptersByIds(chapterIds: string[]): Promise<TableTypes<"chapter">[]>;
+  /**
+   * Adds Parent to new class (new classUser record).
+   * @param {string} classID
+   * @param {string} studentID
+   */
+  addParentToNewClass(classID:string, studentID:string): Promise<void>;
 }

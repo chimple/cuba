@@ -13,6 +13,7 @@
   height: 80%;
   margin: 0 auto;                 
   /* text-align: left;    */
+  /* text-align: left;    */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -24,17 +25,19 @@
 .aboveText, .belowText {
   transform: rotate(180deg);
   font-size: 10px;
-  /* position: absolute; */
+  position: absolute;
   width: 100%; /* Full width to align with th */
   text-align: center;
 }
 
 .aboveText {
-  top: 0; /* Stick to the top */
+  top: 5px; /* Stick to the top */
+  left: 0;
 }
 
 .belowText {
-  bottom: 0; /* Stick to the bottom */
+  bottom: 5px; /* Stick to the bottom */
+  left: 0;
 }
 
 .subject-header {

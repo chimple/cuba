@@ -4677,6 +4677,7 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async addTeacherToClass(classId: string, user: TableTypes<"user">): Promise<void> {
+  async addTeacherToClass(classId: string, user: TableTypes<"user">): Promise<void> {
     if (!this.supabase) return;
 
     const classUserId = uuidv4();
@@ -4685,6 +4686,7 @@ export class SupabaseApi implements ServiceApi {
     const classUser = {
       id: classUserId,
       class_id: classId,
+      user_id: user.id,
       user_id: user.id,
       role: RoleType.TEACHER as Database["public"]["Enums"]["role"],
       created_at: now,
@@ -4705,10 +4707,21 @@ export class SupabaseApi implements ServiceApi {
 
     // Insert into user table with upsert logic (on conflict do nothing)
     if (user) {
+    if (user) {
       const { error: userInsertError } = await this.supabase
         .from(TABLES.User)
         .upsert(
           {
+            id: user.id,
+            name: user.name,
+            age: user.age,
+            gender: user.gender,
+            avatar: user.avatar,
+            image: user.image,
+            curriculum_id: user.curriculum_id,
+            language_id: user.language_id,
+            created_at: user.created_at,
+            updated_at: user.updated_at,
             id: user.id,
             name: user.name,
             age: user.age,
@@ -5128,7 +5141,6 @@ export class SupabaseApi implements ServiceApi {
       .eq("role", RoleType.PRINCIPAL)
       .eq("is_deleted", false)
       .order("created_at", { ascending: true });
-
     if (error) {
       console.error("Error fetching principals:", error);
       return;
@@ -5190,6 +5202,7 @@ export class SupabaseApi implements ServiceApi {
   async addUserToSchool(
     schoolId: string,
     user: TableTypes<"user">,
+    user: TableTypes<"user">,
     role: RoleType
   ): Promise<void> {
     if (!this.supabase) return;
@@ -5200,6 +5213,7 @@ export class SupabaseApi implements ServiceApi {
     const schoolUser = {
       id: schoolUserId,
       school_id: schoolId,
+      user_id: user.id,
       user_id: user.id,
       role: role as Database["public"]["Enums"]["role"],
       created_at: timestamp,
@@ -5218,6 +5232,16 @@ export class SupabaseApi implements ServiceApi {
 
     if (user) {
       const cleanUserDoc = {
+        id: user.id,
+        name: user.name ?? null,
+        age: user.age ?? null,
+        gender: user.gender ?? null,
+        avatar: user.avatar ?? null,
+        image: user.image ?? null,
+        curriculum_id: user.curriculum_id ?? null,
+        language_id: user.language_id ?? null,
+        created_at: user.created_at ?? timestamp,
+        updated_at: user.updated_at ?? timestamp,
         id: user.id,
         name: user.name ?? null,
         age: user.age ?? null,
@@ -7229,5 +7253,20 @@ export class SupabaseApi implements ServiceApi {
   }
   async getChapterIdbyQrLink(link: string): Promise<TableTypes<"chapter_links"> | undefined> {
       throw new Error("Method not implemented.");
+  }
+  async addParentToNewClass(classID:string, studentId:string){
+    try {
+        if (!this.supabase) return;
+         const { error } = await this.supabase.rpc('add_parent_to_newclass', {
+         _class_id: classID,
+         _student_id: studentId
+       });
+
+        if (error) {
+          console.log('Failed to add parent to class:', error.message);
+        }
+    } catch (error) {
+      console.error('Error in addParentToNewClass:', error);
+    }
   }
 }
