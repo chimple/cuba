@@ -8,10 +8,6 @@ interface TableRightHeaderProps {
     string,
     { headerName: string; startAt: string; endAt: string }
   >[];
-  headerDetails: Map<
-    string,
-    { headerName: string; startAt: string; endAt: string }
-  >[];
 }
 
 const TableRightHeader: React.FC<TableRightHeaderProps> = ({
@@ -24,19 +20,11 @@ const TableRightHeader: React.FC<TableRightHeaderProps> = ({
         const [assignmentId, { headerName, startAt, endAt }] = Array.from(
           assignmentMap.entries()
         )[0];
-        const [assignmentId, { headerName, startAt, endAt }] = Array.from(
-          assignmentMap.entries()
-        )[0];
         return (
-          <th className="tableRightHeader" key={assignmentId}>
           <th className="tableRightHeader" key={assignmentId}>
             <div className="aboveText">
               <span>{startAt}</span>
-              <span>{startAt}</span>
             </div>
-            <div className="tableRightHeaderText">{t(headerName)}</div>
-            <div className="belowText">
-              <span>{endAt}</span>
             <div className="tableRightHeaderText">{t(headerName)}</div>
             <div className="belowText">
               <span>{endAt}</span>

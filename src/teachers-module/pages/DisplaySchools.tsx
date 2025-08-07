@@ -113,7 +113,7 @@ const DisplaySchools: FC<{}> = () => {
       Util.setCurrentClass(tempClass);
       history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
     } else {
-      const classes = await getClasses(school.school.id,currentUser?.id);
+      const classes = await getClasses(school.school.id);
       if (classes.length > 0) {
         Util.setCurrentClass(classes[0]);
         history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
