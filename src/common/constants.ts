@@ -545,6 +545,7 @@ export const NAVIGATION_STATE = "navigationState";
 export const USER_COURSES = "userCourses"
 export const STARS_COUNT = "starsCount";
 export const LATEST_STARS = "latestStar";
+export const STUDENT_LESSON_SCORES = "studentLessonScores";
 
 export enum IconType {
   SCHOOL = "school",
