@@ -261,15 +261,15 @@ export class SupabaseAuth implements ServiceAuth {
       }
 
       let user = await api.getUserByDocId(authData.data.session?.user.id);
-      if(user) {
-        localStorage.setItem(USER_DATA, JSON.stringify(user));
-        this._currentUser = user;
-        return this._currentUser;
-      }
-      else {
-        this._auth?.signOut()
-        return
-      }
+        if (user){
+          localStorage.setItem(USER_DATA, JSON.stringify(user));
+          this._currentUser = user;
+          return this._currentUser;
+        }
+        else{
+          this._auth?.signOut()
+          return
+        }
     }
   }
   async doRefreshSession(): Promise<void> {

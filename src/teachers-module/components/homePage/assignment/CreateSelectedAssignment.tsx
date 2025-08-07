@@ -374,6 +374,16 @@ const CreateSelectedAssignment = ({
         sync_lesson_data ? Object.entries(JSON.parse(sync_lesson_data)) : []
       );
 
+      // ✅ Build reverse lookup: lessonId → chapterId
+      const lessonToChapterMap = new Map<string, string>();
+      for (const [chapterId, sourceMap] of sync_lesson.entries()) {
+        for (const lessonIds of Object.values(sourceMap)) {
+          for (const lessonId of lessonIds) {
+            lessonToChapterMap.set(lessonId, chapterId);
+          }
+        }
+      }
+
       // Iterate through assignment types (manual/recommended)
       for (const type of Object.keys(selectedAssignments)) {
         for (const subjectId of Object.keys(selectedAssignments[type])) {
@@ -401,9 +411,7 @@ const CreateSelectedAssignment = ({
                 return;
               }
 
-              const tempChapterId =
-                (await api.getChapterByLesson(tempLes.id, current_class.id)) ??
-                "";
+              const tempChapterId = lessonToChapterMap.get(lessonId) ?? "";
               if (!tempChapterId) {
                 console.warn(`Chapter not found for lessonId: ${lessonId}`);
                 return;

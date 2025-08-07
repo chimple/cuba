@@ -32,6 +32,7 @@ import {
   AVATARS,
   BASE_NAME,
   DELETED_CLASSES,
+  EVENTS,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -55,6 +56,7 @@ import { RoleType } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
 import { Table } from "@mui/material";
 import { create } from "domain";
+import { error } from "console";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -399,10 +401,13 @@ export class SqliteApi implements ServiceApi {
         );
         console.log("🚀 ~ Api ~ pushChanges ~ isMutated:", mutate);
         if (!mutate || mutate.error) {
-          if (
-            data.table_name === TABLES.Result &&
-            mutate?.error?.code === "23505"
-          ) {
+          const _currentUser =
+            await ServiceConfig.getI().authHandler.getCurrentUser();
+          Util.logEvent(EVENTS.ERROR_LOGS, {
+            user_id: _currentUser?.id,
+            ...mutate?.error,
+          });
+          if (mutate?.error?.code === "23505") {
           } else {
             return false;
           }
@@ -2002,19 +2007,21 @@ export class SqliteApi implements ServiceApi {
         image = ?,
         curriculum_id = ?,
         grade_id = ?,
-        language_id = ?
+        language_id = ?,
+        updated_at = ?
       WHERE id = ?;
     `;
-
+    const now = new Date().toISOString();
     await this.executeQuery(updateUserQuery, [
       name,
       age,
       gender,
       avatar,
       image ?? null,
-      boardDocId,
-      gradeDocId,
+      boardDocId ?? null,
+      gradeDocId ?? null,
       languageDocId,
+      now,
       student.id,
     ]);
 
@@ -2028,9 +2035,10 @@ export class SqliteApi implements ServiceApi {
     student.gender = gender;
     student.avatar = avatar;
     student.image = image ?? null;
-    student.curriculum_id = boardDocId;
-    student.grade_id = gradeDocId;
+    student.curriculum_id = boardDocId ?? null;
+    student.grade_id = gradeDocId ?? null;
     student.language_id = languageDocId;
+    student.updated_at = now;
 
     if (courses && courses.length > 0) {
       const now = new Date().toISOString();
@@ -2082,6 +2090,7 @@ export class SqliteApi implements ServiceApi {
       curriculum_id: boardDocId,
       grade_id: gradeDocId,
       language_id: languageDocId,
+      updated_at: now,
       id: student.id,
     });
     return student;
@@ -2143,7 +2152,6 @@ export class SqliteApi implements ServiceApi {
         student_id,
         student.id,
       ]);
-
       student.name = name;
       student.age = age;
       student.gender = gender;
@@ -2153,7 +2161,6 @@ export class SqliteApi implements ServiceApi {
       student.grade_id = gradeDocId;
       student.language_id = languageDocId;
       student.student_id = student_id;
-
       this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
         name,
         age,
@@ -2166,22 +2173,35 @@ export class SqliteApi implements ServiceApi {
         student_id: student_id,
         id: student.id,
       });
-
       // Check if the class has changed
-      // const currentClassId = await this.getCurrentClassIdForStudent(student.id); // Assume this function retrieves the current class ID
-      const currentClassId = Util.getCurrentClass();
-      if (currentClassId?.id !== newClassId) {
+      const currentClassIdQuery = `
+        SELECT class_id FROM class_user
+        WHERE user_id = ? AND is_deleted = 0 AND role = 'student'
+        LIMIT 1
+      `;
+      const currentClassRes = await this.executeQuery(currentClassIdQuery, [student.id]);
+      const currentClassId = currentClassRes?.values?.[0]?.class_id;
+
+      if (currentClassId !== newClassId) {
         // Update class_user table to set previous record as deleted
+        const currentClassUserId = `SELECT id FROM class_user where user_id =? AND class_id = ? AND is_deleted = 0`;
+        var data = await this.executeQuery(currentClassUserId, [
+          student.id,
+          currentClassId,
+        ]);
         const deleteOldClassUserQuery = `
           UPDATE class_user
           SET is_deleted = 1, updated_at = ?
-          WHERE user_id = ? AND is_deleted = 0;
+          WHERE id = ? AND is_deleted = 0;
         `;
         const now = new Date().toISOString();
-        await this.executeQuery(deleteOldClassUserQuery, [now, student.id]);
+        await this.executeQuery(deleteOldClassUserQuery, [
+          now,
+          data?.values?.[0]?.id,
+        ]);
         // Push changes for the update (marking the old class_user as deleted)
         this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
-          user_id: student.id,
+          id: data?.values?.[0]?.id,
           is_deleted: true,
           updated_at: now,
         });
@@ -2199,7 +2219,6 @@ export class SqliteApi implements ServiceApi {
           is_ops: null,
           ops_created_by: null,
         };
-
         await this.executeQuery(
           `
             INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
@@ -2220,8 +2239,8 @@ export class SqliteApi implements ServiceApi {
           MUTATE_TYPES.INSERT,
           newClassUser
         );
+        await this._serverApi.addParentToNewClass(newClassId, student.id);
       }
-
       return student;
     } catch (error) {
       console.error("Error updating student:", error);
@@ -4195,6 +4214,7 @@ order by
       MUTATE_TYPES.INSERT,
       classUser
     );
+    // var user_doc = await this._serverApi.getUserByDocId(userId);
     if (user) {
       await this.executeQuery(
         `
@@ -4584,6 +4604,7 @@ order by
       MUTATE_TYPES.INSERT,
       schoolUser
     );
+    // var user_doc = await this._serverApi.getUserByDocId(userId);
     if (user) {
       await this.executeQuery(
         `
@@ -5672,5 +5693,8 @@ order by
       console.error("Error fetching chapters", error);
       return [];
     }
+  }
+  async addParentToNewClass(classID: string, studentId: string) {
+    throw new Error("Method not implemented.");
   }
 }
