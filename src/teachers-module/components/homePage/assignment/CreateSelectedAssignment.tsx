@@ -411,7 +411,9 @@ const CreateSelectedAssignment = ({
                 return;
               }
 
-              const tempChapterId = lessonToChapterMap.get(lessonId) ?? "";
+              const tempChapterId = (tempLes?.source === AssignmentSource.RECOMMENDED) ? 
+              await api.getChapterByLesson(tempLes.id, current_class.id) : 
+              lessonToChapterMap.get(lessonId);
               if (!tempChapterId) {
                 console.warn(`Chapter not found for lessonId: ${lessonId}`);
                 return;
