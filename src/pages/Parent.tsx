@@ -41,7 +41,6 @@ import DeleteParentAccount from "../components/parent/DeleteParentAccount";
 import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
 import DebugMode from "../teachers-module/components/DebugMode";
 import { Capacitor } from "@capacitor/core";
-import { Capacitor } from "@capacitor/core";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 const Parent: React.FC = () => {
@@ -321,7 +320,6 @@ const Parent: React.FC = () => {
               title={"Switch to Teacher's Mode"}
               layout="vertical"
               onIonChangeClick={async () => {
-                const isNativePlatform = Capacitor.isNativePlatform();
                 const isNativePlatform = Capacitor.isNativePlatform();
                 if (localSchool && localClass) {
                   schoolUtil.setCurrMode(MODES.TEACHER);
