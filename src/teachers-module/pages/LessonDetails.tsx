@@ -29,6 +29,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   const current_class = Util.getCurrentClass();
   const selectedLesson = history.location.state?.["selectedLesson"];
   const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
+  const [selectedLessonMap, setSelectedLessonMap] = useState<Map<string, string>>(new Map(selectedLesson));
 
   let isGrade1: string | boolean = false;
 
@@ -99,19 +100,17 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   };
 
   const handleButtonClick = () => {
-    const tmpselectedLesson = new Map(selectedLesson);
+    const classId = current_class?.id ?? "";
+    const tmpselectedLesson = new Map(selectedLessonMap); 
 
-    const prevDataStr = selectedLesson.get(current_class?.id ?? "") ?? "{}";
+    const prevDataStr = tmpselectedLesson.get(classId) ?? "{}";
     const parsed = JSON.parse(prevDataStr);
 
     let updatedChapterData: Record<string, any> = parsed[chapterId] ?? {};
 
     // Handle old format fallback
     if (Array.isArray(updatedChapterData)) {
-      // Convert to source-based new structure first
-      updatedChapterData = {
-        manual: [...updatedChapterData],
-      };
+      updatedChapterData = { manual: [...updatedChapterData] };
     }
 
     const existing = updatedChapterData[AssignmentSource.MANUAL] ?? [];
@@ -134,15 +133,12 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     );
     setClassSelectedLesson(updatedClassSelectedLesson);
 
-    // Final updated serialized string
-    tmpselectedLesson.set(
-      current_class?.id ?? "",
-      JSON.stringify(parsed)
-    );
-    const _totalSelectedLesson = JSON.stringify(
-      Object.fromEntries(tmpselectedLesson)
-    );
-    syncSelectedLesson(_totalSelectedLesson);
+    // Serialize and store
+    tmpselectedLesson.set(classId, JSON.stringify(parsed));
+    setSelectedLessonMap(tmpselectedLesson); 
+
+    const totalSelectedLesson = JSON.stringify(Object.fromEntries(tmpselectedLesson));
+    syncSelectedLesson(totalSelectedLesson);
   };
   return (
     <div className="lesson-details-container">
