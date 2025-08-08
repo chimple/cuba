@@ -443,7 +443,6 @@ const ReportTable: React.FC<ReportTableProps> = ({
 
                   <TableRightHeader
                     headerDetails={headerData}
-                    dateRangeValue={dateRange}
                   />
                 </tr>
               </thead>
@@ -455,7 +454,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                         style={{
                           borderRight: expandedRow === key ? "0" : "",
                           borderBottom:
-                            expandedRow === key ? "0" : "2px solid #EFF2F4",
+                            expandedRow === key ? "0" : "2px solid #rgb(255, 255, 255)",
                         }}
                         onClick={() => {
                           if (

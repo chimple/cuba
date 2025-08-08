@@ -137,19 +137,3 @@
   aspect-ratio: 1 / 1;
   border-radius: 8px;
 }
-
-.display-loading-text {
-  text-align: center;
-  padding: 8px;
-}
-
-.display-no-more-schools {
-  text-align: center;
-  padding: 8px;
-  color: #888;
-}
-
-.display-all-schools-scroll {
-  overflow-y: auto;
-  max-height: calc(100vh - 200px);
-}

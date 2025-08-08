@@ -44,7 +44,6 @@ const AddTeacher: React.FC = () => {
       setIsLoading(true);
 
       let fetchedUser;
-
       if (useEmail) {
         fetchedUser = await api?.getUserByEmail(inputValue);
       } else {
@@ -57,7 +56,6 @@ const AddTeacher: React.FC = () => {
           classDoc.id,
           fetchedUser.id
         );
-
         if (userInClass) {
           setShowAlert(true);
           setUser(undefined);
@@ -74,12 +72,11 @@ const AddTeacher: React.FC = () => {
       setIsLoading(false);
     }
   };
-
   const handleAddTeacher = async () => {
     setIsLoading(true);
 
     if (classDoc && user) {
-      await api.addTeacherToClass(classDoc.id, user.id);
+      await api.addTeacherToClass(classDoc.id, user);
 
       await api.updateSchoolLastModified(school.id);
       await api.updateClassLastModified(classDoc.id);
@@ -126,7 +123,11 @@ const AddTeacher: React.FC = () => {
                 }}
               />
               <p>{user.name}</p>
-              <button onClick={handleAddTeacher} disabled={isLoading} className="add-teacher-btn">
+              <button
+                onClick={handleAddTeacher}
+                disabled={isLoading}
+                className="add-teacher-btn"
+              >
                 {isLoading ? t("Adding") + "..." : t("Add")}
               </button>
             </div>

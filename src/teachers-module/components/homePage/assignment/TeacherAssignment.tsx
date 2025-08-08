@@ -3,13 +3,24 @@ import { useHistory } from "react-router";
 import "./TeacherAssignment.css";
 import { ServiceConfig } from "../../../../services/ServiceConfig";
 import SelectIconImage from "../../../../components/displaySubjects/SelectIconImage";
-import { PAGES, TableTypes } from "../../../../common/constants";
+import { AssignmentSource, CAMERAPERMISSION, PAGES, TableTypes } from "../../../../common/constants";
 import { Util } from "../../../../utility/util";
 import { t } from "i18next";
 import { Toast } from "@capacitor/toast";
 import AssignmentNextButton from "./AssignmentNextButton";
+import { BarcodeScanner } from "@capacitor-community/barcode-scanner";
+import { App } from '@capacitor/app';
+import QrCode2Icon from '@mui/icons-material/QrCode2';
+import Loading from "../../../../components/Loading";
 import { checkmarkCircle, ellipseOutline } from 'ionicons/icons';
 import { IonIcon } from "@ionic/react";
+
+declare global {
+  interface Window {
+    __qrBackListener?: { remove: () => void } | null;
+  }
+}
+
 
 export enum TeacherAssignmentPageType {
   MANUAL = "manual",
@@ -24,6 +35,8 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
 
   const [manualAssignments, setManualAssignments] = useState<any>({});
   const [recommendedAssignments, setRecommendedAssignments] = useState<any>({});
+  const [currentUser, setCurrentuser] = useState<TableTypes<"user"> | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const [manualCollapsed, setManualCollapsed] = useState(false);
   const [recommendedCollapsed, setRecommendedCollapsed] = useState(true);
@@ -41,51 +54,84 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
     let tempLessons: any = {};
     const current_class = await Util.getCurrentClass();
     const currUser = await auth.getCurrentUser();
+    setCurrentuser(currUser as TableTypes<"user">);
     if (!current_class || !current_class.id) {
       history.replace(PAGES.DISPLAY_SCHOOLS);
       return;
     }
     const courseList = await api.getCoursesForClassStudent(current_class.id);
 
-    const previous_sync_lesson = currUser?.id
-      ? await api.getUserAssignmentCart(currUser?.id)
-      : null;
-    if (previous_sync_lesson?.lessons) {
-      const all_sync_lesson: Map<string, string> = new Map(
-        Object.entries(JSON.parse(previous_sync_lesson?.lessons))
-      );
-      const sync_lesson_data = all_sync_lesson.get(current_class?.id ?? "");
-      let sync_lesson: Map<string, string[]> = new Map(
-        Object.entries(sync_lesson_data ? JSON.parse(sync_lesson_data) : {})
-      );
+   const previous_sync_lesson = currUser?.id
+     ? await api.getUserAssignmentCart(currUser?.id)
+     : null;
 
-      for (const [chapter, lesson] of sync_lesson.entries()) {
-        for (const lessonId of lesson) {
-          const l: {
-            lesson: any[];
-            course: TableTypes<"course">[];
-          } = await api.getLessonFromChapter(chapter, lessonId);
+   if (previous_sync_lesson?.lessons) {
+     const all_sync_lesson: Map<string, string> = new Map(
+       Object.entries(JSON.parse(previous_sync_lesson.lessons))
+     );
 
-          const courseId = l.course[0].id;
+     const sync_lesson_data = all_sync_lesson.get(current_class.id);
+     const parsed_chapter_data = sync_lesson_data
+       ? JSON.parse(sync_lesson_data)
+       : {};
 
-          if (!tempLessons[courseId]) {
-            tempLessons[courseId] = {
-              name: l.course[0].name,
-              lessons: [],
-              isCollapsed: false,
-              sort_index: l.course[0].sort_index,
-            };
-          }
-          l.lesson[0].selected = true;
-          tempLessons[courseId].lessons.push(l.lesson[0]);
-        }
-        updateSelectedLesson(TeacherAssignmentPageType.MANUAL, tempLessons);
-      }
-      if (tempLessons && Object.keys(tempLessons).length === 0) {
-        setRecommendedCollapsed(false);
-      }
-      setManualAssignments(tempLessons);
-    }
+     const sync_lesson: Map<string, any> = new Map(
+       Object.entries(parsed_chapter_data)
+     );
+
+     for (const [chapterId, sourceMapOrArray] of sync_lesson.entries()) {
+       const allLessonIdsSet = new Set<string>();
+
+       if (Array.isArray(sourceMapOrArray)) {
+         // 🟡 Old format — directly lesson ID array
+         sourceMapOrArray.forEach((id: string) => allLessonIdsSet.add(id));
+       } else if (
+         typeof sourceMapOrArray === "object" &&
+         sourceMapOrArray !== null
+       ) {
+         // ✅ New format — source-keyed map (manual/qr_code)
+         if (sourceMapOrArray[AssignmentSource.MANUAL]) {
+           sourceMapOrArray[AssignmentSource.MANUAL].forEach((id: string) =>
+             allLessonIdsSet.add(id)
+           );
+         }
+         if (sourceMapOrArray[AssignmentSource.QR_CODE]) {
+           sourceMapOrArray[AssignmentSource.QR_CODE].forEach((id: string) =>
+             allLessonIdsSet.add(id)
+           );
+         }
+       }
+
+       for (const lessonId of allLessonIdsSet) {
+         const l: {
+           lesson: any[];
+           course: TableTypes<"course">[];
+         } = await api.getLessonFromChapter(chapterId, lessonId);
+
+         const courseId = l.course[0].id;
+
+         if (!tempLessons[courseId]) {
+           tempLessons[courseId] = {
+             name: l.course[0].name,
+             lessons: [],
+             isCollapsed: false,
+             sort_index: l.course[0].sort_index,
+           };
+         }
+
+         l.lesson[0].selected = true;
+         tempLessons[courseId].lessons.push(l.lesson[0]);
+       }
+     }
+
+     updateSelectedLesson(TeacherAssignmentPageType.MANUAL, tempLessons);
+
+     if (Object.keys(tempLessons).length === 0) {
+       setRecommendedCollapsed(false);
+     }
+
+     setManualAssignments(tempLessons);
+   }
     const lastAssignmentsCourseWise: TableTypes<"assignment">[] | undefined =
       await api.getLastAssignmentsForRecommendations(current_class.id);
     getRecommendedAssignments(courseList, lastAssignmentsCourseWise, tempLessons);
@@ -147,6 +193,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           updatedRecommendedAssignments[subjectId].lessons.map((assignment) => ({
             ...assignment,
             selected: false,
+            source: AssignmentSource.RECOMMENDED,
           }));
       });
       setRecommendedAssignments(updatedRecommendedAssignments);
@@ -161,6 +208,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           updatedRecommendedAssignments[subjectId].lessons.map((assignment) => ({
             ...assignment,
             selected: true,
+            source: AssignmentSource.RECOMMENDED,
           }));
       });
       setRecommendedAssignments(updatedRecommendedAssignments);
@@ -382,7 +430,138 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
     ));
   };
 
+    const stopScan = async () => {
+    // Hide the camera preview and stop scanning
+    await BarcodeScanner.stopScan();
+    BarcodeScanner.showBackground();
+    document.querySelector("html")?.style.setProperty("display", "block");
+    // Remove back button listener if exists
+    if (window.__qrBackListener) {
+      window.__qrBackListener.remove();
+      window.__qrBackListener = null;
+    }
+  };
+
+  const startScan = async () => {
+    // Prepare the scanner
+    setLoading(true);
+    const permission = await BarcodeScanner.checkPermission({ force: true });
+    setTimeout(() => setLoading(false), 100);
+    if (!permission.granted) {
+      Toast.show({ text: t("Camera permission denied. Please enable it in settings") });
+      return;
+    }
+    // Only allow scan if permission is granted
+    if (!localStorage.getItem(CAMERAPERMISSION) || localStorage.getItem(CAMERAPERMISSION) !== "true") {
+      localStorage.setItem(CAMERAPERMISSION, permission.granted ? "true" : "false");
+      return;
+    }
+    await BarcodeScanner.hideBackground(); // Make background transparent
+    document.querySelector("html")?.style.setProperty("display", "none");
+
+    // Add Android back button listener
+    window.__qrBackListener = App.addListener('backButton', async () => {
+      await stopScan();
+    });
+
+    const result = await BarcodeScanner.startScan(); // Start scanning
+    if (result.hasContent) {
+      await processScannedData(result.content);
+    }
+    // Always stop scan and restore UI
+    await stopScan();
+  };
+
+const processScannedData = async (scannedText: string) => {
+  try {
+    // Ensure scannedText uses https if it starts with http
+    let processedText = scannedText;
+    if (processedText.startsWith("http://")) {
+      processedText = processedText.replace(/^http:\/\//, "https://");
+    }
+
+    const result = await api.getChapterIdbyQrLink(processedText);
+    if (!result?.chapter_id) {
+      Toast.show({ text: t("Chapter Not Found") });
+      return;
+    }
+    const lessonList = await api.getLessonsForChapter(result?.chapter_id);
+    if (!lessonList || lessonList.length < 1) {
+      Toast.show({ text: t("No lessons found for this chapter") });
+      return;
+    }
+    // Get course info for this chapter
+    const course = await api.getCourse(result.course_id?? "");
+    if (!course) {
+      Toast.show({ text: t("Course not found for this chapter") });
+      return;
+    }
+    const current_class = await Util.getCurrentClass();
+    const classId = current_class?.id ?? "";
+    // Step 1: Load existing assignment cart
+    const previousCart = currentUser?.id
+      ? await api.getUserAssignmentCart(currentUser?.id)
+      : null;
+
+    let lessonsMap: Map<string, string>; // classId → JSON string of ChapterLessonMap
+    if (previousCart?.lessons) {
+      lessonsMap = new Map(Object.entries(JSON.parse(previousCart.lessons)));
+    } else {
+      lessonsMap = new Map();
+    }
+
+    // Step 2: Parse or init the chapterLessonMap for this class
+    let chapterLessonMap: Record<
+      string,
+      Partial<Record<AssignmentSource, string[]>>
+    > = {};
+
+    if (lessonsMap.has(classId)) {
+      chapterLessonMap = JSON.parse(lessonsMap.get(classId)!);
+    }
+
+    const chapterId = result.chapter_id;
+    const newLessonIds = lessonList.map((l: any) => l.id);
+
+    // Step 3: Normalize old format (array) to new format (manual source map)
+    if (
+      Array.isArray(chapterLessonMap[chapterId])
+    ) {
+      const oldLessonIds = chapterLessonMap[chapterId] as string[];
+      chapterLessonMap[chapterId] = {
+        [AssignmentSource.MANUAL]: oldLessonIds,
+      };
+    }
+
+    // Step 4: Merge new QR lessons
+    if (!chapterLessonMap[chapterId]) {
+      chapterLessonMap[chapterId] = {};
+    }
+
+    const existingQR = (chapterLessonMap[chapterId] as any)?.[
+      AssignmentSource.QR_CODE
+    ] ?? [];
+
+    const mergedQRLessons = Array.from(new Set([...existingQR, ...newLessonIds]));
+
+    (chapterLessonMap[chapterId] as any)[AssignmentSource.QR_CODE] = mergedQRLessons;
+
+    // Step 5: Store updated data
+    lessonsMap.set(classId, JSON.stringify(chapterLessonMap));
+
+    const finalLessonsJson = JSON.stringify(Object.fromEntries(lessonsMap));
+
+    await api.createOrUpdateAssignmentCart(currentUser?.id!, finalLessonsJson);
+
+    await init();
+  } catch (error) {
+    Toast.show({ text: t("Something Went wrong") });
+    console.error("Error processing scanned data:", error);
+  }
+};
   return (
+    <>
+    {loading ? <Loading isLoading={loading}/>:
     <div className="teacher-assignments-page">
       <p id="assignment-page-heading">{t("Assignments")}</p>
       <div className="manual-assignments">
@@ -424,23 +603,91 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
         <hr className="styled-line" />
         {!manualCollapsed &&
           (manualAssignments && Object.keys(manualAssignments).length > 0 ? (
-            renderAssignments(
-              manualAssignments,
-              manualAssignments,
-              setManualAssignments,
-              TeacherAssignmentPageType.MANUAL
-            )
+            <>
+              {renderAssignments(
+                manualAssignments,
+                manualAssignments,
+                setManualAssignments,
+                TeacherAssignmentPageType.MANUAL
+              )}
+              <div className="TeacherAssignment-Add-moreAssignments">
+                <p>
+                  {t(
+                    "To add more assignments. Please use the buttons below to add assignments."
+                  )}
+                </p>
+                <div className="TeacherAssignment-add-moreAssignments-button">
+                  <div
+                    className="TeacherAssignment-manual-assignments-icon-btn"
+                    onClick={() => onLibraryClick()}
+                  >
+                    <img
+                      src="assets/icons/bookSelected.png"
+                      alt="Library"
+                      className="TeacherAssignment-addAssignment-icon1"
+                    />
+                    <span
+                      style={{ fontWeight: 500, color: "#444", fontSize: 16 }}
+                    >
+                      {t("Library")}
+                    </span>
+                  </div>
+                  <div
+                    className="TeacherAssignment-manual-assignments-icon-btn"
+                    onClick={startScan}
+                  >
+                    <QrCode2Icon
+                      sx={{ color: "#7C5DB0" }}
+                      className="TeacherAssignment-addAssignment-icon2"
+                    />
+                    <span
+                      style={{ fontWeight: 500, color: "#444", fontSize: 16 }}
+                    >
+                      {t("Scan QR")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </>
           ) : (
-            <p>
-              {t("You have not chosen any assignments. Please go to ")}
-              <span
-                id="manual-assignments-library-text"
-                onClick={() => onLibraryClick()}
-              >
-                {t("Library")}
-              </span>
-              {t(" to choose and assign.")}
-            </p>
+            <div className="TeacherAssignment-Add-moreAssignments">
+              <p>
+                {t(
+                  "You have not chosen any assignments. Please use the buttons below to add assignments."
+                )}
+              </p>
+              <div className="TeacherAssignment-add-moreAssignments-button">
+                <div
+                  className="TeacherAssignment-manual-assignments-icon-btn"
+                  onClick={() => onLibraryClick()}
+                >
+                  <img
+                    src="assets/icons/bookSelected.png"
+                    alt="Library"
+                    className="TeacherAssignment-addAssignment-icon1"
+                  />
+                  <span
+                    style={{ fontWeight: 500, color: "#444", fontSize: 16 }}
+                  >
+                    {t("Library")}
+                  </span>
+                </div>
+                <div
+                  className="TeacherAssignment-manual-assignments-icon-btn"
+                  onClick={startScan}
+                >
+                  <QrCode2Icon
+                    sx={{ color: "#7C5DB0" }}
+                    className="TeacherAssignment-addAssignment-icon2"
+                  />
+                  <span
+                    style={{ fontWeight: 500, color: "#444", fontSize: 16 }}
+                  >
+                    {t("Scan QR")}
+                  </span>
+                </div>
+              </div>
+            </div>
           ))}
       </div>
 
@@ -523,7 +770,8 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           }
         }}
       />
-    </div>
+    </div>}
+    </>
   );
 };
 

@@ -20,6 +20,11 @@ import {
   PAGES,
 } from "../../common/constants";
 
+type NamedContact = {
+  name: string;
+  contact: string;
+};
+
 const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
   onCancleClick,
 }) => {
@@ -184,7 +189,6 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
 
       progressRef.current = 70;
       setVerifyingProgressState(progressRef.current);
-
       if (sheet.toLowerCase().includes("school")) {
         processedData.forEach((row, index) => {
           row.__rowNum = index;
@@ -206,11 +210,15 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           const masterRow = schoolRows[0];
           const groupLevelErrors: string[] = [];
           const rowSpecificErrors = new Map<number, string[]>();
-          const contactValidationErrors = new Map<string, string[]>(); // Store DB validation errors by contact
+          const contactValidationErrors = new Map<string, string[]>();
           const collectedPMs: string[] = [];
           const collectedFCs: string[] = [];
+          const collectedPrincipals: NamedContact[] = [];
+          const collectedSchoolCoordinators: NamedContact[] = [];
           const seenPMContacts = new Set<string>();
           const seenFCContacts = new Set<string>();
+          const seenPrincipalContacts = new Set<string>();
+          const seenSchoolCoordinatorContacts = new Set<string>();
 
           // --- Pass 1: Collect contacts, check formats and in-sheet duplicates (ROW-SPECIFIC) ---
           for (const row of schoolRows) {
@@ -218,6 +226,18 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
               ?.toString()
               .trim();
             const fcPhone = row["FIELD COORDINATOR EMAIL OR PHONE NUMBER"]
+              ?.toString()
+              .trim();
+            const principalName = row["PRINCIPAL NAME"]?.toString().trim();
+            const principalPhone = row["PRINCIPAL PHONE NUMBER OR EMAIL ID"]
+              ?.toString()
+              .trim();
+            const schoolCoordinatorName = row["SCHOOL COORDINATOR NAME"]
+              ?.toString()
+              .trim();
+            const schoolCoordinatorPhone = row[
+              "SCHOOL COORDINATOR PHONE NUMBER OR EMAIL ID"
+            ]
               ?.toString()
               .trim();
             const currentRowNum = row.__rowNum;
@@ -259,6 +279,58 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                 }
               }
             }
+            if (principalName && !principalPhone) {
+              addRowError(
+                `Principal "${principalName}" is missing a phone number or email on the same row.`
+              );
+            } else if (!principalName && principalPhone) {
+              addRowError(
+                `The contact "${principalPhone}" is missing a Principal Name on the same row.`
+              );
+            } else if (principalName && principalPhone) {
+              if (seenPrincipalContacts.has(principalPhone)) {
+                addRowError(
+                  `❌ Duplicate PRINCIPAL contact in sheet: ${principalPhone}`
+                );
+              } else {
+                seenPrincipalContacts.add(principalPhone);
+                collectedPrincipals.push({
+                  name: principalName,
+                  contact: principalPhone,
+                });
+                if (!validateEmailOrPhone(principalPhone)) {
+                  addRowError(
+                    `Invalid PRINCIPAL contact format: ${principalPhone}`
+                  );
+                }
+              }
+            }
+            if (schoolCoordinatorName && !schoolCoordinatorPhone) {
+              addRowError(
+                `School Coordinator "${schoolCoordinatorName}" is missing a phone number or email on the same row.`
+              );
+            } else if (!schoolCoordinatorName && schoolCoordinatorPhone) {
+              addRowError(
+                `The contact "${schoolCoordinatorPhone}" is missing a School Coordinator Name on the same row.`
+              );
+            } else if (schoolCoordinatorName && schoolCoordinatorPhone) {
+              if (seenSchoolCoordinatorContacts.has(schoolCoordinatorPhone)) {
+                addRowError(
+                  `❌ Duplicate SCHOOL COORDINATOR contact in sheet: ${schoolCoordinatorPhone}`
+                );
+              } else {
+                seenSchoolCoordinatorContacts.add(schoolCoordinatorPhone);
+                collectedSchoolCoordinators.push({
+                  name: schoolCoordinatorName,
+                  contact: schoolCoordinatorPhone,
+                });
+                if (!validateEmailOrPhone(schoolCoordinatorPhone)) {
+                  addRowError(
+                    `Invalid SCHOOL COORDINATOR contact format: ${schoolCoordinatorPhone}`
+                  );
+                }
+              }
+            }
           }
 
           // --- Pass 1.5: Validate all UNIQUE contacts against the database ---
@@ -271,185 +343,182 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
               contactValidationErrors.set(pm, formattedErrors);
             }
           }
-
           if (seenFCContacts.size > 0) {
             const firstPM =
               collectedPMs.length > 0 ? collectedPMs[0] : undefined;
-
-            if (firstPM) {
-              for (const fc of seenFCContacts) {
-                const validation = await api.validateUserContacts(firstPM, fc);
-                if (validation.status === "error" && validation.errors) {
-                  const fcError = validation.errors.find((e) =>
-                    e.includes("FIELD COORDINATOR")
-                  );
-                  if (fcError) {
-                    contactValidationErrors.set(fc, [
-                      `For FC (${fc}): ${fcError}`,
-                    ]);
-                  }
+            for (const fc of seenFCContacts) {
+              const validation = await api.validateUserContacts(
+                firstPM ?? "",
+                fc
+              );
+              if (validation.status === "error" && validation.errors) {
+                const fcError = validation.errors.find((e) =>
+                  e.includes("FIELD COORDINATOR")
+                );
+                if (fcError) {
+                  contactValidationErrors.set(fc, [
+                    `For FC (${fc}): ${fcError}`,
+                  ]);
                 }
               }
             }
           }
 
-          // --- Pass 2: Perform ALL other GROUP-LEVEL validations ---
+          // --- Pass 2: Validation logic for school details ---
           const schoolId = masterRow["SCHOOL ID"]?.toString().trim();
-          const schoolName = masterRow["SCHOOL NAME"]?.toString().trim();
-          const state = masterRow["STATE"]?.toString().trim();
-          const district = masterRow["DISTRICT"]?.toString().trim();
-          const block = masterRow["BLOCK"]?.toString().trim();
-          const cluster = masterRow["CLUSTER"]?.toString().trim();
-          const academicYear = masterRow["SCHOOL ACADEMIC YEAR"]
-            ?.toString()
-            .trim();
-          const programName = masterRow["PROGRAM NAME"]?.toString().trim();
-          const programModel = masterRow["PROGRAM MODEL"]?.toString().trim();
-          if (schoolId && programModel) {
-            schoolProgramModelMap.set(schoolId, programModel.toUpperCase());
-          }
-          const schoolInstructionLanguage = masterRow[
-            "SCHOOL INSTRUCTION LANGUAGE"
-          ]
-            ?.toString()
-            .trim();
-          const principalName = masterRow["PRINCIPAL NAME"]?.toString().trim();
-          const principalPhone = masterRow["PRINCIPAL PHONE NUMBER OR EMAIL ID"]
-            ?.toString()
-            .trim();
-          const schoolCoordinatorName = masterRow["SCHOOL COORDINATOR NAME"]
-            ?.toString()
-            .trim();
-          const schoolCoordinatorPhone = masterRow[
-            "SCHOOL COORDINATOR PHONE NUMBER OR EMAIL ID"
-          ]
-            ?.toString()
-            .trim();
-          const studentLoginType = masterRow["STUDENT LOGIN TYPE"]
-            ?.toString()
-            .trim();
-          const isWhatsappEnabled = masterRow["IS WHATSAPP ENABLED"]
-            ?.toString()
-            .trim();
+          let isExistingAndActiveSchool = false;
 
-          if (schoolId && studentLoginType) {
-            studentLoginTypeMap.set(schoolId, studentLoginType);
-          }
-          if (programModel?.toUpperCase() !== "AT SCHOOL") {
-            if (!studentLoginType?.trim()) {
-              groupLevelErrors.push(
-                "Missing STUDENT LOGIN TYPE (Required for AT HOME/HYBRID models)"
-              );
-            }
-          }
-
-          if (collectedPMs.length === 0)
-            groupLevelErrors.push(
-              "At least one unique Program Manager contact is required."
-            );
-          if (collectedFCs.length === 0)
-            groupLevelErrors.push(
-              "At least one unique Field Coordinator contact is required."
-            );
-
-          if (isWhatsappEnabled) {
-            const validIsWhatsappEnabled = ["YES", "NO"];
-            if (
-              !validIsWhatsappEnabled.includes(isWhatsappEnabled.toUpperCase())
-            ) {
-              groupLevelErrors.push(
-                'Invalid "IS WHATSAPP ENABLED" value. Must be "YES" or "NO".'
-              );
-            }
-          } else {
-            groupLevelErrors.push("Missing IS WHATSAPP ENABLED information");
-          }
-
-          if (programModel) {
-            const validProgramModels = ["AT HOME", "AT SCHOOL", "HYBRID"];
-            if (!validProgramModels.includes(programModel.toUpperCase())) {
-              groupLevelErrors.push(
-                'Invalid PROGRAM MODEL. Must be "AT HOME", "AT SCHOOL", or "HYBRID".'
-              );
-            }
-          }
-
-          if (programName) {
-            const programValidation =
-              await api.validateProgramName(programName);
-            if (programValidation.status === "error") {
-              groupLevelErrors.push(
-                ...(programValidation.errors || [
-                  "Program name not found in database",
-                ])
-              );
-            } else {
-              validatedProgramNames.add(programName);
-            }
-          } else {
-            groupLevelErrors.push("Missing PROGRAM NAME");
-          }
-
-          if (principalPhone && !validateEmailOrPhone(principalPhone)) {
-            groupLevelErrors.push(
-              "Invalid PRINCIPAL PHONE NUMBER OR EMAIL ID format"
-            );
-          }
-          if (
-            schoolCoordinatorPhone &&
-            !validateEmailOrPhone(schoolCoordinatorPhone)
-          ) {
-            groupLevelErrors.push(
-              "Invalid SCHOOL COORDINATOR PHONE NUMBER OR EMAIL ID format"
-            );
-          }
-
+          // First, check if the school is already active in the main `school` table.
           if (schoolId) {
-            let schoolValidation;
-            if (schoolName) {
-              schoolValidation = await api.validateSchoolData(
-                schoolId,
-                schoolName
-              );
-            } else {
-              groupLevelErrors.push("Missing SCHOOL NAME");
-            }
-            if (schoolValidation && schoolValidation.status === "error") {
-              groupLevelErrors.push(...(schoolValidation.errors || []));
-            } else if (schoolValidation) {
+            const activeSchoolCheck =
+              await api.validateSchoolUdiseCode(schoolId);
+            if (activeSchoolCheck.status === "success") {
+              isExistingAndActiveSchool = true;
               validatedSchoolIds.add(schoolId);
             }
-            if (!academicYear)
-              groupLevelErrors.push("Missing SCHOOL ACADEMIC YEAR");
-            if (!programName) groupLevelErrors.push("Missing PROGRAM NAME");
-            if (!programModel) groupLevelErrors.push("Missing PROGRAM MODEL");
-            if (!schoolInstructionLanguage)
-              groupLevelErrors.push("Missing SCHOOL INSTRUCTION LANGUAGE");
-            if (!principalName) groupLevelErrors.push("Missing PRINCIPAL NAME");
-            if (!principalPhone)
-              groupLevelErrors.push(
-                "Missing PRINCIPAL PHONE NUMBER OR EMAIL ID"
-              );
-          } else {
-            if (!schoolName) groupLevelErrors.push("Missing SCHOOL NAME");
-            if (!state) groupLevelErrors.push("Missing STATE");
-            if (!district) groupLevelErrors.push("Missing DISTRICT");
-            if (!block) groupLevelErrors.push("Missing BLOCK");
-            if (!cluster) groupLevelErrors.push("Missing CLUSTER");
-            if (!academicYear)
-              groupLevelErrors.push("Missing SCHOOL ACADEMIC YEAR");
-            if (!programName) groupLevelErrors.push("Missing PROGRAM NAME");
-            if (!programModel) groupLevelErrors.push("Missing PROGRAM MODEL");
-            if (!schoolInstructionLanguage)
-              groupLevelErrors.push("Missing SCHOOL INSTRUCTION LANGUAGE");
-            if (!principalName) groupLevelErrors.push("Missing PRINCIPAL NAME");
-            if (!principalPhone)
-              groupLevelErrors.push(
-                "Missing PRINCIPAL PHONE NUMBER OR EMAIL ID"
-              );
           }
 
-          // --- Pass 3: Apply final status messages by combining all error sources for each row ---
+          if (isExistingAndActiveSchool) {
+            // This is an active school. The only goal is to add/update contacts.
+            const hasNewContacts =
+              collectedPMs.length > 0 ||
+              collectedFCs.length > 0 ||
+              collectedPrincipals.length > 0 ||
+              collectedSchoolCoordinators.length > 0;
+
+            if (!hasNewContacts) {
+              const successMessage = createStyledCell(
+                "✅ School ID is valid. No new data to process on this row.",
+                false
+              );
+              schoolRows.forEach((row) => (row["Updated"] = successMessage));
+              continue;
+            }
+          } else {
+            // This block runs if we are CREATING a new school.
+            const schoolName = masterRow["SCHOOL NAME"]?.toString().trim();
+            const academicYear = masterRow["SCHOOL ACADEMIC YEAR"]
+              ?.toString()
+              .trim();
+            const programName = masterRow["PROGRAM NAME"]?.toString().trim();
+            const programModel = masterRow["PROGRAM MODEL"]?.toString().trim();
+            const schoolInstructionLanguage = masterRow[
+              "SCHOOL INSTRUCTION LANGUAGE"
+            ]
+              ?.toString()
+              .trim();
+            const studentLoginType = masterRow["STUDENT LOGIN TYPE"]
+              ?.toString()
+              .trim();
+            const isWhatsappEnabled = masterRow["IS WHATSAPP ENABLED"]
+              ?.toString()
+              .trim();
+
+            if (schoolId) {
+              // CASE: if school ID is provided, but school is not active. Check against `school_data`.
+              if (!schoolName) {
+                groupLevelErrors.push(
+                  "Missing SCHOOL NAME (required when providing a School ID for a new school)."
+                );
+              } else {
+                const schoolDataCheck = await api.validateSchoolData(
+                  schoolId,
+                  schoolName
+                );
+                if (schoolDataCheck && schoolDataCheck.status === "error") {
+                  groupLevelErrors.push(
+                    ...(schoolDataCheck.errors || [
+                      `School with ID ${schoolId} not found in master data.`,
+                    ])
+                  );
+                } else if (schoolDataCheck) {
+                  validatedSchoolIds.add(schoolId);
+                }
+              }
+            } else {
+              // CASE: No School ID is provided. Creating from scratch requires location details.
+              const state = masterRow["STATE"]?.toString().trim();
+              const district = masterRow["DISTRICT"]?.toString().trim();
+              const block = masterRow["BLOCK"]?.toString().trim();
+              const cluster = masterRow["CLUSTER"]?.toString().trim();
+              if (!schoolName) groupLevelErrors.push("Missing SCHOOL NAME");
+              if (!state) groupLevelErrors.push("Missing STATE");
+              if (!district) groupLevelErrors.push("Missing DISTRICT");
+              if (!block) groupLevelErrors.push("Missing BLOCK");
+              if (!cluster) groupLevelErrors.push("Missing CLUSTER");
+            }
+
+            // These are mandatory fields for ANY new school creation.
+            if (!academicYear)
+              groupLevelErrors.push("Missing SCHOOL ACADEMIC YEAR");
+            if (!schoolInstructionLanguage)
+              groupLevelErrors.push("Missing SCHOOL INSTRUCTION LANGUAGE");
+            if (collectedFCs.length === 0) {
+              groupLevelErrors.push(
+                "At least one unique Field Coordinator is required for a new school."
+              );
+            }
+            if (collectedPrincipals.length === 0) {
+              groupLevelErrors.push(
+                "Missing PRINCIPAL information (Name and Contact)"
+              );
+            }
+
+            if (programName) {
+              const programValidation =
+                await api.validateProgramName(programName);
+              if (programValidation.status === "error") {
+                groupLevelErrors.push(
+                  ...(programValidation.errors || ["Program name not found."])
+                );
+              } else {
+                validatedProgramNames.add(programName);
+              }
+            } else {
+              groupLevelErrors.push("Missing PROGRAM NAME");
+            }
+
+            if (programModel) {
+              const validProgramModels = ["AT HOME", "AT SCHOOL", "HYBRID"];
+              if (!validProgramModels.includes(programModel.toUpperCase())) {
+                groupLevelErrors.push(
+                  'Invalid PROGRAM MODEL. Must be "AT HOME", "AT SCHOOL", or "HYBRID".'
+                );
+              }
+            } else {
+              groupLevelErrors.push("Missing PROGRAM MODEL");
+            }
+
+            if (isWhatsappEnabled) {
+              const validIsWhatsappEnabled = ["YES", "NO"];
+              if (
+                !validIsWhatsappEnabled.includes(
+                  isWhatsappEnabled.toUpperCase()
+                )
+              ) {
+                groupLevelErrors.push(
+                  'Invalid "IS WHATSAPP ENABLED" value. Must be "YES" or "NO".'
+                );
+              }
+            } else {
+              groupLevelErrors.push("Missing IS WHATSAPP ENABLED information");
+            }
+
+            if (programModel?.toUpperCase() !== "AT SCHOOL") {
+              if (!studentLoginType?.trim()) {
+                groupLevelErrors.push(
+                  "Missing STUDENT LOGIN TYPE (Required for AT HOME/HYBRID models)"
+                );
+              }
+            }
+            if (schoolId && programModel) {
+              schoolProgramModelMap.set(schoolId, programModel.toUpperCase());
+            }
+            if (schoolId && studentLoginType) {
+              studentLoginTypeMap.set(schoolId, studentLoginType);
+            }
+          }
+
           const hasGroupErrors = groupLevelErrors.length > 0;
           const hasRowErrors = rowSpecificErrors.size > 0;
           const hasContactDBErrors = contactValidationErrors.size > 0;
@@ -458,17 +527,11 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             validSheetCountRef.current = 1;
             for (const row of schoolRows) {
               const allErrorsForRow: string[] = [];
-
-              // 1. Add group-level errors (apply to all rows in the group)
               allErrorsForRow.push(...groupLevelErrors);
-
-              // 2. Add row-specific errors (duplicates, format issues)
               const specificErrs = rowSpecificErrors.get(row.__rowNum);
               if (specificErrs) {
                 allErrorsForRow.push(...specificErrs);
               }
-
-              // 3. Add DB validation errors for contacts on this specific row
               const pmPhone = row["PROGRAM MANAGER EMAIL OR PHONE NUMBER"]
                 ?.toString()
                 .trim();
@@ -482,7 +545,6 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
               if (fcPhone && contactValidationErrors.has(fcPhone)) {
                 allErrorsForRow.push(...contactValidationErrors.get(fcPhone)!);
               }
-
               if (allErrorsForRow.length > 0) {
                 const uniqueErrors = [...new Set(allErrorsForRow)];
                 row["Updated"] = createStyledCell(
@@ -490,7 +552,6 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                   true
                 );
               } else {
-                // This row is valid, but others in its group might have errors.
                 row["Updated"] = createStyledCell(
                   "✅ This row is valid, but the school group has other errors.",
                   false
@@ -498,7 +559,6 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
               }
             }
           } else {
-            // Success case: No errors in the entire group
             const successMessage = createStyledCell(
               "✅ School and all contacts validated",
               false
@@ -506,6 +566,8 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             schoolRows.forEach((row) => (row["Updated"] = successMessage));
             masterRow.programManagers = collectedPMs;
             masterRow.fieldCoordinators = collectedFCs;
+            masterRow.principals = collectedPrincipals;
+            masterRow.schoolCoordinators = collectedSchoolCoordinators;
             masterSchoolRowsForPayload.push(masterRow);
           }
         }
@@ -711,8 +773,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           { schoolModel?: string; studentLoginType?: string }
         >();
 
-        // ---------- ✅  UDISE + backend validations HELPER FUNCTION ----------
-        // This function handles the STRICT validation for "AT SCHOOL" / "HYBRID" models.
+        // ---------- Helper Function for DB Validation (for EXISTING schools) ----------
         async function validateStudentData(
           studentLoginType: string | undefined,
           parentContact: string,
@@ -744,12 +805,15 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
               try {
                 const result = await api.validateParentAndStudentInClass(
                   parentContact,
-                  className,
                   studentName,
+                  className,
                   schoolId
                 );
                 if (result?.status === "error") {
-                  errors.push(...(result.errors || []));
+                  if (result.message) errors.push(result.message);
+                  if (result.errors && result.errors.length > 0) {
+                    errors.push(...result.errors);
+                  }
                 }
               } catch (e) {
                 errors.push(
@@ -770,7 +834,10 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                 schoolId
               );
               if (result?.status === "error") {
-                errors.push(...(result.errors || []));
+                if (result.message) errors.push(result.message);
+                if (result.errors && result.errors.length > 0) {
+                  errors.push(...result.errors);
+                }
               }
             } catch (e) {
               errors.push("Error while validating student in class.");
@@ -796,7 +863,6 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           const schoolClassKey = `${schoolId}_${className}`;
           const classId = `${schoolId}_${grade}_${classSection}`.trim();
 
-          // --- 2. In-Sheet Duplicate Checks (Fastest check, do it first) ---
           if (studentName && classId) {
             const nameClassKey = `${studentName}_${classId}`.toLowerCase();
             if (seenNameClassCombos.has(nameClassKey)) {
@@ -807,7 +873,6 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
               seenNameClassCombos.add(nameClassKey);
             }
           }
-
           const identifier = parentContact || studentId;
           if (identifier && classId) {
             const classIdentifierKey = `${classId}_${identifier}`.toLowerCase();
@@ -843,73 +908,110 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           if (!className)
             errors.push("Class details (Grade/Section) are required.");
 
-          // --- 4. Main Conditional Validation Logic based on Program Model ---
+          // 3. Main Conditional Validation Logic
           if (!schoolId) {
             errors.push("Missing SCHOOL ID.");
           } else {
-            let schoolModel: string | undefined;
-            let studentLoginType: string | undefined;
-
-            // Step A: Get school details (from sheet, cache, or DB)
+            //SCENARIO 1: The school is NEW (created in this file in school sheet).
             if (schoolProgramModelMap.has(schoolId)) {
-              schoolModel = schoolProgramModelMap.get(schoolId);
-              studentLoginType = studentLoginTypeMap.get(schoolId);
+              const schoolModel = schoolProgramModelMap.get(schoolId);
+              const studentLoginType = studentLoginTypeMap.get(schoolId);
+
+              // Crucial Check: The class for this student must also be defined in the 'Class' sheet.
               if (!validatedSchoolClassPairs.has(schoolClassKey)) {
                 errors.push(
-                  `Class "${className}" for school "${schoolId}" not found in Class sheet.`
+                  `Class "${className}" for new school "${schoolId}" was not found in the 'Class' sheet.`
                 );
               }
-            } else if (schoolDetailsCache.has(schoolId)) {
-              const details = schoolDetailsCache.get(schoolId)!;
-              schoolModel = details.schoolModel;
-              studentLoginType = details.studentLoginType;
-            } else {
-              const schoolDetailsResult =
-                await api.getSchoolDetailsByUdise(schoolId);
-              if (!schoolDetailsResult) {
-                errors.push(`School ID ${schoolId} not found in database.`);
-              } else {
-                schoolModel = schoolDetailsResult.schoolModel?.toUpperCase();
-                studentLoginType = schoolDetailsResult.studentLoginType;
 
-                schoolDetailsCache.set(schoolId, {
-                  schoolModel,
-                  studentLoginType,
-                });
-
-                if (schoolModel)
-                  schoolProgramModelMap.set(schoolId, schoolModel);
-                if (studentLoginType)
-                  studentLoginTypeMap.set(schoolId, studentLoginType);
-              }
-            }
-            if (schoolModel) {
-              if (schoolModel === "AT SCHOOL" || schoolModel === "at_school") {
-                // **"AT SCHOOL"ID/Phone are optional.
-                const result = await api.validateStudentInClassWithoutPhone(
-                  studentName,
-                  className,
-                  schoolId
-                );
-                if (result?.status === "error") {
-                  errors.push(...(result.errors || []));
+              // For Hybrid/At-Home models, validate the identifier format WITHOUT calling the database.
+              if (schoolModel !== "AT SCHOOL" && schoolModel !== "at_school") {
+                if (!studentLoginType) {
+                  errors.push(
+                    `Could not determine STUDENT LOGIN TYPE for new school ${schoolId}. Check the 'School' sheet.`
+                  );
+                } else if (
+                  studentLoginType.toUpperCase() === "PARENT PHONE NUMBER"
+                ) {
+                  if (!parentContact) {
+                    errors.push(
+                      "PARENT PHONE NUMBER OR LOGIN ID is required for this new school's login type."
+                    );
+                  } else if (!/^\d{10}$/.test(parentContact)) {
+                    errors.push(
+                      "PARENT PHONE NUMBER must be a valid 10-digit mobile number."
+                    );
+                  }
+                } else {
+                  // For login types like 'STUDENT ID'
+                  if (!studentId || studentId.trim() === "") {
+                    errors.push(
+                      "STUDENT ID is required for this new school's login type."
+                    );
+                  }
                 }
+              }
+              // For "AT SCHOOL" model, no further identifier validation is needed for a new student.
+            }
+            //SCENARIO 2: The school is EXISTING (already in the database).
+            else {
+              let schoolModel: string | undefined;
+              let studentLoginType: string | undefined;
+              // Use cache to avoid redundant DB calls for the same existing school
+              if (schoolDetailsCache.has(schoolId)) {
+                const details = schoolDetailsCache.get(schoolId)!;
+                schoolModel = details.schoolModel;
+                studentLoginType = details.studentLoginType;
               } else {
-                await validateStudentData(
-                  studentLoginType,
-                  parentContact,
-                  className,
-                  studentName,
-                  schoolId,
-                  studentId,
-                  errors
+                const schoolDetailsResult =
+                  await api.getSchoolDetailsByUdise(schoolId);
+                if (!schoolDetailsResult) {
+                  errors.push(`School ID ${schoolId} not found in database.`);
+                } else {
+                  schoolModel = schoolDetailsResult.schoolModel?.toUpperCase();
+                  studentLoginType = schoolDetailsResult.studentLoginType;
+                  schoolDetailsCache.set(schoolId, {
+                    schoolModel,
+                    studentLoginType,
+                  });
+                }
+              }
+
+              if (schoolModel) {
+                if (
+                  schoolModel === "AT SCHOOL" ||
+                  schoolModel === "at_school"
+                ) {
+                  const result = await api.validateStudentInClassWithoutPhone(
+                    studentName,
+                    className,
+                    schoolId
+                  );
+                  if (result?.status === "error") {
+                    errors.push(
+                      ...(result.errors || [
+                        result.message || "Validation failed.",
+                      ])
+                    );
+                  }
+                } else {
+                  // This is an EXISTING school, so calling the DB validation helper.
+                  await validateStudentData(
+                    studentLoginType,
+                    parentContact,
+                    className,
+                    studentName,
+                    schoolId,
+                    studentId,
+                    errors
+                  );
+                }
+              } else if (errors.length === 0) {
+                // Only add this error if no other error was found
+                errors.push(
+                  `Could not determine Program Model for existing School ID ${schoolId} to run validation.`
                 );
               }
-            } else if (errors.length === 0) {
-              // This case handles when schoolId was valid but we couldn't find its details.
-              errors.push(
-                `Could not determine Program Model for School ID ${schoolId} to run validation.`
-              );
             }
           }
 
@@ -924,7 +1026,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           }
         }
       }
-      // **Update sheet with validation messages**
+
       const updatedSheet = XLSX.utils.json_to_sheet(processedData);
       workbook.Sheets[sheet] = updatedSheet;
 

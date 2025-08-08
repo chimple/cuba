@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { NavLink, useHistory, useLocation } from "react-router-dom";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import SchoolIcon from "@mui/icons-material/School";
@@ -74,6 +74,7 @@ const navItems = [
 
 const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
@@ -114,6 +115,24 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
     }
   };
 
+  // Close sidebar when user click on outside 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isOpen &&
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
   // Auto-close sidebar on mobile route change
   useEffect(() => {
     setIsOpen(false);
@@ -129,7 +148,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
           <MenuIcon />
         </button>
       )}
-      <aside className={`nav-sidebar ${isOpen ? "open" : ""}`}>
+      <aside ref={sidebarRef} className={`nav-sidebar ${isOpen ? "open" : ""}`}>
         <button
           className="sidebar-hamburger-inside"
           onClick={() => setIsOpen(!isOpen)}

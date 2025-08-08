@@ -8,6 +8,7 @@ import {
 } from "ionicons/icons";
 import {
   ASSIGNMENT_TYPE,
+  AssignmentSource,
   BANDS,
   BANDWISECOLOR,
   PAGES,
@@ -368,9 +369,20 @@ const CreateSelectedAssignment = ({
           : []
       );
       const sync_lesson_data = all_sync_lesson.get(current_class?.id ?? "");
-      let sync_lesson: Map<string, string[]> = new Map(
+
+      let sync_lesson: Map<string, Record<string, string[]>> = new Map(
         sync_lesson_data ? Object.entries(JSON.parse(sync_lesson_data)) : []
       );
+
+      // ✅ Build reverse lookup: lessonId → chapterId
+      const lessonToChapterMap = new Map<string, string>();
+      for (const [chapterId, sourceMap] of sync_lesson.entries()) {
+        for (const lessonIds of Object.values(sourceMap)) {
+          for (const lessonId of lessonIds) {
+            lessonToChapterMap.set(lessonId, chapterId);
+          }
+        }
+      }
 
       // Iterate through assignment types (manual/recommended)
       for (const type of Object.keys(selectedAssignments)) {
@@ -399,15 +411,30 @@ const CreateSelectedAssignment = ({
                 return;
               }
 
-              const tempChapterId =
-                (await api.getChapterByLesson(tempLes.id, current_class.id)) ??
-                "";
+              const tempChapterId = lessonToChapterMap.get(lessonId) ?? "";
               if (!tempChapterId) {
                 console.warn(`Chapter not found for lessonId: ${lessonId}`);
                 return;
               }
               // ✨ MODIFICATION: Create a staggered timestamp for ordering
               const createdAt = new Date(Date.now() - idx * 100).toISOString();
+
+              // 🌟 Determine Source (manual, qr_code, recommended)
+              let source: string | null = null;
+
+              const chapterSourceMap = sync_lesson.get(tempChapterId as string) ?? {};
+
+              if (chapterSourceMap[AssignmentSource.MANUAL]?.includes(lessonId)) {
+                source = AssignmentSource.MANUAL;
+              } else if (
+                chapterSourceMap[AssignmentSource.QR_CODE]?.includes(lessonId)
+              ) {
+                source = AssignmentSource.QR_CODE;
+              } else if (
+                tempLes?.source === AssignmentSource.RECOMMENDED
+              ) {
+                source = AssignmentSource.RECOMMENDED;
+              }
 
               const res = await api.createAssignment(
                 studentList,
@@ -424,16 +451,16 @@ const CreateSelectedAssignment = ({
                   ? ASSIGNMENT_TYPE.LIVEQUIZ
                   : ASSIGNMENT_TYPE.ASSIGNMENT,
                 batchId,
+                source, 
                 createdAt
               );
 
-              // If the assignment creation was successful, update sync_lesson
-              for (const [chapter, lessons] of sync_lesson.entries()) {
-                const lessonIndex = lessons.findIndex((id) => id === lessonId);
-                if (lessonIndex !== -1) {
-                  lessons.splice(lessonIndex, 1); // Remove lessonId from lessons array
-                  sync_lesson.set(chapter, lessons); // Update sync_lesson with modified array
-                }
+              // ❌ Remove lesson from sync_lesson under correct source
+              if (source && chapterSourceMap[source]) {
+                chapterSourceMap[source] = chapterSourceMap[source].filter(
+                  (id) => id !== lessonId
+                );
+                sync_lesson.set(tempChapterId as string, chapterSourceMap);
               }
             })
           );

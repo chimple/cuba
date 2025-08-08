@@ -31,7 +31,7 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
   counter,
   showResendOtp,
 }) => {
-  if (loginType === LOGIN_TYPES.FORGET_PASS) return null;
+  if (loginType === LOGIN_TYPES.FORGET_PASS) return <div className="LoginSwitch-other-ways"></div>;
 
   return (
     <div className="LoginSwitch-other-ways">

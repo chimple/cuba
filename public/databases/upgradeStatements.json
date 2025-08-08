@@ -3,11 +3,16 @@
     "statements": [],
     "tableChanges": {}
   },
-  "2": {
-    "statements": ["CREATE TABLE IF NOT EXISTS program ( id TEXT PRIMARY KEY, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), name TEXT NOT NULL, model TEXT NOT NULL, is_deleted INTEGER, school_id TEXT, is_ops INTEGER, implementation_partner TEXT, funding_partner TEXT, institute_partner TEXT, country TEXT, state TEXT, block TEXT, cluster TEXT, village TEXT, program_type TEXT, institutes_count TEXT, students_count TEXT, devices_count TEXT, start_date TEXT, end_date TEXT, program_manager TEXT, district TEXT);"],
+    "2": {
+     "statements": [
+    "CREATE TABLE IF NOT EXISTS chapter_links( id TEXT PRIMARY KEY, created_at TEXT NOT NULL DEFAULT (datetime('now')), chapter_id TEXT, link TEXT, curriculum_id TEXT, course_id TEXT, grade_id TEXT, updated_at TEXT DEFAULT (datetime('now')), is_deleted INTEGER );"],
     "tableChanges": {}
   },
   "3": {
+    "statements": ["CREATE TABLE IF NOT EXISTS program ( id TEXT PRIMARY KEY, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), name TEXT NOT NULL, model TEXT NOT NULL, is_deleted INTEGER, school_id TEXT, is_ops INTEGER, implementation_partner TEXT, funding_partner TEXT, institute_partner TEXT, country TEXT, state TEXT, block TEXT, cluster TEXT, village TEXT, program_type TEXT, institutes_count TEXT, students_count TEXT, devices_count TEXT, start_date TEXT, end_date TEXT, program_manager TEXT, district TEXT);"],
+    "tableChanges": {}
+  },
+  "4": {
     "statements": [
       "ALTER TABLE assignment ADD COLUMN firebase_id TEXT;",
       "ALTER TABLE assignment ADD COLUMN is_firebase BOOLEAN;",
@@ -47,7 +52,8 @@
       "ALTER TABLE user ADD COLUMN is_firebase BOOLEAN;",
       "ALTER TABLE user ADD COLUMN is_ops BOOLEAN;",
       "ALTER TABLE user ADD COLUMN ops_created_by TEXT;",
-      "ALTER TABLE assignment ADD COLUMN batch_id TEXT;"
+      "ALTER TABLE assignment ADD COLUMN batch_id TEXT;",
+      "ALTER TABLE assignment ADD COLUMN source TEXT;"
     ],
     "tableChanges": {}
 }

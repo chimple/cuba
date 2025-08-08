@@ -40,6 +40,8 @@ import { RoleType } from "../interface/modelInterfaces";
 import DeleteParentAccount from "../components/parent/DeleteParentAccount";
 import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
 import DebugMode from "../teachers-module/components/DebugMode";
+import { Capacitor } from "@capacitor/core";
+import { Capacitor } from "@capacitor/core";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 const Parent: React.FC = () => {
@@ -319,9 +321,13 @@ const Parent: React.FC = () => {
               title={"Switch to Teacher's Mode"}
               layout="vertical"
               onIonChangeClick={async () => {
+                const isNativePlatform = Capacitor.isNativePlatform();
+                const isNativePlatform = Capacitor.isNativePlatform();
                 if (localSchool && localClass) {
                   schoolUtil.setCurrMode(MODES.TEACHER);
                   history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+                  isNativePlatform && window.location.reload();
+                  isNativePlatform && window.location.reload();
                 } else if (schools && schools.length > 0) {
                   if (schools?.length === 1) {
                     Util.setCurrentSchool(schools[0].school, schools[0].role);
@@ -333,14 +339,19 @@ const Parent: React.FC = () => {
                       Util.setCurrentClass(tempClasses[0]);
                       schoolUtil.setCurrMode(MODES.TEACHER);
                       history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+                      isNativePlatform && window.location.reload();
                     }
                   } else {
                     schoolUtil.setCurrMode(MODES.TEACHER);
                     history.replace(PAGES.DISPLAY_SCHOOLS);
+                    isNativePlatform && window.location.reload();
+                    isNativePlatform && window.location.reload();
                   }
                 } else {
                   schoolUtil.setCurrMode(MODES.TEACHER);
                   history.replace(PAGES.DISPLAY_SCHOOLS);
+                  isNativePlatform && window.location.reload();
+                  isNativePlatform && window.location.reload();
                 }
               }}
             />

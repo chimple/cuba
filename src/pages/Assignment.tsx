@@ -199,6 +199,14 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
   useEffect(() => {
     Util.loadBackgroundImage();
     init(false);
+
+    api.syncDB(Object.values(TABLES), [TABLES.Assignment])
+      .then(() => {
+        init(false);
+      })
+      .catch((error) => {
+        console.error('Error syncing assignments:', error);
+      });
   }, []);
 
   useEffect(() => {

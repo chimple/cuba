@@ -18,18 +18,6 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.with-icon-input-box::before {
-  content: "";
-  position: absolute;
-  top: -1px;
-  left: 13px;
-  width: 80px;
-  height: 3px;
-  background-color: transparent;
-  background-color: #ffffff;
-  z-index: 2;
-}
-
 .with-icon-input-label {
   position: absolute;
   top: -11px;
@@ -40,6 +28,24 @@
   font-size: 12px;
   color: #182a4f;
   z-index: 100;
+  width: fit-content;
+}
+
+.with-icon-input-label::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 3px;
+  background-color: white;
+  z-index: -1;
+  border-radius: 2px;
+}
+
+.with-icon-label-offset-small {
+  top: -9px !important;
 }
 
 .with-icon-required {
