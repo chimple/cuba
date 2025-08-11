@@ -3,7 +3,12 @@ import "./PathwayStructure.css";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory } from "react-router";
-import { CAN_ACCESS_REMOTE_ASSETS, PAGES } from "../../common/constants";
+import {
+  CAN_ACCESS_REMOTE_ASSETS,
+  CONTINUE,
+  LIDO,
+  PAGES,
+} from "../../common/constants";
 import PathwayModal from "./PathwayModal";
 import { t } from "i18next";
 import { Directory, Filesystem } from "@capacitor/filesystem";
@@ -375,6 +380,15 @@ const PathwayStructure: React.FC = () => {
                     chapter: JSON.stringify({ chapter_id: lesson.chapter_id }),
                     from: history.location.pathname + `?continue=true`,
                     learning_path: true,
+                  });
+                } else if (lesson.plugin_type === LIDO) {
+                  const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+                  history.replace(PAGES.LIDO_PLAYER + parmas, {
+                    lessonId: lesson.cocos_lesson_id,
+                    courseDocId: course.course_id,
+                    lesson: JSON.stringify(lesson),
+                    chapter: JSON.stringify({ chapter_id: lesson.chapter_id }),
+                    from: history.location.pathname + `?${CONTINUE}=true`,
                   });
                 }
               });
