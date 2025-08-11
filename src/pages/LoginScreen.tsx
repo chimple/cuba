@@ -807,7 +807,7 @@ const LoginScreen: React.FC = () => {
           </div>
           {loginType !== LOGIN_TYPES.OTP ? (
             <img
-              src={"/assets/loginAssets/ChimpleLogo.svg"}
+              src={"assets/icons/Pangolim1.png"}
               alt="Chimple Logo"
               className="Loginscreen-chimple-login-logo"
               style={

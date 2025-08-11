@@ -19,5 +19,5 @@
     "types": ["lido-standalone"],
     "jsx": "react-jsx"
   },
-  "include": ["src"]
+  "include": ["src", "craco.config.js"]
 }

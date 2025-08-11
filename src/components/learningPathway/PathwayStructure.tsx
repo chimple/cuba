@@ -380,7 +380,7 @@ const PathwayStructure: React.FC = () => {
               });
 
               const chimple = createSVGImage(
-                "/pathwayAssets/mascot.svg",
+                "assets/icons/Pangolim1.svg",
                 75,
                 81,
                 x,
