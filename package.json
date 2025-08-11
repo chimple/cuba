@@ -73,7 +73,7 @@
     "ionicons": "^6.0.3",
     "jeep-sqlite": "^2.6.2",
     "libphonenumber-js": "^1.12.6",
-    "lido-standalone": "^0.0.0-alpha-3",
+    "lido-standalone": "^0.0.0-alpha-16",
     "qrcode.react": "^3.1.0",
     "query-string": "^9.2.2",
     "react": "^18.2.0",
@@ -112,13 +112,13 @@
     "zip2": "^0.0.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build && npm run copy-build && npm run create-check-sum && cap sync",
+    "start": "craco start",
+    "build": "craco build && npm run copy-build && npm run create-check-sum && cap sync",
     "create-check-sum": "node scripts/check_sum_generator.js",
     "copy-build": "shx cp chimple-lib/*.js build/ && shx cp -r chimple-lib/src build/src && shx cp -r chimple-lib/assets/* build/assets/",
     "serve-build": "http-server build",
-    "test": "react-scripts test --transformIgnorePatterns 'node_modules/(?!(@ionic/react|@ionic/react-router|@ionic/core|@stencil/core|ionicons)/)'",
-    "eject": "react-scripts eject",
+    "test": "craco test --transformIgnorePatterns 'node_modules/(?!(@ionic/react|@ionic/react-router|@ionic/core|@stencil/core|ionicons)/)'",
+    "eject": "craco eject",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build --output-dir build/storybook"
   },
