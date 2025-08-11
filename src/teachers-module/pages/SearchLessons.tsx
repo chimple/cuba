@@ -151,7 +151,6 @@ const SearchLesson: React.FC = ({}) => {
                   handleLessonCLick={() => {
                     history.replace(PAGES.LESSON_DETAILS, {
                       course: null,
-                      classId: "49d6cc2f-1c1c-4211-bc11-6e2c9b2a0858",
                       lesson: lesson,
                       selectedLesson: selectedLesson,
                     });

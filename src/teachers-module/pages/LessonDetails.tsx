@@ -7,7 +7,7 @@ import "./LessonDetails.css";
 import RemoveRedEyeOutlinedIcon from "@mui/icons-material/RemoveRedEyeOutlined";
 import SelectIcon from "../components/SelectIcon";
 import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
-import { PAGES, TableTypes, belowGrade1, grade1 } from "../../common/constants";
+import { AssignmentSource, PAGES, TableTypes, belowGrade1, grade1 } from "../../common/constants";
 import { Util } from "../../utility/util";
 import AssigmentCount from "../components/library/AssignmentCount";
 interface LessonDetailsProps {}
@@ -29,6 +29,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   const current_class = Util.getCurrentClass();
   const selectedLesson = history.location.state?.["selectedLesson"];
   const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
+  const [selectedLessonMap, setSelectedLessonMap] = useState<Map<string, string>>(new Map(selectedLesson));
 
   let isGrade1: string | boolean = false;
 
@@ -54,10 +55,26 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   };
   useEffect(() => {
     const sync_lesson_data = selectedLesson.get(current_class?.id ?? "");
-    const class_sync_lesson: Map<string, string[]> = new Map(
-      Object.entries(sync_lesson_data ? JSON.parse(sync_lesson_data) : {})
-    );
-    setClassSelectedLesson(class_sync_lesson);
+
+    const transformedMap: Map<string, string[]> = new Map();
+
+    if (sync_lesson_data) {
+      const parsed = JSON.parse(sync_lesson_data);
+
+      Object.entries(parsed).forEach(([chapterId, value]) => {
+        if (Array.isArray(value)) {
+          // Old format
+          transformedMap.set(chapterId, value);
+        } else if (typeof value === "object" && value !== null) {
+          // New format with source keys
+          const manual = value[AssignmentSource.MANUAL] ?? [];
+          const qr = value[AssignmentSource.QR_CODE] ?? [];
+          transformedMap.set(chapterId, [...manual, ...qr]);
+        }
+      });
+    }
+
+    setClassSelectedLesson(transformedMap);
   }, []);
   useEffect(() => {
     const _assignmentLength = Array.from(classSelectedLesson.values()).reduce(
@@ -83,22 +100,45 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   };
 
   const handleButtonClick = () => {
-    const tmpselectedLesson = new Map(selectedLesson);
-    const slctLesson = classSelectedLesson.get(chapterId) ?? [];
-    const updatedLesson = slctLesson.includes(lesson.id)
-      ? slctLesson.filter((item) => item !== lesson.id)
-      : [...slctLesson, lesson.id];
-    const updatedSelectedLesson = new Map(classSelectedLesson);
-    updatedSelectedLesson.set(chapterId, updatedLesson);
-    setClassSelectedLesson(updatedSelectedLesson);
-    const _selectedLesson = JSON.stringify(
-      Object.fromEntries(updatedSelectedLesson)
+    const classId = current_class?.id ?? "";
+    const tmpselectedLesson = new Map(selectedLessonMap); 
+
+    const prevDataStr = tmpselectedLesson.get(classId) ?? "{}";
+    const parsed = JSON.parse(prevDataStr);
+
+    let updatedChapterData: Record<string, any> = parsed[chapterId] ?? {};
+
+    // Handle old format fallback
+    if (Array.isArray(updatedChapterData)) {
+      updatedChapterData = { manual: [...updatedChapterData] };
+    }
+
+    const existing = updatedChapterData[AssignmentSource.MANUAL] ?? [];
+    const isAlreadySelected = existing.includes(lesson.id);
+
+    const newManual = isAlreadySelected
+      ? existing.filter((id: string) => id !== lesson.id)
+      : [...existing, lesson.id];
+
+    updatedChapterData[AssignmentSource.MANUAL] = newManual;
+
+    // Update the chapter data in main object
+    parsed[chapterId] = updatedChapterData;
+
+    // Convert to map for state update
+    const updatedClassSelectedLesson = new Map(classSelectedLesson);
+    updatedClassSelectedLesson.set(
+      chapterId,
+      Object.values(updatedChapterData).flat()
     );
-    tmpselectedLesson.set(current_class?.id ?? "", _selectedLesson);
-    const _totalSelectedLesson = JSON.stringify(
-      Object.fromEntries(tmpselectedLesson)
-    );
-    syncSelectedLesson(_totalSelectedLesson);
+    setClassSelectedLesson(updatedClassSelectedLesson);
+
+    // Serialize and store
+    tmpselectedLesson.set(classId, JSON.stringify(parsed));
+    setSelectedLessonMap(tmpselectedLesson); 
+
+    const totalSelectedLesson = JSON.stringify(Object.fromEntries(tmpselectedLesson));
+    syncSelectedLesson(totalSelectedLesson);
   };
   return (
     <div className="lesson-details-container">

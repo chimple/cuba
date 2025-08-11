@@ -1384,4 +1384,8 @@ export class ApiHandler implements ServiceApi {
     chapterIds: string[]){
     return await this.s.getChaptersByIds(chapterIds);
     }
+  public async addParentToNewClass(
+    classId: string, studentId:string): Promise<void>{
+    return await this.s.addParentToNewClass(classId, studentId);
+    }
 }

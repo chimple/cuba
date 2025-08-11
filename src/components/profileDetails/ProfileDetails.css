@@ -125,7 +125,16 @@
   color: white;
   border-bottom: 5px solid #8a2901;
   cursor: pointer;
+  pointer-events: auto;
 }
+
+.profiledetails-save-button:enabled:active {
+  border-bottom: 3px solid #8a2901;
+  transition:
+    background 0.1s,
+    color 0.1s;
+}
+
 
 .profiledetails-gender-fieldset {
   border: 1px solid #182a4f;
@@ -165,7 +174,7 @@
 
 .profiledetails-gender-btn.selected {
   color: #5D44BD;
-  border: 2px solid #F35D08;
+  border: 1px solid #F35D08;
 }
 
 .profiledetails-button-group {
@@ -185,7 +194,15 @@
   font-size: 26px;
   font-weight: 600;
   cursor: pointer;
+  transition:
+    background 0.1s,
+    color 0.1s;
 }
+
+.profiledetails-skip-button:active {
+  border-bottom: 3px solid #CA3AE6;
+}
+
 
 .profiledetails-required-indicator{
     font-size: 12px;
@@ -213,4 +230,35 @@
   color: #F34D08;
   width: 20px;
   height: 20px;
+}
+
+.profiledetails-gender-label {
+  font-size: 14px;
+  color: #182a4f;
+  font-weight: 500;
+  position: relative;
+  margin-left: 10px;
+}
+
+
+.profiledetails-gender-label-text {
+  position: relative;
+  display: inline-block;
+  background-color: transparent;
+  padding: 0 4px;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.profiledetails-gender-label-text::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 3px;
+  background-color: white;
+  z-index: -1;
+  border-radius: 2px;
 }
