@@ -360,88 +360,67 @@ export class Util {
     localStorage.setItem(lessonIdStorageKey, JSON.stringify(updatedItems));
   };
 
-  // public static async getLessonPath(lessonId: string): Promise<string> {
-  //   const path =
-  //     (localStorage.getItem("gameUrl") ??
-  //       "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-  //     lessonId +
-  //     "/";
-  //   return path;
-  // public static async getLessonPath(data: {
-  //   lessonId: string;
-  // }): Promise<string> {
-  //   const path =
-  //     (localStorage.getItem("gameUrl") ??
-  //       "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-  //     data.lessonId +
-  //     "/";
-  //   return path;
-  // }
-  public static async getLessonPath(data: { lessonId: string }) {
-    try {
-      const folderName = data.lessonId;
-      const basePath =
-        "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/";
-      const fullPath = basePath + folderName + "/";
-      const internalPath = folderName;
+  public static async getLessonPath({
+    lessonId: lessonId,
+  }): Promise<string | null> {
+    const gameUrl = localStorage.getItem("gameUrl");
 
-      let folderExists = false;
-
-      try {
-        await Filesystem.readdir({
-          path: internalPath,
-          directory: Directory.External,
-        });
-        console.log("✅ Folder already exists, skipping copy.");
-        folderExists = true;
-      } catch (e) {
-        console.log("📁 Folder not found, copying...");
-      }
-
-      if (!folderExists) {
-        if (!Util.port) {
-          Util.port = registerPlugin<PortPlugin>("Port");
-        }
-        await new Promise<void>((resolve, reject) => {
-          Util.port
-            .copyLessonBundle({ folderName })
-            .then(() => {
-              console.log("✅ Native plugin resolved.");
-              resolve();
-            })
-            .catch((err) => {
-              console.error("❌ Native plugin failed:", err);
-              reject(err);
-            });
-        });
+    // ✅ 1. Try gameUrl from localStorage
+    if (gameUrl) {
+      if (
+        gameUrl.startsWith(
+          "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/"
+        )
+      ) {
+        const androidPath = `${gameUrl}${lessonId}/index.xml`;
         try {
-          await Filesystem.readdir({
-            path: internalPath,
-            directory: Directory.External,
-          });
-        } catch (e) {
-          console.error("❌ Copy finished, but folder still not found");
-          throw new Error("Folder copy failed or path not accessible yet.");
+          const res = await fetch(androidPath);
+          if (res.ok) {
+            return `${gameUrl}${lessonId}/`;
+          }
+        } catch (err) {
+          console.warn("Error accessing Android path from localStorage:", err);
         }
       }
 
-      console.log("pathhh", fullPath);
-      return fullPath;
-    } catch (error) {
-      console.error("❌ Lesson copy failed:", error);
-      throw error;
+      if (gameUrl.startsWith(LOCAL_BUNDLES_PATH)) {
+        const webPath = `${LOCAL_BUNDLES_PATH}${lessonId}/index.xml`;
+        try {
+          const res = await fetch(webPath);
+          if (res.ok) {
+            return `${LOCAL_BUNDLES_PATH}${lessonId}/`;
+          }
+        } catch (err) {
+          console.warn("Error accessing web path from localStorage:", err);
+        }
+      }
     }
+
+    // 🧪 2. Try public/assets path directly
+    try {
+      const publicPath = `/assets/lessonBundles/${lessonId}/index.xml`;
+      const res = await fetch(publicPath);
+      if (res.ok) {
+        return `/assets/lessonBundles/${lessonId}/`;
+      }
+    } catch (err) {
+      console.warn("Error accessing public path:", err);
+    }
+
+    // 📱 3. Try dynamic Android path
+    try {
+      const androidBasePath = await this.getAndroidBundlePath();
+      const fullAndroidPath = `${androidBasePath}${lessonId}/index.xml`;
+      const res = await fetch(fullAndroidPath);
+      if (res.ok) {
+        return `${androidBasePath}${lessonId}/`;
+      }
+    } catch (err) {
+      console.warn("Error accessing dynamic Android path:", err);
+    }
+    console.error("Lesson bundle not found in any known location:", lessonId);
+    return null;
   }
-  // public static async getLessonPath(lessonId: string): Promise<string> {
-  //   const path = `/assets/lessonBundles/${lessonId}/index.xml`;
-
-  //   const res = await fetch(path);
-  //   if (!res.ok) {
-  //     throw new Error("Lesson file not found");
-  //   }
-
-  //   return `/assets/lessonBundles/${lessonId}`;
-  // }
 
   public static async downloadZipBundle(
     lessonIds: string[],

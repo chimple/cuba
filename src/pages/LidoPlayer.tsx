@@ -258,13 +258,14 @@ const LidoPlayer: FC = () => {
     }
     if (Capacitor.isNativePlatform()) {
       const path = await Util.getLessonPath({ lessonId: lessonId });
-      setBasePath(path);
+      if (path) {
+        setBasePath(path);
+      } else {
+        return;
+      }
     } else {
-      const path = `/assets/lessonBundles/${lessonId}/index.xml`;
+      const path = `/assets/lessonBundles/${lessonId}/`;
       setBasePath(path);
-      // const path =
-      //   "https://raw.githubusercontent.com/chimple/lido-player/refs/heads/main/src/components/root/assets/xmlData.xml";
-      // setXmlPath(path);
     }
     setIsLoading(false);
   }
