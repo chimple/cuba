@@ -1348,24 +1348,12 @@ export class SqliteApi implements ServiceApi {
       gradeDocId === aboveGrade3
     ) {
       isGrade2 = true;
-    } else if (gradeDocId === grade5) {
-      isGrade5 = true;
-    } else if (gradeDocId === grade6) {
-      isGrade6 = true;
     } else {
       isGrade2 = true;
     }
 
     console.log("fdsfsfdsfs", gradeDocId);
-    const gradeLevel = isGrade1
-      ? grade1
-      : isGrade2
-        ? grade2
-        : isGrade5
-          ? grade5
-          : isGrade6
-            ? grade6
-            : gradeDocId;
+    const gradeLevel = isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId;
 
     const gradeCourses = await this.getCoursesByGrade(gradeLevel);
     const curriculumCourses = gradeCourses.filter(
