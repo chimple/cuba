@@ -2,6 +2,7 @@ import { Capacitor } from "@capacitor/core";
 import Auth from "../models/auth";
 import { Database } from "../services/database";
 import { RoleType } from "../interface/modelInterfaces";
+import SelectIconImage from "../teachers-module/assets/icons/all_subject_icon.png";
 
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = "sl-en",
@@ -17,6 +18,14 @@ export enum MUTATE_TYPES {
   INSERT = "insert",
   UPDATE = "update",
   DELETE = "delete",
+}
+
+export enum LOGIN_TYPES {
+  PHONE = "phone",
+  STUDENT = "student",
+  EMAIL = "email",
+  OTP = "otp",
+  FORGET_PASS = "forget_pass",
 }
 
 export enum TABLES {
@@ -40,6 +49,7 @@ export enum TABLES {
   ClassCourse = "class_course",
   ChapterLesson = "chapter_lesson",
   ParentUser = "parent_user",
+  ProgramUser = "program_user",
   SchoolCourse = "school_course",
   SchoolUser = "school_user",
   UserBadge = "user_badge",
@@ -53,6 +63,8 @@ export enum TABLES {
   // Chatbot = "chatbot",
   ReqNewSchool = "req_new_school",
   ChapterLinks = "chapter_links",
+  Program = "program",
+  SpecialUsers = "special_users",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -66,6 +78,29 @@ export enum SCHOOL_USERS {
 export enum SL_GRADES {
   GRADE1 = "Grade 1",
   GRADE2 = "Grade 2",
+}
+
+export enum PROGRAM_TAB {
+  ALL = "all",
+  AT_SCHOOL = "at_school",
+  AT_HOME = "at_home",
+  HYBRID = "hybrid",
+}
+
+export const PROGRAM_TAB_LABELS: Record<PROGRAM_TAB, string> = {
+  [PROGRAM_TAB.ALL]: "All",
+  [PROGRAM_TAB.AT_SCHOOL]: "At School",
+  [PROGRAM_TAB.AT_HOME]: "At Home",
+  [PROGRAM_TAB.HYBRID]: "Hybrid",
+};
+
+export type TabType = keyof typeof PROGRAM_TAB_LABELS;
+
+// Backend model mapping (if needed)
+export enum MODEL {
+  AT_SCHOOL = "AT_SCHOOL",
+  AT_HOME = "AT_HOME",
+  HYBRID = "HYBRID",
 }
 
 export const ALL_COURSES = [COURSES.ENGLISH, COURSES.MATHS, COURSES.PUZZLE];
@@ -114,6 +149,11 @@ export enum LEADERBOARD_REWARD_LIST {
   BONUS = "BONUS",
   STICKER = "STICKERS",
 }
+
+export type SchoolRoleMap = {
+  schoolId: string;
+  users: TableTypes<"user">[];
+};
 
 export enum ASSIGNMENTTAB_LIST {
   RECOMMENDED = "Recommended",
@@ -164,9 +204,9 @@ export enum TABLEDROPDOWN {
 }
 
 export enum TABLESORTBY {
-  NAME = "Name",
-  HIGHSCORE = "High Score",
-  LOWSCORE = "Low Score",
+  NAME = "Alphabetical",
+  HIGHSCORE = "High to Low",
+  LOWSCORE = "Low to High",
 }
 
 export enum FileUploadStep {
@@ -418,6 +458,24 @@ export enum PAGES {
   ADD_COORDINATOR = "/add-coordinator",
   ADD_SPONSOR = "/add-sponsor",
   UPLOAD_PAGE = "/upload-page",
+  PROGRAM_PAGE = "/program-page",
+  PROGRAM_DETAIL_PAGE = "/program-details-page",
+  PROFILE_DETAILS = "/profile-details",
+  SIDEBAR_PAGE = "/admin-home-page",
+  ADMIN_DASHBOARD = "/dashboard",
+  ADMIN_PROGRAMS = "/programs",
+  ADMIN_SCHOOLS = "/schools",
+  ADMIN_COMPAIGNS = "/compaigns",
+  ADMIN_USERS = "/users",
+  ADMIN_DEVICES = "/devices",
+  ADMIN_RESOURCES = "/resourses",
+  NEW_PROGRAM = "/new-program",
+  SCHOOL_LIST = "/school-list",
+  SCHOOL_DETAILS = "/school-details",
+  USERS = "/users",
+  USER_DETAILS = "/user-details",
+  PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS = "/program-connected-school-list-page-ops",
+  NEW_USERS_OPS = "/new-user-ops",
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -445,9 +503,32 @@ export enum DrawerOptions {
   USER_PROFILE = "User Profile",
 }
 
+export enum NavItems {
+  DASHBOARD = "Dashboard",
+  PROGRAMS = "Programs",
+  SCHOOLS = "Schools",
+  COMPAIGNS = "Campaigns",
+  USERS = "Users",
+  DEVICES = "Devices",
+  RESOURCES = "Resources",
+}
+
+export enum ProgramType {
+  Govt = "govt",
+  Private = "private",
+  LearningCenter = "learning_centers",
+}
+
 export interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;
+}
+export interface FilteredSchoolsForSchoolListingOps {
+  school_name: string;
+  num_students: number;
+  num_teachers: number;
+  program_managers: string[];
+  field_coordinators: string[];
 }
 export enum School_Creation_Stages {
   // CREATE_SCHOOL = "create_school",
@@ -495,13 +576,16 @@ export const TYPE = "type";
 export const APP_NAME = "Kids";
 export const SCHOOL = "school";
 export const CLASS = "class";
+export const CLASSES = "classes";
+export const DELETED_CLASSES = "deleted_classes";
 export const USER_ROLE = "userRole";
 export const CURRENT_TEACHER = "currentTeacher";
 export const CURRENT_COURSE = "currentCourse";
 export const NAVIGATION_STATE = "navigationState";
 export const STARS_COUNT = "starsCount";
 export const LATEST_STARS = "latestStar";
-
+export const IS_OPS_USER = "isOpsUser";
+export const EDIT_STUDENTS_MAP = "editStudentsMap";
 export enum IconType {
   SCHOOL = "school",
   CLASS = "class",
@@ -531,7 +615,10 @@ export interface PortPlugin {
     imageFile?: File[];
   }): Promise<void>;
   shareUserId(options: { userId: string }): Promise<void>;
-  saveProceesedXlsxFile(options: { fileData: string }): Promise<void>;
+  saveProceesedXlsxFile(options: {
+    fileData: string;
+    fileName?: string;
+  }): Promise<void>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [
@@ -576,6 +663,7 @@ export const REFRESH_TABLES_ON_LOGIN: TABLES[] = [
   TABLES.Result,
   TABLES.Assignment_cart,
   TABLES.ReqNewSchool,
+  TABLES.Program,
 ];
 
 export const AVATARS: string[] = [
@@ -641,6 +729,7 @@ export enum MODES {
   PARENT = "PARENT",
   SCHOOL = "SCHOOL",
   TEACHER = "TEACHER",
+  OPS_CONSOLE = "OPS_CONSOLE",
 }
 
 export enum ACTION {
@@ -669,6 +758,12 @@ export enum EVENTS {
   PATHWAY_COMPLETED = "pathway_completed",
   PATHWAY_COURSE_CHANGED = "pathway_course_changed",
   SYNCHING_ERROR = "synching_error",
+  PROFILE_CREATED = "profile_created",
+  PROFILE_UPDATED = "profile_updated",
+  PROFILE_SKIPPED = "profile_skipped",
+  DEEPLINK_CLICKED = "deeplink_clicked",
+  ERROR_LOGS = "error_logs",
+  PROFILE_CLICKS_ANALYTICS = "profile_clicks_analytics",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -777,5 +872,68 @@ export const LidoGameCompletedKey = "lidoGameCompleted";
 export const LidoGameExitKey = "lidoGameExit";
 export const QUIZ_POPUP_SHOWN = "quizPopupShown";
 export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
+export const GrowthBookAttributes = "growthBookAttributes";
 export const SCHOOL_LOGIN = "schoolLogin";
 export const CAMERAPERMISSION = "cameraPermission";
+
+export const ALL_SUBJECT = {
+  id: "all",
+  name: "All Subjects",
+  icon: SelectIconImage,
+  subjectDetail: "All Grades",
+};
+export const CAN_ACCESS_REMOTE_ASSETS = "can_access_remote_assets";
+export const LEARNING_PATH_ASSETS = "learning_path_assets";
+export const SHOULD_SHOW_REMOTE_ASSETS = "shouldShowRemoteAssets";
+export const CHIMPLE_ENGLISH = "63e40488-3c1a-47ab-aa8a-6f07ad21709f";
+export const CHIMPLE_MATHS = "9d2474bd-b9c6-43ea-8415-242668807ba0";
+export const CHIMPLE_DIGITAL_SKILLS = "19bb079f-bc69-44e4-bc1d-0b77f2683b6c";
+export const CHIMPLE_HINDI = "7e9d65fa-ac2e-452e-bca4-1499d5c174e0";
+export const GRADE1_KANNADA = "a90608de-4376-4baf-82c2-07760b2aa899";
+export const GRADE1_MARATHI = "2cada0d1-db3d-4da0-8ade-e9ba282a3558";
+export const BULK_UPLOAD_TEMPLATE_URL =
+  "https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/common-files//Bulk%20School%20&%20Students%20Upload%20Template.xlsx";
+
+export const FORM_MODES = {
+  ALL_REQUIRED: "all-required",
+  NAME_REQUIRED: "name-required",
+  ALL_OPTIONAL: "all-optional",
+};
+
+export const PROFILE_DETAILS_GROWTHBOOK_VARIATION = {
+  AFTER_LOGIN_ONBOARDING: "after-login-onboarding",
+  AFTER_LOGIN_CONTROL: "after_login_control",
+  AFTER_LOGIN_V1: "after_login_v1",
+  AFTER_LOGIN_V2: "after_login_v2",
+  AFTER_LOGIN_V3: "after_login_v3",
+};
+
+export const ACTION_TYPES = {
+  PROFILE_CREATED: "profile_created",
+  PROFILE_UPDATED: "profile_updated",
+  PROFILE_SKIPPED: "profile_skipped",
+};
+
+export enum AGE_OPTIONS {
+  LESS_THAN_EQUAL_4 = "4",
+  FIVE = "5",
+  SIX = "6",
+  SEVEN = "7",
+  EIGHT = "8",
+  NINE = "9",
+  GREATER_THAN_EQUAL_10 = "10",
+}
+
+export const ROLE_PRIORITY: Record<string, number> = {
+  super_admin: 1,
+  operational_director: 2,
+  program_manager: 3,
+  field_coordinator: 4,
+};
+
+export enum AssignmentSource {
+  MANUAL = "manual",
+  RECOMMENDED = "recommended",
+  CHATBOT = "chatbot",
+  QR_CODE = "qr_code",
+}

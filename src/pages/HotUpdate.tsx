@@ -8,6 +8,7 @@ import "./HotUpdate.css";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { Capacitor } from "@capacitor/core";
 import { useFeatureValue, useFeatureIsOn } from "@growthbook/growthbook-react";
+import { ServiceConfig } from "../services/ServiceConfig";
 
 const HotUpdate: FC<{}> = () => {
   const history = useHistory();
@@ -20,6 +21,7 @@ const HotUpdate: FC<{}> = () => {
     "hot_update_url",
     "https://chimple-prod-hot-update.web.app/v7"
   );
+  const api = ServiceConfig.getI().apiHandler;
   const init = async () => {
     try {
       if (!Capacitor.isNativePlatform()) {
@@ -47,10 +49,12 @@ const HotUpdate: FC<{}> = () => {
   };
   const push = () => {
     const appLang = localStorage.getItem(LANGUAGE);
+
     if (appLang == undefined) {
-      history.replace(PAGES.APP_LANG_SELECTION);
+      history.replace(PAGES.LOGIN);
     } else history.replace(PAGES.SELECT_MODE);
   };
+
   useEffect(() => {
     init();
   }, []);

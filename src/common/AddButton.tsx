@@ -24,7 +24,7 @@ const AddButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
       onClick={onClick}
       sx={fabGreenStyle}
     >
-      <AddIcon />
+      <AddIcon style={{fontSize: "5vh"}} />
     </Fab>
   );
 };
