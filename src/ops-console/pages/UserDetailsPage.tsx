@@ -23,6 +23,7 @@ const UserDetailsPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isEditDisabled, setIsEditDisabled] = useState<boolean>(true);
 
   const [availableEditRoles] = useState([
     RoleType.PROGRAM_MANAGER,
@@ -41,6 +42,25 @@ const UserDetailsPage: React.FC = () => {
       setUser(userData.user);
       setUserRole(userData.userRole);
     }
+    const checkIfEditDisabled = async () => {
+      const auth = ServiceConfig.getI().authHandler;
+      const currentUser = await auth.getCurrentUser();
+      const currentUserRoles = await api.getUserSpecialRoles(
+        currentUser?.id ?? ""
+      );
+
+      const viewedUserIsSpecial =
+        userData?.userRole === RoleType.SUPER_ADMIN ||
+        userData?.userRole === RoleType.OPERATIONAL_DIRECTOR;
+
+      const loggedInUserIsSpecial =
+        currentUserRoles.includes(RoleType.SUPER_ADMIN) ||
+        currentUserRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
+
+      setIsEditDisabled(viewedUserIsSpecial || !loggedInUserIsSpecial);
+    };
+
+    checkIfEditDisabled();
   }, [userData]);
 
   const confirmDelete = async () => {
@@ -133,10 +153,6 @@ const UserDetailsPage: React.FC = () => {
     };
     reader.readAsDataURL(file);
   };
-
-  const isEditDisabled =
-    userData?.userRole === RoleType.SUPER_ADMIN ||
-    userData?.userRole === RoleType.OPERATIONAL_DIRECTOR;
 
   const isSaveDisabled =
     !user?.name?.trim() ||
@@ -265,12 +281,12 @@ const UserDetailsPage: React.FC = () => {
               <button
                 className="user-details-cancel-btn"
                 onClick={() => {
-                setUser(userData.user);
-                setUserRole(userData.userRole);
-                setPreviewUrl(null);
-                setSelectedFile(null);
-                setIsEdit(false);
-              }}
+                  setUser(userData.user);
+                  setUserRole(userData.userRole);
+                  setPreviewUrl(null);
+                  setSelectedFile(null);
+                  setIsEdit(false);
+                }}
                 // onClick={() => setIsEdit(false)}
               >
                 {t("Cancel")}
