@@ -26,6 +26,7 @@ import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
 import AddButton from "../../common/AddButton";
 import { addOutline } from "ionicons/icons";
+import Loading from "../../components/Loading";
 
 interface SchoolWithRole {
   school: TableTypes<"school">;
@@ -39,6 +40,7 @@ const DisplaySchools: FC<{}> = () => {
   const [user, setUser] = useState<TableTypes<"user">>();
   const [isAuthorizedForOpsMode, setIsAuthorizedForOpsMode] =
     useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     lockOrientation();
@@ -119,6 +121,7 @@ const DisplaySchools: FC<{}> = () => {
         history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
       }
     }
+    setIsLoading(false);
   }
   return (
     <IonPage className="display-page">
@@ -196,6 +199,7 @@ const DisplaySchools: FC<{}> = () => {
           }}
         />
       )} */}
+      <Loading isLoading={isLoading} />
     </IonPage>
   );
 };
