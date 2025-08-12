@@ -27,7 +27,6 @@ import { Capacitor } from "@capacitor/core";
 import AddButton from "../../common/AddButton";
 import { addOutline } from "ionicons/icons";
 import Loading from "../../components/Loading";
-import { set } from "date-fns";
 
 interface SchoolWithRole {
   school: TableTypes<"school">;
