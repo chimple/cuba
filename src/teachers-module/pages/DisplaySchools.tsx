@@ -69,6 +69,21 @@ const DisplaySchools: FC<{}> = () => {
   const allSchool = await api.getSchoolsForUser(currentUser.id);
   setSchoolList(allSchool);
 
+  const tempSchool = Util.getCurrentSchool();
+  if (tempSchool) {
+    const localSchool = allSchool.find(
+      (school) => school.school.id === tempSchool.id
+    );
+    if (localSchool) {
+      const selectedSchool: SchoolWithRole = {
+        school: localSchool.school,
+        role: localSchool.role,
+      };
+      selectSchool(selectedSchool);
+    }
+  } else if (allSchool.length === 1) {
+    selectSchool(allSchool[0]);
+  }
 };
 
   const getClasses = async (schoolId: string) => {
