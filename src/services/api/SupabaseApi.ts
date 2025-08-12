@@ -333,6 +333,47 @@ export class SupabaseApi implements ServiceApi {
     const uploadingUser = currentuserData?.id;
     return new Promise(async (resolve) => {
       let uploadId: string | undefined;
+      let directChannel: RealtimeChannel | null = null;
+      let subscriptionFailCount = 0;
+      const subscribeToDirectChannel = (): RealtimeChannel => {
+        const channel = supabase
+          .channel(`upload-status-${uploadId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "upload_queue",
+              filter: `id=eq.${uploadId}`,
+            },
+            async (payload) => {
+              const status = payload.new?.status;
+              console.log("🔄 Realtime update received:", status);
+              if ((status === "success" || status === "failed") && !resolved) {
+                resolved = true;
+                await channel.unsubscribe();
+                resolve(status === "success");
+              }
+            }
+          )
+          .subscribe(async (status) => {
+            if (status === "SUBSCRIBED") {
+              console.log("📡 Realtime subscription active.");
+              subscriptionFailCount = 0;
+            } else {
+              subscriptionFailCount++;
+              console.warn("⚠️ Subscription status:", status);
+              if (subscriptionFailCount > 2) {
+                console.warn(
+                  "🔁 Reinitializing subscription due to failures..."
+                );
+                await channel.unsubscribe();
+                directChannel = subscribeToDirectChannel();
+              }
+            }
+          });
+        return channel;
+      };
       const fallbackChannel = uploadingUser
         ? supabase
             .channel(`upload-fallback-${uploadingUser}`)
@@ -393,33 +434,7 @@ export class SupabaseApi implements ServiceApi {
           console.log("❌ Already failed before subscription.");
           return resolve(false);
         }
-        const directChannel = supabase
-          .channel(`upload-status-${uploadId}`)
-          .on(
-            "postgres_changes",
-            {
-              event: "UPDATE",
-              schema: "public",
-              table: "upload_queue",
-              filter: `id=eq.${uploadId}`,
-            },
-            async (payload) => {
-              const status = payload.new?.status;
-              console.log("🔄 Realtime update received:", status);
-              if ((status === "success" || status === "failed") && !resolved) {
-                resolved = true;
-                await directChannel.unsubscribe();
-                resolve(status === "success");
-              }
-            }
-          )
-          .subscribe((status) => {
-            if (status === "SUBSCRIBED") {
-              console.log("📡 Realtime subscription active.");
-            } else {
-              console.warn("⚠️ Subscription status:", status);
-            }
-          });
+        directChannel = subscribeToDirectChannel();
       } else {
         console.warn("❗ No upload_id returned — using fallback listener.");
       }
@@ -2590,7 +2605,7 @@ export class SupabaseApi implements ServiceApi {
         const { data: progUsers, error: puErr } = await this.supabase
           .from(TABLES.ProgramUser)
           .select("program_id")
-          .eq("user_id", userId)
+          .eq("user", userId)
           .eq("is_deleted", false);
 
         if (puErr) {
@@ -3956,6 +3971,37 @@ export class SupabaseApi implements ServiceApi {
       throw new Error("Unexpected error updating rewards as seen.");
     }
   }
+  async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    studentLoginType: string;
+    schoolModel: string;
+  } | null> {
+    if (!this.supabase) return null;
+
+    try {
+      // Fetch student_login_type and program_model directly from school table
+      const { data: schoolData, error } = await this.supabase
+        .from("school")
+        .select("student_login_type, model")
+        .eq("udise", udiseCode)
+        .eq("is_deleted", false)
+        .single();
+      if (error || !schoolData) {
+        console.error("Error fetching school data:", error);
+        return null;
+      }
+
+      const { student_login_type, model } = schoolData;
+
+      return {
+        studentLoginType: student_login_type || "",
+        schoolModel: model || "",
+      };
+    } catch (err) {
+      console.error("Unexpected error in getSchoolDetailsByUdise:", err);
+      return null;
+    }
+  }
+
   async getUserByDocId(
     studentId: string
   ): Promise<TableTypes<"user"> | undefined> {
@@ -4514,7 +4560,9 @@ export class SupabaseApi implements ServiceApi {
     chapter_id: string,
     course_id: string,
     type: string,
-    batch_id: string
+    batch_id: string,
+    source : string | null,
+    created_at?: string
   ): Promise<boolean> {
     if (!this.supabase) return false;
 
@@ -4538,8 +4586,9 @@ export class SupabaseApi implements ServiceApi {
             chapter_id,
             course_id,
             type,
+            source: source?? null,
             batch_id: batch_id ?? null,
-            created_at: timestamp,
+            created_at: created_at ?? timestamp,
             updated_at: timestamp,
             is_deleted: false,
           },
@@ -4646,7 +4695,7 @@ export class SupabaseApi implements ServiceApi {
       throw error;
     }
   }
-  async addTeacherToClass(classId: string, userId: string): Promise<void> {
+  async addTeacherToClass(classId: string, user: TableTypes<"user">): Promise<void> {
     if (!this.supabase) return;
 
     const classUserId = uuidv4();
@@ -4655,7 +4704,7 @@ export class SupabaseApi implements ServiceApi {
     const classUser = {
       id: classUserId,
       class_id: classId,
-      user_id: userId,
+      user_id: user.id,
       role: RoleType.TEACHER as Database["public"]["Enums"]["role"],
       created_at: now,
       updated_at: now,
@@ -4674,24 +4723,24 @@ export class SupabaseApi implements ServiceApi {
     }
 
     // Fetch user doc from your server API
-    const user_doc = await this.getUserByDocId(userId);
+    // const user_doc = await this.getUserByDocId(userId);
 
     // Insert into user table with upsert logic (on conflict do nothing)
-    if (user_doc) {
+    if (user) {
       const { error: userInsertError } = await this.supabase
         .from(TABLES.User)
         .upsert(
           {
-            id: user_doc.id,
-            name: user_doc.name,
-            age: user_doc.age,
-            gender: user_doc.gender,
-            avatar: user_doc.avatar,
-            image: user_doc.image,
-            curriculum_id: user_doc.curriculum_id,
-            language_id: user_doc.language_id,
-            created_at: user_doc.created_at,
-            updated_at: user_doc.updated_at,
+            id: user.id,
+            name: user.name,
+            age: user.age,
+            gender: user.gender,
+            avatar: user.avatar,
+            image: user.image,
+            curriculum_id: user.curriculum_id,
+            language_id: user.language_id,
+            created_at: user.created_at,
+            updated_at: user.updated_at,
           },
           { ignoreDuplicates: true }
         );
@@ -5101,7 +5150,6 @@ export class SupabaseApi implements ServiceApi {
       .eq("role", RoleType.PRINCIPAL)
       .eq("is_deleted", false)
       .order("created_at", { ascending: true });
-
     if (error) {
       console.error("Error fetching principals:", error);
       return;
@@ -5162,7 +5210,7 @@ export class SupabaseApi implements ServiceApi {
   }
   async addUserToSchool(
     schoolId: string,
-    userId: string,
+    user: TableTypes<"user">,
     role: RoleType
   ): Promise<void> {
     if (!this.supabase) return;
@@ -5173,7 +5221,7 @@ export class SupabaseApi implements ServiceApi {
     const schoolUser = {
       id: schoolUserId,
       school_id: schoolId,
-      user_id: userId,
+      user_id: user.id,
       role: role as Database["public"]["Enums"]["role"],
       created_at: timestamp,
       updated_at: timestamp,
@@ -5189,20 +5237,20 @@ export class SupabaseApi implements ServiceApi {
       return;
     }
 
-    const user_doc = await this.getUserByDocId(userId);
+    // const user_doc = await this.getUserByDocId(user.id);
 
-    if (user_doc) {
+    if (user) {
       const cleanUserDoc = {
-        id: user_doc.id,
-        name: user_doc.name ?? null,
-        age: user_doc.age ?? null,
-        gender: user_doc.gender ?? null,
-        avatar: user_doc.avatar ?? null,
-        image: user_doc.image ?? null,
-        curriculum_id: user_doc.curriculum_id ?? null,
-        language_id: user_doc.language_id ?? null,
-        created_at: user_doc.created_at ?? timestamp,
-        updated_at: user_doc.updated_at ?? timestamp,
+        id: user.id,
+        name: user.name ?? null,
+        age: user.age ?? null,
+        gender: user.gender ?? null,
+        avatar: user.avatar ?? null,
+        image: user.image ?? null,
+        curriculum_id: user.curriculum_id ?? null,
+        language_id: user.language_id ?? null,
+        created_at: user.created_at ?? timestamp,
+        updated_at: user.updated_at ?? timestamp,
       };
 
       const { error: userInsertError } = await this.supabase
@@ -5335,7 +5383,7 @@ export class SupabaseApi implements ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     if (!this.supabase) {
       return {
         status: "error",
@@ -5496,7 +5544,7 @@ export class SupabaseApi implements ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     if (!this.supabase) {
       return {
         status: "error",
@@ -7200,6 +7248,24 @@ export class SupabaseApi implements ServiceApi {
     } catch (error) {
       console.error("Error fetching chapters", error);
       return [];
+    }
+  }
+  async getChapterIdbyQrLink(link: string): Promise<TableTypes<"chapter_links"> | undefined> {
+      throw new Error("Method not implemented.");
+  }
+  async addParentToNewClass(classID:string, studentId:string){
+    try {
+        if (!this.supabase) return;
+         const { error } = await this.supabase.rpc('add_parent_to_newclass', {
+         _class_id: classID,
+         _student_id: studentId
+       });
+
+        if (error) {
+          console.log('Failed to add parent to class:', error.message);
+        }
+    } catch (error) {
+      console.error('Error in addParentToNewClass:', error);
     }
   }
 }

@@ -8,6 +8,7 @@ import {
 } from "ionicons/icons";
 import {
   ASSIGNMENT_TYPE,
+  AssignmentSource,
   BANDS,
   BANDWISECOLOR,
   PAGES,
@@ -86,10 +87,9 @@ const CreateSelectedAssignment = ({
 
     const classCourses = await api.getCoursesByClassId(current_class.id);
 
-    const _studentProgress = await _classUtil.divideStudents(
-      current_class.id,
-      [classCourses[0].course_id]
-    );
+    const _studentProgress = await _classUtil.divideStudents(current_class.id, [
+      classCourses[0].course_id,
+    ]);
 
     let _studentList =
       await _classUtil.groupStudentsByCategoryInList(_studentProgress);
@@ -311,7 +311,9 @@ const CreateSelectedAssignment = ({
     groupedDetails.forEach((subjectDetails) => {
       text += `*${t("Subject")}: ${subjectDetails.subject}*\n`;
       subjectDetails.chapters.forEach((chapter, chapterIndex) => {
-        text += `   ${chapterIndex + 1}. _*${t("Chapter")}*_: ${chapter.name}\n`;
+        text += `   ${chapterIndex + 1}. _*${t("Chapter")}*_: ${
+          chapter.name
+        }\n`;
         chapter.lessons.forEach((lesson, lessonIndex) => {
           const lessonNumber = `${chapterIndex + 1}.${lessonIndex + 1}`;
           const formattedLesson = `${lessonNumber} ${lesson}`;
@@ -327,7 +329,9 @@ const CreateSelectedAssignment = ({
       text += `\n`;
     });
 
-    text += `${t("Please click this link to access your Homework")}: https://chimple.cc/assignment?batch_id=${assignmentBatchId}`;
+    text += `${t(
+      "Please click this link to access your Homework"
+    )}: https://chimple.cc/assignment?batch_id=${assignmentBatchId}`;
 
     return text.trim();
   };
@@ -365,9 +369,20 @@ const CreateSelectedAssignment = ({
           : []
       );
       const sync_lesson_data = all_sync_lesson.get(current_class?.id ?? "");
-      let sync_lesson: Map<string, string[]> = new Map(
+
+      let sync_lesson: Map<string, Record<string, string[]>> = new Map(
         sync_lesson_data ? Object.entries(JSON.parse(sync_lesson_data)) : []
       );
+
+      // ✅ Build reverse lookup: lessonId → chapterId
+      const lessonToChapterMap = new Map<string, string>();
+      for (const [chapterId, sourceMap] of sync_lesson.entries()) {
+        for (const lessonIds of Object.values(sourceMap)) {
+          for (const lessonId of lessonIds) {
+            lessonToChapterMap.set(lessonId, chapterId);
+          }
+        }
+      }
 
       // Iterate through assignment types (manual/recommended)
       for (const type of Object.keys(selectedAssignments)) {
@@ -387,7 +402,7 @@ const CreateSelectedAssignment = ({
           }
           // Process lessons asynchronously in parallel
           await Promise.all(
-            subjectData.count.map(async (lessonId) => {
+            subjectData.count.map(async (lessonId, idx) => {
               const tempLes = tempLessons.find(
                 (les: any) => les.id === lessonId
               );
@@ -396,13 +411,33 @@ const CreateSelectedAssignment = ({
                 return;
               }
 
-              const tempChapterId =
-                (await api.getChapterByLesson(tempLes.id, current_class.id)) ??
-                "";
+              const tempChapterId = (tempLes?.source === AssignmentSource.RECOMMENDED) ? 
+              await api.getChapterByLesson(tempLes.id, current_class.id) : 
+              lessonToChapterMap.get(lessonId);
               if (!tempChapterId) {
                 console.warn(`Chapter not found for lessonId: ${lessonId}`);
                 return;
               }
+              // ✨ MODIFICATION: Create a staggered timestamp for ordering
+              const createdAt = new Date(Date.now() - idx * 100).toISOString();
+
+              // 🌟 Determine Source (manual, qr_code, recommended)
+              let source: string | null = null;
+
+              const chapterSourceMap = sync_lesson.get(tempChapterId as string) ?? {};
+
+              if (chapterSourceMap[AssignmentSource.MANUAL]?.includes(lessonId)) {
+                source = AssignmentSource.MANUAL;
+              } else if (
+                chapterSourceMap[AssignmentSource.QR_CODE]?.includes(lessonId)
+              ) {
+                source = AssignmentSource.QR_CODE;
+              } else if (
+                tempLes?.source === AssignmentSource.RECOMMENDED
+              ) {
+                source = AssignmentSource.RECOMMENDED;
+              }
+
               const res = await api.createAssignment(
                 studentList,
                 currUser.id,
@@ -417,16 +452,17 @@ const CreateSelectedAssignment = ({
                 tempLes.plugin_type === ASSIGNMENT_TYPE.LIVEQUIZ
                   ? ASSIGNMENT_TYPE.LIVEQUIZ
                   : ASSIGNMENT_TYPE.ASSIGNMENT,
-                batchId
+                batchId,
+                source, 
+                createdAt
               );
 
-              // If the assignment creation was successful, update sync_lesson
-              for (const [chapter, lessons] of sync_lesson.entries()) {
-                const lessonIndex = lessons.findIndex((id) => id === lessonId);
-                if (lessonIndex !== -1) {
-                  lessons.splice(lessonIndex, 1); // Remove lessonId from lessons array
-                  sync_lesson.set(chapter, lessons); // Update sync_lesson with modified array
-                }
+              // ❌ Remove lesson from sync_lesson under correct source
+              if (source && chapterSourceMap[source]) {
+                chapterSourceMap[source] = chapterSourceMap[source].filter(
+                  (id) => id !== lessonId
+                );
+                sync_lesson.set(tempChapterId as string, chapterSourceMap);
               }
             })
           );
@@ -440,7 +476,7 @@ const CreateSelectedAssignment = ({
         Object.fromEntries(all_sync_lesson)
       );
 
-      const res = await api.createOrUpdateAssignmentCart(
+      await api.createOrUpdateAssignmentCart(
         currUser?.id,
         _totalSelectedLesson
       );
@@ -454,9 +490,7 @@ const CreateSelectedAssignment = ({
     <div className="assignments-container">
       <div>
         <CommonDialogBox
-          header={
-            t("Assignments are assigned Successfully.") ??""
-          }
+          header={t("Assignments are assigned Successfully.") ?? ""}
           message={t("Would you like to share the assignments?")}
           showConfirmFlag={showConfirm}
           leftButtonText={t("Cancel") ?? ""}
@@ -483,7 +517,7 @@ const CreateSelectedAssignment = ({
       <div>
         <p id="create-assignment-heading">{t("Assignments")}</p>
         <section className="assignments-dates">
-          <span style={{color: "#4A4949", fontSize: "11px"}}>
+          <span style={{ color: "#4A4949", fontSize: "11px" }}>
             <Trans i18nKey="assignments_date_message" />
           </span>
           <div className="date-created-assignment">
@@ -526,9 +560,10 @@ const CreateSelectedAssignment = ({
                         ? format(new Date(startDate), "yyyy-MM-dd")
                         : new Date().toISOString().split("T")[0]
                     }
-                    maxDate={
-                      format(addMonths(new Date(startDate), 1), "yyyy-MM-dd")
-                    }
+                    maxDate={format(
+                      addMonths(new Date(startDate), 1),
+                      "yyyy-MM-dd"
+                    )}
                     startDate={startDate}
                   />
                 ) : (
@@ -558,7 +593,9 @@ const CreateSelectedAssignment = ({
           {Object.keys(groupWiseStudents).map((category) => (
             <div
               key={category}
-              className={`assignment-category ${category.replace(" ", "-").toLowerCase()}`}
+              className={`assignment-category ${category
+                .replace(" ", "-")
+                .toLowerCase()}`}
             >
               <div
                 className="category-header"
@@ -578,12 +615,14 @@ const CreateSelectedAssignment = ({
                     /{groupWiseStudents[category].students.length}
                   </div>
                   <img
-                  src={
-                  groupWiseStudents[category].isCollapsed
-                  ? "assets/icons/iconDown.png"
-                  : "assets/icons/iconUp.png"
-                  }
-                  alt="toggle-icon" style={{ width: "15px", height: "15px" }} />
+                    src={
+                      groupWiseStudents[category].isCollapsed
+                        ? "assets/icons/iconDown.png"
+                        : "assets/icons/iconUp.png"
+                    }
+                    alt="toggle-icon"
+                    style={{ width: "15px", height: "15px" }}
+                  />
                   <input
                     className="select-all-checkbox"
                     type="checkbox"

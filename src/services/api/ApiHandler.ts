@@ -233,9 +233,8 @@ export class ApiHandler implements ServiceApi {
 
   public async getSchoolsForUser(
     userId: string,
-    options?: { page?: number; page_size?: number }
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
-    return await this.s.getSchoolsForUser(userId, options);
+    return await this.s.getSchoolsForUser(userId);
   }
   public async getUserRoleForSchool(
     userId: string,
@@ -886,7 +885,9 @@ export class ApiHandler implements ServiceApi {
     chapter_id: string,
     course_id: string,
     type: string,
-    batch_id: string
+    batch_id: string,
+    source: string | null,
+    created_at?: string,
   ): Promise<boolean> {
     return this.s.createAssignment(
       student_list,
@@ -900,7 +901,9 @@ export class ApiHandler implements ServiceApi {
       chapter_id,
       course_id,
       type,
-      batch_id
+      batch_id,
+      source,
+      created_at,
     );
   }
   getTeachersForClass(
@@ -914,8 +917,8 @@ export class ApiHandler implements ServiceApi {
   getUserByPhoneNumber(phone: string): Promise<TableTypes<"user"> | undefined> {
     return this.s.getUserByPhoneNumber(phone);
   }
-  addTeacherToClass(classId: string, userId: string): Promise<void> {
-    return this.s.addTeacherToClass(classId, userId);
+  addTeacherToClass(classId: string, user: TableTypes<"user">): Promise<void> {
+    return this.s.addTeacherToClass(classId, user);
   }
   checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean> {
     return this.s.checkUserExistInSchool(schoolId, userId);
@@ -1025,10 +1028,16 @@ export class ApiHandler implements ServiceApi {
   }
   async addUserToSchool(
     schoolId: string,
-    userId: string,
+    user: TableTypes<"user">,
     role: RoleType
   ): Promise<void> {
-    return this.s.addUserToSchool(schoolId, userId, role);
+    return this.s.addUserToSchool(schoolId, user, role);
+  }
+  async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    studentLoginType: string;
+    schoolModel: string;
+  } | null> {
+    return this.s.getSchoolDetailsByUdise(udiseCode);
   }
   async deleteUserFromSchool(
     schoolId: string,
@@ -1057,12 +1066,12 @@ export class ApiHandler implements ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     return this.s.validateParentAndStudentInClass(
-      schoolId,
-      className,
+      phoneNumber,
       studentName,
-      phoneNumber
+      className,
+      schoolId
     );
   }
   async validateProgramName(
@@ -1086,7 +1095,7 @@ export class ApiHandler implements ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     return this.s.validateStudentInClassWithoutPhone(
       studentName,
       className,
@@ -1106,7 +1115,7 @@ export class ApiHandler implements ServiceApi {
   }
   async validateUserContacts(
     programManagerPhone: string,
-    fieldCoordinatorPhone: string
+    fieldCoordinatorPhone?: string
   ): Promise<{ status: string; errors?: string[] }> {
     return this.s.validateUserContacts(
       programManagerPhone,
@@ -1216,6 +1225,9 @@ export class ApiHandler implements ServiceApi {
     totalStars: number
   ): Promise<void> {
     return await this.s.updateStudentStars(studentId, totalStars);
+  }
+  public async getChapterIdbyQrLink(link:string): Promise<TableTypes<"chapter_links"> | undefined> {
+    return await this.s.getChapterIdbyQrLink(link);
   }
   public async getSchoolsByModel(
     model: MODEL,
@@ -1371,5 +1383,9 @@ export class ApiHandler implements ServiceApi {
   public async getChaptersByIds(
     chapterIds: string[]){
     return await this.s.getChaptersByIds(chapterIds);
+    }
+  public async addParentToNewClass(
+    classId: string, studentId:string): Promise<void>{
+    return await this.s.addParentToNewClass(classId, studentId);
     }
 }

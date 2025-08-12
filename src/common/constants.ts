@@ -62,6 +62,7 @@ export enum TABLES {
   Assignment_cart = "assignment_cart",
   // Chatbot = "chatbot",
   ReqNewSchool = "req_new_school",
+  ChapterLinks= "chapter_links",
   Program = "program",
   SpecialUsers = "special_users"
 }
@@ -757,6 +758,8 @@ export enum EVENTS {
   PROFILE_UPDATED = "profile_updated",
   PROFILE_SKIPPED = "profile_skipped",
   DEEPLINK_CLICKED = "deeplink_clicked",
+  ERROR_LOGS = "error_logs",
+  PROFILE_CLICKS_ANALYTICS = "profile_clicks_analytics",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -867,6 +870,7 @@ export const QUIZ_POPUP_SHOWN = "quizPopupShown";
 export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
 export const GrowthBookAttributes = "growthBookAttributes";
 export const SCHOOL_LOGIN = "schoolLogin";
+export const CAMERAPERMISSION = "cameraPermission";
 
 export const ALL_SUBJECT = {
   id: "all",
@@ -893,10 +897,11 @@ export const FORM_MODES = {
 };
 
 export const PROFILE_DETAILS_GROWTHBOOK_VARIATION = {
-  AFTER_LOGIN_SCREEN: "after-login-screen",
-  AFTER_LOGIN_CONTROL: "After Login Control",
-  AFTER_LOGIN_V1: "After Login V1",
-  AFTER_LOGIN_V2: "After Login V2",
+  AFTER_LOGIN_ONBOARDING: "after-login-onboarding",
+  AFTER_LOGIN_CONTROL: "after_login_control",
+  AFTER_LOGIN_V1: "after_login_v1",
+  AFTER_LOGIN_V2: "after_login_v2",
+  AFTER_LOGIN_V3: "after_login_v3",
 };
 
 export const ACTION_TYPES = {
@@ -906,13 +911,13 @@ export const ACTION_TYPES = {
 };
 
 export enum AGE_OPTIONS {
-  LESS_THAN_EQUAL_4 = "≤4",
+  LESS_THAN_EQUAL_4 = "4",
   FIVE = "5",
   SIX = "6",
   SEVEN = "7",
   EIGHT = "8",
   NINE = "9",
-  GREATER_THAN_EQUAL_10 = "≥10",
+  GREATER_THAN_EQUAL_10 = "10",
 }
 
 export const ROLE_PRIORITY: Record<string, number> = {
@@ -921,3 +926,10 @@ export const ROLE_PRIORITY: Record<string, number> = {
   program_manager: 3,
   field_coordinator: 4,
 };
+
+export enum AssignmentSource {
+  MANUAL = "manual",
+  RECOMMENDED = "recommended",
+  CHATBOT = "chatbot",
+  QR_CODE = "qr_code",
+}

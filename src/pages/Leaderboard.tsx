@@ -628,7 +628,7 @@ const Leaderboard: React.FC = () => {
                 alt={"assets/icons/SignOutIcon.svg"}
                 src={"assets/icons/SignOutIcon.svg"}
               />
-              <p className="child-Name">{t("Switch Profile")}</p>
+              <p className="leaderboard-switch-text">{t("Switch Profile")}</p>
             </div>
           </div>
           <Box sx={{}}>

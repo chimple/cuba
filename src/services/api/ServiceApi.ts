@@ -545,19 +545,13 @@ export interface ServiceApi {
   ): Promise<TableTypes<"assignment">[]>;
   /**
    * Gets schools for a user (teacher, principal, or ops user).
-   *
-   * If pagination options are provided, returns only the requested page.
-   * If not, returns all schools for the user (legacy behavior).
+   * returns all schools for the user (legacy behavior).
    *
    * @param {string} userId - User's unique ID
-   * @param {Object} [options] - Optional pagination settings
-   * @param {number} [options.page] - The page number to fetch (1-based)
-   * @param {number} [options.page_size] - Number of schools per page
    * @returns {Promise<{ school: TableTypes<"school">; role: RoleType }[]>}
    */
   getSchoolsForUser(
     userId: string,
-    options?: { page?: number; page_size?: number }
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]>;
 
   /**
@@ -1078,7 +1072,9 @@ export interface ServiceApi {
     chapter_id: string,
     course_id: string,
     type: string,
-    batch_id: string
+    batch_id: string,
+    source: string | null,
+    created_at?: string,
   ): Promise<boolean>;
 
   /**
@@ -1108,10 +1104,10 @@ export interface ServiceApi {
    * Adding a teacher to class.
    * @param {string} schoolId school Id
    * @param {string} classId class Id
-   * @param {string} userId user Id;
+   * @param {string} user user;
    * @return void.
    */
-  addTeacherToClass(classId: string, userId: string): Promise<void>;
+  addTeacherToClass(classId: string, user: TableTypes<"user">): Promise<void>;
 
   /**
    * Checks the user present in school or not.
@@ -1268,13 +1264,13 @@ export interface ServiceApi {
   /**
    * Adding a principal or coordinator or sponsor to school.
    * @param {string} schoolId school Id
-   * @param {string} userId user Id;
+   * @param {string} user user ;
    * @param {string} role role
    * @return void.
    */
   addUserToSchool(
     schoolId: string,
-    userId: string,
+    user: TableTypes<"user">,
     role: RoleType
   ): Promise<void>;
   /**
@@ -1330,7 +1326,7 @@ export interface ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }>;
+  ): Promise<{ status: string; errors?: string[]; message?: string }>;
 
   /**
    * To validate given program name exist in the program table or not
@@ -1367,7 +1363,7 @@ export interface ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }>;
+  ): Promise<{ status: string; errors?: string[]; message?: string }>;
 
   /**
    * To validate given phone number and student already exist in the given class or not
@@ -1474,7 +1470,7 @@ export interface ServiceApi {
    */
   validateUserContacts(
     programManagerPhone: string,
-    fieldCoordinatorPhone: string
+    fieldCoordinatorPhone?: string
   ): Promise<{ status: string; errors?: string[] }>;
   /**
    * setting a stars for the student
@@ -1592,6 +1588,12 @@ export interface ServiceApi {
    * @param {number} totalStars - total stars.
    */
   updateStudentStars(studentId: string, totalStars: number): Promise<void>;
+
+  /**
+   * gets record from chpater_links table by QRCode link
+   * @param link -Qrlink
+   */
+  getChapterIdbyQrLink(link: string): Promise<TableTypes<"chapter_links"> | undefined>;
   /**
    * Fetches all schools available to the admin user with pagination.
    * @param {number} limit - Number of schools to fetch.
@@ -1856,10 +1858,25 @@ export interface ServiceApi {
    * @param {number} role - user Role.
    */
   deleteUserFromSchoolsWithRole(userId: string, role: string): Promise<void>;
+
+  /**
+   * Fetch student login type and program model by UDISE code.
+   * @param {string} udiseCode - UDISE code of the school.
+   * @returns {Promise<{ studentLoginType: schoolModel: string } | null>}
+   */
+  getSchoolDetailsByUdise(
+    udiseCode: string
+  ): Promise<{ studentLoginType: string; schoolModel: string } | null>;
   /**
    * Fetches chapters by chapterIDs array.
    * @param {string[]} chapterIds - Array of chapter IDs to fetch.
    * @returns {Promise<TableTypes<"chapter">[]>} - A promise that resolves to an array of chapter objects.
    */
   getChaptersByIds(chapterIds: string[]): Promise<TableTypes<"chapter">[]>;
+  /**
+   * Adds Parent to new class (new classUser record).
+   * @param {string} classID
+   * @param {string} studentID
+   */
+  addParentToNewClass(classID:string, studentID:string): Promise<void>;
 }

@@ -2,63 +2,33 @@ import React from "react";
 import "./TableRightHeader.css";
 import { t } from "i18next";
 
-interface AssignmentHeader {
-  headerName: string;
-  startAt: string;
-  endAt: string;
-}
 
 interface TableRightHeaderProps {
-  headerDetails: Map<string, AssignmentHeader>[];
-  dateRangeValue: {
-    startDate: Date;
-    endDate: Date;
-    isStudentProfilePage: boolean;
-  };
+  headerDetails: Map<
+    string,
+    { headerName: string; startAt: string; endAt: string }
+  >[];
 }
 
 const TableRightHeader: React.FC<TableRightHeaderProps> = ({
   headerDetails,
-  dateRangeValue,
 }) => {
-  const { startDate } = dateRangeValue;
-
-  const formatDate = (date: Date) =>
-    date.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "2-digit",
-    });
 
   return (
     <>
       {headerDetails.map((assignmentMap, index) => {
-        const [assignmentId, details] =
-          Array.from(assignmentMap.entries())[0] ?? [];
-
-        if (!details) return null;
-
-        const { headerName } = details;
-        const translated = t(headerName);
-        const displayName =
-          translated.length > 8
-            ? `${translated.slice(0, 8)}…`
-            : translated;
-
-        const displayDate = new Date(startDate);
-        displayDate.setDate(startDate.getDate() + index);
-
+        const [assignmentId, { headerName, startAt, endAt }] = Array.from(
+          assignmentMap.entries()
+        )[0];
         return (
-          <th className="tableRightHeader" key={assignmentId || index}>
+          <th className="tableRightHeader" key={assignmentId}>
             <div className="aboveText">
-              {/* <span>{formatDate(startDate)}</span> */}
+              <span>{startAt}</span>
             </div>
-            <div className="tableRightHeaderText">
-              {t(headerName)}
-              {/* {displayName} */}
+            <div className="tableRightHeaderText">{t(headerName)}</div>
+            <div className="belowText">
+              <span>{endAt}</span>
             </div>
-            {/* <div className="belowText">
-              <span>&nbsp;</span>
-            </div> */}
           </th>
         );
       })}

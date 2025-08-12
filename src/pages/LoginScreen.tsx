@@ -40,9 +40,11 @@ import { Util } from "../utility/util";
 import i18n from "../i18n";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { SqliteApi } from "../services/api/SqliteApi";
+import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 
 const LoginScreen: React.FC = () => {
   const history = useHistory();
+  const { setGbUpdated } = useGbContext();
   const api = ServiceConfig.getI().apiHandler;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [loginType, setLoginType] = useState<
@@ -328,7 +330,12 @@ const LoginScreen: React.FC = () => {
       const user = res.user;
       localStorage.setItem(CURRENT_USER, JSON.stringify(user));
       localStorage.setItem(USER_DATA, JSON.stringify(user));
-
+      let studentDetails = user?.user;
+      studentDetails.parent_id = user?.user.id;
+      updateLocalAttributes({
+        studentDetails,
+      });
+      setGbUpdated(true);
       Util.logEvent(EVENTS.USER_PROFILE, {
         user_id: user.uid,
         user_name: user.name,
@@ -339,7 +346,7 @@ const LoginScreen: React.FC = () => {
         login_type: "phone-number",
       });
 
-      const userSchools = await getSchoolsForUser(user.id);
+      const userSchools = await getSchoolsForUser(user.user.id);
       await redirectUser(userSchools, res.isSpl);
 
       setAnimatedLoading(false);
@@ -421,7 +428,12 @@ const LoginScreen: React.FC = () => {
 
       localStorage.setItem(CURRENT_USER, JSON.stringify(user));
       localStorage.setItem(USER_DATA, JSON.stringify(user));
-
+      let studentDetails: any = user;
+      studentDetails.parent_id = user.id;
+      updateLocalAttributes({
+        studentDetails,
+      });
+      setGbUpdated(true);
       Util.logEvent(EVENTS.USER_PROFILE, {
         user_type: RoleType.PARENT,
         action_type: ACTION.LOGIN,
@@ -467,6 +479,7 @@ const LoginScreen: React.FC = () => {
       // AUTOUSER → school‐mode
       const auto = schools.find((s) => s.role === RoleType.AUTOUSER);
       if (auto) {
+        await ScreenOrientation.lock({ orientation: "landscape" });
         schoolUtil.setCurrMode(MODES.SCHOOL);
         return history.replace(PAGES.SELECT_MODE);
       }
@@ -522,7 +535,12 @@ const LoginScreen: React.FC = () => {
         await redirectUser(userSchools, isOps);
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
         localStorage.setItem(USER_DATA, JSON.stringify(user));
-
+        let studentDetails: any = user;
+        studentDetails.parent_id = user.uid;
+        updateLocalAttributes({
+          studentDetails,
+        });
+        setGbUpdated(true);
         // Log the login event
         Util.logEvent(EVENTS.USER_PROFILE, {
           user_id: user.uid,
@@ -595,7 +613,12 @@ const LoginScreen: React.FC = () => {
           await redirectUser(userSchools, isOpsUser);
         }
         setAnimatedLoading(false);
-
+        let studentDetails: any = user;
+        studentDetails.parent_id = user.uid;
+        updateLocalAttributes({
+          studentDetails,
+        });
+        setGbUpdated(true);
         // Log the login event
         Util.logEvent(EVENTS.USER_PROFILE, {
           user_id: user.uid,
