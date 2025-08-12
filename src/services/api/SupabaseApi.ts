@@ -7084,10 +7084,10 @@ export class SupabaseApi implements ServiceApi {
         .select("role")
         .eq("user_id", userId)
         .in("role", [
-          "super_admin",
-          "operational_director",
-          "program_manager",
-          "field_coordinator",
+          RoleType.SUPER_ADMIN,
+          RoleType.PROGRAM_MANAGER,
+          RoleType.FIELD_COORDINATOR,
+          RoleType.OPERATIONAL_DIRECTOR,
         ])
         .eq("is_deleted", false);
 
