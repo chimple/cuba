@@ -3716,15 +3716,15 @@ order by
       if (res?.values && res.values.length > 0) {
         const chapterData = res.values[0];
         return {
-          id: chapterData[0],
-          name: chapterData[1],
-          image: chapterData[2],
-          course_id: chapterData[3],
-          created_at: chapterData[4],
-          updated_at: chapterData[5],
-          is_deleted: chapterData[6],
-          sort_index: chapterData[7],
-          sub_topics: chapterData[8]
+          id: chapterData.id,
+          name: chapterData.name,
+          image: chapterData.image,
+          course_id: chapterData.course_id,
+          created_at: chapterData.created_at,
+          updated_at: chapterData.updated_at,
+          is_deleted: chapterData.is_deleted,
+          sort_index: chapterData.sort_index,
+          sub_topics: chapterData.sub_topics,
         };
       }
       return undefined;
