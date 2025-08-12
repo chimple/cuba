@@ -27,6 +27,7 @@ import { Capacitor } from "@capacitor/core";
 import AddButton from "../../common/AddButton";
 import { addOutline } from "ionicons/icons";
 import Loading from "../../components/Loading";
+import { set } from "date-fns";
 
 interface SchoolWithRole {
   school: TableTypes<"school">;
@@ -40,7 +41,7 @@ const DisplaySchools: FC<{}> = () => {
   const [user, setUser] = useState<TableTypes<"user">>();
   const [isAuthorizedForOpsMode, setIsAuthorizedForOpsMode] =
     useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     lockOrientation();
@@ -56,7 +57,7 @@ const DisplaySchools: FC<{}> = () => {
   const currentUser = await auth.getCurrentUser();
   if (!currentUser) return;
   setUser(currentUser);
-  
+  setIsLoading(true);
   const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
 
   const isOpsRole =
@@ -86,6 +87,7 @@ const DisplaySchools: FC<{}> = () => {
   } else if (allSchool.length === 1) {
     selectSchool(allSchool[0]);
   }
+  setIsLoading(false);
 };
 
   const getClasses = async (schoolId: string) => {
@@ -121,7 +123,6 @@ const DisplaySchools: FC<{}> = () => {
         history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
       }
     }
-    setIsLoading(false);
   }
   return (
     <IonPage className="display-page">
