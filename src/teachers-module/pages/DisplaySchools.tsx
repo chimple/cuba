@@ -54,7 +54,7 @@ const DisplaySchools: FC<{}> = () => {
   const currentUser = await auth.getCurrentUser();
   if (!currentUser) return;
   setUser(currentUser);
-
+  
   const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
 
   const isOpsRole =
