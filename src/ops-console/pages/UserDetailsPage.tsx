@@ -23,7 +23,7 @@ const UserDetailsPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isEditDisabled, setIsEditDisabled] = useState<boolean>(true);
+  const [roleDisabled, setRoleDisabled] = useState<boolean>(true);
 
   const [availableEditRoles] = useState([
     RoleType.PROGRAM_MANAGER,
@@ -42,25 +42,20 @@ const UserDetailsPage: React.FC = () => {
       setUser(userData.user);
       setUserRole(userData.userRole);
     }
-    const checkIfEditDisabled = async () => {
+    const checkRoleEditDisabled = async () => {
       const auth = ServiceConfig.getI().authHandler;
       const currentUser = await auth.getCurrentUser();
       const currentUserRoles = await api.getUserSpecialRoles(
         currentUser?.id ?? ""
       );
 
-      const viewedUserIsSpecial =
-        userData?.userRole === RoleType.SUPER_ADMIN ||
-        userData?.userRole === RoleType.OPERATIONAL_DIRECTOR;
-
       const loggedInUserIsSpecial =
         currentUserRoles.includes(RoleType.SUPER_ADMIN) ||
         currentUserRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
 
-      setIsEditDisabled(viewedUserIsSpecial || !loggedInUserIsSpecial);
+      setRoleDisabled(!loggedInUserIsSpecial);
     };
-
-    checkIfEditDisabled();
+    checkRoleEditDisabled();
   }, [userData]);
 
   const confirmDelete = async () => {
@@ -153,6 +148,10 @@ const UserDetailsPage: React.FC = () => {
     };
     reader.readAsDataURL(file);
   };
+
+  const isEditDisabled =
+    userData?.userRole === RoleType.SUPER_ADMIN ||
+    userData?.userRole === RoleType.OPERATIONAL_DIRECTOR;
 
   const isSaveDisabled =
     !user?.name?.trim() ||
@@ -258,7 +257,7 @@ const UserDetailsPage: React.FC = () => {
           <select
             ref={selectRef}
             value={userRole}
-            disabled={!isEdit}
+            disabled={!isEdit || roleDisabled}
             onChange={(e) => setUserRole(e.target.value)}
           >
             {isEdit
@@ -281,12 +280,12 @@ const UserDetailsPage: React.FC = () => {
               <button
                 className="user-details-cancel-btn"
                 onClick={() => {
-                  setUser(userData.user);
-                  setUserRole(userData.userRole);
-                  setPreviewUrl(null);
-                  setSelectedFile(null);
-                  setIsEdit(false);
-                }}
+                setUser(userData.user);
+                setUserRole(userData.userRole);
+                setPreviewUrl(null);
+                setSelectedFile(null);
+                setIsEdit(false);
+              }}
                 // onClick={() => setIsEdit(false)}
               >
                 {t("Cancel")}
@@ -303,7 +302,7 @@ const UserDetailsPage: React.FC = () => {
             <>
               <button
                 className="user-details-delete-btn"
-                disabled={isEditDisabled}
+                disabled={isEditDisabled || roleDisabled}
                 onClick={() => setShowConfirm(true)}
               >
                 {t("Delete")}
