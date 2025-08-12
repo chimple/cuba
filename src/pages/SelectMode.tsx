@@ -126,7 +126,7 @@ const SelectMode: FC = () => {
         setStage(STAGES.MODE);
       }
     } else if (currentMode === MODES.TEACHER) {
-      return history.replace(PAGES.HOME_PAGE);
+      return history.replace(PAGES.DISPLAY_SCHOOLS);
     } else if (currentMode === MODES.OPS_CONSOLE) {
       history.replace(PAGES.SIDEBAR_PAGE);
       return;
