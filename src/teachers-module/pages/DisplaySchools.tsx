@@ -131,7 +131,7 @@ const DisplaySchools: FC<{}> = () => {
   return (
     <IonPage className="display-page">
       {!isLoading && (
-      <div>
+      <>
         <Header
           isBackButton={false}
           disableBackButton={true}
@@ -196,7 +196,7 @@ const DisplaySchools: FC<{}> = () => {
             </div>
           </>
         )}
-      </div>
+      </>
       )}
       {/* comment out the plus icon */}
       {/* {schoolList.length > 0 && (
