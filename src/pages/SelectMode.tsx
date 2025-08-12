@@ -20,6 +20,7 @@ import {
   CURRENT_CLASS,
   CURRENT_SCHOOL,
   IS_OPS_USER,
+  SCHOOL,
 } from "../common/constants";
 import SelectModeButton from "../components/selectMode/SelectModeButton";
 import { IoMdPeople } from "react-icons/io";
@@ -126,7 +127,8 @@ const SelectMode: FC = () => {
         setStage(STAGES.MODE);
       }
     } else if (currentMode === MODES.TEACHER) {
-      return history.replace(PAGES.DISPLAY_SCHOOLS);
+      const page = localStorage.getItem(SCHOOL) ? PAGES.HOME_PAGE : PAGES.DISPLAY_SCHOOLS;
+      return history.replace(page);
     } else if (currentMode === MODES.OPS_CONSOLE) {
       history.replace(PAGES.SIDEBAR_PAGE);
       return;
