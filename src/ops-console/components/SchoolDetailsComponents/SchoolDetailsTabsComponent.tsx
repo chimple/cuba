@@ -14,11 +14,13 @@ const tabEnumValues = Object.values(SchoolTabs);
 interface SchoolDetailsTabsComponentProps {
   data: any;
   isMobile: boolean;
+  schoolId: string;
 }
 
 const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
   data,
   isMobile,
+  schoolId,
 }) => {
   const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
 
@@ -40,16 +42,16 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
           <SchoolOverview data={data} isMobile={isMobile} />
         )}
          {activeTab === SchoolTabs.Students && (
-          <SchoolStudents data={data} isMobile={isMobile} />
+          <SchoolStudents data={data} isMobile={isMobile} schoolId={schoolId} />
         )}
          {activeTab === SchoolTabs.Teachers && (
-          <SchoolTeachers data={data} isMobile={isMobile} />
+          <SchoolTeachers data={data} isMobile={isMobile} schoolId={schoolId}/>
         )}
          {activeTab === SchoolTabs.Principals && (
-          <SchoolPrincipals data={data} isMobile={isMobile} />
+          <SchoolPrincipals data={data} isMobile={isMobile} schoolId={schoolId}/>
         )}
          {activeTab === SchoolTabs.Coordinators && (
-          <SchoolCoordinators data={data} isMobile={isMobile} />
+          <SchoolCoordinators data={data} isMobile={isMobile} schoolId={schoolId} />
         )}
       </div>
     </div>

@@ -62,9 +62,9 @@ export enum TABLES {
   Assignment_cart = "assignment_cart",
   // Chatbot = "chatbot",
   ReqNewSchool = "req_new_school",
-  ChapterLinks= "chapter_links",
+  ChapterLinks = "chapter_links",
   Program = "program",
-  SpecialUsers = "special_users"
+  SpecialUsers = "special_users",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -931,4 +931,32 @@ export enum AssignmentSource {
   RECOMMENDED = "recommended",
   CHATBOT = "chatbot",
   QR_CODE = "qr_code",
+}
+export interface StudentInfo {
+  user: TableTypes<"user">;
+  grade: number;
+  classSection: string;
+}
+export interface StudentAPIResponse {
+  data: StudentInfo[];
+  total: number;
+}
+export interface TeacherInfo {
+  user: TableTypes<"user">;
+  grade: number;
+  classSection: string;
+}
+export interface TeacherAPIResponse {
+  data: TeacherInfo[];
+  total: number;
+}
+export type PrincipalInfo = TableTypes<"user">;
+export interface PrincipalAPIResponse {
+  data: PrincipalInfo[];
+  total: number;
+}
+export type CoordinatorInfo = TableTypes<"user">;
+export interface CoordinatorAPIResponse {
+  data: CoordinatorInfo[];
+  total: number;
 }
