@@ -94,11 +94,9 @@ const AddSchoolUser: React.FC = () => {
       setIsLoading(false);
     }
   };
-
   const handleAddSchoolUser = async () => {
     try {
       setIsLoading(true);
-
       if (school && user) {
         await api?.addUserToSchool(school.id, user, currentRole);
 

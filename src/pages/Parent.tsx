@@ -325,6 +325,7 @@ const Parent: React.FC = () => {
                   schoolUtil.setCurrMode(MODES.TEACHER);
                   history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
                   isNativePlatform && window.location.reload();
+                  isNativePlatform && window.location.reload();
                 } else if (schools && schools.length > 0) {
                   if (schools?.length === 1) {
                     Util.setCurrentSchool(schools[0].school, schools[0].role);
@@ -342,10 +343,12 @@ const Parent: React.FC = () => {
                     schoolUtil.setCurrMode(MODES.TEACHER);
                     history.replace(PAGES.DISPLAY_SCHOOLS);
                     isNativePlatform && window.location.reload();
+                    isNativePlatform && window.location.reload();
                   }
                 } else {
                   schoolUtil.setCurrMode(MODES.TEACHER);
                   history.replace(PAGES.DISPLAY_SCHOOLS);
+                  isNativePlatform && window.location.reload();
                   isNativePlatform && window.location.reload();
                 }
               }}

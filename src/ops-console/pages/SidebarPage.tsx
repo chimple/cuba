@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { PAGES, TableTypes } from "../../common/constants";
+import { PAGES, TableTypes, USER_ROLE } from "../../common/constants";
 import { IonPage } from "@ionic/react";
 import Sidebar from "../components/Sidebar";
 import Dashboard from "../components/Dashboard";
@@ -22,6 +22,7 @@ import NewProgram from "../components/NewProgram";
 import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPageOps";
 import NewUserPage from "./NewUserPageOps";
 import UserDetailsPage from "./UserDetailsPage";
+import { RoleType } from "../../interface/modelInterfaces";
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
@@ -29,6 +30,7 @@ const SidebarPage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
     null
   );
+  const userRole = localStorage.getItem(USER_ROLE) || '[]';
 
   useEffect(() => {
     fetchData();
@@ -96,9 +98,11 @@ const SidebarPage: React.FC = () => {
             <ProtectedRoute path={`${path}${PAGES.NEW_PROGRAM}`} exact={true}>
               <NewProgram />
             </ProtectedRoute>
-            <ProtectedRoute path={`${path}${PAGES.USERS}`} exact={true}>
-              <UsersPage />
-            </ProtectedRoute>
+            {!userRole.includes(RoleType.FIELD_COORDINATOR) && (
+              <ProtectedRoute path={`${path}${PAGES.USERS}`} exact={true}>
+                <UsersPage />
+              </ProtectedRoute>
+            )}
             <ProtectedRoute
               path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS}/:program_id`}
               exact={true}

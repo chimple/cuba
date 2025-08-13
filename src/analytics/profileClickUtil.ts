@@ -2,6 +2,7 @@ import { Util } from "../utility/util";
 import { EVENTS } from "../common/constants";
 import { RoleType } from "../interface/modelInterfaces";
 import { SupabaseAuth } from "../services/auth/SupabaseAuth";
+import { ServiceConfig } from "../services/ServiceConfig";
 
 const storedStudent: {
   id?: string;
@@ -11,7 +12,8 @@ const storedStudent: {
 } = {};
 
 export const logProfileClick = async (event: React.MouseEvent<HTMLElement>) => {
-  const student = await SupabaseAuth.i.getCurrentUser();
+  const authHandler = ServiceConfig.getI()?.authHandler;
+  const student = await authHandler.getCurrentUser();
 
   storedStudent.id = student?.id || storedStudent.id || "null";
   storedStudent.name = student?.name || storedStudent.name || "null";
@@ -40,6 +42,50 @@ export const logProfileClick = async (event: React.MouseEvent<HTMLElement>) => {
 
   const { id, className } = findRelevantParent(target);
 
+  const getTextContent = (element: HTMLElement | null): string | undefined => {
+    if (!element) return undefined;
+    //Handle Checkboxes
+    if (target?.matches('input[type="checkbox"]')) {
+      const checkbox = element as HTMLInputElement;
+      const isChecked = checkbox.checked;
+      let labelText: string | undefined;
+      let parentElement: HTMLElement | null = checkbox.parentElement;
+      while (!labelText && parentElement && parentElement !== document.body) {
+        labelText = parentElement.innerText?.trim();
+        if (labelText) break;
+        parentElement = parentElement.parentElement;
+      }
+      let textContent = `${labelText}_${isChecked}`;
+      return textContent;
+    }
+    //Handle Texts
+    let textContent;
+    if (element) {
+      const textIn =
+        element.innerText?.trim() || element.getAttribute("aria-label")?.trim();
+      textContent = textIn;
+    } else {
+      textContent = target.getAttribute("aria-label")?.trim();
+    }
+    if (!textContent) {
+      let currentElement: HTMLElement | null = element;
+      while (
+        !textContent &&
+        currentElement &&
+        currentElement !== document.body
+      ) {
+        textContent =
+          target.innerText?.replace(/\s+/g, " ").trim() ||
+          target.getAttribute("aria-label");
+        if (textContent) break;
+        target = target.parentElement as HTMLElement;
+      }
+      
+    }
+    return textContent;
+  };
+  const textContent = getTextContent(target);
+
   const eventData = {
     user_id: storedStudent.id,
     user_name: storedStudent.name,
@@ -50,7 +96,8 @@ export const logProfileClick = async (event: React.MouseEvent<HTMLElement>) => {
     page_path: window.location.pathname,
     complete_path: window.location.href,
     action_type: event.type,
+    click_value: textContent,
+    input_value: (event.target as HTMLInputElement).value || "null",
   };
-
   Util.logEvent(EVENTS.PROFILE_CLICKS_ANALYTICS, eventData);
 };

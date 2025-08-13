@@ -210,6 +210,7 @@ useEffect(() => {
             )
           }
           required = {true}
+          labelOffsetClass="with-icon-label-offset-small"
         />
 
         <InputWithIcons
@@ -230,6 +231,7 @@ useEffect(() => {
             ) : null
           }
           required = {true}
+          labelOffsetClass="with-icon-label-offset-small"
         />
         
 

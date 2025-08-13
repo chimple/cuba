@@ -2559,10 +2559,12 @@ export class SupabaseApi implements ServiceApi {
     return filtered;
   }
   async getSchoolsForUser(
-    userId: string
+    userId: string,
+    options?: { page?: number; page_size?: number }
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
     if (!this.supabase) return [];
 
+    // Special users
     const { data: specialUser, error: specialError } = await this.supabase
       .from(TABLES.SpecialUsers)
       .select("role")
@@ -2579,50 +2581,69 @@ export class SupabaseApi implements ServiceApi {
         role === RoleType.SUPER_ADMIN ||
         role === RoleType.OPERATIONAL_DIRECTOR
       ) {
+        const page = options?.page ?? 1;
+        const page_size = options?.page_size ?? 20;
+        const from = (page - 1) * page_size;
+        const to = from + page_size - 1;
+
         const { data: allSchools, error: allErr } = await this.supabase
           .from(TABLES.School)
           .select("*")
-          .eq("is_deleted", false);
+          .eq("is_deleted", false)
+          .order("name", { ascending: true })
+          .range(from, to);
 
         if (allErr) {
           console.error("Error fetching all schools:", allErr);
           return [];
         }
-        return allSchools.map((school) => ({ school, role }));
+        return (allSchools ?? []).map((school) => ({ school, role }));
       }
 
       if (
         role === RoleType.PROGRAM_MANAGER ||
         role === RoleType.FIELD_COORDINATOR
       ) {
+        const page = options?.page ?? 1;
+        const page_size = options?.page_size ?? 20;
+        const from = (page - 1) * page_size;
+        const to = from + page_size - 1;
+
         const { data: progUsers, error: puErr } = await this.supabase
           .from(TABLES.ProgramUser)
           .select("program_id")
-          .eq("user_id", userId)
+          .eq("user", userId)
           .eq("is_deleted", false);
 
         if (puErr) {
           console.error("Error fetching program_user:", puErr);
-        } else if (progUsers?.length) {
+          return [];
+        }
+        if (progUsers?.length) {
           const programIds = progUsers.map((pu) => pu.program_id);
           const { data: progSchools, error: psErr } = await this.supabase
             .from(TABLES.School)
             .select("*")
             .in("program_id", programIds)
-            .eq("is_deleted", false);
+            .eq("is_deleted", false)
+            .order("name", { ascending: true })
+            .range(from, to);
 
           if (psErr) {
             console.error("Error fetching program schools:", psErr);
-          } else {
-            const unique = new Map<string, { school: any; role: RoleType }>();
-            for (const school of progSchools) {
-              unique.set(school.id, { school, role });
-            }
-            return Array.from(unique.values());
+            return [];
+          }
+          // Deduplicate by school id
+          const unique = new Map<string, { school: any; role: RoleType }>();
+          for (const school of progSchools ?? []) {
+            unique.set(school.id, { school, role });
           }
         }
+        return [];
       }
     }
+
+    // — Fallback to original logic:
 
     const finalData: { school: TableTypes<"school">; role: RoleType }[] = [];
     const schoolIds: Set<string> = new Set();
@@ -4760,6 +4781,9 @@ export class SupabaseApi implements ServiceApi {
       throw insertError;
     }
 
+    // Fetch user doc from your server API
+    // const user_doc = await this.getUserByDocId(userId);
+
     // Insert into user table with upsert logic (on conflict do nothing)
     if (user) {
       const { error: userInsertError } = await this.supabase
@@ -5352,6 +5376,8 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error inserting into school_user:", insertError);
       return;
     }
+
+    // const user_doc = await this.getUserByDocId(user.id);
 
     if (user) {
       const cleanUserDoc = {
@@ -7198,10 +7224,10 @@ export class SupabaseApi implements ServiceApi {
         .select("role")
         .eq("user_id", userId)
         .in("role", [
-          "super_admin",
-          "operational_director",
-          "program_manager",
-          "field_coordinator",
+          RoleType.SUPER_ADMIN,
+          RoleType.PROGRAM_MANAGER,
+          RoleType.FIELD_COORDINATOR,
+          RoleType.OPERATIONAL_DIRECTOR,
         ])
         .eq("is_deleted", false);
 
@@ -7368,5 +7394,20 @@ export class SupabaseApi implements ServiceApi {
     link: string
   ): Promise<TableTypes<"chapter_links"> | undefined> {
     throw new Error("Method not implemented.");
+  }
+  async addParentToNewClass(classID:string, studentId:string){
+    try {
+        if (!this.supabase) return;
+         const { error } = await this.supabase.rpc('add_parent_to_newclass', {
+         _class_id: classID,
+         _student_id: studentId
+       });
+
+        if (error) {
+          console.log('Failed to add parent to class:', error.message);
+        }
+    } catch (error) {
+      console.error('Error in addParentToNewClass:', error);
+    }
   }
 }
