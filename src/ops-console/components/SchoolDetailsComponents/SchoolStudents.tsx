@@ -38,9 +38,6 @@ interface SchoolStudentsProps {
   isMobile: boolean;
 }
 
-const studentFilterSliderOptions: Record<string, string[]> = {
-  grade: [...Array.from({ length: 12 }, (_, i) => `Grade ${i + 1}`)],
-};
 const ROWS_PER_PAGE = 6;
 
 const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data }) => {
@@ -184,6 +181,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data }) => {
   const isFilteringOrSearching = searchTerm.trim() !== "" || Object.values(filters).some((f) => f.length > 0);
   const filterConfigsForSchool = [{ key: "grade", label: "Grade" }];
 
+  function getGradeOptions(students: ApiStudentData[]): string[] {
+    const uniqueGrades = Array.from(
+      new Set(students.map((s) => s.grade).filter((g) => typeof g === "number" && g > 0))
+    );
+    uniqueGrades.sort((a, b) => a - b);
+    return uniqueGrades.map((g) => `Grade ${g}`);
+  }
+
   return (
     <div className="schoolStudents-pageContainer">
       <Box className="schoolStudents-headerActionsRow">
@@ -200,7 +205,16 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data }) => {
         </Box>
       </Box>
       {Object.values(filters).some((arr) => arr.length > 0) && <SelectedFilters filters={filters} onDeleteFilter={handleDeleteAppliedFilter} />}
-      <FilterSlider isOpen={isFilterSliderOpen} onClose={() => setIsFilterSliderOpen(false)} filters={tempFilters} filterOptions={studentFilterSliderOptions} onFilterChange={handleSliderFilterChange} onApply={handleApplyFilters} onCancel={handleCancelFilters} filterConfigs={filterConfigsForSchool} />
+      <FilterSlider
+        isOpen={isFilterSliderOpen}
+        onClose={() => setIsFilterSliderOpen(false)}
+        filters={tempFilters}
+        filterOptions={{ grade: getGradeOptions(data?.students || []) }}
+        onFilterChange={handleSliderFilterChange}
+        onApply={handleApplyFilters}
+        onCancel={handleCancelFilters}
+        filterConfigs={filterConfigsForSchool}
+      />
 
       {isDataPresent ? (
         <>
