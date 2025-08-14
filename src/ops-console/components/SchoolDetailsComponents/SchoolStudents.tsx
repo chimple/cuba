@@ -137,18 +137,85 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   };
 
   const studentsForCurrentPage = useMemo((): DisplayStudent[] => {
-    return students.map(
-      (s_api): DisplayStudent => ({
-        id: s_api.user.id,
-        studentIdDisplay: s_api.user.student_id || "N/A",
-        name: s_api.user.name || "N/A",
-        gender: s_api.user.gender || "N/A",
-        grade: s_api.grade,
-        classSection: s_api.classSection || "N/A",
-        phoneNumber: s_api.user.phone || "N/A",
-      })
-    );
-  }, [students]);
+    let filtered = [...students];
+    // Apply search filter
+    if (searchTerm.trim() !== "") {
+      const lowerSearch = searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(
+        (s_api) =>
+          s_api.user.name?.toLowerCase().includes(lowerSearch) ||
+          s_api.user.student_id?.toLowerCase().includes(lowerSearch) ||
+          s_api.user.phone?.includes(lowerSearch) ||
+          s_api.classSection?.toLowerCase().includes(lowerSearch) ||
+          String(s_api.grade).includes(lowerSearch)
+      );
+    }
+    // Apply grade filter
+    if (filters.grade.length > 0) {
+      filtered = filtered.filter((s_api) => {
+        return filters.grade.some((filterGradeString) => {
+          let numericValueToMatch: number | undefined;
+          const gradeMatch = filterGradeString.match(/^Grade (\d+)$/);
+          if (gradeMatch) numericValueToMatch = parseInt(gradeMatch[1], 10);
+          return (
+            numericValueToMatch !== undefined && s_api.grade === numericValueToMatch
+          );
+        });
+      });
+    }
+    // Apply section filter
+    if (filters.section.length > 0) {
+      filtered = filtered.filter((s_api) =>
+        s_api.classSection && filters.section.includes(s_api.classSection.toUpperCase())
+      );
+    }
+    // Apply sorting
+    if (orderBy) {
+      filtered.sort((a, b) => {
+        let valA, valB;
+        switch (orderBy) {
+          case "studentIdDisplay":
+            valA = a.user.student_id;
+            valB = b.user.student_id;
+            break;
+          case "name":
+          case "gender":
+          case "phone":
+            valA = a.user[orderBy as "name" | "gender" | "phone"];
+            valB = b.user[orderBy as "name" | "gender" | "phone"];
+            break;
+          default:
+            valA = a[orderBy as keyof ApiStudentData];
+            valB = b[orderBy as keyof ApiStudentData];
+            break;
+        }
+        valA = valA ?? "";
+        valB = valB ?? "";
+        if (typeof valA === "string" && typeof valB === "string") {
+          return order === "asc"
+            ? valA.localeCompare(valB)
+            : valB.localeCompare(valA);
+        } else {
+          if (valA < valB) return order === "asc" ? -1 : 1;
+          if (valA > valB) return order === "asc" ? 1 : -1;
+          return 0;
+        }
+      });
+    }
+    // Pagination
+    const startIndex = (page - 1) * ROWS_PER_PAGE;
+    const paginated = filtered.slice(startIndex, startIndex + ROWS_PER_PAGE);
+    // Map to DisplayStudent
+    return paginated.map((s_api): DisplayStudent => ({
+      id: s_api.user.id,
+      studentIdDisplay: s_api.user.student_id || "N/A",
+      name: s_api.user.name || "N/A",
+      gender: s_api.user.gender || "N/A",
+      grade: s_api.grade,
+      classSection: s_api.classSection || "N/A",
+      phoneNumber: s_api.user.phone || "N/A",
+    }));
+  }, [students, searchTerm, filters, order, orderBy, page]);
 
   const pageCount = Math.ceil(totalCount / ROWS_PER_PAGE);
   const isDataPresent = studentsForCurrentPage.length > 0;
@@ -209,6 +276,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       new Set(students.map((s) => s.grade).filter((g) => g > 0))
     );
     uniqueGrades.sort((a, b) => a - b);
+    console.log("Unique Grades:", uniqueGrades);
     return uniqueGrades.map((g) => `Grade ${g}`);
   }
 

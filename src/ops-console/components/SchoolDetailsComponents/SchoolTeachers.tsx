@@ -145,18 +145,80 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   };
 
   const displayTeachers = useMemo((): DisplayTeacher[] => {
-    return teachers.map(
-      (apiTeacher): DisplayTeacher => ({
-        id: apiTeacher.user.id,
-        name: apiTeacher.user.name || "N/A",
-        gender: apiTeacher.user.gender || "N/A",
-        grade: apiTeacher.grade,
-        classSection: apiTeacher.classSection,
-        phoneNumber: apiTeacher.user.phone || "N/A",
-        emailDisplay: apiTeacher.user.email || "N/A",
-      })
-    );
-  }, [teachers]);
+    let filtered = [...teachers];
+    // Apply search filter
+    if (searchTerm.trim() !== "") {
+      const lowerSearch = searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(
+        (t) =>
+          t.user.name?.toLowerCase().includes(lowerSearch) ||
+          t.user.email?.toLowerCase().includes(lowerSearch) ||
+          t.user.phone?.toLowerCase().includes(lowerSearch)
+      );
+    }
+    // Apply grade filter
+    if (filters.grade.length > 0) {
+      filtered = filtered.filter((t) => {
+        return filters.grade.some((filterGradeString) => {
+          let numericValueToMatch: number | undefined;
+          const gradeMatch = filterGradeString.match(/^Grade (\d+)$/);
+          if (gradeMatch) numericValueToMatch = parseInt(gradeMatch[1], 10);
+          return (
+            numericValueToMatch !== undefined && t.grade === numericValueToMatch
+          );
+        });
+      });
+    }
+    // Apply section filter
+    if (filters.section.length > 0) {
+      filtered = filtered.filter((t) =>
+        t.classSection && filters.section.includes(t.classSection.toUpperCase())
+      );
+    }
+    // Apply sorting
+    if (orderBy) {
+      filtered.sort((a, b) => {
+        let valA, valB;
+        switch (orderBy) {
+          case "name":
+          case "gender":
+          case "phone":
+          case "email":
+            valA = a.user[orderBy as keyof UserType];
+            valB = b.user[orderBy as keyof UserType];
+            break;
+          default:
+            valA = a[orderBy as keyof ApiTeacherData];
+            valB = b[orderBy as keyof ApiTeacherData];
+            break;
+        }
+        valA = valA ?? "";
+        valB = valB ?? "";
+        if (typeof valA === "string" && typeof valB === "string") {
+          return order === "asc"
+            ? valA.localeCompare(valB)
+            : valB.localeCompare(valA);
+        } else {
+          if (valA < valB) return order === "asc" ? -1 : 1;
+          if (valA > valB) return order === "asc" ? 1 : -1;
+          return 0;
+        }
+      });
+    }
+    // Pagination
+    const startIndex = (page - 1) * ROWS_PER_PAGE;
+    const paginated = filtered.slice(startIndex, startIndex + ROWS_PER_PAGE);
+    // Map to DisplayTeacher
+    return paginated.map((apiTeacher): DisplayTeacher => ({
+      id: apiTeacher.user.id,
+      name: apiTeacher.user.name || "N/A",
+      gender: apiTeacher.user.gender || "N/A",
+      grade: apiTeacher.grade,
+      classSection: apiTeacher.classSection,
+      phoneNumber: apiTeacher.user.phone || "N/A",
+      emailDisplay: apiTeacher.user.email || "N/A",
+    }));
+  }, [teachers, searchTerm, filters, order, orderBy, page]);
 
   const pageCount = Math.ceil(totalCount / ROWS_PER_PAGE);
   const isDataPresent = displayTeachers.length > 0;
@@ -242,7 +304,12 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           />
         </Box>
       </Box>
-      {Object.values(filters).some((arr) => arr.length > 0) && <SelectedFilters filters={filters} onDeleteFilter={handleDeleteAppliedFilter} />}
+      {Object.values(filters).some((arr) => arr.length > 0) && (
+        <SelectedFilters
+          filters={filters}
+          onDeleteFilter={handleDeleteAppliedFilter}
+        />
+      )}
       <FilterSlider
         isOpen={isFilterSliderOpen}
         onClose={() => setIsFilterSliderOpen(false)}
