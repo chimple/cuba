@@ -27,6 +27,19 @@ interface DisplayTeacher {
   phoneNumber: string;
   emailDisplay: string;
 }
+interface UserType {
+  id: string;
+  name: string | null;
+  gender: string | null;
+  phone: string | null;
+  email: string | null;
+}
+
+interface ApiTeacherData {
+  user: UserType;
+  grade: number;
+  classSection: string;
+}
 
 interface SchoolTeachersProps {
   data: {
