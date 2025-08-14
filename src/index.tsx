@@ -1,3 +1,12 @@
+/*
+ * Copyright (C) 2007 Chimple Learning
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ */
+
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
@@ -11,6 +20,7 @@ import {
 } from "jeep-sqlite/loader";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 import { SqliteApi } from "./services/api/SqliteApi";
+// @ts-ignore
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { IonLoading } from "@ionic/react";
 import { SplashScreen } from "@capacitor/splash-screen";
