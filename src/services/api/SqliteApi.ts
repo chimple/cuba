@@ -3712,20 +3712,9 @@ order by
          JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
          WHERE cl.lesson_id = "${lessonId}"`
       );
-
       if (res?.values && res.values.length > 0) {
-        const chapterData = res.values[0];
-        return {
-          id: chapterData[0],
-          name: chapterData[1],
-          image: chapterData[2],
-          course_id: chapterData[3],
-          created_at: chapterData[4],
-          updated_at: chapterData[5],
-          is_deleted: chapterData[6],
-          sort_index: chapterData[7],
-          sub_topics: chapterData[8]
-        };
+        const chapterData = res.values[0] as TableTypes<"chapter">;
+        return chapterData;
       }
       return undefined;
     } catch (error) {
