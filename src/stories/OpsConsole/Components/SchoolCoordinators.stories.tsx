@@ -1,72 +1,118 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { MemoryRouter } from 'react-router-dom';
-import { I18nextProvider } from 'react-i18next';
-import i18n from 'i18next'; 
-import SchoolCoordinatorsComponent, { Coordinator } from '../../../ops-console/components/SchoolDetailsComponents/SchoolCoordinators' // Adjust path
-import { Column } from "../../../ops-console/components/DataTableBody";
-const MockDataTableBody = ({ columns, rows, orderBy, order, onSort }: {
-  columns: Column<any>[],
-  rows: any[],
-  orderBy: string | null,
-  order: 'asc' | 'desc',
-  onSort: (key: string) => void
-}) => (
-  <div data-testid="mock-datatablebody" style={{ border: '1px dashed green', padding: '10px', marginTop: '10px' }}>
-    <p><strong>Mock DataTableBody</strong></p>
-    <p>Rows: {rows?.length || 0}</p>
-    <p>Sorted by: {orderBy || 'N/A'} {order}</p>
-    <p>Columns: {columns.map(c => c.label).join(', ')}</p>
-  </div>
-);
+import type { Meta, StoryObj } from "@storybook/react";
+import { MemoryRouter } from "react-router-dom";
+import SchoolCoordinatorsComponent from "../../../ops-console/components/SchoolDetailsComponents/SchoolCoordinators";
+import { CoordinatorInfo } from "../../../common/constants";
+const createMockCoordinator = (
+  id: string,
+  name: string,
+  gender: string,
+  phone: string,
+  email: string
+): CoordinatorInfo => {
+  return {
+    id,
+    name,
+    gender,
+    phone,
+    email,
+    student_id: null,
+    age: null,
+    avatar: null,
+    created_at: new Date().toISOString(),
+    curriculum_id: null,
+    fcm_token: null,
+    firebase_id: `fb_${id}`,
+    grade_id: null,
+    image: null,
+    is_deleted: false,
+    is_firebase: false,
+    is_ops: false,
+    is_tc_accepted: true,
+    language_id: null,
+    learning_path: null,
+    music_off: false,
+    ops_created_by: null,
+    sfx_off: false,
+    stars: 0,
+    updated_at: null,
+  };
+};
 
-const MockDataTablePagination = ({ page, pageCount, onPageChange }: {
-  page: number,
-  pageCount: number,
-  onPageChange: (newPage: number) => void
-}) => (
-  <div data-testid="mock-datatablepagination" style={{ border: '1px dashed blue', padding: '10px', marginTop: '10px' }}>
-    <p><strong>Mock DataTablePagination</strong></p>
-    <p>Page {page} of {pageCount}</p>
-    <button onClick={() => onPageChange(page - 1)} disabled={page <= 1}>Prev</button>
-    <button onClick={() => onPageChange(page + 1)} disabled={page >= pageCount}>Next</button>
-  </div>
-);
-
-
-// Define sample data for Coordinators
-const sampleCoordinators: Coordinator[] = [
-  { id: 'C001', name: 'Argus Filch', gender: 'Male', phoneNumber: '987-CARE-TAKER', email: 'argus.f@hogwarts.staff' },
-  { id: 'C002', name: 'Poppy Pomfrey', gender: 'Female', phoneNumber: '987-MAT-RON', email: 'poppy.p@hogwarts.staff' },
-  { id: 'C003', name: 'Irma Pince', gender: 'Female', phoneNumber: '987-LIB-RARY', email: 'irma.p@hogwarts.staff' },
-  { id: 'C004', name: 'Rolanda Hooch', gender: 'Female', phoneNumber: '987-FLY-ING', email: 'rolanda.h@hogwarts.staff' },
-  { id: 'C005', name: 'Gilderoy Lockhart', gender: 'Male', phoneNumber: '987-FAM-OUS', email: 'gilderoy.l@hogwarts.fanmail' },
-  { id: 'C006', name: 'Quirinus Quirrell', gender: 'Male', phoneNumber: '987-TUR-BAN', email: 'quirinus.q@hogwarts.staff' },
-  { id: 'C007', name: 'Horace Slughorn', gender: 'Male', phoneNumber: '987-SLU-GCLUB', email: 'horace.s@hogwarts.staff' },
+const sampleCoordinators: CoordinatorInfo[] = [
+  createMockCoordinator(
+    "C001",
+    "Argus Filch",
+    "Male",
+    "987-CARE-TAKER",
+    "argus.f@hogwarts.staff"
+  ),
+  createMockCoordinator(
+    "C002",
+    "Poppy Pomfrey",
+    "Female",
+    "987-MAT-RON",
+    "poppy.p@hogwarts.staff"
+  ),
+  createMockCoordinator(
+    "C003",
+    "Irma Pince",
+    "Female",
+    "987-LIB-RARY",
+    "irma.p@hogwarts.staff"
+  ),
+  createMockCoordinator(
+    "C004",
+    "Rolanda Hooch",
+    "Female",
+    "987-FLY-ING",
+    "rolanda.h@hogwarts.staff"
+  ),
+  createMockCoordinator(
+    "C005",
+    "Gilderoy Lockhart",
+    "Male",
+    "987-FAM-OUS",
+    "gilderoy.l@hogwarts.fanmail"
+  ),
+  createMockCoordinator(
+    "C006",
+    "Quirinus Quirrell",
+    "Male",
+    "987-TUR-BAN",
+    "quirinus.q@hogwarts.staff"
+  ),
+  createMockCoordinator(
+    "C007",
+    "Horace Slughorn",
+    "Male",
+    "987-SLU-GCLUB",
+    "horace.s@hogwarts.staff"
+  ),
 ];
 
 const meta = {
-  title: 'SchoolManagement/SchoolCoordinatorsPage', // Updated title
+  title: "SchoolManagement/SchoolCoordinatorsPage",
   component: SchoolCoordinatorsComponent,
-  parameters: {
-    // layout: 'fullscreen',
-  },
   decorators: [
     (Story) => (
-        <MemoryRouter> 
-          <Story />
-        </MemoryRouter>
+      <MemoryRouter>
+        <Story />
+      </MemoryRouter>
     ),
   ],
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   args: {
     isMobile: false,
+    schoolId: "sample-hogwarts-id-456",
     data: {
-      coordinators: [], // Default to no coordinators
+      coordinators: [],
+      totalCoordinatorCount: 0,
     },
   },
   argTypes: {
-    data: { control: 'object' },
-    isMobile: { control: 'boolean' },
+    data: { control: "object" },
+    isMobile: { control: "boolean" },
+    schoolId: { control: "text" },
   },
 } satisfies Meta<typeof SchoolCoordinatorsComponent>;
 
@@ -77,6 +123,7 @@ export const EmptyState: Story = {
   args: {
     data: {
       coordinators: [],
+      totalCoordinatorCount: 0,
     },
   },
 };
@@ -85,6 +132,17 @@ export const WithCoordinators: Story = {
   args: {
     data: {
       coordinators: sampleCoordinators,
+      totalCoordinatorCount: sampleCoordinators.length,
+    },
+  },
+};
+
+export const WithPagination: Story = {
+  name: "With More Data for Pagination",
+  args: {
+    data: {
+      coordinators: sampleCoordinators.slice(0, 3),
+      totalCoordinatorCount: sampleCoordinators.length,
     },
   },
 };
@@ -93,10 +151,11 @@ export const MobileView: Story = {
   args: {
     data: {
       coordinators: sampleCoordinators.slice(0, 3),
+      totalCoordinatorCount: sampleCoordinators.length,
     },
     isMobile: true,
   },
   parameters: {
-    viewport: { defaultViewport: 'iphone6' },
+    viewport: { defaultViewport: "iphone6" },
   },
 };
