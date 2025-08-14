@@ -19,6 +19,8 @@ android {
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
+        // Keep only required locales from transitive libraries to reduce resources
+        resConfigs 'en', 'hi', 'kn', 'mr'
     }
     signingConfigs {
         release {
@@ -30,12 +32,20 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
         debug {
             signingConfig signingConfigs.release
+        }
+    }
+
+    // Exclude unnecessary META-INF files to slightly reduce size
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/*.kotlin_module', 'META-INF/LICENSE*', 'META-INF/NOTICE*']
         }
     }
 }
@@ -66,8 +76,9 @@ dependencies {
 
     implementation "androidx.work:work-runtime:2.8.1"
     implementation 'com.google.firebase:firebase-messaging:23.3.1'
-
-    implementation 'com.google.firebase:firebase-appcheck-debug:17.0.1'
+    
+    // Include debug-only App Check helper only in debug builds
+    debugImplementation 'com.google.firebase:firebase-appcheck-debug:17.0.1'
     implementation("com.google.firebase:firebase-crashlytics")
     androidTestImplementation 'com.google.firebase:firebase-appcheck-debug-testing:17.0.1'
 

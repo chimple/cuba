@@ -17,7 +17,8 @@ import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.Plugin;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.appcheck.FirebaseAppCheck;
-import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory;
+import com.google.firebase.appcheck.AppCheckProviderFactory;
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import org.json.JSONObject;
@@ -83,7 +84,16 @@ public  class MainActivity extends BridgeActivity {
         // Initialize Firebase services
         FirebaseApp.initializeApp(this);
         FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();
-        firebaseAppCheck.installAppCheckProviderFactory(DebugAppCheckProviderFactory.getInstance());
+        // Try to use Debug App Check when the debug provider is on the classpath; else fall back to Play Integrity
+        try {
+            Class<?> debugFactoryClass = Class.forName("com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory");
+            java.lang.reflect.Method getInstance = debugFactoryClass.getMethod("getInstance");
+            Object factory = getInstance.invoke(null);
+            firebaseAppCheck.installAppCheckProviderFactory((AppCheckProviderFactory) factory);
+        } catch (Throwable ignored) {
+            // Fallback to Play Integrity in case debug factory is unavailable (e.g., release builds)
+            firebaseAppCheck.installAppCheckProviderFactory(PlayIntegrityAppCheckProviderFactory.getInstance());
+        }
         // Initialize and bind RespectClientManager
 //        respectClientManager = new RespectClientManager(); // Initialize RespectClientManager
 //        respectClientManager.bindService(this); // Bind the service
