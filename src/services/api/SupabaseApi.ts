@@ -6148,8 +6148,12 @@ export class SupabaseApi implements ServiceApi {
         console.error("Supabase client is not initialized.");
         return false;
       }
+      const programId = uuidv4();
+      const _currentUser =
+        await ServiceConfig.getI().authHandler.getCurrentUser();
 
       const record: any = {
+        id:programId,
         name: payload.programName,
         model: payload.models,
 
@@ -6179,17 +6183,17 @@ export class SupabaseApi implements ServiceApi {
       const { data, error } = await this.supabase
         .from(TABLES.Program)
         .insert(record)
-        .select("id")
         .single();
 
-      if (error || !data) {
+      if (error) {
         console.error("Insert error:", error);
         return false;
       }
 
-      const programId = data.id;
-
       // Step 2: Insert into program_user table
+      if (!payload.selectedManagers.includes(_currentUser?.id)) {
+        payload.selectedManagers.push(_currentUser?.id);
+      }
       const programUserRows = payload.selectedManagers.map(
         (userId: string) => ({
           program_id: programId,
@@ -6199,7 +6203,6 @@ export class SupabaseApi implements ServiceApi {
           role: RoleType.PROGRAM_MANAGER,
         })
       );
-
       const { error: programUserError } = await this.supabase
         .from(TABLES.ProgramUser)
         .insert(programUserRows);
@@ -7395,19 +7398,19 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<"chapter_links"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  async addParentToNewClass(classID:string, studentId:string){
+  async addParentToNewClass(classID: string, studentId: string) {
     try {
-        if (!this.supabase) return;
-         const { error } = await this.supabase.rpc('add_parent_to_newclass', {
-         _class_id: classID,
-         _student_id: studentId
-       });
+      if (!this.supabase) return;
+      const { error } = await this.supabase.rpc("add_parent_to_newclass", {
+        _class_id: classID,
+        _student_id: studentId,
+      });
 
-        if (error) {
-          console.log('Failed to add parent to class:', error.message);
-        }
+      if (error) {
+        console.error("Failed to add parent to class:", error.message);
+      }
     } catch (error) {
-      console.error('Error in addParentToNewClass:', error);
+      console.error("Error in addParentToNewClass:", error);
     }
   }
 }
