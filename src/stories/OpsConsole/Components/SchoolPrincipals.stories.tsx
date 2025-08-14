@@ -1,41 +1,103 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { MemoryRouter } from 'react-router-dom';
-
-import SchoolPrincipalsComponent, { Principal } from "../../../ops-console/components/SchoolDetailsComponents/SchoolPrincipals"; // Adjust path
-import { Column } from "../../../ops-console/components/DataTableBody";
-
-
-const samplePrincipals: Principal[] = [
-  { id: 'P001', name: 'Principal Skinner', gender: 'Male', phoneNumber: '555-1234', email: 'skinner@springfield.edu' },
-  { id: 'P002', name: 'Angela Li', gender: 'Female', phoneNumber: '555-5678', email: 'angela.li@lawndalehigh.org' },
-  { id: 'P003', name: 'Mr. Richard Belding', gender: 'Male', phoneNumber: '555-8765', email: 'belding@baysidehigh.edu' },
-  { id: 'P004', name: 'Principal Prickly', gender: 'Male', phoneNumber: '555-4321', email: 'prickly@thirdstreet.edu' },
-  { id: 'P005', name: 'Dean Hardscrabble', gender: 'Female', phoneNumber: '555-9900', email: 'hardscrabble@monstersu.edu' },
+import type { Meta, StoryObj } from "@storybook/react";
+import { MemoryRouter } from "react-router-dom";
+import SchoolPrincipalsComponent from "../../../ops-console/components/SchoolDetailsComponents/SchoolPrincipals"; // Adjust path
+import { PrincipalInfo } from "../../../common/constants"; // Adjust path if needed
+const createMockPrincipal = (
+  id: string,
+  name: string,
+  gender: string,
+  phone: string,
+  email: string
+): PrincipalInfo => {
+  return {
+    id,
+    name,
+    gender,
+    phone,
+    email,
+    student_id: null,
+    age: null,
+    avatar: null,
+    created_at: new Date().toISOString(),
+    curriculum_id: null,
+    fcm_token: null,
+    firebase_id: `fb_${id}`,
+    grade_id: null,
+    image: null,
+    is_deleted: false,
+    is_firebase: false,
+    is_ops: false,
+    is_tc_accepted: true,
+    language_id: null,
+    learning_path: null,
+    music_off: false,
+    ops_created_by: null,
+    sfx_off: false,
+    stars: 0,
+    updated_at: null,
+  };
+};
+const samplePrincipals: PrincipalInfo[] = [
+  createMockPrincipal(
+    "P001",
+    "Principal Skinner",
+    "Male",
+    "555-1234",
+    "skinner@springfield.edu"
+  ),
+  createMockPrincipal(
+    "P002",
+    "Angela Li",
+    "Female",
+    "555-5678",
+    "angela.li@lawndalehigh.org"
+  ),
+  createMockPrincipal(
+    "P003",
+    "Mr. Richard Belding",
+    "Male",
+    "555-8765",
+    "belding@baysidehigh.edu"
+  ),
+  createMockPrincipal(
+    "P004",
+    "Principal Prickly",
+    "Male",
+    "555-4321",
+    "prickly@thirdstreet.edu"
+  ),
+  createMockPrincipal(
+    "P005",
+    "Dean Hardscrabble",
+    "Female",
+    "555-9900",
+    "hardscrabble@monstersu.edu"
+  ),
 ];
 
 const meta = {
-  title: 'SchoolManagement/SchoolPrincipalsPage', // Updated title
+  title: "SchoolManagement/SchoolPrincipalsPage",
   component: SchoolPrincipalsComponent,
-  parameters: {
-    // layout: 'fullscreen',
-  },
   decorators: [
     (Story) => (
-        <MemoryRouter>
-          <Story />
-        </MemoryRouter>
+      <MemoryRouter>
+        <Story />
+      </MemoryRouter>
     ),
   ],
-  tags: ['autodocs'],
+  tags: ["autodocs"],
   args: {
     isMobile: false,
+    schoolId: "sample-school-id-123",
     data: {
-      principals: [], // Default to no principals
+      principals: [],
+      totalPrincipalCount: 0,
     },
   },
   argTypes: {
-    data: { control: 'object' },
-    isMobile: { control: 'boolean' },
+    data: { control: "object" },
+    isMobile: { control: "boolean" },
+    schoolId: { control: "text" },
   },
 } satisfies Meta<typeof SchoolPrincipalsComponent>;
 
@@ -46,6 +108,7 @@ export const EmptyState: Story = {
   args: {
     data: {
       principals: [],
+      totalPrincipalCount: 0,
     },
   },
 };
@@ -54,6 +117,7 @@ export const WithPrincipals: Story = {
   args: {
     data: {
       principals: samplePrincipals,
+      totalPrincipalCount: samplePrincipals.length,
     },
   },
 };
@@ -61,11 +125,12 @@ export const WithPrincipals: Story = {
 export const MobileView: Story = {
   args: {
     data: {
-      principals: samplePrincipals.slice(0, 2), // Fewer principals for mobile
+      principals: samplePrincipals.slice(0, 2),
+      totalPrincipalCount: samplePrincipals.length,
     },
     isMobile: true,
   },
   parameters: {
-    viewport: { defaultViewport: 'iphone6' },
+    viewport: { defaultViewport: "iphone6" },
   },
 };
