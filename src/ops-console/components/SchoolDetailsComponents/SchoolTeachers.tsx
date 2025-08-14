@@ -166,12 +166,11 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({ data }) => {
 
   function getGradeOptions(teachers: ApiTeacherData[]): string[] {
     const uniqueGrades = Array.from(
-      new Set(teachers.map((t) => t.grade).filter((g) => typeof g === "number" && g > 0))
+      new Set(teachers.map((t) => t.grade).filter((g) => g > 0))
     );
     uniqueGrades.sort((a, b) => a - b);
     return uniqueGrades.map((g) => `Grade ${g}`);
   }
-  
   return (
     <div className="schoolTeachers-pageContainer">
       <Box className="schoolTeachers-headerActionsRow">

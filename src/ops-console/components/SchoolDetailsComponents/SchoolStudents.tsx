@@ -183,7 +183,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data }) => {
 
   function getGradeOptions(students: ApiStudentData[]): string[] {
     const uniqueGrades = Array.from(
-      new Set(students.map((s) => s.grade).filter((g) => typeof g === "number" && g > 0))
+      new Set(students.map((s) => s.grade).filter((g) => g > 0))
     );
     uniqueGrades.sort((a, b) => a - b);
     return uniqueGrades.map((g) => `Grade ${g}`);
