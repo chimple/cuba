@@ -37,9 +37,22 @@ interface SchoolTeachersProps {
   schoolId: string;
 }
 
-const teacherFilterSliderOptions: Record<string, string[]> = {
-  grade: [...Array.from({ length: 12 }, (_, i) => `Grade ${i + 1}`)],
+// Dynamically generate grade options from teachers data
+const getGradeOptions = (teachers: TeacherInfo[]) => {
+  const gradesSet = new Set<string>();
+  teachers.forEach((t) => {
+    if (t.grade) {
+      gradesSet.add(`Grade ${t.grade}`);
+    }
+  });
+  return Array.from(gradesSet).sort((a, b) => {
+    // Sort numerically by grade
+    const numA = parseInt(a.replace(/\D/g, ""), 10);
+    const numB = parseInt(b.replace(/\D/g, ""), 10);
+    return numA - numB;
+  });
 };
+
 const ROWS_PER_PAGE = 20;
 
 const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
@@ -134,8 +147,60 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     setPage(1);
   };
 
+  const filteredTeachers = useMemo(() => {
+    if (!searchTerm && filters.grade.length === 0 && filters.section.length === 0) {
+      return teachers;
+    }
+    let filtered = teachers;
+    if (filters.grade.length > 0) {
+      filtered = filtered.filter((t) => filters.grade.includes(`Grade ${t.grade}`));
+    }
+    if (filters.section.length > 0) {
+      filtered = filtered.filter((t) => filters.section.includes(t.classSection));
+    }
+    if (searchTerm.trim() !== "") {
+      const term = searchTerm.trim().toLowerCase();
+      filtered = filtered.filter(
+        (t) =>
+          (t.user.name && t.user.name.toLowerCase().includes(term)) ||
+          (t.user.email && t.user.email.toLowerCase().includes(term))
+      );
+    }
+    return filtered;
+  }, [teachers, filters, searchTerm]);
+
+  // Sorting
+  const sortedTeachers = useMemo(() => {
+    const arr = [...filteredTeachers];
+    if (orderBy) {
+      arr.sort((a, b) => {
+        let aValue, bValue;
+        if (orderBy === "grade") {
+          aValue = a.grade;
+          bValue = b.grade;
+        } else if (orderBy === "name") {
+          aValue = a.user.name || "";
+          bValue = b.user.name || "";
+        } else {
+          aValue = a[orderBy] || "";
+          bValue = b[orderBy] || "";
+        }
+        if (aValue < bValue) return order === "asc" ? -1 : 1;
+        if (aValue > bValue) return order === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+    return arr;
+  }, [filteredTeachers, orderBy, order]);
+
+  // Pagination for filtered and sorted teachers
+  const paginatedTeachers = useMemo(() => {
+    const startIdx = (page - 1) * ROWS_PER_PAGE;
+    return sortedTeachers.slice(startIdx, startIdx + ROWS_PER_PAGE);
+  }, [sortedTeachers, page]);
+
   const displayTeachers = useMemo((): DisplayTeacher[] => {
-    return teachers.map(
+    return paginatedTeachers.map(
       (apiTeacher): DisplayTeacher => ({
         id: apiTeacher.user.id,
         name: apiTeacher.user.name || "N/A",
@@ -146,9 +211,11 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         emailDisplay: apiTeacher.user.email || "N/A",
       })
     );
-  }, [teachers]);
+  }, [paginatedTeachers]);
 
-  const pageCount = Math.ceil(totalCount / ROWS_PER_PAGE);
+  const pageCount = useMemo(() => {
+    return Math.ceil(filteredTeachers.length / ROWS_PER_PAGE);
+  }, [filteredTeachers]);
   const isDataPresent = displayTeachers.length > 0;
   const isFilteringOrSearching =
     searchTerm.trim() !== "" ||
@@ -195,6 +262,12 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     }, // Change key from "email" to "emailDisplay"
   ];
 
+  const handleClearFilters = useCallback(() => {
+    setFilters({ grade: [], section: [] });
+    setTempFilters({ grade: [], section: [] });
+    setPage(1);
+  }, []);
+
   const filterConfigsForTeachers = [{ key: "grade", label: "Grade" }];
 
   return (
@@ -222,6 +295,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
             onSearchChange={handleSearchChange}
             filters={filters}
             onFilterClick={handleFilterIconClick}
+            onClearFilters={handleClearFilters}
           />
         </Box>
       </Box>
@@ -236,7 +310,9 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         isOpen={isFilterSliderOpen}
         onClose={() => setIsFilterSliderOpen(false)}
         filters={tempFilters}
-        filterOptions={teacherFilterSliderOptions}
+        filterOptions={{
+          grade: getGradeOptions(teachers)
+        }}
         onFilterChange={handleSliderFilterChange}
         onApply={handleApplyFilters}
         onCancel={handleCancelFilters}
