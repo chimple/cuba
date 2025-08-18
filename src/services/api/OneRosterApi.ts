@@ -525,7 +525,7 @@ export class OneRosterApi implements ServiceApi {
     //     url: url,
     //     headers: this.getHeaders(),
     //   }).catch((e) => {
-    //     console.log("error on getResultsForStudentForClass", e);
+    //    console.log("error on getResultsForStudentForClass", e); 
     //   });
     //   if (response && response.status !== 200) {
     //     Util.showLog(response.data);
