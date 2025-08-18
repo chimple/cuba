@@ -885,6 +885,12 @@ export class Util {
     }
   ) {
     try {
+      // const normalizedParams: { [key: string]: string } = Object.fromEntries(
+      //   Object.entries(params).map(([key, value]) => [
+      //     key,
+      //     typeof value === "number" ? value.toString() : String(value),
+      //   ])
+      // );
       //Setting User Id in User Properites
       await FirebaseAnalytics.setUserId({
         userId: params.user_id,
