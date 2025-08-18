@@ -17,6 +17,7 @@ import SelectedFilters from "../SelectedFilters";
 import "./SchoolStudents.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import { StudentInfo } from "../../../common/constants";
+import { getGradeOptions, filterBySearchAndFilters, sortItems, paginateItems } from "../../OpsUtility/SearchFilterUtility";
 
 type ApiStudentData = StudentInfo;
 
@@ -38,22 +39,6 @@ interface SchoolStudentsProps {
   isMobile: boolean;
   schoolId: string;
 }
-
-// Dynamically generate grade options from student data
-const getGradeOptions = (students: ApiStudentData[]) => {
-  const gradesSet = new Set<string>();
-  students.forEach((s) => {
-    if (s.grade) {
-      gradesSet.add(`Grade ${s.grade}`);
-    }
-  });
-  return Array.from(gradesSet).sort((a, b) => {
-    // Sort numerically by grade
-    const numA = parseInt(a.replace(/\D/g, ""), 10);
-    const numB = parseInt(b.replace(/\D/g, ""), 10);
-    return numA - numB;
-  });
-};
 
 const ROWS_PER_PAGE = 20;
 
@@ -152,57 +137,24 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     setPage(1);
   };
 
-  const filteredStudents = useMemo(() => {
-    if (!searchTerm && filters.grade.length === 0 && filters.section.length === 0) {
-      return students;
-    }
-    let filtered = students;
-    if (filters.grade.length > 0) {
-      filtered = filtered.filter((s) => filters.grade.includes(`Grade ${s.grade}`));
-    }
-    if (filters.section.length > 0) {
-      filtered = filtered.filter((s) => filters.section.includes(s.classSection));
-    }
-    if (searchTerm.trim() !== "") {
-      const term = searchTerm.trim().toLowerCase();
-      filtered = filtered.filter(
-        (s) =>
-          (s.user.name && s.user.name.toLowerCase().includes(term)) ||
-          (s.user.student_id && s.user.student_id.toLowerCase().includes(term))
-      );
-    }
-    return filtered;
-  }, [students, filters, searchTerm]);
+  const normalizedStudents = useMemo(() => {
+    return students.map((s) => ({
+      ...s,
+      user: {
+        ...s.user,
+        name: s.user.name ?? undefined,
+        email: s.user.email ?? undefined,
+        student_id: s.user.student_id ?? undefined,
+      },
+    }));
+  }, [students]);
 
-  // Sorting
-  const sortedStudents = useMemo(() => {
-    const arr = [...filteredStudents];
-    if (orderBy) {
-      arr.sort((a, b) => {
-        let aValue, bValue;
-        if (orderBy === "grade") {
-          aValue = a.grade;
-          bValue = b.grade;
-        } else if (orderBy === "name") {
-          aValue = a.user.name || "";
-          bValue = b.user.name || "";
-        } else {
-          aValue = a[orderBy] || "";
-          bValue = b[orderBy] || "";
-        }
-        if (aValue < bValue) return order === "asc" ? -1 : 1;
-        if (aValue > bValue) return order === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
-    return arr;
-  }, [filteredStudents, orderBy, order]);
-
-  // Pagination for filtered and sorted students
-  const paginatedStudents = useMemo(() => {
-    const startIdx = (page - 1) * ROWS_PER_PAGE;
-    return sortedStudents.slice(startIdx, startIdx + ROWS_PER_PAGE);
-  }, [sortedStudents, page]);
+  const filteredStudents = useMemo(
+    () => filterBySearchAndFilters(normalizedStudents, filters, searchTerm, 'student'),
+    [normalizedStudents, filters, searchTerm]
+  );
+  const sortedStudents = useMemo(() => sortItems(filteredStudents, orderBy, order), [filteredStudents, orderBy, order]);
+  const paginatedStudents = useMemo(() => paginateItems(sortedStudents, page, ROWS_PER_PAGE), [sortedStudents, page]);
 
   const studentsForCurrentPage = useMemo((): DisplayStudent[] => {
     return paginatedStudents.map(

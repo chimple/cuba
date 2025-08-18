@@ -17,6 +17,7 @@ import SelectedFilters from "../SelectedFilters";
 import "./SchoolTeachers.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import { TeacherInfo } from "../../../common/constants";
+import { getGradeOptions, filterBySearchAndFilters, sortItems, paginateItems } from "../../OpsUtility/SearchFilterUtility";
 
 interface DisplayTeacher {
   id: string;
@@ -36,22 +37,6 @@ interface SchoolTeachersProps {
   isMobile: boolean;
   schoolId: string;
 }
-
-// Dynamically generate grade options from teachers data
-const getGradeOptions = (teachers: TeacherInfo[]) => {
-  const gradesSet = new Set<string>();
-  teachers.forEach((t) => {
-    if (t.grade) {
-      gradesSet.add(`Grade ${t.grade}`);
-    }
-  });
-  return Array.from(gradesSet).sort((a, b) => {
-    // Sort numerically by grade
-    const numA = parseInt(a.replace(/\D/g, ""), 10);
-    const numB = parseInt(b.replace(/\D/g, ""), 10);
-    return numA - numB;
-  });
-};
 
 const ROWS_PER_PAGE = 20;
 
@@ -147,57 +132,21 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     setPage(1);
   };
 
-  const filteredTeachers = useMemo(() => {
-    if (!searchTerm && filters.grade.length === 0 && filters.section.length === 0) {
-      return teachers;
-    }
-    let filtered = teachers;
-    if (filters.grade.length > 0) {
-      filtered = filtered.filter((t) => filters.grade.includes(`Grade ${t.grade}`));
-    }
-    if (filters.section.length > 0) {
-      filtered = filtered.filter((t) => filters.section.includes(t.classSection));
-    }
-    if (searchTerm.trim() !== "") {
-      const term = searchTerm.trim().toLowerCase();
-      filtered = filtered.filter(
-        (t) =>
-          (t.user.name && t.user.name.toLowerCase().includes(term)) ||
-          (t.user.email && t.user.email.toLowerCase().includes(term))
-      );
-    }
-    return filtered;
-  }, [teachers, filters, searchTerm]);
+  const normalizedTeachers = useMemo(() => 
+    teachers.map(t => ({
+      ...t,
+      user: {
+        ...t.user,
+        name: t.user.name ?? undefined,
+        email: t.user.email ?? undefined,
+        student_id: t.user.student_id ?? undefined,
+      }
+    }))
+  , [teachers]);
 
-  // Sorting
-  const sortedTeachers = useMemo(() => {
-    const arr = [...filteredTeachers];
-    if (orderBy) {
-      arr.sort((a, b) => {
-        let aValue, bValue;
-        if (orderBy === "grade") {
-          aValue = a.grade;
-          bValue = b.grade;
-        } else if (orderBy === "name") {
-          aValue = a.user.name || "";
-          bValue = b.user.name || "";
-        } else {
-          aValue = a[orderBy] || "";
-          bValue = b[orderBy] || "";
-        }
-        if (aValue < bValue) return order === "asc" ? -1 : 1;
-        if (aValue > bValue) return order === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
-    return arr;
-  }, [filteredTeachers, orderBy, order]);
-
-  // Pagination for filtered and sorted teachers
-  const paginatedTeachers = useMemo(() => {
-    const startIdx = (page - 1) * ROWS_PER_PAGE;
-    return sortedTeachers.slice(startIdx, startIdx + ROWS_PER_PAGE);
-  }, [sortedTeachers, page]);
+  const filteredTeachers = useMemo(() => filterBySearchAndFilters(normalizedTeachers, filters, searchTerm, 'teacher'), [normalizedTeachers, filters, searchTerm]);
+  const sortedTeachers = useMemo(() => sortItems(filteredTeachers, orderBy, order), [filteredTeachers, orderBy, order]);
+  const paginatedTeachers = useMemo(() => paginateItems(sortedTeachers, page, ROWS_PER_PAGE), [sortedTeachers, page]);
 
   const displayTeachers = useMemo((): DisplayTeacher[] => {
     return paginatedTeachers.map(
