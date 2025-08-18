@@ -17,7 +17,7 @@ import SelectedFilters from "../SelectedFilters";
 import "./SchoolTeachers.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import { TeacherInfo } from "../../../common/constants";
-import { getGradeOptions, filterBySearchAndFilters, sortItems, paginateItems } from "../../OpsUtility/SearchFilterUtility";
+import { getGradeOptions, filterBySearchAndFilters, sortSchoolTeachers, paginateSchoolTeachers } from "../../OpsUtility/SearchFilterUtility";
 
 interface DisplayTeacher {
   id: string;
@@ -145,8 +145,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   , [teachers]);
 
   const filteredTeachers = useMemo(() => filterBySearchAndFilters(normalizedTeachers, filters, searchTerm, 'teacher'), [normalizedTeachers, filters, searchTerm]);
-  const sortedTeachers = useMemo(() => sortItems(filteredTeachers, orderBy, order), [filteredTeachers, orderBy, order]);
-  const paginatedTeachers = useMemo(() => paginateItems(sortedTeachers, page, ROWS_PER_PAGE), [sortedTeachers, page]);
+  const sortedTeachers = useMemo(() => sortSchoolTeachers(filteredTeachers, orderBy, order), [filteredTeachers, orderBy, order]);
+  const paginatedTeachers = useMemo(() => paginateSchoolTeachers(sortedTeachers, page, ROWS_PER_PAGE), [sortedTeachers, page]);
 
   const displayTeachers = useMemo((): DisplayTeacher[] => {
     return paginatedTeachers.map(

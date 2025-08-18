@@ -17,7 +17,7 @@ import SelectedFilters from "../SelectedFilters";
 import "./SchoolStudents.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import { StudentInfo } from "../../../common/constants";
-import { getGradeOptions, filterBySearchAndFilters, sortItems, paginateItems } from "../../OpsUtility/SearchFilterUtility";
+import { getGradeOptions, filterBySearchAndFilters, sortSchoolTeachers, paginateSchoolTeachers } from "../../OpsUtility/SearchFilterUtility";
 
 type ApiStudentData = StudentInfo;
 
@@ -153,8 +153,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     () => filterBySearchAndFilters(normalizedStudents, filters, searchTerm, 'student'),
     [normalizedStudents, filters, searchTerm]
   );
-  const sortedStudents = useMemo(() => sortItems(filteredStudents, orderBy, order), [filteredStudents, orderBy, order]);
-  const paginatedStudents = useMemo(() => paginateItems(sortedStudents, page, ROWS_PER_PAGE), [sortedStudents, page]);
+  const sortedStudents = useMemo(() => sortSchoolTeachers(filteredStudents, orderBy, order), [filteredStudents, orderBy, order]);
+  const paginatedStudents = useMemo(() => paginateSchoolTeachers(sortedStudents, page, ROWS_PER_PAGE), [sortedStudents, page]);
 
   const studentsForCurrentPage = useMemo((): DisplayStudent[] => {
     return paginatedStudents.map(

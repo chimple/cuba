@@ -47,7 +47,7 @@ export function filterBySearchAndFilters<T extends {
   return filtered;
 }
 
-export function sortItems<T extends {
+export function sortSchoolTeachers<T extends {
   user: { name?: string };
   grade?: string | number;
 }>(
@@ -78,7 +78,7 @@ export function sortItems<T extends {
 }
 
 // Pagination logic
-export function paginateItems<T>(items: T[], page: number, rowsPerPage: number): T[] {
+export function paginateSchoolTeachers<T>(items: T[], page: number, rowsPerPage: number): T[] {
   const startIdx = (page - 1) * rowsPerPage;
   return items.slice(startIdx, startIdx + rowsPerPage);
 }
