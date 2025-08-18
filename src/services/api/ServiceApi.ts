@@ -555,7 +555,8 @@ export interface ServiceApi {
    * @returns {Promise<{ school: TableTypes<"school">; role: RoleType }[]>}
    */
   getSchoolsForUser(
-    userId: string
+    userId: string,
+    options?: { page?: number; page_size?: number }
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]>;
 
   /**

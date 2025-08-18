@@ -2638,6 +2638,7 @@ export class SupabaseApi implements ServiceApi {
           for (const school of progSchools ?? []) {
             unique.set(school.id, { school, role });
           }
+          return Array.from(unique.values());
         }
         return [];
       }
