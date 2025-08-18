@@ -17,6 +17,7 @@ import SelectedFilters from "../SelectedFilters";
 import "./SchoolStudents.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import { StudentInfo } from "../../../common/constants";
+import { getGradeOptions, filterBySearchAndFilters, sortSchoolTeachers, paginateSchoolTeachers } from "../../OpsUtility/SearchFilterUtility";
 
 type ApiStudentData = StudentInfo;
 
@@ -39,9 +40,6 @@ interface SchoolStudentsProps {
   schoolId: string;
 }
 
-const studentFilterSliderOptions: Record<string, string[]> = {
-  grade: [...Array.from({ length: 12 }, (_, i) => `Grade ${i + 1}`)],
-};
 const ROWS_PER_PAGE = 20;
 
 const SchoolStudents: React.FC<SchoolStudentsProps> = ({
@@ -139,8 +137,27 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     setPage(1);
   };
 
+  const normalizedStudents = useMemo(() => {
+    return students.map((s) => ({
+      ...s,
+      user: {
+        ...s.user,
+        name: s.user.name ?? undefined,
+        email: s.user.email ?? undefined,
+        student_id: s.user.student_id ?? undefined,
+      },
+    }));
+  }, [students]);
+
+  const filteredStudents = useMemo(
+    () => filterBySearchAndFilters(normalizedStudents, filters, searchTerm, 'student'),
+    [normalizedStudents, filters, searchTerm]
+  );
+  const sortedStudents = useMemo(() => sortSchoolTeachers(filteredStudents, orderBy, order), [filteredStudents, orderBy, order]);
+  const paginatedStudents = useMemo(() => paginateSchoolTeachers(sortedStudents, page, ROWS_PER_PAGE), [sortedStudents, page]);
+
   const studentsForCurrentPage = useMemo((): DisplayStudent[] => {
-    return students.map(
+    return paginatedStudents.map(
       (s_api): DisplayStudent => ({
         id: s_api.user.id,
         studentIdDisplay: s_api.user.student_id || "N/A",
@@ -151,9 +168,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         phoneNumber: s_api.user.phone || "N/A",
       })
     );
-  }, [students]);
+  }, [paginatedStudents]);
 
-  const pageCount = Math.ceil(totalCount / ROWS_PER_PAGE);
+  const pageCount = useMemo(() => {
+    return Math.ceil(filteredStudents.length / ROWS_PER_PAGE);
+  }, [filteredStudents]);
+
   const isDataPresent = studentsForCurrentPage.length > 0;
   const isFilteringOrSearching =
     searchTerm.trim() !== "" ||
@@ -164,6 +184,13 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     setTempFilters(filters);
     setIsFilterSliderOpen(true);
   }, [filters]);
+
+  const handleClearFilters = useCallback(() => {
+    setFilters({ grade: [], section: [] });
+    setTempFilters({ grade: [], section: [] });
+    setPage(1);
+  }, []);
+
   const handleSliderFilterChange = useCallback((name: string, value: any) => {
     setTempFilters((prev) => ({
       ...prev,
@@ -232,6 +259,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             onSearchChange={handleSearchChange}
             filters={filters}
             onFilterClick={handleFilterIconClick}
+            onClearFilters={handleClearFilters}
           />
         </Box>
       </Box>
@@ -246,7 +274,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         isOpen={isFilterSliderOpen}
         onClose={() => setIsFilterSliderOpen(false)}
         filters={tempFilters}
-        filterOptions={studentFilterSliderOptions}
+        filterOptions={{
+          grade: getGradeOptions(students)
+        }}
         onFilterChange={handleSliderFilterChange}
         onApply={handleApplyFilters}
         onCancel={handleCancelFilters}

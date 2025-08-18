@@ -19,6 +19,7 @@ interface SearchAndFilterProps {
   onSearchChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   filters: Record<string, string[]>;
   onFilterClick: () => void;
+  onClearFilters?: () => void;
 }
 
 const DEBOUNCE_MS = 400;
@@ -28,6 +29,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   onSearchChange,
   filters,
   onFilterClick,
+  onClearFilters,
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -133,13 +135,23 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
       )}
 
       {isMobile ? (
-        <IconButton
-          aria-label={hasFilters ? "Clear Filters" : "Open Filters"}
-          onClick={onFilterClick}
-          sx={{ marginLeft: "0px" }}
-        >
-          {hasFilters ? <CloseIcon /> : <FilterListIcon />}
-        </IconButton>
+        hasFilters ? (
+          <IconButton
+            aria-label="Clear Filters"
+            onClick={onClearFilters}
+            sx={{ marginLeft: "0px" }}
+          >
+            <CloseIcon />
+          </IconButton>
+        ) : (
+          <IconButton
+            aria-label="Open Filters"
+            onClick={onFilterClick}
+            sx={{ marginLeft: "0px" }}
+          >
+            <FilterListIcon />
+          </IconButton>
+        )
       ) : (
         <Button
           variant="outlined"
@@ -147,7 +159,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
           className={`filter-button-SearchAndFilter${
             hasFilters ? " has-filters" : ""
           }`}
-          onClick={onFilterClick}
+          onClick={hasFilters ? onClearFilters : onFilterClick}
         >
           <span style={{ color: "black" }}>
             {hasFilters ? t("Clear Filters") : t("Filter")}
