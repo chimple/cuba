@@ -2838,7 +2838,6 @@ export class SupabaseApi implements ServiceApi {
 
     const classMap = new Map<string, { grade: number; section: string }>();
     const classIds: string[] = [];
-
     // Step 2: Prepare classMap and classIds
     for (const cls of classes) {
       if (!cls || typeof cls.name !== "string") continue;
@@ -2853,8 +2852,6 @@ export class SupabaseApi implements ServiceApi {
 
     // Step 3: Fetch paginated class_users and the TOTAL COUNT
     const offset = (page - 1) * limit;
-
-    //CHANGE 3: Add { count: 'exact' } and destructure 'count'
     const {
       data: classUsers,
       error,
@@ -2872,7 +2869,6 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: 0 };
     }
 
-    // ... (Steps for preparing studentClassPairs, uniqueUserIds, and fetching users remain the same)
     const studentClassPairs: { userId: string; classId: string }[] = [];
     for (const cu of classUsers) {
       if (cu?.user_id && cu?.class_id) {
@@ -2881,15 +2877,16 @@ export class SupabaseApi implements ServiceApi {
     }
 
     if (!studentClassPairs.length) {
-      // We might have students on other pages, so we should still return the total count.
       return { data: [], total: count ?? 0 };
     }
 
+    // Step 4: Fetch student user details
     const uniqueUserIds = [...new Set(studentClassPairs.map((p) => p.userId))];
     const { data: users, error: userError } = await this.supabase
       .from(TABLES.User)
       .select("*")
       .in("id", uniqueUserIds)
+      .eq("is_deleted", false)
       .order("created_at", { ascending: true });
 
     if (userError || !users?.length) {
@@ -2897,7 +2894,64 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: count ?? 0 };
     }
 
-    // ... (Merging user data with class info remains the same)
+    // Step 5: Fetch parent phone numbers for these students
+    const studentIdToParentPhoneMap = new Map<string, string>();
+
+    // 5a: Get parent_id from parent_user table using student_id
+    const { data: parentLinks, error: parentLinkError } = await this.supabase
+      .from(TABLES.ParentUser)
+      .select("student_id, parent_id")
+      .in("student_id", uniqueUserIds)
+      .eq("is_deleted", false);
+
+    if (parentLinkError) {
+      console.error("Error fetching parent-student links:", parentLinkError);
+    }
+
+    if (parentLinks?.length) {
+      const studentIdToParentIdMap = new Map<string, string>();
+      const parentIds: string[] = [];
+      for (const link of parentLinks) {
+        if (link.student_id && link.parent_id) {
+          studentIdToParentIdMap.set(link.student_id, link.parent_id);
+          parentIds.push(link.parent_id);
+        }
+      }
+
+      // 5b: Get parent phone number from user table using parent_id
+      const uniqueParentIds = [...new Set(parentIds)];
+      if (uniqueParentIds.length > 0) {
+        const { data: parentUsers, error: parentUserError } =
+          await this.supabase
+            .from(TABLES.User)
+            .select("id, phone")
+            .in("id", uniqueParentIds)
+            .eq("is_deleted", false);
+
+        if (parentUserError) {
+          console.error("Error fetching parent users:", parentUserError);
+        } else if (parentUsers) {
+          const parentIdToPhoneMap = new Map<string, string>();
+          for (const parent of parentUsers) {
+            if (parent.id && parent.phone) {
+              parentIdToPhoneMap.set(parent.id, parent.phone);
+            }
+          }
+          // Populate the final map
+          for (const [
+            studentId,
+            parentId,
+          ] of studentIdToParentIdMap.entries()) {
+            const phone = parentIdToPhoneMap.get(parentId);
+            if (phone) {
+              studentIdToParentPhoneMap.set(studentId, phone);
+            }
+          }
+        }
+      }
+    }
+
+    // Step 6: Merge student data, class info, and parent phone number
     const userMap = new Map<string, TableTypes<"user">>();
     for (const user of users) {
       if (user && user.id) {
@@ -2908,24 +2962,16 @@ export class SupabaseApi implements ServiceApi {
     for (const { userId, classId } of studentClassPairs) {
       const user = userMap.get(userId);
       const classInfo = classMap.get(classId);
-
+      const parentPhoneNumber = studentIdToParentPhoneMap.get(userId);
       if (user && classInfo) {
         studentInfoList.push({
           user,
           grade: classInfo.grade,
           classSection: classInfo.section,
+          parentPhoneNumber: parentPhoneNumber || null,
         });
       }
     }
-
-    console.log(
-      "Fetched student info:",
-      studentInfoList.length,
-      "students.",
-      "Total matching students:",
-      count
-    );
-
     return {
       data: studentInfoList,
       total: count ?? 0,
@@ -3098,14 +3144,36 @@ export class SupabaseApi implements ServiceApi {
   async parseClassName(
     className: string
   ): Promise<{ grade: number; section: string }> {
-    const match = className.match(/^(\d+)([A-Za-z]+)$/);
-    if (match) {
-      return {
-        grade: parseInt(match[1], 10),
-        section: match[2],
-      };
+    const cleanedName = className.trim();
+    if (!cleanedName) {
+      return { grade: 0, section: "" };
     }
-    return { grade: 0, section: "" };
+
+    let grade = 0;
+    let section = "";
+
+    // Pattern 1: Just a number (e.g., "1", "5", "10")
+    const numericMatch = cleanedName.match(/^(\d+)$/);
+    if (numericMatch) {
+      grade = parseInt(numericMatch[1], 10);
+      section = "";
+      return { grade: isNaN(grade) ? 0 : grade, section };
+    }
+
+    // Pattern 2: Number followed by letters (e.g., "3A", "1AAA", "Grade 5 Section B")
+    const alphanumericMatch = cleanedName.match(/(\d+)\s*(\w+)/i);
+    if (alphanumericMatch) {
+      grade = parseInt(alphanumericMatch[1], 10);
+      section = alphanumericMatch[2];
+
+      return { grade: isNaN(grade) ? 0 : grade, section };
+    }
+
+    // Fallback: If no numerical grade can be extracted, assume it's a special class
+    console.warn(
+      `Could not parse grade from class name: "${cleanedName}". Assigning grade 0.`
+    );
+    return { grade: 0, section: cleanedName };
   }
 
   async getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
@@ -6154,7 +6222,7 @@ export class SupabaseApi implements ServiceApi {
         await ServiceConfig.getI().authHandler.getCurrentUser();
 
       const record: any = {
-        id:programId,
+        id: programId,
         name: payload.programName,
         model: payload.models,
 

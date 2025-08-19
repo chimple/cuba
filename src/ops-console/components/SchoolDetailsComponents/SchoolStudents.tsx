@@ -8,7 +8,7 @@ import {
   Box,
   useMediaQuery,
   CircularProgress,
-} from "@mui/material"; // Import CircularProgress
+} from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
 import { t } from "i18next";
 import SearchAndFilter from "../SearchAndFilter";
@@ -17,7 +17,7 @@ import SelectedFilters from "../SelectedFilters";
 import "./SchoolStudents.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import { StudentInfo } from "../../../common/constants";
-import { getGradeOptions, filterBySearchAndFilters, sortSchoolTeachers, paginateSchoolTeachers } from "../../OpsUtility/SearchFilterUtility";
+import { getGradeOptions, filterBySearchAndFilters, sortSchoolTeachers, paginateSchoolTeachers } from "../../OpsUtility/SearchFilterUtility"; 
 
 type ApiStudentData = StudentInfo;
 
@@ -93,20 +93,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   useEffect(() => {
     // Don't fetch on the initial render for page 1, because we already have the data from props.
-    if (
-      page === 1 &&
-      !searchTerm &&
-      filters.grade.length === 0 &&
-      filters.section.length === 0
-    ) {
+    if (page === 1 && !searchTerm && filters.grade.length === 0 && filters.section.length === 0) {
       setStudents(data.students || []);
       setTotalCount(data.totalStudentCount || 0);
       return;
     }
     fetchStudents(page);
-  }, [page, fetchStudents, data.students, data.totalStudentCount]);
+  }, [page, schoolId]); 
 
-  //Handlers now just update state. The useEffect will trigger the fetch. ---
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
   };
@@ -114,19 +108,17 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const handleSort = (key: string) => {
     const isAsc = orderBy === key && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(key);
-    setPage(1); // Reset to page 1 on sort
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
-    setPage(1);
+    setPage(1); 
   };
 
   const handleApplyFilters = () => {
     setFilters(tempFilters);
     setIsFilterSliderOpen(false);
-    setPage(1);
+    setPage(1); 
   };
 
   const handleDeleteAppliedFilter = (key: string, value: string) => {
@@ -134,7 +126,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       ...prev,
       [key]: prev[key].filter((v) => v !== value),
     }));
-    setPage(1);
+    setPage(1); 
   };
 
   const normalizedStudents = useMemo(() => {
@@ -154,10 +146,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     [normalizedStudents, filters, searchTerm]
   );
   const sortedStudents = useMemo(() => sortSchoolTeachers(filteredStudents, orderBy, order), [filteredStudents, orderBy, order]);
-  const paginatedStudents = useMemo(() => paginateSchoolTeachers(sortedStudents, page, ROWS_PER_PAGE), [sortedStudents, page]);
 
   const studentsForCurrentPage = useMemo((): DisplayStudent[] => {
-    return paginatedStudents.map(
+    return sortedStudents.map(
       (s_api): DisplayStudent => ({
         id: s_api.user.id,
         studentIdDisplay: s_api.user.student_id || "N/A",
@@ -165,14 +156,17 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         gender: s_api.user.gender || "N/A",
         grade: s_api.grade,
         classSection: s_api.classSection || "N/A",
-        phoneNumber: s_api.user.phone || "N/A",
+        phoneNumber: s_api.parentPhoneNumber || "N/A",
       })
     );
-  }, [paginatedStudents]);
+  }, [sortedStudents]);
 
   const pageCount = useMemo(() => {
-    return Math.ceil(filteredStudents.length / ROWS_PER_PAGE);
-  }, [filteredStudents]);
+    if (searchTerm || filters.grade.length > 0 || filters.section.length > 0) {
+      return Math.ceil(filteredStudents.length / ROWS_PER_PAGE);
+    }
+    return Math.ceil(totalCount / ROWS_PER_PAGE);
+  }, [totalCount, filters, searchTerm, filteredStudents.length]);
 
   const isDataPresent = studentsForCurrentPage.length > 0;
   const isFilteringOrSearching =
@@ -233,7 +227,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   ];
 
   const filterConfigsForSchool = [{ key: "grade", label: "Grade" }];
-  console.log("SchoolStudents totalCount", totalCount);
   return (
     <div className="schoolStudents-pageContainer">
       <Box className="schoolStudents-headerActionsRow">

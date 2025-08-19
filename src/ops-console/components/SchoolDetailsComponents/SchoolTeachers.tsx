@@ -17,7 +17,7 @@ import SelectedFilters from "../SelectedFilters";
 import "./SchoolTeachers.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import { TeacherInfo } from "../../../common/constants";
-import { getGradeOptions, filterBySearchAndFilters, sortSchoolTeachers, paginateSchoolTeachers } from "../../OpsUtility/SearchFilterUtility";
+import { getGradeOptions, filterBySearchAndFilters, sortSchoolTeachers } from "../../OpsUtility/SearchFilterUtility";
 
 interface DisplayTeacher {
   id: string;
@@ -99,21 +99,13 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       return;
     }
     fetchTeachers(page);
-  }, [
-    page,
-    fetchTeachers,
-    data.teachers,
-    data.totalTeacherCount,
-    searchTerm,
-    filters,
-  ]);
+  }, [page, schoolId]);
 
   const handlePageChange = (newPage: number) => setPage(newPage);
   const handleSort = (key: string) => {
     const isAsc = orderBy === key && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(key);
-    setPage(1);
   };
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -132,13 +124,15 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     setPage(1);
   };
 
-  const normalizedTeachers = useMemo(() => 
+  // FIX: Ensure all properties being normalized match the expected type of the utility function.
+  const normalizedTeachers = useMemo(() =>
     teachers.map(t => ({
       ...t,
       user: {
         ...t.user,
         name: t.user.name ?? undefined,
         email: t.user.email ?? undefined,
+        // This line fixes the error by converting `null` to `undefined`.
         student_id: t.user.student_id ?? undefined,
       }
     }))
@@ -146,10 +140,9 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
 
   const filteredTeachers = useMemo(() => filterBySearchAndFilters(normalizedTeachers, filters, searchTerm, 'teacher'), [normalizedTeachers, filters, searchTerm]);
   const sortedTeachers = useMemo(() => sortSchoolTeachers(filteredTeachers, orderBy, order), [filteredTeachers, orderBy, order]);
-  const paginatedTeachers = useMemo(() => paginateSchoolTeachers(sortedTeachers, page, ROWS_PER_PAGE), [sortedTeachers, page]);
 
   const displayTeachers = useMemo((): DisplayTeacher[] => {
-    return paginatedTeachers.map(
+    return sortedTeachers.map(
       (apiTeacher): DisplayTeacher => ({
         id: apiTeacher.user.id,
         name: apiTeacher.user.name || "N/A",
@@ -160,11 +153,12 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         emailDisplay: apiTeacher.user.email || "N/A",
       })
     );
-  }, [paginatedTeachers]);
+  }, [sortedTeachers]);
 
   const pageCount = useMemo(() => {
-    return Math.ceil(filteredTeachers.length / ROWS_PER_PAGE);
-  }, [filteredTeachers]);
+    return Math.ceil(totalCount / ROWS_PER_PAGE);
+  }, [totalCount]);
+
   const isDataPresent = displayTeachers.length > 0;
   const isFilteringOrSearching =
     searchTerm.trim() !== "" ||
@@ -208,7 +202,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           {t.emailDisplay}
         </Typography>
       ),
-    }, // Change key from "email" to "emailDisplay"
+    },
   ];
 
   const handleClearFilters = useCallback(() => {
@@ -220,6 +214,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   const filterConfigsForTeachers = [{ key: "grade", label: "Grade" }];
 
   return (
+    // The JSX remains the same
     <div className="schoolTeachers-pageContainer">
       <Box className="schoolTeachers-headerActionsRow">
         <Box className="schoolTeachers-titleArea">
