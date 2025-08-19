@@ -149,6 +149,7 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
               orderBy={orderBy}
               order={order}
               onSort={handleSort}
+              onRowClick={() => {}}
             />
           </div>
           {pageCount > 1 && (
