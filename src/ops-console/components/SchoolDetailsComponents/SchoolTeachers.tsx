@@ -286,6 +286,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
               orderBy={orderBy}
               order={order}
               onSort={handleSort}
+              onRowClick={() => {}}
             />
           </div>
           {pageCount > 1 && (
