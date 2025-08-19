@@ -1218,22 +1218,60 @@ export class SupabaseApi implements ServiceApi {
     let courses: TableTypes<TABLES.Course>[] = [];
     if (gradeDocId && boardDocId) {
       courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
-    }
+      for (const course of courses) {
+        const newUserCourse: TableTypes<TABLES.UserCourse> = {
+          id: uuidv4(),
+          user_id: studentId,
+          course_id: course.id,
+          created_at: now,
+          updated_at: now,
+          is_deleted: false,
+          is_firebase: null,
+        };
 
-    for (const course of courses) {
-      const newUserCourse: TableTypes<TABLES.UserCourse> = {
-        id: uuidv4(),
-        user_id: studentId,
-        course_id: course.id,
-        created_at: now,
-        updated_at: now,
-        is_deleted: false,
-        is_firebase: null,
-      };
+        const { error: userCourseInsertError } = await this.supabase
+          .from(TABLES.UserCourse)
+          .insert([newUserCourse]);
+      }
+    } else {
+      const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
+      const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+      const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
+      const language = await this.getLanguageWithId(languageDocId!);
+      let langCourse;
+      if (language && language.code !== COURSES.ENGLISH) {
+        // Map language code to courseId
+        const thirdLanguageCourseMap: Record<string, string> = {
+          hi: CHIMPLE_HINDI,
+          kn: GRADE1_KANNADA,
+          mr: GRADE1_MARATHI,
+        };
 
-      const { error: userCourseInsertError } = await this.supabase
-        .from(TABLES.UserCourse)
-        .insert([newUserCourse]);
+        const courseId = thirdLanguageCourseMap[language.code ?? ""];
+        if (courseId) {
+          langCourse = await this.getCourse(courseId);
+        }
+      }
+      const coursesToAdd = [
+        englishCourse,
+        mathsCourse,
+        langCourse,
+        digitalSkillsCourse,
+      ].filter(Boolean);
+      for (const course of coursesToAdd) {
+        const newUserCourse: TableTypes<"user_course"> = {
+          course_id: course.id,
+          created_at: new Date().toISOString(),
+          id: uuidv4(),
+          is_deleted: false,
+          updated_at: new Date().toISOString(),
+          user_id: studentId,
+          is_firebase: null,
+        };
+        const { error: userCourseInsertError } = await this.supabase
+          .from(TABLES.UserCourse)
+          .insert([newUserCourse]);
+      }
     }
 
     return newStudent;
@@ -6154,7 +6192,7 @@ export class SupabaseApi implements ServiceApi {
         await ServiceConfig.getI().authHandler.getCurrentUser();
 
       const record: any = {
-        id:programId,
+        id: programId,
         name: payload.programName,
         model: payload.models,
 
