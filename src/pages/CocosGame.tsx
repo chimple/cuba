@@ -98,7 +98,6 @@ const CocosGame: React.FC = () => {
         window.location.reload();
       } else {
         history.replace(fromPath + "&isReload=false");
-        window.location.reload();
       }
       setIsLoading(false);
     } else {
@@ -415,7 +414,7 @@ const CocosGame: React.FC = () => {
       ml_class_id: data.mlClassId,
       ml_student_id: data.mlStudentId,
       course_id: data.courseId,
-      course_name: courseDetail.name,
+      course_name: data.courseName,
       time_spent: data.timeSpent,
       total_moves: data.totalMoves,
       total_games: data.totalGames,

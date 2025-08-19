@@ -1,18 +1,37 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { Tabs, Tab, Box, Typography } from "@mui/material";
-import { ServiceConfig } from "../../services/ServiceConfig";
+import React, { useEffect, useState, useCallback } from "react";
 import {
-  SCHOOL_TABS,
-} from "../../common/constants";
+  Box,
+  Button,
+  IconButton,
+  Tab,
+  Tabs,
+  Typography,
+  useMediaQuery,
+} from "@mui/material";
+import { ServiceConfig } from "../../services/ServiceConfig";
+import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
 import "./SchoolList.css";
 import DataTablePagination from "../components/DataTablePagination";
-import { IonPage } from "@ionic/react";
 import DataTableBody, { Column } from "../components/DataTableBody";
-import Loading from "../../components/Loading";
 import { t } from "i18next";
 import SearchAndFilter from "../components/SearchAndFilter";
 import FilterSlider from "../components/FilterSlider";
 import SelectedFilters from "../components/SelectedFilters";
+import FileUpload from "../components/FileUpload";
+import { FileUploadOutlined } from "@mui/icons-material";
+import { BsFillBellFill } from "react-icons/bs";
+import { useLocation, useHistory } from "react-router";
+
+const filterConfigsForSchool = [
+  { key: "partner", label: t("Select Partner") },
+  { key: "programManager", label: t("Select Program Manager") },
+  { key: "fieldCoordinator", label: t("Select Field Coordinator") },
+  { key: "programType", label: t("Select Program Type") },
+  { key: "state", label: t("Select State") },
+  { key: "district", label: t("Select District") },
+  { key: "block", label: t("Select Block") },
+  { key: "cluster", label: t("Select Cluster") },
+];
 
 type Filters = Record<string, string[]>;
 
@@ -24,73 +43,101 @@ const INITIAL_FILTERS: Filters = {
   state: [],
   district: [],
   block: [],
-  village: [],
+  cluster: [],
 };
+
+const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([value, label]) => ({
+  label,
+  value: value as PROGRAM_TAB,
+}));
+
+const DEFAULT_PAGE_SIZE = 8;
 
 const SchoolList: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
 
-  // Tabs & Pagination
-  const [selectedTab, setSelectedTab] = useState<SCHOOL_TABS>(SCHOOL_TABS.ALL);
-  const [page, setPage] = useState(1);
-  const rowsPerPage = 7;
+  const location = useLocation();
+  const history = useHistory();
+  const qs = new URLSearchParams(location.search);
 
-  // Sorting
-  const [orderBy, setOrderBy] = useState<string | null>(null);
-  const [order, setOrder] = useState<"asc" | "desc">("asc");
+  function parseJSONParam<T>(param: string | null, fallback: T): T {
+    try { return param ? (JSON.parse(param) as T) : fallback; }
+    catch { return fallback; }
+  }
+  const [selectedTab, setSelectedTab] = useState(() => {
+    const v = qs.get("tab") || PROGRAM_TAB.ALL;
+    return Object.values(PROGRAM_TAB).includes(v as PROGRAM_TAB) ? (v as PROGRAM_TAB) : PROGRAM_TAB.ALL;
+  });
+  const [searchTerm, setSearchTerm] = useState(() => qs.get("search") || "");
+  const [filters, setFilters] = useState<Filters>(() =>
+    parseJSONParam(qs.get("filters"), INITIAL_FILTERS)
+  );
+  const [page, setPage] = useState(() => {
+    const p = parseInt(qs.get("page") || "", 10);
+    return isNaN(p) || p < 1 ? 1 : p;
+  });
 
-  // Data & Loading
+
   const [schools, setSchools] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(false);
+  const [total, setTotal] = useState(0);
 
-  // Search and Filters
-  const [searchTerm, setSearchTerm] = useState("");
+  const isLoading = isFilterLoading || isDataLoading;
+
+  const [showUploadPage, setShowUploadPage] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
   const [tempFilters, setTempFilters] = useState<Filters>(INITIAL_FILTERS);
   const [filterOptions, setFilterOptions] = useState<Filters>(INITIAL_FILTERS);
+  const [orderBy, setOrderBy] = useState("");
+  const [orderDir, setOrderDir] = useState<"asc" | "desc">("asc");
+  const [pageSize] = useState(DEFAULT_PAGE_SIZE);
 
-  const handleSort = (key: string) => {
-    const isAsc = orderBy === key && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(key);
-  };
+  const isSmallScreen = useMediaQuery("(max-width: 900px)");
 
-  // Fetch filter options 
+    useEffect(() => {
+    const params = new URLSearchParams();
+    if (selectedTab !== PROGRAM_TAB.ALL) params.set("tab", String(selectedTab));
+    if (searchTerm) params.set("search", searchTerm);
+    if (Object.values(filters).some(arr => arr.length))
+      params.set("filters", JSON.stringify(filters));
+    if (page !== 1) params.set("page", String(page));
+    history.replace({ search: params.toString() });
+  }, [selectedTab, searchTerm, filters, page, history]);
+
   useEffect(() => {
     const fetchFilterOptions = async () => {
-      setIsLoading(true);
+      setIsFilterLoading(true);
       try {
         const data = await api.getSchoolFilterOptionsForSchoolListing();
         if (data) {
           setFilterOptions({
-            programType: data.program_type || [],
+            programType: data.programType || [],
             partner: data.partner || [],
-            programManager: data.program_manager || [],
-            fieldCoordinator: data.field_coordinator || [],
+            programManager: data.programManager || [],
+            fieldCoordinator: data.fieldCoordinator || [],
             state: data.state || [],
             district: data.district || [],
             block: data.block || [],
-            village: data.village || [],
+            cluster: data.cluster || [],
           });
         }
       } catch (error) {
         console.error("Failed to fetch filter options", error);
       } finally {
-        setIsLoading(false);
+        setIsFilterLoading(false);
       }
     };
 
     fetchFilterOptions();
   }, []);
 
-  // Fetch schools whenever selectedTab or filters change
   useEffect(() => {
     fetchData();
-  }, [selectedTab, filters]);
+  }, [selectedTab, filters, page, orderBy, orderDir, searchTerm]);
 
-  const fetchData = async () => {
-    setIsLoading(true);
+  const fetchData = useCallback(async () => {
+    setIsDataLoading(true);
     try {
       const tabModelFilter = { model: [selectedTab] };
       const cleanedFilters = Object.fromEntries(
@@ -98,134 +145,201 @@ const SchoolList: React.FC = () => {
           ([_, v]) => Array.isArray(v) && v.length > 0
         )
       );
-      
-      const filteredSchools = await api.getFilteredSchoolsForSchoolListing(cleanedFilters);
-      const enrichedSchools = filteredSchools.map((school: any) => ({
+
+      let backendOrderBy = orderBy;
+      if (backendOrderBy === "name") backendOrderBy = "school_name";
+      if (backendOrderBy === "students") backendOrderBy = "num_students";
+      if (backendOrderBy === "teachers") backendOrderBy = "num_teachers";
+
+      const response = await api.getFilteredSchoolsForSchoolListing({
+        filters: cleanedFilters,
+        page,
+        page_size: pageSize,
+        order_by: backendOrderBy,
+        order_dir: orderDir,
+        search: searchTerm,
+      });
+
+      const data = response?.data || [];
+      setTotal(response?.total || 0);
+
+      const enrichedSchools = data.map((school: any) => ({
         ...school,
+        id: school.sch_id,
         students: school.num_students || 0,
         teachers: school.num_teachers || 0,
-        programManagers: school.program_managers?.join(", ") || t("not assigned yet"),
-        fieldCoordinators: school.field_coordinators?.join(", ") || t("not assigned yet"),
+        programManagers:
+          school.program_managers?.join(", ") || t("not assigned yet"),
+        fieldCoordinators:
+          school.field_coordinators?.join(", ") || t("not assigned yet"),
         name: {
           value: school.school_name,
           render: (
-            <Box display="flex" flexDirection="column" alignItems="center">
+            <Box display="flex" flexDirection="column" alignItems="flex-start">
               <Typography variant="subtitle2">{school.school_name}</Typography>
+              <Typography
+                variant="subtitle2"
+                color="text.secondary"
+                fontSize={"12px"}
+              >
+                {school.district || ""}
+              </Typography>
             </Box>
           ),
         },
       }));
 
       setSchools(enrichedSchools);
-      setPage(1);
     } catch (error) {
       console.error("Failed to fetch filtered schools:", error);
+      setSchools([]);
+      setTotal(0);
     } finally {
-      setIsLoading(false);
+      setIsDataLoading(false);
     }
-  };
+  }, [
+    api,
+    filters,
+    page,
+    pageSize,
+    orderBy,
+    orderDir,
+    searchTerm,
+    selectedTab,
+  ]);
 
   const columns: Column<Record<string, any>>[] = [
-    { key: "name", label: t("Schools") },
-    { key: "students", label: t("No of Students") },
-    { key: "teachers", label: t("No of Teachers") },
-    { key: "programManagers", label: t("Program Manager") },
-    { key: "fieldCoordinators", label: t("Field Coordinator") },
+    {
+      key: "name",
+      label: t("Schools"),
+      width: "30%",
+      sortable: true,
+      orderBy: "name",
+    },
+    {
+      key: "students",
+      label: t("No of Students"),
+      width: "fit-content",
+      sortable: true,
+      orderBy: "students",
+    },
+    {
+      key: "teachers",
+      label: t("No of Teachers"),
+      width: "fit-content",
+      sortable: true,
+      orderBy: "teachers",
+    },
+    {
+      key: "programManagers",
+      label: t("Program Manager"),
+      sortable: false,
+    },
+    {
+      key: "fieldCoordinators",
+      label: t("Field Coordinator"),
+      sortable: false,
+    },
   ];
 
-  const filteredSchools = useMemo(() => {
-    return schools.filter((school) =>
-      school.name.value.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [schools, searchTerm]);
+  const handleSort = (colKey: string) => {
+    const sortableKeys = ["name", "students", "teachers", "district"];
+    if (!sortableKeys.includes(colKey)) return;
+    if (orderBy === colKey) {
+      setOrderDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setOrderBy(colKey);
+      setOrderDir("asc");
+    }
+    setPage(1);
+  };
 
-  const paginatedSchools = useMemo(() => {
-    const start = (page - 1) * rowsPerPage;
-    return filteredSchools.slice(start, start + rowsPerPage);
-  }, [filteredSchools, page, rowsPerPage]);
+
+  function onCancleClick(): void {
+    setShowUploadPage(false);
+  }
+
+  const pageCount = Math.ceil(total / pageSize);
+
+  if (showUploadPage) {
+    return (
+      <div>
+        <div className="school-list-upload-text">{t("Upload File")}</div>
+        <div>
+          <FileUpload onCancleClick={onCancleClick} />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <IonPage className="school-list-ion-page">
-      <div className="school-container">
-        <div className="school-list-header">
-          <div className="school-heading">{t("Schools")}</div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 16,
-              marginBottom: 16,
-            }}
-          >
-            <div style={{ flex: 1 }}>
+    <div className="school-list-ion-page">
+      <div className="school-list-main-container">
+        <div className="school-list-page-header">
+          <span className="school-list-page-header-title">{t("Schools")}</span>
+          <IconButton className="school-list-bell-icon">
+            <BsFillBellFill />
+          </IconButton>
+        </div>
+        <div className="school-list-header-and-search-filter">
+          <div className="school-list-search-filter">
+            <div className="school-list-tab-wrapper">
               <Tabs
                 value={selectedTab}
                 onChange={(e, val) => {
-                  setPage(1);
                   setSelectedTab(val);
+                  setPage(1);
                 }}
                 indicatorColor="primary"
-                textColor="primary"
                 variant="scrollable"
                 scrollButtons="auto"
                 className="school-list-tabs-div"
               >
-                {Object.values(SCHOOL_TABS).map((tabKey) => (
+                {tabOptions.map((tab) => (
                   <Tab
-                    key={tabKey}
-                    label={tabKey}
-                    value={tabKey}
+                    key={tab.value}
+                    label={tab.label}
+                    value={tab.value}
                     className="school-list-tab"
                   />
                 ))}
               </Tabs>
             </div>
-            <div style={{ minWidth: 280, maxWidth: 400 }}>
+
+            <div className="school-list-button-and-search-filter">
+              <Button
+                variant="outlined"
+                onClick={() => setShowUploadPage(true)}
+                sx={{
+                  borderColor: "#e0e0e0",
+                  border: "1px solid",
+                  borderRadius: 20,
+                  boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.1)",
+                  height: "36px",
+                  minWidth: isSmallScreen ? "48px" : "auto",
+                  padding: isSmallScreen ? 0 : "6px 16px",
+                  textTransform: "none",
+                }}
+              >
+                <FileUploadOutlined className="school-list-upload-icon" />
+                {!isSmallScreen && (
+                  <span className="school-list-upload-text1">
+                    {t("Upload")}
+                  </span>
+                )}
+              </Button>
+
               <SearchAndFilter
                 searchTerm={searchTerm}
-                onSearchChange={(e) => setSearchTerm(e.target.value)}
+                onSearchChange={(e) => {setSearchTerm(e.target.value)
+                  setPage(1);
+                }}
                 filters={filters}
                 onFilterClick={() => setIsFilterOpen(true)}
               />
             </div>
           </div>
-        </div>
 
-        <FilterSlider
-          isOpen={isFilterOpen}
-          onClose={() => {
-            setIsFilterOpen(false);
-            setTempFilters(filters);
-          }}
-          filters={tempFilters}
-          filterOptions={filterOptions}
-          onFilterChange={(name, value) =>
-            setTempFilters((prev) => ({ ...prev, [name]: value }))
-          }
-          onApply={() => {
-            setFilters(tempFilters);
-            setIsFilterOpen(false);
-          }}
-          onCancel={() => {
-            const empty = {
-              state: [],
-              district: [],
-              block: [],
-              village: [],
-              programType: [],
-              partner: [],
-              programManager: [],
-              fieldCoordinator: [],
-            };
-            setTempFilters(empty);
-            setFilters(empty);
-            setIsFilterOpen(false);
-          }}
-          autocompleteStyles={{}}
-        />
-
-        <Box className="selected-filters-container">
           <SelectedFilters
             filters={filters}
             onDeleteFilter={(key, value) => {
@@ -237,36 +351,73 @@ const SchoolList: React.FC = () => {
                 setTempFilters(updated);
                 return updated;
               });
+              setPage(1);
             }}
           />
-        </Box>
 
-        {isLoading ? (
-          <Loading isLoading={true} />
-        ) : filteredSchools.length === 0 ? (
+          <FilterSlider
+            isOpen={isFilterOpen}
+            onClose={() => {
+              setIsFilterOpen(false);
+              setTempFilters(filters);
+            }}
+            filters={tempFilters}
+            filterOptions={filterOptions}
+            onFilterChange={(name, value) =>
+              setTempFilters((prev) => ({ ...prev, [name]: value }))
+            }
+            onApply={() => {
+              setFilters(tempFilters);
+              setIsFilterOpen(false);
+              setPage(1);
+            }}
+            onCancel={() => {
+              const empty = {
+                state: [],
+                district: [],
+                block: [],
+                programType: [],
+                partner: [],
+                programManager: [],
+                fieldCoordinator: [],
+              };
+              setTempFilters(empty);
+              setFilters(empty);
+              setIsFilterOpen(false);
+               setPage(1);
+            }}
+            autocompleteStyles={{}}
+            filterConfigs={filterConfigsForSchool}
+          />
+        </div>
+
+        <div className="school-list-table-container">
+          <DataTableBody
+            columns={columns}
+            rows={schools}
+            orderBy={orderBy}
+            order={orderDir}
+            onSort={handleSort}
+            loading={isLoading}
+          />
+        </div>
+
+        {!isLoading && schools.length === 0 && (
           <Typography align="center" sx={{ mt: 4 }}>
             {t("No schools found.")}
           </Typography>
-        ) : (
-          <>
-            <DataTableBody
-              columns={columns}
-              rows={paginatedSchools}
-              orderBy={orderBy}
-              order={order}
-              onSort={handleSort}
+        )}
+        {!isLoading && schools.length > 0 && (
+          <div className="school-list-footer">
+            <DataTablePagination
+              pageCount={pageCount}
+              page={page}
+              onPageChange={(val) => setPage(val)}
             />
-            <div className="school-list-footer">
-              <DataTablePagination
-                pageCount={Math.ceil(filteredSchools.length / rowsPerPage)}
-                page={page}
-                onPageChange={(val) => setPage(val)}
-              />
-            </div>
-          </>
+          </div>
         )}
       </div>
-    </IonPage>
+    </div>
   );
 };
 

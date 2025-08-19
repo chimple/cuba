@@ -3,13 +3,14 @@ import { useHistory } from "react-router";
 import {
   CLASS,
   CURRENT_SCHOOL,
+  IS_OPS_USER,
   MODES,
   PAGES,
   SCHOOL,
   TableTypes,
   USER_ROLE,
 } from "../../common/constants";
-import { ServiceConfig } from "../../services/ServiceConfig";
+import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
 import { RoleType } from "../../interface/modelInterfaces";
 import { AppBar } from "@mui/material";
@@ -17,7 +18,7 @@ import { t } from "i18next";
 import BackButton from "../../components/common/BackButton";
 import "./DisplaySchools.css";
 import Header from "../components/homePage/Header";
-import { IonFabButton, IonIcon, IonPage } from "@ionic/react";
+import { IonFabButton, IonIcon, IonItem, IonPage } from "@ionic/react";
 import { PiUserSwitchFill } from "react-icons/pi";
 import CommonToggle from "../../common/CommonToggle";
 import { schoolUtil } from "../../utility/schoolUtil";
@@ -25,6 +26,7 @@ import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
 import AddButton from "../../common/AddButton";
 import { addOutline } from "ionicons/icons";
+import Loading from "../../components/Loading";
 
 interface SchoolWithRole {
   school: TableTypes<"school">;
@@ -36,6 +38,9 @@ const DisplaySchools: FC<{}> = () => {
   const auth = ServiceConfig.getI().authHandler;
   const [schoolList, setSchoolList] = useState<SchoolWithRole[]>([]);
   const [user, setUser] = useState<TableTypes<"user">>();
+  const [isAuthorizedForOpsMode, setIsAuthorizedForOpsMode] =
+    useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     lockOrientation();
@@ -51,8 +56,20 @@ const DisplaySchools: FC<{}> = () => {
     const currentUser = await auth.getCurrentUser();
     if (!currentUser) return;
     setUser(currentUser);
+    const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+
+    const isOpsRole =
+      userRoles.includes(RoleType.SUPER_ADMIN) ||
+      userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
+
+    const isProgramUser = await api.isProgramUser();
+    if (isOpsRole || isProgramUser) {
+      setIsAuthorizedForOpsMode(true);
+    }
+
     const allSchool = await api.getSchoolsForUser(currentUser.id);
     setSchoolList(allSchool);
+
     const tempSchool = Util.getCurrentSchool();
     if (tempSchool) {
       const localSchool = allSchool.find(
@@ -64,25 +81,30 @@ const DisplaySchools: FC<{}> = () => {
           role: localSchool.role,
         };
         selectSchool(selectedSchool);
+        return;
       }
     } else if (allSchool.length === 1) {
       selectSchool(allSchool[0]);
+      return;
     }
+    setIsLoading(false);
   };
 
   const getClasses = async (schoolId: string) => {
     const tempClasses = await api.getClassesForSchool(schoolId, user?.id!);
-    console.log("classes..", tempClasses);
     if (tempClasses.length > 0) {
       return tempClasses;
     } else {
       return [];
     }
   };
+
   const switchUser = async () => {
     schoolUtil.setCurrMode(MODES.PARENT);
     history.replace(PAGES.DISPLAY_STUDENT);
+    setIsLoading(false);
   };
+
   async function selectSchool(school: SchoolWithRole) {
     Util.setCurrentSchool(school.school, school.role);
 
@@ -104,63 +126,77 @@ const DisplaySchools: FC<{}> = () => {
         history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
       }
     }
+    setIsLoading(false);
   }
   return (
     <IonPage className="display-page">
-      <Header
-        isBackButton={false}
-        disableBackButton={true}
-        customText="Select School"
-      />
-      <div className="display-user-switch-user-toggle">
-        <div className="display-school-switch-text">
-          <PiUserSwitchFill className="display-user-user-switch-icon" />
-          <CommonToggle onChange={switchUser} label="Switch to Child's Mode" />
+      {!isLoading && (
+      <>
+        <Header
+          isBackButton={false}
+          disableBackButton={true}
+          customText="Select School"
+        />
+        <div className="display-user-switch-user-toggle">
+          <div className="display-school-switch-text">
+            <PiUserSwitchFill className="display-user-user-switch-icon" />
+            <CommonToggle onChange={switchUser} label="Switch to Child's Mode" />
+          </div>
+          {!Capacitor.isNativePlatform() && isAuthorizedForOpsMode && (
+            <div className="display-schools-toggle-ops-switch-text">
+              <PiUserSwitchFill className="display-user-user-switch-icon" />
+              <CommonToggle
+                onChange={() => Util.switchToOpsUser(history)}
+                label={t("switch to ops mode") as string}
+              />
+            </div>
+          )}
         </div>
-      </div>
-      <hr className="display-school-horizontal-line" />
-      {schoolList.length === 0 ? (
-        <div className="no-schools-container">
-          <div className="create-school-button">
-            <IonFabButton
-              onClick={() => {
-                history.replace(PAGES.REQ_ADD_SCHOOL, {
-                  origin: PAGES.DISPLAY_SCHOOLS,
-                });
-              }}
-            >
-              <IonIcon icon={addOutline} />
-            </IonFabButton>
-            <div className="create-new-school-text">
-              {t("Create New School")}
+        <hr className="display-school-horizontal-line" />
+        {schoolList.length === 0 ? (
+          <div className="no-schools-container">
+            <div className="create-school-button">
+              <IonFabButton
+                onClick={() => {
+                  history.replace(PAGES.REQ_ADD_SCHOOL, {
+                    origin: PAGES.DISPLAY_SCHOOLS,
+                  });
+                }}
+              >
+                <IonIcon icon={addOutline} />
+              </IonFabButton>
+              <div className="create-new-school-text">
+                {t("Create New School")}
+              </div>
             </div>
           </div>
-        </div>
-      ) : (
-        <>
-          <div className="all-school-display-container">
-            <div className="all-school-display">
-              {schoolList.map((school) => (
-                <div
-                  key={school.school.id}
-                  onClick={() => selectSchool(school)}
-                >
-                  <div className="display-school-single-school">
-                    <div className="display-school-image">
-                      <img
-                        className="school-image-p"
-                        src={school.school.image ?? "assets/icons/school.png"}
-                      ></img>
-                    </div>
-                    <div className="display-school-name">
-                      {school.school.name}
+        ) : (
+          <>
+            <div className="all-school-display-container">
+              <div className="all-school-display">
+                {schoolList.map((school) => (
+                  <div
+                    key={school.school.id}
+                    onClick={() => selectSchool(school)}
+                  >
+                    <div className="display-school-single-school">
+                      <div className="display-school-image">
+                        <img
+                          className="school-image-p"
+                          src={school.school.image ?? "assets/icons/school.png"}
+                        ></img>
+                      </div>
+                      <div className="display-school-name">
+                        {school.school.name}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </>
+          </>
+        )}
+      </>
       )}
       {/* comment out the plus icon */}
       {/* {schoolList.length > 0 && (
@@ -172,6 +208,7 @@ const DisplaySchools: FC<{}> = () => {
           }}
         />
       )} */}
+      <Loading isLoading={isLoading} />
     </IonPage>
   );
 };

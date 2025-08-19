@@ -18,7 +18,7 @@
   white-space: nowrap;
   scrollbar-width: none;
   min-width: 0;
-  border-radius: 8px;
+  border-radius: 4px;
   border-bottom: 1px solid #e5e7eb;
 }
 
@@ -54,6 +54,8 @@
   min-height: 200px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   box-sizing: border-box;
+  overflow-y: auto !important;
+  height: calc(100vh - 165px);
 }
 
 @media (max-width: 600px) {

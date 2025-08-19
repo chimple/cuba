@@ -1,5 +1,5 @@
 .profile-details {
-  text-align: center;
+  text-align: justify;
   margin-top: 1.2vh;
 }
 
@@ -16,10 +16,11 @@
   background-color: white;
 }
 
-.profile-container img {
+.profile-details-img {
   border-radius: 50%;
-  width: 100%;
-  height: 100%;
+  width: 80px;
+  height: 80px;
+  background-color: #C4C4C4;
 }
 .profile-container:hover {
   transition: ease-out 0.2s;
@@ -31,14 +32,11 @@
   margin-top: 20px; 
 } */
 
-/* ProfileDetails.css */
 .profile-details {
   cursor: pointer;
-  margin-top: 0 !important;
   margin-left: 0 !important;
-  align-items: center;
   justify-content: center;
-  height: 165px;
+  height: 100px;
 }
 
 .profile-container {
@@ -46,25 +44,32 @@
   object-fit: cover;
 }
 
-.profile-details .overlay {
-  position: relative;
-  top: -45px;
-  right: -90px;
-  width: 30px;
-  height: 30px;
-  background-color: rgba(200, 200, 200, 0.9);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .camera-icon {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   color: black;
 }
 
-.label {
-  height: 135px;
+.profile-details-data {
+  position: relative;      /* ← new */
+  display: inline-block;   /* so it wraps tightly around the img */
 }
+
+.profile-details-data .overlay {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;          
+  align-items: center;
+  justify-content: center;
+  width: 80px;             
+  height: 80px;           
+  border-radius: 50%;     
+  pointer-events: none;   
+}
+
+.profile-details-data:hover .overlay {
+  opacity: 1;
+}
+

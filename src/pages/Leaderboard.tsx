@@ -75,11 +75,7 @@ const Leaderboard: React.FC = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    const body = document.querySelector("body");
-    body?.style.setProperty(
-      "background-image",
-      "url(/pathwayAssets/pathwayBackground.svg)"
-    );
+    Util.loadBackgroundImage();
     inti();
     const urlParams = new URLSearchParams(window.location.search);
     const rewardsTab = urlParams.get("tab");
@@ -632,7 +628,7 @@ const Leaderboard: React.FC = () => {
                 alt={"assets/icons/SignOutIcon.svg"}
                 src={"assets/icons/SignOutIcon.svg"}
               />
-              <p className="child-Name">{t("Switch Profile")}</p>
+              <p className="leaderboard-switch-text">{t("Switch Profile")}</p>
             </div>
           </div>
           <Box sx={{}}>

@@ -1956,7 +1956,7 @@ export class FirebaseApi implements ServiceApi {
   }
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId: string,
+     courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -1966,7 +1966,7 @@ export class FirebaseApi implements ServiceApi {
   }
   getStudentLastTenResults(
     studentId: string,
-    courseId: string,
+    courseIds: string[],
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
@@ -1978,7 +1978,7 @@ export class FirebaseApi implements ServiceApi {
   }
   getStudentResultByDate(
     studentId: string,
-    course_id: string,
+    courseIds: string[],
     startDate: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined> {
@@ -2009,11 +2009,19 @@ export class FirebaseApi implements ServiceApi {
     filters = {},
     searchTerm = "",
     tab = "ALL",
+    limit = 10,
+    offset = 0,
+    orderBy = "name",
+    order = "asc",
   }: {
     currentUserId: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
     tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
+    limit?: number;
+    offset?: number;
+    orderBy?: string;
+    order?: "asc" | "desc";
   }): Promise<{ data: any[] }> {
     throw new Error("Method not implemented.");
   }
@@ -2021,7 +2029,7 @@ export class FirebaseApi implements ServiceApi {
   insertProgram(payload: any): Promise<boolean | any> {
     throw new Error("Method not implemented.");
   }
-  getProgramManagers(): Promise<string[]> {
+  getProgramManagers(): Promise<{ name: string; id: string }[]> {
     throw new Error("Method not implemented.");
   }
   getUniqueGeoData(): Promise<{
@@ -2044,18 +2052,77 @@ export class FirebaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   getProgramData(programId: string): Promise<{
-    programDetails: { label: string; value: string }[];
-    locationDetails: { label: string; value: string }[];
-    partnerDetails: { label: string; value: string }[];
+    programDetails: { id: string; label: string; value: string }[];
+    locationDetails: { id: string; label: string; value: string }[];
+    partnerDetails: { id: string; label: string; value: string }[];
     programManagers: { name: string; role: string; phone: string }[];
   } | null> {
     throw new Error("Method not implemented.");
   }
-  async getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>> {
+  async getSchoolFilterOptionsForSchoolListing(): Promise<
+    Record<string, string[]>
+  > {
     throw new Error("getSchoolFilterOptions() is not implemented.");
   }
 
-  async getFilteredSchoolsForSchoolListing(filters: Record<string, string[]>): Promise<FilteredSchool[]> {
-    throw new Error("getFilteredSchools() is not implemented.");
+  async getFilteredSchoolsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+  }): Promise<FilteredSchoolsForSchoolListingOps[]> {
+    throw new Error("getFilteredSchoolsForSchoolListing() is not implemented.");
+  }
+
+  async createOrAddUserOps(payload: {
+    name: string;
+    email?: string;
+    phone?: string;
+    role: string;
+  }): Promise<{
+    success: boolean;
+    user_id?: string;
+    message?: string;
+    error?: string;
+  }> {
+    throw new Error("Method not implemented.");
+  }
+
+  async isProgramUser(): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+
+  program_activity_stats(programId: string): Promise<{
+    total_students: number;
+    total_teachers: number;
+    total_institutes: number;
+    active_student_percentage: number;
+    active_teacher_percentage: number;
+    avg_weekly_time_minutes: number;
+  }> {
+    throw new Error("Method not implemented.");
+  }
+
+  public async getManagersAndCoordinators(
+    userId: string,
+    page: number = 1,
+    search: string = "",
+    limit: number = 10,
+    sortBy: keyof TableTypes<"user"> = "name",
+    sortOrder: "asc" | "desc" = "asc"
+  ): Promise<{
+    data: { user: TableTypes<"user">; role: string }[];
+    totalCount: number;
+  }> {
+    throw new Error("Method not implemented.");
+  }
+
+  school_activity_stats(schoolId: string): Promise<{
+    active_student_percentage: number;
+    active_teacher_percentage: number;
+    avg_weekly_time_minutes: number;
+  }> {
+    throw new Error("Method not implemented.");
+  }
+  async isProgramManager(): Promise<boolean> {
+    throw new Error("Method not implemented.");
   }
 }

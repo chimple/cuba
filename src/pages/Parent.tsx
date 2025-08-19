@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "./Parent.css";
 import {
   CLASS,
+  EDIT_STUDENTS_MAP,
   LANGUAGE,
   MAX_STUDENTS_ALLOWED,
   MODES,
@@ -39,6 +40,7 @@ import { RoleType } from "../interface/modelInterfaces";
 import DeleteParentAccount from "../components/parent/DeleteParentAccount";
 import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
 import DebugMode from "../teachers-module/components/DebugMode";
+import { Capacitor } from "@capacitor/core";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 const Parent: React.FC = () => {
@@ -100,11 +102,15 @@ const Parent: React.FC = () => {
     const userProfilePromise: TableTypes<"user">[] =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];
+    const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
+    const mergedStudents = Util.mergeStudentsByUpdatedAt(
+      userProfilePromise,
+      storedMapStr
+    );
     for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
-      finalUser.push(userProfilePromise[i]);
+      finalUser.push(mergedStudents[i]);
     }
     setUserProfile(finalUser);
-    // });
   }
   async function init(): Promise<void> {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -314,9 +320,12 @@ const Parent: React.FC = () => {
               title={"Switch to Teacher's Mode"}
               layout="vertical"
               onIonChangeClick={async () => {
+                const isNativePlatform = Capacitor.isNativePlatform();
                 if (localSchool && localClass) {
                   schoolUtil.setCurrMode(MODES.TEACHER);
                   history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+                  isNativePlatform && window.location.reload();
+                  isNativePlatform && window.location.reload();
                 } else if (schools && schools.length > 0) {
                   if (schools?.length === 1) {
                     Util.setCurrentSchool(schools[0].school, schools[0].role);
@@ -328,14 +337,19 @@ const Parent: React.FC = () => {
                       Util.setCurrentClass(tempClasses[0]);
                       schoolUtil.setCurrMode(MODES.TEACHER);
                       history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+                      isNativePlatform && window.location.reload();
                     }
                   } else {
                     schoolUtil.setCurrMode(MODES.TEACHER);
                     history.replace(PAGES.DISPLAY_SCHOOLS);
+                    isNativePlatform && window.location.reload();
+                    isNativePlatform && window.location.reload();
                   }
                 } else {
                   schoolUtil.setCurrMode(MODES.TEACHER);
                   history.replace(PAGES.DISPLAY_SCHOOLS);
+                  isNativePlatform && window.location.reload();
+                  isNativePlatform && window.location.reload();
                 }
               }}
             />

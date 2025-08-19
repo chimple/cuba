@@ -1,18 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import DataTableBody, { Column } from '../components/DataTableBody';
-import DataTablePagination from '../components/DataTablePagination';
-import { useDataTableLogic } from '../OpsUtility/useDataTableLogic';
-import { Box, Chip, Typography, Button, Skeleton, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
-import './ProgramPage.css';
-import FilterSlider from '../components/FilterSlider';
-import SelectedFilters from '../components/SelectedFilters';
-import SearchAndFilter from '../components/SearchAndFilter';
-import HeaderTab from '../components/HeaderTab';
-import { Add } from '@mui/icons-material';
-import { ServiceConfig } from '../../services/ServiceConfig';
-import { t } from 'i18next';
-import { useHistory } from "react-router";
-import { PAGES } from '../../common/constants';
+import React, { useEffect, useMemo, useState } from "react";
+import DataTableBody, { Column } from "../components/DataTableBody";
+import DataTablePagination from "../components/DataTablePagination";
+import {
+  Box,
+  Typography,
+  Button,
+  CircularProgress,
+  useMediaQuery,
+  IconButton,
+} from "@mui/material";
+import "./ProgramPage.css";
+import FilterSlider from "../components/FilterSlider";
+import SelectedFilters from "../components/SelectedFilters";
+import SearchAndFilter from "../components/SearchAndFilter";
+import HeaderTab from "../components/HeaderTab";
+import { Add } from "@mui/icons-material";
+import { ServiceConfig } from "../../services/ServiceConfig";
+import { t } from "i18next";
+import { useHistory, useLocation  } from "react-router";
+import {
+  PAGES,
+  PROGRAM_TAB,
+  PROGRAM_TAB_LABELS,
+  TabType,
+  USER_ROLE,
+} from "../../common/constants";
+import { RoleType } from "../../interface/modelInterfaces";
+import { BsFillBellFill } from "react-icons/bs";
 
 type ProgramRow = {
   programName: any;
@@ -23,81 +37,130 @@ type ProgramRow = {
 };
 
 const columns: Column<ProgramRow>[] = [
-  { key: 'programName', label: 'Program Name', align: 'left' },
-  { key: 'institutes', label: 'No of Institutes', align: 'left' },
-  { key: 'students', label: 'No of Students', align: 'left' },
-  { key: 'devices', label: 'No of Devices', align: 'left' },
-  { key: 'manager', label: 'Program Manager' },
+  {
+    key: "programName",
+    label: "Program Name",
+    align: "left",
+    width: "30%",
+    sortable: true,
+  },
+  {
+    key: "institutes",
+    label: "No of Institutes",
+    align: "left",
+    sortable: true,
+  },
+  { key: "students", label: "No of Students", align: "left", sortable: true },
+  { key: "devices", label: "No of Devices", align: "left", sortable: true },
+  {
+    key: "manager",
+    label: "Program Manager",
+    align: "left",
+    width: "25%",
+    sortable: false,
+  },
 ];
 
-const tabOptions = [
-  { label: 'All Programs' },
-  { label: 'At School' },
-  { label: 'At Home' },
-  { label: 'Hybrid' },
-];
+const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([key, label]) => ({
+  value: key as PROGRAM_TAB,
+  label,
+}));
+
+const orderByMap: Record<string, string> = {
+  programName: "name",
+  institutes: "institutes_count",
+  students: "students_count",
+  devices: "devices_count",
+  manager: "manager_names",
+};
+
+const PAGE_SIZE = 8;
 
 const ProgramsPage: React.FC = () => {
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
-  const [filters, setFilters] = useState<Record<string, string[]>>({
-    partner: [],
-    programType: [],
-    model: [],
-    state: [],
-    district: [],
-    block: [],
-    village: [],
-    cluster: [],
-  });
+  const isSmallScreen = useMediaQuery("(max-width: 900px)");
 
-  const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({
-    partner: [],
-    programType: [],
-    model: [],
-    state: [],
-    district: [],
-    block: [],
-    village: [],
-    cluster: [],
-  });
-  const [activeTab, setActiveTab] = useState(0);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [programs, setPrograms] = useState<any[]>([]);
-  const [loadingPrograms, setLoadingPrograms] = useState(false);
-  const [loadingFilters, setLoadingFilters] = useState(false);
-  const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>({});
+const location = useLocation();
+const qs = new URLSearchParams(location.search);
 
-  type TabType = 'ALL' | 'AT SCHOOL' | 'AT HOME' | 'HYBRID';
+function parseJSONParam<T>(param: string | null, fallback: T): T {
+  try { return param ? (JSON.parse(param) as T) : fallback; }
+  catch { return fallback; }
+}
 
-  const tabMap: Record<string, TabType> = {
-    'All Programs': 'ALL',
-    'At School': 'AT SCHOOL',
-    'At Home': 'AT HOME',
-    'Hybrid': 'HYBRID',
-  };
+const [activeTabIndex, setActiveTabIndex] = useState(() => {
+  const n = parseInt(qs.get("tab") || "", 10);
+  return isNaN(n) ? 0 : n;
+});
+const [filters, setFilters] = useState<Record<string, string[]>>(
+  () => parseJSONParam(qs.get("filters"), {})
+);
+const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({});
+const [searchTerm, setSearchTerm] = useState(() => qs.get("search") || "");
+const [programs, setPrograms] = useState<any[]>([]);
+const [totalCount, setTotalCount] = useState(0);
+const [loadingPrograms, setLoadingPrograms] = useState(false);
+const [loadingFilters, setLoadingFilters] = useState(false);
+const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>({});
+const [isFilterOpen, setIsFilterOpen] = useState(false);
+const [isProgramManager, setIsProgramManager] = useState(false);
+const [isOpsRole, setIsOpsRole] = useState(false);
+const [page, setPage] = useState(() => {
+  const p = parseInt(qs.get("page") || "", 10);
+  return isNaN(p) || p < 1 ? 1 : p;
+});
+const [orderBy, setOrderBy] = useState("name");
+const [order, setOrder] = useState<"asc" | "desc">("asc");
 
-  const tab: TabType | undefined = tabMap[tabOptions[activeTab].label];
+
+
+  const tab: TabType = tabOptions[activeTabIndex].value;
+  const tableScrollRef = React.useRef<HTMLDivElement>(null);
+
+  const showNewProgramButton = isOpsRole || isProgramManager;
 
   useEffect(() => {
-    const fetchFilterOptions = async () => {
+    const fetchInitialData = async () => {
       try {
         setLoadingFilters(true);
-        //  const response = await SupabaseApi.i.getProgramFilterOptions();
-        const response = await api.getProgramFilterOptions();
-        setFilterOptions(response);
+
+        const [filterResponse, isManager] = await Promise.all([
+          api.getProgramFilterOptions(),
+          api.isProgramManager(),
+        ]);
+
+        setFilterOptions(filterResponse);
+        setIsProgramManager(!!isManager);
       } catch (error) {
-        console.error("Failed to fetch filter options:", error);
+        console.error("Failed to fetch data:", error);
+        setIsProgramManager(false);
       } finally {
         setLoadingFilters(false);
       }
+
+      const userRole = localStorage.getItem(USER_ROLE);
+
+      const isOps =
+        userRole?.includes(RoleType.SUPER_ADMIN) ||
+        userRole?.includes(RoleType.OPERATIONAL_DIRECTOR);
+      setIsOpsRole(!!isOps);
     };
-    fetchFilterOptions();
+
+    fetchInitialData();
   }, []);
+
+  useEffect(() => {
+  const params = new URLSearchParams();
+  if (page !== 1) params.set("page", String(page));
+  if (searchTerm) params.set("search", searchTerm);
+  if (Object.values(filters).some(arr => arr.length))
+    params.set("filters", JSON.stringify(filters));
+  if (activeTabIndex !== 0) params.set("tab", String(activeTabIndex));
+  history.replace({ search: params.toString() });
+}, [page, searchTerm, filters, activeTabIndex, history]);
+
 
   useEffect(() => {
     const fetchPrograms = async () => {
@@ -105,67 +168,86 @@ const ProgramsPage: React.FC = () => {
       const currentUserId = user?.id;
       setLoadingPrograms(true);
       try {
-        const currentUserId = user?.id;
         if (!currentUserId) {
           setPrograms([]);
+          setTotalCount(0);
           return;
         }
-        // const { data } = await SupabaseApi.i.getPrograms({ currentUserId, filters, searchTerm, tab });
-        const { data } = await api.getPrograms({ currentUserId, filters, searchTerm, tab });
-        console.log('Fetched programs:', data);
+        const { data } = await api.getPrograms({
+          currentUserId,
+          filters,
+          searchTerm,
+          tab,
+          limit: PAGE_SIZE,
+          offset: (page - 1) * PAGE_SIZE,
+          orderBy,
+          order,
+        });
         setPrograms(data);
+        setTotalCount(data.length > 0 ? data[0].total_count : 0);
       } catch (error) {
-        console.error('Failed to fetch programs:', error);
+        console.error("Failed to fetch programs:", error);
+        setPrograms([]);
+        setTotalCount(0);
       } finally {
-        setPage(1);
         setLoadingPrograms(false);
       }
     };
     fetchPrograms();
-  }, [filters, searchTerm, tab]);
+  }, [filters, searchTerm, tab, page, orderBy, order]);
 
-  const transformedRows = programs.map((row) => ({
-    id: row.id,
-    programName: {
-      value: row.name,
-      render: (
-        <Box
-          display="flex"
-          flexDirection="column"
-          justifyContent="start"
-          alignItems="left"
-        >
-          <Typography variant="subtitle2">{row.name}</Typography>
-          <Typography variant="body2" color="text.secondary">
-            {row.state}
-          </Typography>
-        </Box>
-      ),
-    },
-    institutes: row.institutes_count ?? 0,
-    students: row.students_count ?? 0,
-    devices: {
-      value: row.devices_count ?? 0,
-      render: <Chip label={row.devices_count ?? 0} size="small" />,
-    },
-    manager: row.manager_names,
-  }));
+  // Memo for rendering
+  const transformedRows = useMemo(
+    () =>
+      programs.map((row) => ({
+        id: row.id,
+        programName: {
+          value: row.name,
+          render: (
+            <Box display="flex" flexDirection="column" alignItems="flex-start">
+              <Typography variant="subtitle2">{row.name}</Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                textAlign={"left"}
+              >
+                {row.state}
+              </Typography>
+            </Box>
+          ),
+        },
+        institutes:
+          typeof row.institutes_count === "number" ? row.institutes_count : "—",
+        students:
+          typeof row.students_count === "number" ? row.students_count : "—",
+        devices:
+          typeof row.devices_count === "number" ? row.devices_count : "—",
+        manager:
+          row.manager_names && row.manager_names.trim() !== ""
+            ? row.manager_names
+            : "—",
+      })),
+    [programs]
+  );
 
-  const {
-    orderBy,
-    order,
-    page,
-    setPage,
-    handleSort,
-    paginatedRows,
-  } = useDataTableLogic(transformedRows);
-
-  const handleFilterChange = (name: string, value: any) => {
-    setTempFilters((prev) => ({ ...prev, [name]: value }));
+  const handleSort = (col: string) => {
+    const backendOrderBy = orderByMap[col] || "name";
+    if (orderBy === backendOrderBy) {
+      setOrder(order === "asc" ? "desc" : "asc");
+    } else {
+      setOrderBy(backendOrderBy);
+      setOrder("asc");
+    }
+    setPage(1);
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue);
+    setActiveTabIndex(newValue);
+    setPage(1);
+  };
+
+  const handleFilterChange = (name: string, value: any) => {
+    setTempFilters((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleDeleteFilter = (key: string, value: string) => {
@@ -174,25 +256,13 @@ const ProgramsPage: React.FC = () => {
         ...prev,
         [key]: prev[key].filter((v) => v !== value),
       };
-      setTempFilters(updatedFilters); // Update tempFilters to reflect the change in the dropdown
+      setTempFilters(updatedFilters);
       return updatedFilters;
     });
+    setPage(1);
   };
 
-  const onFilterClick = () => {
-    setIsFilterOpen(true);
-  };
-
-  const autocompleteStyles = {
-    "& .MuiOutlinedInput-root": { padding: "6px!important" },
-    "& .MuiAutocomplete-paper": { boxShadow: "none", border: "none" },
-    "& .MuiAutocomplete-listbox": { padding: 0 },
-  };
-
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
-  };
-
+  const onFilterClick = () => setIsFilterOpen(true);
   const handelClose = () => {
     setIsFilterOpen(false);
     setTempFilters(filters);
@@ -201,67 +271,105 @@ const ProgramsPage: React.FC = () => {
   const handleApplyFilters = () => {
     setFilters(tempFilters);
     setIsFilterOpen(false);
+    setPage(1);
   };
 
   const handleCancelFilters = () => {
-    setTempFilters({
+    const reset = {
       partner: [],
-      programType: [],
+      program_type: [],
       model: [],
       state: [],
       district: [],
       block: [],
-      village: [],
       cluster: [],
-    });
-    setFilters({
-      partner: [],
-      programType: [],
-      model: [],
-      state: [],
-      district: [],
-      block: [],
-      village: [],
-      cluster: [],
-    });
+    };
+    setTempFilters(reset);
+    setFilters(reset);
     setIsFilterOpen(false);
+    setPage(1);
   };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+    setPage(1);
+  };
+
+  const autocompleteStyles = {
+    "& .MuiOutlinedInput-root": { padding: "6px!important" },
+    "& .MuiAutocomplete-paper": { boxShadow: "none", border: "none" },
+    "& .MuiAutocomplete-listbox": { padding: 0 },
+  };
+
+  const filterConfigsForProgram = [
+    { key: "Partner", label: t("Select Partner") },
+    { key: "Program Manager", label: t("Select Program Manager") },
+    { key: "Program Type", label: t("Select Program Type") },
+    { key: "state", label: t("Select State") },
+    { key: "district", label: t("Select District") },
+    { key: "block", label: t("Select Block") },
+    { key: "cluster", label: t("Select Cluster") },
+  ];
 
   return (
     <div className="program-page">
-      <div className="program-page-header">{t("Programs")}</div>
-
+      <div className="program-page-header">
+        <span className="program-page-header-title">{t("Programs")}</span>
+        <IconButton className="bell-icon" sx={{ color: "black" }}>
+          <BsFillBellFill />
+        </IconButton>
+      </div>
       <div className="program-header-and-search-filter">
         <div className="program-search-filter">
-          <HeaderTab activeTab={activeTab} handleTabChange={handleTabChange} tabs={tabOptions} />
+          <div className="program-tab-wrapper">
+            <HeaderTab
+              activeTab={activeTabIndex}
+              handleTabChange={handleTabChange}
+              tabs={tabOptions}
+            />
+          </div>
+
           <div className="program-button-and-search-filter">
-            <Button
-              variant="outlined"
-              onClick={() => history.replace(PAGES.NEW_PROGRAM)}
-              sx={{
-                borderColor: "transparent",
-                borderRadius: 20,
-                boxShadow: 3,
-                height: "48px",
-                minWidth: isSmallScreen ? "48px" : "auto",
-                padding: isSmallScreen ? 0 : "6px 16px",
-              }}
-            >
-              <Add />
-              {!isSmallScreen && t("New Program")}
-            </Button>
-            {loadingFilters ? (<CircularProgress />
-            ) : (<SearchAndFilter
-              searchTerm={searchTerm}
-              onSearchChange={handleSearchChange}
-              filters={filters}
-              onFilterClick={onFilterClick}
-            />)
-            }
+            {!loadingFilters && showNewProgramButton && (
+              <Button
+                variant="outlined"
+                onClick={() =>
+                  history.replace(PAGES.SIDEBAR_PAGE + PAGES.NEW_PROGRAM)
+                }
+                sx={{
+                  borderColor: "#e0e0e0",
+                  border: "1px solid",
+                  borderRadius: 20,
+                  boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.1)",
+                  height: "36px",
+                  minWidth: isSmallScreen ? "48px" : "auto",
+                  padding: isSmallScreen ? 0 : "6px 16px",
+                  textTransform: "none",
+                }}
+              >
+                <Add />
+                {!isSmallScreen && (
+                  <span style={{ color: "black" }}>{t("New Program")}</span>
+                )}
+              </Button>
+            )}
+            {loadingFilters ? (
+              <CircularProgress />
+            ) : (
+              <SearchAndFilter
+                searchTerm={searchTerm}
+                onSearchChange={handleSearchChange}
+                filters={filters}
+                onFilterClick={onFilterClick}
+              />
+            )}
           </div>
         </div>
 
-        <SelectedFilters filters={filters} onDeleteFilter={handleDeleteFilter} />
+        <SelectedFilters
+          filters={filters}
+          onDeleteFilter={handleDeleteFilter}
+        />
 
         <FilterSlider
           isOpen={isFilterOpen}
@@ -272,17 +380,12 @@ const ProgramsPage: React.FC = () => {
           onApply={handleApplyFilters}
           onCancel={handleCancelFilters}
           autocompleteStyles={autocompleteStyles}
+          filterConfigs={filterConfigsForProgram}
         />
       </div>
 
       <div className="program-table">
-        {loadingPrograms ? (
-          <Box padding={2}>
-            {[...Array(10)].map((_, i) => (
-              <Skeleton key={i} variant="rectangular" height={40} sx={{ mb: 1 }} />
-            ))}
-          </Box>
-        ) : programs.length === 0 ? (
+        {programs.length === 0 && !loadingPrograms ? (
           <Box padding={4} textAlign="center">
             <Typography variant="h6" color="text.secondary">
               {t("No programs found")}
@@ -291,17 +394,26 @@ const ProgramsPage: React.FC = () => {
         ) : (
           <DataTableBody
             columns={columns}
-            rows={paginatedRows}
+            rows={transformedRows}
             orderBy={orderBy}
             order={order}
             onSort={handleSort}
             detailPageRouteBase="programs"
+            ref={tableScrollRef}
+            loading={loadingPrograms}
           />
         )}
       </div>
 
       <div className="program-page-pagination">
-        <DataTablePagination page={page} pageCount={Math.ceil(programs.length / 10)} onPageChange={setPage} />
+        <DataTablePagination
+          page={page}
+          pageCount={Math.ceil(totalCount / PAGE_SIZE)}
+          onPageChange={(newPage) => {
+            setPage(newPage);
+            tableScrollRef.current?.scrollTo?.({ top: 0, behavior: "smooth" });
+          }}
+        />
       </div>
     </div>
   );

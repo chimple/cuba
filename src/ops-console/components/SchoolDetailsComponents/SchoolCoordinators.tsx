@@ -1,93 +1,159 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import DataTableBody, { Column } from "../DataTableBody";
 import DataTablePagination from "../DataTablePagination";
-import { Typography, Box } from "@mui/material";
+import { Typography, Box, CircularProgress } from "@mui/material";
 import { t } from "i18next";
 import "./SchoolCoordinators.css";
+import { ServiceConfig } from "../../../services/ServiceConfig";
+import { CoordinatorInfo } from "../../../common/constants";
 
-export interface Coordinator {
+interface DisplayCoordinator {
   id: string;
-  name: string | null;
-  gender: string | null;
-  phoneNumber: string | null;
-  email: string | null;
+  name: string;
+  gender: string;
+  phoneNumber: string;
+  emailDisplay: string;
 }
 
 interface SchoolCoordinatorsProps {
   data: {
-    coordinators: Coordinator[];
+    coordinators?: CoordinatorInfo[];
+    totalCoordinatorCount?: number;
   };
   isMobile: boolean;
+  schoolId: string;
 }
 
-const ROWS_PER_PAGE = 7;
+const ROWS_PER_PAGE = 20;
 
-const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({ data, isMobile }) => {
-
+const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
+  data,
+  schoolId,
+}) => {
+  const [coordinators, setCoordinators] = useState<CoordinatorInfo[]>(
+    data.coordinators || []
+  );
+  const [totalCount, setTotalCount] = useState<number>(
+    data.totalCoordinatorCount || 0
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [page, setPage] = useState(1);
   const [orderBy, setOrderBy] = useState<string | null>("name");
   const [order, setOrder] = useState<"asc" | "desc">("asc");
-  const [page, setPage] = useState(1);
-  const [pageCount, setPageCount] = useState(1);
 
-  const handleSort = useCallback((key: string) => {
-    const isAsc = orderBy === key && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(key);
-  }, [order, orderBy]);
-
-  const allCoordinators = useMemo(() => {
-    const coordinatorsFromProps = data?.coordinators || [];
-    return coordinatorsFromProps.map(coordinator => ({
-      ...coordinator,
-      id: coordinator.id,
-      name: coordinator.name || "N/A",
-      gender: coordinator.gender || "N/A",
-      phoneNumber: coordinator.phoneNumber || "N/A",
-      emailDisplay: coordinator.email || "N/A",
-    }));
-  }, [data?.coordinators]); 
+  const fetchCoordinators = useCallback(
+    async (currentPage: number) => {
+      setIsLoading(true);
+      const api = ServiceConfig.getI().apiHandler;
+      try {
+        const response = await api.getCoordinatorsForSchoolPaginated(
+          schoolId,
+          currentPage,
+          ROWS_PER_PAGE
+        );
+        setCoordinators(response.data);
+        setTotalCount(response.total);
+      } catch (error) {
+        console.error("Failed to fetch coordinators:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [schoolId]
+  );
 
   useEffect(() => {
-    const newPageCount = Math.ceil(allCoordinators.length / ROWS_PER_PAGE);
-    setPageCount(Math.max(1, newPageCount));
-    if (page > newPageCount && newPageCount > 0) {
-      setPage(newPageCount);
-    } else if (page > 1 && newPageCount === 0) {
-      setPage(1);
+    if (page === 1) {
+      setCoordinators(data.coordinators || []);
+      setTotalCount(data.totalCoordinatorCount || 0);
+      return;
     }
-  }, [allCoordinators, page]);
+    fetchCoordinators(page);
+  }, [page, fetchCoordinators, data.coordinators, data.totalCoordinatorCount]);
 
-  const coordinatorsForCurrentPage = useMemo(() => {
-    const startIndex = (page - 1) * ROWS_PER_PAGE;
-    return allCoordinators.slice(startIndex, startIndex + ROWS_PER_PAGE);
-  }, [allCoordinators, page]);
+  const handlePageChange = (newPage: number) => setPage(newPage);
+  const handleSort = useCallback(
+    (key: string) => {
+      const isAsc = orderBy === key && order === "asc";
+      setOrder(isAsc ? "desc" : "asc");
+      setOrderBy(key);
+    },
+    [order, orderBy]
+  );
 
-  const columns: Column<Coordinator & { emailDisplay: string }>[] = [
-    { key: "name", label: t("Coordinator Name"), renderCell: (coordinator) => <Typography variant="body2" className="coordinator-name-data">{coordinator.name}</Typography> },
+  // Data mapping for display
+  const displayCoordinators = useMemo((): DisplayCoordinator[] => {
+    let sorted = [...coordinators];
+    if (orderBy) {
+      sorted.sort((a, b) => {
+        const valA = a[orderBy as keyof CoordinatorInfo] ?? "";
+        const valB = b[orderBy as keyof CoordinatorInfo] ?? "";
+        if (valA < valB) return order === "asc" ? -1 : 1;
+        if (valA > valB) return order === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+    return sorted.map((c) => ({
+      id: c.id,
+      name: c.name || "N/A",
+      gender: c.gender || "N/A",
+      phoneNumber: c.phone || "N/A",
+      emailDisplay: c.email || "N/A",
+    }));
+  }, [coordinators, order, orderBy]);
+
+  const pageCount = Math.ceil(totalCount / ROWS_PER_PAGE);
+  const isDataPresent = displayCoordinators.length > 0;
+
+  const columns: Column<DisplayCoordinator>[] = [
+    {
+      key: "name",
+      label: t("Coordinator Name"),
+      renderCell: (c) => (
+        <Typography variant="body2" className="coordinator-name-data">
+          {c.name}
+        </Typography>
+      ),
+    },
     { key: "gender", label: t("Gender") },
     { key: "phoneNumber", label: t("Phone Number") },
-    { key: "email", label: t("Email"), renderCell: (coordinator) => <Typography variant="body2" className="truncate-text">{coordinator.emailDisplay}</Typography> },
+    {
+      key: "emailDisplay",
+      label: t("Email"),
+      renderCell: (c) => (
+        <Typography variant="body2" className="truncate-text">
+          {c.emailDisplay}
+        </Typography>
+      ),
+    },
   ];
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage !== page) setPage(newPage);
-  };
-
-  const isDataPresent = allCoordinators.length > 0;
-
   return (
-    <div className="schoolCoordinators-pageContainer">
-      {isDataPresent ? (
-        <div className="schoolCoordinators-dataTableContainer">
-          <DataTableBody
-            columns={columns}
-            rows={coordinatorsForCurrentPage}
-            orderBy={orderBy}
-            order={order}
-            onSort={handleSort}
-          />
-          {allCoordinators.length > 0 && (
-            <div className="schoolCoordinators-school-list-pagination">
+    <div className="school-coordinators-page-container">
+      {isLoading ? (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          minHeight="200px"
+        >
+          <CircularProgress />
+        </Box>
+      ) : isDataPresent ? (
+        <>
+          <div className="school-coordinators-data-cable-container">
+            {" "}
+            <DataTableBody
+              columns={columns}
+              rows={displayCoordinators}
+              orderBy={orderBy}
+              order={order}
+              onSort={handleSort}
+            />
+          </div>
+          {pageCount > 1 && (
+            <div className="school-coordinators-footer">
+              {" "}
               <DataTablePagination
                 page={page}
                 pageCount={pageCount}
@@ -95,13 +161,16 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({ data, isMobile 
               />
             </div>
           )}
-        </div>
+        </>
       ) : (
-        <Box className="schoolCoordinators-emptyStateContainer">
-          <Typography variant="h6" className="schoolCoordinators-emptyStateTitle">
+        <Box className="school-coordinators-empty-state-container">
+          <Typography
+            variant="h6"
+            className="school-coordinators-empty-state-title"
+          >
             {t("Coordinators")}
           </Typography>
-          <Typography className="schoolCoordinators-emptyStateMessage">
+          <Typography className="school-coordinators-empty-state-message">
             {t("No coordinators data found for the selected school")}
           </Typography>
         </Box>

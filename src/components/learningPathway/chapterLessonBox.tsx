@@ -30,7 +30,7 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
         learningPath.courses.courseList[currentCourseIndex].path[currentIndex]
           .lesson_id
       );
-      let chapterName = chapter?.name + ": " + lesson?.name;
+      let chapterName = chapter?.name + " : " + lesson?.name;
 
       setCurrentChapterName(chapterName || "Default Chapter");
     };

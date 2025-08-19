@@ -79,7 +79,7 @@ const LessonCard: React.FC<{
   }, [lesson]);
 
   const getDate = () => {
-    const res = assignment?.updated_at;
+    const res = assignment?.starts_at;
     if (!!res) {
       const dateObj = new Date(res);
       setDate(dateObj);
@@ -151,7 +151,6 @@ const LessonCard: React.FC<{
             //   lesson.orig_lesson_id != undefined
             // ) {
             //   const parmas = `?courseid=${lesson.orig_course_id}&chapterid=${lesson.orig_chapter_id}&lessonid=${lesson.orig_lesson_id}`;
-            //   console.log("parmas", parmas);
             //   history.push(PAGES.GAME + parmas, {
             //     url: "chimple-lib/index.html" + parmas,
             //     lessonId: TableTypes<"lesson">.orig_lesson_id,
@@ -159,7 +158,6 @@ const LessonCard: React.FC<{
             //     from: history.location.pathname,
             //   });
             // } else {
-            // console.log("LessonCard course: subject,", subject);
             if (!course && !currentCourse) {
               await getCurrentCourse();
             }
@@ -171,7 +169,7 @@ const LessonCard: React.FC<{
                 lessonId: lesson.cocos_lesson_id,
                 courseDocId:
                   course?.id ??
-                  // lesson?.assignment?.course?.id ??
+                  assignment?.course_id??
                   // lesson.courseId ??
                   currentCourse?.id,
                 course: JSON.stringify(currentCourse!),

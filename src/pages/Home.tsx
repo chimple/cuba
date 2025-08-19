@@ -125,6 +125,9 @@ const Home: FC = () => {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
+    const studentDetails = student;
+    updateLocalAttributes({studentDetails});
+    setGbUpdated(true);
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
     initData();
@@ -160,11 +163,7 @@ const Home: FC = () => {
   }, [currentHeader]);
   // adding background image for learning-pathway
   useEffect(() => {
-    const body = document.querySelector("body");
-    body?.style.setProperty(
-      "background-image",
-      "url(/pathwayAssets/pathwayBackground.svg)"
-    );
+    Util.loadBackgroundImage();
   }, [currentHeader, canShowAvatar]);
   const handleJoinClassEvent = async (event) => {
     await getAssignments();
@@ -184,9 +183,17 @@ const Home: FC = () => {
       setLessonResultMap(studentResult);
       const count_of_lessons_played = Object.values(studentResult).filter(item => item.assignment_id === null);
       const total_assignments_played = Object.values(studentResult).filter(item => item.assignment_id !== null);
+      let latestDate = null;
+      for (const lessonId in studentResult) {
+        const currentDate: any = studentResult[lessonId].updated_at;
+        if (!latestDate || new Date(currentDate) > new Date(latestDate)) {
+          latestDate = currentDate;
+        }
+      }
       const attributes = {
         count_of_lessons_played: count_of_lessons_played.length,
         count_of_assignment_played: total_assignments_played.length,
+        last_assignment_played_at: latestDate,
       }
       updateLocalAttributes(attributes)
       setGbUpdated(true);
@@ -484,7 +491,7 @@ const Home: FC = () => {
         const key = `${courseId}_course_completed`;
         courseCounts[key] = (courseCounts[key] || 0) + 1;
       }
-      updateLocalAttributes({courseCounts, total_assignments_played: allValidPlayedLessonDocIds.length});
+      updateLocalAttributes({ courseCounts, total_assignments_played: allValidPlayedLessonDocIds.length });
       setGbUpdated(true)
       return allValidPlayedLessonDocIds;
     }
@@ -676,21 +683,13 @@ const Home: FC = () => {
             {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
 
             {currentHeader === HOMEHEADERLIST.ASSIGNMENT && (
-              <AssignmentPage
-                onNewAssignment={(newAssignment) => {
-                  setPendingAssignments((prev) => {
-                    if (!prev.some((a) => a.id === newAssignment.id)) {
-                      return [...prev, newAssignment];
-                    }
-                    return prev;
-                  });
-                }}
-                assignmentCount={setPendingAssignmentCount}
-              />
+              <AssignmentPage assignmentCount={setPendingAssignmentCount} />
             )}
 
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
-            {currentHeader === HOMEHEADERLIST.LIVEQUIZ && <LiveQuiz />}
+            {currentHeader === HOMEHEADERLIST.LIVEQUIZ && (
+              <LiveQuiz liveQuizCount={setPendingLiveQuizCount} />
+            )}
 
             {/* 
             {value === SUBTAB.SUGGESTIONS &&

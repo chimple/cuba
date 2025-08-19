@@ -1,19 +1,36 @@
 import React, { useEffect, useState } from "react";
-import { PAGES, TableTypes } from "../../common/constants";
+import { PAGES, TableTypes, USER_ROLE } from "../../common/constants";
 import { IonPage } from "@ionic/react";
 import Sidebar from "../components/Sidebar";
 import Dashboard from "../components/Dashboard";
-import { BrowserRouter as Router, Switch, useRouteMatch, Route, Redirect} from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Switch,
+  useRouteMatch,
+  Route,
+  Redirect,
+} from "react-router-dom";
 import ProtectedRoute from "../../ProtectedRoute";
 import "./SidebarPage.css";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import ProgramsPage from "./ProgramPage";
 import SchoolList from "./SchoolList";
+import SchoolDetailsPage from "./SchoolDetailsPage";
+import ProgramDetailsPage from "./ProgramDetailsPage";
+import UsersPage from "./UsersPage";
+import NewProgram from "../components/NewProgram";
+import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPageOps";
+import NewUserPage from "./NewUserPageOps";
+import UserDetailsPage from "./UserDetailsPage";
+import { RoleType } from "../../interface/modelInterfaces";
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
-  
-  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(null);
+
+  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
+    null
+  );
+  const userRole = localStorage.getItem(USER_ROLE) || '[]';
 
   useEffect(() => {
     fetchData();
@@ -26,9 +43,8 @@ const SidebarPage: React.FC = () => {
         console.error("No user is logged in.");
         return;
       }
-      
-      setCurrentUser(user);
 
+      setCurrentUser(user);
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
@@ -36,30 +52,83 @@ const SidebarPage: React.FC = () => {
 
   return (
     <IonPage>
-        <div className="sidebarpage-rightSide">
-          <Sidebar
-            name={currentUser?.name || ""}
-            email={currentUser?.email || ""}
-            photo={currentUser?.image || ""}
-          />
-          <div className="sidebarpage-render">
-            <Switch>
-                
-                 <ProtectedRoute exact path={path}>
-                  <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
-                </ProtectedRoute>
-                {/* <ProtectedRoute path={`${path}${PAGES.ADMIN_DASHBOARD}`} exact={true}>
-                  <Dashboard />
-              </ProtectedRoute> */}
-               <ProtectedRoute path={`${path}${PAGES.PROGRAM_PAGE}`} exact={true}>
-                  <ProgramsPage/>
+      <div className="sidebarpage-rightSide">
+        <Sidebar
+          name={currentUser?.name || ""}
+          email={currentUser?.email || ""}
+          photo={currentUser?.image || ""}
+        />
+        <div className="sidebarpage-render">
+          <Switch>
+            <ProtectedRoute exact path={path}>
+              <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
+            </ProtectedRoute>
+            {/* <ProtectedRoute
+              path={`${path}${PAGES.ADMIN_DASHBOARD}`}
+              exact={true}
+            >
+              <Dashboard />
+            </ProtectedRoute> */}
+            <ProtectedRoute path={`${path}${PAGES.PROGRAM_PAGE}`} exact={true}>
+              <ProgramsPage />
+            </ProtectedRoute>
+            <ProtectedRoute path={`${path}${PAGES.SCHOOL_LIST}`} exact={true}>
+              <SchoolList />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/:school_id`}
+              exact={true}
+            >
+              {(routeProps) => {
+                return (
+                  <SchoolDetailsPage id={routeProps.match.params.school_id} />
+                );
+              }}
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/:program_id`}
+              exact={true}
+            >
+              {(routeProps) => {
+                return (
+                  <ProgramDetailsPage id={routeProps.match.params.program_id} />
+                );
+              }}
+            </ProtectedRoute>
+            <ProtectedRoute path={`${path}${PAGES.NEW_PROGRAM}`} exact={true}>
+              <NewProgram />
+            </ProtectedRoute>
+            {!userRole.includes(RoleType.FIELD_COORDINATOR) && (
+              <ProtectedRoute path={`${path}${PAGES.USERS}`} exact={true}>
+                <UsersPage />
               </ProtectedRoute>
-               <ProtectedRoute path={`${path}${PAGES.SCHOOL_LIST}`} exact={true}>
-                  <SchoolList/>
-              </ProtectedRoute>
-            </Switch>
-          </div>
+            )}
+            <ProtectedRoute
+              path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS}/:program_id`}
+              exact={true}
+            >
+              {(routeProps) => {
+                return (
+                  <ProgramConnectedSchoolPage
+                    id={routeProps.match.params.program_id}
+                  />
+                );
+              }}
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.USERS}${PAGES.NEW_USERS_OPS}`}
+              exact={true}
+            >
+              <NewUserPage />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.ADMIN_USERS}${PAGES.USER_DETAILS}`}
+              exact={true}>
+              <UserDetailsPage/>
+            </ProtectedRoute>
+          </Switch>
         </div>
+      </div>
     </IonPage>
   );
 };

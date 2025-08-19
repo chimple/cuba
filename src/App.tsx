@@ -53,6 +53,7 @@ import {
   MODES,
   PAGES,
   PortPlugin,
+  SHOULD_SHOW_REMOTE_ASSETS,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -120,10 +121,11 @@ import TeacherProfile from "./teachers-module/pages/TeacherProfile";
 import SchoolUsers from "./teachers-module/pages/SchoolUsers";
 import AddSchoolUser from "./teachers-module/pages/AddSchoolUser";
 import ProgramsPage from "./ops-console/pages/ProgramPage";
-import ProgramDetailPage from "./ops-console/pages/ProgramDetailsPage";
 import NewProgram from "./ops-console/components/NewProgram";
 import SchoolList from "./ops-console/pages/SchoolList";
 import { useFeatureValue, useFeatureIsOn } from "@growthbook/growthbook-react";
+import LoginScreen from "./pages/LoginScreen";
+import ProfileDetails from "./components/profileDetails/ProfileDetails";
 
 setupIonicReact();
 interface ExtraData {
@@ -235,6 +237,11 @@ const App: React.FC = () => {
         learningPathAssets?.uniqueId
       );
     }
+    localStorage.setItem(
+      SHOULD_SHOW_REMOTE_ASSETS,
+      JSON.stringify(shouldShowRemoteAssets)
+    );
+    
     Filesystem.mkdir({
       path: CACHE_IMAGE,
       directory: Directory.Cache,
@@ -416,7 +423,7 @@ const App: React.FC = () => {
               <Home />
             </ProtectedRoute>
             <Route path={PAGES.LOGIN} exact={true}>
-              <Login />
+              <LoginScreen />
             </Route>
             <ProtectedRoute path={PAGES.GAME} exact={true}>
               <CocosGame />
@@ -433,14 +440,14 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.PARENT} exact={true}>
               <Parent />
             </ProtectedRoute>
-            <Route path={PAGES.APP_LANG_SELECTION} exact={true}>
+            {/* <Route path={PAGES.APP_LANG_SELECTION} exact={true}>
               <AppLangSelection />
-            </Route>
+            </Route> */}
             <ProtectedRoute path={PAGES.CREATE_STUDENT} exact={true}>
-              <EditStudent />
+              <ProfileDetails />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.EDIT_STUDENT} exact={true}>
-              <EditStudent />
+              <ProfileDetails />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.DISPLAY_STUDENT} exact={true}>
               <DisplayStudents />
@@ -601,14 +608,14 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.PROGRAM_PAGE} exact={true}>
               <ProgramsPage />
             </ProtectedRoute>
-            <ProtectedRoute path={PAGES.PROGRAM_DETAIL_PAGE} exact={true}>
+            {/* <ProtectedRoute path={PAGES.PROFILE_DETAILS} exact={true}>
+              <ProfileDetails/>
+            </ProtectedRoute> */}
+            {/* <ProtectedRoute path={PAGES.PROGRAM_DETAIL_PAGE} exact={true}>
               <ProgramDetailPage />
-            </ProtectedRoute>
+            </ProtectedRoute> */}
             <ProtectedRoute path={PAGES.SIDEBAR_PAGE}>
               <SidebarPage />
-            </ProtectedRoute>
-            <ProtectedRoute path={PAGES.NEW_PROGRAM} exact={true}>
-              <NewProgram />
             </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>

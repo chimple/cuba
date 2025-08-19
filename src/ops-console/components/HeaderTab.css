@@ -1,46 +1,44 @@
-.tabs-container-HeaderTab {
+.HeaderTab-tabs-container {
   min-height: 7vh;
-}
-
-.tabs-container-HeaderTab .MuiTabs-flexContainer {
+  overflow: hidden;
   height: 100%;
 }
 
-.tabs-container-HeaderTab .MuiTabs-indicator {
+.HeaderTab-custom-tab-indicator {
   background-color: #1976d2;
   height: 0.3vh;
 }
 
-.tabs-container-HeaderTab .MuiTab-root {
+.HeaderTab-tab-item {
   text-transform: none;
-  font-weight: 600;
-  font-size: clamp(0.75rem, 1.1vw, 1.1rem);
-  padding: 0.8vh 1.8vw;
+  color: black !important;
+  font-weight: 600 !important;
+  font-size: 14px;
+  padding: 0.8vh 1.2vw;
   min-width: auto;
   min-height: auto;
 }
 
-.tabs-container-HeaderTab .MuiTab-root.Mui-selected {
+.HeaderTab-tab-item.active {
   color: #1976d2;
 }
 
-.tabs-container-HeaderTab .MuiTab-root:hover {
+.HeaderTab-tab-item:hover {
   background-color: rgba(25, 118, 210, 0.04);
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
-  .tabs-container-HeaderTab .MuiTab-root {
+  .HeaderTab-tab-item {
     font-size: clamp(0.65rem, 1.3vw, 0.85rem);
     padding: 0.8vh 1.3vw;
   }
 }
 
 @media (max-width: 480px) {
-  .tabs-container-HeaderTab {
+  .HeaderTab-tabs-container {
     min-height: 5vh;
   }
-  .tabs-container-HeaderTab .MuiTab-root {
+  .HeaderTab-tab-item {
     font-size: clamp(0.55rem, 1.5vw, 0.7rem);
     padding: 0.6vh 0.8vw;
   }

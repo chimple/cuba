@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Grid, TextField, Typography, MenuItem, Select, InputLabel, FormControl, Checkbox, FormControlLabel, Container, Paper, InputAdornment, IconButton, Button, FormHelperText, ListItemText, } from '@mui/material';
+import { Autocomplete, Box, Link, Grid, TextField, Typography, MenuItem, Select, InputLabel, FormControl, Checkbox, FormControlLabel, Container, Paper, InputAdornment, IconButton, Button, FormHelperText, ListItemText } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import dayjs, { Dayjs } from 'dayjs';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { useHistory } from 'react-router-dom';
-import { PAGES, ProgramType } from '../../common/constants';
+import { PAGES, PROGRAM_TAB, ProgramType , PROGRAM_TAB_LABELS} from '../../common/constants';
 import { t } from 'i18next';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { Link as RouterLink } from 'react-router-dom';
+import NotificationsIcon from '@mui/icons-material/Notifications'
 
 const NewProgram: React.FC = () => {
   const [partners, setPartners] = useState({ implementation: '', funding: '', institute: '', });
@@ -14,17 +18,38 @@ const NewProgram: React.FC = () => {
   const [locations, setLocations] = useState({ Country: '', State: '', District: '', Block: '', Cluster: '', });
   const [programType, setProgramType] = useState<ProgramType | ''>('');
   const [models, setModels] = useState<string[]>([]);
-  const [programManagers, setProgramManagers] = useState<string[]>([]);
+  const [programManagers, setProgramManagers] = useState<{ name: string; id: string }[]>([]);
   const [selectedManagers, setSelectedManagers] = useState<string[]>([]);
   const [geoData, setGeoData] = useState<{ Country: string[]; State: string[]; District: string[]; Block: string[]; Cluster: string[]; }>({ Country: [], State: [], District: [], Block: [], Cluster: [], });
   const [stats, setStats] = useState({ institutes: '', students: '', devices: '', });
-  const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
-  const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
+  const [startDate, setStartDate] = useState<Dayjs | null>(null);
+  const [endDate, setEndDate] = useState<Dayjs | null>(null);
   const [errors, setErrors] = useState<{
     [key: string]: string;
   }>({});
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
+  const [isEditingProgramName, setIsEditingProgramName] = useState(false);
+  const programNameInputRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isEditingProgramName) {
+      const generated = [
+        partners.implementation,
+        partners.funding,
+        partners.institute,
+      ]
+        .filter(Boolean) 
+        .join(' ');
+      setProgramName(generated);
+    }
+  }, [partners, isEditingProgramName]);
+
+  useEffect(() => {
+    if (isEditingProgramName && programNameInputRef.current) {
+      programNameInputRef.current.focus();
+    }
+  }, [isEditingProgramName]);
 
   useEffect(() => {
     const fetchProgramManagers = async () => {
@@ -34,6 +59,11 @@ const NewProgram: React.FC = () => {
       } catch (error) {
         console.error(error);
       }
+    };
+
+    const handlePartnerChange = (field: string, value: string) => {
+      setPartners((prev) => ({ ...prev, [field]: value }));
+      setIsEditingProgramName(false);
     };
 
     const fetchGeoData = async () => {
@@ -58,7 +88,7 @@ const NewProgram: React.FC = () => {
   const handlePartnerChange = (field: string, value: string) => {
     setPartners((prev) => ({ ...prev, [field]: value }));
   };
-  const handleLocationChange = (field: string, value: string) => {
+  const handleLocationChange = (field: string, value: string | null) => {
     setLocations((prev) => ({ ...prev, [field]: value }));
   };
   const handleModelToggle = (model: string) => {
@@ -87,6 +117,8 @@ const NewProgram: React.FC = () => {
       newErrors['programType'] = t('Program Type is required');
     if (!stats.institutes)
       newErrors['institutes'] = t('No of Institutes is required');
+    if (selectedManagers.length === 0)
+      newErrors['programManager'] = t('Program Manager is required');
     if (!stats.students)
       newErrors['students'] = t('No of Students is required');
     if (!stats.devices)
@@ -124,7 +156,7 @@ const NewProgram: React.FC = () => {
       const res = await api.insertProgram(dataToSave);
       if(res) {
           clearForm();
-          history.replace(PAGES.PROGRAM_PAGE);
+          history.replace(PAGES.SIDEBAR_PAGE+PAGES.PROGRAM_PAGE);
       } else {
          console.error('Error in saving ops program');
       }
@@ -133,11 +165,16 @@ const NewProgram: React.FC = () => {
     }
   };
 
+  const navigateToProgramPage = () => {
+    clearForm();
+    history.replace(PAGES.SIDEBAR_PAGE+PAGES.PROGRAM_PAGE);
+  }
+
   const clearForm = () => {
     setPartners({ implementation: '', funding: '', institute: '' });
     setProgramName('');
     setLocations({ Country: '', State: '', District: '', Block: '', Cluster: '' });
-    setProgramType('');
+    setProgramType(ProgramType.LearningCenter);
     setModels([]);
     setSelectedManagers([]);
     setStats({ institutes: '', students: '', devices: '' });
@@ -147,267 +184,316 @@ const NewProgram: React.FC = () => {
   };
 
   return (
-    <Box sx={{ height: '100vh', overflowY: 'auto' }}>
+    <Box sx={{ height: '100vh', overflowY: 'auto', m: 0, p: 0 }}>
       <Container maxWidth="lg" sx={{ mt: 2, mb: 2 }}>
-        <Paper elevation={0} sx={{ p: { xs: 2, sm: 4 } }}>
-          <Typography variant="h4" fontWeight="bold" gutterBottom>
-           {t('New Program')}
-          </Typography>
-          <Box display="flex" alignItems="center" mb={3}>
-            <Typography variant="body2" color="text.secondary">
-              {t('Programs')}   
-            </Typography>
-            <ChevronRightIcon
-              fontSize="small"
-              sx={{ mx: 0.5, color: 'text.secondary' }}
-            />
-            <Typography variant="body2" color="text.secondary" fontWeight="bold">
-              {t('New Program')}
-            </Typography>
+          <Box mb={3}>
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Typography color="text.primary" variant="h4" fontWeight="bold">
+                {t('New Program')}
+              </Typography>
+              <NotificationsIcon sx={{ color: 'text.secondary', cursor: 'pointer' }} />
+            </Box>
+
+            <Box display="flex" alignItems="center" mt={1}>
+              <Link
+                component={RouterLink}
+                to={PAGES.SIDEBAR_PAGE + PAGES.PROGRAM_PAGE}
+                variant="body2"
+                color="primary"
+                underline="none"
+              >
+                <Typography variant="body2" color="text.secondary">
+                  {t('Programs')}
+                </Typography>
+              </Link>
+              <PlayArrowIcon fontSize="small" sx={{ mx: 0.5, color: 'text.secondary' }} />
+              <Typography variant="body2" color="text.secondary" fontWeight="bold">
+                {t('New Program')}
+              </Typography>
+            </Box>
           </Box>
 
-          <Grid container spacing={3}>
-            {[ { label: 'Enter Implementation Partner', key: 'implementation' }, { label: 'Enter Funding Partner', key: 'funding' }, { label: 'Enter Institute Partner', key: 'institute' }, ].map(({ label, key }, index) => (
-              <Grid item xs={12} sm={4} key={key}>
+          <Paper elevation={0} sx={{ p: { xs: 2, sm: 4 } }}>
+            <Grid container spacing={3}>
+              {[
+                { title: 'Implementation Partner', placeholder: 'Enter Implementation Partner', key: 'implementation' },
+                { title: 'Funding Partner', placeholder: 'Enter Funding Partner', key: 'funding' },
+                { title: 'Institute Partner', placeholder: 'Enter Institute Partner', key: 'institute' },
+              ].map(({ title, placeholder, key }) => (
+                <Grid item xs={12} sm={4} key={key} mb={3}>
+                  <Typography fontWeight="bold" color="text.primary" mb={1} sx={{ textAlign: 'left' }}>
+                    {t(title).toString()}
+                  </Typography>
+                  <TextField
+                    placeholder={t(placeholder).toString()}
+                    fullWidth
+                    variant="outlined"
+                    value={partners[key as keyof typeof partners]}
+                    onChange={(e) => handlePartnerChange(key, e.target.value)}
+                    error={!!errors[key]}
+                    helperText={errors[key]}
+                    InputProps={{
+                      sx: {
+                        borderRadius: '12px',
+                      },
+                    }}
+                  />
+                </Grid>
+              ))}
+
+              <Grid item xs={12} sm={4} md={4} mb={3}>
+                <Typography fontWeight="bold" color="text.primary" mb={1} sx={{ textAlign: 'left' }}>
+                  {t('Program Name')}
+                </Typography>
                 <TextField
-                  label={t(`${label}`)}
+                  inputRef={programNameInputRef}
                   fullWidth
                   variant="outlined"
-                  value={partners[key as keyof typeof partners]}
-                  onChange={(e) => handlePartnerChange(key, e.target.value)}
-                  error={!!errors[key]}
-                  helperText={errors[key]}
-                  InputProps={{ sx: { borderRadius: '12px' } }}
+                  value={programName}
+                  onChange={(e) => setProgramName(e.target.value)}
+                  disabled={!isEditingProgramName}
+                  error={!!errors['programName']}
+                  helperText={errors['programName']}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          edge="end"
+                          size="small"
+                          sx={{ mr: 0.5 }}
+                          onClick={() => setIsEditingProgramName(true)}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                    sx: { borderRadius: '12px' },
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      paddingRight: 0.5,
+                    },
+                  }}
                 />
               </Grid>
-            ))}
 
-            <Grid item xs={12} sm={4} md={4}>
-              <TextField
-                label={t("Program Name")}
-                fullWidth
-                variant="outlined"
-                value={programName}
-                onChange={(e) => setProgramName(e.target.value)}
-                error={!!errors['programName']}
-                helperText={errors['programName']}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton edge="end" size="small" sx={{ mr: 0.5 }}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                  sx: {
-                    borderRadius: '12px',
-                  },
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    paddingRight: 0.5,
-                  },
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" fontWeight="medium" mb={1}>
-                {t('Location')}
-              </Typography>
-              <Grid container spacing={2}>
-                {Object.keys(geoData).map((label) => (
-                  <Grid item xs={12} sm={6} md={4} lg={2.4} key={label}>
-                    <FormControl
-                      fullWidth
-                      error={!!errors[`location-${label}`]}
-                    >
-                      <InputLabel>{`Select ${label}`}</InputLabel>
-                      <Select
-                        label={`Select ${label}`}
-                        value={locations[label as keyof typeof locations]}
-                        onChange={(e) =>
-                          handleLocationChange(label, e.target.value)
-                        }
-                        sx={{ borderRadius: '12px' }}
-                      >
-                        <MenuItem value="">Select</MenuItem>
-                        {geoData[label as keyof typeof geoData].map((item) => (
-                          <MenuItem key={item} value={item}>
-                            {item}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      {errors[`location-${label}`] && (
-                        <FormHelperText>{errors[`location-${label}`]}</FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
-                ))}
-              </Grid>
-            </Grid>
-
-            <Grid item xs={12} sm={4} md={3}>
-                <Typography variant="subtitle1" fontWeight="medium" mb={1}>
-                    {t('Program Type')}
+              <Grid item xs={12} mb={3}>
+                <Typography variant="subtitle1" color="text.primary" fontWeight="bold" mb={1}>
+                  {t('Location')}
                 </Typography>
-                <FormControl fullWidth error={!!errors['programType']}>
-                    <Select
-                    value={programType}
-                    onChange={(e:any) => setProgramType(e.target.value)}
-                    sx={{ borderRadius: '12px' }}
-                    >
-                    <MenuItem value="" disabled>{t('Select')}</MenuItem>
-                    {Object.values(ProgramType).map((type) => (
-                        <MenuItem key={type} value={type}>
-                        {t(`${type}`)}
-                        </MenuItem>
-                    ))}
-                    </Select>
-                    {errors['programType'] && (
-                    <FormHelperText>{errors['programType']}</FormHelperText>
-                    )}
-                </FormControl>
-            </Grid>
+                <Grid container spacing={2}>
+                  {Object.keys(geoData).map((label) => (
+                    <Grid item xs={12} sm={6} md={4} lg={2.4} key={label}>
+                      <FormControl
+                        fullWidth
+                        error={!!errors[`location-${label}`]}
+                      >
+                        <Autocomplete
+                          options={geoData[label as keyof typeof geoData]}
+                          value={locations[label as keyof typeof locations] || ''}
+                          onChange={(_, newValue) => {
+                            handleLocationChange(label, newValue || '');
+                          }}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label={`Select ${label}`}
+                              error={!!errors[`location-${label}`]}
+                              helperText={errors[`location-${label}`] || ''}
+                              InputProps={{
+                                ...params.InputProps,
+                                sx: {
+                                  borderRadius: '12px',
+                                },
+                              }}
+                            />
+                          )}
+                        />
+                      </FormControl>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Grid>
 
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" fontWeight="medium" mb={1}>
-                {t('Model')}
-              </Typography>
-              <FormControl error={!!errors['model']}>
-                <Box display="flex" flexDirection="row" gap={3}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={models.includes('At School')}
-                        onChange={() => handleModelToggle('At School')}
+              <Grid item xs={12} sm={4} md={4} mb={3}>
+                  <Typography variant="subtitle1" color="text.primary" fontWeight="bold" mb={1}>
+                      {t('Program Type')}
+                  </Typography>
+                  <FormControl fullWidth error={!!errors['programType']}>
+                      <InputLabel>{`Select ${t('Program Type')}`}</InputLabel>
+                      <Select
+                      label={`Select ${t('Program Type')}`}
+                      value={programType}
+                      onChange={(e:any) => setProgramType(e.target.value)}
+                      sx={{ borderRadius: '12px' }}
+                      >
+                      {Object.entries(ProgramType).map(([label, value]) => (
+                        <MenuItem key={value} value={value}>
+                          {t(label.replace(/([A-Z])/g, ' $1').trim())}
+                        </MenuItem>
+                      ))}
+                      </Select>
+                      {errors['programType'] && (
+                      <FormHelperText>{errors['programType']}</FormHelperText>
+                      )}
+                  </FormControl>
+              </Grid>
+
+            <Grid item xs={12} mb={3}>
+                <Typography variant="subtitle1" color="text.primary" fontWeight="bold" mb={1}>
+                  {t('Model')}
+                </Typography>
+                <FormControl error={!!errors['model']}>
+                  <Box display="flex" flexDirection="row" gap={3}>
+                  {Object.entries(PROGRAM_TAB)
+                    .slice(1)
+                    .map(([labelKey, value]) => (
+                      <FormControlLabel
+                        key={value}
+                        control={
+                          <Checkbox
+                            checked={models.includes(value)}
+                            onChange={() => handleModelToggle(value)}
+                          />
+                        }
+                        label={PROGRAM_TAB_LABELS[value as PROGRAM_TAB]}
                       />
-                    }
-                    label={t("At School")}
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={models.includes('At Home')}
-                        onChange={() => handleModelToggle('At Home')}
-                      />
-                    }
-                    label={t("At Home")}
-                  />
+                  ))}
+                  </Box>
                   {errors['model'] && (
                     <FormHelperText>{errors['model']}</FormHelperText>
                   )}
-                </Box>
-              </FormControl>
-            </Grid>
-
-            <Grid container sx={{ marginLeft: '24px', marginTop: '10px' }}>
-              <Grid item xs={12} sm={4} md={4}>
-                <Typography variant="subtitle1" fontWeight="medium" mb={1}>
-                  {t('Program Manager')}
-                </Typography>
-                <FormControl fullWidth error={!!errors['programManager']} >
-                  <Select
-                    multiple
-                    value={selectedManagers}
-                    onChange={(e) => setSelectedManagers(e.target.value as string[])}
-                    renderValue={(selected) => (selected as string[]).join(', ')}
-                    sx={{ borderRadius: '12px' }}
-                  >
-                    <MenuItem value="" disabled>{t('Select')}</MenuItem>
-                    {programManagers.map((name, idx) => (
-                      <MenuItem key={idx} value={name}>
-                        <Checkbox checked={selectedManagers.includes(name)} />
-                        <ListItemText primary={name} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {errors['programManager'] && (
-                    <FormHelperText>{errors['programManager']}</FormHelperText>
-                  )}
                 </FormControl>
               </Grid>
-            </Grid>
 
-            {[
-              { label: 'No of Institutes', key: 'institutes', placeholder: 'Enter No of Institutes' },
-              { label: 'No of Students', key: 'students', placeholder: 'Enter No of Students' },
-              { label: 'No of Devices', key: 'devices', placeholder: 'Enter No of Devices' },
-            ].map(({ label, key, placeholder }) => (
-              <Grid item xs={12} sm={4} key={key}>
-                <Typography variant="subtitle1" fontWeight="medium" mb={1}>
-                    {t(`${label}`)}
-                </Typography>
-                <TextField
-                  placeholder={placeholder}
-                  fullWidth
-                  variant="outlined"
-                  value={stats[key as keyof typeof stats]}
-                  onChange={(e) => handleStatsChange(key, e.target.value)}
-                  error={!!errors[key]}
-                  helperText={errors[key]}
-                  InputProps={{ sx: { borderRadius: '12px' } }}
-                />
-              </Grid>
-            ))}
-
-            <Grid item xs={12}>
-                <Typography variant="subtitle1" fontWeight="medium" mb={1}>
-                    {t('Program Date')}
-                </Typography>
-                <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} md={3}>
-                    <TextField
-                        label={t('Start date')}
-                        type="date"
-                        value={startDate ? startDate.format('YYYY-MM-DD') : ''}
-                        onChange={(e:any) => setStartDate(e.target.value ? dayjs(e.target.value) : null)}
-                        fullWidth
-                        variant="outlined"
-                        error={!!errors['startDate'] || !!errors['date']}
-                        helperText={errors['startDate'] || errors['date']}
-                        InputLabelProps={{
-                        shrink: true,
-                        }}
+              <Grid container ml={3} mb={3}>
+                <Grid item xs={12} sm={4} md={4}>
+                  <Typography variant="subtitle1" color="text.primary" fontWeight="bold" mb={1}>
+                    {t('Program Manager')}
+                  </Typography>
+                  <Autocomplete
+                    multiple
+                    disableCloseOnSelect
+                    options={programManagers}
+                    getOptionLabel={(option) => option.name}
+                    value={programManagers.filter((pm) => selectedManagers.includes(pm.id))}
+                    onChange={(_, newValue) => {
+                      setSelectedManagers(newValue.map((pm) => pm.id));
+                    }}
+                    renderOption={(props, option, { selected }) => (
+                      <li {...props}>
+                        <Checkbox
+                          checked={selected}
+                          sx={{ mr: 1 }}
+                        />
+                        {option.name}
+                      </li>
+                    )}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label={`Select ${t('Program Managers')}`}
+                        error={!!errors['programManager']}
+                        helperText={errors['programManager'] || ''}
                         InputProps={{
-                        sx: { borderRadius: '12px' },
+                          ...params.InputProps,
+                          sx: {
+                            borderRadius: '12px',
+                          },
                         }}
-                    />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                    <TextField
-                        label={t('End date')}
-                        type="date"
-                        value={endDate ? endDate.format('YYYY-MM-DD') : ''}
-                        onChange={(e:any) => setEndDate(e.target.value ? dayjs(e.target.value) : null)}
-                        fullWidth
-                        variant="outlined"
-                        error={!!errors['endDate'] || !!errors['date']}
-                        helperText={errors['endDate'] || errors['date']}
-                        InputLabelProps={{
-                        shrink: true,
-                        }}
-                        InputProps={{
-                        sx: { borderRadius: '12px' },
-                        }}
-                    />
-                    </Grid>
+                      />
+                    )}
+                  />
                 </Grid>
-            </Grid>
+              </Grid>
 
-            <Grid item xs={12} textAlign="right">
-              <Button sx={{ mr: 2 }} color="primary" onClick={clearForm}>
-                {t('Cancel')}
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                sx={{ borderRadius: '8px' }}
-                onClick={handleSave}>
-                {t('Save')}
-              </Button>
+              {[
+                { label: 'No of Institutes', key: 'institutes', placeholder: 'Enter No of Institutes' },
+                { label: 'No of Students', key: 'students', placeholder: 'Enter No of Students' },
+                { label: 'No of Devices', key: 'devices', placeholder: 'Enter No of Devices' },
+              ].map(({ label, key, placeholder }) => (
+                <Grid item xs={12} sm={4} key={key} mb={3}>
+                  <Typography variant="subtitle1" color="text.primary" fontWeight="bold" mb={1}>
+                      {t(`${label}`)}
+                  </Typography>
+                  <TextField
+                    placeholder={placeholder}
+                    fullWidth
+                    variant="outlined"
+                    value={stats[key as keyof typeof stats]}
+                    onChange={(e) => handleStatsChange(key, e.target.value)}
+                    error={!!errors[key]}
+                    helperText={errors[key]}
+                    InputProps={{ sx: { borderRadius: '12px' } }}
+                  />
+                </Grid>
+              ))}
+
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <Grid item xs={12} mb={3}>
+                  <Typography variant="subtitle1" color="text.primary" fontWeight="bold" mb={1}>
+                    {t('Program Date')}
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6} md={3}>
+                      <DatePicker
+                        label={t('Start Date')}
+                        value={startDate}
+                        onChange={(date: Dayjs | null) => setStartDate(date)}
+                        inputFormat="DD/MM/YYYY"
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            fullWidth
+                            error={!!errors['startDate'] || !!errors['date']}
+                            helperText={errors['startDate'] || errors['date']}
+                            variant="outlined"
+                            InputProps={{
+                              ...params.InputProps,
+                              sx: { borderRadius: '12px' },
+                            }}
+                          />
+                        )}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={3}>
+                      <DatePicker
+                        label={t('End Date')}
+                        value={endDate}
+                        onChange={(date: Dayjs | null) => setEndDate(date)}
+                        inputFormat="DD/MM/YYYY"
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            fullWidth
+                            error={!!errors['endDate'] || !!errors['date']}
+                            helperText={errors['endDate'] || errors['date']}
+                            variant="outlined"
+                            InputProps={{
+                              ...params.InputProps,
+                              sx: { borderRadius: '12px' },
+                            }}
+                          />
+                        )}
+                      />
+                    </Grid>
+                  </Grid>
+                </Grid>
+              </LocalizationProvider>
+
+              <Grid item xs={12} textAlign="right">
+                <Button sx={{ mr: 2 }} color="primary" onClick={navigateToProgramPage}>
+                  {t('Cancel')}
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  sx={{ borderRadius: '8px' }}
+                  onClick={handleSave}>
+                  {t('Save')}
+                </Button>
+              </Grid>
             </Grid>
-          </Grid>
         </Paper>
       </Container>
     </Box>

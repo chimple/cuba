@@ -80,6 +80,8 @@
   font-size: 3vh;
   font-weight: bold;
   cursor: pointer;
+  height: 50px;
+  width: 250px;
 }
 .edit-icon {
   cursor: pointer;

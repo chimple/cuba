@@ -29,7 +29,8 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       if (storedAttributes) {
         const attributes = JSON.parse(storedAttributes);
         setGrowthbookAttributes(attributes);
-        setGbUpdated(false)
+      } else {
+        setGbUpdated(false);
       }
     }
   }, [gbUpdated])
@@ -50,6 +51,7 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       count_of_lessons_played,
       pending_course_counts,
       pending_subject_counts,
+      learning_path_completed,
       manufacturer,
       model,
       operating_system,
@@ -91,6 +93,7 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       percentage_of_assignment_played: (count_of_assignment_played / totalAssignments) * 100,
       ...pending_course_counts,
       ...pending_subject_counts,
+      ...learning_path_completed,
       manufacturer,
       model,
       operating_system,
@@ -105,6 +108,7 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       ...roleMap,
       ...courseCounts,
     });
+    setGbUpdated(false);
   };
 
   return (

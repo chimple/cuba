@@ -25,6 +25,13 @@ const mockSchools: SchoolWithRole[] = [
       address: null,
       udise: "12",
       model: null,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      language: null,
+      ops_created_by: null,
+      student_login_type: null
     },
     role: RoleType.PRINCIPAL,
   },
@@ -44,6 +51,13 @@ const mockSchools: SchoolWithRole[] = [
       address: null,
       udise: "12",
       model: null,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      language: null,
+      ops_created_by: null,
+      student_login_type: null
     },
     role: RoleType.COORDINATOR,
   },
@@ -58,6 +72,14 @@ const mockClasses: TableTypes<"class">[] = [
     is_deleted: null,
     school_id: "",
     updated_at: null,
+    academic_year: null,
+    firebase_id: null,
+    is_firebase: null,
+    is_ops: null,
+    ops_created_by: null,
+    standard: null,
+    status: null,
+    group_id: null
   },
   {
     id: "2",
@@ -67,6 +89,14 @@ const mockClasses: TableTypes<"class">[] = [
     is_deleted: null,
     school_id: "",
     updated_at: null,
+    academic_year: null,
+    firebase_id: null,
+    is_firebase: null,
+    is_ops: null,
+    ops_created_by: null,
+    standard: null,
+    status: null,
+    group_id: null
   },
 ];
 
@@ -113,6 +143,13 @@ const meta: Meta<typeof DetailList> = {
       address: null,
       udise: "12",
       model: null,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      language: null,
+      ops_created_by: null,
+      student_login_type: null
     },
   },
 };

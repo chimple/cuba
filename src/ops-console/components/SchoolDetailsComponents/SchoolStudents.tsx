@@ -2,174 +2,164 @@ import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import DataTableBody, { Column } from "../DataTableBody";
 import DataTablePagination from "../DataTablePagination";
-import { Button as MuiButton, Typography, Box } from "@mui/material";
+import {
+  Button as MuiButton,
+  Typography,
+  Box,
+  useMediaQuery,
+  CircularProgress,
+} from "@mui/material"; // Import CircularProgress
 import { Add as AddIcon } from "@mui/icons-material";
 import { t } from "i18next";
 import SearchAndFilter from "../SearchAndFilter";
 import FilterSlider from "../FilterSlider";
 import SelectedFilters from "../SelectedFilters";
-
 import "./SchoolStudents.css";
+import { ServiceConfig } from "../../../services/ServiceConfig";
+import { StudentInfo } from "../../../common/constants";
+import { getGradeOptions, filterBySearchAndFilters, sortSchoolTeachers, paginateSchoolTeachers } from "../../OpsUtility/SearchFilterUtility";
 
-interface UserType {
-  id: string;
-  student_id?: string | null; 
-  name: string | null;
-  gender: string | null;
-  phone: string | null;
-}
-interface ApiStudentData {
-  user: UserType;
-  grade: number; 
-  classSection: string; 
-}
+type ApiStudentData = StudentInfo;
 
 interface DisplayStudent {
-  id: string; 
-  studentIdDisplay: string; 
+  id: string;
+  studentIdDisplay: string;
   name: string;
   gender: string;
-  grade: number; 
+  grade: number;
   classSection: string;
   phoneNumber: string;
 }
 
 interface SchoolStudentsProps {
   data: {
-    students: ApiStudentData[]; 
+    students?: ApiStudentData[];
+    totalStudentCount?: number;
   };
   isMobile: boolean;
+  schoolId: string;
 }
-const studentFilterSliderOptions: Record<string, string[]> = {
-  grade: [
-    ...Array.from({ length: 12 }, (_, i) => `Grade ${i + 1}`), 
-  ],
-};
 
-const ROWS_PER_PAGE = 6;
+const ROWS_PER_PAGE = 20;
 
-const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data, isMobile }) => {
+const SchoolStudents: React.FC<SchoolStudentsProps> = ({
+  data,
+  schoolId,
+  isMobile,
+}) => {
   const history = useHistory();
+  const isSmallScreen = useMediaQuery("(max-width: 768px)");
+  const [students, setStudents] = useState<ApiStudentData[]>(
+    data.students || []
+  );
+  const [totalCount, setTotalCount] = useState<number>(
+    data.totalStudentCount || 0
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filters, setFilters] = useState<Record<string, string[]>>({
     grade: [],
     section: [],
   });
+  const [orderBy, setOrderBy] = useState<string | null>("name");
+  const [order, setOrder] = useState<"asc" | "desc">("asc");
   const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({
     grade: [],
     section: [],
   });
   const [isFilterSliderOpen, setIsFilterSliderOpen] = useState(false);
-  const [orderBy, setOrderBy] = useState<string | null>("name");
-  const [order, setOrder] = useState<"asc" | "desc">("asc");
-  const [page, setPage] = useState(1);
-  const [pageCount, setPageCount] = useState(1);
 
-  const handleAddNewStudent = useCallback(() => {
-    // history.push("/add-student"); 
-  }, [history]);
-
-  const handleSearchChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setSearchTerm(event.target.value);
-      setPage(1);
+  const fetchStudents = useCallback(
+    async (currentPage: number) => {
+      setIsLoading(true);
+      const api = ServiceConfig.getI().apiHandler;
+      try {
+        const response = await api.getStudentInfoBySchoolId(
+          schoolId,
+          currentPage,
+          ROWS_PER_PAGE
+        );
+        setStudents(response.data);
+        setTotalCount(response.total);
+      } catch (error) {
+        console.error("Failed to fetch students:", error);
+      } finally {
+        setIsLoading(false);
+      }
     },
-    []
+    [schoolId]
   );
 
-  const handleFilterIconClick = useCallback(() => {
-    setTempFilters(filters);
-    setIsFilterSliderOpen(true);
-  }, [filters]);
+  useEffect(() => {
+    // Don't fetch on the initial render for page 1, because we already have the data from props.
+    if (
+      page === 1 &&
+      !searchTerm &&
+      filters.grade.length === 0 &&
+      filters.section.length === 0
+    ) {
+      setStudents(data.students || []);
+      setTotalCount(data.totalStudentCount || 0);
+      return;
+    }
+    fetchStudents(page);
+  }, [page, fetchStudents, data.students, data.totalStudentCount]);
 
-  const handleSliderFilterChange = useCallback((name: string, value: any) => {
-    setTempFilters((prev) => ({
-      ...prev,
-      [name]: Array.isArray(value) ? value : [value],
-    }));
-  }, []);
+  //Handlers now just update state. The useEffect will trigger the fetch. ---
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
 
-  const handleApplyFilters = useCallback(() => {
+  const handleSort = (key: string) => {
+    const isAsc = orderBy === key && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(key);
+    setPage(1); // Reset to page 1 on sort
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+    setPage(1);
+  };
+
+  const handleApplyFilters = () => {
     setFilters(tempFilters);
     setIsFilterSliderOpen(false);
     setPage(1);
-  }, [tempFilters]);
+  };
 
-  const handleCancelFilters = useCallback(() => {
-    const clearedFilters = { grade: [], section: [] };
-    setTempFilters(clearedFilters);
-    setFilters(clearedFilters);
-    setIsFilterSliderOpen(false);
+  const handleDeleteAppliedFilter = (key: string, value: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: prev[key].filter((v) => v !== value),
+    }));
     setPage(1);
-  }, []);
+  };
 
-  const handleDeleteAppliedFilter = useCallback(
-    (key: string, value: string) => {
-      setFilters((prev) => {
-        const updated = {
-          ...prev,
-          [key]: prev[key].filter((v) => v !== value),
-        };
-        setTempFilters(updated);
-        return updated;
-      });
-      setPage(1);
-    },
-    []
+  const normalizedStudents = useMemo(() => {
+    return students.map((s) => ({
+      ...s,
+      user: {
+        ...s.user,
+        name: s.user.name ?? undefined,
+        email: s.user.email ?? undefined,
+        student_id: s.user.student_id ?? undefined,
+      },
+    }));
+  }, [students]);
+
+  const filteredStudents = useMemo(
+    () => filterBySearchAndFilters(normalizedStudents, filters, searchTerm, 'student'),
+    [normalizedStudents, filters, searchTerm]
   );
+  const sortedStudents = useMemo(() => sortSchoolTeachers(filteredStudents, orderBy, order), [filteredStudents, orderBy, order]);
+  const paginatedStudents = useMemo(() => paginateSchoolTeachers(sortedStudents, page, ROWS_PER_PAGE), [sortedStudents, page]);
 
-  const handleSort = useCallback(
-    (key: string) => {
-      const isAsc = orderBy === key && order === "asc";
-      setOrder(isAsc ? "desc" : "asc");
-      setOrderBy(key);
-    },
-    [order, orderBy]
-  );
-
-  const allFilteredStudents = useMemo(() => {
-    const studentsFromApi: ApiStudentData[] = data?.students || [];
-    let filteredApiStudents = [...studentsFromApi];
-    if (searchTerm.trim() !== "") {
-      const lowerSearch = searchTerm.toLowerCase().trim();
-      filteredApiStudents = filteredApiStudents.filter(
-        (s_api) =>
-          s_api.user.name?.toLowerCase().includes(lowerSearch) ||
-          s_api.user.student_id?.toLowerCase().includes(lowerSearch) ||
-          s_api.user.phone?.includes(lowerSearch) ||
-          s_api.classSection?.toLowerCase().includes(lowerSearch) || 
-          String(s_api.grade).includes(lowerSearch) 
-      );
-    }
-    const activeGradeFilters = filters.grade || [];
-    const activeSectionFilters = filters.section || [];
-    if (activeGradeFilters.length > 0) {
-      filteredApiStudents = filteredApiStudents.filter((s_api) => {
-        return activeGradeFilters.some((filterGradeString) => {
-          let numericValueToMatch: number | undefined;
-            const gradeMatch = filterGradeString.match(/^Grade (\d+)$/);
-            if (gradeMatch) {
-              numericValueToMatch = parseInt(gradeMatch[1], 10);
-            }
-          return (
-            numericValueToMatch !== undefined &&
-            s_api.grade === numericValueToMatch
-          );
-        });
-      });
-    }
-
-    if (activeSectionFilters.length > 0) {
-      filteredApiStudents = filteredApiStudents.filter(
-        (s_api) =>
-          s_api.classSection &&
-          activeSectionFilters.includes(s_api.classSection.toUpperCase())
-      );
-    }
-
-    return filteredApiStudents.map(
+  const studentsForCurrentPage = useMemo((): DisplayStudent[] => {
+    return paginatedStudents.map(
       (s_api): DisplayStudent => ({
-        id: s_api.user.id || "N/A",
+        id: s_api.user.id,
         studentIdDisplay: s_api.user.student_id || "N/A",
         name: s_api.user.name || "N/A",
         gender: s_api.user.gender || "N/A",
@@ -178,38 +168,47 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data, isMobile }) => {
         phoneNumber: s_api.user.phone || "N/A",
       })
     );
-  }, [data?.students, searchTerm, filters]);
+  }, [paginatedStudents]);
 
-  useEffect(() => {
-    const newPageCount = Math.ceil(allFilteredStudents.length / ROWS_PER_PAGE);
-    setPageCount(Math.max(1, newPageCount));
-    if (page > newPageCount && newPageCount > 0) {
-      setPage(newPageCount);
-    } else if (page > 1 && newPageCount === 0) {
-      setPage(1);
-    } else if (page === 0 && newPageCount > 0) {
-      setPage(1);
-    }
-  }, [allFilteredStudents.length, page]);
+  const pageCount = useMemo(() => {
+    return Math.ceil(filteredStudents.length / ROWS_PER_PAGE);
+  }, [filteredStudents]);
 
-  const studentsForCurrentPage = useMemo(() => {
-    const startIndex = (page - 1) * ROWS_PER_PAGE;
-    return allFilteredStudents.slice(startIndex, startIndex + ROWS_PER_PAGE);
-  }, [allFilteredStudents, page]);
+  const isDataPresent = studentsForCurrentPage.length > 0;
+  const isFilteringOrSearching =
+    searchTerm.trim() !== "" ||
+    Object.values(filters).some((f) => f.length > 0);
 
-  const getGradeDisplayValue = (gradeNumeric: number): string => {
-    if (gradeNumeric > 0) return String(gradeNumeric); 
-    return t("N/A");
-  };
+  const handleAddNewStudent = useCallback(() => {}, [history]);
+  const handleFilterIconClick = useCallback(() => {
+    setTempFilters(filters);
+    setIsFilterSliderOpen(true);
+  }, [filters]);
+
+  const handleClearFilters = useCallback(() => {
+    setFilters({ grade: [], section: [] });
+    setTempFilters({ grade: [], section: [] });
+    setPage(1);
+  }, []);
+
+  const handleSliderFilterChange = useCallback((name: string, value: any) => {
+    setTempFilters((prev) => ({
+      ...prev,
+      [name]: Array.isArray(value) ? value : [value],
+    }));
+  }, []);
+  const handleCancelFilters = useCallback(() => {
+    setIsFilterSliderOpen(false);
+  }, []);
 
   const columns: Column<DisplayStudent>[] = [
     { key: "studentIdDisplay", label: t("Student ID") },
     {
       key: "name",
       label: t("Student Name"),
-      renderCell: (student) => (
+      renderCell: (s) => (
         <Typography variant="body2" className="student-name-data">
-          {student.name}
+          {s.name}
         </Typography>
       ),
     },
@@ -217,95 +216,95 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data, isMobile }) => {
     {
       key: "grade",
       label: t("Grade"),
-      renderCell: (student) => (
+      renderCell: (s) => (
         <Typography variant="body2">
-          {getGradeDisplayValue(student.grade)}
+          {s.grade > 0 ? String(s.grade) : t("N/A")}
         </Typography>
       ),
     },
     {
       key: "classSection",
       label: t("Class Section"),
-      renderCell: (student) => (
-        <Typography variant="body2">
-          {student.classSection || t("N/A")}
-        </Typography>
+      renderCell: (s) => (
+        <Typography variant="body2">{s.classSection || t("N/A")}</Typography>
       ),
     },
     { key: "phoneNumber", label: t("Phone Number") },
   ];
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage !== page) setPage(newPage);
-  };
-
-  const isDataPresent = allFilteredStudents.length > 0;
-  const isFilteringOrSearching =
-    searchTerm.trim() !== "" ||
-    Object.values(filters).some((f) => f.length > 0);
-
+  const filterConfigsForSchool = [{ key: "grade", label: "Grade" }];
+  console.log("SchoolStudents totalCount", totalCount);
   return (
     <div className="schoolStudents-pageContainer">
-      {isDataPresent || isFilteringOrSearching ? (
-        <Box className="schoolStudents-headerActionsRow">
-          <Box className="schoolStudents-titleArea">
-            <Typography variant="h5" className="schoolStudents-titleHeading">
-              {t("Students")}
-            </Typography>
-            <Typography variant="body2" className="schoolStudents-totalText">
-              {t("Total")}: {allFilteredStudents.length} {t("students")}
-            </Typography>
-          </Box>
-          <Box className="schoolStudents-actionsGroup">
-            <MuiButton
-              variant="outlined"
-              onClick={handleAddNewStudent}
-              className="schoolStudents-newStudentButton-outlined"
-            >
-              <AddIcon className="schoolStudents-newStudentButton-outlined-icon" />
-              {t("New Student")}
-            </MuiButton>
-            <SearchAndFilter
-              searchTerm={searchTerm}
-              onSearchChange={handleSearchChange}
-              filters={filters}
-              onFilterClick={handleFilterIconClick}
-            />
-          </Box>
+      <Box className="schoolStudents-headerActionsRow">
+        <Box className="schoolStudents-titleArea">
+          <Typography variant="h5" className="schoolStudents-titleHeading">
+            {t("Students")}
+          </Typography>
+          <Typography variant="body2" className="schoolStudents-totalText">
+            {t("Total")}: {totalCount} {t("students")}
+          </Typography>
         </Box>
-      ) : (
-        <div />
-      )}
-
-      {(isDataPresent || isFilteringOrSearching) &&
-        Object.values(filters).some((arr) => arr.length > 0) && (
-          <SelectedFilters
+        <Box className="schoolStudents-actionsGroup">
+          <MuiButton
+            variant="outlined"
+            onClick={handleAddNewStudent}
+            className="schoolStudents-newStudentButton-outlined"
+          >
+            <AddIcon className="schoolStudents-newStudentButton-outlined-icon" />
+            {!isSmallScreen && t("New Student")}
+          </MuiButton>
+          <SearchAndFilter
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
             filters={filters}
-            onDeleteFilter={handleDeleteAppliedFilter}
+            onFilterClick={handleFilterIconClick}
+            onClearFilters={handleClearFilters}
           />
-        )}
+        </Box>
+      </Box>
 
+      {Object.values(filters).some((arr) => arr.length > 0) && (
+        <SelectedFilters
+          filters={filters}
+          onDeleteFilter={handleDeleteAppliedFilter}
+        />
+      )}
       <FilterSlider
         isOpen={isFilterSliderOpen}
         onClose={() => setIsFilterSliderOpen(false)}
         filters={tempFilters}
-        filterOptions={studentFilterSliderOptions}
+        filterOptions={{
+          grade: getGradeOptions(students)
+        }}
         onFilterChange={handleSliderFilterChange}
         onApply={handleApplyFilters}
         onCancel={handleCancelFilters}
+        filterConfigs={filterConfigsForSchool}
       />
 
-      {isDataPresent ? (
-        <div className="schoolStudents-dataTableContainer">
-          <DataTableBody
-            columns={columns}
-            rows={studentsForCurrentPage}
-            orderBy={orderBy}
-            order={order}
-            onSort={handleSort}
-          />
+      {isLoading ? (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          minHeight="300px"
+        >
+          <CircularProgress />
+        </Box>
+      ) : isDataPresent ? (
+        <>
+          <div className="schoolStudents-table-container">
+            <DataTableBody
+              columns={columns}
+              rows={studentsForCurrentPage}
+              orderBy={orderBy}
+              order={order}
+              onSort={handleSort}
+            />
+          </div>
           {pageCount > 1 && (
-            <div className="schoolStudents-school-list-pagination">
+            <div className="schoolStudents-footer">
               <DataTablePagination
                 page={page}
                 pageCount={pageCount}
@@ -313,7 +312,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data, isMobile }) => {
               />
             </div>
           )}
-        </div>
+        </>
       ) : (
         <Box className="schoolStudents-emptyStateContainer">
           <Typography variant="h6" className="schoolStudents-emptyStateTitle">

@@ -6,7 +6,7 @@ import {
   IonIcon,
   IonAlert,
 } from "@ionic/react";
-import { closeCircleOutline } from "ionicons/icons";
+import { checkmarkCircle, closeCircleOutline } from "ionicons/icons";
 import { t } from "i18next";
 import "./DisplaySubjects.css";
 import { TableTypes } from "../../common/constants";
@@ -109,18 +109,18 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
                   onClick={() => triggerRemoveSubject(course.id)}
                   style={{ cursor: canModify ? "pointer" : "not-allowed" }}
                 >
-                  <div className="subject-name-div">
+                  <div className="display-subject-name">
                     <img
                       src={course?.image || "assets/icons/DefaultIcon.png"}
                       alt={course.name || "Default Subject Icon"}
                       className="subject-icon-in-display-subject-page"
                     />
-                    <div> {course.name}</div>
+                    <span> {course.name}</span>
                   </div>
                   {canModify && (
                     <IonIcon
-                      icon={closeCircleOutline}
-                      className="remove-icon"
+                      icon={checkmarkCircle}
+                      className="display-subIcon"
                     />
                   )}
                 </div>

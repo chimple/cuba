@@ -23,46 +23,96 @@ function useIsMobile() {
   return isMobile;
 }
 
+type SchoolStats = {
+  active_student_percentage: number;
+  active_teacher_percentage: number;
+  avg_weekly_time_minutes: number;
+};
+
 const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const [data, setData] = useState<{
     schoolData?: any;
     programData?: any;
     programManagers?: any[];
     principals?: any[];
+    totalPrincipalCount?: number;
     coordinators?: any[];
+    totalCoordinatorCount?: number;
     teachers?: any[];
     students?: any[];
+    totalTeacherCount?: number;
+    totalStudentCount?: number;
+    schoolStats?: SchoolStats;
   }>({});
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const history = useHistory();
+  const [schoolStats, setSchoolStats] = useState<SchoolStats>({
+    active_student_percentage: 0,
+    active_teacher_percentage: 0,
+    avg_weekly_time_minutes: 0,
+  });
 
   useEffect(() => {
     async function fetchAll() {
       setLoading(true);
       const api = ServiceConfig.getI().apiHandler;
-      const [school, program, programManagers, principals, coordinators, teachers, students] =
-        await Promise.all([
-          api.getSchoolById(id),
-          api.getProgramForSchool(id),
-          api.getProgramManagersForSchool(id),
-          api.getPrincipalsForSchool(id),
-          api.getCoordinatorsForSchool(id),
-          api.getTeacherInfoBySchoolId(id),
-          api.getStudentInfoBySchoolId(id),
+      const [
+        school,
+        program,
+        programManagers,
+        principalsResponse,
+        coordinatorsResponse,
+        teachersResponse,
+        studentsResponse,
+      ] = await Promise.all([
+        api.getSchoolById(id),
+        api.getProgramForSchool(id),
+        api.getProgramManagersForSchool(id),
+        api.getPrincipalsForSchoolPaginated(id, 1, 20),
+        api.getCoordinatorsForSchoolPaginated(id, 1, 20),
+        api.getTeacherInfoBySchoolId(id, 1, 20),
+        api.getStudentInfoBySchoolId(id, 1, 20),
+      ]);
+      const res = await api.school_activity_stats(id);
+      const result = Array.isArray(res) ? res[0] : res;
+      const newSchoolStats = {
+        active_student_percentage: result.active_student_percentage ?? 0,
+        active_teacher_percentage: result.active_teacher_percentage ?? 0,
+        avg_weekly_time_minutes: result.avg_weekly_time_minutes ?? 0,
+      };
+      setSchoolStats(newSchoolStats);
+      const studentsData = studentsResponse.data;
+      const totalStudentCount = studentsResponse.total;
+      const teachersData = teachersResponse.data;
+      const totalTeacherCount = teachersResponse.total;
+      const principalsData = principalsResponse.data;
+      const totalPrincipalCount = principalsResponse.total;
+      const coordinatorsData = coordinatorsResponse.data;
+      const totalCoordinatorCount = coordinatorsResponse.total;
 
-        ]);
+      console.log(
+        "School Stats students:",
+        teachersData,
+        "Total:",
+        totalTeacherCount
+      );
+
       setData({
         schoolData: school,
         programData: program,
         programManagers: programManagers,
-        principals: principals,
-        coordinators: coordinators,
-        teachers: teachers,
-        students: students,
+        principals: principalsData,
+        totalPrincipalCount: totalPrincipalCount,
+        coordinators: coordinatorsData,
+        totalCoordinatorCount: totalCoordinatorCount,
+        teachers: teachersData,
+        totalTeacherCount: totalTeacherCount,
+        students: studentsData,
+        totalStudentCount: totalStudentCount,
+        schoolStats: newSchoolStats,
       });
       setLoading(false);
-      console.log("checking data log",  students);
     }
     fetchAll();
   }, [id]);
@@ -105,7 +155,11 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       )}
       <div className="school-detail-tertiary-gap" />
       <div className="school-detail-tertiary-header">
-        <SchoolDetailsTabsComponent data={data} isMobile={isMobile} />
+        <SchoolDetailsTabsComponent
+          data={data}
+          isMobile={isMobile}
+          schoolId={id}
+        />
       </div>
       <div className="school-detail-columns-gap" />
     </div>

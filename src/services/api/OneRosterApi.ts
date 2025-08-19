@@ -332,7 +332,11 @@ export class OneRosterApi implements ServiceApi {
     email: string,
     phoneNum: string,
     languageDocId: string,
-    profilePic: string | undefined
+    profilePic: string | undefined,
+    options?: {
+      age?: string;
+      gender?: string;
+    }
   ): Promise<TableTypes<"user">> {
     throw new Error("Method not implemented.");
   }
@@ -492,7 +496,7 @@ export class OneRosterApi implements ServiceApi {
         const endpointUrl = new URL(Auth.i.endpointUrl);
         ipcHost = endpointUrl.host + endpointUrl.pathname;
       } catch (error) {
-        console.log(
+        console.error(
           "🚀 ~ file: OneRosterApi.ts:53 ~ OneRosterApi ~ getHeaders ~ error:",
           JSON.stringify(error)
         );
@@ -505,7 +509,6 @@ export class OneRosterApi implements ServiceApi {
   }
 
   async getClassesForUser(userId: string): Promise<Class[]> {
-    console.log("in getClassesForUser");
     // throw new Error("Method not implemented.");
     // try {
     //   let url;
@@ -522,7 +525,7 @@ export class OneRosterApi implements ServiceApi {
     //     url: url,
     //     headers: this.getHeaders(),
     //   }).catch((e) => {
-    //     console.log("error on getResultsForStudentForClass", e);
+    //    console.log("error on getResultsForStudentForClass", e); 
     //   });
     //   if (response && response.status !== 200) {
     //     Util.showLog(response.data);
@@ -1060,12 +1063,6 @@ export class OneRosterApi implements ServiceApi {
     let index = (score * chapters.length) / 100 - 1;
     const isFloat = (x: number) => !!(x % 1);
     if (isFloat(index)) index = Math.round(index);
-    console.log(
-      "getChapterForPreQuizScore",
-      score,
-      index,
-      chapters[Math.min(index, chapters.length - 1)]?.id
-    );
     return chapters[Math.min(index, chapters.length - 1)] ?? chapters[1];
   }
 
@@ -1098,17 +1095,19 @@ export class OneRosterApi implements ServiceApi {
   }
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId: string,
+    courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
-    isLiveQuiz: boolean
+    isLiveQuiz: boolean,
+    allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
     throw new Error("Method not implemented.");
   }
   getStudentLastTenResults(
     studentId: string,
-    assignmentIds: string[]
+    assignmentIds: string[],
+    courseIds: string[]
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
   }
@@ -1119,7 +1118,7 @@ export class OneRosterApi implements ServiceApi {
   }
   getStudentResultByDate(
     studentId: string,
-    course_id: string,
+    courseIds: string[],
     startDate: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined> {
@@ -1150,7 +1149,7 @@ export class OneRosterApi implements ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     throw new Error("Method not implemented.");
   }
   validateSchoolUdiseCode(
@@ -1168,7 +1167,7 @@ export class OneRosterApi implements ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     throw new Error("Method not implemented.");
   }
   validateClassCurriculumAndSubject(
@@ -1180,7 +1179,7 @@ export class OneRosterApi implements ServiceApi {
   }
   validateUserContacts(
     programManagerPhone: string,
-    fieldCoordinatorPhone: string
+    fieldCoordinatorPhone?: string
   ): Promise<{ status: string; errors?: string[] }> {
     throw new Error("Method not implemented.");
   }
@@ -1190,7 +1189,7 @@ export class OneRosterApi implements ServiceApi {
   insertProgram(payload: any): Promise<boolean | any> {
     throw new Error("Method not implemented.");
   }
-  getProgramManagers(): Promise<string[]> {
+  getProgramManagers(): Promise<{ name: string; id: string }[]> {
     throw new Error("Method not implemented.");
   }
   getUniqueGeoData(): Promise<{
@@ -1213,27 +1212,21 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getTeacherInfoBySchoolId(schoolId: string): Promise<
-  {
-   user: TableTypes<"user">;
-   grade: number;
-   classSection: string;
-  }[]
-> {
+  getTeacherInfoBySchoolId(
+    schoolId: string,
+    page: number,
+    limit: number
+  ): Promise<TeacherAPIResponse> {
     throw new Error("Method not implemented.");
   }
-  getStudentInfoBySchoolId(schoolId: string): Promise<
-  {
-    user: TableTypes<"user">;
-    grade: number;
-    classSection: string;
-  }[]
-> {
+  getStudentInfoBySchoolId(
+    schoolId: string,
+    page: number,
+    limit: number
+  ): Promise<StudentAPIResponse> {
     throw new Error("Method not implemented.");
   }
-   getClassesBySchoolId(
-    schoolId: string
-  ): Promise<TableTypes<"class">[]> {
+  getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> {
     throw new Error("Method not implemented.");
   }
 }
