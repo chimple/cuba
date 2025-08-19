@@ -1,21 +1,19 @@
-import { FC, useEffect, useState } from "react";
-import { useHistory } from "react-router";
+import { FC, useEffect, useState, useRef } from "react";
+import { useHistory, useLocation } from "react-router";
 import {
   CLASS,
   CURRENT_SCHOOL,
-  IS_OPS_USER,
-  MODES,
   PAGES,
-  SCHOOL,
   TableTypes,
   USER_ROLE,
+  MODES,
+  USER_SELECTION_STAGE,
+  IS_OPS_USER,
 } from "../../common/constants";
 import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
-import { RoleType } from "../../interface/modelInterfaces";
 import { AppBar } from "@mui/material";
 import { t } from "i18next";
-import BackButton from "../../components/common/BackButton";
 import "./DisplaySchools.css";
 import Header from "../components/homePage/Header";
 import { IonFabButton, IonIcon, IonItem, IonPage } from "@ionic/react";
@@ -26,21 +24,43 @@ import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
 import AddButton from "../../common/AddButton";
 import { addOutline } from "ionicons/icons";
+import { RoleType } from "../../interface/modelInterfaces";
 import Loading from "../../components/Loading";
 
 interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;
 }
-const DisplaySchools: FC<{}> = () => {
+const PAGE_SIZE = 20;
+
+const DisplaySchools: FC = () => {
   const history = useHistory();
+  const location = useLocation();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const [schoolList, setSchoolList] = useState<SchoolWithRole[]>([]);
   const [user, setUser] = useState<TableTypes<"user">>();
-  const [isAuthorizedForOpsMode, setIsAuthorizedForOpsMode] =
-    useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isAuthorizedForOpsMode, setIsAuthorizedForOpsMode] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    (async () => {
+      const mode = await schoolUtil.getCurrMode();
+      const done = JSON.parse(
+        localStorage.getItem(USER_SELECTION_STAGE) ?? "false"
+      );
+      if (
+        mode === MODES.TEACHER &&
+        done &&
+        location.pathname !== PAGES.HOME_PAGE
+      ) {
+        history.replace(PAGES.HOME_PAGE);
+      }
+    })();
+  }, [location.pathname, history]);
 
   useEffect(() => {
     lockOrientation();
@@ -52,6 +72,18 @@ const DisplaySchools: FC<{}> = () => {
       ScreenOrientation.lock({ orientation: "portrait" });
     }
   };
+
+  const fetchSchools = async (pageNo: number, userId: string) => {
+    setLoading(true);
+    const result = await api.getSchoolsForUser(userId, {
+      page: pageNo,
+      page_size: PAGE_SIZE,
+    });
+    if (result.length < PAGE_SIZE) setHasMore(false);
+    setSchoolList((prev) => (pageNo === 1 ? result : [...prev, ...result]));
+    setLoading(false);
+  };
+
   const initData = async () => {
     const currentUser = await auth.getCurrentUser();
     if (!currentUser) return;
@@ -82,133 +114,149 @@ const DisplaySchools: FC<{}> = () => {
         };
         selectSchool(selectedSchool);
         return;
-      }
-    } else if (allSchool.length === 1) {
+      } else if (allSchool.length === 1) {
       selectSchool(allSchool[0]);
       return;
     }
-    setIsLoading(false);
+    setLoading(false);
+    };
   };
 
-  const getClasses = async (schoolId: string) => {
-    const tempClasses = await api.getClassesForSchool(schoolId, user?.id!);
-    if (tempClasses.length > 0) {
-      return tempClasses;
-    } else {
-      return [];
-    }
+  // infinite scroll listener
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const handleScroll = () => {
+      if (loading || !hasMore) return;
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
+        setPage((p) => p + 1);
+      }
+    };
+    el.addEventListener("scroll", handleScroll);
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [loading, hasMore]);
+
+  // fetch next page if page++
+  useEffect(() => {
+    if (!user || page === 1) return;
+    fetchSchools(page, user.id);
+  }, [page, user]);
+
+  // helper: get classes
+  const getClasses = async (schoolId: string,userId:string) => {
+    const classes = await api.getClassesForSchool(schoolId, userId);
+    return classes.length ? classes : [];
   };
 
-  const switchUser = async () => {
+  const switchUser = () => {
     schoolUtil.setCurrMode(MODES.PARENT);
     history.replace(PAGES.DISPLAY_STUDENT);
-    setIsLoading(false);
+    setLoading(false);
   };
 
   async function selectSchool(school: SchoolWithRole) {
     Util.setCurrentSchool(school.school, school.role);
-
+     const currentUser = user || await auth.getCurrentUser(); 
+     if(!currentUser)return
     await Util.handleClassAndSubjects(
       school.school.id,
-      user?.id!,
+      currentUser?.id,
       history,
       PAGES.DISPLAY_SCHOOLS
     );
-
+    localStorage.setItem(USER_SELECTION_STAGE, JSON.stringify(true));
     const tempClass = Util.getCurrentClass();
     if (tempClass) {
-      Util.setCurrentClass(tempClass);
       history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
     } else {
-      const classes = await getClasses(school.school.id);
+      const classes = await getClasses(school.school.id,currentUser?.id);
       if (classes.length > 0) {
         Util.setCurrentClass(classes[0]);
         history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
       }
     }
-    setIsLoading(false);
+    setLoading(false);
   }
+  
   return (
     <IonPage className="display-page">
-      {!isLoading && (
+      {!loading && (
       <>
-        <Header
-          isBackButton={false}
-          disableBackButton={true}
-          customText="Select School"
-        />
-        <div className="display-user-switch-user-toggle">
-          <div className="display-school-switch-text">
-            <PiUserSwitchFill className="display-user-user-switch-icon" />
-            <CommonToggle onChange={switchUser} label="Switch to Child's Mode" />
-          </div>
-          {!Capacitor.isNativePlatform() && isAuthorizedForOpsMode && (
-            <div className="display-schools-toggle-ops-switch-text">
-              <PiUserSwitchFill className="display-user-user-switch-icon" />
-              <CommonToggle
-                onChange={() => Util.switchToOpsUser(history)}
-                label={t("switch to ops mode") as string}
-              />
-            </div>
-          )}
+      <Header
+        isBackButton={false}
+        disableBackButton={true}
+        customText="Select School"
+      />
+      <div className="display-user-switch-user-toggle">
+        <div className="display-school-switch-text">
+          <PiUserSwitchFill className="display-user-user-switch-icon" />
+          <CommonToggle onChange={switchUser} label="Switch to Child's Mode" />
         </div>
-        <hr className="display-school-horizontal-line" />
-        {schoolList.length === 0 ? (
-          <div className="no-schools-container">
-            <div className="create-school-button">
-              <IonFabButton
-                onClick={() => {
-                  history.replace(PAGES.REQ_ADD_SCHOOL, {
-                    origin: PAGES.DISPLAY_SCHOOLS,
-                  });
-                }}
-              >
-                <IonIcon icon={addOutline} />
-              </IonFabButton>
-              <div className="create-new-school-text">
-                {t("Create New School")}
-              </div>
+        {!Capacitor.isNativePlatform() && isAuthorizedForOpsMode && (
+          <div className="display-schools-toggle-ops-switch-text">
+            <PiUserSwitchFill className="display-user-user-switch-icon" />
+            <CommonToggle
+              onChange={() => Util.switchToOpsUser(history)}
+              label={t("switch to ops mode") as string}
+            />
+          </div>
+        )}
+      </div>
+      <hr className="display-school-horizontal-line" />
+      {schoolList.length === 0 && !loading ? (
+        <div className="no-schools-container">
+          <div className="create-school-button">
+            <IonFabButton
+              onClick={() =>
+                history.replace(PAGES.REQ_ADD_SCHOOL, {
+                  origin: PAGES.DISPLAY_SCHOOLS,
+                })
+              }
+            >
+              <IonIcon icon={addOutline} />
+            </IonFabButton>
+            <div className="create-new-school-text">
+              {t("Create New School")}
             </div>
           </div>
-        ) : (
-          <>
-            <div className="all-school-display-container">
-              <div className="all-school-display">
-                {schoolList.map((school) => (
-                  <div
-                    key={school.school.id}
-                    onClick={() => selectSchool(school)}
-                  >
-                    <div className="display-school-single-school">
-                      <div className="display-school-image">
-                        <img
-                          className="school-image-p"
-                          src={school.school.image ?? "assets/icons/school.png"}
-                        ></img>
-                      </div>
-                      <div className="display-school-name">
-                        {school.school.name}
-                      </div>
-                    </div>
+        </div>
+      ) : (
+        <div
+          className="all-school-display-container display-all-schools-scroll"
+          ref={scrollRef}
+          style={{ overflowY: "auto", maxHeight: "calc(100vh - 200px)" }}
+        >
+          <div className="all-school-display">
+            {schoolList.map((school) => (
+              <div key={school.school.id} onClick={() => selectSchool(school)}>
+                <div className="display-school-single-school">
+                  <div className="display-school-image">
+                    <img
+                      className="school-image-p"
+                      src={school.school.image ?? "assets/icons/school.png"}
+                      alt=""
+                    />
                   </div>
-                ))}
+                  <div className="display-school-name">
+                    {school.school.name}
+                  </div>
+                </div>
               </div>
-            </div>
-          </>
-        )}
+            ))}
+            {loading && (
+              <div className="display-loading-text">{t("Loading...")}</div>
+            )}
+            {!hasMore && schoolList.length > 0 && (
+              <div className="display-no-more-schools">
+                {t("No more schools")}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       </>
       )}
-      {/* comment out the plus icon */}
-      {/* {schoolList.length > 0 && (
-        <AddButton
-          onClick={() => {
-            history.replace(PAGES.ADD_SCHOOL, {
-              origin: PAGES.DISPLAY_SCHOOLS,
-            });
-          }}
-        />
-      )} */}
-      <Loading isLoading={isLoading} />
+      <Loading isLoading={loading} />
     </IonPage>
   );
 };
