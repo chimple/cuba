@@ -25,6 +25,7 @@ import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 import { Util } from "./utility/util";
 import { EVENTS, IS_OPS_USER } from "./common/constants";
 import { GbProvider } from "./growthbook/Growthbook";
+import { initializeFireBase } from "./services/Firebase";
 
 // Extend React's JSX namespace to include Stencil components
 declare global {
@@ -33,6 +34,8 @@ declare global {
   }
 }
 defineCustomElements(window);
+
+initializeFireBase();
 
 // Conditionally attach only if the native APIs are missing (optional)
 if (typeof window !== "undefined") {
