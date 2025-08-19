@@ -2104,6 +2104,7 @@ export class SupabaseApi implements ServiceApi {
     boardDocId: string,
     gradeDocId: string,
     languageDocId: string,
+    student_id: string,
     newClassId: string
   ): Promise<TableTypes<"user">> {
     if (!this.supabase) return student;
@@ -2135,7 +2136,6 @@ export class SupabaseApi implements ServiceApi {
         .eq("user_id", student.id)
         .eq("is_deleted", false)
         .maybeSingle();
-
       if (currentClassUser?.class_id !== newClassId) {
         const now = new Date().toISOString();
 
