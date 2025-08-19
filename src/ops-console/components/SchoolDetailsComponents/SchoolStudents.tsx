@@ -301,6 +301,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
               orderBy={orderBy}
               order={order}
               onSort={handleSort}
+              onRowClick={() => {}}
             />
           </div>
           {pageCount > 1 && (
