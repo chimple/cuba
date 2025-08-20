@@ -4408,7 +4408,7 @@ export class SupabaseApi implements ServiceApi {
 
       const { data, error } = await this.supabase
         .from("chapter_lesson")
-        .select("lesson_id, chapter_id, chapter(course_id)")
+        .select("chapter_id, chapter(course_id), lesson!inner(id)") 
         .eq("lesson_id", lessonId)
         .eq("is_deleted", false)
         .eq("chapter.is_deleted", false)
@@ -4416,11 +4416,10 @@ export class SupabaseApi implements ServiceApi {
 
       if (error || !data || data.length < 1) return;
 
-      const classCourseIds = new Set(classCourses.map((c) => c.id));
+      const classCourseIds = new Set(classCourses.map((course) => course.id));
 
       const matchedLesson = data.find((item) => {
-        const chapters = item.chapter as unknown as { course_id: string }[];
-        const courseId = chapters[0]?.course_id;
+        const courseId = item.chapter?.course_id;
         return courseId && classCourseIds.has(courseId);
       });
 
