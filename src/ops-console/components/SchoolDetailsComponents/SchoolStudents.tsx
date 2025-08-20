@@ -108,6 +108,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const handleSort = (key: string) => {
     const isAsc = orderBy === key && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(key);
+    setPage(1);
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
