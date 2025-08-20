@@ -99,7 +99,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       return;
     }
     fetchStudents(page);
-  }, [page, schoolId]); 
+  }, [page, fetchStudents, data.students, data.totalStudentCount]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
