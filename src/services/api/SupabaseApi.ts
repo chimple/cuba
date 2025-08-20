@@ -1218,24 +1218,61 @@ export class SupabaseApi implements ServiceApi {
     let courses: TableTypes<TABLES.Course>[] = [];
     if (gradeDocId && boardDocId) {
       courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
+      for (const course of courses) {
+        const newUserCourse: TableTypes<TABLES.UserCourse> = {
+          id: uuidv4(),
+          user_id: studentId,
+          course_id: course.id,
+          created_at: now,
+          updated_at: now,
+          is_deleted: false,
+          is_firebase: null,
+        };
+        const { error: userCourseInsertError } = await this.supabase
+          .from(TABLES.UserCourse)
+          .insert([newUserCourse]);
+      }
+    } else {
+      const [englishCourse, mathsCourse, digitalSkillsCourse] = await Promise.all([
+        this.getCourse(CHIMPLE_ENGLISH),
+        this.getCourse(CHIMPLE_MATHS),
+        this.getCourse(CHIMPLE_DIGITAL_SKILLS),
+      ]);
+      const language = await this.getLanguageWithId(languageDocId!);
+      let langCourse;
+      if (language && language.code !== COURSES.ENGLISH) {
+        // Map language code to courseId
+        const thirdLanguageCourseMap: Record<string, string> = {
+          hi: CHIMPLE_HINDI,
+          kn: GRADE1_KANNADA,
+          mr: GRADE1_MARATHI,
+        };
+        const courseId = thirdLanguageCourseMap[language.code ?? ""];
+        if (courseId) {
+          langCourse = await this.getCourse(courseId);
+        }
+      }
+      const coursesToAdd = [
+        englishCourse,
+        mathsCourse,
+        langCourse,
+        digitalSkillsCourse,
+      ].filter(Boolean);
+      for (const course of coursesToAdd) {
+        const newUserCourse: TableTypes<TABLES.UserCourse> = {
+          id: uuidv4(),
+          user_id: studentId,
+          course_id: course.id,
+          created_at: now,
+          updated_at: now,
+          is_deleted: false,
+          is_firebase: null,
+        };
+        const { error: userCourseInsertError } = await this.supabase
+          .from(TABLES.UserCourse)
+          .insert([newUserCourse]);
+      }
     }
-
-    for (const course of courses) {
-      const newUserCourse: TableTypes<TABLES.UserCourse> = {
-        id: uuidv4(),
-        user_id: studentId,
-        course_id: course.id,
-        created_at: now,
-        updated_at: now,
-        is_deleted: false,
-        is_firebase: null,
-      };
-
-      const { error: userCourseInsertError } = await this.supabase
-        .from(TABLES.UserCourse)
-        .insert([newUserCourse]);
-    }
-
     return newStudent;
   }
 
@@ -2104,10 +2141,11 @@ export class SupabaseApi implements ServiceApi {
     boardDocId: string,
     gradeDocId: string,
     languageDocId: string,
+    student_id: string,
     newClassId: string
   ): Promise<TableTypes<"user">> {
     if (!this.supabase) return student;
-
+    const now = new Date().toISOString();
     const updatedFields = {
       name,
       age,
@@ -2118,6 +2156,7 @@ export class SupabaseApi implements ServiceApi {
       grade_id: gradeDocId,
       language_id: languageDocId,
       student_id: student.student_id ?? null,
+      updated_at:now
     };
 
     try {
@@ -2135,9 +2174,7 @@ export class SupabaseApi implements ServiceApi {
         .eq("user_id", student.id)
         .eq("is_deleted", false)
         .maybeSingle();
-
       if (currentClassUser?.class_id !== newClassId) {
-        const now = new Date().toISOString();
 
         // Mark old class_user as deleted
         if (currentClassUser) {
@@ -4408,7 +4445,7 @@ export class SupabaseApi implements ServiceApi {
 
       const { data, error } = await this.supabase
         .from("chapter_lesson")
-        .select("lesson_id, chapter_id, chapter(course_id)")
+        .select("chapter_id, chapter(course_id), lesson!inner(id)") 
         .eq("lesson_id", lessonId)
         .eq("is_deleted", false)
         .eq("chapter.is_deleted", false)
@@ -4416,11 +4453,10 @@ export class SupabaseApi implements ServiceApi {
 
       if (error || !data || data.length < 1) return;
 
-      const classCourseIds = new Set(classCourses.map((c) => c.id));
+      const classCourseIds = new Set(classCourses.map((course) => course.id));
 
       const matchedLesson = data.find((item) => {
-        const chapters = item.chapter as unknown as { course_id: string }[];
-        const courseId = chapters[0]?.course_id;
+        const courseId = item.chapter?.course_id;
         return courseId && classCourseIds.has(courseId);
       });
 
