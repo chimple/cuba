@@ -17,7 +17,11 @@ import SelectedFilters from "../SelectedFilters";
 import "./SchoolTeachers.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import { TeacherInfo } from "../../../common/constants";
-import { getGradeOptions, filterBySearchAndFilters, sortSchoolTeachers } from "../../OpsUtility/SearchFilterUtility";
+import {
+  getGradeOptions,
+  filterBySearchAndFilters,
+  sortSchoolTeachers,
+} from "../../OpsUtility/SearchFilterUtility";
 
 interface DisplayTeacher {
   id: string;
@@ -125,21 +129,35 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   };
 
   // FIX: Ensure all properties being normalized match the expected type of the utility function.
-  const normalizedTeachers = useMemo(() =>
-    teachers.map(t => ({
-      ...t,
-      user: {
-        ...t.user,
-        name: t.user.name ?? undefined,
-        email: t.user.email ?? undefined,
-        // This line fixes the error by converting `null` to `undefined`.
-        student_id: t.user.student_id ?? undefined,
-      }
-    }))
-  , [teachers]);
+  const normalizedTeachers = useMemo(
+    () =>
+      teachers.map((t) => ({
+        ...t,
+        user: {
+          ...t.user,
+          name: t.user.name ?? undefined,
+          email: t.user.email ?? undefined,
+          // This line fixes the error by converting `null` to `undefined`.
+          student_id: t.user.student_id ?? undefined,
+        },
+      })),
+    [teachers]
+  );
 
-  const filteredTeachers = useMemo(() => filterBySearchAndFilters(normalizedTeachers, filters, searchTerm, 'teacher'), [normalizedTeachers, filters, searchTerm]);
-  const sortedTeachers = useMemo(() => sortSchoolTeachers(filteredTeachers, orderBy, order), [filteredTeachers, orderBy, order]);
+  const filteredTeachers = useMemo(
+    () =>
+      filterBySearchAndFilters(
+        normalizedTeachers,
+        filters,
+        searchTerm,
+        "teacher"
+      ),
+    [normalizedTeachers, filters, searchTerm]
+  );
+  const sortedTeachers = useMemo(
+    () => sortSchoolTeachers(filteredTeachers, orderBy, order),
+    [filteredTeachers, orderBy, order]
+  );
 
   const displayTeachers = useMemo((): DisplayTeacher[] => {
     return sortedTeachers.map(
@@ -156,8 +174,11 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   }, [sortedTeachers]);
 
   const pageCount = useMemo(() => {
+    if (searchTerm || filters.grade.length > 0) {
+      return Math.ceil(filteredTeachers.length / ROWS_PER_PAGE);
+    }
     return Math.ceil(totalCount / ROWS_PER_PAGE);
-  }, [totalCount]);
+  }, [totalCount, filters, searchTerm, filteredTeachers.length]);
 
   const isDataPresent = displayTeachers.length > 0;
   const isFilteringOrSearching =
@@ -255,7 +276,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         onClose={() => setIsFilterSliderOpen(false)}
         filters={tempFilters}
         filterOptions={{
-          grade: getGradeOptions(teachers)
+          grade: getGradeOptions(teachers),
         }}
         onFilterChange={handleSliderFilterChange}
         onApply={handleApplyFilters}
