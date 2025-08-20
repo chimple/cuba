@@ -83,16 +83,37 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
 
   // Data mapping for display
   const displayCoordinators = useMemo((): DisplayCoordinator[] => {
-    let sorted = [...coordinators];
-    if (orderBy) {
-      sorted.sort((a, b) => {
-        const valA = a[orderBy as keyof CoordinatorInfo] ?? "";
-        const valB = b[orderBy as keyof CoordinatorInfo] ?? "";
-        if (valA < valB) return order === "asc" ? -1 : 1;
-        if (valA > valB) return order === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
+    let sorted = [...coordinators].sort((a, b) => {
+      let aValue, bValue;
+      switch (orderBy) {
+        case "name":
+          aValue = a.name || "";
+          bValue = b.name || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "gender":
+          aValue = a.gender || "";
+          bValue = b.gender || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "phoneNumber":
+          aValue = a.phone || "";
+          bValue = b.phone || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "emailDisplay":
+          aValue = a.email || "";
+          bValue = b.email || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        default:
+          return 0;
+      }
+    });
     return sorted.map((c) => ({
       id: c.id,
       name: c.name || "N/A",

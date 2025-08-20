@@ -147,7 +147,50 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     () => filterBySearchAndFilters(normalizedStudents, filters, searchTerm, 'student'),
     [normalizedStudents, filters, searchTerm]
   );
-  const sortedStudents = useMemo(() => sortSchoolTeachers(filteredStudents, orderBy, order), [filteredStudents, orderBy, order]);
+  const sortedStudents = useMemo(() => {
+    // Standard sorting for all columns
+    return [...filteredStudents].sort((a, b) => {
+      let aValue, bValue;
+      switch (orderBy) {
+        case "studentIdDisplay":
+          aValue = a.user.student_id || "";
+          bValue = b.user.student_id || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "name":
+          aValue = a.user.name || "";
+          bValue = b.user.name || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "gender":
+          aValue = a.user.gender || "";
+          bValue = b.user.gender || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "grade":
+          aValue = a.grade || 0;
+          bValue = b.grade || 0;
+          return order === "asc" ? aValue - bValue : bValue - aValue;
+        case "classSection":
+          aValue = a.classSection || "";
+          bValue = b.classSection || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "phoneNumber":
+          aValue = a.parentPhoneNumber || "";
+          bValue = b.parentPhoneNumber || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        default:
+          return 0;
+      }
+    });
+  }, [filteredStudents, orderBy, order]);
 
   const studentsForCurrentPage = useMemo((): DisplayStudent[] => {
     return sortedStudents.map(
