@@ -1233,9 +1233,11 @@ export class SupabaseApi implements ServiceApi {
           .insert([newUserCourse]);
       }
     } else {
-      const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
-      const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
-      const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
+      const [englishCourse, mathsCourse, digitalSkillsCourse] = await Promise.all([
+        this.getCourse(CHIMPLE_ENGLISH),
+        this.getCourse(CHIMPLE_MATHS),
+        this.getCourse(CHIMPLE_DIGITAL_SKILLS),
+      ]);
       const language = await this.getLanguageWithId(languageDocId!);
       let langCourse;
       if (language && language.code !== COURSES.ENGLISH) {
