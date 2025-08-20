@@ -158,7 +158,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         gender: s_api.user.gender || "N/A",
         grade: s_api.grade,
         classSection: s_api.classSection || "N/A",
-        phoneNumber: s_api.parentPhoneNumber || "N/A",
+        phoneNumber: s_api.parent?.phone || "N/A", 
       })
     );
   }, [sortedStudents]);
