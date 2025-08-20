@@ -103,7 +103,14 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       return;
     }
     fetchTeachers(page);
-  }, [page, schoolId]);
+  }, [
+    page,
+    fetchTeachers,
+    data.teachers,
+    data.totalTeacherCount,
+    searchTerm,
+    filters,
+  ]);
 
   const handlePageChange = (newPage: number) => setPage(newPage);
   const handleSort = (key: string) => {
