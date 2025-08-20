@@ -88,52 +88,47 @@ const DisplaySchools: FC = () => {
     const currentUser = await auth.getCurrentUser();
     if (!currentUser) return;
     setUser(currentUser);
-    const userRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
-
-    const isOpsRole =
-      userRoles.includes(RoleType.SUPER_ADMIN) ||
-      userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
-
-    const isProgramUser = await api.isProgramUser();
-    if (isOpsRole || isProgramUser) {
-      setIsAuthorizedForOpsMode(true);
-    }
-
-    const allSchool = await api.getSchoolsForUser(currentUser.id);
-    setSchoolList(allSchool);
-
+    const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
+    if (isOpsUser) setIsAuthorizedForOpsMode(true);
+    setPage(1);
+    setHasMore(true);
+    await fetchSchools(1, currentUser.id);
+    // if they’d already picked a school previously
     const tempSchool = Util.getCurrentSchool();
     if (tempSchool) {
-      const localSchool = allSchool.find(
-        (school) => school.school.id === tempSchool.id
+      const role = await api.getUserRoleForSchool(
+        currentUser.id,
+        tempSchool.id
       );
-      if (localSchool) {
-        const selectedSchool: SchoolWithRole = {
-          school: localSchool.school,
-          role: localSchool.role,
-        };
-        selectSchool(selectedSchool);
-        return;
-      } else if (allSchool.length === 1) {
-      selectSchool(allSchool[0]);
-      return;
+      if (role) {
+        return selectSchool({ school: tempSchool, role });
+      }
+    }
+    if (schoolList.length === 1) {
+      return selectSchool(schoolList[0]);
     }
     setLoading(false);
-    };
+    
   };
-
-  // infinite scroll listener
+  // infinite scroll listener with debounce and robust guard
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
+    let debounceTimeout: NodeJS.Timeout | null = null;
     const handleScroll = () => {
       if (loading || !hasMore) return;
-      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
-        setPage((p) => p + 1);
-      }
+      if (debounceTimeout) clearTimeout(debounceTimeout);
+      debounceTimeout = setTimeout(() => {
+        if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
+          setPage((p) => p + 1);
+        }
+      }, 150);
     };
     el.addEventListener("scroll", handleScroll);
-    return () => el.removeEventListener("scroll", handleScroll);
+    return () => {
+      el.removeEventListener("scroll", handleScroll);
+      if (debounceTimeout) clearTimeout(debounceTimeout);
+    };
   }, [loading, hasMore]);
 
   // fetch next page if page++
