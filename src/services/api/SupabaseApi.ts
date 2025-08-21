@@ -41,7 +41,7 @@ import {
   CoordinatorInfo,
   CoordinatorAPIResponse,
   RequestStatus,
-  ResquestTypes,
+  RequestTypes,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -7419,7 +7419,7 @@ export class SupabaseApi implements ServiceApi {
           .select("*")
           .eq("is_deleted", false)
           .eq("request_status", RequestStatus.REQUESTED)
-          .eq("request_type", ResquestTypes.STUDENT)
+          .eq("request_type", RequestTypes.STUDENT)
           .lte("request_ends_at", new Date().toISOString());
 
         expiredQuery = await applyFilters(expiredQuery);

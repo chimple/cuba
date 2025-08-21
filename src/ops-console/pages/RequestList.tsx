@@ -374,15 +374,9 @@ const RequestList: React.FC = () => {
     }
   }, [selectedTab]);
   const handleSort = (colKey: string) => {
-    const sortableKeys = [
-      "request_id",
-      "request_type",
-      "school_name",
-      "class",
-      "from",
-      "requested_date",
-    ];
-    if (!sortableKeys.includes(colKey)) return;
+    const column = columns.find((c) => c.key === colKey);
+    if (!column?.sortable) return;
+
     if (orderBy === colKey) {
       setOrderDir((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {

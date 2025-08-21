@@ -517,7 +517,7 @@ export enum ProgramType {
   Private = "private",
   LearningCenter = "learning_centers",
 }
-export enum ResquestTypes {
+export enum RequestTypes {
   STUDENT = "student",
   TEACHER = "teacher",
   PRINCIPAL = "principal",
