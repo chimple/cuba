@@ -181,8 +181,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
         case "phoneNumber":
-          aValue = a.parentPhoneNumber || "";
-          bValue = b.parentPhoneNumber || "";
+          aValue = a.parent?.phone || "";
+          bValue = b.parent?.phone || "";
           return order === "asc"
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
