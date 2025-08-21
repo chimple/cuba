@@ -7417,7 +7417,7 @@ export class SupabaseApi implements ServiceApi {
           const batch = parentIds.slice(i, i + batchSize);
           const { data: batchData, error: batchError } = await this.supabase
             .from('user')
-            .select('id, name')
+            .select('id, name, phone')
             .in('id', batch);
           if (batchError) {
             console.error("Error fetching parent details:", batchError);
