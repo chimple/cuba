@@ -23,6 +23,7 @@ import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPageOps";
 import NewUserPage from "./NewUserPageOps";
 import UserDetailsPage from "./UserDetailsPage";
 import { RoleType } from "../../interface/modelInterfaces";
+import RequestList from "./RequestList";
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
@@ -30,7 +31,7 @@ const SidebarPage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
     null
   );
-  const userRole = localStorage.getItem(USER_ROLE) || '[]';
+  const userRole = localStorage.getItem(USER_ROLE) || "[]";
 
   useEffect(() => {
     fetchData();
@@ -74,6 +75,9 @@ const SidebarPage: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.SCHOOL_LIST}`} exact={true}>
               <SchoolList />
+            </ProtectedRoute>
+            <ProtectedRoute path={`${path}${PAGES.REQUEST_LIST}`} exact={true}>
+              <RequestList />
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/:school_id`}
@@ -123,8 +127,9 @@ const SidebarPage: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.ADMIN_USERS}${PAGES.USER_DETAILS}`}
-              exact={true}>
-              <UserDetailsPage/>
+              exact={true}
+            >
+              <UserDetailsPage />
             </ProtectedRoute>
           </Switch>
         </div>

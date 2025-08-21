@@ -65,6 +65,7 @@ export enum TABLES {
   ChapterLinks = "chapter_links",
   Program = "program",
   SpecialUsers = "special_users",
+  OpsRequests = "ops_requests",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -473,6 +474,7 @@ export enum PAGES {
   USER_DETAILS = "/user-details",
   PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS = "/program-connected-school-list-page-ops",
   NEW_USERS_OPS = "/new-user-ops",
+  REQUEST_LIST = "/request-list",
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -504,6 +506,7 @@ export enum NavItems {
   PROGRAMS = "Programs",
   SCHOOLS = "Schools",
   COMPAIGNS = "Campaigns",
+  REQUESTS = "Requests",
   USERS = "Users",
   DEVICES = "Devices",
   RESOURCES = "Resources",
@@ -514,7 +517,23 @@ export enum ProgramType {
   Private = "private",
   LearningCenter = "learning_centers",
 }
+export enum ResquestTypes {
+  STUDENT = "student",
+  TEACHER = "teacher",
+  PRINCIPAL = "principal",
+  SCHOOL = "school",
+}
 
+export enum RequestStatus {
+  APPROVED = "approved",
+  REJECTED = "rejected",
+  REQUESTED = "requested",
+}
+export enum REQUEST_TABS {
+  PENDING = "Pending",
+  APPROVED = "Approved",
+  REJECTED = "Rejected",
+}
 export interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;

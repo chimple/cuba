@@ -41,6 +41,7 @@ import {
   CoordinatorInfo,
   CoordinatorAPIResponse,
   EVENTS,
+  RequestStatus,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -5813,6 +5814,18 @@ order by
     }
   }
   async addParentToNewClass(classID: string, studentId: string) {
+    throw new Error("Method not implemented.");
+  }
+  async getOpsRequests(
+    requestStatus: RequestStatus,
+    page: number = 1,
+    limit: number = 8,
+    filters?: { request_type?: string[]; school?: string[] },
+    searchTerm?: string
+  ) {
+    throw new Error("Method not implemented.");
+  }
+  async getRequestFilterOptions() {
     throw new Error("Method not implemented.");
   }
 }

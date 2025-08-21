@@ -18,6 +18,7 @@ import {
   TabType,
   PrincipalAPIResponse,
   CoordinatorAPIResponse,
+  RequestStatus,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -1399,9 +1400,29 @@ export class ApiHandler implements ServiceApi {
   }
   public async getChaptersByIds(chapterIds: string[]) {
     return await this.s.getChaptersByIds(chapterIds);
-    }
+  }
   public async addParentToNewClass(
-    classId: string, studentId:string): Promise<void>{
+    classId: string,
+    studentId: string
+  ): Promise<void> {
     return await this.s.addParentToNewClass(classId, studentId);
-    }
+  }
+  public async getOpsRequests(
+    requestStatus: RequestStatus,
+    page: number = 1,
+    limit: number = 8,
+    filters?: { request_type?: string[]; school?: string[] },
+    searchTerm?: string
+  ) {
+    return this.s.getOpsRequests(
+      requestStatus,
+      page,
+      limit,
+      filters,
+      searchTerm
+    );
+  }
+  public async getRequestFilterOptions() {
+    return this.s.getRequestFilterOptions();
+  }
 }
