@@ -38,7 +38,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [page, setPage] = useState(1);
-  const [orderBy, setOrderBy] = useState<string | null>("name");
+  const [orderBy, setOrderBy] = useState<string>("name");
   const [order, setOrder] = useState<"asc" | "desc">("asc");
 
   const fetchPrincipals = useCallback(
@@ -82,16 +82,37 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
   );
 
   const displayPrincipals = useMemo((): DisplayPrincipal[] => {
-    let sorted = [...principals];
-    if (orderBy) {
-      sorted.sort((a, b) => {
-        const valA = a[orderBy as keyof PrincipalInfo] ?? "";
-        const valB = b[orderBy as keyof PrincipalInfo] ?? "";
-        if (valA < valB) return order === "asc" ? -1 : 1;
-        if (valA > valB) return order === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
+    let sorted = [...principals].sort((a, b) => {
+      let aValue, bValue;
+      switch (orderBy) {
+        case "name":
+          aValue = a.name || "";
+          bValue = b.name || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "gender":
+          aValue = a.gender || "";
+          bValue = b.gender || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "phoneNumber":
+          aValue = a.phone || "";
+          bValue = b.phone || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "emailDisplay":
+          aValue = a.email || "";
+          bValue = b.email || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        default:
+          return 0;
+      }
+    });
     return sorted.map((p) => ({
       id: p.id,
       name: p.name || "N/A",
