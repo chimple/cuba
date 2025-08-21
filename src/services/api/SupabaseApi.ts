@@ -2199,6 +2199,7 @@ export class SupabaseApi implements ServiceApi {
         };
 
         await this.supabase.from(TABLES.ClassUser).insert(newClassUser);
+        await this.addParentToNewClass(student.id, newClassId);
       }
 
       return student;
