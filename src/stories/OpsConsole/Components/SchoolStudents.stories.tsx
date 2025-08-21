@@ -1,13 +1,18 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
-import SchoolStudentsComponent from "../../../ops-console/components/SchoolDetailsComponents/SchoolStudents"; // Adjust path
+import SchoolStudentsComponent from "../../../ops-console/components/SchoolDetailsComponents/SchoolStudents";
 import { StudentInfo } from "../../../common/constants";
+import { Tables } from "../../../services/database";
+
+type User = Tables<"user">;
+
 const parseSampleClassName = (
   classNameInput: string,
   studentId: string,
   name: string,
   gender: string,
-  phone: string
+  phone: string,
+  parentPhone: string | null = null
 ): StudentInfo => {
   let grade: number;
   let section: string;
@@ -15,15 +20,6 @@ const parseSampleClassName = (
   if (classNameInput.toUpperCase().startsWith("UKG")) {
     grade = 0;
     section = classNameInput.substring(3).trim() || "A";
-  } else if (classNameInput.toUpperCase().startsWith("LKG")) {
-    grade = -1;
-    section = classNameInput.substring(3).trim() || "A";
-  } else if (classNameInput === "10") {
-    grade = 10;
-    section = "A";
-  } else if (classNameInput.toUpperCase() === "SECTION BLUE") {
-    grade = 1;
-    section = "BLUE";
   } else {
     const match = classNameInput.match(/^(\d+)([A-Z]*)$/i);
     if (match) {
@@ -35,6 +31,21 @@ const parseSampleClassName = (
     }
   }
 
+  const createMockParent = (
+    studentName: string,
+    phone: string | null
+  ): User | null => {
+    if (!phone) return null;
+    const parentName = studentName.split(" ")[0] + " Parent";
+
+    return {
+      id: `P_${studentId}`,
+      name: parentName,
+      email: `${parentName.replace(/\s+/g, ".").toLowerCase()}@example.com`,
+      phone: phone,
+    } as User;
+  };
+
   return {
     user: {
       id: studentId,
@@ -42,30 +53,11 @@ const parseSampleClassName = (
       name: name,
       gender: gender,
       phone: phone,
-      age: null,
-      avatar: null,
-      created_at: new Date().toISOString(),
-      curriculum_id: null,
       email: `${name.replace(/\s+/g, ".").toLowerCase()}@example.com`,
-      fcm_token: null,
-      firebase_id: `fb_${studentId}`,
-      updated_at: null,
-
-      grade_id: null,
-      image: null,
-      is_deleted: false,
-      is_firebase: false,
-      is_ops: false,
-      is_tc_accepted: true,
-      language_id: null,
-      learning_path: null,
-      music_off: false,
-      ops_created_by: null,
-      sfx_off: false,
-      stars: Math.floor(Math.random() * 100),
-    },
+    } as User,
     grade: grade,
     classSection: section,
+    parent: createMockParent(name, parentPhone),
   };
 };
 
@@ -75,9 +67,17 @@ const sampleApiStudents: StudentInfo[] = [
     "S001",
     "Alice Wonderland",
     "Female",
-    "123-456-7890"
+    "123-456-7890",
+    "111-222-3333"
   ),
-  parseSampleClassName("5B", "S002", "Bob The Builder", "Male", "234-567-8901"),
+  parseSampleClassName(
+    "5B",
+    "S002",
+    "Bob The Builder",
+    "Male",
+    "234-567-8901",
+    "444-555-6666"
+  ),
   parseSampleClassName(
     "UKG C",
     "S003",
@@ -85,27 +85,27 @@ const sampleApiStudents: StudentInfo[] = [
     "Male",
     "345-678-9012"
   ),
-  parseSampleClassName("10", "S004", "Diana Prince", "Female", "456-789-0123"),
   parseSampleClassName(
-    "Section Blue",
-    "S005",
-    "Edward Scissorhands",
-    "Male",
-    "567-890-1234"
-  ),
-  parseSampleClassName("3B", "S006", "Fiona Apple", "Female", "678-901-2345"),
-  parseSampleClassName("12A", "S007", "George Jetson", "Male", "789-012-3456"),
-  parseSampleClassName(
-    "LKG",
-    "S008",
-    "Hellen Keller",
+    "4A",
+    "S004",
+    "Diana Prince",
     "Female",
-    "890-123-4567"
+    "456-789-0123",
+    "777-888-9999"
+  ),
+  parseSampleClassName("4A", "S005", "Clark Kent", "Male", "567-890-1234"),
+  parseSampleClassName(
+    "3B",
+    "S006",
+    "Bruce Wayne",
+    "Male",
+    "678-901-2345",
+    "123-123-1234"
   ),
 ];
 
 const meta = {
-  title: "SchoolManagement/SchoolStudentsPage",
+  title: "OpsConsole/Components/SchoolStudents",
   component: SchoolStudentsComponent,
   decorators: [
     (Story) => (
@@ -117,7 +117,7 @@ const meta = {
   tags: ["autodocs"],
   args: {
     isMobile: false,
-    schoolId: "sample-school-id-123",
+    schoolId: "sample-chimple-school-id",
     data: {
       students: [],
       totalStudentCount: 0,
@@ -162,24 +162,4 @@ export const MobileView: Story = {
   parameters: {
     viewport: { defaultViewport: "iphone6" },
   },
-};
-
-export const WithActiveFilters: Story = {
-  args: {
-    data: {
-      students: sampleApiStudents,
-      totalStudentCount: sampleApiStudents.length,
-    },
-  },
-  name: "With Data (Filtering Testable)",
-};
-
-export const Searchable: Story = {
-  args: {
-    data: {
-      students: sampleApiStudents,
-      totalStudentCount: sampleApiStudents.length,
-    },
-  },
-  name: "With Data (Search Testable)",
 };
