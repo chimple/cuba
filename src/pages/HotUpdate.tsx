@@ -35,9 +35,9 @@ const HotUpdate: FC<{}> = () => {
         push();
         return;
       }
-      // AppUpdater.sync(hotUpdateServer, (status) => {
-      //   // setCurrentStatus(status);
-      // });
+      AppUpdater.sync(hotUpdateServer, (status) => {
+        setCurrentStatus(status);
+      });
       push();
     } catch (error) {
       push();
