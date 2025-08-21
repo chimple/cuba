@@ -1911,4 +1911,28 @@ export interface ServiceApi {
    * @param {string} studentID
    */
   addParentToNewClass(classID:string, studentID:string): Promise<void>;
+  
+    /**
+     * Search teachers in a school by name, email, or phone (paginated)
+     */
+    searchTeachersInSchool(
+      schoolId: string,
+      searchTerm: string,
+      page?: number,
+      limit?: number
+    ): Promise<{ data: any[]; total: number }>;
+
+  /**
+   * Search students by name, student_id, or phone number in a school, paginated.
+   * @param schoolId School ID
+   * @param searchTerm Search string
+   * @param page Page number
+   * @param limit Page size
+   */
+  searchStudentsInSchool(
+    schoolId: string,
+    searchTerm: string,
+    page?: number,
+    limit?: number
+  ): Promise<StudentAPIResponse>;
 }

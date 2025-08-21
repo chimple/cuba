@@ -1403,5 +1403,23 @@ export class ApiHandler implements ServiceApi {
   public async addParentToNewClass(
     classId: string, studentId:string): Promise<void>{
     return await this.s.addParentToNewClass(classId, studentId);
-    }
+  }
+
+  public async searchStudentsInSchool(
+    schoolId: string,
+    searchTerm: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<StudentAPIResponse> {
+    return await this.s.searchStudentsInSchool(schoolId, searchTerm, page, limit);
+  }
+
+  public async searchTeachersInSchool(
+    schoolId: string, 
+    searchTerm: string,    
+    page: number = 1,
+    limit: number = 20
+  ): Promise<TeacherAPIResponse> {
+    return await this.s.searchTeachersInSchool(schoolId, searchTerm, page, limit);
+  }
 }

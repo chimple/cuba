@@ -3277,6 +3277,42 @@ export type Database = {
           updated_at: string | null;
         }[];
       };
+      search_students_in_school: {
+        Args: {
+          p_school_id: string;
+          p_search_term: string;
+          p_page: number;
+          p_limit: number;
+        };
+        Returns: {
+          id: string;
+          name: string;
+          student_id: string;
+          phone: string;
+          class_id: string;
+          class_name: string;
+          parent_id: string | null;
+          parent_name: string | null;
+        }[];
+      };
+      search_teachers_in_school: {
+        Args: {
+          p_school_id: string;
+          p_search_term: string;
+          p_page: number;
+          p_limit: number;
+        };
+        Returns: {
+          id: string;
+          name: string;
+          email: string;
+          phone: string;
+          class_id: string;
+          class_name: string;
+          parent_id: string | null;
+          parent_name: string | null;
+        }[];
+      };
       sql_get_user_badges: {
         Args: { p_updated_at: string };
         Returns: {

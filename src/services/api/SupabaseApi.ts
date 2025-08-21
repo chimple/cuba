@@ -7354,4 +7354,85 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error in addParentToNewClass:", error);
     }
   }
+
+  async searchStudentsInSchool(
+    schoolId: string,
+    searchTerm: string,
+    page: number,
+    limit: number
+  ): Promise<{ data: any[]; total: number }> {
+    if (!this.supabase) return { data: [], total: 0 };
+    // Call the RPC function for search
+    const { data, error } = await this.supabase.rpc(
+      "search_students_in_school",
+      {
+        p_school_id: schoolId,
+        p_search_term: searchTerm,
+        p_page: page,
+        p_limit: limit,
+      }
+    );
+    if (error) {
+      console.error("Error searching students in school (RPC):", error);
+      return { data: [], total: 0 };
+    }
+    // Get total count for pagination (fetch without limit for count)
+    let total = 0;
+    if (searchTerm && searchTerm.trim() !== "") {
+      const { data: countData, error: countError } = await this.supabase.rpc(
+        "search_students_in_school",
+        {
+          p_school_id: schoolId,
+          p_search_term: searchTerm,
+          p_page: 1,
+          p_limit: 10000, // Large enough to get all matches
+        }
+      );
+      if (!countError && countData) {
+        total = countData.length;
+      }
+    }
+    return { data: data ?? [], total: total };
+  }
+
+  async searchTeachersInSchool(
+    schoolId: string,
+    searchTerm: string,
+    page: number,
+    limit: number
+  ): Promise<{ data: any[]; total: number }> {
+    if (!this.supabase) return { data: [], total: 0 };
+    // Call the RPC function for teacher search
+    const { data, error } = await this.supabase.rpc(
+      "search_teachers_in_school",
+      {
+        p_school_id: schoolId,
+        p_search_term: searchTerm,
+        p_page: page,
+        p_limit: limit,
+      }
+    );
+    if (error) {
+      console.error("Error searching teachers in school (RPC):", error);
+      return { data: [], total: 0 };
+    }
+    // Get total count for pagination (fetch without limit for count)
+    let total = 0;
+    if (searchTerm && searchTerm.trim() !== "") {
+      const { data: countData, error: countError } = await this.supabase.rpc(
+        "search_teachers_in_school",
+        {
+          p_school_id: schoolId,
+          p_search_term: searchTerm,
+          p_page: 1,
+          p_limit: 10000, // Large enough to get all matches
+        }
+      );
+      if (!countError && countData) {
+        total = countData.length;
+      }
+    }
+    return { data: data ?? [], total: total };
+  }
+  
 }
