@@ -7362,39 +7362,112 @@ export class SupabaseApi implements ServiceApi {
     limit: number
   ): Promise<{ data: any[]; total: number }> {
     if (!this.supabase) return { data: [], total: 0 };
-    // Call the RPC function for search
-    const { data, error } = await this.supabase.rpc(
-      "search_students_in_school",
-      {
-        p_school_id: schoolId,
-        p_search_term: searchTerm,
-        p_page: page,
-        p_limit: limit,
+    try {
+      // Step 1: Get all class_ids for the school
+      const { data: classData, error: classError } = await this.supabase
+        .from('class')
+        .select('id, name')
+        .eq('school_id', schoolId)
+        .eq('is_deleted', false);
+      if (classError || !classData) {
+        console.error("Error fetching classes for school:", classError);
+        return { data: [], total: 0 };
       }
-    );
-    if (error) {
-      console.error("Error searching students in school (RPC):", error);
+      const classIds = classData.map((row: any) => row.id);
+      if (classIds.length === 0) return { data: [], total: 0 };
+      // Step 2: Get all class_user rows for those classes and role student
+      let classUserQuery = this.supabase
+        .from('class_user')
+        .select('user:user_id(*), class_id')
+        .in('class_id', classIds)
+        .eq('role', 'student')
+        .eq('is_deleted', false);
+      const { data: classUserData, error: classUserError } = await classUserQuery;
+      if (classUserError || !classUserData) {
+        console.error("Error fetching class_user rows:", classUserError);
+        return { data: [], total: 0 };
+      }
+      // Step 3: Join with parent_user and parent details
+      // Get all student user_ids
+      const studentIds = classUserData.map((row: any) => row.user.id);
+      // Batch parent_user queries if studentIds is large
+      let parentUserData: any[] = [];
+      if (studentIds.length > 0) {
+        const batchSize = 500;
+        for (let i = 0; i < studentIds.length; i += batchSize) {
+          const batch = studentIds.slice(i, i + batchSize);
+          const { data: batchData, error: batchError } = await this.supabase
+            .from('parent_user')
+            .select('student_id, parent_id')
+            .in('student_id', batch)
+            .eq('is_deleted', false);
+          if (batchError) {
+            console.error("Error fetching parent_user rows:", batchError);
+            continue;
+          }
+          parentUserData = parentUserData.concat(batchData ?? []);
+        }
+      }
+      // Get parent details
+      const parentIds = parentUserData.map((row: any) => row.parent_id);
+      let parentDetails: any[] = [];
+      if (parentIds.length > 0) {
+        const batchSize = 500;
+        for (let i = 0; i < parentIds.length; i += batchSize) {
+          const batch = parentIds.slice(i, i + batchSize);
+          const { data: batchData, error: batchError } = await this.supabase
+            .from('user')
+            .select('id, name')
+            .in('id', batch);
+          if (batchError) {
+            console.error("Error fetching parent details:", batchError);
+            continue;
+          }
+          parentDetails = parentDetails.concat(batchData ?? []);
+        }
+      }
+      // Step 4: Filter by searchTerm
+      let filteredRows = classUserData;
+      if (searchTerm && searchTerm.trim() !== "") {
+        const term = searchTerm.trim().toLowerCase();
+        filteredRows = filteredRows.filter((row: any) => {
+          const u = row.user;
+          return (
+            (u.name && u.name.toLowerCase().includes(term)) ||
+            (u.student_id && u.student_id.toLowerCase().includes(term)) ||
+            (u.phone && u.phone.toLowerCase().includes(term))
+          );
+        });
+      }
+      // Step 5: Pagination
+      const offset = (page - 1) * limit;
+      const pagedRows = filteredRows.slice(offset, offset + limit);
+      // Step 6: Build result objects
+      const result = pagedRows.map((row: any) => {
+        const parentUser = parentUserData.find((pu: any) => pu.student_id === row.user.id);
+        const parent = parentDetails.find((p: any) => p.id === parentUser?.parent_id);
+        const classInfo = classData.find((c: any) => c.id === row.class_id);
+        const className = classInfo?.name ?? '';
+        const { grade, section } = this.parseClassName(className);
+        return {
+          id: row.user.id,
+          name: row.user.name,
+          student_id: row.user.student_id,
+          phone: row.user.phone,
+          class_id: row.class_id,
+          class_name: className,
+          grade,
+          classSection: section,
+          parent_id: parentUser?.parent_id ?? null,
+          parent_name: parent?.name ?? null,
+        };
+      });
+      return { data: result, total: filteredRows.length };
+    } catch (err) {
+      console.error("Error searching students in school:", err);
       return { data: [], total: 0 };
     }
-    // Get total count for pagination (fetch without limit for count)
-    let total = 0;
-    if (searchTerm && searchTerm.trim() !== "") {
-      const { data: countData, error: countError } = await this.supabase.rpc(
-        "search_students_in_school",
-        {
-          p_school_id: schoolId,
-          p_search_term: searchTerm,
-          p_page: 1,
-          p_limit: 10000, // Large enough to get all matches
-        }
-      );
-      if (!countError && countData) {
-        total = countData.length;
-      }
-    }
-    return { data: data ?? [], total: total };
   }
-
   async searchTeachersInSchool(
     schoolId: string,
     searchTerm: string,
@@ -7402,37 +7475,110 @@ export class SupabaseApi implements ServiceApi {
     limit: number
   ): Promise<{ data: any[]; total: number }> {
     if (!this.supabase) return { data: [], total: 0 };
-    // Call the RPC function for teacher search
-    const { data, error } = await this.supabase.rpc(
-      "search_teachers_in_school",
-      {
-        p_school_id: schoolId,
-        p_search_term: searchTerm,
-        p_page: page,
-        p_limit: limit,
+    try {
+      // Step 1: Get all class_ids for the school
+      const { data: classData, error: classError } = await this.supabase
+        .from('class')
+        .select('id, name')
+        .eq('school_id', schoolId)
+        .eq('is_deleted', false);
+      if (classError || !classData) {
+        console.error("Error fetching classes for school:", classError);
+        return { data: [], total: 0 };
       }
-    );
-    if (error) {
-      console.error("Error searching teachers in school (RPC):", error);
+      const classIds = classData.map((row: any) => row.id);
+      if (classIds.length === 0) return { data: [], total: 0 };
+      // Step 2: Get all class_user rows for those classes and role teacher
+      let classUserQuery = this.supabase
+        .from('class_user')
+        .select('user:user_id(*), class_id')
+        .in('class_id', classIds)
+        .eq('role', 'teacher')
+        .eq('is_deleted', false);
+      const { data: classUserData, error: classUserError } = await classUserQuery;
+      if (classUserError || !classUserData) {
+        console.error("Error fetching class_user rows:", classUserError);
+        return { data: [], total: 0 };
+      }
+      // Step 3: Join with parent_user and parent details
+      // Get all teacher user_ids
+      const teacherIds = classUserData.map((row: any) => row.user.id);
+      // Batch parent_user queries if teacherIds is large
+      let parentUserData: any[] = [];
+      if (teacherIds.length > 0) {
+        const batchSize = 500;
+        for (let i = 0; i < teacherIds.length; i += batchSize) {
+          const batch = teacherIds.slice(i, i + batchSize);
+          const { data: batchData, error: batchError } = await this.supabase
+            .from('parent_user')
+            .select('student_id, parent_id')
+            .in('student_id', batch)
+            .eq('is_deleted', false);
+          if (batchError) {
+            console.error("Error fetching parent_user rows:", batchError);
+            continue;
+          }
+          parentUserData = parentUserData.concat(batchData ?? []);
+        }
+      }
+      // Get parent details
+      const parentIds = parentUserData.map((row: any) => row.parent_id);
+      let parentDetails: any[] = [];
+      if (parentIds.length > 0) {
+        const batchSize = 500;
+        for (let i = 0; i < parentIds.length; i += batchSize) {
+          const batch = parentIds.slice(i, i + batchSize);
+          const { data: batchData, error: batchError } = await this.supabase
+            .from('user')
+            .select('id, name')
+            .in('id', batch);
+          if (batchError) {
+            console.error("Error fetching parent details:", batchError);
+            continue;
+          }
+          parentDetails = parentDetails.concat(batchData ?? []);
+        }
+      }
+      // Step 4: Filter by searchTerm
+      let filteredRows = classUserData;
+      if (searchTerm && searchTerm.trim() !== "") {
+        const term = searchTerm.trim().toLowerCase();
+        filteredRows = filteredRows.filter((row: any) => {
+          const u = row.user;
+          return (
+            (u.name && u.name.toLowerCase().includes(term)) ||
+            (u.email && u.email.toLowerCase().includes(term)) ||
+            (u.phone && u.phone.toLowerCase().includes(term))
+          );
+        });
+      }
+      // Step 5: Pagination
+      const offset = (page - 1) * limit;
+      const pagedRows = filteredRows.slice(offset, offset + limit);
+      // Step 6: Build result objects
+      const result = pagedRows.map((row: any) => {
+        const parentUser = parentUserData.find((pu: any) => pu.student_id === row.user.id);
+        const parent = parentDetails.find((p: any) => p.id === parentUser?.parent_id);
+        const classInfo = classData.find((c: any) => c.id === row.class_id);
+        const className = classInfo?.name ?? '';
+        const { grade, section } = this.parseClassName(className);
+        return {
+          id: row.user.id,
+          name: row.user.name,
+          email: row.user.email,
+          phone: row.user.phone,
+          class_id: row.class_id,
+          class_name: className,
+          grade,
+          classSection: section,
+          parent_id: parentUser?.parent_id ?? null,
+          parent_name: parent?.name ?? null,
+        };
+      });
+      return { data: result, total: filteredRows.length };
+    } catch (err) {
+      console.error("Error searching teachers in school:", err);
       return { data: [], total: 0 };
     }
-    // Get total count for pagination (fetch without limit for count)
-    let total = 0;
-    if (searchTerm && searchTerm.trim() !== "") {
-      const { data: countData, error: countError } = await this.supabase.rpc(
-        "search_teachers_in_school",
-        {
-          p_school_id: schoolId,
-          p_search_term: searchTerm,
-          p_page: 1,
-          p_limit: 10000, // Large enough to get all matches
-        }
-      );
-      if (!countError && countData) {
-        total = countData.length;
-      }
-    }
-    return { data: data ?? [], total: total };
   }
-  
 }
