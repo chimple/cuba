@@ -469,17 +469,8 @@ const RequestList: React.FC = () => {
               setPage(1);
             }}
             onCancel={() => {
-              const empty = {
-                state: [],
-                district: [],
-                block: [],
-                programType: [],
-                partner: [],
-                programManager: [],
-                fieldCoordinator: [],
-              };
-              setTempFilters(empty);
-              setFilters(empty);
+              setTempFilters(INITIAL_FILTERS);
+              setFilters(INITIAL_FILTERS);
               setIsFilterOpen(false);
               setPage(1);
             }}
