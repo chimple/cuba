@@ -45,6 +45,7 @@ const DisplaySchools: FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollPositionRef = useRef<number>(0);
 
   useEffect(() => {
     (async () => {
@@ -74,7 +75,9 @@ const DisplaySchools: FC = () => {
   };
 
   const fetchSchools = async (pageNo: number, userId: string) => {
-    setLoading(true);
+    if (scrollRef.current) {
+      scrollPositionRef.current = scrollRef.current.scrollTop;
+    }
     const result = await api.getSchoolsForUser(userId, {
       page: pageNo,
       page_size: PAGE_SIZE,
@@ -85,6 +88,7 @@ const DisplaySchools: FC = () => {
   };
 
   const initData = async () => {
+    setLoading(true);
     const currentUser = await auth.getCurrentUser();
     if (!currentUser) return;
     setUser(currentUser);
@@ -111,12 +115,13 @@ const DisplaySchools: FC = () => {
     
   };
   // infinite scroll listener with debounce and robust guard
+  const prevSchoolListLength = useRef<number>(0);
   useEffect(() => {
     const el = scrollRef.current;
-    if (!el) return;
+    if (!el || !hasMore) return;
     let debounceTimeout: NodeJS.Timeout | null = null;
     const handleScroll = () => {
-      if (loading || !hasMore) return;
+      if (loading) return;
       if (debounceTimeout) clearTimeout(debounceTimeout);
       debounceTimeout = setTimeout(() => {
         if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
@@ -136,6 +141,21 @@ const DisplaySchools: FC = () => {
     if (!user || page === 1) return;
     fetchSchools(page, user.id);
   }, [page, user]);
+
+  // Restore scroll position only when new schools are appended and hasMore is true
+  useEffect(() => {
+    if (
+      page > 1 &&
+      scrollRef.current &&
+      schoolList.length > prevSchoolListLength.current &&
+      hasMore
+    ) {
+      setTimeout(() => {
+        scrollRef.current!.scrollTop = scrollPositionRef.current;
+      }, 0);
+    }
+    prevSchoolListLength.current = schoolList.length;
+  }, [schoolList, hasMore]);
 
   // helper: get classes
   const getClasses = async (schoolId: string,userId:string) => {

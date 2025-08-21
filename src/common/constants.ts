@@ -937,7 +937,7 @@ export interface StudentInfo {
   user: TableTypes<"user">;
   grade: number;
   classSection: string;
-  parentPhoneNumber?: string | null;
+  parent: TableTypes<"user"> | null;
 }
 export interface StudentAPIResponse {
   data: StudentInfo[];
