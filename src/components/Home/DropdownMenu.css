@@ -1,11 +1,10 @@
 .dropdown-main {
-  position: absolute;
   display: flex;
   flex-direction: column;
   gap: 1vh;
   left: 3vh;
   top: 42%;
-  z-index: 10;
+  position: absolute;
 }
 
 .truncate-style {
@@ -15,8 +14,9 @@
 
 .dropdown-container {
   max-width: 9vw;
-  height: 13vh;
-  border: 2px solid #F35908;
+  min-height: 13vh;
+  height: auto;
+  border: 2px solid #F34D08;
   border-radius: 20px;
   background-color: #FFF9CF;
   overflow: hidden;
@@ -24,10 +24,17 @@
   display: flex;
   box-shadow: 0vh 0.3vh 0.2vh 0vh rgba(0, 0, 0, 0.25);
   align-items: stretch;
+  position: absolute;
 }
 
 .dropdown-container.expanded {
-  height: auto;
+  display: flex;
+  align-items: flex-start;
+  background-color: white;
+}
+.dropdown-container.expanded .dropdown-left {
+  max-height: 52vh;
+  overflow-y: auto;
 }
 
 .dropdown-left {
@@ -35,19 +42,26 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 52vh;
-  overflow-y: scroll;
+  overflow-y: hidden; 
   width: 11vw;
+  height: auto;
+  max-height: 12vh;
+  transition: max-height 0.1s ease-in-out;
 }
 
 .selected-icon {
-  position: relative;
+  position: absolute;
   height: auto;
   width: auto;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1vh 0vh;
+  top: 1vh;
+}
+
+.hide-icon {
+  display: none;
 }
 
 .dropdown-items {
@@ -67,10 +81,12 @@
 }
 
 .dropdown-arrow.expanded-arrow {
-  align-items: flex-start;
-  padding-bottom: 38vh;
-  padding-right: 0.1vw;
-  width: 4vw;
+  padding-bottom: 0 !important; 
+  margin-top: 5vh;                
+  padding-right: 0.1vw;          
+  width: 4vw;                     
+  align-items: center;
+  justify-content: center;
 }
 
 .icon-img {
@@ -88,12 +104,13 @@
   width: 8vw;
   height: 2vh;
   color: #182A4F;
+  margin-top: 13vh;
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  gap: 1vh;
+  gap: 0.5vh;
   padding: 0 0.6vw;
   flex-direction: column;
   cursor: pointer;
@@ -108,6 +125,7 @@
   background-color: #FFB792;
   width: auto;
   height: auto;
+  padding-top: 4px;
 }
 
 .menu-label {
@@ -115,4 +133,14 @@
   text-align: center;
   color: #182A4F;
   font-weight: 400;
+}
+
+.menu-selected {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1vh;
+  height: 100%;
+  width: 100%;
 }

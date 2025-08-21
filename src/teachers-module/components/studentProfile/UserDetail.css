@@ -25,5 +25,5 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 150px;
-  color: var(--text-color);
+  color: #707070;
 }

@@ -22,6 +22,12 @@ const mockStudent: TableTypes<"user"> = {
   music_off: null,
   sfx_off: null,
   student_id: null,
+  firebase_id: null,
+  is_firebase: null,
+  is_ops: null,
+  learning_path: null,
+  ops_created_by: null,
+  stars: null
 };
 
 const meta: Meta<typeof UserDetail> = {

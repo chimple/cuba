@@ -1,7 +1,7 @@
 .divider {
-  height: 0.5px;
+  height: 2px;
   background-color: #7c5db0;
-  width: clamp(217px, 31vw, 217px);
+  width: 75vw;
 }
 .generate-button {
   width: 10vw;

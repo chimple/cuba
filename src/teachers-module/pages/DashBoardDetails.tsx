@@ -5,9 +5,11 @@ import Header from "../components/homePage/Header";
 import { BANDWISECOLOR, PAGES, TableTypes } from "../../common/constants";
 import { t } from "i18next";
 import DashBoardStudentProgres from "../components/homePage/DashBoardStudentProgres";
+import { Util } from "../../utility/util";
 
 interface DashBoardDetailsProps {}
 const DashBoardDetails: React.FC<DashBoardDetailsProps> = ({}) => {
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
   const history = useHistory();
   const bandcolor: string = history.location.state!["bandcolor"] as string;
   const studentsProgress: Map<
@@ -20,6 +22,22 @@ const DashBoardDetails: React.FC<DashBoardDetailsProps> = ({}) => {
   const studentLength: string = history.location.state![
     "studentLength"
   ] as string;
+  
+  const currentSchool = Util.getCurrentSchool();
+
+  useEffect(() => {
+    const fetchClassDetails = async () => {
+      try {
+        const tempClass = await Util.getCurrentClass();
+        setCurrentClass(tempClass || null);
+      } catch (err) {
+        console.error("DashBoardDetails → Failed to load current class:", err);
+        setCurrentClass(null);
+      }
+    };
+
+    fetchClassDetails();
+  }, []);
   return (
     <div className="dashboard-details-container">
       <Header
@@ -27,6 +45,10 @@ const DashBoardDetails: React.FC<DashBoardDetailsProps> = ({}) => {
         onButtonClick={() => {
           history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
         }}
+        showSchool={true}
+        showClass={true}
+        className={currentClass?.name}
+        schoolName={currentSchool?.name}
       />
       <main className="dashboard-details-body">
         <div
@@ -41,10 +63,10 @@ const DashBoardDetails: React.FC<DashBoardDetailsProps> = ({}) => {
                 ? t("Doing Good")
                 : t("Not Tracked")}
           <span style={{ marginLeft: "10px" }}>
-            {studentsProgress.length} / {studentLength}
+            {studentsProgress?.length} / {studentLength}
           </span>
         </div>
-        {studentsProgress.map((stdpr) => (
+        {studentsProgress?.map((stdpr) => (
           <DashBoardStudentProgres studentProgress={stdpr} />
         ))}
       </main>

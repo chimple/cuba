@@ -8,6 +8,7 @@
 }
 .type-dropdown {
   align-content: center;
+  width: clamp(170px, 32vw, 200px);
 }
 .no-students-container {
   height: 100%;
@@ -48,13 +49,15 @@ tbody {
 .reports-dropdown {
   display: flex;
   justify-content: space-between;
-  margin: 10px;
+  margin: 5px 0px;
+  width: 100%;
+  /* gap: 8px; */
 }
 .table-container-body {
   display: flex;
   flex: 1;
   height: 0;
-  border: 2px solid black;
+  border: 1px solid #EFF2F4;
 }
 
 th:first-child,
@@ -67,6 +70,8 @@ td:first-child {
   transform: inherit;
   background-color: white;
   z-index: 2;
+  font-weight: 400;
+  color:#4A4949;
 }
 
 table {
@@ -105,4 +110,17 @@ td {
   background-color: transparent;
   color: #4b79f0;
   border: 0;
+}
+.type-dropdown ion-select::part(placeholder),
+.type-dropdown ion-select::part(text) {
+  color: #7B7676;
+  flex: 0 0 auto;
+  padding-right: 0;
+  font-size: clamp(16px, 3vw, 18px);
+  font-weight: 600;
+}
+
+.custom-chapter-dropdown {
+  padding: 0 10px;
+  width: clamp(155px, 30vw, 200px);
 }

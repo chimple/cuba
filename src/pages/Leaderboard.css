@@ -115,3 +115,10 @@
   width: auto;
   height: clamp(30px, 12vh, 44px);
 }
+.leaderboard-switch-text{
+  white-space: nowrap;
+  display: block;
+  max-width: 20vh;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

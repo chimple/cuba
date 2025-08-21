@@ -68,7 +68,6 @@ const UserProfile: React.FC = () => {
       if (tempSchool) setCurrentSchool(tempSchool);
       const tempClass = Util.getCurrentClass();
       if (tempClass) {
-        console.log("fdsfsds 1", tempClass);
         setCurrentClass(tempClass);
       }
     } catch (error) {
@@ -81,7 +80,6 @@ const UserProfile: React.FC = () => {
     fetchLanguages();
   }, []);
 
-  console.log("fdsfsds", currentClass);
   if (!currentClass?.id) {
     console.error("No current class selected.");
     return null;

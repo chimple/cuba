@@ -70,11 +70,7 @@ const DisplayChapters: FC<{}> = () => {
     (course) => courseDocId == course.id
   );
   useEffect(() => {
-    const body = document.querySelector("body");
-    body?.style.setProperty(
-      "background-image",
-      "url(/pathwayAssets/pathwayBackground.svg)"
-    );
+    Util.loadBackgroundImage();
     init();
   }, []);
   useEffect(() => {

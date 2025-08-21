@@ -23,7 +23,6 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
   const [isTicked, setIsTicked] = useState(isSelcted);
 
   const handleImageClick = () => {
-    console.log("Image clicked");
     // Add your image click logic here
   };
 

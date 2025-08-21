@@ -24,6 +24,8 @@
 .play-ion{
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 10px;
 }
 .lesson-info-image{
   width: calc(40vw - 20px);
@@ -55,9 +57,9 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  font-size: 1.7vh;
+  font-size: 1.9vh;
 }
 
 .lesson-info-text{
-  color: black;
+  color: #707070;
 }

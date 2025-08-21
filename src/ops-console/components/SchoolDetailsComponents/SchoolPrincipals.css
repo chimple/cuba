@@ -1,0 +1,113 @@
+.school-principals-page-container {
+ background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0 1.5rem;
+}
+
+.school-principals-data-table-container {
+ flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid #eaecf0;
+  border-radius: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.school-principals-data-table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.school-principals-data-table-container th,
+.school-principals-data-table-container td {
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.school-principals-data-table-container th {
+  background-color: #f9fafb;
+  color: #667085;
+  font-weight: 500;
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  border-bottom: 1px solid #eaecf0;
+}
+.school-principals-data-table-container td {
+  color: #344054;
+  font-weight: 400;
+  font-size: 0.875rem; 
+  line-height: 1.25rem;
+  border-bottom: 1px solid #eaecf0;
+}
+.school-principals-data-table-container tbody tr:last-child td {
+  border-bottom: none;
+}
+.school-principals-data-table-container .principal-name-data.MuiTypography-root {
+  font-weight: 500 !important;
+  color: #1d2939 !important;
+}
+
+.school-principals-data-table-container .truncate-text {
+  max-width: 15.625rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.school-principals-school-list-pagination {
+  padding: 12px 24px;
+  border-top: 1px solid #eaecf0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: auto; 
+  flex-shrink: 0;
+}
+
+.school-principals-empty-state-container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 16px;
+  min-height: 250px;
+  width: 100%;
+  box-sizing: border-box;
+  flex-grow: 1;
+}
+
+.school-principals-empty-state-title.MuiTypography-root {
+  font-weight: 600 !important;
+  color: #1d2939 !important;
+  margin-bottom: 16px !important;
+  font-size: 1.125rem; 
+}
+
+.school-principals-empty-state-message.MuiTypography-root {
+  color: #475467 !important;
+  font-size: 0.875rem !important; 
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .school-principals-page-container {
+    padding: 0 1rem;
+  }
+
+   .school-principals-data-table-container {
+    margin-top: 1rem;
+    overflow-x: auto;
+  }
+  .school-principals-data-table-container th,
+  .school-principals-data-table-container td {
+    padding: 0.625rem 1rem;
+  }
+}

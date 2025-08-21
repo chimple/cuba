@@ -20,19 +20,19 @@
   display: flex;
   align-items: center;
   flex: 1;
-  color: #7B7676;
+  color: #707070;
   min-height: 20px;
-  font-size: 2vh;
+  font-size: 1.9vh;
 }
 
 .group-wise-content {
+  position: relative;
   display: flex;
-  align-items: center;
-  padding: 1px;
-  padding-left: 10px;
-  gap: 8px; 
+  /* align-items: center; */
+  height: auto;
   overflow-x: scroll;
   flex: 5;
+  /* padding: 2px 0px; */
 }
 .student-avatar-container {
   display: flex;
@@ -49,17 +49,34 @@
   width: auto;  
   height: 75%; 
   border-radius: 50%;
-  border: 2px solid #ddd;
+  border: 1px solid #707070;
   aspect-ratio: 1;
 }
 
 .avatar-name {
-  color: #333;
+  color: #707070;
   width: 100%; 
   white-space: nowrap; 
   overflow: hidden;
   text-overflow: ellipsis; 
   font-size: 1.8vh;
+  font-weight: 600;
 }
 
+.avatars-wrapper {
+  display: flex;
+  /* align-items: center; */
+  overflow-x: auto;         
+  padding-left: 6px;
+  width: 90%;
+}
 
+.expand-icon {
+  position: absolute;
+  top: 50%;
+  right: 10px;               
+  transform: translateY(-50%);
+  width: 16px;               
+  height: 16px;
+  flex-shrink: 0;           
+}

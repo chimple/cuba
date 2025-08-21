@@ -252,3 +252,15 @@
   display: flex;
   margin: 3vw 1vw 1vw 8vw;
 }
+.skeleton-school-list-wrapper {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton-rectangle {
+  height: 40px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+}

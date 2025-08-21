@@ -27,8 +27,3 @@ td {
 .border-divide{
   border: 2px solid
 }
-
-tr:last-child {
-  /* position:sticky; */
- border-bottom: 2px solid gray;
-}

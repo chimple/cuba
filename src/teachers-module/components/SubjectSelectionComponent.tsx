@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { IonButton, IonCheckbox } from "@ionic/react";
+import { IonButton,IonIcon } from "@ionic/react";
+import { checkmarkCircle, ellipseOutline } from 'ionicons/icons';
 import "./SubjectSelectionComponent.css";
 import { t } from "i18next";
 
@@ -61,23 +62,26 @@ const SubjectSelectionComponent: React.FC<SubjectSelectionProps> = ({
           <div className="curriculum-header">
             {curriculum.name} {curriculum.grade}
           </div>
-          {courses.map((course) => (
-            <div key={course.id} className="subject-item">
-              <div className="subject-selection-div">
-                <img
-                  src={course?.image || "assets/icons/DefaultIcon.png"}
-                  alt={course.name || "Default Subject Icon"}
-                  className="subject-icon"
+          {courses.map((course) => {
+            const isSelected = selectedSubjects.includes(course.id);
+            return (
+              <div key={course.id} className="subject-item">
+                <div className="subject-selection-div">
+                  <img
+                    src={course?.image || "assets/icons/DefaultIcon.png"}
+                    alt={course.name || "Default Subject Icon"}
+                    className="subject-icon"
+                  />
+                  {course.name}
+                </div>
+                <IonIcon
+                  icon={isSelected ? checkmarkCircle : ellipseOutline}
+                  className={`subject-page-checkbox ${isSelected ? "selected" : ""}`}
+                  onClick={() => onSubjectSelection(course.id)}
                 />
-                {course.name}
               </div>
-              <IonCheckbox
-                className="subject-page-checkbox"
-                checked={selectedSubjects.includes(course.id)}
-                onIonChange={() => onSubjectSelection(course.id)}
-              />
-            </div>
-          ))}
+            );
+          })}
         </div>
       ))}
       <div className="subject-selection-actions">

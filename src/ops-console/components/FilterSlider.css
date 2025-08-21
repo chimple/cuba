@@ -1,0 +1,77 @@
+.filter-slider-drawer-FilterSlider .MuiDrawer-paper {
+  width: 400px;
+  padding: 16px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.filter-header-FilterSlider {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.filter-content-FilterSlider {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow-y: auto;
+  flex-grow: 1;
+  padding-right: 8px;
+  margin-bottom: 16px;
+  padding-top: 8px;
+}
+
+.filter-footer-FilterSlider {
+  padding-top: 16px;
+  display: flex;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.filter-outlined-button-FilterSlider {
+  text-transform: none !important;
+}
+
+.filter-contained-button-FilterSlider {
+  text-transform: none !important;
+}
+
+.filter-content-FilterSlider::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filter-content-FilterSlider::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.filter-content-FilterSlider::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.filter-content-FilterSlider::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.filter-autocomplete-selected-FilterSlider {
+  border: none;
+  border-radius: 8px;
+  background: #e3f2fd;
+}
+
+@media (max-width: 600px) {
+  .filter-footer-FilterSlider {
+    flex-direction: column;
+  }
+
+  .filter-header-FilterSlider {
+    flex-direction: row;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+}

@@ -8,6 +8,7 @@ import {
   HomeWeeklySummary,
   PAGES,
   TableTypes,
+  ALL_SUBJECT
 } from "../../../../common/constants";
 import {
   IonContent,
@@ -33,7 +34,7 @@ const DashBoard: React.FC = ({}) => {
     useState<TableTypes<"course">>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<TableTypes<"user">[]>();
-  const [subjects, setSubjects] = useState<TableTypes<"course">[]>();
+  const [subjects, setSubjects] = useState<TableTypes<"course">[]>([]);;
   const [weeklySummary, setWeeklySummary] = useState<HomeWeeklySummary>();
   const [studentProgress, setStudentProgress] = useState<Map<any, any>>();
   const api = ServiceConfig.getI().apiHandler;
@@ -43,17 +44,21 @@ const DashBoard: React.FC = ({}) => {
     { icon: string; id: string; name: string; subjectDetail: string }[]
   >([]);
   useEffect(() => {
+  if (subjects.length > 0) {
     init();
-  }, [selectedSubject]);
+  }
+}, [selectedSubject, subjects]);
 
   useEffect(() => {
     initSubject();
   }, []);
+  
   const initSubject = async () => {
     const current_class = Util.getCurrentClass();
     const _subjects = await api.getCoursesForClassStudent(
       current_class?.id ?? ""
     );
+    
     setSubjects(_subjects);    
 
     const curriculumIds = Array.from(
@@ -95,24 +100,33 @@ const DashBoard: React.FC = ({}) => {
       Util.getCurrentCourse(current_class?.id) ?? _subjects[0]
     );
   };
-  const init = async () => {
+
+const init = async () => {
+    setIsLoading(true);
     const _students = await api.getStudentsForClass(current_class?.id ?? "");
-
     setStudents(_students);
+    const _classUtil = new ClassUtil();
+    const subject_ids = subjects.map(item => item.id);
+    const selectedsubjectIds: string[] =
+    selectedSubject?.id === ALL_SUBJECT.id || !selectedSubject?.id
+    ? subject_ids
+    : [selectedSubject.id];
+    const _studentProgress = await _classUtil.divideStudents(
+      current_class?.id ?? "",
+      selectedsubjectIds
+    );
+    const _weeklySummary = await _classUtil.getWeeklySummary(
+      current_class?.id ?? "",
+      selectedsubjectIds
+    );
 
-    var _classUtil = new ClassUtil();
-    var _studentProgress = await _classUtil.divideStudents(
-      current_class?.id ?? "",
-      selectedSubject?.id ?? ""
-    );
-    var _weeklySummary = await _classUtil.getWeeklySummary(
-      current_class?.id ?? "",
-      selectedSubject?.id ?? ""
-    );
     setWeeklySummary(_weeklySummary);
     setStudentProgress(_studentProgress);
     setIsLoading(false);
   };
+
+
+
   const handleSelectSubject = (subject) => {
     if (subject) {
       setSelectedSubject(subject);
@@ -126,6 +140,9 @@ const DashBoard: React.FC = ({}) => {
       event.detail.complete();
     });
   };
+
+  const subjectOptionsWithAll = [{ ...ALL_SUBJECT }, ...(mappedSubjectOptions ?? [])];
+
   return !isLoading ? (
     <IonContent>
       <IonRefresher slot="fixed" onIonRefresh={onRefresh}>
@@ -134,22 +151,23 @@ const DashBoard: React.FC = ({}) => {
       <main className="dashboard-container">
         <div className="dashboard-container-subject-dropdown">
           <ImageDropdown
-            options={mappedSubjectOptions ?? []}
-            selectedValue={{
-              id: selectedSubject?.id ?? "",
-              name: selectedSubject?.name ?? "",
-              // icon: (selectedSubject as any)?.icon ?? "",
-              icon:
-                (selectedSubject as any)?.icon ??
-                mappedSubjectOptions.find(
-                  (option) => option.id === selectedSubject?.id
-                )?.icon ??
-                "",
-              subjectDetail: (selectedSubject as any)?.subject ?? "",
-            }}
-            onOptionSelect={handleSelectSubject}
-            placeholder={t("Select Language") as string}
-          />
+          options={subjectOptionsWithAll}
+          selectedValue={{
+            id: selectedSubject?.id ?? "",
+            name: selectedSubject?.name ?? "",
+            icon:
+              (selectedSubject as any)?.icon ??
+              subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.icon ??
+              "",
+            subjectDetail:
+              (selectedSubject as any)?.subject ??
+              subjectOptionsWithAll.find((option) => option.id === selectedSubject?.id)?.subjectDetail ??
+              "",
+          }}
+          onOptionSelect={handleSelectSubject}
+          placeholder={t("Select Language") as string}
+        />
+
         </div>
         <WeeklySummary weeklySummary={weeklySummary} />
         <GroupWiseStudents

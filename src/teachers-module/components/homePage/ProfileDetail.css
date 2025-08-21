@@ -3,9 +3,9 @@
   --color: white;
 }
 .side-menu-header {
-  height: 10vh;
   background-color: #7c5db0;
   display: flex;
+  padding: 0px 6px;
   align-items: center;
 }
 .profile-details {
@@ -13,4 +13,14 @@
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
+  text-align: justify;
+}
+.profile-name {
+  font-size: 26px;
+  font-weight: 600;
+  /* text-align: justify; */
+}
+.profile-email {
+  font-size: 14px;
+  font-weight: 400;
 }

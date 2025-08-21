@@ -30,7 +30,6 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
   };
-  console.log()
   useEffect(() => {
     chapterSelectedLessons(chapter.id, selectedLessons);
   }, [selectedLessons]);
@@ -53,9 +52,9 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
           </div>
           <div>
             {isOpen ? (
-              <KeyboardArrowUpTwoToneIcon className="icon-style" />
+              <img src="assets/icons/iconUp.png" alt="drop_down" className="icon-style" />
             ) : (
-              <KeyboardArrowDownTwoToneIcon className="icon-style" />
+              <img src="assets/icons/iconDown.png" alt="drop_down" className="icon-style" />
             )}
           </div>
         </div>

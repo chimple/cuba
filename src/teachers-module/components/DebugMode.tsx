@@ -167,7 +167,6 @@ const DebugPage: React.FC = () => {
       localStorage.removeItem("downloaded_lessons_size");
       localStorage.removeItem(DOWNLOADED_LESSON_ID);
 
-      console.log("All lesson files deleted successfully.");
       await init();
       return true;
     } catch (error) {
@@ -221,8 +220,6 @@ const DebugPage: React.FC = () => {
       });
 
       const fileUri = savedFile.uri; // e.g., file://...
-
-      // console.log("File saved at:", fileUri);
 
       // Now share using plugin
       await PortPlugin.shareContentWithAndroidShare({

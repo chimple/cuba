@@ -7,6 +7,7 @@ import { PAGES, TableTypes } from "../common/constants";
 import { t } from "i18next";
 import { useHistory } from "react-router";
 import NextButton from "../components/common/NextButton";
+import { Util } from "../utility/util";
 
 const LiveQuizLeaderBoard: React.FC = () => {
   const [combinedStudentScores, setCombinedStudentScores] = useState<any>([]);
@@ -20,11 +21,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
   let resultData: TableTypes<"result">[] | null = [];
   let userData: TableTypes<"user">[] | null = [];
   useEffect(() => {
-    const body = document.querySelector("body");
-    body?.style.setProperty(
-      "background-image",
-      "url(/pathwayAssets/pathwayBackground.svg)"
-    );
+    Util.loadBackgroundImage();
     init();
   }, []);
 

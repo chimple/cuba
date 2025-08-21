@@ -44,19 +44,18 @@ const AddTeacher: React.FC = () => {
       setIsLoading(true);
 
       let fetchedUser;
-
       if (useEmail) {
         fetchedUser = await api?.getUserByEmail(inputValue);
       } else {
         fetchedUser = await api?.getUserByPhoneNumber(inputValue);
       }
 
-      if (school && fetchedUser) {
-        const userInClass = await api?.checkUserExistInSchool(
-          school?.id,
+      if (school && classDoc && fetchedUser) {
+        const userInClass = await api?.checkTeacherExistInClass(
+          school.id,
+          classDoc.id,
           fetchedUser.id
         );
-
         if (userInClass) {
           setShowAlert(true);
           setUser(undefined);
@@ -73,12 +72,11 @@ const AddTeacher: React.FC = () => {
       setIsLoading(false);
     }
   };
-
   const handleAddTeacher = async () => {
     setIsLoading(true);
 
     if (classDoc && user) {
-      await api.addTeacherToClass(classDoc.id, user.id);
+      await api.addTeacherToClass(classDoc.id, user);
 
       await api.updateSchoolLastModified(school.id);
       await api.updateClassLastModified(classDoc.id);
@@ -115,7 +113,7 @@ const AddTeacher: React.FC = () => {
           <div className="user-details">
             <hr className="horizontal-line" />
 
-            <div className="user-info-container">
+            <div className="add-teacher-container">
               <img
                 src={user.image ? user.image : "assets/icons/userIcon.png"}
                 className="user-image"
@@ -125,14 +123,13 @@ const AddTeacher: React.FC = () => {
                 }}
               />
               <p>{user.name}</p>
-              <IonButton
-                color="#7C5DB0"
+              <button
                 onClick={handleAddTeacher}
                 disabled={isLoading}
-                className="add-user-btn"
+                className="add-teacher-btn"
               >
                 {isLoading ? t("Adding") + "..." : t("Add")}
-              </IonButton>
+              </button>
             </div>
           </div>
         )}

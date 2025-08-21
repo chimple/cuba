@@ -6,13 +6,15 @@
 }
 
 td:first-child {
-  text-align: center;
+  text-align: left;
   min-width: 120px;
   max-width: 120px;
   writing-mode: horizontal-tb;
   transform: inherit;
   align-content: center;
   height: 50px;
+  padding-left: 5vw;
+  color: #4A4949;
 }
 
 .lesson-name-text {
@@ -44,9 +46,4 @@ td {
 
 .border-divide {
   border: 2px solid;
-}
-
-tr:last-child {
-  /* position:sticky; */
-  border-bottom: 2px solid gray;
 }

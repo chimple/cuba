@@ -1,0 +1,286 @@
+.LoginWithEmail-method-with-email {
+  position: absolute;
+  top: 40%;
+  width: 100%;
+  height: 100%;
+  background-image: url("/public/assets/loginAssets/LoginBG2.svg");
+  background-repeat: no-repeat;
+  background-position: top center;
+}
+
+.LoginWithEmail-container-with-email {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.LoginWithEmail-with-email-text {
+  font-size: 24px;
+  color: var(--text-color);
+  font-weight: bold;
+}
+
+.LoginWithEmail-forgot-email-text {
+  text-align: center;
+  font-size: 20px;
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+/* Student input container */
+.LoginWithEmail-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.LoginWithEmail-forgotPass-wrapper{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 325px;
+}
+
+.LoginWithEmail-divider-with-email {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.LoginWithEmail-input-icon-wrapper-email {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 10px;
+  width: 325px;
+  height: 50px;
+  padding-left: 12px;
+  overflow: hidden;
+}
+
+.LoginWithEmail-input-icon-email {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+}
+
+.LoginWithEmail-email-input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 18px;
+  background-color: transparent;
+  font-weight: 600;
+  color: var(--text-color);
+  border-left: 1px solid #dff2f2;
+  padding: 0 12px;
+}
+
+.LoginWithEmail-email-input::placeholder {
+  color: var(--text-color);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.LoginWithEmail-forgot-password-email-text {
+  color: var(--text-color);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-align: right;
+}
+
+/* START button */
+.LoginWithEmail-with-email-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 220px !important;
+  height: 60px !important;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 28px;
+  font-weight: 600;
+  padding-top: 4px;
+  border-bottom: 6px solid #8A2901;
+}
+
+.LoginWithEmail-with-email-button:active {
+  border-bottom: 4px  solid #8A2901 !important;
+  transition:
+    background 0.1s,
+    color 0.1s;
+}
+
+.LoginWithEmail-with-email-button:disabled {
+  background-color: #6d8c87 !important;
+  color: #a8a8a8 !important;
+  border-bottom:7Px solid #8a8a8a !important;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Error message */
+.LoginWithEmail-error-message-email {
+  color: var(--text-color);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+.LoginWithEmail-Forgoterror-message-email {
+  margin-top: 10px;
+  color: var(--text-color);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+@media (orientation: landscape) {
+  .LoginWithEmail-container-with-email{
+    margin-top: 10px;
+  }
+  .LoginWithEmail-input-wrapper{
+    margin-top: 15px;
+  }
+  .LoginWithEmail-input-wrapper {
+    flex-direction: row;
+    width: auto;
+    justify-content: center;
+    gap: 65px;
+  }
+  .LoginWithEmail-forgotPass-wrapper{
+    max-width: 725px;
+  }
+  .LoginWithEmail-input-icon-wrapper-email {
+    width: 325px;
+    height: 40px;
+    margin-top: -10px;
+  }
+  .LoginWithEmail-error-message-email{
+    margin-top: -20px;
+  }
+  .LoginWithEmail-divider-with-email{
+    margin-top: -15px;
+  }
+  .LoginWithEmail-with-email-button{
+    margin-top: -5px;
+  }
+}
+
+/* Responsive styling */
+@media (max-width: 768px) {
+  .LoginWithEmail-forgot-email-text {
+    margin-top: 13%;
+  }
+
+  .LoginWithEmail-method-with-email {
+    border-top-left-radius: 50% 80px;
+    border-top-right-radius: 50% 80px;
+    background-size: cover;
+    top: 32%;
+    min-height: 220px;
+    padding-top: 32px;
+    padding-bottom: 24px;
+  }
+
+  .LoginWithEmail-with-email-button {
+    max-width: 220px;
+    font-size: 32px;
+  }
+
+  .LoginWithEmail-with-email-text {
+    font-size: 32px;
+    margin-top: -10px;
+  }
+}
+@media (max-width: 500px) {
+  .LoginWithEmail-forgot-email-text {
+    margin-top: 13%;
+  }
+
+  .LoginWithEmail-input-wrapper {
+    margin-top: 15px;
+  }
+
+  .LoginWithEmail-method-with-email {
+    border-top-left-radius: 50% 80px;
+    border-top-right-radius: 50% 80px;
+    background-size: cover;
+    top: 33%;
+    min-height: 220px;
+    padding-top: 32px;
+    padding-bottom: 24px;
+  }
+
+  .LoginWithEmail-with-email-button {
+    max-width: 220px;
+    font-size: 32px;
+  }
+
+  .LoginWithEmail-with-email-text {
+    font-size: 32px;
+    margin-top: -10px;
+  }
+}
+
+@media (max-height: 500px) {
+  .LoginWithEmail-method-with-email {
+    top: 30%;
+  }
+  .LoginWithEmail-container-with-email{
+    margin-top: 0px;
+    gap: 5px;
+  }
+  .LoginWithEmail-input-wrapper{
+    margin-top: 5px;
+  }
+  .LoginWithEmail-divider-with-email{
+    margin-top: -5px;
+  }
+
+  .LoginWithEmail-with-email-button {
+    max-width: 200px;
+    max-height: 40px;
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 400px) and (max-height: 845px) {
+  .LoginWithEmail-container-with-email{
+    gap:5px;
+  }
+  .LoginWithEmail-with-email-text{
+    font-size: 20px;
+    margin-top: -20px;
+  }
+  .LoginWithEmail-input-wrapper{
+    margin-top: 10px;
+    gap: 10px;
+  }
+  .LoginWithEmail-input-icon-wrapper-email{
+    width: 310px;
+    height:40px;
+  }
+  .LoginWithEmail-with-email-button{
+    max-height: 45px;
+    font-size: 28px;
+  }
+  .LoginWithEmail-divider-with-email{
+    gap: 0px;
+  }
+}
+
+@media screen and (min-width: 533px) and (max-width: 700px) and (min-height: 940px) and (max-height: 1200px) {
+  .LoginWithEmail-method-with-email{
+    top:35%;
+  }
+  .LoginWithEmail-container-with-email{
+    gap: 15px;
+    margin-top: 2%;
+  }
+}

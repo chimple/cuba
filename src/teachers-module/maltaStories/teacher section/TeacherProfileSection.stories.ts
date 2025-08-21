@@ -22,6 +22,12 @@ const mockTeacher: TableTypes<"user"> = {
   sfx_off: null,
   updated_at: null,
   student_id: null,
+  firebase_id: null,
+  is_firebase: null,
+  is_ops: null,
+  learning_path: null,
+  ops_created_by: null,
+  stars: null
 };
 
 const mockClassDoc: TableTypes<"class"> = {
@@ -32,6 +38,14 @@ const mockClassDoc: TableTypes<"class"> = {
   is_deleted: null,
   school_id: "",
   updated_at: null,
+  academic_year: null,
+  firebase_id: null,
+  is_firebase: null,
+  is_ops: null,
+  ops_created_by: null,
+  standard: null,
+  status: null,
+  group_id: null
 };
 
 const meta: Meta<typeof TeacherProfileSection> = {
