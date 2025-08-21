@@ -2187,7 +2187,9 @@ export class SqliteApi implements ServiceApi {
         WHERE user_id = ? AND is_deleted = 0 AND role = 'student'
         LIMIT 1
       `;
-      const currentClassRes = await this.executeQuery(currentClassIdQuery, [student.id]);
+      const currentClassRes = await this.executeQuery(currentClassIdQuery, [
+        student.id,
+      ]);
       const currentClassId = currentClassRes?.values?.[0]?.class_id;
 
       if (currentClassId !== newClassId) {
@@ -5351,247 +5353,205 @@ order by
       return { data: [], total: 0 };
     }
 
-    // Step 1: Fetch all classes for the school to get their IDs.
-    const classQuery = `
-    SELECT id, name FROM ${TABLES.Class}
-    WHERE school_id = ? AND is_deleted = false;
-  `;
-    const classRes = await this._db.query(classQuery, [schoolId]);
-    const classes = classRes?.values ?? [];
-    if (classes.length === 0) {
-      return { data: [], total: 0 };
-    }
-
-    // Step 2: Prepare a map of class IDs to their grade/section for later,
-    // and collect all class IDs for the main queries.
-    const classMap = new Map<string, { grade: number; section: string }>();
-    const classIds: string[] = [];
-
-    for (const cls of classes) {
-      if (cls.id && cls.name) {
-        // Use 'await' to get the resolved value from the async Promise
-        const { grade, section } = await this.parseClassName(
-          cls.name as string
-        );
-        classMap.set(cls.id as string, { grade, section });
-        classIds.push(cls.id as string);
-      }
-    }
-
-    if (classIds.length === 0) {
-      return { data: [], total: 0 };
-    }
-
-    const placeholders = classIds.map(() => "?").join(", ");
-
-    // Step 3: Get the TOTAL COUNT of all teachers in one efficient query.
+    // STEP 1: Get the total count of unique teachers for the school.
     const countQuery = `
-    SELECT COUNT(*) as total
-    FROM ${TABLES.ClassUser}
-    WHERE class_id IN (${placeholders})
-      AND role = 'teacher'
-      AND is_deleted = false;
+    SELECT COUNT(DISTINCT cu.user_id) as total
+    FROM ${TABLES.ClassUser} cu
+    INNER JOIN ${TABLES.Class} c ON cu.class_id = c.id
+    WHERE c.school_id = ?
+      AND cu.role = 'teacher'
+      AND cu.is_deleted = false
+      AND c.is_deleted = false;
   `;
-    const countRes = await this._db.query(countQuery, classIds);
-    const totalCount = countRes?.values?.[0]?.total ?? 0;
 
-    if (totalCount === 0) {
+    const countRes = await this._db.query(countQuery, [schoolId]);
+    const total = countRes?.values?.[0]?.total || 0;
+
+    if (total === 0) {
       return { data: [], total: 0 };
     }
 
-    // Step 4: Get the PAGINATED class-user links for the current page.
     const offset = (page - 1) * limit;
-    const classUserQuery = `
-    SELECT user_id, class_id
-    FROM ${TABLES.ClassUser}
-    WHERE class_id IN (${placeholders})
-      AND role = 'teacher'
-      AND is_deleted = false
+
+    const dataQuery = `
+    SELECT
+      u.*,
+      c.name as class_name
+    FROM ${TABLES.ClassUser} cu
+    INNER JOIN ${TABLES.User} u ON cu.user_id = u.id
+    INNER JOIN ${TABLES.Class} c ON cu.class_id = c.id
+    WHERE c.school_id = ?
+      AND cu.role = 'teacher'
+      AND cu.is_deleted = false
+      AND c.is_deleted = false
+      AND u.is_deleted = false
+    -- Group by teacher to handle cases where a teacher has multiple classes,
+    -- ensuring we only get one row per teacher for pagination.
+    GROUP BY u.id
+    ORDER BY u.name ASC
     LIMIT ? OFFSET ?;
   `;
-    const classUserRes = await this._db.query(classUserQuery, [
-      ...classIds,
-      limit,
-      offset,
-    ]);
-    const classUsers = classUserRes?.values ?? [];
 
-    // If the current page is empty (e.g., page 3 of 2), return empty data but the correct total.
-    if (classUsers.length === 0) {
-      return { data: [], total: totalCount };
-    }
+    const dataRes = await this._db.query(dataQuery, [schoolId, limit, offset]);
+    const rows = dataRes?.values ?? [];
 
-    // Step 5: Fetch the full user details for ONLY the teachers on the current page.
-    const teacherClassPairs: { userId: string; classId: string }[] =
-      classUsers.map((cu) => ({
-        userId: cu.user_id as string,
-        classId: cu.class_id as string,
-      }));
+    // STEP 3: Map the flat SQL result into the nested TeacherInfo structure.
+    const teacherInfoList: TeacherInfo[] = rows.map((row: any) => {
+      const { class_name, ...teacherUser } = row;
 
-    const uniqueUserIds = [
-      ...new Set(teacherClassPairs.map((pair) => pair.userId)),
-    ];
-    if (uniqueUserIds.length === 0) {
-      return { data: [], total: totalCount };
-    }
+      const { grade, section } = this.parseClassName(class_name || "");
 
-    const userPlaceholders = uniqueUserIds.map(() => "?").join(", ");
-    const userQuery = `SELECT * FROM ${TABLES.User} WHERE id IN (${userPlaceholders});`;
-    const userRes = await this._db.query(userQuery, uniqueUserIds);
-    const users: TableTypes<"user">[] =
-      (userRes?.values as TableTypes<"user">[]) ?? [];
+      return {
+        user: teacherUser as TableTypes<"user">,
+        grade: grade,
+        classSection: section,
+      };
+    });
 
-    // Step 6: Merge the user details with their class information.
-    const userMap = new Map<string, TableTypes<"user">>();
-    users.forEach((user) => user?.id && userMap.set(user.id, user));
-
-    const teacherInfoList: TeacherInfo[] = []; // Use the specific TeacherInfo type
-
-    for (const { userId, classId } of teacherClassPairs) {
-      const user = userMap.get(userId);
-      const classInfo = classMap.get(classId);
-      if (user && classInfo) {
-        teacherInfoList.push({
-          user,
-          grade: classInfo.grade,
-          classSection: classInfo.section,
-        });
-      }
-    }
-
-    // Step 7: Return the final object matching the TeacherAPIResponse shape.
     return {
       data: teacherInfoList,
-      total: totalCount,
+      total: total,
     };
   }
-  async parseClassName(
-    className: string
-  ): Promise<{ grade: number; section: string }> {
-    const match = className.match(/^(\d+)([A-Za-z]+)$/);
-    if (match) {
-      return {
-        grade: parseInt(match[1], 10),
-        section: match[2],
-      };
+  parseClassName(className: string): { grade: number; section: string } {
+    const cleanedName = className.trim();
+    if (!cleanedName) {
+      return { grade: 0, section: "" };
     }
-    return { grade: 0, section: "" };
+
+    let grade = 0;
+    let section = "";
+
+    // Pattern 1: Just a number (e.g., "1", "5", "10")
+    const numericMatch = cleanedName.match(/^(\d+)$/);
+    if (numericMatch) {
+      grade = parseInt(numericMatch[1], 10);
+      return { grade: isNaN(grade) ? 0 : grade, section: "" };
+    }
+
+    // Pattern 2: Number followed by letters or words (e.g., "3A", "5 B")
+    const alphanumericMatch = cleanedName.match(/(\d+)\s*(\w+)/i);
+    if (alphanumericMatch) {
+      grade = parseInt(alphanumericMatch[1], 10);
+      section = alphanumericMatch[2];
+      return { grade: isNaN(grade) ? 0 : grade, section };
+    }
+
+    console.warn(
+      `Could not parse grade from class name: "${cleanedName}". Assigning grade 0.`
+    );
+    return { grade: 0, section: cleanedName };
   }
 
-  public async getStudentInfoBySchoolId(
+  async getStudentInfoBySchoolId(
     schoolId: string,
-    page: number,
-    limit: number
+    page: number = 1,
+    limit: number = 20
   ): Promise<StudentAPIResponse> {
     if (!this._db) {
       console.warn("Database not initialized, cannot fetch student info.");
       return { data: [], total: 0 };
     }
 
-    // Step 1: Get all classes for the given school
-    const classQuery = `
-    SELECT id, name
-    FROM ${TABLES.Class}
-    WHERE school_id = ?
-      AND is_deleted = false;
-  `;
-    const classRes = await this._db.query(classQuery, [schoolId]);
-    const classes = classRes?.values ?? [];
-
-    if (classes.length === 0) {
-      console.log(
-        `No classes found for school ${schoolId}, so no student info.`
-      );
-      return { data: [], total: 0 };
-    }
-
-    const classMap = new Map<string, { grade: number; section: string }>();
-    const studentClassPairs: { userId: string; classId: string }[] = [];
-
-    // Step 2: Get ALL student User IDs associated with the school (This part is fine)
-    for (const cls of classes) {
-      const classUserQuery = `
-      SELECT user_id
-      FROM ${TABLES.ClassUser}
-      WHERE class_id = ? AND role = 'student' AND is_deleted = false;
-    `;
-      const classUserRes = await this._db.query(classUserQuery, [cls.id]);
-      const classUsers = classUserRes?.values ?? [];
-
-      for (const cu of classUsers) {
-        if (cu?.user_id) {
-          studentClassPairs.push({
-            userId: cu.user_id,
-            classId: cls.id as string,
-          });
-        }
-      }
-    }
-
-    const uniqueUserIds = [
-      ...new Set(studentClassPairs.map((pair) => pair.userId)),
-    ];
-
-    // Get the total count BEFORE slicing for pagination
-    const totalStudentCount = uniqueUserIds.length;
-
-    if (totalStudentCount === 0) {
-      console.log(`No unique student user IDs found for school ${schoolId}.`);
-      return { data: [], total: 0 };
-    }
-
-    // Step 3: Apply pagination to user IDs
     const offset = (page - 1) * limit;
-    const paginatedUserIds = uniqueUserIds.slice(offset, offset + limit);
 
-    if (paginatedUserIds.length === 0) {
-      // This can happen if the page number is too high. We still have a total count.
-      console.log(`No students found for page ${page} in school ${schoolId}.`);
-      return { data: [], total: totalStudentCount };
-    }
-
-    // Fetching user details for the paginated IDs
-    const placeholders = paginatedUserIds.map(() => "?").join(", ");
-    const userQuery = `
-    SELECT *
-    FROM ${TABLES.User}
-    WHERE id IN (${placeholders})
-      AND is_deleted = false;
+    // Step 1: Get total count (Your query is perfect)
+    const countQuery = `
+    SELECT COUNT(DISTINCT cu.user_id) as total
+    FROM ${TABLES.ClassUser} cu
+    INNER JOIN ${TABLES.Class} c ON cu.class_id = c.id
+    WHERE cu.role = 'student'
+      AND cu.is_deleted = false
+      AND c.school_id = ?
+      AND c.is_deleted = false;
   `;
-    const userRes = await this._db.query(userQuery, paginatedUserIds);
-    const users: TableTypes<"user">[] =
-      (userRes?.values as TableTypes<"user">[]) ?? [];
+    const countRes = await this._db.query(countQuery, [schoolId]);
+    const total = countRes?.values?.[0]?.total ?? 0;
 
-    // ... mapping and combining logic is fine ...
-    const userMap = new Map<string, TableTypes<"user">>();
-    users.forEach((user) => user?.id && userMap.set(user.id, user));
-
-    const studentInfoList: StudentInfo[] = []; // Using the imported StudentInfo type
-    // Create a map for quick lookups to avoid iterating over studentClassPairs many times
-    const classIdByUserId = new Map<string, string>();
-    studentClassPairs.forEach((pair) =>
-      classIdByUserId.set(pair.userId, pair.classId)
-    );
-
-    for (const userId of paginatedUserIds) {
-      const user = userMap.get(userId);
-      const classId = classIdByUserId.get(userId);
-      if (user && classId) {
-        const classInfo = classMap.get(classId);
-        if (classInfo) {
-          studentInfoList.push({
-            user,
-            grade: classInfo.grade,
-            classSection: classInfo.section,
-          });
-        }
-      }
+    if (total === 0) {
+      return { data: [], total: 0 };
     }
 
-    //CHANGE 5: Return the final object with data and total count
+    // Step 2: Fetch paginated data
+    const query = `
+    SELECT 
+      u.*,
+      c.name as class_name,
+      p.id as parent_id,
+      p.name as parent_name,
+      p.email as parent_email,
+      p.phone as parent_phone
+      -- Add any other parent fields you want here, aliased with 'parent_'
+    FROM ${TABLES.ClassUser} cu
+    INNER JOIN ${TABLES.Class} c ON cu.class_id = c.id
+    INNER JOIN ${TABLES.User} u ON cu.user_id = u.id
+    LEFT JOIN ${TABLES.ParentUser} pu ON pu.student_id = u.id AND pu.is_deleted = false
+    LEFT JOIN ${TABLES.User} p ON p.id = pu.parent_id AND p.is_deleted = false
+    WHERE cu.role = 'student'
+      AND cu.is_deleted = false
+      AND c.school_id = ?
+      AND c.is_deleted = false
+      AND u.is_deleted = false
+    -- Important to group by student to avoid duplicates if a student is in multiple classes
+    GROUP BY u.id
+    ORDER BY u.name ASC
+    LIMIT ? OFFSET ?;
+  `;
+    const res = await this._db.query(query, [schoolId, limit, offset]);
+    const rows = res?.values ?? [];
+
+    const studentInfoList: StudentInfo[] = rows.map((row: any) => {
+      const {
+        class_name,
+        parent_id,
+        parent_name,
+        parent_email,
+        parent_phone,
+        ...studentUser
+      } = row;
+
+      const { grade, section } = this.parseClassName(class_name || "");
+      const parentObject: TableTypes<"user"> | null = parent_id
+        ? {
+            id: parent_id,
+            name: parent_name,
+            email: parent_email,
+            phone: parent_phone,
+            age: null,
+            avatar: null,
+            created_at: new Date().toISOString(),
+            curriculum_id: null,
+            fcm_token: null,
+            firebase_id: null,
+            gender: null,
+            grade_id: null,
+            image: null,
+            is_deleted: false,
+            is_firebase: false,
+            is_ops: false,
+            is_tc_accepted: false,
+            language_id: null,
+            learning_path: null,
+            music_off: false,
+            ops_created_by: null,
+            sfx_off: false,
+            stars: null,
+            student_id: null,
+            updated_at: null,
+          }
+        : null;
+
+      return {
+        user: studentUser as TableTypes<"user">,
+        grade,
+        classSection: section,
+        parent: parentObject,
+      };
+    });
+
     return {
       data: studentInfoList,
-      total: totalStudentCount,
+      total,
     };
   }
 
