@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
-import SchoolStudentsComponent from "../../../ops-console/components/SchoolDetailsComponents/SchoolStudents"; 
+import SchoolStudentsComponent from "../../../ops-console/components/SchoolDetailsComponents/SchoolStudents";
 import { StudentInfo } from "../../../common/constants";
 import { Tables } from "../../../services/database";
 
@@ -85,8 +85,81 @@ const sampleApiStudents: StudentInfo[] = [
     "Male",
     "345-678-9012"
   ),
+  parseSampleClassName(
+    "4A",
+    "S004",
+    "Diana Prince",
+    "Female",
+    "456-789-0123",
+    "777-888-9999"
+  ),
+  parseSampleClassName("4A", "S005", "Clark Kent", "Male", "567-890-1234"),
+  parseSampleClassName(
+    "3B",
+    "S006",
+    "Bruce Wayne",
+    "Male",
+    "678-901-2345",
+    "123-123-1234"
+  ),
 ];
 
-const meta = {} satisfies Meta<typeof SchoolStudentsComponent>;
+const meta = {
+  title: "OpsConsole/Components/SchoolStudents",
+  component: SchoolStudentsComponent,
+  decorators: [
+    (Story) => (
+      <MemoryRouter>
+        <Story />
+      </MemoryRouter>
+    ),
+  ],
+  tags: ["autodocs"],
+  args: {
+    isMobile: false,
+    schoolId: "sample-chimple-school-id",
+    data: {
+      students: [],
+      totalStudentCount: 0,
+    },
+  },
+  argTypes: {
+    data: { control: "object" },
+    isMobile: { control: "boolean" },
+    schoolId: { control: "text" },
+  },
+} satisfies Meta<typeof SchoolStudentsComponent>;
 
 export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const EmptyState: Story = {
+  args: {
+    data: {
+      students: [],
+      totalStudentCount: 0,
+    },
+  },
+};
+
+export const WithStudents: Story = {
+  args: {
+    data: {
+      students: sampleApiStudents,
+      totalStudentCount: sampleApiStudents.length,
+    },
+  },
+};
+
+export const MobileView: Story = {
+  args: {
+    data: {
+      students: sampleApiStudents.slice(0, 3),
+      totalStudentCount: sampleApiStudents.length,
+    },
+    isMobile: true,
+  },
+  parameters: {
+    viewport: { defaultViewport: "iphone6" },
+  },
+};
