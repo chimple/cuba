@@ -7452,14 +7452,14 @@ export class SupabaseApi implements ServiceApi {
         return {
           id: row.user.id,
           name: row.user.name,
+          gender: row.user.gender ?? null,
           student_id: row.user.student_id,
           phone: row.user.phone,
           class_id: row.class_id,
           class_name: className,
           grade,
           classSection: section,
-          parent_id: parentUser?.parent_id ?? null,
-          parent_name: parent?.name ?? null,
+          parent
         };
       });
       return { data: result, total: filteredRows.length };
@@ -7565,14 +7565,14 @@ export class SupabaseApi implements ServiceApi {
         return {
           id: row.user.id,
           name: row.user.name,
+          gender: row.user.gender ?? null,
           email: row.user.email,
           phone: row.user.phone,
           class_id: row.class_id,
           class_name: className,
           grade,
           classSection: section,
-          parent_id: parentUser?.parent_id ?? null,
-          parent_name: parent?.name ?? null,
+          parent
         };
       });
       return { data: result, total: filteredRows.length };

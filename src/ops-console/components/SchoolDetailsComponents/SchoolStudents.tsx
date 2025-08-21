@@ -157,42 +157,30 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     setPage(1); 
   };
 
-  const normalizedStudents = useMemo(() => {
-    return students.map((s) => {
-      if ('user' in s && s.user) {
-        return {
-          ...s,
-          user: {
-            ...s.user,
-            name: s.user.name ?? undefined,
-            email: s.user.email ?? undefined,
-            student_id: s.user.student_id ?? undefined,
-            gender: s.user.gender ?? "N/A",
-          },
-          grade: typeof s.grade === "number" ? s.grade : 0,
-          classSection: s.classSection ?? "N/A",
-          parent: s.parent ?? { id: undefined, name: "", phone: undefined },
-        };
-      } else {
-        return {
-          user: {
-            id: (s as any).id,
-            name: (s as any).name,
-            student_id: (s as any).student_id,
-            phone: (s as any).phone,
-            gender: (s as any).gender ?? "N/A",
-          },
-          grade: (s as any).grade ?? 0,
-          classSection: (s as any).class_name ?? "N/A",
-          parent: {
-            id: (s as any).parent_id ?? undefined,
-            name: (s as any).parent_name ?? "",
-            phone: (s as any).phone ?? undefined,
-          },
-        };
-      }
-    });
-  }, [students]);
+  const normalizedStudents = useMemo(() =>
+    students.map((s: any) => {
+      const user = s.user ?? s;
+
+      return {
+        ...s,
+        user: {
+          id: user.id,
+          name: user.name ?? undefined,
+          email: user.email ?? undefined,
+          student_id: user.student_id ?? undefined,
+          phone: user.phone ?? undefined,
+          gender: user.gender ?? "N/A",
+        },
+        grade: s.grade ?? (s.grade ?? 0),
+        classSection: s.classSection ?? "N/A",
+        parent: s.parent ?? {
+          id: s.parent_id ?? undefined,
+          name: s.parent_name ?? "",
+          phone: s.phone ?? undefined,
+        },
+      };
+    }),
+  [students]);
 
   const filteredStudents = useMemo(
     () => filterBySearchAndFilters(normalizedStudents, filters, searchTerm, 'student'),

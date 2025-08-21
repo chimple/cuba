@@ -147,41 +147,32 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
 
   const normalizedTeachers = useMemo(
     () =>
-      teachers.map((t) => {
-        if ('user' in t && t.user) {
-          return {
-            ...t,
-            user: {
-              ...t.user,
-              name: t.user.name ?? undefined,
-              email: t.user.email ?? undefined,
-              student_id: t.user.student_id ?? undefined,
-              gender: t.user.gender ?? "N/A",
+      teachers.map((t: any) => {
+        const user = t.user ?? t;
+
+        return {
+          ...t,
+          user: {
+            id: user.id,
+            name: user.name ?? undefined,
+            email: user.email ?? undefined,
+            student_id: user.student_id ?? undefined,
+            phone: user.phone ?? undefined,
+            gender: user.gender ?? "N/A",
+          },
+          grade: t.grade ?? (t.grade ?? 0),
+          classSection: t.classSection ?? "N/A",
+          parent:
+            t.parent ?? {
+              id: t.parent_id ?? undefined,
+              name: t.parent_name ?? "",
+              phone: t.phone ?? undefined,
             },
-            grade: typeof t.grade === "number" ? t.grade : 0,
-            classSection: t.classSection ?? "N/A",
-          };
-        } else {
-          return {
-            user: {
-              id: (t as any).id,
-              name: (t as any).name,
-              email: (t as any).email,
-              phone: (t as any).phone,
-              gender: (t as any).gender ?? "N/A",
-            },
-            grade:  (t as any).grade ?? 0,
-            classSection: (t as any).class_name ?? "N/A",
-            parent: {
-              id: (t as any).parent_id ?? undefined,
-              name: (t as any).parent_name ?? "",
-              phone: (t as any).phone ?? undefined,
-            },
-          };
-        }
+        };
       }),
     [teachers]
   );
+
 
   const filteredTeachers = useMemo(
     () =>
