@@ -161,10 +161,49 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       ),
     [normalizedTeachers, filters, searchTerm]
   );
-  const sortedTeachers = useMemo(
-    () => sortSchoolTeachers(filteredTeachers, orderBy, order),
-    [filteredTeachers, orderBy, order]
-  );
+  const sortedTeachers = useMemo(() => {
+    return [...filteredTeachers].sort((a, b) => {
+      let aValue, bValue;
+      switch (orderBy) {
+        case "name":
+          aValue = a.user.name || "";
+          bValue = b.user.name || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "gender":
+          aValue = a.user.gender || "";
+          bValue = b.user.gender || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "grade":
+          aValue = a.grade || 0;
+          bValue = b.grade || 0;
+          return order === "asc" ? aValue - bValue : bValue - aValue;
+        case "classSection":
+          aValue = a.classSection || "";
+          bValue = b.classSection || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "phoneNumber":
+          aValue = a.user.phone || "";
+          bValue = b.user.phone || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "emailDisplay":
+          aValue = a.user.email || "";
+          bValue = b.user.email || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        default:
+          return 0;
+      }
+    });
+  }, [filteredTeachers, orderBy, order]);
 
   const displayTeachers = useMemo((): DisplayTeacher[] => {
     return sortedTeachers.map(
