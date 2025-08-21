@@ -62,8 +62,7 @@ export const AppUpdater = {
   sync: async (
     webServerURL: string,
     statusCallback: (status: HotUpdateStatus) => void,
-    // checkDelay: number = 1000 * 60 * 60
-    checkDelay: number = 0
+    checkDelay: number = 1000 * 60 * 60
   ): Promise<boolean> => {
     // Do not run the sync job on non-native platforms. On Web the service worker will manage caching file instead.
     if (!Capacitor.isNativePlatform()) {
