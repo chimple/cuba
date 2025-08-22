@@ -80,7 +80,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         try {
           let response;
           if (search && search.trim() !== "") {
-            const result = await api.searchTeachersInSchool(schoolId, search);
+            const result = await api.searchTeachersInSchool(schoolId, search, currentPage, ROWS_PER_PAGE);
             setTeachers(result.data);
             setTotalCount(result.total);
           } else {
