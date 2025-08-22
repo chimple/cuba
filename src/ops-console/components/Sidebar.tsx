@@ -27,6 +27,10 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { IonItem } from "@ionic/react";
 import CommonToggle from "../../common/CommonToggle";
 import { Capacitor } from "@capacitor/core";
+import {
+  IoGitPullRequestOutline,
+  IoGitPullRequestSharp,
+} from "react-icons/io5";
 
 interface SidebarProps {
   name: string;
@@ -54,6 +58,11 @@ const navItems = [
     label: NavItems.COMPAIGNS,
     route: PAGES.SIDEBAR_PAGE + PAGES.ADMIN_COMPAIGNS,
     icon: <CampaignIcon />,
+  },
+  {
+    label: NavItems.REQUESTS,
+    route: PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST,
+    icon: <IoGitPullRequestSharp />,
   },
   {
     label: NavItems.USERS,
@@ -115,7 +124,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
     }
   };
 
-  // Close sidebar when user click on outside 
+  // Close sidebar when user click on outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (

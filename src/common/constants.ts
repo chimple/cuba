@@ -1,6 +1,6 @@
 import { Capacitor } from "@capacitor/core";
 import Auth from "../models/auth";
-import { Database } from "../services/database";
+import { Constants, Database } from "../services/database";
 import { RoleType } from "../interface/modelInterfaces";
 import SelectIconImage from "../teachers-module/assets/icons/all_subject_icon.png";
 
@@ -13,6 +13,8 @@ export enum COURSES {
 }
 export type TableTypes<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Row"];
+export type EnumType<K extends keyof (typeof Constants)["public"]["Enums"]> =
+  (typeof Constants)["public"]["Enums"][K][number];
 
 export enum MUTATE_TYPES {
   INSERT = "insert",
@@ -65,6 +67,7 @@ export enum TABLES {
   ChapterLinks = "chapter_links",
   Program = "program",
   SpecialUsers = "special_users",
+  OpsRequests = "ops_requests",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -473,6 +476,7 @@ export enum PAGES {
   USER_DETAILS = "/user-details",
   PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS = "/program-connected-school-list-page-ops",
   NEW_USERS_OPS = "/new-user-ops",
+  REQUEST_LIST = "/request-list",
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -504,6 +508,7 @@ export enum NavItems {
   PROGRAMS = "Programs",
   SCHOOLS = "Schools",
   COMPAIGNS = "Campaigns",
+  REQUESTS = "Requests",
   USERS = "Users",
   DEVICES = "Devices",
   RESOURCES = "Resources",
@@ -514,7 +519,19 @@ export enum ProgramType {
   Private = "private",
   LearningCenter = "learning_centers",
 }
+export enum RequestTypes {
+  STUDENT = "student",
+  TEACHER = "teacher",
+  PRINCIPAL = "principal",
+  SCHOOL = "school",
+}
+export const DEFAULT_PAGE_SIZE = 20;
 
+export enum REQUEST_TABS {
+  PENDING = "Pending",
+  APPROVED = "Approved",
+  REJECTED = "Rejected",
+}
 export interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;
