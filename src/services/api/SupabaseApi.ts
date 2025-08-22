@@ -7587,14 +7587,42 @@ export class SupabaseApi implements ServiceApi {
         console.error("Error fetching class_user rows:", classUserError);
         return { data: [], total: 0 };
       }
-      // Step 3: Pagination
+      // Step 3: Get parent phone numbers for each student using an inner query
+      const studentIds = classUserData.map((row: any) => row.user.id);
+      let parentPhoneMap: Record<string, { parent_id: string; parent_name: string | null; parent_phone: string | null }> = {};
+      if (studentIds.length > 0) {
+        const { data: parentData, error: parentError } = await this.supabase
+          .from('parent_user')
+          .select('student_id, parent_id, user:parent_id(id, name, phone)')
+          .in('student_id', studentIds)
+          .eq('is_deleted', false);
+        if (parentError) {
+          console.error("Error fetching parent_user rows:", parentError);
+        } else {
+          for (const row of parentData ?? []) {
+            let parent_name = null;
+            let parent_phone = null;
+            if (row.user && typeof row.user === "object" && !Array.isArray(row.user)) {
+              parent_name = (row.user as any).name ?? null;
+              parent_phone = (row.user as any).phone ?? null;
+            }
+            parentPhoneMap[row.student_id] = {
+              parent_id: row.parent_id,
+              parent_name,
+              parent_phone,
+            };
+          }
+        }
+      }
+      // Step 4: Pagination
       const offset = (page - 1) * limit;
       const pagedRows = classUserData.slice(offset, offset + limit);
-      // Step 4: Build result objects
+      // Step 5: Build result objects
       const result = pagedRows.map((row: any) => {
         const classInfo = classData.find((c: any) => c.id === row.class_id);
         const className = classInfo?.name ?? '';
         const { grade, section } = this.parseClassName(className);
+        const parentInfo = parentPhoneMap[row.user.id] ?? {};
         return {
           id: row.user.id,
           name: row.user.name,
@@ -7604,7 +7632,12 @@ export class SupabaseApi implements ServiceApi {
           class_id: row.class_id,
           class_name: className,
           grade,
-          classSection: section
+          classSection: section,
+          parent: {
+            id: parentInfo.parent_id ?? undefined,
+            name: parentInfo.parent_name ?? undefined,
+            phone: parentInfo.parent_phone ?? undefined,
+          },
         };
       });
       return { data: result, total: classUserData.length };
@@ -7613,7 +7646,6 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: 0 };
     }
   }
-  
   async searchTeachersInSchool(
     schoolId: string,
     searchTerm: string,
@@ -7647,14 +7679,51 @@ export class SupabaseApi implements ServiceApi {
         console.error("Error fetching class_user rows:", classUserError);
         return { data: [], total: 0 };
       }
-      // Step 3: Pagination
+      // Step 3: Get parent info for each teacher using an inner query
+      const teacherIds = classUserData.map((row: any) => row.user.id);
+      let parentInfoMap: Record<string, { parent_id: string; parent_name: string | null; parent_phone: string | null }> = {};
+      if (teacherIds.length > 0) {
+        const { data: parentUserData, error: parentUserError } = await this.supabase
+          .from('parent_user')
+          .select('parent_id, student_id')
+          .in('student_id', teacherIds)
+          .eq('is_deleted', false);
+        if (!parentUserError && parentUserData && parentUserData.length > 0) {
+          const parentIds = parentUserData.map((row: any) => row.parent_id);
+          let parentDetailsMap: Record<string, { name: string | null; phone: string | null }> = {};
+          if (parentIds.length > 0) {
+            const { data: parentDetails, error: parentDetailsError } = await this.supabase
+              .from('user')
+              .select('id, name, phone')
+              .in('id', parentIds)
+              .eq('is_deleted', false);
+            if (!parentDetailsError && parentDetails && parentDetails.length > 0) {
+              for (const parent of parentDetails) {
+                parentDetailsMap[parent.id] = {
+                  name: parent.name ?? null,
+                  phone: parent.phone ?? null
+                };
+              }
+            }
+          }
+          for (const row of parentUserData) {
+            parentInfoMap[row.student_id] = {
+              parent_id: row.parent_id,
+              parent_name: parentDetailsMap[row.parent_id]?.name ?? null,
+              parent_phone: parentDetailsMap[row.parent_id]?.phone ?? null
+            };
+          }
+        }
+      }
+      // Step 4: Pagination
       const offset = (page - 1) * limit;
       const pagedRows = classUserData.slice(offset, offset + limit);
-      // Step 4: Build result objects (no parent info)
+      // Step 5: Build result objects (with parent info)
       const result = pagedRows.map((row: any) => {
         const classInfo = classData.find((c: any) => c.id === row.class_id);
         const className = classInfo?.name ?? '';
         const { grade, section } = this.parseClassName(className);
+        const parentInfo = parentInfoMap[row.user.id] ?? null;
         return {
           id: row.user.id,
           name: row.user.name,
@@ -7664,7 +7733,8 @@ export class SupabaseApi implements ServiceApi {
           class_id: row.class_id,
           class_name: className,
           grade,
-          classSection: section
+          classSection: section,
+          parent: parentInfo
         };
       });
       return { data: result, total: classUserData.length };
