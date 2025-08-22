@@ -40,7 +40,10 @@ import {
   PrincipalAPIResponse,
   CoordinatorInfo,
   CoordinatorAPIResponse,
+  RequestTypes,
+  EnumType,
 } from "../../common/constants";
+import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import Course from "../../models/course";
@@ -1233,11 +1236,12 @@ export class SupabaseApi implements ServiceApi {
           .insert([newUserCourse]);
       }
     } else {
-      const [englishCourse, mathsCourse, digitalSkillsCourse] = await Promise.all([
-        this.getCourse(CHIMPLE_ENGLISH),
-        this.getCourse(CHIMPLE_MATHS),
-        this.getCourse(CHIMPLE_DIGITAL_SKILLS),
-      ]);
+      const [englishCourse, mathsCourse, digitalSkillsCourse] =
+        await Promise.all([
+          this.getCourse(CHIMPLE_ENGLISH),
+          this.getCourse(CHIMPLE_MATHS),
+          this.getCourse(CHIMPLE_DIGITAL_SKILLS),
+        ]);
       const language = await this.getLanguageWithId(languageDocId!);
       let langCourse;
       if (language && language.code !== COURSES.ENGLISH) {
@@ -2156,7 +2160,7 @@ export class SupabaseApi implements ServiceApi {
       grade_id: gradeDocId,
       language_id: languageDocId,
       student_id: student.student_id ?? null,
-      updated_at:now
+      updated_at: now,
     };
 
     try {
@@ -2175,7 +2179,6 @@ export class SupabaseApi implements ServiceApi {
         .eq("is_deleted", false)
         .maybeSingle();
       if (currentClassUser?.class_id !== newClassId) {
-
         // Mark old class_user as deleted
         if (currentClassUser) {
           await this.supabase
@@ -4349,7 +4352,7 @@ export class SupabaseApi implements ServiceApi {
 
       const { data, error } = await this.supabase
         .from("chapter_lesson")
-        .select("chapter_id, chapter(course_id), lesson!inner(id)") 
+        .select("chapter_id, chapter(course_id), lesson!inner(id)")
         .eq("lesson_id", lessonId)
         .eq("is_deleted", false)
         .eq("chapter.is_deleted", false)
@@ -7352,6 +7355,202 @@ export class SupabaseApi implements ServiceApi {
       }
     } catch (error) {
       console.error("Error in addParentToNewClass:", error);
+    }
+  }
+
+  async getOpsRequests(
+    requestStatus: EnumType<"ops_request_status">,
+    page: number = 1,
+    limit: number = 8,
+    filters?: { request_type?: string[]; school?: string[] },
+    searchTerm?: string
+  ) {
+    try {
+      if (!this.supabase) return;
+
+      const offset = (page - 1) * limit;
+      let combinedData: any[] = [];
+
+      const applyFilters = async (query: any) => {
+        if (filters?.request_type?.length) {
+          query = query.in("request_type", filters.request_type);
+        }
+
+        if (filters?.school?.length) {
+          if (!this.supabase) return null;
+
+          const { data: schoolData, error: schoolError } = await this.supabase
+            .from(TABLES.School)
+            .select("id")
+            .in("name", filters.school)
+            .eq("is_deleted", false);
+
+          if (schoolError) throw schoolError;
+
+          const schoolIds = (schoolData || []).map((s) => s.id);
+          if (schoolIds.length) {
+            query = query.in("school_id", schoolIds);
+          } else {
+            return null;
+          }
+        }
+
+        if (searchTerm?.trim()) {
+          query = query.ilike("request_id", `%${searchTerm}%`);
+        }
+
+        return query;
+      };
+
+      if (requestStatus === Constants.public.Enums.ops_request_status[2]) {
+        // Approved + expired pending
+        let approvedQuery = this.supabase
+          .from(TABLES.OpsRequests)
+          .select("*")
+          .eq("is_deleted", false)
+          .eq("request_status", Constants.public.Enums.ops_request_status[2])
+          .range(offset, offset + limit - 1);
+
+        approvedQuery = await applyFilters(approvedQuery);
+        if (!approvedQuery) return [];
+        const { data: approvedData, error: approvedError } =
+          await approvedQuery;
+        if (approvedError) throw approvedError;
+
+        let expiredQuery = this.supabase
+          .from(TABLES.OpsRequests)
+          .select("*")
+          .eq("is_deleted", false)
+          .eq("request_status", Constants.public.Enums.ops_request_status[0])
+          .eq("request_type", RequestTypes.STUDENT)
+          .lte("request_ends_at", new Date().toISOString());
+
+        expiredQuery = await applyFilters(expiredQuery);
+        if (!expiredQuery) return [];
+        const { data: expiredPendingData, error: expiredError } =
+          await expiredQuery;
+        if (expiredError) throw expiredError;
+
+        combinedData = [...(approvedData || []), ...(expiredPendingData || [])];
+      } else if (
+        requestStatus === Constants.public.Enums.ops_request_status[0]
+      ) {
+        const now = new Date().toISOString();
+        let pendingQuery = this.supabase
+          .from(TABLES.OpsRequests)
+          .select("*")
+          .eq("is_deleted", false)
+          .eq("request_status", requestStatus)
+          .or(
+            `request_type.neq.student,and(request_type.eq.student,request_ends_at.gt.${now})`
+          )
+          .range(offset, offset + limit - 1);
+
+        pendingQuery = await applyFilters(pendingQuery);
+        if (!pendingQuery) return [];
+        const { data, error } = await pendingQuery;
+        if (error) throw error;
+        combinedData = data || [];
+      } else {
+        let query = this.supabase
+          .from(TABLES.OpsRequests)
+          .select("*")
+          .eq("is_deleted", false)
+          .eq("request_status", requestStatus)
+          .range(offset, offset + limit - 1);
+
+        query = await applyFilters(query);
+        if (!query) return [];
+        const { data, error } = await query;
+        if (error) throw error;
+        combinedData = data || [];
+      }
+
+      if (!combinedData.length) {
+        console.warn("No results found after filtering/search");
+        return [];
+      }
+
+      const mappedRequests = await Promise.all(
+        combinedData.map(async (req) => {
+          const [school, classInfo, requestedBy, respondedBy] =
+            await Promise.all([
+              this.getSchoolById(req.school_id!),
+              req.class_id ? this.getClassById(req.class_id) : null,
+              this.getUserByDocId(req.requested_by!),
+              req.responded_by ? this.getUserByDocId(req.responded_by) : null,
+            ]);
+
+          return {
+            ...req,
+            school,
+            classInfo,
+            requestedBy,
+            respondedBy,
+          };
+        })
+      );
+
+      return mappedRequests;
+    } catch (error) {
+      console.error("Error in getOpsRequests:", error);
+      throw error;
+    }
+  }
+
+  async getRequestFilterOptions() {
+    try {
+      if (!this.supabase) return null;
+
+      const [requestTypeResponse, schoolResponse] = await Promise.all([
+        this.supabase
+          .from(TABLES.OpsRequests)
+          .select("request_type")
+          .eq("is_deleted", false),
+
+        this.supabase
+          .from(TABLES.OpsRequests)
+          .select("school:school(name)")
+          .eq("is_deleted", false)
+          .not("school_id", "is", null),
+      ]);
+
+      if (requestTypeResponse.error) {
+        console.error(
+          "Failed to fetch request types:",
+          requestTypeResponse.error.message
+        );
+        throw requestTypeResponse.error;
+      }
+
+      if (schoolResponse.error) {
+        console.error("Failed to fetch schools:", schoolResponse.error.message);
+        throw schoolResponse.error;
+      }
+      // 1. Get unique request types
+      const allRequestTypes = (requestTypeResponse.data || []).map(
+        (item) => item.request_type
+      );
+      const uniqueRequestTypes = [...new Set(allRequestTypes)];
+
+      // 2. Get unique school names
+      const schoolNames = new Set<string>();
+
+      ((schoolResponse.data as any[]) || []).forEach((item) => {
+        if (item.school && item.school.name) {
+          schoolNames.add(item.school.name);
+        }
+      });
+
+      const uniqueSchoolNames = Array.from(schoolNames);
+
+      return {
+        requestType: uniqueRequestTypes,
+        school: uniqueSchoolNames,
+      };
+    } catch (error) {
+      console.error("Error in getRequestFilterOptions:", error);
+      throw error;
     }
   }
 

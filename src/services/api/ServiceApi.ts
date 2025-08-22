@@ -4,6 +4,7 @@ import Lesson from "../../models/lesson";
 import { StudentLessonResult } from "../../common/courseConstants";
 import {
   CoordinatorAPIResponse,
+  EnumType,
   FilteredSchoolsForSchoolListingOps,
   LeaderboardDropdownList,
   LeaderboardRewards,
@@ -1910,7 +1911,30 @@ export interface ServiceApi {
    * @param {string} classID
    * @param {string} studentID
    */
-  addParentToNewClass(classID:string, studentID:string): Promise<void>;
+  addParentToNewClass(classID: string, studentID: string): Promise<void>;
+
+  /**
+   * Fetches operational requests with pagination and optional filters.
+   * @param {RequestStatus} requestStatus - Status of the requests (e.g., PENDING, APPROVED, REJECTED).
+   * @param {number} page - Current page number for pagination.
+   * @param {number} limit - Number of records per page.
+   * @param {{ request_type?: string[]; school?: string[] }} [filters] - Optional filters by request type and/or school.
+   * @param {string} [searchTerm] - Optional search keyword to filter results.
+   */
+  getOpsRequests(
+    requestStatus: EnumType<"ops_request_status">,
+    page: number,
+    limit: number,
+    filters?: { request_type?: string[]; school?: string[] },
+    searchTerm?: string
+  );
+
+  /**
+   * Retrieves available filter options for operational requests.
+   * Typically used for populating dropdowns or filters in UI.
+   * @returns {Promise<any>} - Returns a promise resolving to the available filter options.
+   */
+  getRequestFilterOptions();
   
     /**
      * Search teachers in a school by name, email, or phone (paginated)
