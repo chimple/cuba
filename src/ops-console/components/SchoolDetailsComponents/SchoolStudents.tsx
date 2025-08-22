@@ -69,19 +69,40 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     section: [],
   });
   const [isFilterSliderOpen, setIsFilterSliderOpen] = useState(false);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("");
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm]);
 
   const fetchStudents = useCallback(
-    async (currentPage: number) => {
+    async (currentPage: number, search: string) => {
       setIsLoading(true);
       const api = ServiceConfig.getI().apiHandler;
       try {
-        const response = await api.getStudentInfoBySchoolId(
-          schoolId,
-          currentPage,
-          ROWS_PER_PAGE
-        );
-        setStudents(response.data);
-        setTotalCount(response.total);
+        let response;
+        if (search && search.trim() !== "") {
+          response = await api.searchStudentsInSchool(
+            schoolId,
+            search,
+            currentPage,
+            ROWS_PER_PAGE
+          );
+          setStudents(response.data);
+          setTotalCount(response.total);
+        } else {
+          response = await api.getStudentInfoBySchoolId(
+            schoolId,
+            currentPage,
+            ROWS_PER_PAGE
+          );
+          setStudents(response.data);
+          setTotalCount(response.total);
+        }
       } catch (error) {
         console.error("Failed to fetch students:", error);
       } finally {
@@ -93,13 +114,18 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   useEffect(() => {
     // Don't fetch on the initial render for page 1, because we already have the data from props.
-    if (page === 1 && !searchTerm && filters.grade.length === 0 && filters.section.length === 0) {
+    if (
+      page === 1 &&
+      !debouncedSearchTerm &&
+      filters.grade.length === 0 &&
+      filters.section.length === 0
+    ) {
       setStudents(data.students || []);
       setTotalCount(data.totalStudentCount || 0);
       return;
     }
-    fetchStudents(page);
-  }, [page, fetchStudents, data.students, data.totalStudentCount]);
+    fetchStudents(page, debouncedSearchTerm);
+  }, [page, debouncedSearchTerm, fetchStudents, data.students, data.totalStudentCount, filters.grade.length, filters.section.length]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -114,7 +140,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
-    setPage(1); 
+    setPage(1);
   };
 
   const handleApplyFilters = () => {
@@ -131,17 +157,30 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     setPage(1); 
   };
 
-  const normalizedStudents = useMemo(() => {
-    return students.map((s) => ({
-      ...s,
-      user: {
-        ...s.user,
-        name: s.user.name ?? undefined,
-        email: s.user.email ?? undefined,
-        student_id: s.user.student_id ?? undefined,
-      },
-    }));
-  }, [students]);
+  const normalizedStudents = useMemo(() =>
+    students.map((s: any) => {
+      const user = s.user ?? s;
+
+      return {
+        ...s,
+        user: {
+          id: user.id,
+          name: user.name ?? undefined,
+          email: user.email ?? undefined,
+          student_id: user.student_id ?? undefined,
+          phone: user.phone ?? undefined,
+          gender: user.gender ?? "N/A",
+        },
+        grade: s.grade ?? (s.grade ?? 0),
+        classSection: s.classSection ?? "N/A",
+        parent: s.parent ?? {
+          id: s.parent_id ?? undefined,
+          name: s.parent_name ?? "",
+          phone: s.phone ?? undefined,
+        },
+      };
+    }),
+  [students]);
 
   const filteredStudents = useMemo(
     () => filterBySearchAndFilters(normalizedStudents, filters, searchTerm, 'student'),
@@ -196,20 +235,17 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     return sortedStudents.map(
       (s_api): DisplayStudent => ({
         id: s_api.user.id,
-        studentIdDisplay: s_api.user.student_id || "N/A",
-        name: s_api.user.name || "N/A",
-        gender: s_api.user.gender || "N/A",
-        grade: s_api.grade,
-        classSection: s_api.classSection || "N/A",
-        phoneNumber: s_api.parent?.phone || "N/A", 
+        studentIdDisplay: s_api.user.student_id ?? "N/A",
+        name: s_api.user.name ?? "N/A",
+        gender: s_api.user.gender ?? "N/A",
+        grade: s_api.grade ?? 0,
+        classSection: s_api.classSection ?? "N/A",
+        phoneNumber: s_api.parent?.phone ?? "N/A", 
       })
     );
   }, [sortedStudents]);
 
   const pageCount = useMemo(() => {
-    if (searchTerm || filters.grade.length > 0 || filters.section.length > 0) {
-      return Math.ceil(filteredStudents.length / ROWS_PER_PAGE);
-    }
     return Math.ceil(totalCount / ROWS_PER_PAGE);
   }, [totalCount, filters, searchTerm, filteredStudents.length]);
 

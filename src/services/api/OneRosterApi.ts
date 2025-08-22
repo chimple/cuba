@@ -508,6 +508,27 @@ export class OneRosterApi implements ServiceApi {
     };
   }
 
+  /**
+   * Search students by name, student_id, or phone number in a school, paginated.
+   * Not implemented for OneRosterApi, returns empty result.
+  */
+  searchStudentsInSchool(
+    schoolId: string,
+    searchTerm: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<StudentAPIResponse> {
+    return Promise.resolve({ data: [], total: 0 });
+  }
+
+  /**
+   * Search teachers by name, email, or phone in a school. Not implemented for OneRosterApi.
+   */
+  async searchTeachersInSchool(schoolId: string, searchTerm: string): Promise<any[]> {
+  // Not implemented for OneRosterApi, return empty paginated result
+  return { data: [], total: 0 };
+  }
+
   async getClassesForUser(userId: string): Promise<Class[]> {
     // throw new Error("Method not implemented.");
     // try {

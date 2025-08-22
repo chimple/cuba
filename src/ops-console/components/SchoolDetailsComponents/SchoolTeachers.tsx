@@ -70,26 +70,36 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   });
   const [isFilterSliderOpen, setIsFilterSliderOpen] = useState(false);
 
-  const fetchTeachers = useCallback(
-    async (currentPage: number) => {
-      setIsLoading(true);
-      const api = ServiceConfig.getI().apiHandler;
-      try {
-        const response = await api.getTeacherInfoBySchoolId(
-          schoolId,
-          currentPage,
-          ROWS_PER_PAGE
-        );
-        setTeachers(response.data);
-        setTotalCount(response.total);
-      } catch (error) {
-        console.error("Failed to fetch teachers:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [schoolId]
-  );
+  const fetchTeachers = useMemo(() => {
+    let debounceTimer: NodeJS.Timeout | null = null;
+    return (currentPage: number, search: string) => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(async () => {
+        setIsLoading(true);
+        const api = ServiceConfig.getI().apiHandler;
+        try {
+          let response;
+          if (search && search.trim() !== "") {
+            const result = await api.searchTeachersInSchool(schoolId, search, currentPage, ROWS_PER_PAGE);
+            setTeachers(result.data);
+            setTotalCount(result.total);
+          } else {
+            response = await api.getTeacherInfoBySchoolId(
+              schoolId,
+              currentPage,
+              ROWS_PER_PAGE
+            );
+            setTeachers(response.data);
+            setTotalCount(response.total);
+          }
+        } catch (error) {
+          console.error("Failed to fetch teachers:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }, 500);
+    };
+  }, [schoolId]);
 
   useEffect(() => {
     if (
@@ -102,7 +112,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       setTotalCount(data.totalTeacherCount || 0);
       return;
     }
-    fetchTeachers(page);
+    fetchTeachers(page, searchTerm);
   }, [
     page,
     fetchTeachers,
@@ -135,21 +145,34 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     setPage(1);
   };
 
-  // FIX: Ensure all properties being normalized match the expected type of the utility function.
   const normalizedTeachers = useMemo(
     () =>
-      teachers.map((t) => ({
-        ...t,
-        user: {
-          ...t.user,
-          name: t.user.name ?? undefined,
-          email: t.user.email ?? undefined,
-          // This line fixes the error by converting `null` to `undefined`.
-          student_id: t.user.student_id ?? undefined,
-        },
-      })),
+      teachers.map((t: any) => {
+        const user = t.user ?? t;
+
+        return {
+          ...t,
+          user: {
+            id: user.id,
+            name: user.name ?? undefined,
+            email: user.email ?? undefined,
+            student_id: user.student_id ?? undefined,
+            phone: user.phone ?? undefined,
+            gender: user.gender ?? "N/A",
+          },
+          grade: t.grade ?? (t.grade ?? 0),
+          classSection: t.classSection ?? "N/A",
+          parent:
+            t.parent ?? {
+              id: t.parent_id ?? undefined,
+              name: t.parent_name ?? "",
+              phone: t.phone ?? undefined,
+            },
+        };
+      }),
     [teachers]
   );
+
 
   const filteredTeachers = useMemo(
     () =>
