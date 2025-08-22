@@ -361,6 +361,7 @@ const [order, setOrder] = useState<"asc" | "desc">("asc");
                 onSearchChange={handleSearchChange}
                 filters={filters}
                 onFilterClick={onFilterClick}
+                onClearFilters={handleCancelFilters}
               />
             )}
           </div>
