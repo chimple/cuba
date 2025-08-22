@@ -7,7 +7,11 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { REQUEST_TABS, RequestStatus } from "../../common/constants";
+import {
+  DEFAULT_PAGE_SIZE,
+  EnumType,
+  REQUEST_TABS,
+} from "../../common/constants";
 import DataTablePagination from "../components/DataTablePagination";
 import DataTableBody, { Column } from "../components/DataTableBody";
 import { t } from "i18next";
@@ -17,6 +21,7 @@ import SelectedFilters from "../components/SelectedFilters";
 import { BsFillBellFill } from "react-icons/bs";
 import { useLocation, useHistory } from "react-router";
 import "./RequestList.css";
+import { Constants } from "../../services/database";
 
 const filterConfigsForRequests = [
   { key: "request_type", label: t("Request Type") },
@@ -34,8 +39,6 @@ const tabOptions = Object.entries(REQUEST_TABS).map(([key, val]) => ({
   label: val,
   value: val,
 }));
-
-const DEFAULT_PAGE_SIZE = 8;
 
 const RequestList: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -119,33 +122,24 @@ const RequestList: React.FC = () => {
     fetchData();
   }, [selectedTab, filters, page, orderBy, orderDir, searchTerm]);
 
-  function formatDateToIST(dateString: string): string {
-    if (!dateString) return "-";
-
-    try {
-      return new Date(dateString).toLocaleString("en-IN", {
-        timeZone: "Asia/Kolkata",
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      });
-    } catch {
-      return "-";
-    }
-  }
+  const formatDateOnly = (dateStr?: string) => {
+    if (!dateStr) return "-";
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    });
+  };
 
   const fetchData = useCallback(async () => {
     setIsDataLoading(true);
     try {
-      const tempTab: RequestStatus =
+      const tempTab: EnumType<"ops_request_status"> =
         selectedTab === REQUEST_TABS.PENDING
-          ? RequestStatus.REQUESTED
+          ? Constants.public.Enums.ops_request_status[0]
           : selectedTab === REQUEST_TABS.APPROVED
-            ? RequestStatus.APPROVED
-            : RequestStatus.REJECTED;
+            ? Constants.public.Enums.ops_request_status[2]
+            : Constants.public.Enums.ops_request_status[1];
       const cleanedFilters = Object.fromEntries(
         Object.entries({ ...filters }).filter(
           ([_, v]) => Array.isArray(v) && v.length > 0
@@ -171,7 +165,7 @@ const RequestList: React.FC = () => {
               school_name: req.school?.name || "-",
               class: req.classInfo?.name || "-",
               from: req.requestedBy?.name || "-",
-              approved_date: formatDateToIST(req.updated_at),
+              approved_date: formatDateOnly(req.updated_at),
               approved_by: req.respondedBy?.name || "-",
             };
           });
@@ -185,7 +179,7 @@ const RequestList: React.FC = () => {
               school_name: req.school?.name || "-",
               class: req.classInfo?.name || "-",
               from: req.requestedBy?.name || "-",
-              rejected_date: formatDateToIST(req.updated_at),
+              rejected_date: formatDateOnly(req.updated_at),
               rejected_reason: req.rejected_reason_type || "-",
               rejected_by: req.respondedBy?.name || "-",
             };
@@ -195,13 +189,25 @@ const RequestList: React.FC = () => {
         case REQUEST_TABS.PENDING:
         default:
           mappedData = (data || []).map((req) => {
+            const requestedDate = new Date(req.created_at).toLocaleString(
+              "en-IN",
+              {
+                timeZone: "Asia/Kolkata",
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+              }
+            );
             return {
               request_id: req.request_id,
               request_type: req.request_type,
               school_name: req.school?.name || "-",
               class: req.classInfo?.name || "-",
               from: req.requestedBy?.name || "-",
-              requested_date: formatDateToIST(req.created_at),
+              requested_date: requestedDate,
             };
           });
           break;
@@ -221,14 +227,14 @@ const RequestList: React.FC = () => {
     {
       key: "request_id",
       label: t("Request ID"),
-      width: "30%",
+      width: "10%",
       sortable: true,
       orderBy: "request_id",
     },
     {
       key: "request_type",
       label: t("Request Type"),
-      width: "fit-content",
+      width: "15%",
       sortable: true,
       orderBy: "request_type",
     },
@@ -263,7 +269,7 @@ const RequestList: React.FC = () => {
     {
       key: "request_id",
       label: t("Request ID"),
-      width: "20%",
+      width: "10%",
       sortable: true,
       orderBy: "request_id",
     },
@@ -312,7 +318,7 @@ const RequestList: React.FC = () => {
     {
       key: "request_id",
       label: t("Request ID"),
-      width: "15%",
+      width: "10%",
       sortable: true,
       orderBy: "request_id",
     },
@@ -385,7 +391,12 @@ const RequestList: React.FC = () => {
     }
     setPage(1);
   };
-
+  const handleCancelFilters = () => {
+    setTempFilters(INITIAL_FILTERS);
+    setFilters(INITIAL_FILTERS);
+    setIsFilterOpen(false);
+    setPage(1);
+  };
   const pageCount = Math.ceil(total / pageSize);
 
   return (
@@ -433,6 +444,7 @@ const RequestList: React.FC = () => {
                 }}
                 filters={filters}
                 onFilterClick={() => setIsFilterOpen(true)}
+                onClearFilters={handleCancelFilters}
               />
             </div>
           </div>

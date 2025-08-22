@@ -40,9 +40,10 @@ import {
   PrincipalAPIResponse,
   CoordinatorInfo,
   CoordinatorAPIResponse,
-  RequestStatus,
   RequestTypes,
+  EnumType,
 } from "../../common/constants";
+import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import Course from "../../models/course";
@@ -7356,8 +7357,9 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error in addParentToNewClass:", error);
     }
   }
+
   async getOpsRequests(
-    requestStatus: RequestStatus,
+    requestStatus: EnumType<"ops_request_status">,
     page: number = 1,
     limit: number = 8,
     filters?: { request_type?: string[]; school?: string[] },
@@ -7380,7 +7382,8 @@ export class SupabaseApi implements ServiceApi {
           const { data: schoolData, error: schoolError } = await this.supabase
             .from(TABLES.School)
             .select("id")
-            .in("name", filters.school);
+            .in("name", filters.school)
+            .eq("is_deleted", false);
 
           if (schoolError) throw schoolError;
 
@@ -7399,13 +7402,13 @@ export class SupabaseApi implements ServiceApi {
         return query;
       };
 
-      if (requestStatus === RequestStatus.APPROVED) {
+      if (requestStatus === Constants.public.Enums.ops_request_status[2]) {
         // Approved + expired pending
         let approvedQuery = this.supabase
           .from(TABLES.OpsRequests)
           .select("*")
           .eq("is_deleted", false)
-          .eq("request_status", RequestStatus.APPROVED)
+          .eq("request_status", Constants.public.Enums.ops_request_status[2])
           .range(offset, offset + limit - 1);
 
         approvedQuery = await applyFilters(approvedQuery);
@@ -7418,7 +7421,7 @@ export class SupabaseApi implements ServiceApi {
           .from(TABLES.OpsRequests)
           .select("*")
           .eq("is_deleted", false)
-          .eq("request_status", RequestStatus.REQUESTED)
+          .eq("request_status", Constants.public.Enums.ops_request_status[0])
           .eq("request_type", RequestTypes.STUDENT)
           .lte("request_ends_at", new Date().toISOString());
 
@@ -7429,7 +7432,9 @@ export class SupabaseApi implements ServiceApi {
         if (expiredError) throw expiredError;
 
         combinedData = [...(approvedData || []), ...(expiredPendingData || [])];
-      } else if (requestStatus === RequestStatus.REQUESTED) {
+      } else if (
+        requestStatus === Constants.public.Enums.ops_request_status[0]
+      ) {
         const now = new Date().toISOString();
         let pendingQuery = this.supabase
           .from(TABLES.OpsRequests)

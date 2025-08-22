@@ -41,7 +41,7 @@ import {
   CoordinatorInfo,
   CoordinatorAPIResponse,
   EVENTS,
-  RequestStatus,
+  EnumType,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -5817,7 +5817,7 @@ order by
     throw new Error("Method not implemented.");
   }
   async getOpsRequests(
-    requestStatus: RequestStatus,
+    requestStatus: EnumType<"ops_request_status">,
     page: number = 1,
     limit: number = 8,
     filters?: { request_type?: string[]; school?: string[] },

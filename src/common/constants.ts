@@ -1,6 +1,6 @@
 import { Capacitor } from "@capacitor/core";
 import Auth from "../models/auth";
-import { Database } from "../services/database";
+import { Constants, Database } from "../services/database";
 import { RoleType } from "../interface/modelInterfaces";
 import SelectIconImage from "../teachers-module/assets/icons/all_subject_icon.png";
 
@@ -13,6 +13,8 @@ export enum COURSES {
 }
 export type TableTypes<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Row"];
+export type EnumType<K extends keyof (typeof Constants)["public"]["Enums"]> =
+  (typeof Constants)["public"]["Enums"][K][number];
 
 export enum MUTATE_TYPES {
   INSERT = "insert",
@@ -523,12 +525,8 @@ export enum RequestTypes {
   PRINCIPAL = "principal",
   SCHOOL = "school",
 }
+export const DEFAULT_PAGE_SIZE = 20;
 
-export enum RequestStatus {
-  APPROVED = "approved",
-  REJECTED = "rejected",
-  REQUESTED = "requested",
-}
 export enum REQUEST_TABS {
   PENDING = "Pending",
   APPROVED = "Approved",

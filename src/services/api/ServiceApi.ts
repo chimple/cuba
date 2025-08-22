@@ -4,6 +4,7 @@ import Lesson from "../../models/lesson";
 import { StudentLessonResult } from "../../common/courseConstants";
 import {
   CoordinatorAPIResponse,
+  EnumType,
   FilteredSchoolsForSchoolListingOps,
   LeaderboardDropdownList,
   LeaderboardRewards,
@@ -11,7 +12,6 @@ import {
   MODES,
   PrincipalAPIResponse,
   PROFILETYPE,
-  RequestStatus,
   SchoolRoleMap,
   StudentAPIResponse,
   TABLES,
@@ -1922,7 +1922,7 @@ export interface ServiceApi {
    * @param {string} [searchTerm] - Optional search keyword to filter results.
    */
   getOpsRequests(
-    requestStatus: RequestStatus,
+    requestStatus: EnumType<"ops_request_status">,
     page: number,
     limit: number,
     filters?: { request_type?: string[]; school?: string[] },

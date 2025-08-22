@@ -18,7 +18,7 @@ import {
   TabType,
   PrincipalAPIResponse,
   CoordinatorAPIResponse,
-  RequestStatus,
+  EnumType,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -1408,7 +1408,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.addParentToNewClass(classId, studentId);
   }
   public async getOpsRequests(
-    requestStatus: RequestStatus,
+    requestStatus: EnumType<"ops_request_status">,
     page: number = 1,
     limit: number = 8,
     filters?: { request_type?: string[]; school?: string[] },
