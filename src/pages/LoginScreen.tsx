@@ -130,6 +130,7 @@ const LoginScreen: React.FC = () => {
   useEffect(() => {
     const initialize = async () => {
       try {
+        console.log("currentLang124", currentLang);
         // lock orientation if native
         if (Capacitor.isNativePlatform()) {
           await ScreenOrientation.lock({ orientation: "portrait" });
@@ -138,9 +139,9 @@ const LoginScreen: React.FC = () => {
         // language
         const appLang = localStorage.getItem(LANGUAGE);
         if (!appLang) {
-          localStorage.setItem(LANGUAGE, "en");
-          setCurrentLang("en");
-          await i18n.changeLanguage("en");
+          localStorage.setItem(LANGUAGE, "pt");
+          setCurrentLang("pt");
+          await i18n.changeLanguage("pt");
         } else {
           setCurrentLang(appLang);
           await i18n.changeLanguage(appLang);

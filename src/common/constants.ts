@@ -10,6 +10,7 @@ export enum COURSES {
   PUZZLE = "puzzle",
   ENGLISH = "en",
   MATHS = "maths",
+  Português = "pt",
 }
 export type TableTypes<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Row"];
@@ -112,11 +113,11 @@ export enum LeaderboardDropdownList {
 }
 
 export enum APP_LANGUAGES {
+  pt = "Português",
   en = "English",
   hi = "हिन्दी",
   kn = "ಕನ್ನಡ",
   mr = "मराठी",
-  pt = "Português",
 }
 export enum HOMEHEADERLIST {
   SUGGESTIONS = "SUGGESTIONS",
@@ -891,6 +892,11 @@ export const CHIMPLE_DIGITAL_SKILLS = "19bb079f-bc69-44e4-bc1d-0b77f2683b6c";
 export const CHIMPLE_HINDI = "7e9d65fa-ac2e-452e-bca4-1499d5c174e0";
 export const GRADE1_KANNADA = "a90608de-4376-4baf-82c2-07760b2aa899";
 export const GRADE1_MARATHI = "2cada0d1-db3d-4da0-8ade-e9ba282a3558";
+export const Observa_à_Tua_Volta = "0937c891-9bed-4fa2-b422-ad3bee7f4569";
+export const O_Nosso_País = "7c48a4aa-f753-4411-8b9b-13735dfe9762";
+export const Ouvir_e_Falar_Ler_e_Escrever =
+  "149cbdd6-2227-431e-b8a9-9b9fa9bbadab";
+export const Matemática_Divertida = "e6e11157-24f4-45dc-81ba-10262663e352";
 export const BULK_UPLOAD_TEMPLATE_URL =
   "https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/common-files//Bulk%20School%20&%20Students%20Upload%20Template.xlsx";
 

@@ -888,7 +888,7 @@ export class ApiHandler implements ServiceApi {
     type: string,
     batch_id: string,
     source: string | null,
-    created_at?: string,
+    created_at?: string
   ): Promise<boolean> {
     return this.s.createAssignment(
       student_list,
@@ -904,7 +904,7 @@ export class ApiHandler implements ServiceApi {
       type,
       batch_id,
       source,
-      created_at,
+      created_at
     );
   }
   getTeachersForClass(
@@ -1227,7 +1227,9 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return await this.s.updateStudentStars(studentId, totalStars);
   }
-  public async getChapterIdbyQrLink(link:string): Promise<TableTypes<"chapter_links"> | undefined> {
+  public async getChapterIdbyQrLink(
+    link: string
+  ): Promise<TableTypes<"chapter_links"> | undefined> {
     return await this.s.getChapterIdbyQrLink(link);
   }
   public async getSchoolsByModel(
@@ -1381,12 +1383,13 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return await this.s.deleteUserFromSchoolsWithRole(userId, role);
   }
-  public async getChaptersByIds(
-    chapterIds: string[]){
+  public async getChaptersByIds(chapterIds: string[]) {
     return await this.s.getChaptersByIds(chapterIds);
-    }
+  }
   public async addParentToNewClass(
-    classId: string, studentId:string): Promise<void>{
+    classId: string,
+    studentId: string
+  ): Promise<void> {
     return await this.s.addParentToNewClass(classId, studentId);
-    }
+  }
 }

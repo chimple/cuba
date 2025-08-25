@@ -33,6 +33,10 @@ import {
   BASE_NAME,
   DELETED_CLASSES,
   EVENTS,
+  Observa_à_Tua_Volta,
+  O_Nosso_País,
+  Ouvir_e_Falar_Ler_e_Escrever,
+  Matemática_Divertida,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -600,29 +604,34 @@ export class SqliteApi implements ServiceApi {
         );
       }
     } else {
-      const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
-      const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
-      const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
+      const ObservaàTua_Volta = await this.getCourse(Observa_à_Tua_Volta);
+      const ONossoPaís = await this.getCourse(O_Nosso_País);
+      const OuvireFalarLereEscrever = await this.getCourse(
+        Ouvir_e_Falar_Ler_e_Escrever
+      );
+      const MatemáticaDivertida = await this.getCourse(Matemática_Divertida);
+
       const language = await this.getLanguageWithId(languageDocId!);
       let langCourse;
-      if (language && language.code !== COURSES.ENGLISH) {
-        // Map language code to courseId
-        const thirdLanguageCourseMap: Record<string, string> = {
-          hi: CHIMPLE_HINDI,
-          kn: GRADE1_KANNADA,
-          mr: GRADE1_MARATHI,
-        };
+      // if (language && language.code !== COURSES.Português) {
+      //   // Map language code to courseId
+      //   const thirdLanguageCourseMap: Record<string, string> = {
+      //     hi: CHIMPLE_HINDI,
+      //     kn: GRADE1_KANNADA,
+      //     mr: GRADE1_MARATHI,
+      //   };
 
-        const courseId = thirdLanguageCourseMap[language.code ?? ""];
-        if (courseId) {
-          langCourse = await this.getCourse(courseId);
-        }
-      }
+      //   const courseId = thirdLanguageCourseMap[language.code ?? ""];
+      //   if (courseId) {
+      //     langCourse = await this.getCourse(courseId);
+      //   }
+      // }
       const coursesToAdd = [
-        englishCourse,
-        mathsCourse,
+        ObservaàTua_Volta,
+        ONossoPaís,
+        OuvireFalarLereEscrever,
+        MatemáticaDivertida,
         langCourse,
-        digitalSkillsCourse,
       ].filter(Boolean);
       for (const course of coursesToAdd) {
         const newUserCourse: TableTypes<"user_course"> = {
@@ -5521,29 +5530,34 @@ order by
     );
 
     // Find English, Maths, and language-dependent subject
-    const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
-    const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
-    const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
+    const ObservaàTua_Volta = await this.getCourse(Observa_à_Tua_Volta);
+    const ONossoPaís = await this.getCourse(O_Nosso_País);
+    const OuvireFalarLereEscrever = await this.getCourse(
+      Ouvir_e_Falar_Ler_e_Escrever
+    );
+    const MatemáticaDivertida = await this.getCourse(Matemática_Divertida);
+
     const language = await this.getLanguageWithId(languageDocId!);
     let langCourse;
-    if (language && language.code !== COURSES.ENGLISH) {
-      // Map language code to courseId
-      const thirdLanguageCourseMap: Record<string, string> = {
-        hi: CHIMPLE_HINDI,
-        kn: GRADE1_KANNADA,
-        mr: GRADE1_MARATHI,
-      };
+    // if (language && language.code !== COURSES.ENGLISH) {
+    //   // Map language code to courseId
+    //   const thirdLanguageCourseMap: Record<string, string> = {
+    //     hi: CHIMPLE_HINDI,
+    //     kn: GRADE1_KANNADA,
+    //     mr: GRADE1_MARATHI,
+    //   };
 
-      const courseId = thirdLanguageCourseMap[language.code ?? ""];
-      if (courseId) {
-        langCourse = await this.getCourse(courseId);
-      }
-    }
+    //   const courseId = thirdLanguageCourseMap[language.code ?? ""];
+    //   if (courseId) {
+    //     langCourse = await this.getCourse(courseId);
+    //   }
+    // }
     const coursesToAdd = [
-      englishCourse,
-      mathsCourse,
+      ObservaàTua_Volta,
+      ONossoPaís,
       langCourse,
-      digitalSkillsCourse,
+      OuvireFalarLereEscrever,
+      MatemáticaDivertida,
     ].filter(Boolean);
 
     await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
