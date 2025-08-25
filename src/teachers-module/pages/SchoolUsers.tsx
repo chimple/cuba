@@ -110,6 +110,16 @@ const SchoolUsers: React.FC = () => {
               )}
             </>
           )}
+          {(role === RoleType.SUPER_ADMIN || role === RoleType.OPERATIONAL_DIRECTOR || role === RoleType.PROGRAM_MANAGER || role === RoleType.FIELD_COORDINATOR) && (
+            <>
+              {selectedTab === SCHOOL_USERS.PRINCIPALS && (
+                <AddButton onClick={addPrincipal} />
+              )}
+              {selectedTab === SCHOOL_USERS.COORDINATORS && (
+                <AddButton onClick={addCoordinator} />
+              )}
+            </>
+          )}
         </IonPage>
       )}
     </>
