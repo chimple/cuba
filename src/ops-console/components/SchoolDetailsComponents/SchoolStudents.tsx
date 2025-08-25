@@ -2,26 +2,25 @@ import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useHistory } from "react-router-dom";
 import DataTableBody, { Column } from "../DataTableBody";
 import DataTablePagination from "../DataTablePagination";
-import { Button as MuiButton, Typography, Box, useMediaQuery } from "@mui/material";
+import {
+  Button as MuiButton,
+  Typography,
+  Box,
+  useMediaQuery,
+  CircularProgress,
+} from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
 import { t } from "i18next";
 import SearchAndFilter from "../SearchAndFilter";
 import FilterSlider from "../FilterSlider";
 import SelectedFilters from "../SelectedFilters";
 import "./SchoolStudents.css";
+import { ServiceConfig } from "../../../services/ServiceConfig";
+import { StudentInfo } from "../../../common/constants";
+import { getGradeOptions, filterBySearchAndFilters, sortSchoolTeachers, paginateSchoolTeachers } from "../../OpsUtility/SearchFilterUtility"; 
 
-interface UserType {
-  id: string;
-  student_id?: string | null;
-  name: string | null;
-  gender: string | null;
-  phone: string | null;
-}
-interface ApiStudentData {
-  user: UserType;
-  grade: number;
-  classSection: string;
-}
+type ApiStudentData = StudentInfo;
+
 interface DisplayStudent {
   id: string;
   studentIdDisplay: string;
@@ -31,178 +30,343 @@ interface DisplayStudent {
   classSection: string;
   phoneNumber: string;
 }
+
 interface SchoolStudentsProps {
   data: {
-    students: ApiStudentData[];
+    students?: ApiStudentData[];
+    totalStudentCount?: number;
   };
   isMobile: boolean;
+  schoolId: string;
 }
 
-const studentFilterSliderOptions: Record<string, string[]> = {
-  grade: [...Array.from({ length: 12 }, (_, i) => `Grade ${i + 1}`)],
-};
-const ROWS_PER_PAGE = 6;
+const ROWS_PER_PAGE = 20;
 
-const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data }) => {
+const SchoolStudents: React.FC<SchoolStudentsProps> = ({
+  data,
+  schoolId,
+  isMobile,
+}) => {
   const history = useHistory();
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
+  const [students, setStudents] = useState<ApiStudentData[]>(
+    data.students || []
+  );
+  const [totalCount, setTotalCount] = useState<number>(
+    data.totalStudentCount || 0
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [filters, setFilters] = useState<Record<string, string[]>>({ grade: [], section: [] });
-  const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({ grade: [], section: [] });
-  const [isFilterSliderOpen, setIsFilterSliderOpen] = useState(false);
+  const [filters, setFilters] = useState<Record<string, string[]>>({
+    grade: [],
+    section: [],
+  });
   const [orderBy, setOrderBy] = useState<string | null>("name");
   const [order, setOrder] = useState<"asc" | "desc">("asc");
-  const [page, setPage] = useState(1);
-  const [pageCount, setPageCount] = useState(1);
+  const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({
+    grade: [],
+    section: [],
+  });
+  const [isFilterSliderOpen, setIsFilterSliderOpen] = useState(false);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("");
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm]);
 
-  const handleAddNewStudent = useCallback(() => {}, [history]);
-  const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+  const fetchStudents = useCallback(
+    async (currentPage: number, search: string) => {
+      setIsLoading(true);
+      const api = ServiceConfig.getI().apiHandler;
+      try {
+        let response;
+        if (search && search.trim() !== "") {
+          response = await api.searchStudentsInSchool(
+            schoolId,
+            search,
+            currentPage,
+            ROWS_PER_PAGE
+          );
+          setStudents(response.data);
+          setTotalCount(response.total);
+        } else {
+          response = await api.getStudentInfoBySchoolId(
+            schoolId,
+            currentPage,
+            ROWS_PER_PAGE
+          );
+          setStudents(response.data);
+          setTotalCount(response.total);
+        }
+      } catch (error) {
+        console.error("Failed to fetch students:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [schoolId]
+  );
+
+  useEffect(() => {
+    // Don't fetch on the initial render for page 1, because we already have the data from props.
+    if (
+      page === 1 &&
+      !debouncedSearchTerm &&
+      filters.grade.length === 0 &&
+      filters.section.length === 0
+    ) {
+      setStudents(data.students || []);
+      setTotalCount(data.totalStudentCount || 0);
+      return;
+    }
+    fetchStudents(page, debouncedSearchTerm);
+  }, [page, debouncedSearchTerm, fetchStudents, data.students, data.totalStudentCount, filters.grade.length, filters.section.length]);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleSort = (key: string) => {
+    const isAsc = orderBy === key && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
+    setOrderBy(key);
+    setPage(1);
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
     setPage(1);
-  }, []);
+  };
+
+  const handleApplyFilters = () => {
+    setFilters(tempFilters);
+    setIsFilterSliderOpen(false);
+    setPage(1); 
+  };
+
+  const handleDeleteAppliedFilter = (key: string, value: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: prev[key].filter((v) => v !== value),
+    }));
+    setPage(1); 
+  };
+
+  const normalizedStudents = useMemo(() =>
+    students.map((s: any) => {
+      const user = s.user ?? s;
+
+      return {
+        ...s,
+        user: {
+          id: user.id,
+          name: user.name ?? undefined,
+          email: user.email ?? undefined,
+          student_id: user.student_id ?? undefined,
+          phone: user.phone ?? undefined,
+          gender: user.gender ?? "N/A",
+        },
+        grade: s.grade ?? (s.grade ?? 0),
+        classSection: s.classSection ?? "N/A",
+        parent: s.parent ?? {
+          id: s.parent_id ?? undefined,
+          name: s.parent_name ?? "",
+          phone: s.phone ?? undefined,
+        },
+      };
+    }),
+  [students]);
+
+  const filteredStudents = useMemo(
+    () => filterBySearchAndFilters(normalizedStudents, filters, searchTerm, 'student'),
+    [normalizedStudents, filters, searchTerm]
+  );
+  const sortedStudents = useMemo(() => {
+    // Standard sorting for all columns
+    return [...filteredStudents].sort((a, b) => {
+      let aValue, bValue;
+      switch (orderBy) {
+        case "studentIdDisplay":
+          aValue = a.user.student_id || "";
+          bValue = b.user.student_id || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "name":
+          aValue = a.user.name || "";
+          bValue = b.user.name || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "gender":
+          aValue = a.user.gender || "";
+          bValue = b.user.gender || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "grade":
+          aValue = a.grade || 0;
+          bValue = b.grade || 0;
+          return order === "asc" ? aValue - bValue : bValue - aValue;
+        case "classSection":
+          aValue = a.classSection || "";
+          bValue = b.classSection || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        case "phoneNumber":
+          aValue = a.parent?.phone || "";
+          bValue = b.parent?.phone || "";
+          return order === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        default:
+          return 0;
+      }
+    });
+  }, [filteredStudents, orderBy, order]);
+
+  const studentsForCurrentPage = useMemo((): DisplayStudent[] => {
+    return sortedStudents.map(
+      (s_api): DisplayStudent => ({
+        id: s_api.user.id,
+        studentIdDisplay: s_api.user.student_id ?? "N/A",
+        name: s_api.user.name ?? "N/A",
+        gender: s_api.user.gender ?? "N/A",
+        grade: s_api.grade ?? 0,
+        classSection: s_api.classSection ?? "N/A",
+        phoneNumber: s_api.parent?.phone ?? "N/A", 
+      })
+    );
+  }, [sortedStudents]);
+
+  const pageCount = useMemo(() => {
+    return Math.ceil(totalCount / ROWS_PER_PAGE);
+  }, [totalCount, filters, searchTerm, filteredStudents.length]);
+
+  const isDataPresent = studentsForCurrentPage.length > 0;
+  const isFilteringOrSearching =
+    searchTerm.trim() !== "" ||
+    Object.values(filters).some((f) => f.length > 0);
+
+  const handleAddNewStudent = useCallback(() => {}, [history]);
   const handleFilterIconClick = useCallback(() => {
     setTempFilters(filters);
     setIsFilterSliderOpen(true);
   }, [filters]);
+
+  const handleClearFilters = useCallback(() => {
+    setFilters({ grade: [], section: [] });
+    setTempFilters({ grade: [], section: [] });
+    setPage(1);
+  }, []);
+
   const handleSliderFilterChange = useCallback((name: string, value: any) => {
-    setTempFilters((prev) => ({ ...prev, [name]: Array.isArray(value) ? value : [value] }));
-  }, []);
-  const handleApplyFilters = useCallback(() => {
-    setFilters(tempFilters);
-    setIsFilterSliderOpen(false);
-    setPage(1);
-  }, [tempFilters]);
-  const handleCancelFilters = useCallback(() => {
-    const clearedFilters = { grade: [], section: [] };
-    setTempFilters(clearedFilters);
-    setFilters(clearedFilters);
-    setIsFilterSliderOpen(false);
-    setPage(1);
-  }, []);
-  const handleDeleteAppliedFilter = useCallback((key: string, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: prev[key].filter((v) => v !== value) }));
-    setPage(1);
-  }, []);
-  const handleSort = useCallback((key: string) => {
-    const isAsc = orderBy === key && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
-    setOrderBy(key);
-  }, [order, orderBy]);
-
- const allFilteredStudents = useMemo(() => {
-    const studentsFromApi: ApiStudentData[] = data?.students || [];
-    let filteredApiStudents = [...studentsFromApi];
-    if (searchTerm.trim() !== "") {
-      const lowerSearch = searchTerm.toLowerCase().trim();
-      filteredApiStudents = filteredApiStudents.filter(
-        (s_api) =>
-          s_api.user.name?.toLowerCase().includes(lowerSearch) ||
-          s_api.user.student_id?.toLowerCase().includes(lowerSearch) ||
-          s_api.user.phone?.includes(lowerSearch) ||
-          s_api.classSection?.toLowerCase().includes(lowerSearch) || 
-          String(s_api.grade).includes(lowerSearch) 
-      );
-    }
-    const activeGradeFilters = filters.grade || [];
-    const activeSectionFilters = filters.section || [];
-    if (activeGradeFilters.length > 0) {
-      filteredApiStudents = filteredApiStudents.filter((s_api) => {
-        return activeGradeFilters.some((filterGradeString) => {
-          let numericValueToMatch: number | undefined;
-            const gradeMatch = filterGradeString.match(/^Grade (\d+)$/);
-            if (gradeMatch) numericValueToMatch = parseInt(gradeMatch[1], 10);
-          return numericValueToMatch !== undefined && s_api.grade === numericValueToMatch;
-        });
-      });
-    }
-    if (activeSectionFilters.length > 0) {
-      filteredApiStudents = filteredApiStudents.filter((s_api) => s_api.classSection && activeSectionFilters.includes(s_api.classSection.toUpperCase()));
-    }
-    if (orderBy) {
-      filteredApiStudents.sort((a, b) => {
-        let valA, valB;
-        switch (orderBy) {
-          case 'studentIdDisplay':
-            valA = a.user.student_id;
-            valB = b.user.student_id;
-            break;
-          case 'name':
-          case 'gender':
-          case 'phone':
-            valA = a.user[orderBy as 'name' | 'gender' | 'phone'];
-            valB = b.user[orderBy as 'name' | 'gender' | 'phone'];
-            break;
-          default: // Handles 'grade', 'classSection', etc.
-            valA = a[orderBy as keyof ApiStudentData];
-            valB = b[orderBy as keyof ApiStudentData];
-            break;
-        }
-        valA = valA ?? '';
-        valB = valB ?? '';
-        if (typeof valA === 'string' && typeof valB === 'string') {
-            return order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-        } else {
-            if (valA < valB) return order === 'asc' ? -1 : 1;
-            if (valA > valB) return order === 'asc' ? 1 : -1;
-            return 0;
-        }
-      });
-    }
-    return filteredApiStudents.map((s_api): DisplayStudent => ({
-        id: s_api.user.id || "N/A",
-        studentIdDisplay: s_api.user.student_id || "N/A",
-        name: s_api.user.name || "N/A",
-        gender: s_api.user.gender || "N/A",
-        grade: s_api.grade,
-        classSection: s_api.classSection || "N/A",
-        phoneNumber: s_api.user.phone || "N/A",
+    setTempFilters((prev) => ({
+      ...prev,
+      [name]: Array.isArray(value) ? value : [value],
     }));
-  }, [data?.students, searchTerm, filters, order, orderBy]);
-
-  useEffect(() => {
-    const newPageCount = Math.ceil(allFilteredStudents.length / ROWS_PER_PAGE);
-    setPageCount(Math.max(1, newPageCount));
-    if (page > newPageCount && newPageCount > 0) setPage(newPageCount);
-    else if (page > 1 && newPageCount === 0) setPage(1);
-  }, [allFilteredStudents.length, page]);
-
-  const studentsForCurrentPage = useMemo(() => {
-    const startIndex = (page - 1) * ROWS_PER_PAGE;
-    return allFilteredStudents.slice(startIndex, startIndex + ROWS_PER_PAGE);
-  }, [allFilteredStudents, page]);
+  }, []);
+  const handleCancelFilters = useCallback(() => {
+    setIsFilterSliderOpen(false);
+  }, []);
 
   const columns: Column<DisplayStudent>[] = [
     { key: "studentIdDisplay", label: t("Student ID") },
-    { key: "name", label: t("Student Name"), renderCell: (s) => <Typography variant="body2" className="student-name-data">{s.name}</Typography> },
+    {
+      key: "name",
+      label: t("Student Name"),
+      renderCell: (s) => (
+        <Typography variant="body2" className="student-name-data">
+          {s.name}
+        </Typography>
+      ),
+    },
     { key: "gender", label: t("Gender") },
-    { key: "grade", label: t("Grade"), renderCell: (s) => <Typography variant="body2">{s.grade > 0 ? String(s.grade) : t("N/A")}</Typography> },
-    { key: "classSection", label: t("Class Section"), renderCell: (s) => <Typography variant="body2">{s.classSection || t("N/A")}</Typography> },
+    {
+      key: "grade",
+      label: t("Grade"),
+      renderCell: (s) => (
+        <Typography variant="body2">
+          {s.grade > 0 ? String(s.grade) : t("N/A")}
+        </Typography>
+      ),
+    },
+    {
+      key: "classSection",
+      label: t("Class Section"),
+      renderCell: (s) => (
+        <Typography variant="body2">{s.classSection || t("N/A")}</Typography>
+      ),
+    },
     { key: "phoneNumber", label: t("Phone Number") },
   ];
-  const handlePageChange = (newPage: number) => { if (newPage !== page) setPage(newPage); };
-  const isDataPresent = allFilteredStudents.length > 0;
-  const isFilteringOrSearching = searchTerm.trim() !== "" || Object.values(filters).some((f) => f.length > 0);
-  const filterConfigsForSchool = [{ key: "grade", label: "Grade" }];
 
+  const filterConfigsForSchool = [{ key: "grade", label: "Grade" }];
   return (
     <div className="schoolStudents-pageContainer">
       <Box className="schoolStudents-headerActionsRow">
         <Box className="schoolStudents-titleArea">
-          <Typography variant="h5" className="schoolStudents-titleHeading">{t("Students")}</Typography>
-          <Typography variant="body2" className="schoolStudents-totalText">{t("Total")}: {allFilteredStudents.length} {t("students")}</Typography>
+          <Typography variant="h5" className="schoolStudents-titleHeading">
+            {t("Students")}
+          </Typography>
+          <Typography variant="body2" className="schoolStudents-totalText">
+            {t("Total")}: {totalCount} {t("students")}
+          </Typography>
         </Box>
         <Box className="schoolStudents-actionsGroup">
-          <MuiButton variant="outlined" onClick={handleAddNewStudent} className="schoolStudents-newStudentButton-outlined">
+          <MuiButton
+            variant="outlined"
+            onClick={handleAddNewStudent}
+            className="schoolStudents-newStudentButton-outlined"
+          >
             <AddIcon className="schoolStudents-newStudentButton-outlined-icon" />
             {!isSmallScreen && t("New Student")}
           </MuiButton>
-          <SearchAndFilter searchTerm={searchTerm} onSearchChange={handleSearchChange} filters={filters} onFilterClick={handleFilterIconClick} />
+          <SearchAndFilter
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
+            filters={filters}
+            onFilterClick={handleFilterIconClick}
+            onClearFilters={handleClearFilters}
+          />
         </Box>
       </Box>
-      {Object.values(filters).some((arr) => arr.length > 0) && <SelectedFilters filters={filters} onDeleteFilter={handleDeleteAppliedFilter} />}
-      <FilterSlider isOpen={isFilterSliderOpen} onClose={() => setIsFilterSliderOpen(false)} filters={tempFilters} filterOptions={studentFilterSliderOptions} onFilterChange={handleSliderFilterChange} onApply={handleApplyFilters} onCancel={handleCancelFilters} filterConfigs={filterConfigsForSchool} />
 
-      {isDataPresent ? (
+      {Object.values(filters).some((arr) => arr.length > 0) && (
+        <SelectedFilters
+          filters={filters}
+          onDeleteFilter={handleDeleteAppliedFilter}
+        />
+      )}
+      <FilterSlider
+        isOpen={isFilterSliderOpen}
+        onClose={() => setIsFilterSliderOpen(false)}
+        filters={tempFilters}
+        filterOptions={{
+          grade: getGradeOptions(students)
+        }}
+        onFilterChange={handleSliderFilterChange}
+        onApply={handleApplyFilters}
+        onCancel={handleCancelFilters}
+        filterConfigs={filterConfigsForSchool}
+      />
+
+      {isLoading ? (
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          minHeight="300px"
+        >
+          <CircularProgress />
+        </Box>
+      ) : isDataPresent ? (
         <>
           <div className="schoolStudents-table-container">
             <DataTableBody
@@ -211,6 +375,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data }) => {
               orderBy={orderBy}
               order={order}
               onSort={handleSort}
+              onRowClick={() => {}}
             />
           </div>
           {pageCount > 1 && (
@@ -225,14 +390,23 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({ data }) => {
         </>
       ) : (
         <Box className="schoolStudents-emptyStateContainer">
-          <Typography variant="h6" className="schoolStudents-emptyStateTitle">{t("Students")}</Typography>
+          <Typography variant="h6" className="schoolStudents-emptyStateTitle">
+            {t("Students")}
+          </Typography>
           <Typography className="schoolStudents-emptyStateMessage">
             {isFilteringOrSearching
               ? t("No students found matching your criteria.")
               : t("No students data found for the selected school")}
           </Typography>
           {!isFilteringOrSearching && (
-            <MuiButton variant="text" onClick={handleAddNewStudent} className="schoolStudents-emptyStateAddButton" startIcon={<AddIcon className="schoolStudents-emptyStateAddButton-icon" />}>
+            <MuiButton
+              variant="text"
+              onClick={handleAddNewStudent}
+              className="schoolStudents-emptyStateAddButton"
+              startIcon={
+                <AddIcon className="schoolStudents-emptyStateAddButton-icon" />
+              }
+            >
               {t("Add Student")}
             </MuiButton>
           )}

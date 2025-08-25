@@ -259,6 +259,23 @@ const SchoolList: React.FC = () => {
     setShowUploadPage(false);
   }
 
+    const handleCancelFilters = () => {
+    const reset = {
+      partner: [],
+      programManager: [],
+      fieldCoordinator: [],
+      programType: [],
+      state: [],
+      district: [],
+      block: [],
+      cluster: [],
+    };
+    setTempFilters(reset);
+    setFilters(reset);
+    setIsFilterOpen(false);
+    setPage(1);
+  };
+
   const pageCount = Math.ceil(total / pageSize);
 
   if (showUploadPage) {
@@ -336,6 +353,7 @@ const SchoolList: React.FC = () => {
                 }}
                 filters={filters}
                 onFilterClick={() => setIsFilterOpen(true)}
+                onClearFilters={handleCancelFilters}
               />
             </div>
           </div>

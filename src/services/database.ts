@@ -1150,6 +1150,102 @@ export type Database = {
           },
         ];
       };
+      ops_requests: {
+        Row: {
+          class_id: string | null;
+          created_at: string;
+          id: string;
+          is_deleted: boolean | null;
+          rejected_reason_description: string;
+          rejected_reason_type: string;
+          request_ends_at: string | null;
+          request_id: string | null;
+          request_status:
+            | Database["public"]["Enums"]["ops_request_status"]
+            | null;
+          request_type: Database["public"]["Enums"]["ops_request_type"] | null;
+          requested_by: string | null;
+          requested_to: string | null;
+          responded_by: string | null;
+          school_id: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          class_id?: string | null;
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          rejected_reason_description: string;
+          rejected_reason_type: string;
+          request_ends_at?: string | null;
+          request_id?: string | null;
+          request_status?:
+            | Database["public"]["Enums"]["ops_request_status"]
+            | null;
+          request_type?: Database["public"]["Enums"]["ops_request_type"] | null;
+          requested_by?: string | null;
+          requested_to?: string | null;
+          responded_by?: string | null;
+          school_id?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          class_id?: string | null;
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          rejected_reason_description?: string;
+          rejected_reason_type?: string;
+          request_ends_at?: string | null;
+          request_id?: string | null;
+          request_status?:
+            | Database["public"]["Enums"]["ops_request_status"]
+            | null;
+          request_type?: Database["public"]["Enums"]["ops_request_type"] | null;
+          requested_by?: string | null;
+          requested_to?: string | null;
+          responded_by?: string | null;
+          school_id?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ops_requests_class_id_fkey";
+            columns: ["class_id"];
+            isOneToOne: false;
+            referencedRelation: "class";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ops_requests_requested_by_fkey";
+            columns: ["requested_by"];
+            isOneToOne: false;
+            referencedRelation: "user";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ops_requests_requested_to_fkey";
+            columns: ["requested_to"];
+            isOneToOne: false;
+            referencedRelation: "user";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ops_requests_responded_by_fkey";
+            columns: ["responded_by"];
+            isOneToOne: false;
+            referencedRelation: "user";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ops_requests_school_id_fkey";
+            columns: ["school_id"];
+            isOneToOne: false;
+            referencedRelation: "school";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       parent_user: {
         Row: {
           created_at: string | null;
@@ -3277,6 +3373,42 @@ export type Database = {
           updated_at: string | null;
         }[];
       };
+      search_students_in_school: {
+        Args: {
+          p_school_id: string;
+          p_search_term: string;
+          p_page: number;
+          p_limit: number;
+        };
+        Returns: {
+          id: string;
+          name: string;
+          student_id: string;
+          phone: string;
+          class_id: string;
+          class_name: string;
+          parent_id: string | null;
+          parent_name: string | null;
+        }[];
+      };
+      search_teachers_in_school: {
+        Args: {
+          p_school_id: string;
+          p_search_term: string;
+          p_page: number;
+          p_limit: number;
+        };
+        Returns: {
+          id: string;
+          name: string;
+          email: string;
+          phone: string;
+          class_id: string;
+          class_name: string;
+          parent_id: string | null;
+          parent_name: string | null;
+        }[];
+      };
       sql_get_user_badges: {
         Args: { p_updated_at: string };
         Returns: {
@@ -3472,6 +3604,8 @@ export type Database = {
     Enums: {
       login_type: "student_id" | "parent_phone_number";
       program_model: "hybrid" | "at_home" | "at_school";
+      ops_request_status: "requested" | "rejected" | "approved";
+      ops_request_type: "student" | "teacher" | "principal" | "school";
       program_type: "govt" | "private" | "learning_centers";
       role:
         | "coordinator"
@@ -3621,6 +3755,8 @@ export const Constants = {
   public: {
     Enums: {
       login_type: ["student_id", "parent_phone_number"],
+      ops_request_status: ["requested", "rejected", "approved"],
+      ops_request_type: ["student", "teacher", "principal", "school"],
       program_model: ["hybrid", "at_home", "at_school"],
       program_type: ["govt", "private", "learning_centers"],
       role: [

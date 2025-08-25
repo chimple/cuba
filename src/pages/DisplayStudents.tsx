@@ -13,6 +13,9 @@ import {
   TableTypes,
   CURRENT_CLASS,
   EDIT_STUDENTS_MAP,
+  CURRENT_STUDENT,
+  LANG,
+  LANGUAGE,
 } from "../common/constants";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { useHistory } from "react-router";
@@ -120,9 +123,18 @@ const DisplayStudents: FC<{}> = () => {
   };
   return (
     <IonPage id="display-students">
-      {/* <IonContent> */}
+      {/* <IonContent> */} 
       <div id="display-students-chimple-logo">
-        <div id="display-students-parent-icon"></div>
+        <div id="display-students-parent-icon">
+          {Util.getCurrentStudent() &&<img
+            src="/assets/icons/BackButtonIcon.svg"
+            alt="BackButtonIcon"
+            onClick={() => {
+              Util.setPathToBackButton(PAGES.HOME, history);
+            }}
+          />
+          }
+        </div>
         <ChimpleLogo
           header={t("Welcome to Chimple!")}
           msg={[

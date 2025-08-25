@@ -11,9 +11,14 @@ import {
   MODES,
   PROFILETYPE,
   SchoolRoleMap,
+  StudentAPIResponse,
+  TeacherAPIResponse,
   TABLES,
   TableTypes,
   TabType,
+  PrincipalAPIResponse,
+  CoordinatorAPIResponse,
+  EnumType,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -888,7 +893,7 @@ export class ApiHandler implements ServiceApi {
     type: string,
     batch_id: string,
     source: string | null,
-    created_at?: string,
+    created_at?: string
   ): Promise<boolean> {
     return this.s.createAssignment(
       student_list,
@@ -904,7 +909,7 @@ export class ApiHandler implements ServiceApi {
       type,
       batch_id,
       source,
-      created_at,
+      created_at
     );
   }
   getTeachersForClass(
@@ -1017,10 +1022,24 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"user">[] | undefined> {
     return this.s.getPrincipalsForSchool(schoolId);
   }
+  getPrincipalsForSchoolPaginated(
+    schoolId: string,
+    page?: number,
+    limit?: number
+  ): Promise<PrincipalAPIResponse> {
+    return this.s.getPrincipalsForSchoolPaginated(schoolId, page, limit);
+  }
   getCoordinatorsForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined> {
     return this.s.getCoordinatorsForSchool(schoolId);
+  }
+  getCoordinatorsForSchoolPaginated(
+    schoolId: string,
+    page?: number,
+    limit?: number
+  ): Promise<CoordinatorAPIResponse> {
+    return this.s.getCoordinatorsForSchoolPaginated(schoolId, page, limit);
   }
   getSponsorsForSchool(
     schoolId: string
@@ -1227,7 +1246,9 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return await this.s.updateStudentStars(studentId, totalStars);
   }
-  public async getChapterIdbyQrLink(link:string): Promise<TableTypes<"chapter_links"> | undefined> {
+  public async getChapterIdbyQrLink(
+    link: string
+  ): Promise<TableTypes<"chapter_links"> | undefined> {
     return await this.s.getChapterIdbyQrLink(link);
   }
   public async getSchoolsByModel(
@@ -1279,23 +1300,19 @@ export class ApiHandler implements ServiceApi {
     return await this.s.createOrAddUserOps(payload);
   }
 
-  public async getTeacherInfoBySchoolId(schoolId: string): Promise<
-    {
-      user: TableTypes<"user">;
-      grade: number;
-      classSection: string;
-    }[]
-  > {
-    return await this.s.getTeacherInfoBySchoolId(schoolId);
+  public async getTeacherInfoBySchoolId(
+    schoolId: string,
+    page: number,
+    limit: number
+  ): Promise<TeacherAPIResponse> {
+    return await this.s.getTeacherInfoBySchoolId(schoolId, page, limit);
   }
-  public async getStudentInfoBySchoolId(schoolId: string): Promise<
-    {
-      user: TableTypes<"user">;
-      grade: number;
-      classSection: string;
-    }[]
-  > {
-    return await this.s.getStudentInfoBySchoolId(schoolId);
+  public async getStudentInfoBySchoolId(
+    schoolId: string,
+    page: number,
+    limit: number
+  ): Promise<StudentAPIResponse> {
+    return await this.s.getStudentInfoBySchoolId(schoolId, page, limit);
   }
   public async getClassesBySchoolId(
     schoolId: string
@@ -1381,12 +1398,49 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return await this.s.deleteUserFromSchoolsWithRole(userId, role);
   }
-  public async getChaptersByIds(
-    chapterIds: string[]){
+  public async getChaptersByIds(chapterIds: string[]) {
     return await this.s.getChaptersByIds(chapterIds);
-    }
+  }
   public async addParentToNewClass(
-    classId: string, studentId:string): Promise<void>{
+    classId: string,
+    studentId: string
+  ): Promise<void> {
     return await this.s.addParentToNewClass(classId, studentId);
-    }
+  }
+  public async getOpsRequests(
+    requestStatus: EnumType<"ops_request_status">,
+    page: number = 1,
+    limit: number = 8,
+    filters?: { request_type?: string[]; school?: string[] },
+    searchTerm?: string
+  ) {
+    return this.s.getOpsRequests(
+      requestStatus,
+      page,
+      limit,
+      filters,
+      searchTerm
+    );
+  }
+  public async getRequestFilterOptions() {
+    return this.s.getRequestFilterOptions();
+  }
+
+  public async searchStudentsInSchool(
+    schoolId: string,
+    searchTerm: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<StudentAPIResponse> {
+    return await this.s.searchStudentsInSchool(schoolId, searchTerm, page, limit);
+  }
+
+  public async searchTeachersInSchool(
+    schoolId: string, 
+    searchTerm: string,    
+    page: number = 1,
+    limit: number = 20
+  ): Promise<TeacherAPIResponse> {
+    return await this.s.searchTeachersInSchool(schoolId, searchTerm, page, limit);
+  }
 }
