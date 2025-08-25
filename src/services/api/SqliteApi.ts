@@ -32,7 +32,16 @@ import {
   AVATARS,
   BASE_NAME,
   DELETED_CLASSES,
+  StudentInfo,
+  StudentAPIResponse,
+  TeacherAPIResponse,
+  TeacherInfo,
+  PrincipalInfo,
+  PrincipalAPIResponse,
+  CoordinatorInfo,
+  CoordinatorAPIResponse,
   EVENTS,
+  EnumType,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -2179,7 +2188,9 @@ export class SqliteApi implements ServiceApi {
         WHERE user_id = ? AND is_deleted = 0 AND role = 'student'
         LIMIT 1
       `;
-      const currentClassRes = await this.executeQuery(currentClassIdQuery, [student.id]);
+      const currentClassRes = await this.executeQuery(currentClassIdQuery, [
+        student.id,
+      ]);
       const currentClassId = currentClassRes?.values?.[0]?.class_id;
 
       if (currentClassId !== newClassId) {
@@ -4181,7 +4192,10 @@ order by
   ): Promise<TableTypes<"user"> | undefined> {
     return this._serverApi.getUserByPhoneNumber(phone);
   }
-  async addTeacherToClass(classId: string, user: TableTypes<"user">): Promise<void> {
+  async addTeacherToClass(
+    classId: string,
+    user: TableTypes<"user">
+  ): Promise<void> {
     const classUserId = uuidv4();
     const classUser = {
       id: classUserId,
@@ -4516,7 +4530,6 @@ order by
     const res = await this._db?.query(query, schoolIds);
     return res?.values ?? [];
   }
-
   async getPrincipalsForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined> {
@@ -4530,6 +4543,67 @@ order by
     return res?.values ?? [];
   }
 
+  async getPrincipalsForSchoolPaginated(
+    schoolId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<PrincipalAPIResponse> {
+    if (!this._db) {
+      console.warn("SQLite DB not initialized.");
+      return { data: [], total: 0 };
+    }
+
+    // Define the common WHERE clause conditions for both queries
+    const whereConditions = `
+    su.school_id = ? 
+    AND su.role = ? 
+    AND su.is_deleted = false
+  `;
+    const queryParams = [schoolId, RoleType.PRINCIPAL];
+
+    // --- Step 1: Get the TOTAL COUNT of all principals in one efficient query ---
+    const countQuery = `
+    SELECT COUNT(user.id) as total
+    FROM ${TABLES.SchoolUser} AS su
+    JOIN ${TABLES.User} AS user ON su.user_id = user.id
+    WHERE ${whereConditions};
+  `;
+    const countRes = await this._db.query(countQuery, queryParams);
+    const totalCount = countRes?.values?.[0]?.total ?? 0;
+
+    // If there are no principals, we can stop here.
+    if (totalCount === 0) {
+      return { data: [], total: 0 };
+    }
+
+    // --- Step 2: Get the PAGINATED data for the current page ---
+    const offset = (page - 1) * limit;
+    const dataQuery = `
+    SELECT user.*
+    FROM ${TABLES.SchoolUser} AS su
+    JOIN ${TABLES.User} AS user ON su.user_id = user.id
+    WHERE ${whereConditions}
+    ORDER BY user.created_at ASC
+    LIMIT ? OFFSET ?;
+  `;
+
+    // Add the LIMIT and OFFSET parameters to our query parameter array
+    const dataRes = await this._db.query(dataQuery, [
+      ...queryParams,
+      limit,
+      offset,
+    ]);
+
+    // The result is already in the correct format, so we can cast it directly.
+    const principals: PrincipalInfo[] =
+      (dataRes?.values as PrincipalInfo[]) ?? [];
+
+    // --- Step 3: Return the final object matching the PrincipalAPIResponse shape ---
+    return {
+      data: principals,
+      total: totalCount,
+    };
+  }
   async getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> {
     const query = `
     SELECT *
@@ -4542,7 +4616,6 @@ order by
 
     return res?.values ?? [];
   }
-
   async getCoordinatorsForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined> {
@@ -4554,6 +4627,67 @@ order by
   `;
     const res = await this._db?.query(query);
     return res?.values ?? [];
+  }
+
+  async getCoordinatorsForSchoolPaginated(
+    schoolId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<CoordinatorAPIResponse> {
+    if (!this._db) {
+      console.warn("SQLite DB not initialized.");
+      return { data: [], total: 0 };
+    }
+
+    // Define the common WHERE clause conditions and parameters for both queries
+    const whereConditions = `
+    su.school_id = ? 
+    AND su.role = ? 
+    AND su.is_deleted = false
+  `;
+    const queryParams = [schoolId, RoleType.COORDINATOR];
+    // --- Step 1: Get the TOTAL COUNT of all coordinators in one efficient query ---
+    const countQuery = `
+    SELECT COUNT(user.id) as total
+    FROM ${TABLES.SchoolUser} AS su
+    JOIN ${TABLES.User} AS user ON su.user_id = user.id
+    WHERE ${whereConditions};
+  `;
+    const countRes = await this._db.query(countQuery, queryParams);
+    const totalCount = countRes?.values?.[0]?.total ?? 0;
+
+    // If there are no coordinators, we can stop here.
+    if (totalCount === 0) {
+      return { data: [], total: 0 };
+    }
+
+    // --- Step 2: Get the PAGINATED data for the current page ---
+    const offset = (page - 1) * limit;
+    const dataQuery = `
+    SELECT user.*
+    FROM ${TABLES.SchoolUser} AS su
+    JOIN ${TABLES.User} AS user ON su.user_id = user.id
+    WHERE ${whereConditions}
+    ORDER BY user.created_at ASC
+    LIMIT ? OFFSET ?;
+  `;
+
+    // Add the LIMIT and OFFSET parameters to our query parameter array
+    const dataRes = await this._db.query(dataQuery, [
+      ...queryParams,
+      limit,
+      offset,
+    ]);
+
+    // The result is already in the correct format, so we can cast it directly.
+    const coordinators: CoordinatorInfo[] =
+      (dataRes?.values as CoordinatorInfo[]) ?? [];
+
+    // --- Step 3: Return the final object matching the CoordinatorAPIResponse shape ---
+    return {
+      data: coordinators,
+      total: totalCount,
+    };
   }
   async getSponsorsForSchool(
     schoolId: string
@@ -5210,233 +5344,218 @@ order by
     return await this._serverApi.createOrAddUserOps(payload);
   }
 
-  async getTeacherInfoBySchoolId(schoolId: string): Promise<
-    {
-      user: TableTypes<"user">;
-      grade: number;
-      classSection: string;
-    }[]
-  > {
-    // Step 1: Get all classes for the given school
-    const classQuery = `
-    SELECT id, name
-    FROM ${TABLES.Class}
-    WHERE school_id = ?
-      AND is_deleted = false;
-  `;
-    const classRes = await this._db?.query(classQuery, [schoolId]);
-    const classes = classRes?.values ?? [];
-
-    if (classes.length === 0) return [];
-
-    const classMap = new Map<string, { grade: number; section: string }>();
-    const teacherClassPairs: { userId: string; classId: string }[] = [];
-
-    // Step 2: Parse class name and get teacher IDs
-    for (const cls of classes) {
-      const classId = cls.id;
-      const { grade, section } = await this.parseClassName(cls.name);
-      classMap.set(classId, { grade, section });
-
-      const classUserQuery = `
-      SELECT user_id
-      FROM ${TABLES.ClassUser}
-      WHERE class_id = ?
-        AND role = 'teacher'
-        AND is_deleted = false;
-    `;
-      const classUserRes = await this._db?.query(classUserQuery, [classId]);
-      const classUsers = classUserRes?.values ?? [];
-
-      for (const cu of classUsers) {
-        teacherClassPairs.push({ userId: cu.user_id, classId });
-      }
-    }
-
-    const uniqueUserIds = [
-      ...new Set(teacherClassPairs.map((pair) => pair.userId)),
-    ];
-    if (uniqueUserIds.length === 0) return [];
-
-    // Step 3: Fetch user data for all user IDs
-    const placeholders = uniqueUserIds.map(() => "?").join(", ");
-    const userQuery = `
-    SELECT *
-    FROM ${TABLES.User}
-    WHERE id IN (${placeholders});
-  `;
-    const userRes = await this._db?.query(userQuery, uniqueUserIds);
-    const users = userRes?.values ?? [];
-
-    const userMap = new Map<string, TableTypes<"user">>();
-    users.forEach((user) => userMap.set(user.id, user));
-
-    // Step 4: Combine and format final result
-    const teacherInfoList: {
-      user: TableTypes<"user">;
-      grade: number;
-      classSection: string;
-    }[] = [];
-
-    for (const { userId, classId } of teacherClassPairs) {
-      const user = userMap.get(userId);
-      const classInfo = classMap.get(classId);
-      if (user && classInfo) {
-        teacherInfoList.push({
-          user,
-          grade: classInfo.grade,
-          classSection: classInfo.section,
-        });
-      }
-    }
-
-    return teacherInfoList;
-  }
-
-  async parseClassName(
-    className: string
-  ): Promise<{ grade: number; section: string }> {
-    const match = className.match(/^(\d+)([A-Za-z]+)$/);
-    if (match) {
-      return {
-        grade: parseInt(match[1], 10),
-        section: match[2],
-      };
-    }
-    return { grade: 0, section: "" };
-  }
-
-  async getStudentInfoBySchoolId(schoolId: string): Promise<
-    {
-      user: TableTypes<"user">; // Assuming TableTypes<"user"> is a globally available type for your user table
-      grade: number;
-      classSection: string;
-    }[]
-  > {
+  async getTeacherInfoBySchoolId(
+    schoolId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<TeacherAPIResponse> {
     if (!this._db) {
-      console.warn("Database not initialized, cannot fetch student info.");
-      return [];
+      console.warn("SQLite DB not initialized.");
+      return { data: [], total: 0 };
     }
 
-    // Step 1: Get all classes for the given school
-    const classQuery = `
-    SELECT id, name
-    FROM ${TABLES.Class}
-    WHERE school_id = ?
-      AND is_deleted = false;
+    // STEP 1: Get the total count of unique teachers for the school.
+    const countQuery = `
+    SELECT COUNT(DISTINCT cu.user_id) as total
+    FROM ${TABLES.ClassUser} cu
+    INNER JOIN ${TABLES.Class} c ON cu.class_id = c.id
+    WHERE c.school_id = ?
+      AND cu.role = 'teacher'
+      AND cu.is_deleted = false
+      AND c.is_deleted = false;
   `;
-    const classRes = await this._db.query(classQuery, [schoolId]); // Assuming _db.query is always available if _db is not null
-    const classes = classRes?.values ?? [];
 
-    if (classes.length === 0) {
-      console.log(
-        `No classes found for school ${schoolId}, so no student info.`
-      );
-      return [];
+    const countRes = await this._db.query(countQuery, [schoolId]);
+    const total = countRes?.values?.[0]?.total || 0;
+
+    if (total === 0) {
+      return { data: [], total: 0 };
     }
 
-    const classMap = new Map<string, { grade: number; section: string }>();
-    const studentClassPairs: { userId: string; classId: string }[] = [];
+    const offset = (page - 1) * limit;
 
-    // Step 2: Parse class name and get student User IDs associated with each class
-    for (const cls of classes) {
-      if (!cls || !cls.id || typeof cls.name !== "string") {
-        console.warn("Skipping class due to missing id or name:", cls);
-        continue;
-      }
-      const classId = cls.id;
-      // Assuming parseClassName correctly handles potentially null or malformed class names
-      const { grade, section } = await this.parseClassName(cls.name);
-      classMap.set(classId, { grade, section });
-
-      const classUserQuery = `
-      SELECT user_id
-      FROM ${TABLES.ClassUser}
-      WHERE class_id = ?
-        AND role = 'student'  -- Changed role to 'student'
-        AND is_deleted = false; -- Assuming 0 means false, using boolean false for consistency
-    `;
-      const classUserRes = await this._db.query(classUserQuery, [classId]);
-      const classUsers = classUserRes?.values ?? [];
-
-      for (const cu of classUsers) {
-        if (cu && cu.user_id) {
-          studentClassPairs.push({ userId: cu.user_id, classId });
-        }
-      }
-    }
-
-    if (studentClassPairs.length === 0) {
-      console.log(`No student-class pairs found for school ${schoolId}.`);
-      return [];
-    }
-
-    const uniqueUserIds = [
-      ...new Set(studentClassPairs.map((pair) => pair.userId)),
-    ];
-    if (uniqueUserIds.length === 0) {
-      console.log(`No unique student user IDs found for school ${schoolId}.`);
-      return [];
-    }
-
-    // Step 3: Fetch full user data for all unique student user IDs
-    const placeholders = uniqueUserIds.map(() => "?").join(", ");
-    const userQuery = `
-    SELECT *  -- Fetch all columns from the User table
-    FROM ${TABLES.User}
-    WHERE id IN (${placeholders})
-      AND is_deleted = false; -- Assuming users can also be soft-deleted
+    const dataQuery = `
+    SELECT
+      u.*,
+      c.name as class_name
+    FROM ${TABLES.ClassUser} cu
+    INNER JOIN ${TABLES.User} u ON cu.user_id = u.id
+    INNER JOIN ${TABLES.Class} c ON cu.class_id = c.id
+    WHERE c.school_id = ?
+      AND cu.role = 'teacher'
+      AND cu.is_deleted = false
+      AND c.is_deleted = false
+      AND u.is_deleted = false
+    -- Group by teacher to handle cases where a teacher has multiple classes,
+    -- ensuring we only get one row per teacher for pagination.
+    GROUP BY u.id
+    ORDER BY u.name ASC
+    LIMIT ? OFFSET ?;
   `;
-    const userRes = await this._db.query(userQuery, uniqueUserIds);
-    // Assuming userRes.values will be an array of TableTypes<"user">
-    const users: TableTypes<"user">[] =
-      (userRes?.values as TableTypes<"user">[]) ?? [];
 
-    if (users.length === 0) {
-      console.log(
-        `No user data found for the collected student IDs for school ${schoolId}.`
-      );
-      return [];
-    }
+    const dataRes = await this._db.query(dataQuery, [schoolId, limit, offset]);
+    const rows = dataRes?.values ?? [];
 
-    const userMap = new Map<string, TableTypes<"user">>();
-    users.forEach((user) => {
-      if (user && user.id) {
-        userMap.set(user.id, user);
-      }
+    // STEP 3: Map the flat SQL result into the nested TeacherInfo structure.
+    const teacherInfoList: TeacherInfo[] = rows.map((row: any) => {
+      const { class_name, ...teacherUser } = row;
+
+      const { grade, section } = this.parseClassName(class_name || "");
+
+      return {
+        user: teacherUser as TableTypes<"user">,
+        grade: grade,
+        classSection: section,
+      };
     });
 
-    // Step 4: Combine user data with class grade and section
-    const studentInfoList: {
-      user: TableTypes<"user">;
-      grade: number;
-      classSection: string;
-    }[] = [];
-
-    for (const { userId, classId } of studentClassPairs) {
-      const user = userMap.get(userId);
-      const classInfo = classMap.get(classId);
-
-      if (user && classInfo) {
-        studentInfoList.push({
-          user, // The full user object
-          grade: classInfo.grade,
-          classSection: classInfo.section,
-        });
-      } else {
-        if (!user)
-          console.warn(
-            `User data not found for userId: ${userId} in school ${schoolId}`
-          );
-        if (!classInfo)
-          console.warn(
-            `Class info not found for classId: ${classId} for user ${userId} in school ${schoolId}`
-          );
-      }
+    return {
+      data: teacherInfoList,
+      total: total,
+    };
+  }
+  parseClassName(className: string): { grade: number; section: string } {
+    const cleanedName = className.trim();
+    if (!cleanedName) {
+      return { grade: 0, section: "" };
     }
 
-    return studentInfoList;
+    let grade = 0;
+    let section = "";
+
+    // Pattern 1: Just a number (e.g., "1", "5", "10")
+    const numericMatch = cleanedName.match(/^(\d+)$/);
+    if (numericMatch) {
+      grade = parseInt(numericMatch[1], 10);
+      return { grade: isNaN(grade) ? 0 : grade, section: "" };
+    }
+
+    // Pattern 2: Number followed by letters or words (e.g., "3A", "5 B")
+    const alphanumericMatch = cleanedName.match(/(\d+)\s*(\w+)/i);
+    if (alphanumericMatch) {
+      grade = parseInt(alphanumericMatch[1], 10);
+      section = alphanumericMatch[2];
+      return { grade: isNaN(grade) ? 0 : grade, section };
+    }
+
+    console.warn(
+      `Could not parse grade from class name: "${cleanedName}". Assigning grade 0.`
+    );
+    return { grade: 0, section: cleanedName };
   }
+
+  async getStudentInfoBySchoolId(
+    schoolId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<StudentAPIResponse> {
+    if (!this._db) {
+      console.warn("Database not initialized, cannot fetch student info.");
+      return { data: [], total: 0 };
+    }
+
+    const offset = (page - 1) * limit;
+
+    // Step 1: Get total count (Your query is perfect)
+    const countQuery = `
+    SELECT COUNT(DISTINCT cu.user_id) as total
+    FROM ${TABLES.ClassUser} cu
+    INNER JOIN ${TABLES.Class} c ON cu.class_id = c.id
+    WHERE cu.role = 'student'
+      AND cu.is_deleted = false
+      AND c.school_id = ?
+      AND c.is_deleted = false;
+  `;
+    const countRes = await this._db.query(countQuery, [schoolId]);
+    const total = countRes?.values?.[0]?.total ?? 0;
+
+    if (total === 0) {
+      return { data: [], total: 0 };
+    }
+
+    // Step 2: Fetch paginated data
+    const query = `
+    SELECT 
+      u.*,
+      c.name as class_name,
+      p.id as parent_id,
+      p.name as parent_name,
+      p.email as parent_email,
+      p.phone as parent_phone
+      -- Add any other parent fields you want here, aliased with 'parent_'
+    FROM ${TABLES.ClassUser} cu
+    INNER JOIN ${TABLES.Class} c ON cu.class_id = c.id
+    INNER JOIN ${TABLES.User} u ON cu.user_id = u.id
+    LEFT JOIN ${TABLES.ParentUser} pu ON pu.student_id = u.id AND pu.is_deleted = false
+    LEFT JOIN ${TABLES.User} p ON p.id = pu.parent_id AND p.is_deleted = false
+    WHERE cu.role = 'student'
+      AND cu.is_deleted = false
+      AND c.school_id = ?
+      AND c.is_deleted = false
+      AND u.is_deleted = false
+    -- Important to group by student to avoid duplicates if a student is in multiple classes
+    GROUP BY u.id
+    ORDER BY u.name ASC
+    LIMIT ? OFFSET ?;
+  `;
+    const res = await this._db.query(query, [schoolId, limit, offset]);
+    const rows = res?.values ?? [];
+
+    const studentInfoList: StudentInfo[] = rows.map((row: any) => {
+      const {
+        class_name,
+        parent_id,
+        parent_name,
+        parent_email,
+        parent_phone,
+        ...studentUser
+      } = row;
+
+      const { grade, section } = this.parseClassName(class_name || "");
+      const parentObject: TableTypes<"user"> | null = parent_id
+        ? {
+            id: parent_id,
+            name: parent_name,
+            email: parent_email,
+            phone: parent_phone,
+            age: null,
+            avatar: null,
+            created_at: new Date().toISOString(),
+            curriculum_id: null,
+            fcm_token: null,
+            firebase_id: null,
+            gender: null,
+            grade_id: null,
+            image: null,
+            is_deleted: false,
+            is_firebase: false,
+            is_ops: false,
+            is_tc_accepted: false,
+            language_id: null,
+            learning_path: null,
+            music_off: false,
+            ops_created_by: null,
+            sfx_off: false,
+            stars: null,
+            student_id: null,
+            updated_at: null,
+          }
+        : null;
+
+      return {
+        user: studentUser as TableTypes<"user">,
+        grade,
+        classSection: section,
+        parent: parentObject,
+      };
+    });
+
+    return {
+      data: studentInfoList,
+      total,
+    };
+  }
+
   async createAutoProfile(
     languageDocId: string | undefined
   ): Promise<TableTypes<"user">> {
@@ -5696,5 +5815,92 @@ order by
   }
   async addParentToNewClass(classID: string, studentId: string) {
     throw new Error("Method not implemented.");
+  }
+  async getOpsRequests(
+    requestStatus: EnumType<"ops_request_status">,
+    page: number = 1,
+    limit: number = 8,
+    filters?: { request_type?: string[]; school?: string[] },
+    searchTerm?: string
+  ) {
+    throw new Error("Method not implemented.");
+  }
+  async getRequestFilterOptions() {
+    throw new Error("Method not implemented.");
+  }
+
+  async searchStudentsInSchool(
+    schoolId: string,
+    searchTerm: string,
+    page: number,
+    limit: number
+  ): Promise<{ data: any[]; total: number }> {
+    if (!this._db) return { data: [], total: 0 };
+    // Build query for multi-field search
+    let whereClause = `cu.role = 'student' AND cu.is_deleted = 0 AND c.school_id = ?`;
+    let params: any[] = [schoolId];
+    if (searchTerm && searchTerm.trim() !== "") {
+      whereClause += ` AND (u.name LIKE ? OR u.student_id LIKE ? OR u.phone LIKE ?)`;
+      const likeTerm = `%${searchTerm}%`;
+      params.push(likeTerm, likeTerm, likeTerm);
+    }
+    const offset = (page - 1) * limit;
+    // Get total count
+    const countQuery = `SELECT COUNT(*) as total FROM class_user cu JOIN user u ON cu.user_id = u.id JOIN class c ON cu.class_id = c.id WHERE ${whereClause}`;
+    const countResult = await this._db.query(countQuery, params);
+    const total = countResult?.values?.[0]?.total ?? 0;
+    // Get paginated data
+    const query = `
+      SELECT u.id, u.name, u.student_id, u.phone, cu.class_id, c.name as class_name, pu.parent_id, p.name as parent_name
+      FROM class_user cu
+      JOIN user u ON cu.user_id = u.id
+      JOIN class c ON cu.class_id = c.id
+      LEFT JOIN parent_user pu ON pu.student_id = u.id AND pu.is_deleted = 0
+      LEFT JOIN user p ON pu.parent_id = p.id
+      WHERE ${whereClause}
+      ORDER BY u.name
+      LIMIT ? OFFSET ?
+    `;
+    const result = await this._db.query(query, [...params, limit, offset]);
+    return { data: result?.values ?? [], total };
+  }
+
+  async searchTeachersInSchool(
+    schoolId: string,
+    searchTerm: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{ data: any[]; total: number }> {
+    if (!this._db) return { data: [], total: 0 };
+    let whereClause = `cu.role = 'teacher' AND cu.is_deleted = 0 AND c.school_id = ?`;
+    let params: any[] = [schoolId];
+    if (searchTerm && searchTerm.trim() !== "") {
+      whereClause += ` AND (u.name LIKE ? OR u.email LIKE ? OR u.phone LIKE ?)`;
+      const likeTerm = `%${searchTerm}%`;
+      params.push(likeTerm, likeTerm, likeTerm);
+    }
+    // Get total count
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM class_user cu
+      JOIN user u ON cu.user_id = u.id
+      JOIN class c ON cu.class_id = c.id
+      WHERE ${whereClause}
+    `;
+    const countResult = await this._db.query(countQuery, params);
+    const total = countResult?.values?.[0]?.total ?? 0;
+    // Paginated query
+    const offset = (page - 1) * limit;
+    const query = `
+      SELECT u.id, u.name, u.email, u.phone, cu.class_id, c.name as class_name
+      FROM class_user cu
+      JOIN user u ON cu.user_id = u.id
+      JOIN class c ON cu.class_id = c.id
+      WHERE ${whereClause}
+      ORDER BY u.name
+      LIMIT ? OFFSET ?
+    `;
+    const result = await this._db.query(query, [...params, limit, offset]);
+    return { data: result?.values ?? [], total };
   }
 }

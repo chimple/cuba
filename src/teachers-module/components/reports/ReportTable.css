@@ -53,11 +53,31 @@ tbody {
   width: 100%;
   /* gap: 8px; */
 }
+
 .table-container-body {
+  width: 100%;
   display: flex;
   flex: 1;
-  height: 0;
-  border: 1px solid #EFF2F4;
+  background-color: white;
+  overflow-x: auto;
+  position: relative;
+}
+
+.table-container-body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;          
+  height: 100%;
+  background-color: #EFF2F4;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.table-container-body > .table {
+  margin-left: 1px;
+  background-color: white;
 }
 
 th:first-child,

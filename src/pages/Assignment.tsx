@@ -97,8 +97,9 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
   }, [api]);
 
   const init = useCallback(
-    async (fromCache: boolean = true) => {
-      setLoading(true);
+    async (fromCache: boolean = true, fullRefresh: boolean = true) => {
+      if (fullRefresh) setLoading(true); 
+
       const student = Util.getCurrentStudent();
       if (!student) {
         history.replace(PAGES.SELECT_MODE);
@@ -121,30 +122,39 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
       let allAssignments: TableTypes<"assignment">[] = [];
       try {
         const all = await api.getPendingAssignments(classId, studentId);
-        allAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
-        setAssignments(allAssignments);
-        assignmentCount(allAssignments.length);
-        // Update lessonChapterMap and assignmentLessonCourseMap
-        await updateLessonChapterAndCourseMaps(allAssignments);
-      } catch (error) {
-        console.error("Failed to load pending assignments:", error);
-        setAssignments([]);
-        assignmentCount(0);
-        setLessonChapterMap({});
-        setAssignmentLessonCourseMap({});
-      }
-      // Fetch lessons for assignments
-      if (allAssignments.length > 0) {
-        const lessonPromises = allAssignments.map(async (assignment) => {
+        const allAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
+
+        // Update only if length or content has changed
+        const assignmentIds = assignments.map(a => a.id);
+        const newAssignments = allAssignments.filter(a => !assignmentIds.includes(a.id));
+        const updatedAssignments = fullRefresh
+          ? allAssignments
+          : [...assignments, ...newAssignments];
+
+        setAssignments(updatedAssignments);
+        assignmentCount(updatedAssignments.length);
+
+        await updateLessonChapterAndCourseMaps(updatedAssignments);
+
+        const lessonPromises = newAssignments.map(async (assignment) => {
           return await api.getLesson(assignment.lesson_id);
         });
         const lessonList = await Promise.all(lessonPromises);
         const filteredLessons = lessonList.filter(
           (lesson): lesson is TableTypes<"lesson"> => lesson !== undefined
         );
-        setLessons(filteredLessons);
-      } else {
-        setLessons([]);
+        const mergedLessons = fullRefresh
+          ? filteredLessons
+          : [...lessons, ...filteredLessons];
+        setLessons(mergedLessons);
+      } catch (error) {
+        console.error("Failed to load pending assignments:", error);
+        if (fullRefresh) {
+          setAssignments([]);
+          assignmentCount(0);
+          setLessonChapterMap({});
+          setAssignmentLessonCourseMap({});
+        }
       }
       setLoading(false);
       setIsLinked(true);
@@ -198,11 +208,11 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
 
   useEffect(() => {
     Util.loadBackgroundImage();
-    init(false);
+    init(false, true);
 
-    api.syncDB(Object.values(TABLES), [TABLES.Assignment])
+    api.syncDB(Object.values(TABLES))
       .then(() => {
-        init(false);
+         init(false, false);
       })
       .catch((error) => {
         console.error('Error syncing assignments:', error);

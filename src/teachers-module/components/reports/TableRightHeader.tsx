@@ -2,6 +2,7 @@ import React from "react";
 import "./TableRightHeader.css";
 import { t } from "i18next";
 
+
 interface TableRightHeaderProps {
   headerDetails: Map<
     string,
