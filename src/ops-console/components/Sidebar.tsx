@@ -59,11 +59,11 @@ const navItems = [
     route: PAGES.SIDEBAR_PAGE + PAGES.ADMIN_COMPAIGNS,
     icon: <CampaignIcon />,
   },
-  {
-    label: NavItems.REQUESTS,
-    route: PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST,
-    icon: <IoGitPullRequestSharp />,
-  },
+  // {
+  //   label: NavItems.REQUESTS,
+  //   route: PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST,
+  //   icon: <IoGitPullRequestSharp />,
+  // },
   {
     label: NavItems.USERS,
     route: PAGES.SIDEBAR_PAGE + PAGES.ADMIN_USERS,
