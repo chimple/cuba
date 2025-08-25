@@ -1,6 +1,7 @@
 import { IonContent, IonPage, useIonToast } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router";
+import { CURRENT_USER } from "../common/constants";
 import {
   APP_URL_OPEN,
   EVENTS,
@@ -26,6 +27,7 @@ import { t } from "i18next";
 import { AvatarObj } from "../components/animation/Avatar";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
+import { parseJSON } from "date-fns";
 const CocosGame: React.FC = () => {
   const history = useHistory();
   const location = history.location.state as {
@@ -193,8 +195,23 @@ const CocosGame: React.FC = () => {
     killGame(e);
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
     setShowDialogBox(false);
+    if(Util.isDeepLink) {
+      const PortPlugin = registerPlugin<any>("Port");
+      PortPlugin.returnDataToRespect();
+    }
+    Util.isDeepLink = false;
+    PortPlugin.sendLaunchData().lessonId = "";
     push();
   };
+
+  const sendDataToRespect = () => {
+    if(Util.isDeepLink) {
+      const PortPlugin = registerPlugin<any>("Port");
+      PortPlugin.returnDataToRespect();
+    }
+    Util.isDeepLink = false;
+    PortPlugin.sendLaunchData().lessonId = "";
+  }
   const handleLessonEndListner = (event) => {
     saveTempData(event.detail);
     setGameResult(event);
@@ -339,15 +356,15 @@ const CocosGame: React.FC = () => {
   const updateLessonAsFavorite = async () => {
     const currentStudent = Util.getCurrentStudent();
     let lesson;
-    const lessonNormal: Lesson = state.lesson
-      ? JSON.parse(state.lesson)
-      : undefined;
+    const lessonNormal: Lesson = state.lesson ? JSON.parse(state.lesson) : undefined;
 
-    if (Util.isDeepLink) {
+    if(Util.isDeepLink) {
       const deeplinkdata = await PortPlugin.sendLaunchData();
       const deeplinkLesson = await api.getLesson(deeplinkdata.lessonId);
       lesson = deeplinkLesson;
-    } else {
+
+    }
+    else {
       lesson = lessonNormal;
     }
 
@@ -379,16 +396,17 @@ const CocosGame: React.FC = () => {
       }
 
       const assignment = state?.assignment;
-      const currentStudent = api.currentStudent!;
+      const currentStudent = localStorage.getItem(CURRENT_USER);
+      const currentStudentObj = currentStudent ? JSON.parse(currentStudent) : undefined;
       const data = lessonData;
       let assignmentId = assignment ? assignment?.id : null;
-      const isStudentLinked = await api.isStudentLinked(currentStudent?.id);
+      const isStudentLinked = await api.isStudentLinked(currentStudentObj?.id? currentStudentObj.id : "");
       let classId;
       let schoolId;
       let chapter_id;
       if (isStudentLinked) {
         const studentResult = await api.getStudentClassesAndSchools(
-          currentStudent.id
+          currentStudentObj?.id? currentStudentObj.id : ""
         );
         if (!!studentResult && studentResult.classes.length > 0) {
           classId = studentResult.classes[0]?.id;
@@ -398,7 +416,7 @@ const CocosGame: React.FC = () => {
           const result = await api.getPendingAssignmentForLesson(
             lesson?.id || "",
             classId,
-            currentStudent?.id
+            currentStudentObj?.id? currentStudentObj.id : ""
           );
           if (result) {
             assignmentId = result?.id;
@@ -412,7 +430,7 @@ const CocosGame: React.FC = () => {
         chapter_id = await api.getChapterIDByLessonID(
           lesson?.id || "",
           undefined,
-          currentStudent?.id
+          currentStudentObj?.id
         );
       }
       const learning_path: string = state?.learning_path ?? false;
@@ -427,7 +445,7 @@ const CocosGame: React.FC = () => {
       avatarObj.weeklyTimeSpent["sec"] = computeSec;
       avatarObj.weeklyPlayedLesson++;
       await Util.logEvent(EVENTS.LESSON_END, {
-        user_id: currentStudent.id,
+        user_id: currentStudentObj.id,
         // assignment_id: lesson.assignment?.id,
         chapter_id: data.chapterId,
         // chapter_name: ChapterDetail ? ChapterDetail.name : "",
@@ -457,7 +475,7 @@ const CocosGame: React.FC = () => {
       });
 
       const result = await api.updateResult(
-        currentStudent?.id,
+        currentStudentObj?.id? currentStudentObj.id : "",
         courseDocId,
         lesson?.id,
         data.score!,
@@ -500,8 +518,8 @@ const CocosGame: React.FC = () => {
     }
   };
   return (
-    <IonPage id="cocos-game-page">
-      <IonContent>
+    <IonPage id="cocos-game-page" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+      <IonContent placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
         <Loading isLoading={isLoading} />
         {showDialogBox && (
           <div>
@@ -528,12 +546,18 @@ const CocosGame: React.FC = () => {
                     initialCount.toString()
                   );
                 }
+                sendDataToRespect();
                 push();
               }}
               onContinueButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
                 setIsLoading(true);
                 // await saveTempData(gameResult.detail, undefined);
+                console.log(
+                  "------------------the game result ",
+                  gameResult.detail.score
+                );
+                sendDataToRespect();
                 push();
               }}
             />

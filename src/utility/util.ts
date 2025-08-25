@@ -91,6 +91,9 @@ import { URLOpenListenerEvent } from "@capacitor/app";
 import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 import CryptoJS from "crypto-js";
+import { OneRosterAuth } from "../services/auth/OneRosterAuth";
+
+
 declare global {
   interface Window {
     cc: any;
@@ -110,6 +113,7 @@ export class Util {
   static get isRespectMode(): boolean {
     return localStorage.getItem("isRespectMode") === "true";
   }
+  static isDeepLinkPending: boolean = false;
 
   public api = ServiceConfig.getI().apiHandler;
 
@@ -1722,7 +1726,13 @@ export class Util {
         return true;
       }
 
-      const student = await Util.getCurrentStudent();
+      let student = await Util.getCurrentStudent();
+
+      if(!student) {
+        const auth = ServiceConfig.getI().authHandler;
+        const currUser = await auth.getCurrentUser();
+        student = currUser;
+      }
 
       if (!student) {
         console.error("Student is undefined or null");

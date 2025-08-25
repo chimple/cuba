@@ -1,20 +1,59 @@
-
 import { TinCan } from 'tincants';
+import {Plugins} from '@capacitor/core';
+const { Port } = Plugins;
+
+interface Actor {
+  name: string | string[];
+  mbox: string | string[];
+}
 
 interface IRecordStoreCfg {
   endpoint: string;
   auth?: string;
+  actor?: Actor;
+  registration?: string;
 }
 
-const lrs:IRecordStoreCfg  = {
-  endpoint: 'https://chimple.lrs.io/xapi/', // LRS endpoint
-    auth: 'Basic ' + btoa('chimp:chimpoo'), // Replace with your LRS credentials
-};
+async function getDeeplinkParams(): Promise<IRecordStoreCfg> {
+  const result = await Port.sendLaunchData();
+  let actor : Actor = {name:'',mbox:''};
+  try {
+    actor = result.actor ? JSON.parse(result.actor) : {name: '', mbox: ''};
+  } catch (error) {
+    actor = {name: '', mbox: ''};
+  }
 
-// Create the tincan instance
-const tincan = new TinCan({});
+  if (result.endpoint == undefined || result.endpoint == '' || result.endpoint == null) {
+    result.endpoint = 'https://chimple.lrs.io/xapi/';
+  }
+  if (result.auth == undefined || result.auth == '' || result.auth == null) {
+    result.auth = 'Basic ' + btoa('chimp:chimpoo');
+  }
 
-tincan.addRecordStore(lrs);
+  return {
+    endpoint: 'https://chimple.lrs.io/xapi/',
+    auth: 'Basic ' + btoa('chimp:chimpoo'),
+    actor: actor,
+    registration: result.registration ?? '',
+  };
+}
 
-// Export the tincan instance
+let tincan;
+
+export async function reinitializeTincan() {
+  try {
+    const lrs = await getDeeplinkParams();
+    tincan = new TinCan({});
+    tincan.addRecordStore(lrs);
+    return tincan;
+  } catch (error){
+    console.error('Failed to reinitialize tincan',error);
+    return null;
+  }
+}
+
+(async () => {
+ tincan = await reinitializeTincan();
+})();
+
 export default tincan;
