@@ -331,7 +331,7 @@ const CreateSelectedAssignment = ({
 
     text += `${t(
       "Please click this link to access your Homework"
-    )}: https://chimple.cc/assignment?batch_id=${assignmentBatchId}`;
+    )}: https://chimple.cc/assignment?batch_id=${assignmentBatchId}&source=teacher`;
 
     return text.trim();
   };
@@ -411,9 +411,10 @@ const CreateSelectedAssignment = ({
                 return;
               }
 
-              const tempChapterId = (tempLes?.source === AssignmentSource.RECOMMENDED) ? 
-              await api.getChapterByLesson(tempLes.id, current_class.id) : 
-              lessonToChapterMap.get(lessonId);
+              const tempChapterId =
+                tempLes?.source === AssignmentSource.RECOMMENDED
+                  ? await api.getChapterByLesson(tempLes.id, current_class.id)
+                  : lessonToChapterMap.get(lessonId);
               if (!tempChapterId) {
                 console.warn(`Chapter not found for lessonId: ${lessonId}`);
                 return;
@@ -424,17 +425,18 @@ const CreateSelectedAssignment = ({
               // 🌟 Determine Source (manual, qr_code, recommended)
               let source: string | null = null;
 
-              const chapterSourceMap = sync_lesson.get(tempChapterId as string) ?? {};
+              const chapterSourceMap =
+                sync_lesson.get(tempChapterId as string) ?? {};
 
-              if (chapterSourceMap[AssignmentSource.MANUAL]?.includes(lessonId)) {
+              if (
+                chapterSourceMap[AssignmentSource.MANUAL]?.includes(lessonId)
+              ) {
                 source = AssignmentSource.MANUAL;
               } else if (
                 chapterSourceMap[AssignmentSource.QR_CODE]?.includes(lessonId)
               ) {
                 source = AssignmentSource.QR_CODE;
-              } else if (
-                tempLes?.source === AssignmentSource.RECOMMENDED
-              ) {
+              } else if (tempLes?.source === AssignmentSource.RECOMMENDED) {
                 source = AssignmentSource.RECOMMENDED;
               }
 
@@ -453,7 +455,7 @@ const CreateSelectedAssignment = ({
                   ? ASSIGNMENT_TYPE.LIVEQUIZ
                   : ASSIGNMENT_TYPE.ASSIGNMENT,
                 batchId,
-                source, 
+                source,
                 createdAt
               );
 
