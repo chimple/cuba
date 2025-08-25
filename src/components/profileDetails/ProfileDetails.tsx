@@ -46,8 +46,8 @@ const getModeFromFeature = (variation: string) => {
 const ProfileDetails = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
-  const profileRef = useRef<HTMLDivElement>(null);
   const history = useHistory();
+  const profileRef = useRef<HTMLDivElement>(null);
   const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
   const currentStudent = Util.getCurrentStudent();
   const location = useLocation();
@@ -244,9 +244,9 @@ const ProfileDetails = () => {
           tmpPath === PAGES.HOME ? true : false
         );
       }
-      Util.setCurrentStudent(null);
-      localStorage.removeItem(CURRENT_STUDENT);
-      history.replace(tmpPath);
+      // Util.setCurrentStudent(null);
+      // localStorage.removeItem(CURRENT_STUDENT);
+      history.replace(PAGES.HOME);
       setIsCreatingProfile(false)
     } catch (err) {
       console.error("Error saving profile:", err);
@@ -305,7 +305,7 @@ const ProfileDetails = () => {
         <button
           className="profiledetails-back-button"
           onClick={() => {
-            const targetPage = parentHasStudent ? PAGES.PARENT : PAGES.HOME;
+            const targetPage = PAGES.HOME;
             Util.setPathToBackButton(targetPage, history);
           }}
           aria-label="Back"

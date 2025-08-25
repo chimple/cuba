@@ -1,7 +1,7 @@
 .tableRightHeader {
   position: relative;
   text-align: center;
-  height: 140px; 
+  height: 120px; 
   overflow: hidden;
 }
  
@@ -12,6 +12,7 @@
   width: fit-content;
   height: 80%;
   margin: 0 auto;                 
+  /* text-align: left;    */
   /* text-align: left;    */
   overflow: hidden;
   text-overflow: ellipsis;

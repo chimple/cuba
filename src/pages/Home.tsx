@@ -14,6 +14,8 @@ import {
   TableTypes,
   RECOMMENDATIONS,
   STARS_COUNT,
+  LANGUAGE,
+  LANG,
 } from "../common/constants";
 import "./Home.css";
 import LessonSlider from "../components/LessonSlider";
@@ -40,6 +42,7 @@ import { AvatarObj } from "../components/animation/Avatar";
 import LearningPathway from "../components/LearningPathway";
 import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 import { Device } from "@capacitor/device";
+import i18n from "../i18n";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -177,6 +180,12 @@ const Home: FC = () => {
     if (!student) {
       history.replace(PAGES.SELECT_MODE);
       return;
+    }
+    const langDoc = await api.getLanguageWithId(student.language_id??"");
+    if (langDoc) {
+      const tempLangCode = langDoc.code ?? LANG.ENGLISH;
+      localStorage.setItem(LANGUAGE, tempLangCode);
+      await i18n.changeLanguage(tempLangCode);
     }
     const studentResult = await api.getStudentResultInMap(student.id);
     if (!!studentResult) {

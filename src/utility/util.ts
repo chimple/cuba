@@ -885,6 +885,12 @@ export class Util {
     }
   ) {
     try {
+      const normalizedParams: { [key: string]: string } = Object.fromEntries(
+        Object.entries(params).map(([key, value]) => [
+          key,
+          typeof value === "number" ? value.toString() : String(value),
+        ])
+      );
       //Setting User Id in User Properites
       await FirebaseAnalytics.setUserId({
         userId: params.user_id,
@@ -2306,5 +2312,18 @@ export class Util {
     };
 
     await Util.logEvent(EVENTS.DEEPLINK_CLICKED, eventData);
+  }
+  public static async setParentLanguagetoLocal() {
+    const api = ServiceConfig.getI().apiHandler;
+    const auth = ServiceConfig.getI().authHandler;
+    const user = await auth.getCurrentUser();
+    if (!!user && !!user.language_id) {
+      const langDoc = await api.getLanguageWithId(user.language_id);
+      if (langDoc) {
+        const tempLangCode = langDoc.code ?? LANG.ENGLISH;
+        localStorage.setItem(LANGUAGE, tempLangCode);
+        await i18n.changeLanguage(tempLangCode);
+      }
+    }
   }
 }

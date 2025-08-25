@@ -508,6 +508,27 @@ export class OneRosterApi implements ServiceApi {
     };
   }
 
+  /**
+   * Search students by name, student_id, or phone number in a school, paginated.
+   * Not implemented for OneRosterApi, returns empty result.
+  */
+  searchStudentsInSchool(
+    schoolId: string,
+    searchTerm: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<StudentAPIResponse> {
+    return Promise.resolve({ data: [], total: 0 });
+  }
+
+  /**
+   * Search teachers by name, email, or phone in a school. Not implemented for OneRosterApi.
+   */
+  async searchTeachersInSchool(schoolId: string, searchTerm: string): Promise<any[]> {
+  // Not implemented for OneRosterApi, return empty paginated result
+  return { data: [], total: 0 };
+  }
+
   async getClassesForUser(userId: string): Promise<Class[]> {
     // throw new Error("Method not implemented.");
     // try {
@@ -525,7 +546,7 @@ export class OneRosterApi implements ServiceApi {
     //     url: url,
     //     headers: this.getHeaders(),
     //   }).catch((e) => {
-    //     console.log("error on getResultsForStudentForClass", e);
+    //    console.log("error on getResultsForStudentForClass", e); 
     //   });
     //   if (response && response.status !== 200) {
     //     Util.showLog(response.data);
@@ -1095,7 +1116,7 @@ export class OneRosterApi implements ServiceApi {
   }
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-     courseIds: string[],
+    courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -1107,7 +1128,7 @@ export class OneRosterApi implements ServiceApi {
   getStudentLastTenResults(
     studentId: string,
     assignmentIds: string[],
-    courseIds: string[],
+    courseIds: string[]
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
   }
@@ -1212,27 +1233,21 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getTeacherInfoBySchoolId(schoolId: string): Promise<
-  {
-   user: TableTypes<"user">;
-   grade: number;
-   classSection: string;
-  }[]
-> {
+  getTeacherInfoBySchoolId(
+    schoolId: string,
+    page: number,
+    limit: number
+  ): Promise<TeacherAPIResponse> {
     throw new Error("Method not implemented.");
   }
-  getStudentInfoBySchoolId(schoolId: string): Promise<
-  {
-    user: TableTypes<"user">;
-    grade: number;
-    classSection: string;
-  }[]
-> {
+  getStudentInfoBySchoolId(
+    schoolId: string,
+    page: number,
+    limit: number
+  ): Promise<StudentAPIResponse> {
     throw new Error("Method not implemented.");
   }
-   getClassesBySchoolId(
-    schoolId: string
-  ): Promise<TableTypes<"class">[]> {
+  getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> {
     throw new Error("Method not implemented.");
   }
 }

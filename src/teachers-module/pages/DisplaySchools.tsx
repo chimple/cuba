@@ -1,6 +1,8 @@
 import { FC, useEffect, useState, useRef } from "react";
 import { useHistory, useLocation } from "react-router";
 import {
+  CLASS,
+  CURRENT_SCHOOL,
   PAGES,
   TableTypes,
   USER_ROLE,
@@ -8,24 +10,29 @@ import {
   USER_SELECTION_STAGE,
   IS_OPS_USER,
 } from "../../common/constants";
-import { ServiceConfig } from "../../services/ServiceConfig";
+import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
+import { AppBar } from "@mui/material";
 import { t } from "i18next";
 import "./DisplaySchools.css";
 import Header from "../components/homePage/Header";
-import { IonFabButton, IonIcon, IonPage } from "@ionic/react";
+import { IonFabButton, IonIcon, IonItem, IonPage } from "@ionic/react";
 import { PiUserSwitchFill } from "react-icons/pi";
 import CommonToggle from "../../common/CommonToggle";
 import { schoolUtil } from "../../utility/schoolUtil";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
+import AddButton from "../../common/AddButton";
 import { addOutline } from "ionicons/icons";
 import { RoleType } from "../../interface/modelInterfaces";
+import Loading from "../../components/Loading";
+
 interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;
 }
 const PAGE_SIZE = 20;
+
 const DisplaySchools: FC = () => {
   const history = useHistory();
   const location = useLocation();
@@ -38,6 +45,7 @@ const DisplaySchools: FC = () => {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollPositionRef = useRef<number>(0);
 
   useEffect(() => {
     (async () => {
@@ -59,13 +67,17 @@ const DisplaySchools: FC = () => {
     lockOrientation();
     initData();
   }, []);
+
   const lockOrientation = () => {
     if (Capacitor.isNativePlatform()) {
       ScreenOrientation.lock({ orientation: "portrait" });
     }
   };
+
   const fetchSchools = async (pageNo: number, userId: string) => {
-    setLoading(true);
+    if (scrollRef.current) {
+      scrollPositionRef.current = scrollRef.current.scrollTop;
+    }
     const result = await api.getSchoolsForUser(userId, {
       page: pageNo,
       page_size: PAGE_SIZE,
@@ -74,7 +86,9 @@ const DisplaySchools: FC = () => {
     setSchoolList((prev) => (pageNo === 1 ? result : [...prev, ...result]));
     setLoading(false);
   };
+
   const initData = async () => {
+    setLoading(true);
     const currentUser = await auth.getCurrentUser();
     if (!currentUser) return;
     setUser(currentUser);
@@ -97,33 +111,62 @@ const DisplaySchools: FC = () => {
     if (schoolList.length === 1) {
       return selectSchool(schoolList[0]);
     }
+    setLoading(false);
+    
   };
-  // infinite scroll listener
+  // infinite scroll listener with debounce and robust guard
+  const prevSchoolListLength = useRef<number>(0);
   useEffect(() => {
     const el = scrollRef.current;
-    if (!el) return;
+    if (!el || !hasMore) return;
+    let debounceTimeout: NodeJS.Timeout | null = null;
     const handleScroll = () => {
-      if (loading || !hasMore) return;
-      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
-        setPage((p) => p + 1);
-      }
+      if (loading) return;
+      if (debounceTimeout) clearTimeout(debounceTimeout);
+      debounceTimeout = setTimeout(() => {
+        if (el.scrollTop + el.clientHeight >= el.scrollHeight - 100) {
+          setPage((p) => p + 1);
+        }
+      }, 150);
     };
     el.addEventListener("scroll", handleScroll);
-    return () => el.removeEventListener("scroll", handleScroll);
+    return () => {
+      el.removeEventListener("scroll", handleScroll);
+      if (debounceTimeout) clearTimeout(debounceTimeout);
+    };
   }, [loading, hasMore]);
+
   // fetch next page if page++
   useEffect(() => {
     if (!user || page === 1) return;
     fetchSchools(page, user.id);
   }, [page, user]);
+
+  // Restore scroll position only when new schools are appended and hasMore is true
+  useEffect(() => {
+    if (
+      page > 1 &&
+      scrollRef.current &&
+      schoolList.length > prevSchoolListLength.current &&
+      hasMore
+    ) {
+      setTimeout(() => {
+        scrollRef.current!.scrollTop = scrollPositionRef.current;
+      }, 0);
+    }
+    prevSchoolListLength.current = schoolList.length;
+  }, [schoolList, hasMore]);
+
   // helper: get classes
   const getClasses = async (schoolId: string,userId:string) => {
     const classes = await api.getClassesForSchool(schoolId, userId);
     return classes.length ? classes : [];
   };
+
   const switchUser = () => {
     schoolUtil.setCurrMode(MODES.PARENT);
     history.replace(PAGES.DISPLAY_STUDENT);
+    setLoading(false);
   };
 
   async function selectSchool(school: SchoolWithRole) {
@@ -147,9 +190,13 @@ const DisplaySchools: FC = () => {
         history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
       }
     }
+    setLoading(false);
   }
+  
   return (
     <IonPage className="display-page">
+      {!loading && (
+      <>
       <Header
         isBackButton={false}
         disableBackButton={true}
@@ -222,7 +269,11 @@ const DisplaySchools: FC = () => {
           </div>
         </div>
       )}
+      </>
+      )}
+      <Loading isLoading={loading} />
     </IonPage>
   );
 };
+
 export default DisplaySchools;
