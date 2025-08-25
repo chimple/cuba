@@ -244,9 +244,9 @@ const ProfileDetails = () => {
           tmpPath === PAGES.HOME ? true : false
         );
       }
-      Util.setCurrentStudent(null);
-      localStorage.removeItem(CURRENT_STUDENT);
-      history.replace(tmpPath);
+      // Util.setCurrentStudent(null);
+      // localStorage.removeItem(CURRENT_STUDENT);
+      history.replace(PAGES.HOME);
       setIsCreatingProfile(false)
     } catch (err) {
       console.error("Error saving profile:", err);
@@ -305,7 +305,7 @@ const ProfileDetails = () => {
         <button
           className="profiledetails-back-button"
           onClick={() => {
-            const targetPage = parentHasStudent ? PAGES.PARENT : PAGES.HOME;
+            const targetPage = PAGES.HOME;
             Util.setPathToBackButton(targetPage, history);
           }}
           aria-label="Back"
