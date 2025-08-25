@@ -22,6 +22,7 @@ export type Database = {
           is_deleted: boolean | null
           lesson_id: string
           school_id: string
+          source: string | null
           starts_at: string
           type: string | null
           updated_at: string | null
@@ -38,6 +39,7 @@ export type Database = {
           is_deleted?: boolean | null
           lesson_id: string
           school_id: string
+          source?: string | null
           starts_at?: string
           type?: string | null
           updated_at?: string | null
@@ -54,6 +56,7 @@ export type Database = {
           is_deleted?: boolean | null
           lesson_id?: string
           school_id?: string
+          source?: string | null
           starts_at?: string
           type?: string | null
           updated_at?: string | null
@@ -173,6 +176,41 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auto_chatbot: {
+        Row: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          school_id: string
+          task_data: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          school_id: string
+          task_data?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          school_id?: string
+          task_data?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_auto_chatbot_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school"
             referencedColumns: ["id"]
           },
         ]
@@ -298,21 +336,27 @@ export type Database = {
       }
       chatbot: {
         Row: {
+          chatbot_doc: Json | null
           created_at: string
           id: string
           is_deleted: boolean | null
+          phonenumber: string
           updated_at: string | null
         }
         Insert: {
+          chatbot_doc?: Json | null
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          phonenumber: string
           updated_at?: string | null
         }
         Update: {
+          chatbot_doc?: Json | null
           created_at?: string
           id?: string
           is_deleted?: boolean | null
+          phonenumber?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -901,10 +945,64 @@ export type Database = {
           },
         ]
       }
+      req_new_school: {
+        Row: {
+          city: string
+          created_at: string | null
+          district: string
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          is_resolved: boolean | null
+          name: string
+          state: string
+          udise_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          city: string
+          created_at?: string | null
+          district: string
+          id?: string
+          image?: string | null
+          is_deleted?: boolean | null
+          is_resolved?: boolean | null
+          name: string
+          state: string
+          udise_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          city?: string
+          created_at?: string | null
+          district?: string
+          id?: string
+          image?: string | null
+          is_deleted?: boolean | null
+          is_resolved?: boolean | null
+          name?: string
+          state?: string
+          udise_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "req_new_school_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       result: {
         Row: {
           assignment_id: string | null
           chapter_id: string | null
+          class_id: string | null
           correct_moves: number | null
           course_id: string | null
           created_at: string
@@ -921,6 +1019,7 @@ export type Database = {
         Insert: {
           assignment_id?: string | null
           chapter_id?: string | null
+          class_id?: string | null
           correct_moves?: number | null
           course_id?: string | null
           created_at?: string
@@ -937,6 +1036,7 @@ export type Database = {
         Update: {
           assignment_id?: string | null
           chapter_id?: string | null
+          class_id?: string | null
           correct_moves?: number | null
           course_id?: string | null
           created_at?: string
@@ -977,6 +1077,13 @@ export type Database = {
             columns: ["chapter_id"]
             isOneToOne: false
             referencedRelation: "chapter"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class"
             referencedColumns: ["id"]
           },
           {
@@ -1106,6 +1213,69 @@ export type Database = {
           },
         ]
       }
+      school_data: {
+        Row: {
+          block: string | null
+          classes: string | null
+          cluster: string | null
+          country: string | null
+          created_at: string
+          district: string | null
+          head_teacher: string | null
+          head_teachers: string | null
+          id: string
+          instruction_medium: string | null
+          pre_primary_section_available: boolean | null
+          school_name: string | null
+          school_type: string | null
+          state: string | null
+          total_teachers: number | null
+          udise_code: string | null
+          updated_at: string | null
+          village: string | null
+        }
+        Insert: {
+          block?: string | null
+          classes?: string | null
+          cluster?: string | null
+          country?: string | null
+          created_at?: string
+          district?: string | null
+          head_teacher?: string | null
+          head_teachers?: string | null
+          id?: string
+          instruction_medium?: string | null
+          pre_primary_section_available?: boolean | null
+          school_name?: string | null
+          school_type?: string | null
+          state?: string | null
+          total_teachers?: number | null
+          udise_code?: string | null
+          updated_at?: string | null
+          village?: string | null
+        }
+        Update: {
+          block?: string | null
+          classes?: string | null
+          cluster?: string | null
+          country?: string | null
+          created_at?: string
+          district?: string | null
+          head_teacher?: string | null
+          head_teachers?: string | null
+          id?: string
+          instruction_medium?: string | null
+          pre_primary_section_available?: boolean | null
+          school_name?: string | null
+          school_type?: string | null
+          state?: string | null
+          total_teachers?: number | null
+          udise_code?: string | null
+          updated_at?: string | null
+          village?: string | null
+        }
+        Relationships: []
+      }
       school_user: {
         Row: {
           created_at: string
@@ -1233,8 +1403,10 @@ export type Database = {
           name: string | null
           phone: string | null
           sfx_off: boolean | null
+          stars?: number | null
           student_id: string | null
           updated_at: string | null
+          learning_path?: string | null
         }
         Insert: {
           age?: number | null
@@ -1254,6 +1426,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           sfx_off?: boolean | null
+          stars?: number | null
           student_id?: string | null
           updated_at?: string | null
         }
@@ -1275,6 +1448,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           sfx_off?: boolean | null
+          stars?: number | null
           student_id?: string | null
           updated_at?: string | null
         }
@@ -1479,6 +1653,71 @@ export type Database = {
           },
         ]
       }
+      chapter_links: {
+        Row: {
+          id: string
+          created_at: string
+          chapter_id: string | null
+          link: string | null
+          curriculum_id: string | null
+          course_id: string
+          grade_id: string | null
+          updated_at: string | null
+          is_deleted: boolean | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          chapter_id?: string | null
+          link?: string | null
+          curriculum_id?: string | null
+          course_id?: string
+          grade_id?: string | null
+          updated_at?: string | null
+          is_deleted?: boolean | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          chapter_id?: string | null
+          link?: string | null
+          curriculum_id?: string | null
+          course_id?: string
+          grade_id?: string | null
+          updated_at?: string | null
+          is_deleted?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chapter_links_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapter"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chapter_links_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "course"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chapter_links_curriculum_id_fkey"
+            columns: ["curriculum_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chapter_links_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "grade"
+            referencedColumns: ["id"]
+    },
+  ]
+}
     }
     Views: {
       get_leaderboard_generic_data: {
@@ -1639,6 +1878,68 @@ export type Database = {
           phone: string
         }[]
       }
+      validate_school_data_rpc: {
+        Args: {
+          input_school_id: string;
+          input_school_name: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      check_parent_and_student_in_class: {
+        Args: {
+          phone_number: string;
+          student_name: string;
+          class_name: string;
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      check_student_duplicate_in_class_without_phone_number: {
+        Args: {
+          student_name: string;
+          class_name: string;
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      validate_school_udise_code: {
+        Args: {
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      check_class_exists_by_name_and_school: {
+        Args: {
+          class_name:string;
+          input_school_udise_code: string;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
+      validate_user_contacts_rpc: {
+        Args: {
+          program_manager_contact: string;
+          field_coordinator_contact?: string | null;
+        };
+        Returns: {
+          status: string;
+          errors?: string[];
+        };
+      };
       get_user_by_phonenumber: {
         Args: {
           p_phone: string
@@ -1705,6 +2006,464 @@ export type Database = {
         }
         Returns: string
       }
+      sql_get_assignment_cart: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          lessons: string | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_assignment_users: {
+        Args: { p_updated_at: string }
+        Returns: {
+          assignment_id: string
+          created_at: string | null
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          updated_at: string | null
+          user_id: string
+        }[]
+      }
+      sql_get_assignments: {
+        Args: { p_updated_at: string }
+        Returns: {
+          chapter_id: string | null
+          class_id: string
+          course_id: string | null
+          created_at: string
+          created_by: string | null
+          ends_at: string | null
+          firebase_id: string | null
+          id: string
+          is_class_wise: boolean
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          lesson_id: string
+          school_id: string
+          source: string | null
+          starts_at: string
+          type: string | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_badge: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string | null
+          description: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          updated_at: string | null
+        }[]
+      }
+      sql_get_chapter: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          course_id: string | null
+          created_at: string
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string | null
+          sort_index: number | null
+          sub_topics: string | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_chapter_lesson: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          chapter_id: string
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          lesson_id: string
+          sort_index: number | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_class: {
+        Args: { p_updated_at: string }
+        Returns: {
+          created_at: string
+          firebase_id: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          name: string
+          school_id: string
+          standard: string | null
+          status: string | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_class_course: {
+        Args: { p_updated_at: string }
+        Returns: {
+          class_id: string
+          course_id: string
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_class_invite_codes: {
+        Args: { p_updated_at: string }
+        Returns: {
+          class_id: string
+          code: number
+          created_at: string
+          expires_at: string
+          id: string
+          is_class_code: boolean | null
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_class_user: {
+        Args: { p_updated_at: string }
+        Returns: {
+          class_id: string
+          created_at: string | null
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          role: Database["public"]["Enums"]["role"]
+          updated_at: string | null
+          user_id: string
+        }[]
+      }
+      sql_get_course: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          code: string | null
+          color: string | null
+          created_at: string
+          curriculum_id: string | null
+          description: string | null
+          firebase_id: string | null
+          grade_id: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          sort_index: number | null
+          subject_id: string | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_curriculum: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string
+          description: string | null
+          firebase_id: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          sort_index: number | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_favorite_lessons: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string | null
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          lesson_id: string
+          updated_at: string | null
+          user_id: string
+        }[]
+      }
+      sql_get_grade: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string
+          description: string | null
+          firebase_id: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          sort_index: number | null
+          test: string | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_language: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          code: string | null
+          created_at: string
+          description: string | null
+          firebase_id: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          sort_index: number | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_live_quiz_rooms: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          assignment_id: string
+          class_id: string
+          course_id: string
+          created_at: string | null
+          id: string
+          is_deleted: boolean | null
+          lesson_id: string
+          participants: string[] | null
+          results: Json | null
+          school_id: string
+          starts_at: string
+          updated_at: string | null
+        }[]
+      }
+      sql_get_lessons: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          cocos_chapter_code: string | null
+          cocos_lesson_id: string | null
+          cocos_subject_code: string | null
+          color: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          language_id: string | null
+          name: string | null
+          outcome: string | null
+          plugin_type: string | null
+          status: string | null
+          subject_id: string | null
+          target_age_from: number | null
+          target_age_to: number | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_parent_users: {
+        Args: { p_updated_at: string }
+        Returns: {
+          created_at: string | null
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          parent_id: string
+          student_id: string
+          updated_at: string | null
+        }[]
+      }
+      sql_get_results: {
+        Args: { p_updated_at: string }
+        Returns: {
+          assignment_id: string | null
+          chapter_id: string | null
+          class_id: string | null
+          correct_moves: number | null
+          course_id: string | null
+          created_at: string
+          firebase_id: string | null
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          lesson_id: string | null
+          school_id: string | null
+          score: number | null
+          student_id: string
+          time_spent: number | null
+          updated_at: string | null
+          wrong_moves: number | null
+        }[]
+      }
+      sql_get_reward: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          monthly: string | null
+          updated_at: string | null
+          weekly: string | null
+          weeklySticker: string | null
+          year: number
+        }[]
+      }
+      sql_get_school_courses: {
+        Args: { p_updated_at: string }
+        Returns: {
+          course_id: string
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          school_id: string
+          updated_at: string | null
+        }[]
+      }
+      sql_get_school_user: {
+        Args: { p_updated_at: string }
+        Returns: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          role: Database["public"]["Enums"]["role"]
+          school_id: string
+          updated_at: string | null
+          user_id: string
+        }[]
+      }
+      sql_get_schools: {
+        Args: { p_updated_at: string }
+        Returns: {
+          academic_year: string[] | null
+          created_at: string
+          firebase_id: string | null
+          group1: string | null
+          group2: string | null
+          group3: string | null
+          group4: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          language: string | null
+          name: string
+          student_login_type: Database["public"]["Enums"]["login_type"] | null
+          UDISE: string | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_sticker: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          updated_at: string | null
+        }[]
+      }
+      sql_get_subject: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          sort_index: number | null
+          updated_at: string | null
+        }[]
+      }
+      sql_get_user_badges: {
+        Args: { p_updated_at: string }
+        Returns: {
+          badge_id: string
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_seen: boolean | null
+          updated_at: string | null
+          user_id: string
+        }[]
+      }
+      sql_get_user_bonus: {
+        Args: { p_updated_at: string }
+        Returns: {
+          bonus_id: string
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_seen: boolean | null
+          updated_at: string | null
+          user_id: string
+        }[]
+      }
+      sql_get_user_courses: {
+        Args: { p_updated_at: string }
+        Returns: {
+          course_id: string
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          updated_at: string | null
+          user_id: string
+        }[]
+      }
+      sql_get_user_stickers: {
+        Args: { p_updated_at: string }
+        Returns: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_seen: boolean | null
+          sticker_id: string
+          updated_at: string | null
+          user_id: string
+        }[]
+      }
+      sql_get_users: {
+        Args: { p_updated_at: string }
+        Returns: {
+          age: number | null
+          avatar: string | null
+          created_at: string
+          curriculum_id: string | null
+          email: string | null
+          fcm_token: string | null
+          firebase_id: string | null
+          gender: string | null
+          grade_id: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          is_tc_accepted: boolean | null
+          language_id: string | null
+          learning_path: string | null
+          music_off: boolean | null
+          name: string | null
+          phone: string | null
+          sfx_off: boolean | null
+          stars: number | null
+          student_id: string | null
+          updated_at: string | null
+        }[]
+      }
       update_live_quiz: {
         Args: {
           room_id: string
@@ -1715,8 +2474,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      user_exists: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      login_type: "STUDENT ID" | "PARENT PHONE NUMBER"
       role:
         | "coordinator"
         | "principal"
@@ -1724,6 +2490,10 @@ export type Database = {
         | "teacher"
         | "parent"
         | "student"
+        | "autouser"
+        | "program_manager"
+        | "operational_director"
+        | "field_coordinator"
     }
     CompositeTypes: {
       [_ in never]: never

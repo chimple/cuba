@@ -1,0 +1,120 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: #7c5db0;
+  color: white;
+  position: relative;
+  margin: auto;
+  height: 10vh;
+}
+.disabled-back-button {
+  opacity: 0.5;
+}
+
+.header-container {
+  height: 10vh;
+  color: #7c5db0;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-icon {
+  width: 35px;
+  height: 35px;
+  background-size: contain; /* This ensures the image covers the entire area of the div */
+}
+.chimple-logo {
+  width: 159px;
+  height: 25px;
+  background-image: url("../../assets/icons/chimple_logo.png");
+  background-size: contain; /* This ensures the image covers the entire area of the div */
+}
+.help-icon {
+  color: white;
+}
+.left-content {
+  display: flex;
+  align-items: flex-start;
+  position: relative; /* Better alignment without overlap */
+  padding-left: 5%; /* Dynamic spacing */
+  color: white;
+  flex-direction: column;
+  max-width: clamp(55vw, 20vw, 80vw);
+}
+
+.header-class-name {
+  font-size: clamp(20px, 5vh, 30px); /* Dynamic font size */
+  font-weight: bolder;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.header-school-name {
+  font-size: clamp(15px, 5vh, 20px); /* Dynamic font size */
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+#header-menu-element {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.header {
+  margin-bottom: 0;
+  margin-top: 0vh;
+  background-color: rgb(124, 93, 176);
+  height: 10vh;
+  padding: 0;
+  position: static;
+}
+.header-custom-text {
+  font-size: var(--text-sizeXL);
+  padding: 4vh;
+}
+
+.search-section {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 1rem;
+  align-items: center;
+}
+
+.header-search-container {
+  display: flex;
+  align-items: center;
+  background: #fff;                
+  border: 1px solid #ccc;          
+  border-radius: 10px;
+  padding: 4px 8px;               
+  gap: 0.5rem;
+}
+
+.search-icon-inside {
+  color: black;
+  font-size: 1.2rem;             
+}
+
+.header-search-input {
+  background-color: #fff !important;
+  color: #000 !important;
+  border: none;
+  outline: none;
+  width: 220px;
+  font-size: 1rem;
+  color-scheme: light;
+}
+
+.help-icon-container {
+  display: flex;
+  align-items: center;
+}

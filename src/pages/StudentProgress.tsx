@@ -85,7 +85,6 @@ const StudentProgress: React.FC = () => {
       const res = await api.getStudentProgress(currentStudent.id);
 
       if (res) {
-        console.log("res", res);
         setLessonsResults(res);
 
         await getResultsForStudentForSelectedHeader(courses[0].id, res);

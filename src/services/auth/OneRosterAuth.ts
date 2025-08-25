@@ -4,6 +4,14 @@ import { CURRENT_USER, LANGUAGE, TableTypes } from "../../common/constants";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Util } from "../../utility/util";
 import i18n from "../../i18n";
+import { ConfirmationResult } from "@firebase/auth";
+import { Database } from "../database";
+import { UserAttributes } from "@supabase/supabase-js";
+import { ServiceConfig, APIMode } from "../ServiceConfig";
+import { SupabaseAuth } from "./SupabaseAuth";
+import { AuthHandler } from "./AuthHandler";
+import { SqliteApi } from "../api/SqliteApi";
+
 export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
   private _currentUser: TableTypes<"user"> | undefined;
@@ -11,6 +19,9 @@ export class OneRosterAuth implements ServiceAuth {
   private static NativeSSOPlugin = registerPlugin("NativeSSOPlugin");
 
   private constructor() { }
+  refreshSession(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
   loginWithEmailAndPassword(email: any, password: any): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
@@ -90,8 +101,19 @@ export class OneRosterAuth implements ServiceAuth {
     this._currentUser = user
   }
 
-  googleSign(): Promise<any> {
-    throw new Error("Method not implemented.");
+  async googleSign(): Promise<any> {
+        localStorage.setItem("isRespectMode", "false");
+        AuthHandler.i.switchMode(APIMode.SUPABASE);
+        await SqliteApi.getInstance();
+        const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
+        serviceInstance.switchMode(APIMode.SQLITE)
+        console.log("Supabase Auth Loginwithrespect ", serviceInstance);
+        // root.render(
+        //   <BrowserRouter>
+        //     <App />
+        //   </BrowserRouter>
+        // );
+        return await SupabaseAuth.i.googleSign();
   }
 
   phoneNumberSignIn(phoneNumber: any, recaptchaVerifier: any): Promise<any> {
@@ -144,11 +166,23 @@ export class OneRosterAuth implements ServiceAuth {
       sfx_off: (Util.getCurrentSound() === 0),
       student_id: registration,
       updated_at: null,
+      learning_path: Util.getCurrentStudent()?.learning_path
     };
     return Promise.resolve(user);
   }
 
-  refreshSession(): Promise<void> {
+  doRefreshSession(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  signInWithEmail(email, password): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  sendResetPasswordEmail(email: string): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+
+  updateUser(attributes: UserAttributes): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
 }

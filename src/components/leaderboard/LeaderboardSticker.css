@@ -37,3 +37,7 @@
     color: black;
   }
   
+  .lost-reward p {
+    color: rgb(24, 44, 79) !important; /* Change to a visible color */ /* Ensure it's not hidden */
+  }
+  

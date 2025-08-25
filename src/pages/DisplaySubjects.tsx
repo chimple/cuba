@@ -56,6 +56,7 @@ const DisplaySubjects: FC<{}> = () => {
     grades: TableTypes<"grade">[];
     courses: TableTypes<"course">[];
   }>();
+  
   const [currentGrade, setCurrentGrade] = useState<TableTypes<"grade">>();
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
@@ -180,17 +181,12 @@ const DisplaySubjects: FC<{}> = () => {
       //     }
       //   } else {
       //     await getCourses();
-      //     console.log(
-      //       "🚀 ~ file: DisplaySubjects.tsx:184 ~ init ~ getCourses:"
-      //     );
       //   }
       // } else {
       //   await getCourses();
-      //   console.log("🚀 ~ file: DisplaySubjects.tsx:189 ~ init ~ getCourses:");
       // }
     } else {
       await getCourses();
-      console.log("🚀 ~ file: DisplaySubjects.tsx:193 ~ init ~ getCourses:");
     }
     getLocalGradeMap();
   };
@@ -233,7 +229,6 @@ const DisplaySubjects: FC<{}> = () => {
     const currClass = schoolUtil.getCurrentClass();
     if (!!currClass) setCurrentClass(currClass);
     api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
-      console.log("tempResultLessonMap = res;", res);
       localData.lessonResultMap = res;
       localStorageData.lessonResultMap = res;
       setLessonResultMap(res);

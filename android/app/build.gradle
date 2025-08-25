@@ -11,14 +11,16 @@ android {
         applicationId "org.chimple.bahama"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 60
-        versionName "4.0.0"
+        versionCode 77
+        versionName "8.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
+        // Keep only required locales from transitive libraries to reduce resources
+        resConfigs 'en', 'hi', 'kn', 'mr'
     }
     signingConfigs {
         release {
@@ -30,12 +32,20 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
         debug {
             signingConfig signingConfigs.release
+        }
+    }
+
+    // Exclude unnecessary META-INF files to slightly reduce size
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/*.kotlin_module', 'META-INF/LICENSE*', 'META-INF/NOTICE*']
         }
     }
 }
@@ -61,7 +71,14 @@ dependencies {
     // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation 'com.google.firebase:firebase-appcheck-playintegrity'
 
-    implementation 'com.google.firebase:firebase-appcheck-debug:17.0.1'
+    implementation 'com.google.android.gms:play-services-auth:21.3.0'
+    implementation 'com.google.android.gms:play-services-auth-api-phone:18.1.0'
+
+    implementation "androidx.work:work-runtime:2.8.1"
+    implementation 'com.google.firebase:firebase-messaging:23.3.1'
+    
+    // Include debug-only App Check helper only in debug builds
+    debugImplementation 'com.google.firebase:firebase-appcheck-debug:17.0.1'
     implementation("com.google.firebase:firebase-crashlytics")
     androidTestImplementation 'com.google.firebase:firebase-appcheck-debug-testing:17.0.1'
 

@@ -46,9 +46,7 @@
   align-items: center;
   justify-content: center;
   margin-top: -1vh;
-  position: relative;
-  top: 1vh;
-  left: 2vh;
+  margin-left: 7vh
 }
 #homework-notification {
   display: flex;

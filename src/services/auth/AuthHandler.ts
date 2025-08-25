@@ -1,17 +1,27 @@
 import { ServiceAuth, OneRosterUser } from "./ServiceAuth";
 import { TableTypes } from "../../common/constants";
+import { UserAttributes } from "@supabase/supabase-js";
+import { APIMode } from "../ServiceConfig";
+import { FirebaseAuth } from "./FirebaseAuth";
+import { SupabaseAuth } from "./SupabaseAuth";
+import { OneRosterAuth } from "./OneRosterAuth";
 
 export class AuthHandler implements ServiceAuth {
   public static i: AuthHandler;
 
   private s: ServiceAuth;
 
-  private constructor() {}
+  private constructor(service: ServiceAuth) {
+    this.s = service;
+  }
+  refreshSession(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
 
-  public static getInstance(s: ServiceAuth): AuthHandler {
-    if (!AuthHandler.i) {
-      AuthHandler.i = new AuthHandler();
-      AuthHandler.i.s = s;
+  public static getInstance(service: ServiceAuth): AuthHandler {
+    // Only create a new instance if the service has changed
+    if (!AuthHandler.i || AuthHandler.i.s !== service) {
+      AuthHandler.i = new AuthHandler(service);
     }
     return AuthHandler.i;
   }
@@ -65,11 +75,41 @@ export class AuthHandler implements ServiceAuth {
     return await this.s.logOut();
   }
 
-  async refreshSession(): Promise<void> {
-    return await this.s.refreshSession();
+  async doRefreshSession(): Promise<void> {
+    return await this.s.doRefreshSession();
+  }
+  public async signInWithEmail(
+    email: string,
+    password: string
+  ): Promise<boolean> {
+    return await this.s.signInWithEmail(email, password);
+  }
+  public async sendResetPasswordEmail(email: string): Promise<boolean> {
+    return await this.s.sendResetPasswordEmail(email);
+  }
+  public async updateUser(attributes: UserAttributes): Promise<boolean> {
+    return await this.s.updateUser(attributes);
   }
 
   async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
     return await this.s.loginWithRespect();
+  }
+
+  public switchMode(newMode: APIMode) {
+    console.debug(`[AuthHandler] switchMode called. Switching to ${APIMode[newMode]}`);
+    switch (newMode) {
+      case APIMode.FIREBASE:
+        // this.s = FirebaseAuth.getInstance();
+        break;
+      case APIMode.ONEROSTER:
+        this.s = OneRosterAuth.getInstance();
+        break;
+      case APIMode.SUPABASE:
+        this.s = SupabaseAuth.getInstance();
+        break;
+      default:
+        // this.s = FirebaseAuth.getInstance();
+        break;
+    }
   }
 }

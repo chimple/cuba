@@ -122,7 +122,6 @@ const LeaderboardBadges: FC = () => {
       date.getFullYear(),
       "weekly"
     );
-    console.log("rewardsDoc in getBadges", rewardsDoc);
 
     if (!rewardsDoc || !rewardsDoc.weekly) {
       console.error("No rewards document or weekly data found");
@@ -299,22 +298,22 @@ const LeaderboardBadges: FC = () => {
       {/* Section for Lost Badges */}
       <div className="leaderboard-badge-section">
         <div className="leaderboard-badge-container">
-          {lostBadges &&
-            lostBadges.map((value, index) => (
-              <div
-                key={index}
-                className="leaderboard-badge-item lost-reward"
-              >
-                <div className="lost-reward-overlay">
-                  <div className="red-circle">
-                    <RxCross2 color="white" />
-                  </div>
-                </div>
-                <CachedImage src={value.badge?.image ?? undefined} />
+        {lostBadges && lostBadges.filter(value => !value.isUnlocked && !value.isNextUnlock && !value.isUpcomingBadge).map((value, index) => (
+          <div key={index} className="leaderboard-badge-item lost-reward">
+            <div className="lost-reward-overlay">
+              <div className="red-circle">
+                <RxCross2 color="white" />
+              </div>
+              <CachedImage src={value.badge?.image ?? undefined} />
+            </div>
+            <div>
+              <div className="leaderboard-badge-item lost-reward">
                 <p>{value.badge?.name}</p>
                 <p>{t("Lost Reward")}</p>
               </div>
-            ))}
+            </div>
+          </div>
+        ))}
         </div>
       </div>
 

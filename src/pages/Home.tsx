@@ -13,6 +13,7 @@ import {
   IS_CONECTED,
   TableTypes,
   RECOMMENDATIONS,
+  STARS_COUNT,
 } from "../common/constants";
 import "./Home.css";
 import LessonSlider from "../components/LessonSlider";
@@ -29,13 +30,15 @@ import { schoolUtil } from "../utility/schoolUtil";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import { t } from "i18next";
 import { App } from "@capacitor/app";
-import ChimpleAvatar from "../components/animation/ChimpleAvatar";
+// import ChimpleAvatar from "../components/animation/ChimpleAvatar";
 import SearchLesson from "./SearchLesson";
 import AssignmentPage from "./Assignment";
 import Subjects from "./Subjects";
 import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
+import { useGrowthBook } from "@growthbook/growthbook-react";
+import LearningPathway from "../components/LearningPathway";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -43,17 +46,18 @@ const Home: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isStudentLinked, setIsStudentLinked] = useState<boolean>();
   const [refreshKey, setRefreshKey] = useState(0);
-
-  
-  
+  const [lessonCourseMap, setLessonCourseMap] = useState<{
+    [lessonId: string]: { course_id: string };
+  }>({});
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
   }>();
-
   const [pendingAssignments, setPendingAssignments] = useState<
     TableTypes<"assignment">[]
   >([]);
   const [pendingLiveQuizCount, setPendingLiveQuizCount] = useState<number>(0);
+  const [pendingAssignmentCount, setPendingAssignmentCount] =
+    useState<number>(0);
   const history = useHistory();
   const [favouriteLessons, setFavouriteLessons] = useState<
     TableTypes<"lesson">[]
@@ -66,16 +70,20 @@ const Home: FC = () => {
   const [allFavLessons, setAllFavLessons] = useState<TableTypes<"lesson">[]>(
     []
   );
+  const [recommendedLessonCourseMap, setRecommendedLessonCourseMap] = useState<{
+    [lessonId: string]: { course_id: string };
+  }>({});
+  const growthbook = useGrowthBook();
+
   let tempPageNumber = 1;
   const location = useLocation();
   const getCanShowAvatar = async () => {
-    const canShowAvatarValue = await Util.getCanShowAvatar();
-    console.log("const canShowAvatarValue in home ", canShowAvatarValue);
+    // const canShowAvatarValue = await Util.getCanShowAvatar();
 
-    setCanShowAvatar(canShowAvatarValue);
+    setCanShowAvatar(true);
   };
   const urlParams = new URLSearchParams(location.search);
-  const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
+  const [canShowAvatar, setCanShowAvatar] = useState<boolean>(true);
   const [currentHeader, setCurrentHeader] = useState(() => {
     const currPage = urlParams.get("tab");
     if (
@@ -109,6 +117,13 @@ const Home: FC = () => {
     App.addListener("appStateChange", ({ isActive }) =>
       appStateChange(isActive)
     );
+    const handlePathwayCreated = (e: Event) => {
+      const customEvent = e as CustomEvent;
+    };
+    window.addEventListener("PathwayCreated", handlePathwayCreated);
+    return () => {
+      window.removeEventListener("PathwayCreated", handlePathwayCreated);
+    };
   }, []);
 
   useEffect(() => {
@@ -122,6 +137,14 @@ const Home: FC = () => {
       fetchData();
     }
   }, [currentHeader]);
+  // adding background image for learning-pathway
+  useEffect(() => {
+    const body = document.querySelector("body");
+    body?.style.setProperty(
+      "background-image",
+      "url(/pathwayAssets/pathwayBackground.svg)"
+    );
+  }, [currentHeader, canShowAvatar]);
   const handleJoinClassEvent = async (event) => {
     await getAssignments();
     setCanShowAvatar(true);
@@ -135,12 +158,17 @@ const Home: FC = () => {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
-
     const studentResult = await api.getStudentResultInMap(student.id);
     if (!!studentResult) {
       setLessonResultMap(studentResult);
     }
-
+    const lessonCourseMap = Object.fromEntries(
+      Object.entries(studentResult).map(([lessonDocId, details]) => [
+        lessonDocId,
+        { course_id: details.course_id || "" },
+      ])
+    );
+    setLessonCourseMap(lessonCourseMap);
     fetchData();
     await isLinked();
     const urlParams = new URLSearchParams(window.location.search);
@@ -212,21 +240,18 @@ const Home: FC = () => {
     let reqLes: TableTypes<"lesson">[] = [];
     // setIsLoading(true);
     const student = Util.getCurrentStudent();
-
     // const studentResult = await api.getStudentResult(student.id, false);
     const linkedData =
       student != null
         ? await api.getStudentClassesAndSchools(student.id)
         : null;
-    
-    // Add a proper null check on linkedData and the classes array
-    const classDoc = linkedData?.classes && linkedData.classes.length > 0 
-      ? linkedData.classes[0] 
-      : undefined;
-      
+    const classDoc =
+      linkedData?.classes && linkedData.classes.length > 0
+        ? linkedData.classes[0]
+        : undefined;
+
     if (classDoc?.id) await api.assignmentListner(classDoc.id, () => {});
     if (student) await api.assignmentUserListner(student.id, () => {});
-
     if (
       student != null &&
       !!linkedData &&
@@ -241,15 +266,14 @@ const Home: FC = () => {
           allAssignments.push(...res);
         })
       );
-      let count = 0;
+      let assignmentCount = 0;
       let liveQuizCount = 0;
       await Promise.all(
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(_assignment.lesson_id);
           const now = new Date().toISOString();
-          console.log(res);
           if (_assignment.type !== LIVE_QUIZ) {
-            count++;
+            assignmentCount++;
           } else {
             if (_assignment.ends_at && _assignment.starts_at) {
               if (_assignment.starts_at <= now && _assignment.ends_at > now) {
@@ -259,13 +283,35 @@ const Home: FC = () => {
           }
           if (!!res) {
             // res.assignment = _assignment;
+            (res as any).course_id = _assignment.course_id || null;
             reqLes.push(res);
           }
         })
       );
       setPendingLiveQuizCount(liveQuizCount);
+      setPendingAssignmentCount(assignmentCount);
       setPendingAssignments(allAssignments);
-
+      const courseCount = allAssignments.reduce((accumulator, current: any) => {
+        if (accumulator[current.course_id]) {
+          accumulator[current.course_id] += 1;
+        } else {
+          accumulator[current.course_id] = 1;
+        }
+        return accumulator;
+      }, {});
+      const result = Object.keys(courseCount).reduce((acc, courseId) => {
+        acc[`count_of_${courseId}`] = courseCount[courseId];
+        return acc;
+      }, {});
+      const attributeParams = {
+        studentDetails: student,
+        schools: linkedData.schools.map((item: any) => item.id),
+        classes: linkedData.classes.map((item: any) => item.id),
+        liveQuizCount: liveQuizCount,
+        assignmentCount: assignmentCount,
+        countOfPendingIds: result,
+      };
+      setGrowthbookAttributes(attributeParams);
       setDataCourse(reqLes);
       // storeRecommendationsInLocalStorage(reqLes);
       // setIsLoading(true);
@@ -275,6 +321,34 @@ const Home: FC = () => {
       return [];
     }
   }
+
+  const setGrowthbookAttributes = (student: any) => {
+    const {
+      studentDetails,
+      schools,
+      classes,
+      liveQuizCount,
+      assignmentCount,
+      countOfPendingIds,
+    } = student;
+
+    growthbook.setAttributes({
+      id: studentDetails.id,
+      age: studentDetails.age,
+      curriculum_id: studentDetails.curriculum_id,
+      grade_id: studentDetails.grade_id,
+      gender: studentDetails.gender,
+      parent_id: studentDetails.parent_id,
+      subject_id: studentDetails.subject_id,
+      school_ids: schools,
+      class_ids: classes,
+      language: localStorage.getItem("language") || "en",
+      stars: studentDetails.stars,
+      pending_live_quiz: liveQuizCount,
+      pending_assignments: assignmentCount,
+      ...countOfPendingIds,
+    });
+  };
 
   async function getRecommendeds(
     subjectCode: string
@@ -304,20 +378,29 @@ const Home: FC = () => {
       }
       try {
         // Get assignments safely with a default empty array if undefined is returned
-        const assignments = await getAssignments() || [];
+        const assignments = (await getAssignments()) || [];
         recommendationResult = assignments;
-        
+
         // Get course recommendations safely
         let tempRecommendations: TableTypes<"lesson">[] = [];
         try {
-          tempRecommendations = await getCourseRecommendationLessons(currentStudent, currClass) || [];
+          tempRecommendations =
+            (await getCourseRecommendationLessons(currentStudent, currClass)) ||
+            [];
         } catch (recError) {
           console.error("Error fetching course recommendations:", recError);
         }
-        
+
         // Combine recommendations
         recommendationResult = recommendationResult.concat(tempRecommendations);
-        console.log("Final RECOMMENDATION List ", recommendationResult);
+
+        const lessonCourseMap: { [lessonId: string]: { course_id: string } } =
+          {}; // Initialize the object
+
+        recommendationResult.forEach(async (lesson: any) => {
+          lessonCourseMap[lesson.id] = { course_id: lesson.course_id };
+          setRecommendedLessonCourseMap(lessonCourseMap);
+        });
         setDataCourse(recommendationResult);
         setIsLoading(false);
         return recommendationResult;
@@ -360,7 +443,6 @@ const Home: FC = () => {
       if (lessonResultMap) {
         // const startIndex = (tempPageNumber - 1) * favouritesPageSize;
         // const endIndex = startIndex + favouritesPageSize;
-        // console.log("initial history lessons", initialHistoryLessons);
         // const initialFavouriteLessonsSlice = initialFavoriteLessons.slice(
         //   startIndex,
         //   endIndex
@@ -372,7 +454,6 @@ const Home: FC = () => {
       setHistoryLessons([]);
       setFavouriteLessons([]);
     }
-    console.log("Changing...", newValue);
   };
   const handleHomeIconClick = () => {
     setSubTab(SUBTAB.SUGGESTIONS);
@@ -400,7 +481,6 @@ const Home: FC = () => {
 
     if (studentResult) {
       const playedLessonData = studentResult;
-      console.log("🚀 ~ getHistory ~ playedLessonData:", playedLessonData);
       const sortedLessonDocIds = sortPlayedLessonDocByDate(playedLessonData);
       const allValidPlayedLessonDocIds = sortedLessonDocIds.filter(
         (lessonDoc) => lessonDoc !== undefined
@@ -415,7 +495,6 @@ const Home: FC = () => {
     if (!lesMap) {
       return;
     }
-    console.log("Object.entries(lesMap)", lesMap, Object.entries(lesMap));
     const lesList = Object.entries(lesMap).sort((a, b) => {
       if (new Date(a[1].updated_at ?? "") === new Date(b[1].updated_at ?? "")) {
         return 0;
@@ -440,9 +519,7 @@ const Home: FC = () => {
   ): Promise<TableTypes<"lesson">[]> {
     // const allCourses: TableTypes<"course">[] =
     //   await api.getCoursesForParentsStudent(currentStudent.id);
-    // console.log("allCourses ", allCourses);
     // const lessons = await api.getAllLessonsForCourse(allCourses[0].id);
-    // console.log("const lessons ", lessons);
     let tempRecommendedLesson = await api.getRecommendedLessons(
       currentStudent.id,
       currentClass?.id
@@ -454,7 +531,6 @@ const Home: FC = () => {
     let reqLes: TableTypes<"lesson">[] = [];
     var headerIconList: HeaderIconConfig[] = [];
     DEFAULT_HEADER_ICON_CONFIGS.forEach((element) => {
-      //  console.log("elements", element);
       headerIconList.push(element);
     });
     setCurrentHeader(selectedHeader);
@@ -477,7 +553,18 @@ const Home: FC = () => {
         // }
         break;
       case HOMEHEADERLIST.PROFILE:
-        Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
+        console.log(
+          "is respect ",
+          Util.isRespectMode,
+          Util.isRespectMode ? PAGES.DISPLAY_STUDENT : PAGES.LEADERBOARD
+        );
+
+        Util.setPathToBackButton(
+          Util.isRespectMode ? PAGES.DISPLAY_STUDENT : PAGES.LEADERBOARD,
+          history
+        );
+        const body = document.querySelector("body");
+        body?.style.removeProperty("background-image");
         break;
       // case HOMEHEADERLIST.SEARCH:
       //   history.replace(PAGES.SEARCH);
@@ -533,7 +620,6 @@ const Home: FC = () => {
   };
 
   const updateHistoryLessons = async (allLessonIds: string[]) => {
-    console.log("🚀 ~ updateHistoryLessons ~ allLessonIds:", allLessonIds);
     setIsLoading(true);
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent || !lessonResultMap) {
@@ -568,9 +654,6 @@ const Home: FC = () => {
     setIsLoading(false);
   };
 
-  console.log("lesson slider favourite", favouriteLessons);
-  console.log("lesson slider history", historyLessons);
-
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">
@@ -578,28 +661,41 @@ const Home: FC = () => {
           key={refreshKey}
           currentHeader={currentHeader}
           onHeaderIconClick={onHeaderIconClick}
-          pendingAssignmentCount={pendingAssignments.length}
+          pendingAssignmentCount={pendingAssignmentCount}
           pendingLiveQuizCount={pendingLiveQuizCount}
-        ></HomeHeader>
+        />
       </IonHeader>
       <div className="slider-content">
         {!isLoading ? (
           <div className="space-between">
             {currentHeader === HOMEHEADERLIST.HOME && !!canShowAvatar ? (
-              <ChimpleAvatar
-                recommadedSuggestion={dataCourse}
-                assignments={pendingAssignments}
-                style={{
-                  marginBottom: "2vh",
-                  display: "flex",
-                  justifyContent: "space-around",
-                }}
-              ></ChimpleAvatar>
+              // <ChimpleAvatar
+              //   recommadedSuggestion={dataCourse}
+              //   assignments={pendingAssignments}
+              //   style={{
+              //     marginBottom: "2vh",
+              //     display: "flex",
+              //     justifyContent: "space-around",
+              //   }}
+              // ></ChimpleAvatar>
+              <LearningPathway />
             ) : null}
 
             {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
 
-            {/* {currentHeader === HOMEHEADERLIST.ASSIGNMENT && <AssignmentPage />} */}
+            {currentHeader === HOMEHEADERLIST.ASSIGNMENT &&
+              !Util.isRespectMode && (
+                <AssignmentPage
+                  onNewAssignment={(newAssignment) => {
+                    setPendingAssignments((prev) => {
+                      if (!prev.some((a) => a.id === newAssignment.id)) {
+                        return [...prev, newAssignment];
+                      }
+                      return prev;
+                    });
+                  }}
+                />
+              )}
 
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
             {currentHeader === HOMEHEADERLIST.LIVEQUIZ && <LiveQuiz />}
@@ -661,7 +757,6 @@ const Home: FC = () => {
               ((canShowAvatar &&
                 currentHeader === HOMEHEADERLIST.SUGGESTIONS) ||
                 (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME)) && (
-
                 <div>
                   {subTab === SUBTAB.SUGGESTIONS && (
                     <LessonSlider
@@ -674,6 +769,7 @@ const Home: FC = () => {
                       showSubjectName={true}
                       showChapterName={true}
                       showDate={true}
+                      lessonCourseMap={recommendedLessonCourseMap}
                     />
                   )}
 
@@ -689,9 +785,12 @@ const Home: FC = () => {
                           showSubjectName={true}
                           showChapterName={true}
                           onEndReached={handleLoadMoreLessons}
+                          lessonCourseMap={lessonCourseMap}
                         />
                       ) : (
-                        <p>{t("No liked lessons available.")}</p>
+                        <p className="no-lesson">
+                          {t("No liked lessons available.")}
+                        </p>
                       )}
                     </>
                   )}
@@ -708,9 +807,12 @@ const Home: FC = () => {
                           showSubjectName={true}
                           showChapterName={true}
                           onEndReached={handleLoadMoreHistoryLessons}
+                          lessonCourseMap={lessonCourseMap}
                         />
                       ) : (
-                        <p>{t("No played lessons available.")}</p>
+                        <p className="no-played">
+                          {t("No played lessons available.")}
+                        </p>
                       )}
                     </>
                   )}

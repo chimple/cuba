@@ -3,13 +3,15 @@ import "./ParentLogout.css";
 import { ImSwitch } from "react-icons/im";
 import { useState } from "react";
 import DialogBoxButtons from "./DialogBoxButtons​";
-import { ServiceConfig } from "../../services/ServiceConfig";
+import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory } from "react-router";
 import {
   CURRENT_MODE,
   CURRENT_STUDENT,
   CURRENT_USER,
+  isRespectMode,
   PAGES,
+  SCHOOL_LOGIN,
 } from "../../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { Util } from "../../utility/util";
@@ -23,6 +25,7 @@ const ParentLogout: React.FC<{}> = ({}) => {
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.removeItem(CURRENT_USER);
     localStorage.removeItem(CURRENT_MODE);
+    localStorage.removeItem(SCHOOL_LOGIN);
     history.replace(PAGES.APP_LANG_SELECTION);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };
@@ -47,6 +50,9 @@ const ParentLogout: React.FC<{}> = ({}) => {
         }}
         onYesButtonClicked={() => {
           setShowDialogBox(false);
+          localStorage.setItem("isRespectMode", "false");
+          ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(APIMode.SUPABASE);
+          console.log("Switched to Supabase mode on logout");
         }}
         onNoButtonClicked={onSignOut}
       />

@@ -10,9 +10,11 @@ import {
   DOMAIN,
   EVENTS,
   LANGUAGE,
+  MODES,
   NUMBER_REGEX,
   PAGES,
   TableTypes,
+  USER_DATA,
 } from "../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -40,6 +42,7 @@ import {
 import { RoleType } from "../interface/modelInterfaces";
 // import { Plugins } from "@capacitor/core";
 import { OneRosterAuth } from "../services/auth/OneRosterAuth";
+import { schoolUtil } from "../utility/schoolUtil";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -66,6 +69,9 @@ const Login: React.FC = () => {
   const [counter, setCounter] = useState(59);
   const [showTimer, setShowTimer] = useState<boolean>(false);
   const [showResendOtp, setShowResendOtp] = useState<boolean>(false);
+  const [emailClick, setEmailClick] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
+  const api = ServiceConfig.getI().apiHandler;
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
   const [isInvalidCode, setIsInvalidCode] = useState<{
     isInvalidCode: boolean;
@@ -107,8 +113,10 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     // init();
+    checkIsRespectAppInstalled();
     setIsLoading(true);
     setIsInvalidCode(verificationCodeMessageFlags);
+    console.log("Login Util.isRespectMode ", Util.isRespectMode);
 
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
@@ -128,16 +136,8 @@ const Login: React.FC = () => {
       });
     }
 
-    const checkRespectApp = async () => {
-      const data = await Util.checkRespectApp();
-      console.log("data isRespect data--> ", JSON.stringify(data));
-      // Hard Coding for now so to bypass the LoginAuthentication until respect launcher is ready
-      setIsRespectApp(true);
-    }
-
     const authHandler = ServiceConfig.getI().authHandler;
     authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
-      checkRespectApp();
       const apiHandler = ServiceConfig.getI().apiHandler;
       const appLang = localStorage.getItem(LANGUAGE);
       console.log(
@@ -204,6 +204,11 @@ const Login: React.FC = () => {
       // }
     }
   }, [recaptchaVerifier]);
+
+  async function checkIsRespectAppInstalled() {
+    const isRespect = await Util.checkRespectApp();
+    setIsRespectApp(isRespect);
+  }
 
   useEffect(() => {
     if (counter <= 0 && showTimer) {
@@ -335,6 +340,39 @@ const Login: React.FC = () => {
       // window.recaptchaVerifier.clear();
     }
   };
+
+  async function getSchoolsForUser(user: TableTypes<"user">) {
+    const userSchools = await api.getSchoolsForUser(user.id);
+    if (userSchools && userSchools.length > 0) {
+      return userSchools;
+    }
+    return [];
+  }
+
+  async function redirectUser(
+    user: TableTypes<"user">,
+    userSchools: {
+      school: TableTypes<"school">;
+      role: RoleType;
+    }[]
+  ) {
+    if (userSchools.length > 0) {
+      const autoUserSchool = userSchools.find(
+        (school) => school.role === RoleType.AUTOUSER
+      );
+
+      if (autoUserSchool) {
+        schoolUtil.setCurrMode(MODES.SCHOOL);
+        history.replace(PAGES.SELECT_MODE);
+        return;
+      }
+      schoolUtil.setCurrMode(MODES.TEACHER);
+      history.replace(PAGES.DISPLAY_SCHOOLS);
+    } else {
+      schoolUtil.setCurrMode(MODES.PARENT);
+      history.replace(PAGES.DISPLAY_STUDENT);
+    }
+  }
 
   const onVerificationCodeSubmit = async () => {
     try {
@@ -487,6 +525,37 @@ const Login: React.FC = () => {
       console.log("error", error);
     }
   };
+  const handleLogin = async (email: string, password: string) => {
+    try {
+      setEmailClick(false);
+      setIsLoading(true);
+      setIsInitialLoading(true);
+      const result: boolean = await authInstance.signInWithEmail(
+        email,
+        password
+      );
+      if (result) {
+        setIsLoading(true);
+        setIsInitialLoading(true);
+        const storedUser = localStorage.getItem(USER_DATA);
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          const userSchools = await getSchoolsForUser(user);
+          await redirectUser(user, userSchools);
+          localStorage.setItem(CURRENT_USER, JSON.stringify(result));
+        }
+      } else {
+        setEmailClick(true);
+        setError(true);
+        setIsLoading(false);
+        setIsInitialLoading(false);
+      }
+    } catch (error) {
+      setIsLoading(false);
+      setIsInitialLoading(false);
+      setErrorMessage(t("Login unsuccessful. Please try again later."));
+    }
+  };
 
   function loinWithStudentCredentialsButton() {
     setShowBackButton(true);
@@ -496,7 +565,7 @@ const Login: React.FC = () => {
   }
 
   return (
-    <IonPage id="login-screen">
+    <IonPage id="login-screen" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
       {!!showBackButton && (
         <div className="login-class-header">
           <BackButton
@@ -676,8 +745,10 @@ const Login: React.FC = () => {
                             setIsLoading(true);
                             setIsInitialLoading(true);
                             console.log("isLoading ", isLoading);
-                            const _authHandler = ServiceConfig.getI().authHandler;
-                            const result: boolean = await _authHandler.googleSign();
+                            const _authHandler =
+                              ServiceConfig.getI().authHandler;
+                            const result: boolean =
+                              await _authHandler.googleSign();
                             console.log(
                               "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
                               result
@@ -756,8 +827,10 @@ const Login: React.FC = () => {
                             setIsLoading(true);
                             setIsInitialLoading(true);
                             console.log("isLoading ", isLoading);
-                            const _authHandler = ServiceConfig.getI().authHandler;
-                            const result: boolean = await _authHandler.googleSign();
+                            const _authHandler =
+                              ServiceConfig.getI().authHandler;
+                            const result: boolean =
+                              await _authHandler.googleSign();
                             console.log(
                               "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
                               result
@@ -792,7 +865,10 @@ const Login: React.FC = () => {
                       />
                       <button
                         id="login-respect-icon"
-                        style={{ backgroundColor: 'transparent', border: 'none' }}
+                        style={{
+                          backgroundColor: "transparent",
+                          border: "none",
+                        }}
                         onClick={async () => {
                           if (!online) {
                             // presentToast({
@@ -814,6 +890,7 @@ const Login: React.FC = () => {
                           try {
                             setIsLoading(true);
                             setIsInitialLoading(true);
+                            localStorage.setItem("isRespectMode", "true");
                             await ServiceConfig.getI().authHandler.loginWithRespect();
                             const auth = ServiceConfig.getI().authHandler;
                             const currUser = await auth.getCurrentUser();
@@ -863,7 +940,7 @@ const Login: React.FC = () => {
                         <img
                           src="assets/icons/respect-logo.png"
                           alt="Respect Logo"
-                          style={{ width: '10vw', height: '4vw' }}
+                          style={{ width: "10vw", height: "4vw" }}
                         />
                       </button>
                       {!showVerification ? (

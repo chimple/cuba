@@ -1,0 +1,41 @@
+.course-button {
+  font-size: var(--text-size);
+  display: flex;
+  flex-direction: column; /* Stack elements vertically */
+  align-items: center; /* Center content horizontally */
+  margin: min(20px, 3vh);
+  cursor: pointer;
+  color: var(--text-color);
+  text-align: center;
+  white-space: nowrap;
+  text-wrap: balance;
+}
+
+.course-icon-container {
+  display: flex;
+  flex-direction: column; /* Ensure elements stack vertically */
+  align-items: center; /* Center the icon and text */
+  position: relative;
+}
+
+.library-course-icon {
+  background-color: beige;
+  height: 50px;
+  width: 50px;
+  display: flex; /* Use flexbox to center the icon */
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+}
+
+.course-name {
+  font-size: 18px;
+  margin-top: 8px; /* Space above course name */
+  line-height: 1.2; /* Adjust line-height for better spacing */
+}
+
+.grade-name {
+  font-size: 12px;
+  margin-top: 4px; /* Space above grade name */
+  line-height: 1.2; /* Ensure spacing between lines */
+}

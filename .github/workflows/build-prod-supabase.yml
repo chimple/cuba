@@ -37,7 +37,7 @@ jobs:
         run: |
           echo $GOOGLE_SERVICES_JSON | base64 -di > google-services.json
           echo $SHA_KEY | base64 -di > key.jks
-         
+
       - name: Build
         env:
           CI: false
@@ -55,6 +55,8 @@ jobs:
           REACT_APP_SUPABASE_URL: ${{ secrets.REACT_APP_PROD_SUPABASE_URL}}
           REACT_APP_SUPABASE_KEY: ${{ secrets.REACT_APP_PROD_SUPABASE_KEY}}
           REACT_APP_CLIENT_ID: ${{ secrets.REACT_APP_PROD_CLIENT_ID}}
+          REACT_APP_RAPIDAPI_KEY: ${{ secrets.REACT_APP_RAPIDAPI_KEY }}
+          REACT_APP_ENCRYPTION_KEY: ${{ secrets.REACT_APP_ENCRYPTION_KEY }}
 
         run: npm run build
 
@@ -69,19 +71,33 @@ jobs:
         working-directory: ./android/
         run: chmod +x ./gradlew
 
-      - name: Generate the Android App assembleDebug
+      - name: Generate the Android App aab bundleRelease
+        working-directory: ./android/
+        run: ./gradlew bundleRelease
+
+      - name: Generate the Android App apk (Release)
+        working-directory: ./android/
+        run: ./gradlew assembleRelease
+
+      - name: Generate the Android App apk (Debug)
         working-directory: ./android/
         run: ./gradlew assembleDebug
 
-      - name: Deploy apk
+      - name: Upload APKs and AAB to branch
         working-directory: .
         run: |
-          cd android/app/build/outputs/apk/debug/
-          git init
           git config --global user.email vinay@sutara.org
-          git config --global user.name  vinaypanduga
+          git config --global user.name vinaypanduga
+
+          TEMP_DIR=$(mktemp -d)
+          cp android/app/build/outputs/bundle/release/app-release.aab $TEMP_DIR/
+          cp android/app/build/outputs/apk/release/app-release.apk $TEMP_DIR/
+          cp android/app/build/outputs/apk/debug/app-debug.apk $TEMP_DIR/
+
+          cd $TEMP_DIR
+          git init
           git remote add origin https://${{ secrets.ACCESS_TOKEN }}@github.com/chimple/cuba.git
           git checkout -b supabase-prod-apk
-          git add app-debug.apk
-          git commit -m "created apk"
+          git add .
+          git commit -m "created apk and aab"
           git push origin supabase-prod-apk -f

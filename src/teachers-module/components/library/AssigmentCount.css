@@ -1,0 +1,22 @@
+.assignment-count-container {
+  position: absolute;
+  bottom: 1vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  text-align: center;
+  background-color: #7c5db0;
+  padding: 10px 0;
+  font-size: 22px;
+  font-weight: bold;
+  border-radius: 10px;
+}
+.assignment-count-body {
+  display: flex;
+  justify-content: space-around;
+  margin: 0 10px 0;
+}
+.assignment-count-next-button {
+  display: flex;
+  align-items: center;
+}

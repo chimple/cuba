@@ -1,0 +1,23 @@
+.class-div {
+  font-size: clamp(20px, 5vh, 30px);
+  color: grey;
+  padding: 20px 20px 0 20px;
+}
+.edit-class-div {
+  background: white;
+  height: 100%;
+}
+.view-progress-btn-2 {
+  background-color: #7c5db0;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 2vh;
+}
+
+.update-button-container {
+  display: flex;
+  justify-content: center;
+}

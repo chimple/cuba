@@ -59,21 +59,22 @@ const DisplayChapters: FC<{}> = () => {
   const [currentGrade, setCurrentGrade] = useState<TableTypes<"grade">>();
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<"result">;
-  }>();
+  }>({});
   const history = useHistory();
   const location = useLocation();
   const api = ServiceConfig.getI().apiHandler;
 
   const searchParams = new URLSearchParams(location.search);
   const courseDocId = searchParams.get("courseDocId");
-  console.log(
-    "const getCourseByUrl = localGradeMap?.courses?.find(",
-    localGradeMap
-  );
   const getCourseByUrl = localGradeMap?.courses?.find(
     (course) => courseDocId == course.id
   );
   useEffect(() => {
+    const body = document.querySelector("body");
+    body?.style.setProperty(
+      "background-image",
+      "url(/pathwayAssets/pathwayBackground.svg)"
+    );
     init();
   }, []);
   useEffect(() => {
@@ -100,14 +101,7 @@ const DisplayChapters: FC<{}> = () => {
 
   const init = async () => {
     const urlParams = new URLSearchParams(location.search);
-    console.log(
-      "🚀 ~ file: DisplaySubjects.tsx:47 ~ init ~ urlParams:",
-      urlParams.get(CONTINUE)
-    );
-    console.log(
-      "🚀 ~ file: DisplaySubjects.tsx:68 ~ init ~ localData:",
-      localData
-    );
+    await getCourses();
     if (
       !!urlParams.get(CONTINUE) &&
       !!localData.currentCourse &&
@@ -179,21 +173,11 @@ const DisplayChapters: FC<{}> = () => {
     }
     //Later need to remove use existing one
     const currentStudent = Util.getCurrentStudent();
-    console.log(
-      "const currentStudent = Util.getCurrentStudent(); ",
-      currentStudent
-    );
-
     if (!currentStudent) {
       return;
     }
     const result = await api.getStudentResultInMap(currentStudent.id);
     const lessons = result;
-    console.log(
-      "final const result = await api.getStudentResultInMap(currentStudent.id); ",
-      result
-    );
-
     localData.lessonResultMap = lessons;
     setLessonResultMap(lessons);
     setIsLoading(false);
@@ -405,7 +389,7 @@ const DisplayChapters: FC<{}> = () => {
     <IonPage id="display-chapters-page">
       <div className="chapters-header">
         <div id="back-button-container">
-          <BackButton onClicked={onBackButton} />
+          <BackButton aria-label={t("Back")} onClicked={onBackButton} />
         </div>
         <div className="chapter-header">
           <IonItem lines="none">

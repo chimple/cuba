@@ -17,6 +17,33 @@ import { SplashScreen } from "@capacitor/splash-screen";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
 import { BrowserRouter } from "react-router-dom";
+import { defineCustomElements, JSX as LocalJSX } from "lido-standalone/loader";
+import {
+  SpeechSynthesis,
+  SpeechSynthesisUtterance,
+} from "./utility/WindowsSpeech";
+import { Util } from "./utility/util";
+import { initializeFireBase } from "./services/Firebase";
+
+console.log("Index.tsx called ");
+
+// Extend React's JSX namespace to include Stencil components
+declare global {
+  namespace JSX {
+    interface IntrinsicElements extends LocalJSX.IntrinsicElements {}
+  }
+}
+defineCustomElements(window);
+
+// Conditionally attach only if the native APIs are missing (optional)
+if (typeof window !== "undefined") {
+  if (!(window as any).speechSynthesis) {
+    (window as any).speechSynthesis = new SpeechSynthesis();
+  }
+  if (!(window as any).SpeechSynthesisUtterance) {
+    (window as any).SpeechSynthesisUtterance = SpeechSynthesisUtterance;
+  }
+}
 
 if (Capacitor.isNativePlatform()) {
   await ScreenOrientation.lock({ orientation: "landscape" });
@@ -44,24 +71,43 @@ GoogleAuth.initialize({
   // grantOfflineAccess: true,
 });
 
-// SqliteApi.getInstance().then(() => {
-ServiceConfig.getInstance(APIMode.ONEROSTER);
-root.render(
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>
+// Util.isRespectMode = await Util.checkRespectApp();
+// Util.isRespectMode = false;
+console.log(
+  "Util.isRespectMode = await Util.checkRespectApp();",
+  Util.isRespectMode
 );
-// });
 
-// root.render(
-//   <>
-//     <IonLoading
-//       message={`<img class="loading" src="assets/loading.gif"></img>`}
-//       isOpen={true}
-//       spinner={null}
-//     />
-//   </>
-// );
+// if(!Util.isRespectMode){
+
+// }
+if (!Util.isRespectMode) {
+  SqliteApi.getInstance().then(() => {
+    ServiceConfig.getInstance(APIMode.SQLITE);
+    root.render(
+      <>
+        <App />
+      </>
+    );
+    initializeFireBase();
+  });
+  root.render(
+    <>
+      <IonLoading
+        message={`<img class="loading" src="assets/loading.gif"></img>`}
+        isOpen={true}
+        spinner={null}
+      />
+    </>
+  );
+} else {
+  ServiceConfig.getInstance(APIMode.ONEROSTER);
+  root.render(
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  );
+}
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

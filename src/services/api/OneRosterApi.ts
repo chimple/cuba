@@ -1,19 +1,26 @@
 import { HttpHeaders } from "@capacitor-community/http";
 import {
+  ACTIVE_HEADER_ICON_CONFIGS,
   ALL_CURRICULUM,
   APP_LANGUAGES,
   COURSES,
   CURRENT_STUDENT,
   CURRENT_USER,
+  DEFAULT_HEADER_ICON_CONFIGS,
+  HEADER_ICON_CONFIGS,
+  HOMEHEADERLIST,
   LANGUAGE,
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODES,
   MUSIC,
+  PROFILETYPE,
   RESPECT_GRADES,
   SOUND,
   TableTypes,
   USER_COURSES,
+  STUDENT_LESSON_SCORES,
+  LATEST_STARS
 } from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
 import Assignment from "../../models/assignment";
@@ -491,8 +498,30 @@ export class OneRosterApi implements ServiceApi {
   getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]> {
     throw new Error("Method not implemented.");
   }
-  getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
-    throw new Error("Method not implemented.");
+  async getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
+    try {
+      for (const courseId of this.studentAvailableCourseIds) {
+        const courseJson = await this.loadCourseJson(courseId);
+        const group = courseJson.groups.find((g: any) => g.metadata.id === id);
+        if (group) {
+          return {
+            id: group.metadata.id,
+            name: group.metadata.title,
+            image: Util.getThumbnailUrl({ id: group.metadata.id }),
+            course_id: courseId,
+            created_at: "",
+            updated_at: null,
+            is_deleted: null,
+            sort_index: null,
+            sub_topics: null
+          };
+        }
+      }
+      return undefined;
+    } catch (error) {
+      console.error("Error in getChapterById:", error);
+      return undefined;
+    }
   }
   async getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
     grades: TableTypes<"grade">[];
@@ -567,27 +596,6 @@ export class OneRosterApi implements ServiceApi {
   getAssignmentById(id: string): Promise<TableTypes<"assignment"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  assignmentListner(
-    classId: string,
-    onDataChange: (roomDoc: {
-      chapter_id: string | null;
-      class_id: string;
-      course_id: string | null;
-      created_at: string;
-      created_by: string | null;
-      ends_at: string | null;
-      id: string;
-      is_class_wise: boolean;
-      is_deleted: boolean | null;
-      lesson_id: string;
-      school_id: string;
-      starts_at: string;
-      type: string;
-      updated_at: string | null;
-    } | undefined) => void
-  ) {
-    throw new Error("Method not implemented.");
-  }
   removeAssignmentChannel() {
     throw new Error("Method not implemented.");
   }
@@ -639,7 +647,6 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<string | undefined> {
     throw new Error("Method not implemented.");
   }
-  private constructor() { }
   createSchool(name: string, group1: string, group2: string, group3: string): Promise<TableTypes<"school">> {
     throw new Error("Method not implemented.");
   }
@@ -748,6 +755,138 @@ export class OneRosterApi implements ServiceApi {
   deleteUserFromSchool(schoolId: string, userId: string, role: RoleType): Promise<void> {
     throw new Error("Method not implemented.");
   }
+  private constructor() {
+    HEADER_ICON_CONFIGS.delete(
+      HOMEHEADERLIST.ASSIGNMENT,
+    )
+    DEFAULT_HEADER_ICON_CONFIGS.delete(
+      HOMEHEADERLIST.ASSIGNMENT,
+    )
+    ACTIVE_HEADER_ICON_CONFIGS.delete(
+      HOMEHEADERLIST.ASSIGNMENT,
+    )
+  }
+  getChapterIdbyQrLink(link: string): Promise<TableTypes<"chapter_links"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  requestNewSchool(name: string, state: string, district: string, city: string, image: File | null, udise_id?: string): Promise<TableTypes<"req_new_school"> | null> {
+    throw new Error("Method not implemented.");
+  }
+  getExistingSchoolRequest(userId: string): Promise<TableTypes<"req_new_school"> | null> {
+    throw new Error("Method not implemented.");
+  }
+  addProfileImages(id: string, file: File, profileType: PROFILETYPE): Promise<string | null> {
+    throw new Error("Method not implemented.");
+  }
+  uploadData(payload: any): Promise<boolean | null> {
+    throw new Error("Method not implemented.");
+  }
+  assignmentListner(classId: string, onDataChange: (roomDoc: TableTypes<"assignment"> | undefined) => void): void {
+    throw new Error("Method not implemented.");
+  }
+  getAssignmentUserByAssignmentIds(assignmentIds: string[]): Promise<TableTypes<"assignment_user">[]> {
+    throw new Error("Method not implemented.");
+  }
+  checkUserIsManagerOrDirector(schoolId: string, userId: string): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  updateSchoolLastModified(id: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  updateClassLastModified(id: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  updateUserLastModified(id: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  validateSchoolData(schoolId: string, schoolName: string): Promise<{ status: string; errors?: string[]; }> {
+    throw new Error("Method not implemented.");
+  }
+  validateParentAndStudentInClass(phoneNumber: string, studentName: string, className: string, schoolId: string): Promise<{ status: string; errors?: string[]; }> {
+    throw new Error("Method not implemented.");
+  }
+  validateSchoolUdiseCode(schoolId: string): Promise<{ status: string; errors?: string[]; }> {
+    throw new Error("Method not implemented.");
+  }
+  validateClassNameWithSchoolID(schoolId: string, className: string): Promise<{ status: string; errors?: string[]; }> {
+    throw new Error("Method not implemented.");
+  }
+  validateStudentInClassWithoutPhone(studentName: string, className: string, schoolId: string): Promise<{ status: string; errors?: string[]; }> {
+    throw new Error("Method not implemented.");
+  }
+  validateClassCurriculumAndSubject(curriculumName: string, subjectName: string, gradeName: string): Promise<{ status: string; errors?: string[]; }> {
+    throw new Error("Method not implemented.");
+  }
+  validateUserContacts(programManagerPhone: string, fieldCoordinatorPhone: string): Promise<{ status: string; errors?: string[]; }> {
+    throw new Error("Method not implemented.");
+  }
+  setStarsForStudents(studentId: string, starsCount: number): Promise<void> {
+    return Promise.resolve();
+  }
+  countAllPendingPushes(): Promise<number> {
+    throw new Error("Method not implemented.");
+  }
+  getDebugInfoLast30Days(parentId: string): Promise<any[]> {
+    throw new Error("Method not implemented.");
+  }
+  getClassByUserId(userId: string): Promise<TableTypes<"class"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  async getCoursesForPathway(studentId: string): Promise<TableTypes<"course">[]> {
+    const allCourses = await this.getAllCourses();
+    const storedCourses = localStorage.getItem(USER_COURSES);
+    
+    if (!storedCourses) return [];
+    
+    try {
+      const courseIds = JSON.parse(storedCourses);
+      return allCourses.filter(course => courseIds.includes(course.id));
+    } catch (e) {
+      console.error("Error parsing stored courses:", e);
+      return [];
+    }
+  }
+  async updateLearningPath(student: TableTypes<"user">, learning_path: string): Promise<TableTypes<"user">> {
+    try {
+      let current_user = await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (current_user) {
+        current_user.learning_path = learning_path;
+        // Persist to localStorage for testing
+        localStorage.setItem("CURRENT_STUDENT", JSON.stringify(current_user));
+      }
+      // const updateUserQuery = `UPDATE ${TABLES.User}
+      // SET learning_path = ?
+      // WHERE id = ?;`;
+      // await this.executeQuery(updateUserQuery, [learningPath, student.id]);
+      // student.learning_path = learningPath;
+      // this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+      //   id: student.id,
+      //   learning_path: learningPath,
+      // });
+    } catch (error) {
+      console.error("Error updating learning path:", error);
+    }
+    return student;
+  }
+  async updateStudentStars(studentId: string, _totalStars: number): Promise<void> {  
+    const scoresJson = localStorage.getItem(STUDENT_LESSON_SCORES);
+    let calculatedStars = 0;
+    if (scoresJson) {
+      const scoresMap = JSON.parse(scoresJson);
+      const lessonScores = scoresMap[studentId] || {};
+      (Object.values(lessonScores) as number[]).forEach((score) => {
+        if (score > 75) calculatedStars += 3;
+        else if (score > 50) calculatedStars += 2;
+        else if (score > 25) calculatedStars += 1;
+      });
+    }
+    // Store in LATEST_STARS
+    const latestStarsJson = localStorage.getItem(LATEST_STARS);
+    const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
+    latestStarsMap[studentId] = calculatedStars;
+    localStorage.setItem(LATEST_STARS, JSON.stringify(latestStarsMap));
+    return;
+}
   async getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;
@@ -807,43 +946,40 @@ export class OneRosterApi implements ServiceApi {
     chapterId: string
   ): Promise<TableTypes<"lesson">[]> {
     try {
-      const courseJson = await this.loadCourseJson(
-        this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0]
-      );
-      console.log(
-        "getLessonsForChapter data: ",
-        this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0],
-        courseJson.groups
-      );
-      const chapter = courseJson.groups.find(
-        (group: any) => group.metadata.id === chapterId
-      );
-      if (!chapter || !chapter.navigation) return [];
-
-      const lessons: TableTypes<"lesson">[] = chapter.navigation.map(
-        (lesson: any) => ({
-          cocos_chapter_code: lesson.cocosChapterCode,
-          cocos_lesson_id: lesson.cocosLessonCode,
-          cocos_subject_code: lesson.cocosSubjectCode,
-          color: lesson.color,
-          created_at: null,
-          created_by: null,
-          id: lesson.id,
-          image: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
-          is_deleted: null,
-          language_id: lesson.language,
-          name: lesson.title,
-          outcome: lesson.outcome || null,
-          plugin_type: lesson.pluginType,
-          status: lesson.status,
-          chapter_id: chapterId,
-          subject_id: lesson.subject,
-          target_age_from: lesson.targetAgeFrom || null,
-          target_age_to: lesson.targetAgeTo || null,
-        })
-      );
-
-      return lessons;
+      // Search all available courses for the chapter
+      for (const courseId of this.studentAvailableCourseIds) {
+        const courseJson = await this.loadCourseJson(courseId);
+        const chapter = courseJson.groups.find(
+          (group: any) => group.metadata.id === chapterId
+        );
+        if (chapter && chapter.navigation) {
+          const lessons: TableTypes<"lesson">[] = chapter.navigation.map(
+            (lesson: any) => ({
+              cocos_chapter_code: lesson.cocosChapterCode,
+              cocos_lesson_id: lesson.cocosLessonCode,
+              cocos_subject_code: lesson.cocosSubjectCode,
+              color: lesson.color,
+              created_at: null,
+              created_by: null,
+              id: lesson.id,
+              image: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
+              is_deleted: null,
+              language_id: lesson.language,
+              name: lesson.title,
+              outcome: lesson.outcome || null,
+              plugin_type: lesson.pluginType,
+              status: lesson.status,
+              chapter_id: chapterId,
+              subject_id: lesson.subject,
+              target_age_from: lesson.targetAgeFrom || null,
+              target_age_to: lesson.targetAgeTo || null,
+            })
+          );
+          return lessons;
+        }
+      }
+      // If not found in any course
+      return [];
     } catch (error) {
       console.error("Error in getLessonsForChapter:", error);
       return []; // Return empty array on error
@@ -857,8 +993,10 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
-  getUserByDocId(studentId: string): Promise<TableTypes<"user"> | undefined> {
-    throw new Error("Method not implemented.");
+  async getUserByDocId(studentId: string): Promise<TableTypes<"user"> | undefined> {
+    const temp = localStorage.getItem("CURRENT_STUDENT");
+    if (!temp) return undefined;
+    return JSON.parse(temp) as TableTypes<"user">;
   }
   updateRewardAsSeen(studentId: string): Promise<void> {
     throw new Error("Method not implemented.");
@@ -1192,6 +1330,12 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+  getSchoolsWithRoleAutouser(
+    schoolIds: string[]
+  ): Promise<TableTypes<"school">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
   getCoursesByClassId(classId: string): Promise<TableTypes<"class_course">[]> {
     throw new Error("Method not implemented.");
   }
@@ -1314,6 +1458,15 @@ export class OneRosterApi implements ServiceApi {
       throw new Error("Student information is missing.");
     }
 
+    const studentLessonScores = STUDENT_LESSON_SCORES;
+    if (studentId && lessonId) {
+      const scoresJson = localStorage.getItem(studentLessonScores);
+      const scoresMap = scoresJson ? JSON.parse(scoresJson) : {};
+      if (!scoresMap[studentId]) scoresMap[studentId] = {};
+      scoresMap[studentId][lessonId] = score ?? 0;
+      localStorage.setItem(studentLessonScores, JSON.stringify(scoresMap));
+    }
+
     const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();
     const userEmail = `${loggedStudent?.name?.toLowerCase().replace(/\s+/g, "")}@example.com`;
     const agentEmail = `mailto:${userEmail}`;
@@ -1357,7 +1510,7 @@ export class OneRosterApi implements ServiceApi {
         objectType: "Activity",
         id: `http://example.com/activity/${lessonId}`,
         definition: {
-          name: { "en-US": `Lesson ${lessonId}` },
+          name: { "en-US": `${lessonId}` },
           extensions: {
             "http://example.com/xapi/courseId": courseId,
             "http://example.com/xapi/lessonId": lessonId,
@@ -1420,6 +1573,7 @@ export class OneRosterApi implements ServiceApi {
         is_deleted: statement.context?.extensions?.["http://example.com/xapi/isDeleted"] || false,
         chapter_id: statement.context?.extensions?.["http://example.com/xapi/chapterId"] || "",
         course_id: (statement.object as Activity)?.id || "",
+        class_id: null
       };
 
       return newResult;
@@ -1832,6 +1986,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<Result | undefined> {
     // if (!this.preQuizMap[studentId]) {
     //   this.preQuizMap[studentId] = {};
+    // }
     // }
     // if (this.preQuizMap[studentId][subjectCode])
     //   return this.preQuizMap[studentId][subjectCode];
@@ -2563,7 +2718,7 @@ export class OneRosterApi implements ServiceApi {
       const statements = result?.statements ?? [];
 
       const parsedStatements = statements.map((statement) => {
-        return {
+        let parseStatement: TableTypes<"result"> = {
           id: statement.id || "",
           lesson_id: (statement.object && 'definition' in statement.object && statement.object.definition?.extensions?.["http://example.com/xapi/lessonId"]) || null,
           assignment_id: statement.result?.extensions?.["http://example.com/xapi/assignmentId"] || null,
@@ -2573,12 +2728,14 @@ export class OneRosterApi implements ServiceApi {
           created_at: statement.context?.extensions?.["http://example.com/xapi/createdAt"] || "",
           is_deleted: statement.context?.extensions?.["http://example.com/xapi/isDeleted"] || null,
           school_id: statement.context?.extensions?.["http://example.com/xapi/schoolId"] || null,
+          class_id: statement.context?.extensions?.["http://example.com/xapi/classID"] || null,
           score: statement.result?.score?.raw || null,
           student_id: statement.context?.extensions?.["http://example.com/xapi/studentId"] || "",
           time_spent: this.parseFormattedDuration(statement.result?.duration || "") || null,
           updated_at: statement.context?.extensions?.["http://example.com/xapi/updatedAt"] || null,
           wrong_moves: statement.result?.extensions?.["http://example.com/xapi/wrongMoves"] || null,
         };
+        return parseStatement
       });
 
       allStatements = allStatements.concat(parsedStatements);

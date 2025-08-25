@@ -19,3 +19,7 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Ignore optional Facebook SDK classes referenced by authentication handlers
+# so R8 doesn't fail when the SDK is not included
+-dontwarn com.facebook.**

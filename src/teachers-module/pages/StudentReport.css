@@ -1,0 +1,54 @@
+.student-report-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: white;
+}
+.student-report-horizontal-line {
+  max-width: 100%;
+  height: 1px;
+  background-color: #7c5db0;
+  margin: 10px 20px 0 20px;
+}
+.student-report-date-picker {
+  display: flex;
+  align-items: center;
+}
+.student-report-date-selection {
+  border-radius: 10px;
+  background: white;
+  color: var(--text-color);
+  padding: 1vh 2vh 0;
+  margin-bottom: 2vh;
+  margin-top: 2vh;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+}
+.student-report-date-icons {
+  display: flex;
+  justify-content: space-around;
+  background: #f2ebfe;
+  padding: 0 10px;;
+  border-radius: 12px;
+  align-items: center;
+}
+.student-report-calendar-icon {
+  padding: 20px;
+  font-size: 2rem;
+}
+.student-report-vertical-line {
+  color: grey;
+  height: 5vh;
+  background: lightgray;
+  width: 0.6px;
+  display: flex;
+  margin: 5px 0;
+}
+
+.student-report-student-profile {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
