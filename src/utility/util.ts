@@ -2313,4 +2313,17 @@ export class Util {
 
     await Util.logEvent(EVENTS.DEEPLINK_CLICKED, eventData);
   }
+  public static async setParentLanguagetoLocal() {
+    const api = ServiceConfig.getI().apiHandler;
+    const auth = ServiceConfig.getI().authHandler;
+    const user = await auth.getCurrentUser();
+    if (!!user && !!user.language_id) {
+      const langDoc = await api.getLanguageWithId(user.language_id);
+      if (langDoc) {
+        const tempLangCode = langDoc.code ?? LANG.ENGLISH;
+        localStorage.setItem(LANGUAGE, tempLangCode);
+        await i18n.changeLanguage(tempLangCode);
+      }
+    }
+  }
 }
