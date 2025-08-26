@@ -55,6 +55,8 @@ import {
   QUIZ_POPUP_SHOWN,
   SCHOOL_LOGIN,
   isRespectMode,
+  SHOULD_SHOW_REMOTE_ASSETS,
+  IS_OPS_USER,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -63,7 +65,7 @@ import {
 } from "../interface/curriculumInterfaces";
 import { GUIDRef, RoleType } from "../interface/modelInterfaces";
 import { OneRosterApi } from "../services/api/OneRosterApi";
-import { ServiceConfig } from "../services/ServiceConfig";
+import { APIMode, ServiceConfig } from "../services/ServiceConfig";
 import i18n from "../i18n";
 import { FirebaseMessaging } from "@capacitor-firebase/messaging";
 import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
@@ -711,6 +713,71 @@ export class Util {
     }
   }
 
+  public static async DownloadLearningPathAssets(
+    zipUrl: string,
+    uniqueId: string
+  ): Promise<boolean> {
+    try {
+      if (!Capacitor.isNativePlatform()) return true;
+
+      const fs = createFilesystem(Filesystem, {
+        rootDir: "",
+        directory: Directory.External,
+        base64Alway: false,
+      });
+      const androidPath = await this.getAndroidBundlePath();
+
+      //logic for read config.json
+      try {
+        const res = await fetch("remoteAsset/config.json");
+        const isExists = res.ok;
+        if (isExists) {
+          const configFile = await Filesystem.readFile({
+            path: "remoteAsset/config.json",
+            directory: Directory.External,
+          });
+
+          const decoded = atob(configFile.data); // base64 → string
+          const config = JSON.parse(decoded); // string → object
+
+          if (config.uniqueId === uniqueId) {
+            this.setGameUrl(androidPath);
+            return true;
+          }
+        }
+      } catch (err) {
+        console.error(`❌ Failed to read config for remoteAsset:`, err);
+      }
+
+      // Download and unzip
+      const response = await CapacitorHttp.get({
+        url: zipUrl,
+        responseType: "blob",
+      });
+
+      if (!response?.data || response.status !== 200) return false;
+      const buffer = Uint8Array.from(atob(response.data), (c) =>
+        c.charCodeAt(0)
+      );
+      await unzip({
+        fs,
+        extractTo: "",
+        filepaths: ["."],
+        filter: (filepath: string) => !filepath.startsWith("dist/"),
+        onProgress: (event) => {
+          console.log("Unzipping LearningPath assets:", event.filename);
+        },
+        data: buffer,
+      });
+
+      this.setGameUrl(androidPath);
+      return true;
+    } catch (err) {
+      console.error("Unexpected error in DownloadLearningPathAssets:", err);
+      return false;
+    }
+  }
+
   public static async deleteDownloadedLesson(
     lessonIds: string[]
   ): Promise<boolean> {
@@ -1016,6 +1083,12 @@ export class Util {
         console.log("Respect mode enabled, skipping logEvent");
         return;
       }
+      const normalizedParams: { [key: string]: string } = Object.fromEntries(
+        Object.entries(params).map(([key, value]) => [
+          key,
+          typeof value === "number" ? value.toString() : String(value),
+        ])
+      );
       //Setting User Id in User Properites
       await FirebaseAnalytics.setUserId({
         userId: params.user_id,
@@ -1267,6 +1340,13 @@ export class Util {
     } else {
       history.replace(path);
     }
+  }
+
+   public static switchToOpsUser(history: any): void {
+    localStorage.setItem(IS_OPS_USER, "true");
+    ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+    schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
+    history.replace(PAGES.SIDEBAR_PAGE);
   }
 
   public static setCurrentStudent = async (
@@ -1978,21 +2058,37 @@ export class Util {
     return;
   }
 
-  public static onAppUrlOpen(event: URLOpenListenerEvent) {
+  public static async onAppUrlOpen(event: URLOpenListenerEvent) {
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    const url = new URL(event.url);
     const slug = event.url.split(".cc").pop();
-    if (slug?.startsWith(PAGES.JOIN_CLASS)) {
-      const newSearParams = new URLSearchParams(new URL(event.url).search);
+    // Determine target page for logging
+    let destinationPage = "";
+
+    if (slug?.includes(PAGES.ASSIGNMENT)) {
+      destinationPage = PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT;
+    } else if (slug?.includes(PAGES.JOIN_CLASS)) {
+      const newSearchParams = new URLSearchParams(url.search);
       const currentParams = new URLSearchParams(window.location.search);
-      currentParams.set("classCode", newSearParams.get("classCode") ?? "");
+      currentParams.set("classCode", newSearchParams.get("classCode") ?? "");
       currentParams.set("page", PAGES.JOIN_CLASS);
       const currentStudent = Util.getCurrentStudent();
-      if (currentStudent) {
-        window.location.replace(PAGES.HOME + "?" + currentParams.toString());
-      } else {
-        window.location.replace(
-          PAGES.DISPLAY_STUDENT + "?" + currentParams.toString()
-        );
-      }
+      destinationPage = currentStudent
+        ? PAGES.HOME + "?" + currentParams.toString()
+        : PAGES.DISPLAY_STUDENT + "?" + currentParams.toString();
+    } else {
+      // Fallback for other deeplinks
+      destinationPage = PAGES.HOME;
+    }
+
+    await Util.handleDeeplinkClick(
+      url,
+      currentUser as TableTypes<"user">,
+      destinationPage
+    );
+
+    if (destinationPage && currentUser) {
+      window.location.replace(destinationPage);
     }
   }
   public static addRefreshTokenToLocalStorage(refreshToken: string) {
@@ -2010,7 +2106,7 @@ export class Util {
     const api = ServiceConfig.getI().apiHandler;
     api.currentSchool = school !== null ? school : undefined;
     localStorage.setItem(SCHOOL, JSON.stringify(school));
-    localStorage.setItem(USER_ROLE, JSON.stringify(role));
+    localStorage.setItem(USER_ROLE, JSON.stringify([role]));
   };
 
   public static getCurrentSchool(): TableTypes<"school"> | undefined {
@@ -2035,10 +2131,16 @@ export class Util {
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentClass) return api.currentClass;
     const temp = localStorage.getItem(CLASS);
-    if (!temp) return;
-    const currentClass = JSON.parse(temp) as TableTypes<"class">;
-    api.currentClass = currentClass;
-    return currentClass;
+    if (!temp || temp === "undefined") return;
+
+    try {
+      const currentClass = JSON.parse(temp) as TableTypes<"class">;
+      api.currentClass = currentClass;
+      return currentClass;
+    } catch (err) {
+      console.error("Failed to parse currentClass from localStorage", err);
+      return;
+    }
   }
 
   public static async sendContentToAndroidOrWebShare(
@@ -2185,13 +2287,15 @@ export class Util {
     }
   }
 
-  public static async triggerSaveProceesedXlsxFile(data: { fileData: string }) {
+  public static async triggerSaveProceesedXlsxFile(data: { fileData: string;
+    fileName?: string; }) {
     try {
       if (!Util.port) {
         Util.port = registerPlugin<PortPlugin>("Port");
       }
       await Util.port.saveProceesedXlsxFile({
         fileData: data.fileData,
+        fileName: data.fileName,
       });
     } catch (error) {
       console.error("Download failed:", error);
@@ -2298,7 +2402,6 @@ export class Util {
     password: string
   ): Promise<void> {
     if (!Capacitor.isNativePlatform()) {
-      console.log("Not running on Android. Skipping storeLoginDetails.");
       return;
     }
 
@@ -2309,6 +2412,159 @@ export class Util {
       }
     } catch (error) {
       console.error("Failed to encrypt and store login details:", error);
+    }
+  }
+
+  public static async downloadFileFromUrl(fileUrl: string): Promise<void> {
+    try {
+      const response = await fetch(fileUrl);
+
+      // ✅ Validate content type to avoid corrupted files
+      const contentType = response.headers.get("content-type") || "";
+      if (
+        contentType.includes("text/html") ||
+        contentType.includes("application/json")
+      ) {
+        const text = await response.text();
+        console.error(
+          "Unexpected content instead of a file:",
+          text.slice(0, 100)
+        );
+        throw new Error(
+          "Invalid file download. Check if the link is direct and the file is public."
+        );
+      }
+      const blob = await response.blob();
+      this.handleBlobDownloadAndSave(blob, "BulkUploadTemplate.xlsx");
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  }
+
+  public static async blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+        const base64Data = reader.result as string;
+        resolve(base64Data.split(",")[1]);
+      };
+      reader.onerror = reject;
+    });
+  }
+
+  public static async handleBlobDownloadAndSave(blob: Blob, fileName?: string) {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        const base64 = await Util.blobToBase64(blob);
+        await Util.triggerSaveProceesedXlsxFile({
+          fileData: base64,
+          fileName: fileName,
+        });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName || "ProcessedFile.xlsx";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      console.error("Failed to save or download file:", error);
+    }
+  }
+  public static mergeStudentsByUpdatedAt(
+    apiStudents: TableTypes<"user">[],
+    storedMapStr: string | null
+  ): TableTypes<"user">[] {
+    const studentsMap: Record<string, TableTypes<"user">> = storedMapStr
+      ? JSON.parse(storedMapStr)
+      : {};
+
+    const mergedStudents = apiStudents.map((studentFromAPI) => {
+      const localStudent = studentsMap[studentFromAPI.id];
+
+      if (localStudent) {
+        const apiUpdatedAt = new Date(studentFromAPI.updated_at ?? 0).getTime();
+        const localUpdatedAt = new Date(localStudent.updated_at ?? 0).getTime();
+        return localUpdatedAt > apiUpdatedAt ? localStudent : studentFromAPI;
+      }
+      return studentFromAPI;
+    });
+
+    return mergedStudents;
+  }
+  public static async loadBackgroundImage() {
+    const body = document.querySelector("body");
+    if (
+      Capacitor.isNativePlatform() &&
+      localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === "true"
+    ) {
+      try {
+        const result = await Filesystem.readFile({
+          path: "remoteAsset/remoteBackground.svg",
+          directory: Directory.External,
+        });
+        const svgData = atob(result.data); // decode base64
+
+        if (body) {
+          body.style.backgroundImage = `url('data:image/svg+xml;utf8,${encodeURIComponent(svgData)}')`;
+          body.style.backgroundRepeat = "no-repeat";
+          body.style.backgroundSize = "cover";
+          body.style.backgroundPosition = "center center";
+        }
+      } catch (e) {
+        body?.style.setProperty(
+          "background-image",
+          "url(/pathwayAssets/pathwayBackground.svg)"
+        );
+        console.error("Failed to load remote background image:", e);
+      }
+    } else {
+      body?.style.setProperty(
+        "background-image",
+        "url(/pathwayAssets/pathwayBackground.svg)"
+      );
+    }
+  }
+  public static async handleDeeplinkClick(
+    url: URL,
+    currentUser: TableTypes<"user"> | null,
+    destinationPage: string
+  ) {
+    const timestamp = new Date().toISOString();
+
+    // Convert all query parameters to an object
+    const queryParams: Record<string, string | null> = {};
+    for (const [key, value] of url.searchParams.entries()) {
+      queryParams[key] = value;
+    }
+
+    const eventData = {
+      user_id: currentUser?.id ?? "anonymous",
+      user_name: currentUser?.name ?? "",
+      phone: currentUser?.phone || null,
+      email: currentUser?.email || null,
+      timestamp,
+      destinationPage: destinationPage,
+      ...queryParams,
+    };
+
+    await Util.logEvent(EVENTS.DEEPLINK_CLICKED, eventData);
+  }
+  public static async setParentLanguagetoLocal() {
+    const api = ServiceConfig.getI().apiHandler;
+    const auth = ServiceConfig.getI().authHandler;
+    const user = await auth.getCurrentUser();
+    if (!!user && !!user.language_id) {
+      const langDoc = await api.getLanguageWithId(user.language_id);
+      if (langDoc) {
+        const tempLangCode = langDoc.code ?? LANG.ENGLISH;
+        localStorage.setItem(LANGUAGE, tempLangCode);
+        await i18n.changeLanguage(tempLangCode);
+      }
     }
   }
 }

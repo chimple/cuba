@@ -115,3 +115,18 @@
   width: auto;
   height: clamp(30px, 12vh, 44px);
 }
+.leaderboard-switch-text{
+  white-space: nowrap;
+  display: block;
+  /* max-width: 20vh; */
+  /* text-overflow: ellipsis; */
+  overflow: hidden;
+}
+
+#leaderboard-page-tab-bar{
+  color: #182A4F !important;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+}

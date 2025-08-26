@@ -2,7 +2,7 @@
   background: white;
   height: 100%;
 }
-.user-info-container {
+.add-teacher-container {
   display: flex;
   align-items: center;
   gap: 15px;
@@ -16,9 +16,10 @@
   margin: 5px 0;
 }
 .add-teacher-div {
-  font-size: clamp(20px, 5vh, 30px);
-  color: grey;
+  font-size: clamp(20px, 5vh, 24px);
+  color: #707070;
   padding: 20px 20px 0 20px;
+  font-weight: 600;
 }
 .user-image {
   width: 50px;
@@ -30,14 +31,14 @@
 .user-name {
   font-size: 1.2rem;
 }
-.add-user-btn {
+.add-teacher-btn {
   background-color: #7c5db0;
   color: white;
   padding: 10px 20px;
   border: none;
   cursor: pointer;
   border-radius: 5px;
-  margin-top: 2vh;
+  font-size: 16px;
 }
 .no-data-div {
   font-size: var(--text-size);

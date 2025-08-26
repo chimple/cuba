@@ -16,13 +16,15 @@ export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
   private _currentUser: TableTypes<"user"> | undefined;
 
-  private static NativeSSOPlugin = registerPlugin("NativeSSOPlugin");
-
-  private constructor() { }
+private static NativeSSOPlugin = registerPlugin("NativeSSOPlugin");
+  private constructor() {}
   refreshSession(): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  loginWithEmailAndPassword(email: any, password: any): Promise<boolean> {
+  loginWithEmailAndPassword(
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; isSpl: boolean }> {
     throw new Error("Method not implemented.");
   }
 
@@ -131,7 +133,7 @@ export class OneRosterAuth implements ServiceAuth {
   proceedWithVerificationCode(
     verificationId: any,
     verificationCode: any
-  ): Promise<{ user: any; isUserExist: boolean } | undefined> {
+  ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean } | undefined> {
     throw new Error("Method not implemented.");
   }
 
@@ -166,7 +168,12 @@ export class OneRosterAuth implements ServiceAuth {
       sfx_off: (Util.getCurrentSound() === 0),
       student_id: registration,
       updated_at: null,
-      learning_path: Util.getCurrentStudent()?.learning_path
+      learning_path: Util.getCurrentStudent()?.learning_path || "",
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+      stars: null
     };
     return Promise.resolve(user);
   }
@@ -175,7 +182,10 @@ export class OneRosterAuth implements ServiceAuth {
     throw new Error("Method not implemented.");
   }
 
-  signInWithEmail(email, password): Promise<boolean> {
+  signInWithEmail(
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; isSpl: boolean }> {
     throw new Error("Method not implemented.");
   }
   sendResetPasswordEmail(email: string): Promise<boolean> {

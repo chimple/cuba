@@ -25,18 +25,20 @@ const Library: React.FC = () => {
     course_res.sort(
       (a, b) => (a.sort_index ?? Infinity) - (b.sort_index ?? Infinity)
     );
-    console.log("My following subjects are- ", course_res)
     setCourses(course_res);
   };
 
   return (
     <div className="library-container">
-      <div
+      <div style={{display: 'flex', flexDirection: 'column-reverse'}}>
+        <div
         className="lesson-search"
         onClick={() => history.replace(PAGES.SEARCH_LESSON)}
       >
         <SearchOutlinedIcon style={{ color: "black" }} />
         <span className="text">{t("Search")}...</span>
+      </div>
+      <span className="library-title">Library</span>
       </div>
       <div className="course-grid">
         {courses.map(course => (
