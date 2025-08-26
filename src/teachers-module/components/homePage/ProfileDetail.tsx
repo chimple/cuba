@@ -2,6 +2,7 @@ import React from "react";
 import { IonAvatar, IonLabel, IonToolbar } from "@ionic/react";
 import { useHistory } from "react-router-dom";
 import "./ProfileDetail.css";
+import { PAGES } from "../../../common/constants";
 
 interface ProfileDetailsProps {
   fullName: string;
@@ -15,7 +16,7 @@ const ProfileDetail: React.FC<ProfileDetailsProps> = ({ fullName, email }) => {
   return (
     <div className="side-menu-header">
       <IonToolbar
-        onClick={() => history.replace("/user-profile")}
+        onClick={() => history.replace(PAGES.USER_PROFILE)}
       >
         <IonAvatar slot="start">
           <img src={"assets/avatars/armydog.png"} alt="Profile Avatar" />
