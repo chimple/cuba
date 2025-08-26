@@ -14,14 +14,15 @@ const ProfileDetail: React.FC<ProfileDetailsProps> = ({ fullName, email }) => {
   const displayName = fullName.length > 12 ? `${fullName.slice(0, 12)}...` : fullName;
   return (
     <div className="side-menu-header">
-      <IonToolbar>
+      <IonToolbar
+        onClick={() => history.replace("/user-profile")}
+      >
         <IonAvatar slot="start">
           <img src={"assets/avatars/armydog.png"} alt="Profile Avatar" />
         </IonAvatar>
         <div className="profile-details">
           <IonLabel>
             <div
-              onClick={() => history.replace("/user-profile")}
               className="profile-name"
             >
               {displayName}
