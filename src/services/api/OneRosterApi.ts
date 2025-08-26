@@ -1462,9 +1462,13 @@ export class OneRosterApi implements ServiceApi {
     if (studentId && lessonId) {
       const scoresJson = localStorage.getItem(studentLessonScores);
       const scoresMap = scoresJson ? JSON.parse(scoresJson) : {};
+
       if (!scoresMap[studentId]) scoresMap[studentId] = {};
-      scoresMap[studentId][lessonId] = score ?? 0;
-      localStorage.setItem(studentLessonScores, JSON.stringify(scoresMap));
+
+      if (!(lessonId in scoresMap[studentId])) {
+        scoresMap[studentId][lessonId] = score;
+        localStorage.setItem(STUDENT_LESSON_SCORES, JSON.stringify(scoresMap));
+      }
     }
 
     const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();
