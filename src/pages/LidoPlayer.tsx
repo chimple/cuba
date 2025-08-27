@@ -21,6 +21,7 @@ import { Lesson } from "../interface/curriculumInterfaces";
 import { AvatarObj } from "../components/animation/Avatar";
 import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
 import { t } from "i18next";
+import { App as CapApp } from "@capacitor/app";
 
 const LidoPlayer: FC = () => {
   const history = useHistory();
@@ -33,6 +34,7 @@ const LidoPlayer: FC = () => {
   const [xmlPath, setXmlPath] = useState<string>();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [gameResult, setGameResult] = useState<any>(null);
+  const [isDeviceAwake, setDeviceAwake] = useState(false);
 
   const urlSearchParams = new URLSearchParams(window.location.search);
   const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
@@ -41,27 +43,56 @@ const LidoPlayer: FC = () => {
 
   const gameCompleted = (e: any) => {
     console.log("Game completed", e.detail);
-    // ✅ Show ScoreCard after game completed
-    setGameResult(e.detail);
+    if (e.detail) setGameResult(e.detail);
     setShowDialogBox(true);
   };
-  const push = () => {
-    const fromPath: string = state?.from ?? PAGES.HOME;
+  // const push = () => {
+  //   const fromPath: string = state?.from ?? PAGES.HOME;
 
-    console.log("fromPath", fromPath);
+  //   console.log("fromPath", fromPath);
 
-    try {
-      // Defensive check: empty, malformed, or suspicious path
-      if (!fromPath || typeof fromPath !== "string" || fromPath.length < 2) {
-        throw new Error("Invalid fromPath");
-      }
+  //   try {
+  //     // Defensive check: empty, malformed, or suspicious path
+  //     if (!fromPath || typeof fromPath !== "string" || fromPath.length < 2) {
+  //       throw new Error("Invalid fromPath");
+  //     }
 
-      Util.setPathToBackButton(fromPath, history);
-    } catch (error) {
-      console.warn("Navigation error:", error);
-      history.replace(PAGES.HOME);
-      return;
+  //     Util.setPathToBackButton(fromPath, history);
+  //   } catch (error) {
+  //     console.warn("Navigation error:", error);
+  //     history.replace(PAGES.HOME);
+  //     return;
+  //   }
+  // };
+  const handleAppStateChange = (state) => {
+    if (state.isActive) {
+      setDeviceAwake(true);
+    } else {
+      setDeviceAwake(false);
     }
+  };
+  const push = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromPath: string = state?.from ?? PAGES.HOME;
+    if (Capacitor.isNativePlatform()) {
+      if (!!isDeviceAwake) {
+        history.replace(fromPath + "&isReload=true");
+        window.location.reload();
+      } else {
+        history.replace(fromPath + "&isReload=false");
+      }
+      setIsLoading(false);
+    } else {
+      if (!!urlParams.get("isReload")) {
+        if (fromPath.includes("?"))
+          history.replace(fromPath + "&isReload=true");
+        else history.replace(fromPath + "?isReload=true");
+        window.location.reload();
+      } else {
+        history.replace(fromPath);
+      }
+    }
+    setIsLoading(false);
   };
 
   const onActivityEnd = (e: any) => {};
@@ -218,6 +249,7 @@ const LidoPlayer: FC = () => {
 
   useEffect(() => {
     init();
+    CapApp.addListener("appStateChange", handleAppStateChange);
     window.addEventListener(LidoGameExitKey, onGameExit);
     window.addEventListener(LidoNextContainerKey, onNextContainer);
     window.addEventListener(LidoGameCompletedKey, gameCompleted);
@@ -226,6 +258,8 @@ const LidoPlayer: FC = () => {
     window.addEventListener(LidoActivityEndKey, (e: any) => {});
 
     return () => {
+      CapApp.addListener("appStateChange", Util.onAppStateChange);
+      CapApp.addListener("appUrlOpen", Util.onAppUrlOpen);
       window.removeEventListener(LidoGameExitKey, onGameExit);
       window.removeEventListener(LidoNextContainerKey, onNextContainer);
       window.removeEventListener(LidoGameCompletedKey, gameCompleted);
@@ -247,6 +281,8 @@ const LidoPlayer: FC = () => {
 
   async function init() {
     setIsLoading(true);
+    setShowDialogBox(false);
+    setGameResult(null);
     const urlSearchParams = new URLSearchParams(window.location.search);
     const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
     const lessonIds: string[] = [lessonId];
@@ -282,7 +318,10 @@ const LidoPlayer: FC = () => {
           yesText={t("Like the Game")}
           lessonName={lessonDetail?.name ?? ""}
           noText={t("Continue Playing")}
-          handleClose={() => setShowDialogBox(false)}
+          handleClose={() => {
+            setShowDialogBox(false);
+            push();
+          }}
           onYesButtonClicked={async () => {
             setShowDialogBox(false);
             setIsLoading(true);
