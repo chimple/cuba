@@ -979,3 +979,5 @@ export interface CoordinatorAPIResponse {
   data: CoordinatorInfo[];
   total: number;
 }
+export const CAN_ACCESS_REMOTE_CHIMPLE_RIVE= "can_access_remote_chimple_rive"
+export const CHIMPLE_RIVE_ASSETS= "chimple_rive_assets"
