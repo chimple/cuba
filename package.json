@@ -41,6 +41,7 @@
     "@mui/icons-material": "^5.15.15",
     "@mui/material": "^5.12.3",
     "@mui/x-date-pickers": "^5.0.16",
+    "@rive-app/react-canvas": "^4.23.1",
     "@splidejs/react-splide": "^0.7.10",
     "@supabase/supabase-js": "^2.42.5",
     "@testing-library/jest-dom": "^5.11.9",
