@@ -1,7 +1,7 @@
 import React from "react";
 import { t } from "i18next";
 import "./CourseComponent.css";
-import { TableTypes, belowGrade1, grade1 } from "../../../common/constants";
+import { COURSES, ENGLISH, TableTypes, belowGrade1, grade1 } from "../../../common/constants";
 import SelectIconImage from "../../../components/displaySubjects/SelectIconImage";
 
 interface CourseComponentProps {
@@ -32,10 +32,15 @@ const CourseComponent: React.FC<CourseComponentProps> = ({
             webSrc={`${course.image}`}
           />
         </div>
-        <div className="course-name">{course.name}</div>
-        <div className="grade-name">{`${("Grade")} ${
-          isGrade1 ? "1" : "2"
-        }`}</div>
+        <div className="course-name">
+          {course.name ===ENGLISH ? course.name : t(course.name)}
+        </div>
+
+        <div className="grade-name">
+          {course.name === ENGLISH
+            ? `Grade ${isGrade1 ? "1" : "2"}`
+            : `${t("Grade")} ${isGrade1 ? "1" : "2"}`}
+        </div>
       </div>
     </div>
   );

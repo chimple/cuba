@@ -39,6 +39,7 @@ type AssignmentHeader = {
   endAt: string;
   belongsToClass?: boolean;
   subjectName?: string; // Add subject name to the header data
+  courseId?: string;  // Add subject name to the header data
 };
 
 const ReportTable: React.FC<ReportTableProps> = ({
@@ -443,6 +444,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
 
                   <TableRightHeader
                     headerDetails={headerData}
+                    courseName={selectedSubject?.name}
                   />
                 </tr>
               </thead>

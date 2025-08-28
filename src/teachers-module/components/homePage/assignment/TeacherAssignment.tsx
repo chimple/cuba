@@ -3,7 +3,7 @@ import { useHistory } from "react-router";
 import "./TeacherAssignment.css";
 import { ServiceConfig } from "../../../../services/ServiceConfig";
 import SelectIconImage from "../../../../components/displaySubjects/SelectIconImage";
-import { AssignmentSource, CAMERAPERMISSION, PAGES, TableTypes } from "../../../../common/constants";
+import { AssignmentSource, CAMERAPERMISSION, COURSES, ENGLISH, PAGES, TableTypes } from "../../../../common/constants";
 import { Util } from "../../../../utility/util";
 import { t } from "i18next";
 import { Toast } from "@capacitor/toast";
@@ -396,11 +396,13 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           )} */}
         </div>
         {!assignments[subjectId].isCollapsed && (
-          <div>
-            {assignments[subjectId].lessons.map((assignment: any, index: number) => {
-              const isSelected = assignment?.selected;
-              return (
-                <div key={index} className="assignment-list-item">
+        <div>
+        {assignments[subjectId].lessons.map(
+          (assignment: any, index: number) => {
+            const isSelected = assignment?.selected;
+            const courseName = assignments[subjectId]?.name;
+            return (
+              <div key={index} className="assignment-list-item">
                 <SelectIconImage
                   defaultSrc={"assets/icons/DefaultIcon.png"}
                   webSrc={assignment?.image}
@@ -408,23 +410,29 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
                   imageHeight="100px"
                 />
                 <span className="assignment-list-item-name">
-                  {assignment?.name}
+                  {courseName === ENGLISH
+                    ? assignment?.name ?? ""
+                    : t(assignment?.name ?? "")}
                 </span>
+
                 <IonIcon
                   icon={isSelected ? checkmarkCircle : ellipseOutline}
                   className={`subject-page-checkbox ${isSelected ? "selected" : ""}`}
                   onClick={() =>
                     toggleAssignmentSelection(
-                    type,
-                    assignments,
-                    setCategory,
-                    subjectId,
-                    index
-                  )}
-                 />
+                      type,
+                      assignments,
+                      setCategory,
+                      subjectId,
+                      index
+                    )
+                  }
+                />
               </div>
-            )})}
-          </div>
+            );
+          }
+        )}
+      </div>
         )}
       </div>
     ));

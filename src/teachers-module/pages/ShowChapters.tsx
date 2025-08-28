@@ -20,6 +20,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
   const [lessons, setLessons] = useState<Map<string, TableTypes<"lesson">[]>>();
   const [chapters, setChapters] = useState<TableTypes<"chapter">[]>();
   const [currentUser, setCurrentUser] = useState<TableTypes<"user">>();
+  const [courseName, setCourseName] = useState<string>();
   const [assignmentCount, setAssignmentCount] = useState<number>(0);
   const [classSelectedLesson, setClassSelectedLesson] = useState<
     Map<string, Partial<Record<AssignmentSource, string[]>>>
@@ -104,6 +105,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
 
     setChapters(chapter_res);
     setLessons(lesson_map);
+    setCourseName(course.name);
   };
 
   const handleOnLessonClick = (lesson, chapter) => {
@@ -182,6 +184,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
                 lessonClickCallBack={(lesson) => {
                   handleOnLessonClick(lesson, chapter);
                 }}
+                courseName={courseName}
               />
             </div>
           ))}
