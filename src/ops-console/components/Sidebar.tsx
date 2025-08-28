@@ -18,12 +18,16 @@ import {
   MODES,
   USER_ROLE,
   CLASS,
+  CURRENT_USER,
+  CURRENT_MODE,
+  IS_OPS_USER,
+  USER_DATA,
 } from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
 import ToggleButton from "../../components/parent/ToggleButton";
 import { schoolUtil } from "../../utility/schoolUtil";
 import { Util } from "../../utility/util";
-import { ServiceConfig } from "../../services/ServiceConfig";
+import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
 import { IonItem } from "@ionic/react";
 import CommonToggle from "../../common/CommonToggle";
 import { Capacitor } from "@capacitor/core";
@@ -155,6 +159,8 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.clear();
+    const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
+    serviceInstance.switchMode(APIMode.SQLITE);
     history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };
