@@ -77,6 +77,8 @@ export class OneRosterAuth implements ServiceAuth {
 
   async logOut(): Promise<void> {
     localStorage.removeItem(CURRENT_USER)
+    localStorage.removeItem("isRespectMode");
+    ServiceConfig.getI().switchMode(APIMode.SQLITE);
     this._currentUser = undefined;
   }
 
