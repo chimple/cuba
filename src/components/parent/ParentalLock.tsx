@@ -158,7 +158,7 @@ const ParentalLock: React.FC<{
                 />
               </div>
               <div id="parent-screen">
-                {t("Parent's Screen")}
+                {t("Parents Section")}
               </div>
             </div>
 
