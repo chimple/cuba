@@ -11,7 +11,7 @@ interface LessonComponentProps {
   handleSelect: Function;
   isSelcted: boolean;
   isSelButton: boolean;
-  courseName?: String;
+  courseCode?: String;
 }
 
 const LessonComponent: React.FC<LessonComponentProps> = ({
@@ -20,7 +20,7 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
   handleSelect,
   isSelcted,
   isSelButton,
-  courseName,
+  courseCode,
 }) => {
   const [isTicked, setIsTicked] = useState(isSelcted);
 
@@ -62,7 +62,7 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
       </div>
       <div className="text-container">
         <div className="lesson-details">
-          {courseName === ENGLISH
+          {courseCode === COURSES.ENGLISH
             ? lesson.name!.length > 15
               ? lesson.name?.substring(0, 15) + "..."
               : lesson.name

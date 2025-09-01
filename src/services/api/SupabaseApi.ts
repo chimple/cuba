@@ -2425,6 +2425,23 @@ export class SupabaseApi implements ServiceApi {
     }
     return data ?? undefined;
   }
+  async getCourses(ids: string[]): Promise<TableTypes<"course">[]> {
+    if (!this.supabase || !ids || ids.length === 0) return [];
+  
+    const { data, error } = await this.supabase
+      .from("course")
+      .select("*")
+      .in("id", ids)               // fetch all courses in one go
+      .eq("is_deleted", false);
+  
+    if (error) {
+      console.error("Error fetching courses:", error);
+      return [];
+    }
+  
+    return data ?? [];
+  }
+  
   async getStudentResult(
     studentId: string,
     fromCache?: boolean

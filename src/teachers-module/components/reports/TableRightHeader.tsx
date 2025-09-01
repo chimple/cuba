@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./TableRightHeader.css";
 import { t } from "i18next";
 import { ServiceConfig } from "../../../services/ServiceConfig";
-import {  ALL_SUBJECT, ENGLISH } from "../../../common/constants";
+import {  ALL_SUBJECT, COURSES, ENGLISH } from "../../../common/constants";
 
 
 interface TableRightHeaderProps {
@@ -10,12 +10,12 @@ interface TableRightHeaderProps {
     string,
     { headerName: string; startAt: string; endAt: string; courseId?: string }
   >[];
-  courseName?: string;
+  courseCode?: string;
 }
 
 const TableRightHeader: React.FC<TableRightHeaderProps> = ({
   headerDetails,
-  courseName,
+  courseCode,
 }) => {
   const [courseNamesMap, setCourseNamesMap] = useState<Record<string, string>>(
     {}
@@ -23,28 +23,31 @@ const TableRightHeader: React.FC<TableRightHeaderProps> = ({
   useEffect(() => {
     const fetchCourseNames = async () => {
       const api = ServiceConfig.getI().apiHandler;
-      const newMap: Record<string, string> = {};
-
+  
+      const courseIds: string[] = [];
       for (const assignmentMap of headerDetails) {
         const entries = Array.from(assignmentMap.entries());
         if (entries.length > 0) {
           const [_, { courseId }] = entries[0];
-          if (courseId && !newMap[courseId]) {
-            const course = await api.getCourse(courseId);
-            if (course) {
-              newMap[courseId] = course.name;
-            }
+          if (courseId && !courseIds.includes(courseId)) {
+            courseIds.push(courseId);
           }
         }
       }
-      setCourseNamesMap(newMap);
+  
+      if (courseIds.length > 0) {
+        const courses = await api.getCourses(courseIds);
+        const newMap: Record<string, string> = {};
+        for (const course of courses) {
+          newMap[course.id] = course.code ?? "";
+        }
+        setCourseNamesMap(newMap);
+      }
     };
-
-    if (courseName === ALL_SUBJECT.name) {
-      fetchCourseNames();
-    }
-  }, [headerDetails, courseName]);
-
+  
+    fetchCourseNames();
+  }, [headerDetails]);
+  
   return (
     <>
       {headerDetails.map((assignmentMap) => {
@@ -57,16 +60,14 @@ const TableRightHeader: React.FC<TableRightHeaderProps> = ({
         // Decide whether to translate
         let displayName = headerName ?? "";
 
-        if (courseName === ALL_SUBJECT.name && courseId) {
+        if (courseCode === ALL_SUBJECT.id && courseId) {
           const courseNameForCheck = courseNamesMap[courseId];
-
-          if (courseNameForCheck && courseNameForCheck !== ENGLISH) {
+          if (courseNameForCheck && courseNameForCheck !== COURSES.ENGLISH) {
             displayName = t(headerName ?? "");
           }
-        } else if (courseName !== ENGLISH) {
+        } else if (courseCode !== COURSES.ENGLISH) {
           displayName = t(headerName ?? "");
         }
-
         return (
           <th className="tableRightHeader" key={assignmentId}>
             <div className="aboveText">

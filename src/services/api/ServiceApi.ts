@@ -490,6 +490,15 @@ export interface ServiceApi {
   getCourse(id: string): Promise<TableTypes<"course"> | undefined>;
 
   /**
+   * Gives Courses for given a CourseIds  
+   * @param  {courseIds: string[]} - CourseIds 
+   * @returns {<TableTypes<"course">[]>}`Course` or `undefined` if it could not find the Course with given `id`
+   */
+  getCourses(
+    courseIds: string[]
+  ): Promise<TableTypes<"course">[]> 
+
+  /**
    * Gives StudentProfile for given a Student firebase doc Id
    * @param {string} id - Student firebase doc id
    * @param {boolean} fromCache - If true, it will try to fetch the data from the cache. If the data is not found in the cache, it will look in the database.

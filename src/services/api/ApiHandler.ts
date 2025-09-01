@@ -719,6 +719,11 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"course"> | undefined> {
     return await this.s.getCourse(id);
   }
+  public async getCourses(
+    courseIds: string[]
+  ): Promise<TableTypes<"course">[]> {
+    return await this.s.getCourses(courseIds);
+  }
 
   public async getLeaderboardResults(
     sectionId: string,

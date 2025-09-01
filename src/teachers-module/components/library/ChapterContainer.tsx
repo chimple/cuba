@@ -14,7 +14,7 @@ interface ChapterContainerProps {
   syncSelectedLessons: string[];
   isOpened: boolean;
   lessonClickCallBack;
-  courseName?: string;
+  courseCode?: string;
 }
 const ChapterContainer: React.FC<ChapterContainerProps> = ({
   chapter,
@@ -23,7 +23,7 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
   syncSelectedLessons,
   lessonClickCallBack,
   isOpened,
-  courseName,
+  courseCode,
 }) => {
   const [isOpen, setIsOpen] = useState(isOpened);
   const [selectedLessons, setSelectedLessons] =
@@ -50,7 +50,7 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
         <div className="colladable-header">
           <div className="chapter-details">
             <div className="chapter-name">
-              {courseName === ENGLISH ? chapter.name : t(chapter.name ?? "")}
+              {courseCode ===COURSES.ENGLISH ? chapter.name : t(chapter.name ?? "")}
             </div>
 
             <div className="selected-count">{selectedLessons.length}</div>
@@ -87,7 +87,7 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
                     handleLessonToggle(lesson.id);
                   }}
                   isSelcted={selectedLessons.includes(lesson.id)}
-                  courseName={courseName}
+                  courseCode={courseCode}
                 />
               </div>
             </div>

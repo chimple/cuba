@@ -274,7 +274,7 @@ const LessonCard: React.FC<{
             {showSubjectName && currentCourse?.name ? (
               <div id="lesson-card-subject-name">
                 <p className="ignore">
-                  {course?.name === ENGLISH
+                  {course?.code === COURSES.ENGLISH
                     ? lesson?.name
                     : t(lesson?.name ?? "")}
                 </p>
@@ -364,14 +364,14 @@ const LessonCard: React.FC<{
         <div>
           {showText ? (
             <p id={`lesson-card-name${isLoved ? "-fav-icon" : ""}`}>
-              {course?.name === ENGLISH
+              {course?.code === COURSES.ENGLISH
                 ? lesson?.name
                 : t(lesson?.name ?? "")}
             </p>
           ) : null}
           {showChapterName && chapter?.name && (
             <div id={`chapter-title${isLoved ? "-fav-icon" : ""}`}>
-              {course?.name === ENGLISH
+              {course?.code === COURSES.ENGLISH
                 ? chapter?.name
                 : t(chapter?.name)}
             </div>

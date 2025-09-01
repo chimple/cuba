@@ -47,6 +47,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
   const auth = ServiceConfig.getI().authHandler;
 
   useEffect(() => {
+    console.log("Alokkkooookk")
     init();
   }, []);
 
@@ -113,6 +114,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
          if (!tempLessons[courseId]) {
            tempLessons[courseId] = {
              name: l.course[0].name,
+             courseCode: l.course[0].code,
              lessons: [],
              isCollapsed: false,
              sort_index: l.course[0].sort_index,
@@ -147,6 +149,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
       if (!recommendedAssignments[course.id]) {
         recommendedAssignments[course.id] = {
           name: course.name,
+          courseCode:course.code,
           lessons: [],
           sort_index: course.sort_index, // Added sort_index here
         };
@@ -400,7 +403,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
         {assignments[subjectId].lessons.map(
           (assignment: any, index: number) => {
             const isSelected = assignment?.selected;
-            const courseName = assignments[subjectId]?.name;
+            const courseCode = assignments[subjectId]?.courseCode;
             return (
               <div key={index} className="assignment-list-item">
                 <SelectIconImage
@@ -410,7 +413,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
                   imageHeight="100px"
                 />
                 <span className="assignment-list-item-name">
-                  {courseName === ENGLISH
+                  {courseCode ===COURSES.ENGLISH
                     ? assignment?.name ?? ""
                     : t(assignment?.name ?? "")}
                 </span>

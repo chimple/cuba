@@ -33,11 +33,11 @@ const CourseComponent: React.FC<CourseComponentProps> = ({
           />
         </div>
         <div className="course-name">
-          {course.name ===ENGLISH ? course.name : t(course.name)}
+          {course.code ===COURSES.ENGLISH ? course.name : t(course.name)}
         </div>
 
         <div className="grade-name">
-          {course.name === ENGLISH
+          {course.code ===COURSES.ENGLISH
             ? `Grade ${isGrade1 ? "1" : "2"}`
             : `${t("Grade")} ${isGrade1 ? "1" : "2"}`}
         </div>
