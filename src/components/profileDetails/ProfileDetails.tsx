@@ -314,9 +314,6 @@ const ProfileDetails = () => {
           <img
             src="/assets/icons/BackButtonIcon.svg"
             alt="BackButtonIcon"
-            onClick={() => {
-              Util.setPathToBackButton(PAGES.HOME, history);
-            }}
           />
         </button>
       )}
