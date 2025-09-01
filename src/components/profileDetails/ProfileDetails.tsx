@@ -311,9 +311,12 @@ const ProfileDetails = () => {
           aria-label="Back"
           id="click_on_profile_details_back_button"
         >
-          <FaArrowLeftLong
-            style={{ color: "#f34d08" }}
-            className="profiledetails-back-arrow-icon"
+          <img
+            src="/assets/icons/BackButtonIcon.svg"
+            alt="BackButtonIcon"
+            onClick={() => {
+              Util.setPathToBackButton(PAGES.HOME, history);
+            }}
           />
         </button>
       )}
