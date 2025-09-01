@@ -71,27 +71,10 @@ const LidoPlayer: FC = () => {
       setDeviceAwake(false);
     }
   };
+
   const push = () => {
-    const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
-    if (Capacitor.isNativePlatform()) {
-      if (!!isDeviceAwake) {
-        history.replace(fromPath + "&isReload=true");
-        window.location.reload();
-      } else {
-        history.replace(fromPath + "&isReload=false");
-      }
-      setIsLoading(false);
-    } else {
-      if (!!urlParams.get("isReload")) {
-        if (fromPath.includes("?"))
-          history.replace(fromPath + "&isReload=true");
-        else history.replace(fromPath + "?isReload=true");
-        window.location.reload();
-      } else {
-        history.replace(fromPath);
-      }
-    }
+    history.replace(fromPath);
     setIsLoading(false);
   };
 
@@ -335,7 +318,12 @@ const LidoPlayer: FC = () => {
         />
       )}
       {(xmlPath || basePath) && (
-        <lido-standalone xml-path={xmlPath} base-url={basePath} />
+        <lido-standalone
+          // @ts-ignore
+          key={lessonId}
+          xml-path={xmlPath}
+          base-url={basePath}
+        />
       )}
     </IonPage>
   );
