@@ -10,6 +10,7 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import {
   DEFAULT_PAGE_SIZE,
   EnumType,
+  PAGES,
   REQUEST_TABS,
 } from "../../common/constants";
 import DataTablePagination from "../components/DataTablePagination";
@@ -70,6 +71,7 @@ const RequestList: React.FC = () => {
   });
 
   const [requestData, setRequestData] = useState<any[]>([]);
+  const [rawRequestData, setRawRequestData] = useState<any[]>([]);
 
   const [isFilterLoading, setIsFilterLoading] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false);
@@ -116,20 +118,7 @@ const RequestList: React.FC = () => {
     };
 
     fetchFilterOptions();
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [selectedTab, filters, page, orderBy, orderDir, searchTerm]);
-
-  const formatDateOnly = (dateStr?: string) => {
-    if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-    });
-  };
+  }, [api]);
 
   const fetchData = useCallback(async () => {
     setIsDataLoading(true);
@@ -153,6 +142,7 @@ const RequestList: React.FC = () => {
         cleanedFilters,
         searchTerm
       );
+      setRawRequestData(data || []);
 
       let mappedData: any[] = [];
 
@@ -221,7 +211,20 @@ const RequestList: React.FC = () => {
     } finally {
       setIsDataLoading(false);
     }
-  }, [selectedTab, filters, page, orderBy, orderDir, searchTerm]);
+  }, [api, filters, page, pageSize, searchTerm, selectedTab]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData, orderBy, orderDir]);
+
+  const formatDateOnly = (dateStr?: string) => {
+    if (!dateStr) return "-";
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    });
+  };
 
   const pendingColumns: Column<Record<string, any>>[] = [
     {
@@ -378,7 +381,8 @@ const RequestList: React.FC = () => {
       default:
         return pendingColumns;
     }
-  }, [selectedTab]);
+  }, [selectedTab, t]); // Added 't' to dependency array as it's used inside
+
   const handleSort = (colKey: string) => {
     const column = columns.find((c) => c.key === colKey);
     if (!column?.sortable) return;
@@ -391,6 +395,7 @@ const RequestList: React.FC = () => {
     }
     setPage(1);
   };
+
   const handleCancelFilters = () => {
     setTempFilters(INITIAL_FILTERS);
     setFilters(INITIAL_FILTERS);
@@ -398,6 +403,45 @@ const RequestList: React.FC = () => {
     setPage(1);
   };
   const pageCount = Math.ceil(total / pageSize);
+
+  const handleRowClick = (id: string | number, row: any) => {
+    // Only proceed if it's a student request
+    if (
+      row.request_type &&
+      typeof row.request_type === "string" &&
+      row.request_type.toLowerCase().includes("student")
+    ) {
+      // Find the complete original request object from our raw data state
+      const fullRequestData = rawRequestData.find(
+        (r) => r.request_id === row.request_id
+      );
+
+      if (!fullRequestData) {
+        console.error(
+          "Could not find full request data for ID:",
+          row.request_id
+        );
+        return;
+      }
+
+      let pathToNavigate = "";
+      if (selectedTab === REQUEST_TABS.PENDING) {
+        pathToNavigate = `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}${PAGES.STUDENT_PENDING_REQUEST}/${row.request_id}`;
+      } else if (selectedTab === REQUEST_TABS.APPROVED) {
+        pathToNavigate = `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}${PAGES.STUDENT_APPROVED_REQUEST}/${row.request_id}`;
+      } else if (selectedTab === REQUEST_TABS.REJECTED) {
+        pathToNavigate = `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}${PAGES.STUDENT_REJECTED_REQUEST}/${row.request_id}`;
+      } else {
+        console.warn("Unhandled request tab for student request:", selectedTab);
+        return;
+      }
+
+      history.push({
+        pathname: pathToNavigate,
+        state: { request: fullRequestData },
+      });
+    }
+  };
 
   return (
     <div className="request-list-ion-page">
@@ -499,6 +543,7 @@ const RequestList: React.FC = () => {
             order={orderDir}
             onSort={handleSort}
             loading={isLoading}
+            onRowClick={handleRowClick}
           />
         </div>
 

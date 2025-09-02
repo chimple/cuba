@@ -477,6 +477,9 @@ export enum PAGES {
   PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS = "/program-connected-school-list-page-ops",
   NEW_USERS_OPS = "/new-user-ops",
   REQUEST_LIST = "/request-list",
+  STUDENT_PENDING_REQUEST = "/student-pending-request",
+  STUDENT_APPROVED_REQUEST = "/student-approved-request",
+  STUDENT_REJECTED_REQUEST = "/student-rejected-request",
 }
 
 export const enum ASSIGNMENT_TYPE {

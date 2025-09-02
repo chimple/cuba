@@ -1314,6 +1314,13 @@ export class ApiHandler implements ServiceApi {
   ): Promise<StudentAPIResponse> {
     return await this.s.getStudentInfoBySchoolId(schoolId, page, limit);
   }
+  public async getStudentsAndParentsByClassId(
+    classId: string,
+    page: number,
+    limit: number
+  ): Promise<StudentAPIResponse> {
+    return await this.s.getStudentsAndParentsByClassId(classId, page, limit);
+  }
   public async getClassesBySchoolId(
     schoolId: string
   ): Promise<TableTypes<"class">[]> {

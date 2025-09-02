@@ -1768,6 +1768,19 @@ export interface ServiceApi {
     limit: number
   ): Promise<StudentAPIResponse>;
 
+  /**
+   * Fetch detailed, paginated student and parent information for a given class ID.
+   * @param {string} classId - The ID of the class to fetch.
+   * @param {number} [page=1] - The page number to fetch.
+   * @param {number} [limit=20] - The number of items per page.
+   * @returns Promise resolving to an object with student and parent data and a total count.
+   */
+  getStudentsAndParentsByClassId(
+    classId: string,
+    page: number,
+    limit: number
+  ): Promise<StudentAPIResponse>;
+
   getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
 
   /**
