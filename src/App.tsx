@@ -55,6 +55,7 @@ import {
   MODES,
   PAGES,
   TRIGGER_DEEPLINK,
+  PortPlugin,
   TableTypes,
 } from "./common/constants";
 import { Util } from "./utility/util";
@@ -141,7 +142,6 @@ const START_TIME_KEY = "startTime";
 const USED_TIME_KEY = "usedTime";
 const LAST_ACCESS_DATE_KEY = "lastAccessDate";
 const IS_INITIALIZED = "isInitialized";
-const PortPlugin = registerPlugin<any>("Port");
 const customHistory = createBrowserHistory();
 let timeoutId: NodeJS.Timeout;
 
@@ -175,11 +175,67 @@ const App: React.FC = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
   const [isActive, setIsActive] = useState(true);
-  const handleLessonClick = useHandleLessonClick();
+  const handleLessonClick = useHandleLessonClick(customHistory);
+
+  const sendLaunch = async () => {
+    ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
+    const authHandler = ServiceConfig.getI()?.authHandler;
+    const isUserLoggedIn = await authHandler?.isUserLoggedIn();
+    const portPlugin = registerPlugin<any>("Port");
+
+      try {
+        handleLessonClick(null,true,undefined,true);
+      } catch (e) {
+        console.error("Failed to fetch deeplink params or lesson/course", e);
+      }
+      if (!isUserLoggedIn) {
+      Util.isDeepLinkPending = true;
+      let appLang = localStorage.getItem(LANGUAGE) ?? 'en';
+      const data = await portPlugin.sendLaunchData();
+      const actorObj = typeof data.actor === "string" ? JSON.parse(data.actor) : data.actor;
+
+      // Get actor name and mbox
+      const actorName = actorObj.name?.[0] || ""; // First name in array
+      const actorMbox = actorObj.mbox?.[0] || ""; // First mbox in array
+
+      // Get registration
+      const registration = data.registration;
+
+      const user: TableTypes<"user"> = {
+        age: null,
+        avatar: "Aligator",
+        created_at: "null",
+        curriculum_id: "7d560737-746a-4931-a49f-02de1ca526bd",
+        email: actorMbox,
+        fcm_token: null,
+        gender: "male",
+        grade_id: "c802dce7-0840-4baf-b374-ef6cb4272a76",
+        id: registration,
+        image: null,
+        is_deleted: null,
+        is_tc_accepted: true,
+        language_id: appLang,
+        music_off: (Util.getCurrentMusic() === 0),
+        name: actorName,
+        phone: null,
+        sfx_off: (Util.getCurrentSound() === 0),
+        student_id: registration,
+        updated_at: null,
+        learning_path: Util.getCurrentStudent()?.learning_path
+      };
+      ServiceConfig.getI().authHandler.currentUser = user;
+      localStorage.setItem(CURRENT_USER, JSON.stringify(user));
+      await Toast.show({
+        text: t("User not logged in. Logging in the user..."),
+        duration: "long",
+      });
+    }
+  };
 
   useEffect(() => {
     console.log("App.tsx called");
-
+    document.addEventListener(TRIGGER_DEEPLINK, sendLaunch);
+    document.dispatchEvent(new Event(TRIGGER_DEEPLINK));
     const cleanup = initializeClickListener();
     const handleOnline = () => {
       if (!online) {
@@ -221,6 +277,7 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      document.removeEventListener(TRIGGER_DEEPLINK, sendLaunch);
       cleanup();
     };
   }, [online, presentToast]);
@@ -236,7 +293,7 @@ const App: React.FC = () => {
       //CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
 
-      const portPlugin = registerPlugin<any>("Port");
+      const portPlugin = registerPlugin<PortPlugin>("Port");
       portPlugin.addListener("notificationOpened", (data: any) => {
         if (data.fullPayload) {
           const formattedPayload = JSON.parse(data.fullPayload);
@@ -267,83 +324,12 @@ const App: React.FC = () => {
     });
     updateAvatarSuggestionJson();
 
-    const sendLaunch = async () => {
-    ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
-    const authHandler = ServiceConfig.getI()?.authHandler;
-    const isUserLoggedIn = await authHandler?.isUserLoggedIn();
-
-    let lesson: any = null;
-      try {
-        const data = await PortPlugin.sendLaunchData();
-        const api = ServiceConfig.getI().apiHandler;
-
-        console.log("LessonCard course:", JSON.stringify(data));
-
-        if (data && data.lessonId) {
-          lesson = await api.getLesson(data.lessonId);
-          console.log("lesson object --> ", JSON.stringify(lesson, null, 2));
-          const params = `?courseid=${lesson?.cocos_subject_code}&chapterid=${lesson?.cocos_chapter_code}&lessonid=${lesson?.cocos_lesson_id}`;
-          Util.isDeepLink = true;
-
-          customHistory.push(PAGES.GAME + params, {
-            url: "chimple-lib/index.html" + params,
-            lessonId: lesson?.cocos_lesson_id,
-            courseDocId: lesson?.subject_id,
-            from: customHistory.location.pathname + `?${CONTINUE}=true`,
-          });
-
-        }
-      } catch (e) {
-        console.error("Failed to fetch deeplink params or lesson/course", e);
-      }
-      if (!isUserLoggedIn) {
-      Util.isDeepLinkPending = true;
-      let appLang = localStorage.getItem(LANGUAGE) ?? 'en';
-      const data = await PortPlugin.sendLaunchData();
-      const actorObj = typeof data.actor === "string" ? JSON.parse(data.actor) : data.actor;
-
-      // Get actor name and mbox
-      const actorName = actorObj.name?.[0] || ""; // First name in array
-      const actorMbox = actorObj.mbox?.[0] || ""; // First mbox in array
-
-      // Get registration
-      const registration = data.registration;
-
-      const user: TableTypes<"user"> = {
-        age: null,
-        avatar: "Aligator",
-        created_at: "null",
-        curriculum_id: "7d560737-746a-4931-a49f-02de1ca526bd",
-        email: actorMbox,
-        fcm_token: null,
-        gender: "male",
-        grade_id: "c802dce7-0840-4baf-b374-ef6cb4272a76",
-        id: registration,
-        image: null,
-        is_deleted: null,
-        is_tc_accepted: true,
-        language_id: appLang,
-        music_off: (Util.getCurrentMusic() === 0),
-        name: actorName,
-        phone: null,
-        sfx_off: (Util.getCurrentSound() === 0),
-        student_id: registration,
-        updated_at: null,
-        learning_path: Util.getCurrentStudent()?.learning_path
-      };
-      localStorage.setItem(CURRENT_USER, JSON.stringify(user));
-      await Toast.show({
-        text: t("User not logged in. Logging in the user..."),
-        duration: "long",
-      });
-    }
-  };
-    document.addEventListener(TRIGGER_DEEPLINK, sendLaunch);
+    // document.addEventListener(TRIGGER_DEEPLINK, sendLaunch);
     // Cleanup on unmount
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       clearExistingTimeout();
-      document.removeEventListener(TRIGGER_DEEPLINK, sendLaunch);
+      // document.removeEventListener(TRIGGER_DEEPLINK, sendLaunch);
     };
   }, []);
 
