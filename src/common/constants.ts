@@ -907,8 +907,6 @@ export const GRADE1_MARATHI = "2cada0d1-db3d-4da0-8ade-e9ba282a3558";
 export const BULK_UPLOAD_TEMPLATE_URL =
   "https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/common-files//Bulk%20School%20&%20Students%20Upload%20Template.xlsx";
 
-export const ENGLISH = "English";
-
 export const FORM_MODES = {
   ALL_REQUIRED: "all-required",
   NAME_REQUIRED: "name-required",
