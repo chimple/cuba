@@ -45,15 +45,17 @@ import {
   BASE_NAME,
   CACHE_IMAGE,
   CONTINUE,
+  CURRENT_USER,
   DOWNLOADING_CHAPTER_ID,
   DOWNLOAD_BUTTON_LOADING_STATUS,
   GAME_URL,
   HOMEHEADERLIST,
   IS_CUBA,
+  LANGUAGE,
   MODES,
   PAGES,
-  PortPlugin,
   TRIGGER_DEEPLINK,
+  TableTypes,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -83,7 +85,7 @@ import LiveQuizLeaderBoard from "./pages/LiveQuizLeaderBoard";
 import { useOnlineOfflineErrorMessageHandler } from "./common/onlineOfflineErrorMessageHandler";
 import { t } from "i18next";
 import { useTtsAudioPlayer } from "./components/animation/animationUtils";
-import { ServiceConfig } from "./services/ServiceConfig";
+import { APIMode, ServiceConfig } from "./services/ServiceConfig";
 import User from "./models/user";
 // import TeacherProfile from "./pages/Malta/TeacherProfile";
 import React from "react";
@@ -92,7 +94,7 @@ import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
 import "./App.css";
 import { schoolUtil } from "./utility/schoolUtil";
 import { useHandleLessonClick } from "./utility/lessonUtils";
-
+import {createBrowserHistory} from "history";
 import LidoPlayer from "./pages/LidoPlayer";
 import UploadPage from "./ops-console/pages/UploadPage";
 import { initializeClickListener } from "./analytics/clickUtil";
@@ -139,6 +141,8 @@ const START_TIME_KEY = "startTime";
 const USED_TIME_KEY = "usedTime";
 const LAST_ACCESS_DATE_KEY = "lastAccessDate";
 const IS_INITIALIZED = "isInitialized";
+const PortPlugin = registerPlugin<any>("Port");
+const customHistory = createBrowserHistory();
 let timeoutId: NodeJS.Timeout;
 
 const gb = new GrowthBook({
@@ -232,7 +236,7 @@ const App: React.FC = () => {
       //CapApp.addListener("appStateChange", Util.onAppStateChange);
       // Keyboard.setResizeMode({ mode: KeyboardResize.Ionic });
 
-      const portPlugin = registerPlugin<PortPlugin>("Port");
+      const portPlugin = registerPlugin<any>("Port");
       portPlugin.addListener("notificationOpened", (data: any) => {
         if (data.fullPayload) {
           const formattedPayload = JSON.parse(data.fullPayload);
@@ -264,16 +268,76 @@ const App: React.FC = () => {
     updateAvatarSuggestionJson();
 
     const sendLaunch = async () => {
-      const authHandler = ServiceConfig.getI()?.authHandler;
-      const isUserLoggedIn = await authHandler?.isUserLoggedIn();
-      if (!isUserLoggedIn) {
-        Util.isDeepLinkPending = true;
-        await Toast.show({
-          text: t("Couldn't launch the lesson, please sign in with RESPECT."),
-          duration: "long",
-        });
+    ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
+    const authHandler = ServiceConfig.getI()?.authHandler;
+    const isUserLoggedIn = await authHandler?.isUserLoggedIn();
+
+    let lesson: any = null;
+      try {
+        const data = await PortPlugin.sendLaunchData();
+        const api = ServiceConfig.getI().apiHandler;
+
+        console.log("LessonCard course:", JSON.stringify(data));
+
+        if (data && data.lessonId) {
+          lesson = await api.getLesson(data.lessonId);
+          console.log("lesson object --> ", JSON.stringify(lesson, null, 2));
+          const params = `?courseid=${lesson?.cocos_subject_code}&chapterid=${lesson?.cocos_chapter_code}&lessonid=${lesson?.cocos_lesson_id}`;
+          Util.isDeepLink = true;
+
+          customHistory.push(PAGES.GAME + params, {
+            url: "chimple-lib/index.html" + params,
+            lessonId: lesson?.cocos_lesson_id,
+            courseDocId: lesson?.subject_id,
+            from: customHistory.location.pathname + `?${CONTINUE}=true`,
+          });
+
+        }
+      } catch (e) {
+        console.error("Failed to fetch deeplink params or lesson/course", e);
       }
-    };
+      if (!isUserLoggedIn) {
+      Util.isDeepLinkPending = true;
+      let appLang = localStorage.getItem(LANGUAGE) ?? 'en';
+      const data = await PortPlugin.sendLaunchData();
+      const actorObj = typeof data.actor === "string" ? JSON.parse(data.actor) : data.actor;
+
+      // Get actor name and mbox
+      const actorName = actorObj.name?.[0] || ""; // First name in array
+      const actorMbox = actorObj.mbox?.[0] || ""; // First mbox in array
+
+      // Get registration
+      const registration = data.registration;
+
+      const user: TableTypes<"user"> = {
+        age: null,
+        avatar: "Aligator",
+        created_at: "null",
+        curriculum_id: "7d560737-746a-4931-a49f-02de1ca526bd",
+        email: actorMbox,
+        fcm_token: null,
+        gender: "male",
+        grade_id: "c802dce7-0840-4baf-b374-ef6cb4272a76",
+        id: registration,
+        image: null,
+        is_deleted: null,
+        is_tc_accepted: true,
+        language_id: appLang,
+        music_off: (Util.getCurrentMusic() === 0),
+        name: actorName,
+        phone: null,
+        sfx_off: (Util.getCurrentSound() === 0),
+        student_id: registration,
+        updated_at: null,
+        learning_path: Util.getCurrentStudent()?.learning_path
+      };
+      localStorage.setItem(CURRENT_USER, JSON.stringify(user));
+      await Toast.show({
+        text: t("User not logged in. Logging in the user..."),
+        duration: "long",
+      });
+    }
+  };
     document.addEventListener(TRIGGER_DEEPLINK, sendLaunch);
     // Cleanup on unmount
     return () => {
@@ -385,7 +449,7 @@ const App: React.FC = () => {
   };
   const getNotificationData = async () => {
     if (Capacitor.isNativePlatform()) {
-      if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+      if (!Util.port) Util.port = registerPlugin<any>("Port");
       if (Util.port && typeof Util.port.fetchNotificationData === "function") {
         try {
           const data = await Util.port.fetchNotificationData();
@@ -473,7 +537,7 @@ const App: React.FC = () => {
   return (
     <GrowthBookProvider growthbook={gb}>
       <IonApp>
-        <IonReactRouter basename={BASE_NAME}>
+        <IonReactRouter basename={BASE_NAME} history={customHistory}>
           <IonRouterOutlet>
             <Switch>
               <Route path={PAGES.APP_UPDATE} exact={true}>
@@ -591,9 +655,9 @@ const App: React.FC = () => {
                 <SchoolProfile />
               </ProtectedRoute>
               {/* <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
-              
+
                 <EditSchool />
-              
+
             </ProtectedRoute> */}
               <ProtectedRoute path={PAGES.REQ_ADD_SCHOOL} exact={true}>
                 <ReqEditSchool />
@@ -602,9 +666,9 @@ const App: React.FC = () => {
                 <ManageClass />
               </ProtectedRoute>
               {/* <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
-              
+
                 <EditSchool />
-              
+
             </ProtectedRoute> */}
               <ProtectedRoute path={PAGES.REQ_EDIT_SCHOOL} exact={true}>
                 <ReqEditSchool />
