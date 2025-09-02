@@ -1,17 +1,23 @@
 import { useEffect, useState } from "react";
 import { useRive, Layout, Fit, Alignment, useStateMachineInput } from "@rive-app/react-canvas";
-import { useFeatureIsOn, useFeatureValue } from "@growthbook/growthbook-react";
-import { CAN_ACCESS_REMOTE_CHIMPLE_RIVE, CHIMPLE_RIVE_ASSETS } from "../../common/constants";
+import { CHIMPLE_RIVE_MAX, SHOULD_SHOW_REMOTE_ASSETS } from "../../common/constants";
+import { Capacitor } from "@capacitor/core";
+import { Filesystem, Directory } from "@capacitor/filesystem";
 
 export default function ChimpleRiveMascot() {
 
-  const can_access_remote_chimple_rive = useFeatureIsOn(CAN_ACCESS_REMOTE_CHIMPLE_RIVE);
-  const webAssets: { max: number; rive_asset_url: string } = useFeatureValue(CHIMPLE_RIVE_ASSETS, { max: 8, rive_asset_url: "/pathwayAssets/mascot_state_machine.riv" });
+  const should_show_remote_asset = (Capacitor.isNativePlatform() && localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS)==="true")? true : false;
+
+  const chimple_rive_max = localStorage.getItem(CHIMPLE_RIVE_MAX);
+  const [riveSrc, setRiveSrc] = useState<string>("/pathwayAssets/mascot_state_machine.riv");
+
   const MIN = 1;
-  const MAX = can_access_remote_chimple_rive ? (webAssets.max as number) : 8;
+  const MAX = should_show_remote_asset
+    ? (chimple_rive_max ? parseInt(chimple_rive_max, 10) : 8)
+    : 8;
 
   const { rive, RiveComponent } = useRive({
-    src: can_access_remote_chimple_rive ? webAssets.rive_asset_url : "/pathwayAssets/mascot_state_machine.riv",
+    src: should_show_remote_asset? riveSrc : "/pathwayAssets/mascot_state_machine.riv",
     artboard: "Artboard",
     stateMachines: "State Machine 2",
     autoplay: true,
@@ -29,6 +35,31 @@ export default function ChimpleRiveMascot() {
   const [value, setValue] = useState<number>(mappedState);
 
   useEffect(() => {
+    if (!should_show_remote_asset) return;
+
+    const getRemoteMascotUrl = async () => {
+      try {
+        // Read the file content and convert to base64 data URL
+        const fileContent = await Filesystem.readFile({
+          directory: Directory.External,
+          path: "remoteAsset/mascot_state_machine.riv"
+        });
+        
+        if (fileContent.data) {
+          // Convert to data URL that useRive can load
+          const dataUrl = `data:application/octet-stream;base64,${fileContent.data}`;
+          setRiveSrc(dataUrl);
+        }
+        // If no data or error, keep default local path
+      } catch (error) {
+        console.log("Error reading remote mascot file, keeping local path:", error);
+      }
+    };
+
+    getRemoteMascotUrl();
+  }, [should_show_remote_asset]);
+
+  useEffect(() => {
     try {
       if (numberInput && "value" in numberInput && typeof numberInput.value === 'number' && !isNaN(numberInput.value) && typeof value === "number" && !isNaN(value)) {
         numberInput.value = value;
@@ -38,5 +69,5 @@ export default function ChimpleRiveMascot() {
     }
   }, [value, numberInput]);
 
-  return <RiveComponent style={{ width: "100%", height: "100%" }} />;
+  return <RiveComponent key={riveSrc} style={{ width: "100%", height: "100%" }} />;
 }
