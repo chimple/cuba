@@ -5573,6 +5573,117 @@ order by
       total,
     };
   }
+  async getStudentsAndParentsByClassId(
+    classId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<StudentAPIResponse> {
+    if (!this._db) {
+      console.warn("Database not initialized, cannot fetch student info.");
+      return { data: [], total: 0 };
+    }
+
+    const offset = (page - 1) * limit;
+
+    // Step 1: Get total count for the specified class
+    const countQuery = `
+    SELECT COUNT(DISTINCT cu.user_id) as total
+    FROM ${TABLES.ClassUser} cu
+    INNER JOIN ${TABLES.Class} c ON cu.class_id = c.id
+    WHERE cu.role = 'student'
+      AND cu.is_deleted = false
+      AND cu.class_id = ? -- Filter by class_id directly
+      AND c.is_deleted = false;
+  `;
+    const countRes = await this._db.query(countQuery, [classId]);
+    const total = countRes?.values?.[0]?.total ?? 0;
+
+    if (total === 0) {
+      return { data: [], total: 0 };
+    }
+
+    // Step 2: Fetch paginated data for the specified class
+    const query = `
+    SELECT
+      u.*,
+      c.name as class_name,
+      p.id as parent_id,
+      p.name as parent_name,
+      p.email as parent_email,
+      p.phone as parent_phone
+      -- Add any other parent fields you want here, aliased with 'parent_'
+    FROM ${TABLES.ClassUser} cu
+    INNER JOIN ${TABLES.Class} c ON cu.class_id = c.id
+    INNER JOIN ${TABLES.User} u ON cu.user_id = u.id
+    LEFT JOIN ${TABLES.ParentUser} pu ON pu.student_id = u.id AND pu.is_deleted = false
+    LEFT JOIN ${TABLES.User} p ON p.id = pu.parent_id AND p.is_deleted = false
+    WHERE cu.role = 'student'
+      AND cu.is_deleted = false
+      AND cu.class_id = ? -- Filter by class_id directly
+      AND c.is_deleted = false
+      AND u.is_deleted = false
+    -- Important to group by student to avoid duplicates if a student is in multiple classes (though less likely when filtering by specific class)
+    GROUP BY u.id
+    ORDER BY u.name ASC
+    LIMIT ? OFFSET ?;
+  `;
+    const res = await this._db.query(query, [classId, limit, offset]);
+    const rows = res?.values ?? [];
+
+    const studentInfoList: StudentInfo[] = rows.map((row: any) => {
+      const {
+        class_name,
+        parent_id,
+        parent_name,
+        parent_email,
+        parent_phone,
+        ...studentUser
+      } = row;
+
+      const { grade, section } = this.parseClassName(class_name || "");
+      const parentObject: TableTypes<"user"> | null = parent_id
+        ? {
+            id: parent_id,
+            name: parent_name,
+            email: parent_email,
+            phone: parent_phone,
+            age: null, // Assuming these fields are nullable or have default values in your User table type
+            avatar: null,
+            created_at: new Date().toISOString(), // Example, adjust if you fetch this
+            curriculum_id: null,
+            fcm_token: null,
+            firebase_id: null,
+            gender: null,
+            grade_id: null,
+            image: null,
+            is_deleted: false,
+            is_firebase: false,
+            is_ops: false,
+            is_tc_accepted: false,
+            language_id: null,
+            learning_path: null,
+            music_off: false,
+            ops_created_by: null,
+            sfx_off: false,
+            stars: null,
+            student_id: null,
+            updated_at: null,
+          }
+        : null;
+
+      return {
+        user: studentUser as TableTypes<"user">,
+        grade,
+        classSection: section,
+        parent: parentObject,
+      };
+    });
+
+    return {
+      data: studentInfoList,
+      total,
+    };
+  }
 
   async createAutoProfile(
     languageDocId: string | undefined

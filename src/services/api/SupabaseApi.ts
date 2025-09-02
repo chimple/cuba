@@ -2941,6 +2941,68 @@ export class SupabaseApi implements ServiceApi {
       total: count ?? 0,
     };
   }
+    async getStudentsAndParentsByClassId(
+    classId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<StudentAPIResponse> {
+    if (!this.supabase) {
+      console.warn("Supabase not initialized.");
+      return { data: [], total: 0 };
+    }
+
+    const offset = (page - 1) * limit;
+
+    const { data, error, count } = await this.supabase
+      .from("class_user")
+      .select(
+        `
+      class:class_id!inner (
+        id,
+        name 
+      ),
+      user:user_id (
+        *,
+        parent_links:parent_user!student_id (
+          parent:parent_id (
+            * 
+          )
+        )
+      )
+    `,
+        { count: "exact" }
+      )
+      .eq("role", "student")
+      .eq("is_deleted", false)
+      .eq("class_id", classId) // Filter by classId
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error("Error fetching students and parents by class ID:", error);
+      return { data: [], total: 0 };
+    }
+
+    const studentInfoList: StudentInfo[] = (data || []).map((row: any) => {
+      const { user, class: cls } = row;
+
+      const className = cls?.name || "";
+      const { grade, section } = this.parseClassName(className);
+
+      const parent = user?.parent_links?.[0]?.parent || null;
+
+      return {
+        user,
+        grade,
+        classSection: section,
+        parent,
+      };
+    });
+    console.log("class students info", studentInfoList);
+    return {
+      data: studentInfoList,
+      total: count ?? 0,
+    };
+  }
   async getUserRoleForSchool(
     userId: string,
     schoolId: string
@@ -7507,7 +7569,6 @@ export class SupabaseApi implements ServiceApi {
           };
         })
       );
-
       return mappedRequests;
     } catch (error) {
       console.error("Error in getOpsRequests:", error);

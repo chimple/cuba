@@ -33,7 +33,13 @@ interface Props {
   loading?: boolean;
 }
 
-function TableSkeleton({ columns, rows = 10 }: { columns: Record<string, any>[]; rows?: number }) {
+function TableSkeleton({
+  columns,
+  rows = 10,
+}: {
+  columns: Record<string, any>[];
+  rows?: number;
+}) {
   return (
     <TableBody>
       {Array.from({ length: rows }).map((_, i) => (
@@ -54,7 +60,7 @@ function TableSkeleton({ columns, rows = 10 }: { columns: Record<string, any>[];
                   variant="rectangular"
                   height={24}
                   width="100%"
-                  sx={{ mx: 0, ml: 0,   transform: "none", }}
+                  sx={{ mx: 0, ml: 0, transform: "none" }}
                 />
               </div>
             </TableCell>
@@ -67,19 +73,29 @@ function TableSkeleton({ columns, rows = 10 }: { columns: Record<string, any>[];
 
 const DataTableBody = forwardRef<HTMLDivElement, Props>(
   (
-    { columns, rows, orderBy, order, onSort, detailPageRouteBase, onRowClick, loading },
+    {
+      columns,
+      rows,
+      orderBy,
+      order,
+      onSort,
+      detailPageRouteBase,
+      onRowClick,
+      loading,
+    },
     ref
   ) => {
     const history = useHistory();
     const handleRowClick = (row: any) => {
-      const id = row.id;
-      if (!id) {
-        console.warn("Row missing 'id' property");
+      if (onRowClick) {
+        const id = row.request_id || row.id;
+        onRowClick(id, row);
         return;
       }
 
-      if (onRowClick) {
-        onRowClick(id, row);
+      const id = row.id;
+      if (!id) {
+        console.warn("Row missing 'id' property");
         return;
       }
 
@@ -88,11 +104,14 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
           `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/${row["id"]}`
         );
       } else if (detailPageRouteBase === "users") {
+        console.log("Row clicked: 2", row);
+
         history.push({
           pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.USERS}${PAGES.USER_DETAILS}`,
           state: { userData: row },
         });
       } else {
+        console.log("Row clicked:", row);
         history.push(
           `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/${row["sch_id"]}`
         );
@@ -141,41 +160,40 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
             </TableRow>
           </TableHead>
           {/* Show skeleton or actual rows */}
-          {loading
-            ? <TableSkeleton columns={columns} rows={10} />
-            : (
-              <TableBody>
-                {rows.map((row, idx) => (
-                  <TableRow
-                    key={idx}
-                    hover
-                    onClick={() => handleRowClick(row)}
-                    sx={{
-                      cursor: "pointer",
-                      height: "48px",
-                    }}
-                  >
-                    {columns.map((col) => (
-                      <TableCell
-                        key={col.key}
-                        align={col.align || "left"}
-                        className="data-tablebody-cell"
-                        sx={{
-                          width: col.width ?? "auto",
-                          maxWidth: col.width,
-                        }}
-                      >
-                        {typeof row[col.key] === "object" &&
-                        row[col.key]?.render !== undefined
-                          ? row[col.key].render
-                          : row[col.key]}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            )
-          }
+          {loading ? (
+            <TableSkeleton columns={columns} rows={10} />
+          ) : (
+            <TableBody>
+              {rows.map((row, idx) => (
+                <TableRow
+                  key={idx}
+                  hover
+                  onClick={() => handleRowClick(row)}
+                  sx={{
+                    cursor: "pointer",
+                    height: "48px",
+                  }}
+                >
+                  {columns.map((col) => (
+                    <TableCell
+                      key={col.key}
+                      align={col.align || "left"}
+                      className="data-tablebody-cell"
+                      sx={{
+                        width: col.width ?? "auto",
+                        maxWidth: col.width,
+                      }}
+                    >
+                      {typeof row[col.key] === "object" &&
+                      row[col.key]?.render !== undefined
+                        ? row[col.key].render
+                        : row[col.key]}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          )}
         </Table>
       </TableContainer>
     );

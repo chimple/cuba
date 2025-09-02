@@ -24,6 +24,9 @@ import NewUserPage from "./NewUserPageOps";
 import UserDetailsPage from "./UserDetailsPage";
 import { RoleType } from "../../interface/modelInterfaces";
 import RequestList from "./RequestList";
+import StudentPendingRequest from "../components/StudentPendingRequest";
+import StudentApprovedRequestDetails from "./StudentApprovedRequestDetails";
+import StudentRejectedRequestDetails from "./StudentRejectedRequestDetails";
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
@@ -78,6 +81,24 @@ const SidebarPage: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.REQUEST_LIST}`} exact={true}>
               <RequestList />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.REQUEST_LIST}${PAGES.STUDENT_PENDING_REQUEST}/:id`}
+              exact={true}
+            >
+              <StudentPendingRequest />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.REQUEST_LIST}${PAGES.STUDENT_APPROVED_REQUEST}/:id`}
+              exact={true}
+            >
+              <StudentApprovedRequestDetails />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.REQUEST_LIST}${PAGES.STUDENT_REJECTED_REQUEST}/:id`}
+              exact={true}
+            >
+              <StudentRejectedRequestDetails />
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/:school_id`}
