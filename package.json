@@ -71,6 +71,7 @@
     "i18next": "^22.4.1",
     "i18next-browser-languagedetector": "^7.0.1",
     "i18next-http-backend": "^2.1.0",
+    "intl-tel-input": "^18.1.1",
     "ionicons": "^6.0.3",
     "jeep-sqlite": "^2.6.2",
     "libphonenumber-js": "^1.12.6",

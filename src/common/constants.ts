@@ -515,7 +515,7 @@ export enum NavItems {
 }
 
 export enum ProgramType {
-  Govt = "govt",
+  Government = "government",
   Private = "private",
   LearningCenter = "learning_centers",
 }

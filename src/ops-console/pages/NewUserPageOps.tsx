@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -24,6 +24,8 @@ import { PAGES } from "../../common/constants";
 import { t } from "i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
+import "intl-tel-input/build/css/intlTelInput.css";
+import intlTelInput from "intl-tel-input";
 
 const validateEmailOrPhone = (value: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -82,7 +84,6 @@ const NewUserPage: React.FC = () => {
       role: event.target.value as string,
     }));
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const { name, email, phone, role } = form;
@@ -164,6 +165,37 @@ const NewUserPage: React.FC = () => {
   const handleCancel = () => {
     history.goBack();
   };
+  const phoneInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!phoneInputRef.current) return;
+
+    const iti = intlTelInput(phoneInputRef.current, {
+      initialCountry: "in",
+      separateDialCode: true,
+      // utilsScript:
+      //   "https://cdn.jsdelivr.net/npm/intl-tel-input/build/js/utils.js",
+    });
+
+    const handleCountryChange = () => {
+      setForm((prev) => ({
+        ...prev,
+        phone: iti.getNumber(),
+      }));
+    };
+
+    phoneInputRef.current.addEventListener(
+      "countrychange",
+      handleCountryChange
+    );
+
+    return () => {
+      phoneInputRef.current?.removeEventListener(
+        "countrychange",
+        handleCountryChange
+      );
+    };
+  }, []);
 
   return (
     <Box className="ops-new-user-page-container">
@@ -223,6 +255,7 @@ const NewUserPage: React.FC = () => {
                 fullWidth
                 size="small"
                 value={form.phone}
+                inputRef={phoneInputRef}
                 onChange={handleInputChange("phone")}
               />
             </Grid>
