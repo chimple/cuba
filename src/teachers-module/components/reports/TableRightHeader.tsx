@@ -74,7 +74,6 @@ const TableRightHeader: React.FC<TableRightHeaderProps> = ({
               <span>{startAt}</span>
             </div>
             <div className="tableRightHeaderText">{displayName}</div>
-            <span className="assignment-list-item-name">{displayName}</span>
             <div className="belowText">
               <span>{endAt}</span>
             </div>
