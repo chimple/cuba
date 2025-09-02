@@ -240,28 +240,28 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
   function skeletonStudentProgress() {
     return (
       <div className="skeleton-progress-report">
-        <IonCol>
+        <IonCol placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
           <Skeleton className="skeleton-student-lessonname" />
           <Skeleton className="skeleton-student-lessonname" />
           <Skeleton className="skeleton-student-lessonname" />
           <Skeleton className="skeleton-student-lessonname" />
         </IonCol>
 
-        <IonCol>
+        <IonCol placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
           <Skeleton className="skeleton-student-lessonname" />
           <Skeleton className="skeleton-student-lessonname" />
           <Skeleton className="skeleton-student-lessonname" />
           <Skeleton className="skeleton-student-lessonname" />
         </IonCol>
 
-        <IonCol>
+        <IonCol placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
           <Skeleton className="skeleton-student-score" />
           <Skeleton className="skeleton-student-score" />
           <Skeleton className="skeleton-student-score" />
           <Skeleton className="skeleton-student-score" />
         </IonCol>
 
-        <IonCol>
+        <IonCol placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
           <Skeleton className="skeleton-student-score" />
           <Skeleton className="skeleton-student-score" />
           <Skeleton className="skeleton-student-score" />

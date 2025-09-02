@@ -40,25 +40,25 @@ const SchoolProfileContent: React.FC<{
           </div>
         </div>
         <div className="profile-row">
-          <IonLabel className="profile-label">{t("Name")}</IonLabel>
+          <IonLabel className="profile-label" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{t("Name")}</IonLabel>
           <p className="profile-value">{school.name}</p>
         </div>
         <hr className="horizontal-line" />
 
         <div className="profile-row">
-          <IonLabel className="profile-label">{t("State")}</IonLabel>
+          <IonLabel className="profile-label" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{t("State")}</IonLabel>
           <p className="profile-value">{school.group1}</p>
         </div>
         <hr className="horizontal-line" />
 
         <div className="profile-row">
-          <IonLabel className="profile-label">{t("District")}</IonLabel>
+          <IonLabel className="profile-label" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{t("District")}</IonLabel>
           <p className="profile-value">{school.group2}</p>
         </div>
         <hr className="horizontal-line" />
 
         <div className="profile-row">
-          <IonLabel className="profile-label">{t("City")}</IonLabel>
+          <IonLabel className="profile-label" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{t("City")}</IonLabel>
           <p className="profile-value">{school.group3}</p>
         </div>
       </div>

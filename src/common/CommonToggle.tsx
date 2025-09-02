@@ -17,13 +17,12 @@ const CommonToggle: React.FC<CommonToggleProps> = ({
   return (
     <div className="rounded-toggle-container">
       {label && (
-        <IonLabel className="common-toggle-toggle-label">{t(label)}</IonLabel>
+        <IonLabel className="common-toggle-toggle-label" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{t(label)}</IonLabel>
       )}
       <IonToggle
         className="common-toggle-custom-rounded-toggle"
         checked={checked}
-        onIonChange={onChange}
-      />
+        onIonChange={onChange} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}      />
     </div>
   );
 };

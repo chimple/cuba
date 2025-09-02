@@ -263,7 +263,7 @@ const SelectMode: FC = () => {
     return random;
   }
   return (
-    <IonPage>
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
       {!isLoading && (
         <div>
           <div>

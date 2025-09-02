@@ -116,7 +116,7 @@ const AddSchoolUser: React.FC = () => {
   };
 
   return (
-    <IonPage className="add-school-user-main">
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} className="add-school-user-main">
       <Header
         isBackButton={true}
         onBackButtonClick={onBackButtonClick}
@@ -155,7 +155,7 @@ const AddSchoolUser: React.FC = () => {
                 }}
               />
               <p>{user.name}</p>
-              <IonButton
+              <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
                 color="#7C5DB0"
                 onClick={handleAddSchoolUser}
                 disabled={isLoading}

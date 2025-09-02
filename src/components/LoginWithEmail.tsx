@@ -115,8 +115,8 @@ const LoginWithEmail: React.FC<LoginProps> = ({
         <div className="login-with-email-text-box-main-div">
           <div className="login-with-email-text-box-div">
             <p className="login-with-email-label">{t("Email")}</p>
-            <IonItem className="custom-email-input" lines="none">
-              <IonLabel position="floating" className="label-floating">
+            <IonItem className="custom-email-input" lines="none" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+              <IonLabel position="floating" className="label-floating" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                 {t("Enter your email")}
               </IonLabel>
               <IonInput
@@ -124,30 +124,27 @@ const LoginWithEmail: React.FC<LoginProps> = ({
                 value={email}
                 className="login-with-email-input"
                 aria-label={t("Enter your email") || ""}
-                onIonChange={(e) => setEmail(e.detail.value!)}
-              />
+                onIonChange={(e) => setEmail(e.detail.value!)} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}              />
             </IonItem>
           </div>
 
           <div className="login-with-email-text-box-div">
             <p className="login-with-email-label">{t("Password")}</p>
             <div className="login-with-email-password">
-              <IonItem className="custom-email-input" lines="none">
-                <IonLabel position="floating" className="label-floating">
+              <IonItem className="custom-email-input" lines="none" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+                <IonLabel position="floating" className="label-floating" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                   {t("Enter your password")}
                 </IonLabel>
                 <IonInput
                   type={showPassword ? "text" : "password"}
                   value={password}
                   className="login-with-email-input"
-                  onIonChange={(e) => setPassword(e.detail.value!)}
-                />
+                  onIonChange={(e) => setPassword(e.detail.value!)} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                />
                 <IonIcon
                   slot="end"
                   icon={showPassword ? eye : eyeOff}
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="login-with-email-eye-icon"
-                />
+                  className="login-with-email-eye-icon" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                />
               </IonItem>
             </div>
           </div>
@@ -162,7 +159,7 @@ const LoginWithEmail: React.FC<LoginProps> = ({
               {t("forgot password") + "?"}
             </p>
           </div>
-          <IonButton
+          <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
             onClick={handleLogin}
             className="login-with-email-button"
             id="login-with-email-button-inner"
@@ -197,20 +194,19 @@ const LoginWithEmail: React.FC<LoginProps> = ({
             <div className="email-password-reset-link">
               <div className="login-with-email-forgot-password-text-box ">
                 <p className="login-with-email-label">{t("Email")}</p>
-                <IonItem className="custom-email-input" lines="none">
-                  <IonLabel position="floating" className="label-floating">
+                <IonItem className="custom-email-input" lines="none" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+                  <IonLabel position="floating" className="label-floating" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                     {t("Enter your email")}
                   </IonLabel>
                   <IonInput
-                    type="email"
-                    className="login-with-email-input"
-                    value={forgotEmail}
-                    onIonChange={(e) => setForgotEmail(e.detail.value!)}
-                  />
+                        type="email"
+                        className="login-with-email-input"
+                        value={forgotEmail}
+                        onIonChange={(e) => setForgotEmail(e.detail.value!)} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                  />
                 </IonItem>
               </div>
 
-              <IonButton
+              <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
                 onClick={handleSendResetLink}
                 className="login-with-email-button"
                 id="login-with-email-button-inner"
@@ -220,7 +216,7 @@ const LoginWithEmail: React.FC<LoginProps> = ({
               </IonButton>
 
               {forgotError && (
-                <IonText color="danger">
+                <IonText color="danger" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                   <p>{t(forgotError)}</p>
                 </IonText>
               )}
@@ -229,17 +225,17 @@ const LoginWithEmail: React.FC<LoginProps> = ({
         </>
       )}
       {error && !showForgotPassword && (
-        <IonText color="danger">
+        <IonText color="danger" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
           <p className="login-with-email-error-text">{t(error)}</p>
         </IonText>
       )}
       {message && !showForgotPassword && (
-        <IonText color="success">
+        <IonText color="success" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
           <p className="login-with-email-error-text">{t(message)}</p>
         </IonText>
       )}
       {errorOccurred && !showForgotPassword && !error && (
-        <IonText color="danger">
+        <IonText color="danger" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
           <p className="login-with-email-error-text">
             {t("User not Found. Please verify your credentials.")}
           </p>

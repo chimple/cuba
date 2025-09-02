@@ -7,8 +7,8 @@ export const End: React.FC = () => {
   const history = useHistory();
   const state = history.location.state as any;
   return (
-    <IonPage>
-      <IonContent className="content">
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+      <IonContent className="content" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
         <h1>score: {state?.score}</h1>
         <h1>chapterName: {state?.chapterName}</h1>
         <h1>chapterId: {state?.chapterId}</h1>

@@ -85,24 +85,23 @@ function SearchLesson() {
           enterkeyhint="search"
           onIonClear={() => {
             onSearch("");
-          }}
+          } }
           onInput={(ev) => {
             setSearchTerm(ev.currentTarget.value ?? "");
-          }}
+          } }
           onKeyDown={(ev) => {
             if (ev.key === "Enter") {
               onSearch(ev.currentTarget.value ?? "");
               //@ts-ignore
               ev.target?.blur();
             }
-          }}
+          } }
           debounce={1000}
           onIonChange={(evOnChange) => {
             onSearch(evOnChange.detail.value ?? "");
-          }}
+          } }
           value={searchTerm}
-          animated={true}
-        />
+          animated={true} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}        />
         <div className="right-button"></div>
       </div>
       <LessonSlider

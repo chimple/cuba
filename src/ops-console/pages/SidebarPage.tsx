@@ -52,7 +52,7 @@ const SidebarPage: React.FC = () => {
   };
 
   return (
-    <IonPage>
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
       <div className="sidebarpage-rightSide">
         <Sidebar
           name={currentUser?.name || ""}

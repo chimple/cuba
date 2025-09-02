@@ -32,7 +32,7 @@ const ClassSection: React.FC<ClassSectionProps> = ({
         <span className="class-iconlabel">{t("Class")}</span>
       </div>
       <div className="school-dropdown">
-        <CustomDropdown
+        <CustomDropdown placeholder={t("Select Language") as string} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
           icon=""
           options={classData}
           onOptionSelect={handleClassSelect}
@@ -56,8 +56,8 @@ const ClassSection: React.FC<ClassSectionProps> = ({
       </div>
       <div className="manage-classes">
         <div className="manage-class-button">
-          <IonButton fill="clear" color="" onClick={handleManageClassClick} style={{ textTransform: "none" }}>
-            <IonLabel style={{color: "#707070", fontSize: "18px"}}>{t("Manage Classes")}</IonLabel>
+          <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} fill="clear" color="" onClick={handleManageClassClick} style={{ textTransform: "none" }}>
+            <IonLabel style={{ color: "#707070", fontSize: "18px" }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{t("Manage Classes")}</IonLabel>
           </IonButton>
         </div>
       </div>

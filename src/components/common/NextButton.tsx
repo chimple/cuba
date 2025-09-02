@@ -15,7 +15,7 @@ const NextButton: React.FC<NextButtonProps> = ({ onClicked, disabled, children }
     <button id='common-next-button' disabled={disabled} onClick={onClicked}>
       {children} 
       {t("Next")}
-      <IonIcon className="arrow-icon" slot="end" icon={chevronForward}></IonIcon>
+      <IonIcon className="arrow-icon" slot="end" icon={chevronForward} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}></IonIcon>
     </button>
   );
 }

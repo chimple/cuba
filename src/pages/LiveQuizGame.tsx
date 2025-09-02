@@ -122,7 +122,7 @@ const LiveQuizGame: FC = () => {
   };
 
   return (
-    <IonPage>
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
       {paramLessonId ? (
         <div className="live-quiz-container">
           <div className="live-quiz-top-div"></div>
@@ -146,7 +146,7 @@ const LiveQuizGame: FC = () => {
               />
             )}
           </div>
-          <IonContent>
+          <IonContent placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
             {showScoreCard ? (
               <ScoreCard
                 title={t("🎉Congratulations🎊")}

@@ -305,8 +305,7 @@ const SideMenu: React.FC<{
         ref={menuRef}
         aria-label={String(t("Menu"))}
         contentId="main-content"
-        id="main-container"
-      >
+        id="main-container" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}      >
         <div aria-label={String(t("Menu"))} className="side-menu-container">
           <ProfileSection fullName={fullName} email={email} />
           <div className="side-menu-body">
@@ -327,7 +326,7 @@ const SideMenu: React.FC<{
             />
           </div>
           <div className="side-menu-switch-user-toggle">
-            <IonItem className="side-menu-ion-item-container">
+            <IonItem className="side-menu-ion-item-container" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
               <img
                 src="assets/icons/userSwitch.svg"
                 alt="SCHOOL"
@@ -341,7 +340,7 @@ const SideMenu: React.FC<{
           </div>
           {!Capacitor.isNativePlatform() && isAuthorizedForOpsMode && (
             <div className="side-menu-switch-user-toggle">
-              <IonItem className="side-menu-ion-item-container">
+              <IonItem className="side-menu-ion-item-container" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                 <img
                   src="assets/icons/userSwitch.svg"
                   alt="OPS"

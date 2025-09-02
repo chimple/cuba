@@ -167,7 +167,7 @@ const StudentReport: React.FC = () => {
     }
   };
   return (
-    <IonPage className="student-report-page">
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} className="student-report-page" >
       <div className="student-report-student-profile">
         <div className="fixed-header">
           <Header

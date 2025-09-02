@@ -121,27 +121,26 @@ const SearchLesson: React.FC = ({}) => {
           inputMode="search"
           showCancelButton="focus"
           enterkeyhint="search"
-          placeholder={t("Search")??""}
+          placeholder={t("Search") ?? ""}
           onIonClear={() => {
             onSearch("");
-          }}
+          } }
           onInput={(ev) => {
             setSearchTerm(ev.currentTarget.value ?? "");
-          }}
+          } }
           onKeyDown={(ev) => {
             if (ev.key === "Enter") {
               onSearch(ev.currentTarget.value ?? "");
               //@ts-ignore
               ev.target?.blur();
             }
-          }}
+          } }
           // debounce={}
           onIonChange={(evOnChange) => {
             onSearch(evOnChange.detail.value ?? "");
-          }}
+          } }
           value={searchTerm}
-          animated={true}
-        />
+          animated={true} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}        />
         <div className="grid-container">
           {lessons.map((lesson) => (
             <div key={lesson.id} className="grid-item">

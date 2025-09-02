@@ -696,7 +696,7 @@ const Home: FC = () => {
   };
 
   return (
-    <IonPage id="home-page" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} id="home-page">
       <IonHeader id="home-header" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
         <HomeHeader
           key={refreshKey}

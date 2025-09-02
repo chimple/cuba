@@ -340,7 +340,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
       <div className="table-container ">
         <div className="reports-dropdown">
           <div className="type-dropdown">
-            <CustomDropdown
+            <CustomDropdown onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
               options={Object.entries(TABLEDROPDOWN).map(([key, value]) => ({
                 id: key,
                 name: value,
@@ -381,7 +381,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                 placeholder={t("Select Language") as string}
               />
               <div className="custom-chapter-dropdown">
-                <CustomDropdown
+                <CustomDropdown placeholder={t("Select Language") as string} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
                   options={mappedChaptersOptions ?? []}
                   onOptionSelect={handleSelectChapter}
                   selectedValue={{

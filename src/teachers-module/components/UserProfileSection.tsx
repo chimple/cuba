@@ -59,7 +59,7 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({
         {isEditMode ? (
           <div className="input-group">
             <label>{t("Select Language")}</label>
-            <CustomDropdown
+            <CustomDropdown placeholder={t("Select Language") as string} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
               options={mappedLanguageOptions}
               selectedValue={{
                 id: language,
@@ -69,9 +69,8 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({
                 if (selectedOption) {
                   onLanguageChange(String(selectedOption.id));
                 }
-              }}
-              placeholder={t("Select Language") as string}
-            />
+              } }
+              />
           </div>
         ) : (
           <>

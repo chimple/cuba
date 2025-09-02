@@ -311,7 +311,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
             showDownloadHomeworkButton &&
             lessons.length > 0 &&
             Capacitor.isNativePlatform() ? (
-              <IonButton
+              <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
                 size="small"
                 color="white"
                 shape="round"

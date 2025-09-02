@@ -169,7 +169,7 @@ const UserProfile: React.FC<{
             <span className="userprofile-value">
               {isEditing ? (
                 <div className="userprofile-dropdown">
-                  <CustomDropdown
+                  <CustomDropdown placeholder={t("Select Language") as string} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
                     options={allClasses.map((cls) => ({
                       id: cls.id,
                       name: cls.name,

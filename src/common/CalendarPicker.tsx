@@ -66,21 +66,18 @@ const CalendarPicker: React.FC<CalendarPickerProps> = ({
         min={safeMinDate}
         max={effectiveMaxDate}
         className="calendar-div"
-        onIonChange={handleDateChange}
-      />
-      <IonButtons className="calendar-buttons">
-        <IonButton
+        onIonChange={handleDateChange} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}      />
+      <IonButtons placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} className="calendar-buttons">
+        <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
           onClick={onCancel}
           className="confirm-button"
-          style={{ textTransform: "none" }}
-        >
+          style={{ textTransform: "none" }}>
           {t("Cancel")}
         </IonButton>
-        <IonButton
+        <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
           onClick={handleConfirm}
           className="confirm-button"
-          style={{ textTransform: "none" }}
-        >
+          style={{ textTransform: "none" }}>
           {t("Confirm")}
         </IonButton>
       </IonButtons>

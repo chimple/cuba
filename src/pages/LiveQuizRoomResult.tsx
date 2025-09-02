@@ -109,7 +109,7 @@ const LiveQuizRoomResult: React.FC = () => {
     return v + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
   }
   return (
-    <IonPage className="result-page">
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} className="result-page">
       <div id="next-button">
         <NextButton disabled={false} onClicked={handleNextClick} />
       </div>

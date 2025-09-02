@@ -30,7 +30,7 @@ const ProfileDetails: React.FC<ProfileDetailsProps> = ({
         />
         {isEditMode &&
           <div className="overlay">
-            <IonIcon className="camera-icon" icon={camera} size="large" />
+            <IonIcon className="camera-icon" icon={camera} size="large" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
           </div>
         }
       </label>

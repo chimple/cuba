@@ -68,10 +68,10 @@ const Profile: React.FC = () => {
     setIsLoading(false);
   }
   return (
-    <IonPage>
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
       <ProfileHeader />
       <div className="tabs">
-        <IonButton
+        <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
           className={
             "tab " +
             (currentCourseId === Util.getCourseByGrade(COURSES.ENGLISH)
@@ -97,7 +97,7 @@ const Profile: React.FC = () => {
         >
           English
         </IonButton>
-        <IonButton
+        <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
           className={
             "tab " +
             (currentCourseId === Util.getCourseByGrade(COURSES.MATHS)

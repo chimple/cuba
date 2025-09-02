@@ -14,10 +14,10 @@ const meta = {
     lessons: {
       options: Object.values(Lesson),
       mapping: Object.values(Lesson),
-      control: {
-        type: Lesson,
-        labels: Object.keys(""),
-      },
+      // control: {
+      //   type: Lesson,
+      //   labels: Object.keys(""),
+      // },
     },
   },
   // Use `fn` to spy on the onClick arg, which will appear in the actions panel once invoked: https://storybook.js.org/docs/essentials/actions#action-args

@@ -88,7 +88,7 @@ const UserList: React.FC<{
                   className="delete-button"
                   onClick={() => handleDeleteClick(student)}
                 >
-                  <IonIcon icon={trashOutline} className="trash-icon" />
+                  <IonIcon icon={trashOutline} className="trash-icon" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                 </div>
               </div>
 
@@ -118,7 +118,7 @@ const UserList: React.FC<{
                     className="delete-button"
                     onClick={() => handleDeleteClick(teacher)}
                   >
-                    <IonIcon icon={trashOutline} className="trash-icon" />
+                    <IonIcon icon={trashOutline} className="trash-icon" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
                   </div>
                 )}
               </div>

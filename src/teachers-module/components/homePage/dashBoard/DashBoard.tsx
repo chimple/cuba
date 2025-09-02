@@ -144,9 +144,9 @@ const init = async () => {
   const subjectOptionsWithAll = [{ ...ALL_SUBJECT }, ...(mappedSubjectOptions ?? [])];
 
   return !isLoading ? (
-    <IonContent>
-      <IonRefresher slot="fixed" onIonRefresh={onRefresh}>
-        <IonRefresherContent />
+    <IonContent placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+      <IonRefresher slot="fixed" onIonRefresh={onRefresh} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+        <IonRefresherContent placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
       </IonRefresher>
       <main className="dashboard-container">
         <div className="dashboard-container-subject-dropdown">

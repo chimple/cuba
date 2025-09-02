@@ -7,15 +7,14 @@ const ChapterDropDown: React.FC<{
   onChapterChange;
 }> = ({ chapters, currentChapter: currentChapter, onChapterChange }) => {
   return (
-    <IonList>
-      <IonItem lines="none" fill="outline">
+    <IonList placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+      <IonItem lines="none" fill="outline" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
         <IonSelect
           onIonChange={onChapterChange}
           interface="popover"
-          value={currentChapter.id}
-        >
+          value={currentChapter.id} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}        >
           {chapters.map((chapter) => (
-            <IonSelectOption value={chapter.id}>{chapter.name}</IonSelectOption>
+            <IonSelectOption value={chapter.id} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{chapter.name}</IonSelectOption>
           ))}
         </IonSelect>
       </IonItem>

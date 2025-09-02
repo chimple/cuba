@@ -17,10 +17,10 @@ const Arrow: React.FC<{
     <IonCard
       id="lesson-card"
       style={{
-        width:"47.5vh",
+        width: "47.5vh",
         height: "auto",
       }}
-      onClick={() => {onChapterChange(currentChapter.id, isForward)}}>
+      onClick={() => { onChapterChange(currentChapter.id, isForward); } } placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
         <div
         style={{
           borderRadius: "28px",

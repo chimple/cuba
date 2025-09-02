@@ -382,13 +382,13 @@ const DisplayChapters: FC<{}> = () => {
   }
 
   return !isLoading ? (
-    <IonPage id="display-chapters-page">
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} id="display-chapters-page">
       <div className="chapters-header">
         <div id="back-button-container">
           <BackButton aria-label={t("Back")} onClicked={onBackButton} />
         </div>
         <div className="chapter-header">
-          <IonItem lines="none">
+          <IonItem lines="none" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
             <div className="chapter-name">
               {stage === STAGES.CHAPTERS
                 ? currentCourse

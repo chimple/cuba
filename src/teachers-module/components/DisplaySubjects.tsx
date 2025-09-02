@@ -120,8 +120,7 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
                   {canModify && (
                     <IonIcon
                       icon={checkmarkCircle}
-                      className="display-subIcon"
-                    />
+                      className="display-subIcon" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                    />
                   )}
                 </div>
               ))}

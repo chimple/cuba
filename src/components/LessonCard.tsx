@@ -167,9 +167,8 @@ const LessonCard: React.FC<{
               history.replace(PAGES.GAME + parmas, {
                 url: "chimple-lib/index.html" + parmas,
                 lessonId: lesson.cocos_lesson_id,
-                courseDocId:
-                  course?.id ??
-                  assignment?.course_id??
+                courseDocId: course?.id ??
+                  assignment?.course_id ??
                   // lesson.courseId ??
                   currentCourse?.id,
                 course: JSON.stringify(currentCourse!),
@@ -180,8 +179,7 @@ const LessonCard: React.FC<{
               });
             } else if (
               // !!assignment?.id &&
-              lesson.plugin_type === LIVE_QUIZ
-            ) {
+              lesson.plugin_type === LIVE_QUIZ) {
               if (!online) {
                 presentToast({
                   message: t(`Device is offline`),
@@ -225,8 +223,7 @@ const LessonCard: React.FC<{
               });
             }
           }
-        }}
-      >
+        } } placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}      >
         <div
           style={{
             display: "grid",

@@ -264,7 +264,7 @@ const LidoPlayer: FC = () => {
   }
 
   return (
-    <IonPage>
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
       <Loading isLoading={isLoading} />
       {(xmlPath || basePath) && (
         <lido-standalone xml-path={xmlPath} base-url={basePath} />

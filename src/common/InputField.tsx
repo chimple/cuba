@@ -76,7 +76,7 @@ const InputField: React.FC<Props> = ({
           }`}
           onClick={handleIconClick}
         >
-          <IonIcon icon={searchOutline} />
+          <IonIcon icon={searchOutline} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
         </div>
       </div>
 
@@ -85,7 +85,7 @@ const InputField: React.FC<Props> = ({
       )}
 
       <div className="toggle-text">
-        <IonButton
+        <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
           fill="clear"
           onClick={handleToggleInputMethod}
           className="inputField-toggle-text"

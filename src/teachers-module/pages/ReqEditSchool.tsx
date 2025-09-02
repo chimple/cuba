@@ -184,7 +184,7 @@ const ReqEditSchool: React.FC = () => {
   }, [schoolData, initialSchoolData, profilePic]);
 
   return (
-    <IonPage className="edit-school-page">
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} className="edit-school-page" >
       <Header
         isBackButton={true}
         onBackButtonClick={onBackButtonClick}
@@ -260,11 +260,10 @@ const ReqEditSchool: React.FC = () => {
             </div>
           </div>
           <hr className="edit-school-divider" />
-          <IonButton
+          <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
             color="#fff"
             className="edit-school-logout-button"
-            onClick={() => setShowDialogBox(true)}
-          >
+            onClick={() => setShowDialogBox(true)}>
             {t("Logout")}
           </IonButton>
           <DialogBoxButtons
@@ -324,12 +323,11 @@ const ReqEditSchool: React.FC = () => {
                   onUDISE_IDChange={handleUDISE_IDChange}
                 />
                 <div className="editSchool-button-container">
-                  <IonButton
-                    color="#7C5DB0"
-                    onClick={handleSendRequest}
-                    className="editSchool-update-button"
-                    disabled={isButtonDisabled || isSaving}
-                  >
+                  <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
+                      color="#7C5DB0"
+                      onClick={handleSendRequest}
+                      className="editSchool-update-button"
+                      disabled={isButtonDisabled || isSaving}>
                     {isSaving ? t("Saving") + "..." : t("Send Request")}
                   </IonButton>
                 </div>

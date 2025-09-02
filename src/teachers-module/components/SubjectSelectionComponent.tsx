@@ -77,15 +77,14 @@ const SubjectSelectionComponent: React.FC<SubjectSelectionProps> = ({
                 <IonIcon
                   icon={isSelected ? checkmarkCircle : ellipseOutline}
                   className={`subject-page-checkbox ${isSelected ? "selected" : ""}`}
-                  onClick={() => onSubjectSelection(course.id)}
-                />
+                  onClick={() => onSubjectSelection(course.id)} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                />
               </div>
             );
           })}
         </div>
       ))}
       <div className="subject-selection-actions">
-        <IonButton
+        <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
           className={`confirm-button-in-subject-page ${
             loading || selectedSubjects.length === 0
               ? "disabled-confirm-button"

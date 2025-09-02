@@ -27,7 +27,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
         <span className="school-iconlabel">{t("School")}</span>
       </div>
       <div className="school-dropdown">
-        <CustomDropdown
+        <CustomDropdown placeholder={t("Select Language") as string} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
           options={schoolData}
           onOptionSelect={handleSchoolSelect}
           selectedValue={currentSchoolDetail}
@@ -39,8 +39,8 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
       </div>
       <div className="manage-school">
         <div className="manage-school-button">
-          <IonButton fill="clear" color="" onClick={handleManageSchoolClick} style={{ textTransform: "none" }}>
-            <IonLabel style={{color: "#707070", fontSize: "18px"}}>{t("Manage School")}</IonLabel>
+          <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} fill="clear" color="" onClick={handleManageSchoolClick} style={{ textTransform: "none" }}>
+            <IonLabel style={{ color: "#707070", fontSize: "18px" }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{t("Manage School")}</IonLabel>
           </IonButton>
         </div>
       </div>

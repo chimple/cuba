@@ -36,7 +36,7 @@ const HeaderIcon: React.FC<{
         pendingAssignmentCount !== undefined &&
         pendingAssignmentCount > 0 && (
           <div id="homework-notification">
-            <IonBadge class="badge-notification">
+            <IonBadge class="badge-notification" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
               {pendingAssignmentCount}
             </IonBadge>
           </div>
@@ -45,7 +45,7 @@ const HeaderIcon: React.FC<{
         !!pendingLiveQuizCount &&
         pendingLiveQuizCount > 0 && (
           <div id="homework-notification">
-            <IonBadge class="livequiz-badge-notification">
+            <IonBadge class="livequiz-badge-notification" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
               {pendingLiveQuizCount}
             </IonBadge>
           </div>

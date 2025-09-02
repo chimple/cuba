@@ -176,7 +176,7 @@ const EditSchool: React.FC = () => {
   }, [schoolData, initialSchoolData, profilePic]);
 
   return (
-    <IonPage className="edit-school-page">
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} className="edit-school-page">
       <Header
         isBackButton={true}
         onBackButtonClick={onBackButtonClick}
@@ -212,12 +212,11 @@ const EditSchool: React.FC = () => {
               onCityChange={handleCityChange}
             />
             <div className="editSchool-button-container">
-              <IonButton
+              <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
                 color="#7C5DB0"
                 onClick={handleSave}
                 className="editSchool-update-button"
-                disabled={isButtonDisabled || isSaving}
-              >
+                disabled={isButtonDisabled || isSaving}>
                 {isSaving
                   ? t("Saving") + "..."
                   : isEditMode

@@ -63,10 +63,16 @@ import { Util } from "../../utility/util";
 import { v4 as uuidv4 } from "uuid";
 import { ServiceConfig } from "../ServiceConfig";
 export class SupabaseApi implements ServiceApi {
-  getChapterIDByLessonID(lessonId: string, classId?: string, userId?: string): Promise<String | undefined> {
+  getChapterIDByLessonID(
+    lessonId: string,
+    classId?: string,
+    userId?: string
+  ): Promise<String | undefined> {
     throw new Error("Method not implemented.");
   }
-  getChapterByLessonID(lessonId: string): Promise<TableTypes<"chapter"> | undefined> {
+  getChapterByLessonID(
+    lessonId: string
+  ): Promise<TableTypes<"chapter"> | undefined> {
     throw new Error("Method not implemented.");
   }
   private _assignmetRealTime?: RealtimeChannel;
@@ -1890,11 +1896,13 @@ export class SupabaseApi implements ServiceApi {
       return { grades: [], courses }; // no grades to fetch
     }
 
+    const filteredGradeIds = gradeIds.filter((id): id is string => id !== null);
+
     // Fetch grades by IDs
     const { data: grades, error: gradeError } = await this.supabase
       .from("grade")
       .select("*")
-      .in("id", gradeIds)
+      .in("id", filteredGradeIds) 
       .eq("is_deleted", false)
       .order("sort_index", { ascending: true });
 
@@ -5282,7 +5290,7 @@ export class SupabaseApi implements ServiceApi {
 
     const { data, error } = await this.supabase
       .from("school_user")
-      .select("user(*)")
+      .select("user!school_user_user_id_fkey(*)")
       .eq("school_id", schoolId)
       .eq("role", RoleType.SPONSOR)
       .eq("is_deleted", false);
@@ -6190,7 +6198,7 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async getSchoolsByModel(
-    model: MODEL,
+    model: EnumType<"program_model">,
     limit: number = 10,
     offset: number = 0
   ): Promise<TableTypes<"school">[]> {
@@ -6517,7 +6525,9 @@ export class SupabaseApi implements ServiceApi {
         return null;
       }
 
-      const userIds = mappings.map((m) => m.user).filter((id): id is string => id !== null);
+      const userIds = mappings
+        .map((m) => m.user)
+        .filter((id): id is string => id !== null);
 
       const { data: users, error: usersError } = await this.supabase
         .from("user")
@@ -7290,7 +7300,7 @@ export class SupabaseApi implements ServiceApi {
 
   async deleteUserFromSchoolsWithRole(
     userId: string,
-    role: string
+    role: EnumType<"role">
   ): Promise<void> {
     if (!this.supabase) {
       console.error("Supabase client not initialized.");
@@ -7570,10 +7580,10 @@ export class SupabaseApi implements ServiceApi {
     try {
       // Step 1: Get all class_ids for the school
       const { data: classData, error: classError } = await this.supabase
-        .from('class')
-        .select('id, name')
-        .eq('school_id', schoolId)
-        .eq('is_deleted', false);
+        .from("class")
+        .select("id, name")
+        .eq("school_id", schoolId)
+        .eq("is_deleted", false);
       if (classError || !classData) {
         console.error("Error fetching classes for school:", classError);
         return { data: [], total: 0 };
@@ -7582,33 +7592,44 @@ export class SupabaseApi implements ServiceApi {
       if (classIds.length === 0) return { data: [], total: 0 };
       // Step 2: Get all class_user rows for those classes and role student, filter by name using ilike
       const { data: classUserData, error: classUserError } = await this.supabase
-        .from('class_user')
+        .from("class_user")
         .select(`user:user_id (*), class_id`)
-        .in('class_id', classIds)
-        .eq('role', 'student')
-        .eq('is_deleted', false)
-        .ilike('user.name', `%${searchTerm}%`)
-        .not('user', 'is', null);
+        .in("class_id", classIds)
+        .eq("role", "student")
+        .eq("is_deleted", false)
+        .ilike("user.name", `%${searchTerm}%`)
+        .not("user", "is", null);
       if (classUserError || !classUserData) {
         console.error("Error fetching class_user rows:", classUserError);
         return { data: [], total: 0 };
       }
       // Step 3: Get parent phone numbers for each student using an inner query
       const studentIds = classUserData.map((row: any) => row.user.id);
-      let parentPhoneMap: Record<string, { parent_id: string; parent_name: string | null; parent_phone: string | null }> = {};
+      let parentPhoneMap: Record<
+        string,
+        {
+          parent_id: string;
+          parent_name: string | null;
+          parent_phone: string | null;
+        }
+      > = {};
       if (studentIds.length > 0) {
         const { data: parentData, error: parentError } = await this.supabase
-          .from('parent_user')
-          .select('student_id, parent_id, user:parent_id(id, name, phone)')
-          .in('student_id', studentIds)
-          .eq('is_deleted', false);
+          .from("parent_user")
+          .select("student_id, parent_id, user:parent_id(id, name, phone)")
+          .in("student_id", studentIds)
+          .eq("is_deleted", false);
         if (parentError) {
           console.error("Error fetching parent_user rows:", parentError);
         } else {
           for (const row of parentData ?? []) {
             let parent_name = null;
             let parent_phone = null;
-            if (row.user && typeof row.user === "object" && !Array.isArray(row.user)) {
+            if (
+              row.user &&
+              typeof row.user === "object" &&
+              !Array.isArray(row.user)
+            ) {
               parent_name = (row.user as any).name ?? null;
               parent_phone = (row.user as any).phone ?? null;
             }
@@ -7626,7 +7647,7 @@ export class SupabaseApi implements ServiceApi {
       // Step 5: Build result objects
       const result = pagedRows.map((row: any) => {
         const classInfo = classData.find((c: any) => c.id === row.class_id);
-        const className = classInfo?.name ?? '';
+        const className = classInfo?.name ?? "";
         const { grade, section } = this.parseClassName(className);
         const parentInfo = parentPhoneMap[row.user.id] ?? {};
         return {
@@ -7662,10 +7683,10 @@ export class SupabaseApi implements ServiceApi {
     try {
       // Step 1: Get all class_ids for the school
       const { data: classData, error: classError } = await this.supabase
-        .from('class')
-        .select('id, name')
-        .eq('school_id', schoolId)
-        .eq('is_deleted', false);
+        .from("class")
+        .select("id, name")
+        .eq("school_id", schoolId)
+        .eq("is_deleted", false);
       if (classError || !classData) {
         console.error("Error fetching classes for school:", classError);
         return { data: [], total: 0 };
@@ -7674,40 +7695,56 @@ export class SupabaseApi implements ServiceApi {
       if (classIds.length === 0) return { data: [], total: 0 };
       // Step 2: Get all class_user rows for those classes and role teacher
       const { data: classUserData, error: classUserError } = await this.supabase
-        .from('class_user')
+        .from("class_user")
         .select(`user:user_id (*), class_id`)
-        .in('class_id', classIds)
-        .eq('role', 'teacher')
-        .eq('is_deleted', false)
-        .ilike('user.name', `%${searchTerm}%`)
-        .not('user', 'is', null);
+        .in("class_id", classIds)
+        .eq("role", "teacher")
+        .eq("is_deleted", false)
+        .ilike("user.name", `%${searchTerm}%`)
+        .not("user", "is", null);
       if (classUserError || !classUserData) {
         console.error("Error fetching class_user rows:", classUserError);
         return { data: [], total: 0 };
       }
       // Step 3: Get parent info for each teacher using an inner query
       const teacherIds = classUserData.map((row: any) => row.user.id);
-      let parentInfoMap: Record<string, { parent_id: string; parent_name: string | null; parent_phone: string | null }> = {};
+      let parentInfoMap: Record<
+        string,
+        {
+          parent_id: string;
+          parent_name: string | null;
+          parent_phone: string | null;
+        }
+      > = {};
       if (teacherIds.length > 0) {
-        const { data: parentUserData, error: parentUserError } = await this.supabase
-          .from('parent_user')
-          .select('parent_id, student_id')
-          .in('student_id', teacherIds)
-          .eq('is_deleted', false);
+        const { data: parentUserData, error: parentUserError } =
+          await this.supabase
+            .from("parent_user")
+            .select("parent_id, student_id")
+            .in("student_id", teacherIds)
+            .eq("is_deleted", false);
         if (!parentUserError && parentUserData && parentUserData.length > 0) {
           const parentIds = parentUserData.map((row: any) => row.parent_id);
-          let parentDetailsMap: Record<string, { name: string | null; phone: string | null }> = {};
+          let parentDetailsMap: Record<
+            string,
+            { name: string | null; phone: string | null }
+          > = {};
           if (parentIds.length > 0) {
-            const { data: parentDetails, error: parentDetailsError } = await this.supabase
-              .from('user')
-              .select('id, name, phone')
-              .in('id', parentIds)
-              .eq('is_deleted', false);
-            if (!parentDetailsError && parentDetails && parentDetails.length > 0) {
+            const { data: parentDetails, error: parentDetailsError } =
+              await this.supabase
+                .from("user")
+                .select("id, name, phone")
+                .in("id", parentIds)
+                .eq("is_deleted", false);
+            if (
+              !parentDetailsError &&
+              parentDetails &&
+              parentDetails.length > 0
+            ) {
               for (const parent of parentDetails) {
                 parentDetailsMap[parent.id] = {
                   name: parent.name ?? null,
-                  phone: parent.phone ?? null
+                  phone: parent.phone ?? null,
                 };
               }
             }
@@ -7716,7 +7753,7 @@ export class SupabaseApi implements ServiceApi {
             parentInfoMap[row.student_id] = {
               parent_id: row.parent_id,
               parent_name: parentDetailsMap[row.parent_id]?.name ?? null,
-              parent_phone: parentDetailsMap[row.parent_id]?.phone ?? null
+              parent_phone: parentDetailsMap[row.parent_id]?.phone ?? null,
             };
           }
         }
@@ -7727,7 +7764,7 @@ export class SupabaseApi implements ServiceApi {
       // Step 5: Build result objects (with parent info)
       const result = pagedRows.map((row: any) => {
         const classInfo = classData.find((c: any) => c.id === row.class_id);
-        const className = classInfo?.name ?? '';
+        const className = classInfo?.name ?? "";
         const { grade, section } = this.parseClassName(className);
         const parentInfo = parentInfoMap[row.user.id] ?? null;
         return {
@@ -7740,7 +7777,7 @@ export class SupabaseApi implements ServiceApi {
           class_name: className,
           grade,
           classSection: section,
-          parent: parentInfo
+          parent: parentInfo,
         };
       });
       return { data: result, total: classUserData.length };

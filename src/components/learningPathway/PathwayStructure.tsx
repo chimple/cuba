@@ -30,7 +30,7 @@ const PathwayStructure: React.FC = () => {
       path,
       directory: Directory.External,
     });
-    const svgText = atob(file.data);
+    const svgText = atob(file.data.toString());
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
     group.innerHTML = svgText;
     if (className) group.setAttribute("class", className);
@@ -46,7 +46,7 @@ const PathwayStructure: React.FC = () => {
           path,
           directory: Directory.External,
         });
-        return atob(file.data);
+        return atob(file.data.toString());
       } catch {
         const res = await fetch(webPath);
         return await res.text();

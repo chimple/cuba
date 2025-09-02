@@ -544,7 +544,7 @@ const CreateSelectedAssignment = ({
                     {startDate}
                   </span>
                 )}
-                <IonIcon icon={calendarOutline} size={"2vw"} />
+                <IonIcon icon={calendarOutline} size={"2vw"} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
               </div>
             </div>
             <div className="vertical-line"></div>
@@ -577,7 +577,7 @@ const CreateSelectedAssignment = ({
                     {endDate}
                   </span>
                 )}
-                <IonIcon icon={calendarOutline} />
+                <IonIcon icon={calendarOutline} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
               </div>
             </div>
           </div>

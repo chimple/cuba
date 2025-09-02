@@ -31,17 +31,15 @@ const ToggleButton: React.FC<{
             checked={flag === 0 ? true : false}
             onIonChange={onIonChangeClick}
             //aria-label="Enable Notifications"
-            className="common-toggle"
-          ></IonToggle>
+            className="common-toggle" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}          ></IonToggle>
         </div>
       ) : (
         <div className="vertical-layout">
           <IonToggle
-            checked={flag === 0 ? true : false}
-            onIonChange={onIonChangeClick}
-            //aria-label="Enable Notifications"
-            className="common-toggle"
-          ></IonToggle>
+              checked={flag === 0 ? true : false}
+              onIonChange={onIonChangeClick}
+              //aria-label="Enable Notifications"
+              className="common-toggle" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}          ></IonToggle>
           <p className="toggle-text">
             {t(title)}
             {flag === 1 ? t(" ON ") : flag === 0 ? t(" OFF ") : ""}

@@ -16,14 +16,14 @@ const CommonAppBar: React.FC<CommonAppBarProps> = ({
   imgScr,
 }) => {
   return (
-    <IonToolbar className="common-appBar">
-      <IonButtons slot="start">
+    <IonToolbar className="common-appBar" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+      <IonButtons placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} slot="start">
         <IonBackButton defaultHref={loc}></IonBackButton>
       </IonButtons>
       {showAvatar ? (
         <ProfileAvatar label={t(title)} imgSrc={imgScr}></ProfileAvatar>
       ) : (
-        <IonLabel>{title}</IonLabel>
+        <IonLabel placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{title}</IonLabel>
       )}
     </IonToolbar>
   );

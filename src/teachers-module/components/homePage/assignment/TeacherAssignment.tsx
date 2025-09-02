@@ -411,17 +411,15 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
                   {assignment?.name}
                 </span>
                 <IonIcon
-                  icon={isSelected ? checkmarkCircle : ellipseOutline}
-                  className={`subject-page-checkbox ${isSelected ? "selected" : ""}`}
-                  onClick={() =>
-                    toggleAssignmentSelection(
-                    type,
-                    assignments,
-                    setCategory,
-                    subjectId,
-                    index
-                  )}
-                 />
+                    icon={isSelected ? checkmarkCircle : ellipseOutline}
+                    className={`subject-page-checkbox ${isSelected ? "selected" : ""}`}
+                    onClick={() => toggleAssignmentSelection(
+                      type,
+                      assignments,
+                      setCategory,
+                      subjectId,
+                      index
+                    )} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}                 />
               </div>
             )})}
           </div>

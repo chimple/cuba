@@ -749,10 +749,10 @@ const LoginScreen: React.FC = () => {
             alt="initial-loading-gif"
             className="Loginscreen-initial-loading-spinner"
           />
-          <IonText className="Loginscreen-initial-loading-text">
+          <IonText className="Loginscreen-initial-loading-text" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
             <p>{t(loadingMessages[currentMessageIndex])}</p>
           </IonText>
-          <IonText className="Loginscreen-initial-loading-text">
+          <IonText className="Loginscreen-initial-loading-text" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
             <p>{t("Hang tight, It's a special occasion!")}</p>
           </IonText>
         </div>

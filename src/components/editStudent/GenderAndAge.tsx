@@ -23,7 +23,7 @@ const GenderAndAge: React.FC<{
               onGenderChange(GENDER.BOY);
             }}
           >
-            <IonRow>
+            <IonRow placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
               <CgBoy size="8vh" color="#ffad1a" />
               <p className="gender-text"> {t("Boy")}</p>
             </IonRow>
@@ -39,7 +39,7 @@ const GenderAndAge: React.FC<{
               onGenderChange(GENDER.GIRL);
             }}
           >
-            <IonRow>
+            <IonRow placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
               <CgGirl size="8vh" color="#e28daf" />
               <p className="gender-text"> {t("Girl")}</p>
             </IonRow>
@@ -56,7 +56,7 @@ const GenderAndAge: React.FC<{
                 onGenderChange(GENDER.OTHER);
               }}
             >
-              <IonRow>
+              <IonRow placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                 <CgBoy size="8vh" color="#ffad1a" />
                 <p className="gender-text"> {t("Unspecified")}</p>
               </IonRow>

@@ -12,8 +12,8 @@ const ChapterCard: React.FC<{
   const isLevelChapter = chapter.id === levelChapter?.id;
   return (
     <div>
-      <IonRow>
-        <IonButton
+      <IonRow placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+        <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
           className={"chapter-button " + (isLevelChapter ? "star-button " : "")}
           fill={isActive ? "solid" : "outline"}
           shape="round"
@@ -22,7 +22,7 @@ const ChapterCard: React.FC<{
           }}
           color="success"
         >
-          <IonRow>
+          <IonRow placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
             <p
               className={
                 "chapter-name " + (isActive ? "active-chapter-name " : "")

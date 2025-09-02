@@ -45,8 +45,8 @@ const SchoolClassSubjectTab: FC = () => {
   const onSchoolSave = () => {};
   const onSchoolCreate = () => {};
   return (
-    <IonPage style={{ backgroundColor: "white" }}>
-      <IonHeader>
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} style={{ backgroundColor: "white" }}>
+      <IonHeader placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
         <CommonAppBar
           title={t("Username")}
           loc="#"

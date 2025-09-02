@@ -17,16 +17,15 @@ const CommonTab: React.FC<CommonTabProps> = ({
       <IonSegment
         value={value}
         onIonChange={segmentChanged}
-        style={{ padding: "6px" }}
-      >
-        <IonSegmentButton value={COMMONTAB_LIST.SCHOOL}>
-          <IonLabel>{COMMONTAB_LIST.SCHOOL}</IonLabel>
+        style={{ padding: "6px" }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}      >
+        <IonSegmentButton value={COMMONTAB_LIST.SCHOOL} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+          <IonLabel placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{COMMONTAB_LIST.SCHOOL}</IonLabel>
         </IonSegmentButton>
-        <IonSegmentButton value={COMMONTAB_LIST.CLASS}>
-          <IonLabel>{COMMONTAB_LIST.CLASS}</IonLabel>
+        <IonSegmentButton value={COMMONTAB_LIST.CLASS} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+          <IonLabel placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{COMMONTAB_LIST.CLASS}</IonLabel>
         </IonSegmentButton>
-        <IonSegmentButton value={COMMONTAB_LIST.SUBJECTS}>
-          <IonLabel>{COMMONTAB_LIST.SUBJECTS}</IonLabel>
+        <IonSegmentButton value={COMMONTAB_LIST.SUBJECTS} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+          <IonLabel placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{COMMONTAB_LIST.SUBJECTS}</IonLabel>
         </IonSegmentButton>
       </IonSegment>
     </>

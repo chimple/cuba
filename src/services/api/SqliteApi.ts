@@ -56,6 +56,7 @@ import {
   CapacitorSQLite,
   capSQLiteResult,
   DBSQLiteValues,
+  capSQLiteVersionUpgrade,
 } from "@capacitor-community/sqlite";
 import { Capacitor } from "@capacitor/core";
 import { SupabaseApi } from "./SupabaseApi";
@@ -163,11 +164,10 @@ export class SqliteApi implements ServiceApi {
           "🚀 ~ SqliteApi ~ init ~ upgradeStatements:",
           upgradeStatements
         );
-        await this._sqlite.addUpgradeStatement(
-          this.DB_NAME,
-          this.DB_VERSION,
-          upgradeStatements
-        );
+        let upgradeStatement: capSQLiteVersionUpgrade[] = [
+          { toVersion: this.DB_VERSION, statements: upgradeStatements },
+        ];
+        await this._sqlite.addUpgradeStatement(this.DB_NAME, upgradeStatement);
         localStorage.setItem(
           CURRENT_SQLITE_VERSION,
           this.DB_VERSION.toString()
@@ -264,7 +264,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -281,7 +281,9 @@ export class SqliteApi implements ServiceApi {
     }
 
     // const config = ServiceConfig.getInstance(APIMode.ONEROSTER);
-    const config = ServiceConfig.getInstance(Util.isRespectMode ? APIMode.ONEROSTER : APIMode.SQLITE);
+    const config = ServiceConfig.getInstance(
+      Util.isRespectMode ? APIMode.ONEROSTER : APIMode.SQLITE
+    );
     const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
     if (isUserLoggedIn) {
       console.log("syncing");
@@ -346,7 +348,9 @@ export class SqliteApi implements ServiceApi {
 
         const fieldValues = fieldNames.map((f) => row[f]);
         const placeholders = fieldNames.map(() => "?").join(", ");
-        const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(", ")}) VALUES (${placeholders})`;
+        const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(
+          ", "
+        )}) VALUES (${placeholders})`;
 
         batchQueries.push({ statement: stmt, values: fieldValues });
       }
@@ -1755,8 +1759,9 @@ export class SqliteApi implements ServiceApi {
   async getLiveQuizRoomDoc(
     liveQuizRoomDocId: string
   ): Promise<TableTypes<"live_quiz_room">> {
-    const roomData =
-      await this._serverApi.getLiveQuizRoomDoc(liveQuizRoomDocId);
+    const roomData = await this._serverApi.getLiveQuizRoomDoc(
+      liveQuizRoomDocId
+    );
     return roomData;
   }
 
@@ -3132,8 +3137,9 @@ export class SqliteApi implements ServiceApi {
       user_data: TableTypes<"user">[];
     }[]
   > {
-    const res =
-      await this._serverApi.getStudentResultsByAssignmentId(assignmentId);
+    const res = await this._serverApi.getStudentResultsByAssignmentId(
+      assignmentId
+    );
     return res;
   }
 
@@ -4843,8 +4849,9 @@ order by
   async validateSchoolUdiseCode(
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }> {
-    const validatedData =
-      await this._serverApi.validateSchoolUdiseCode(schoolId);
+    const validatedData = await this._serverApi.validateSchoolUdiseCode(
+      schoolId
+    );
     if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>
         typeof err === "string" ? err : err.message || JSON.stringify(err)
@@ -4857,8 +4864,9 @@ order by
   async validateProgramName(
     programName: string
   ): Promise<{ status: string; errors?: string[] }> {
-    const validatedData =
-      await this._serverApi.validateProgramName(programName);
+    const validatedData = await this._serverApi.validateProgramName(
+      programName
+    );
     if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>
         typeof err === "string" ? err : err.message || JSON.stringify(err)
@@ -5269,7 +5277,7 @@ order by
     return await this._serverApi.getSchoolsForAdmin(limit, offset);
   }
   async getSchoolsByModel(
-    model: MODEL,
+    model: EnumType<"program_model">,
     limit: number = 10,
     offset: number = 0
   ): Promise<TableTypes<"school">[]> {
@@ -5742,7 +5750,7 @@ order by
   }
   async deleteUserFromSchoolsWithRole(
     userId: string,
-    role: string
+    role: EnumType<"role">
   ): Promise<void> {
     return await this._serverApi.deleteUserFromSchoolsWithRole(userId, role);
   }

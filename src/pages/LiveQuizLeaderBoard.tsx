@@ -144,8 +144,8 @@ const LiveQuizLeaderBoard: React.FC = () => {
   };
 
   return (
-    <IonPage>
-      <IonContent className="livequiz-leaderboard-page-content">
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+      <IonContent className="livequiz-leaderboard-page-content" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
         <div className="livequiz-leaderboard">
           <div className="leaderboard-header">
             <div className="empty"></div>
@@ -172,10 +172,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
             .map((scoreData, index) => (
               <IonRow
                 key={index}
-                className={`leaderboard-row ${
-                  index % 2 === 0 ? "even" : "odd"
-                }`}
-              >
+                className={`leaderboard-row ${index % 2 === 0 ? "even" : "odd"}`} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}              >
                 <div className="rank-column">{index + 1}</div>
                 <div className="name-column">
                   <StudentAvatar

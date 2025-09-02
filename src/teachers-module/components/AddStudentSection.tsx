@@ -96,17 +96,16 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
           <label>{t("Gender")}</label>
           <IonRadioGroup
             value={gender}
-            onIonChange={(e) => onGenderChange(e.detail.value)}
-          >
+            onIonChange={(e) => onGenderChange(e.detail.value)} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}          >
             <div className="gender-options">
               <label className="radio-label">
-                <IonRadio value="male" className="add-student-radio-btn" /> {t("male")}
+                <IonRadio value="male" className="add-student-radio-btn" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} /> {t("male")}
               </label>
               <label className="radio-label">
-                <IonRadio value="female" className="add-student-radio-btn" /> {t("female")}
+                <IonRadio value="female" className="add-student-radio-btn" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} /> {t("female")}
               </label>
               <label className="radio-label">
-                <IonRadio value="other" className="add-student-radio-btn" /> {t("Other")}
+                <IonRadio value="other" className="add-student-radio-btn" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} /> {t("Other")}
               </label>
             </div>
           </IonRadioGroup>
@@ -114,7 +113,7 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
         <hr className="horizontal-line" />
         <div className="add-studentsection__group">
           <label>{t("Preferred Language")}</label>
-          <CustomDropdown
+          <CustomDropdown placeholder={t("Select Language") as string} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
             options={mappedLanguageOptions}
             selectedValue={{
               id: language,
@@ -125,7 +124,6 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
                 onLanguageChange(String(selectedOption.id));
               }
             }}
-            placeholder={t("Select Language") as string}
           />
         </div>
       </form>

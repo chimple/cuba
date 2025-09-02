@@ -48,13 +48,11 @@ const ResetPassword: React.FC = () => {
           value={newPassword}
           placeholder={t("Enter new password") || ""}
           className="reset-password-text-box"
-          onIonChange={(e) => setNewPassword(e.detail.value || "")}
-        />
+          onIonChange={(e) => setNewPassword(e.detail.value || "")} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}        />
         <IonIcon
           icon={showPassword ? eye : eyeOff}
           onClick={() => setShowPassword((prev) => !prev)}
-          className="reset-password-eye-icon"
-        />
+          className="reset-password-eye-icon" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}        />
       </div>
 
       <div className="reset-password-field-div">
@@ -63,16 +61,14 @@ const ResetPassword: React.FC = () => {
           value={confirmPassword}
           placeholder={t("Confirm password") || ""}
           className="reset-password-text-box"
-          onIonChange={(e) => setConfirmPassword(e.detail.value || "")}
-        />
+          onIonChange={(e) => setConfirmPassword(e.detail.value || "")} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}        />
         <IonIcon
           icon={showConfirmPassword ? eye : eyeOff}
           onClick={() => setShowConfirmPassword((prev) => !prev)}
-          className="reset-password-eye-icon"
-        />
+          className="reset-password-eye-icon" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}        />
       </div>
 
-      <IonButton
+      <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
         onClick={handlePasswordReset}
         className="reset-password-button"
         id="reset-password-button-inner"

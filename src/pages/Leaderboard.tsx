@@ -355,13 +355,13 @@ const Leaderboard: React.FC = () => {
             {currentUserDataContent.map((e) => {
               let i = -1;
               return (
-                <IonRow>
+                <IonRow placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                   {e.map((d) => {
                     i++;
                     currentUserHeaderRowIndicator++;
 
                     return (
-                      <IonCol key={d} size="0" size-sm="6">
+                      <IonCol key={d} size="0" size-sm="6" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                         <p
                           style={{
                             color:
@@ -416,34 +416,31 @@ const Leaderboard: React.FC = () => {
               // <IonGrid>
               <IonRow
                 style={{
-                  backgroundColor:
-                    headerRowIndicator === 0
-                      ? "rgb(200 200 200)"
-                      : Number(currentUserDataContent[0][1]) ===
-                        headerRowIndicator ||
-                        currentUserDataContent[0][1] ===
-                        headerRowIndicator + "+"
-                        ? "#FF7925"
-                        : "",
-                  padding:
-                    headerRowIndicator === 0
-                      ? "1vh 2vh"
-                      : Number(currentUserDataContent[0][1]) ===
-                        headerRowIndicator ||
-                        currentUserDataContent[0][1] ===
-                        headerRowIndicator + "+"
-                        ? "0vh 2vh"
-                        : "1vh 2vh ",
+                  backgroundColor: headerRowIndicator === 0
+                    ? "rgb(200 200 200)"
+                    : Number(currentUserDataContent[0][1]) ===
+                      headerRowIndicator ||
+                      currentUserDataContent[0][1] ===
+                      headerRowIndicator + "+"
+                      ? "#FF7925"
+                      : "",
+                  padding: headerRowIndicator === 0
+                    ? "1vh 2vh"
+                    : Number(currentUserDataContent[0][1]) ===
+                      headerRowIndicator ||
+                      currentUserDataContent[0][1] ===
+                      headerRowIndicator + "+"
+                      ? "0vh 2vh"
+                      : "1vh 2vh ",
                   position: "sticky",
                   zIndex: headerRowIndicator === 0 ? "3" : "0",
                   top: "0px",
-                }}
-              >
+                }} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}              >
                 {e.map((d) => {
                   i++;
 
                   return (
-                    <IonCol size="auto">
+                    <IonCol size="auto" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                       <p
                         style={{
                           color:
@@ -506,7 +503,7 @@ const Leaderboard: React.FC = () => {
   };
 
   return (
-    <IonPage>
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
       {!isLoading ? (
         <Box>
           <div id="LeaderBoard-Header">

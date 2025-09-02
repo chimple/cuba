@@ -47,7 +47,7 @@ const AppLangSelection: React.FC = () => {
   };
 
   return (
-    <IonPage id="app-lang">
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} id="app-lang">
       {!isLoading ? (
         <div className="app-container">
           <div className="top-right">

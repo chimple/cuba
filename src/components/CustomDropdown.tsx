@@ -37,8 +37,8 @@ const CustomDropdown: FC<{
   }, []);
 
   return (
-    <IonList mode="ios" ref={dropdownRef}>
-      <IonItem lines="none" fill="outline" mode="ios" onClick={handleSelectOpen}>
+    <IonList mode="ios" ref={dropdownRef} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+      <IonItem lines="none" fill="outline" mode="ios" onClick={handleSelectOpen} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
         {currentlySelected
           ? options.find((option) => option.id === currentlySelected)?.displayName
           : placeholder}
@@ -48,8 +48,7 @@ const CustomDropdown: FC<{
         isOpen={popoverOpen}
         onDidDismiss={handleSelectClose}
         ref={popoverRef}
-        backdropDismiss={false}
-      >
+        backdropDismiss={false} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}      >
         <div>
           {options.map((option) => (
             <IonItem
@@ -58,8 +57,7 @@ const CustomDropdown: FC<{
               onClick={() => {
                 onDropdownChange(option.id);
                 handleSelectClose();
-              }}
-            >
+              } } placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}            >
               {option.displayName}
             </IonItem>
           ))}

@@ -13,13 +13,13 @@ import CommonButton from "../../components/malta/common/CommonButton";
 
 const SelectedAssignment: React.FC = () => {
   return (
-    <IonPage style={{ backgroundColor: "white" }}>
-      <IonHeader>
-        <IonToolbar className="toolbar">
-          <IonButtons slot="start">
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} style={{ backgroundColor: "white" }}>
+      <IonHeader placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+        <IonToolbar className="toolbar" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+          <IonButtons placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} slot="start">
             <IonBackButton defaultHref="#"></IonBackButton>
           </IonButtons>
-          <IonTitle>{t("Selected Assignments")}</IonTitle>
+          <IonTitle placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{t("Selected Assignments")}</IonTitle>
         </IonToolbar>
       </IonHeader>
       <RecommendedAssignment infoText="These are the assignments you have chosen to assign"></RecommendedAssignment>

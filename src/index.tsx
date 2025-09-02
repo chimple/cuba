@@ -34,7 +34,7 @@ import { SplashScreen } from "@capacitor/splash-screen";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
 import { BrowserRouter } from "react-router-dom";
-import { defineCustomElements, JSX as LocalJSX } from "lido-standalone/loader";
+import { defineCustomElements as lidoDefineCustomeElement, JSX as LocalJSX } from "lido-standalone/loader";
 import {
   SpeechSynthesis,
   SpeechSynthesisUtterance,
@@ -45,6 +45,7 @@ import { Util } from "./utility/util";
 import { EVENTS, IS_OPS_USER } from "./common/constants";
 import { GbProvider } from "./growthbook/Growthbook";
 import { initializeFireBase } from "./services/Firebase";
+import { defineCustomElements } from 'jeep-sqlite/loader';
 
 // Extend React's JSX namespace to include Stencil components
 declare global {
@@ -69,9 +70,11 @@ SplashScreen.show();
 if (Capacitor.isNativePlatform()) {
   await ScreenOrientation.lock({ orientation: "landscape" });
 }
-applyPolyfills().then(() => {
-  jeepSqlite(window);
-});
+// // @ts-ignore - applyPolyfills is deprecated but still needed for legacy support
+// applyPolyfills().then(() => {
+//   jeepSqlite(window);
+// });
+defineCustomElements(window);
 const recordExecption = (message: string, error: string) => {
   if (Capacitor.getPlatform() != "web") {
     FirebaseCrashlytics.recordException({ message: message, domain: error });

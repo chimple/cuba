@@ -23,18 +23,15 @@ const AddSchool: FC<AddSchoolProps> = ({
     <div className="alignItems">
       <IonInput
         placeholder={t("Enter text")!}
-        value={schoolName}
-      ></IonInput>
+        value={schoolName} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}      ></IonInput>
       <br />
       <IonInput
         placeholder={t("Enter text")!}
-        value={cityName}
-      ></IonInput>
+        value={cityName} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}      ></IonInput>
       <br />
       <IonInput
         placeholder={t("Enter text")!}
-        value={stateName}
-      ></IonInput>
+        value={stateName} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}      ></IonInput>
       <div className="buttonRow">
         <CommonButton disabled={false} title="Cancel" onClicked={onCancel} />
         <CommonButton disabled={false} title="Add" onClicked={onCreate} />

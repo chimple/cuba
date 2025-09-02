@@ -23,19 +23,19 @@ const ChapterCard: React.FC<{
           borderRadius: 20,
         }}
       >
-        <IonCard className="card">
-          <IonCardHeader>
+        <IonCard className="card" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+          <IonCardHeader placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
             <div style={{ display: "flex" }}>
-              <IonCardSubtitle className="card-subtitle">
+              <IonCardSubtitle className="card-subtitle" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                 {t(chapterTitle)}
               </IonCardSubtitle>
             </div>
           </IonCardHeader>
-          <IonCardContent>
+          <IonCardContent placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
             {lessons.map((lesson) => {
               return (
                 <div className="recommended-lesson">
-                  <IonCheckbox className="checkbox">
+                  <IonCheckbox className="checkbox" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                     {t(lesson.title)}
                   </IonCheckbox>
                 </div>

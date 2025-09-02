@@ -62,7 +62,7 @@ const SchoolUsers: React.FC = () => {
   return (
     <>
       {school && (
-        <IonPage className="main-page">
+        <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} className="main-page">
           <div className="fixed-header">
             <Header
               isBackButton={true}

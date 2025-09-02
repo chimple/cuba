@@ -14,15 +14,15 @@ const AssignmentTabList: React.FC<AssignmentTabListProps> = ({
 }) => {
   return (
     <>
-      <IonSegment value={value} onIonChange={segmentChanged}>
-        <IonSegmentButton value={ASSIGNMENTTAB_LIST.RECOMMENDED}>
-          <IonLabel>{ASSIGNMENTTAB_LIST.RECOMMENDED}</IonLabel>
+      <IonSegment value={value} onIonChange={segmentChanged} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+        <IonSegmentButton value={ASSIGNMENTTAB_LIST.RECOMMENDED} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+          <IonLabel placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{ASSIGNMENTTAB_LIST.RECOMMENDED}</IonLabel>
         </IonSegmentButton>
-        <IonSegmentButton value={ASSIGNMENTTAB_LIST.ASSIGNMENT}>
-          <IonLabel>{ASSIGNMENTTAB_LIST.ASSIGNMENT}</IonLabel>
+        <IonSegmentButton value={ASSIGNMENTTAB_LIST.ASSIGNMENT} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+          <IonLabel placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{ASSIGNMENTTAB_LIST.ASSIGNMENT}</IonLabel>
         </IonSegmentButton>
-        <IonSegmentButton value={ASSIGNMENTTAB_LIST.LIVEQUIZ}>
-          <IonLabel>{ASSIGNMENTTAB_LIST.LIVEQUIZ}</IonLabel>
+        <IonSegmentButton value={ASSIGNMENTTAB_LIST.LIVEQUIZ} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+          <IonLabel placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{ASSIGNMENTTAB_LIST.LIVEQUIZ}</IonLabel>
         </IonSegmentButton>
       </IonSegment>
     </>

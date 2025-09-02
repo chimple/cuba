@@ -305,11 +305,11 @@ const EditStudent = () => {
   return (
     <>
       {isCreatingProfile ? (
-        <IonContent className="ion-padding">
+        <IonContent className="ion-padding" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
           <Loading isLoading={isCreatingProfile} />
         </IonContent>
       ) : (
-        <IonPage id="Edit-student-page">
+        <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} id="Edit-student-page">
           <div id="Edit-student-back-button" aria-label={String(t("Back"))}>
             {!isEdit && !state?.showBackButton ? null : (
               <BackButton

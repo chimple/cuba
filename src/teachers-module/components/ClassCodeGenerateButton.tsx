@@ -50,7 +50,7 @@ const ClassCodeGenerateButton: React.FC<ClassCodeProps> = ({
 
   return (
     <div className="class-code">
-      <IonItem lines="none">
+      <IonItem lines="none" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
         <div>{t("Class Code")} {" : "}</div>
         {classCode ? (
           <div className="share-code">
@@ -61,7 +61,7 @@ const ClassCodeGenerateButton: React.FC<ClassCodeProps> = ({
       </IonItem>
 
       {!classCode && (
-        <IonButton
+        <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
           className="generate-code-button"
           onClick={async () => {
             await generateClassCode(currentClassId);

@@ -8,13 +8,12 @@ interface DateTimePickerProps {
 const DateTimePicker: FC<DateTimePickerProps> = ({ date }) => {
   return (
     <>
-      <IonDatetimeButton datetime={date}></IonDatetimeButton>
-      <IonModal keepContentsMounted={true}>
+      <IonDatetimeButton datetime={date} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}></IonDatetimeButton>
+      <IonModal keepContentsMounted={true} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
         <IonDatetime
           id={date}
           presentation="date"
-          value={date}
-        ></IonDatetime>
+          value={date} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}        ></IonDatetime>
       </IonModal>
     </>
   );

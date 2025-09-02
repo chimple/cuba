@@ -31,13 +31,12 @@ const DropDown: React.FC<DropDownProps> = ({
           placeholder={placeHolder}
           onIonChange={handleSelect} // Handle the selection change
           interface="popover"
-          color="danger"
-          // Optional: choose "action-sheet", "popover", or "alert" interface styles
+          color="danger" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}          // Optional: choose "action-sheet", "popover", or "alert" interface styles
         >
           {value &&
             Object.entries(value).map(([id, name]) => (
-              <IonSelectOption key={id} value={id}>
-                <IonLabel>{name}</IonLabel>
+              <IonSelectOption key={id} value={id} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+                <IonLabel placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{name}</IonLabel>
               </IonSelectOption>
             ))}
         </IonSelect>

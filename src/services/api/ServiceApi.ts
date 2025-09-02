@@ -1677,7 +1677,7 @@ export interface ServiceApi {
    * @returns {Promise<TableTypes<"school">[]>} - A promise that resolves to a list of schools filtered by model.
    */
   getSchoolsByModel(
-    model: MODEL,
+    model: EnumType<"program_model">,
     limit: number,
     offset: number
   ): Promise<TableTypes<"school">[]>;
@@ -1894,7 +1894,7 @@ export interface ServiceApi {
    * @param {string} userId - user Id.
    * @param {number} role - user Role.
    */
-  deleteUserFromSchoolsWithRole(userId: string, role: string): Promise<void>;
+  deleteUserFromSchoolsWithRole(userId: string, role: EnumType<"role">): Promise<void>;
 
   /**
    * Fetch student login type and program model by UDISE code.

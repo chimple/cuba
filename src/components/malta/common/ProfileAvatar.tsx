@@ -8,11 +8,11 @@ interface ProfileAvatarProps {
 const ProfileAvatar: FC<ProfileAvatarProps> = ({ label, imgSrc }) => {
   return (
     <>
-      <IonItem className="item">
-        <IonAvatar slot="start">
+      <IonItem className="item" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+        <IonAvatar slot="start" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
           <img alt="Silhouette of a person's head" src={imgSrc} />
         </IonAvatar>
-        <IonLabel>{label}</IonLabel>
+        <IonLabel placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>{label}</IonLabel>
       </IonItem>
     </>
   );

@@ -124,9 +124,9 @@ const StudentProgress: React.FC = () => {
     return (
       <div id="student-progress-display-progress">
         <div id="student-progress-display-progress-header">
-          <IonRow>
+          <IonRow placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
             {headerContent.map((h) => (
-              <IonCol key={h} size="12" size-sm="3">
+              <IonCol key={h} size="12" size-sm="3" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                 <p id="student-progress-display-progress-header-content">
                   {t(h)}
                 </p>
@@ -148,9 +148,9 @@ const StudentProgress: React.FC = () => {
         {!isLoading && dataContent.length > 0 && (
           <div id="student-progress-display-progress-content">
             {dataContent.map((e, rowIndex) => (
-              <IonRow key={rowIndex}>
+              <IonRow key={rowIndex} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                 {e.map((d, cellIndex) => (
-                  <IonCol key={cellIndex} size="12" size-sm="3">
+                  <IonCol key={cellIndex} size="12" size-sm="3" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
                     <p id="student-progress-display-progress-content-text">
                       {d}
                     </p>

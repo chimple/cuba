@@ -22,16 +22,13 @@ const EditSchool: FC<EditSchoolProps> = ({
   return (
     <div className="alignItems">
       <IonInput
-        value={schoolName}
-      ></IonInput>
+        value={schoolName} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}      ></IonInput>
       <br />
       <IonInput
-        value={cityName}
-      ></IonInput>
+        value={cityName} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}      ></IonInput>
       <br />
       <IonInput
-        value={stateName}
-      ></IonInput>
+        value={stateName} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}      ></IonInput>
       <div className="buttonRow">
         <CommonButton disabled={false} title="Cancel" onClicked={onCancel} />
         <CommonButton disabled={false} title="Save" onClicked={onSave} />

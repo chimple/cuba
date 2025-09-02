@@ -158,7 +158,7 @@ const LiveQuizRoom: React.FC = () => {
     }
   };
   return (
-    <IonPage className="live-quiz-room-page">
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} className="live-quiz-room-page">
       <div className="livequiz-room-header">
         <div className="livequiz-back-button">
           <BackButton
@@ -298,7 +298,7 @@ const LiveQuizRoom: React.FC = () => {
 
       <div className="join-button-container">
         {!!isDownloaded ? (
-          <IonButton
+          <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
             size="default"
             color="green"
             className="join-button"

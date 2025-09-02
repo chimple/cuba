@@ -16,7 +16,7 @@ interface CommonDialogProps {
 const CommonDialog: FC<CommonDialogProps> = ({ alertMsg, ionIcon }) => {
   return (
     <>
-      <IonIcon icon={ionIcon} id="alert"></IonIcon>
+      <IonIcon icon={ionIcon} id="alert" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}></IonIcon>
 
       <IonAlert
         header={alertMsg}

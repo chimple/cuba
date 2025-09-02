@@ -122,7 +122,7 @@ const DisplayStudents: FC<{}> = () => {
     history.replace(PAGES.CREATE_STUDENT, locationState);
   };
   return (
-    <IonPage id="display-students">
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} id="display-students">
       {/* <IonContent> */} 
       <div id="display-students-chimple-logo">
         <div id="display-students-parent-icon">

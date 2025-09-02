@@ -737,7 +737,7 @@ export class Util {
             directory: Directory.External,
           });
 
-          const decoded = atob(configFile.data); // base64 → string
+          const decoded = atob(configFile.data.toString()); // base64 → string
           const config = JSON.parse(decoded); // string → object
 
           if (config.uniqueId === uniqueId) {
@@ -2507,7 +2507,7 @@ export class Util {
           path: "remoteAsset/remoteBackground.svg",
           directory: Directory.External,
         });
-        const svgData = atob(result.data); // decode base64
+        const svgData = atob(result.data.toString()); // decode base64
 
         if (body) {
           body.style.backgroundImage = `url('data:image/svg+xml;utf8,${encodeURIComponent(svgData)}')`;

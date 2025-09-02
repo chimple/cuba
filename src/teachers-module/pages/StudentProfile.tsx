@@ -93,7 +93,7 @@ const StudentProfile: React.FC = () => {
   };
 
   return (
-    <IonPage className="student-profile-page">
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} className="student-profile-page">
       <div className="student-profile">
         <div className="fixed-header">
           <Header

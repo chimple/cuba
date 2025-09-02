@@ -5,18 +5,17 @@ const SubjectDropdown: React.FC<{ onChange: Function; value: string }> = ({
   value,
 }) => {
   return (
-    <IonList className="item">
-      <IonItem>
+    <IonList className="item" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+      <IonItem placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
         <IonSelect
           onIonChange={(e) => {
             onChange(e.detail.value);
-          }}
+          } }
           interface="popover"
           value={value}
-          placeholder="Select fruit"
-        >
+          placeholder="Select fruit" onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}        >
           {ALL_COURSES.map((m: any, i: number) => (
-            <IonSelectOption key={i} value={m}>
+            <IonSelectOption key={i} value={m} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
               {m}
             </IonSelectOption>
           ))}

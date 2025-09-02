@@ -3,7 +3,7 @@ import { IonPage } from "@ionic/react";
 
 const UploadPage: React.FC = () => {
   return (
-    <IonPage>
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
       <FileUpload />
     </IonPage>
   );

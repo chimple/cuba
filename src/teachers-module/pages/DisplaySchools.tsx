@@ -194,7 +194,7 @@ const DisplaySchools: FC = () => {
   }
   
   return (
-    <IonPage className="display-page">
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} className="display-page">
       {!loading && (
       <>
       <Header
@@ -221,14 +221,11 @@ const DisplaySchools: FC = () => {
       {schoolList.length === 0 && !loading ? (
         <div className="no-schools-container">
           <div className="create-school-button">
-            <IonFabButton
-              onClick={() =>
-                history.replace(PAGES.REQ_ADD_SCHOOL, {
-                  origin: PAGES.DISPLAY_SCHOOLS,
-                })
-              }
-            >
-              <IonIcon icon={addOutline} />
+            <IonFabButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
+                  onClick={() => history.replace(PAGES.REQ_ADD_SCHOOL, {
+                    origin: PAGES.DISPLAY_SCHOOLS,
+                  })}>
+              <IonIcon icon={addOutline} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
             </IonFabButton>
             <div className="create-new-school-text">
               {t("Create New School")}

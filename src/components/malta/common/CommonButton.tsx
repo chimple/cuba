@@ -17,7 +17,7 @@ const CommonButton: React.FC<CommonButtonProps> = ({
 }) => {
   return (
     <div className="buttoncontainerr">
-      <IonButton className="common-button"
+      <IonButton placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} className="common-button"
         disabled={disabled}
         onClick={onClicked}
         size="default"

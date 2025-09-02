@@ -350,7 +350,7 @@ const DisplaySubjects: FC<{}> = () => {
   }
 
   return (
-    <IonPage id="display-subjects-page">
+    <IonPage placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} id="display-subjects-page">
       <Loading isLoading={isLoading} />
       <div className="subjects-header">
         <div id="back-button-container">

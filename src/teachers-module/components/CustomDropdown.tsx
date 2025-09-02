@@ -35,26 +35,21 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({
     >
       <IonSelect
         value={selectedValue.id}
-        placeholder={selectProps.placeholder}
-        onIonChange={(e) =>
-          onOptionSelect(options.find((option) => option.id === e.detail.value)!)
-        }
+        onIonChange={(e) => onOptionSelect(options.find((option) => option.id === e.detail.value)!)}
         interface="popover" // or "action-sheet", "alert"
         className="customdropdown-select"
-        {...selectProps} 
-      >
+        {...selectProps}      >
         {options.map((option) => (
           <IonSelectOption
             key={option.id}
             value={option.id}
-            disabled={(option as any).disabled}
-          >
+            disabled={(option as any).disabled} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}          >
             {disableTranslation ? option.name : t(option.name)}
           </IonSelectOption>
         ))}
       </IonSelect>
       <div className="icon-container">
-        <IonIcon icon={caretDownSharp} />
+        <IonIcon icon={caretDownSharp} placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
       </div>
     </div>
   );

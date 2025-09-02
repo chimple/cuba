@@ -55,8 +55,7 @@ const ProfileCard: React.FC<{
         height: "auto",
         padding: userType ? "1.5% 1.5% 3% 1.5%" : "0% 0% 0% 0%",
       }}
-      onClick={() => {}}
-    >
+      onClick={() => { } } placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}    >
       <div id="profile-card-edit-icon-div">
         {userType ? (
           //Hiding the Student Edit icon for respect mode
