@@ -534,6 +534,7 @@ export class ClassUtil {
           startAt: string;
           endAt: string;
           belongsToClass: boolean;
+          courseId: string ;
         }
       >();
 
@@ -542,6 +543,7 @@ export class ClassUtil {
         startAt: this.formatDate(assignment.starts_at),
         endAt: assignment.ends_at ? this.formatDate(assignment.ends_at) : "",
         belongsToClass: belongsToClass,
+        courseId: assignment.course_id??"",
       });
 
       return assignmentMap;
