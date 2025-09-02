@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRive, Layout, Fit, Alignment, useStateMachineInput } from "@rive-app/react-canvas";
-import { CHIMPLE_RIVE_MAX, SHOULD_SHOW_REMOTE_ASSETS } from "../../common/constants";
+import { CHIMPLE_RIVE_STATE_MACHINE_MAX, SHOULD_SHOW_REMOTE_ASSETS } from "../../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { Filesystem, Directory } from "@capacitor/filesystem";
 
@@ -8,16 +8,16 @@ export default function ChimpleRiveMascot() {
 
   const should_show_remote_asset = (Capacitor.isNativePlatform() && localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS)==="true")? true : false;
 
-  const chimple_rive_max = localStorage.getItem(CHIMPLE_RIVE_MAX);
-  const [riveSrc, setRiveSrc] = useState<string>("/pathwayAssets/mascot_state_machine.riv");
+  const chimple_rive_state_machine_max = localStorage.getItem(CHIMPLE_RIVE_STATE_MACHINE_MAX);
+  const [riveSrc, setRiveSrc] = useState<string>("/pathwayAssets/chimpleRive.riv");
 
-  const MIN = 1;
-  const MAX = should_show_remote_asset
-    ? (chimple_rive_max ? parseInt(chimple_rive_max, 10) : 8)
+  const CHIMPLE_RIVE_STATE_MIN = 1;
+  const CHIMPLE_RIVE_STATE_MAX = should_show_remote_asset
+    ? (chimple_rive_state_machine_max ? parseInt(chimple_rive_state_machine_max, 10) : 8)
     : 8;
 
   const { rive, RiveComponent } = useRive({
-    src: should_show_remote_asset? riveSrc : "/pathwayAssets/mascot_state_machine.riv",
+    src: should_show_remote_asset? riveSrc : "/pathwayAssets/chimpleRive.riv",
     artboard: "Artboard",
     stateMachines: "State Machine 2",
     autoplay: true,
@@ -27,11 +27,11 @@ export default function ChimpleRiveMascot() {
     }),
   });
 
-  const numberInput = useStateMachineInput(rive, "State Machine 2", "Number 1", MIN);
+  const numberInput = useStateMachineInput(rive, "State Machine 2", "Number 1", CHIMPLE_RIVE_STATE_MIN);
   // Get today's date and map to state 1-MAX
   const today = new Date();
   const day = today.getDate();
-  const mappedState = ((day - 1) % MAX) + 1;
+  const mappedState = ((day - 1) % CHIMPLE_RIVE_STATE_MAX) + 1;
   const [value, setValue] = useState<number>(mappedState);
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export default function ChimpleRiveMascot() {
         // Read the file content and convert to base64 data URL
         const fileContent = await Filesystem.readFile({
           directory: Directory.External,
-          path: "remoteAsset/mascot_state_machine.riv"
+          path: "remoteAsset/chimpleRive.riv"
         });
         
         if (fileContent.data) {

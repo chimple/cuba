@@ -56,7 +56,7 @@ import {
   SCHOOL_LOGIN,
   SHOULD_SHOW_REMOTE_ASSETS,
   IS_OPS_USER,
-  CHIMPLE_RIVE_MAX,
+  CHIMPLE_RIVE_STATE_MACHINE_MAX,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -585,7 +585,7 @@ export class Util {
       const decoded = atob(configFile.data);
       const config = JSON.parse(decoded);
       if (typeof config.riveMax === "number") {
-        localStorage.setItem(CHIMPLE_RIVE_MAX, config.riveMax.toString());
+        localStorage.setItem(CHIMPLE_RIVE_STATE_MACHINE_MAX, config.riveMax.toString());
       }
       this.setGameUrl(androidPath);
       return true;
