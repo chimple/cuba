@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./LessonComponent.css"; // Assuming you have some basic styles
-import { COURSES, ENGLISH, TableTypes } from "../../../common/constants";
+import { COURSES,TableTypes } from "../../../common/constants";
 import SelectIconImage from "../../../components/displaySubjects/SelectIconImage";
 import SelectIcon from "../SelectIcon";
 import { t } from "i18next";

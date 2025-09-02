@@ -3,7 +3,7 @@ import "./ChapterContainer.css";
 import LessonComponent from "./LessonComponent";
 import KeyboardArrowDownTwoToneIcon from "@mui/icons-material/KeyboardArrowDownTwoTone";
 import KeyboardArrowUpTwoToneIcon from "@mui/icons-material/KeyboardArrowUpTwoTone";
-import { COURSES, ENGLISH, PAGES, TableTypes } from "../../../common/constants";
+import { COURSES, PAGES, TableTypes } from "../../../common/constants";
 import { string } from "prop-types";
 import { useHistory } from "react-router";
 import { t } from "i18next";

@@ -5,7 +5,6 @@ import {
   COCOS,
   CONTINUE,
   COURSES,
-  ENGLISH,
   LESSON_CARD_COLORS,
   LIDO,
   LIVE_QUIZ,

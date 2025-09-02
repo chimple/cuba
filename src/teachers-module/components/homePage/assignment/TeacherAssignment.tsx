@@ -3,7 +3,7 @@ import { useHistory } from "react-router";
 import "./TeacherAssignment.css";
 import { ServiceConfig } from "../../../../services/ServiceConfig";
 import SelectIconImage from "../../../../components/displaySubjects/SelectIconImage";
-import { AssignmentSource, CAMERAPERMISSION, COURSES, ENGLISH, PAGES, TableTypes } from "../../../../common/constants";
+import { AssignmentSource, CAMERAPERMISSION, COURSES, PAGES, TableTypes } from "../../../../common/constants";
 import { Util } from "../../../../utility/util";
 import { t } from "i18next";
 import { Toast } from "@capacitor/toast";

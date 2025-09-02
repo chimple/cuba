@@ -1,7 +1,7 @@
 import React from "react";
 import { t } from "i18next";
 import "./CourseComponent.css";
-import { COURSES, ENGLISH, TableTypes, belowGrade1, grade1 } from "../../../common/constants";
+import { COURSES, TableTypes, belowGrade1, grade1 } from "../../../common/constants";
 import SelectIconImage from "../../../components/displaySubjects/SelectIconImage";
 
 interface CourseComponentProps {
