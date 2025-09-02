@@ -89,20 +89,21 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
           borderRadius: "20px 0 0 0",
         }}
       >
-        <div className="profile-header-content" onClick={() => onEdit()}>
-          <HeaderIcon
-            headerConfig={{
-              displayName: student?.name ?? "Profile",
-              iconSrc:
-                student?.image ||
-                `/assets/avatars/${student?.avatar ?? AVATARS[0]}.png`,
-              headerList: HOMEHEADERLIST.HOME,
-            }}
-            currentHeader={currentHeader}
-            pendingAssignmentCount={0}
-            pendingLiveQuizCount={0}
-            onHeaderIconClick={() => {}}
+        <div
+          className={`profile-header-content ${
+            (student?.name?.length ?? 0) < 12
+              ? "profile-header-center"
+              : "profile-header-left"
+          }`}
+          onClick={() => onEdit()}
+        >
+          <img
+            src={student?.image || `/assets/avatars/${student?.avatar ?? AVATARS[0]}.png`}
+            alt="Profile"
           />
+          <span className="profile-header-name">
+            {student?.name ?? "Profile"}
+          </span>
         </div>
         <img
           src="/assets/icons/CrossIcon.svg"
