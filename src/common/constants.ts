@@ -979,3 +979,4 @@ export interface CoordinatorAPIResponse {
   data: CoordinatorInfo[];
   total: number;
 }
+export const CHIMPLE_RIVE_STATE_MACHINE_MAX= "chimple_rive_state_machine_max";

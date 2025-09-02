@@ -4,6 +4,7 @@ import { useHistory } from "react-router-dom";
 import {
   COCOS,
   CONTINUE,
+  COURSES,
   LESSON_CARD_COLORS,
   LIDO,
   LIVE_QUIZ,
@@ -169,7 +170,7 @@ const LessonCard: React.FC<{
                 lessonId: lesson.cocos_lesson_id,
                 courseDocId:
                   course?.id ??
-                  assignment?.course_id??
+                  assignment?.course_id ??
                   // lesson.courseId ??
                   currentCourse?.id,
                 course: JSON.stringify(currentCourse!),
@@ -234,7 +235,10 @@ const LessonCard: React.FC<{
         >
           <div
             style={{
-              background: (lesson?.color && lesson.color !== "null") ? lesson.color : lessonCardColor,
+              background:
+                lesson?.color && lesson.color !== "null"
+                  ? lesson.color
+                  : lessonCardColor,
               borderRadius: "7vh",
               width: width,
               height: height,
@@ -268,7 +272,12 @@ const LessonCard: React.FC<{
 
             {showSubjectName && currentCourse?.name ? (
               <div id="lesson-card-subject-name">
-                <p className="ignore">{lesson.name} </p>
+                <p className="ignore">
+                  {course?.code === COURSES.ENGLISH
+                    ? lesson?.name
+                    : t(lesson?.name ?? "")}
+                </p>
+
                 <p>
                   {currentCourse?.name}
                   {/* {subject.title==="English"?subject.title:t(subject.title)} */}
@@ -354,12 +363,16 @@ const LessonCard: React.FC<{
         <div>
           {showText ? (
             <p id={`lesson-card-name${isLoved ? "-fav-icon" : ""}`}>
-              {t(lesson?.name ?? "")}
+              {course?.code === COURSES.ENGLISH
+                ? lesson?.name
+                : t(lesson?.name ?? "")}
             </p>
           ) : null}
           {showChapterName && chapter?.name && (
             <div id={`chapter-title${isLoved ? "-fav-icon" : ""}`}>
-              {chapter?.name}
+              {course?.code === COURSES.ENGLISH
+                ? chapter?.name
+                : t(chapter?.name)}
             </div>
           )}
         </div>

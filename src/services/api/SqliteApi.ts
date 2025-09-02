@@ -2274,7 +2274,25 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
-
+  async getCourses(courseIds: string[]): Promise<TableTypes<"course">[]> {
+    if (!courseIds || courseIds.length === 0) {
+      return [];
+    }
+  
+    // create placeholders (?, ?, ?) based on number of courseIds
+    const placeholders = courseIds.map(() => "?").join(",");
+  
+    const query = `
+      SELECT *
+      FROM ${TABLES.Course}
+      WHERE id IN (${placeholders})
+        AND is_deleted = 0
+    `;
+  
+    const res = await this._db?.query(query, courseIds);
+    return res?.values ?? [];
+  }
+  
   async getStudentResult(
     studentId: string,
     fromCache?: boolean

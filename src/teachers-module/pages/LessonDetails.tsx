@@ -177,7 +177,11 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
               {course ? course.name : ""}{" "}
               {isGrade1 ? `${t("Grade")} ${isGrade1 === true ? "1" : "2"}` : ""}
             </div>
-            <div className="lesson-info-text">{lesson.name}</div>
+            <div className="lesson-info-text">
+               {course && course.name === "ENGLISH"
+               ? lesson.name  // don’t translate
+                : t(lesson.name??"")}  {/* translate */}   
+            </div>
             <div className="lesson-info-text">
               {" "}
               {lesson.plugin_type === "cocos"
