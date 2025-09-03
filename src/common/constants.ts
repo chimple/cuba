@@ -326,7 +326,7 @@ export const HEADER_ICON_CONFIGS: Map<HOMEHEADERLIST, HeaderIconConfig> =
         headerList: HOMEHEADERLIST.SUBJECTS,
       },
     ],
-    
+
     // [
     //   HOMEHEADERLIST.CHALLENGES,
     //   {
@@ -577,6 +577,7 @@ export interface PortPlugin {
   }): Promise<void>;
   shareUserId(options: { userId: string }): Promise<void>;
   saveProceesedXlsxFile(options: { fileData: string }): Promise<void>;
+  sendLaunchData(): any;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [

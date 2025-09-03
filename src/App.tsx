@@ -182,7 +182,6 @@ const App: React.FC = () => {
     localStorage.setItem("isRespectMode", "true");
     const authHandler = ServiceConfig.getI().authHandler;
     const isUserLoggedIn = await authHandler.isUserLoggedIn();
-    const portPlugin = registerPlugin<any>("Port");
       try {
         handleLessonClick(null,true,undefined,true);
       } catch (e) {
@@ -190,38 +189,7 @@ const App: React.FC = () => {
       }
       if (!isUserLoggedIn) {
       Util.isDeepLinkPending = true;
-      let appLang = localStorage.getItem(LANGUAGE) ?? 'en';
-      const data = await portPlugin.sendLaunchData();
-      const actorObj = typeof data.actor === "string" ? JSON.parse(data.actor) : data.actor;
-
-      const actorName = actorObj.name?.[0] || "";
-      const actorMbox = actorObj.mbox?.[0] || "";
-      const registration = data.registration;
-
-      const user: TableTypes<"user"> = {
-        age: null,
-        avatar: "Aligator",
-        created_at: "null",
-        curriculum_id: "7d560737-746a-4931-a49f-02de1ca526bd",
-        email: actorMbox,
-        fcm_token: null,
-        gender: "male",
-        grade_id: "c802dce7-0840-4baf-b374-ef6cb4272a76",
-        id: registration,
-        image: null,
-        is_deleted: null,
-        is_tc_accepted: true,
-        language_id: appLang,
-        music_off: (Util.getCurrentMusic() === 0),
-        name: actorName,
-        phone: null,
-        sfx_off: (Util.getCurrentSound() === 0),
-        student_id: registration,
-        updated_at: null,
-        learning_path: Util.getCurrentStudent()?.learning_path
-      };
-      ServiceConfig.getI().authHandler.currentUser = user;
-      localStorage.setItem(CURRENT_USER, JSON.stringify(user));
+      await ServiceConfig.getI().apiHandler.saveCurrentUser();
       await Toast.show({
         text: t("User not logged in. Logging in the user..."),
         duration: "long",
@@ -232,12 +200,12 @@ const App: React.FC = () => {
   useEffect(() => {
     console.log("App.tsx called");
     const checkDeeplink = async () => {
-      const portPlugin = registerPlugin<any>("Port");
+      const portPlugin = registerPlugin<PortPlugin>("Port");
       document.addEventListener(TRIGGER_DEEPLINK, sendLaunch);
       const data = await portPlugin.sendLaunchData();
       if (data.registration) {
         document.dispatchEvent(new Event(TRIGGER_DEEPLINK));
-      } else if (localStorage.getItem("isRespectMode") === "true"){
+      } else if (Util.isRespectMode === true) {
         ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
       }
     };
@@ -441,7 +409,7 @@ const App: React.FC = () => {
   };
   const getNotificationData = async () => {
     if (Capacitor.isNativePlatform()) {
-      if (!Util.port) Util.port = registerPlugin<any>("Port");
+      if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
       if (Util.port && typeof Util.port.fetchNotificationData === "function") {
         try {
           const data = await Util.port.fetchNotificationData();

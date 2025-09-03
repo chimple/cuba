@@ -3125,7 +3125,7 @@ export class SqliteApi implements ServiceApi {
     const query = `
       SELECT DISTINCT l.*
       FROM ${TABLES.FavoriteLesson} fl
-      JOIN ${TABLES.Lesson} l 
+      JOIN ${TABLES.Lesson} l
         ON fl.lesson_id = l.id
       WHERE fl.user_id = '${userId}'
       ORDER BY fl.created_at DESC
@@ -4611,7 +4611,7 @@ order by
     this.deleteOldDebugInfoData();
 
     const query = `
-    SELECT 
+    SELECT
       parent_id,
       SUM(No_of_pushed) AS total_pushed,
       SUM(No_of_pulled) AS total_pulled,
@@ -4738,5 +4738,8 @@ order by
       console.error("Error fetching chapter by QR link:", error);
       return;
     }
+  }
+  saveCurrentUser(): void | PromiseLike<void> {
+    throw new Error("Method not implemented.");
   }
 }
