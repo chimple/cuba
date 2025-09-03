@@ -173,8 +173,6 @@ const NewUserPage: React.FC = () => {
     const iti = intlTelInput(phoneInputRef.current, {
       initialCountry: "in",
       separateDialCode: true,
-      // utilsScript:
-      //   "https://cdn.jsdelivr.net/npm/intl-tel-input/build/js/utils.js",
     });
 
     const handleCountryChange = () => {
