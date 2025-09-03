@@ -32,7 +32,7 @@ export const useHandleLessonClick = (customHistory) => {
       const params = `?courseid=${lesson?.cocos_subject_code}&chapterid=${lesson?.cocos_chapter_code}&lessonid=${lesson?.cocos_lesson_id}`;
       Util.isDeepLink = true;
 
-        customHistory.replace(PAGES.GAME + params, {
+        customHistory.push(PAGES.GAME + params, {
           url: "chimple-lib/index.html" + params,
           lessonId: lesson?.cocos_lesson_id,
           courseDocId: lesson?.subject_id,
