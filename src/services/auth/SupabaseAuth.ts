@@ -9,6 +9,7 @@ import {
   TABLES,
   TableTypes,
   USER_DATA,
+  CURRENT_STUDENT,
   CURRENT_SCHOOL,
   MODES,
   SCHOOL_LOGIN,
@@ -35,9 +36,6 @@ export class SupabaseAuth implements ServiceAuth {
     throw new Error("Method not implemented.");
   }
 
-  clearCurrentUser(): void {
-    this._currentUser = undefined;
-  }
   public static getInstance(): SupabaseAuth {
     if (!SupabaseAuth.i) {
       SupabaseAuth.i = new SupabaseAuth();
@@ -404,8 +402,8 @@ export class SupabaseAuth implements ServiceAuth {
   }
 
   async logOut(): Promise<void> {
-    // throw new Error("Method not implemented.");
     await this._auth?.signOut();
     this._currentUser = undefined;
+    localStorage.removeItem(CURRENT_STUDENT);
   }
 }
