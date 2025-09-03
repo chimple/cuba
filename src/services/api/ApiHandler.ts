@@ -1077,7 +1077,7 @@ export class ApiHandler implements ServiceApi {
   public async getChapterIdbyQrLink(link:string): Promise<TableTypes<"chapter_links"> | undefined> {
     return await this.s.getChapterIdbyQrLink(link);
   }
-  public async saveCurrentUser(): Promise<void> {
-    return await this.s.saveCurrentUser();
+  public async createDeeplinkUser(): Promise<void> {
+    return await this.s.createDeeplinkUser();
   }
 }

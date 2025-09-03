@@ -2859,7 +2859,7 @@ export class OneRosterApi implements ServiceApi {
     return undefined;
   }
 
-  async saveCurrentUser(): Promise<void> {
+  async createDeeplinkUser(): Promise<void> {
     let appLang = localStorage.getItem(LANGUAGE) ?? 'en';
     const portPlugin = registerPlugin<PortPlugin>('Port');
     const data = await portPlugin.sendLaunchData();

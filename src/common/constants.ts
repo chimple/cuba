@@ -577,7 +577,13 @@ export interface PortPlugin {
   }): Promise<void>;
   shareUserId(options: { userId: string }): Promise<void>;
   saveProceesedXlsxFile(options: { fileData: string }): Promise<void>;
-  sendLaunchData(): any;
+  sendLaunchData(): Promise<{
+    endpoint: string;
+    auth: string;
+    actor: string;
+    registration: string;
+    lessonId: string;
+  }>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [

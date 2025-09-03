@@ -189,7 +189,7 @@ const App: React.FC = () => {
       }
       if (!isUserLoggedIn) {
       Util.isDeepLinkPending = true;
-      await ServiceConfig.getI().apiHandler.saveCurrentUser();
+      await ServiceConfig.getI().apiHandler.createDeeplinkUser();
       await Toast.show({
         text: t("User not logged in. Logging in the user..."),
         duration: "long",

@@ -4739,7 +4739,7 @@ order by
       return;
     }
   }
-  saveCurrentUser(): void | PromiseLike<void> {
+  createDeeplinkUser(): void | PromiseLike<void> {
     throw new Error("Method not implemented.");
   }
 }
