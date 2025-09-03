@@ -852,7 +852,7 @@ export class OneRosterApi implements ServiceApi {
       if (current_user) {
         current_user.learning_path = learning_path;
         // Persist to localStorage for testing
-        localStorage.setItem("CURRENT_STUDENT", JSON.stringify(current_user));
+        localStorage.setItem(CURRENT_STUDENT, JSON.stringify(current_user));
       }
       // const updateUserQuery = `UPDATE ${TABLES.User}
       // SET learning_path = ?

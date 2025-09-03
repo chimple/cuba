@@ -29,7 +29,7 @@ import { App } from "@capacitor/app";
 import { Util } from "../../utility/util";
 import { Capacitor } from "@capacitor/core";
 import { CollectionIds } from "../../common/courseConstants";
-import { ACTION, APP_URL_OPEN, EVENTS, LANGUAGE, TableTypes } from "../../common/constants";
+import { CURRENT_STUDENT, ACTION, APP_URL_OPEN, EVENTS, LANGUAGE, TableTypes } from "../../common/constants";
 import { ServiceConfig } from "../ServiceConfig";
 import { getFunctions, httpsCallable } from "firebase/functions";
 
@@ -536,6 +536,7 @@ export class FirebaseAuth implements ServiceAuth {
     await FirebaseAuthentication.signOut();
     await this._auth.signOut();
     this._currentUser = undefined;
+    localStorage.removeItem(CURRENT_STUDENT);
   }
 
   async refreshSession(): Promise<void> {
