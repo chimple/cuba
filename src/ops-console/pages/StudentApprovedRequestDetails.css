@@ -44,7 +44,8 @@
   color: #26244d;
   letter-spacing: 0.03rem;
   margin-bottom: 1.2rem;
-  font-weight: 600;
+  font-weight: 700 !important;
+  font-family: Roboto;
   font-size: 1.25rem;
 }
 .student-approved-request-details-divider {
@@ -61,22 +62,10 @@
   font-weight: 500;
   margin-bottom: 0.3em;
 }
-.student-approved-request-details-value {
-  font-size: 1.13rem;
-  color: #232323;
-  font-weight: 600;
-  padding-left: 0.05em;
-  word-break: break-all;
-}
 .student-approved-request-details-label-sm {
   font-size: 0.95rem;
   color: #555;
   font-weight: 500;
-}
-.student-approved-request-details-value-sm {
-  font-size: 1.06rem;
-  color: #222;
-  font-weight: 600;
 }
 .student-approved-request-details-label-row {
   display: flex;

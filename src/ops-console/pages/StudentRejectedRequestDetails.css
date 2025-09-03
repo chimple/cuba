@@ -50,7 +50,8 @@
   color: #26244d;
   letter-spacing: 0.03rem;
   margin-bottom: 1.2rem;
-  font-weight: 600;
+  font-weight: 700 !important;
+  font-family: Roboto;
   font-size: 1.25rem;
 }
 
@@ -77,11 +78,6 @@
   font-size: 0.95rem;
   color: #555;
   font-weight: 500;
-}
-.student-rejected-request-details-value-sm {
-  font-size: 1.06rem;
-  color: #222;
-  font-weight: 600;
 }
 
 .student-rejected-request-details-label-row {
@@ -117,11 +113,6 @@
 .student-rejected-request-details-label-reject {
   color: #b12424 !important;
   font-weight: 500;
-}
-.student-rejected-request-details-value-reject {
-  color: #b12424 !important;
-  font-family: inherit;
-  font-weight: 600;
 }
 
 @media (max-width: 1200px) {

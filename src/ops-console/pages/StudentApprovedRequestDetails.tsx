@@ -95,18 +95,18 @@ const StudentApprovedRequestDetails = () => {
         variant="h4"
         className="student-approved-request-details-page-title"
       >
-        {t("requests")}
+        {t("Requests")}
       </Typography>
       <div className="student-approved-request-details-breadcrumbs">
         <span
           onClick={() => history.push(PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST)}
           className="student-approved-request-details-link"
         >
-          {t("requests")}
+          {t("Requests")}
         </span>
         <span>&gt;</span>
         <span className="student-approved-request-details-active">
-          {t("requestId")} - {id}
+          {t("RequestId")} - {id}
         </span>
       </div>
       <Grid
@@ -123,77 +123,63 @@ const StudentApprovedRequestDetails = () => {
               variant="h6"
               className="student-approved-request-details-card-title"
             >
-              {t("requestId")} - {id}
+              {t("Request Id")} - {id}
             </Typography>
             <Divider className="student-approved-request-details-divider" />
 
             <div className="student-approved-request-details-field-stack">
               <div className="student-approved-request-details-label">
-                {t("schoolName")}
+                {t("School Name")}
               </div>
-              <div className="student-approved-request-details-value">
-                {school.name || "-"}
-              </div>
+              <div>{school.name || "-"}</div>
             </div>
             <div className="student-approved-request-details-field-stack">
               <div className="student-approved-request-details-label">
-                {t("schoolIdUdise")}
+                {t("School Id (UDISE)")}
               </div>
-              <div className="student-approved-request-details-value">
-                {school.udise || "N/A"}
-              </div>
+              <div>{school.udise || "N/A"}</div>
             </div>
             <Divider className="student-approved-request-details-divider" />
 
             <div className="student-approved-request-details-flex-row">
               <div className="student-approved-request-details-field-stack student-approved-request-details-mr">
                 <div className="student-approved-request-details-label">
-                  {t("city")}
+                  {t("City")}
                 </div>
-                <div className="student-approved-request-details-value">
-                  {school.group2 || "N/A"}
-                </div>
+                <div>{school.group2 || "N/A"}</div>
               </div>
               <div className="student-approved-request-details-field-stack">
                 <div className="student-approved-request-details-label">
-                  {t("state")}
+                  {t("State")}
                 </div>
-                <div className="student-approved-request-details-value">
-                  {school.group1 || "N/A"}
-                </div>
+                <div>{school.group1 || "N/A"}</div>
               </div>
             </div>
             <div className="student-approved-request-details-field-stack">
               <div className="student-approved-request-details-label">
-                {t("district")}
+                {t("District")}
               </div>
-              <div className="student-approved-request-details-value">
-                {school.group3 || "N/A"}
-              </div>
+              <div>{school.group3 || "N/A"}</div>
             </div>
             <Divider className="student-approved-request-details-divider" />
             <Typography
               variant="h6"
               className="student-approved-request-details-card-title"
             >
-              {t("requestDetails")}
+              {t("Request Details")}
             </Typography>
             <Grid container spacing={1}>
               <Grid item xs={6}>
                 <div className="student-approved-request-details-label-sm">
-                  {t("requestFor")}
+                  {t("Request For")}
                 </div>
-                <div className="student-approved-request-details-value-sm">
-                  {requestDetails.request_type || "-"}
-                </div>
+                <div>{requestDetails.request_type || "-"}</div>
               </Grid>
               <Grid item xs={6}>
                 <div className="student-approved-request-details-label-sm">
-                  {t("requestedOn")}
+                  {t("Requested On")}
                 </div>
-                <div className="student-approved-request-details-value-sm">
-                  {formatDT(requestDetails.created_at)}
-                </div>
+                <div>{formatDT(requestDetails.created_at)}</div>
               </Grid>
             </Grid>
           </Paper>
@@ -206,15 +192,15 @@ const StudentApprovedRequestDetails = () => {
               variant="h6"
               className="student-approved-request-details-card-title"
             >
-              {t("approvedDetails")}
+              {t("Approved Details")}
             </Typography>
             <Divider className="student-approved-request-details-divider" />
             <div className="student-approved-request-details-label-row">
-              <span>{t("approvedBy")}</span>
+              <span>{t("Approved By")}</span>
               <span>{approvedBy.name || "-"}</span>
             </div>
             <div className="student-approved-request-details-label-row">
-              <span>{t("approvedOn")}</span>
+              <span>{t("Approved On")}</span>
               <span>{formatDT(requestDetails.updated_at)}</span>
             </div>
           </Paper>
@@ -224,24 +210,24 @@ const StudentApprovedRequestDetails = () => {
               variant="h6"
               className="student-approved-request-details-card-title"
             >
-              {t("requestFrom")}
+              {t("Request From")}
             </Typography>
             <Divider className="student-approved-request-details-divider" />
             <div className="student-approved-request-details-field-stack">
               <div className="student-approved-request-details-label">
-                {t("name")}
+                {t("Name")}
               </div>
               <div>{requestedBy.name || "N/A"}</div>
             </div>
             <div className="student-approved-request-details-field-stack">
               <div className="student-approved-request-details-label">
-                {t("phoneNumber")}
+                {t("Phone Number")}
               </div>
               <div>{requestedBy.phone_number || "N/A"}</div>
             </div>
             <div className="student-approved-request-details-field-stack">
               <div className="student-approved-request-details-label">
-                {t("emailId")}
+                {t("Email Id")}
               </div>
               <div>{requestedBy.email || "N/A"}</div>
             </div>
