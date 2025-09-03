@@ -568,7 +568,7 @@
   "Password": "ಗುಪ್ತಪದ",
   "Passwords do not match.": "ಗುಪ್ತಪದಗಳು ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ.",
   "Penguin": "ಪೆಂಗ್ವಿನ್",
-  "Phone number cannot be more than 10 digits.": "ಫೋನ್ ಸಂಖ್ಯೆ 10 ಅಂಕಿಗಿಂತ ಹೆಚ್ಚಿರಬಾರದು.",
+  "Phone number must be 10 digits.": "ಫೋನ್ ಸಂಖ್ಯೆಯಲ್ಲಿ 10 ಅಂಕೆಗಳು ಇರಬೇಕು.",
   "Phone number not available": "ಫೋನ್ ಸಂಖ್ಯೆ ಲಭ್ಯವಿಲ್ಲ",
   "phone": "ಫೋನ್",
   "Phone": "ಫೋನ್",

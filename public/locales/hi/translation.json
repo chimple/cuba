@@ -736,7 +736,7 @@
   "Password": "पासवर्ड",
   "Passwords do not match.": "पासवर्ड मेल नहीं खाते हैं।",
   "Penguin": "पेंगुइन",
-  "Phone number cannot be more than 10 digits.": "फोन नंबर 10 अंकों से अधिक नहीं हो सकता है।",
+  "Phone number must be 10 digits.": "फ़ोन नंबर 10 अंकों का होना चाहिए।",
   "Phone number not available": "फ़ोन नंबर उपलब्ध नहीं है",
   "Phone Number signin Failed. Please try again later.": "फ़ोन नंबर द्वारा  साइनअप विफल. हुवा है  कृपया बाद में पुन: प्रयास करें।",
   "phone": "फोन",

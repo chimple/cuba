@@ -706,7 +706,7 @@
   "Password": "Password",
   "Passwords do not match.": "Passwords do not match.",
   "Penguin": "Penguin",
-  "Phone number cannot be more than 10 digits.": "Phone number cannot be more than 10 digits.",
+  "Phone number must be 10 digits.": "Phone number must be 10 digits.",
   "Phone number not available": "Phone number not available",
   "Phone Number signin Failed. Please try again later.": "Phone Number signin Failed. Please try again later.",
   "phone": "Phone",

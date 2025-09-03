@@ -560,7 +560,7 @@
   "Password": "संकेतशब्द",
   "Passwords do not match.": "पासवर्ड जुळत नाहीत.",
   "Penguin": "पेंग्विन",
-  "Phone number cannot be more than 10 digits.": "फोन नंबर 10 आकड्यांपेक्षा जास्त नसावा.",
+  "Phone number must be 10 digits.": "फोन नंबर 10 अंकांचा असावा.",
   "Phone number not available": "फोन नंबर उपलब्ध नाही",
   "Phone Number signin Failed. Please try again later.": "फोन नंबर साइन इन अयशस्वी. कृपया नंतर पुन्हा प्रयत्न करा.",
   "phone": "फोन",
