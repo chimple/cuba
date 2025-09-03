@@ -47,7 +47,6 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
   const auth = ServiceConfig.getI().authHandler;
 
   useEffect(() => {
-    console.log("Alokkkooookk")
     init();
   }, []);
 
