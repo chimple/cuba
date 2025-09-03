@@ -34,6 +34,10 @@ export class SupabaseAuth implements ServiceAuth {
   refreshSession(): Promise<void> {
     throw new Error("Method not implemented.");
   }
+
+  clearCurrentUser(): void {
+    this._currentUser = undefined;
+  }
   public static getInstance(): SupabaseAuth {
     if (!SupabaseAuth.i) {
       SupabaseAuth.i = new SupabaseAuth();
