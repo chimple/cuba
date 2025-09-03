@@ -69,4 +69,5 @@ export interface ServiceAuth {
    * @returns A promise that resolves to `true` if the update was successful, otherwise `false`.
    */
   updateUser(attributes: UserAttributes): Promise<boolean>;
+  clearCurrentUser(): void;
 }

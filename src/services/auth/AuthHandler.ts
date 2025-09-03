@@ -72,7 +72,8 @@ export class AuthHandler implements ServiceAuth {
   }
 
   async logOut(): Promise<void> {
-    return await this.s.logOut();
+    await this.s.logOut();
+    this.s.clearCurrentUser();
   }
 
   async doRefreshSession(): Promise<void> {
@@ -93,6 +94,10 @@ export class AuthHandler implements ServiceAuth {
 
   async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
     return await this.s.loginWithRespect();
+  }
+
+  clearCurrentUser(): void {
+    this.s.clearCurrentUser();
   }
 
   public switchMode(newMode: APIMode) {

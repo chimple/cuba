@@ -26,6 +26,9 @@ export class OneRosterAuth implements ServiceAuth {
     throw new Error("Method not implemented.");
   }
 
+  clearCurrentUser(): void {
+    this._currentUser = undefined;
+  }
   async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
     try {
       if (Capacitor.isNativePlatform()) {
