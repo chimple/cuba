@@ -179,10 +179,10 @@ const App: React.FC = () => {
 
   const sendLaunch = async () => {
     ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
-    const authHandler = ServiceConfig.getI()?.authHandler;
-    const isUserLoggedIn = await authHandler?.isUserLoggedIn();
+    localStorage.setItem("isRespectMode", "true");
+    const authHandler = ServiceConfig.getI().authHandler;
+    const isUserLoggedIn = await authHandler.isUserLoggedIn();
     const portPlugin = registerPlugin<any>("Port");
-
       try {
         handleLessonClick(null,true,undefined,true);
       } catch (e) {
@@ -194,11 +194,8 @@ const App: React.FC = () => {
       const data = await portPlugin.sendLaunchData();
       const actorObj = typeof data.actor === "string" ? JSON.parse(data.actor) : data.actor;
 
-      // Get actor name and mbox
-      const actorName = actorObj.name?.[0] || ""; // First name in array
-      const actorMbox = actorObj.mbox?.[0] || ""; // First mbox in array
-
-      // Get registration
+      const actorName = actorObj.name?.[0] || "";
+      const actorMbox = actorObj.mbox?.[0] || "";
       const registration = data.registration;
 
       const user: TableTypes<"user"> = {
@@ -234,8 +231,17 @@ const App: React.FC = () => {
 
   useEffect(() => {
     console.log("App.tsx called");
-    document.addEventListener(TRIGGER_DEEPLINK, sendLaunch);
-    document.dispatchEvent(new Event(TRIGGER_DEEPLINK));
+    const checkDeeplink = async () => {
+      const portPlugin = registerPlugin<any>("Port");
+      document.addEventListener(TRIGGER_DEEPLINK, sendLaunch);
+      const data = await portPlugin.sendLaunchData();
+      if (data.registration) {
+        document.dispatchEvent(new Event(TRIGGER_DEEPLINK));
+      } else if (localStorage.getItem("isRespectMode") === "true"){
+        ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
+      }
+    };
+    checkDeeplink();
     const cleanup = initializeClickListener();
     const handleOnline = () => {
       if (!online) {
