@@ -37,6 +37,7 @@ import {
   updateLocalAttributes,
   useGbContext,
 } from "../../../growthbook/Growthbook";
+import { ClearCacheData } from "../../../components/parent/DataClear";
 
 const SideMenu: React.FC<{
   handleManageSchoolClick: () => void;
@@ -295,6 +296,7 @@ const SideMenu: React.FC<{
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.removeItem(CURRENT_USER);
     localStorage.removeItem(CURRENT_MODE);
+    await ClearCacheData();
     history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };

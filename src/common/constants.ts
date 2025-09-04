@@ -982,4 +982,26 @@ export interface CoordinatorAPIResponse {
   data: CoordinatorInfo[];
   total: number;
 }
-export const CHIMPLE_RIVE_STATE_MACHINE_MAX= "chimple_rive_state_machine_max";
+export const CHIMPLE_RIVE_STATE_MACHINE_MAX = "chimple_rive_state_machine_max";
+
+export const CACHE_TABLES_TO_CLEAR = [
+  "school",
+  "class",
+  "user",
+  "class_invite_code",
+  "class_user",
+  "favorite_lesson",
+  "class_course",
+  "parent_user",
+  "school_course",
+  "school_user",
+  "user_badge",
+  "user_bonus",
+  "user_course",
+  "user_sticker",
+  "assignment",
+  "assignment_user",
+  "result",
+  "program",
+] as const;
+export type CACHETABLES = (typeof CACHE_TABLES_TO_CLEAR)[number];

@@ -42,6 +42,7 @@ import {
   CoordinatorAPIResponse,
   EVENTS,
   EnumType,
+  CACHETABLES,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -2278,21 +2279,21 @@ export class SqliteApi implements ServiceApi {
     if (!courseIds || courseIds.length === 0) {
       return [];
     }
-  
+
     // create placeholders (?, ?, ?) based on number of courseIds
     const placeholders = courseIds.map(() => "?").join(",");
-  
+
     const query = `
       SELECT *
       FROM ${TABLES.Course}
       WHERE id IN (${placeholders})
         AND is_deleted = 0
     `;
-  
+
     const res = await this._db?.query(query, courseIds);
     return res?.values ?? [];
   }
-  
+
   async getStudentResult(
     studentId: string,
     fromCache?: boolean
@@ -6189,5 +6190,19 @@ order by
     `;
     const result = await this._db.query(query, [...params, limit, offset]);
     return { data: result?.values ?? [], total };
+  }
+  async clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
+    if (!this._db) return;
+    const query = `PRAGMA foreign_keys=OFF;`;
+    const result = await this._db?.query(query);
+    console.log(result);
+    for (const table of tableNames) {
+      const tableDel = `DELETE FROM "${table}";`;
+      const res = await this._db.query(tableDel);
+      console.log(res);
+    }
+    const vaccum = `VACUUM;`;
+    const resv = await this._db.query(vaccum);
+    console.log(resv);
   }
 }

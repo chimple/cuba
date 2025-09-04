@@ -17,6 +17,7 @@ import {
 } from "../../common/constants";
 import { Capacitor } from "@capacitor/core";
 import { Util } from "../../utility/util";
+import { ClearCacheData } from "./DataClear";
 
 const ParentLogout: React.FC<{}> = ({}) => {
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -31,6 +32,7 @@ const ParentLogout: React.FC<{}> = ({}) => {
     localStorage.removeItem(CURRENT_USER);
     localStorage.removeItem(CURRENT_MODE);
     localStorage.removeItem(SCHOOL_LOGIN);
+    await ClearCacheData();
     history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };
