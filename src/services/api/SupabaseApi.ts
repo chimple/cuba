@@ -7670,11 +7670,9 @@ export class SupabaseApi implements ServiceApi {
           .select("*")
           .eq("is_deleted", false)
           .eq("request_status", requestStatus)
-          .eq("request_type", RequestTypes.STUDENT)
-          // .or(
-          //   `request_type.neq.student,and(request_type.eq.student,request_ends_at.gt.${now})`
-          // )
-          // .order("created_at", { ascending: false })
+          .or(
+            `request_type.neq.student,and(request_type.eq.student,request_ends_at.gt.${now})`
+          )
           .range(offset, offset + limit - 1);
 
         pendingQuery = await applyFilters(pendingQuery);
