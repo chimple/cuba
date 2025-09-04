@@ -29,20 +29,33 @@ export const useHandleLessonClick = () => {
     if (true) {
       const lesson = await api.getLesson(data.lessonId);
       console.log("lesson object --> ", JSON.stringify(lesson, null, 2));
+      if (!lesson) {
+        console.error("Lesson not found");
+        return;
+      }
+      let coursesForLesson: any[] = [];
+      try {
+        if (lesson.id) {
+          coursesForLesson = await api.getCoursesFromLesson(lesson.id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch courses for lesson:", error);
+      }
+      const resolvedCourseId = coursesForLesson.length > 0 ? coursesForLesson[0].id : lesson.cocos_subject_code;
 
-      const params = `?courseid=${lesson?.cocos_subject_code}&chapterid=${lesson?.cocos_chapter_code}&lessonid=${lesson?.cocos_lesson_id}`;
+      const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
       Util.isDeepLink = true;
 
-        history.push(PAGES.GAME + params, {
-          url: "chimple-lib/index.html" + params,
-          lessonId: lesson?.cocos_lesson_id,
-          courseDocId: lesson?.subject_id,
-          from: history.location.pathname + `?${CONTINUE}=true`,
-        });
+      history.push(PAGES.GAME + params, {
+        url: "chimple-lib/index.html" + params,
+        lessonId: lesson.cocos_lesson_id,
+        courseDocId: resolvedCourseId,
+        from: history.location.pathname + `?${CONTINUE}=true`,
+      });
 
       console.log("LessonCard course:", JSON.stringify(history));
 
-     }
+    }
   };
 };
 
