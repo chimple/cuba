@@ -2980,7 +2980,6 @@ export class SupabaseApi implements ServiceApi {
         parent,
       };
     });
-    console.log("class students info", studentInfoList);
     return {
       data: studentInfoList,
       total: count ?? 0,
@@ -3015,9 +3014,7 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error fetching student and parent by student ID:", error);
       return { user: null, parents: [] };
     }
-    console.log("student with parents", data);
     const parents = (data.parent_links || []).map((link: any) => link.parent);
-    console.log("extracted parents", parents);
 
     return {
       user: data,

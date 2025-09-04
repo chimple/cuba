@@ -20,34 +20,8 @@ import { DEFAULT_PAGE_SIZE, PAGES, REQUEST_TABS } from "../../common/constants";
 import "./StudentPendingRequest.css";
 import { Constants } from "../../services/database";
 import { useTranslation } from "react-i18next";
+import { OpsUtil } from "../OpsUtility/OpsUtil";
 
-function parseClassName(className: string): { grade: number; section: string } {
-  const cleanedName = className.trim();
-  if (!cleanedName) {
-    return { grade: 0, section: "" };
-  }
-
-  let grade = 0;
-  let section = "";
-
-  const numericMatch = cleanedName.match(/^(\d+)$/);
-  if (numericMatch) {
-    grade = parseInt(numericMatch[1], 10);
-    return { grade: isNaN(grade) ? 0 : grade, section: "" };
-  }
-
-  const alphanumericMatch = cleanedName.match(/(\d+)\s*(\w+)/i);
-  if (alphanumericMatch) {
-    grade = parseInt(alphanumericMatch[1], 10);
-    section = alphanumericMatch[2];
-    return { grade: isNaN(grade) ? 0 : grade, section };
-  }
-
-  console.warn(
-    `--- parseClassName: Could not parse grade from class name: "${cleanedName}". Assigning grade 0.`
-  );
-  return { grade: 0, section: cleanedName };
-}
 
 const StudentPendingRequestDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -202,7 +176,7 @@ const StudentPendingRequestDetails = () => {
     requestData.classInfo?.name || `${requestData.classInfo?.standard || ""}`;
 
   const { grade: parsedGrade, section: parsedSection } =
-    parseClassName(fullRequestClassName);
+    OpsUtil.parseClassName(fullRequestClassName);
 
   const navBreadcrumbs = (
     <div className="student-pending-request-details-breadcrumbs">
@@ -389,7 +363,8 @@ const StudentPendingRequestDetails = () => {
                     const {
                       grade: studentParsedGrade,
                       section: studentParsedSection,
-                    } = parseClassName(fullStudentClassName);
+                    } = OpsUtil.parseClassName(fullStudentClassName);
+
                     return (
                       <TableRow key={stu.user.id}>
                         <TableCell>

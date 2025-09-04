@@ -104,14 +104,12 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
           `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/${row["id"]}`
         );
       } else if (detailPageRouteBase === "users") {
-        console.log("Row clicked: 2", row);
 
         history.push({
           pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.USERS}${PAGES.USER_DETAILS}`,
           state: { userData: row },
         });
       } else {
-        console.log("Row clicked:", row);
         history.push(
           `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/${row["sch_id"]}`
         );
