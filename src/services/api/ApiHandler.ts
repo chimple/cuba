@@ -19,6 +19,7 @@ import {
   PrincipalAPIResponse,
   CoordinatorAPIResponse,
   EnumType,
+  JUSTTABLES,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -91,6 +92,12 @@ export class ApiHandler implements ServiceApi {
       timeSpent,
       score
     );
+  }
+
+  public clearSpecificTablesSqlite(
+    tableNames: readonly JUSTTABLES[]
+  ): Promise<void> {
+    return this.s.clearSpecificTablesSqlite(tableNames);
   }
 
   public async joinLiveQuiz(
@@ -1437,15 +1444,25 @@ export class ApiHandler implements ServiceApi {
     page: number = 1,
     limit: number = 20
   ): Promise<StudentAPIResponse> {
-    return await this.s.searchStudentsInSchool(schoolId, searchTerm, page, limit);
+    return await this.s.searchStudentsInSchool(
+      schoolId,
+      searchTerm,
+      page,
+      limit
+    );
   }
 
   public async searchTeachersInSchool(
-    schoolId: string, 
-    searchTerm: string,    
+    schoolId: string,
+    searchTerm: string,
     page: number = 1,
     limit: number = 20
   ): Promise<TeacherAPIResponse> {
-    return await this.s.searchTeachersInSchool(schoolId, searchTerm, page, limit);
+    return await this.s.searchTeachersInSchool(
+      schoolId,
+      searchTerm,
+      page,
+      limit
+    );
   }
 }

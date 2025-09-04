@@ -6,6 +6,7 @@ import {
   CoordinatorAPIResponse,
   EnumType,
   FilteredSchoolsForSchoolListingOps,
+  JUSTTABLES,
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODEL,
@@ -110,6 +111,16 @@ export interface ServiceApi {
     udise: string | null,
     address: string | null
   ): Promise<TableTypes<"school">>;
+
+  /**
+   * Clears all rows from the specified tables in the local SQLite database.
+   * Keeps the database structure and files intact.
+   * Primarily used during logout or reset operations.
+   *
+   * @param {readonly TABLES[]} tableNames - List of table names to clear.
+   * @returns {Promise<void>} Resolves once the tables are cleared.
+   */
+  clearSpecificTablesSqlite(tableNames: readonly JUSTTABLES[]): Promise<void>;
 
   requestNewSchool(
     name: string,
@@ -490,13 +501,11 @@ export interface ServiceApi {
   getCourse(id: string): Promise<TableTypes<"course"> | undefined>;
 
   /**
-   * Gives Courses for given a CourseIds  
-   * @param  {courseIds: string[]} - CourseIds 
+   * Gives Courses for given a CourseIds
+   * @param  {courseIds: string[]} - CourseIds
    * @returns {<TableTypes<"course">[]>}`Course` or `undefined` if it could not find the Course with given `id`
    */
-  getCourses(
-    courseIds: string[]
-  ): Promise<TableTypes<"course">[]> 
+  getCourses(courseIds: string[]): Promise<TableTypes<"course">[]>;
 
   /**
    * Gives StudentProfile for given a Student firebase doc Id
@@ -1944,16 +1953,16 @@ export interface ServiceApi {
    * @returns {Promise<any>} - Returns a promise resolving to the available filter options.
    */
   getRequestFilterOptions();
-  
-    /**
-     * Search teachers in a school by name, email, or phone (paginated)
-     */
-    searchTeachersInSchool(
-      schoolId: string,
-      searchTerm: string,
-      page?: number,
-      limit?: number
-    ): Promise<{ data: any[]; total: number }>;
+
+  /**
+   * Search teachers in a school by name, email, or phone (paginated)
+   */
+  searchTeachersInSchool(
+    schoolId: string,
+    searchTerm: string,
+    page?: number,
+    limit?: number
+  ): Promise<{ data: any[]; total: number }>;
 
   /**
    * Search students by name, student_id, or phone number in a school, paginated.
