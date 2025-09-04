@@ -218,6 +218,7 @@ const CocosGame: React.FC = () => {
   };
 
   const updateLearningPath = async () => {
+    console.log("ANMOL Updating learning path...");
     if (!currentStudent) return;
     const learningPath = currentStudent.learning_path
       ? JSON.parse(currentStudent.learning_path)
@@ -250,8 +251,9 @@ const CocosGame: React.FC = () => {
         learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
           .path_id;
       // Update currentIndex
+      console.log("ANMOL Current Course before update:", currentCourse);
       currentCourse.currentIndex += 1;
-
+      console.log("ANMOL currentIndex after update:", currentCourse.currentIndex);
       // Check if currentIndex exceeds pathEndIndex
       if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
         currentCourse.startIndex = currentCourse.currentIndex;
@@ -310,11 +312,12 @@ const CocosGame: React.FC = () => {
         currentStudent,
         JSON.stringify(learningPath)
       );
-      // Update the current student object
-      const updatedStudent = await api.getUserByDocId(currentStudent.id);
-      if (updatedStudent) {
-        Util.setCurrentStudent(updatedStudent);
-      }
+      // Avoid fetching a potentially stale user and overwriting the freshly
+      // updated learning path. Instead, update the current user locally.
+      await Util.setCurrentStudent(
+        { ...currentStudent, learning_path: JSON.stringify(learningPath) },
+        undefined
+      );
     } catch (error) {
       console.error("Error updating learning path:", error);
     }
