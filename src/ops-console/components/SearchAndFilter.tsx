@@ -135,15 +135,6 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
       )}
 
       {isMobile ? (
-        hasFilters ? (
-          <IconButton
-            aria-label="Clear Filters"
-            onClick={onClearFilters}
-            sx={{ marginLeft: "0px" }}
-          >
-            <CloseIcon />
-          </IconButton>
-        ) : (
           <IconButton
             aria-label="Open Filters"
             onClick={onFilterClick}
@@ -151,18 +142,15 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
           >
             <FilterListIcon />
           </IconButton>
-        )
       ) : (
         <Button
           variant="outlined"
-          startIcon={hasFilters ? <CloseIcon /> : <FilterListIcon />}
-          className={`filter-button-SearchAndFilter${
-            hasFilters ? " has-filters" : ""
-          }`}
-          onClick={hasFilters ? onClearFilters : onFilterClick}
+          startIcon={<FilterListIcon />}
+          className={`filter-button-SearchAndFilter`}
+          onClick={onFilterClick}
         >
           <span style={{ color: "black" }}>
-            {hasFilters ? t("Clear Filters") : t("Filter")}
+            {t("Filter")}
           </span>
         </Button>
       )}

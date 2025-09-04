@@ -518,7 +518,7 @@ export enum NavItems {
 }
 
 export enum ProgramType {
-  Govt = "govt",
+  Government = "government",
   Private = "private",
   LearningCenter = "learning_centers",
 }
@@ -982,3 +982,4 @@ export interface CoordinatorAPIResponse {
   data: CoordinatorInfo[];
   total: number;
 }
+export const CHIMPLE_RIVE_STATE_MACHINE_MAX= "chimple_rive_state_machine_max";

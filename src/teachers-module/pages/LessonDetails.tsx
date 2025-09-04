@@ -34,7 +34,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   let isGrade1: string | boolean = false;
 
   const [classSelectedLesson, setClassSelectedLesson] = useState<
-    Map<string, string[]>
+    Map<string, Partial<Record<AssignmentSource, string[]>>>
   >(new Map());
   if (
     course &&
@@ -54,33 +54,34 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     window.open(url);
   };
   useEffect(() => {
-    const sync_lesson_data = selectedLesson.get(current_class?.id ?? "");
-
-    const transformedMap: Map<string, string[]> = new Map();
-
-    if (sync_lesson_data) {
-      const parsed = JSON.parse(sync_lesson_data);
-
-      Object.entries(parsed).forEach(([chapterId, value]) => {
-        if (Array.isArray(value)) {
-          // Old format
-          transformedMap.set(chapterId, value);
-        } else if (typeof value === "object" && value !== null) {
-          // New format with source keys
-          const manual = value[AssignmentSource.MANUAL] ?? [];
-          const qr = value[AssignmentSource.QR_CODE] ?? [];
-          transformedMap.set(chapterId, [...manual, ...qr]);
+    const sync_lesson_data = selectedLessonMap.get(current_class?.id ?? "");
+    const parsed = sync_lesson_data ? JSON.parse(sync_lesson_data) : {};
+    const class_sync_lesson: Map<string, Partial<Record<AssignmentSource, string[]>>> = new Map();
+    Object.entries(parsed).forEach(([chapterId, value]) => {
+      if (Array.isArray(value)) {
+        // Old format: convert to new format
+        class_sync_lesson.set(chapterId, {
+          [AssignmentSource.MANUAL]: [...value],
+        });
+      } else if (typeof value === "object" && value !== null) {
+        // New format
+      Object.keys(value).forEach((key) => {
+        if (key !== AssignmentSource.MANUAL && key !== AssignmentSource.QR_CODE) {
+          delete value[key];
         }
       });
-    }
-
-    setClassSelectedLesson(transformedMap);
+        class_sync_lesson.set(chapterId, value);
+      }
+    });
+    setClassSelectedLesson(class_sync_lesson);
   }, []);
   useEffect(() => {
-    const _assignmentLength = Array.from(classSelectedLesson.values()).reduce(
-      (acc, array) => acc + array.length,
-      0
-    );
+    let _assignmentLength = 0;
+    for (const value of classSelectedLesson.values()) {
+      const manual = value[AssignmentSource.MANUAL] || [];
+      const qr = value[AssignmentSource.QR_CODE] || [];
+      _assignmentLength += manual.length + qr.length;
+    }
     setAssignmentCount(_assignmentLength);
     init();
   }, [classSelectedLesson]);
@@ -113,14 +114,19 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
       updatedChapterData = { manual: [...updatedChapterData] };
     }
 
-    const existing = updatedChapterData[AssignmentSource.MANUAL] ?? [];
-    const isAlreadySelected = existing.includes(lesson.id);
+    // Get both manual and qr_code arrays
+    const manualArr = updatedChapterData[AssignmentSource.MANUAL] ?? [];
+    const qrArr = updatedChapterData[AssignmentSource.QR_CODE] ?? [];
+    const isSelected = manualArr.includes(lesson.id) || qrArr.includes(lesson.id);
 
-    const newManual = isAlreadySelected
-      ? existing.filter((id: string) => id !== lesson.id)
-      : [...existing, lesson.id];
-
-    updatedChapterData[AssignmentSource.MANUAL] = newManual;
+    if (isSelected) {
+      // Remove from both manual and qr_code
+      updatedChapterData[AssignmentSource.MANUAL] = manualArr.filter((id: string) => id !== lesson.id);
+      updatedChapterData[AssignmentSource.QR_CODE] = qrArr.filter((id: string) => id !== lesson.id);
+    } else {
+      // Add to manual
+      updatedChapterData[AssignmentSource.MANUAL] = [...manualArr, lesson.id];
+    }
 
     // Update the chapter data in main object
     parsed[chapterId] = updatedChapterData;
@@ -129,7 +135,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     const updatedClassSelectedLesson = new Map(classSelectedLesson);
     updatedClassSelectedLesson.set(
       chapterId,
-      Object.values(updatedChapterData).flat()
+      updatedChapterData
     );
     setClassSelectedLesson(updatedClassSelectedLesson);
 
@@ -139,7 +145,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
 
     const totalSelectedLesson = JSON.stringify(Object.fromEntries(tmpselectedLesson));
     syncSelectedLesson(totalSelectedLesson);
-  };
+     };
   return (
     <div className="lesson-details-container">
       <Header
@@ -177,7 +183,11 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
               {course ? course.name : ""}{" "}
               {isGrade1 ? `${t("Grade")} ${isGrade1 === true ? "1" : "2"}` : ""}
             </div>
-            <div className="lesson-info-text">{lesson.name}</div>
+            <div className="lesson-info-text">
+               {course && course.name === "ENGLISH"
+               ? lesson.name  // don’t translate
+                : t(lesson.name??"")}  {/* translate */}   
+            </div>
             <div className="lesson-info-text">
               {" "}
               {lesson.plugin_type === "cocos"
@@ -186,7 +196,10 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
             </div>
             <SelectIcon
               isSelected={
-                classSelectedLesson.get(chapterId)?.includes(lesson.id) ?? false
+                ([
+                  ...(classSelectedLesson.get(chapterId)?.[AssignmentSource.MANUAL] ?? []),
+                  ...(classSelectedLesson.get(chapterId)?.[AssignmentSource.QR_CODE] ?? [])
+                ].includes(lesson.id)??false)
               }
               onClick={handleButtonClick}
             />

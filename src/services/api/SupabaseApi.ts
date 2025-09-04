@@ -2425,6 +2425,23 @@ export class SupabaseApi implements ServiceApi {
     }
     return data ?? undefined;
   }
+  async getCourses(ids: string[]): Promise<TableTypes<"course">[]> {
+    if (!this.supabase || !ids || ids.length === 0) return [];
+  
+    const { data, error } = await this.supabase
+      .from("course")
+      .select("*")
+      .in("id", ids)               // fetch all courses in one go
+      .eq("is_deleted", false);
+  
+    if (error) {
+      console.error("Error fetching courses:", error);
+      return [];
+    }
+  
+    return data ?? [];
+  }
+  
   async getStudentResult(
     studentId: string,
     fromCache?: boolean
@@ -6341,7 +6358,7 @@ export class SupabaseApi implements ServiceApi {
         district: payload.locations.District,
 
         program_type: payload.programType,
-        institutes_count: payload.stats.institutes,
+        institutes_count: payload.stats.schools,
         students_count: payload.stats.students,
         devices_count: payload.stats.devices,
 
@@ -7245,7 +7262,7 @@ export class SupabaseApi implements ServiceApi {
   async program_activity_stats(programId: string): Promise<{
     total_students: number;
     total_teachers: number;
-    total_institutes: number;
+    total_schools: number;
     active_student_percentage: number;
     active_teacher_percentage: number;
     avg_weekly_time_minutes: number;
@@ -7255,7 +7272,7 @@ export class SupabaseApi implements ServiceApi {
       return {
         total_students: 0,
         total_teachers: 0,
-        total_institutes: 0,
+        total_schools: 0,
         active_student_percentage: 0,
         active_teacher_percentage: 0,
         avg_weekly_time_minutes: 0,
@@ -7274,7 +7291,7 @@ export class SupabaseApi implements ServiceApi {
         return {
           total_students: 0,
           total_teachers: 0,
-          total_institutes: 0,
+          total_schools: 0,
           active_student_percentage: 0,
           active_teacher_percentage: 0,
           avg_weekly_time_minutes: 0,
@@ -7283,7 +7300,7 @@ export class SupabaseApi implements ServiceApi {
       const stats = data as unknown as {
         total_students: number;
         total_teachers: number;
-        total_institutes: number;
+        total_schools: number;
         active_student_percentage: number;
         active_teacher_percentage: number;
         avg_weekly_time_minutes: number;
@@ -7292,7 +7309,7 @@ export class SupabaseApi implements ServiceApi {
       return {
         total_students: stats.total_students ?? 0,
         total_teachers: stats.total_teachers ?? 0,
-        total_institutes: stats.total_institutes ?? 0,
+        total_schools: stats.total_schools ?? 0,
         active_student_percentage: stats.active_student_percentage ?? 0,
         active_teacher_percentage: stats.active_teacher_percentage ?? 0,
         avg_weekly_time_minutes: stats.avg_weekly_time_minutes ?? 0,
@@ -7302,7 +7319,7 @@ export class SupabaseApi implements ServiceApi {
       return {
         total_students: 0,
         total_teachers: 0,
-        total_institutes: 0,
+        total_schools: 0,
         active_student_percentage: 0,
         active_teacher_percentage: 0,
         avg_weekly_time_minutes: 0,

@@ -149,6 +149,11 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
                       active={orderBy === col.key}
                       direction={orderBy === col.key ? order : "asc"}
                       onClick={() => onSort(col.key)}
+                      sx={{
+                        "& .MuiTableSortLabel-icon": {
+                          opacity: 1,
+                        },
+                      }}
                     >
                       {col.label}
                     </TableSortLabel>

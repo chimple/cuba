@@ -117,7 +117,7 @@ const SideMenu: React.FC<{
           name: classItem.name,
         }));
         const patchedList = updatedClass
-          ? classMap.map(c => (c.id === updatedClass.id ? updatedClass : c))
+          ? classMap.map((c) => (c.id === updatedClass.id ? updatedClass : c))
           : classMap;
         setClassData(patchedList);
 
@@ -339,7 +339,7 @@ const SideMenu: React.FC<{
               />
             </IonItem>
           </div>
-          {!Capacitor.isNativePlatform() && isAuthorizedForOpsMode && (
+          {isAuthorizedForOpsMode && (
             <div className="side-menu-switch-user-toggle">
               <IonItem className="side-menu-ion-item-container">
                 <img

@@ -490,6 +490,15 @@ export interface ServiceApi {
   getCourse(id: string): Promise<TableTypes<"course"> | undefined>;
 
   /**
+   * Gives Courses for given a CourseIds  
+   * @param  {courseIds: string[]} - CourseIds 
+   * @returns {<TableTypes<"course">[]>}`Course` or `undefined` if it could not find the Course with given `id`
+   */
+  getCourses(
+    courseIds: string[]
+  ): Promise<TableTypes<"course">[]> 
+
+  /**
    * Gives StudentProfile for given a Student firebase doc Id
    * @param {string} id - Student firebase doc id
    * @param {boolean} fromCache - If true, it will try to fetch the data from the cache. If the data is not found in the cache, it will look in the database.
@@ -1822,7 +1831,7 @@ export interface ServiceApi {
   isProgramUser(): Promise<boolean>;
 
   /**
-   * Count total and active students, total and active teachers, and total institutes for a given program.
+   * Count total and active students, total and active teachers, and total schools for a given program.
    *
    * @param {string} programId - The ID of the program.
    * @returns {Promise<{
@@ -1831,13 +1840,13 @@ export interface ServiceApi {
    *   avg_time_spent: number;
    *   total_teachers: number;
    *   active_teachers: number;
-   *   total_institutes: number;
+   *   total_schools: number;
    * }>} Promise resolving to an object with student, teacher, and institute statistics.
    */
   program_activity_stats(programId: string): Promise<{
     total_students: number;
     total_teachers: number;
-    total_institutes: number;
+    total_schools: number;
     active_student_percentage: number;
     active_teacher_percentage: number;
     avg_weekly_time_minutes: number;

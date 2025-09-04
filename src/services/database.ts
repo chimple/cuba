@@ -3606,7 +3606,7 @@ export type Database = {
       program_model: "hybrid" | "at_home" | "at_school";
       ops_request_status: "requested" | "rejected" | "approved";
       ops_request_type: "student" | "teacher" | "principal" | "school";
-      program_type: "govt" | "private" | "learning_centers";
+      program_type: "government" | "private" | "learning_centers";
       role:
         | "coordinator"
         | "principal"
@@ -3758,7 +3758,7 @@ export const Constants = {
       ops_request_status: ["requested", "rejected", "approved"],
       ops_request_type: ["student", "teacher", "principal", "school"],
       program_model: ["hybrid", "at_home", "at_school"],
-      program_type: ["govt", "private", "learning_centers"],
+      program_type: ["government", "private", "learning_centers"],
       role: [
         "coordinator",
         "principal",

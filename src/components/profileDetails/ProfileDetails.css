@@ -211,12 +211,9 @@
 
 .profiledetails-back-button {
   position: absolute;
-  top: 18px;
-  left: 25px;
-  width: 60px;
-  height: 35px;
-  background: #FFFFFF;
-  border: 2px solid #F34D08;
+  top: 20px;
+  left: 20px;
+  background: transparent;
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -226,10 +223,9 @@
   z-index: 10;
 }
 
-.profiledetails-back-arrow-icon {
-  color: #F34D08;
-  width: 20px;
-  height: 20px;
+.profiledetails-back-button img{
+  width: 60px;
+  height: 35px;
 }
 
 .profiledetails-gender-label {
