@@ -33,8 +33,15 @@ export const useHandleLessonClick = () => {
         console.error("Lesson not found");
         return;
       }
-      const coursesForLesson = lesson.id ? await api.getCoursesFromLesson(lesson.id) : [];
-      const resolvedCourseId = coursesForLesson.length > 0 ? coursesForLesson[0].id : (lesson.cocos_subject_code || undefined);
+      let coursesForLesson: any[] = [];
+      try {
+        if (lesson.id) {
+          coursesForLesson = await api.getCoursesFromLesson(lesson.id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch courses for lesson:", error);
+      }
+      const resolvedCourseId = coursesForLesson.length > 0 ? coursesForLesson[0].id : lesson.cocos_subject_code;
 
       const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
       Util.isDeepLink = true;
