@@ -61,12 +61,17 @@ const SchoolList: React.FC = () => {
   const qs = new URLSearchParams(location.search);
 
   function parseJSONParam<T>(param: string | null, fallback: T): T {
-    try { return param ? (JSON.parse(param) as T) : fallback; }
-    catch { return fallback; }
+    try {
+      return param ? (JSON.parse(param) as T) : fallback;
+    } catch {
+      return fallback;
+    }
   }
   const [selectedTab, setSelectedTab] = useState(() => {
     const v = qs.get("tab") || PROGRAM_TAB.ALL;
-    return Object.values(PROGRAM_TAB).includes(v as PROGRAM_TAB) ? (v as PROGRAM_TAB) : PROGRAM_TAB.ALL;
+    return Object.values(PROGRAM_TAB).includes(v as PROGRAM_TAB)
+      ? (v as PROGRAM_TAB)
+      : PROGRAM_TAB.ALL;
   });
   const [searchTerm, setSearchTerm] = useState(() => qs.get("search") || "");
   const [filters, setFilters] = useState<Filters>(() =>
@@ -76,7 +81,6 @@ const SchoolList: React.FC = () => {
     const p = parseInt(qs.get("page") || "", 10);
     return isNaN(p) || p < 1 ? 1 : p;
   });
-
 
   const [schools, setSchools] = useState<any[]>([]);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
@@ -95,11 +99,11 @@ const SchoolList: React.FC = () => {
 
   const isSmallScreen = useMediaQuery("(max-width: 900px)");
 
-    useEffect(() => {
+  useEffect(() => {
     const params = new URLSearchParams();
     if (selectedTab !== PROGRAM_TAB.ALL) params.set("tab", String(selectedTab));
     if (searchTerm) params.set("search", searchTerm);
-    if (Object.values(filters).some(arr => arr.length))
+    if (Object.values(filters).some((arr) => arr.length))
       params.set("filters", JSON.stringify(filters));
     if (page !== 1) params.set("page", String(page));
     history.replace({ search: params.toString() });
@@ -218,14 +222,14 @@ const SchoolList: React.FC = () => {
     },
     {
       key: "students",
-      label: t("No of Students"),
+      label: t("No. of Students"),
       width: "fit-content",
       sortable: true,
       orderBy: "students",
     },
     {
       key: "teachers",
-      label: t("No of Teachers"),
+      label: t("No. of Teachers"),
       width: "fit-content",
       sortable: true,
       orderBy: "teachers",
@@ -249,17 +253,16 @@ const SchoolList: React.FC = () => {
       setOrderDir((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setOrderBy(colKey);
-      setOrderDir("asc");
+      setOrderDir("desc");
     }
     setPage(1);
   };
-
 
   function onCancleClick(): void {
     setShowUploadPage(false);
   }
 
-    const handleCancelFilters = () => {
+  const handleCancelFilters = () => {
     const reset = {
       partner: [],
       programManager: [],
@@ -348,7 +351,8 @@ const SchoolList: React.FC = () => {
 
               <SearchAndFilter
                 searchTerm={searchTerm}
-                onSearchChange={(e) => {setSearchTerm(e.target.value)
+                onSearchChange={(e) => {
+                  setSearchTerm(e.target.value);
                   setPage(1);
                 }}
                 filters={filters}
@@ -402,7 +406,7 @@ const SchoolList: React.FC = () => {
               setTempFilters(empty);
               setFilters(empty);
               setIsFilterOpen(false);
-               setPage(1);
+              setPage(1);
             }}
             autocompleteStyles={{}}
             filterConfigs={filterConfigsForSchool}

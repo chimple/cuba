@@ -33,7 +33,13 @@ interface Props {
   loading?: boolean;
 }
 
-function TableSkeleton({ columns, rows = 10 }: { columns: Record<string, any>[]; rows?: number }) {
+function TableSkeleton({
+  columns,
+  rows = 10,
+}: {
+  columns: Record<string, any>[];
+  rows?: number;
+}) {
   return (
     <TableBody>
       {Array.from({ length: rows }).map((_, i) => (
@@ -54,7 +60,7 @@ function TableSkeleton({ columns, rows = 10 }: { columns: Record<string, any>[];
                   variant="rectangular"
                   height={24}
                   width="100%"
-                  sx={{ mx: 0, ml: 0,   transform: "none", }}
+                  sx={{ mx: 0, ml: 0, transform: "none" }}
                 />
               </div>
             </TableCell>
@@ -67,7 +73,16 @@ function TableSkeleton({ columns, rows = 10 }: { columns: Record<string, any>[];
 
 const DataTableBody = forwardRef<HTMLDivElement, Props>(
   (
-    { columns, rows, orderBy, order, onSort, detailPageRouteBase, onRowClick, loading },
+    {
+      columns,
+      rows,
+      orderBy,
+      order,
+      onSort,
+      detailPageRouteBase,
+      onRowClick,
+      loading,
+    },
     ref
   ) => {
     const history = useHistory();
@@ -132,6 +147,11 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
                       active={orderBy === col.key}
                       direction={orderBy === col.key ? order : "asc"}
                       onClick={() => onSort(col.key)}
+                      sx={{
+                        "& .MuiTableSortLabel-icon": {
+                          opacity: 1,
+                        },
+                      }}
                     >
                       {col.label}
                     </TableSortLabel>
@@ -141,41 +161,40 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
             </TableRow>
           </TableHead>
           {/* Show skeleton or actual rows */}
-          {loading
-            ? <TableSkeleton columns={columns} rows={10} />
-            : (
-              <TableBody>
-                {rows.map((row, idx) => (
-                  <TableRow
-                    key={idx}
-                    hover
-                    onClick={() => handleRowClick(row)}
-                    sx={{
-                      cursor: "pointer",
-                      height: "48px",
-                    }}
-                  >
-                    {columns.map((col) => (
-                      <TableCell
-                        key={col.key}
-                        align={col.align || "left"}
-                        className="data-tablebody-cell"
-                        sx={{
-                          width: col.width ?? "auto",
-                          maxWidth: col.width,
-                        }}
-                      >
-                        {typeof row[col.key] === "object" &&
-                        row[col.key]?.render !== undefined
-                          ? row[col.key].render
-                          : row[col.key]}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            )
-          }
+          {loading ? (
+            <TableSkeleton columns={columns} rows={10} />
+          ) : (
+            <TableBody>
+              {rows.map((row, idx) => (
+                <TableRow
+                  key={idx}
+                  hover
+                  onClick={() => handleRowClick(row)}
+                  sx={{
+                    cursor: "pointer",
+                    height: "48px",
+                  }}
+                >
+                  {columns.map((col) => (
+                    <TableCell
+                      key={col.key}
+                      align={col.align || "left"}
+                      className="data-tablebody-cell"
+                      sx={{
+                        width: col.width ?? "auto",
+                        maxWidth: col.width,
+                      }}
+                    >
+                      {typeof row[col.key] === "object" &&
+                      row[col.key]?.render !== undefined
+                        ? row[col.key].render
+                        : row[col.key]}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          )}
         </Table>
       </TableContainer>
     );

@@ -1795,7 +1795,7 @@ export interface ServiceApi {
   isProgramUser(): Promise<boolean>;
 
   /**
-   * Count total and active students, total and active teachers, and total institutes for a given program.
+   * Count total and active students, total and active teachers, and total schools for a given program.
    *
    * @param {string} programId - The ID of the program.
    * @returns {Promise<{
@@ -1804,13 +1804,13 @@ export interface ServiceApi {
    *   avg_time_spent: number;
    *   total_teachers: number;
    *   active_teachers: number;
-   *   total_institutes: number;
+   *   total_schools: number;
    * }>} Promise resolving to an object with student, teacher, and institute statistics.
    */
   program_activity_stats(programId: string): Promise<{
     total_students: number;
     total_teachers: number;
-    total_institutes: number;
+    total_schools: number;
     active_student_percentage: number;
     active_teacher_percentage: number;
     avg_weekly_time_minutes: number;
