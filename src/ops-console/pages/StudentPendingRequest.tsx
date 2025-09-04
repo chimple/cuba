@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { useHistory, useParams, useLocation } from "react-router-dom";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { PAGES, REQUEST_TABS } from "../../common/constants";
+import { DEFAULT_PAGE_SIZE, PAGES, REQUEST_TABS } from "../../common/constants";
 import "./StudentPendingRequest.css";
 import { Constants } from "../../services/database";
 import { useTranslation } from "react-i18next";
@@ -103,17 +103,17 @@ const StudentPendingRequestDetails = () => {
               api.getOpsRequests(
                 Constants.public.Enums.ops_request_status[0],
                 1,
-                1000
+                DEFAULT_PAGE_SIZE
               ),
               api.getOpsRequests(
                 Constants.public.Enums.ops_request_status[2],
                 1,
-                1000
+                DEFAULT_PAGE_SIZE
               ),
               api.getOpsRequests(
                 Constants.public.Enums.ops_request_status[1],
                 1,
-                1000
+                DEFAULT_PAGE_SIZE
               ),
             ]);
 

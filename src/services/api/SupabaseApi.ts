@@ -3141,18 +3141,19 @@ export class SupabaseApi implements ServiceApi {
     const { error: updateRequestError } = await this.supabase
       .from("ops_requests")
       .update({
-        request_status: "approved", 
-        updated_at: now,            
-        // merged_to: existingStudentId, 
+        request_status: "approved",
+        updated_at: now,
+        // merged_to: existingStudentId,
       })
       .eq("request_id", requestId); // Identify the specific request
 
-
-       if (updateRequestError) {
-      console.error("Error updating ops_requests status:", updateRequestError.message);
+    if (updateRequestError) {
+      console.error(
+        "Error updating ops_requests status:",
+        updateRequestError.message
+      );
       throw new Error("Failed to update request status.");
     }
-
   }
 
   async getUserRoleForSchool(
