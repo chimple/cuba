@@ -3,7 +3,7 @@ import { useHistory, useParams, useLocation } from "react-router-dom";
 import { Typography, Paper, Grid, Divider, Button } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { DEFAULT_PAGE_SIZE, PAGES, REQUEST_TABS } from "../../common/constants";
+import { DEFAULT_PAGE_SIZE, PAGES } from "../../common/constants";
 import "./StudentApprovedRequestDetails.css";
 
 const StudentApprovedRequestDetails = () => {
@@ -44,7 +44,7 @@ const StudentApprovedRequestDetails = () => {
         if (state?.request && state.request.request_id === id) {
           setRequestDetails(state.request);
         } else {
-          const approvedRequest = await api.getOpsRequests(REQUEST_TABS.APPROVED, 1, DEFAULT_PAGE_SIZE);
+          const approvedRequest = await api.getOpsRequests("approved", 1, DEFAULT_PAGE_SIZE);
           const req = approvedRequest?.find((r) => r.request_id === id);
           if (req) setRequestDetails(req);
           else setError(t("requestNotFound"));

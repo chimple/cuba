@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useHistory, useParams, useLocation } from "react-router-dom";
 import { Typography, Paper, Grid, Divider, Button } from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { DEFAULT_PAGE_SIZE, PAGES, REQUEST_TABS } from "../../common/constants";
+import { DEFAULT_PAGE_SIZE, PAGES } from "../../common/constants";
 import "./StudentRejectedRequestDetails.css";
 import { useTranslation } from "react-i18next"; // Import useTranslation
 
@@ -46,7 +46,7 @@ const StudentRejectedRequestDetails = () => {
           setRequestDetails(state.request);
         } else {
           const rejectedRequests = await api.getOpsRequests(
-            REQUEST_TABS.REJECTED,
+            "rejected",
             1,
             DEFAULT_PAGE_SIZE
           );
