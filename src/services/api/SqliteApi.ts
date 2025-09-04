@@ -42,6 +42,7 @@ import {
   CoordinatorAPIResponse,
   EVENTS,
   EnumType,
+  RequestTypes,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -6189,5 +6190,15 @@ order by
     `;
     const result = await this._db.query(query, [...params, limit, offset]);
     return { data: result?.values ?? [], total };
+  }
+
+  async approveOpsRequest(
+    requestId: string,
+    respondedBy: string,
+    role: (typeof RequestTypes)[keyof typeof RequestTypes],
+    schoolId?: string,
+    classId?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined> {
+    throw new Error("Method not implemented.");
   }
 }

@@ -12,6 +12,7 @@ import {
   MODES,
   PrincipalAPIResponse,
   PROFILETYPE,
+  RequestTypes,
   SchoolRoleMap,
   StudentAPIResponse,
   TABLES,
@@ -2002,4 +2003,12 @@ export interface ServiceApi {
     page?: number,
     limit?: number
   ): Promise<StudentAPIResponse>;
+
+  approveOpsRequest(
+    requestId: string,
+    respondedBy: string,
+    role: (typeof RequestTypes)[keyof typeof RequestTypes],
+    schoolId?: string,
+    classId?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined>;
 }

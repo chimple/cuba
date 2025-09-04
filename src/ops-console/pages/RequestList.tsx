@@ -12,6 +12,7 @@ import {
   EnumType,
   PAGES,
   REQUEST_TABS,
+  RequestTypes,
 } from "../../common/constants";
 import DataTablePagination from "../components/DataTablePagination";
 import DataTableBody, { Column } from "../components/DataTableBody";
@@ -405,42 +406,69 @@ const RequestList: React.FC = () => {
   const pageCount = Math.ceil(total / pageSize);
 
   const handleRowClick = (id: string | number, row: any) => {
-    // Only proceed if it's a student request
-    if (
-      row.request_type &&
-      typeof row.request_type === "string" &&
-      row.request_type.toLowerCase().includes("student")
-    ) {
-      // Find the complete original request object from our raw data state
-      const fullRequestData = rawRequestData.find(
-        (r) => r.request_id === row.request_id
-      );
+    // Ensure request_type exists and is a string
+    if (!row.request_type || typeof row.request_type !== "string") return;
 
-      if (!fullRequestData) {
-        console.error(
-          "Could not find full request data for ID:",
-          row.request_id
-        );
-        return;
-      }
+    // Normalize request type
+    const type = row.request_type.toLowerCase();
 
-      let pathToNavigate = "";
-      if (selectedTab === REQUEST_TABS.PENDING) {
-        pathToNavigate = `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}${PAGES.STUDENT_PENDING_REQUEST}/${row.request_id}`;
-      } else if (selectedTab === REQUEST_TABS.APPROVED) {
-        pathToNavigate = `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}${PAGES.STUDENT_APPROVED_REQUEST}/${row.request_id}`;
-      } else if (selectedTab === REQUEST_TABS.REJECTED) {
-        pathToNavigate = `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}${PAGES.STUDENT_REJECTED_REQUEST}/${row.request_id}`;
-      } else {
-        console.warn("Unhandled request tab for student request:", selectedTab);
-        return;
-      }
-
-      history.push({
-        pathname: pathToNavigate,
-        state: { request: fullRequestData },
-      });
+    // Supported roles
+    const validTypes = [
+      RequestTypes.STUDENT,
+      RequestTypes.TEACHER,
+      RequestTypes.PRINCIPAL,
+    ];
+    const matchedType = validTypes.find((t) => type.includes(t));
+    if (!matchedType) {
+      console.warn("Unhandled request type:", row.request_type);
+      return;
     }
+
+    // Find the full request data
+    const fullRequestData = rawRequestData.find(
+      (r) => r.request_id === row.request_id
+    );
+    if (!fullRequestData) {
+      console.error("Could not find full request data for ID:", row.request_id);
+      return;
+    }
+
+    // Consolidate roles with same paths
+    const opsRoles = [RequestTypes.TEACHER, RequestTypes.PRINCIPAL]; // Both use OPS paths
+    const roleKey = opsRoles.includes(matchedType) ? "ops" : matchedType;
+
+    // Map role + tab → path
+    const pathMap: Record<string, Record<string, string>> = {
+      student: {
+        [REQUEST_TABS.PENDING]: PAGES.STUDENT_PENDING_REQUEST,
+        [REQUEST_TABS.APPROVED]: PAGES.OPS_APPROVED_REQUEST,
+        [REQUEST_TABS.REJECTED]: PAGES.OPS_REJECTED_REQUEST,
+      },
+      ops: {
+        [REQUEST_TABS.PENDING]: PAGES.PRINCIPAL_TEACHER_PENDING_REQUEST, // can also be PRINCIPAL_PENDING_REQUEST if needed
+        [REQUEST_TABS.APPROVED]: PAGES.OPS_APPROVED_REQUEST,
+        [REQUEST_TABS.REJECTED]: PAGES.OPS_REJECTED_REQUEST,
+      },
+    };
+
+    const rolePaths = pathMap[roleKey];
+    const pathToNavigate = rolePaths[selectedTab]
+      ? `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}${rolePaths[selectedTab]}/${row.request_id}`
+      : "";
+
+    if (!pathToNavigate) {
+      console.warn(
+        `Unhandled request tab for ${matchedType} request:`,
+        selectedTab
+      );
+      return;
+    }
+
+    // Navigate with state
+    history.push({
+      pathname: pathToNavigate,
+      state: { request: fullRequestData },
+    });
   };
 
   return (
