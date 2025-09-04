@@ -2941,6 +2941,235 @@ export class SupabaseApi implements ServiceApi {
       total: count ?? 0,
     };
   }
+  async getStudentsAndParentsByClassId(
+    classId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<StudentAPIResponse> {
+    if (!this.supabase) {
+      console.warn("Supabase not initialized.");
+      return { data: [], total: 0 };
+    }
+
+    const offset = (page - 1) * limit;
+
+    const { data, error, count } = await this.supabase
+      .from("class_user")
+      .select(
+        `
+      class:class_id!inner (
+        id,
+        name 
+      ),
+      user:user_id (
+        *,
+        parent_links:parent_user!student_id (
+          parent:parent_id (
+            * 
+          )
+        )
+      )
+    `,
+        { count: "exact" }
+      )
+      .eq("role", "student")
+      .eq("is_deleted", false)
+      .eq("class_id", classId) // Filter by classId
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error("Error fetching students and parents by class ID:", error);
+      return { data: [], total: 0 };
+    }
+
+    const studentInfoList: StudentInfo[] = (data || []).map((row: any) => {
+      const { user, class: cls } = row;
+
+      const className = cls?.name || "";
+      const { grade, section } = this.parseClassName(className);
+
+      const parent = user?.parent_links?.[0]?.parent || null;
+
+      return {
+        user,
+        grade,
+        classSection: section,
+        parent,
+      };
+    });
+    return {
+      data: studentInfoList,
+      total: count ?? 0,
+    };
+  }
+  async getStudentAndParentByStudentId(studentId: string): Promise<{
+    user: any;
+    parents: any[];
+  }> {
+    if (!this.supabase) {
+      console.warn("Supabase not initialized.");
+      return { user: null, parents: [] };
+    }
+
+    const { data, error } = await this.supabase
+      .from("user")
+      .select(
+        `
+      *,
+      parent_links:parent_user!student_id (
+        parent:parent_id (
+          *
+        )
+      )
+      `
+      )
+      .eq("id", studentId)
+      .eq("is_deleted", false)
+      .single();
+
+    if (error || !data) {
+      console.error("Error fetching student and parent by student ID:", error);
+      return { user: null, parents: [] };
+    }
+    const parents = (data.parent_links || []).map((link: any) => link.parent);
+
+    return {
+      user: data,
+      parents,
+    };
+  }
+
+  async mergeStudentRequest(
+    requestId: string,
+    existingStudentId: string,
+    newStudentId: string
+  ): Promise<void> {
+    if (!this.supabase) {
+      throw new Error("Supabase not initialized.");
+    }
+    const now = new Date().toISOString();
+
+    // 1. Get new student details (including parents)
+    const { data: newStudentData, error: newStudentError } = await this.supabase
+      .from("user")
+      .select(
+        `
+      *,
+      parent_links:parent_user!student_id (
+        parent:parent_id (*)
+      )
+    `
+      )
+      .eq("id", newStudentId)
+      .eq("is_deleted", false)
+      .single();
+
+    if (newStudentError || !newStudentData) {
+      throw new Error("New student not found");
+    }
+
+    const newParents = (newStudentData.parent_links || []).map(
+      (link: any) => link.parent
+    );
+
+    // 2. Get existing student details (with parents)
+    const { data: existingStudentData, error: existingStudentError } =
+      await this.supabase
+        .from("user")
+        .select(
+          `
+        *,
+        parent_links:parent_user!student_id (
+          parent:parent_id (*)
+        )
+      `
+        )
+        .eq("id", existingStudentId)
+        .eq("is_deleted", false)
+        .single();
+
+    if (existingStudentError || !existingStudentData) {
+      throw new Error("Existing student not found");
+    }
+
+    const existingParents = (existingStudentData.parent_links || []).map(
+      (link: any) => link.parent
+    );
+
+    // 3. Compare phone or email
+    const existingContact =
+      existingParents?.[0]?.phone || existingParents?.[0]?.email || null;
+    const newContact = newParents?.[0]?.phone || newParents?.[0]?.email || null;
+
+    // 4. Transfer results if present
+    const { data: results } = await this.supabase
+      .from("result")
+      .select("*")
+      .eq("student_id", newStudentId)
+      .eq("is_deleted", false);
+
+    if (results && results.length > 0) {
+      await this.supabase
+        .from("result")
+        .update({ student_id: existingStudentId, updated_at: now })
+        .eq("student_id", newStudentId)
+        .eq("is_deleted", false);
+    }
+
+    // 5. If contact different, link new parent(s)
+    if (newContact && newContact !== existingContact) {
+      for (const parent of newParents) {
+        const alreadyLinked = existingParents.some(
+          (p: any) =>
+            (p.phone && parent.phone && p.phone === parent.phone) ||
+            (p.email && parent.email && p.email === parent.email)
+        );
+
+        if (!alreadyLinked) {
+          await this.supabase.from("parent_user").insert({
+            student_id: existingStudentId,
+            parent_id: parent.id,
+            is_deleted: false,
+            updated_at: now,
+          });
+        }
+      }
+    }
+
+    // 6. Mark new student and related records as deleted
+    await this.supabase
+      .from("class_user")
+      .update({ is_deleted: true, updated_at: now })
+      .eq("user_id", newStudentId);
+
+    await this.supabase
+      .from("parent_user")
+      .update({ is_deleted: true, updated_at: now })
+      .eq("student_id", newStudentId);
+
+    await this.supabase
+      .from("user")
+      .update({ is_deleted: true, updated_at: now })
+      .eq("id", newStudentId);
+
+    const { error: updateRequestError } = await this.supabase
+      .from("ops_requests")
+      .update({
+        request_status: "approved",
+        updated_at: now,
+        // merged_to: existingStudentId,
+      })
+      .eq("request_id", requestId); // Identify the specific request
+
+    if (updateRequestError) {
+      console.error(
+        "Error updating ops_requests status:",
+        updateRequestError.message
+      );
+      throw new Error("Failed to update request status.");
+    }
+  }
+
   async getUserRoleForSchool(
     userId: string,
     schoolId: string
@@ -7507,7 +7736,6 @@ export class SupabaseApi implements ServiceApi {
           };
         })
       );
-
       return mappedRequests;
     } catch (error) {
       console.error("Error in getOpsRequests:", error);
@@ -7581,10 +7809,10 @@ export class SupabaseApi implements ServiceApi {
     try {
       // Step 1: Get all class_ids for the school
       const { data: classData, error: classError } = await this.supabase
-        .from('class')
-        .select('id, name')
-        .eq('school_id', schoolId)
-        .eq('is_deleted', false);
+        .from("class")
+        .select("id, name")
+        .eq("school_id", schoolId)
+        .eq("is_deleted", false);
       if (classError || !classData) {
         console.error("Error fetching classes for school:", classError);
         return { data: [], total: 0 };
@@ -7593,33 +7821,44 @@ export class SupabaseApi implements ServiceApi {
       if (classIds.length === 0) return { data: [], total: 0 };
       // Step 2: Get all class_user rows for those classes and role student, filter by name using ilike
       const { data: classUserData, error: classUserError } = await this.supabase
-        .from('class_user')
+        .from("class_user")
         .select(`user:user_id (*), class_id`)
-        .in('class_id', classIds)
-        .eq('role', 'student')
-        .eq('is_deleted', false)
-        .ilike('user.name', `%${searchTerm}%`)
-        .not('user', 'is', null);
+        .in("class_id", classIds)
+        .eq("role", "student")
+        .eq("is_deleted", false)
+        .ilike("user.name", `%${searchTerm}%`)
+        .not("user", "is", null);
       if (classUserError || !classUserData) {
         console.error("Error fetching class_user rows:", classUserError);
         return { data: [], total: 0 };
       }
       // Step 3: Get parent phone numbers for each student using an inner query
       const studentIds = classUserData.map((row: any) => row.user.id);
-      let parentPhoneMap: Record<string, { parent_id: string; parent_name: string | null; parent_phone: string | null }> = {};
+      let parentPhoneMap: Record<
+        string,
+        {
+          parent_id: string;
+          parent_name: string | null;
+          parent_phone: string | null;
+        }
+      > = {};
       if (studentIds.length > 0) {
         const { data: parentData, error: parentError } = await this.supabase
-          .from('parent_user')
-          .select('student_id, parent_id, user:parent_id(id, name, phone)')
-          .in('student_id', studentIds)
-          .eq('is_deleted', false);
+          .from("parent_user")
+          .select("student_id, parent_id, user:parent_id(id, name, phone)")
+          .in("student_id", studentIds)
+          .eq("is_deleted", false);
         if (parentError) {
           console.error("Error fetching parent_user rows:", parentError);
         } else {
           for (const row of parentData ?? []) {
             let parent_name = null;
             let parent_phone = null;
-            if (row.user && typeof row.user === "object" && !Array.isArray(row.user)) {
+            if (
+              row.user &&
+              typeof row.user === "object" &&
+              !Array.isArray(row.user)
+            ) {
               parent_name = (row.user as any).name ?? null;
               parent_phone = (row.user as any).phone ?? null;
             }
@@ -7637,7 +7876,7 @@ export class SupabaseApi implements ServiceApi {
       // Step 5: Build result objects
       const result = pagedRows.map((row: any) => {
         const classInfo = classData.find((c: any) => c.id === row.class_id);
-        const className = classInfo?.name ?? '';
+        const className = classInfo?.name ?? "";
         const { grade, section } = this.parseClassName(className);
         const parentInfo = parentPhoneMap[row.user.id] ?? {};
         return {
@@ -7673,10 +7912,10 @@ export class SupabaseApi implements ServiceApi {
     try {
       // Step 1: Get all class_ids for the school
       const { data: classData, error: classError } = await this.supabase
-        .from('class')
-        .select('id, name')
-        .eq('school_id', schoolId)
-        .eq('is_deleted', false);
+        .from("class")
+        .select("id, name")
+        .eq("school_id", schoolId)
+        .eq("is_deleted", false);
       if (classError || !classData) {
         console.error("Error fetching classes for school:", classError);
         return { data: [], total: 0 };
@@ -7685,40 +7924,56 @@ export class SupabaseApi implements ServiceApi {
       if (classIds.length === 0) return { data: [], total: 0 };
       // Step 2: Get all class_user rows for those classes and role teacher
       const { data: classUserData, error: classUserError } = await this.supabase
-        .from('class_user')
+        .from("class_user")
         .select(`user:user_id (*), class_id`)
-        .in('class_id', classIds)
-        .eq('role', 'teacher')
-        .eq('is_deleted', false)
-        .ilike('user.name', `%${searchTerm}%`)
-        .not('user', 'is', null);
+        .in("class_id", classIds)
+        .eq("role", "teacher")
+        .eq("is_deleted", false)
+        .ilike("user.name", `%${searchTerm}%`)
+        .not("user", "is", null);
       if (classUserError || !classUserData) {
         console.error("Error fetching class_user rows:", classUserError);
         return { data: [], total: 0 };
       }
       // Step 3: Get parent info for each teacher using an inner query
       const teacherIds = classUserData.map((row: any) => row.user.id);
-      let parentInfoMap: Record<string, { parent_id: string; parent_name: string | null; parent_phone: string | null }> = {};
+      let parentInfoMap: Record<
+        string,
+        {
+          parent_id: string;
+          parent_name: string | null;
+          parent_phone: string | null;
+        }
+      > = {};
       if (teacherIds.length > 0) {
-        const { data: parentUserData, error: parentUserError } = await this.supabase
-          .from('parent_user')
-          .select('parent_id, student_id')
-          .in('student_id', teacherIds)
-          .eq('is_deleted', false);
+        const { data: parentUserData, error: parentUserError } =
+          await this.supabase
+            .from("parent_user")
+            .select("parent_id, student_id")
+            .in("student_id", teacherIds)
+            .eq("is_deleted", false);
         if (!parentUserError && parentUserData && parentUserData.length > 0) {
           const parentIds = parentUserData.map((row: any) => row.parent_id);
-          let parentDetailsMap: Record<string, { name: string | null; phone: string | null }> = {};
+          let parentDetailsMap: Record<
+            string,
+            { name: string | null; phone: string | null }
+          > = {};
           if (parentIds.length > 0) {
-            const { data: parentDetails, error: parentDetailsError } = await this.supabase
-              .from('user')
-              .select('id, name, phone')
-              .in('id', parentIds)
-              .eq('is_deleted', false);
-            if (!parentDetailsError && parentDetails && parentDetails.length > 0) {
+            const { data: parentDetails, error: parentDetailsError } =
+              await this.supabase
+                .from("user")
+                .select("id, name, phone")
+                .in("id", parentIds)
+                .eq("is_deleted", false);
+            if (
+              !parentDetailsError &&
+              parentDetails &&
+              parentDetails.length > 0
+            ) {
               for (const parent of parentDetails) {
                 parentDetailsMap[parent.id] = {
                   name: parent.name ?? null,
-                  phone: parent.phone ?? null
+                  phone: parent.phone ?? null,
                 };
               }
             }
@@ -7727,7 +7982,7 @@ export class SupabaseApi implements ServiceApi {
             parentInfoMap[row.student_id] = {
               parent_id: row.parent_id,
               parent_name: parentDetailsMap[row.parent_id]?.name ?? null,
-              parent_phone: parentDetailsMap[row.parent_id]?.phone ?? null
+              parent_phone: parentDetailsMap[row.parent_id]?.phone ?? null,
             };
           }
         }
@@ -7738,7 +7993,7 @@ export class SupabaseApi implements ServiceApi {
       // Step 5: Build result objects (with parent info)
       const result = pagedRows.map((row: any) => {
         const classInfo = classData.find((c: any) => c.id === row.class_id);
-        const className = classInfo?.name ?? '';
+        const className = classInfo?.name ?? "";
         const { grade, section } = this.parseClassName(className);
         const parentInfo = parentInfoMap[row.user.id] ?? null;
         return {
@@ -7751,7 +8006,7 @@ export class SupabaseApi implements ServiceApi {
           class_name: className,
           grade,
           classSection: section,
-          parent: parentInfo
+          parent: parentInfo,
         };
       });
       return { data: result, total: classUserData.length };

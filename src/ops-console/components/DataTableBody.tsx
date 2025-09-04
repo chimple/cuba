@@ -87,14 +87,15 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
   ) => {
     const history = useHistory();
     const handleRowClick = (row: any) => {
-      const id = row.id;
-      if (!id) {
-        console.warn("Row missing 'id' property");
+      if (onRowClick) {
+        const id = row.request_id || row.id;
+        onRowClick(id, row);
         return;
       }
 
-      if (onRowClick) {
-        onRowClick(id, row);
+      const id = row.id;
+      if (!id) {
+        console.warn("Row missing 'id' property");
         return;
       }
 
@@ -103,6 +104,7 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
           `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/${row["id"]}`
         );
       } else if (detailPageRouteBase === "users") {
+
         history.push({
           pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.USERS}${PAGES.USER_DETAILS}`,
           state: { userData: row },

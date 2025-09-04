@@ -1777,6 +1777,42 @@ export interface ServiceApi {
     limit: number
   ): Promise<StudentAPIResponse>;
 
+  /**
+   * Fetch detailed, paginated student and parent information for a given class ID.
+   * @param {string} classId - The ID of the class to fetch.
+   * @param {number} [page=1] - The page number to fetch.
+   * @param {number} [limit=20] - The number of items per page.
+   * @returns Promise resolving to an object with student and parent data and a total count.
+   */
+  getStudentsAndParentsByClassId(
+    classId: string,
+    page: number,
+    limit: number
+  ): Promise<StudentAPIResponse>;
+
+  /**
+   * Fetch a single student's details along with their parent information.
+   * @param {string} studentId - The ID of the student to fetch.
+   * @returns Promise resolving to an object containing the student's data and an array of parents.
+   */
+  getStudentAndParentByStudentId(
+    studentId: string
+  ): Promise<{ user: any; parents: any[] }>;
+
+  /**
+   * Merge a new student into an existing student record in SQLite.
+   * Moves results, links parents (by phone or email), and soft-deletes the new record.
+   * @param {string} requestId - The request ID associated with this merge.
+   * @param {string} existingStudentId - The student ID to merge into.
+   * @param {string} newStudentId - The student ID being merged and marked as deleted.
+   * @returns Promise resolving when the merge is complete.
+   */
+  mergeStudentRequest(
+    requestId: string,
+    existingStudentId: string,
+    newStudentId: string
+  ): Promise<void>;
+
   getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
 
   /**
@@ -1944,16 +1980,16 @@ export interface ServiceApi {
    * @returns {Promise<any>} - Returns a promise resolving to the available filter options.
    */
   getRequestFilterOptions();
-  
-    /**
-     * Search teachers in a school by name, email, or phone (paginated)
-     */
-    searchTeachersInSchool(
-      schoolId: string,
-      searchTerm: string,
-      page?: number,
-      limit?: number
-    ): Promise<{ data: any[]; total: number }>;
+
+  /**
+   * Search teachers in a school by name, email, or phone (paginated)
+   */
+  searchTeachersInSchool(
+    schoolId: string,
+    searchTerm: string,
+    page?: number,
+    limit?: number
+  ): Promise<{ data: any[]; total: number }>;
 
   /**
    * Search students by name, student_id, or phone number in a school, paginated.

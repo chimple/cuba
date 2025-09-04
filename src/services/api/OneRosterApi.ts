@@ -517,7 +517,7 @@ export class OneRosterApi implements ServiceApi {
   /**
    * Search students by name, student_id, or phone number in a school, paginated.
    * Not implemented for OneRosterApi, returns empty result.
-  */
+   */
   searchStudentsInSchool(
     schoolId: string,
     searchTerm: string,
@@ -530,9 +530,12 @@ export class OneRosterApi implements ServiceApi {
   /**
    * Search teachers by name, email, or phone in a school. Not implemented for OneRosterApi.
    */
-  async searchTeachersInSchool(schoolId: string, searchTerm: string): Promise<any[]> {
-  // Not implemented for OneRosterApi, return empty paginated result
-  return { data: [], total: 0 };
+  async searchTeachersInSchool(
+    schoolId: string,
+    searchTerm: string
+  ): Promise<any[]> {
+    // Not implemented for OneRosterApi, return empty paginated result
+    return { data: [], total: 0 };
   }
 
   async getClassesForUser(userId: string): Promise<Class[]> {
@@ -552,7 +555,7 @@ export class OneRosterApi implements ServiceApi {
     //     url: url,
     //     headers: this.getHeaders(),
     //   }).catch((e) => {
-    //    console.log("error on getResultsForStudentForClass", e); 
+    //    console.log("error on getResultsForStudentForClass", e);
     //   });
     //   if (response && response.status !== 200) {
     //     Util.showLog(response.data);
@@ -1253,6 +1256,34 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<StudentAPIResponse> {
     throw new Error("Method not implemented.");
   }
+  getStudentsAndParentsByClassId(
+    classId: string,
+    page: number,
+    limit: number
+  ): Promise<StudentAPIResponse> {
+    throw new Error("Method not implemented.");
+  }
+
+  getStudentAndParentByStudentId(
+    studentId: string
+  ): Promise<{ user: any; parents: any[] }> {
+    throw new Error("Method not implemented.");
+  }
+
+  getStudentAndParentByStudentId(
+    studentId: string
+  ): Promise<{ user: any; parents: any[] }> {
+    throw new Error("Method not implemented.");
+  }
+
+  mergeStudentRequest(
+    requestId: string,
+    existingStudentId: string,
+    newStudentId: string
+  ): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
   getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> {
     throw new Error("Method not implemented.");
   }
