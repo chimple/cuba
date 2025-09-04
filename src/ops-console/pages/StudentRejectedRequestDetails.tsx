@@ -188,7 +188,7 @@ const StudentRejectedRequestDetails = () => {
             </Typography>
             <Divider className="student-rejected-request-details-divider-margin" /> {/* Class name updated */}
             <div className="student-rejected-request-details-label-row">
-              <span className="student-rejected-request-details-label-reject">{t("Reason:")}</span> {/* Class name updated & Translated */}
+              <span className="student-rejected-request-details-label-reject">{t("Reason :")}</span>
               <span>
                 {requestDetails.rejected_reason_type || t("-")} {/* Translated '-' */}
               </span>
