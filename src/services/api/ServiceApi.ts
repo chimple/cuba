@@ -490,13 +490,11 @@ export interface ServiceApi {
   getCourse(id: string): Promise<TableTypes<"course"> | undefined>;
 
   /**
-   * Gives Courses for given a CourseIds  
-   * @param  {courseIds: string[]} - CourseIds 
+   * Gives Courses for given a CourseIds
+   * @param  {courseIds: string[]} - CourseIds
    * @returns {<TableTypes<"course">[]>}`Course` or `undefined` if it could not find the Course with given `id`
    */
-  getCourses(
-    courseIds: string[]
-  ): Promise<TableTypes<"course">[]> 
+  getCourses(courseIds: string[]): Promise<TableTypes<"course">[]>;
 
   /**
    * Gives StudentProfile for given a Student firebase doc Id
@@ -1790,6 +1788,29 @@ export interface ServiceApi {
     limit: number
   ): Promise<StudentAPIResponse>;
 
+  /**
+   * Fetch a single student's details along with their parent information.
+   * @param {string} studentId - The ID of the student to fetch.
+   * @returns Promise resolving to an object containing the student's data and an array of parents.
+   */
+  getStudentAndParentByStudentId(
+    studentId: string
+  ): Promise<{ user: any; parents: any[] }>;
+
+  /**
+   * Merge a new student into an existing student record in SQLite.
+   * Moves results, links parents (by phone or email), and soft-deletes the new record.
+   * @param {string} requestId - The request ID associated with this merge.
+   * @param {string} existingStudentId - The student ID to merge into.
+   * @param {string} newStudentId - The student ID being merged and marked as deleted.
+   * @returns Promise resolving when the merge is complete.
+   */
+  mergeStudentRequest(
+    requestId: string,
+    existingStudentId: string,
+    newStudentId: string
+  ): Promise<void>;
+
   getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
 
   /**
@@ -1808,7 +1829,7 @@ export interface ServiceApi {
   isProgramUser(): Promise<boolean>;
 
   /**
-   * Count total and active students, total and active teachers, and total institutes for a given program.
+   * Count total and active students, total and active teachers, and total schools for a given program.
    *
    * @param {string} programId - The ID of the program.
    * @returns {Promise<{
@@ -1817,13 +1838,13 @@ export interface ServiceApi {
    *   avg_time_spent: number;
    *   total_teachers: number;
    *   active_teachers: number;
-   *   total_institutes: number;
+   *   total_schools: number;
    * }>} Promise resolving to an object with student, teacher, and institute statistics.
    */
   program_activity_stats(programId: string): Promise<{
     total_students: number;
     total_teachers: number;
-    total_institutes: number;
+    total_schools: number;
     active_student_percentage: number;
     active_teacher_percentage: number;
     avg_weekly_time_minutes: number;
@@ -1957,16 +1978,16 @@ export interface ServiceApi {
    * @returns {Promise<any>} - Returns a promise resolving to the available filter options.
    */
   getRequestFilterOptions();
-  
-    /**
-     * Search teachers in a school by name, email, or phone (paginated)
-     */
-    searchTeachersInSchool(
-      schoolId: string,
-      searchTerm: string,
-      page?: number,
-      limit?: number
-    ): Promise<{ data: any[]; total: number }>;
+
+  /**
+   * Search teachers in a school by name, email, or phone (paginated)
+   */
+  searchTeachersInSchool(
+    schoolId: string,
+    searchTerm: string,
+    page?: number,
+    limit?: number
+  ): Promise<{ data: any[]; total: number }>;
 
   /**
    * Search students by name, student_id, or phone number in a school, paginated.

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -24,6 +24,8 @@ import { PAGES } from "../../common/constants";
 import { t } from "i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
+import { PhoneInput } from "react-international-phone";
+import "react-international-phone/style.css";
 
 const validateEmailOrPhone = (value: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -44,7 +46,7 @@ const NewUserPage: React.FC = () => {
     email: "",
     role: "",
   });
-
+  const [tempPhone, setTempPhone] = useState<string>("");
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const history = useHistory();
@@ -63,7 +65,9 @@ const NewUserPage: React.FC = () => {
     open: false,
     message: "",
   });
-
+  const handlePhoneChange = (fullNumber: string) => {
+    setTempPhone(fullNumber);
+  };
   const handleInputChange =
     (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
       let value = event.target.value;
@@ -82,17 +86,16 @@ const NewUserPage: React.FC = () => {
       role: event.target.value as string,
     }));
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { name, email, phone, role } = form;
+    const { name, email, role } = form;
 
     if (!name.trim() || !role.trim()) {
       setShowAlert(true);
       return;
     }
 
-    if (!email.trim() && !phone.trim()) {
+    if (!email.trim() && !tempPhone.trim()) {
       setShowAlert(true);
       return;
     }
@@ -105,15 +108,26 @@ const NewUserPage: React.FC = () => {
       return;
     }
 
-    if (phone) {
-      if (phone.length > 10) {
+    let finalPhone = "";
+    if (tempPhone) {
+      let digitsOnly = tempPhone.replace(/\D/g, "");
+
+      if (digitsOnly.startsWith("91") && digitsOnly.length > 10) {
+        digitsOnly = digitsOnly.slice(2);
+      } else {
+        digitsOnly = digitsOnly;
+      }
+
+      if (digitsOnly.length < 10) {
         setValidationDialog({
           open: true,
-          message: "Phone number cannot be more than 10 digits.",
+          message: "Phone number must be 10 digits.",
         });
         return;
       }
-      if (!validateEmailOrPhone(phone)) {
+
+      finalPhone = digitsOnly;
+      if (!validateEmailOrPhone(finalPhone)) {
         setValidationDialog({
           open: true,
           message: "Please enter a valid phone number",
@@ -122,8 +136,9 @@ const NewUserPage: React.FC = () => {
       }
     }
 
+    const payload = { ...form, phone: finalPhone };
     const { success, error, user_id, message } =
-      await api.createOrAddUserOps(form);
+      await api.createOrAddUserOps(payload);
 
     const errorMsgMap: Record<string, string> = {
       "auth-create-failed":
@@ -144,7 +159,6 @@ const NewUserPage: React.FC = () => {
     };
 
     const knownErrors = Object.keys(errorMsgMap);
-
     const isKnownError = !success || (message && knownErrors.includes(message));
 
     if (isKnownError) {
@@ -219,11 +233,32 @@ const NewUserPage: React.FC = () => {
               <Typography className="ops-new-user-form_label">
                 {t("Phone Number")}
               </Typography>
-              <TextField
-                fullWidth
-                size="small"
-                value={form.phone}
-                onChange={handleInputChange("phone")}
+
+              <PhoneInput
+                defaultCountry="in"
+                value={tempPhone}
+                disableCountryGuess
+                onChange={handlePhoneChange}
+                inputClassName="w-full"
+                className="new-user-page-phone-input"
+                inputProps={{
+                  onKeyDown: (e) => {
+                    const input = e.currentTarget;
+                    const selectionStart = input.selectionStart ?? 0;
+
+                    const prefixMatch = input.value.match(/^\+\d+\s*/);
+                    const prefixLength = prefixMatch
+                      ? prefixMatch[0].length
+                      : 0;
+
+                    if (
+                      selectionStart <= prefixLength &&
+                      ["Backspace", "Delete"].includes(e.key)
+                    ) {
+                      e.preventDefault();
+                    }
+                  },
+                }}
               />
             </Grid>
             <Grid item xs={12} className="ops-new-user-form_group">

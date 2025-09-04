@@ -1326,6 +1326,23 @@ export class ApiHandler implements ServiceApi {
   ): Promise<StudentAPIResponse> {
     return await this.s.getStudentsAndParentsByClassId(classId, page, limit);
   }
+  public async getStudentAndParentByStudentId(
+    studentId: string
+  ): Promise<{ user: any; parents: any[] }> {
+    return await this.s.getStudentAndParentByStudentId(studentId);
+  }
+  public async mergeStudentRequest(
+    requestId: string,
+    existingStudentId: string,
+    newStudentId: string
+  ): Promise<void> {
+    return await this.s.mergeStudentRequest(
+      requestId,
+      existingStudentId,
+      newStudentId
+    );
+  }
+
   public async getClassesBySchoolId(
     schoolId: string
   ): Promise<TableTypes<"class">[]> {
@@ -1344,7 +1361,7 @@ export class ApiHandler implements ServiceApi {
   public async program_activity_stats(programId: string): Promise<{
     total_students: number;
     total_teachers: number;
-    total_institutes: number;
+    total_schools: number;
     active_student_percentage: number;
     active_teacher_percentage: number;
     avg_weekly_time_minutes: number;
@@ -1444,15 +1461,25 @@ export class ApiHandler implements ServiceApi {
     page: number = 1,
     limit: number = 20
   ): Promise<StudentAPIResponse> {
-    return await this.s.searchStudentsInSchool(schoolId, searchTerm, page, limit);
+    return await this.s.searchStudentsInSchool(
+      schoolId,
+      searchTerm,
+      page,
+      limit
+    );
   }
 
   public async searchTeachersInSchool(
-    schoolId: string, 
-    searchTerm: string,    
+    schoolId: string,
+    searchTerm: string,
     page: number = 1,
     limit: number = 20
   ): Promise<TeacherAPIResponse> {
-    return await this.s.searchTeachersInSchool(schoolId, searchTerm, page, limit);
+    return await this.s.searchTeachersInSchool(
+      schoolId,
+      searchTerm,
+      page,
+      limit
+    );
   }
 }

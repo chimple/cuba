@@ -104,8 +104,6 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
           `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/${row["id"]}`
         );
       } else if (detailPageRouteBase === "users") {
-        console.log("Row clicked: 2", row);
-
         history.push({
           pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.USERS}${PAGES.USER_DETAILS}`,
           state: { userData: row },
@@ -151,6 +149,11 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
                       active={orderBy === col.key}
                       direction={orderBy === col.key ? order : "asc"}
                       onClick={() => onSort(col.key)}
+                      sx={{
+                        "& .MuiTableSortLabel-icon": {
+                          opacity: 1,
+                        },
+                      }}
                     >
                       {col.label}
                     </TableSortLabel>

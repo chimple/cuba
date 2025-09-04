@@ -21,7 +21,7 @@
   font-size: 1.05rem;
 }
 .student-rejected-request-details-breadcrumbs .link {
-  color: #3799FD;
+  color: #3799fd;
   cursor: pointer;
   text-decoration: underline;
   margin-right: 0.7vw;
@@ -50,7 +50,8 @@
   color: #26244d;
   letter-spacing: 0.03rem;
   margin-bottom: 1.2rem;
-  font-weight: 600;
+  font-weight: 700 !important;
+  font-family: Roboto;
   font-size: 1.25rem;
 }
 
@@ -148,13 +149,29 @@
     margin-bottom: 3vw;
     font-size: 1rem;
   }
-  .student-rejected-request-details-field-stack .label { font-size: 0.99rem; }
-  .student-rejected-request-details-field-stack .value { font-size: 1.08rem; }
-  .student-rejected-request-details-label-row { flex-direction: column; align-items: flex-start; font-size: 0.98rem; }
-  .student-rejected-request-details-label-row span { min-width: unset; }
-  .student-rejected-request-details-breadcrumbs { font-size: 0.98rem; }
+  .student-rejected-request-details-field-stack .label {
+    font-size: 0.99rem;
+  }
+  .student-rejected-request-details-field-stack .value {
+    font-size: 1.08rem;
+  }
+  .student-rejected-request-details-label-row {
+    flex-direction: column;
+    align-items: flex-start;
+    font-size: 0.98rem;
+  }
+  .student-rejected-request-details-label-row span {
+    min-width: unset;
+  }
+  .student-rejected-request-details-breadcrumbs {
+    font-size: 0.98rem;
+  }
 }
 
 .student-rejected-request-details-centered {
-  display: flex; align-items: center; justify-content: center; height: 70vh; flex-direction: column;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 70vh;
+  flex-direction: column;
 }

@@ -24,7 +24,7 @@ import NewUserPage from "./NewUserPageOps";
 import UserDetailsPage from "./UserDetailsPage";
 import { RoleType } from "../../interface/modelInterfaces";
 import RequestList from "./RequestList";
-import StudentPendingRequest from "../components/StudentPendingRequest";
+import StudentPendingRequest from "./StudentPendingRequest";
 import StudentApprovedRequestDetails from "./StudentApprovedRequestDetails";
 import StudentRejectedRequestDetails from "./StudentRejectedRequestDetails";
 

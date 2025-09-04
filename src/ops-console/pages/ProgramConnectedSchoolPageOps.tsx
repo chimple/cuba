@@ -138,13 +138,13 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
     },
     {
       key: "students",
-      label: t("No of Students"),
+      label: t("No. of Students"),
       sortable: true,
       orderBy: "students",
     },
     {
       key: "teachers",
-      label: t("No of Teachers"),
+      label: t("No. of Teachers"),
       sortable: true,
       orderBy: "teachers",
     },
