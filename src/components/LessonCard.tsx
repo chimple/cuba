@@ -4,6 +4,7 @@ import { useHistory } from "react-router-dom";
 import {
   COCOS,
   CONTINUE,
+  COURSE,
   COURSES,
   LESSON_CARD_COLORS,
   LIDO,
@@ -108,6 +109,29 @@ const LessonCard: React.FC<{
 
   const [lessonCardColor, setLessonCardColor] = useState("");
 
+  const COURSE_VALUES_SET = new Set(
+    (Object.values(COURSE) as string[]).map((v) => v.toLowerCase())
+  );
+
+  const getCourseIdFromCocosLesson = (
+    rawLessonId: string | null,
+    subjectCode: string | null
+  ): string | null => {
+    if (!rawLessonId) {
+      return subjectCode;
+    }
+    const parts = rawLessonId
+      .trim()
+      .toLowerCase()
+      .split(/[^a-z]+/);
+    for (const part of parts) {
+      if (COURSE_VALUES_SET.has(part)) {
+        return part;
+      }
+    }
+    return subjectCode;
+  };
+
   useEffect(() => {
     setLessonCardColor(
       LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)]
@@ -164,7 +188,11 @@ const LessonCard: React.FC<{
             }
 
             if (lesson.plugin_type === COCOS) {
-              const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+              const courseId = getCourseIdFromCocosLesson(
+                lesson.cocos_lesson_id,
+                lesson.cocos_subject_code
+              );
+              const parmas = `?courseid=${courseId}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
               history.replace(PAGES.GAME + parmas, {
                 url: "chimple-lib/index.html" + parmas,
                 lessonId: lesson.cocos_lesson_id,
