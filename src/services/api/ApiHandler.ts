@@ -19,7 +19,7 @@ import {
   PrincipalAPIResponse,
   CoordinatorAPIResponse,
   EnumType,
-  JUSTTABLES,
+  CACHETABLES,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -94,10 +94,8 @@ export class ApiHandler implements ServiceApi {
     );
   }
 
-  public clearSpecificTablesSqlite(
-    tableNames: readonly JUSTTABLES[]
-  ): Promise<void> {
-    return this.s.clearSpecificTablesSqlite(tableNames);
+  public clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
+    return this.s.clearCacheData(tableNames);
   }
 
   public async joinLiveQuiz(

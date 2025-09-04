@@ -981,7 +981,7 @@ export interface CoordinatorAPIResponse {
 }
 export const CHIMPLE_RIVE_STATE_MACHINE_MAX = "chimple_rive_state_machine_max";
 
-export const TABLES_TO_CLEAR = [
+export const CACHE_TABLES_TO_CLEAR = [
   "school",
   "class",
   "user",
@@ -1001,4 +1001,4 @@ export const TABLES_TO_CLEAR = [
   "result",
   "program",
 ] as const;
-export type JUSTTABLES = (typeof TABLES_TO_CLEAR)[number];
+export type CACHETABLES = (typeof CACHE_TABLES_TO_CLEAR)[number];

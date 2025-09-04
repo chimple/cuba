@@ -42,7 +42,7 @@ import {
   CoordinatorAPIResponse,
   EVENTS,
   EnumType,
-  JUSTTABLES,
+  CACHETABLES,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -5922,9 +5922,7 @@ order by
     const result = await this._db.query(query, [...params, limit, offset]);
     return { data: result?.values ?? [], total };
   }
-  async clearSpecificTablesSqlite(
-    tableNames: readonly JUSTTABLES[]
-  ): Promise<void> {
+  async clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
     if (!this._db) return;
     const query = `PRAGMA foreign_keys=OFF;`;
     const result = await this._db?.query(query);

@@ -42,7 +42,7 @@ import {
   CoordinatorAPIResponse,
   RequestTypes,
   EnumType,
-  JUSTTABLES,
+  CACHETABLES,
 } from "../../common/constants";
 import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
@@ -97,12 +97,10 @@ export class SupabaseApi implements ServiceApi {
 
     return data ?? [];
   }
-  async clearSpecificTablesSqlite(
-    tableNames: readonly JUSTTABLES[]
-  ): Promise<void> {
+  async clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
     console.warn("Delegating clearSpecificTablesSqlite to SqliteApi");
     const sqliteApi = await SqliteApi.getInstance();
-    return sqliteApi.clearSpecificTablesSqlite(tableNames);
+    return sqliteApi.clearCacheData(tableNames);
   }
   async getPendingAssignmentForLesson(
     lessonId: string,

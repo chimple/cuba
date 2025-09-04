@@ -3,10 +3,10 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import { StudentLessonResult } from "../../common/courseConstants";
 import {
+  CACHETABLES,
   CoordinatorAPIResponse,
   EnumType,
   FilteredSchoolsForSchoolListingOps,
-  JUSTTABLES,
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODEL,
@@ -120,7 +120,7 @@ export interface ServiceApi {
    * @param {readonly TABLES[]} tableNames - List of table names to clear.
    * @returns {Promise<void>} Resolves once the tables are cleared.
    */
-  clearSpecificTablesSqlite(tableNames: readonly JUSTTABLES[]): Promise<void>;
+  clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void>;
 
   requestNewSchool(
     name: string,
