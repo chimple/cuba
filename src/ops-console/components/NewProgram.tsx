@@ -524,6 +524,30 @@ const NewProgram: React.FC = () => {
                   value={programManagers.filter((pm) =>
                     selectedManagers.includes(pm.id)
                   )}
+                  onChange={(_, newValue) => {
+                    setSelectedManagers(newValue.map((pm) => pm.id));
+                  }}
+                  renderOption={(props, option, { selected }) => (
+                    <li {...props}>
+                      <Checkbox checked={selected} sx={{ mr: 1 }} />
+                      {option.name}
+                    </li>
+                  )}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={`Select ${t("Program Managers")}`}
+                      error={!!errors["programManager"]}
+                      helperText={errors["programManager"] || ""}
+                      InputProps={{
+                        ...params.InputProps,
+                        sx: {
+                          borderRadius: "12px",
+                        },
+                      }}
+                    />
+                  )}
+                />
               </Grid>
             </Grid>
 
