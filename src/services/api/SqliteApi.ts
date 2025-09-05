@@ -604,36 +604,14 @@ export class SqliteApi implements ServiceApi {
         );
       }
     } else {
-      const ObservaàTua_Volta = await this.getCourse(Observa_à_Tua_Volta);
-      const ONossoPaís = await this.getCourse(O_Nosso_País);
-      const OuvireFalarLereEscrever = await this.getCourse(
-        Ouvir_e_Falar_Ler_e_Escrever
-      );
-      const MatemáticaDivertida = await this.getCourse(Matemática_Divertida);
+      const coursesToAdd = await Promise.all([
+        this.getCourse("dbf40af3-d11a-4faa-aee9-76b83d48f9fc"),
+        this.getCourse("e5cda413-2f6c-485d-8985-27e3b6aad0d5"),
+        this.getCourse("9d2474bd-b9c6-43ea-8415-242668807ba0"),
+      ]);
 
-      const language = await this.getLanguageWithId(languageDocId!);
-      let langCourse;
-      // if (language && language.code !== COURSES.Português) {
-      //   // Map language code to courseId
-      //   const thirdLanguageCourseMap: Record<string, string> = {
-      //     hi: CHIMPLE_HINDI,
-      //     kn: GRADE1_KANNADA,
-      //     mr: GRADE1_MARATHI,
-      //   };
-
-      //   const courseId = thirdLanguageCourseMap[language.code ?? ""];
-      //   if (courseId) {
-      //     langCourse = await this.getCourse(courseId);
-      //   }
-      // }
-      const coursesToAdd = [
-        ObservaàTua_Volta,
-        ONossoPaís,
-        OuvireFalarLereEscrever,
-        MatemáticaDivertida,
-        langCourse,
-      ].filter(Boolean);
-      for (const course of coursesToAdd) {
+      for (const course of coursesToAdd.filter(Boolean)) {
+        if (!course) continue;
         const newUserCourse: TableTypes<"user_course"> = {
           course_id: course.id,
           created_at: new Date().toISOString(),
@@ -643,13 +621,15 @@ export class SqliteApi implements ServiceApi {
           user_id: studentId,
           is_firebase: null,
         };
+
         await this.executeQuery(
           `
-      INSERT INTO user_course (id, user_id, course_id)
-    VALUES (?, ?, ?);
-  `,
+          INSERT INTO user_course (id, user_id, course_id)
+          VALUES (?, ?, ?);
+          `,
           [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
         );
+
         this.updatePushChanges(
           TABLES.UserCourse,
           MUTATE_TYPES.INSERT,
@@ -657,6 +637,7 @@ export class SqliteApi implements ServiceApi {
         );
       }
     }
+
     return newStudent;
   }
 
