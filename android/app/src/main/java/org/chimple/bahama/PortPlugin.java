@@ -381,6 +381,7 @@ public class PortPlugin extends Plugin {
         }
     }
 
+    @PluginMethod
     public void returnDataToRespect(PluginCall call) {
         Log.d(TAG, "Calling returnDataToRespect");
         Activity activity = getActivity();
