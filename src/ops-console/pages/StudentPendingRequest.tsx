@@ -22,7 +22,6 @@ import { Constants } from "../../services/database";
 import { useTranslation } from "react-i18next";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
 
-
 const StudentPendingRequestDetails = () => {
   const { id } = useParams<{ id: string }>();
   const history = useHistory();
@@ -195,6 +194,14 @@ const StudentPendingRequestDetails = () => {
     </div>
   );
 
+  // Filter out the requesting student from the students list
+  const filteredStudents = students.filter(
+    (stu) => stu.user.id !== requestData?.requested_by
+  );
+  // Also update the total students count for display
+  const filteredTotalStudents = totalStudents - (students.length - filteredStudents.length);
+
+
   return (
     <div className="student-pending-request-details-layout">
       <Typography
@@ -332,7 +339,7 @@ const StudentPendingRequestDetails = () => {
               )}
             </Typography>
             <Typography className="student-pending-request-details-total-students-count">
-              {t(`Total: ${totalStudents} students`)}
+              {t(`Total: ${filteredTotalStudents} students`)}
             </Typography>
             <TableContainer>
               <Table size="small">
@@ -356,7 +363,7 @@ const StudentPendingRequestDetails = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {students.map((stu) => {
+                  {filteredStudents.map((stu) => { 
                     const fullStudentClassName = `${stu.grade || ""}${
                       stu.classSection || ""
                     }`;
@@ -392,7 +399,7 @@ const StudentPendingRequestDetails = () => {
             </TableContainer>
             <TablePagination
               component="div"
-              count={totalStudents}
+              count={filteredTotalStudents}
               page={currentPage - 1}
               onPageChange={handlePageChange}
               rowsPerPage={pageSize}
