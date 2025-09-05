@@ -310,23 +310,14 @@ const CocosGame: React.FC = () => {
         JSON.stringify(learningPath)
       );
       
-      // For APIs with real database persistence, fetch the updated user
-      // but ensure we don't overwrite with stale data
       try {
         const updatedStudent = await api.getUserByDocId(currentStudent.id);
-        if (updatedStudent && updatedStudent.learning_path) {
-          // Only use the fetched user if it has the learning_path
-          await Util.setCurrentStudent(updatedStudent, undefined);
-        } else {
-          // Fallback: update current user locally with our fresh data
-          await Util.setCurrentStudent(
-            { ...currentStudent, learning_path: JSON.stringify(learningPath) },
-            undefined
-          );
+        if (!updatedStudent || !updatedStudent.learning_path) {
+          throw new Error("Fetched student data is invalid or missing learning_path.");
         }
+        await Util.setCurrentStudent(updatedStudent, undefined);
       } catch (error) {
-        // If getUserByDocId fails (e.g., FirebaseApi), use local update
-        console.warn("getUserByDocId failed, using local update:", error);
+        console.warn("Failed to fetch updated student, using local data:", error);
         await Util.setCurrentStudent(
           { ...currentStudent, learning_path: JSON.stringify(learningPath) },
           undefined
