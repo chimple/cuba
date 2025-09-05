@@ -4,6 +4,7 @@ import { useHistory } from "react-router-dom";
 import {
   COCOS,
   CONTINUE,
+  CourseIdentifier,
   COURSES,
   LESSON_CARD_COLORS,
   LIDO,
@@ -109,7 +110,7 @@ const LessonCard: React.FC<{
   const [lessonCardColor, setLessonCardColor] = useState("");
 
   const COURSE_VALUES_SET = new Set(
-    (Object.values(COURSES) as string[]).map((v) => v.toLowerCase())
+    (Object.values(CourseIdentifier) as string[]).map((v) => v.toLowerCase())
   );
 
   const getCourseIdFromCocosLesson = (

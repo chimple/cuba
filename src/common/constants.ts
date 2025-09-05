@@ -10,6 +10,8 @@ export enum COURSES {
   PUZZLE = "puzzle",
   ENGLISH = "en",
   MATHS = "maths",
+}
+export enum CourseIdentifier {
   maths = "maths",
   en = "en",
   kn = "kn",
