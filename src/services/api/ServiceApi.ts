@@ -1968,17 +1968,24 @@ export interface ServiceApi {
   addParentToNewClass(classID: string, studentID: string): Promise<void>;
 
   /**
-   * Fetches operational requests with pagination and optional filters.
-   * @param {RequestStatus} requestStatus - Status of the requests (e.g., PENDING, APPROVED, REJECTED).
-   * @param {number} page - Current page number for pagination.
+   * Fetches operational requests with pagination, sorting, and optional filters.
+   *
+   * @param {EnumType<"ops_request_status">} requestStatus - Status of the requests(e.g., PENDING, APPROVED, REJECTED).
+   * @param {number} page - Current page number for pagination (1-based).
    * @param {number} limit - Number of records per page.
-   * @param {{ request_type?: string[]; school?: string[] }} [filters] - Optional filters by request type and/or school.
-   * @param {string} [searchTerm] - Optional search keyword to filter results.
+   * @param {string} orderBy - Field to sort by. Supports "created_at", "updated_at", or "school_name" (school_name is handled in-memory).
+   * @param {"asc" | "desc"} orderDir - Sorting direction (ascending or descending).
+   * @param {{ request_type?: string[]; school?: string[] }} [filters] - Optional filters by request type(s) and/or school name(s).
+   * @param {string} [searchTerm] - Optional search keyword to filter results by request ID.
+   *
+   * @returns {Promise<{ data: any[]; total: number }>} - Paginated list of requests and total count.
    */
   getOpsRequests(
     requestStatus: EnumType<"ops_request_status">,
     page: number,
     limit: number,
+    orderBy: string,
+    orderDir: "asc" | "desc",
     filters?: { request_type?: string[]; school?: string[] },
     searchTerm?: string
   );

@@ -1444,7 +1444,9 @@ export class ApiHandler implements ServiceApi {
   public async getOpsRequests(
     requestStatus: EnumType<"ops_request_status">,
     page: number = 1,
-    limit: number = 8,
+    limit: number = 20,
+    orderBy: string = "created_at",
+    orderDir: "asc" | "desc" = "desc",
     filters?: { request_type?: string[]; school?: string[] },
     searchTerm?: string
   ) {
@@ -1452,6 +1454,8 @@ export class ApiHandler implements ServiceApi {
       requestStatus,
       page,
       limit,
+      orderBy,
+      orderDir,
       filters,
       searchTerm
     );
