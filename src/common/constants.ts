@@ -11,7 +11,7 @@ export enum COURSES {
   ENGLISH = "en",
   MATHS = "maths",
 }
-export enum CourseIdentifier {
+export enum CocosCourseIdentifier {
   maths = "maths",
   en = "en",
   kn = "kn",
