@@ -11,6 +11,14 @@ export enum COURSES {
   ENGLISH = "en",
   MATHS = "maths",
 }
+export enum CocosCourseIdentifier {
+  maths = "maths",
+  en = "en",
+  kn = "kn",
+  hi = "hi",
+  mr = "mr",
+}
+
 export type TableTypes<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Row"];
 export type EnumType<K extends keyof (typeof Constants)["public"]["Enums"]> =
