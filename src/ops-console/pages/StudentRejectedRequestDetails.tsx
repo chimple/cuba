@@ -66,14 +66,16 @@ const StudentRejectedRequestDetails = () => {
   if (isLoading)
     return (
       <div className="student-rejected-request-details-centered">
-        <Typography>{t("Loading request details...")}</Typography> {/* Translated */}
+        <Typography>{t("Loading request details...")}</Typography>{" "}
+        {/* Translated */}
       </div>
     );
   if (error)
     return (
       <div className="student-rejected-request-details-centered">
         <Typography color="error">{error}</Typography>
-        <Button onClick={() => history.goBack()}>{t("Go Back")}</Button> {/* Translated */}
+        <Button onClick={() => history.goBack()}>{t("Go Back")}</Button>{" "}
+        {/* Translated */}
       </div>
     );
   if (!requestDetails) return null;
@@ -96,7 +98,10 @@ const StudentRejectedRequestDetails = () => {
 
   return (
     <div className="student-rejected-request-details-layout">
-      <Typography variant="h4" className="student-rejected-request-details-page-title">
+      <Typography
+        variant="h4"
+        className="student-rejected-request-details-page-title"
+      >
         {t("Requests")} {/* Translated */}
       </Typography>
       <div className="student-rejected-request-details-breadcrumbs">
@@ -119,7 +124,8 @@ const StudentRejectedRequestDetails = () => {
         </span>
         <span> &gt; </span>
         <span className="student-rejected-request-details-active">
-          {t("Request ID - {{id}}", { id })} {/* Translated with interpolation */}
+          {t("Request ID - {{id}}", { id })}{" "}
+          {/* Translated with interpolation */}
         </span>
       </div>
       <Grid
@@ -131,51 +137,82 @@ const StudentRejectedRequestDetails = () => {
         {/* LEFT: Request Details */}
         <Grid item xs={12} md={6} lg={5}>
           <Paper className="student-rejected-request-details-details-card">
-            <Typography variant="h6" className="student-rejected-request-details-card-title">
-              {t("Request ID - {{id}}", { id })} {/* Translated with interpolation */}
+            <Typography
+              variant="h6"
+              className="student-rejected-request-details-card-title"
+            >
+              {t("Request ID - {{id}}", { id })}{" "}
+              {/* Translated with interpolation */}
             </Typography>
-            <Divider className="student-rejected-request-details-divider-margin" /> {/* Class name updated */}
+            <Divider className="student-rejected-request-details-divider-margin" />{" "}
+            {/* Class name updated */}
             <div className="student-rejected-request-details-field-stack">
-              <div className="student-rejected-request-details-label">{t("School Name")}</div> {/* Class name updated & Translated */}
+              <div className="student-rejected-request-details-label">
+                {t("School Name")}
+              </div>{" "}
+              {/* Class name updated & Translated */}
               <div>{school.name || t("-")}</div> {/* Translated '-' */}
             </div>
             <div className="student-rejected-request-details-field-stack">
-              <div className="student-rejected-request-details-label">{t("School ID (UDISE)")}</div> {/* Class name updated & Translated */}
+              <div className="student-rejected-request-details-label">
+                {t("School ID (UDISE)")}
+              </div>{" "}
+              {/* Class name updated & Translated */}
               <div>{school.udise || t("-")}</div> {/* Translated '-' */}
             </div>
-            <Divider className="student-rejected-request-details-divider-margin" /> {/* Class name updated */}
-            <div className="student-rejected-request-details-field-row"> {/* Class name updated */}
+            <Divider className="student-rejected-request-details-divider-margin" />{" "}
+            {/* Class name updated */}
+            <div className="student-rejected-request-details-field-row">
+              {" "}
+              {/* Class name updated */}
               <div
                 className="student-rejected-request-details-field-stack student-rejected-request-details-field-stack-margin" // Class name updated
               >
-                <div className="student-rejected-request-details-label">{t("City")}</div> {/* Class name updated & Translated */}
+                <div className="student-rejected-request-details-label">
+                  {t("City")}
+                </div>{" "}
+                {/* Class name updated & Translated */}
                 <div>{school.group2 || t("-")}</div> {/* Translated '-' */}
               </div>
               <div className="student-rejected-request-details-field-stack">
-                <div className="student-rejected-request-details-label">{t("State")}</div> {/* Class name updated & Translated */}
+                <div className="student-rejected-request-details-label">
+                  {t("State")}
+                </div>{" "}
+                {/* Class name updated & Translated */}
                 <div>{school.group1 || t("-")}</div> {/* Translated '-' */}
               </div>
             </div>
             <div className="student-rejected-request-details-field-stack">
-              <div className="student-rejected-request-details-label">{t("District")}</div> {/* Class name updated & Translated */}
+              <div className="student-rejected-request-details-label">
+                {t("District")}
+              </div>{" "}
+              {/* Class name updated & Translated */}
               <div>{school.group3 || t("-")}</div> {/* Translated '-' */}
             </div>
-            <Divider className="student-rejected-request-details-divider-margin" /> {/* Class name updated */}
-            <Typography variant="h6" className="student-rejected-request-details-card-title">
+            <Divider className="student-rejected-request-details-divider-margin" />{" "}
+            {/* Class name updated */}
+            <Typography
+              variant="h6"
+              className="student-rejected-request-details-card-title"
+            >
               {t("Request Details")} {/* Translated */}
             </Typography>
             <Grid container spacing={1}>
               <Grid item xs={6}>
-                <div className="student-rejected-request-details-label-sm">{t("Request For:")}</div> {/* Class name updated & Translated */}
+                <div className="student-rejected-request-details-label-sm">
+                  {t("Request For:")}
+                </div>{" "}
+                {/* Class name updated & Translated */}
                 <div>
                   {requestDetails.request_type || t("-")} {/* Translated '-' */}
                 </div>
               </Grid>
               <Grid item xs={6}>
-                <div className="student-rejected-request-details-label-sm">{t("Requested On:")}</div> {/* Class name updated & Translated */}
-                <div>
-                  {formatDT(requestDetails.created_at)}
-                </div>
+                <div className="student-rejected-request-details-label-sm">
+                  {t("Requested On:")}
+                </div>{" "}
+                {/* Class name updated & Translated */}
+                <div>{formatDT(requestDetails.created_at)}</div>
               </Grid>
             </Grid>
           </Paper>
@@ -183,43 +220,70 @@ const StudentRejectedRequestDetails = () => {
         {/* RIGHT: Rejection Details (red), Request From */}
         <Grid item xs={12} md={6} lg={4}>
           <Paper className="student-rejected-request-details-rejection-card student-rejected-request-details-details-card">
-            <Typography variant="h6" className="student-rejected-request-details-card-title student-rejected-request-details-rejection-title">
+            <Typography
+              variant="h6"
+              className="student-rejected-request-details-card-title student-rejected-request-details-rejection-title"
+            >
               {t("Rejection Details")} {/* Translated */}
             </Typography>
-            <Divider className="student-rejected-request-details-divider-margin" /> {/* Class name updated */}
+            <Divider className="student-rejected-request-details-divider-margin" />{" "}
+            {/* Class name updated */}
             <div className="student-rejected-request-details-label-row">
-              <span className="student-rejected-request-details-label-reject">{t("Reason :")}</span>
+              <span className="student-rejected-request-details-label-reject">
+                {t("Reason:")}
+              </span>{" "}
+              {/* Class name updated & Translated */}
               <span>
-                {requestDetails.rejected_reason_type || t("-")} {/* Translated '-' */}
+                {requestDetails.rejected_reason_type || t("-")}{" "}
+                {/* Translated '-' */}
               </span>
             </div>
             <div className="student-rejected-request-details-label-row">
-              <span className="student-rejected-request-details-label-reject">{t("Rejected By:")}</span> {/* Class name updated & Translated */}
+              <span className="student-rejected-request-details-label-reject">
+                {t("Rejected By:")}
+              </span>{" "}
+              {/* Class name updated & Translated */}
               <span>{rejectedBy.name || t("-")}</span> {/* Translated '-' */}
             </div>
             <div className="student-rejected-request-details-label-row">
-              <span className="student-rejected-request-details-label-reject">{t("Rejected On:")}</span> {/* Class name updated & Translated */}
-              <span>
-                {formatDT(requestDetails.updated_at)}
-              </span>
+              <span className="student-rejected-request-details-label-reject">
+                {t("Rejected On:")}
+              </span>{" "}
+              {/* Class name updated & Translated */}
+              <span>{formatDT(requestDetails.updated_at)}</span>
             </div>
           </Paper>
           <Paper className="student-rejected-request-details-details-card">
-            <Typography variant="h6" className="student-rejected-request-details-card-title">
+            <Typography
+              variant="h6"
+              className="student-rejected-request-details-card-title"
+            >
               {t("Request From")} {/* Translated */}
             </Typography>
-            <Divider className="student-rejected-request-details-divider-margin" /> {/* Class name updated */}
+            <Divider className="student-rejected-request-details-divider-margin" />{" "}
+            {/* Class name updated */}
             <div className="student-rejected-request-details-field-stack">
-              <div className="student-rejected-request-details-label">{t("Name :")}</div> {/* Class name updated & Translated */}
+              <div className="student-rejected-request-details-label">
+                {t("Name :")}
+              </div>{" "}
+              {/* Class name updated & Translated */}
               <div>{requestedBy.name || t("N/A")}</div> {/* Translated 'N/A' */}
             </div>
             <div className="student-rejected-request-details-field-stack">
-              <div className="student-rejected-request-details-label">{t("Phone Number :")}</div> {/* Class name updated & Translated */}
-              <div>{requestedBy.phone_number || t("N/A")}</div> {/* Translated 'N/A' */}
+              <div className="student-rejected-request-details-label">
+                {t("Phone Number :")}
+              </div>{" "}
+              {/* Class name updated & Translated */}
+              <div>{requestedBy.phone_number || t("N/A")}</div>{" "}
+              {/* Translated 'N/A' */}
             </div>
             <div className="student-rejected-request-details-field-stack">
-              <div className="student-rejected-request-details-label">{t("Email ID:")}</div> {/* Class name updated & Translated */}
-              <div>{requestedBy.email || t("N/A")}</div> {/* Translated 'N/A' */}
+              <div className="student-rejected-request-details-label">
+                {t("Email ID:")}
+              </div>{" "}
+              {/* Class name updated & Translated */}
+              <div>{requestedBy.email || t("N/A")}</div>{" "}
+              {/* Translated 'N/A' */}
             </div>
           </Paper>
         </Grid>
