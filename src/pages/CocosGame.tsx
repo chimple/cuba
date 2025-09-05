@@ -218,7 +218,6 @@ const CocosGame: React.FC = () => {
   };
 
   const updateLearningPath = async () => {
-    console.log("ANMOL Updating learning path...");
     if (!currentStudent) return;
     const learningPath = currentStudent.learning_path
       ? JSON.parse(currentStudent.learning_path)
@@ -251,9 +250,7 @@ const CocosGame: React.FC = () => {
         learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
           .path_id;
       // Update currentIndex
-      console.log("ANMOL Current Course before update:", currentCourse);
       currentCourse.currentIndex += 1;
-      console.log("ANMOL currentIndex after update:", currentCourse.currentIndex);
       // Check if currentIndex exceeds pathEndIndex
       if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
         currentCourse.startIndex = currentCourse.currentIndex;
@@ -312,12 +309,29 @@ const CocosGame: React.FC = () => {
         currentStudent,
         JSON.stringify(learningPath)
       );
-      // Avoid fetching a potentially stale user and overwriting the freshly
-      // updated learning path. Instead, update the current user locally.
-      await Util.setCurrentStudent(
-        { ...currentStudent, learning_path: JSON.stringify(learningPath) },
-        undefined
-      );
+      
+      // For APIs with real database persistence, fetch the updated user
+      // but ensure we don't overwrite with stale data
+      try {
+        const updatedStudent = await api.getUserByDocId(currentStudent.id);
+        if (updatedStudent && updatedStudent.learning_path) {
+          // Only use the fetched user if it has the learning_path
+          await Util.setCurrentStudent(updatedStudent, undefined);
+        } else {
+          // Fallback: update current user locally with our fresh data
+          await Util.setCurrentStudent(
+            { ...currentStudent, learning_path: JSON.stringify(learningPath) },
+            undefined
+          );
+        }
+      } catch (error) {
+        // If getUserByDocId fails (e.g., FirebaseApi), use local update
+        console.warn("getUserByDocId failed, using local update:", error);
+        await Util.setCurrentStudent(
+          { ...currentStudent, learning_path: JSON.stringify(learningPath) },
+          undefined
+        );
+      }
     } catch (error) {
       console.error("Error updating learning path:", error);
     }
