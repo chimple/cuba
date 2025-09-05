@@ -1,6 +1,6 @@
 import { OneRosterUser, ServiceAuth } from "./ServiceAuth";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
-import { CURRENT_STUDENT, CURRENT_USER, isRespectMode, LANGUAGE, TableTypes } from "../../common/constants";
+import { CURRENT_STUDENT, CURRENT_USER, isRespectMode, LANGUAGE, TableTypes, LATEST_STARS, STUDENT_LESSON_SCORES } from "../../common/constants";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Util } from "../../utility/util";
 import i18n from "../../i18n";
@@ -77,6 +77,8 @@ export class OneRosterAuth implements ServiceAuth {
   async logOut(): Promise<void> {
     localStorage.removeItem(CURRENT_USER)
     localStorage.removeItem(isRespectMode);
+    localStorage.removeItem(LATEST_STARS);
+    localStorage.removeItem(STUDENT_LESSON_SCORES);
     ServiceConfig.getI().switchMode(APIMode.SQLITE);
     this._currentUser = undefined;
     localStorage.removeItem(CURRENT_STUDENT);
