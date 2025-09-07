@@ -119,11 +119,15 @@ const PrincipalTeacherPendingRequest = () => {
       // RespondedBy: whoever is logged in
       const auth = ServiceConfig.getI().authHandler;
       const user = await auth.getCurrentUser();
+      if (!user?.id) {
+        throw new Error("No logged-in user found. Cannot approve request.");
+      }
       const respondedBy = user?.id;
+
       // 1. Approve request
       await api.approveOpsRequest(
         requestData.request_id,
-        respondedBy ?? "", // current user who approves
+        respondedBy, // current user who approves
         role,
         schoolId,
         classId
