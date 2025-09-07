@@ -30,8 +30,6 @@ const OpsCustomDropdown: React.FC<OpsCustomDropdownProps> = ({
   const handleChange = (event: SelectChangeEvent<string>) => {
     onChange(event.target.value);
   };
-  console.log("placeholder", placeholder);
-
   return (
     <FormControl error={error} disabled={disabled} className="ops-dropdown">
       <Select
