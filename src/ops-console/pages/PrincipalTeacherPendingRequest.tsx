@@ -7,6 +7,7 @@ import "./PrincipalTeacherPendingRequest.css";
 import { Constants } from "../../services/database";
 import OpsCustomDropdown from "../components/OpsCustomDropdown";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
+import { t } from "i18next";
 
 // Utility function for parsing class names (keep this as is)
 
@@ -122,7 +123,7 @@ const PrincipalTeacherPendingRequest = () => {
       // 1. Approve request
       await api.approveOpsRequest(
         requestData.request_id,
-        respondedBy!, // current user who approves
+        respondedBy ?? "", // current user who approves
         role,
         schoolId,
         classId
@@ -192,13 +193,13 @@ const PrincipalTeacherPendingRequest = () => {
         onClick={() => history.push(PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST)}
         className="principal-teacher-pending-link"
       >
-        Requests
+        {t("Requests")}
       </span>
       <span> &gt; </span>
       <span>Pending</span>
       <span> &gt; </span>
       <span className="principal-teacher-pending-active">
-        Request ID - {id}
+        {t("Request ID - ")} {id}
       </span>
     </div>
   );
@@ -206,7 +207,7 @@ const PrincipalTeacherPendingRequest = () => {
   return (
     <div className="principal-teacher-pending-details-layout">
       <Typography variant="h4" className="principal-teacher-pending-page-title">
-        Request ID - {id}
+        {t("Request ID - ")} {id}
       </Typography>
       {navBreadcrumbs}
 
@@ -226,18 +227,19 @@ const PrincipalTeacherPendingRequest = () => {
               variant="subtitle1"
               className="principal-teacher-pending-section-title"
             >
-              Request From
+              {t("Request From")}
             </Typography>
             <Divider />
             <div className="principal-teacher-pending-first-pending-row">
-              <span>Name</span> <span>{requestedBy.name || "-"}</span>
+              <span>{t("Name")}</span> <span>{requestedBy.name || "-"}</span>
             </div>
             <div className="principal-teacher-pending-first-pending-row">
-              <span>Phone Number</span>{" "}
+              <span>{t("Phone Number")}</span>{" "}
               <span>{requestedBy.phone_number || "-"}</span>
             </div>
             <div className="principal-teacher-pending-first-pending-row">
-              <span>Email ID</span> <span>{requestedBy.email || "-"}</span>
+              <span>{t("Email ID")}</span>{" "}
+              <span>{requestedBy.email || "-"}</span>
             </div>
           </Paper>
 
@@ -249,13 +251,13 @@ const PrincipalTeacherPendingRequest = () => {
               variant="subtitle1"
               className="principal-teacher-pending-section-title"
             >
-              Request Details
+              {t("Request Details")}
             </Typography>
             <Divider />
             {isEditing ? (
               <>
                 <div className="principal-teacher-pending-first-pending-row">
-                  <span>Role</span>
+                  <span> {t("Role")}</span>
                   <span>
                     <OpsCustomDropdown
                       value={editableRequestType}
@@ -274,7 +276,7 @@ const PrincipalTeacherPendingRequest = () => {
                 </div>
 
                 <div className="principal-teacher-pending-first-pending-row">
-                  <span>Grade</span>
+                  <span> {t("Grade")}</span>
                   <span>
                     <OpsCustomDropdown
                       placeholder={`${parsedGrade > 0 ? parsedGrade : "-"}${parsedSection ? parsedSection : ""}`}
@@ -296,11 +298,12 @@ const PrincipalTeacherPendingRequest = () => {
               // non-editing view
               <>
                 <div className="principal-teacher-pending-first-pending-row">
-                  <span>Role</span>
+                  <span>{t("Role")}</span>
                   <span>{request_type || "-"}</span>
                 </div>
+
                 <div className="principal-teacher-pending-first-pending-row">
-                  <span>Grade</span>
+                  <span>{t("Grade")}</span>
                   <span>
                     {parsedGrade > 0 ? parsedGrade : "-"}
                     {parsedSection ? parsedSection : ""}
@@ -321,14 +324,15 @@ const PrincipalTeacherPendingRequest = () => {
               variant="subtitle1"
               className="principal-teacher-pending-section-title"
             >
-              School Details
+              {t("School Details")}
             </Typography>
             <Divider />
             <div className="principal-teacher-pending-row">
-              <span>School Name</span> <span>{school.name || "-"}</span>
+              <span>{t("School Name")}</span> <span>{school.name || "-"}</span>
             </div>
             <div className="principal-teacher-pending-row">
-              <span>School ID (UDISE)</span> <span>{school.udise || "-"}</span>
+              <span>{t("School ID (UDISE)")}</span>{" "}
+              <span>{school.udise || "-"}</span>
             </div>
             <Divider style={{ margin: "1vw 0" }} />
             <div
@@ -341,22 +345,29 @@ const PrincipalTeacherPendingRequest = () => {
                 className="principal-teacher-pending-field-stack"
                 style={{ flex: 1, marginRight: "1rem" }}
               >
-                <div className="principal-teacher-pending-label">City</div>
+                <div className="principal-teacher-pending-label">
+                  {t("City")}
+                </div>
                 <div>{school.group2 || "N/A"}</div>
               </div>
               <div
                 className="principal-teacher-pending-field-stack"
                 style={{ flex: 1 }}
               >
-                <div className="principal-teacher-pending-label">State</div>
+                <div className="principal-teacher-pending-label">
+                  {t("State")}
+                </div>
                 <div>{school.group1 || "N/A"}</div>
               </div>
             </div>
             <div className="principal-teacher-pending-field-stack">
-              <div className="principal-teacher-pending-label">District</div>
+              <div className="principal-teacher-pending-label">
+                {t("District")}
+              </div>
               <div>{school.group3 || "N/A"}</div>
             </div>
           </Paper>
+
           <div className="principal-teacher-pending-action-buttons-row">
             {isEditing ? (
               <>
@@ -365,9 +376,9 @@ const PrincipalTeacherPendingRequest = () => {
                   color="error"
                   size="large"
                   style={{ minWidth: 140, fontWeight: 700, fontSize: "1.1rem" }}
-                  onClick={() => setIsEditing(false)} // Cancel edit
+                  onClick={() => setIsEditing(false)}
                 >
-                  Cancel
+                  {t("Cancel")}
                 </Button>
 
                 <Button
@@ -377,7 +388,7 @@ const PrincipalTeacherPendingRequest = () => {
                   style={{ minWidth: 140, fontWeight: 700, fontSize: "1.1rem" }}
                   onClick={handleApproveClick}
                 >
-                  Approve
+                  {t("Approve")}
                 </Button>
               </>
             ) : (
@@ -389,7 +400,7 @@ const PrincipalTeacherPendingRequest = () => {
                   style={{ minWidth: 140, fontWeight: 700, fontSize: "1.1rem" }}
                   onClick={editClicked}
                 >
-                  Edit
+                  {t("Edit")}
                 </Button>
 
                 <Button
@@ -399,7 +410,7 @@ const PrincipalTeacherPendingRequest = () => {
                   style={{ minWidth: 140, fontWeight: 700, fontSize: "1.1rem" }}
                   onClick={handleRemoveClick}
                 >
-                  Reject
+                  {t("Reject")}
                 </Button>
 
                 <Button
@@ -409,7 +420,7 @@ const PrincipalTeacherPendingRequest = () => {
                   style={{ minWidth: 140, fontWeight: 700, fontSize: "1.1rem" }}
                   onClick={handleApproveClick}
                 >
-                  Approve
+                  {t("Approve")}
                 </Button>
               </>
             )}
