@@ -490,8 +490,9 @@ export enum PAGES {
   SCHOOL_REJECTED_REQUEST = "/school-rejected-request",
   SCHOOL_FORM_PAGE = "/school-form-page",
   STUDENT_PENDING_REQUEST = "/student-pending-request",
-  STUDENT_APPROVED_REQUEST = "/student-approved-request",
-  STUDENT_REJECTED_REQUEST = "/student-rejected-request",
+  OPS_APPROVED_REQUEST = "/student-approved-request",
+  OPS_REJECTED_REQUEST = "/student-rejected-request",
+  PRINCIPAL_TEACHER_PENDING_REQUEST = "/principal-teacher-pending-request",
 }
 
 export const enum ASSIGNMENT_TYPE {

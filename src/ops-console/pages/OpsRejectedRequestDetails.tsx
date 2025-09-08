@@ -3,7 +3,7 @@ import { useHistory, useParams, useLocation } from "react-router-dom";
 import { Typography, Paper, Grid, Divider, Button } from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { DEFAULT_PAGE_SIZE, PAGES } from "../../common/constants";
-import "./StudentRejectedRequestDetails.css";
+import "./OpsRejectedRequestDetails.css";
 import { useTranslation } from "react-i18next"; // Import useTranslation
 
 const StudentRejectedRequestDetails = () => {
@@ -65,14 +65,14 @@ const StudentRejectedRequestDetails = () => {
 
   if (isLoading)
     return (
-      <div className="student-rejected-request-details-centered">
+      <div className="ops-rejected-request-details-centered">
         <Typography>{t("Loading request details...")}</Typography>{" "}
         {/* Translated */}
       </div>
     );
   if (error)
     return (
-      <div className="student-rejected-request-details-centered">
+      <div className="ops-rejected-request-details-centered">
         <Typography color="error">{error}</Typography>
         <Button onClick={() => history.goBack()}>{t("Go Back")}</Button>{" "}
         {/* Translated */}
@@ -97,17 +97,17 @@ const StudentRejectedRequestDetails = () => {
   const requestedBy = requestDetails.requestedBy || {};
 
   return (
-    <div className="student-rejected-request-details-layout">
+    <div className="ops-rejected-request-details-layout">
       <Typography
         variant="h4"
-        className="student-rejected-request-details-page-title"
+        className="ops-rejected-request-details-page-title"
       >
         {t("Requests")} {/* Translated */}
       </Typography>
-      <div className="student-rejected-request-details-breadcrumbs">
+      <div className="ops-rejected-request-details-breadcrumbs">
         <span
           onClick={() => history.push(PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST)}
-          className="student-rejected-request-details-link" // Class name updated
+          className="ops-rejected-request-details-link" // Class name updated
         >
           {t("Requests")} {/* Translated */}
         </span>
@@ -118,12 +118,12 @@ const StudentRejectedRequestDetails = () => {
               PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST + "?tab=REJECTED"
             )
           }
-          className="student-rejected-request-details-link" // Class name updated
+          className="ops-rejected-request-details-link" // Class name updated
         >
           {t("Rejected")} {/* Translated */}
         </span>
         <span> &gt; </span>
-        <span className="student-rejected-request-details-active">
+        <span className="ops-rejected-request-details-active">
           {t("Request ID - {{id}}", { id })}{" "}
           {/* Translated with interpolation */}
         </span>
@@ -131,75 +131,75 @@ const StudentRejectedRequestDetails = () => {
       <Grid
         container
         spacing={3}
-        className="student-rejected-request-details-main-content-row"
+        className="ops-rejected-request-details-main-content-row"
         alignItems="flex-start"
       >
         {/* LEFT: Request Details */}
         <Grid item xs={12} md={6} lg={5}>
-          <Paper className="student-rejected-request-details-details-card">
+          <Paper className="ops-rejected-request-details-details-card">
             <Typography
               variant="h6"
-              className="student-rejected-request-details-card-title"
+              className="ops-rejected-request-details-card-title"
             >
               {t("Request ID - {{id}}", { id })}{" "}
               {/* Translated with interpolation */}
             </Typography>
-            <Divider className="student-rejected-request-details-divider-margin" />{" "}
+            <Divider className="ops-rejected-request-details-divider-margin" />{" "}
             {/* Class name updated */}
-            <div className="student-rejected-request-details-field-stack">
-              <div className="student-rejected-request-details-label">
+            <div className="ops-rejected-request-details-field-stack">
+              <div className="ops-rejected-request-details-label">
                 {t("School Name")}
               </div>{" "}
               {/* Class name updated & Translated */}
               <div>{school.name || t("-")}</div> {/* Translated '-' */}
             </div>
-            <div className="student-rejected-request-details-field-stack">
-              <div className="student-rejected-request-details-label">
+            <div className="ops-rejected-request-details-field-stack">
+              <div className="ops-rejected-request-details-label">
                 {t("School ID (UDISE)")}
               </div>{" "}
               {/* Class name updated & Translated */}
               <div>{school.udise || t("-")}</div> {/* Translated '-' */}
             </div>
-            <Divider className="student-rejected-request-details-divider-margin" />{" "}
+            <Divider className="ops-rejected-request-details-divider-margin" />{" "}
             {/* Class name updated */}
-            <div className="student-rejected-request-details-field-row">
+            <div className="ops-rejected-request-details-field-row">
               {" "}
               {/* Class name updated */}
               <div
-                className="student-rejected-request-details-field-stack student-rejected-request-details-field-stack-margin" // Class name updated
+                className="ops-rejected-request-details-field-stack ops-rejected-request-details-field-stack-margin" // Class name updated
               >
-                <div className="student-rejected-request-details-label">
+                <div className="ops-rejected-request-details-label">
                   {t("City")}
                 </div>{" "}
                 {/* Class name updated & Translated */}
                 <div>{school.group2 || t("-")}</div> {/* Translated '-' */}
               </div>
-              <div className="student-rejected-request-details-field-stack">
-                <div className="student-rejected-request-details-label">
+              <div className="ops-rejected-request-details-field-stack">
+                <div className="ops-rejected-request-details-label">
                   {t("State")}
                 </div>{" "}
                 {/* Class name updated & Translated */}
                 <div>{school.group1 || t("-")}</div> {/* Translated '-' */}
               </div>
             </div>
-            <div className="student-rejected-request-details-field-stack">
-              <div className="student-rejected-request-details-label">
+            <div className="ops-rejected-request-details-field-stack">
+              <div className="ops-rejected-request-details-label">
                 {t("District")}
               </div>{" "}
               {/* Class name updated & Translated */}
               <div>{school.group3 || t("-")}</div> {/* Translated '-' */}
             </div>
-            <Divider className="student-rejected-request-details-divider-margin" />{" "}
+            <Divider className="ops-rejected-request-details-divider-margin" />{" "}
             {/* Class name updated */}
             <Typography
               variant="h6"
-              className="student-rejected-request-details-card-title"
+              className="ops-rejected-request-details-card-title"
             >
               {t("Request Details")} {/* Translated */}
             </Typography>
             <Grid container spacing={1}>
               <Grid item xs={6}>
-                <div className="student-rejected-request-details-label-sm">
+                <div className="ops-rejected-request-details-label-sm">
                   {t("Request For:")}
                 </div>{" "}
                 {/* Class name updated & Translated */}
@@ -208,7 +208,7 @@ const StudentRejectedRequestDetails = () => {
                 </div>
               </Grid>
               <Grid item xs={6}>
-                <div className="student-rejected-request-details-label-sm">
+                <div className="ops-rejected-request-details-label-sm">
                   {t("Requested On:")}
                 </div>{" "}
                 {/* Class name updated & Translated */}
@@ -219,18 +219,18 @@ const StudentRejectedRequestDetails = () => {
         </Grid>
         {/* RIGHT: Rejection Details (red), Request From */}
         <Grid item xs={12} md={6} lg={4}>
-          <Paper className="student-rejected-request-details-rejection-card student-rejected-request-details-details-card">
+          <Paper className="ops-rejected-request-details-rejection-card ops-rejected-request-details-details-card">
             <Typography
               variant="h6"
-              className="student-rejected-request-details-card-title student-rejected-request-details-rejection-title"
+              className="ops-rejected-request-details-card-title ops-rejected-request-details-rejection-title"
             >
               {t("Rejection Details")} {/* Translated */}
             </Typography>
-            <Divider className="student-rejected-request-details-divider-margin" />{" "}
+            <Divider className="ops-rejected-request-details-divider-margin" />{" "}
             {/* Class name updated */}
-            <div className="student-rejected-request-details-label-row">
-              <span className="student-rejected-request-details-label-reject">
-                {t("Reason:")}
+            <div className="ops-rejected-request-details-label-row">
+              <span className="ops-rejected-request-details-label-reject">
+                {t("Reason :")}
               </span>{" "}
               {/* Class name updated & Translated */}
               <span>
@@ -238,47 +238,47 @@ const StudentRejectedRequestDetails = () => {
                 {/* Translated '-' */}
               </span>
             </div>
-            <div className="student-rejected-request-details-label-row">
-              <span className="student-rejected-request-details-label-reject">
+            <div className="ops-rejected-request-details-label-row">
+              <span className="ops-rejected-request-details-label-reject">
                 {t("Rejected By:")}
               </span>{" "}
               {/* Class name updated & Translated */}
               <span>{rejectedBy.name || t("-")}</span> {/* Translated '-' */}
             </div>
-            <div className="student-rejected-request-details-label-row">
-              <span className="student-rejected-request-details-label-reject">
+            <div className="ops-rejected-request-details-label-row">
+              <span className="ops-rejected-request-details-label-reject">
                 {t("Rejected On:")}
               </span>{" "}
               {/* Class name updated & Translated */}
               <span>{formatDT(requestDetails.updated_at)}</span>
             </div>
           </Paper>
-          <Paper className="student-rejected-request-details-details-card">
+          <Paper className="ops-rejected-request-details-details-card">
             <Typography
               variant="h6"
-              className="student-rejected-request-details-card-title"
+              className="ops-rejected-request-details-card-title"
             >
               {t("Request From")} {/* Translated */}
             </Typography>
-            <Divider className="student-rejected-request-details-divider-margin" />{" "}
+            <Divider className="ops-rejected-request-details-divider-margin" />{" "}
             {/* Class name updated */}
-            <div className="student-rejected-request-details-field-stack">
-              <div className="student-rejected-request-details-label">
+            <div className="ops-rejected-request-details-field-stack">
+              <div className="ops-rejected-request-details-label">
                 {t("Name :")}
               </div>{" "}
               {/* Class name updated & Translated */}
               <div>{requestedBy.name || t("N/A")}</div> {/* Translated 'N/A' */}
             </div>
-            <div className="student-rejected-request-details-field-stack">
-              <div className="student-rejected-request-details-label">
+            <div className="ops-rejected-request-details-field-stack">
+              <div className="ops-rejected-request-details-label">
                 {t("Phone Number :")}
               </div>{" "}
               {/* Class name updated & Translated */}
               <div>{requestedBy.phone_number || t("N/A")}</div>{" "}
               {/* Translated 'N/A' */}
             </div>
-            <div className="student-rejected-request-details-field-stack">
-              <div className="student-rejected-request-details-label">
+            <div className="ops-rejected-request-details-field-stack">
+              <div className="ops-rejected-request-details-label">
                 {t("Email ID:")}
               </div>{" "}
               {/* Class name updated & Translated */}
