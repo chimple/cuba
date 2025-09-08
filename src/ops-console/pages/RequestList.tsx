@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
+  Box,
   IconButton,
   Tab,
   Tabs,
@@ -134,46 +135,49 @@ const RequestList: React.FC = () => {
           ([_, v]) => Array.isArray(v) && v.length > 0
         )
       );
-
-      const data = await api.getOpsRequests(
+      const orderByMapping = {
+        approved_date: "updated_at",
+        rejected_date: "updated_at",
+        requested_date: "created_at",
+      };
+      const backendOrderBy = orderByMapping[orderBy] || orderBy;
+      const { data, total } = await api.getOpsRequests(
         tempTab,
         page,
         pageSize,
+        backendOrderBy,
+        orderDir,
         cleanedFilters,
         searchTerm
       );
-      setRawRequestData(data || []);
 
+      setRawRequestData(data || []);
       let mappedData: any[] = [];
 
       switch (selectedTab) {
         case REQUEST_TABS.APPROVED:
-          mappedData = (data || []).map((req) => {
-            return {
-              request_id: req.request_id,
-              request_type: req.request_type,
-              school_name: req.school?.name || "-",
-              class: req.classInfo?.name || "-",
-              from: req.requestedBy?.name || "-",
-              approved_date: formatDateOnly(req.updated_at),
-              approved_by: req.respondedBy?.name || "-",
-            };
-          });
+          mappedData = (data || []).map((req) => ({
+            request_id: req.request_id,
+            request_type: req.request_type,
+            school_name: req.school?.name || "-",
+            class: req.classInfo?.name || "-",
+            from: req.requestedBy?.name || "-",
+            approved_date: formatDateOnly(req.updated_at),
+            approved_by: req.respondedBy?.name || "-",
+          }));
           break;
 
         case REQUEST_TABS.REJECTED:
-          mappedData = (data || []).map((req) => {
-            return {
-              request_id: req.request_id,
-              request_type: req.request_type,
-              school_name: req.school?.name || "-",
-              class: req.classInfo?.name || "-",
-              from: req.requestedBy?.name || "-",
-              rejected_date: formatDateOnly(req.updated_at),
-              rejected_reason: req.rejected_reason_type || "-",
-              rejected_by: req.respondedBy?.name || "-",
-            };
-          });
+          mappedData = (data || []).map((req) => ({
+            request_id: req.request_id,
+            request_type: req.request_type,
+            school_name: req.school?.name || "-",
+            class: req.classInfo?.name || "-",
+            from: req.requestedBy?.name || "-",
+            rejected_date: formatDateOnly(req.updated_at),
+            rejected_reason: req.rejected_reason_type || "-",
+            rejected_by: req.respondedBy?.name || "-",
+          }));
           break;
 
         case REQUEST_TABS.PENDING:
@@ -203,7 +207,7 @@ const RequestList: React.FC = () => {
           break;
       }
       setRequestData(mappedData);
-      setTotal(data?.length || 0);
+      setTotal(total || 0);
     } catch (error) {
       console.error("Failed to fetch requests:", error);
       setRequestData([]);
@@ -211,7 +215,16 @@ const RequestList: React.FC = () => {
     } finally {
       setIsDataLoading(false);
     }
-  }, [api, filters, page, pageSize, searchTerm, selectedTab]);
+  }, [
+    api,
+    filters,
+    page,
+    pageSize,
+    searchTerm,
+    selectedTab,
+    orderBy,
+    orderDir,
+  ]);
 
   useEffect(() => {
     fetchData();
@@ -231,15 +244,13 @@ const RequestList: React.FC = () => {
       key: "request_id",
       label: t("Request ID"),
       width: "10%",
-      sortable: true,
-      orderBy: "request_id",
+      sortable: false,
     },
     {
       key: "request_type",
       label: t("Request Type"),
       width: "15%",
-      sortable: true,
-      orderBy: "request_type",
+      sortable: false,
     },
     {
       key: "school_name",
@@ -252,19 +263,19 @@ const RequestList: React.FC = () => {
       key: "class",
       label: t("Class"),
       width: "fit-content",
-      sortable: true,
-      orderBy: "class",
+      sortable: false,
     },
     {
       key: "from",
       label: t("From"),
       width: "fit-content",
-      orderBy: "from",
+      sortable: false,
     },
     {
       key: "requested_date",
       label: t("Requested Date"),
       width: "fit-content",
+      sortable: true,
       orderBy: "requested_date",
     },
   ];
@@ -273,15 +284,13 @@ const RequestList: React.FC = () => {
       key: "request_id",
       label: t("Request ID"),
       width: "10%",
-      sortable: true,
-      orderBy: "request_id",
+      sortable: false,
     },
     {
       key: "request_type",
       label: t("Request Type"),
       width: "15%",
-      sortable: true,
-      orderBy: "request_type",
+      sortable: false,
     },
     {
       key: "school_name",
@@ -294,26 +303,26 @@ const RequestList: React.FC = () => {
       key: "class",
       label: t("Class"),
       width: "10%",
-      sortable: true,
-      orderBy: "class",
+      sortable: false,
     },
     {
       key: "from",
       label: t("From"),
       width: "15%",
-      orderBy: "from",
+      sortable: false,
     },
     {
       key: "approved_date",
       label: t("Approved Date"),
       width: "15%",
+      sortable: true,
       orderBy: "approved_date",
     },
     {
       key: "approved_by",
       label: t("Approved By"),
       width: "10%",
-      orderBy: "approved_by",
+      sortable: false,
     },
   ];
 
@@ -322,15 +331,13 @@ const RequestList: React.FC = () => {
       key: "request_id",
       label: t("Request ID"),
       width: "10%",
-      sortable: true,
-      orderBy: "request_id",
+      sortable: false,
     },
     {
       key: "request_type",
       label: t("Request Type"),
       width: "15%",
-      sortable: true,
-      orderBy: "request_type",
+      sortable: false,
     },
     {
       key: "school_name",
@@ -343,32 +350,32 @@ const RequestList: React.FC = () => {
       key: "class",
       label: t("Class"),
       width: "10%",
-      sortable: true,
-      orderBy: "class",
+      sortable: false,
     },
     {
       key: "from",
       label: t("From"),
       width: "10%",
-      orderBy: "from",
+      sortable: false,
     },
     {
       key: "rejected_date",
       label: t("Rejected Date"),
       width: "15%",
+      sortable: true,
       orderBy: "rejected_date",
     },
     {
       key: "rejected_reason",
       label: t("Reason"),
       width: "10%",
-      orderBy: "rejected_reason",
+      sortable: false,
     },
     {
       key: "rejected_by",
       label: t("Rejected By"),
       width: "10%",
-      orderBy: "rejected_by",
+      sortable: false,
     },
   ];
   const columns = useMemo(() => {
@@ -386,12 +393,11 @@ const RequestList: React.FC = () => {
   const handleSort = (colKey: string) => {
     const column = columns.find((c) => c.key === colKey);
     if (!column?.sortable) return;
-
     if (orderBy === colKey) {
       setOrderDir((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setOrderBy(colKey);
-      setOrderDir("asc");
+      setOrderDir("desc");
     }
     setPage(1);
   };
@@ -548,9 +554,18 @@ const RequestList: React.FC = () => {
         </div>
 
         {!isLoading && requestData.length === 0 && (
-          <Typography align="center" sx={{ mt: 4 }}>
-            {t("No requests found.")}
-          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              minHeight: "400px",
+            }}
+          >
+            <Typography variant="body1" color="text.secondary">
+              {t("No requests found.")}
+            </Typography>
+          </Box>
         )}
         {!isLoading && requestData.length > 0 && (
           <div className="request-list-footer">
