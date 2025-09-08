@@ -50,10 +50,11 @@ const Parent: React.FC = () => {
   const [musicFlag, setMusicFlag] = useState<number>();
   const [userProfile, setUserProfile] = useState<TableTypes<"user">[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
-  const clickCount = useRef(0);
-  const [showDialogBox, setShowDialogBox] = useState(false);
-  const [showDebug, setShowDebug] = useState(false);
-
+  // Commented out because Debug Mode has been moved to the Leaderboard page
+  // const clickCount = useRef(0);
+  // const [showDialogBox, setShowDialogBox] = useState(false);
+  // const [showDebug, setShowDebug] = useState(false);
+  //commented beacuse debug mode moved to leaderboard page
   const [langList, setLangList] = useState<
     {
       id: string;
@@ -250,16 +251,17 @@ const Parent: React.FC = () => {
                     v.detail?.checked
                   );
                 }
-
-                clickCount.current += 1;
-                // If clicked 7 times, show popup for debug mode
-                if (clickCount.current === 7) {
-                  setShowDialogBox(true);
-                  clickCount.current = 0;
-                }
+                // Commented out because Debug Mode has been moved to the Leaderboard page
+                // clickCount.current += 1;
+                // // If clicked 7 times, show popup for debug mode
+                // if (clickCount.current === 7) {
+                //   setShowDialogBox(true);
+                //   clickCount.current = 0;
+                // }
               }}
             ></ToggleButton>
-            {showDialogBox && (
+            {/* Commented out because Debug Mode has been moved to the Leaderboard page */}
+            {/* {showDialogBox && (
               <DialogBoxButtons
                 width={"40vw"}
                 height={"30vh"}
@@ -288,7 +290,7 @@ const Parent: React.FC = () => {
                   setShowDialogBox(false);
                 }}
               />
-            )}
+            )} */}
 
             <ToggleButton
               flag={musicFlag!}
@@ -506,9 +508,9 @@ const Parent: React.FC = () => {
     );
   }
 
-  function debugModeUI() {
-    return <DebugMode />;
-  }
+  // function debugModeUI() {
+  //   return <DebugMode />;
+  // }
   const handleChange = (newValue: string) => {
     const selectedHeader = parentHeaderIconList.find(
       (item) => item.header === newValue
@@ -550,7 +552,8 @@ const Parent: React.FC = () => {
         {tabIndex === t("setting") && <div>{settingUI()}</div>}
         {tabIndex === t("help") && <div>{helpUI()}</div>}
         {tabIndex === t("faq") && <div>{faqUI()}</div>}
-        {tabIndex === t("debugMode") && <div>{debugModeUI()}</div>}
+        {/* Commented out because Debug Mode has been moved to the Leaderboard pagex */}
+        {/* {tabIndex === t("debugMode") && <div>{debugModeUI()}</div>} */}
       </div>
     </Box>
   );
