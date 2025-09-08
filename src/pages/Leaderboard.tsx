@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./Leaderboard.css";
 import {
   AVATARS,
@@ -38,6 +38,8 @@ import { AvatarObj } from "../components/animation/Avatar";
 import { App } from "@capacitor/app";
 import { school } from "../stories/school/SchoolClassSubjectsTab.stories";
 import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
+import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
+import DebugMode from "../teachers-module/components/DebugMode";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +60,8 @@ const Leaderboard: React.FC = () => {
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
   const urlParams = new URLSearchParams(window.location.search);
-  const isRewardPage = urlParams.get("tab") === LEADERBOARDHEADERLIST.REWARDS.toLowerCase();
+  const isRewardPage =
+    urlParams.get("tab") === LEADERBOARDHEADERLIST.REWARDS.toLowerCase();
   const { setGbUpdated } = useGbContext();
 
   const [weeklyList, setWeeklyList] = useState<
@@ -73,8 +76,22 @@ const Leaderboard: React.FC = () => {
     classes: TableTypes<"class">[];
     schools: TableTypes<"school">[];
   }>();
-  const [tabIndex, setTabIndex] = useState(LEADERBOARDHEADERLIST.LEADERBOARD);
-
+  const [tabIndex, setTabIndex] = useState<LEADERBOARDHEADERLIST | "debugMode">(
+    isRewardPage
+      ? LEADERBOARDHEADERLIST.REWARDS
+      : LEADERBOARDHEADERLIST.LEADERBOARD
+  );
+  const clickCount = useRef(0);
+  const [showDialogBox, setShowDialogBox] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
+  const handleLeaderboardClick = () => {
+    if (showDebug) return;
+    clickCount.current += 1;
+    if (clickCount.current === 7) {
+      setShowDialogBox(true);
+      clickCount.current = 0;
+    }
+  };
   useEffect(() => {
     setIsLoading(true);
     Util.loadBackgroundImage();
@@ -99,7 +116,6 @@ const Leaderboard: React.FC = () => {
     }
   }, [tabIndex]);
 
-  useEffect(() => { }, []);
   const urlOpen = () => {
     App.addListener("appUrlOpen", (event) => {
       const url = new URL(event.url);
@@ -189,8 +205,8 @@ const Leaderboard: React.FC = () => {
     setIsLoading(false);
     const tempLeaderboardData: LeaderboardInfo = (leaderboardDataInfo.weekly
       .length <= 0 ||
-      leaderboardDataInfo.allTime.length <= 0 ||
-      leaderboardDataInfo.monthly.length <= 0
+    leaderboardDataInfo.allTime.length <= 0 ||
+    leaderboardDataInfo.monthly.length <= 0
       ? await api.getLeaderboardResults(classId, leaderboardDropdownType)
       : leaderboardDataInfo) || {
       weekly: [],
@@ -199,10 +215,19 @@ const Leaderboard: React.FC = () => {
     };
 
     const leaderboardAttributes = {
-      leaderboard_position_weekly: tempLeaderboardData.weekly.findIndex((item) => item.userId === currentStudent.id) + 1,
-      leaderboard_position_monthly: tempLeaderboardData.monthly.findIndex((item) => item.userId === currentStudent.id) + 1,
-      leaderboard_position_all: tempLeaderboardData.allTime.findIndex((item) => item.userId === currentStudent.id) + 1,
-    }
+      leaderboard_position_weekly:
+        tempLeaderboardData.weekly.findIndex(
+          (item) => item.userId === currentStudent.id
+        ) + 1,
+      leaderboard_position_monthly:
+        tempLeaderboardData.monthly.findIndex(
+          (item) => item.userId === currentStudent.id
+        ) + 1,
+      leaderboard_position_all:
+        tempLeaderboardData.allTime.findIndex(
+          (item) => item.userId === currentStudent.id
+        ) + 1,
+    };
     updateLocalAttributes(leaderboardAttributes);
     setGbUpdated(true);
 
@@ -278,11 +303,11 @@ const Leaderboard: React.FC = () => {
             [
               t("Time Spent"),
               computeMinutes +
-              t(" min") +
-              " " +
-              computeSeconds +
-              " " +
-              t("sec"),
+                t(" min") +
+                " " +
+                computeSeconds +
+                " " +
+                t("sec"),
             ],
           ];
           tempLeaderboardDataArray.push([
@@ -308,7 +333,6 @@ const Leaderboard: React.FC = () => {
   let currentUserHeaderRowIndicator = -1;
 
   function leaderboardUI() {
-
     return (
       <div id="leaderboard-UI">
         <div id="leaderboard-left-UI">
@@ -326,7 +350,7 @@ const Leaderboard: React.FC = () => {
                   currentStudent!,
                   // weeklyList[0] === weeklyList[selectedValue],
                   weeklyList[selectedValue].type ??
-                  LeaderboardDropdownList.WEEKLY,
+                    LeaderboardDropdownList.WEEKLY,
                   currentClassAndSchool?.classes[0].id || ""
                 );
                 //  }
@@ -344,8 +368,8 @@ const Leaderboard: React.FC = () => {
               src={
                 (studentMode === MODES.SCHOOL && currentStudent?.image) ||
                 "assets/avatars/" +
-                (currentStudent?.avatar ?? AVATARS[0]) +
-                ".png"
+                  (currentStudent?.avatar ?? AVATARS[0]) +
+                  ".png"
               }
               alt=""
             />
@@ -420,18 +444,18 @@ const Leaderboard: React.FC = () => {
                     headerRowIndicator === 0
                       ? "rgb(200 200 200)"
                       : Number(currentUserDataContent[0][1]) ===
-                        headerRowIndicator ||
-                        currentUserDataContent[0][1] ===
-                        headerRowIndicator + "+"
+                            headerRowIndicator ||
+                          currentUserDataContent[0][1] ===
+                            headerRowIndicator + "+"
                         ? "#FF7925"
                         : "",
                   padding:
                     headerRowIndicator === 0
                       ? "1vh 2vh"
                       : Number(currentUserDataContent[0][1]) ===
-                        headerRowIndicator ||
-                        currentUserDataContent[0][1] ===
-                        headerRowIndicator + "+"
+                            headerRowIndicator ||
+                          currentUserDataContent[0][1] ===
+                            headerRowIndicator + "+"
                         ? "0vh 2vh"
                         : "1vh 2vh ",
                   position: "sticky",
@@ -496,7 +520,9 @@ const Leaderboard: React.FC = () => {
       </div>
     );
   }
-
+  function debugModeUI() {
+    return <DebugMode />;
+  }
   const handleChange = (
     event: React.SyntheticEvent,
     newValue: LEADERBOARDHEADERLIST
@@ -520,52 +546,80 @@ const Leaderboard: React.FC = () => {
               />
             </div>
             <Box>
-              <AppBar
-                id="LeaderBoard-AppBar"
-                position="static"
-              >
+              <AppBar id="LeaderBoard-AppBar" position="static">
                 <Box
-                sx={{
-                  position: "absolute",   // **added**
-                  left: "50%",            // **added**
-                  transform: "translateX(-50%)", // **added**
-                }}
-              >
-                <Tabs
-                  value={tabIndex}
-                  onChange={handleChange}
-                  textColor="secondary"
-                  indicatorColor="secondary"
-                  aria-label="secondary tabs example"
-                  // centered
                   sx={{
-                    minWidth: "max-content",
-                    "& .MuiTabs-indicator": {
-                      backgroundColor: "#000000 !important",
-                      bottom: "15% !important",
-                    },
-                    "& .MuiTab-root": { color: "#000000 !important" },
-                    "& .Mui-selected": { color: "#000000 !important" },
+                    position: "absolute", // **added**
+                    left: "50%", // **added**
+                    transform: "translateX(-50%)", // **added**
                   }}
                 >
-                {!isRewardPage && (
-                  <Tab
-                    value={LEADERBOARDHEADERLIST.LEADERBOARD}
-                    label={t(LEADERBOARDHEADERLIST.LEADERBOARD)}
-                    id="leaderboard-page-tab-bar"
-                  />
-                )}
-                {isRewardPage && (
-                  <Tab
-                    id="leaderboard-page-tab-bar"
-                    value={LEADERBOARDHEADERLIST.REWARDS}
-                    label={t(LEADERBOARDHEADERLIST.REWARDS)}
-                  />
-                )}
-                </Tabs>
-              </Box>
+                  <Tabs
+                    value={tabIndex}
+                    onChange={handleChange}
+                    textColor="secondary"
+                    indicatorColor="secondary"
+                    aria-label="secondary tabs example"
+                    sx={{
+                      minWidth: "max-content",
+                      "& .MuiTabs-indicator": {
+                        backgroundColor: "#000000 !important",
+                        bottom: "15% !important",
+                        display: "flex",
+                        justifyContent: "center",
+                      },
+                      "& .MuiTab-root": { color: "#000000 !important" },
+                      "& .Mui-selected": { color: "#000000 !important" },
+                    }}
+                  >
+                    {!isRewardPage && (
+                      <Tab
+                        value={LEADERBOARDHEADERLIST.LEADERBOARD}
+                        label={t(LEADERBOARDHEADERLIST.LEADERBOARD)}
+                        id="leaderboard-page-tab-bar"
+                        onClick={handleLeaderboardClick}
+                      />
+                    )}
+                    {isRewardPage && (
+                      <Tab
+                        id="leaderboard-page-tab-bar"
+                        value={LEADERBOARDHEADERLIST.REWARDS}
+                        label={t(LEADERBOARDHEADERLIST.REWARDS)}
+                      />
+                    )}
+                    {showDebug && (
+                      <Tab
+                        id="leaderboard-page-tab-bar"
+                        value="debugMode"
+                        label={t("debugMode")}
+                      />
+                    )}
+                  </Tabs>
+                </Box>
               </AppBar>
             </Box>
+            {showDialogBox && (
+              <DialogBoxButtons
+                width={"40vw"}
+                height={"30vh"}
+                message={t("Do you want to Open Debug Mode?")}
+                showDialogBox={true}
+                yesText={t("Cancel")}
+                noText={t("debugMode")}
+                handleClose={() => {
+                  setShowDialogBox(false);
+                }}
+                onYesButtonClicked={() => {
+                  setShowDialogBox(false);
+                }}
+                onNoButtonClicked={() => {
+                  setShowDebug(true);
+                  setTabIndex("debugMode");
+                  setShowDialogBox(false);
+                }}
+              />
+            )}
+            {tabIndex === "debugMode" && <Box>{debugModeUI()}</Box>}
             <div
               id="leaderboard-switch-user-button"
               onClick={async () => {
