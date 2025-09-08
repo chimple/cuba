@@ -2896,6 +2896,8 @@ export class OneRosterApi implements ServiceApi {
       learning_path: Util.getCurrentStudent()?.learning_path
     };
     ServiceConfig.getI().authHandler.currentUser = user;
+    Util.setCurrentStudent(user);
+    localStorage.setItem(CURRENT_STUDENT,JSON.stringify(user));
     localStorage.setItem(CURRENT_USER, JSON.stringify(user));
   }
 }
