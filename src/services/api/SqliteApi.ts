@@ -44,6 +44,7 @@ import {
   EnumType,
   CACHETABLES,
   RequestTypes,
+  STATUS,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -715,6 +716,8 @@ export class SqliteApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
+      status: null,
+      key_contacts: null,
     };
 
     await this.executeQuery(
@@ -817,6 +820,8 @@ export class SqliteApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
+      status: null,
+      key_contacts: null,
     };
     const updatedSchoolQuery = `
     UPDATE school
@@ -6197,7 +6202,7 @@ order by
   async respondToSchoolRequest(
       requestId: string,
       respondedBy: string,
-      status: "approved" | "rejected",
+      status: (typeof STATUS)[keyof typeof STATUS],
       rejectionReason?: string
     ): Promise<TableTypes<"ops_requests"> | undefined> {
       throw new Error("Method not implemented.");
@@ -6212,7 +6217,7 @@ order by
   }
   async updateSchoolStatus(
   schoolId: string,
-  schoolStatus: string,
+  schoolStatus: (typeof STATUS)[keyof typeof STATUS],
   address?: {
     state?: string;
     district?: string;

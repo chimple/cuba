@@ -39,13 +39,13 @@
   padding: 20px;
 }
 
-.program-dropdown-container {
+.school-form-dropdown-container {
   background-color: #f9fafb;
   border-radius: 8px;
   padding: 24px;
 }
 
-.program-dropdown-title {
+.school-form-dropdown-title {
   margin-bottom: 16px !important;
   color: #000000;
   font-weight: 600 !important;
@@ -53,7 +53,7 @@
   text-align: left;
 }
 
-.program-dropdown-label {
+.school-form-dropdown-label {
   margin-bottom: 4px;
   text-align: left;
   color: #374151;
@@ -61,36 +61,36 @@
   font-size: 0.875rem;
 }
 
-.program-dropdown-required {
+.school-form-dropdown-required {
   color: red;
 }
 
-.program-dropdown-placeholder {
+.school-form-dropdown-placeholder {
   color: #9ca3af;
 }
 
-.program-dropdown-form-control .MuiOutlinedInput-root {
+.school-form-dropdown-form-control .MuiOutlinedInput-root {
   background-color: #ffffff;
   border-radius: 8px;
 }
 
-.program-dropdown-form-control .MuiOutlinedInput-notchedOutline {
+.school-form-dropdown-form-control .MuiOutlinedInput-notchedOutline {
   border-color: #e5e7eb;
 }
 
-.program-dropdown-form-control .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+.school-form-dropdown-form-control .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
   border-color: #d1d5db;
 }
 
-.program-dropdown-form-control .Mui-focused .MuiOutlinedInput-notchedOutline {
+.school-form-dropdown-form-control .Mui-focused .MuiOutlinedInput-notchedOutline {
   border-color: #2563eb;
 }
 
-.program-dropdown-form-control .MuiSelect-select {
+.school-form-dropdown-form-control .MuiSelect-select {
   padding: 10px 12px;
   min-height: 0;
 }
 
-.program-dropdown-menu-item {
+.school-form-dropdown-menu-item {
   font-size: 0.95rem;
 }

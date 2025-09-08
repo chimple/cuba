@@ -21,6 +21,7 @@ import {
   EnumType,
   CACHETABLES,
   RequestTypes,
+  STATUS,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -1495,7 +1496,7 @@ export class ApiHandler implements ServiceApi {
   public async respondToSchoolRequest(
     requestId: string,
     respondedBy: string,
-    status: "approved" | "rejected",
+    status: (typeof STATUS)[keyof typeof STATUS],
     rejectionReason?: string
   ): Promise<TableTypes<"ops_requests"> | undefined> {
     return await this.s.respondToSchoolRequest(
@@ -1517,7 +1518,7 @@ export class ApiHandler implements ServiceApi {
     }
     async updateSchoolStatus(
     schoolId: string,
-    schoolStatus: string,
+    schoolStatus: (typeof STATUS)[keyof typeof STATUS],
     address?: {
     state?: string;
     district?: string;

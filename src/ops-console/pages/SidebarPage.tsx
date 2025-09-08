@@ -25,19 +25,14 @@ import UserDetailsPage from "./UserDetailsPage";
 import { RoleType } from "../../interface/modelInterfaces";
 import RequestList from "./RequestList";
 import StudentPendingRequest from "./StudentPendingRequest";
-<<<<<<< HEAD
-import StudentApprovedRequestDetails from "./StudentApprovedRequestDetails";
-import StudentRejectedRequestDetails from "./StudentRejectedRequestDetails";
 import SchoolPendingRequest from "./SchoolPendingRequest";
 import SchoolApprovedRequest from "./SchoolApprovedRequest";
 import SchoolRejectedRequest from "./SchoolRejectedRequest";
 import SchoolFormPage from "./SchoolFormPage";
-=======
 import StudentApprovedRequestDetails from "./OpsApprovedRequestDetails";
 import PrincipalTeacherPendingRequest from "./PrincipalTeacherPendingRequest";
 import OpsRejectedRequestDetails from "./OpsRejectedRequestDetails";
 import OpsApprovedRequestDetails from "./OpsApprovedRequestDetails";
->>>>>>> dev-supabase
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();

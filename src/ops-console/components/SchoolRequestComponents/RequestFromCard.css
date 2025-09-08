@@ -13,18 +13,18 @@
   margin-bottom: 4px;
 }
 
-.field-stack {
+.request-from-field-stack {
   margin: 10px 0;
 }
 
-.label {
+.request-from-label {
   font-size: 0.8rem;
   font-weight: 500;
   color: #666;
   margin-bottom: 2px;
 }
 
-.value {
+.request-from-value {
   font-size: 0.9rem;
   color: #222;
   word-break: break-word; /* handles long emails */

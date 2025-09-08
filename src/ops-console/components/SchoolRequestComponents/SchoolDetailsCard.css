@@ -12,34 +12,34 @@
   margin-bottom: 4px;
 }
 
-.field-stack {
+.school-details-field-stack {
   margin: 10px 0;
 }
 
-.label {
+.school-details-label {
   font-size: 0.8rem;
   font-weight: 500;
   color: #666;
   margin-bottom: 2px;
 }
 
-.value {
+.school-details-value {
   font-size: 0.9rem;
   color: #222;
 }
 
-.row {
+.school-details-row {
   display: flex;
   justify-content: space-between;
 }
 
-.label-sm {
+.school-details-label-sm {
   font-size: 0.75rem;
   font-weight: 500;
   color: #666;
 }
 
-.value-sm {
+.school-details-value-sm {
   font-size: 0.85rem;
   color: #222;
 }

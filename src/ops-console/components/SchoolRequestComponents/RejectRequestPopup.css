@@ -1,4 +1,4 @@
-.popup-overlay {
+.reject-popup-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -10,7 +10,7 @@
   justify-content: center;
 }
 
-.popup-container {
+.reject-popup-container {
   width: 400px;
   height: 300px;
   background: #fff;
@@ -21,7 +21,7 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-.popup-header {
+.reject-popup-header {
   background: #fdecea;
   color: #d93025;
   font-weight: bold;
@@ -32,7 +32,7 @@
   align-items: flex-start;
 }
 
-.popup-header-img {
+.reject-popup-header-img {
   margin-right: 16px;
   flex-shrink: 0;
   display: flex;
@@ -40,38 +40,38 @@
   justify-content: center;
 }
 
-.popup-header-img img {
+.reject-popup-header-img img {
   width: 45px;
   height: 45px;
 }
 
-.popup-header-content {
+.reject-popup-header-content {
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-.popup-header p {
+.reject-popup-header p {
   margin: 4px 0 0;
   font-size: 13px;
   font-weight: normal;
   color: #b71c1c;
 }
 
-.popup-body {
+.reject-popup-body {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-.popup-body label {
+.reject-popup-body label {
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 6px;
   color: #374151;
 }
 
-.popup-body textarea {
+.reject-popup-body textarea {
   flex: 1;
   resize: none;
   padding: 8px;
@@ -82,15 +82,15 @@
   font-size: 14px;
 }
 
-.popup-footer {
+.reject-popup-footer {
   display: flex;
   justify-content: space-between;
   margin-top: 12px;
 }
 
-.cancel-btn {
-    width: 160px;
-    height: 40px;
+.reject-popup-cancel-btn {
+  width: 160px;
+  height: 40px;
   border: 1px solid #1a73e8;
   background: #fff;
   color: #1a73e8;
@@ -100,9 +100,9 @@
   font-size: 14px;
 }
 
-.reject-btn {
-    width: 160px;
-    height: 40px;
+.reject-popup-reject-btn {
+  width: 160px;
+  height: 40px;
   background: #d93025;
   color: #fff;
   padding: 8px 14px;

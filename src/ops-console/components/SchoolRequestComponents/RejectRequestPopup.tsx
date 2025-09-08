@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import "./RejectRequestPopup.css";
 import ExclamationIcon from "../../assets/icons/Exclamation.svg";
 import { ServiceConfig } from "../../../services/ServiceConfig";
-import { PAGES, REQUEST_TABS } from "../../../common/constants";
+import { PAGES, REQUEST_TABS, STATUS } from "../../../common/constants";
 import { useHistory } from "react-router-dom";
+import { t } from "i18next";
 
 interface RejectRequestPopupProps {
   requestData?: any;
@@ -22,42 +23,42 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
     await api.respondToSchoolRequest(
       requestData.request_id,
       requestData.respondedBy.id,
-      "rejected",
+      STATUS.REJECTED,
       reason
     );
-    await api.updateSchoolStatus(requestData.school.id, "rejected");
+    await api.updateSchoolStatus(requestData.school.id, STATUS.REJECTED);
     history.push(
       `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.REJECTED}`
     );
   }
   return (
-    <div className="popup-overlay">
-      <div className="popup-container">
-        <div className="popup-header">
-          <div className="popup-header-img">
+    <div className="reject-popup-overlay">
+      <div className="reject-popup-container">
+        <div className="reject-popup-header">
+          <div className="reject-popup-header-img">
             <img src={ExclamationIcon} alt="error icon" />
           </div>
-          <div className="popup-header-content error">
-            <span>Reject Request - {requestData.request_id}</span>
-            <p>Please provide a reason for rejecting this request</p>
+          <div className="reject-popup-header-content error">
+            <span>{t("Reject Request")} - {requestData.request_id}</span>
+            <p>{t("Please provide a reason for rejecting this request")}</p>
           </div>
         </div>
 
-        <div className="popup-body">
-          <label>Reason for Rejection</label>
+        <div className="reject-popup-body">
+          <label>{t("Reason for Rejection")}</label>
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Add any additional context or instructions..."
+            placeholder={t("Add any additional context or instructions...")||""}
           ></textarea>
         </div>
 
-        <div className="popup-footer">
-          <button className="cancel-btn" onClick={onClose}>
-            Cancel
+        <div className="reject-popup-footer">
+          <button className="reject-popup-cancel-btn" onClick={onClose}>
+            {t("Cancel")}
           </button>
-          <button className="reject-btn" onClick={handleReject}>
-            Reject Request
+          <button className="reject-popup-reject-btn" onClick={handleReject}>
+            {t("Reject Request")}
           </button>
         </div>
       </div>

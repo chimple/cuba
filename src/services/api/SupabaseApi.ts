@@ -43,6 +43,7 @@ import {
   RequestTypes,
   EnumType,
   CACHETABLES,
+  STATUS,
 } from "../../common/constants";
 import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
@@ -813,6 +814,8 @@ export class SupabaseApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
+      status: null,
+      key_contacts: null,
     };
 
     const { error } = await this.supabase
@@ -1009,6 +1012,8 @@ export class SupabaseApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
+      status: null,
+      key_contacts: null,
     };
 
     // Insert school
@@ -8104,7 +8109,7 @@ export class SupabaseApi implements ServiceApi {
   async respondToSchoolRequest(
     requestId: string,
     respondedBy: string,
-    status: "approved" | "rejected",
+    status: (typeof STATUS)[keyof typeof STATUS],
     rejectionReason?: string
   ): Promise<TableTypes<"ops_requests"> | undefined> {
     if (!this.supabase) return undefined;
@@ -8115,7 +8120,7 @@ export class SupabaseApi implements ServiceApi {
       updated_at: new Date().toISOString(),
     };
 
-    if (status === "rejected" && rejectionReason) {
+    if (status ===STATUS.REJECTED && rejectionReason) {
       updatePayload.rejected_reason_description = rejectionReason;
     }
 
@@ -8242,14 +8247,14 @@ async getFieldCoordinatorsByProgram(
 
 async updateSchoolStatus(
   schoolId: string,
-  schoolStatus: string,
+  schoolStatus: (typeof STATUS)[keyof typeof STATUS],
   address?: {
     state?: string;
     district?: string;
     city?: string;
     address?: string;
   },
-  keyContacts?: any // 👈 new param
+  keyContacts?: any 
 ): Promise<void> {
   if (!this.supabase) return;
 
@@ -8264,7 +8269,7 @@ async updateSchoolStatus(
   if (address?.address !== undefined) updatePayload.group4 = address.address;
 
   if (keyContacts) {
-    updatePayload.key_contacts = keyContacts; // 👈 jsonb column
+    updatePayload.key_contacts = keyContacts; // jsonb column
   }
 
   const { error } = await this.supabase

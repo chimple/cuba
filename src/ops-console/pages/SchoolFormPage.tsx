@@ -16,7 +16,7 @@ import {
 import ContactFormSection from "../components/SchoolRequestComponents/ContactFormSection";
 import "./SchoolFormPage.css";
 import { t } from "i18next";
-import { PAGES, REQUEST_TABS } from "../../common/constants";
+import { PAGES, REQUEST_TABS, STATUS } from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { RoleType } from "../../interface/modelInterfaces";
 
@@ -179,7 +179,7 @@ const SchoolFormPage: React.FC = () => {
       await Promise.all([
         api.updateSchoolStatus(
           requestData.school.id,
-          "active",
+          STATUS.ACTIVE,
           {
             state: address.state,
             city: address.city,
@@ -196,7 +196,7 @@ const SchoolFormPage: React.FC = () => {
         api.respondToSchoolRequest(
           requestData.request_id,
           requestData.respondedBy.id,
-          "approved"
+          STATUS.APPROVED,
         ),
       ]);
 
@@ -235,17 +235,17 @@ const SchoolFormPage: React.FC = () => {
       {school && (
         <div className="school-form-container">
           <FormSection
-            title="School Details"
+            title={t("School Details")}
             fields={[
               {
-                label: "School Name",
+                label: t("School Name"),
                 name: "schoolName",
                 value: school.name,
                 required: true,
                 editable: false,
               },
               {
-                label: "School ID (UDISE)",
+                label: t("School ID") + " (UDISE)",
                 name: "udise",
                 value: school.udise,
                 required: true,
@@ -255,31 +255,31 @@ const SchoolFormPage: React.FC = () => {
           />
 
           <FormSection
-            title="Address & Location"
+            title={t("Address & Location")}
             fields={[
               {
-                label: "State",
+                label: t("State"),
                 name: "state",
                 value: address.state,
                 required: true,
                 onChange: handleAddressChange,
               },
               {
-                label: "City",
+                label: t("City"),
                 name: "city",
                 value: address.city,
                 required: true,
                 onChange: handleAddressChange,
               },
               {
-                label: "District",
+                label: t("District"),
                 name: "district",
                 value: address.district,
                 required: true,
                 onChange: handleAddressChange,
               },
               {
-                label: "Address",
+                label: t("Address"),
                 name: "address",
                 value: address.address,
                 onChange: handleAddressChange,
@@ -288,15 +288,15 @@ const SchoolFormPage: React.FC = () => {
           />
 
           <ContactFormSection
-            title="Key Contacts"
+            title={t("Key Contacts")}
             fields={contacts}
             onChange={handleContactChange}
           />
 
           {/* Program + fieldCoordinator Dropdowns inline */}
-          <Box className="program-dropdown-container">
-            <Typography variant="h6" className="program-dropdown-title">
-              Program Details
+          <Box className="school-form-dropdown-container">
+            <Typography variant="h6" className="school-form-dropdown-title">
+              {t("Program Details")}
             </Typography>
             <Grid container spacing={3}>
               {/* Program Dropdown */}
@@ -304,11 +304,11 @@ const SchoolFormPage: React.FC = () => {
                 <FormControl
                   fullWidth
                   size="small"
-                  className="program-dropdown-form-control"
+                  className="school-form-dropdown-form-control"
                 >
-                  <Typography className="program-dropdown-label">
-                    Program Name{" "}
-                    <span className="program-dropdown-required">*</span>
+                  <Typography className="school-form-dropdown-label">
+                    {t("Program Name")}{" "}
+                    <span className="school-form-dropdown-required">*</span>
                   </Typography>
                   <Select
                     value={program?.id || ""}
@@ -323,8 +323,8 @@ const SchoolFormPage: React.FC = () => {
                       program?.name ? (
                         program.name
                       ) : (
-                        <span className="program-dropdown-placeholder">
-                          Select Program
+                        <span className="school-form-dropdown-placeholder">
+                          {t("Select Program")}
                         </span>
                       )
                     }
@@ -339,16 +339,15 @@ const SchoolFormPage: React.FC = () => {
               </Grid>
 
               {/* fieldCoordinator Dropdown */}
-              {/* fieldCoordinator Dropdown */}
               <Grid item xs={12} md={3.5}>
                 <FormControl
                   fullWidth
                   size="small"
-                  className="program-dropdown-form-control"
+                  className="school-form-dropdown-form-control"
                 >
-                  <Typography className="program-dropdown-label">
-                    Field Coordinator{" "}
-                    <span className="program-dropdown-required">*</span>
+                  <Typography className="school-form-dropdown-label">
+                    {t("Field Coordinator")}{" "}
+                    <span className="school-form-dropdown-required">*</span>
                   </Typography>
                   <Select
                     value={fieldCoordinator || ""}
@@ -363,8 +362,8 @@ const SchoolFormPage: React.FC = () => {
                       fieldCoordinator?.name ? (
                         fieldCoordinator.name
                       ) : (
-                        <span className="program-dropdown-placeholder">
-                          Select Field Coordinator
+                        <span className="school-form-dropdown-placeholder">
+                          {t("Select Field Coordinator")}
                         </span>
                       )
                     }

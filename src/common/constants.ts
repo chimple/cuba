@@ -548,6 +548,13 @@ export enum REQUEST_TABS {
   APPROVED = "Approved",
   REJECTED = "Rejected",
 }
+export enum STATUS {
+  ACTIVE = "active",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+  MIGRATED = "migrated",
+}
+
 export interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;

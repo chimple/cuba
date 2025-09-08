@@ -9,6 +9,7 @@ import SchoolDetailsCard from "../components/SchoolRequestComponents/SchoolDetai
 import RequestFromCard from "../components/SchoolRequestComponents/RequestFromCard";
 import { PAGES } from "../../common/constants";
 import RejectRequestPopup from "../components/SchoolRequestComponents/RejectRequestPopup";
+import { t } from "i18next";
 
 const SchoolPendingRequest: React.FC = () => {
   const history = useHistory();
@@ -83,7 +84,7 @@ const SchoolPendingRequest: React.FC = () => {
                       setRejectPopupOpen(true);
                     }}
                   >
-                    Reject
+                    {t("Reject")}
                   </Button>
                   <Button
                     variant="contained"
@@ -103,7 +104,7 @@ const SchoolPendingRequest: React.FC = () => {
                       });
                     }}
                   >
-                    Review & Add School
+                    {t("Review & Add School")}
                   </Button>
                 </div>
               </Grid>

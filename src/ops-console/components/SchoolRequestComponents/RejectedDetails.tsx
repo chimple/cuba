@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Typography, Divider, Paper } from "@mui/material";
-
+import { OpsUtil } from "../../OpsUtility/OpsUtil";
+import { t } from "i18next";
 
 interface RejectedDetailsProps {
   requestData: any;
@@ -9,18 +10,6 @@ interface RejectedDetailsProps {
 const RejectionDetails: React.FC<RejectedDetailsProps>  = ({
     requestData
 }) => {
-
-    const formatDT = (dateString: string) => {
-  if (!dateString) return "-";
-  const date = new Date(dateString);
-  return date.toLocaleString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
 
   return (
     <Paper
@@ -37,19 +26,19 @@ const RejectionDetails: React.FC<RejectedDetailsProps>  = ({
         variant="subtitle1"
         sx={{ fontWeight: "bold", mb: 1, color: "#7F1D1D", textAlign: "left" }}
       >
-        Rejection Details
+        {t("Rejection Details")}
       </Typography>
 
       <Divider sx={{ borderColor: "#f5c6cb", mb: 2 }} />
 
       <Typography sx={{ mb: 1, textAlign: "left" }}>
-        <span style={{ color: "#7F1D1D", fontWeight: 500 }}>Rejected By:</span>{" "}
+        <span style={{ color: "#7F1D1D", fontWeight: 500 }}>{t("Rejected By")}:</span>{" "}
         <span style={{ color: "#B91C1C" }}>{requestData.respondedBy.name}</span>
       </Typography>
 
       <Typography sx={{ mb: 2, textAlign: "left" }}>
-        <span style={{ color: "#7F1D1D", fontWeight: 500 }}>Rejected On:</span>{" "}
-        <span style={{ color: "#B91C1C" }}>{formatDT(requestData?.created_at)}</span>
+        <span style={{ color: "#7F1D1D", fontWeight: 500 }}>{t("Rejected On")}:</span>{" "}
+        <span style={{ color: "#B91C1C" }}>{OpsUtil.formatDT(requestData?.created_at)}</span>
       </Typography>
 
       <Divider sx={{ borderColor: "#f5c6cb", mb: 2 }} />
@@ -63,7 +52,7 @@ const RejectionDetails: React.FC<RejectedDetailsProps>  = ({
           
         }}
       >
-        Message to Admin:
+        {t("Message to Admin")}:
       </Typography>
       <Box
         sx={{
