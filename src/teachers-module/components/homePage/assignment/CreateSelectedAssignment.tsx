@@ -472,6 +472,15 @@ const CreateSelectedAssignment = ({
           setShowConfirm(true);
         }
       }
+      // Remove any keys other than manual and qr_code from each chapter's source map
+      for (const [chapterId, sourceMap] of sync_lesson.entries()) {
+        Object.keys(sourceMap).forEach((key) => {
+          if (key !== AssignmentSource.MANUAL && key !== AssignmentSource.QR_CODE) {
+            delete sourceMap[key];
+          }
+        });
+        sync_lesson.set(chapterId, sourceMap);
+      }
       const _selectedLesson = JSON.stringify(Object.fromEntries(sync_lesson));
       all_sync_lesson.set(current_class?.id ?? "", _selectedLesson);
       const _totalSelectedLesson = JSON.stringify(

@@ -19,6 +19,8 @@ import {
   PrincipalAPIResponse,
   CoordinatorAPIResponse,
   EnumType,
+  CACHETABLES,
+  RequestTypes,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -91,6 +93,10 @@ export class ApiHandler implements ServiceApi {
       timeSpent,
       score
     );
+  }
+
+  public clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
+    return this.s.clearCacheData(tableNames);
   }
 
   public async joinLiveQuiz(
@@ -719,6 +725,11 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"course"> | undefined> {
     return await this.s.getCourse(id);
   }
+  public async getCourses(
+    courseIds: string[]
+  ): Promise<TableTypes<"course">[]> {
+    return await this.s.getCourses(courseIds);
+  }
 
   public async getLeaderboardResults(
     sectionId: string,
@@ -1314,6 +1325,30 @@ export class ApiHandler implements ServiceApi {
   ): Promise<StudentAPIResponse> {
     return await this.s.getStudentInfoBySchoolId(schoolId, page, limit);
   }
+  public async getStudentsAndParentsByClassId(
+    classId: string,
+    page: number,
+    limit: number
+  ): Promise<StudentAPIResponse> {
+    return await this.s.getStudentsAndParentsByClassId(classId, page, limit);
+  }
+  public async getStudentAndParentByStudentId(
+    studentId: string
+  ): Promise<{ user: any; parents: any[] }> {
+    return await this.s.getStudentAndParentByStudentId(studentId);
+  }
+  public async mergeStudentRequest(
+    requestId: string,
+    existingStudentId: string,
+    newStudentId: string
+  ): Promise<void> {
+    return await this.s.mergeStudentRequest(
+      requestId,
+      existingStudentId,
+      newStudentId
+    );
+  }
+
   public async getClassesBySchoolId(
     schoolId: string
   ): Promise<TableTypes<"class">[]> {
@@ -1332,7 +1367,7 @@ export class ApiHandler implements ServiceApi {
   public async program_activity_stats(programId: string): Promise<{
     total_students: number;
     total_teachers: number;
-    total_institutes: number;
+    total_schools: number;
     active_student_percentage: number;
     active_teacher_percentage: number;
     avg_weekly_time_minutes: number;
@@ -1410,7 +1445,9 @@ export class ApiHandler implements ServiceApi {
   public async getOpsRequests(
     requestStatus: EnumType<"ops_request_status">,
     page: number = 1,
-    limit: number = 8,
+    limit: number = 20,
+    orderBy: string = "created_at",
+    orderDir: "asc" | "desc" = "asc",
     filters?: { request_type?: string[]; school?: string[] },
     searchTerm?: string
   ) {
@@ -1418,6 +1455,8 @@ export class ApiHandler implements ServiceApi {
       requestStatus,
       page,
       limit,
+      orderBy,
+      orderDir,
       filters,
       searchTerm
     );
@@ -1432,15 +1471,40 @@ export class ApiHandler implements ServiceApi {
     page: number = 1,
     limit: number = 20
   ): Promise<StudentAPIResponse> {
-    return await this.s.searchStudentsInSchool(schoolId, searchTerm, page, limit);
+    return await this.s.searchStudentsInSchool(
+      schoolId,
+      searchTerm,
+      page,
+      limit
+    );
   }
 
   public async searchTeachersInSchool(
-    schoolId: string, 
-    searchTerm: string,    
+    schoolId: string,
+    searchTerm: string,
     page: number = 1,
     limit: number = 20
   ): Promise<TeacherAPIResponse> {
-    return await this.s.searchTeachersInSchool(schoolId, searchTerm, page, limit);
+    return await this.s.searchTeachersInSchool(
+      schoolId,
+      searchTerm,
+      page,
+      limit
+    );
+  }
+  async approveOpsRequest(
+    requestId: string,
+    respondedBy: string,
+    role: (typeof RequestTypes)[keyof typeof RequestTypes],
+    schoolId?: string,
+    classId?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined> {
+    return await this.s.approveOpsRequest(
+      requestId,
+      respondedBy,
+      role,
+      schoolId,
+      classId
+    );
   }
 }
