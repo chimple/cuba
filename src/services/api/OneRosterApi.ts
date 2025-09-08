@@ -20,7 +20,8 @@ import {
   TableTypes,
   USER_COURSES,
   STUDENT_LESSON_SCORES,
-  LATEST_STARS
+  LATEST_STARS,
+  PortPlugin
 } from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
 import Assignment from "../../models/assignment";
@@ -48,6 +49,7 @@ import { v4 as uuidv4 } from "uuid";
 import i18n from "../../i18n";
 import { Statement } from "tincants";
 import { Agent, Verb, Activity, ActivityDefinition, Context, ContextActivities, Score } from "tincants";
+import { registerPlugin } from "@capacitor/core";
 
 interface IGetStudentResultStatement {
   agent: {
@@ -835,9 +837,9 @@ export class OneRosterApi implements ServiceApi {
   async getCoursesForPathway(studentId: string): Promise<TableTypes<"course">[]> {
     const allCourses = await this.getAllCourses();
     const storedCourses = localStorage.getItem(USER_COURSES);
-    
+
     if (!storedCourses) return [];
-    
+
     try {
       const courseIds = JSON.parse(storedCourses);
       return allCourses.filter(course => courseIds.includes(course.id));
@@ -868,7 +870,7 @@ export class OneRosterApi implements ServiceApi {
     }
     return student;
   }
-  async updateStudentStars(studentId: string, _totalStars: number): Promise<void> {  
+  async updateStudentStars(studentId: string, _totalStars: number): Promise<void> {
     const scoresJson = localStorage.getItem(STUDENT_LESSON_SCORES);
     let calculatedStars = 0;
     if (scoresJson) {
@@ -2859,5 +2861,43 @@ export class OneRosterApi implements ServiceApi {
     id: string
   ): Promise<TableTypes<"curriculum"> | undefined> {
     return undefined;
+  }
+
+  async createDeeplinkUser(): Promise<void> {
+    let appLang = localStorage.getItem(LANGUAGE) ?? 'en';
+    const portPlugin = registerPlugin<PortPlugin>('Port');
+    const data = await portPlugin.sendLaunchData();
+    const actorObj = typeof data.actor === "string" ? JSON.parse(data.actor) : data.actor;
+
+    const actorName = actorObj.name?.[0] || "";
+    const actorMbox = actorObj.mbox?.[0] || "";
+    const registration = data.registration;
+
+    const user: TableTypes<"user"> = {
+      age: null,
+      avatar: "Aligator",
+      created_at: "null",
+      curriculum_id: "7d560737-746a-4931-a49f-02de1ca526bd",
+      email: actorMbox,
+      fcm_token: null,
+      gender: "male",
+      grade_id: "c802dce7-0840-4baf-b374-ef6cb4272a76",
+      id: registration,
+      image: null,
+      is_deleted: null,
+      is_tc_accepted: true,
+      language_id: appLang,
+      music_off: (Util.getCurrentMusic() === 0),
+      name: actorName,
+      phone: null,
+      sfx_off: (Util.getCurrentSound() === 0),
+      student_id: registration,
+      updated_at: null,
+      learning_path: Util.getCurrentStudent()?.learning_path
+    };
+    ServiceConfig.getI().authHandler.currentUser = user;
+    Util.setCurrentStudent(user);
+    localStorage.setItem(CURRENT_STUDENT,JSON.stringify(user));
+    localStorage.setItem(CURRENT_USER, JSON.stringify(user));
   }
 }

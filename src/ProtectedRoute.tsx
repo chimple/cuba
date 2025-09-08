@@ -4,12 +4,10 @@ import { ServiceConfig } from "./services/ServiceConfig";
 import { PAGES, TRIGGER_DEEPLINK } from "./common/constants";
 import Loading from "./components/Loading";
 import { use } from "i18next";
-import { useHandleLessonClick } from "./utility/lessonUtils";
 
 export default function ProtectedRoute({ children, ...rest }) {
   const [isAuth, setIsAuth] = useState<Boolean | null>(null); // initially undefined
   const [isTcAccept, setTcAccept] = useState<any>();
-  const handleLessonClick = useHandleLessonClick();
 
   useEffect(() => {
     checkAuth();
@@ -35,7 +33,6 @@ export default function ProtectedRoute({ children, ...rest }) {
 
   const sendLaunch = async (event?: Event) => {
     console.log("Calling received from Java:", event);
-    handleLessonClick(null, true, undefined, true);
   };
 
   if (isAuth == null) return <Loading isLoading />;

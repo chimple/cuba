@@ -2006,4 +2006,7 @@ export class FirebaseApi implements ServiceApi {
   uploadData(payload: any): Promise<boolean | null> {
     throw new Error("Method not implemented.");
   }
+  createDeeplinkUser(): void | PromiseLike<void> {
+      throw new Error("Method not implemented.");
+  }
 }

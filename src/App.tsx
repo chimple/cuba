@@ -45,15 +45,18 @@ import {
   BASE_NAME,
   CACHE_IMAGE,
   CONTINUE,
+  CURRENT_USER,
   DOWNLOADING_CHAPTER_ID,
   DOWNLOAD_BUTTON_LOADING_STATUS,
   GAME_URL,
   HOMEHEADERLIST,
   IS_CUBA,
+  LANGUAGE,
   MODES,
   PAGES,
-  PortPlugin,
   TRIGGER_DEEPLINK,
+  PortPlugin,
+  TableTypes,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -83,7 +86,7 @@ import LiveQuizLeaderBoard from "./pages/LiveQuizLeaderBoard";
 import { useOnlineOfflineErrorMessageHandler } from "./common/onlineOfflineErrorMessageHandler";
 import { t } from "i18next";
 import { useTtsAudioPlayer } from "./components/animation/animationUtils";
-import { ServiceConfig } from "./services/ServiceConfig";
+import { APIMode, ServiceConfig } from "./services/ServiceConfig";
 import User from "./models/user";
 // import TeacherProfile from "./pages/Malta/TeacherProfile";
 import React from "react";
@@ -92,7 +95,7 @@ import TeachersStudentDisplay from "./pages/Malta/TeachersStudentDisplay";
 import "./App.css";
 import { schoolUtil } from "./utility/schoolUtil";
 import { useHandleLessonClick } from "./utility/lessonUtils";
-
+import {createBrowserHistory} from "history";
 import LidoPlayer from "./pages/LidoPlayer";
 import UploadPage from "./ops-console/pages/UploadPage";
 import { initializeClickListener } from "./analytics/clickUtil";
@@ -139,6 +142,7 @@ const START_TIME_KEY = "startTime";
 const USED_TIME_KEY = "usedTime";
 const LAST_ACCESS_DATE_KEY = "lastAccessDate";
 const IS_INITIALIZED = "isInitialized";
+const customHistory = createBrowserHistory();
 let timeoutId: NodeJS.Timeout;
 
 const gb = new GrowthBook({
@@ -171,11 +175,41 @@ const App: React.FC = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
   const [isActive, setIsActive] = useState(true);
-  const handleLessonClick = useHandleLessonClick();
+  const handleLessonClick = useHandleLessonClick(customHistory);
+
+  const sendLaunch = async () => {
+    ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
+    localStorage.setItem("isRespectMode", "true");
+    const authHandler = ServiceConfig.getI().authHandler;
+    const isUserLoggedIn = await authHandler.isUserLoggedIn();
+      try {
+        handleLessonClick(null,true,undefined,true);
+      } catch (e) {
+        console.error("Failed to fetch deeplink params or lesson/course", e);
+      }
+      if (!isUserLoggedIn) {
+      Util.isDeepLinkPending = true;
+      await ServiceConfig.getI().apiHandler.createDeeplinkUser();
+      await Toast.show({
+        text: t("User not logged in. Logging in the user..."),
+        duration: "long",
+      });
+    }
+  };
 
   useEffect(() => {
     console.log("App.tsx called");
-
+    const checkDeeplink = async () => {
+      const portPlugin = registerPlugin<PortPlugin>("Port");
+      document.addEventListener(TRIGGER_DEEPLINK, sendLaunch);
+      const data = await portPlugin.sendLaunchData();
+      if (data.registration) {
+        document.dispatchEvent(new Event(TRIGGER_DEEPLINK));
+      } else if (Util.isRespectMode === true) {
+        ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
+      }
+    };
+    checkDeeplink();
     const cleanup = initializeClickListener();
     const handleOnline = () => {
       if (!online) {
@@ -217,6 +251,7 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      document.removeEventListener(TRIGGER_DEEPLINK, sendLaunch);
       cleanup();
     };
   }, [online, presentToast]);
@@ -263,23 +298,12 @@ const App: React.FC = () => {
     });
     updateAvatarSuggestionJson();
 
-    const sendLaunch = async () => {
-      const authHandler = ServiceConfig.getI()?.authHandler;
-      const isUserLoggedIn = await authHandler?.isUserLoggedIn();
-      if (!isUserLoggedIn) {
-        Util.isDeepLinkPending = true;
-        await Toast.show({
-          text: t("Couldn't launch the lesson, please sign in with RESPECT."),
-          duration: "long",
-        });
-      }
-    };
-    document.addEventListener(TRIGGER_DEEPLINK, sendLaunch);
+    // document.addEventListener(TRIGGER_DEEPLINK, sendLaunch);
     // Cleanup on unmount
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       clearExistingTimeout();
-      document.removeEventListener(TRIGGER_DEEPLINK, sendLaunch);
+      // document.removeEventListener(TRIGGER_DEEPLINK, sendLaunch);
     };
   }, []);
 
@@ -473,7 +497,7 @@ const App: React.FC = () => {
   return (
     <GrowthBookProvider growthbook={gb}>
       <IonApp>
-        <IonReactRouter basename={BASE_NAME}>
+        <IonReactRouter basename={BASE_NAME} history={customHistory}>
           <IonRouterOutlet>
             <Switch>
               <Route path={PAGES.APP_UPDATE} exact={true}>
@@ -591,9 +615,9 @@ const App: React.FC = () => {
                 <SchoolProfile />
               </ProtectedRoute>
               {/* <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
-              
+
                 <EditSchool />
-              
+
             </ProtectedRoute> */}
               <ProtectedRoute path={PAGES.REQ_ADD_SCHOOL} exact={true}>
                 <ReqEditSchool />
@@ -602,9 +626,9 @@ const App: React.FC = () => {
                 <ManageClass />
               </ProtectedRoute>
               {/* <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
-              
+
                 <EditSchool />
-              
+
             </ProtectedRoute> */}
               <ProtectedRoute path={PAGES.REQ_EDIT_SCHOOL} exact={true}>
                 <ReqEditSchool />

@@ -838,7 +838,7 @@ export class ApiHandler implements ServiceApi {
     chapter_id: string,
     course_id: string,
     type: string,
-    created_at?: string 
+    created_at?: string
   ): Promise<boolean> {
     return this.s.createAssignment(
       student_list,
@@ -1012,7 +1012,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ status: string; errors?: string[] }> {
     return this.s.validateClassNameWithSchoolID(schoolId, className);
   }
-  
+
   async validateStudentInClassWithoutPhone(
     studentName: string,
     className: string,
@@ -1076,5 +1076,8 @@ export class ApiHandler implements ServiceApi {
   }
   public async getChapterIdbyQrLink(link:string): Promise<TableTypes<"chapter_links"> | undefined> {
     return await this.s.getChapterIdbyQrLink(link);
+  }
+  public async createDeeplinkUser(): Promise<void> {
+    return await this.s.createDeeplinkUser();
   }
 }

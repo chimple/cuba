@@ -30,6 +30,7 @@ export interface StudentLeaderboardInfo {
 }
 
 export interface ServiceApi {
+  createDeeplinkUser(): void | PromiseLike<void>;
   /**
    * Creates a student profile for a parent and returns the student object
    * @param {string} name - name of the student
