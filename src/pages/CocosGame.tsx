@@ -1,7 +1,7 @@
 import { IonContent, IonPage, useIonToast } from "@ionic/react";
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router";
-import { CURRENT_USER } from "../common/constants";
+ 
 import {
   APP_URL_OPEN,
   EVENTS,
@@ -196,21 +196,22 @@ const CocosGame: React.FC = () => {
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
     setShowDialogBox(false);
     if(Util.isDeepLink) {
-      Util.isDeepLink = false;
-      await PortPlugin.returnDataToRespect();
-      return;
+      const PortPlugin = registerPlugin<any>("Port");
+      PortPlugin.returnDataToRespect();
     }
+    Util.isDeepLink = false;
+    PortPlugin.sendLaunchData().lessonId = "";
     push();
   };
 
-  const sendDataToRespect = async () => {
+  const sendDataToRespect = () => {
     if(Util.isDeepLink) {
-      Util.isDeepLink = false;
-      await PortPlugin.returnDataToRespect();
-      return;
+      const PortPlugin = registerPlugin<any>("Port");
+      PortPlugin.returnDataToRespect();
     }
+    Util.isDeepLink = false;
+    PortPlugin.sendLaunchData().lessonId = "";
   }
-
   const handleLessonEndListner = (event) => {
     saveTempData(event.detail);
     setGameResult(event);
@@ -309,14 +310,23 @@ const CocosGame: React.FC = () => {
         JSON.stringify(learningPath)
       );
       
+      // For APIs with real database persistence, fetch the updated user
+      // but ensure we don't overwrite with stale data
       try {
         const updatedStudent = await api.getUserByDocId(currentStudent.id);
-        if (!updatedStudent || !updatedStudent.learning_path) {
-          throw new Error("Fetched student data is invalid or missing learning_path.");
+        if (updatedStudent && updatedStudent.learning_path) {
+          // Only use the fetched user if it has the learning_path
+          await Util.setCurrentStudent(updatedStudent, undefined);
+        } else {
+          // Fallback: update current user locally with our fresh data
+          await Util.setCurrentStudent(
+            { ...currentStudent, learning_path: JSON.stringify(learningPath) },
+            undefined
+          );
         }
-        await Util.setCurrentStudent(updatedStudent, undefined);
       } catch (error) {
-        console.warn("Failed to fetch updated student, using local data:", error);
+        // If getUserByDocId fails (e.g., FirebaseApi), use local update
+        console.warn("getUserByDocId failed, using local update:", error);
         await Util.setCurrentStudent(
           { ...currentStudent, learning_path: JSON.stringify(learningPath) },
           undefined
@@ -403,8 +413,11 @@ const CocosGame: React.FC = () => {
       }
 
       const assignment = state?.assignment;
-      const currentStudent = localStorage.getItem(CURRENT_USER);
-      const currentStudentObj = currentStudent ? JSON.parse(currentStudent) : undefined;
+      const currentStudentObj = Util.getCurrentStudent();
+      if (!currentStudentObj?.id) {
+        console.error("saveTempData: No current student found; aborting result save.");
+        return;
+      }
       const data = lessonData;
       let assignmentId = assignment ? assignment?.id : null;
       const isStudentLinked = await api.isStudentLinked(currentStudentObj?.id? currentStudentObj.id : "");
