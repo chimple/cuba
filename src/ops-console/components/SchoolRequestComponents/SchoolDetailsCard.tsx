@@ -58,6 +58,12 @@ const SchoolDetailsCard: React.FC<SchoolDetailsCardProps> = ({
           {requestData.school.group3 || "-"}
         </div>
       </div>
+      <div className="school-details-field-stack">
+        <div className="school-details-label">{t("Address")}</div>
+        <div className="school-details-value">
+          {requestData.school.address || "-"}
+        </div>
+      </div>
 
       <Divider sx={{ my: 1.5 }} />
 

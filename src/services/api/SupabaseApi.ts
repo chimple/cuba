@@ -8119,11 +8119,8 @@ export class SupabaseApi implements ServiceApi {
       responded_by: respondedBy,
       updated_at: new Date().toISOString(),
     };
-    if (status === STATUS.REJECTED) {
-      updatePayload.is_deleted = true;
-      if (rejectionReason) {
-        updatePayload.rejected_reason_description = rejectionReason;
-      }
+    if (status ===STATUS.REJECTED && rejectionReason) {
+      updatePayload.rejected_reason_description = rejectionReason;
     }
 
     const { data, error } = await this.supabase
@@ -8264,6 +8261,9 @@ export class SupabaseApi implements ServiceApi {
 
     if (keyContacts) {
       updatePayload.key_contacts = keyContacts; // jsonb column
+    }
+    if (schoolStatus === STATUS.REJECTED) {
+      updatePayload.is_deleted = true;
     }
     const { error } = await this.supabase
       .from("school")
