@@ -200,7 +200,7 @@ const PrincipalTeacherPendingRequest = () => {
         {t("Requests")}
       </span>
       <span> &gt; </span>
-      <span>Pending</span>
+      <span>{t("Pending ")}</span>
       <span> &gt; </span>
       <span className="principal-teacher-pending-active">
         {t("Request ID - ")} {id}

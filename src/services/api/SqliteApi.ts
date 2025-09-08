@@ -6213,6 +6213,12 @@ order by
     schoolId?: string,
     classId?: string
   ): Promise<TableTypes<"ops_requests"> | undefined> {
-    throw new Error("Method not implemented.");
+    return await this._serverApi.approveOpsRequest(
+      requestId,
+      respondedBy,
+      role,
+      schoolId,
+      classId
+    );
   }
 }
