@@ -19,6 +19,7 @@ import {
   PrincipalAPIResponse,
   CoordinatorAPIResponse,
   EnumType,
+  CACHETABLES,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -91,6 +92,10 @@ export class ApiHandler implements ServiceApi {
       timeSpent,
       score
     );
+  }
+
+  public clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
+    return this.s.clearCacheData(tableNames);
   }
 
   public async joinLiveQuiz(

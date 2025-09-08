@@ -3,6 +3,7 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import { StudentLessonResult } from "../../common/courseConstants";
 import {
+  CACHETABLES,
   CoordinatorAPIResponse,
   EnumType,
   FilteredSchoolsForSchoolListingOps,
@@ -110,6 +111,16 @@ export interface ServiceApi {
     udise: string | null,
     address: string | null
   ): Promise<TableTypes<"school">>;
+
+  /**
+   * Clears all rows from the specified tables in the local SQLite database.
+   * Keeps the database structure and files intact.
+   * Primarily used during logout or reset operations.
+   *
+   * @param {readonly TABLES[]} tableNames - List of table names to clear.
+   * @returns {Promise<void>} Resolves once the tables are cleared.
+   */
+  clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void>;
 
   requestNewSchool(
     name: string,

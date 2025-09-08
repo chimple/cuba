@@ -10,6 +10,7 @@ import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
 import { AssignmentSource, PAGES, TableTypes, belowGrade1, grade1 } from "../../common/constants";
 import { Util } from "../../utility/util";
 import AssigmentCount from "../components/library/AssignmentCount";
+import { Browser } from "@capacitor/browser";
 interface LessonDetailsProps {}
 const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   const currentSchool = Util.getCurrentSchool();
@@ -49,9 +50,17 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     if (current_user?.id)
       await api.createOrUpdateAssignmentCart(current_user?.id, lesson);
   };
-  const onPlayClick = () => {
-    const url = `https://chimple.cc/microlink/?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-    window.open(url);
+  const onPlayClick = async () => {
+    const baseUrl = "https://chimple.cc/microlink/";
+    const queryParams = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+    const urlToOpen = `${baseUrl}${queryParams}`;
+
+    try {
+      await Browser.open({ url: urlToOpen });
+    } catch (error) {
+      console.error("Error opening in-app browser:", error);
+      window.open(urlToOpen, '_blank');
+    }
   };
   useEffect(() => {
     const sync_lesson_data = selectedLessonMap.get(current_class?.id ?? "");
