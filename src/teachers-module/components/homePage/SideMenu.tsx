@@ -37,6 +37,7 @@ import {
   updateLocalAttributes,
   useGbContext,
 } from "../../../growthbook/Growthbook";
+import { ClearCacheData } from "../../../components/parent/DataClear";
 
 const SideMenu: React.FC<{
   handleManageSchoolClick: () => void;
@@ -117,7 +118,7 @@ const SideMenu: React.FC<{
           name: classItem.name,
         }));
         const patchedList = updatedClass
-          ? classMap.map(c => (c.id === updatedClass.id ? updatedClass : c))
+          ? classMap.map((c) => (c.id === updatedClass.id ? updatedClass : c))
           : classMap;
         setClassData(patchedList);
 
@@ -295,6 +296,7 @@ const SideMenu: React.FC<{
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.removeItem(CURRENT_USER);
     localStorage.removeItem(CURRENT_MODE);
+    await ClearCacheData();
     history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };
@@ -339,7 +341,7 @@ const SideMenu: React.FC<{
               />
             </IonItem>
           </div>
-          {!Capacitor.isNativePlatform() && isAuthorizedForOpsMode && (
+          {isAuthorizedForOpsMode && (
             <div className="side-menu-switch-user-toggle">
               <IonItem className="side-menu-ion-item-container">
                 <img

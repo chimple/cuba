@@ -68,8 +68,8 @@ export const SchoolTable: Story = {
   args: {
     columns: [
       { key: "school", label: "School", align: "center" },
-      { key: "noOfStudents", label: "No of Students", align: "left" },
-      { key: "noOfTeachers", label: "No of Teachers", align: "left" },
+      { key: "noOfStudents", label: "No. of Students", align: "left" },
+      { key: "noOfTeachers", label: "No. of Teachers", align: "left" },
       { key: "programManager", label: "Program Manager", align: "left" },
       { key: "fieldCoordinator", label: "Field Coordinator", align: "left" },
     ],

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import ReactDOM from "react-dom";
 import "./PathwayStructure.css";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
@@ -9,6 +10,7 @@ import { t } from "i18next";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import { Capacitor } from "@capacitor/core";
 import { useFeatureIsOn } from "@growthbook/growthbook-react";
+import ChimpleRiveMascot from "./ChimpleRiveMascot";
 
 const PathwayStructure: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -16,6 +18,9 @@ const PathwayStructure: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
+    const [riveContainer, setRiveContainer] = useState<HTMLDivElement | null>(
+      null
+    );
 
   const inactiveText = t("This lesson is locked. Play the current active lesson.");
   const rewardText = t("Complete these 5 lessons to earn rewards");
@@ -303,9 +308,24 @@ const loadSVG = async (updatedStudent?: any) => {
             }
           });
 
-          const chimple = createSVGImage("/pathwayAssets/mascot.svg", 75, 81, x, startPoint.y + 65);
-          fragment.appendChild(activeGroup);
-          fragment.appendChild(chimple);
+           const foreignObject = document.createElementNS(
+             "http://www.w3.org/2000/svg",
+             "foreignObject"
+           );
+           foreignObject.setAttribute("width", "33%");
+           foreignObject.setAttribute("height", "84%");
+           foreignObject.setAttribute("x", `${x - 87}`);
+           foreignObject.setAttribute("y", `${startPoint.y + 5}`);
+
+           const riveDiv = document.createElement("div");
+           riveDiv.style.width = "100%";
+           riveDiv.style.height = "100%";
+           foreignObject.appendChild(riveDiv);
+
+           fragment.appendChild(activeGroup);
+           fragment.appendChild(foreignObject);
+
+           setRiveContainer(riveDiv);
         } else {
           const flower_Inactive = document.createElementNS("http://www.w3.org/2000/svg", "g");
           const lessonImage = createSVGImage(lesson_image, 30, 30, 21, 23);
@@ -416,6 +436,11 @@ const placeElement = (element: SVGGElement, x: number, y: number) => {
         />
       )}
       <div className="pathway-structure-div" ref={containerRef}></div>
+       {riveContainer &&
+              ReactDOM.createPortal(
+                <ChimpleRiveMascot />,
+                riveContainer
+              )}
     </>
   );
 };
