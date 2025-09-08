@@ -7616,7 +7616,7 @@ export class SupabaseApi implements ServiceApi {
     page: number = 1,
     limit: number = 20,
     orderBy: string = "created_at",
-    orderDir: "asc" | "desc" = "desc",
+    orderDir: "asc" | "desc" = "asc",
     filters?: { request_type?: string[]; school?: string[] },
     searchTerm?: string
   ) {
