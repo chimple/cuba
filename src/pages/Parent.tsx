@@ -54,7 +54,6 @@ const Parent: React.FC = () => {
   // const clickCount = useRef(0);
   // const [showDialogBox, setShowDialogBox] = useState(false);
   // const [showDebug, setShowDebug] = useState(false);
-  //commented beacuse debug mode moved to leaderboard page
   const [langList, setLangList] = useState<
     {
       id: string;
