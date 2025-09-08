@@ -20,6 +20,7 @@ import {
   CoordinatorAPIResponse,
   EnumType,
   CACHETABLES,
+  RequestTypes,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -1489,6 +1490,21 @@ export class ApiHandler implements ServiceApi {
       searchTerm,
       page,
       limit
+    );
+  }
+  async approveOpsRequest(
+    requestId: string,
+    respondedBy: string,
+    role: (typeof RequestTypes)[keyof typeof RequestTypes],
+    schoolId?: string,
+    classId?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined> {
+    return await this.s.approveOpsRequest(
+      requestId,
+      respondedBy,
+      role,
+      schoolId,
+      classId
     );
   }
 }

@@ -486,8 +486,9 @@ export enum PAGES {
   NEW_USERS_OPS = "/new-user-ops",
   REQUEST_LIST = "/request-list",
   STUDENT_PENDING_REQUEST = "/student-pending-request",
-  STUDENT_APPROVED_REQUEST = "/student-approved-request",
-  STUDENT_REJECTED_REQUEST = "/student-rejected-request",
+  OPS_APPROVED_REQUEST = "/student-approved-request",
+  OPS_REJECTED_REQUEST = "/student-rejected-request",
+  PRINCIPAL_TEACHER_PENDING_REQUEST = "/principal-teacher-pending-request",
 }
 
 export const enum ASSIGNMENT_TYPE {

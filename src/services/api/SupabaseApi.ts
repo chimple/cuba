@@ -8064,4 +8064,41 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: 0 };
     }
   }
+  async approveOpsRequest(
+    requestId: string,
+    respondedBy: string,
+    role: (typeof RequestTypes)[keyof typeof RequestTypes],
+    schoolId?: string,
+    classId?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined> {
+    if (!this.supabase) return undefined;
+
+    // Build update payload dynamically
+    const updatePayload: any = {
+      request_status: "approved",
+      responded_by: respondedBy,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (role === "principal" && schoolId) {
+      updatePayload.school_id = schoolId;
+    } else if (classId) {
+      updatePayload.class_id = classId;
+    }
+
+    const { data, error } = await this.supabase
+      .from("ops_requests")
+      .update(updatePayload)
+      .eq("request_id", requestId)
+      .eq("is_deleted", false)
+      .select("*")
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error approving ops_request:", error);
+      return undefined;
+    }
+
+    return data as TableTypes<"ops_requests">;
+  }
 }
