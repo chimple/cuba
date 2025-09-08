@@ -135,11 +135,12 @@ const RequestList: React.FC = () => {
           ([_, v]) => Array.isArray(v) && v.length > 0
         )
       );
-      let backendOrderBy = orderBy;
-      if (backendOrderBy === "school_name") backendOrderBy = "school_name";
-      if (backendOrderBy === "approved_date") backendOrderBy = "updated_at";
-      if (backendOrderBy === "rejected_date") backendOrderBy = "updated_at";
-      if (backendOrderBy === "requested_date") backendOrderBy = "created_at";
+      const orderByMapping = {
+        approved_date: "updated_at",
+        rejected_date: "updated_at",
+        requested_date: "created_at",
+      };
+      const backendOrderBy = orderByMapping[orderBy] || orderBy;
       const { data, total } = await api.getOpsRequests(
         tempTab,
         page,
