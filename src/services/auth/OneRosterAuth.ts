@@ -1,6 +1,6 @@
 import { OneRosterUser, ServiceAuth } from "./ServiceAuth";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
-import { CURRENT_USER, LANGUAGE, TableTypes } from "../../common/constants";
+import { CURRENT_STUDENT, CURRENT_USER, isRespectMode, LANGUAGE, TableTypes, LATEST_STARS, STUDENT_LESSON_SCORES } from "../../common/constants";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Util } from "../../utility/util";
 import i18n from "../../i18n";
@@ -25,7 +25,6 @@ export class OneRosterAuth implements ServiceAuth {
   loginWithEmailAndPassword(email: any, password: any): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
-
   async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
     try {
       if (Capacitor.isNativePlatform()) {
@@ -77,7 +76,12 @@ export class OneRosterAuth implements ServiceAuth {
 
   async logOut(): Promise<void> {
     localStorage.removeItem(CURRENT_USER)
+    localStorage.removeItem(isRespectMode);
+    localStorage.removeItem(LATEST_STARS);
+    localStorage.removeItem(STUDENT_LESSON_SCORES);
+    ServiceConfig.getI().switchMode(APIMode.SQLITE);
     this._currentUser = undefined;
+    localStorage.removeItem(CURRENT_STUDENT);
   }
 
   async isUserLoggedIn(): Promise<boolean> {
@@ -98,7 +102,7 @@ export class OneRosterAuth implements ServiceAuth {
   }
 
   public set currentUser(user: TableTypes<"user">) {
-    this._currentUser = user
+    this._currentUser = user;
   }
 
   async googleSign(): Promise<any> {

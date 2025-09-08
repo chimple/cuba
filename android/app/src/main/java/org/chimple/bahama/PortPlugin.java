@@ -381,8 +381,13 @@ public class PortPlugin extends Plugin {
         }
     }
 
+    @PluginMethod
     public void returnDataToRespect(PluginCall call) {
-        Log.d(TAG, "Calling returnDataToRespect");
+        // Clear deeplink state before finishing activity
+        isRespect = false;
+        activity_id = "";
+        deepLinkData = new JSONObject();
+        
         Activity activity = getActivity();
         if (activity != null) {
             activity.finish();

@@ -70,7 +70,6 @@ export class AuthHandler implements ServiceAuth {
       verificationCode
     );
   }
-
   async logOut(): Promise<void> {
     return await this.s.logOut();
   }

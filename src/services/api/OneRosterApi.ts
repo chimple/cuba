@@ -854,7 +854,7 @@ export class OneRosterApi implements ServiceApi {
       if (current_user) {
         current_user.learning_path = learning_path;
         // Persist to localStorage for testing
-        localStorage.setItem("CURRENT_STUDENT", JSON.stringify(current_user));
+        localStorage.setItem(CURRENT_STUDENT, JSON.stringify(current_user));
       }
       // const updateUserQuery = `UPDATE ${TABLES.User}
       // SET learning_path = ?
@@ -1464,9 +1464,13 @@ export class OneRosterApi implements ServiceApi {
     if (studentId && lessonId) {
       const scoresJson = localStorage.getItem(studentLessonScores);
       const scoresMap = scoresJson ? JSON.parse(scoresJson) : {};
+
       if (!scoresMap[studentId]) scoresMap[studentId] = {};
-      scoresMap[studentId][lessonId] = score ?? 0;
-      localStorage.setItem(studentLessonScores, JSON.stringify(scoresMap));
+
+      if (!(lessonId in scoresMap[studentId])) {
+        scoresMap[studentId][lessonId] = score;
+        localStorage.setItem(STUDENT_LESSON_SCORES, JSON.stringify(scoresMap));
+      }
     }
 
     const loggedStudent = await ServiceConfig.getI().authHandler.getCurrentUser();

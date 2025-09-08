@@ -28,8 +28,21 @@ export const useHandleLessonClick = (customHistory) => {
     if (true) {
       const lesson = await api.getLesson(data.lessonId);
       console.log("lesson object --> ", JSON.stringify(lesson, null, 2));
+      if (!lesson) {
+        console.error("Lesson not found");
+        return;
+      }
+      let coursesForLesson: any[] = [];
+      try {
+        if (lesson.id) {
+          coursesForLesson = await api.getCoursesFromLesson(lesson.id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch courses for lesson:", error);
+      }
+      const resolvedCourseId = coursesForLesson.length > 0 ? coursesForLesson[0].id : lesson.cocos_subject_code;
 
-      const params = `?courseid=${lesson?.cocos_subject_code}&chapterid=${lesson?.cocos_chapter_code}&lessonid=${lesson?.cocos_lesson_id}`;
+      const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
       Util.isDeepLink = true;
 
         customHistory.push(PAGES.GAME + params, {
@@ -41,7 +54,7 @@ export const useHandleLessonClick = (customHistory) => {
 
       console.log("LessonCard course:", JSON.stringify(lesson));
 
-     }
+    }
   };
 };
 

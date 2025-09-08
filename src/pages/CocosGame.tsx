@@ -196,22 +196,21 @@ const CocosGame: React.FC = () => {
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
     setShowDialogBox(false);
     if(Util.isDeepLink) {
-      const PortPlugin = registerPlugin<any>("Port");
-      PortPlugin.returnDataToRespect();
+      Util.isDeepLink = false;
+      await PortPlugin.returnDataToRespect();
+      return;
     }
-    Util.isDeepLink = false;
-    PortPlugin.sendLaunchData().lessonId = "";
     push();
   };
 
-  const sendDataToRespect = () => {
+  const sendDataToRespect = async () => {
     if(Util.isDeepLink) {
-      const PortPlugin = registerPlugin<any>("Port");
-      PortPlugin.returnDataToRespect();
+      Util.isDeepLink = false;
+      await PortPlugin.returnDataToRespect();
+      return;
     }
-    Util.isDeepLink = false;
-    PortPlugin.sendLaunchData().lessonId = "";
   }
+
   const handleLessonEndListner = (event) => {
     saveTempData(event.detail);
     setGameResult(event);
@@ -251,7 +250,6 @@ const CocosGame: React.FC = () => {
           .path_id;
       // Update currentIndex
       currentCourse.currentIndex += 1;
-
       // Check if currentIndex exceeds pathEndIndex
       if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
         currentCourse.startIndex = currentCourse.currentIndex;
@@ -310,10 +308,19 @@ const CocosGame: React.FC = () => {
         currentStudent,
         JSON.stringify(learningPath)
       );
-      // Update the current student object
-      const updatedStudent = await api.getUserByDocId(currentStudent.id);
-      if (updatedStudent) {
-        Util.setCurrentStudent(updatedStudent);
+      
+      try {
+        const updatedStudent = await api.getUserByDocId(currentStudent.id);
+        if (!updatedStudent || !updatedStudent.learning_path) {
+          throw new Error("Fetched student data is invalid or missing learning_path.");
+        }
+        await Util.setCurrentStudent(updatedStudent, undefined);
+      } catch (error) {
+        console.warn("Failed to fetch updated student, using local data:", error);
+        await Util.setCurrentStudent(
+          { ...currentStudent, learning_path: JSON.stringify(learningPath) },
+          undefined
+        );
       }
     } catch (error) {
       console.error("Error updating learning path:", error);
