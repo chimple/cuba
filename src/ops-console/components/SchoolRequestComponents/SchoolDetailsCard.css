@@ -1,0 +1,45 @@
+.school-details-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  background: #fff;
+}
+
+.school-details-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.field-stack {
+  margin: 10px 0;
+}
+
+.label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 2px;
+}
+
+.value {
+  font-size: 0.9rem;
+  color: #222;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.label-sm {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #666;
+}
+
+.value-sm {
+  font-size: 0.85rem;
+  color: #222;
+}

@@ -490,13 +490,11 @@ export interface ServiceApi {
   getCourse(id: string): Promise<TableTypes<"course"> | undefined>;
 
   /**
-   * Gives Courses for given a CourseIds  
-   * @param  {courseIds: string[]} - CourseIds 
+   * Gives Courses for given a CourseIds
+   * @param  {courseIds: string[]} - CourseIds
    * @returns {<TableTypes<"course">[]>}`Course` or `undefined` if it could not find the Course with given `id`
    */
-  getCourses(
-    courseIds: string[]
-  ): Promise<TableTypes<"course">[]> 
+  getCourses(courseIds: string[]): Promise<TableTypes<"course">[]>;
 
   /**
    * Gives StudentProfile for given a Student firebase doc Id
@@ -2004,4 +2002,29 @@ export interface ServiceApi {
     page?: number,
     limit?: number
   ): Promise<StudentAPIResponse>;
+  respondToSchoolRequest(
+    requestId: string,
+    respondedBy: string,
+    status: "approved" | "rejected",
+    rejectionReason?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined>;
+
+ getFieldCoordinatorsByProgram(
+  programId: string,
+  ): Promise<{ data: TableTypes<"user">[] }>;
+
+  getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }> ;
+
+  updateSchoolStatus(
+  schoolId: string,
+  schoolStatus: string,
+  address?: {
+    state?: string;
+    district?: string;
+    city?: string;
+    address?: string;
+  },
+  keyContacts?: any 
+): Promise<void> ;
 }
+

@@ -1,0 +1,67 @@
+import React from "react";
+import { Box, Grid, TextField, Typography } from "@mui/material";
+interface ContactFieldItem {
+  label: string;
+  name: string;
+  value?: string;
+  placeholder?: string;
+  required?: boolean;
+  disabled?: boolean;
+}
+
+
+interface ContactField {
+  subheader: string;
+  required?: boolean;
+  fields: ContactFieldItem[];
+}
+
+interface ContactFormSectionProps {
+  title: string;
+  fields: ContactField[];
+  onChange?: (contactIndex: number, fieldName: string, value: string) => void;
+}
+
+const ContactFormSection: React.FC<ContactFormSectionProps> = ({ title, fields, onChange }) => {
+  return (
+    <Box sx={{ borderRadius: "8px", padding: "10px", marginBottom: "20px", backgroundColor: "#f9fbfd" }}>
+      <Typography variant="subtitle2" fontWeight="bold" sx={{ marginBottom: "16px", fontSize: "18px", color: "#111827" }}>
+        {title}
+      </Typography>
+
+      <Grid container spacing={3}>
+        {fields.map((contact, index) => (
+          <Grid item xs={12} md={6} key={index}>
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ fontSize: "14px", mb: 1, color: "#111827", textAlign: "left" }}>
+              {contact.subheader} {contact.required ? "*" : ""}
+            </Typography>
+
+            <Grid container spacing={2}>
+              {contact.fields.map((field, idx) => (
+                <Grid item xs={12} key={idx}>
+                  <Typography variant="body2" sx={{ fontSize: "14px", fontWeight: 500, mb: 0.5, color: "#374151", textAlign: "left" }}>
+                    {field.label} {field.required ? "*" : ""}
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    placeholder={field.placeholder}
+                    value={field.value || ""}
+                    onChange={(e) => onChange?.(index, field.name, e.target.value)}
+                    size="small"
+                    variant="outlined"
+                    InputProps={{
+                      sx: { backgroundColor: "#fff", borderRadius: "6px", fontSize: "14px" },
+                      readOnly: field.disabled,
+                    }}
+                  />
+
+                </Grid>
+              ))}
+            </Grid>
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
+  );
+};
+export default ContactFormSection;

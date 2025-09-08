@@ -440,6 +440,40 @@ const RequestList: React.FC = () => {
         pathname: pathToNavigate,
         state: { request: fullRequestData },
       });
+    }else if (
+      row.request_type &&
+      typeof row.request_type === "string" &&
+      row.request_type.toLowerCase().includes("school")
+    ) {
+      // Find the complete original request object from our raw data state
+      const fullRequestData = rawRequestData.find(
+        (r) => r.request_id === row.request_id
+      );
+
+      if (!fullRequestData) {
+        console.error(
+          "Could not find full request data for ID:",
+          row.request_id
+        );
+        return;
+      }
+
+      let pathToNavigate = "";
+      if (selectedTab === REQUEST_TABS.PENDING) {
+        pathToNavigate = `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_PENDING_REQUEST}/${row.request_id}`;
+      } else if (selectedTab === REQUEST_TABS.APPROVED) {
+        pathToNavigate = `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_APPROVED_REQUEST}/${row.request_id}`;
+      } else if (selectedTab === REQUEST_TABS.REJECTED) {
+        pathToNavigate = `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_REJECTED_REQUEST}/${row.request_id}`;
+      } else {
+        console.warn("Unhandled request tab for student request:", selectedTab);
+        return;
+      }
+
+      history.push({
+        pathname: pathToNavigate,
+        state: { request: fullRequestData },
+      });
     }
   };
 

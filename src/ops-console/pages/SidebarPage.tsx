@@ -27,6 +27,10 @@ import RequestList from "./RequestList";
 import StudentPendingRequest from "./StudentPendingRequest";
 import StudentApprovedRequestDetails from "./StudentApprovedRequestDetails";
 import StudentRejectedRequestDetails from "./StudentRejectedRequestDetails";
+import SchoolPendingRequest from "./SchoolPendingRequest";
+import SchoolApprovedRequest from "./SchoolApprovedRequest";
+import SchoolRejectedRequest from "./SchoolRejectedRequest";
+import SchoolFormPage from "./SchoolFormPage";
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
@@ -81,6 +85,30 @@ const SidebarPage: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.REQUEST_LIST}`} exact={true}>
               <RequestList />
+            </ProtectedRoute>
+             <ProtectedRoute
+              path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_PENDING_REQUEST}/:id`}
+              exact={true}
+            >
+              <SchoolPendingRequest />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_APPROVED_REQUEST}/:id`}
+              exact={true}
+            >
+              <SchoolApprovedRequest />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_REJECTED_REQUEST}/:id`}
+              exact={true}
+            >
+              <SchoolRejectedRequest />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_PENDING_REQUEST}${PAGES.SCHOOL_FORM_PAGE}/:id`}
+              exact={true}
+            >
+              <SchoolFormPage />
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.REQUEST_LIST}${PAGES.STUDENT_PENDING_REQUEST}/:id`}

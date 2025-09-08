@@ -6190,4 +6190,33 @@ order by
     const result = await this._db.query(query, [...params, limit, offset]);
     return { data: result?.values ?? [], total };
   }
+  async respondToSchoolRequest(
+      requestId: string,
+      respondedBy: string,
+      status: "approved" | "rejected",
+      rejectionReason?: string
+    ): Promise<TableTypes<"ops_requests"> | undefined> {
+      throw new Error("Method not implemented.");
+    }
+  async getFieldCoordinatorsByProgram(
+    programId: string,
+  ): Promise<{ data: TableTypes<"user">[] }>{
+     throw new Error("Method not implemented.");
+  }
+  async getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }> {
+    throw new Error("Method not implemented.");
+  }
+  async updateSchoolStatus(
+  schoolId: string,
+  schoolStatus: string,
+  address?: {
+    state?: string;
+    district?: string;
+    city?: string;
+    address?: string;
+  },
+  keyContacts?: any 
+): Promise<void> {
+  return await this._serverApi.updateSchoolStatus(schoolId, schoolStatus, address,keyContacts);
+}
 }

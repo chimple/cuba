@@ -8015,4 +8015,183 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: 0 };
     }
   }
+  async respondToSchoolRequest(
+    requestId: string,
+    respondedBy: string,
+    status: "approved" | "rejected",
+    rejectionReason?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined> {
+    if (!this.supabase) return undefined;
+
+    const updatePayload: any = {
+      request_status: status,
+      responded_by: respondedBy,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (status === "rejected" && rejectionReason) {
+      updatePayload.rejected_reason_description = rejectionReason;
+    }
+
+    const { data, error } = await this.supabase
+      .from("ops_requests")
+      .update(updatePayload)
+      .eq("request_id", requestId)
+      .eq("is_deleted", false)
+      .select("*")
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error responding to school_request:", error);
+      return undefined;
+    }
+
+    return data as TableTypes<"ops_requests">;
+  }
+
+async getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }> {
+  if (!this.supabase) {
+    console.error("Supabase client not initialized.");
+    return { data: [] };
+  }
+
+  const _currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+  if (!_currentUser) throw new Error("User not logged in");
+
+  const userId = _currentUser.id;
+  const roles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+  const isSuperAdmin = roles.includes(RoleType.SUPER_ADMIN);
+  const isOpsDirector = roles.includes(RoleType.OPERATIONAL_DIRECTOR);
+
+  // ✅ Case 1: Super Admin or Ops Director → fetch ALL programs
+  if (isSuperAdmin || isOpsDirector) {
+    const { data, error } = await this.supabase
+      .from("program")
+      .select("*")
+      .eq("is_deleted", false)
+      .order("name", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching programs:", error);
+      return { data: [] };
+    }
+
+    return { data: data || [] };
+  }
+
+  // ✅ Case 2: Program Manager → fetch only programs assigned to them
+  if (roles.includes(RoleType.PROGRAM_MANAGER)) {
+    const { data: programUsers, error: programUsersError } = await this.supabase
+      .from("program_user")
+      .select("program_id")
+      .eq("user", userId)
+      .eq("role", RoleType.PROGRAM_MANAGER)
+      .eq("is_deleted", false);
+
+    if (programUsersError) {
+      console.error("Error fetching program_user entries:", programUsersError);
+      return { data: [] };
+    }
+
+    if (!programUsers || programUsers.length === 0) {
+      return { data: [] };
+    }
+
+    const programIds = programUsers.map((p) => p.program_id);
+
+    const { data: programs, error } = await this.supabase
+      .from("program")
+      .select("*")
+      .in("id", programIds)
+      .eq("is_deleted", false)
+      .order("name", { ascending: true }); 
+
+    if (error) {
+      console.error("Error fetching programs for program manager:", error);
+      return { data: [] };
+    }
+
+    return { data: programs || [] };
+  }
+
+  return { data: [] };
+}
+
+
+async getFieldCoordinatorsByProgram(
+  programId: string
+): Promise<{ data: TableTypes<"user">[] }> {
+  if (!this.supabase) return { data: [] };
+  if (!programId) return { data: [] };
+
+  const { data: programUsers, error: linkError } = await this.supabase
+    .from("program_user")
+    .select("user")
+    .eq("program_id", programId)
+    .eq("role", RoleType.FIELD_COORDINATOR)
+    .eq("is_deleted", false);
+
+  if (linkError || !programUsers?.length) {
+    console.error("Error fetching program_user:", linkError);
+    return { data: [] };
+  }
+
+  const userIds = programUsers.map((pu) => pu.user);
+
+  const { data: users, error: userError } = await this.supabase
+    .from("user")
+    .select("*")
+    .in("id", userIds)
+    .eq("is_deleted", false)
+    .order("name", { ascending: true });
+
+  if (userError) {
+    console.error("Error fetching users:", userError);
+    return { data: [] };
+  }
+
+  return { data: users || [] };
+}
+
+
+async updateSchoolStatus(
+  schoolId: string,
+  schoolStatus: string,
+  address?: {
+    state?: string;
+    district?: string;
+    city?: string;
+    address?: string;
+  },
+  keyContacts?: any // 👈 new param
+): Promise<void> {
+  if (!this.supabase) return;
+
+  const updatePayload: any = {
+    school_status: schoolStatus,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (address?.state !== undefined) updatePayload.group1 = address.state;
+  if (address?.district !== undefined) updatePayload.group2 = address.district;
+  if (address?.city !== undefined) updatePayload.group3 = address.city;
+  if (address?.address !== undefined) updatePayload.group4 = address.address;
+
+  if (keyContacts) {
+    updatePayload.key_contacts = keyContacts; // 👈 jsonb column
+  }
+
+  const { error } = await this.supabase
+    .from("school")
+    .update(updatePayload)
+    .eq("id", schoolId)
+    .eq("is_deleted", false);
+
+  if (error) {
+    console.error("Error updating school status:", error);
+  }
+}
+
+
+
 }

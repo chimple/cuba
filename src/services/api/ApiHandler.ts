@@ -1482,4 +1482,40 @@ export class ApiHandler implements ServiceApi {
       limit
     );
   }
+  public async respondToSchoolRequest(
+    requestId: string,
+    respondedBy: string,
+    status: "approved" | "rejected",
+    rejectionReason?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined> {
+    return await this.s.respondToSchoolRequest(
+      requestId,
+      respondedBy,
+      status,
+      rejectionReason
+    );
+  }
+  getFieldCoordinatorsByProgram(
+  programId: string,
+    ): Promise<{ data: TableTypes<"user">[] }>{ 
+      return this.s.getFieldCoordinatorsByProgram(programId); 
+    }
+
+  getProgramsByRole(
+    ): Promise<{ data: TableTypes<"program">[] }> {
+      return this.s.getProgramsByRole();
+    }
+    async updateSchoolStatus(
+    schoolId: string,
+    schoolStatus: string,
+    address?: {
+    state?: string;
+    district?: string;
+    city?: string;
+    address?: string;
+  },
+  keyContacts?: any 
+  ): Promise<void> {
+    return await this.s.updateSchoolStatus(schoolId, schoolStatus,address, keyContacts);
+  }
 }
