@@ -6200,34 +6200,39 @@ order by
     return { data: result?.values ?? [], total };
   }
   async respondToSchoolRequest(
-      requestId: string,
-      respondedBy: string,
-      status: (typeof STATUS)[keyof typeof STATUS],
-      rejectionReason?: string
-    ): Promise<TableTypes<"ops_requests"> | undefined> {
-      throw new Error("Method not implemented.");
-    }
+    requestId: string,
+    respondedBy: string,
+    status: (typeof STATUS)[keyof typeof STATUS],
+    rejectionReason?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined> {
+    return await this._serverApi.respondToSchoolRequest(
+      requestId,
+      respondedBy,
+      status,
+      rejectionReason
+    );
+  }
   async getFieldCoordinatorsByProgram(
     programId: string,
   ): Promise<{ data: TableTypes<"user">[] }>{
-     throw new Error("Method not implemented.");
+    return await this._serverApi.getFieldCoordinatorsByProgram(programId);
   }
   async getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }> {
-    throw new Error("Method not implemented.");
+    return await this._serverApi.getProgramsByRole();
   }
   async updateSchoolStatus(
-  schoolId: string,
-  schoolStatus: (typeof STATUS)[keyof typeof STATUS],
-  address?: {
-    state?: string;
-    district?: string;
-    city?: string;
-    address?: string;
-  },
-  keyContacts?: any 
-): Promise<void> {
-  return await this._serverApi.updateSchoolStatus(schoolId, schoolStatus, address,keyContacts);
-}
+    schoolId: string,
+    schoolStatus: (typeof STATUS)[keyof typeof STATUS],
+    address?: {
+      state?: string;
+      district?: string;
+      city?: string;
+      address?: string;
+    },
+    keyContacts?: any 
+  ): Promise<void> {
+    return await this._serverApi.updateSchoolStatus(schoolId, schoolStatus, address,keyContacts);
+  }
   async clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
     if (!this._db) return;
     const query = `PRAGMA foreign_keys=OFF;`;

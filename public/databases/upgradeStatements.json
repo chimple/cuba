@@ -45,6 +45,8 @@
       "ALTER TABLE school ADD COLUMN language TEXT;",
       "ALTER TABLE school ADD COLUMN ops_created_by TEXT;",
       "ALTER TABLE school ADD COLUMN student_login_type TEXT;",
+      "ALTER TABLE school ADD COLUMN status TEXT;",
+      "ALTER TABLE school ADD COLUMN key_contacts TEXT;",
       "ALTER TABLE school_user ADD COLUMN is_firebase BOOLEAN;",
       "ALTER TABLE school_user ADD COLUMN is_ops BOOLEAN;",
       "ALTER TABLE school_user ADD COLUMN ops_created_by TEXT;",
