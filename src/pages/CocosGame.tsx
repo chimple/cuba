@@ -196,22 +196,21 @@ const CocosGame: React.FC = () => {
     document.body.removeEventListener(LESSON_END, handleLessonEndListner);
     setShowDialogBox(false);
     if(Util.isDeepLink) {
+      Util.isDeepLink = false;
       await PortPlugin.returnDataToRespect();
       return;
     }
-    Util.isDeepLink = false;
-    PortPlugin.sendLaunchData().lessonId = "";
     push();
   };
 
   const sendDataToRespect = async () => {
     if(Util.isDeepLink) {
+      Util.isDeepLink = false;
       await PortPlugin.returnDataToRespect();
       return;
     }
-    Util.isDeepLink = false;
-    PortPlugin.sendLaunchData().lessonId = "";
   }
+
   const handleLessonEndListner = (event) => {
     saveTempData(event.detail);
     setGameResult(event);
