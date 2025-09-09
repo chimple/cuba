@@ -40,7 +40,7 @@ import {
 } from "./utility/WindowsSpeech";
 import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 import { Util } from "./utility/util";
-import { EVENTS, IS_OPS_USER } from "./common/constants";
+import { CURRENT_USER, EVENTS, IS_OPS_USER } from "./common/constants";
 import { GbProvider } from "./growthbook/Growthbook";
 import { initializeFireBase } from "./services/Firebase";
 
@@ -93,8 +93,11 @@ const gb = new GrowthBook({
   apiHost: "https://cdn.growthbook.io",
   clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
   enableDevMode: true,
-  trackingCallback: (experiment, result) => {
-    Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
+  trackingCallback: async (experiment, result) => {
+    const userData = localStorage.getItem(CURRENT_USER) || "{}";
+    const userId = JSON.parse(userData).id;
+    await Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
+      user_id: userId,
       experimentId: experiment.key,
       variationId: result.key,
     });
