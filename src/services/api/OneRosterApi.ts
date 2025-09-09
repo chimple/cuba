@@ -23,7 +23,16 @@ import {
   LATEST_STARS,
   PortPlugin,
   StudentAPIResponse,
-  TeacherAPIResponse
+  TeacherAPIResponse,
+  CACHETABLES,
+  CoordinatorAPIResponse,
+  EnumType,
+  FilteredSchoolsForSchoolListingOps,
+  MODEL,
+  PrincipalAPIResponse,
+  RequestTypes,
+  SchoolRoleMap,
+  TabType
 } from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
 import Assignment from "../../models/assignment";
@@ -49,8 +58,7 @@ import ApiDataProcessor from "./ApiDataProcessor";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
 import { v4 as uuidv4 } from "uuid";
 import i18n from "../../i18n";
-import { Statement } from "tincants";
-import { Agent, Verb, Activity, ActivityDefinition, Context, ContextActivities, Score } from "tincants";
+import { Statement, Agent, Verb, Activity, ActivityDefinition, Context, ContextActivities, Score } from "tincants";
 import { registerPlugin } from "@capacitor/core";
 
 interface IGetStudentResultStatement {
@@ -603,16 +611,10 @@ export class OneRosterApi implements ServiceApi {
   removeAssignmentChannel() {
     throw new Error("Method not implemented.");
   }
+
   assignmentUserListner(
     studentId: string,
-    onDataChange: (roomDoc: {
-      assignment_id: string;
-      created_at: string | null;
-      id: string;
-      is_deleted: boolean | null;
-      updated_at: string | null;
-      user_id: string;
-    } | undefined) => void
+    onDataChange: (roomDoc: TableTypes<"assignment_user"> | undefined) => void
   ) {
     // throw new Error("Method not implemented.");
     return undefined;
@@ -720,7 +722,7 @@ export class OneRosterApi implements ServiceApi {
   getUserByPhoneNumber(phone: string): Promise<TableTypes<"user"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  addTeacherToClass(classId: string, userId: string): Promise<void> {
+  addTeacherToClass(classId: string, user: TableTypes<"user">): Promise<void> {
     throw new Error("Method not implemented.");
   }
   checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean> {
@@ -753,7 +755,7 @@ export class OneRosterApi implements ServiceApi {
   getSponsorsForSchool(schoolId: string): Promise<TableTypes<"user">[] | undefined> {
     throw new Error("Method not implemented.");
   }
-  addUserToSchool(schoolId: string, userId: string, role: RoleType): Promise<void> {
+  addUserToSchool(schoolId: string, userId: TableTypes<"user">, role: RoleType): Promise<void> {
     throw new Error("Method not implemented.");
   }
   deleteUserFromSchool(schoolId: string, userId: string, role: RoleType): Promise<void> {
@@ -769,6 +771,130 @@ export class OneRosterApi implements ServiceApi {
     ACTIVE_HEADER_ICON_CONFIGS.delete(
       HOMEHEADERLIST.ASSIGNMENT,
     )
+  }
+  clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  getUserRoleForSchool(userId: string, schoolId: string): Promise<RoleType | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  checkTeacherExistInClass(schoolId: string, classId: string, userId: string): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  getPrincipalsForSchoolPaginated(schoolId: string, page?: number, limit?: number): Promise<PrincipalAPIResponse> {
+    throw new Error("Method not implemented.");
+  }
+  getCoordinatorsForSchoolPaginated(schoolId: string, page?: number, limit?: number): Promise<CoordinatorAPIResponse> {
+    throw new Error("Method not implemented.");
+  }
+  validateProgramName(programName: string): Promise<{ status: string; errors?: string[]; }> {
+    throw new Error("Method not implemented.");
+  }
+  getProgramFilterOptions(): Promise<Record<string, string[]>> {
+    throw new Error("Method not implemented.");
+  }
+  getPrograms(params: { currentUserId: string; filters?: Record<string, string[]>; searchTerm?: string; tab?: TabType; limit?: number; offset?: number; orderBy?: string; order?: "asc" | "desc"; }): Promise<{ data: any[]; }> {
+    throw new Error("Method not implemented.");
+  }
+  getSchoolsForAdmin(limit: number, offset: number): Promise<TableTypes<"school">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getTeachersForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
+    throw new Error("Method not implemented.");
+  }
+  getStudentsForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
+    throw new Error("Method not implemented.");
+  }
+  getProgramManagersForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
+    throw new Error("Method not implemented.");
+  }
+  getFieldCoordinatorsForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
+    throw new Error("Method not implemented.");
+  }
+  getSchoolsByModel(model: MODEL, limit: number, offset: number): Promise<TableTypes<"school">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getProgramData(programId: string): Promise<{ programDetails: { id: string; label: string; value: string; }[]; locationDetails: { id: string; label: string; value: string; }[]; partnerDetails: { id: string; label: string; value: string; }[]; programManagers: { name: string; role: string; phone: string; }[]; } | null> {
+    throw new Error("Method not implemented.");
+  }
+  getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>> {
+    throw new Error("Method not implemented.");
+  }
+  getFilteredSchoolsForSchoolListing(params: { filters?: Record<string, string[]>; programId?: string; page?: number; page_size?: number; order_by?: string; order_dir?: "asc" | "desc"; search?: string; }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number; }> {
+    throw new Error("Method not implemented.");
+  }
+  createOrAddUserOps(payload: { name: string; email?: string; phone?: string; role: string; }): Promise<{ success: boolean; user_id?: string; message?: string; error?: string; }> {
+    throw new Error("Method not implemented.");
+  }
+  createAutoProfile(languageDocId: string | undefined): Promise<TableTypes<"user">> {
+    throw new Error("Method not implemented.");
+  }
+  isProgramUser(): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  program_activity_stats(programId: string): Promise<{ total_students: number; total_teachers: number; total_schools: number; active_student_percentage: number; active_teacher_percentage: number; avg_weekly_time_minutes: number; }> {
+    throw new Error("Method not implemented.");
+  }
+  getManagersAndCoordinators(page?: number, search?: string, limit?: number, sortBy?: keyof TableTypes<"user">, sortOrder?: "asc" | "desc"): Promise<{ data: { user: TableTypes<"user">; role: string; }[]; totalCount: number; }> {
+    throw new Error("Method not implemented.");
+  }
+  school_activity_stats(schoolId: string): Promise<{ active_student_percentage: number; active_teacher_percentage: number; avg_weekly_time_minutes: number; }> {
+    throw new Error("Method not implemented.");
+  }
+  isProgramManager(): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  getUserSpecialRoles(userId: string): Promise<string[]> {
+    throw new Error("Method not implemented.");
+  }
+  updateSpecialUserRole(userId: string, role: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  deleteSpecialUser(userId: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  updateProgramUserRole(userId: string, role: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  deleteProgramUser(userId: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  deleteUserFromSchoolsWithRole(userId: string, role: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  getSchoolDetailsByUdise(udiseCode: string): Promise<{ studentLoginType: string; schoolModel: string; } | null> {
+    throw new Error("Method not implemented.");
+  }
+  getChaptersByIds(chapterIds: string[]): Promise<TableTypes<"chapter">[]> {
+    throw new Error("Method not implemented.");
+  }
+  addParentToNewClass(classID: string, studentID: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  getOpsRequests(requestStatus: EnumType<"ops_request_status">, page: number, limit: number, orderBy: string, orderDir: "asc" | "desc", filters?: {
+    request_type?: string[]; school
+      //       results.push(Result.fromJson(i));
+      //     }
+      //   }
+      //   console.log(
+      //     "🚀 ~ file: OneRosterApi.ts:134 ~ OneRosterApi ~ getResultsForStudentForClass ~ results:",
+      //     JSON.stringify(results)
+      //   );
+      //   return results;
+      // } catch (error) {
+      //   console.log(
+      //     "🚀 ~ file: OneRosterApi.ts:143 ~ OneRosterApi ~ getResultsForStudentForClass ~ error:",
+      //     JSON.stringify(error)
+      //   );
+      ?: string[];
+  }, searchTerm?: string) {
+    throw new Error("Method not implemented.");
+  }
+  getRequestFilterOptions() {
+    throw new Error("Method not implemented.");
+  }
+  approveOpsRequest(requestId: string, respondedBy: string, role: RequestTypes[keyof RequestTypes], schoolId?: string, classId?: string): Promise<TableTypes<"ops_requests"> | undefined> {
+    throw new Error("Method not implemented.");
   }
   getChapterIdbyQrLink(link: string): Promise<TableTypes<"chapter_links"> | undefined> {
     throw new Error("Method not implemented.");
@@ -1846,8 +1972,10 @@ export class OneRosterApi implements ServiceApi {
    */
   async searchTeachersInSchool(
     schoolId: string,
-    searchTerm: string
-  ): Promise<any[]> {
+    searchTerm: string,
+    page?: number,
+    limit?: number
+  ): Promise<{ data: any[]; total: number }> {
     // Not implemented for OneRosterApi, return empty paginated result
     return { data: [], total: 0 };
   }
@@ -2935,7 +3063,12 @@ export class OneRosterApi implements ServiceApi {
       sfx_off: (Util.getCurrentSound() === 0),
       student_id: registration,
       updated_at: null,
-      learning_path: Util.getCurrentStudent()?.learning_path || null
+      learning_path: Util.getCurrentStudent()?.learning_path || null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+      stars: null
     };
     ServiceConfig.getI().authHandler.currentUser = user;
     Util.setCurrentStudent(user);
@@ -2987,12 +3120,6 @@ export class OneRosterApi implements ServiceApi {
     page: number,
     limit: number
   ): Promise<StudentAPIResponse> {
-    throw new Error("Method not implemented.");
-  }
-
-  getStudentAndParentByStudentId(
-    studentId: string
-  ): Promise<{ user: any; parents: any[] }> {
     throw new Error("Method not implemented.");
   }
 

@@ -726,15 +726,15 @@ const Home: FC = () => {
 
             {currentHeader === HOMEHEADERLIST.ASSIGNMENT &&
               !Util.isRespectMode && (
-                <AssignmentPage
-                  onNewAssignment={(newAssignment) => {
-                    setPendingAssignments((prev) => {
-                      if (!prev.some((a) => a.id === newAssignment.id)) {
-                        return [...prev, newAssignment];
-                      }
-                      return prev;
-                    });
-                  }}
+                <AssignmentPage assignmentCount={setPendingAssignmentCount}       
+                   // onNewAssignment={(newAssignment) => {
+                  //   setPendingAssignments((prev) => {
+                  //     if (!prev.some((a) => a.id === newAssignment.id)) {
+                  //       return [...prev, newAssignment];
+                  //     }
+                  //     return prev;
+                  //   });
+                  // }}
                 />
               )
             }

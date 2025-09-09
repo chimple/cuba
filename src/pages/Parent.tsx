@@ -324,6 +324,7 @@ const Parent: React.FC = () => {
                 title={"Switch to Teacher's Mode"}
                 layout="vertical"
                 onIonChangeClick={async () => {
+                  const isNativePlatform = Capacitor.isNativePlatform();
                   if (localSchool && localClass) {
                     schoolUtil.setCurrMode(MODES.TEACHER);
                     history.replace(PAGES.HOME_PAGE, { tabValue: 0 });

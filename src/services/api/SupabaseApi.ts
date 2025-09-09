@@ -65,6 +65,9 @@ import { v4 as uuidv4 } from "uuid";
 import { ServiceConfig } from "../ServiceConfig";
 import { SqliteApi } from "./SqliteApi";
 export class SupabaseApi implements ServiceApi {
+  getChapterIDByLessonID(lessonId: string, classId?: string, userId?: string): Promise<String | undefined> {
+    throw new Error("Method not implemented.");
+  }
   getChapterByLessonID(lessonId: string): Promise<TableTypes<"chapter"> | undefined> {
     throw new Error("Method not implemented.");
   }
