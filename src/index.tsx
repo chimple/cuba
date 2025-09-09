@@ -47,7 +47,7 @@ import { initializeFireBase } from "./services/Firebase";
 // Extend React's JSX namespace to include Stencil components
 declare global {
   namespace JSX {
-    interface IntrinsicElements extends LocalJSX.IntrinsicElements {}
+    interface IntrinsicElements extends LocalJSX.IntrinsicElements { }
   }
 }
 defineCustomElements(window);
@@ -94,13 +94,17 @@ const gb = new GrowthBook({
   clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
   enableDevMode: true,
   trackingCallback: async (experiment, result) => {
-    const userData = localStorage.getItem(CURRENT_USER) || "{}";
-    const userId = JSON.parse(userData).id;
-    await Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
-      user_id: userId,
-      experimentId: experiment.key,
-      variationId: result.key,
-    });
+    try {
+      const userData = localStorage.getItem(CURRENT_USER);
+      const userId = userData ? JSON.parse(userData).id : undefined;
+      await Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
+        user_id: userId,
+        experimentId: experiment.key,
+        variationId: result.key,
+      });
+    } catch (error) {
+      console.error("Error in GrowthBook tracking callback:", error);
+    }
   },
 });
 gb.init({
