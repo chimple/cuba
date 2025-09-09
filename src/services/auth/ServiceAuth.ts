@@ -19,9 +19,12 @@ export interface OneRosterUser {
 }
 
 export interface ServiceAuth {
-  loginWithEmailAndPassword(email, password): Promise<boolean>;
+  loginWithEmailAndPassword(
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; isSpl: boolean }>;
 
-  googleSign(): Promise<boolean>;
+  googleSign(): Promise<{ success: boolean; isSpl: boolean }>;
 
   getCurrentUser(): Promise<TableTypes<"user"> | undefined>;
 
@@ -41,7 +44,7 @@ export interface ServiceAuth {
   proceedWithVerificationCode(
     verificationId,
     verificationCode
-  ): Promise<{ user: any; isUserExist: boolean } | undefined>;
+  ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean } | undefined>;
 
   logOut(): Promise<void>;
   refreshSession(): Promise<void>;
@@ -52,9 +55,15 @@ export interface ServiceAuth {
    *
    * @param email - The user's email address.
    * @param password - The user's password.
-   * @returns A promise that resolves to `true` if sign-in is successful, otherwise `false`.
+   * @returns A promise that resolves to an object containing:
+   *  - `success`: `true` if sign-in is successful, otherwise `false`.
+   *  - `isSpl`: `true` if the user is a special user (e.g., super admin or operational director)
+   *             or belongs to a program, otherwise `false`.
    */
-  signInWithEmail(email, password): Promise<boolean>;
+  signInWithEmail(
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; isSpl: boolean }>;
   /**
    * Sends a password reset email to the given address.
    *

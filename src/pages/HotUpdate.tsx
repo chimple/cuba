@@ -8,6 +8,7 @@ import "./HotUpdate.css";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import { Capacitor } from "@capacitor/core";
 import { useFeatureValue, useFeatureIsOn } from "@growthbook/growthbook-react";
+import { ServiceConfig } from "../services/ServiceConfig";
 
 const HotUpdate: FC<{}> = () => {
   const history = useHistory();
@@ -17,6 +18,7 @@ const HotUpdate: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState(true);
   const can_hot_update = useFeatureIsOn("can_hot_update");
   const hot_update_server = useFeatureValue("hot_update_url", "https://chimple-prod-hot-update.web.app/v7");
+  const api = ServiceConfig.getI().apiHandler;
   const init = async () => {
     try {
       if (!Capacitor.isNativePlatform()) {
@@ -33,9 +35,9 @@ const HotUpdate: FC<{}> = () => {
         push();
         return;
       }
-      // AppUpdater.sync(hotUpdateServer, (status) => {
-      //   // setCurrentStatus(status);
-      // });
+      AppUpdater.sync(hotUpdateServer, (status) => {
+        setCurrentStatus(status);
+      });
       push();
     } catch (error) {
       push();
@@ -43,11 +45,14 @@ const HotUpdate: FC<{}> = () => {
     setIsLoading(false);
   };
   const push = () => {
-    const appLang = localStorage.getItem(LANGUAGE);
+  const appLang = localStorage.getItem(LANGUAGE);
+
     if (appLang == undefined) {
-      history.replace(PAGES.APP_LANG_SELECTION);
+      history.replace(PAGES.LOGIN);
     } else history.replace(PAGES.SELECT_MODE);
-  };
+  
+};
+
   useEffect(() => {
     init();
   }, []);

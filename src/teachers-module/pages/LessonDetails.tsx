@@ -7,11 +7,13 @@ import "./LessonDetails.css";
 import RemoveRedEyeOutlinedIcon from "@mui/icons-material/RemoveRedEyeOutlined";
 import SelectIcon from "../components/SelectIcon";
 import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
-import { PAGES, TableTypes, belowGrade1, grade1 } from "../../common/constants";
+import { AssignmentSource, PAGES, TableTypes, belowGrade1, grade1 } from "../../common/constants";
 import { Util } from "../../utility/util";
 import AssigmentCount from "../components/library/AssignmentCount";
+import { Browser } from "@capacitor/browser";
 interface LessonDetailsProps {}
 const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
+  const currentSchool = Util.getCurrentSchool();
   const history = useHistory();
   const course: TableTypes<"course"> = history.location.state?.[
     "course"
@@ -27,11 +29,13 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   const auth = ServiceConfig.getI().authHandler;
   const current_class = Util.getCurrentClass();
   const selectedLesson = history.location.state?.["selectedLesson"];
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
+  const [selectedLessonMap, setSelectedLessonMap] = useState<Map<string, string>>(new Map(selectedLesson));
 
   let isGrade1: string | boolean = false;
 
   const [classSelectedLesson, setClassSelectedLesson] = useState<
-    Map<string, string[]>
+    Map<string, Partial<Record<AssignmentSource, string[]>>>
   >(new Map());
   if (
     course &&
@@ -46,51 +50,111 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     if (current_user?.id)
       await api.createOrUpdateAssignmentCart(current_user?.id, lesson);
   };
-  const onPlayClick = () => {
-    const url = `https://chimple.cc/microlink/?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-    window.open(url);
+  const onPlayClick = async () => {
+    const baseUrl = "https://chimple.cc/microlink/";
+    const queryParams = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+    const urlToOpen = `${baseUrl}${queryParams}`;
+
+    try {
+      await Browser.open({ url: urlToOpen });
+    } catch (error) {
+      console.error("Error opening in-app browser:", error);
+      window.open(urlToOpen, '_blank');
+    }
   };
   useEffect(() => {
-    const sync_lesson_data = selectedLesson.get(current_class?.id ?? "");
-    const class_sync_lesson: Map<string, string[]> = new Map(
-      Object.entries(sync_lesson_data ? JSON.parse(sync_lesson_data) : {})
-    );
+    const sync_lesson_data = selectedLessonMap.get(current_class?.id ?? "");
+    const parsed = sync_lesson_data ? JSON.parse(sync_lesson_data) : {};
+    const class_sync_lesson: Map<string, Partial<Record<AssignmentSource, string[]>>> = new Map();
+    Object.entries(parsed).forEach(([chapterId, value]) => {
+      if (Array.isArray(value)) {
+        // Old format: convert to new format
+        class_sync_lesson.set(chapterId, {
+          [AssignmentSource.MANUAL]: [...value],
+        });
+      } else if (typeof value === "object" && value !== null) {
+        // New format
+      Object.keys(value).forEach((key) => {
+        if (key !== AssignmentSource.MANUAL && key !== AssignmentSource.QR_CODE) {
+          delete value[key];
+        }
+      });
+        class_sync_lesson.set(chapterId, value);
+      }
+    });
     setClassSelectedLesson(class_sync_lesson);
   }, []);
   useEffect(() => {
-    const _assignmentLength = Array.from(classSelectedLesson.values()).reduce(
-      (acc, array) => acc + array.length,
-      0
-    );
+    let _assignmentLength = 0;
+    for (const value of classSelectedLesson.values()) {
+      const manual = value[AssignmentSource.MANUAL] || [];
+      const qr = value[AssignmentSource.QR_CODE] || [];
+      _assignmentLength += manual.length + qr.length;
+    }
     setAssignmentCount(_assignmentLength);
     init();
   }, [classSelectedLesson]);
+
   const init = async () => {
     const current_class = Util.getCurrentClass();
-    setChapterId(
-      chapterId ??
-        (await api.getChapterIDByLessonID(lesson.id, current_class?.id ?? ""))
-    );
+    setCurrentClass(current_class ?? null);
+    if (!chapterId && current_class) {
+      const fetched = await api.getChapterIDByLessonID(
+        lesson.id,
+        current_class.id
+      );
+    if (typeof fetched === "string") {
+      setChapterId(fetched);
+    }
+   }
   };
 
   const handleButtonClick = () => {
-    const tmpselectedLesson = new Map(selectedLesson);
-    const slctLesson = classSelectedLesson.get(chapterId) ?? [];
-    const updatedLesson = slctLesson.includes(lesson.id)
-      ? slctLesson.filter((item) => item !== lesson.id)
-      : [...slctLesson, lesson.id];
-    const updatedSelectedLesson = new Map(classSelectedLesson);
-    updatedSelectedLesson.set(chapterId, updatedLesson);
-    setClassSelectedLesson(updatedSelectedLesson);
-    const _selectedLesson = JSON.stringify(
-      Object.fromEntries(updatedSelectedLesson)
+    const classId = current_class?.id ?? "";
+    const tmpselectedLesson = new Map(selectedLessonMap); 
+
+    const prevDataStr = tmpselectedLesson.get(classId) ?? "{}";
+    const parsed = JSON.parse(prevDataStr);
+
+    let updatedChapterData: Record<string, any> = parsed[chapterId] ?? {};
+
+    // Handle old format fallback
+    if (Array.isArray(updatedChapterData)) {
+      updatedChapterData = { manual: [...updatedChapterData] };
+    }
+
+    // Get both manual and qr_code arrays
+    const manualArr = updatedChapterData[AssignmentSource.MANUAL] ?? [];
+    const qrArr = updatedChapterData[AssignmentSource.QR_CODE] ?? [];
+    const isSelected = manualArr.includes(lesson.id) || qrArr.includes(lesson.id);
+
+    if (isSelected) {
+      // Remove from both manual and qr_code
+      updatedChapterData[AssignmentSource.MANUAL] = manualArr.filter((id: string) => id !== lesson.id);
+      updatedChapterData[AssignmentSource.QR_CODE] = qrArr.filter((id: string) => id !== lesson.id);
+    } else {
+      // Add to manual
+      updatedChapterData[AssignmentSource.MANUAL] = [...manualArr, lesson.id];
+    }
+
+    // Update the chapter data in main object
+    parsed[chapterId] = updatedChapterData;
+
+    // Convert to map for state update
+    const updatedClassSelectedLesson = new Map(classSelectedLesson);
+    updatedClassSelectedLesson.set(
+      chapterId,
+      updatedChapterData
     );
-    tmpselectedLesson.set(current_class?.id ?? "", _selectedLesson);
-    const _totalSelectedLesson = JSON.stringify(
-      Object.fromEntries(tmpselectedLesson)
-    );
-    syncSelectedLesson(_totalSelectedLesson);
-  };
+    setClassSelectedLesson(updatedClassSelectedLesson);
+
+    // Serialize and store
+    tmpselectedLesson.set(classId, JSON.stringify(parsed));
+    setSelectedLessonMap(tmpselectedLesson); 
+
+    const totalSelectedLesson = JSON.stringify(Object.fromEntries(tmpselectedLesson));
+    syncSelectedLesson(totalSelectedLesson);
+     };
   return (
     <div className="lesson-details-container">
       <Header
@@ -103,13 +167,17 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
               })
             : history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
         }}
+        showSchool={true}
+        showClass={true}
+        className={currentClass?.name}
+        schoolName={currentSchool?.name}
       />
       <div className="lesson-details-body">
         <div className="lesson-card-info">
-          <div className="lesson-card">
-            <div className="play-ion" onClick={onPlayClick}>
+          <div className="lesson-card" onClick={onPlayClick}>
+            <div className="play-ion">
               <div className="lesson-info-text">{t("Click to play")}</div>
-              <RemoveRedEyeOutlinedIcon className="lesson-info-text" />
+              <img src="assets/icons/lessonplayEye.svg" alt="View_lesson" />
             </div>
             <div className="lesson-info-image">
               <SelectIconImage
@@ -124,7 +192,11 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
               {course ? course.name : ""}{" "}
               {isGrade1 ? `${t("Grade")} ${isGrade1 === true ? "1" : "2"}` : ""}
             </div>
-            <div className="lesson-info-text">{lesson.name}</div>
+            <div className="lesson-info-text">
+               {course && course.name === "ENGLISH"
+               ? lesson.name  // don’t translate
+                : t(lesson.name??"")}  {/* translate */}   
+            </div>
             <div className="lesson-info-text">
               {" "}
               {lesson.plugin_type === "cocos"
@@ -133,7 +205,10 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
             </div>
             <SelectIcon
               isSelected={
-                classSelectedLesson.get(chapterId)?.includes(lesson.id) ?? false
+                ([
+                  ...(classSelectedLesson.get(chapterId)?.[AssignmentSource.MANUAL] ?? []),
+                  ...(classSelectedLesson.get(chapterId)?.[AssignmentSource.QR_CODE] ?? [])
+                ].includes(lesson.id)??false)
               }
               onClick={handleButtonClick}
             />

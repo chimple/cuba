@@ -20,9 +20,15 @@
 #display-students-parent-icon {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  /* align-items: center; */
   width: clamp(95px, 10vw, 110px);
 }
+#display-students-parent-icon img{
+  height: 35px;
+  width: 60px;
+  cursor: pointer;
+}
+
 #display-students-parent-button {
   width: clamp(95px, 10vh, 110px);
   height: clamp(40px, 8vh, 45px);

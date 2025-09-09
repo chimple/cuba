@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "./Parent.css";
 import {
   CLASS,
+  EDIT_STUDENTS_MAP,
   LANGUAGE,
   MAX_STUDENTS_ALLOWED,
   MAX_STUDENTS_ALLOWED_RESPECT,
@@ -40,6 +41,7 @@ import { RoleType } from "../interface/modelInterfaces";
 import DeleteParentAccount from "../components/parent/DeleteParentAccount";
 import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
 import DebugMode from "../teachers-module/components/DebugMode";
+import { Capacitor } from "@capacitor/core";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 const Parent: React.FC = () => {
@@ -49,10 +51,10 @@ const Parent: React.FC = () => {
   const [musicFlag, setMusicFlag] = useState<number>();
   const [userProfile, setUserProfile] = useState<TableTypes<"user">[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
-  const clickCount = useRef(0);
-  const [showDialogBox, setShowDialogBox] = useState(false);
-  const [showDebug, setShowDebug] = useState(false);
-
+  // Commented out because Debug Mode has been moved to the Leaderboard page
+  // const clickCount = useRef(0);
+  // const [showDialogBox, setShowDialogBox] = useState(false);
+  // const [showDebug, setShowDebug] = useState(false);
   const [langList, setLangList] = useState<
     {
       id: string;
@@ -101,12 +103,16 @@ const Parent: React.FC = () => {
     const userProfilePromise: TableTypes<"user">[] =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];
+    const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
+    const mergedStudents = Util.mergeStudentsByUpdatedAt(
+      userProfilePromise,
+      storedMapStr
+    );
     const max_students_allowed = Util.isRespectMode ? MAX_STUDENTS_ALLOWED_RESPECT : MAX_STUDENTS_ALLOWED;
     for (let i = 0; i < max_students_allowed; i++) {
       finalUser.push(userProfilePromise[i]);
     }
     setUserProfile(finalUser);
-    // });
   }
   async function init(): Promise<void> {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -246,16 +252,17 @@ const Parent: React.FC = () => {
                     v.detail?.checked
                   );
                 }
-
-                clickCount.current += 1;
-                // If clicked 7 times, show popup for debug mode
-                if (clickCount.current === 7 && !Util.isRespectMode) {
-                  setShowDialogBox(true);
-                  clickCount.current = 0;
-                }
+                // Commented out because Debug Mode has been moved to the Leaderboard page
+                // clickCount.current += 1;
+                // // If clicked 7 times, show popup for debug mode
+                // if (clickCount.current === 7) {
+                //   setShowDialogBox(true);
+                //   clickCount.current = 0;
+                // }
               }}
             ></ToggleButton>
-            {showDialogBox && (
+            {/* Commented out because Debug Mode has been moved to the Leaderboard page */}
+            {/* {showDialogBox && (
               <DialogBoxButtons
                 width={"40vw"}
                 height={"30vh"}
@@ -284,7 +291,7 @@ const Parent: React.FC = () => {
                   setShowDialogBox(false);
                 }}
               />
-            )}
+            )} */}
 
             <ToggleButton
               flag={musicFlag!}
@@ -339,6 +346,8 @@ const Parent: React.FC = () => {
                   } else {
                     schoolUtil.setCurrMode(MODES.TEACHER);
                     history.replace(PAGES.DISPLAY_SCHOOLS);
+                    isNativePlatform && window.location.reload();
+                    isNativePlatform && window.location.reload();
                   }
                 }}
               />
@@ -496,9 +505,9 @@ const Parent: React.FC = () => {
     );
   }
 
-  function debugModeUI() {
-    return <DebugMode />;
-  }
+  // function debugModeUI() {
+  //   return <DebugMode />;
+  // }
   const handleChange = (newValue: string) => {
     const selectedHeader = parentHeaderIconList.find(
       (item) => item.header === newValue
@@ -540,7 +549,8 @@ const Parent: React.FC = () => {
         {tabIndex === t("setting") && <div>{settingUI()}</div>}
         {tabIndex === t("help") && <div>{helpUI()}</div>}
         {tabIndex === t("faq") && <div>{faqUI()}</div>}
-        {tabIndex === t("debugMode") && <div>{debugModeUI()}</div>}
+        {/* Commented out because Debug Mode has been moved to the Leaderboard pagex */}
+        {/* {tabIndex === t("debugMode") && <div>{debugModeUI()}</div>} */}
       </div>
     </Box>
   );
