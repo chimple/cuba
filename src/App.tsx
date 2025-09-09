@@ -57,6 +57,8 @@ import {
   TRIGGER_DEEPLINK,
   PortPlugin,
   TableTypes,
+  isRespectMode,
+  LANG,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -126,6 +128,7 @@ import AddTeacher from "./teachers-module/pages/AddTeacher";
 import TeacherProfile from "./teachers-module/pages/TeacherProfile";
 import SchoolUsers from "./teachers-module/pages/SchoolUsers";
 import AddSchoolUser from "./teachers-module/pages/AddSchoolUser";
+import i18n from "./i18n";
 
 setupIonicReact();
 interface ExtraData {
@@ -178,8 +181,25 @@ const App: React.FC = () => {
   const handleLessonClick = useHandleLessonClick(customHistory);
 
   const sendLaunch = async () => {
-    ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
-    localStorage.setItem("isRespectMode", "true");
+    const currentAPIMode = ServiceConfig.getI().mode;
+    // If not ONEROSTER, log out and switch mode
+    if (currentAPIMode !== APIMode.ONEROSTER) {
+      try {
+        await ServiceConfig.getI().authHandler.logOut();
+        ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
+      } catch (error) {
+        console.error("Error during logout and mode switch:", error);
+        return;
+      }
+    }
+    localStorage.setItem(isRespectMode, "true");
+    localStorage.setItem(LANGUAGE, LANG.ENGLISH);  //for deeplink default is English - change according to requirement
+    try{
+      await i18n.changeLanguage(LANG.ENGLISH);
+    } catch(e){
+      console.error(`Failed to change language to ${LANG.ENGLISH}`, e); 
+    }
+
     const authHandler = ServiceConfig.getI().authHandler;
     const isUserLoggedIn = await authHandler.isUserLoggedIn();
       try {
