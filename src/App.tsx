@@ -58,6 +58,7 @@ import {
   PortPlugin,
   TableTypes,
   isRespectMode,
+  LANG,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -192,13 +193,13 @@ const App: React.FC = () => {
       }
     }
     localStorage.setItem(isRespectMode, "true");
-    localStorage.setItem(LANGUAGE, "en");  //for deeplink default is English - change according to requirement
+    localStorage.setItem(LANGUAGE, LANG.ENGLISH);  //for deeplink default is English - change according to requirement
     try{
-      await i18n.changeLanguage("en");
+      await i18n.changeLanguage(LANG.ENGLISH);
     } catch(e){
-      console.error("Failed to change language to en", e); 
+      console.error(`Failed to change language to ${LANG.ENGLISH}`, e); 
     }
-    
+
     const authHandler = ServiceConfig.getI().authHandler;
     const isUserLoggedIn = await authHandler.isUserLoggedIn();
       try {
