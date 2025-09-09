@@ -15,6 +15,7 @@ import {
   PROFILETYPE,
   RequestTypes,
   SchoolRoleMap,
+  STATUS,
   StudentAPIResponse,
   TABLES,
   TableTypes,
@@ -2029,4 +2030,53 @@ export interface ServiceApi {
     schoolId?: string,
     classId?: string
   ): Promise<TableTypes<"ops_requests"> | undefined>;
+
+  /**
+   * update the ops_request to approved or rejected .
+   * @param requestId request ID
+   * @param respondedBy user who responded or reviewed
+   * @param status "approved" | "rejected"
+   * @param rejectionReason reason for rejection (if status is "rejected")
+   */
+  respondToSchoolRequest(
+    requestId: string,
+    respondedBy: string,
+    status: (typeof STATUS)[keyof typeof STATUS],
+    rejectionReason?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined>;
+  
+  /**
+   * fetch all field coordintaors connected to the program.
+   * @param programId program ID
+   */
+  getFieldCoordinatorsByProgram(
+    programId: string,
+  ): Promise<{ data: TableTypes<"user">[] }>;
+
+  /**
+   * fetch all the programs for the ops_director and super admin.
+   * for program manager it will fetch only their programs.
+   */
+  getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }> ;
+
+  /**
+   * Update school status to rejected or active .
+   * Update address and key contacts if provided.
+   * @param schoolId School ID
+   * @param schoolStatus status of school
+   * @param address address of school
+   * @param keyContacts provide contact details of key contacts
+   */
+  updateSchoolStatus(
+    schoolId: string,
+    schoolStatus: (typeof STATUS)[keyof typeof STATUS],
+    address?: {
+      state?: string;
+      district?: string;
+      city?: string;
+      address?: string;
+    },
+    keyContacts?: any 
+  ): Promise<void> ;
 }
+

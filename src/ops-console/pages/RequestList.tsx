@@ -423,6 +423,7 @@ const RequestList: React.FC = () => {
       RequestTypes.STUDENT,
       RequestTypes.TEACHER,
       RequestTypes.PRINCIPAL,
+      RequestTypes.SCHOOL,
     ];
     const matchedType = validTypes.find((t) => type.includes(t));
     if (!matchedType) {
@@ -454,6 +455,11 @@ const RequestList: React.FC = () => {
         [REQUEST_TABS.PENDING]: PAGES.PRINCIPAL_TEACHER_PENDING_REQUEST, // can also be PRINCIPAL_PENDING_REQUEST if needed
         [REQUEST_TABS.APPROVED]: PAGES.OPS_APPROVED_REQUEST,
         [REQUEST_TABS.REJECTED]: PAGES.OPS_REJECTED_REQUEST,
+      },
+      school: {
+        [REQUEST_TABS.PENDING]: PAGES.SCHOOL_PENDING_REQUEST,
+        [REQUEST_TABS.APPROVED]: PAGES.SCHOOL_APPROVED_REQUEST,
+        [REQUEST_TABS.REJECTED]: PAGES.SCHOOL_REJECTED_REQUEST,
       },
     };
 

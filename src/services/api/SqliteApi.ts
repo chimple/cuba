@@ -44,6 +44,7 @@ import {
   EnumType,
   CACHETABLES,
   RequestTypes,
+  STATUS,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -74,7 +75,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 4;
+  private DB_VERSION = 5;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -715,6 +716,8 @@ export class SqliteApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
+      status: null,
+      key_contacts: null,
     };
 
     await this.executeQuery(
@@ -817,6 +820,8 @@ export class SqliteApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
+      status: null,
+      key_contacts: null,
     };
     const updatedSchoolQuery = `
     UPDATE school
@@ -6193,6 +6198,40 @@ order by
     `;
     const result = await this._db.query(query, [...params, limit, offset]);
     return { data: result?.values ?? [], total };
+  }
+  async respondToSchoolRequest(
+    requestId: string,
+    respondedBy: string,
+    status: (typeof STATUS)[keyof typeof STATUS],
+    rejectionReason?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined> {
+    return await this._serverApi.respondToSchoolRequest(
+      requestId,
+      respondedBy,
+      status,
+      rejectionReason
+    );
+  }
+  async getFieldCoordinatorsByProgram(
+    programId: string,
+  ): Promise<{ data: TableTypes<"user">[] }>{
+    return await this._serverApi.getFieldCoordinatorsByProgram(programId);
+  }
+  async getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }> {
+    return await this._serverApi.getProgramsByRole();
+  }
+  async updateSchoolStatus(
+    schoolId: string,
+    schoolStatus: (typeof STATUS)[keyof typeof STATUS],
+    address?: {
+      state?: string;
+      district?: string;
+      city?: string;
+      address?: string;
+    },
+    keyContacts?: any 
+  ): Promise<void> {
+    return await this._serverApi.updateSchoolStatus(schoolId, schoolStatus, address,keyContacts);
   }
   async clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
     if (!this._db) return;
