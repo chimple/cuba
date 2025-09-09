@@ -485,6 +485,10 @@ export enum PAGES {
   PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS = "/program-connected-school-list-page-ops",
   NEW_USERS_OPS = "/new-user-ops",
   REQUEST_LIST = "/request-list",
+  SCHOOL_PENDING_REQUEST = "/school-pending-request",
+  SCHOOL_APPROVED_REQUEST = "/school-approved-request",
+  SCHOOL_REJECTED_REQUEST = "/school-rejected-request",
+  SCHOOL_FORM_PAGE = "/school-form-page",
   STUDENT_PENDING_REQUEST = "/student-pending-request",
   OPS_APPROVED_REQUEST = "/student-approved-request",
   OPS_REJECTED_REQUEST = "/student-rejected-request",
@@ -544,6 +548,13 @@ export enum REQUEST_TABS {
   APPROVED = "Approved",
   REJECTED = "Rejected",
 }
+export enum STATUS {
+  ACTIVE = "active",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+  MIGRATED = "migrated",
+}
+
 export interface SchoolWithRole {
   school: TableTypes<"school">;
   role: RoleType;
