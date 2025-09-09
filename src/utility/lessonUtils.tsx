@@ -47,8 +47,8 @@ export const useHandleLessonClick = (customHistory) => {
 
         customHistory.push(PAGES.GAME + params, {
           url: "chimple-lib/index.html" + params,
-          lessonId: lesson?.cocos_lesson_id,
-          courseDocId: lesson?.subject_id,
+          lessonId: lesson.cocos_lesson_id,
+          courseDocId: resolvedCourseId,
           from: customHistory.location.pathname + `?${CONTINUE}=true`,
         });
 
