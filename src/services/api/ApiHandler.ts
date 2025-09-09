@@ -1340,12 +1340,14 @@ export class ApiHandler implements ServiceApi {
   public async mergeStudentRequest(
     requestId: string,
     existingStudentId: string,
-    newStudentId: string
+    newStudentId: string,
+    respondedBy: string
   ): Promise<void> {
     return await this.s.mergeStudentRequest(
       requestId,
       existingStudentId,
-      newStudentId
+      newStudentId,
+      respondedBy
     );
   }
 

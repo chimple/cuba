@@ -1820,7 +1820,8 @@ export interface ServiceApi {
   mergeStudentRequest(
     requestId: string,
     existingStudentId: string,
-    newStudentId: string
+    newStudentId: string,
+    respondedBy: string
   ): Promise<void>;
 
   getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;

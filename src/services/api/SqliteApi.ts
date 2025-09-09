@@ -5734,7 +5734,8 @@ order by
   async mergeStudentRequest(
     requestId: string,
     existingStudentId: string,
-    newStudentId: string
+    newStudentId: string,
+    respondedBy: string
   ): Promise<void> {
     if (!this._db) {
       throw new Error("SQLite DB not initialized.");
@@ -5833,8 +5834,8 @@ order by
 
       // 7. (Optional) mark ops_requests as approved/merged
       await this._db.run(
-        `UPDATE ops_requests SET status = 'approved', merged_to = ?, updated_at = ? WHERE request_id = ?`,
-        [existingStudentId, now, requestId]
+        `UPDATE ops_requests SET status = 'approved', merged_to = ?, updated_at = ?, responded_by = ? WHERE request_id = ?`,
+        [existingStudentId, now, respondedBy, requestId]
       );
     } catch (error) {
       console.error(
