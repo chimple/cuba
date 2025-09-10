@@ -3054,7 +3054,8 @@ export class SupabaseApi implements ServiceApi {
   async mergeStudentRequest(
     requestId: string,
     existingStudentId: string,
-    newStudentId: string
+    newStudentId: string,
+    respondedBy: string
   ): Promise<void> {
     if (!this.supabase) {
       throw new Error("Supabase not initialized.");
@@ -3169,7 +3170,7 @@ export class SupabaseApi implements ServiceApi {
       .update({
         request_status: "approved",
         updated_at: now,
-        // merged_to: existingStudentId,
+        responded_by: respondedBy,
       })
       .eq("request_id", requestId); // Identify the specific request
 
