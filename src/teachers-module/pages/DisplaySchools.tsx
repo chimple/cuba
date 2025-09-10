@@ -90,6 +90,9 @@ const DisplaySchools: FC = () => {
   const initData = async () => {
     setLoading(true);
     const currentUser = await auth.getCurrentUser();
+    if (!currentUser?.name || currentUser.name.trim() === "") {
+      history.replace(PAGES.ADD_TEACHER_NAME);
+    }
     if (!currentUser) return;
     setUser(currentUser);
     const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
