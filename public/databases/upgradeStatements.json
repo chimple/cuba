@@ -56,5 +56,12 @@
       "ALTER TABLE assignment ADD COLUMN source TEXT;"
     ],
     "tableChanges": {}
-}
+  },
+  "5": {
+    "statements": [
+      "ALTER TABLE school ADD COLUMN status TEXT;",
+      "ALTER TABLE school ADD COLUMN key_contacts TEXT;"
+    ],
+    "tableChanges": {}
+  }
 }
