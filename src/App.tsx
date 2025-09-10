@@ -214,7 +214,15 @@ const App: React.FC = () => {
         text: t("User not logged in. Logging in the user..."),
         duration: "long",
       });
-    }
+      }
+      else{
+        if(!Util.getCurrentStudent()?.id){
+          const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+          if(currentUser){
+            await Util.setCurrentStudent(currentUser);
+          }
+        }
+      }
   };
 
   useEffect(() => {
