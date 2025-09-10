@@ -17,12 +17,12 @@
   margin-bottom: 2vw;
   font-size: 1.05rem;
 }
-.ops-approved-request-details-link {
+/* .ops-approved-request-details-link {
   color: #3799fd;
   cursor: pointer;
   text-decoration: underline;
   margin-right: 0.7vw;
-}
+} */
 .ops-approved-request-details-active {
   color: #232323;
   font-weight: 600;

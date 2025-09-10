@@ -1279,7 +1279,8 @@ export class OneRosterApi implements ServiceApi {
   mergeStudentRequest(
     requestId: string,
     existingStudentId: string,
-    newStudentId: string
+    newStudentId: string,
+    respondedBy: string
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
