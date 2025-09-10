@@ -459,6 +459,7 @@ export enum PAGES {
   CLASS_PROFILE = "/class-profile",
   SHOW_STUDENTS_IN_ASSIGNED_PAGE = "/show-students-in-assigned-page",
   ADD_TEACHER = "/add-teacher",
+  ADD_TEACHER_NAME ="/add-teacher-name",
   TEACHER_PROFILE = "/teacher-profile",
   STUDENT_REPORT = "/student-report",
   SCHOOL_USERS = "/school-users",
