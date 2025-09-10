@@ -1,8 +1,8 @@
 /* StudentPendingRequest.css */
 
-.principal-teacher-pending-requests-details-layout {
+.principal-teacher-pending-details-layout {
   min-height: 100vh;
-  background: #fcfcff;
+  /* background: #fcfcff; */
   padding: 1vw 2vw 0 2vw;
 }
 .principal-teacher-pending-page-title {
@@ -41,7 +41,7 @@
 }
 
 .principal-teacher-pending-section-title {
-  font-weight: 600;
+  font-weight: 750 !important;
   color: #333;
   font-size: 1.13rem;
   margin-bottom: 2px;
@@ -50,7 +50,7 @@
 
 .principal-teacher-pending-row {
   display: flex;
-  font-size: 1.08rem;
+  font-size: 0.8rem;
   margin-top: 1vw;
   color: #333;
   justify-content: center;
@@ -215,9 +215,18 @@
 .principal-teacher-pending-first-pending-row {
   display: flex;
   justify-content: space-between;
-  font-size: 1.08rem;
+  font-size: 0.8rem;
   margin-top: 1vw;
   color: #333;
   margin-left: 1vh;
   margin-right: 5vh;
+}
+.principal-teacher-pending-active {
+  color: #232323;
+  font-weight: 600;
+  margin-left: 0.7vw;
+}
+.principal-teacher-pending-label {
+  font-size: 0.8rem;
+  color: #333;
 }
