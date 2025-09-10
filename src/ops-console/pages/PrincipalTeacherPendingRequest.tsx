@@ -8,7 +8,6 @@ import { Constants } from "../../services/database";
 import OpsCustomDropdown from "../components/OpsCustomDropdown";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
 import { t } from "i18next";
-import { log } from "console";
 
 const PrincipalTeacherPendingRequest = () => {
   const [gradeOptions, setGradeOptions] = useState<
