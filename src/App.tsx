@@ -77,6 +77,8 @@ import {
   PortPlugin,
   TableTypes,
   SHOULD_SHOW_REMOTE_ASSETS,
+  isRespectMode,
+  LANG,
 } from "./common/constants";
 import { Util } from "./utility/util";
 import Parent from "./pages/Parent";
@@ -152,6 +154,7 @@ import { useFeatureValue, useFeatureIsOn } from "@growthbook/growthbook-react";
 import LoginScreen from "./pages/LoginScreen";
 import ProfileDetails from "./components/profileDetails/ProfileDetails";
 import RequestList from "./ops-console/pages/RequestList";
+import i18n from "./i18n";
 
 setupIonicReact();
 interface ExtraData {
@@ -189,8 +192,25 @@ const App: React.FC = () => {
   const handleLessonClick = useHandleLessonClick(customHistory);
 
   const sendLaunch = async () => {
-    ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
-    localStorage.setItem("isRespectMode", "true");
+    const currentAPIMode = ServiceConfig.getI().mode;
+    // If not ONEROSTER, log out and switch mode
+    if (currentAPIMode !== APIMode.ONEROSTER) {
+      try {
+        await ServiceConfig.getI().authHandler.logOut();
+        ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
+      } catch (error) {
+        console.error("Error during logout and mode switch:", error);
+        return;
+      }
+    }
+    localStorage.setItem(isRespectMode, "true");
+    localStorage.setItem(LANGUAGE, LANG.ENGLISH);  //for deeplink default is English - change according to requirement
+    try{
+      await i18n.changeLanguage(LANG.ENGLISH);
+    } catch(e){
+      console.error(`Failed to change language to ${LANG.ENGLISH}`, e); 
+    }
+
     const authHandler = ServiceConfig.getI().authHandler;
     const isUserLoggedIn = await authHandler.isUserLoggedIn();
       try {
@@ -205,7 +225,15 @@ const App: React.FC = () => {
         text: t("User not logged in. Logging in the user..."),
         duration: "long",
       });
-    }
+      }
+      else{
+        if(!Util.getCurrentStudent()?.id){
+          const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+          if(currentUser){
+            await Util.setCurrentStudent(currentUser);
+          }
+        }
+      }
   };
   const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
   const learningPathAssets: any = useFeatureValue(LEARNING_PATH_ASSETS, {});
