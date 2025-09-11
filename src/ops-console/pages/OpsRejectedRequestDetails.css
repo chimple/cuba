@@ -188,3 +188,18 @@
   height: 70vh;
   flex-direction: column;
 }
+.ops-rejected-request-details-link {
+  color: blue;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ops-rejected-request-details-link:hover {
+  text-decoration: underline;
+}
+
+.ops-rejected-request-details-active {
+  color: #333; /* or your theme active color */
+  font-weight: bold;
+  cursor: default;
+}
