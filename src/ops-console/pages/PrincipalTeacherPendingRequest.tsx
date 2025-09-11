@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { Typography, Paper, Grid, Divider, Button } from "@mui/material";
+import {
+  Typography,
+  Paper,
+  Grid,
+  Divider,
+  Button,
+  IconButton,
+} from "@mui/material";
 import { useHistory, useParams, useLocation } from "react-router-dom";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { PAGES, REQUEST_TABS, RequestTypes } from "../../common/constants";
@@ -8,6 +15,7 @@ import { Constants } from "../../services/database";
 import OpsCustomDropdown from "../components/OpsCustomDropdown";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
 import { t } from "i18next";
+import { BsFillBellFill } from "react-icons/bs";
 
 const PrincipalTeacherPendingRequest = () => {
   const [gradeOptions, setGradeOptions] = useState<
@@ -172,7 +180,6 @@ const PrincipalTeacherPendingRequest = () => {
 
   const { grade: parsedGrade, section: parsedSection } =
     OpsUtil.parseClassName(fullRequestClassName);
-
   const navBreadcrumbs = (
     <div className="principal-teacher-pending-breadcrumbs">
       {/* Pending link */}
@@ -185,7 +192,7 @@ const PrincipalTeacherPendingRequest = () => {
 
       <span> &gt; </span>
 
-      {/* Request ID link */}
+      {/* Request ID breadcrumb */}
       <span
         onClick={() => {
           if (isEditing) {
@@ -215,9 +222,16 @@ const PrincipalTeacherPendingRequest = () => {
 
   return (
     <div className="principal-teacher-pending-details-layout">
-      <Typography variant="h4" className="principal-teacher-pending-page-title">
-        {t("Request ID - ")} {id}
-      </Typography>
+      <div className="principal-teacher-pending-page-header">
+        <div className="principal-teacher-pending-page-title">
+          {t("Request ID - ")} {id}
+        </div>
+        <div className="principal-teacher-pending-page-icon">
+          <IconButton sx={{ color: "black" }}>
+            <BsFillBellFill />
+          </IconButton>
+        </div>
+      </div>
       {navBreadcrumbs}
 
       <Grid
@@ -239,14 +253,21 @@ const PrincipalTeacherPendingRequest = () => {
             </Typography>
             <Divider />
             <div className="principal-teacher-pending-first-pending-row">
-              <span>{t("Name")}</span> <span>{requestedBy.name || "-"}</span>
+              <span className="principal-teacher-pending-first-pending-row-title">
+                {t("Name")}
+              </span>
+              <span>{requestedBy.name || "-"}</span>
             </div>
             <div className="principal-teacher-pending-first-pending-row">
-              <span>{t("Phone Number")}</span>{" "}
-              <span>{requestedBy.phone_number || "-"}</span>
+              <span className="principal-teacher-pending-first-pending-row-title">
+                {t("Phone Number")}
+              </span>{" "}
+              <span>{requestedBy.phone || "-"}</span>
             </div>
             <div className="principal-teacher-pending-first-pending-row">
-              <span>{t("Email ID")}</span>{" "}
+              <span className="principal-teacher-pending-first-pending-row-title">
+                {t("Email ID")}
+              </span>{" "}
               <span>{requestedBy.email || "-"}</span>
             </div>
           </Paper>
@@ -285,7 +306,9 @@ const PrincipalTeacherPendingRequest = () => {
                 {(editableRequestType === RequestTypes.TEACHER ||
                   editableRequestType === RequestTypes.STUDENT) && (
                   <div className="principal-teacher-pending-first-pending-row">
-                    <span>{t("Grade")}</span>
+                    <span className="principal-teacher-pending-first-pending-row-title">
+                      {t("Grade")}
+                    </span>
                     <span>
                       <OpsCustomDropdown
                         placeholder={"Select Grade"}
@@ -306,14 +329,18 @@ const PrincipalTeacherPendingRequest = () => {
             ) : (
               <>
                 <div className="principal-teacher-pending-first-pending-row">
-                  <span>{t("Role")}</span>
+                  <span className="principal-teacher-pending-first-pending-row-title">
+                    {t("Role")}
+                  </span>
                   <span>{request_type || "-"}</span>
                 </div>
 
                 {(request_type === RequestTypes.TEACHER ||
                   request_type === RequestTypes.STUDENT) && (
                   <div className="principal-teacher-pending-first-pending-row">
-                    <span>{t("Grade")}</span>
+                    <span className="principal-teacher-pending-first-pending-row-title">
+                      {t("Grade")}
+                    </span>
                     <span>
                       {parsedGrade > 0 ? parsedGrade : "-"}
                       {parsedSection ? parsedSection : ""}
