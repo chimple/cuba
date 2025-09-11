@@ -196,7 +196,10 @@ const App: React.FC = () => {
     // If not ONEROSTER, log out and switch mode
     if (currentAPIMode !== APIMode.ONEROSTER) {
       try {
-        await ServiceConfig.getI().authHandler.logOut();
+        const isUserLoggedIn = await ServiceConfig.getI().authHandler.isUserLoggedIn();
+        if(isUserLoggedIn){
+          await ServiceConfig.getI().authHandler.logOut();
+        }
         ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
       } catch (error) {
         console.error("Error during logout and mode switch:", error);

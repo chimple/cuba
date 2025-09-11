@@ -41,6 +41,7 @@ const CocosGame: React.FC = () => {
   const iFrameUrl = state?.url;
   const [isLoading, setIsLoading] = useState<any>();
   const [present] = useIonToast();
+  const [isSaveTempDataFinished, setIsSaveTempDataFinished] = useState(false);
   const [showDialogBox, setShowDialogBox] = useState(false);
   // let gameResult : any;
   const [gameResult, setGameResult] = useState<any>();
@@ -210,10 +211,26 @@ const CocosGame: React.FC = () => {
       return;
     }
   }
-  const handleLessonEndListner = (event) => {
-    saveTempData(event.detail);
-    setGameResult(event);
+
+  const handleLessonEndListner = async (event) => {
+    if(Util.isRespectMode){
+      setIsSaveTempDataFinished(false);
+      setIsLoading(true);
+      try {
+        await saveTempData(event.detail);
+      } catch (err) {
+        console.error("Error saving tempData", err);
+      } finally {
+        setIsSaveTempDataFinished(true);
+        setGameResult(event);
+        setIsLoading(false);
+      }
+    } else {
+      saveTempData(event.detail);
+      setGameResult(event);
+    }
   };
+  
 
   const updateLearningPath = async () => {
     if (!currentStudent) return;
@@ -533,13 +550,14 @@ const CocosGame: React.FC = () => {
       );
     } catch (error) {
       console.error("Error: SaveTempData", error);
+      throw error; // throw the error to caller
     }
   };
   return (
     <IonPage id="cocos-game-page" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
       <IonContent placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
         <Loading isLoading={isLoading} />
-        {showDialogBox && (
+        {showDialogBox && (!Util.isRespectMode || isSaveTempDataFinished) && (
           <div>
             <ScoreCard
               title={t("🎉Congratulations🎊")}
