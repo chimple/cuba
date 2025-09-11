@@ -80,6 +80,19 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
               <span>{t("Google")}</span>
             </div>
 
+            {/* Respect Login - Always show */}
+            <div
+              className={`LoginSwitch-switch-option ${!checkbox ? "disabled" : ""}`}
+              onClick={() => checkbox && console.log('Respect Login clicked')}
+              style={{
+                opacity: checkbox ? 1 : 0.5,
+                cursor: checkbox ? "pointer" : "not-allowed",
+              }}
+            >
+              <div className="LoginSwitch-respect-logo">R</div>
+              <span>{t("Respect")}</span>
+            </div>
+
             {/* Student ID Login - only if not active */}
             {loginType !== LOGIN_TYPES.STUDENT && (
               <div
