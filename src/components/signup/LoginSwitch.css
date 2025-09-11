@@ -72,14 +72,15 @@
   width: 29.5px;
   height: 29.5px;
   border-radius: 50%;
-  background-color: #4a90e2;
-  color: white;
+  background-color: #ffffff;
+  color: rgb(31, 0, 0);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   font-size: 16px;
   margin: 0 auto 4px auto;
+  border: 1px solid #747775;
 }
 
 .LoginSwitch-switch-option.disabled {
