@@ -1,6 +1,6 @@
 #home-header-icons {
     display: flex;
-    margin: 1.5vw 0vw 0 0.5vw;
+    margin: 2.5vh 0vw 0 0.5vw;
     justify-content: space-between;
     align-items: center;
 }
@@ -33,10 +33,22 @@
 }
 
 .home-header-indicator > p {
-    color: #f35908 !important;
+    color: #F34D08 !important;
 }
 
 .home-header-outer-icon{
     width: 10vw;
     border: 0 none;
+}
+
+.home-header-menu-overlay{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4); 
+  display: flex;
+  justify-content: flex-end; 
+  z-index: 999; 
 }
