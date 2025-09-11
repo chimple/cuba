@@ -106,6 +106,19 @@
   color: #232323;
 }
 
+/* .ops-rejected-request-details-link {
+  color: #3799fd;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-right: 0.7vw;
+} */
+
+.ops-rejected-request-details-active {
+  color: #232323;
+  font-weight: 600;
+  margin-left: 0.7vw;
+}
+
 .ops-rejected-request-details-rejection-card {
   background: #fbeaea !important;
   border: 1.3px solid #f0b8b8;

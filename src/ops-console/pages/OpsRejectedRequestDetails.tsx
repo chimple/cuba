@@ -115,9 +115,10 @@ const StudentRejectedRequestDetails = () => {
 
         <span
           onClick={() =>
-            history.push(
-              `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.REJECTED}`
-            )
+            history.push({
+              pathname: PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST,
+              search: `?tab=${REQUEST_TABS.REJECTED}`,
+            })
           }
           className="ops-rejected-request-details-link"
         >
@@ -126,7 +127,7 @@ const StudentRejectedRequestDetails = () => {
         <span> &gt; </span>
 
         <span className="ops-rejected-request-details-active">
-          {t("Request ID - {{id}}", { id })}
+          {t("Request ID - {{id}}", { id })}{" "}
         </span>
       </div>
 
