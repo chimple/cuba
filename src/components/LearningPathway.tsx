@@ -91,16 +91,19 @@ const LearningPathway: React.FC = () => {
 
       if (!learningPath || !learningPath.courses?.courseList?.length) {
         setLoading(true);
-        learningPath = await buildInitialLearningPath(userCourses);
+        learningPath = await buildInitialLearningPath(userCourses, student.id);
         await saveLearningPath(student, learningPath);
         setLoading(false);
-        if (Util.isRespectMode) setPathwayReady(true); // Mark pathway as ready in respect mode
+        if (Util.isRespectMode) setPathwayReady(true);
       } else {
         const updated = await updateLearningPathIfNeeded(
           learningPath,
           userCourses
         );
-        if (updated) await saveLearningPath(student, learningPath);
+        if (updated) {
+          learningPath = await buildInitialLearningPath(userCourses, student.id);
+          await saveLearningPath(student, learningPath);
+        }
         if (Util.isRespectMode) setPathwayReady(true);
       }
     } catch (error) {
@@ -110,17 +113,48 @@ const LearningPathway: React.FC = () => {
     }
   };
 
-  const buildInitialLearningPath = async (courses: any[]) => {
+  const buildInitialLearningPath = async (courses: any[], studentId?: string) => {
+    let studentResults: TableTypes<"result">[] = [];
+    if (studentId) {
+      try {
+        studentResults = await api.getStudentResult(studentId, false);
+      } catch (e) {
+        studentResults = [];
+      }
+    }
+
     const courseList = await Promise.all(
-      courses.map(async (course) => ({
-        path_id: uuidv4(),
-        course_id: course.id,
-        subject_id: course.subject_id,
-        path: await buildLessonPath(course.id),
-        startIndex: 0,
-        currentIndex: 0,
-        pathEndIndex: 4,
-      }))
+      courses.map(async (course) => {
+        const lessonPath = await buildLessonPath(course.id);
+
+        // Find the latest result for this course
+        const courseResults = studentResults
+          .filter(
+            (r) =>
+              r.course_id === course.id &&
+              r.lesson_id
+          )
+          .sort((a, b) =>
+            new Date(a.updated_at ?? 0) > new Date(b.updated_at ?? 0) ? 1 : -1
+          );
+
+        let nextLessonIndex = 0;
+        if (courseResults.length > 0) {
+          const lastLessonId = courseResults[courseResults.length - 1].lesson_id;
+          const idx = lessonPath.findIndex((l) => l.lesson_id === lastLessonId);
+          nextLessonIndex = idx >= 0 ? idx + 1 : 0;
+        }
+
+        return {
+          path_id: uuidv4(),
+          course_id: course.id,
+          subject_id: course.subject_id,
+          path: lessonPath,
+          startIndex: 0, // Always show first 5 lessons
+          currentIndex: nextLessonIndex,
+          pathEndIndex: 4,
+        };
+      })
     );
 
     return {
