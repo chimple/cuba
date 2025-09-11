@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./Leaderboard.css";
 import {
   AVATARS,
@@ -38,6 +38,9 @@ import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
 import { App } from "@capacitor/app";
 import { school } from "../stories/school/SchoolClassSubjectsTab.stories";
+import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
+import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
+import DebugMode from "../teachers-module/components/DebugMode";
 
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -57,6 +60,10 @@ const Leaderboard: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
+  const urlParams = new URLSearchParams(window.location.search);
+  const isRewardPage =
+    urlParams.get("tab") === LEADERBOARDHEADERLIST.REWARDS.toLowerCase();
+  const { setGbUpdated } = useGbContext();
 
   const [weeklyList, setWeeklyList] = useState<
     {
@@ -70,15 +77,25 @@ const Leaderboard: React.FC = () => {
     classes: TableTypes<"class">[];
     schools: TableTypes<"school">[];
   }>();
-  const [tabIndex, setTabIndex] = useState(LEADERBOARDHEADERLIST.LEADERBOARD);
-
+  const [tabIndex, setTabIndex] = useState<LEADERBOARDHEADERLIST | "debugMode">(
+    isRewardPage
+      ? LEADERBOARDHEADERLIST.REWARDS
+      : LEADERBOARDHEADERLIST.LEADERBOARD
+  );
+  const clickCount = useRef(0);
+  const [showDialogBox, setShowDialogBox] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
+  const handleLeaderboardClick = () => {
+    if (showDebug) return;
+    clickCount.current += 1;
+    if (clickCount.current === 7) {
+      setShowDialogBox(true);
+      clickCount.current = 0;
+    }
+  };
   useEffect(() => {
     setIsLoading(true);
-    const body = document.querySelector("body");
-    body?.style.setProperty(
-      "background-image",
-      "url(/pathwayAssets/pathwayBackground.svg)"
-    );
+    Util.loadBackgroundImage();
     inti();
     const urlParams = new URLSearchParams(window.location.search);
     const rewardsTab = urlParams.get("tab");
@@ -100,7 +117,6 @@ const Leaderboard: React.FC = () => {
     }
   }, [tabIndex]);
 
-  useEffect(() => {}, []);
   const urlOpen = () => {
     App.addListener(APP_URL_OPEN, (event) => {
       const url = new URL(event.url);
@@ -198,6 +214,23 @@ const Leaderboard: React.FC = () => {
       allTime: [],
       monthly: [],
     };
+
+    const leaderboardAttributes = {
+      leaderboard_position_weekly:
+        tempLeaderboardData.weekly.findIndex(
+          (item) => item.userId === currentStudent.id
+        ) + 1,
+      leaderboard_position_monthly:
+        tempLeaderboardData.monthly.findIndex(
+          (item) => item.userId === currentStudent.id
+        ) + 1,
+      leaderboard_position_all:
+        tempLeaderboardData.allTime.findIndex(
+          (item) => item.userId === currentStudent.id
+        ) + 1,
+    };
+    updateLocalAttributes(leaderboardAttributes);
+    setGbUpdated(true);
 
     // if (isWeeklyFlag) {
     //   setLeaderboardDataInfo(tempLeaderboardData);
@@ -488,7 +521,9 @@ const Leaderboard: React.FC = () => {
       </div>
     );
   }
-
+  function debugModeUI() {
+    return <DebugMode />;
+  }
   const handleChange = (
     event: React.SyntheticEvent,
     newValue: LEADERBOARDHEADERLIST
@@ -498,93 +533,94 @@ const Leaderboard: React.FC = () => {
   };
 
   return (
-    // <IonPage>
-    //   {!isLoading ? (
-    //     <div id="leaderboard-page">
-    //       <div>
-    //         <BackButton
-    //           // iconSize={"8vh"}
-    //           onClicked={() => {
-    //             history.replace(PAGES.HOME);
-    //           }}
-    //         ></BackButton>
-    //       </div>
-    //       {currentHeader === LEADERBOARDHEADERLIST.LEADERBOARD ? (
-    //         <div>{leaderboardUI()}</div>
-    //       ) : null}
-    //       {currentHeader === LEADERBOARDHEADERLIST.EVENTS ? <div></div> : null}
-    //     </div>
-    //   ) : null}
-    //   <Loading isLoading={isLoading} />
-    // </IonPage>
-
     <IonPage>
       {!isLoading ? (
         <Box>
           <div id="LeaderBoard-Header">
             <div id="back-button-in-LeaderBoard-Header">
-              <BackButton
-                // iconSize={"8vh"}
-                aria-label={t("Back")}
-                onClicked={() => {
+              <img
+                src="/assets/icons/BackButtonIcon.svg"
+                alt="BackButtonIcon"
+                onClick={() => {
                   Util.setPathToBackButton(PAGES.HOME, history);
                 }}
-              ></BackButton>
+              />
             </div>
             <Box>
-              <AppBar
-                id="LeaderBoard-AppBar"
-                position="static"
-                sx={{
-                  flexDirection: "inherit",
-                  justifyContent: "space-between",
-                  padding: "1vh 1vw",
-                  backgroundColor: "#e2dede !important",
-                  boxShadow: "0px 0px 0px 0px !important",
-                }}
-              >
-                <Tabs
-                  value={tabIndex}
-                  onChange={handleChange}
-                  textColor="secondary"
-                  indicatorColor="secondary"
-                  aria-label="secondary tabs example"
-                  // variant="scrollable"
-                  scrollButtons="auto"
-                  // aria-label="scrollable auto tabs example"
-                  centered
+              <AppBar id="LeaderBoard-AppBar" position="static">
+                <Box
                   sx={{
-                    // "& .MuiAppBar-root": { backgroundColor: "#FF7925 !important" },
-                    "& .MuiTabs-indicator": {
-                      backgroundColor: "#000000 !important",
-                      bottom: "15% !important",
-                    },
-                    "& .MuiTab-root": { color: "#000000 !important" },
-                    "& .Mui-selected": { color: "#000000 !important" },
+                    position: "absolute", // **added**
+                    left: "50%", // **added**
+                    transform: "translateX(-50%)", // **added**
                   }}
                 >
-                  <Tab
-                    value={LEADERBOARDHEADERLIST.LEADERBOARD}
-                    label={t(LEADERBOARDHEADERLIST.LEADERBOARD)}
-                    id="parent-page-tab-bar"
-                    // sx={{
-                    //   // fontSize:"5vh"
-                    //   marginRight: "5vw",
-                    // }}
-                  />
-                  {/* <Tab
-                    id="parent-page-tab-bar"
-                    value={LEADERBOARDHEADERLIST.EVENTS}
-                    label={t(LEADERBOARDHEADERLIST.EVENTS)}
-                  /> */}
-                  <Tab
-                    id="parent-page-tab-bar"
-                    value={LEADERBOARDHEADERLIST.REWARDS}
-                    label={t(LEADERBOARDHEADERLIST.REWARDS)}
-                  />
-                </Tabs>
+                  <Tabs
+                    value={tabIndex}
+                    onChange={handleChange}
+                    textColor="secondary"
+                    indicatorColor="secondary"
+                    aria-label="secondary tabs example"
+                    sx={{
+                      minWidth: "max-content",
+                      "& .MuiTabs-indicator": {
+                        backgroundColor: "#000000 !important",
+                        bottom: "15% !important",
+                        display: "flex",
+                        justifyContent: "center",
+                      },
+                      "& .MuiTab-root": { color: "#000000 !important" },
+                      "& .Mui-selected": { color: "#000000 !important" },
+                    }}
+                  >
+                    {!isRewardPage && (
+                      <Tab
+                        value={LEADERBOARDHEADERLIST.LEADERBOARD}
+                        label={t(LEADERBOARDHEADERLIST.LEADERBOARD)}
+                        id="leaderboard-page-tab-bar"
+                        onClick={handleLeaderboardClick}
+                      />
+                    )}
+                    {isRewardPage && (
+                      <Tab
+                        id="leaderboard-page-tab-bar"
+                        value={LEADERBOARDHEADERLIST.REWARDS}
+                        label={t(LEADERBOARDHEADERLIST.REWARDS)}
+                      />
+                    )}
+                    {showDebug && (
+                      <Tab
+                        id="leaderboard-page-tab-bar"
+                        value="debugMode"
+                        label={t("debugMode")}
+                      />
+                    )}
+                  </Tabs>
+                </Box>
               </AppBar>
             </Box>
+            {showDialogBox && (
+              <DialogBoxButtons
+                width={"40vw"}
+                height={"30vh"}
+                message={t("Do you want to Open Debug Mode?")}
+                showDialogBox={true}
+                yesText={t("Cancel")}
+                noText={t("debugMode")}
+                handleClose={() => {
+                  setShowDialogBox(false);
+                }}
+                onYesButtonClicked={() => {
+                  setShowDialogBox(false);
+                }}
+                onNoButtonClicked={() => {
+                  setShowDebug(true);
+                  setTabIndex("debugMode");
+                  setShowDialogBox(false);
+                }}
+              />
+            )}
+            {tabIndex === "debugMode" && <Box>{debugModeUI()}</Box>}
             <div
               id="leaderboard-switch-user-button"
               onClick={async () => {
@@ -621,10 +657,10 @@ const Leaderboard: React.FC = () => {
             >
               <img
                 id="leaderboard-switch-user-button-img"
-                alt={"assets/icons/SignOutIcon.svg"}
-                src={"assets/icons/SignOutIcon.svg"}
+                alt={"/assets/icons/UserSwitchIcon.svg"}
+                src={"/assets/icons/UserSwitchIcon.svg"}
               />
-              <p className="child-Name">{t("Switch Profile")}</p>
+              <p className="leaderboard-switch-text">{t("Switch Profile")}</p>
             </div>
           </div>
           <Box sx={{}}>

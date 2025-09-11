@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2015 Chimple
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
@@ -22,10 +39,11 @@ import {
   SpeechSynthesis,
   SpeechSynthesisUtterance,
 } from "./utility/WindowsSpeech";
+import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 import { Util } from "./utility/util";
+import { EVENTS, IS_OPS_USER } from "./common/constants";
+import { GbProvider } from "./growthbook/Growthbook";
 import { initializeFireBase } from "./services/Firebase";
-
-console.log("Index.tsx called ");
 
 // Extend React's JSX namespace to include Stencil components
 declare global {
@@ -34,6 +52,8 @@ declare global {
   }
 }
 defineCustomElements(window);
+
+initializeFireBase();
 
 // Conditionally attach only if the native APIs are missing (optional)
 if (typeof window !== "undefined") {
@@ -44,7 +64,7 @@ if (typeof window !== "undefined") {
     (window as any).SpeechSynthesisUtterance = SpeechSynthesisUtterance;
   }
 }
-
+SplashScreen.show();
 if (Capacitor.isNativePlatform()) {
   await ScreenOrientation.lock({ orientation: "landscape" });
 }
@@ -62,7 +82,6 @@ window.onunhandledrejection = (event: PromiseRejectionEvent) => {
 window.onerror = (message, source, lineno, colno, error) => {
   recordExecption(message.toString, error.toString());
 };
-SplashScreen.hide();
 const container = document.getElementById("root");
 const root = createRoot(container!);
 GoogleAuth.initialize({
@@ -85,9 +104,11 @@ if (!Util.isRespectMode) {
   SqliteApi.getInstance().then(() => {
     ServiceConfig.getInstance(APIMode.SQLITE);
     root.render(
-      <>
-        <App />
-      </>
+      <GrowthBookProvider growthbook={gb}>
+        <GbProvider>
+          <App />
+        </GbProvider>
+      </GrowthBookProvider>
     );
     initializeFireBase();
   });
@@ -107,6 +128,52 @@ if (!Util.isRespectMode) {
       <App />
     </BrowserRouter>
   );
+}
+const gb = new GrowthBook({
+  apiHost: "https://cdn.growthbook.io",
+  clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
+  enableDevMode: true,
+  trackingCallback: (experiment, result) => {
+    Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
+      experimentId: experiment.key,
+      variationId: result.key,
+    });
+  },
+});
+gb.init({
+  streaming: true,
+});
+const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
+const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
+
+if (isOpsUser) {
+  serviceInstance.switchMode(APIMode.SUPABASE);
+
+  root.render(
+    <GrowthBookProvider growthbook={gb}>
+      <GbProvider>
+        <App />
+      </GbProvider>
+    </GrowthBookProvider>
+  );
+
+  SplashScreen.hide();
+} else {
+  SplashScreen.show();
+
+  SqliteApi.getInstance().then(() => {
+    serviceInstance.switchMode(APIMode.SQLITE);
+
+    root.render(
+      <GrowthBookProvider growthbook={gb}>
+        <GbProvider>
+          <App />
+        </GbProvider>
+      </GrowthBookProvider>
+    );
+
+    SplashScreen.hide();
+  });
 }
 
 // If you want your app to work offline and load faster, you can change

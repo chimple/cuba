@@ -17,12 +17,14 @@ export class OneRosterAuth implements ServiceAuth {
   private _currentUser: TableTypes<"user"> | undefined;
 
   private static NativeSSOPlugin = registerPlugin("NativeSSOPlugin");
-
   private constructor() { }
   refreshSession(): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  loginWithEmailAndPassword(email: any, password: any): Promise<boolean> {
+  loginWithEmailAndPassword(
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; isSpl: boolean }> {
     throw new Error("Method not implemented.");
   }
   async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
@@ -106,18 +108,18 @@ export class OneRosterAuth implements ServiceAuth {
   }
 
   async googleSign(): Promise<any> {
-        localStorage.setItem("isRespectMode", "false");
-        AuthHandler.i.switchMode(APIMode.SUPABASE);
-        await SqliteApi.getInstance();
-        const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
-        serviceInstance.switchMode(APIMode.SQLITE)
-        console.log("Supabase Auth Loginwithrespect ", serviceInstance);
-        // root.render(
-        //   <BrowserRouter>
-        //     <App />
-        //   </BrowserRouter>
-        // );
-        return await SupabaseAuth.i.googleSign();
+    localStorage.setItem("isRespectMode", "false");
+    AuthHandler.i.switchMode(APIMode.SUPABASE);
+    await SqliteApi.getInstance();
+    const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
+    serviceInstance.switchMode(APIMode.SQLITE)
+    console.log("Supabase Auth Loginwithrespect ", serviceInstance);
+    // root.render(
+    //   <BrowserRouter>
+    //     <App />
+    //   </BrowserRouter>
+    // );
+    return await SupabaseAuth.i.googleSign();
   }
 
   phoneNumberSignIn(phoneNumber: any, recaptchaVerifier: any): Promise<any> {
@@ -135,7 +137,7 @@ export class OneRosterAuth implements ServiceAuth {
   proceedWithVerificationCode(
     verificationId: any,
     verificationCode: any
-  ): Promise<{ user: any; isUserExist: boolean } | undefined> {
+  ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean } | undefined> {
     throw new Error("Method not implemented.");
   }
 
@@ -170,7 +172,12 @@ export class OneRosterAuth implements ServiceAuth {
       sfx_off: (Util.getCurrentSound() === 0),
       student_id: registration,
       updated_at: null,
-      learning_path: Util.getCurrentStudent()?.learning_path
+      learning_path: Util.getCurrentStudent()?.learning_path || null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+      stars: null
     };
     return Promise.resolve(user);
   }
@@ -179,7 +186,10 @@ export class OneRosterAuth implements ServiceAuth {
     throw new Error("Method not implemented.");
   }
 
-  signInWithEmail(email, password): Promise<boolean> {
+  signInWithEmail(
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; isSpl: boolean }> {
     throw new Error("Method not implemented.");
   }
   sendResetPasswordEmail(email: string): Promise<boolean> {

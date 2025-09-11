@@ -169,7 +169,6 @@ const LidoPlayer: FC = () => {
     );
   };
   const onGameExit = (e: any) => {
-    console.log("onGameExit", e.detail);
     const api = ServiceConfig.getI().apiHandler;
     const lessonData = e.detail;
 

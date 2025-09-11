@@ -15,6 +15,7 @@ import {
   STARS_COUNT,
   TableTypes,
 } from "../common/constants";
+import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 
 const LearningPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -23,6 +24,7 @@ const LearningPathway: React.FC = () => {
   const [to, setTo] = useState<number>(0);
   const currentStudent = Util.getCurrentStudent();
   const [pathwayReady, setPathwayReady] = useState(false);
+  const { setGbUpdated } = useGbContext();
 
   useEffect(() => {
     if (!currentStudent?.id) return;
@@ -91,16 +93,30 @@ const LearningPathway: React.FC = () => {
 
       if (!learningPath || !learningPath.courses?.courseList?.length) {
         setLoading(true);
-        learningPath = await buildInitialLearningPath(userCourses);
+        learningPath = await buildInitialLearningPath(userCourses, student.id);
         await saveLearningPath(student, learningPath);
         setLoading(false);
-        if (Util.isRespectMode) setPathwayReady(true); // Mark pathway as ready in respect mode
+        if (Util.isRespectMode) setPathwayReady(true);
       } else {
         const updated = await updateLearningPathIfNeeded(
           learningPath,
           userCourses
         );
-        if (updated) await saveLearningPath(student, learningPath);
+
+        let learning_path_completed: { [key: string]: number } = {};
+        learningPath.courses.courseList.forEach(course => {
+          const { subject_id, currentIndex } = course;
+          if (subject_id && currentIndex !== undefined) {
+            learning_path_completed[`${subject_id}_path_completed`] = currentIndex;
+          }
+        });
+        updateLocalAttributes({learning_path_completed});
+        setGbUpdated(true);
+        
+        if (updated) {
+          learningPath = await buildInitialLearningPath(userCourses, student.id);
+          await saveLearningPath(student, learningPath);
+        }
         if (Util.isRespectMode) setPathwayReady(true);
       }
     } catch (error) {
@@ -110,17 +126,48 @@ const LearningPathway: React.FC = () => {
     }
   };
 
-  const buildInitialLearningPath = async (courses: any[]) => {
+  const buildInitialLearningPath = async (courses: any[], studentId?: string) => {
+    let studentResults: TableTypes<"result">[] = [];
+    if (studentId) {
+      try {
+        studentResults = await api.getStudentResult(studentId, false);
+      } catch (e) {
+        studentResults = [];
+      }
+    }
+
     const courseList = await Promise.all(
-      courses.map(async (course) => ({
-        path_id: uuidv4(),
-        course_id: course.id,
-        subject_id: course.subject_id,
-        path: await buildLessonPath(course.id),
-        startIndex: 0,
-        currentIndex: 0,
-        pathEndIndex: 4,
-      }))
+      courses.map(async (course) => {
+        const lessonPath = await buildLessonPath(course.id);
+
+        // Find the latest result for this course
+        const courseResults = studentResults
+          .filter(
+            (r) =>
+              r.course_id === course.id &&
+              r.lesson_id
+          )
+          .sort((a, b) =>
+            new Date(a.updated_at ?? 0) > new Date(b.updated_at ?? 0) ? 1 : -1
+          );
+
+        let nextLessonIndex = 0;
+        if (courseResults.length > 0) {
+          const lastLessonId = courseResults[courseResults.length - 1].lesson_id;
+          const idx = lessonPath.findIndex((l) => l.lesson_id === lastLessonId);
+          nextLessonIndex = idx >= 0 ? idx + 1 : 0;
+        }
+
+        return {
+          path_id: uuidv4(),
+          course_id: course.id,
+          subject_id: course.subject_id,
+          path: lessonPath,
+          startIndex: 0, // Always show first 5 lessons
+          currentIndex: nextLessonIndex,
+          pathEndIndex: 4,
+        };
+      })
     );
 
     return {
@@ -131,38 +178,38 @@ const LearningPathway: React.FC = () => {
     };
   };
 
-const updateLearningPathIfNeeded = async (
-  learningPath: any,
-  userCourses: any[]
-) => {
-  const oldCourseList = learningPath.courses?.courseList || [];
+  const updateLearningPathIfNeeded = async (
+    learningPath: any,
+    userCourses: any[]
+  ) => {
+    const oldCourseList = learningPath.courses?.courseList || [];
 
-  // Check if lengths and course IDs/order match
-  const isSameLengthAndOrder =
-    oldCourseList.length === userCourses.length &&
-    userCourses.every(
-      (course, index) => course.id === oldCourseList[index]?.course_id
-    );
+    // Check if lengths and course IDs/order match
+    const isSameLengthAndOrder =
+      oldCourseList.length === userCourses.length &&
+      userCourses.every(
+        (course, index) => course.id === oldCourseList[index]?.course_id
+      );
 
-  // Check if any course is missing path_id
-  const isPathIdMissing = oldCourseList.some((course) => !course.path_id);
+    // Check if any course is missing path_id
+    const isPathIdMissing = oldCourseList.some((course) => !course.path_id);
 
-  if (isSameLengthAndOrder && !isPathIdMissing) {
-    return false; // No need to rebuild
-  }
+    if (isSameLengthAndOrder && !isPathIdMissing) {
+      return false; // No need to rebuild
+    }
 
-  // If path_id is missing or courses mismatch, rebuild everything
-  const newLearningPath = await buildInitialLearningPath(userCourses);
-  learningPath.courses.courseList = newLearningPath.courses.courseList;
+    // If path_id is missing or courses mismatch, rebuild everything
+    const newLearningPath = await buildInitialLearningPath(userCourses);
+    learningPath.courses.courseList = newLearningPath.courses.courseList;
 
-  // Dispatch event to notify that course has changed
-  const event = new CustomEvent("courseChanged", {
-    detail: { currentStudent },
-  });
-  window.dispatchEvent(event);
+    // Dispatch event to notify that course has changed
+    const event = new CustomEvent("courseChanged", {
+      detail: { currentStudent },
+    });
+    window.dispatchEvent(event);
 
-  return true;
-};
+    return true;
+  };
 
   const buildLessonPath = async (courseId: string) => {
     const chapters = await api.getChaptersForCourse(courseId);
@@ -201,9 +248,9 @@ const updateLearningPathIfNeeded = async (
     const eventData = {
       user_id: student.id,
       path_id:
-          path.courses.courseList[
-            path.courses.currentCourseIndex
-          ].path_id,
+        path.courses.courseList[
+          path.courses.currentCourseIndex
+        ].path_id,
       current_course_id:
         path.courses.courseList[path.courses.currentCourseIndex].course_id,
       current_lesson_id:
@@ -235,9 +282,9 @@ const updateLearningPathIfNeeded = async (
 
       <div className="chapter-egg-container">
         <ChapterLessonBox
-        // containerStyle={{
-        //   width: "30vw",
-        // }}
+          containerStyle={{
+            width: "35vw",
+          }}
         />
         <TressureBox startNumber={from} endNumber={to} />
       </div>
