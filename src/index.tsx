@@ -104,9 +104,11 @@ if (!Util.isRespectMode) {
   SqliteApi.getInstance().then(() => {
     ServiceConfig.getInstance(APIMode.SQLITE);
     root.render(
-      <>
-        <App />
-      </>
+      <GrowthBookProvider growthbook={gb}>
+        <GbProvider>
+          <App />
+        </GbProvider>
+      </GrowthBookProvider>
     );
     initializeFireBase();
   });
