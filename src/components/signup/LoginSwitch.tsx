@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./LoginSwitch.css";
 import { t } from "i18next";
 import { Trans } from "react-i18next";
@@ -39,6 +39,16 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
+  const [showRespectButton, setShowRespectButton] = useState(false);
+
+  useEffect(() => {
+    const checkRespectApp = async () => {
+      const isRespectApp = await Util.checkRespectApp();
+      console.log("isRespectApp", isRespectApp);
+      setShowRespectButton(isRespectApp);
+    };
+    checkRespectApp();
+  }, []);
 
   const handleRespectLogin = async () => {
     if (!online) {
@@ -133,18 +143,20 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
               <span>{t("Google")}</span>
             </div>
 
-            {/* Respect Login - Always show */}
-            <div
-              className={`LoginSwitch-switch-option ${!checkbox || isLoading ? "disabled" : ""}`}
-              onClick={!isLoading && checkbox ? handleRespectLogin : undefined}
-              style={{
-                opacity: checkbox ? 1 : 0.5,
-                cursor: checkbox ? "pointer" : "not-allowed",
-              }}
-            >
-              <div className="LoginSwitch-respect-logo">R</div>
-              <span>{t("Respect")}</span>
-            </div>
+            {/* Respect Login - Only show if checkRespectApp returns true */}
+            {showRespectButton && (
+              <div
+                className={`LoginSwitch-switch-option ${!checkbox || isLoading ? "disabled" : ""}`}
+                onClick={!isLoading && checkbox ? handleRespectLogin : undefined}
+                style={{
+                  opacity: checkbox ? 1 : 0.5,
+                  cursor: checkbox ? "pointer" : "not-allowed",
+                }}
+              >
+                <div className="LoginSwitch-respect-logo">R</div>
+                <span>{t("Respect")}</span>
+              </div>
+            )}
 
             {/* Student ID Login - only if not active */}
             {loginType !== LOGIN_TYPES.STUDENT && (

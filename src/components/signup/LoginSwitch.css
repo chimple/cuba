@@ -46,7 +46,7 @@
 .LoginSwitch-switch-option {
   color: var(--text-color);
   width: 2vw;
-  min-width: 126px;
+  min-width: 25%;
   min-height: 60px;
   max-width: 135px;
   max-height: 65px;
