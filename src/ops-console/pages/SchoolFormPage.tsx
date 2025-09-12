@@ -23,7 +23,6 @@ import { RoleType } from "../../interface/modelInterfaces";
 const SchoolFormPage: React.FC = () => {
   const history = useHistory();
   const location = useLocation();
-  const theme = useTheme();
   const { id } = useParams<{ id: string }>();
 
   const [requestData, setRequestData] = useState<any>(null);
@@ -160,6 +159,16 @@ const SchoolFormPage: React.FC = () => {
   function handleAddressChange(name: string, value: string) {
     setAddress((prev) => ({ ...prev, [name]: value }));
   }
+  const isSaveDisabled = () => {
+    return (
+      !address.state?.trim() ||
+      !address.city?.trim() ||
+      !address.district?.trim() ||
+      !program ||
+      !fieldCoordinator
+    );
+  };
+
   async function handleApprove() {
     try {
       // Convert contacts state to JSON
@@ -193,6 +202,11 @@ const SchoolFormPage: React.FC = () => {
           fieldCoordinator,
           RoleType.FIELD_COORDINATOR
         ),
+        api.addUserToSchool(
+          school.id,
+          user,
+          RoleType.PRINCIPAL
+        ),
         api.respondToSchoolRequest(
           requestData.request_id,
           requestData.respondedBy.id,
@@ -201,7 +215,7 @@ const SchoolFormPage: React.FC = () => {
       ]);
 
       history.push(
-        `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.APPROVED}`
+        `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`
       );
     } catch (error) {
       console.error("Error saving school:", error);
@@ -387,7 +401,7 @@ const SchoolFormPage: React.FC = () => {
               >
                 {t("Cancel")}
               </button>
-              <button className="user-details-save-btn" onClick={handleApprove}>
+              <button className="user-details-save-btn" onClick={handleApprove} disabled={isSaveDisabled()}>
                 {t("Save")}
               </button>
             </>
@@ -395,6 +409,7 @@ const SchoolFormPage: React.FC = () => {
         </div>
       )}
     </div>
+
   );
 };
 

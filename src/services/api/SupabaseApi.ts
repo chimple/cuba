@@ -8251,7 +8251,7 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase) return;
 
     const updatePayload: any = {
-      school_status: schoolStatus,
+      status: schoolStatus,
       updated_at: new Date().toISOString(),
     };
 
