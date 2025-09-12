@@ -246,7 +246,7 @@ const LoginScreen: React.FC = () => {
       }
 
       if (phoneNumber.length !== 10) {
-        setPhoneErrorMessage(t("Please Enter 10 digit Mobile Number")); // Use t() for translation
+        setPhoneErrorMessage(t("Please Enter 10 digit Mobile Number"));
         return;
       }
 
@@ -274,7 +274,9 @@ const LoginScreen: React.FC = () => {
         setSpinnerLoading(false);
         const errorMessage = result.error;
         if (errorMessage) {
-          setPhoneErrorMessage(t("Kindly wait for 1 minute and then try logging in again."));
+          setPhoneErrorMessage(
+            t("Kindly wait for 1 minute and then try logging in again.")
+          );
         } else {
           setPhoneErrorMessage(
             t("Phone Number signin Failed. Please try again later.")
