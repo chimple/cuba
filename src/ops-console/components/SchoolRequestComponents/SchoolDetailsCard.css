@@ -8,7 +8,7 @@
 
 .school-details-title {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 16px;
   margin-bottom: 4px;
 }
 
@@ -24,7 +24,7 @@
 }
 
 .school-details-value {
-  font-size: 0.9rem;
+  font-size: 14px;
   color: #222;
 }
 

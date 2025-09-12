@@ -58,7 +58,7 @@
   text-align: left;
   color: #374151;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 12px;
 }
 
 .school-form-dropdown-required {
@@ -93,4 +93,11 @@
 
 .school-form-dropdown-menu-item {
   font-size: 0.95rem;
+}
+
+.user-details-save-btn:disabled,
+.user-details-save-btn.disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
