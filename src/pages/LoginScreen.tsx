@@ -246,7 +246,7 @@ const LoginScreen: React.FC = () => {
       }
 
       if (phoneNumber.length !== 10) {
-        setPhoneErrorMessage("Please Enter 10 digit Mobile Number");
+        setPhoneErrorMessage(t("Please Enter 10 digit Mobile Number")); // Use t() for translation
         return;
       }
 
@@ -254,12 +254,12 @@ const LoginScreen: React.FC = () => {
       setSpinnerLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
 
-      let response = await authInstance.generateOtp(
+      let result = await authInstance.generateOtp(
         phoneNumberWithCountryCode,
         "Chimple"
       );
 
-      if (response) {
+      if (result.success) {
         setSentOtpLoading(false);
         setSpinnerLoading(false);
         setCounter(59);
@@ -269,26 +269,31 @@ const LoginScreen: React.FC = () => {
         setCurrentPhone(phoneNumber);
         setDisableOtpButtonIfSameNumber(true);
         setAllowSubmittingOtpCounter(counter);
+      } else {
+        setSentOtpLoading(false);
+        setSpinnerLoading(false);
+        const errorMessage = result.error;
+        if (errorMessage) {
+          setPhoneErrorMessage(t("Kindly wait for 1 minute and then try logging in again."));
+        } else {
+          setPhoneErrorMessage(
+            t("Phone Number signin Failed. Please try again later.")
+          );
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       setSentOtpLoading(false);
       setSpinnerLoading(false);
-      if (typeof error === "string") {
-        if (
-          error.includes("blocked all requests") ||
-          error.includes("Timed out waiting for SMS")
-        ) {
-          setPhoneErrorMessage(
-            "Something went wrong. Please try again after some time."
-          );
-        } else if (error.includes("E.164 format")) {
-          setPhoneErrorMessage("Incorrect phone number format");
-        }
-      } else {
-        setPhoneErrorMessage(
-          "Phone Number signin Failed. Please try again later."
-        );
+      // This catch block handles unexpected exceptions from generateOtp, not errors returned in the 'result' object.
+      let displayErrorMessage = t(
+        "Phone Number signin Failed. Please try again later."
+      );
+      if (error && typeof error === "string") {
+        displayErrorMessage = error;
+      } else if (error && error.message) {
+        displayErrorMessage = error.message;
       }
+      setPhoneErrorMessage(displayErrorMessage);
     }
   };
 
