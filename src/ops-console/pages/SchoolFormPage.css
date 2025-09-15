@@ -56,8 +56,8 @@
 .school-form-dropdown-label {
   margin-bottom: 4px;
   text-align: left;
-  color: #374151;
-  font-weight: 600;
+  color: #222;
+  font-weight: 600 !important;
   font-size: 1rem;
 }
 
