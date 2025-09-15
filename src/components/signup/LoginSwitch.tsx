@@ -3,7 +3,7 @@ import "./LoginSwitch.css";
 import { t } from "i18next";
 import { Trans } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import { CURRENT_USER, LOGIN_TYPES, PAGES } from "../../common/constants";
+import { CURRENT_USER, LOGIN_TYPES, PAGES, isRespectMode } from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
 
@@ -59,7 +59,7 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
     try {
       setIsLoading(true);
       setIsInitialLoading(true);
-      localStorage.setItem("isRespectMode", "true");
+      localStorage.setItem(isRespectMode, "true");
       
       await ServiceConfig.getI().authHandler.loginWithRespect();
       const auth = ServiceConfig.getI().authHandler;
@@ -69,23 +69,6 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
       if (!!result) {
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
         history.replace(PAGES.DISPLAY_STUDENT);
-
-        if (Util.isDeepLinkPending) {
-          Util.isDeepLinkPending = false;
-          setTimeout(() => {
-            try {
-              if (history.location.pathname === PAGES.DISPLAY_STUDENT) {
-                document.dispatchEvent(new CustomEvent("sendLaunch"));
-              } else {
-                console.warn(
-                  "Deeplink launch skipped: not on the expected student dashboard page after RESPECT login"
-                );
-              }
-            } catch (e) {
-              console.error("Failed to dispatch sendLaunch event:", e);
-            }
-          }, 700);
-        }
       }
     } catch (error) {
       console.error("Login Failed:", error);
