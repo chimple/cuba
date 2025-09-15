@@ -58,7 +58,10 @@
   border: none;
   background-color: #7c5db0;
   width: 90%;
-  margin-top: 20px;
+  height: 2px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  margin-left: 5%;
 }
 
 .edit-school-confirm-page {
@@ -75,7 +78,8 @@
 
 
 .edit-school-confirm-message {
-  box-shadow: 1px 1px 5px;
+  /* box-shadow: 1px 1px 5px; */
+  box-shadow: 0px 2px 4px 1px rgba(0, 0, 0, 0.25);
   padding: 10px;
   border-radius: 8px;
   color: #808080;
@@ -95,22 +99,59 @@
   color: #808080;
 }
 
+.create-school-confirm-subtext p{
+  font-size: 16px;
+  margin-top: 10px;
+  font-weight: 600;
+  color: #808080;
+}
+
+.create-school-youtube-subtext {
+  font-size: 12px;
+  /* margin-top: 10px; */
+  font-weight: 600;
+  color: #808080;
+}
+
 .edit-school-app-links {
   display: flex;
   justify-content: center;
   gap: 15px;
   margin-top: 15px;
 }
+.create-school-app-links{
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+.school-request-box {
+  padding: 10px;
+  text-align: center;
+  width: 90%;
+  height: auto;
+  cursor: pointer;
+  /* min-height: 100%; */
+  margin: 15px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
+.school-request-box > * {
+  width: 45%;
+}
 .edit-school-app-card {
-  border: 1.5px solid #7c5db0;
+  /* border: 1.5px solid #7c5db0; */
+  background-color: #F4EEFE;
   padding: 10px;
   border-radius: 8px;
   text-align: center;
-  width: 42vw;
+  width: 70vw;
   height: auto;
   cursor: pointer;
   min-height: 100%;
+  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
 }
 
 .edit-school-app-title {
@@ -129,7 +170,18 @@
 
 .edit-school-app-subtext {
   color: #666;
-  max-width: 6rem;
+  max-width: 8rem;
+}
+
+.create-school-app-subtext {
+  color: #666;
+  max-width: 12rem;
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .edit-school-logout-button {
@@ -149,7 +201,7 @@
 
 .edit-school-whatsapp-support {
   position: relative;
-  border: 1.5px solid #7c5db0;
+  border: 1.5px solid #67D449;
   border-radius: 10px;
   padding: 10px 20px 10px 45px; 
   display: flex;
@@ -160,6 +212,19 @@
   cursor: pointer;
 }
 
+.create-school-whatsapp-support {
+  position: relative;
+  border: 1.5px solid #67D449;
+  border-radius: 10px;
+  padding: 0px; 
+  display: flex;
+  align-items: center;
+  background: #fff;
+  height: 50px;
+  max-width: 90%;
+  margin: 15px auto;
+  cursor: pointer;
+}
 .edit-school-whatsapp-support-icon {
   position: absolute;
   left: -15px;
@@ -183,4 +248,56 @@
   color: #7c5db0;
   font-size: 18px !important;
   margin: auto;
+}
+
+.create-school-whatsapp-support-text {
+  text-align: center;
+  margin: auto; 
+}
+.create-school-whatsapp-support-text p {
+  font-weight: 500;
+  color: #7c5db0;
+  font-size: 14px;
+  margin: auto;
+}
+
+.edit-school-sent-request-header {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #7c5db0 !important;
+}
+
+.create-school-youtube-div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.create-school-youtube-video {
+  width: 120px;
+  height: 80px;
+  border-radius: 10px;
+  border: none;
+}
+
+.span-text-whatsapp{
+  font-size: 18px !important;
+  font-weight: bold !important;
+}
+
+.favicon-img{
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+  margin-left: 4px;
+  /* margin-left: 0px;s */
+  /* margin-top: 2px; */
+}
+
+.create-school-img-footer {
+  font-size: 8px;
+  margin-top: 0px;
+  color: #666;
 }

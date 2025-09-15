@@ -51,6 +51,11 @@ const ReqEditSchool: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const navigationState = Util.getNavigationState();
   const [showDialogBox, setShowDialogBox] = useState(false);
+  const [showIframe, setShowIframe] = useState(false);
+
+  const handleThumbnailClick = () => {
+      setShowIframe(true);
+  };
 
   const checkRequestStatus = async () => {
     const api = ServiceConfig.getI().apiHandler;
@@ -193,7 +198,7 @@ const ReqEditSchool: React.FC = () => {
       {isRequestSent === true && !isSaving ? (
         // **SUCCESS SCREEN**
         <div className="edit-school-confirm-page">
-          <h2 className="edit-school-confirm-title">
+          {/* <h2 className="edit-school-confirm-title">
             {t("Request Confirmation")}
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -208,29 +213,44 @@ const ReqEditSchool: React.FC = () => {
                 d="M243 427c-8-8-22-8-30 0l-97-97c-8-8-8-22 0-30l30-30c8-8 22-8 30 0l67 67 175-175c8-8 22-8 30 0l30 30c8 8 8 22 0 30L243 427z"
               />
             </svg>
-          </h2>
+          </h2> */}
           <div className="edit-school-confirm-message">
-            <p>
-              {t("After a short while kindly check to access your school")}
+            <p className="edit-school-sent-request-header">
+              {/* {t("After a short while kindly check to access your school")} */}
+              Your request has been sent successfully
             </p>
+            <p >
+              {/* {t("Teacher’s App")} */}
+              After a short while kindly check to access your school
+            </p>
+          </div>
+          <div className="school-request-box">
             <a href="https://www.bit.ly/chimple-help-line" target="_blank" style={{ textDecoration: "none" }}>
-              <div className="edit-school-whatsapp-support">
+              <div className="create-school-whatsapp-support">
                 <div className="edit-school-whatsapp-support-icon">
               <img src="assets/icons/whatsapp.svg" alt="whatsapp" width="25" />
                 </div>
-                <div className="edit-school-whatsapp-support-text">
-                  <p>{t("Whatsapp Us For Any Questions")}</p>
+                <div className="create-school-whatsapp-support-text">
+                  <p>Chat with us on </p><p className="span-text-whatsapp">WhatsApp</p>
                 </div>
               </div>
             </a>
+            <div className="create-school-youtube-div">
+              <iframe src="https://www.youtube.com/embed/G_OW3hNtZ3o?si=U5jhUwks05doZ_2R" width={"70%"} height={"315px"} title="YouTube video player" allowFullScreen className="create-school-youtube-video"></iframe>
+              <p className="create-school-youtube-subtext">
+                {/* {t("We will get back to you soon.")} */}
+                Take a look at our Teacher's App
+              </p>
+            </div>
           </div>
           <hr className="edit-school-divider" />
-          <div className="edit-school-confirm-subtext">
+          <div className="create-school-confirm-subtext">
             <p>
-              {t("Why not explore our Apps? You are just one click away!")}
+              {/* {t("Why not explore our Apps? You are just one click away!")} */}
+              Click below to explore Chimple App
             </p>
           </div>
-          <div className="edit-school-app-links">
+          <div className="create-school-app-links">
             <a
               href="https://youtu.be/G_OW3hNtZ3o?si=Txs7SMRDbjbhb4nq"
               target="_blank"
@@ -240,16 +260,23 @@ const ReqEditSchool: React.FC = () => {
               <div
                 className="edit-school-app-card"
               >
-                <p className="edit-school-app-title">{t("Teacher’s App")}</p>
+                {/* <p className="edit-school-app-title">{t("Teacher’s App")}</p> */}
                 <div className="edit-school-card-content">
-                  <p className="edit-school-app-subtext">
-                    {t("Teacher’s Task Made Easy")}
-                  </p>
-                  <img className="edit-school-card-content-img" src="assets/icons/redirectToYoutube.png" alt="" />
+                 
+                  <span className="create-school-app-subtext">
+                    {/* {t("Teacher’s Task Made Easy")} */}
+                    Fun filled activities for children
+                      {/* <img src="assets/icons/favicon.png" className="favicon-img" /> */}
+                  {/* <img src="assets/icons/favicon.png" className="favicon-img" /> */}
+                  </span>
+                  <div style={{marginLeft: "10px", display: "flex", flexDirection: "column", alignItems: "center"}}>
+                    <img className="edit-school-card-content-img" src="assets/icons/switchToKidsMode.png" alt="" />
+                    <p className="create-school-img-footer">Gamified Learning</p>
+                  </div>
                 </div>
               </div>
             </a>
-            <div className="edit-school-app-card" onClick={switchUser}>
+            {/* <div className="edit-school-app-card" onClick={switchUser}>
               <p className="edit-school-app-title">{t("Chimple App")}</p>
               <div className="edit-school-card-content">
                 <p className="edit-school-app-subtext">
@@ -257,9 +284,9 @@ const ReqEditSchool: React.FC = () => {
                 </p>
                 <img className="edit-school-card-content-img" src="assets/icons/switchToKidsMode.png" alt="" />
               </div>
-            </div>
+            </div> */}
           </div>
-          <hr className="edit-school-divider" />
+          {/* <hr className="edit-school-divider" />
           <IonButton
             color="#fff"
             className="edit-school-logout-button"
@@ -277,7 +304,7 @@ const ReqEditSchool: React.FC = () => {
             handleClose={() => setShowDialogBox(false)}
             onYesButtonClicked={() => setShowDialogBox(false)}
             onNoButtonClicked={onSignOut}
-          />
+          /> */}
         </div>
       ) : (
         // **FORM SCREEN**
