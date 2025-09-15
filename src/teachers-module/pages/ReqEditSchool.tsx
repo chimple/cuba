@@ -51,11 +51,6 @@ const ReqEditSchool: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const navigationState = Util.getNavigationState();
   const [showDialogBox, setShowDialogBox] = useState(false);
-  const [showIframe, setShowIframe] = useState(false);
-
-  const handleThumbnailClick = () => {
-      setShowIframe(true);
-  };
 
   const checkRequestStatus = async () => {
     const api = ServiceConfig.getI().apiHandler;
@@ -216,12 +211,10 @@ const ReqEditSchool: React.FC = () => {
           </h2> */}
           <div className="edit-school-confirm-message">
             <p className="edit-school-sent-request-header">
-              {/* {t("After a short while kindly check to access your school")} */}
-              Your request has been sent successfully
+              {t("Your request has been sent successfully")}
             </p>
-            <p >
-              {/* {t("Teacher’s App")} */}
-              After a short while kindly check to access your school
+            <p>
+              {t("After a short while kindly check to access your school")}
             </p>
           </div>
           <div className="school-request-box">
@@ -238,16 +231,14 @@ const ReqEditSchool: React.FC = () => {
             <div className="create-school-youtube-div">
               <iframe src="https://www.youtube.com/embed/G_OW3hNtZ3o?si=U5jhUwks05doZ_2R" width={"70%"} height={"315px"} title="YouTube video player" allowFullScreen className="create-school-youtube-video"></iframe>
               <p className="create-school-youtube-subtext">
-                {/* {t("We will get back to you soon.")} */}
-                Take a look at our Teacher's App
+                {t("Take a look at our Teacher's App")}
               </p>
             </div>
           </div>
           <hr className="edit-school-divider" />
           <div className="create-school-confirm-subtext">
             <p>
-              {/* {t("Why not explore our Apps? You are just one click away!")} */}
-              Click below to explore Chimple App
+              {t("Click below to explore Chimple App")}
             </p>
           </div>
           <div className="create-school-app-links">
@@ -260,51 +251,19 @@ const ReqEditSchool: React.FC = () => {
               <div
                 className="edit-school-app-card"
               >
-                {/* <p className="edit-school-app-title">{t("Teacher’s App")}</p> */}
                 <div className="edit-school-card-content">
                  
                   <span className="create-school-app-subtext">
-                    {/* {t("Teacher’s Task Made Easy")} */}
-                    Fun filled activities for children
-                      {/* <img src="assets/icons/favicon.png" className="favicon-img" /> */}
-                  {/* <img src="assets/icons/favicon.png" className="favicon-img" /> */}
+                    {t("Fun filled activities for children")}
                   </span>
                   <div style={{marginLeft: "10px", display: "flex", flexDirection: "column", alignItems: "center"}}>
                     <img className="edit-school-card-content-img" src="assets/icons/switchToKidsMode.png" alt="" />
-                    <p className="create-school-img-footer">Gamified Learning</p>
+                    <p className="create-school-img-footer">{t("Gamified Learning")}</p>
                   </div>
                 </div>
               </div>
             </a>
-            {/* <div className="edit-school-app-card" onClick={switchUser}>
-              <p className="edit-school-app-title">{t("Chimple App")}</p>
-              <div className="edit-school-card-content">
-                <p className="edit-school-app-subtext">
-                  {t("Fun Gamified Learning")}
-                </p>
-                <img className="edit-school-card-content-img" src="assets/icons/switchToKidsMode.png" alt="" />
-              </div>
-            </div> */}
           </div>
-          {/* <hr className="edit-school-divider" />
-          <IonButton
-            color="#fff"
-            className="edit-school-logout-button"
-            onClick={() => setShowDialogBox(true)}
-          >
-            {t("Logout")}
-          </IonButton>
-          <DialogBoxButtons
-            width="100%"
-            height="20%"
-            message={t("Are you sure you want to logout?")}
-            showDialogBox={showDialogBox}
-            yesText={t("Cancel")}
-            noText={t("Logout")}
-            handleClose={() => setShowDialogBox(false)}
-            onYesButtonClicked={() => setShowDialogBox(false)}
-            onNoButtonClicked={onSignOut}
-          /> */}
         </div>
       ) : (
         // **FORM SCREEN**
