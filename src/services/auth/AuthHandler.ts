@@ -39,7 +39,7 @@ export class AuthHandler implements ServiceAuth {
   public async generateOtp(
     phoneNumber: string,
     appName: string
-  ): Promise<boolean | undefined> {
+  ): Promise<{ success: boolean; error?: any }> {
     return await this.s.generateOtp(phoneNumber, appName);
   }
   public async resendOtpMsg91(
