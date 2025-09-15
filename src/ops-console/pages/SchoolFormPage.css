@@ -47,17 +47,16 @@
 
 .school-form-dropdown-title {
   margin-bottom: 16px !important;
-  color: #000000;
+  color: #222;
   font-weight: 600 !important;
-  font-size: 1rem;
+  font-size: 1.1rem !important;
   text-align: left;
 }
 
 .school-form-dropdown-label {
   margin-bottom: 4px;
   text-align: left;
-  color: #222;
-  font-weight: 600 !important;
+  color: #111827;
   font-size: 1rem;
 }
 
