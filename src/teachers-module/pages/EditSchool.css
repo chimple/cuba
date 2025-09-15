@@ -111,18 +111,13 @@
   color: #808080;
 }
 
-.edit-school-app-links {
+.edit-school-app-links, .create-school-app-links {
   display: flex;
   justify-content: center;
   gap: 15px;
   margin-top: 15px;
 }
-.create-school-app-links{
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 15px;
-}
+
 .school-request-box {
   padding: 10px;
   text-align: center;
@@ -295,4 +290,11 @@
   font-size: 8px;
   margin-top: 0px;
   color: #666;
+}
+
+.create-school-card-content-div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: 10px;
 }

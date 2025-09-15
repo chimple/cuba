@@ -193,22 +193,6 @@ const ReqEditSchool: React.FC = () => {
       {isRequestSent === true && !isSaving ? (
         // **SUCCESS SCREEN**
         <div className="edit-school-confirm-page">
-          {/* <h2 className="edit-school-confirm-title">
-            {t("Request Confirmation")}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 600 600"
-              style={{ verticalAlign: "middle", marginLeft: "5px" }}
-            >
-              <circle cx="300" cy="300" r="300" fill="#4CAF50" />
-              <path
-                fill="#fff"
-                d="M243 427c-8-8-22-8-30 0l-97-97c-8-8-8-22 0-30l30-30c8-8 22-8 30 0l67 67 175-175c8-8 22-8 30 0l30 30c8 8 8 22 0 30L243 427z"
-              />
-            </svg>
-          </h2> */}
           <div className="edit-school-confirm-message">
             <p className="edit-school-sent-request-header">
               {t("Your request has been sent successfully")}
@@ -224,7 +208,7 @@ const ReqEditSchool: React.FC = () => {
               <img src="assets/icons/whatsapp.svg" alt="whatsapp" width="25" />
                 </div>
                 <div className="create-school-whatsapp-support-text">
-                  <p>Chat with us on </p><p className="span-text-whatsapp">WhatsApp</p>
+                  <p>{t("Chat with us on ")}</p><p className="span-text-whatsapp">{t("WhatsApp")}</p>
                 </div>
               </div>
             </a>
@@ -251,12 +235,11 @@ const ReqEditSchool: React.FC = () => {
               <div
                 className="edit-school-app-card"
               >
-                <div className="edit-school-card-content">
-                 
+                <div className="edit-school-card-content">                 
                   <span className="create-school-app-subtext">
                     {t("Fun filled activities for children")}
                   </span>
-                  <div style={{marginLeft: "10px", display: "flex", flexDirection: "column", alignItems: "center"}}>
+                  <div className="create-school-card-content-div">
                     <img className="edit-school-card-content-img" src="assets/icons/switchToKidsMode.png" alt="" />
                     <p className="create-school-img-footer">{t("Gamified Learning")}</p>
                   </div>
