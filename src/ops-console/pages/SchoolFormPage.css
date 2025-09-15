@@ -49,7 +49,7 @@
   margin-bottom: 16px !important;
   color: #000000;
   font-weight: 600 !important;
-  font-size: 18px;
+  font-size: 1rem;
   text-align: left;
 }
 
@@ -58,12 +58,12 @@
   text-align: left;
   color: #374151;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 1rem;
 }
 
-.school-form-dropdown-required {
+/* .school-form-dropdown-required {
   color: red;
-}
+} */
 
 .school-form-dropdown-placeholder {
   color: #9ca3af;

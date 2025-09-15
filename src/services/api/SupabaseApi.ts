@@ -8263,9 +8263,6 @@ export class SupabaseApi implements ServiceApi {
     if (keyContacts) {
       updatePayload.key_contacts = keyContacts; // jsonb column
     }
-    if (schoolStatus === STATUS.REJECTED) {
-      updatePayload.is_deleted = true;
-    }
     const { error } = await this.supabase
       .from("school")
       .update(updatePayload)
