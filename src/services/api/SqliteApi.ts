@@ -45,6 +45,9 @@ import {
   CACHETABLES,
   RequestTypes,
   STATUS,
+  GeoDataParams,
+  SearchSchoolsParams,
+  SearchSchoolsResult,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -6263,4 +6266,19 @@ order by
       classId
     );
   }
-}
+  async getGeoData(
+    params: GeoDataParams
+  ): Promise<string[]> {
+    return await this._serverApi.getGeoData(
+      params
+    );
+  }
+  async searchSchools(
+    params: SearchSchoolsParams
+  ):Promise<SearchSchoolsResult> {
+   {
+    return await this._serverApi.searchSchools(
+      params
+    );
+  }
+}}

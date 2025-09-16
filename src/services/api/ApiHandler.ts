@@ -22,6 +22,9 @@ import {
   CACHETABLES,
   RequestTypes,
   STATUS,
+  GeoDataParams,
+  SearchSchoolsParams,
+  SearchSchoolsResult,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -1545,5 +1548,13 @@ export class ApiHandler implements ServiceApi {
       schoolId,
       classId
     );
+  }
+
+  async getGeoData(params: GeoDataParams): Promise<string[]> {
+    return await this.s.getGeoData(params);
+  }
+
+  async searchSchools(params: SearchSchoolsParams): Promise<SearchSchoolsResult> {
+    return await this.s.searchSchools(params);
   }
 }

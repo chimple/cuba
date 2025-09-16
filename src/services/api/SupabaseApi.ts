@@ -44,6 +44,9 @@ import {
   EnumType,
   CACHETABLES,
   STATUS,
+  GeoDataParams,
+  SearchSchoolsParams,
+  SearchSchoolsResult,
 } from "../../common/constants";
 import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
@@ -8276,4 +8279,37 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error updating school status:", error);
     }
   }
+
+  async getGeoData(params: GeoDataParams): Promise<string[]> {
+  if (!this.supabase) return [];
+
+  const { data, error } = await this.supabase.rpc(
+    "get_geo_data",
+    params
+  );
+
+  if (error || !data) {
+    console.error("RPC 'get_geo_data' failed with params:", params, error);
+    return [];
+  }
+  return data || [];
 }
+async searchSchools(params: SearchSchoolsParams): Promise<SearchSchoolsResult> {
+  if (!this.supabase) {
+    console.error("Supabase client is not available.");
+    return { total_count: 0, schools: [] }; 
+  }
+
+  const { data, error } = await this.supabase.rpc("search_schools", params);
+
+  
+  if (error) {
+    console.error("RPC 'search_schools' failed:", params, error);
+    return { total_count: 0, schools: [] };
+  }
+
+  return {
+    total_count: data?.total_count || 0,
+    schools: data?.schools || []
+  };
+}}
