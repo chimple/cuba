@@ -6291,13 +6291,44 @@ order by
   async sendJoinSchoolRequest(
     schoolId: string,
     requestType: RequestTypes,
-    classId: string
+    classId?: string
   ): Promise<void> {
-    return await this._serverApi.sendJoinSchoolRequest(
-      schoolId,
-      requestType,
-      classId
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!currentUser) throw "User is not Logged in";
+
+    const now = new Date().toISOString();
+    const newRequest = {
+      school_id: schoolId,
+      class_id: classId ?? null,
+      request_type: requestType,
+      requested_by: currentUser.id,
+      request_status: STATUS.REQUESTED,
+      rejected_reason_description: "",
+      rejected_reason_type: "",
+      created_at: now,
+      updated_at: now,
+      is_deleted: false,
+    };
+    await this.executeQuery(
+      `
+      INSERT INTO ops_requests
+        (school_id, class_id, request_type, requested_by, request_status, rejected_reason_description, rejected_reason_type, created_at, updated_at, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `,
+      [
+        newRequest.school_id,
+        newRequest.class_id,
+        newRequest.request_type,
+        newRequest.requested_by,
+        newRequest.request_status,
+        newRequest.rejected_reason_description,
+        newRequest.rejected_reason_type,
+        newRequest.created_at,
+        newRequest.updated_at,
+        newRequest.is_deleted,
+      ]
     );
+    await this.updatePushChanges(TABLES.OpsRequests, MUTATE_TYPES.INSERT, newRequest);
   }
   async getAllClassesBySchoolId(
     schoolId: string
