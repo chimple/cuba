@@ -62,7 +62,6 @@ const RejectionDetails: React.FC<RejectedDetailsProps>  = ({
           backgroundColor: "#fff",
            minHeight: 100,
           color: "#333",
-          fontSize: "14px",
           textAlign: "left",
         }}
       >

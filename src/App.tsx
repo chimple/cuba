@@ -146,6 +146,7 @@ import ProfileDetails from "./components/profileDetails/ProfileDetails";
 import RequestList from "./ops-console/pages/RequestList";
 import AddTeacherName from "./teachers-module/pages/AddTeacherName";
 import SearchSchool from "./teachers-module/pages/SearchSchool";
+import JoinSchool from "./pages/JoinSchool";
 
 setupIonicReact();
 interface ExtraData {
@@ -498,6 +499,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.JOIN_CLASS} exact={true}>
               <Home />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.JOIN_SCHOOL} exact={true}>
+              <JoinSchool />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
               <SelectMode />

@@ -431,6 +431,7 @@ export enum PAGES {
   LEADERBOARD = "/leaderboard",
   ASSIGNMENT = "/assignment",
   JOIN_CLASS = "/join-class",
+  JOIN_SCHOOL = "/join-school",
   LIVE_QUIZ = "/live-quiz",
   SELECT_MODE = "/select-mode",
   TERMS_AND_CONDITIONS = "/terms-and-conditions",
@@ -553,6 +554,7 @@ export enum REQUEST_TABS {
 }
 export enum STATUS {
   ACTIVE = "active",
+  REQUESTED = "requested",
   APPROVED = "approved",
   REJECTED = "rejected",
   MIGRATED = "migrated",

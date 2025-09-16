@@ -6224,8 +6224,8 @@ order by
     );
   }
   async getFieldCoordinatorsByProgram(
-    programId: string,
-  ): Promise<{ data: TableTypes<"user">[] }>{
+    programId: string
+  ): Promise<{ data: TableTypes<"user">[] }> {
     return await this._serverApi.getFieldCoordinatorsByProgram(programId);
   }
   async getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }> {
@@ -6240,9 +6240,14 @@ order by
       city?: string;
       address?: string;
     },
-    keyContacts?: any 
+    keyContacts?: any
   ): Promise<void> {
-    return await this._serverApi.updateSchoolStatus(schoolId, schoolStatus, address,keyContacts);
+    return await this._serverApi.updateSchoolStatus(
+      schoolId,
+      schoolStatus,
+      address,
+      keyContacts
+    );
   }
   async clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
     if (!this._db) return;
@@ -6273,20 +6278,30 @@ order by
       classId
     );
   }
-  async getGeoData(
-    params: GeoDataParams
-  ): Promise<string[]> {
-    return await this._serverApi.getGeoData(
-      params
-    );
+  async getGeoData(params: GeoDataParams): Promise<string[]> {
+    return await this._serverApi.getGeoData(params);
   }
   async searchSchools(
     params: SearchSchoolsParams
-  ):Promise<SearchSchoolsResult> {
-   {
-    return await this._serverApi.searchSchools(
-      params
+  ): Promise<SearchSchoolsResult> {
+    {
+      return await this._serverApi.searchSchools(params);
+    }
+  }
+  async sendJoinSchoolRequest(
+    schoolId: string,
+    requestType: RequestTypes,
+    classId: string
+  ): Promise<void> {
+    return await this._serverApi.sendJoinSchoolRequest(
+      schoolId,
+      requestType,
+      classId
     );
   }
+  async getAllClassesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"class">[]> {
+    return await this._serverApi.getAllClassesBySchoolId(schoolId);
   }
 }

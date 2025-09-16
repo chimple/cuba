@@ -38,7 +38,7 @@ const ContactFormSection: React.FC<ContactFormSectionProps> = ({
       <Typography
         variant="subtitle2"
         fontWeight="bold"
-        sx={{ marginBottom: "16px", fontSize: "18px", color: "#111827" }}
+        sx={{ marginBottom: "16px", fontSize: "1rem", color: "#111827" }}
       >
         {title}
       </Typography>
@@ -50,7 +50,7 @@ const ContactFormSection: React.FC<ContactFormSectionProps> = ({
               variant="subtitle2"
               fontWeight="bold"
               sx={{
-                fontSize: "14px",
+                fontSize: "1rem",
                 mb: 1,
                 color: "#111827",
                 textAlign: "left",
@@ -65,10 +65,10 @@ const ContactFormSection: React.FC<ContactFormSectionProps> = ({
                   <Typography
                     variant="body2"
                     sx={{
-                      fontSize: "14px",
+                      fontSize: "1rem",
                       fontWeight: 500,
                       mb: 0.5,
-                      color: "#374151",
+                      color: "#111827",
                       textAlign: "left",
                     }}
                   >
@@ -116,7 +116,7 @@ const ContactFormSection: React.FC<ContactFormSectionProps> = ({
                       sx: {
                         backgroundColor: "#fff",
                         borderRadius: "6px",
-                        fontSize: "14px",
+                        fontSize: "1rem",
                       },
                       readOnly: field.disabled,
                     }}

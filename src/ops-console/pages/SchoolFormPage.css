@@ -47,23 +47,22 @@
 
 .school-form-dropdown-title {
   margin-bottom: 16px !important;
-  color: #000000;
+  color: #222;
   font-weight: 600 !important;
-  font-size: 18px;
+  font-size: 1.1rem !important;
   text-align: left;
 }
 
 .school-form-dropdown-label {
   margin-bottom: 4px;
   text-align: left;
-  color: #374151;
-  font-weight: 600;
-  font-size: 12px;
+  color: #111827;
+  font-size: 1rem;
 }
 
-.school-form-dropdown-required {
+/* .school-form-dropdown-required {
   color: red;
-}
+} */
 
 .school-form-dropdown-placeholder {
   color: #9ca3af;

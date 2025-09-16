@@ -21,7 +21,7 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
 
   async function handleReject() {
     await api.respondToSchoolRequest(
-      requestData.request_id,
+      requestData.id,
       requestData.respondedBy.id,
       STATUS.REJECTED,
       reason
