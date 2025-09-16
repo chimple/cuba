@@ -2090,5 +2090,10 @@ export interface ServiceApi {
     requestType : RequestTypes,
     classId? : string,
   ): Promise<void> ;
+  /**
+     * Get all classes connected to school using rpc call
+     * @param {string} schoolId - school Id 
+  */
+  getAllClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> ;
 }
 

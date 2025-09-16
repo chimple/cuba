@@ -8299,9 +8299,21 @@ export class SupabaseApi implements ServiceApi {
       },
     ]);
 
-  if (error) {
-    console.error("❌ Error inserting join school request:", error);
-    throw error;
+    if (error) {
+      console.error("❌ Error inserting join school request:", error);
+      throw error;
+    }
   }
+  async getAllClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> {
+    if (!this.supabase) return [];
+
+    const { data: classes, error } = await this.supabase.rpc("get_classes_by_school_id", {
+      school_id_input: schoolId,
+    });
+    if (error) {
+      console.error("Error fetching classes by school ID:", error);
+      return [];
+    }
+    return classes || [];
   }
 }

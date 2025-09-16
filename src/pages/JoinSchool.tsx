@@ -4,6 +4,7 @@ import Header from "../teachers-module/components/homePage/Header";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { useHistory, useLocation } from "react-router-dom";
 import { RequestTypes } from "../common/constants";
+import { t } from "i18next";
 
 const JoinSchool: React.FC = () => {
   const [requestType, setRequestType] = useState<RequestTypes>();
@@ -20,11 +21,10 @@ const JoinSchool: React.FC = () => {
         const currentSchool = location.state?.school;
         setSchool(currentSchool);
 
-        const allClasses = await api.getClassesBySchoolId(
-          currentSchool?.id || ""
+        const allClasses = await api.getAllClassesBySchoolId(
+          currentSchool?.id
         );
         setClassList(allClasses);
-        console.log("classes", allClasses);
       } catch (error) {
         console.error("Error fetching request data:", error);
       }
@@ -41,15 +41,8 @@ const JoinSchool: React.FC = () => {
         ? selectedClass.id ?? undefined
         : undefined;
 
-        console.log("requestType", requestType, "classId", classId,schoolId);
-
     try {
-      const response = await api.sendJoinSchoolRequest(
-        schoolId,
-        requestType,
-        classId
-      );
-      console.log("request sent: ✅✅✅", response);
+      await api.sendJoinSchoolRequest(schoolId, requestType, classId);
     } catch (error) {
       console.error("Error sending join school request:", error);
     }
@@ -65,7 +58,7 @@ const JoinSchool: React.FC = () => {
       </div>
       <div className="join-school-container">
         <div className="join-school-box">
-          <h2 className="join-school-page-title">Join School</h2>
+          <h2 className="join-school-page-title">{t("Join School")}</h2>
 
           <div className="join-school-icon">
             <img src="/assets/icons/School_image.svg" />
@@ -78,23 +71,23 @@ const JoinSchool: React.FC = () => {
             </div>
 
             <div className="join-school-row">
-              <span className="join-school-label">School Name</span>
+              <span className="join-school-label">{t("School Name")}</span>
               <span className="join-school-value">{school?.name}</span>
             </div>
             <div className="join-school-row">
-              <span className="join-school-label">Block</span>
+              <span className="join-school-label">{t("Block")}</span>
               <span className="join-school-value">{school?.group4 || "-"}</span>
             </div>
             <div className="join-school-row">
-              <span className="join-school-label">District</span>
+              <span className="join-school-label">{t("District")}</span>
               <span className="join-school-value">{school?.group3}</span>
             </div>
             <div className="join-school-row">
-              <span className="join-school-label">State</span>
+              <span className="join-school-label">{t("State")}</span>
               <span className="join-school-value">{school?.group1}</span>
             </div>
             <div className="join-school-row" style={{ borderBottom: "none" }}>
-              <span className="join-school-label">Country</span>
+              <span className="join-school-label">{t("Country")}</span>
               <span className="join-school-value">{school?.country}</span>
             </div>
           </div>
@@ -160,7 +153,7 @@ const JoinSchool: React.FC = () => {
             }
             onClick={handleSendRequest}
           >
-            Send Request
+            {t("Send Request")}
           </button>
         </div>
       </div>
