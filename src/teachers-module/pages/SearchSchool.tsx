@@ -216,10 +216,10 @@ const SearchSchool: FC = () => {
   };
 
   const handleJoinSchool = (selectedSchool: TableTypes<"school">) => {
-    // history.push({
-    //       pathname : PAGES.JOIN_SCHOOL,
-    //       state: { school: selectedSchool },
-    //     })
+    history.push({
+          pathname : PAGES.JOIN_SCHOOL,
+          state: { school: selectedSchool },
+        })
   };
 
   const renderDropdown = (
