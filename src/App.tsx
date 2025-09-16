@@ -145,6 +145,7 @@ import LoginScreen from "./pages/LoginScreen";
 import ProfileDetails from "./components/profileDetails/ProfileDetails";
 import RequestList from "./ops-console/pages/RequestList";
 import AddTeacherName from "./teachers-module/pages/AddTeacherName";
+import SearchSchool from "./teachers-module/pages/SearchSchool";
 import JoinSchool from "./pages/JoinSchool";
 
 setupIonicReact();
@@ -540,6 +541,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.DISPLAY_SCHOOLS} exact={true}>
               <DisplaySchools />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SEARCH_SCHOOL} exact={true}>
+              <SearchSchool />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.STUDENT_REPORT} exact={true}>
               <StudentReport />

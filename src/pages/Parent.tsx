@@ -348,7 +348,7 @@ const Parent: React.FC = () => {
                   }
                 } else {
                   schoolUtil.setCurrMode(MODES.TEACHER);
-                  history.replace(PAGES.DISPLAY_SCHOOLS);
+                  history.replace(PAGES.SEARCH_SCHOOL);
                   isNativePlatform && window.location.reload();
                   isNativePlatform && window.location.reload();
                 }

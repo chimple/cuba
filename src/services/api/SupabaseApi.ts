@@ -44,6 +44,9 @@ import {
   EnumType,
   CACHETABLES,
   STATUS,
+  SearchSchoolsParams,
+  SearchSchoolsResult,
+  GeoDataParams,
 } from "../../common/constants";
 import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
@@ -816,6 +819,7 @@ export class SupabaseApi implements ServiceApi {
       student_login_type: null,
       status: null,
       key_contacts: null,
+      country: null,
     };
 
     const { error } = await this.supabase
@@ -1014,6 +1018,7 @@ export class SupabaseApi implements ServiceApi {
       student_login_type: null,
       status: null,
       key_contacts: null,
+      country: null,
     };
 
     // Insert school
@@ -1196,6 +1201,7 @@ export class SupabaseApi implements ServiceApi {
       is_ops: null,
       learning_path: null,
       ops_created_by: null,
+      reward: null,
       stars: null,
     };
 
@@ -1340,6 +1346,7 @@ export class SupabaseApi implements ServiceApi {
       is_ops: null,
       learning_path: null,
       ops_created_by: null,
+      reward: null,
       stars: null,
     };
 
@@ -7036,6 +7043,7 @@ export class SupabaseApi implements ServiceApi {
       is_ops: null,
       learning_path: null,
       ops_created_by: null,
+      reward: null,
       stars: null,
     };
 
@@ -8146,7 +8154,8 @@ export class SupabaseApi implements ServiceApi {
       return { data: [] };
     }
 
-    const _currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw new Error("User not logged in");
 
     const userId = _currentUser.id;
@@ -8171,15 +8180,19 @@ export class SupabaseApi implements ServiceApi {
 
     // Case 2: Program Manager → fetch only programs assigned to them
     if (roles.includes(RoleType.PROGRAM_MANAGER)) {
-      const { data: programUsers, error: programUsersError } = await this.supabase
-        .from("program_user")
-        .select("program_id")
-        .eq("user", userId)
-        .eq("role", RoleType.PROGRAM_MANAGER)
-        .eq("is_deleted", false);
+      const { data: programUsers, error: programUsersError } =
+        await this.supabase
+          .from("program_user")
+          .select("program_id")
+          .eq("user", userId)
+          .eq("role", RoleType.PROGRAM_MANAGER)
+          .eq("is_deleted", false);
 
       if (programUsersError) {
-        console.error("Error fetching program_user entries:", programUsersError);
+        console.error(
+          "Error fetching program_user entries:",
+          programUsersError
+        );
         return { data: [] };
       }
       if (!programUsers || programUsers.length === 0) {
@@ -8191,7 +8204,7 @@ export class SupabaseApi implements ServiceApi {
         .select("*")
         .in("id", programIds)
         .eq("is_deleted", false)
-        .order("name", { ascending: true }); 
+        .order("name", { ascending: true });
 
       if (error) {
         console.error("Error fetching programs for program manager:", error);
@@ -8244,7 +8257,7 @@ export class SupabaseApi implements ServiceApi {
       city?: string;
       address?: string;
     },
-    keyContacts?: any 
+    keyContacts?: any
   ): Promise<void> {
     if (!this.supabase) return;
 
@@ -8254,7 +8267,8 @@ export class SupabaseApi implements ServiceApi {
     };
 
     if (address?.state !== undefined) updatePayload.group1 = address.state;
-    if (address?.district !== undefined) updatePayload.group2 = address.district;
+    if (address?.district !== undefined)
+      updatePayload.group2 = address.district;
     if (address?.city !== undefined) updatePayload.group3 = address.city;
     if (address?.address !== undefined) updatePayload.group4 = address.address;
 
@@ -8271,26 +8285,55 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error updating school status:", error);
     }
   }
+  async getGeoData(params: GeoDataParams): Promise<string[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase.rpc("get_geo_data", params);
+
+    if (error || !data) {
+      console.error("RPC 'get_geo_data' failed with params:", params, error);
+      return [];
+    }
+    return data || [];
+  }
+  async searchSchools(
+    params: SearchSchoolsParams
+  ): Promise<SearchSchoolsResult> {
+    if (!this.supabase) {
+      console.error("Supabase client is not available.");
+      return { total_count: 0, schools: [] };
+    }
+
+    const { data, error } = await this.supabase.rpc("search_schools", params);
+
+    if (error) {
+      console.error("RPC 'search_schools' failed:", params, error);
+      return { total_count: 0, schools: [] };
+    }
+
+    return {
+      total_count: data?.total_count || 0,
+      schools: data?.schools || [],
+    };
+  }
+
   async sendJoinSchoolRequest(
     schoolId: string,
     requestType: RequestTypes,
-    classId?: string,
+    classId?: string
   ): Promise<void> {
     if (!this.supabase) throw new Error("Supabase instance is not initialized");
 
-    const currentUser =
-      await ServiceConfig.getI().authHandler.getCurrentUser();
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!currentUser) throw new Error("User is not Logged in");
     const now = new Date().toISOString();
-    const { error } = await this.supabase
-    .from("ops_requests")
-    .insert([
+    const { error } = await this.supabase.from("ops_requests").insert([
       {
         school_id: schoolId,
         class_id: classId,
         request_type: requestType,
         requested_by: currentUser.id,
-        request_status: STATUS.REQUESTED, 
+        request_status: STATUS.REQUESTED,
         rejected_reason_description: "",
         rejected_reason_type: "",
         created_at: now,
@@ -8304,12 +8347,17 @@ export class SupabaseApi implements ServiceApi {
       throw error;
     }
   }
-  async getAllClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> {
+  async getAllClassesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"class">[]> {
     if (!this.supabase) return [];
 
-    const { data: classes, error } = await this.supabase.rpc("get_classes_by_school_id", {
-      school_id_input: schoolId,
-    });
+    const { data: classes, error } = await this.supabase.rpc(
+      "get_classes_by_school_id",
+      {
+        school_id_input: schoolId,
+      }
+    );
     if (error) {
       console.error("Error fetching classes by school ID:", error);
       return [];

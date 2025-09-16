@@ -26,6 +26,7 @@ const mockSchool: TableTypes<"school"> = {
   student_login_type: null,
   status: null,
   key_contacts: null,
+  country: null
 };
 
 const meta: Meta<typeof SchoolProfileContent> = {

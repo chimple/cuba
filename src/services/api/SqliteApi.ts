@@ -45,6 +45,9 @@ import {
   CACHETABLES,
   RequestTypes,
   STATUS,
+  GeoDataParams,
+  SearchSchoolsParams,
+  SearchSchoolsResult,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -538,6 +541,7 @@ export class SqliteApi implements ServiceApi {
       is_ops: null,
       learning_path: null,
       ops_created_by: null,
+      reward: null,
       stars: null,
     };
 
@@ -718,6 +722,7 @@ export class SqliteApi implements ServiceApi {
       student_login_type: null,
       status: null,
       key_contacts: null,
+      country: null,
     };
 
     await this.executeQuery(
@@ -822,6 +827,7 @@ export class SqliteApi implements ServiceApi {
       student_login_type: null,
       status: null,
       key_contacts: null,
+      country: null,
     };
     const updatedSchoolQuery = `
     UPDATE school
@@ -969,6 +975,7 @@ export class SqliteApi implements ServiceApi {
       learning_path: null,
       ops_created_by: null,
       stars: null,
+      reward: null,
     };
     // Insert into user table
     await this.executeQuery(
@@ -5560,6 +5567,7 @@ order by
             learning_path: null,
             music_off: false,
             ops_created_by: null,
+            reward: null,
             sfx_off: false,
             stars: null,
             student_id: null,
@@ -5671,6 +5679,7 @@ order by
             learning_path: null,
             music_off: false,
             ops_created_by: null,
+            reward: null,
             sfx_off: false,
             stars: null,
             student_id: null,
@@ -5879,6 +5888,7 @@ order by
       phone: null,
       fcm_token: null,
       music_off: false,
+      reward: null,
       sfx_off: false,
       student_id: null,
       firebase_id: null,
@@ -6214,8 +6224,8 @@ order by
     );
   }
   async getFieldCoordinatorsByProgram(
-    programId: string,
-  ): Promise<{ data: TableTypes<"user">[] }>{
+    programId: string
+  ): Promise<{ data: TableTypes<"user">[] }> {
     return await this._serverApi.getFieldCoordinatorsByProgram(programId);
   }
   async getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }> {
@@ -6230,9 +6240,14 @@ order by
       city?: string;
       address?: string;
     },
-    keyContacts?: any 
+    keyContacts?: any
   ): Promise<void> {
-    return await this._serverApi.updateSchoolStatus(schoolId, schoolStatus, address,keyContacts);
+    return await this._serverApi.updateSchoolStatus(
+      schoolId,
+      schoolStatus,
+      address,
+      keyContacts
+    );
   }
   async clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
     if (!this._db) return;
@@ -6263,14 +6278,30 @@ order by
       classId
     );
   }
-  async sendJoinSchoolRequest(
-    schoolId : string,
-    requestType : RequestTypes,
-    classId : string,
-  ):Promise<void> {
-    return await this._serverApi.sendJoinSchoolRequest(schoolId, requestType, classId);
+  async getGeoData(params: GeoDataParams): Promise<string[]> {
+    return await this._serverApi.getGeoData(params);
   }
-  async getAllClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> {
+  async searchSchools(
+    params: SearchSchoolsParams
+  ): Promise<SearchSchoolsResult> {
+    {
+      return await this._serverApi.searchSchools(params);
+    }
+  }
+  async sendJoinSchoolRequest(
+    schoolId: string,
+    requestType: RequestTypes,
+    classId: string
+  ): Promise<void> {
+    return await this._serverApi.sendJoinSchoolRequest(
+      schoolId,
+      requestType,
+      classId
+    );
+  }
+  async getAllClassesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"class">[]> {
     return await this._serverApi.getAllClassesBySchoolId(schoolId);
   }
 }
