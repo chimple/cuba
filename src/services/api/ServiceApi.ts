@@ -2034,7 +2034,7 @@ export interface ServiceApi {
 
   /**
    * update the ops_request to approved or rejected .
-   * @param requestId request ID
+   * @param requestId unique id of ops_request table
    * @param respondedBy user who responded or reviewed
    * @param status "approved" | "rejected"
    * @param rejectionReason reason for rejection (if status is "rejected")
@@ -2078,6 +2078,17 @@ export interface ServiceApi {
       address?: string;
     },
     keyContacts?: any 
+  ): Promise<void> ;
+  /**
+   * Creates a request to join a school as principle or teacher
+   * @param {string} schoolId - school Id 
+   * @param {string} requestType - type of request (PRINCIPAL or TEACHER)
+   * @param {string} classId - class Id 
+   */
+  sendJoinSchoolRequest(
+    schoolId : string,
+    requestType : RequestTypes,
+    classId? : string,
   ): Promise<void> ;
 }
 

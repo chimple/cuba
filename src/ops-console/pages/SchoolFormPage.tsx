@@ -208,7 +208,7 @@ const SchoolFormPage: React.FC = () => {
           RoleType.PRINCIPAL
         ),
         api.respondToSchoolRequest(
-          requestData.request_id,
+          requestData.id,
           requestData.respondedBy.id,
           STATUS.APPROVED,
         ),

@@ -1546,4 +1546,11 @@ export class ApiHandler implements ServiceApi {
       classId
     );
   }
+  async sendJoinSchoolRequest(
+    schoolId : string,
+    requestType : RequestTypes,
+    classId? : string,
+  ): Promise<void> {
+    return this.s.sendJoinSchoolRequest(schoolId,requestType, classId);
+  }
 }

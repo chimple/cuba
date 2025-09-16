@@ -8120,14 +8120,14 @@ export class SupabaseApi implements ServiceApi {
       responded_by: respondedBy,
       updated_at: new Date().toISOString(),
     };
-    if (status ===STATUS.REJECTED && rejectionReason) {
+    if (status === STATUS.REJECTED && rejectionReason) {
       updatePayload.rejected_reason_description = rejectionReason;
     }
 
     const { data, error } = await this.supabase
       .from("ops_requests")
       .update(updatePayload)
-      .eq("request_id", requestId)
+      .eq("id", requestId)
       .eq("is_deleted", false)
       .select("*")
       .maybeSingle();
@@ -8203,7 +8203,6 @@ export class SupabaseApi implements ServiceApi {
     return { data: [] };
   }
 
-
   async getFieldCoordinatorsByProgram(
     programId: string
   ): Promise<{ data: TableTypes<"user">[] }> {
@@ -8235,7 +8234,6 @@ export class SupabaseApi implements ServiceApi {
     }
     return { data: users || [] };
   }
-
 
   async updateSchoolStatus(
     schoolId: string,
@@ -8272,5 +8270,38 @@ export class SupabaseApi implements ServiceApi {
     if (error) {
       console.error("Error updating school status:", error);
     }
+  }
+  async sendJoinSchoolRequest(
+    schoolId: string,
+    requestType: RequestTypes,
+    classId?: string,
+  ): Promise<void> {
+    if (!this.supabase) throw new Error("Supabase instance is not initialized");
+
+    const currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!currentUser) throw new Error("User is not Logged in");
+    const now = new Date().toISOString();
+    const { error } = await this.supabase
+    .from("ops_requests")
+    .insert([
+      {
+        school_id: schoolId,
+        class_id: classId,
+        request_type: requestType,
+        requested_by: currentUser.id,
+        request_status: STATUS.REQUESTED, 
+        rejected_reason_description: "",
+        rejected_reason_type: "",
+        created_at: now,
+        updated_at: now,
+        is_deleted: false,
+      },
+    ]);
+
+  if (error) {
+    console.error("❌ Error inserting join school request:", error);
+    throw error;
+  }
   }
 }
