@@ -101,7 +101,13 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     )
     .map((item) =>
       currentMode === MODES.SCHOOL && item.label === "Switch Profile"
-        ? { ...item, onClick: () => history.replace("/select-mode") }
+        ? {
+            ...item,
+            onClick: () =>
+              history.replace(PAGES.SELECT_MODE, {
+                from: history.location.pathname,
+              }),
+          }
         : item
     );
 
