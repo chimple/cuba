@@ -97,8 +97,24 @@
   border-radius: 8px;
 }
 
-.search-school-select {
+ .search-school-select {
   width: 100%;
+  padding-right: 2rem; 
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.search-school-backbutton{
+    color: white;
+}
+
+.search-school-select::part(text) {
+  max-width: 5ch;        
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
 }
 
 .search-school-input-container {

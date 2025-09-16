@@ -15,22 +15,30 @@ import {
   IonInfiniteScroll,
   IonInfiniteScrollContent,
   IonSpinner,
+  IonButton,
 } from "@ionic/react";
 import {
   searchOutline,
   close,
   helpCircleOutline,
   chevronDownOutline,
+  arrowBack,
 } from "ionicons/icons";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import NoSchoolsFound from "../components/NoSchoolsFound";
 import SchoolListItem from "../components/SchoolListItem";
-import { PAGES, SearchSchoolsParams, TableTypes } from "../../common/constants";
+import {
+  MODES,
+  PAGES,
+  SearchSchoolsParams,
+  TableTypes,
+} from "../../common/constants";
 
 import "./SearchSchool.css";
 import CreateSchoolPrompt from "../components/CreateSchoolPrompt";
 import { t } from "i18next";
 import { useHistory } from "react-router";
+import { schoolUtil } from "../../utility/schoolUtil";
 
 const PAGE_LIMIT = 50;
 
@@ -202,6 +210,11 @@ const SearchSchool: FC = () => {
     setExpandedSchoolId((prevId) => (prevId === schoolId ? null : schoolId));
   };
 
+  const switchUser = () => {
+    schoolUtil.setCurrMode(MODES.PARENT);
+    history.replace(PAGES.DISPLAY_STUDENT);
+  };
+
   const handleJoinSchool = (selectedSchool: TableTypes<"school">) => {
     // history.push({
     //       pathname : PAGES.JOIN_SCHOOL,
@@ -255,7 +268,13 @@ const SearchSchool: FC = () => {
       <IonHeader className="search-school-header" mode="ios">
         <IonToolbar>
           <IonButtons slot="start">
-            <IonBackButton defaultHref="/" text="" />
+            <IonButton onClick={switchUser}>
+              <IonIcon
+                slot="icon-only"
+                icon={arrowBack}
+                className="search-school-backbutton"
+              />
+            </IonButton>
           </IonButtons>
           <IonButtons slot="end">
             <IonIcon
