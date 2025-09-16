@@ -6263,4 +6263,14 @@ order by
       classId
     );
   }
+  async sendJoinSchoolRequest(
+    schoolId : string,
+    requestType : RequestTypes,
+    classId : string,
+  ):Promise<void> {
+    return await this._serverApi.sendJoinSchoolRequest(schoolId, requestType, classId);
+  }
+  async getAllClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> {
+    return await this._serverApi.getAllClassesBySchoolId(schoolId);
+  }
 }

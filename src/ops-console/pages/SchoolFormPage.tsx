@@ -208,7 +208,7 @@ const SchoolFormPage: React.FC = () => {
           RoleType.PRINCIPAL
         ),
         api.respondToSchoolRequest(
-          requestData.request_id,
+          requestData.id,
           requestData.respondedBy.id,
           STATUS.APPROVED,
         ),
@@ -276,6 +276,7 @@ const SchoolFormPage: React.FC = () => {
                 name: "state",
                 value: address.state,
                 required: true,
+                editable: false,
                 onChange: handleAddressChange,
               },
               {
@@ -283,6 +284,7 @@ const SchoolFormPage: React.FC = () => {
                 name: "city",
                 value: address.city,
                 required: true,
+                editable: false,
                 onChange: handleAddressChange,
               },
               {
@@ -290,12 +292,14 @@ const SchoolFormPage: React.FC = () => {
                 name: "district",
                 value: address.district,
                 required: true,
+                editable: false,
                 onChange: handleAddressChange,
               },
               {
                 label: t("Address"),
                 name: "address",
                 value: address.address,
+                editable: false,
                 onChange: handleAddressChange,
               },
             ]}
