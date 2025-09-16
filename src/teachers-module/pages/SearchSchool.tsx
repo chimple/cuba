@@ -25,7 +25,7 @@ import {
 import { ServiceConfig } from "../../services/ServiceConfig";
 import NoSchoolsFound from "../components/NoSchoolsFound";
 import SchoolListItem from "../components/SchoolListItem";
-import { PAGES, TableTypes } from "../../common/constants";
+import { PAGES, SearchSchoolsParams, TableTypes } from "../../common/constants";
 
 import "./SearchSchool.css";
 import CreateSchoolPrompt from "../components/CreateSchoolPrompt";
@@ -160,7 +160,7 @@ const SearchSchool: FC = () => {
   const fetchSchools = async (pageNum: number, isNewSearch = false) => {
     setSearchingSchools(true);
 
-    const params = {
+    const params: SearchSchoolsParams = {
       p_country: country,
       p_state: state,
       p_district: district,
@@ -170,7 +170,6 @@ const SearchSchool: FC = () => {
       p_page_limit: PAGE_LIMIT,
       p_page_offset: (pageNum - 1) * PAGE_LIMIT,
     };
-
     // The API now returns an object: { schools, total_count }
     const result = await api.searchSchools(params);
     const newSchools = result.schools;
