@@ -10,7 +10,7 @@ interface SchoolListItemProps {
   school: TableTypes<"school">;
   isExpanded: boolean;
   onToggle: () => void;
-  onJoin: () => void;
+  onJoin: (school: TableTypes<"school">) => void;
   searchText: string;
 }
 
@@ -57,7 +57,7 @@ const SchoolListItem: FC<SchoolListItemProps> = ({
             {highlightText(school.name, searchText)}
           </div>
           <div className="school-list-school-udise-collapsed">
-            {t("UDISE:")} {school.udise || "N/A"}
+            UDISE: {school.udise || "N/A"}
           </div>
         </div>
         <IonIcon icon={chevronDown} className="school-list-expand-arrow" />
@@ -67,14 +67,15 @@ const SchoolListItem: FC<SchoolListItemProps> = ({
         <div className="school-list-school-item-details">
           <div className="school-list-school-details-text">
             <p>
-              {t("Block:")} {school.group3 || "N/A"}, {t("Cluster:")}{" "}
-              {school.group4 || "N/A"}, {t("Village Name")}
+              {t("Block")}: {school.group3 || "N/A"}, {t("Cluster")}:{" "}
+              {school.group4 || "N/A"}, {t("Village Name")}:
             </p>
-            <p>
-              {t("UDISE:")} {school.udise || "N/A"}
-            </p>
+            <p>UDISE: {school.udise || "N/A"}</p>
           </div>
-          <IonButton className="school-list-join-button" onClick={onJoin}>
+          <IonButton
+            className="school-list-join-button"
+            onClick={() => onJoin(school)}
+          >
             {t("Join")}
           </IonButton>
         </div>

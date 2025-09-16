@@ -15,7 +15,7 @@ const CreateSchoolPrompt: FC = () => {
   return (
     <div className="create-school-prompt-box">
       <p>
-        <strong>{t("School not found ?")}</strong>
+        <strong>{t("School not found ")}?</strong>
       </p>
       <p>{t("Click below to create a school")}</p>
       <IonButton className="create-school-button" onClick={handleCreateSchool}>

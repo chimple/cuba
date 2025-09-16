@@ -25,15 +25,18 @@ import {
 import { ServiceConfig } from "../../services/ServiceConfig";
 import NoSchoolsFound from "../components/NoSchoolsFound";
 import SchoolListItem from "../components/SchoolListItem";
-import { TableTypes } from "../../common/constants";
+import { PAGES, TableTypes } from "../../common/constants";
 
 import "./SearchSchool.css";
 import CreateSchoolPrompt from "../components/CreateSchoolPrompt";
 import { t } from "i18next";
+import { useHistory } from "react-router";
 
 const PAGE_LIMIT = 50;
 
 const SearchSchool: FC = () => {
+    const history = useHistory();
+  
   const api = ServiceConfig.getI().apiHandler;
   const [expandedSchoolId, setExpandedSchoolId] = useState<string | null>(null);
 
@@ -200,7 +203,12 @@ const SearchSchool: FC = () => {
     setExpandedSchoolId((prevId) => (prevId === schoolId ? null : schoolId));
   };
 
-  const handleJoinSchool = (schoolId: string) => {};
+  const handleJoinSchool = (selectedSchool: TableTypes<"school">) => {
+    // history.push({
+    //       pathname : PAGES.JOIN_SCHOOL,
+    //       state: { school: selectedSchool },
+    //     })
+  };
 
   const renderDropdown = (
     placeholderKey: string,
@@ -376,7 +384,7 @@ const SearchSchool: FC = () => {
                       school={school}
                       isExpanded={expandedSchoolId === school.id}
                       onToggle={() => handleToggleSchool(school.id)}
-                      onJoin={() => handleJoinSchool(school.id)}
+                      onJoin={handleJoinSchool}
                       searchText={searchText}
                     />
                   ))}
@@ -389,7 +397,7 @@ const SearchSchool: FC = () => {
                 >
                   <IonInfiniteScrollContent
                     loadingSpinner="bubbles"
-                    loadingText="Loading more schools..."
+                    loadingText={t("Loading more schools...") as string}
                   />
                 </IonInfiniteScroll>
 
