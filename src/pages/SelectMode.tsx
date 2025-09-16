@@ -263,7 +263,7 @@ const SelectMode: FC = () => {
     return random;
   }
   return (
-    <IonPage style={{ backgroundColor: "#FFFDEE" }}>
+    <IonPage>
       {!isLoading && (
         <div>
           <div>
@@ -353,7 +353,9 @@ const SelectMode: FC = () => {
                     }}
                   /> */}
 
-                  <div className="schoolname-header">{currentSchool?.name}</div>
+                  <div className="selectmode-schoolname-header">
+                    {currentSchool?.name}
+                  </div>
                   <div></div>
                 </div>
 
@@ -405,7 +407,7 @@ const SelectMode: FC = () => {
                     />
                   </div>
 
-                  <div className="schoolClassname-header">
+                  <div className="selectmode-schoolClassname-header">
                     {currentSchool?.name + ", " + currClass?.name}
                   </div>
                   <div></div>

@@ -113,7 +113,7 @@
   border-radius: 50%;
 }
 
-.schoolname-header,
-.schoolClassname-header {
+.selectmode-schoolname-header,
+.selectmode-schoolClassname-header {
   font-weight: bold;
 }
