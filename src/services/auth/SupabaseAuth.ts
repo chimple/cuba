@@ -207,6 +207,7 @@ export class SupabaseAuth implements ServiceAuth {
           is_ops: null,
           learning_path: null,
           ops_created_by: null,
+          reward: null,
           stars: null,
         });
         this._currentUser = createdUser;
@@ -434,6 +435,7 @@ export class SupabaseAuth implements ServiceAuth {
           is_ops: null,
           learning_path: null,
           ops_created_by: null,
+          reward: null,
           stars: null,
         });
         this._currentUser = createdUser;

@@ -45,6 +45,9 @@ import {
   CACHETABLES,
   RequestTypes,
   STATUS,
+  GeoDataParams,
+  SearchSchoolsParams,
+  SearchSchoolsResult,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -538,6 +541,7 @@ export class SqliteApi implements ServiceApi {
       is_ops: null,
       learning_path: null,
       ops_created_by: null,
+      reward: null,
       stars: null,
     };
 
@@ -718,6 +722,7 @@ export class SqliteApi implements ServiceApi {
       student_login_type: null,
       status: null,
       key_contacts: null,
+      country: null,
     };
 
     await this.executeQuery(
@@ -822,6 +827,7 @@ export class SqliteApi implements ServiceApi {
       student_login_type: null,
       status: null,
       key_contacts: null,
+      country: null,
     };
     const updatedSchoolQuery = `
     UPDATE school
@@ -969,6 +975,7 @@ export class SqliteApi implements ServiceApi {
       learning_path: null,
       ops_created_by: null,
       stars: null,
+      reward: null,
     };
     // Insert into user table
     await this.executeQuery(
@@ -5560,6 +5567,7 @@ order by
             learning_path: null,
             music_off: false,
             ops_created_by: null,
+            reward: null,
             sfx_off: false,
             stars: null,
             student_id: null,
@@ -5671,6 +5679,7 @@ order by
             learning_path: null,
             music_off: false,
             ops_created_by: null,
+            reward: null,
             sfx_off: false,
             stars: null,
             student_id: null,
@@ -5879,6 +5888,7 @@ order by
       phone: null,
       fcm_token: null,
       music_off: false,
+      reward: null,
       sfx_off: false,
       student_id: null,
       firebase_id: null,
@@ -6262,5 +6272,21 @@ order by
       schoolId,
       classId
     );
+  }
+  async getGeoData(
+    params: GeoDataParams
+  ): Promise<string[]> {
+    return await this._serverApi.getGeoData(
+      params
+    );
+  }
+  async searchSchools(
+    params: SearchSchoolsParams
+  ):Promise<SearchSchoolsResult> {
+   {
+    return await this._serverApi.searchSchools(
+      params
+    );
+  }
   }
 }
