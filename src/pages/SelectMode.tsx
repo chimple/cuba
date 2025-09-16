@@ -263,7 +263,7 @@ const SelectMode: FC = () => {
     return random;
   }
   return (
-    <IonPage>
+    <IonPage style={{ backgroundColor: "#FFFDEE" }}>
       {!isLoading && (
         <div>
           <div>
@@ -341,7 +341,8 @@ const SelectMode: FC = () => {
             {stage === STAGES.CLASS && (
               <div className="class-main">
                 <div className="class-header">
-                  <BackButton
+                  <div></div>
+                  {/* <BackButton
                     aria-label={t("Back")}
                     onClicked={() => {
                       //  history.replace(PAGES.SELECT_SCHOOL);
@@ -350,7 +351,7 @@ const SelectMode: FC = () => {
                       localStorage.removeItem(CURRENT_SCHOOL_NAME);
                       setStage(STAGES.SCHOOL);
                     }}
-                  />
+                  /> */}
 
                   <div className="schoolname-header">{currentSchool?.name}</div>
                   <div></div>
@@ -389,17 +390,20 @@ const SelectMode: FC = () => {
             {stage === STAGES.STUDENT && (
               <div>
                 <div className="class-header">
-                  <BackButton
-                    aria-label={t("Back")}
-                    onClicked={() => {
-                      //  history.replace(PAGES.SELECT_SCHOOL);
-                      localStorage.removeItem(SELECTED_STUDENTS);
-                      localStorage.removeItem(CURRENT_CLASS);
-                      localStorage.removeItem(CURRENT_CLASS_NAME);
-                      localStorage.removeItem(USER_SELECTION_STAGE);
-                      setStage(STAGES.CLASS);
-                    }}
-                  />
+                  <div id="back-button-in-school-Header">
+                    <img
+                      src="/assets/icons/BackButtonIcon.svg"
+                      alt="BackButtonIcon"
+                      onClick={() => {
+                        //  history.replace(PAGES.SELECT_SCHOOL);
+                        localStorage.removeItem(SELECTED_STUDENTS);
+                        localStorage.removeItem(CURRENT_CLASS);
+                        localStorage.removeItem(CURRENT_CLASS_NAME);
+                        localStorage.removeItem(USER_SELECTION_STAGE);
+                        setStage(STAGES.CLASS);
+                      }}
+                    />
+                  </div>
 
                   <div className="schoolClassname-header">
                     {currentSchool?.name + ", " + currClass?.name}
