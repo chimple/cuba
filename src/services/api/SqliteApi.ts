@@ -929,7 +929,6 @@ export class SqliteApi implements ServiceApi {
       `SELECT * FROM ops_requests WHERE requested_by = ? AND request_status = ?`,
       [requested_by, Constants.public.Enums.ops_request_status[0]]
     );
-    console.log("request data in sqlite", res);
     return res?.values?.length ? res.values[0] : null;
   }
 

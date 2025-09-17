@@ -1149,7 +1149,6 @@ export class SupabaseApi implements ServiceApi {
       .limit(1)
       .maybeSingle();
 
-    console.log("request checking in supabase", data, error);
     if (error) {
       console.error("Error fetching existing school request:", error);
       throw error;
