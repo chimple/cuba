@@ -39,6 +39,8 @@ import CreateSchoolPrompt from "../components/CreateSchoolPrompt";
 import { t } from "i18next";
 import { useHistory } from "react-router";
 import { schoolUtil } from "../../utility/schoolUtil";
+import { Capacitor } from "@capacitor/core";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 
 const PAGE_LIMIT = 50;
 
@@ -78,6 +80,7 @@ const SearchSchool: FC = () => {
   const [hasMoreSchools, setHasMoreSchools] = useState(true);
 
   useEffect(() => {
+    lockOrientation();
     const loadCountries = async () => {
       setCountriesLoading(true);
       const data = await api.getGeoData({});
@@ -196,6 +199,12 @@ const SearchSchool: FC = () => {
     setSearchingSchools(false);
   };
 
+  const lockOrientation = () => {
+    if (Capacitor.isNativePlatform()) {
+      ScreenOrientation.lock({ orientation: "portrait" });
+    }
+  };
+
   const loadMoreSchools = (event: any) => {
     const nextPage = page + 1;
     fetchSchools(nextPage).finally(() => {
@@ -217,9 +226,9 @@ const SearchSchool: FC = () => {
 
   const handleJoinSchool = (selectedSchool: TableTypes<"school">) => {
     history.push({
-          pathname : PAGES.JOIN_SCHOOL,
-          state: { school: selectedSchool },
-        })
+      pathname: PAGES.JOIN_SCHOOL,
+      state: { school: selectedSchool },
+    });
   };
 
   const renderDropdown = (
@@ -286,144 +295,141 @@ const SearchSchool: FC = () => {
       </IonHeader>
 
       <IonContent fullscreen>
-        <div className="search-school-container">
-          {/* Fixed top area */}
-          <div className="search-school-fixed-top-area">
-            <h1 className="search-school-title">{t("Search Your School")}</h1>
-            <p className="search-school-required-text">
-              <span className="search-school-asterisk">*</span>
-              {t("Required Fields")}
-            </p>
+        {/* Fixed top area */}
+        <div className="search-school-fixed-top-area">
+          <h1 className="search-school-title">{t("Search Your School")}</h1>
+          <p className="search-school-required-text">
+            <span className="search-school-asterisk">*</span>
+            {t("Required Fields")}
+          </p>
 
-            <div className="search-school-form">
-              <div className="search-school-row">
-                {renderDropdown(
-                  "Country",
-                  country,
-                  setCountry,
-                  countries,
-                  isCountriesLoading,
-                  true
-                )}
-                {renderDropdown(
-                  "State",
-                  state,
-                  setState,
-                  states,
-                  isStatesLoading,
-                  true,
-                  !country
-                )}
-                {renderDropdown(
-                  "District",
-                  district,
-                  setDistrict,
-                  districts,
-                  isDistrictsLoading,
-                  true,
-                  !state
-                )}
-              </div>
-              <div className="search-school-row">
-                {renderDropdown(
-                  "Block",
-                  block,
-                  setBlock,
-                  blocks,
-                  isBlocksLoading,
-                  false,
-                  !district
-                )}
-                {renderDropdown(
-                  "Cluster",
-                  cluster,
-                  setCluster,
-                  clusters,
-                  isClustersLoading,
-                  false,
-                  !block
-                )}
-              </div>
+          <div className="search-school-form">
+            <div className="search-school-row">
+              {renderDropdown(
+                "Country",
+                country,
+                setCountry,
+                countries,
+                isCountriesLoading,
+                true
+              )}
+              {renderDropdown(
+                "State",
+                state,
+                setState,
+                states,
+                isStatesLoading,
+                true,
+                !country
+              )}
+              {renderDropdown(
+                "District",
+                district,
+                setDistrict,
+                districts,
+                isDistrictsLoading,
+                true,
+                !state
+              )}
             </div>
-
-            <div className="search-school-input-container">
-              <IonItem lines="none" className="search-school-item">
-                <IonIcon icon={searchOutline} slot="start" />
-                <IonInput
-                  value={searchText}
-                  placeholder={t("School Name or UDISE") as string}
-                  onIonChange={(e) => setSearchText(e.detail.value!)}
-                />
-                {searchText && (
-                  <IonIcon
-                    icon={close}
-                    slot="end"
-                    className="search-school-clear-icon"
-                    onClick={clearSearchText}
-                  />
-                )}
-              </IonItem>
+            <div className="search-school-row">
+              {renderDropdown(
+                "Block",
+                block,
+                setBlock,
+                blocks,
+                isBlocksLoading,
+                false,
+                !district
+              )}
+              {renderDropdown(
+                "Cluster",
+                cluster,
+                setCluster,
+                clusters,
+                isClustersLoading,
+                false,
+                !block
+              )}
             </div>
-
-            {totalResults > 0 && (
-              <div className="search-school-results-summary">
-                <h3 className="search-school-found-results-text">
-                  Found {totalResults} results..
-                </h3>
-                <p className="search-school-refine-results-text">
-                  {t(
-                    "Refine your results using filters or by rephrasing your schoolname"
-                  )}
-                </p>
-              </div>
-            )}
           </div>
 
-          {/* Scrollable list area */}
-          <IonContent className="search-school-scrollable-list">
-            {isSearchingSchools && schools.length === 0 && (
-              <div className="search-school-center-message">
-                <IonSpinner />
-              </div>
-            )}
+          <div className="search-school-input-container">
+            <IonItem lines="none" className="search-school-item">
+              <IonIcon icon={searchOutline} slot="start" />
+              <IonInput
+                value={searchText}
+                placeholder={t("School Name or UDISE") as string}
+                onIonChange={(e) => setSearchText(e.detail.value!)}
+              />
+              {searchText && (
+                <IonIcon
+                  icon={close}
+                  slot="end"
+                  className="search-school-clear-icon"
+                  onClick={clearSearchText}
+                />
+              )}
+            </IonItem>
+          </div>
 
-            {!isSearchingSchools &&
-              schools.length === 0 &&
-              country &&
-              state &&
-              district && <NoSchoolsFound />}
-
-            {!isSearchingSchools && schools.length > 0 && (
-              <>
-                <IonList className="school-results-list-cards" lines="none">
-                  {schools.map((school) => (
-                    <SchoolListItem
-                      key={school.id}
-                      school={school}
-                      isExpanded={expandedSchoolId === school.id}
-                      onToggle={() => handleToggleSchool(school.id)}
-                      onJoin={handleJoinSchool}
-                      searchText={searchText}
-                    />
-                  ))}
-                </IonList>
-
-                <IonInfiniteScroll
-                  onIonInfinite={loadMoreSchools}
-                  threshold="200px"
-                  disabled={!hasMoreSchools || isSearchingSchools}
-                >
-                  <IonInfiniteScrollContent
-                    loadingSpinner="bubbles"
-                    loadingText={t("Loading more schools...") as string}
-                  />
-                </IonInfiniteScroll>
-
-                {!hasMoreSchools && <CreateSchoolPrompt />}
-              </>
-            )}
-          </IonContent>
+          {totalResults > 0 && (
+            <div className="search-school-results-summary">
+              <h3 className="search-school-found-results-text">
+                Found {totalResults} results..
+              </h3>
+              <p className="search-school-refine-results-text">
+                {t(
+                  "Refine your results using filters or by rephrasing your schoolname"
+                )}
+              </p>
+            </div>
+          )}
         </div>
+
+        {/* Scrollable list area */}
+        {/* <IonContent className="search-school-scrollable-list"> */}
+        {isSearchingSchools && schools.length === 0 && (
+          <div className="search-school-center-message">
+            <IonSpinner />
+          </div>
+        )}
+
+        {!isSearchingSchools &&
+          schools.length === 0 &&
+          country &&
+          state &&
+          district && <NoSchoolsFound />}
+
+        {schools.length > 0 && (
+          <>
+            <IonList className="search-school-results-list-cards" lines="none">
+              {schools.map((school) => (
+                <SchoolListItem
+                  key={school.id}
+                  school={school}
+                  isExpanded={expandedSchoolId === school.id}
+                  onToggle={() => handleToggleSchool(school.id)}
+                  onJoin={handleJoinSchool}
+                  searchText={searchText}
+                />
+              ))}
+            </IonList>
+
+            <IonInfiniteScroll
+              onIonInfinite={loadMoreSchools}
+              threshold="200px"
+              disabled={!hasMoreSchools || isSearchingSchools}
+            >
+              <IonInfiniteScrollContent
+                loadingSpinner="bubbles"
+                loadingText={t("Loading more schools...") as string}
+              />
+            </IonInfiniteScroll>
+
+            {!hasMoreSchools && <CreateSchoolPrompt />}
+          </>
+        )}
       </IonContent>
     </IonPage>
   );

@@ -20,15 +20,13 @@
 }
 
 .no-schools-found-subtitle {
-  font-size: 0.9rem;
+  font-size: 0.7rem;
   color: #666;
-  max-width: 280px;
-  white-space: nowrap;
 }
 
 .no-schools-found-divider {
   width: 100%;
   border: 0;
-  border-top: 1px solid #e0e0e0;
+  border-top: 2px solid #707070;
   margin: 1rem 0;
 }
