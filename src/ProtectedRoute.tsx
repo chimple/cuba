@@ -22,9 +22,25 @@ export default function ProtectedRoute({ children, ...rest }) {
   }, []);
 
   useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
-      ScreenOrientation.lock({ orientation: "landscape" });
-    }
+    const setOrientation = async () => {
+      if (Capacitor.isNativePlatform()) {
+        try {
+          await ScreenOrientation.lock({ orientation: "landscape" });
+        } catch (error) {
+          console.error("Failed to lock screen orientation:", error);
+        }
+      }
+    };
+
+    setOrientation();
+
+    return () => {
+      if (Capacitor.isNativePlatform()) {
+        ScreenOrientation.unlock().catch((error) => {
+          console.error("Failed to unlock screen orientation:", error);
+        });
+      }
+    };
   }, []);
 
   const checkAuth = async () => {
