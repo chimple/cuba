@@ -33,13 +33,8 @@ const JoinSchool: React.FC = () => {
     fetchRequest();
   }, []);
 
-  useEffect(() => {
-    if (sending) {
-      handleSendRequest();
-    }
-  }, [sending])
-
   const handleSendRequest = async () => {
+    setSending(true);
     const schoolId = school?.id;
     if (!schoolId || !requestType) return;
 
@@ -50,10 +45,12 @@ const JoinSchool: React.FC = () => {
 
     try {
       await api.sendJoinSchoolRequest(schoolId, requestType, classId);
-      setSending(false);
       history.replace(PAGES.REQ_ADD_SCHOOL);
     } catch (error) {
       console.error("Error sending join school request:", error);
+    }
+    finally {
+      setSending(false);
     }
   };
 
@@ -161,7 +158,7 @@ const JoinSchool: React.FC = () => {
                 !requestType ||
                 (requestType === RequestTypes.TEACHER && !selectedClass)
               }
-              onClick={() => setSending(true)}
+              onClick={() => handleSendRequest()}
             >
               {t("Send Request")}
             </button>
