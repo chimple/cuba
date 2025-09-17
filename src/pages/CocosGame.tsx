@@ -7,6 +7,7 @@ import {
   EVENTS,
   GAME_END,
   GAME_EXIT,
+  HOMEHEADERLIST,
   LESSONS_PLAYED_COUNT,
   LESSON_END,
   PAGES,
@@ -536,8 +537,9 @@ const CocosGame: React.FC = () => {
         );
       }
 
-      // Always update learning path if the course is part of it
-      if (shouldUpdateLearningPath) {
+      // Update learning path only when launched from Home (Learning Pathway)
+      const isLessonPlayedFromHome = (playedFrom === HOMEHEADERLIST.HOME);
+      if (shouldUpdateLearningPath && isLessonPlayedFromHome) {
         await updateLearningPath();
       }
 
