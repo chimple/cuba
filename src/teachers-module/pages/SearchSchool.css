@@ -1,19 +1,16 @@
 .search-school-page ion-content {
   --background: #ffffff;
 }
-
-.search-school-header ion-toolbar {
-  --background: #8e6fc5;
-  --color: #ffffff;
-}
-
-.search-school-header ion-back-button {
-  --color: #ffffff;
-}
-
-.search-school-help-icon {
-  font-size: 1.8rem;
-  padding-inline-end: 0.8rem;
+.search-school-page ion-header ion-toolbar {
+  --background: #7c5db0; 
+  --color: white;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  height: 10vh;
+  display: flex;
+  align-items: center;
 }
 
 .search-school-fixed-top-area {
@@ -101,10 +98,6 @@
   display: block;
   overflow: hidden;
   white-space: nowrap;
-}
-
-.search-school-backbutton{
-    color: white;
 }
 
 .search-school-select::part(text) {

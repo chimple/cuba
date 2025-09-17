@@ -41,6 +41,7 @@ import { useHistory } from "react-router";
 import { schoolUtil } from "../../utility/schoolUtil";
 import { Capacitor } from "@capacitor/core";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
+import Header from "../components/homePage/Header";
 
 const PAGE_LIMIT = 50;
 
@@ -274,23 +275,9 @@ const SearchSchool: FC = () => {
 
   return (
     <IonPage className="search-school-page">
-      <IonHeader className="search-school-header" mode="ios">
+      <IonHeader mode="ios">
         <IonToolbar>
-          <IonButtons slot="start">
-            <IonButton onClick={switchUser}>
-              <IonIcon
-                slot="icon-only"
-                icon={arrowBack}
-                className="search-school-backbutton"
-              />
-            </IonButton>
-          </IonButtons>
-          <IonButtons slot="end">
-            <IonIcon
-              icon={helpCircleOutline}
-              className="search-school-help-icon"
-            />
-          </IonButtons>
+          <Header isBackButton={true} onBackButtonClick={switchUser} />
         </IonToolbar>
       </IonHeader>
 
@@ -388,7 +375,6 @@ const SearchSchool: FC = () => {
         </div>
 
         {/* Scrollable list area */}
-        {/* <IonContent className="search-school-scrollable-list"> */}
         {isSearchingSchools && schools.length === 0 && (
           <div className="search-school-center-message">
             <IonSpinner />

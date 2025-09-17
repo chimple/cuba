@@ -8,6 +8,8 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
+  width: clamp(280px, 90vw, 550px);
+  margin: 1.5rem auto;
 }
 
 .create-school-prompt-box p {
