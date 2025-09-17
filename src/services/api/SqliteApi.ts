@@ -927,7 +927,7 @@ export class SqliteApi implements ServiceApi {
   ): Promise<TableTypes<"ops_requests"> | null> {
     const res = await this.executeQuery(
       `SELECT * FROM ops_requests WHERE requested_by = ? AND request_status = ?`,
-      [requested_by, Constants.public.Enums.ops_request_status[0]]
+      [requested_by, STATUS.REQUESTED]
     );
     return res?.values?.length ? res.values[0] : null;
   }

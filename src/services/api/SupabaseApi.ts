@@ -1144,7 +1144,7 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.OpsRequests)
       .select("*")
       .eq("requested_by", requested_by)
-      .eq("request_status", Constants.public.Enums.ops_request_status[0])
+      .eq("request_status", STATUS.REQUESTED)
       .eq("is_deleted", false)
       .limit(1)
       .maybeSingle();
