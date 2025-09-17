@@ -137,8 +137,8 @@ export interface ServiceApi {
   ): Promise<TableTypes<"req_new_school"> | null>;
 
   getExistingSchoolRequest(
-    userId: string
-  ): Promise<TableTypes<"req_new_school"> | null>;
+    requested_by: string
+  ): Promise<TableTypes<"ops_requests"> | null>;
   /**
    * Adds a school profile image and returns the school profile image URL.
    * @param {string} id - The unique identifier of the school.

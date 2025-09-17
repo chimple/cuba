@@ -72,6 +72,7 @@ import { Util } from "../../utility/util";
 import { Table } from "@mui/material";
 import { create } from "domain";
 import { error } from "console";
+import { Constants } from "../database";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -922,12 +923,13 @@ export class SqliteApi implements ServiceApi {
   }
   // Add this new function to check if a create school request already exists
   async getExistingSchoolRequest(
-    userId: string
-  ): Promise<TableTypes<"req_new_school"> | null> {
+    requested_by: string
+  ): Promise<TableTypes<"ops_requests"> | null> {
     const res = await this.executeQuery(
-      `SELECT * FROM req_new_school WHERE user_id = ?`,
-      [userId]
+      `SELECT * FROM ops_requests WHERE requested_by = ? AND request_status = ?`,
+      [requested_by, Constants.public.Enums.ops_request_status[0]]
     );
+    console.log("request data in sqlite", res);
     return res?.values?.length ? res.values[0] : null;
   }
 

@@ -241,9 +241,9 @@ export class ApiHandler implements ServiceApi {
     );
   }
   public async getExistingSchoolRequest(
-    userId: string
-  ): Promise<TableTypes<"req_new_school"> | null> {
-    return await this.s.getExistingSchoolRequest(userId);
+    requested_by: string
+  ): Promise<TableTypes<"ops_requests"> | null> {
+    return await this.s.getExistingSchoolRequest(requested_by);
   }
 
   public async getSchoolsForUser(

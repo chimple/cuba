@@ -3,7 +3,7 @@ import "./JoinSchool.css";
 import Header from "../teachers-module/components/homePage/Header";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { useHistory, useLocation } from "react-router-dom";
-import { RequestTypes } from "../common/constants";
+import { PAGES, RequestTypes } from "../common/constants";
 import { t } from "i18next";
 
 const JoinSchool: React.FC = () => {
@@ -13,6 +13,7 @@ const JoinSchool: React.FC = () => {
   const history = useHistory();
   const location = useLocation<{ school: any }>();
   const [classList, setClassList] = useState<any>([]);
+  const [sending, setSending] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
@@ -32,6 +33,12 @@ const JoinSchool: React.FC = () => {
     fetchRequest();
   }, []);
 
+  useEffect(() => {
+    if (sending) {
+      handleSendRequest();
+    }
+  }, [sending])
+
   const handleSendRequest = async () => {
     const schoolId = school?.id;
     if (!schoolId || !requestType) return;
@@ -43,6 +50,8 @@ const JoinSchool: React.FC = () => {
 
     try {
       await api.sendJoinSchoolRequest(schoolId, requestType, classId);
+      setSending(false);
+      history.replace(PAGES.REQ_ADD_SCHOOL);
     } catch (error) {
       console.error("Error sending join school request:", error);
     }
@@ -127,17 +136,15 @@ const JoinSchool: React.FC = () => {
           </div>
 
           <div
-            className={`join-school-class-container ${
-              requestType === RequestTypes.TEACHER ? "" : "hidden"
-            }`}
+            className={`join-school-class-container ${requestType === RequestTypes.TEACHER ? "" : "hidden"
+              }`}
           >
             {requestType === RequestTypes.TEACHER &&
               classList.map((cls) => (
                 <button
                   key={cls}
-                  className={`join-school-class-btn ${
-                    selectedClass === cls ? "join-school-selected-class" : ""
-                  }`}
+                  className={`join-school-class-btn ${selectedClass === cls ? "join-school-selected-class" : ""
+                    }`}
                   onClick={() => setSelectedClass(cls)}
                 >
                   {cls.name}
@@ -145,16 +152,20 @@ const JoinSchool: React.FC = () => {
               ))}
           </div>
 
-          <button
-            className="join-school-send-btn"
-            disabled={
-              !requestType ||
-              (requestType === RequestTypes.TEACHER && !selectedClass)
-            }
-            onClick={handleSendRequest}
-          >
-            {t("Send Request")}
-          </button>
+          {sending ? (
+            <button className="join-school-send-btn" disabled>{t("Sending...")}</button>
+          ) : (
+            <button
+              className="join-school-send-btn"
+              disabled={
+                !requestType ||
+                (requestType === RequestTypes.TEACHER && !selectedClass)
+              }
+              onClick={() => setSending(true)}
+            >
+              {t("Send Request")}
+            </button>
+          )}
         </div>
       </div>
     </div>
