@@ -4,6 +4,8 @@ import { ServiceConfig } from "./services/ServiceConfig";
 import { PAGES, TRIGGER_DEEPLINK } from "./common/constants";
 import Loading from "./components/Loading";
 import { use } from "i18next";
+import { Capacitor } from "@capacitor/core";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 
 export default function ProtectedRoute({ children, ...rest }) {
   const [isAuth, setIsAuth] = useState<Boolean | null>(null); // initially undefined
@@ -17,6 +19,12 @@ export default function ProtectedRoute({ children, ...rest }) {
     return () => {
       document.removeEventListener(TRIGGER_DEEPLINK, sendLaunch);
     };
+  }, []);
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      ScreenOrientation.lock({ orientation: "landscape" });
+    }
   }, []);
 
   const checkAuth = async () => {
