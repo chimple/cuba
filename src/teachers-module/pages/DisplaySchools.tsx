@@ -47,6 +47,20 @@ const DisplaySchools: FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollPositionRef = useRef<number>(0);
 
+  const checkSchoolRequest = async () => {
+    const api = ServiceConfig.getI().apiHandler;
+    const _currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    const existingRequest = await api.getExistingSchoolRequest(
+      _currentUser?.id as string
+    );
+    if (existingRequest) {
+      history.replace(PAGES.REQ_ADD_SCHOOL);
+    }
+  }
+  useEffect(() => {
+    checkSchoolRequest();
+  }, [])
+
   useEffect(() => {
     (async () => {
       const mode = await schoolUtil.getCurrMode();
