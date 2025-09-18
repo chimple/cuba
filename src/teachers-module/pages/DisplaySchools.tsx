@@ -56,10 +56,7 @@ const DisplaySchools: FC = () => {
     if (existingRequest) {
       history.replace(PAGES.REQ_ADD_SCHOOL);
     }
-  }
-  useEffect(() => {
-    checkSchoolRequest();
-  }, [])
+  };
 
   useEffect(() => {
     (async () => {
@@ -124,6 +121,8 @@ const DisplaySchools: FC = () => {
       if (role) {
         return selectSchool({ school: tempSchool, role });
       }
+    } else if (schoolList.length === 0) {
+      await checkSchoolRequest();
     }
     if (schoolList.length === 1) {
       return selectSchool(schoolList[0]);
