@@ -538,7 +538,7 @@ const CocosGame: React.FC = () => {
       }
 
       // Update learning path only when launched from Home (Learning Pathway)
-      const isLessonPlayedFromHome = (playedFrom === HOMEHEADERLIST.HOME);
+      const isLessonPlayedFromHome = localStorage.getItem("currentHeader") === HOMEHEADERLIST.HOME;
       if (shouldUpdateLearningPath && isLessonPlayedFromHome) {
         await updateLearningPath();
       }
