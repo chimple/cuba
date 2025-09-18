@@ -192,7 +192,7 @@ const loadSVG = async (updatedStudent?: any) => {
   try {
     const startTime = performance.now();
 
-    const currentStudent = updatedStudent || (await Util.getCurrentStudent());
+    const currentStudent = Util.getCurrentStudent();
     const learningPath = currentStudent?.learning_path ? JSON.parse(currentStudent.learning_path) : null;
     if (!learningPath) return;
 
