@@ -41,23 +41,36 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
       { icon: "/assets/icons/Account.svg", label: "Parents Section", onClick: () => setShowDialogBox(true) },
       { icon: "/assets/icons/UserSwitch1.svg", label: "Switch Profile", onClick: () => onSwichUser() },
     ];
+  
+  const menuItemsForRespectMode = [
+    { icon: "/assets/icons/Account.svg", label: "Parents Section", onClick: () => setShowDialogBox(true) },
+    { icon: "/assets/icons/UserSwitch1.svg", label: "Switch Profile", onClick: () => onSwichUser() },
+  ];
+
+  const visibleMenuItems = Util.isRespectMode
+    ? menuItemsForRespectMode
+    : menuItems;
+
   useEffect(() => {
     const student = Util.getCurrentStudent();
     setStudent(student);
   }, []);
 
   const onEdit = async () => {
+    if (Util.isRespectMode) return;
     history.replace(PAGES.EDIT_STUDENT, {
       from: history.location.pathname,
     });
   };
 
   const onLeaderboard = () => {
+    if (Util.isRespectMode) return;
     history.replace(PAGES.LEADERBOARD, {
       from: history.location.pathname,
     });
   };
   const onReward = () => {
+    if (Util.isRespectMode) return;
     let avatarObj = AvatarObj.getInstance();
     history.replace(
       PAGES.LEADERBOARD +
@@ -95,7 +108,9 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
               ? "profile-header-center"
               : "profile-header-left"
           }`}
-          onClick={() => onEdit()}
+          onClick={() => {
+            if (!Util.isRespectMode) onEdit();
+          }}
         >
           <img
             src={student?.image || `/assets/avatars/${student?.avatar ?? AVATARS[0]}.png`}
@@ -116,7 +131,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
       </div>
 
       <div className="profile-menu-list">
-        {menuItems.map((item, index) => (
+        {visibleMenuItems.map((item, index) => (
           <div key={index} className="profile-menu-item" onClick={item.onClick}>
             <div className="profile-menu-item-row">
               <img
