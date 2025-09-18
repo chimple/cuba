@@ -43,7 +43,8 @@ const LidoPlayer: FC = () => {
 
   const gameCompleted = (e: any) => {
     console.log("Game completed", e.detail);
-    if (e.detail) setGameResult(e.detail);
+    console.log("SCOREEEEEEE", e.detail);
+
     setShowDialogBox(true);
   };
   // const push = () => {
@@ -137,6 +138,7 @@ const LidoPlayer: FC = () => {
     avatarObj.weeklyTimeSpent["min"] = computeMinutes;
     avatarObj.weeklyTimeSpent["sec"] = computeSec;
     avatarObj.weeklyPlayedLesson++;
+    setGameResult(data);
     await api.updateResult(
       currentStudent.id,
       courseDocId,
@@ -265,7 +267,6 @@ const LidoPlayer: FC = () => {
   async function init() {
     setIsLoading(true);
     setShowDialogBox(false);
-    setGameResult(null);
     const urlSearchParams = new URLSearchParams(window.location.search);
     const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
     const lessonIds: string[] = [lessonId];
