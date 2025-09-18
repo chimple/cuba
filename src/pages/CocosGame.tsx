@@ -524,22 +524,7 @@ const CocosGame: React.FC = () => {
         schoolId
       );
       // Check if the game was played from the `/home` URL and if the user is connected to a class, Update the learning path only if the conditions are met
-      const student = Util.getCurrentStudent();
-      const learningPathObj = student?.learning_path
-        ? JSON.parse(student.learning_path as string)
-        : null;
-      const currentCourseId = lesson?.course_id || courseDocId;
-      let shouldUpdateLearningPath = false;
-
-      if (learningPathObj?.courses?.courseList) {
-        shouldUpdateLearningPath = learningPathObj.courses.courseList.some(
-          (c) => c.course_id === currentCourseId
-        );
-      }
-
-      // Update learning path only when launched from Home (Learning Pathway)
-      const isLessonPlayedFromHome = localStorage.getItem("currentHeader") === HOMEHEADERLIST.HOME;
-      if (shouldUpdateLearningPath && isLessonPlayedFromHome) {
+      if (learning_path) {
         await updateLearningPath();
       }
 
