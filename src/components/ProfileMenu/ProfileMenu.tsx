@@ -34,17 +34,6 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const [isClosing, setIsClosing] = useState(false);
 
   const currentHeader = HOMEHEADERLIST.PROFILE;
-  const menuItems = [
-      { icon: "/assets/icons/Ranking.svg", label: "Leaderboard", onClick: () => onLeaderboard() },
-      { icon: "/assets/icons/TreasureChest.svg", label: "Rewards", onClick: () => onReward() },
-      { icon: "/assets/icons/Pencil.svg", label: "Edit Profile", onClick: () => onEdit() },
-      { icon: "/assets/icons/Account.svg", label: "Parents Section", onClick: () => setShowDialogBox(true) },
-      { icon: "/assets/icons/UserSwitch1.svg", label: "Switch Profile", onClick: () => onSwichUser() },
-    ];
-  useEffect(() => {
-    const student = Util.getCurrentStudent();
-    setStudent(student);
-  }, []);
 
   const onEdit = async () => {
     history.replace(PAGES.EDIT_STUDENT, {
@@ -57,6 +46,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
       from: history.location.pathname,
     });
   };
+
   const onReward = () => {
     let avatarObj = AvatarObj.getInstance();
     history.replace(
@@ -65,19 +55,73 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     );
   };
 
-  const onSwichUser=async () => {
+  const onSwichUser = async () => {
     Util.setParentLanguagetoLocal();
     history.replace(PAGES.DISPLAY_STUDENT, {
       from: history.location.pathname,
     });
   };
 
+  const currentMode = localStorage.getItem(CURRENT_MODE);
+
+  const allMenuItems = [
+    {
+      icon: "/assets/icons/Ranking.svg",
+      label: "Leaderboard",
+      onClick: onLeaderboard,
+    },
+    {
+      icon: "/assets/icons/TreasureChest.svg",
+      label: "Rewards",
+      onClick: onReward,
+    },
+    {
+      icon: "/assets/icons/Pencil.svg",
+      label: "Edit Profile",
+      onClick: onEdit,
+    },
+    {
+      icon: "/assets/icons/Account.svg",
+      label: "Parents Section",
+      onClick: () => setShowDialogBox(true),
+    },
+    {
+      icon: "/assets/icons/UserSwitch1.svg",
+      label: "Switch Profile",
+      onClick: onSwichUser,
+    },
+  ];
+
+  const HIDE_IN_SCHOOL = new Set(["Parents Section", "Edit Profile"]);
+
+  const menuItems = allMenuItems
+    .filter(
+      (item) =>
+        !(currentMode === MODES.SCHOOL && HIDE_IN_SCHOOL.has(item.label))
+    )
+    .map((item) =>
+      currentMode === MODES.SCHOOL && item.label === "Switch Profile"
+        ? {
+            ...item,
+            onClick: () =>
+              history.replace(PAGES.SELECT_MODE, {
+                from: history.location.pathname,
+              }),
+          }
+        : item
+    );
+
+  useEffect(() => {
+    const student = Util.getCurrentStudent();
+    setStudent(student);
+  }, []);
+
   return (
     <div
       className={`profile-menu ${isClosing ? "slide-out-right" : "slide-in-right"}`}
       onAnimationEnd={() => {
         if (isClosing) {
-          onClose();           //call parent only after animation finished
+          onClose();
         }
       }}
     >
@@ -98,7 +142,10 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
           onClick={() => onEdit()}
         >
           <img
-            src={student?.image || `/assets/avatars/${student?.avatar ?? AVATARS[0]}.png`}
+            src={
+              student?.image ||
+              `/assets/avatars/${student?.avatar ?? AVATARS[0]}.png`
+            }
             alt="Profile"
           />
           <span className="profile-header-name">
