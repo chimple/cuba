@@ -40,7 +40,6 @@ import { t } from "i18next";
 import { useHistory } from "react-router";
 import { schoolUtil } from "../../utility/schoolUtil";
 import { Capacitor } from "@capacitor/core";
-import { ScreenOrientation } from "@capacitor/screen-orientation";
 import Header from "../components/homePage/Header";
 
 const PAGE_LIMIT = 50;
@@ -81,7 +80,6 @@ const SearchSchool: FC = () => {
   const [hasMoreSchools, setHasMoreSchools] = useState(true);
 
   useEffect(() => {
-    lockOrientation();
     const loadCountries = async () => {
       setCountriesLoading(true);
       const data = await api.getGeoData({});
@@ -129,6 +127,7 @@ const SearchSchool: FC = () => {
       const loadBlocks = async () => {
         setBlocksLoading(true);
         const data = await api.getGeoData({
+          p_country: country,
           p_state: state,
           p_district: district,
         });
@@ -146,6 +145,8 @@ const SearchSchool: FC = () => {
       const loadClusters = async () => {
         setClustersLoading(true);
         const data = await api.getGeoData({
+          p_country: country,
+          p_state: state,
           p_district: district,
           p_block: block,
         });
@@ -198,12 +199,6 @@ const SearchSchool: FC = () => {
 
     setSchools((prev) => (isNewSearch ? newSchools : [...prev, ...newSchools]));
     setSearchingSchools(false);
-  };
-
-  const lockOrientation = () => {
-    if (Capacitor.isNativePlatform()) {
-      ScreenOrientation.lock({ orientation: "portrait" });
-    }
   };
 
   const loadMoreSchools = (event: any) => {
