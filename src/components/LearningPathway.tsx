@@ -80,8 +80,11 @@ const LearningPathway: React.FC = () => {
   };
 
   const fetchLearningPathway = async (student: any) => {
-    const currClass = schoolUtil.getCurrentClass();
-
+    let currClass;
+    const isLinked = await api.isStudentLinked(student.id);
+    if (isLinked) {
+      currClass = schoolUtil.getCurrentClass();
+    }
     try {
       const userCourses = currClass
         ? await api.getCoursesForClassStudent(currClass.id)
@@ -93,7 +96,7 @@ const LearningPathway: React.FC = () => {
 
       if (!learningPath || !learningPath.courses?.courseList?.length) {
         setLoading(true);
-        learningPath = await buildInitialLearningPath(userCourses, student.id);
+        learningPath = await buildInitialLearningPath(userCourses);
         await saveLearningPath(student, learningPath);
         setLoading(false);
         if (Util.isRespectMode) setPathwayReady(true);
@@ -104,7 +107,7 @@ const LearningPathway: React.FC = () => {
         );
 
         let learning_path_completed: { [key: string]: number } = {};
-        learningPath.courses.courseList.forEach(course => {
+        learningPath.courses.courseList.forEach((course) => {
           const { subject_id, currentIndex } = course;
           if (subject_id && currentIndex !== undefined) {
             learning_path_completed[`${subject_id}_path_completed`] = currentIndex;
@@ -114,7 +117,7 @@ const LearningPathway: React.FC = () => {
         setGbUpdated(true);
         
         if (updated) {
-          learningPath = await buildInitialLearningPath(userCourses, student.id);
+          learningPath = await buildInitialLearningPath(userCourses);
           await saveLearningPath(student, learningPath);
         }
         if (Util.isRespectMode) setPathwayReady(true);
@@ -126,48 +129,17 @@ const LearningPathway: React.FC = () => {
     }
   };
 
-  const buildInitialLearningPath = async (courses: any[], studentId?: string) => {
-    let studentResults: TableTypes<"result">[] = [];
-    if (studentId) {
-      try {
-        studentResults = await api.getStudentResult(studentId, false);
-      } catch (e) {
-        studentResults = [];
-      }
-    }
-
+  const buildInitialLearningPath = async (courses: any[]) => {
     const courseList = await Promise.all(
-      courses.map(async (course) => {
-        const lessonPath = await buildLessonPath(course.id);
-
-        // Find the latest result for this course
-        const courseResults = studentResults
-          .filter(
-            (r) =>
-              r.course_id === course.id &&
-              r.lesson_id
-          )
-          .sort((a, b) =>
-            new Date(a.updated_at ?? 0) > new Date(b.updated_at ?? 0) ? 1 : -1
-          );
-
-        let nextLessonIndex = 0;
-        if (courseResults.length > 0) {
-          const lastLessonId = courseResults[courseResults.length - 1].lesson_id;
-          const idx = lessonPath.findIndex((l) => l.lesson_id === lastLessonId);
-          nextLessonIndex = idx >= 0 ? idx + 1 : 0;
-        }
-
-        return {
-          path_id: uuidv4(),
-          course_id: course.id,
-          subject_id: course.subject_id,
-          path: lessonPath,
-          startIndex: 0, // Always show first 5 lessons
-          currentIndex: nextLessonIndex,
-          pathEndIndex: 4,
-        };
-      })
+      courses.map(async (course) => ({
+        path_id: uuidv4(),
+        course_id: course.id,
+        subject_id: course.subject_id,
+        path: await buildLessonPath(course.id),
+        startIndex: 0,
+        currentIndex: 0,
+        pathEndIndex: 4,
+      }))
     );
 
     return {
