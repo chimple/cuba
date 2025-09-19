@@ -48,8 +48,6 @@ const JoinSchool: React.FC = () => {
       history.replace(PAGES.REQ_ADD_SCHOOL);
     } catch (error) {
       console.error("Error sending join school request:", error);
-    }
-    finally {
       setSending(false);
     }
   };
