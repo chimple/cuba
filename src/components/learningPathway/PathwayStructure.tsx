@@ -394,9 +394,9 @@ const PathwayStructure: React.FC = () => {
               });
 
               const chimple = createSVGImage(
-                "assets/icons/Pangolim1.svg",
-                75,
-                81,
+                "assets/icons/1.svg",
+                95,
+                100,
                 x,
                 startPoint.y + 65
               );
