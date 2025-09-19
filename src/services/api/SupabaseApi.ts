@@ -2563,7 +2563,7 @@ export class SupabaseApi implements ServiceApi {
       .select("role")
       .eq("user_id", userId)
       .eq("is_deleted", false)
-      .single();
+      .maybeSingle();
 
     if (specialError) {
       console.error("Error fetching special_users:", specialError);
@@ -4561,7 +4561,7 @@ export class SupabaseApi implements ServiceApi {
     course_id: string,
     type: string,
     batch_id: string,
-    source : string | null,
+    source: string | null,
     created_at?: string
   ): Promise<boolean> {
     if (!this.supabase) return false;
@@ -4586,7 +4586,7 @@ export class SupabaseApi implements ServiceApi {
             chapter_id,
             course_id,
             type,
-            source: source?? null,
+            source: source ?? null,
             batch_id: batch_id ?? null,
             created_at: created_at ?? timestamp,
             updated_at: timestamp,
@@ -4695,7 +4695,10 @@ export class SupabaseApi implements ServiceApi {
       throw error;
     }
   }
-  async addTeacherToClass(classId: string, user: TableTypes<"user">): Promise<void> {
+  async addTeacherToClass(
+    classId: string,
+    user: TableTypes<"user">
+  ): Promise<void> {
     if (!this.supabase) return;
 
     const classUserId = uuidv4();
@@ -7066,48 +7069,25 @@ export class SupabaseApi implements ServiceApi {
     }
     return !!(data && data.length > 0);
   }
-
   async getUserSpecialRoles(userId: string): Promise<string[]> {
-    if (!this.supabase) {
-      console.error("Supabase client not initialized.");
-      return [];
-    }
+    if (!this.supabase || !userId) return [];
 
-    if (!userId) {
-      console.warn("userId is missing. Cannot fetch roles.");
-      return [];
-    }
+    const { data } = await this.supabase
+      .from("special_users")
+      .select("role")
+      .eq("user_id", userId)
+      .in("role", [
+        "super_admin",
+        "operational_director",
+        "program_manager",
+        "field_coordinator",
+      ])
+      .eq("is_deleted", false);
 
-    try {
-      const { data, error } = await this.supabase
-        .from("special_users")
-        .select("role")
-        .eq("user_id", userId)
-        .in("role", [
-          "super_admin",
-          "operational_director",
-          "program_manager",
-          "field_coordinator",
-        ])
-        .eq("is_deleted", false);
-
-      if (error) {
-        console.error(
-          "Error fetching roles from special_users:",
-          error.message
-        );
-        return [];
-      }
-
-      const roles = (data ?? [])
-        .map((item) => item.role)
-        .filter((role): role is NonNullable<typeof role> => role !== null);
-
-      return roles;
-    } catch (e) {
-      console.error("Unexpected error while fetching user special roles:", e);
-      return [];
-    }
+    // Always return array, ignore errors completely
+    return (data ?? [])
+      .map((item) => item.role)
+      .filter((role): role is NonNullable<typeof role> => role !== null);
   }
 
   async updateSpecialUserRole(userId: string, role: string): Promise<void> {
@@ -7250,22 +7230,24 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
   }
-  async getChapterIdbyQrLink(link: string): Promise<TableTypes<"chapter_links"> | undefined> {
-      throw new Error("Method not implemented.");
+  async getChapterIdbyQrLink(
+    link: string
+  ): Promise<TableTypes<"chapter_links"> | undefined> {
+    throw new Error("Method not implemented.");
   }
-  async addParentToNewClass(classID:string, studentId:string){
+  async addParentToNewClass(classID: string, studentId: string) {
     try {
-        if (!this.supabase) return;
-         const { error } = await this.supabase.rpc('add_parent_to_newclass', {
-         _class_id: classID,
-         _student_id: studentId
-       });
+      if (!this.supabase) return;
+      const { error } = await this.supabase.rpc("add_parent_to_newclass", {
+        _class_id: classID,
+        _student_id: studentId,
+      });
 
-        if (error) {
-          console.log('Failed to add parent to class:', error.message);
-        }
+      if (error) {
+        console.log("Failed to add parent to class:", error.message);
+      }
     } catch (error) {
-      console.error('Error in addParentToNewClass:', error);
+      console.error("Error in addParentToNewClass:", error);
     }
   }
 }

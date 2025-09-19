@@ -21,6 +21,7 @@ import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { Util } from "../../utility/util";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 import { schoolUtil } from "../../utility/schoolUtil";
+import { ApiHandler } from "../api/ApiHandler";
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -249,27 +250,42 @@ export class SupabaseAuth implements ServiceAuth {
       const authData = await this._auth?.getSession();
       if (!authData || !authData.data.session?.user?.id) return;
 
-      const api = ServiceConfig.getI().apiHandler;
+      let userRole;
+      let api = ServiceConfig.getI().apiHandler;
+      try {
+        userRole = await api.getUserSpecialRoles(
+          authData.data.session?.user.id
+        );
+      } catch {
+        let mode = localStorage.getItem("currentMode");
+        console.log("currentModecurrentMode", mode);
+        if (mode === MODES.OPS_CONSOLE) {
+          ServiceConfig.getInstance(APIMode.SUPABASE);
+        } else {
+          ServiceConfig.getInstance(APIMode.SQLITE);
+        }
+      }
 
-      const userRole = await api.getUserSpecialRoles(
-        authData.data.session?.user.id
-      );
       if (userRole.length > 0) {
         localStorage.setItem(USER_ROLE, JSON.stringify(userRole));
       } else {
         localStorage.removeItem(USER_ROLE);
       }
-
+      console.log("SessionsId", authData.data.session?.user.id);
+      console.log("SessionAuthDataaaaaaaaaa", authData);
+      console.log("SessionDataaaaaaaaaa", authData.data);
+      console.log("SessionSession", authData.data.session);
+      console.log("SessionSessionAPI", JSON.stringify(api));
+      console.log("SessionSessionAPIALOK", api);
       let user = await api.getUserByDocId(authData.data.session?.user.id);
-        if (user){
-          localStorage.setItem(USER_DATA, JSON.stringify(user));
-          this._currentUser = user;
-          return this._currentUser;
-        }
-        else{
-          this._auth?.signOut()
-          return
-        }
+      if (user) {
+        localStorage.setItem(USER_DATA, JSON.stringify(user));
+        this._currentUser = user;
+        return this._currentUser;
+      } else {
+        this._auth?.signOut();
+        return;
+      }
     }
   }
   async doRefreshSession(): Promise<void> {
