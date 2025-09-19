@@ -1,31 +1,25 @@
 .search-school-page ion-content {
   --background: #ffffff;
 }
-
-.search-school-header ion-toolbar {
-  --background: #8e6fc5;
-  --color: #ffffff;
-}
-
-.search-school-header ion-back-button {
-  --color: #ffffff;
-}
-
-.search-school-help-icon {
-  font-size: 1.8rem;
-  padding-inline-end: 0.8rem;
-}
-
-.search-school-container {
+.search-school-page ion-header ion-toolbar {
+  --background: #7c5db0; 
+  --color: white;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  height: 10vh;
   display: flex;
-  flex-direction: column;
-  padding: 1rem 1.5rem;
-  height: 100%;
+  align-items: center;
 }
+
 .search-school-fixed-top-area {
-  flex-shrink: 0;
-  background: #fff;
+  position: sticky;
+  top: 0;
   z-index: 10;
+  background: var(--ion-background-color, white);
+  padding: 1rem 1.5rem 0.5rem 1.5rem; 
+  background-color: #ffffff;
 }
 
 .search-school-scrollable-list {
@@ -49,10 +43,11 @@
 
 .search-school-results-list-cards {
   --ion-list-padding: 0px;
-  padding-top: 0;
-  padding-bottom: 0;
+  /* padding-top: 8px; Small space between header and list */
+  padding-left: 1.5rem; 
+  padding-right: 1.5rem; 
+  background-color: white;
 }
-
 .search-school-asterisk {
   color: red;
 }
@@ -103,10 +98,6 @@
   display: block;
   overflow: hidden;
   white-space: nowrap;
-}
-
-.search-school-backbutton{
-    color: white;
 }
 
 .search-school-select::part(text) {
