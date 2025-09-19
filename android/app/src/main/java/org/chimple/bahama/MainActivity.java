@@ -45,6 +45,7 @@ public  class MainActivity extends BridgeActivity {
             }
             FirebaseCrashlytics.getInstance().recordException(throwable);
         });
+        initializeActivityLauncher();
 
         registerPlugin(PortPlugin.class);
         super.onCreate(savedInstanceState);
@@ -55,30 +56,6 @@ public  class MainActivity extends BridgeActivity {
         decorView.setSystemUiVisibility(uiOptions);
 
         FirebaseApp.initializeApp(/*context=*/ this);
-        FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();
-        firebaseAppCheck.installAppCheckProviderFactory(
-                DebugAppCheckProviderFactory.getInstance());
-        var _hash = getAppHash(this);
-        System.out.println("HashCode: " + _hash);
-        initializeActivityLauncher();
-    }
-
-    public static String getAppHash(Context context) {
-        try {
-            String packageName = context.getPackageName();
-            String signature = context.getPackageManager()
-                    .getPackageInfo(packageName, PackageManager.GET_SIGNATURES)
-                    .signatures[0]
-                    .toCharsString();
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update((packageName + " " + signature).getBytes());
-            byte[] hash = md.digest();
-            String appHash = Base64.encodeToString(hash, Base64.NO_WRAP).substring(0, 11);
-            return appHash;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
     }
     public void initializeActivityLauncher(){
         // Register the ActivityResultLauncher for Phone Number Hint
