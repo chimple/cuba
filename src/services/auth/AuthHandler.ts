@@ -26,7 +26,7 @@ export class AuthHandler implements ServiceAuth {
     return AuthHandler.i;
   }
 
-  async googleSign(): Promise<boolean> {
+  async googleSign(): Promise<{ success: boolean; isSpl: boolean }> {
     return await this.s.googleSign();
   }
 
@@ -57,14 +57,17 @@ export class AuthHandler implements ServiceAuth {
     return await this.s.resendOtpMsg91(phoneNumber);
   }
 
-  public async loginWithEmailAndPassword(email: any, password: any) {
+  public async loginWithEmailAndPassword(
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; isSpl: boolean }> {
     return await this.s.loginWithEmailAndPassword(email, password);
   }
 
   public async proceedWithVerificationCode(
     verificationId,
     verificationCode
-  ): Promise<{ user: any; isUserExist: boolean } | undefined> {
+  ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean } | undefined> {
     return await this.s.proceedWithVerificationCode(
       verificationId,
       verificationCode
@@ -80,7 +83,7 @@ export class AuthHandler implements ServiceAuth {
   public async signInWithEmail(
     email: string,
     password: string
-  ): Promise<boolean> {
+  ): Promise<{ success: boolean; isSpl: boolean }> {
     return await this.s.signInWithEmail(email, password);
   }
   public async sendResetPasswordEmail(email: string): Promise<boolean> {

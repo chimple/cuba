@@ -1,0 +1,208 @@
+.ForgotPass-method-with-email {
+  position: absolute;
+  top: 40%;
+  width: 100%;
+  height: 100%;
+  background-image: url("/public/assets/loginAssets/LoginBG2.svg");
+  background-repeat: no-repeat;
+  background-position: top center;
+}
+
+.ForgotPass-container-with-email {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.ForgotPass-with-email-text {
+  font-size: 24px;
+  color: var(--text-color);
+  font-weight: bold;
+}
+
+.ForgotPass-forgot-email-text {
+  font-size: 20px;
+  color: var(--text-color);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Student input container */
+.ForgotPass-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.ForgotPass-divider-with-email {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.ForgotPass-input-icon-wrapper-email {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 10px;
+  width: 325px;
+  height: 50px;
+  padding-left: 12px;
+  overflow: hidden;
+}
+
+.ForgotPass-input-icon-email {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+}
+
+.ForgotPass-email-input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 18px;
+  background-color: transparent;
+  font-weight: 600;
+  color: var(--text-color);
+  border-left: 1px solid #dff2f2;
+  padding: 0 12px;
+}
+
+.ForgotPass-email-input::placeholder {
+  color: var(--text-color);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ForgotPass-forgot-password-email-text {
+  color: var(--text-color);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-align: right;
+}
+
+/* START button */
+.ForgotPass-with-email-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 220px !important;
+  height: 60px !important;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 28px;
+  font-weight: 600;
+  padding-top: 4px;
+  border-bottom: 6px solid #8A2901;
+}
+
+.ForgotPass-with-email-button:active {
+  border-bottom: 4px  solid #8A2901 !important;
+  transition:
+    background 0.1s,
+    color 0.1s;
+}
+
+.ForgotPass-with-email-button:disabled {
+  background-color: #6d8c87 !important;
+  color: #a8a8a8 !important;
+  border-bottom:7Px solid #8a8a8a !important;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Error message */
+.ForgotPass-error-message-email {
+  color: var(--text-color);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@media (orientation: landscape) {
+  .ForgotPass-container-with-email{
+    margin-top: 10px;
+  }
+  .ForgotPass-input-wrapper {
+    flex-direction: row;
+    width: auto;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .ForgotPass-input-icon-wrapper-email {
+    width: 325px;
+    height: 40px;
+    margin-top: -10px;
+  }
+
+  .ForgotPass-with-email-button {
+    height: 40px;
+  }
+
+  .ForgotPass-divider-with-email {
+    flex-direction: row;
+  }
+}
+
+/* Responsive styling */
+@media (max-width: 768px) {
+  .ForgotPass-forgot-email-text {
+    margin-top: 10%;
+  }
+
+  .ForgotPass-input-wrapper {
+    margin-top: 15px;
+  }
+
+  .ForgotPass-method-with-email {
+    border-top-left-radius: 50% 80px;
+    border-top-right-radius: 50% 80px;
+    background-size: cover;
+    top: 33%;
+    min-height: 220px;
+    padding-top: 32px;
+    padding-bottom: 24px;
+  }
+
+  .ForgotPass-with-email-button {
+    max-width: 220px;
+    font-size: 32px;
+  }
+
+  .ForgotPass-with-email-text {
+    font-size: 32px;
+    margin-top: -10px;
+  }
+}
+
+@media (max-height: 500px) {
+  .ForgotPass-method-with-email {
+    top: 30%;
+  }
+
+  .ForgotPass-with-email-button {
+    max-width: 200px;
+    max-height: 45px;
+    margin-top: 4px;
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 400px) and (max-height: 845px) {
+  .ForgotPass-forgot-email-text{
+    margin-top: 5%;
+  }
+}
+
+@media screen and (min-width: 533px) and (max-width: 700px) and (min-height: 940px) and (max-height: 1200px){
+  .ForgotPass-method-with-email{
+    top: 37%;
+  }
+}

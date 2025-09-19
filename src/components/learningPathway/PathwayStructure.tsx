@@ -1,11 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
+import ReactDOM from "react-dom";
 import "./PathwayStructure.css";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory } from "react-router";
-import { PAGES } from "../../common/constants";
+import { CAN_ACCESS_REMOTE_ASSETS, PAGES } from "../../common/constants";
 import PathwayModal from "./PathwayModal";
 import { t } from "i18next";
+import { Directory, Filesystem } from "@capacitor/filesystem";
+import { Capacitor } from "@capacitor/core";
+import { useFeatureIsOn } from "@growthbook/growthbook-react";
+import ChimpleRiveMascot from "./ChimpleRiveMascot";
 
 const PathwayStructure: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -13,6 +18,84 @@ const PathwayStructure: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setModalOpen] = useState(false);
   const [modalText, setModalText] = useState("");
+    const [riveContainer, setRiveContainer] = useState<HTMLDivElement | null>(
+      null
+    );
+
+  const inactiveText = t("This lesson is locked. Play the current active lesson.");
+  const rewardText = t("Complete these 5 lessons to earn rewards");
+  const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
+
+  const shouldAnimate = modalText === rewardText;
+  const fetchLocalSVGGroup = async (
+    path: string,
+    className?: string
+  ): Promise<SVGGElement> => {
+    const file = await Filesystem.readFile({
+      path,
+      directory: Directory.External,
+    });
+    const svgText = atob(file.data);
+    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    group.innerHTML = svgText;
+    if (className) group.setAttribute("class", className);
+    return group;
+  };
+  const loadPathwayContent = async (
+    path: string,
+    webPath: string
+  ): Promise<string> => {
+    if (shouldShowRemoteAssets && Capacitor.isNativePlatform()) {
+      try {
+        const file = await Filesystem.readFile({
+          path,
+          directory: Directory.External,
+        });
+        return atob(file.data);
+      } catch {
+        const res = await fetch(webPath);
+        return await res.text();
+      }
+    } else {
+      const res = await fetch(webPath);
+      return await res.text();
+    }
+  };
+
+  const loadHaloAnimation = async (
+    localPath: string,
+    webPath: string
+  ): Promise<string> => {
+    if (Capacitor.isNativePlatform() && shouldShowRemoteAssets) {
+      try {
+        const file = await Filesystem.readFile({
+          path: localPath,
+          directory: Directory.External,
+        });
+        return `data:image/svg+xml;base64,${file.data}`;
+      } catch (err) {
+        console.warn("Fallback to web asset for:", webPath, err);
+        return webPath;
+      }
+    }
+    return webPath;
+  };
+
+  const tryFetchSVG = async (
+    localPath: string,
+    webPath: string,
+    name: string
+  ) => {
+    if (Capacitor.isNativePlatform() && shouldShowRemoteAssets) {
+      try {
+        return await fetchLocalSVGGroup(localPath, name);
+      } catch {
+        return await fetchSVGGroup(webPath, name);
+      }
+    } else {
+      return await fetchSVGGroup(webPath, name);
+    }
+  };
 
   const fetchSVGGroup = async (
     url: string,
@@ -43,7 +126,7 @@ const PathwayStructure: React.FC = () => {
     if (height) image.setAttribute("height", `${height}`);
     if (x) image.setAttribute("x", `${x}`);
     if (y) image.setAttribute("y", `${y}`);
-    if (opacity !== undefined){
+    if (opacity !== undefined) {
       image.setAttribute("opacity", opacity.toString());
     }
     // ✅ Add onerror fallback
@@ -64,284 +147,264 @@ const PathwayStructure: React.FC = () => {
   };
 
   useEffect(() => {
-    const loadSVG = async (updatedStudent?: any) => {
-      if (!containerRef.current) return;
+   // Cache lesson data
+const lessonCache = new Map<string, any>();
 
-      try {
-        const currentStudent = await Util.getCurrentStudent();
-        const learningPath = currentStudent?.learning_path
-          ? JSON.parse(currentStudent.learning_path)
-          : null;
-        if (!learningPath) return;
+const getCachedLesson = async (lessonId: string): Promise<any> => {
+  if (lessonCache.has(lessonId)) return lessonCache.get(lessonId);
 
-        const currentCourseIndex = learningPath?.courses.currentCourseIndex;
-        const course = learningPath?.courses.courseList[currentCourseIndex];
-        const { startIndex, currentIndex, pathEndIndex } = course;
+  const key = `lesson_${lessonId}`;
+  const cached = sessionStorage.getItem(key);
+  if (cached) {
+    const parsed = JSON.parse(cached);
+    lessonCache.set(lessonId, parsed);
+    return parsed;
+  }
 
-        const lessons = await Promise.all(
-          course.path
-            .slice(startIndex, pathEndIndex + 1)
-            .map(async (lesson) => {
-              return await api.getLesson(lesson.lesson_id);
-            })
-        );
+  const lesson = await api.getLesson(lessonId);
+  lessonCache.set(lessonId, lesson);
+  sessionStorage.setItem(key, JSON.stringify(lesson));
+  return lesson;
+};
 
-        const res = await fetch("/pathwayAssets/English/Pathway.svg");
-        const svgContent = await res.text();
-        containerRef.current.innerHTML = svgContent;
+const preloadImage = (src: string): Promise<void> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => resolve();
+    img.onerror = () => resolve();
+  });
+};
 
-        const svg = containerRef.current.querySelector("svg") as SVGSVGElement;
-        if (!svg) return;
+const preloadAllLessonImages = async (lessons: any[]) => {
+  await Promise.all(
+    lessons.map((lesson) => {
+      const isValidUrl = typeof lesson.image === "string" && /^(https?:\/\/|\/)/.test(lesson.image);
+      const src = isValidUrl ? lesson.image : "assets/icons/DefaultIcon.png";
+      return preloadImage(src);
+    })
+  );
+};
 
-        const pathGroups = svg.querySelectorAll("g > path");
-        const paths = Array.from(pathGroups) as SVGPathElement[];
+const loadSVG = async (updatedStudent?: any) => {
+  if (!containerRef.current) return;
 
-        const [
-          flowerActive,
-          flowerInactive,
-          playedLessonSVG,
-          giftSVG,
-          giftSVG2,
-          giftSVG3,
-        ] = await Promise.all([
-          fetchSVGGroup(
-            "/pathwayAssets/English/FlowerActive.svg",
-            "flowerActive isSelected"
-          ),
-          fetchSVGGroup("/pathwayAssets/FlowerInactive.svg", "flowerInactive"),
-          fetchSVGGroup(
-            "/pathwayAssets/English/PlayedLesson.svg",
-            "playedLessonSVG"
-          ),
-          fetchSVGGroup("/pathwayAssets/English/pathGift1.svg", "giftSVG"),
-          fetchSVGGroup("/pathwayAssets/English/pathGift2.svg", "giftSVG2"),
-          fetchSVGGroup("/pathwayAssets/English/pathGift3.svg", "giftSVG3"),
-        ]);
+  try {
+    const startTime = performance.now();
 
-        const startPoint = paths[0].getPointAtLength(0);
-        const xValues = [27, 155, 276, 387, 496];
+    const currentStudent = Util.getCurrentStudent();
+    const learningPath = currentStudent?.learning_path ? JSON.parse(currentStudent.learning_path) : null;
+    if (!learningPath) return;
 
-        lessons.forEach((lesson, idx) => {
-          const path = paths[idx];
-          const point = path.getPointAtLength(0);
-          const flowerX = point.x - 40;
-          const flowerY = point.y - 40;
-          const x = xValues[idx] ?? 0;
-          const isValidUrl = (url: string) =>
-            typeof url === "string" && /^(https?:\/\/|\/)/.test(url);
-          const lesson_image = isValidUrl(lesson.image)
-            ? lesson.image
-            : "assets/icons/DefaultIcon.png";
+    const currentCourseIndex = learningPath?.courses.currentCourseIndex;
+    const course = learningPath?.courses.courseList[currentCourseIndex];
+    const { startIndex, currentIndex, pathEndIndex } = course;
 
-          // Define x and y mappings for playedLesson positioning
-          const playedLessonXValues = [
-            flowerX - 5,
-            flowerX - 10,
-            flowerX - 7,
-            flowerX,
-            flowerX,
-          ];
-          const playedLessonYValues = [
-            flowerY - 4,
-            flowerY - 7,
-            flowerY - 10,
-            flowerY - 5,
-            flowerY,
-          ];
+    const [
+      svgContent,
+      lessons,
+      flowerActive,
+      flowerInactive,
+      playedLessonSVG,
+      giftSVG,
+      giftSVG2,
+      giftSVG3,
+      haloPath
+    ] = await Promise.all([
+      loadPathwayContent("remoteAsset/Pathway.svg", "/pathwayAssets/English/Pathway.svg"),
+      Promise.all(
+        course.path.slice(startIndex, pathEndIndex + 1).map(({ lesson_id }) => getCachedLesson(lesson_id))
+      ),
+      tryFetchSVG("remoteAsset/FlowerActive.svg", "/pathwayAssets/English/FlowerActive.svg", "flowerActive isSelected"),
+      fetchSVGGroup("/pathwayAssets/FlowerInactive.svg", "flowerInactive"),
+      tryFetchSVG("remoteAsset/PlayedLesson.svg", "/pathwayAssets/English/PlayedLesson.svg", "playedLessonSVG"),
+      tryFetchSVG("remoteAsset/pathGift1.svg", "/pathwayAssets/English/pathGift1.svg", "giftSVG"),
+      tryFetchSVG("remoteAsset/pathGift2.svg", "/pathwayAssets/English/pathGift2.svg", "giftSVG2"),
+      tryFetchSVG("remoteAsset/pathGift3.svg", "/pathwayAssets/English/pathGift3.svg", "giftSVG3"),
+      loadHaloAnimation("remoteAsset/halo.svg", "/pathwayAssets/English/halo.svg")
+    ]);
 
-          // Use the mappings to determine x and y
-          const playedLessonX = playedLessonXValues[idx] ?? flowerX - 20;
-          const playedLessonY = playedLessonYValues[idx] ?? flowerY - 20;
+    await preloadAllLessonImages(lessons);
 
-          if (startIndex + idx < currentIndex) {
-            const playedLesson = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "g"
-            );
-            const lessonImage = createSVGImage(lesson_image, 30, 30, 28, 30);
-            playedLesson.appendChild(
-              playedLessonSVG.cloneNode(true) as SVGGElement
-            );
-            playedLesson.appendChild(lessonImage);
+    requestAnimationFrame(() => {
+      containerRef.current!.innerHTML = svgContent;
+      const svg = containerRef.current!.querySelector("svg") as SVGSVGElement;
+      if (!svg) return;
 
-            // Place the playedLesson element using the mapped x and y values
-            placeElement(
-              svg,
-              playedLesson as SVGGElement,
-              playedLessonX,
-              playedLessonY
-            );
-          } else if (startIndex + idx === currentIndex) {
-            const activeGroup = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "g"
-            );
+      const pathGroups = svg.querySelectorAll("g > path");
+      const paths = Array.from(pathGroups) as SVGPathElement[];
+      const startPoint = paths[0].getPointAtLength(0);
+      const xValues = [27, 155, 276, 387, 496];
 
-            // Define x and y mappings for activeGroup positioning
-            const activeGroupXValues = [
-              flowerX - 20,
-              flowerX - 20,
-              260,
-              flowerX - 10,
-              flowerX - 15,
-            ];
-            const activeGroupYValues = [flowerY - 23, 5, 10, 5, 10];
+      const fragment = document.createDocumentFragment();
 
-            // Use the mappings to determine x and y
-            const activeGroupX = activeGroupXValues[idx] ?? flowerX - 20;
-            const activeGroupY = activeGroupYValues[idx] ?? flowerY - 20;
+      lessons.forEach((lesson, idx) => {
+        const path = paths[idx];
+        const point = path.getPointAtLength(0);
+        const flowerX = point.x - 40;
+        const flowerY = point.y - 40;
+        const x = xValues[idx] ?? 0;
 
-            activeGroup.setAttribute(
-              "transform",
-              `translate(${activeGroupX}, ${activeGroupY})`
-            );
-            const halo = createSVGImage(
-              "/pathwayAssets/English/halo.svg",
-              140,
-              140,
-              -15,
-              -12
-            );
-            const pointer = createSVGImage(
-              "/pathwayAssets/touchPointer.gif",
-              130,
-              130,
-              60,
-              30
-            );
-            const lessonImage = createSVGImage(lesson_image, 30, 30, 40, 40);
-            activeGroup.appendChild(halo);
-            activeGroup.appendChild(
-              flowerActive.cloneNode(true) as SVGGElement
-            );
-            activeGroup.appendChild(lessonImage);
-            activeGroup.appendChild(pointer);
-            activeGroup.setAttribute("style", "cursor: pointer;");
-            // Add click handler for active lesson
-            activeGroup.addEventListener("click", () => {
-              if (lesson.plugin_type === "cocos") {
-                const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-                history.replace(PAGES.GAME + params, {
-                  url: "chimple-lib/index.html" + params,
-                  lessonId: lesson.cocos_lesson_id,
-                  courseDocId: course.course_id,
-                  // course: JSON.stringify(course),
-                  lesson: JSON.stringify(lesson),
-                  chapter: JSON.stringify({ chapter_id: lesson.chapter_id }),
-                  from: history.location.pathname + `?continue=true`,
-                  learning_path: true,
-                });
-              }
-            });
-            const chimple = createSVGImage(
-              "/pathwayAssets/mascot.svg",
-              75,
-              81,
-              x,
-              startPoint.y + 65
-            );
+        const isValidUrl = (url: string) => typeof url === "string" && /^(https?:\/\/|\/)/.test(url);
+        const lesson_image = isValidUrl(lesson.image) ? lesson.image : "assets/icons/DefaultIcon.png";
 
-            svg.appendChild(activeGroup);
-            svg.appendChild(chimple);
-          } else {
-            const flower_Inactive = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "g"
-            );
-            const lessonImage = createSVGImage(lesson_image, 30, 30, 21, 23);
-            flower_Inactive.appendChild(
-              flowerInactive.cloneNode(true) as SVGGElement
-            );
-            flower_Inactive.appendChild(lessonImage);
-            flower_Inactive.addEventListener("click", () => {
-              const text = t("Lesson inactive, play the nearest active lesson");
-              setModalOpen(true);
-              setModalText(text);
-            });
-            flower_Inactive.setAttribute(
-              "style",
-              "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
-            );
-
-            // Define x and y mappings for flower_Inactive positioning
-            const flowerInactiveXValues = [
-              flowerX - 20,
-              flowerX,
-              flowerX,
-              flowerX + 5,
-              flowerX + 10,
-            ];
-            const flowerInactiveYValues = [
-              flowerY - 20,
-              flowerY + 5,
-              flowerY - 6,
-              flowerY + 3,
-              flowerY - 5,
-            ];
-
-            // Use the mappings to determine x and y
-            const flowerInactiveX = flowerInactiveXValues[idx] ?? flowerX - 20;
-            const flowerInactiveY = flowerInactiveYValues[idx] ?? flowerY - 20;
-
-            // Place the flower_Inactive element
-            placeElement(
-              svg,
-              flower_Inactive as SVGGElement,
-              flowerInactiveX,
-              flowerInactiveY
-            );
+        const positionMappings = {
+          playedLesson: {
+            x: [flowerX - 5, flowerX - 10, flowerX - 7, flowerX, flowerX],
+            y: [flowerY - 4, flowerY - 7, flowerY - 10, flowerY - 5, flowerY]
+          },
+          activeGroup: {
+            x: [flowerX - 20, flowerX - 20, 260, flowerX - 10, flowerX - 15],
+            y: [flowerY - 23, 5, 10, 5, 10]
+          },
+          flowerInactive: {
+            x: [flowerX - 20, flowerX, flowerX, flowerX + 5, flowerX + 10],
+            y: [flowerY - 20, flowerY + 5, flowerY - 6, flowerY + 3, flowerY - 5]
           }
-        });
+        };
 
-        const Gift_Svg = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "g"
-        );
+        if (startIndex + idx < currentIndex) {
+          const playedLesson = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          const lessonImage = createSVGImage(lesson_image, 30, 30, 28, 30);
+          playedLesson.appendChild(playedLessonSVG.cloneNode(true) as SVGGElement);
+          playedLesson.appendChild(lessonImage);
+          placeElement(
+            playedLesson as SVGGElement,
+            positionMappings.playedLesson.x[idx] ?? flowerX - 20,
+            positionMappings.playedLesson.y[idx] ?? flowerY - 20
+          );
+          fragment.appendChild(playedLesson);
+        } else if (startIndex + idx === currentIndex) {
+          const activeGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          activeGroup.setAttribute(
+            "transform",
+            `translate(${positionMappings.activeGroup.x[idx] ?? flowerX - 20}, ${
+              positionMappings.activeGroup.y[idx] ?? flowerY - 20
+            })`
+          );
 
-        const endPath = paths[paths.length - 1];
-        const endPoint = endPath.getPointAtLength(endPath.getTotalLength());
+          const halo = createSVGImage(haloPath, 140, 140, -15, -12);
+          const pointer = createSVGImage("/pathwayAssets/touchPointer.gif", 130, 130, 60, 30);
+          const lessonImage = createSVGImage(lesson_image, 30, 30, 40, 40);
 
-        Gift_Svg.setAttribute("style", "cursor: pointer;");
-        Gift_Svg.appendChild(giftSVG.cloneNode(true));
-        placeElement(svg, Gift_Svg, endPoint.x - 25, endPoint.y - 40);
+          activeGroup.appendChild(halo);
+          activeGroup.appendChild(flowerActive.cloneNode(true) as SVGGElement);
+          activeGroup.appendChild(lessonImage);
+          activeGroup.appendChild(pointer);
+          activeGroup.setAttribute("style", "cursor: pointer;");
 
-        if (currentIndex < pathEndIndex + 1) {
-          Gift_Svg.addEventListener("click", () => {
-            const replaceGiftContent = (newContent: SVGElement) => {
-              while (Gift_Svg.firstChild) {
-                Gift_Svg.removeChild(Gift_Svg.firstChild);
-              }
-              Gift_Svg.appendChild(newContent.cloneNode(true));
-            };
-
-            setTimeout(() => {
-              replaceGiftContent(giftSVG2);
-            }, 300);
-
-            setTimeout(() => {
-              replaceGiftContent(giftSVG3);
-            }, 500);
-
-            setTimeout(() => {
-              replaceGiftContent(giftSVG2);
-            }, 700);
-
-            setTimeout(() => {
-              replaceGiftContent(giftSVG3);
-            }, 900);
-
-            setTimeout(() => {
-              const text = t("Complete these lessons to earn rewards");
-              setModalText(text);
-              setModalOpen(true);
-              replaceGiftContent(giftSVG);
-            }, 1100);
+          activeGroup.addEventListener("click", () => {
+            if (lesson.plugin_type === "cocos") {
+              const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+              history.replace(PAGES.GAME + params, {
+                url: "chimple-lib/index.html" + params,
+                lessonId: lesson.cocos_lesson_id,
+                courseDocId: course.course_id,
+                lesson: JSON.stringify(lesson),
+                chapter: JSON.stringify({ chapter_id: lesson.chapter_id }),
+                from: history.location.pathname + `?continue=true`,
+                learning_path: true,
+              });
+            }
           });
+
+           const foreignObject = document.createElementNS(
+             "http://www.w3.org/2000/svg",
+             "foreignObject"
+           );
+           foreignObject.setAttribute("width", "33%");
+           foreignObject.setAttribute("height", "84%");
+           foreignObject.setAttribute("x", `${x - 87}`);
+           foreignObject.setAttribute("y", `${startPoint.y + 5}`);
+
+           const riveDiv = document.createElement("div");
+           riveDiv.style.width = "100%";
+           riveDiv.style.height = "100%";
+           foreignObject.appendChild(riveDiv);
+
+           fragment.appendChild(activeGroup);
+           fragment.appendChild(foreignObject);
+
+           setRiveContainer(riveDiv);
+        } else {
+          const flower_Inactive = document.createElementNS("http://www.w3.org/2000/svg", "g");
+          const lessonImage = createSVGImage(lesson_image, 30, 30, 21, 23);
+          flower_Inactive.appendChild(flowerInactive.cloneNode(true) as SVGGElement);
+          flower_Inactive.appendChild(lessonImage);
+          flower_Inactive.addEventListener("click", () => {
+            setModalOpen(true);
+            setModalText(inactiveText);
+          });
+          flower_Inactive.setAttribute(
+            "style",
+            "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
+          );
+
+          placeElement(
+            flower_Inactive as SVGGElement,
+            positionMappings.flowerInactive.x[idx] ?? flowerX - 20,
+            positionMappings.flowerInactive.y[idx] ?? flowerY - 20
+          );
+          fragment.appendChild(flower_Inactive);
         }
-      } catch (error) {
-        console.error("Failed to load SVG:", error);
+      });
+
+      const endPath = paths[paths.length - 1];
+      const endPoint = endPath.getPointAtLength(endPath.getTotalLength());
+      const Gift_Svg = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      Gift_Svg.setAttribute("style", "cursor: pointer;");
+      Gift_Svg.appendChild(giftSVG.cloneNode(true));
+      placeElement(Gift_Svg, endPoint.x - 25, endPoint.y - 40);
+
+      if (currentIndex < pathEndIndex + 1) {
+        Gift_Svg.addEventListener("click", () => {
+          const replaceGiftContent = (newContent: SVGElement) => {
+            while (Gift_Svg.firstChild) {
+              Gift_Svg.removeChild(Gift_Svg.firstChild);
+            }
+            Gift_Svg.appendChild(newContent.cloneNode(true));
+          };
+
+          const animationSequence = [
+            { content: giftSVG2, delay: 300 },
+            { content: giftSVG3, delay: 500 },
+            { content: giftSVG2, delay: 700 },
+            { content: giftSVG3, delay: 900 },
+            {
+              callback: () => {
+                setModalText(rewardText);
+                setModalOpen(true);
+                replaceGiftContent(giftSVG);
+              },
+              delay: 1100
+            }
+          ];
+
+          animationSequence.forEach(({ content, callback, delay }) => {
+            setTimeout(() => {
+              if (content) replaceGiftContent(content);
+              if (callback) callback();
+            }, delay);
+          });
+        });
       }
-    };
+
+      fragment.appendChild(Gift_Svg);
+      svg.appendChild(fragment);
+
+      const endTime = performance.now();
+      console.log(`SVG loaded in ${(endTime - startTime).toFixed(2)}ms`);
+    });
+  } catch (error) {
+    console.error("Failed to load SVG:", error);
+  }
+};
+
+// Reusable position helper
+const placeElement = (element: SVGGElement, x: number, y: number) => {
+  element.setAttribute("transform", `translate(${x}, ${y})`);
+};
+
 
     // Initial load
     loadSVG();
@@ -365,9 +428,19 @@ const PathwayStructure: React.FC = () => {
   return (
     <>
       {isModalOpen && (
-        <PathwayModal text={modalText} onClose={() => setModalOpen(false)} />
+        <PathwayModal
+          text={modalText}
+          onClose={() => setModalOpen(false)}
+          onConfirm={() => setModalOpen(false)}
+          animate={shouldAnimate}
+        />
       )}
       <div className="pathway-structure-div" ref={containerRef}></div>
+       {riveContainer &&
+              ReactDOM.createPortal(
+                <ChimpleRiveMascot />,
+                riveContainer
+              )}
     </>
   );
 };

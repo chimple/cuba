@@ -3,7 +3,7 @@ name: Respect Build Android
 on:
   push:
     branches:
-      - skanda-respect-supabase-master
+      - RESPECTify-supabase-dev
 
 jobs:
   build:

@@ -149,7 +149,6 @@ export class FirebaseApi implements ServiceApi {
           (subjectId) => !subjectIds.includes(subjectId)
         ); // getting default subjects
 
-
         remainingSubjects.forEach((subjectId) => {
           const courses = gradeCourses.filter((course) => {
             const subjectRef = course.subject;
@@ -166,7 +165,6 @@ export class FirebaseApi implements ServiceApi {
         });
       }
     }
-
 
     return courseIds;
   }
@@ -286,7 +284,6 @@ export class FirebaseApi implements ServiceApi {
         userList.splice(i, 1);
       }
     }
-
 
     const functions = getFunctions();
     const generateInviteCode = httpsCallable(
@@ -1186,11 +1183,9 @@ export class FirebaseApi implements ServiceApi {
           tempAssignmentCompletedIds ?? "{}"
         );
 
-
         const doneAssignmentLocally = assignmentCompletedIds[studentId]?.find(
           (assignmentId) => assignmentId === assignment.docId
         );
-
 
         if (!doneAssignment && !doneAssignmentLocally)
           assignments.push(assignment);
@@ -1555,7 +1550,6 @@ export class FirebaseApi implements ServiceApi {
   ): Promise<TableTypes<"user"> | undefined> {
     throw new Error("Method not implemented.");
     try {
-
       const studentDocRef = doc(this._db, CollectionIds.USER, studentId);
       const studentDoc = await getDoc(studentDocRef);
       if (studentDoc.exists()) {
@@ -1962,7 +1956,7 @@ export class FirebaseApi implements ServiceApi {
   }
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId: string,
+     courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
@@ -1972,7 +1966,7 @@ export class FirebaseApi implements ServiceApi {
   }
   getStudentLastTenResults(
     studentId: string,
-    courseId: string,
+    courseIds: string[],
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[]> {
     throw new Error("Method not implemented.");
@@ -1984,7 +1978,7 @@ export class FirebaseApi implements ServiceApi {
   }
   getStudentResultByDate(
     studentId: string,
-    course_id: string,
+    courseIds: string[],
     startDate: string,
     endDate: string
   ): Promise<TableTypes<"result">[] | undefined> {
@@ -2006,7 +2000,132 @@ export class FirebaseApi implements ServiceApi {
   uploadData(payload: any): Promise<boolean | null> {
     throw new Error("Method not implemented.");
   }
+
   createDeeplinkUser(): void | PromiseLike<void> {
       throw new Error("Method not implemented.");
+  }
+  getProgramFilterOptions(): Promise<Record<string, string[]>> {
+    throw new Error("Method not implemented.");
+  }
+  async getPrograms({
+    currentUserId,
+    filters = {},
+    searchTerm = "",
+    tab = "ALL",
+    limit = 10,
+    offset = 0,
+    orderBy = "name",
+    order = "asc",
+  }: {
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    searchTerm?: string;
+    tab?: "ALL" | "AT SCHOOL" | "AT HOME" | "HYBRID";
+    limit?: number;
+    offset?: number;
+    orderBy?: string;
+    order?: "asc" | "desc";
+  }): Promise<{ data: any[] }> {
+    throw new Error("Method not implemented.");
+  }
+
+  insertProgram(payload: any): Promise<boolean | any> {
+    throw new Error("Method not implemented.");
+  }
+  getProgramManagers(): Promise<{ name: string; id: string }[]> {
+    throw new Error("Method not implemented.");
+  }
+  getUniqueGeoData(): Promise<{
+    Country: string[];
+    State: string[];
+    Block: string[];
+    Cluster: string[];
+    District: string[];
+  }> {
+    throw new Error("Method not implemented.");
+  }
+  getProgramForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"program"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getProgramManagersForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getProgramData(programId: string): Promise<{
+    programDetails: { id: string; label: string; value: string }[];
+    locationDetails: { id: string; label: string; value: string }[];
+    partnerDetails: { id: string; label: string; value: string }[];
+    programManagers: { name: string; role: string; phone: string }[];
+  } | null> {
+    throw new Error("Method not implemented.");
+  }
+  async getSchoolFilterOptionsForSchoolListing(): Promise<
+    Record<string, string[]>
+  > {
+    throw new Error("getSchoolFilterOptions() is not implemented.");
+  }
+
+  async getFilteredSchoolsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+  }): Promise<FilteredSchoolsForSchoolListingOps[]> {
+    throw new Error("getFilteredSchoolsForSchoolListing() is not implemented.");
+  }
+
+  async createOrAddUserOps(payload: {
+    name: string;
+    email?: string;
+    phone?: string;
+    role: string;
+  }): Promise<{
+    success: boolean;
+    user_id?: string;
+    message?: string;
+    error?: string;
+  }> {
+    throw new Error("Method not implemented.");
+  }
+
+  async isProgramUser(): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+
+  program_activity_stats(programId: string): Promise<{
+    total_students: number;
+    total_teachers: number;
+    total_schools: number;
+    active_student_percentage: number;
+    active_teacher_percentage: number;
+    avg_weekly_time_minutes: number;
+  }> {
+    throw new Error("Method not implemented.");
+  }
+
+  public async getManagersAndCoordinators(
+    userId: string,
+    page: number = 1,
+    search: string = "",
+    limit: number = 10,
+    sortBy: keyof TableTypes<"user"> = "name",
+    sortOrder: "asc" | "desc" = "asc"
+  ): Promise<{
+    data: { user: TableTypes<"user">; role: string }[];
+    totalCount: number;
+  }> {
+    throw new Error("Method not implemented.");
+  }
+
+  school_activity_stats(schoolId: string): Promise<{
+    active_student_percentage: number;
+    active_teacher_percentage: number;
+    avg_weekly_time_minutes: number;
+  }> {
+    throw new Error("Method not implemented.");
+  }
+  async isProgramManager(): Promise<boolean> {
+    throw new Error("Method not implemented.");
   }
 }

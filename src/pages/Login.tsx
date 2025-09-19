@@ -9,15 +9,17 @@ import {
   CURRENT_USER,
   DOMAIN,
   EVENTS,
+  IS_OPS_USER,
   LANGUAGE,
   MODES,
   NUMBER_REGEX,
   PAGES,
   TableTypes,
   USER_DATA,
+  USER_ROLE,
 } from "../common/constants";
-import { Capacitor } from "@capacitor/core";
-import { ServiceConfig } from "../services/ServiceConfig";
+import { Capacitor, registerPlugin } from "@capacitor/core";
+import { APIMode, ServiceConfig } from "../services/ServiceConfig";
 import TextBox from "../components/TextBox";
 import React from "react";
 import Loading from "../components/Loading";
@@ -140,12 +142,6 @@ const Login: React.FC = () => {
     authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
       const apiHandler = ServiceConfig.getI().apiHandler;
       const appLang = localStorage.getItem(LANGUAGE);
-      console.log(
-        "appLang",
-        appLang,
-        isUserLoggedIn,
-        isUserLoggedIn && appLang != undefined
-      );
 
       async function init() {
         const currentStudent = Util.getCurrentStudent();
@@ -356,6 +352,21 @@ const Login: React.FC = () => {
       role: RoleType;
     }[]
   ) {
+    const userRoles: string[] = JSON.parse(
+      localStorage.getItem(USER_ROLE) ?? "[]"
+    );
+    const isOpsRole =
+      userRoles.includes(RoleType.SUPER_ADMIN) ||
+      userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
+
+    const isProgramUser = await api.isProgramUser();
+    if (isOpsRole || isProgramUser) {
+      localStorage.setItem(IS_OPS_USER, "true");
+      ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+      history.replace(PAGES.SIDEBAR_PAGE);
+      return;
+    }
+
     if (userSchools.length > 0) {
       const autoUserSchool = userSchools.find(
         (school) => school.role === RoleType.AUTOUSER
@@ -502,10 +513,11 @@ const Login: React.FC = () => {
       setIsLoading(true);
       setIsInitialLoading(true);
       // const _authHandler = ServiceConfig.getI().authHandler;
-      const result: boolean = await authInstance.loginWithEmailAndPassword(
-        schoolCode + studentId + DOMAIN,
-        studentPassword
-      );
+      const { success: result, isSpl: isOps } =
+        await authInstance.loginWithEmailAndPassword(
+          schoolCode.trimEnd() + studentId.trimEnd() + DOMAIN,
+          studentPassword.trimEnd()
+        );
       if (result) {
         setIsLoading(false);
         setIsInitialLoading(false);
@@ -530,10 +542,9 @@ const Login: React.FC = () => {
       setEmailClick(false);
       setIsLoading(true);
       setIsInitialLoading(true);
-      const result: boolean = await authInstance.signInWithEmail(
-        email,
-        password
-      );
+      const { success: result, isSpl: isOpsUser } =
+        await authInstance.signInWithEmail(email, password);
+
       if (result) {
         setIsLoading(true);
         setIsInitialLoading(true);
@@ -747,12 +758,7 @@ const Login: React.FC = () => {
                             console.log("isLoading ", isLoading);
                             const _authHandler =
                               ServiceConfig.getI().authHandler;
-                            const result: boolean =
-                              await _authHandler.googleSign();
-                            console.log(
-                              "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",
-                              result
-                            );
+                            const result = await _authHandler.googleSign();
                             if (result) {
                               setIsLoading(false);
                               setIsInitialLoading(false);
@@ -829,7 +835,7 @@ const Login: React.FC = () => {
                             console.log("isLoading ", isLoading);
                             const _authHandler =
                               ServiceConfig.getI().authHandler;
-                            const result: boolean =
+                            const result: { success: boolean; isSpl: boolean } =
                               await _authHandler.googleSign();
                             console.log(
                               "🚀 ~ file: Login.tsx:44 ~ onClick={ ~ result:",

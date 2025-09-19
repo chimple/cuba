@@ -7,8 +7,44 @@ import {
   TableTypes,
   MUTATE_TYPES,
   PROFILETYPE,
+  grade1,
+  belowGrade1,
+  grade2,
+  grade3,
+  aboveGrade3,
+  DEFAULT_SUBJECT_IDS,
+  OTHER_CURRICULUM,
+  LIVE_QUIZ,
+  STARS_COUNT,
   EVENTS,
+  SchoolRoleMap,
+  MODEL,
+  FilteredSchoolsForSchoolListingOps,
+  COURSES,
+  CHIMPLE_HINDI,
+  GRADE1_KANNADA,
+  GRADE1_MARATHI,
+  CHIMPLE_ENGLISH,
+  CHIMPLE_MATHS,
+  CHIMPLE_DIGITAL_SKILLS,
+  TabType,
+  PROGRAM_TAB,
+  AVATARS,
+  USER_ROLE,
+  ROLE_PRIORITY,
+  StudentAPIResponse,
+  StudentInfo,
+  TeacherAPIResponse,
+  TeacherInfo,
+  PrincipalInfo,
+  PrincipalAPIResponse,
+  CoordinatorInfo,
+  CoordinatorAPIResponse,
+  RequestTypes,
+  EnumType,
+  CACHETABLES,
 } from "../../common/constants";
+import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import Course from "../../models/course";
@@ -25,16 +61,21 @@ import {
 } from "@supabase/supabase-js";
 import { RoleType } from "../../interface/modelInterfaces";
 import { Util } from "../../utility/util";
+import { v4 as uuidv4 } from "uuid";
 import { ServiceConfig } from "../ServiceConfig";
-
+import { SqliteApi } from "./SqliteApi";
 export class SupabaseApi implements ServiceApi {
+  getChapterIDByLessonID(lessonId: string, classId?: string, userId?: string): Promise<String | undefined> {
+    throw new Error("Method not implemented.");
+  }
   getChapterByLessonID(lessonId: string): Promise<TableTypes<"chapter"> | undefined> {
     throw new Error("Method not implemented.");
   }
   private _assignmetRealTime?: RealtimeChannel;
   private _assignmentUserRealTime?: RealtimeChannel;
   private _liveQuizRealTime?: RealtimeChannel;
-  getChaptersForCourse(courseId: string): Promise<
+  private _currentMode: MODES;
+  async getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;
       created_at: string;
@@ -47,79 +88,207 @@ export class SupabaseApi implements ServiceApi {
       updated_at: string | null;
     }[]
   > {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return [];
+    const { data, error } = await this.supabase
+      .from(TABLES.Chapter)
+      .select("*")
+      .eq("course_id", courseId)
+      .eq("is_deleted", false)
+      .order("sort_index", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching chapters for course:", error);
+      return [];
+    }
+
+    return data ?? [];
   }
-  getPendingAssignmentForLesson(
+  async clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
+    console.warn("Delegating clearSpecificTablesSqlite to SqliteApi");
+    const sqliteApi = await SqliteApi.getInstance();
+    return sqliteApi.clearCacheData(tableNames);
+  }
+  async getPendingAssignmentForLesson(
     lessonId: string,
     classId: string,
     studentId: string
-  ): Promise<TableTypes<"assignment">> {
-    throw new Error("Method not implemented.");
+  ): Promise<TableTypes<"assignment"> | undefined> {
+    if (!this.supabase) return undefined;
+
+    // Class-wise assignments
+    const { data: classWise, error: classWiseError } = await this.supabase
+      .from(TABLES.Assignment)
+      .select("*")
+      .eq("lesson_id", lessonId)
+      .eq("class_id", classId)
+      .eq("is_class_wise", true)
+      .eq("is_deleted", false)
+      .order("updated_at", { ascending: false });
+
+    if (classWiseError) {
+      console.error("Error fetching class-wise assignments:", classWiseError);
+      return;
+    }
+
+    // Individual assignments (joined with assignment_user)
+    const { data: individual, error: individualError } = await this.supabase
+      .from(TABLES.Assignment)
+      .select(
+        `
+      *,
+      assignment_user:assignment_user!inner(user_id)
+    `
+      )
+      .eq("lesson_id", lessonId)
+      .eq("class_id", classId)
+      .eq("assignment_user.user_id", studentId)
+      .eq("is_deleted", false)
+      .order("updated_at", { ascending: false });
+
+    if (individualError) {
+      console.error("Error fetching individual assignments:", individualError);
+      return;
+    }
+
+    // Combine and filter out assignments that already have a result
+    const assignments = [...(classWise ?? []), ...(individual ?? [])];
+
+    // Limit to 20 total assignments to check
+    const limitedAssignments = assignments.slice(0, 20);
+
+    const results = await Promise.all(
+      limitedAssignments.map(async (assignment) => {
+        if (!this.supabase) {
+          return null;
+        }
+        const { data: result, error: resultError } = await this.supabase
+          .from("result")
+          .select("id")
+          .eq("assignment_id", assignment.id)
+          .eq("student_id", studentId)
+          .eq("is_deleted", false)
+          .maybeSingle();
+
+        if (resultError) {
+          console.error("Error checking assignment result:", resultError);
+          return null;
+        }
+        return !result ? assignment : null;
+      })
+    );
+
+    // Return the first pending assignment, or undefined if none
+    return results.find((a) => !!a) as TableTypes<"assignment"> | undefined;
   }
-  getFavouriteLessons(userId: string): Promise<
-    {
-      cocos_chapter_code: string | null;
-      cocos_lesson_id: string | null;
-      cocos_subject_code: string | null;
-      color: string | null;
-      created_at: string;
-      created_by: string | null;
-      id: string;
-      image: string | null;
-      is_deleted: boolean | null;
-      language_id: string | null;
-      name: string | null;
-      outcome: string | null;
-      plugin_type: string | null;
-      status: string | null;
-      subject_id: string | null;
-      target_age_from: number | null;
-      target_age_to: number | null;
-      updated_at: string | null;
-    }[]
-  > {
-    throw new Error("Method not implemented.");
+
+  async getFavouriteLessons(userId: string): Promise<TableTypes<"lesson">[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from(TABLES.FavoriteLesson)
+      .select(`lesson:lesson_id(*)`)
+      .eq("user_id", userId)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching favourite lessons:", error);
+      return [];
+    }
+
+    const lessons: TableTypes<"lesson">[] = (data ?? [])
+      .map((item) => item.lesson as unknown as TableTypes<"lesson">)
+      .filter((lesson) => !!lesson);
+    return lessons;
   }
-  getStudentClassesAndSchools(userId: string): Promise<{
-    classes: {
-      created_at: string;
-      id: string;
-      image: string | null;
-      is_deleted: boolean | null;
-      name: string;
-      school_id: string;
-      updated_at: string | null;
-    }[];
-    schools: {
-      created_at: string;
-      group1: string | null;
-      group2: string | null;
-      group3: string | null;
-      id: string;
-      image: string | null;
-      is_deleted: boolean | null;
-      name: string;
-      updated_at: string | null;
-    }[];
+
+  async getStudentClassesAndSchools(userId: string): Promise<{
+    classes: TableTypes<"class">[];
+    schools: TableTypes<"school">[];
   }> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return { classes: [], schools: [] };
+    const data: {
+      classes: TableTypes<"class">[];
+      schools: TableTypes<"school">[];
+    } = {
+      classes: [],
+      schools: [],
+    };
+    const { data: classUserData, error } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select(
+        `
+      class:class_id (
+        *,
+        school:school_id (*)
+      )
+    `
+      )
+      .eq("user_id", userId)
+      .eq("role", RoleType.STUDENT)
+      .eq("is_deleted", false);
+    if (error || !classUserData) {
+      console.error("Error fetching student classes and schools", error);
+      return data;
+    }
+
+    const schoolsMap = new Map<string, TableTypes<"school">>();
+
+    for (const item of classUserData as any[]) {
+      const cls = item.class as TableTypes<"class"> & {
+        school?: TableTypes<"school">;
+      };
+
+      if (cls) {
+        data.classes.push(cls);
+        if (cls.school && !schoolsMap.has(cls.school.id)) {
+          schoolsMap.set(cls.school.id, cls.school);
+        }
+      }
+    }
+
+    data.schools = Array.from(schoolsMap.values());
+    return data;
   }
-  createUserDoc(
+
+  async createUserDoc(
     user: TableTypes<"user">
   ): Promise<TableTypes<"user"> | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    const { error } = await this.supabase.from(TABLES.User).insert({
+      id: user.id,
+      name: user.name,
+      age: user.age,
+      gender: user.gender,
+      avatar: user.avatar,
+      image: user.image,
+      curriculum_id: user.curriculum_id,
+      language_id: user.language_id,
+    });
+
+    if (error) {
+      console.error("Error creating user:", error);
+      return;
+    }
+    return user;
   }
   syncDB(
     tableNames: TABLES[] = Object.values(TABLES),
     refreshTables: TABLES[] = []
   ): Promise<boolean> {
-    throw new Error("Method not implemented.");
+    return Promise.resolve(true);
   }
   public static i: SupabaseApi;
   public supabase: SupabaseClient<Database> | undefined;
   private supabaseUrl: string;
   private supabaseKey: string;
   private _currentStudent: TableTypes<"user"> | undefined;
+  private _currentClass: TableTypes<"class"> | undefined;
+  private _currentSchool: TableTypes<"school"> | undefined;
+  private _currentCourse:
+    | Map<string, TableTypes<"course"> | undefined>
+    | undefined;
 
   public static getInstance(): SupabaseApi {
     if (!SupabaseApi.i) {
@@ -177,27 +346,122 @@ export class SupabaseApi implements ServiceApi {
     return imageUrl || null;
   }
 
-  async uploadData(payload: any): Promise<boolean> {
-    try {
-      if (!this.supabase) {
-        console.error("Supabase client is not initialized.");
-        return false;
-      }
-      const { data, error } = await this.supabase.functions.invoke(
+  async uploadData(payload: any): Promise<boolean | null> {
+    if (!this.supabase) return false;
+
+    const supabase = this.supabase;
+    let resolved = false;
+    const currentuserData =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    const uploadingUser = currentuserData?.id;
+    return new Promise(async (resolve) => {
+      let uploadId: string | undefined;
+      let directChannel: RealtimeChannel | null = null;
+      let subscriptionFailCount = 0;
+      const subscribeToDirectChannel = (): RealtimeChannel => {
+        const channel = supabase
+          .channel(`upload-status-${uploadId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "upload_queue",
+              filter: `id=eq.${uploadId}`,
+            },
+            async (payload) => {
+              const status = payload.new?.status;
+              console.log("🔄 Realtime update received:", status);
+              if ((status === "success" || status === "failed") && !resolved) {
+                resolved = true;
+                await channel.unsubscribe();
+                resolve(status === "success");
+              }
+            }
+          )
+          .subscribe(async (status) => {
+            if (status === "SUBSCRIBED") {
+              console.log("📡 Realtime subscription active.");
+              subscriptionFailCount = 0;
+            } else {
+              subscriptionFailCount++;
+              console.warn("⚠️ Subscription status:", status);
+              if (subscriptionFailCount > 2) {
+                console.warn(
+                  "🔁 Reinitializing subscription due to failures..."
+                );
+                await channel.unsubscribe();
+                directChannel = subscribeToDirectChannel();
+              }
+            }
+          });
+        return channel;
+      };
+      const fallbackChannel = uploadingUser
+        ? supabase
+            .channel(`upload-fallback-${uploadingUser}`)
+            .on(
+              "postgres_changes",
+              {
+                event: "UPDATE",
+                schema: "public",
+                table: "upload_queue",
+                filter: `uploading_user=eq.${uploadingUser}`,
+              },
+              async (payload) => {
+                const status = payload.new?.status;
+                const id = payload.new?.id;
+                console.log(
+                  "🔄 [Fallback] Realtime update:",
+                  status,
+                  "ID:",
+                  id
+                );
+                if (
+                  (status === "success" || status === "failed") &&
+                  !resolved
+                ) {
+                  resolved = true;
+                  await fallbackChannel?.unsubscribe();
+                  console.log(
+                    `✅ / ❌ Fallback resolved with status: ${status}`
+                  );
+                  resolve(status === "success");
+                }
+              }
+            )
+            .subscribe()
+        : null;
+      const { data, error: functionError } = await supabase.functions.invoke(
         "ops-data-insert",
         {
           body: payload,
         }
       );
-      if (error) {
-        console.error("Function error:", error);
-        return false;
+      uploadId = data?.upload_id;
+      if (uploadId) {
+        console.log("📡 Received upload_id:", uploadId);
+        if (fallbackChannel) {
+          await fallbackChannel.unsubscribe();
+        }
+        const { data: row } = await supabase
+          .from("upload_queue")
+          .select("status")
+          .eq("id", uploadId)
+          .single();
+        if (row?.status === "success") {
+          console.log("✅ Already succeeded before subscription.");
+          return resolve(true);
+        }
+        if (row?.status === "failed") {
+          console.log("❌ Already failed before subscription.");
+          return resolve(false);
+        }
+        directChannel = subscribeToDirectChannel();
+      } else {
+        console.warn("❗ No upload_id returned — using fallback listener.");
       }
-      return true;
-    } catch (error) {
-      console.error("Upload failed:", error);
-      return false;
-    }
+    });
   }
 
   async getTablesData(
@@ -453,7 +717,6 @@ export class SupabaseApi implements ServiceApi {
             error_message: res?.error?.message || null,
           });
         }
-
         data.set(tableName, res?.data ?? []);
       });
 
@@ -488,7 +751,6 @@ export class SupabaseApi implements ServiceApi {
   ) {
     const data = { ...data1 };
     data.updated_at = new Date().toISOString();
-
     if (!this.supabase) return;
     let res: PostgrestSingleResponse<any> | undefined = undefined;
     switch (mutateType) {
@@ -522,39 +784,189 @@ export class SupabaseApi implements ServiceApi {
     name: string,
     group1: string,
     group2: string,
-    group3: string
+    group3: string,
+    image: File | null,
+    group4?: string | null,
+    program_id?: string | null,
+    udise?: string | null,
+    address?: string | null
   ): Promise<TableTypes<"school">> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return {} as TableTypes<"school">;
+
+    const result = image
+      ? await this.addProfileImages(school.id, image, PROFILETYPE.SCHOOL)
+      : school.image;
+    // Prepare updated data
+    const updatedSchool: TableTypes<"school"> = {
+      name: name ?? school.name,
+      group1: group1 ?? school.group1,
+      group2: group2 ?? school.group2,
+      group3: group3 ?? school.group3,
+      image: result ?? school.image,
+      group4: group4 ?? school.group4,
+      program_id: program_id ?? school.program_id,
+      udise: udise ?? school.udise,
+      address: address ?? school.address,
+      updated_at: new Date().toISOString(),
+      created_at: school.created_at,
+      id: school.id,
+      is_deleted: false,
+      model: null,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      language: null,
+      ops_created_by: null,
+      student_login_type: null,
+    };
+
+    const { error } = await this.supabase
+      .from(TABLES.School)
+      .update(updatedSchool)
+      .eq("id", school.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating school profile:", error);
+      throw error;
+    }
+    return updatedSchool;
   }
 
   async getCoursesByClassId(
     classId: string
   ): Promise<TableTypes<"class_course">[]> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from(TABLES.ClassCourse)
+      .select("*")
+      .eq("class_id", classId)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching class courses:", error);
+      return [];
+    }
+
+    return data ?? [];
   }
 
   async getCoursesBySchoolId(
-    studentId: string
+    schoolId: string
   ): Promise<TableTypes<"school_course">[]> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from(TABLES.SchoolCourse)
+      .select("*")
+      .eq("school_id", schoolId)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching school courses:", error);
+      return [];
+    }
+
+    return data ?? [];
   }
 
   async removeCoursesFromClass(ids: string[]): Promise<void> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+    const updatedAt = new Date().toISOString();
+    try {
+      if (ids.length === 0) {
+        console.warn("No course IDs provided for removal.");
+        return;
+      }
+
+      const { error } = await this.supabase
+        .from(TABLES.ClassCourse)
+        .update({ is_deleted: true, updated_at: updatedAt })
+        .in("id", ids);
+
+      if (error) {
+        console.error("Error removing courses from class_course:", error);
+      }
+    } catch (err) {
+      console.error("Exception in removeCoursesFromClass:", err);
+    }
   }
 
   async removeCoursesFromSchool(ids: string[]): Promise<void> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+    const updatedAt = new Date().toISOString();
+    try {
+      if (ids.length === 0) {
+        console.warn("No course IDs provided for removal.");
+        return;
+      }
+
+      const { error } = await this.supabase
+        .from(TABLES.SchoolCourse)
+        .update({ is_deleted: true, updated_at: updatedAt })
+        .in("id", ids);
+
+      if (error) {
+        console.error("Error removing courses from school_course:", error);
+      }
+    } catch (err) {
+      console.error("Exception in removeCoursesFromSchool:", err);
+    }
   }
   async checkCourseInClasses(
     classIds: string[],
-    classId: string
+    courseId: string
   ): Promise<boolean> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return false;
+
+    try {
+      if (classIds.length === 0) return false;
+
+      const { data, error } = await this.supabase
+        .from(TABLES.ClassCourse)
+        .select("id")
+        .in("class_id", classIds)
+        .eq("course_id", courseId)
+        .eq("is_deleted", false)
+        .limit(1);
+
+      if (error) {
+        console.error("Error checking course in classes:", error);
+        return false;
+      }
+
+      return !!data && data.length > 0;
+    } catch (err) {
+      console.error("Exception in checkCourseInClasses:", err);
+      return false;
+    }
   }
 
-  async deleteUserFromClass(userId: string): Promise<void> {
-    throw new Error("Method not implemented.");
+  async deleteUserFromClass(userId: string, class_id: string): Promise<void> {
+    if (!this.supabase) return;
+
+    const updatedAt = new Date().toISOString();
+
+    try {
+      const { error } = await this.supabase
+        .from(TABLES.ClassUser)
+        .update({
+          is_deleted: true,
+          updated_at: updatedAt,
+        })
+        .eq("user_id", userId)
+        .eq("class_id", class_id)
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.error("Error deleting user from class_user:", error);
+      }
+    } catch (err) {
+      console.error("Exception in deleteUserFromClass:", err);
+    }
   }
 
   async createSchool(
@@ -562,12 +974,86 @@ export class SupabaseApi implements ServiceApi {
     group1: string,
     group2: string,
     group3: string,
-    image: File | null
+    group4: string | null,
+    image: File | null,
+    program_id: string | null,
+    udise: string | null,
+    address: string | null
   ): Promise<TableTypes<"school">> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return {} as TableTypes<"school">;
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw "User is not Logged in";
+
+    const schoolId = uuidv4();
+    const timestamp = new Date().toISOString();
+
+    // Handle optional image upload
+    const result = image
+      ? await this.addProfileImages(schoolId, image, PROFILETYPE.SCHOOL)
+      : null;
+
+    const newSchool: TableTypes<"school"> = {
+      id: schoolId,
+      name,
+      group1: group1 ?? null,
+      group2: group2 ?? null,
+      group3: group3 ?? null,
+      image: result ?? null,
+      group4: group4 ?? null,
+      program_id: program_id ?? null,
+      udise: udise ?? null,
+      address: address ?? null,
+      created_at: timestamp,
+      updated_at: timestamp,
+      is_deleted: false,
+      model: null,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      language: null,
+      ops_created_by: null,
+      student_login_type: null,
+    };
+
+    // Insert school
+    const { error: schoolError } = await this.supabase
+      .from(TABLES.School)
+      .insert([newSchool]);
+
+    if (schoolError) {
+      console.error("Error inserting into school:", schoolError);
+      throw schoolError;
+    }
+
+    // Create school_user entry
+    const newSchoolUser: TableTypes<"school_user"> = {
+      id: uuidv4(),
+      school_id: schoolId,
+      user_id: _currentUser.id,
+      role: RoleType.PRINCIPAL,
+      created_at: timestamp,
+      updated_at: timestamp,
+      is_deleted: false,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+    };
+
+    const { error: userError } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .insert([newSchoolUser]);
+
+    if (userError) {
+      console.error("Error inserting into school_user:", userError);
+      throw userError;
+    }
+
+    return newSchool;
   }
 
-  requestNewSchool(
+  async requestNewSchool(
     name: string,
     state: string,
     district: string,
@@ -575,15 +1061,99 @@ export class SupabaseApi implements ServiceApi {
     image: File | null,
     udise_id?: string
   ): Promise<TableTypes<"req_new_school"> | null> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return null;
+
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw new Error("User is not logged in");
+
+    // ✅ Select id, created_at, updated_at to avoid TS error
+    const { data: existingRequests, error: selectError } = await this.supabase
+      .from(TABLES.ReqNewSchool)
+      .select("id, created_at, updated_at")
+      .eq("user_id", _currentUser.id)
+      .eq("is_deleted", false)
+      .limit(1);
+
+    if (selectError) {
+      console.error("Error checking for existing request:", selectError);
+      throw selectError;
+    }
+
+    if (existingRequests && existingRequests.length > 0) {
+      const existing = existingRequests[0];
+      return {
+        id: existing.id,
+        user_id: _currentUser.id,
+        name,
+        state,
+        district,
+        city,
+        image: null,
+        udise_id: udise_id ?? null,
+        is_resolved: false,
+        created_at: existing.created_at,
+        updated_at: existing.updated_at,
+        is_deleted: false,
+      };
+    }
+
+    const requestId = uuidv4();
+    const timestamp = new Date().toISOString();
+
+    const imageUrl = image
+      ? await this.addProfileImages(requestId, image, PROFILETYPE.SCHOOL)
+      : null;
+
+    const newRequest: TableTypes<"req_new_school"> = {
+      id: requestId,
+      user_id: _currentUser.id,
+      name,
+      state,
+      district,
+      city,
+      image: imageUrl ?? null,
+      udise_id: udise_id ?? null,
+      is_resolved: false,
+      created_at: timestamp,
+      updated_at: timestamp,
+      is_deleted: false,
+    };
+
+    const { error: insertError } = await this.supabase
+      .from(TABLES.ReqNewSchool)
+      .insert([newRequest]);
+
+    if (insertError) {
+      console.error("Error inserting school request:", insertError);
+      throw insertError;
+    }
+
+    return newRequest;
   }
-  getExistingSchoolRequest(
+  async getExistingSchoolRequest(
     userId: string
   ): Promise<TableTypes<"req_new_school"> | null> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from(TABLES.ReqNewSchool)
+      .select("*")
+      .eq("user_id", userId)
+      .eq("is_resolved", false)
+      .eq("is_deleted", false)
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching existing school request:", error);
+      throw error;
+    }
+
+    return data ?? null;
   }
 
-  createProfile(
+  async createProfile(
     name: string,
     age: number | undefined,
     gender: string | undefined,
@@ -593,10 +1163,137 @@ export class SupabaseApi implements ServiceApi {
     gradeDocId: string | undefined,
     languageDocId: string | undefined
   ): Promise<TableTypes<"user">> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) throw new Error("Supabase instance is not initialized");
+
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw new Error("User is not logged in");
+
+    const studentId = uuidv4();
+    const now = new Date().toISOString();
+
+    const newStudent: TableTypes<TABLES.User> = {
+      id: studentId,
+      name,
+      age: age ?? null,
+      gender: gender ?? null,
+      avatar: avatar ?? null,
+      image: image ?? null,
+      curriculum_id: boardDocId ?? null,
+      grade_id: gradeDocId ?? null,
+      language_id: languageDocId ?? null,
+      created_at: now,
+      updated_at: now,
+      is_deleted: false,
+      is_tc_accepted: true,
+      email: null,
+      phone: null,
+      fcm_token: null,
+      music_off: false,
+      sfx_off: false,
+      student_id: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null,
+    };
+
+    const { error: userInsertError } = await this.supabase
+      .from(TABLES.User)
+      .insert([newStudent]);
+
+    if (userInsertError) {
+      console.error("Error inserting student profile:", userInsertError);
+      throw userInsertError;
+    }
+
+    const parentUserId = uuidv4();
+    const parentUserData: TableTypes<TABLES.ParentUser> = {
+      id: parentUserId,
+      parent_id: _currentUser.id,
+      student_id: studentId,
+      created_at: now,
+      updated_at: now,
+      is_deleted: false,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+    };
+
+    const { error: parentInsertError } = await this.supabase
+      .from(TABLES.ParentUser)
+      .insert([parentUserData]);
+
+    if (parentInsertError) {
+      console.error("Error inserting parent_user link:", parentInsertError);
+      throw parentInsertError;
+    }
+
+    let courses: TableTypes<TABLES.Course>[] = [];
+    if (gradeDocId && boardDocId) {
+      courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
+      for (const course of courses) {
+        const newUserCourse: TableTypes<TABLES.UserCourse> = {
+          id: uuidv4(),
+          user_id: studentId,
+          course_id: course.id,
+          created_at: now,
+          updated_at: now,
+          is_deleted: false,
+          is_firebase: null,
+        };
+        const { error: userCourseInsertError } = await this.supabase
+          .from(TABLES.UserCourse)
+          .insert([newUserCourse]);
+      }
+    } else {
+      const [englishCourse, mathsCourse, digitalSkillsCourse] =
+        await Promise.all([
+          this.getCourse(CHIMPLE_ENGLISH),
+          this.getCourse(CHIMPLE_MATHS),
+          this.getCourse(CHIMPLE_DIGITAL_SKILLS),
+        ]);
+      const language = await this.getLanguageWithId(languageDocId!);
+      let langCourse;
+      if (language && language.code !== COURSES.ENGLISH) {
+        // Map language code to courseId
+        const thirdLanguageCourseMap: Record<string, string> = {
+          hi: CHIMPLE_HINDI,
+          kn: GRADE1_KANNADA,
+          mr: GRADE1_MARATHI,
+        };
+        const courseId = thirdLanguageCourseMap[language.code ?? ""];
+        if (courseId) {
+          langCourse = await this.getCourse(courseId);
+        }
+      }
+      const coursesToAdd = [
+        englishCourse,
+        mathsCourse,
+        langCourse,
+        digitalSkillsCourse,
+      ].filter(Boolean);
+      for (const course of coursesToAdd) {
+        const newUserCourse: TableTypes<TABLES.UserCourse> = {
+          id: uuidv4(),
+          user_id: studentId,
+          course_id: course.id,
+          created_at: now,
+          updated_at: now,
+          is_deleted: false,
+          is_firebase: null,
+        };
+        const { error: userCourseInsertError } = await this.supabase
+          .from(TABLES.UserCourse)
+          .insert([newUserCourse]);
+      }
+    }
+    return newStudent;
   }
 
-  createStudentProfile(
+  async createStudentProfile(
     name: string,
     age: number | undefined,
     gender: string | undefined,
@@ -605,39 +1302,227 @@ export class SupabaseApi implements ServiceApi {
     boardDocId: string | null,
     gradeDocId: string | null,
     languageDocId: string | null,
+    classId: string,
+    role: RoleType.STUDENT,
     studentId: string
-  ): Promise<TableTypes<"user">> {
-    throw new Error("Method not implemented.");
+  ): Promise<TableTypes<TABLES.User>> {
+    if (!this.supabase)
+      return Promise.reject("Supabase client not initialized");
+
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw new Error("User is not logged in");
+
+    const userId = uuidv4();
+    const timestamp = new Date().toISOString();
+
+    const newStudent: TableTypes<"user"> = {
+      id: userId,
+      name,
+      age: age ?? null,
+      gender: gender ?? null,
+      avatar: avatar ?? null,
+      image: image ?? null,
+      curriculum_id: boardDocId ?? null,
+      grade_id: gradeDocId ?? null,
+      language_id: languageDocId ?? null,
+      created_at: timestamp,
+      updated_at: timestamp,
+      is_deleted: false,
+      is_tc_accepted: true,
+      email: null,
+      phone: null,
+      fcm_token: null,
+      music_off: false,
+      sfx_off: false,
+      student_id: studentId ?? null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null,
+    };
+
+    // Insert into user table
+    const { error: userInsertError } = await this.supabase
+      .from(TABLES.User)
+      .insert(newStudent);
+
+    if (userInsertError) {
+      console.error("Error inserting user:", userInsertError);
+      throw userInsertError;
+    }
+
+    // Insert into class_user table
+    const classUserId = uuidv4();
+    const newClassUser: TableTypes<TABLES.ClassUser> = {
+      id: classUserId,
+      class_id: classId,
+      user_id: userId,
+      role: role,
+      created_at: timestamp,
+      updated_at: timestamp,
+      is_deleted: false,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+    };
+
+    const { error: classUserInsertError } = await this.supabase
+      .from(TABLES.ClassUser)
+      .insert(newClassUser);
+
+    if (classUserInsertError) {
+      console.error("Error inserting class_user:", classUserInsertError);
+      throw classUserInsertError;
+    }
+    return newStudent;
   }
 
   async deleteProfile(studentId: string) {
     if (!this.supabase) return;
 
-    const res = await this.supabase.rpc("delete_student", {
-      student_id: studentId,
+    const res = await this.supabase.rpc("delete_student_profile", {
+      p_student_id: studentId,
     });
     if (res.error) {
       throw res.error;
     }
   }
-  getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
-    throw new Error("Method not implemented.");
-  }
-  getAllGrades(): Promise<TableTypes<"grade">[]> {
-    throw new Error("Method not implemented.");
-  }
-  getAllLanguages(): Promise<TableTypes<"language">[]> {
-    throw new Error("Method not implemented.");
-  }
-  getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
-    throw new Error("Method not implemented.");
+  async getAllCurriculums(): Promise<TableTypes<"curriculum">[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Curriculum)
+      .select("*")
+      .eq("is_deleted", false)
+      .order("name", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching curriculums:", error);
+      return [];
+    }
+    return data ?? [];
   }
 
-  getCourseByUserGradeId(
+  async getAllGrades(): Promise<TableTypes<"grade">[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Grade)
+      .select("*")
+      .eq("is_deleted", false)
+      .order("sort_index", {
+        ascending: true,
+      });
+
+    if (error) {
+      console.error("Error fetching grades:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+
+  async getAllLanguages(): Promise<TableTypes<"language">[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Language)
+      .select("*")
+      .eq("is_deleted", false)
+      .order("code", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching languages:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+  async getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
+    if (!this.supabase) return [];
+
+    const currentUser =
+      await ServiceConfig.getI()?.authHandler?.getCurrentUser();
+    if (!currentUser) throw new Error("User is not Logged in");
+
+    const { data, error } = await this.supabase
+      .from(TABLES.ParentUser)
+      .select("student:student_id(*)")
+      .eq("parent_id", currentUser.id)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching parent-student profiles:", error);
+      return [];
+    }
+
+    // Extract only the student profiles from the joined result
+    const students = (data ?? [])
+      .map((item: any) => item.student)
+      .filter((student: TableTypes<"user">) => student && !student.is_deleted);
+
+    return students;
+  }
+
+  async getCourseByUserGradeId(
     gradeDocId: string | null | undefined,
     boardDocId: string | null | undefined
   ): Promise<TableTypes<"course">[]> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return [];
+    if (!gradeDocId) {
+      throw new Error("Grade document ID is required.");
+    }
+
+    if (!boardDocId) {
+      throw new Error("Board document ID is required.");
+    }
+
+    let courseIds: TableTypes<"course">[] = [];
+    let isGrade1 = false;
+    let isGrade2 = false;
+
+    if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
+      isGrade1 = true;
+    } else if (
+      gradeDocId === grade2 ||
+      gradeDocId === grade3 ||
+      gradeDocId === aboveGrade3
+    ) {
+      isGrade2 = true;
+    } else {
+      isGrade2 = true;
+    }
+
+    const gradeLevel = isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId;
+
+    const gradeCourses = await this.getCoursesByGrade(gradeLevel);
+    const curriculumCourses = gradeCourses.filter(
+      (course) => course.curriculum_id === boardDocId
+    );
+
+    courseIds.push(...curriculumCourses);
+
+    const subjectIds = curriculumCourses
+      .map((course) => course.subject_id)
+      .filter((id): id is string => !!id);
+
+    const remainingSubjects = DEFAULT_SUBJECT_IDS.filter(
+      (subjectId) => !subjectIds.includes(subjectId)
+    );
+
+    remainingSubjects.forEach((subjectId) => {
+      const otherCourses = gradeCourses.filter(
+        (course) =>
+          course.subject_id === subjectId &&
+          course.curriculum_id === OTHER_CURRICULUM
+      );
+      courseIds.push(...otherCourses);
+    });
+
+    return courseIds;
   }
   get currentStudent(): TableTypes<"user"> | undefined {
     return this._currentStudent;
@@ -646,85 +1531,385 @@ export class SupabaseApi implements ServiceApi {
     this._currentStudent = value;
   }
   get currentClass(): TableTypes<"class"> | undefined {
-    throw new Error("Method not implemented.");
+    return this._currentClass;
   }
   set currentClass(value: TableTypes<"class"> | undefined) {
-    throw new Error("Method not implemented.");
+    this._currentClass = value;
   }
   get currentSchool(): TableTypes<"school"> | undefined {
-    throw new Error("Method not implemented.");
+    return this._currentSchool;
   }
   set currentSchool(value: TableTypes<"school"> | undefined) {
-    throw new Error("Method not implemented.");
+    this._currentSchool = value;
   }
 
   get currentCourse():
     | Map<string, TableTypes<"course"> | undefined>
     | undefined {
-    throw new Error("Method not implemented.");
+    return this._currentCourse;
   }
   set currentCourse(
     value: Map<string, TableTypes<"course"> | undefined> | undefined
   ) {
-    throw new Error("Method not implemented.");
+    this._currentCourse = value;
   }
-  updateSoundFlag(userId: string, value: boolean) {
-    throw new Error("Method not implemented.");
+  async updateSoundFlag(userId: string, value: boolean) {
+    if (!this.supabase) return;
+    try {
+      const { error } = await this.supabase
+        .from("user")
+        .update({ sfx_off: value })
+        .eq("id", userId);
+
+      if (error) {
+        throw new Error(`Failed to update sound flag: ${error.message}`);
+      }
+    } catch (error) {
+      console.error("Error updating sound flag:", error);
+    }
   }
-  updateMusicFlag(userId: string, value: boolean) {
-    throw new Error("Method not implemented.");
+  async updateMusicFlag(userId: string, value: boolean) {
+    if (!this.supabase) return;
+
+    try {
+      const { error } = await this.supabase
+        .from("user")
+        .update({ music_off: value })
+        .eq("id", userId);
+
+      if (error) {
+        throw new Error(`Failed to update music flag: ${error.message}`);
+      }
+    } catch (error) {
+      console.error("Error updating music flag:", error);
+    }
   }
-  updateLanguage(userId: string, value: string) {
-    throw new Error("Method not implemented.");
+  async updateLanguage(userId: string, value: string) {
+    if (!this.supabase) return;
+    try {
+      const { error } = await this.supabase
+        .from("user")
+        .update({ language_id: value })
+        .eq("id", userId);
+
+      if (error) {
+        throw new Error(`Failed to update language: ${error.message}`);
+      }
+    } catch (error) {
+      console.error("Error updating language:", error);
+    }
   }
-  updateFcmToken(userId: string) {
-    throw new Error("Method not implemented.");
+  async updateFcmToken(userId: string) {
+    if (!this.supabase) return;
+    try {
+      const token = await Util.getToken();
+
+      const { error } = await this.supabase
+        .from("user")
+        .update({ fcm_token: token })
+        .eq("id", userId);
+
+      if (error) {
+        throw new Error(`Failed to update FCM token: ${error.message}`);
+      }
+    } catch (error) {
+      console.error("Error updating FCM token:", error);
+    }
   }
-  updateTcAccept(userId: string) {
-    throw new Error("Method not implemented.");
+  async updateTcAccept(userId: string) {
+    if (!this.supabase) return;
+    try {
+      const { error } = await this.supabase
+        .from("user")
+        .update({ is_tc_accepted: true })
+        .eq("id", userId);
+
+      if (error) {
+        throw new Error(`Failed to update T&C acceptance: ${error.message}`);
+      }
+
+      const auth = ServiceConfig.getI().authHandler;
+      const currentUser = await auth.getCurrentUser();
+      if (currentUser) {
+        currentUser.is_tc_accepted = true;
+        auth.currentUser = currentUser;
+      }
+    } catch (error) {
+      console.error("Error updating T&C acceptance:", error);
+    }
   }
-  getLanguageWithId(id: string): Promise<TableTypes<"language"> | undefined> {
-    throw new Error("Method not implemented.");
+  async getLanguageWithId(
+    id: string
+  ): Promise<TableTypes<"language"> | undefined> {
+    if (!this.supabase) return;
+    try {
+      const { data, error } = await this.supabase
+        .from("language")
+        .select("*")
+        .eq("id", id)
+        .eq("is_deleted", false)
+        .single();
+
+      if (error && error.code !== "PGRST116") {
+        throw new Error(
+          `Failed to fetch language with id ${id}: ${error.message}`
+        );
+      }
+
+      return data ?? undefined;
+    } catch (error) {
+      console.error("Error in getLanguageWithId:", error);
+      return Promise.reject(error);
+    }
   }
-  getLessonWithCocosLessonId(
+  // not used, getting error when cocos_lesson_id is same for multiple lessons
+  async getLessonWithCocosLessonId(
     lessonId: string
   ): Promise<TableTypes<"lesson"> | null> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return null;
+    const { data, error } = await this.supabase
+      .from("lesson")
+      .select("*")
+      .eq("cocos_lesson_id", lessonId)
+      .eq("is_deleted", false)
+      .single();
+
+    if (error) {
+      console.error("Error fetching lesson:", error);
+      if (error.code === "PGRST116") {
+        // No rows found
+        return null;
+      }
+      throw new Error(
+        `Failed to fetch lesson with cocos_lesson_id ${lessonId}: ${error.message}`
+      );
+    }
+    return data;
   }
-  getCoursesForParentsStudent(
+  async getCoursesForParentsStudent(
     studentId: string
   ): Promise<TableTypes<"course">[]> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return [];
+
+    // Step 1: Fetch all course IDs for the student
+    const { data: userCourses, error: userCourseError } = await this.supabase
+      .from("user_course")
+      .select("course_id")
+      .eq("user_id", studentId)
+      .eq("is_deleted", false);
+
+    if (userCourseError) {
+      throw new Error(
+        `Failed to fetch user_course entries: ${userCourseError.message}`
+      );
+    }
+
+    const courseIds = userCourses.map((uc) => uc.course_id).filter(Boolean);
+
+    if (courseIds.length === 0) return [];
+
+    // Step 2: Fetch course details for those IDs
+    const { data: courses, error: courseError } = await this.supabase
+      .from("course")
+      .select("*")
+      .in("id", courseIds)
+      .eq("is_deleted", false)
+      .order("sort_index", { ascending: true });
+
+    if (courseError) {
+      throw new Error(`Failed to fetch course details: ${courseError.message}`);
+    }
+
+    return courses;
   }
-  getAdditionalCourses(studentId: string): Promise<TableTypes<"course">[]> {
-    throw new Error("Method not implemented.");
+  async getAdditionalCourses(
+    studentId: string
+  ): Promise<TableTypes<"course">[]> {
+    if (!this.supabase) return [];
+    const { data: userCourses, error: ucError } = await this.supabase
+      .from("user_course")
+      .select("course_id")
+      .eq("user_id", studentId)
+      .eq("is_deleted", false);
+
+    if (ucError) {
+      console.error("Error fetching user courses:", ucError);
+      return [];
+    }
+
+    const userCourseIds = userCourses?.map((uc) => uc.course_id) ?? [];
+
+    let query = this.supabase
+      .from("course")
+      .select("*")
+      .eq("is_deleted", false);
+
+    if (userCourseIds.length > 0) {
+      query = query.not("id", "in", `(${userCourseIds.join(",")})`);
+    }
+
+    const { data: courses, error: cError } = await query;
+
+    if (cError) {
+      console.error("Error fetching additional courses:", cError);
+      return [];
+    }
+
+    return courses ?? [];
   }
-  addCourseForParentsStudent(
+  async addCourseForParentsStudent(
     courses: TableTypes<"course">[],
     student: TableTypes<"user">
   ) {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    const newUserCourses: TableTypes<"user_course">[] = courses.map(
+      (course) => ({
+        id: uuidv4(),
+        user_id: student.id,
+        course_id: course.id,
+        is_deleted: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_firebase: false,
+      })
+    );
+
+    const { error } = await this.supabase
+      .from("user_course")
+      .insert(newUserCourses);
+
+    if (error) {
+      console.error("Error inserting user_course:", error);
+      throw error;
+    }
   }
-  getCoursesForClassStudent(classId: string): Promise<TableTypes<"course">[]> {
-    throw new Error("Method not implemented.");
+  async getCoursesForClassStudent(
+    classId: string
+  ): Promise<TableTypes<"course">[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from("class_course")
+      .select("course!inner(*)")
+      .eq("class_id", classId)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching courses for class student:", error);
+      throw error;
+    }
+    const courses = (data ?? [])
+      .map((item: any) => item.course)
+      .sort((a, b) => (a.sort_index ?? 0) - (b.sort_index ?? 0));
+    return courses ?? [];
   }
-  getLesson(id: string): Promise<TableTypes<"lesson"> | undefined> {
-    throw new Error("Method not implemented.");
+  async getLesson(id: string): Promise<TableTypes<"lesson"> | undefined> {
+    if (!this.supabase) return undefined;
+    const { data, error } = await this.supabase
+      .from("lesson")
+      .select("*")
+      .eq("id", id)
+      .eq("is_deleted", false)
+      .single();
+    if (error) {
+      console.error("Error fetching lesson:", error);
+      return undefined;
+    }
+    return data ?? undefined;
   }
-  getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]> {
-    throw new Error("Method not implemented.");
+  async getBonusesByIds(ids: string[]): Promise<TableTypes<"lesson">[]> {
+    if (!this.supabase || ids.length === 0) return [];
+
+    const { data, error } = await this.supabase
+      .from("lesson")
+      .select("*")
+      .in("id", ids)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching bonuses by IDs:", error);
+      return [];
+    }
+
+    return data ?? [];
   }
-  getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
-    throw new Error("Method not implemented.");
+  async getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
+    if (!this.supabase) return undefined;
+    const { data, error } = await this.supabase
+      .from("chapter")
+      .select("*")
+      .eq("id", id)
+      .eq("is_deleted", false)
+      .single();
+    if (error) {
+      console.error("Error fetching chapter:", error);
+      return undefined;
+    }
+    return data ?? undefined;
   }
-  getLessonsForChapter(chapterId: string): Promise<TableTypes<"lesson">[]> {
-    throw new Error("Method not implemented.");
+  async getLessonsForChapter(
+    chapterId: string
+  ): Promise<TableTypes<"lesson">[]> {
+    if (!this.supabase) return [] as TableTypes<"lesson">[];
+    const { data, error } = await this.supabase
+      .from(TABLES.ChapterLesson)
+      .select("lesson:lesson_id(*)")
+      .eq("chapter_id", chapterId)
+      .order("sort_index", { ascending: true })
+      .eq("is_deleted", false);
+    if (error) {
+      console.error("Error fetching chapter:", error);
+      return [] as TableTypes<"lesson">[];
+    }
+    // Extract lessons from the joined result
+    const lessons = (data ?? [])
+      .map((item: any) => item.lesson as TableTypes<"lesson">)
+      .filter((lesson) => !!lesson);
+    return lessons ?? ([] as TableTypes<"lesson">[]);
   }
-  getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
+  async getDifferentGradesForCourse(course: TableTypes<"course">): Promise<{
     grades: TableTypes<"grade">[];
     courses: TableTypes<"course">[];
   }> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return { grades: [], courses: [] };
+
+    // Fetch all courses for the subject + curriculum
+    const { data: courses, error: courseError } = await this.supabase
+      .from("course")
+      .select("*")
+      .eq("subject_id", course.subject_id!)
+      .eq("curriculum_id", course.curriculum_id!)
+      .eq("is_deleted", false)
+      .order("sort_index", { ascending: true });
+
+    if (courseError || !courses) {
+      console.error("Error fetching courses:", courseError);
+      return { grades: [], courses: [] };
+    }
+
+    // Extract unique grade_ids
+    const gradeIds = [
+      ...new Set(courses.map((c) => c.grade_id).filter(Boolean)),
+    ];
+
+    if (gradeIds.length === 0) {
+      return { grades: [], courses }; // no grades to fetch
+    }
+
+    // Fetch grades by IDs
+    const { data: grades, error: gradeError } = await this.supabase
+      .from("grade")
+      .select("*")
+      .in("id", gradeIds)
+      .eq("is_deleted", false)
+      .order("sort_index", { ascending: true });
+
+    if (gradeError || !grades) {
+      console.error("Error fetching grades:", gradeError);
+      return { grades: [], courses };
+    }
+    return { grades, courses };
   }
   getAvatarInfo(): Promise<AvatarObj | undefined> {
     throw new Error("Method not implemented.");
@@ -734,11 +1919,38 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<Map<string, StudentLessonResult> | undefined> {
     throw new Error("Method not implemented.");
   }
-  getLiveQuizLessons(
+  async getLiveQuizLessons(
     classId: string,
     studentId: string
   ): Promise<TableTypes<"assignment">[]> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return [];
+
+    const now = new Date().toISOString();
+
+    const { data, error } = await this.supabase
+      .from("assignment")
+      .select("*, assignment_user:assignment_user!inner(user_id), result(*)")
+      .eq("class_id", classId)
+      .eq("type", LIVE_QUIZ)
+      .lte("starts_at", now)
+      .gt("ends_at", now)
+      .or(`is_class_wise.eq.true,assignment_user->user_id.eq.${studentId}`)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching live quiz lessons:", error);
+      return [];
+    }
+
+    // Filter assignments with no result for this student
+    const filtered = (data ?? []).filter(
+      (assignment) =>
+        !Array.isArray(assignment.result) ||
+        !(assignment.result ?? []).some((r: any) => r.student_id === studentId)
+    );
+
+    return filtered;
   }
   async getLiveQuizRoomDoc(
     liveQuizRoomDocId: string
@@ -750,13 +1962,49 @@ export class SupabaseApi implements ServiceApi {
       .single();
     return res?.data as TableTypes<"live_quiz_room">;
   }
-  updateFavoriteLesson(
+  async updateFavoriteLesson(
     studentId: string,
     lessonId: string
   ): Promise<TableTypes<"favorite_lesson">> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return {} as TableTypes<"favorite_lesson">;
+
+    const now = new Date().toISOString();
+
+    const { data: existing, error } = await this.supabase
+      .from("favorite_lesson")
+      .select("*")
+      .eq("user_id", studentId)
+      .eq("lesson_id", lessonId)
+      .eq("is_deleted", false)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Favorite fetch error:", error);
+      return {} as TableTypes<"favorite_lesson">;
+    }
+
+    const favorite: TableTypes<"favorite_lesson"> = {
+      id: existing?.id ?? uuidv4(),
+      lesson_id: lessonId,
+      user_id: studentId,
+      created_at: existing?.created_at ?? now,
+      updated_at: now,
+      is_deleted: false,
+      is_firebase: null,
+    };
+
+    const { error: upsertError } = await this.supabase
+      .from("favorite_lesson")
+      .upsert(favorite, { onConflict: "id" });
+
+    if (upsertError) {
+      console.error("Favorite upsert error:", upsertError);
+      return {} as TableTypes<"favorite_lesson">;
+    }
+
+    return favorite;
   }
-  updateResult(
+  async updateResult(
     studentId: string,
     courseId: string | undefined,
     lessonId: string,
@@ -769,22 +2017,138 @@ export class SupabaseApi implements ServiceApi {
     classId: string | undefined,
     schoolId: string | undefined
   ): Promise<TableTypes<"result">> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return {} as TableTypes<"result">;
+
+    const resultId = uuidv4();
+    const now = new Date().toISOString();
+
+    const newResult: TableTypes<"result"> = {
+      id: resultId,
+      assignment_id: assignmentId ?? null,
+      correct_moves: correctMoves,
+      lesson_id: lessonId,
+      school_id: schoolId ?? null,
+      score,
+      student_id: studentId,
+      time_spent: timeSpent,
+      wrong_moves: wrongMoves,
+      created_at: now,
+      updated_at: now,
+      is_deleted: false,
+      chapter_id: chapterId,
+      course_id: courseId ?? null,
+      class_id: classId ?? null,
+      firebase_id: null,
+      is_firebase: null,
+    };
+
+    const { error: insertError } = await this.supabase
+      .from("result")
+      .insert(newResult);
+
+    if (insertError) {
+      console.error("Error inserting result:", insertError);
+      return {} as TableTypes<"result">;
+    }
+
+    // Calculate earned stars
+    let starsEarned = 0;
+    if (score > 25) starsEarned++;
+    if (score > 50) starsEarned++;
+    if (score > 75) starsEarned++;
+
+    const previousStarsRaw = localStorage.getItem(STARS_COUNT);
+    let currentStars = previousStarsRaw
+      ? JSON.parse(previousStarsRaw)[studentId]
+      : 0;
+    const totalStars = currentStars + starsEarned;
+
+    // Update user stars
+    const { error: updateError } = await this.supabase
+      .from("user")
+      .update({ stars: totalStars })
+      .eq("id", studentId);
+
+    if (updateError) {
+      console.error("Error updating student stars:", updateError);
+    }
+
+    // Sync local student data
+    const updatedStudent = await this.getUserByDocId(studentId);
+    if (updatedStudent) {
+      Util.setCurrentStudent(updatedStudent);
+    }
+
+    return newResult;
   }
-  updateStudent(
+  async updateStudent(
     student: TableTypes<"user">,
     name: string,
     age: number,
     gender: string,
     avatar: string,
     image: string | undefined,
-    boardDocId: string,
-    gradeDocId: string,
+    boardDocId: string | undefined,
+    gradeDocId: string | undefined,
     languageDocId: string
   ): Promise<TableTypes<"user">> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return student;
+
+    const updatedFields = {
+      name,
+      age,
+      gender,
+      avatar,
+      image: image ?? null,
+      curriculum_id: boardDocId,
+      grade_id: gradeDocId,
+      language_id: languageDocId,
+    };
+
+    await this.supabase.from("user").update(updatedFields).eq("id", student.id);
+    Object.assign(student, updatedFields);
+
+    const courses =
+      gradeDocId && boardDocId
+        ? await this.getCourseByUserGradeId(gradeDocId, boardDocId)
+        : [];
+
+    if (courses && courses.length > 0) {
+      // Batch fetch existing user_course entries for this student and these courses
+      const courseIds = courses.map((c) => c.id);
+      const { data: existingUserCourses, error } = await this.supabase
+        .from("user_course")
+        .select("course_id")
+        .eq("user_id", student.id)
+        .in("course_id", courseIds)
+        .eq("is_deleted", false);
+
+      const existingCourseIds = new Set(
+        (existingUserCourses ?? []).map((uc) => uc.course_id)
+      );
+
+      // Prepare inserts for only missing courses
+      const now = new Date().toISOString();
+      const inserts = courses
+        .filter((c) => !existingCourseIds.has(c.id))
+        .map((c) => ({
+          id: uuidv4(),
+          user_id: student.id,
+          course_id: c.id,
+          created_at: now,
+          updated_at: now,
+          is_deleted: false,
+        }));
+
+      // Insert all missing user_course entries in one call (if any)
+      if (inserts.length > 0) {
+        await this.supabase.from("user_course").insert(inserts);
+      }
+    }
+
+    return student;
   }
-  updateStudentFromSchoolMode(
+  async updateStudentFromSchoolMode(
     student: TableTypes<"user">,
     name: string,
     age: number,
@@ -794,9 +2158,71 @@ export class SupabaseApi implements ServiceApi {
     boardDocId: string,
     gradeDocId: string,
     languageDocId: string,
-    newClassId: string | undefined
+    student_id: string,
+    newClassId: string
   ): Promise<TableTypes<"user">> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return student;
+    const now = new Date().toISOString();
+    const updatedFields = {
+      name,
+      age,
+      gender,
+      avatar,
+      image: image ?? null,
+      curriculum_id: boardDocId,
+      grade_id: gradeDocId,
+      language_id: languageDocId,
+      student_id: student.student_id ?? null,
+      updated_at: now,
+    };
+
+    try {
+      // Update user table
+      await this.supabase
+        .from(TABLES.User)
+        .update(updatedFields)
+        .eq("id", student.id);
+      Object.assign(student, updatedFields);
+
+      // Get current class_user record (non-deleted)
+      const { data: currentClassUser } = await this.supabase
+        .from(TABLES.ClassUser)
+        .select("id, class_id")
+        .eq("user_id", student.id)
+        .eq("is_deleted", false)
+        .maybeSingle();
+      if (currentClassUser?.class_id !== newClassId) {
+        // Mark old class_user as deleted
+        if (currentClassUser) {
+          await this.supabase
+            .from(TABLES.ClassUser)
+            .update({ is_deleted: true, updated_at: now })
+            .eq("id", currentClassUser.id);
+        }
+
+        // Insert new class_user
+        const newClassUser: TableTypes<TABLES.ClassUser> = {
+          id: uuidv4(),
+          class_id: newClassId,
+          user_id: student.id,
+          role: RoleType.STUDENT,
+          created_at: now,
+          updated_at: now,
+          is_deleted: false,
+          is_firebase: null,
+          is_ops: null,
+          ops_created_by: null,
+        };
+
+        await this.supabase.from(TABLES.ClassUser).insert(newClassUser);
+        await this.addParentToNewClass(newClassId, student.id);
+      }
+
+      return student;
+    } catch (error) {
+      console.error("Error updating student in school mode:", error);
+      throw error;
+    }
   }
   public async updateUserProfile(
     user: TableTypes<"user">,
@@ -804,84 +2230,1133 @@ export class SupabaseApi implements ServiceApi {
     email: string,
     phoneNum: string,
     languageDocId: string,
-    profilePic: string | undefined
+    profilePic: string | undefined,
+    options?: {
+      age?: string;
+      gender?: string;
+    }
   ): Promise<TableTypes<"user">> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return user;
+
+    const updatedFields: Record<string, any> = {
+      name: fullName,
+      email,
+      phone: phoneNum,
+      language_id: languageDocId,
+      image: profilePic ?? null,
+    };
+
+    if (options?.age !== undefined) {
+      const parsedAge = parseInt(options.age, 10);
+      if (!isNaN(parsedAge)) {
+        updatedFields.age = parsedAge;
+      }
+    }
+
+    if (options?.gender !== undefined) {
+      updatedFields.gender = options.gender;
+    }
+
+    const { error } = await this.supabase
+      .from("user")
+      .update(updatedFields)
+      .eq("id", user.id);
+
+    if (error) {
+      console.error("Error updating user profile:", error);
+      throw error;
+    }
+    Object.assign(user, updatedFields);
+
+    return user;
   }
-  updateClassCourseSelection(
+
+  async updateClassCourseSelection(
     classId: string,
     selectedCourseIds: string[]
   ): Promise<void> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    const now = new Date().toISOString();
+
+    await Promise.all(
+      selectedCourseIds.map(async (courseId) => {
+        // Check existing entry
+        if (!this.supabase) return;
+        const { data: existingEntry, error } = await this.supabase
+          .from("class_course")
+          .select("*")
+          .eq("class_id", classId)
+          .eq("course_id", courseId)
+          .eq("is_deleted", false)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error fetching class_course:", error);
+          throw error;
+        }
+
+        if (!existingEntry) {
+          // Insert new
+          const newEntry = {
+            id: uuidv4(),
+            class_id: classId,
+            course_id: courseId,
+            created_at: now,
+            updated_at: now,
+            is_deleted: false,
+          };
+          const { error: insertError } = await this.supabase
+            .from("class_course")
+            .insert(newEntry);
+
+          if (insertError) {
+            console.error("Error inserting class_course:", insertError);
+            throw insertError;
+          }
+        } else if (existingEntry.is_deleted) {
+          // Reactivate
+          const { error: updateError } = await this.supabase
+            .from("class_course")
+            .update({ is_deleted: false, updated_at: now })
+            .eq("id", existingEntry.id);
+
+          if (updateError) {
+            console.error("Error updating class_course:", updateError);
+            throw updateError;
+          }
+        } else {
+          // Update timestamp
+          const { error: timestampError } = await this.supabase
+            .from("class_course")
+            .update({ updated_at: now })
+            .eq("id", existingEntry.id);
+
+          if (timestampError) {
+            console.error("Error updating updated_at:", timestampError);
+            throw timestampError;
+          }
+        }
+      })
+    );
   }
 
-  updateSchoolCourseSelection(
+  async updateSchoolCourseSelection(
     schoolId: string,
     selectedCourseIds: string[]
   ): Promise<void> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    const now = new Date().toISOString();
+
+    await Promise.all(
+      selectedCourseIds.map(async (courseId) => {
+        if (!this.supabase) return;
+        const { data: existingEntry, error } = await this.supabase
+          .from("school_course")
+          .select("id, course_id, is_deleted")
+          .eq("school_id", schoolId)
+          .eq("course_id", courseId)
+          .eq("is_deleted", false)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error fetching school_course:", error);
+          throw error;
+        }
+
+        if (!existingEntry) {
+          // Insert new course assignment
+          const newEntry = {
+            id: uuidv4(),
+            school_id: schoolId,
+            course_id: courseId,
+            created_at: now,
+            updated_at: now,
+            is_deleted: false,
+          };
+          const { error: insertError } = await this.supabase
+            .from("school_course")
+            .insert(newEntry);
+
+          if (insertError) {
+            console.error("Error inserting school_course:", insertError);
+            throw insertError;
+          }
+        } else if (existingEntry.is_deleted) {
+          // Reactivate the deleted entry
+          const { error: updateError } = await this.supabase
+            .from("school_course")
+            .update({ is_deleted: false, updated_at: now })
+            .eq("id", existingEntry.id);
+
+          if (updateError) {
+            console.error("Error updating school_course:", updateError);
+            throw updateError;
+          }
+        } else {
+          // Update timestamp of existing active entry
+          const { error: timestampError } = await this.supabase
+            .from("school_course")
+            .update({ updated_at: now })
+            .eq("id", existingEntry.id);
+
+          if (timestampError) {
+            console.error("Error updating updated_at:", timestampError);
+            throw timestampError;
+          }
+        }
+      })
+    );
   }
 
-  getSubject(id: string): Promise<TableTypes<"subject"> | undefined> {
-    throw new Error("Method not implemented.");
+  async getSubject(id: string): Promise<TableTypes<"subject"> | undefined> {
+    if (!this.supabase) return undefined;
+    const { data, error } = await this.supabase
+      .from("subject")
+      .select("*")
+      .eq("id", id)
+      .eq("is_deleted", false)
+      .single();
+    if (error) {
+      console.error("Error fetching subject:", error);
+      return undefined;
+    }
+    return data ?? undefined;
   }
-  getCourse(id: string): Promise<TableTypes<"course"> | undefined> {
-    throw new Error("Method not implemented.");
+  async getCourse(id: string): Promise<TableTypes<"course"> | undefined> {
+    if (!this.supabase) return undefined;
+    const { data, error } = await this.supabase
+      .from("course")
+      .select("*")
+      .eq("id", id)
+      .eq("is_deleted", false)
+      .single();
+    if (error) {
+      console.error("Error fetching course:", error);
+      return undefined;
+    }
+    return data ?? undefined;
   }
-  getStudentResult(
+  async getCourses(ids: string[]): Promise<TableTypes<"course">[]> {
+    if (!this.supabase || !ids || ids.length === 0) return [];
+
+    const { data, error } = await this.supabase
+      .from("course")
+      .select("*")
+      .in("id", ids) // fetch all courses in one go
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching courses:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+
+  async getStudentResult(
     studentId: string,
     fromCache?: boolean
   ): Promise<TableTypes<"result">[]> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from("result")
+      .select("*")
+      .eq("student_id", studentId)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching student results:", error);
+      return [];
+    }
+
+    return data ?? [];
   }
-  getStudentProgress(studentId: string): Promise<Map<string, string>> {
-    throw new Error("Method not implemented.");
+  async getStudentProgress(studentId: string): Promise<Map<string, string>> {
+    if (!this.supabase) return new Map();
+
+    // Use chapter_lesson to join lesson and chapter
+    const { data, error } = await this.supabase
+      .from("result")
+      .select(
+        `
+      *,
+      lesson (
+        name,
+        chapter_lesson:chapter_lesson!inner(
+          chapter (
+            id,
+            name,
+            course_id
+          )
+        )
+      )
+    `
+      )
+      .eq("student_id", studentId)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching student progress:", error);
+      return new Map();
+    }
+
+    const resultMap = new Map<string, string>();
+
+    if (!data) return resultMap;
+
+    if (data && data.length > 0) {
+      data.forEach((result) => {
+        const courseId = result.course_id;
+        if (courseId && !resultMap[courseId]) {
+          resultMap[courseId] = [];
+        }
+        if (courseId) resultMap[courseId].push(result);
+      });
+    }
+    return resultMap;
   }
-  getStudentResultInMap(
+  async getStudentResultInMap(
     studentId: string
   ): Promise<{ [lessonDocId: string]: TableTypes<"result"> }> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return {};
+
+    const { data, error } = await this.supabase.rpc(
+      "get_latest_results_by_student",
+      { student_uuid: studentId }
+    );
+
+    if (error || !data) {
+      console.error("RPC failed:", error);
+      return {};
+    }
+
+    const resultMap: { [lessonId: string]: TableTypes<"result"> } = {};
+    for (const row of data) {
+      if (row.lesson_id !== null && row.lesson_id !== undefined) {
+        resultMap[row.lesson_id] = row;
+      }
+    }
+    return resultMap;
   }
-  getClassById(id: string): Promise<TableTypes<"class"> | undefined> {
-    throw new Error("Method not implemented.");
+  async getClassById(id: string): Promise<TableTypes<"class"> | undefined> {
+    if (!this.supabase) return;
+    const { data, error } = await this.supabase
+      .from(TABLES.Class)
+      .select("*")
+      .eq("id", id)
+      .eq("is_deleted", false)
+      .single();
+
+    if (error) {
+      console.error("Error in getting class", error);
+      return;
+    }
+    return data ?? undefined;
   }
-  getSchoolById(id: string): Promise<TableTypes<"school"> | undefined> {
-    throw new Error("Method not implemented.");
+  async getSchoolById(id: string): Promise<TableTypes<"school"> | undefined> {
+    if (!this.supabase) return;
+    const { data, error } = await this.supabase
+      .from(TABLES.School)
+      .select("*")
+      .eq("id", id)
+      .eq("is_deleted", false)
+      .single();
+    if (error) {
+      console.error("Error in getting school", error);
+      return;
+    }
+    return data ?? undefined;
   }
-  isStudentLinked(studentId: string, fromCache: boolean): Promise<boolean> {
-    throw new Error("Method not implemented.");
+  async isStudentLinked(
+    studentId: string,
+    fromCache: boolean
+  ): Promise<boolean> {
+    if (!this.supabase) return false;
+    const { data, error } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select("*")
+      .eq("user_id", studentId)
+      .eq("role", RoleType.STUDENT)
+      .eq("is_deleted", false)
+      .single();
+
+    if (error) {
+      console.error("Error in isStudentLinked", error);
+      return false;
+    }
+    return true;
   }
-  getPendingAssignments(
+  async getPendingAssignments(
     classId: string,
     studentId: string
   ): Promise<TableTypes<"assignment">[]> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return [];
+
+    // Fetch assignments with left joins to assignment_user and result
+    const { data: allAssignments, error } = await this.supabase
+      .from(TABLES.Assignment)
+      .select(
+        `
+      *,
+      assignment_user:assignment_user!left(user_id),
+      result:result!left(assignment_id,student_id)
+    `
+      )
+      .eq("class_id", classId)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching assignments:", error);
+      return [];
+    }
+
+    // Filter: (is_class_wise === true OR assignment_user.user_id === studentId)
+    // AND result for this student is null
+    const filtered = (allAssignments ?? []).filter((a: any) => {
+      const isClassWise = a.is_class_wise === true;
+      const isAssignedToStudent = Array.isArray(a.assignment_user)
+        ? a.assignment_user.some((au: any) => au.user_id === studentId)
+        : a.assignment_user?.user_id === studentId;
+      const hasResultForStudent = Array.isArray(a.result)
+        ? a.result.some((r: any) => r.student_id === studentId)
+        : a.result?.student_id === studentId;
+      return (isClassWise || isAssignedToStudent) && !hasResultForStudent;
+    });
+
+    return filtered;
   }
-  getSchoolsForUser(
-    userId: string
+  async getSchoolsForUser(
+    userId: string,
+    options?: { page?: number; page_size?: number }
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return [];
+
+    // Special users
+    const { data: specialUser, error: specialError } = await this.supabase
+      .from(TABLES.SpecialUsers)
+      .select("role")
+      .eq("user_id", userId)
+      .eq("is_deleted", false)
+      .single();
+
+    if (specialError) {
+      console.error("Error fetching special_users:", specialError);
+    } else if (specialUser) {
+      const role = specialUser.role as RoleType;
+
+      if (
+        role === RoleType.SUPER_ADMIN ||
+        role === RoleType.OPERATIONAL_DIRECTOR
+      ) {
+        const page = options?.page ?? 1;
+        const page_size = options?.page_size ?? 20;
+        const from = (page - 1) * page_size;
+        const to = from + page_size - 1;
+
+        const { data: allSchools, error: allErr } = await this.supabase
+          .from(TABLES.School)
+          .select("*")
+          .eq("is_deleted", false)
+          .order("name", { ascending: true })
+          .range(from, to);
+
+        if (allErr) {
+          console.error("Error fetching all schools:", allErr);
+          return [];
+        }
+        return (allSchools ?? []).map((school) => ({ school, role }));
+      }
+
+      if (
+        role === RoleType.PROGRAM_MANAGER ||
+        role === RoleType.FIELD_COORDINATOR
+      ) {
+        const page = options?.page ?? 1;
+        const page_size = options?.page_size ?? 20;
+        const from = (page - 1) * page_size;
+        const to = from + page_size - 1;
+
+        const { data: progUsers, error: puErr } = await this.supabase
+          .from(TABLES.ProgramUser)
+          .select("program_id")
+          .eq("user", userId)
+          .eq("is_deleted", false);
+
+        if (puErr) {
+          console.error("Error fetching program_user:", puErr);
+          return [];
+        }
+        if (progUsers?.length) {
+          const programIds = progUsers.map((pu) => pu.program_id);
+          const { data: progSchools, error: psErr } = await this.supabase
+            .from(TABLES.School)
+            .select("*")
+            .in("program_id", programIds)
+            .eq("is_deleted", false)
+            .order("name", { ascending: true })
+            .range(from, to);
+
+          if (psErr) {
+            console.error("Error fetching program schools:", psErr);
+            return [];
+          }
+          // Deduplicate by school id
+          const unique = new Map<string, { school: any; role: RoleType }>();
+          for (const school of progSchools ?? []) {
+            unique.set(school.id, { school, role });
+          }
+          return Array.from(unique.values());
+        }
+        return [];
+      }
+    }
+
+    // — Fallback to original logic:
+
+    const finalData: { school: TableTypes<"school">; role: RoleType }[] = [];
+    const schoolIds: Set<string> = new Set();
+
+    // Fetch class_user with TEACHER role
+    const { data: classUsers, error: classUserError } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select("class_id")
+      .eq("user_id", userId)
+      .eq("role", RoleType.TEACHER)
+      .eq("is_deleted", false);
+
+    if (classUserError) {
+      console.error("Error fetching class users:", classUserError);
+    } else if (classUsers?.length) {
+      const classIds = classUsers.map((cu) => cu.class_id);
+      const { data: classes, error: classError } = await this.supabase
+        .from(TABLES.Class)
+        .select("school_id")
+        .in("id", classIds)
+        .eq("is_deleted", false);
+
+      if (classError) {
+        console.error("Error fetching classes:", classError);
+      } else {
+        const schoolIdList = classes.map((c) => c.school_id);
+        const { data: schools, error: schoolError } = await this.supabase
+          .from(TABLES.School)
+          .select("*")
+          .in("id", schoolIdList)
+          .eq("is_deleted", false);
+
+        if (schoolError) {
+          console.error("Error fetching schools:", schoolError);
+        } else {
+          for (const school of schools) {
+            if (!schoolIds.has(school.id)) {
+              schoolIds.add(school.id);
+              finalData.push({ school, role: RoleType.TEACHER });
+            }
+          }
+        }
+      }
+    }
+
+    // From school_user (excluding parent)
+    const { data: schoolUsers, error: schoolUserError } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select("role, school_id")
+      .eq("user_id", userId)
+      .neq("role", RoleType.PARENT)
+      .eq("is_deleted", false);
+
+    if (schoolUserError) {
+      console.error("Error fetching school users:", schoolUserError);
+    } else if (schoolUsers?.length) {
+      const schoolUserIds = schoolUsers.map((su) => su.school_id);
+      const { data: schools, error: schoolFetchError } = await this.supabase
+        .from(TABLES.School)
+        .select("*")
+        .in("id", schoolUserIds)
+        .eq("is_deleted", false);
+
+      if (schoolFetchError) {
+        console.error("Error fetching schools:", schoolFetchError);
+      } else {
+        for (const su of schoolUsers) {
+          const school = schools.find((s) => s.id === su.school_id);
+          const role = su.role as RoleType;
+
+          if (school && !schoolIds.has(school.id)) {
+            schoolIds.add(school.id);
+            finalData.push({ school, role });
+          } else if (school) {
+            const existing = finalData.find((e) => e.school.id === school.id);
+            if (existing) {
+              existing.role = role; // override
+            }
+          }
+        }
+      }
+    }
+
+    return finalData;
   }
-  set currentMode(value: MODES) {
-    throw new Error("Method not implemented.");
+
+  public set currentMode(value: MODES) {
+    this._currentMode = value;
   }
-  get currentMode(): MODES {
-    throw new Error("Method not implemented.");
+  public get currentMode(): MODES {
+    return this._currentMode;
   }
-  isUserTeacher(userId: string): Promise<boolean> {
-    throw new Error("Method not implemented.");
+  async isUserTeacher(userId: string): Promise<boolean> {
+    const schools = await this.getSchoolsForUser(userId);
+    return schools.length > 0;
   }
-  getClassesForSchool(
+  async getClassesForSchool(
     schoolId: string,
     userId: string
   ): Promise<TableTypes<"class">[]> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return [];
+
+    const { data: classUsers, error: classUserError } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select(
+        `
+      role,
+      class:class_id (
+        *
+      )
+    `
+      )
+      .eq("user_id", userId)
+      .neq("role", RoleType.PARENT)
+      .eq("is_deleted", false)
+      .eq("class.school_id", schoolId)
+      .eq("class.is_deleted", false);
+
+    if (classUserError) {
+      console.error("Error fetching class users:", classUserError);
+    }
+
+    if (classUsers && classUsers.length > 0) {
+      const classes = classUsers
+        .map((cu) => (Array.isArray(cu.class) ? cu.class[0] : cu.class))
+        .filter((cls): cls is TableTypes<"class"> => !!cls);
+
+      if (classes.length > 0) return classes;
+    }
+
+    const { data: allClasses, error: allClassesError } = await this.supabase
+      .from(TABLES.Class)
+      .select("*")
+      .eq("school_id", schoolId)
+      .eq("is_deleted", false);
+
+    if (allClassesError) {
+      console.error("Error fetching all classes:", allClassesError);
+    }
+
+    return allClasses || [];
   }
-  getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
-    throw new Error("Method not implemented.");
+  async getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> {
+    if (!this.supabase) return [];
+
+    const { data: classes, error } = await this.supabase
+      .from(TABLES.Class)
+      .select("*")
+      .eq("school_id", schoolId)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching classes by school ID:", error);
+      return [];
+    }
+
+    return classes || [];
   }
-  subscribeToClassTopic(): Promise<void> {
-    throw new Error("Method not implemented.");
+
+  async getUsersByIds(userIds: string[]): Promise<TableTypes<"user">[]> {
+    if (!this.supabase || userIds.length === 0) return [];
+
+    const { data: users, error } = await this.supabase
+      .from(TABLES.User)
+      .select("*")
+      .in("id", userIds)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching users by IDs:", error);
+      return [];
+    }
+
+    return users || [];
+  }
+
+  async getStudentInfoBySchoolId(
+    schoolId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<StudentAPIResponse> {
+    if (!this.supabase) {
+      console.warn("Supabase not initialized.");
+      return { data: [], total: 0 };
+    }
+
+    const offset = (page - 1) * limit;
+
+    const { data, error, count } = await this.supabase
+      .from("class_user")
+      .select(
+        `
+      class:class_id!inner (
+        id,
+        name 
+      ),
+      user:user_id (
+        *,
+        parent_links:parent_user!student_id (
+          parent:parent_id (
+            * 
+          )
+        )
+      )
+    `,
+        { count: "exact" }
+      )
+      .eq("role", "student")
+      .eq("is_deleted", false)
+      .eq("class.school_id", schoolId)
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error("Error fetching student info:", error);
+      return { data: [], total: 0 };
+    }
+
+    const studentInfoList: StudentInfo[] = (data || []).map((row: any) => {
+      const { user, class: cls } = row;
+
+      const className = cls?.name || "";
+      const { grade, section } = this.parseClassName(className);
+
+      const parent = user?.parent_links?.[0]?.parent || null;
+
+      return {
+        user,
+        grade,
+        classSection: section,
+        parent,
+      };
+    });
+
+    return {
+      data: studentInfoList,
+      total: count ?? 0,
+    };
+  }
+  async getStudentsAndParentsByClassId(
+    classId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<StudentAPIResponse> {
+    if (!this.supabase) {
+      console.warn("Supabase not initialized.");
+      return { data: [], total: 0 };
+    }
+
+    const offset = (page - 1) * limit;
+
+    const { data, error, count } = await this.supabase
+      .from("class_user")
+      .select(
+        `
+      class:class_id!inner (
+        id,
+        name 
+      ),
+      user:user_id (
+        *,
+        parent_links:parent_user!student_id (
+          parent:parent_id (
+            * 
+          )
+        )
+      )
+    `,
+        { count: "exact" }
+      )
+      .eq("role", "student")
+      .eq("is_deleted", false)
+      .eq("class_id", classId) // Filter by classId
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error("Error fetching students and parents by class ID:", error);
+      return { data: [], total: 0 };
+    }
+
+    const studentInfoList: StudentInfo[] = (data || []).map((row: any) => {
+      const { user, class: cls } = row;
+
+      const className = cls?.name || "";
+      const { grade, section } = this.parseClassName(className);
+
+      const parent = user?.parent_links?.[0]?.parent || null;
+
+      return {
+        user,
+        grade,
+        classSection: section,
+        parent,
+      };
+    });
+    return {
+      data: studentInfoList,
+      total: count ?? 0,
+    };
+  }
+  async getStudentAndParentByStudentId(studentId: string): Promise<{
+    user: any;
+    parents: any[];
+  }> {
+    if (!this.supabase) {
+      console.warn("Supabase not initialized.");
+      return { user: null, parents: [] };
+    }
+
+    const { data, error } = await this.supabase
+      .from("user")
+      .select(
+        `
+      *,
+      parent_links:parent_user!student_id (
+        parent:parent_id (
+          *
+        )
+      )
+      `
+      )
+      .eq("id", studentId)
+      .eq("is_deleted", false)
+      .single();
+
+    if (error || !data) {
+      console.error("Error fetching student and parent by student ID:", error);
+      return { user: null, parents: [] };
+    }
+    const parents = (data.parent_links || []).map((link: any) => link.parent);
+
+    return {
+      user: data,
+      parents,
+    };
+  }
+
+  async mergeStudentRequest(
+    requestId: string,
+    existingStudentId: string,
+    newStudentId: string
+  ): Promise<void> {
+    if (!this.supabase) {
+      throw new Error("Supabase not initialized.");
+    }
+    const now = new Date().toISOString();
+
+    // 1. Get new student details (including parents)
+    const { data: newStudentData, error: newStudentError } = await this.supabase
+      .from("user")
+      .select(
+        `
+      *,
+      parent_links:parent_user!student_id (
+        parent:parent_id (*)
+      )
+    `
+      )
+      .eq("id", newStudentId)
+      .eq("is_deleted", false)
+      .single();
+
+    if (newStudentError || !newStudentData) {
+      throw new Error("New student not found");
+    }
+
+    const newParents = (newStudentData.parent_links || []).map(
+      (link: any) => link.parent
+    );
+
+    // 2. Get existing student details (with parents)
+    const { data: existingStudentData, error: existingStudentError } =
+      await this.supabase
+        .from("user")
+        .select(
+          `
+        *,
+        parent_links:parent_user!student_id (
+          parent:parent_id (*)
+        )
+      `
+        )
+        .eq("id", existingStudentId)
+        .eq("is_deleted", false)
+        .single();
+
+    if (existingStudentError || !existingStudentData) {
+      throw new Error("Existing student not found");
+    }
+
+    const existingParents = (existingStudentData.parent_links || []).map(
+      (link: any) => link.parent
+    );
+
+    // 3. Compare phone or email
+    const existingContact =
+      existingParents?.[0]?.phone || existingParents?.[0]?.email || null;
+    const newContact = newParents?.[0]?.phone || newParents?.[0]?.email || null;
+
+    // 4. Transfer results if present
+    const { data: results } = await this.supabase
+      .from("result")
+      .select("*")
+      .eq("student_id", newStudentId)
+      .eq("is_deleted", false);
+
+    if (results && results.length > 0) {
+      await this.supabase
+        .from("result")
+        .update({ student_id: existingStudentId, updated_at: now })
+        .eq("student_id", newStudentId)
+        .eq("is_deleted", false);
+    }
+
+    // 5. If contact different, link new parent(s)
+    if (newContact && newContact !== existingContact) {
+      for (const parent of newParents) {
+        const alreadyLinked = existingParents.some(
+          (p: any) =>
+            (p.phone && parent.phone && p.phone === parent.phone) ||
+            (p.email && parent.email && p.email === parent.email)
+        );
+
+        if (!alreadyLinked) {
+          await this.supabase.from("parent_user").insert({
+            student_id: existingStudentId,
+            parent_id: parent.id,
+            is_deleted: false,
+            updated_at: now,
+          });
+        }
+      }
+    }
+
+    // 6. Mark new student and related records as deleted
+    await this.supabase
+      .from("class_user")
+      .update({ is_deleted: true, updated_at: now })
+      .eq("user_id", newStudentId);
+
+    await this.supabase
+      .from("parent_user")
+      .update({ is_deleted: true, updated_at: now })
+      .eq("student_id", newStudentId);
+
+    await this.supabase
+      .from("user")
+      .update({ is_deleted: true, updated_at: now })
+      .eq("id", newStudentId);
+
+    const { error: updateRequestError } = await this.supabase
+      .from("ops_requests")
+      .update({
+        request_status: "approved",
+        updated_at: now,
+        // merged_to: existingStudentId,
+      })
+      .eq("request_id", requestId); // Identify the specific request
+
+    if (updateRequestError) {
+      console.error(
+        "Error updating ops_requests status:",
+        updateRequestError.message
+      );
+      throw new Error("Failed to update request status.");
+    }
+  }
+
+  async getUserRoleForSchool(
+    userId: string,
+    schoolId: string
+  ): Promise<RoleType | undefined> {
+    if (!this.supabase) return;
+
+    // Check special users
+    const { data: specialUser } = await this.supabase
+      .from(TABLES.SpecialUsers)
+      .select("role")
+      .eq("user_id", userId)
+      .eq("is_deleted", false)
+      .single();
+    if (specialUser?.role) return specialUser.role as RoleType;
+
+    // Check school_user (not parent)
+    const { data: schoolUser } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select("role")
+      .eq("user_id", userId)
+      .eq("school_id", schoolId)
+      .neq("role", RoleType.PARENT)
+      .eq("is_deleted", false)
+      .single();
+    if (schoolUser?.role) return schoolUser.role as RoleType;
+
+    // Check class_user → teacher
+    const { data: classUsers } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select("class_id")
+      .eq("user_id", userId)
+      .eq("role", RoleType.TEACHER)
+      .eq("is_deleted", false);
+    if (classUsers?.length) {
+      const classIds = classUsers.map((cu) => cu.class_id);
+      const { data: classes } = await this.supabase
+        .from(TABLES.Class)
+        .select("id, school_id")
+        .in("id", classIds)
+        .eq("is_deleted", false);
+      if (classes?.some((c) => c.school_id === schoolId)) {
+        return RoleType.TEACHER;
+      }
+    }
+
+    return undefined;
+  }
+
+  async getTeacherInfoBySchoolId(
+    schoolId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<TeacherAPIResponse> {
+    if (!this.supabase) {
+      console.warn("Supabase not initialized.");
+      return { data: [], total: 0 };
+    }
+
+    const offset = (page - 1) * limit;
+
+    const { data, error, count } = await this.supabase
+      .from("class_user")
+      .select(
+        `
+        user:user_id!inner(*),
+        class:class_id!inner(
+          id,
+          name
+        )
+      `,
+        { count: "exact" }
+      )
+      .eq("role", "teacher")
+      .eq("is_deleted", false)
+      .eq("class.school_id", schoolId)
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error("Error fetching teacher info:", error);
+      return { data: [], total: 0 };
+    }
+
+    const teacherInfoList: TeacherInfo[] = (data || []).map((row: any) => {
+      const { user, class: cls } = row;
+
+      const { grade, section } = this.parseClassName(cls?.name || "");
+
+      return {
+        user,
+        grade: grade,
+        classSection: section,
+      };
+    });
+
+    return {
+      data: teacherInfoList,
+      total: count ?? 0,
+    };
+  }
+
+  parseClassName(className: string): { grade: number; section: string } {
+    const cleanedName = className.trim();
+    if (!cleanedName) {
+      return { grade: 0, section: "" };
+    }
+
+    let grade = 0;
+    let section = "";
+
+    const numericMatch = cleanedName.match(/^(\d+)$/);
+    if (numericMatch) {
+      grade = parseInt(numericMatch[1], 10);
+      return { grade: isNaN(grade) ? 0 : grade, section: "" };
+    }
+
+    const alphanumericMatch = cleanedName.match(/(\d+)\s*(\w+)/i);
+    if (alphanumericMatch) {
+      grade = parseInt(alphanumericMatch[1], 10);
+      section = alphanumericMatch[2];
+      return { grade: isNaN(grade) ? 0 : grade, section };
+    }
+
+    console.warn(
+      `Could not parse grade from class name: "${cleanedName}". Assigning grade 0.`
+    );
+    return { grade: 0, section: cleanedName };
+  }
+
+  async getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
+    if (!this.supabase) return [];
+
+    const { data: classUsers, error: classUserError } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select("user_id")
+      .eq("class_id", classId)
+      .eq("role", RoleType.STUDENT)
+      .eq("is_deleted", false);
+
+    if (classUserError) {
+      console.error("Error fetching class users:", classUserError);
+    }
+
+    if (classUsers && classUsers.length > 0) {
+      const studentIds = classUsers.map((cu) => cu.user_id);
+      const { data: students, error: studentError } = await this.supabase
+        .from(TABLES.User)
+        .select("*")
+        .in("id", studentIds)
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: true });
+
+      if (studentError) {
+        console.error("Error fetching students:", studentError);
+      }
+
+      return students || [];
+    }
+    return [];
+  }
+  async subscribeToClassTopic(): Promise<void> {
+    var students: TableTypes<"user">[] = await this.getParentStudentProfiles();
+    for (const student of students) {
+      const linkedData = await this.getStudentClassesAndSchools(student.id);
+      if (
+        !!linkedData &&
+        !!linkedData.classes &&
+        linkedData.classes.length > 0
+      ) {
+        Util.subscribeToClassTopic(
+          linkedData.classes[0].id,
+          linkedData.schools[0].id
+        );
+      }
+    }
   }
   async getDataByInviteCode(inviteCode: number): Promise<any> {
     try {
@@ -901,13 +3376,138 @@ export class SupabaseApi implements ServiceApi {
     schoolId: string,
     className: string
   ): Promise<TableTypes<"class">> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) throw new Error("Supabase instance is not initialized");
+
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw new Error("User is not Logged in");
+
+    const classId = uuidv4();
+    const timestamp = new Date().toISOString();
+
+    const newClass: TableTypes<"class"> = {
+      id: classId,
+      name: className,
+      image: null,
+      school_id: schoolId,
+      group_id: null,
+      created_at: timestamp,
+      updated_at: timestamp,
+      is_deleted: false,
+      academic_year: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+      standard: null,
+      status: null,
+    };
+
+    const { error } = await this.supabase.from("class").insert(newClass);
+    if (error) {
+      console.error("Error inserting class:", error);
+      throw error;
+    }
+    return newClass;
   }
   async deleteClass(classId: string) {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    try {
+      // Soft-delete class_user (only teachers)
+      const { error: classUserUpdateError } = await this.supabase
+        .from("class_user")
+        .update({ is_deleted: true })
+        .eq("class_id", classId)
+        .eq("role", RoleType.TEACHER);
+
+      if (classUserUpdateError) {
+        console.error("Error updating class_user:", classUserUpdateError);
+        throw classUserUpdateError;
+      }
+
+      // Get affected class_user IDs (teachers)
+      const { data: deletedClassUsers, error: classUserFetchError } =
+        await this.supabase
+          .from("class_user")
+          .select("id")
+          .eq("class_id", classId)
+          .eq("role", RoleType.TEACHER)
+          .eq("is_deleted", true);
+
+      if (classUserFetchError) {
+        console.error(
+          "Error fetching updated class_user records:",
+          classUserFetchError
+        );
+        throw classUserFetchError;
+      }
+
+      if (!deletedClassUsers || deletedClassUsers.length === 0) {
+      }
+
+      // Soft-delete class_course for this class
+      const { error: classCourseUpdateError } = await this.supabase
+        .from("class_course")
+        .update({ is_deleted: true })
+        .eq("class_id", classId);
+
+      if (classCourseUpdateError) {
+        console.error("Error updating class_course:", classCourseUpdateError);
+        throw classCourseUpdateError;
+      }
+
+      // Get affected class_course IDs
+      const { data: deletedClassCourses, error: classCourseFetchError } =
+        await this.supabase
+          .from("class_course")
+          .select("id")
+          .eq("class_id", classId)
+          .eq("is_deleted", true);
+
+      if (classCourseFetchError) {
+        console.error(
+          "Error fetching updated class_course records:",
+          classCourseFetchError
+        );
+        throw classCourseFetchError;
+      }
+
+      if (!deletedClassCourses || deletedClassCourses.length === 0) {
+      }
+
+      // Soft-delete the class itself
+      const { error: classUpdateError } = await this.supabase
+        .from("class")
+        .update({ is_deleted: true })
+        .eq("id", classId)
+        .eq("is_deleted", false);
+
+      if (classUpdateError) {
+        console.error("Error soft-deleting class:", classUpdateError);
+        throw classUpdateError;
+      }
+    } catch (error) {
+      console.error("Failed to delete class:", error);
+      throw error;
+    }
   }
   async updateClass(classId: string, className: string) {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw new Error("User is not Logged in");
+
+    const { error } = await this.supabase
+      .from("class")
+      .update({ name: className })
+      .eq("id", classId);
+
+    if (error) {
+      console.error("Error updating class name:", error);
+      throw error;
+    }
   }
   async linkStudent(inviteCode: number, studentId: string): Promise<any> {
     try {
@@ -1066,8 +3666,43 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  getAllLessonsForCourse(courseId: string): Promise<TableTypes<"lesson">[]> {
-    throw new Error("Method not implemented.");
+  async getAllLessonsForCourse(
+    courseId: string
+  ): Promise<TableTypes<"lesson">[]> {
+    if (!this.supabase) return [];
+
+    // 1. Get all chapters for the course
+    const { data: chapters, error: chapterError } = await this.supabase
+      .from(TABLES.Chapter)
+      .select("id")
+      .eq("course_id", courseId)
+      .eq("is_deleted", false);
+
+    if (chapterError || !chapters || chapters.length === 0) return [];
+
+    const chapterIds = chapters.map((c) => c.id);
+
+    // 2. Get all chapter_lesson entries for these chapters
+    const { data: chapterLessons, error: clError } = await this.supabase
+      .from(TABLES.ChapterLesson)
+      .select("lesson_id")
+      .in("chapter_id", chapterIds)
+      .eq("is_deleted", false);
+
+    if (clError || !chapterLessons || chapterLessons.length === 0) return [];
+
+    const lessonIds = chapterLessons.map((cl) => cl.lesson_id);
+
+    // 3. Get all lessons by these IDs
+    const { data: lessons, error: lessonError } = await this.supabase
+      .from(TABLES.Lesson)
+      .select("*")
+      .in("id", lessonIds)
+      .eq("is_deleted", false);
+
+    if (lessonError) return [];
+
+    return lessons ?? [];
   }
   getLessonFromCourse(
     course: Course,
@@ -1075,26 +3710,132 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<Lesson | undefined> {
     throw new Error("Method not implemented.");
   }
-  getLessonFromChapter(
+  async getLessonFromChapter(
     chapterId: string,
     lessonId: string
   ): Promise<{
     lesson: TableTypes<"lesson">[];
     course: TableTypes<"course">[];
   }> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) {
+      return { lesson: [], course: [] };
+    }
+
+    const { data, error } = await this.supabase
+      .from("chapter_lesson")
+      .select(
+        `
+      lesson(*),
+      chapter:chapter_id (
+        course:course_id (*)
+      )
+    `
+      )
+      .eq("chapter_id", chapterId)
+      .eq("lesson_id", lessonId)
+      .eq("is_deleted", false)
+      .eq("chapter.is_deleted", false)
+      .eq("lesson.is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching lesson from chapter:", error);
+      return { lesson: [], course: [] };
+    }
+
+    if (!data || data.length === 0) {
+      return { lesson: [], course: [] };
+    }
+
+    // Flatten lesson in case it's an array or null
+    const lessonData = data
+      .flatMap((item) =>
+        Array.isArray(item.lesson) ? item.lesson : [item.lesson]
+      )
+      .filter((lesson): lesson is TableTypes<"lesson"> => !!lesson);
+
+    const courseData = data
+      .flatMap((item) => item.chapter ?? [])
+      .flatMap((chapter) => chapter.course ?? [])
+      .filter((course): course is TableTypes<"course"> => !!course);
+
+    return {
+      lesson: lessonData,
+      course: courseData,
+    };
   }
-  getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]> {
-    throw new Error("Method not implemented.");
+  async getCoursesByGrade(gradeDocId: any): Promise<TableTypes<"course">[]> {
+    if (!this.supabase) return [];
+    try {
+      const gradeCoursesRes = await this.supabase
+        .from(TABLES.Course)
+        .select("*")
+        .eq("grade_id", gradeDocId)
+        .eq("is_deleted", false);
+
+      const puzzleCoursesRes = await this.supabase
+        .from(TABLES.Course)
+        .select("*")
+        .eq("name", "Digital Skills")
+        .eq("is_deleted", false);
+
+      const gradeCourses = gradeCoursesRes.data ?? [];
+      const puzzleCourses = puzzleCoursesRes.data ?? [];
+
+      return [...gradeCourses, ...puzzleCourses];
+    } catch (error) {
+      console.error("Error fetching courses by grade:", error);
+      return [];
+    }
   }
-  getAllCourses(): Promise<TableTypes<"course">[]> {
-    throw new Error("Method not implemented.");
+  async getAllCourses(): Promise<TableTypes<"course">[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from("course")
+      .select("*")
+      .eq("is_deleted", false)
+      .order("sort_index", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching all courses:", error);
+      return [];
+    }
+
+    return data ?? [];
   }
   deleteAllUserData(): Promise<void> {
     throw new Error("Method not implemented.");
   }
-  getCoursesFromLesson(lessonId: string): Promise<TableTypes<"course">[]> {
-    throw new Error("Method not implemented.");
+  async getCoursesFromLesson(
+    lessonId: string
+  ): Promise<TableTypes<"course">[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from("chapter_lesson")
+      .select(
+        `
+      chapter:chapter_id (
+        course:course_id (*)
+      )
+    `
+      )
+      .eq("lesson_id", lessonId)
+      .eq("is_deleted", false)
+      .eq("chapter.is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching courses from lesson:", error);
+      return [];
+    }
+
+    // Flatten to get all courses from chapters (each chapter.course is an array)
+    const courses = data
+      .flatMap((item) => item.chapter ?? [])
+      .flatMap((chapter) => chapter.course ?? [])
+      .filter((course): course is TableTypes<"course"> => !!course);
+
+    return courses;
   }
   async assignmentUserListner(
     studentId: string,
@@ -1283,39 +4024,244 @@ export class SupabaseApi implements ServiceApi {
       throw error;
     }
   }
-  getAssignmentById(id: string): Promise<TableTypes<"assignment"> | undefined> {
-    throw new Error("Method not implemented.");
+  async getAssignmentById(
+    id: string
+  ): Promise<TableTypes<"assignment"> | undefined> {
+    if (!this.supabase) return undefined;
+
+    const { data, error } = await this.supabase
+      .from("assignment")
+      .select("*")
+      .eq("id", id)
+      .eq("is_deleted", false)
+      .limit(1)
+      .single();
+
+    if (error) {
+      console.error("Error fetching assignment by id:", error);
+      return undefined;
+    }
+
+    return data ?? undefined;
   }
-  createOrUpdateAssignmentCart(
+  async createOrUpdateAssignmentCart(
     userId: string,
     lessons: string
   ): Promise<boolean | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return undefined;
+
+    const now = new Date().toISOString();
+
+    const { error } = await this.supabase.from("assignment_cart").upsert(
+      {
+        id: userId,
+        lessons,
+        updated_at: now,
+      },
+      { onConflict: "id" }
+    );
+
+    if (error) {
+      console.error("Error creating/updating assignment cart:", error);
+      return false;
+    }
+
+    return true;
   }
-  getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]> {
-    throw new Error("Method not implemented.");
+  async getBadgesByIds(ids: string[]): Promise<TableTypes<"badge">[]> {
+    if (!this.supabase || ids.length === 0) return [];
+
+    const { data, error } = await this.supabase
+      .from("badge")
+      .select("*")
+      .in("id", ids)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching badges by IDs:", error);
+      return [];
+    }
+
+    return data ?? [];
   }
-  getStickersByIds(ids: string[]): Promise<TableTypes<"sticker">[]> {
-    throw new Error("Method not implemented.");
+  async getStickersByIds(ids: string[]): Promise<TableTypes<"sticker">[]> {
+    if (!this.supabase || ids.length === 0) return [];
+
+    const { data, error } = await this.supabase
+      .from("sticker")
+      .select("*")
+      .in("id", ids)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching stickers by IDs:", error);
+      return [];
+    }
+
+    return data ?? [];
   }
-  getRewardsById(
+  async getRewardsById(
     id: number,
     periodType: string
   ): Promise<TableTypes<"reward"> | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    try {
+      const { data, error } = await this.supabase
+        .from("reward")
+        .select(`${periodType}`)
+        .eq("year", id)
+        .single();
+
+      if (error) {
+        console.error("Error fetching reward by ID:", error);
+        return;
+      }
+
+      if (!data || !data[periodType]) {
+        console.error("No reward found for the given year or periodType.");
+        return;
+      }
+
+      try {
+        return JSON.parse(data[0][periodType]);
+      } catch (parseError) {
+        console.error("Error parsing JSON from reward data:", parseError);
+        return;
+      }
+    } catch (error) {
+      console.error("Unexpected error in getRewardsById:", error);
+      return;
+    }
   }
-  getUserSticker(userId: string): Promise<TableTypes<"user_sticker">[]> {
-    throw new Error("Method not implemented.");
+  async getUserSticker(userId: string): Promise<TableTypes<"user_sticker">[]> {
+    if (!this.supabase) return [];
+
+    try {
+      const { data, error } = await this.supabase
+        .from("user_sticker")
+        .select("*")
+        .eq("user_id", userId);
+
+      if (error) {
+        console.error("Error fetching stickers by user ID:", error);
+        return [];
+      }
+
+      if (!data || data.length === 0) {
+        console.error("No sticker found for the given user ID.");
+        return [];
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Unexpected error in getUserSticker:", error);
+      return [];
+    }
   }
-  getUserBadge(userId: string): Promise<TableTypes<"user_badge">[]> {
-    throw new Error("Method not implemented.");
+  async getUserBadge(userId: string): Promise<TableTypes<"user_badge">[]> {
+    if (!this.supabase) return [];
+
+    try {
+      const { data, error } = await this.supabase
+        .from("user_badge")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.error("Error fetching user badge by user ID:", error);
+        return [];
+      }
+
+      if (!data || data.length === 0) {
+        console.error("No badge found for the given user ID.");
+        return [];
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Unexpected error in getUserBadge:", error);
+      return [];
+    }
   }
-  getUserBonus(userId: string): Promise<TableTypes<"user_bonus">[]> {
-    throw new Error("Method not implemented.");
+  async getUserBonus(userId: string): Promise<TableTypes<"user_bonus">[]> {
+    if (!this.supabase) return [];
+
+    try {
+      const { data, error } = await this.supabase
+        .from("user_bonus")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.error("Error fetching user bonus by user ID:", error);
+        return [];
+      }
+
+      if (!data || data.length === 0) {
+        console.error("No bonus found for the given user ID.");
+        return [];
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Unexpected error in getUserBonus:", error);
+      return [];
+    }
   }
-  updateRewardAsSeen(studentId: string): Promise<void> {
-    throw new Error("Method not implemented.");
+  async updateRewardAsSeen(studentId: string): Promise<void> {
+    if (!this.supabase) return;
+
+    try {
+      const { error } = await this.supabase
+        .from(TABLES.UserSticker)
+        .update({ is_seen: true })
+        .eq("user_id", studentId)
+        .eq("is_seen", false)
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.error("Error updating rewards as seen:", error);
+        throw new Error("Error updating rewards as seen.");
+      }
+    } catch (err) {
+      console.error("Unexpected error updating rewards as seen:", err);
+      throw new Error("Unexpected error updating rewards as seen.");
+    }
   }
+  async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    studentLoginType: string;
+    schoolModel: string;
+  } | null> {
+    if (!this.supabase) return null;
+
+    try {
+      // Fetch student_login_type and program_model directly from school table
+      const { data: schoolData, error } = await this.supabase
+        .from("school")
+        .select("student_login_type, model")
+        .eq("udise", udiseCode)
+        .eq("is_deleted", false)
+        .single();
+      if (error || !schoolData) {
+        console.error("Error fetching school data:", error);
+        return null;
+      }
+
+      const { student_login_type, model } = schoolData;
+
+      return {
+        studentLoginType: student_login_type || "",
+        schoolModel: model || "",
+      };
+    } catch (err) {
+      console.error("Unexpected error in getSchoolDetailsByUdise:", err);
+      return null;
+    }
+  }
+
   async getUserByDocId(
     studentId: string
   ): Promise<TableTypes<"user"> | undefined> {
@@ -1323,37 +4269,307 @@ export class SupabaseApi implements ServiceApi {
       const res = await this.supabase
         ?.from("user")
         .select("*")
-        .eq("id", studentId);
+        .eq("id", studentId)
+        .eq("is_deleted", false);
       return res?.data?.[0];
     } catch (error) {
       throw error;
     }
   }
   async getGradeById(id: string): Promise<TableTypes<"grade"> | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    try {
+      const { data, error } = await this.supabase
+        .from("grade")
+        .select("*")
+        .eq("id", id)
+        .eq("is_deleted", false)
+        .single();
+
+      if (error) {
+        console.error("Error fetching grade by ID:", error);
+        return;
+      }
+
+      return data;
+    } catch (err) {
+      console.error("Unexpected error fetching grade by ID:", err);
+      return;
+    }
   }
   async getGradesByIds(ids: string[]): Promise<TableTypes<"grade">[]> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase || !ids || ids.length === 0) {
+      return [];
+    }
+
+    try {
+      const { data, error } = await this.supabase
+        .from("grade")
+        .select("*")
+        .in("id", ids)
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.error("Error fetching grades by IDs:", error);
+        return [];
+      }
+
+      return data ?? [];
+    } catch (err) {
+      console.error("Unexpected error fetching grades by IDs:", err);
+      return [];
+    }
   }
   async getCurriculumById(
     id: string
   ): Promise<TableTypes<"curriculum"> | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    try {
+      const { data, error } = await this.supabase
+        .from("curriculum")
+        .select("*")
+        .eq("id", id)
+        .eq("is_deleted", false)
+        .single();
+
+      if (error) {
+        console.error("Error fetching curriculum by ID:", error);
+        return;
+      }
+
+      return data ?? undefined;
+    } catch (err) {
+      console.error("Unexpected error fetching curriculum by ID:", err);
+      return;
+    }
   }
   async getCurriculumsByIds(
     ids: string[]
   ): Promise<TableTypes<"curriculum">[]> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase || ids.length === 0) return [];
+
+    try {
+      const { data, error } = await this.supabase
+        .from("curriculum")
+        .select("*")
+        .in("id", ids)
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.error("Error fetching curriculums by IDs:", error);
+        return [];
+      }
+
+      return data ?? [];
+    } catch (err) {
+      console.error("Unexpected error fetching curriculums by IDs:", err);
+      return [];
+    }
   }
   updateRewardsForStudent(studentId: string, unlockReward: LeaderboardRewards) {
     throw new Error("Method not implemented.");
   }
 
-  getRecommendedLessons(
+  async getRecommendedLessons(
     studentId: string,
     classId?: string
   ): Promise<TableTypes<"lesson">[]> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return [];
+
+    // 1. Get courses for the student or class
+    let coursesRes;
+    if (classId) {
+      coursesRes = await this.supabase
+        .from("class_course")
+        .select("course_id, course(sort_index)")
+        .eq("class_id", classId)
+        .eq("is_deleted", false);
+    } else {
+      coursesRes = await this.supabase
+        .from("user_course")
+        .select("course_id, course(sort_index)")
+        .eq("user_id", studentId)
+        .eq("is_deleted", false);
+    }
+
+    if (coursesRes.error || !coursesRes.data) return [];
+
+    // Build courseIds and courseIndexMap
+    const courseIds = coursesRes.data.map((c) => c.course_id);
+    const courseIndexMap = new Map<string, number>();
+    coursesRes.data.forEach((c) => {
+      // c.course may be null if not joined, so fallback to 0
+      courseIndexMap.set(c.course_id, c.course?.sort_index ?? 0);
+    });
+
+    if (courseIds.length === 0) return [];
+
+    // 2. Get all lessons and chapters for these courses
+    const courseDetailsRes = await this.supabase
+      .from("chapter_lesson")
+      .select(
+        `
+      lesson (
+        id, name, cocos_subject_code, cocos_chapter_code, cocos_lesson_id,
+        image, outcome, plugin_type, status, created_by, subject_id,
+        target_age_from, target_age_to, language_id, created_at, updated_at,
+        is_deleted, color
+      ),
+      chapter (
+        id, name, course_id, sort_index
+      ),
+      sort_index
+    `
+      )
+      .in("chapter.course_id", courseIds)
+      .eq("is_deleted", false)
+      .eq("lesson.is_deleted", false)
+      .eq("chapter.is_deleted", false)
+      .order("chapter.course_id")
+      .order("chapter.sort_index")
+      .order("sort_index");
+
+    if (courseDetailsRes.error || !courseDetailsRes.data) return [];
+
+    const courseDetails = (courseDetailsRes.data as any[]).map((item) => ({
+      lesson: Array.isArray(item.lesson) ? item.lesson[0] : item.lesson,
+      chapter: Array.isArray(item.chapter) ? item.chapter[0] : item.chapter,
+      sort_index: item.sort_index,
+    })) as {
+      lesson: TableTypes<"lesson">;
+      chapter: {
+        id: string;
+        name: string;
+        course_id: string;
+        sort_index: number;
+      };
+      sort_index: number;
+    }[];
+
+    // 3. Get all results for this student
+    const resultsRes = await this.supabase
+      .from("result")
+      .select("id, student_id, lesson_id, assignment_id, score, updated_at")
+      .eq("student_id", studentId)
+      .eq("is_deleted", false);
+
+    if (resultsRes.error || !resultsRes.data) return [];
+
+    // 4. Map lesson_id -> lesson info
+    const lessonIdToInfoMap = new Map<
+      string,
+      {
+        course_id: string;
+        course_index: number;
+        chapter_id: string;
+        chapter_index: number;
+        lesson_index: number;
+        lesson: TableTypes<"lesson">;
+      }
+    >();
+    courseDetails.forEach((item) => {
+      lessonIdToInfoMap.set(item.lesson.id, {
+        course_id: item.chapter.course_id,
+        course_index: courseIndexMap.get(item.chapter.course_id) ?? 0,
+        chapter_id: item.chapter.id,
+        chapter_index: item.chapter.sort_index,
+        lesson_index: item.sort_index,
+        lesson: item.lesson,
+      });
+    });
+
+    // 5. Find last played lesson per course (latest updated_at)
+    const lastPlayedMap = new Map<
+      string,
+      {
+        result: (typeof resultsRes.data)[0];
+        info: {
+          course_index: number;
+          chapter_id: string;
+          chapter_index: number;
+          lesson_index: number;
+          lesson: TableTypes<"lesson">;
+        };
+      }
+    >();
+    for (const r of resultsRes.data) {
+      if (!r.lesson_id) continue;
+      const info = lessonIdToInfoMap.get(r.lesson_id);
+      if (!info) continue;
+      const updatedAt = r.updated_at ? new Date(r.updated_at) : null;
+      const existing = lastPlayedMap.get(info.course_id);
+      const existingUpdatedAt = existing?.result.updated_at
+        ? new Date(existing.result.updated_at)
+        : null;
+      if (updatedAt && (!existingUpdatedAt || updatedAt > existingUpdatedAt)) {
+        lastPlayedMap.set(info.course_id, {
+          result: r,
+          info: {
+            course_index: info.course_index,
+            chapter_id: info.chapter_id,
+            chapter_index: info.chapter_index,
+            lesson_index: info.lesson_index,
+            lesson: info.lesson,
+          },
+        });
+      }
+    }
+
+    // 6. For each last played lesson, get the next lesson in the same chapter
+    const nextLessons: TableTypes<"lesson">[] = [];
+    for (const { info } of lastPlayedMap.values()) {
+      const sameChapterLessons = courseDetails
+        .filter(
+          (cd) =>
+            cd.chapter.id === info.chapter_id &&
+            cd.sort_index > info.lesson_index
+        )
+        .sort((a, b) => a.sort_index - b.sort_index);
+      if (sameChapterLessons.length > 0) {
+        nextLessons.push(sameChapterLessons[0].lesson);
+      }
+    }
+
+    // 7. For never played courses, get the first lesson (chapter_index=0, lesson_index=0)
+    const neverPlayedCourses = courseIds.filter(
+      (cid) => !lastPlayedMap.has(cid)
+    );
+    const firstLessons: TableTypes<"lesson">[] = courseDetails
+      .filter(
+        (cd) =>
+          neverPlayedCourses.includes(cd.chapter.course_id) &&
+          cd.chapter.sort_index === 0 &&
+          cd.sort_index === 0
+      )
+      .map((cd) => cd.lesson);
+
+    // 8. Last played lessons
+    const lastPlayedLessons: TableTypes<"lesson">[] = Array.from(
+      lastPlayedMap.values()
+    ).map((v) => v.info.lesson);
+
+    // 9. Combine and sort
+    const allLessons = [
+      ...lastPlayedLessons,
+      ...firstLessons,
+      ...nextLessons,
+    ].map((lesson) => ({
+      ...lesson,
+      course_index:
+        courseIndexMap.get(lessonIdToInfoMap.get(lesson.id)?.course_id ?? "") ??
+        0,
+    }));
+
+    allLessons.sort((a, b) => {
+      if (a.course_index !== b.course_index) {
+        return a.course_index - b.course_index;
+      }
+      return (a.name ?? "").localeCompare(b.name ?? "");
+    });
+
+    return allLessons;
   }
 
   async searchLessons(searchString: string): Promise<TableTypes<"lesson">[]> {
@@ -1364,50 +4580,232 @@ export class SupabaseApi implements ServiceApi {
     if (error) return [];
     return data;
   }
-  getUserAssignmentCart(
+  async getUserAssignmentCart(
     userId: string
   ): Promise<TableTypes<"assignment_cart"> | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    const { data, error } = await this.supabase
+      .from("assignment_cart")
+      .select("*")
+      .eq("id", userId)
+      .eq("is_deleted", false)
+      .single();
+
+    if (error || !data) return;
+
+    return data;
   }
 
-  getChapterIDByLessonID(
+  async getChapterByLesson(
     lessonId: string,
-    classId: string,
+    classId?: string,
     userId?: string
   ): Promise<String | undefined> {
-    throw new Error("Method not implemented.");
+    try {
+      if (!this.supabase) return;
+
+      const classCourses = classId
+        ? await this.getCoursesForClassStudent(classId)
+        : await this.getCoursesForParentsStudent(userId ?? "");
+
+      const { data, error } = await this.supabase
+        .from("chapter_lesson")
+        .select("chapter_id, chapter(course_id), lesson!inner(id)")
+        .eq("lesson_id", lessonId)
+        .eq("is_deleted", false)
+        .eq("chapter.is_deleted", false)
+        .eq("lesson.is_deleted", false);
+
+      if (error || !data || data.length < 1) return;
+
+      const classCourseIds = new Set(classCourses.map((course) => course.id));
+
+      const matchedLesson = data.find((item) => {
+        const courseId = item.chapter?.course_id;
+        return courseId && classCourseIds.has(courseId);
+      });
+
+      return matchedLesson ? matchedLesson.chapter_id : data[0].chapter_id;
+    } catch (error) {
+      console.error("Error fetching chapter by lesson ID:", error);
+      return;
+    }
   }
-  getAssignmentOrLiveQuizByClassByDate(
+  async getAssignmentOrLiveQuizByClassByDate(
     classId: string,
-    courseId: string,
+    courseIds: string[],
     startDate: string,
     endDate: string,
     isClassWise: boolean,
-    isLiveQuiz: boolean
+    isLiveQuiz: boolean,
+    allAssignments: boolean
   ): Promise<TableTypes<"assignment">[] | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    let query = this.supabase
+      .from("assignment")
+      .select("*")
+      .eq("class_id", classId)
+      .in("course_id", courseIds)
+      .gte("created_at", endDate)
+      .lte("created_at", startDate)
+      .eq("is_deleted", false);
+
+    // Handle both string and array courseIds
+    // if (typeof courseId === "string") {
+    //   query = query.eq("course_id", courseId);
+    // } else if (Array.isArray(courseId) && courseId.length > 0) {
+    //   query = query.in("course_id", courseId);
+    // }
+
+    if (isClassWise) {
+      query = query.eq("is_class_wise", true);
+    }
+
+    if (!allAssignments) {
+      if (isLiveQuiz) {
+        query = query.eq("type", "liveQuiz");
+      } else {
+        query = query.neq("type", "liveQuiz");
+      }
+    }
+
+    query = query.order("created_at", { ascending: false });
+    const { data, error } = await query;
+
+    if (error || !data || data.length < 1) return;
+    return data;
   }
-  getStudentLastTenResults(
+  async getStudentLastTenResults(
     studentId: string,
-    courseId: string,
-    assignmentIds: string[]
+    courseIds: string[],
+    assignmentIds: string[],
+    classId
   ): Promise<TableTypes<"result">[]> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return [];
+
+    // 1. Fetch results with assignment_id IS NULL
+    const { data: nullAssignments, error: nullError } = await this.supabase
+      .from("result")
+      .select("*")
+      .eq("student_id", studentId)
+      .in("course_id", courseIds)
+      .eq("class_id", classId)
+      .is("assignment_id", null)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: false })
+      .limit(5);
+
+    if (nullError) {
+      console.error("Error fetching null assignments:", nullError.message);
+    }
+
+    // 2. Fetch results with assignment_id IN (provided IDs)
+    let nonNullAssignments: TableTypes<"result">[] = [];
+    if (assignmentIds.length > 0) {
+      const { data, error } = await this.supabase
+        .from("result")
+        .select("*")
+        .eq("student_id", studentId)
+        .in("course_id", courseIds)
+        .eq("class_id", classId)
+        .in("assignment_id", assignmentIds)
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error("Error fetching non-null assignments:", error.message);
+      } else {
+        nonNullAssignments = data ?? [];
+      }
+    }
+
+    // 3. Combine and sort the results by created_at desc
+    const combinedResults = [...(nullAssignments ?? []), ...nonNullAssignments];
+    combinedResults.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
+    return combinedResults.slice(0, 10);
   }
-  getAssignmentUserByAssignmentIds(
+  async getAssignmentUserByAssignmentIds(
     assignmentIds: string[]
   ): Promise<TableTypes<"assignment_user">[]> {
-    throw new Error("Method not implemented");
+    if (!this.supabase) return [];
+
+    if (!assignmentIds || assignmentIds.length === 0) {
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from("assignment_user")
+      .select("*")
+      .in("assignment_id", assignmentIds)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching assignment_user records:", error.message);
+      return [];
+    }
+
+    return data ?? [];
   }
-  getResultByAssignmentIds(
+  async getResultByAssignmentIds(
     assignmentIds: string[]
   ): Promise<TableTypes<"result">[] | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase || assignmentIds.length === 0) return;
+
+    const { data, error } = await this.supabase
+      .from("result")
+      .select("*")
+      .in("assignment_id", assignmentIds)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching results by assignment IDs:", error.message);
+      return;
+    }
+
+    return data ?? [];
   }
-  getLastAssignmentsForRecommendations(
+  async getLastAssignmentsForRecommendations(
     classId: string
   ): Promise<TableTypes<"assignment">[] | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    const { data: assignments, error } = await this.supabase
+      .from("assignment")
+      .select("*")
+      .eq("class_id", classId)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching assignments:", error.message);
+      return;
+    }
+
+    if (!assignments || assignments.length === 0) return [];
+
+    const latestAssignmentsMap = new Map<string, TableTypes<"assignment">>();
+
+    for (const assignment of assignments) {
+      const courseId = assignment.course_id;
+      if (typeof courseId === "string" && !latestAssignmentsMap.has(courseId)) {
+        latestAssignmentsMap.set(courseId, assignment);
+      }
+    }
+
+    const latestAssignments = Array.from(latestAssignmentsMap.values());
+    latestAssignments.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
+    return latestAssignments;
   }
   async createAssignment(
     student_list: string[],
@@ -1420,15 +4818,111 @@ export class SupabaseApi implements ServiceApi {
     lesson_id: string,
     chapter_id: string,
     course_id: string,
-    type: string
+    type: string,
+    batch_id: string,
+    source: string | null,
+    created_at?: string
   ): Promise<boolean> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return false;
+
+    const assignmentId = uuidv4();
+    const timestamp = new Date().toISOString();
+
+    try {
+      // Insert into assignment table
+      const { error: assignmentError } = await this.supabase
+        .from("assignment")
+        .insert([
+          {
+            id: assignmentId,
+            created_by: userId,
+            starts_at,
+            ends_at,
+            is_class_wise,
+            class_id,
+            school_id,
+            lesson_id,
+            chapter_id,
+            course_id,
+            type,
+            source: source ?? null,
+            batch_id: batch_id ?? null,
+            created_at: created_at ?? timestamp,
+            updated_at: timestamp,
+            is_deleted: false,
+          },
+        ]);
+
+      if (assignmentError) {
+        console.error("Error inserting assignment:", assignmentError.message);
+        return false;
+      }
+
+      // If not class-wise, insert into assignment_user
+      if (!is_class_wise && student_list.length > 0) {
+        const assignmentUserEntries = student_list.map((studentId) => ({
+          id: uuidv4(),
+          assignment_id: assignmentId,
+          user_id: studentId,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_deleted: false,
+        }));
+
+        const { error: userError } = await this.supabase
+          .from("assignment_user")
+          .insert(assignmentUserEntries);
+
+        if (userError) {
+          console.error(
+            "Error inserting assignment_user records:",
+            userError.message
+          );
+          return false;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Unexpected error in createAssignment:", error);
+      return false;
+    }
   }
 
-  getTeachersForClass(
+  async getTeachersForClass(
     classId: string
   ): Promise<TableTypes<"user">[] | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    //  Get all user_ids of teachers for the class
+    const { data: classUsers, error: classUserError } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select("user_id")
+      .eq("class_id", classId)
+      .eq("role", RoleType.TEACHER)
+      .eq("is_deleted", false);
+
+    if (classUserError) {
+      console.error("Error fetching class users:", classUserError);
+      return [];
+    }
+
+    const userIds = classUsers?.map((cu) => cu.user_id) ?? [];
+    if (userIds.length === 0) return [];
+
+    //  Get user details for those user_ids
+    const { data: users, error: userError } = await this.supabase
+      .from(TABLES.User)
+      .select("*")
+      .in("id", userIds)
+      .eq("is_deleted", false);
+
+    if (userError) {
+      console.error("Error fetching users:", userError);
+      return [];
+    }
+
+    return users ?? [];
   }
   async getUserByEmail(email: string): Promise<TableTypes<"user"> | undefined> {
     try {
@@ -1438,7 +4932,7 @@ export class SupabaseApi implements ServiceApi {
       if (results == null || results.error || !results.data) {
         throw results?.error ?? "";
       }
-      const data = results.data[0];
+      const data = results.data;
       return data;
     } catch (error) {
       throw error;
@@ -1454,22 +4948,188 @@ export class SupabaseApi implements ServiceApi {
       if (results == null || results.error || !results.data) {
         throw results?.error ?? "";
       }
-      const data = results.data[0];
+      const data = results.data;
       return data;
     } catch (error) {
       throw error;
     }
   }
-  addTeacherToClass(classId: string, userId: string): Promise<void> {
-    throw new Error("Method not implemented.");
+  async addTeacherToClass(
+    classId: string,
+    user: TableTypes<"user">
+  ): Promise<void> {
+    if (!this.supabase) return;
+
+    const classUserId = uuidv4();
+    const now = new Date().toISOString();
+
+    const classUser = {
+      id: classUserId,
+      class_id: classId,
+      user_id: user.id,
+      role: RoleType.TEACHER as Database["public"]["Enums"]["role"],
+      created_at: now,
+      updated_at: now,
+      is_deleted: false,
+    };
+
+    // Insert into class_user table
+
+    const { error: insertError } = await this.supabase
+      .from(TABLES.ClassUser)
+      .insert(classUser);
+
+    if (insertError) {
+      console.error("Error inserting class_user:", insertError);
+      throw insertError;
+    }
+
+    // Fetch user doc from your server API
+    // const user_doc = await this.getUserByDocId(userId);
+
+    // Insert into user table with upsert logic (on conflict do nothing)
+    if (user) {
+      const { error: userInsertError } = await this.supabase
+        .from(TABLES.User)
+        .upsert(
+          {
+            id: user.id,
+            name: user.name,
+            age: user.age,
+            gender: user.gender,
+            avatar: user.avatar,
+            image: user.image,
+            curriculum_id: user.curriculum_id,
+            language_id: user.language_id,
+            created_at: user.created_at,
+            updated_at: user.updated_at,
+          },
+          { ignoreDuplicates: true }
+        );
+
+      if (userInsertError) {
+        console.error("Error inserting user:", userInsertError);
+        throw userInsertError;
+      }
+    }
   }
-  checkUserExistInSchool(schoolId, userId): Promise<boolean> {
-    throw new Error("Method not implemented.");
+  async checkUserExistInSchool(
+    schoolId: string,
+    userId: string
+  ): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    //  Check if user is in school_user but NOT as a parent and not deleted
+    const { data: schoolUsers, error: schoolUserError } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select("*")
+      .eq("school_id", schoolId)
+      .eq("user_id", userId)
+      .neq("role", RoleType.PARENT)
+      .eq("is_deleted", false);
+
+    if (schoolUserError) {
+      console.error("Error querying school_user:", schoolUserError);
+      return false;
+    }
+    if (schoolUsers && schoolUsers.length > 0) return true;
+
+    //  Get all classes for this school
+    const { data: classes, error: classError } = await this.supabase
+      .from(TABLES.Class)
+      .select("id")
+      .eq("school_id", schoolId)
+      .eq("is_deleted", false);
+
+    if (classError) {
+      console.error("Error querying class:", classError);
+      return false;
+    }
+    if (!classes || classes.length === 0) return false;
+
+    const classIds = classes.map((c) => c.id);
+    if (classIds.length === 0) return false;
+
+    //  Check if user is teacher in any of these classes
+    const { data: teachers, error: teacherError } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select("*")
+      .in("class_id", classIds)
+      .eq("user_id", userId)
+      .eq("role", RoleType.TEACHER)
+      .eq("is_deleted", false);
+
+    if (teacherError) {
+      console.error("Error querying class_user:", teacherError);
+      return false;
+    }
+
+    return teachers && teachers.length > 0;
   }
-  checkUserIsManagerOrDirector(schoolId, userId): Promise<boolean> {
-    throw new Error("Method not implemented.");
+  async checkTeacherExistInClass(
+    schoolId: string,
+    classId: string,
+    userId: string
+  ): Promise<boolean> {
+    if (!this.supabase) return false;
+    //  Check if user is in school_user but NOT as a parent and not deleted
+    const { data: schoolUsers, error: schoolUserError } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select("*")
+      .eq("school_id", schoolId)
+      .eq("user_id", userId)
+      .neq("role", RoleType.PARENT)
+      .eq("is_deleted", false);
+
+    if (schoolUserError) {
+      console.error("Error querying school_user:", schoolUserError);
+      return false;
+    }
+    if (schoolUsers && schoolUsers.length > 0) return true;
+
+    //  Check if user is teacher in this classe
+    const { data, error } = await this.supabase
+      .from("class_user")
+      .select("id")
+      .eq("class_id", classId)
+      .eq("user_id", userId)
+      .eq("role", RoleType.TEACHER)
+      .eq("is_deleted", false)
+      .maybeSingle(); // Returns null if no match
+
+    if (error) {
+      console.error("Error checking user in class:", error);
+      return false;
+    }
+
+    return !!data; // true if found, false if not
   }
-  getAssignmentsByAssignerAndClass(
+
+  async checkUserIsManagerOrDirector(schoolId, userId): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const roles = [
+      RoleType.PROGRAM_MANAGER,
+      RoleType.OPERATIONAL_DIRECTOR,
+      RoleType.FIELD_COORDINATOR,
+    ];
+
+    const { data, error } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select("*")
+      .eq("school_id", schoolId)
+      .eq("user_id", userId)
+      .in("role", roles)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error querying school_user:", error);
+      return false;
+    }
+
+    return !!(data && data.length > 0);
+  }
+  async getAssignmentsByAssignerAndClass(
     userId: string,
     classId: string,
     startDate: string,
@@ -1478,45 +5138,217 @@ export class SupabaseApi implements ServiceApi {
     classWiseAssignments: TableTypes<"assignment">[];
     individualAssignments: TableTypes<"assignment">[];
   }> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) {
+      return { classWiseAssignments: [], individualAssignments: [] };
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Assignment)
+      .select("*")
+      .eq("created_by", userId)
+      .or(`class_id.eq.${classId},is_class_wise.eq.true`)
+      .gte("created_at", startDate)
+      .lte("created_at", endDate)
+      .eq("is_deleted", false)
+      .order("is_class_wise", { ascending: false })
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching assignments:", error);
+      return { classWiseAssignments: [], individualAssignments: [] };
+    }
+
+    const assignments = data ?? [];
+
+    const classWiseAssignments = assignments.filter((a) => a.is_class_wise);
+    const individualAssignments = assignments.filter((a) => !a.is_class_wise);
+
+    return { classWiseAssignments, individualAssignments };
   }
-  getTeacherJoinedDate(
+  async getTeacherJoinedDate(
     userId: string,
     classId: string
   ): Promise<TableTypes<"class_user"> | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return undefined;
+
+    const { data, error } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select("*")
+      .eq("user_id", userId)
+      .eq("role", RoleType.TEACHER)
+      .eq("class_id", classId)
+      .eq("is_deleted", false)
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching teacher joined date:", error);
+      return undefined;
+    }
+
+    return data ?? undefined;
   }
-  getAssignedStudents(assignmentId: string): Promise<string[]> {
-    throw new Error("Method not implemented.");
+  async getAssignedStudents(assignmentId: string): Promise<string[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Assignment_user)
+      .select("user_id")
+      .eq("assignment_id", assignmentId)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching assigned students:", error);
+      return [];
+    }
+
+    const userIds: string[] = data?.map((row) => row.user_id) ?? [];
+    return userIds ?? [];
   }
-  getStudentResultByDate(
+  async getStudentResultByDate(
     studentId: string,
+    courseIds: string[],
     startDate: string,
-    course_id: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Result)
+      .select("*")
+      .eq("student_id", studentId)
+      .eq("class_id", classId)
+      .in("course_id", courseIds)
+      .gte("created_at", startDate)
+      .lte("created_at", endDate)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching student result by date:", error);
+      return;
+    }
+
+    return data ?? undefined;
   }
   async getLessonsBylessonIds(
     lessonIds: string[] // Expect an array of strings
   ): Promise<TableTypes<"lesson">[] | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase || !lessonIds || lessonIds.length === 0) return;
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Lesson)
+      .select("*")
+      .in("id", lessonIds)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching lessons by IDs:", error);
+      return;
+    }
+
+    return data?.length ? data : undefined;
   }
   async deleteTeacher(classId: string, teacherId: string) {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    try {
+      // Step 1: Fetch class_user entry
+      const { data: existingEntries, error: fetchError } = await this.supabase
+        .from(TABLES.ClassUser)
+        .select("*")
+        .eq("user_id", teacherId)
+        .eq("class_id", classId)
+        .eq("role", RoleType.TEACHER)
+        .eq("is_deleted", false);
+
+      if (fetchError) {
+        console.error("Error fetching teacher entry:", fetchError);
+        return;
+      }
+
+      if (!existingEntries || existingEntries.length === 0) {
+        throw new Error("Teacher not found.");
+      }
+
+      const entryToUpdate = existingEntries[0];
+
+      // Step 2: Soft delete the class_user record
+      const { error: updateError } = await this.supabase
+        .from(TABLES.ClassUser)
+        .update({ is_deleted: true })
+        .eq("id", entryToUpdate.id);
+
+      if (updateError) {
+        console.error("Error updating teacher record:", updateError);
+        return;
+      }
+
+      // No pushChanges needed
+    } catch (error) {
+      console.error("SupabaseApi ~ deleteTeacher ~ error:", error);
+    }
   }
 
   async getClassCodeById(class_id: string): Promise<number | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase || !class_id) return;
+
+    try {
+      const currentDate = new Date().toISOString();
+
+      const { data, error } = await this.supabase
+        .from(TABLES.ClassInvite_code)
+        .select("code")
+        .eq("class_id", class_id)
+        .eq("is_deleted", false)
+        .gte("expires_at", currentDate)
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Supabase error in getClassCodeById:", error);
+        return;
+      }
+
+      return data?.code;
+    } catch (err) {
+      console.error("Error in getClassCodeById:", err);
+      return;
+    }
   }
 
   async getResultByChapterByDate(
     chapter_id: string,
     course_id: string,
     startDate: string,
-    endDate: string
+    endDate: string,
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    try {
+      const { data, error } = await this.supabase
+        .from(TABLES.Result)
+        .select("*")
+        .eq("chapter_id", chapter_id)
+        .eq("course_id", course_id)
+        .eq("class_id", classId)
+        .gte("created_at", startDate)
+        .lte("created_at", endDate)
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Supabase error in getResultByChapterByDate:", error);
+        return;
+      }
+
+      return data?.length ? data : undefined;
+    } catch (err) {
+      console.error("Error in getResultByChapterByDate:", err);
+      return;
+    }
   }
 
   async createClassCode(classId: string): Promise<number> {
@@ -1543,45 +5375,320 @@ export class SupabaseApi implements ServiceApi {
   async getSchoolsWithRoleAutouser(
     schoolIds: string[]
   ): Promise<TableTypes<"school">[] | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase || !schoolIds.length) return;
+
+    try {
+      const { data, error } = await this.supabase
+        .from(TABLES.SchoolUser)
+        .select("school(*)")
+        .in("school_id", schoolIds)
+        .eq("role", RoleType.AUTOUSER)
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.error("Supabase error in getSchoolsWithRoleAutouser:", error);
+        return;
+      }
+
+      const schools = (data ?? [])
+        .map((item) => item.school)
+        .filter((school): school is TableTypes<"school"> => !!school);
+
+      return schools ?? [];
+    } catch (err) {
+      console.error("Error in getSchoolsWithRoleAutouser:", err);
+      return;
+    }
   }
   async getPrincipalsForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    const { data, error } = await this.supabase
+      .from("school_user")
+      .select("user:user!school_user_user_id_fkey(*)")
+      .eq("school_id", schoolId)
+      .eq("role", RoleType.PRINCIPAL)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: true });
+    if (error) {
+      console.error("Error fetching principals:", error);
+      return;
+    }
+
+    const users = (data ?? [])
+      .map((item) => item.user)
+      .filter((user): user is TableTypes<"user"> => !!user);
+
+    return users;
   }
+
+  async getPrincipalsForSchoolPaginated(
+    schoolId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<PrincipalAPIResponse> {
+    if (!this.supabase) {
+      return { data: [], total: 0 };
+    }
+
+    const offset = (page - 1) * limit;
+
+    const { data, error, count } = await this.supabase
+      .from("school_user")
+      .select("user:user!school_user_user_id_fkey(*)", { count: "exact" }) // Get count and data
+      .eq("school_id", schoolId)
+      .eq("role", RoleType.PRINCIPAL)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: true })
+      .range(offset, offset + limit - 1); // Apply pagination
+
+    if (error) {
+      console.error("Error fetching principals:", error);
+      return { data: [], total: 0 };
+    }
+
+    if (!data || !count) {
+      return { data: [], total: 0 };
+    }
+
+    // Extract the user data from the join result
+    const users: PrincipalInfo[] = data
+      .map((item) => item.user)
+      .filter((user): user is PrincipalInfo => !!user);
+
+    return {
+      data: users,
+      total: count,
+    };
+  }
+
+  // In your API handler (e.g., SupabaseApi.ts)
   async getCoordinatorsForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    const { data, error } = await this.supabase
+      .from("school_user")
+      .select("user:user!school_user_user_id_fkey(*)")
+      .eq("school_id", schoolId)
+      .eq("role", RoleType.COORDINATOR)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching coordinators:", error);
+      return;
+    }
+
+    const coordinators = (data ?? [])
+      .map((item) => item.user)
+      .filter((user): user is TableTypes<"user"> => !!user);
+
+    return coordinators;
+  }
+
+  async getCoordinatorsForSchoolPaginated(
+    schoolId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<CoordinatorAPIResponse> {
+    if (!this.supabase) {
+      return { data: [], total: 0 };
+    }
+
+    const offset = (page - 1) * limit;
+
+    const { data, error, count } = await this.supabase
+      .from("school_user")
+      .select("user:user!school_user_user_id_fkey(*)", { count: "exact" }) // Get count and data
+      .eq("school_id", schoolId)
+      .eq("role", RoleType.COORDINATOR) // The only change from the principal query
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: true })
+      .range(offset, offset + limit - 1); // Apply pagination
+
+    if (error) {
+      console.error("Error fetching coordinators:", error);
+      return { data: [], total: 0 };
+    }
+
+    if (!data || !count) {
+      return { data: [], total: 0 };
+    }
+
+    const users: CoordinatorInfo[] = data
+      .map((item) => item.user)
+      .filter((user): user is CoordinatorInfo => !!user);
+
+    return {
+      data: users,
+      total: count,
+    };
   }
   async getSponsorsForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    const { data, error } = await this.supabase
+      .from("school_user")
+      .select("user(*)")
+      .eq("school_id", schoolId)
+      .eq("role", RoleType.SPONSOR)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error fetching sponsors:", error);
+      return;
+    }
+
+    const sponsors = (data ?? [])
+      .map((item) => item.user)
+      .filter((user): user is TableTypes<"user"> => !!user);
+
+    return sponsors;
   }
   async addUserToSchool(
     schoolId: string,
-    userId: string,
+    user: TableTypes<"user">,
     role: RoleType
   ): Promise<void> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    const schoolUserId = uuidv4();
+    const timestamp = new Date().toISOString();
+
+    const schoolUser = {
+      id: schoolUserId,
+      school_id: schoolId,
+      user_id: user.id,
+      role: role as Database["public"]["Enums"]["role"],
+      created_at: timestamp,
+      updated_at: timestamp,
+      is_deleted: false,
+    };
+
+    const { error: insertError } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .insert([schoolUser]);
+
+    if (insertError) {
+      console.error("Error inserting into school_user:", insertError);
+      return;
+    }
+
+    // const user_doc = await this.getUserByDocId(user.id);
+
+    if (user) {
+      const cleanUserDoc = {
+        id: user.id,
+        name: user.name ?? null,
+        age: user.age ?? null,
+        gender: user.gender ?? null,
+        avatar: user.avatar ?? null,
+        image: user.image ?? null,
+        curriculum_id: user.curriculum_id ?? null,
+        language_id: user.language_id ?? null,
+        created_at: user.created_at ?? timestamp,
+        updated_at: user.updated_at ?? timestamp,
+      };
+
+      const { error: userInsertError } = await this.supabase
+        .from(TABLES.User)
+        .upsert([cleanUserDoc], { onConflict: "id" });
+
+      if (userInsertError) {
+        console.error("Error upserting user:", userInsertError);
+      }
+    }
   }
   async deleteUserFromSchool(
     schoolId: string,
     userId: string,
     role: RoleType
   ): Promise<void> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return;
+
+    try {
+      // Find existing school_user row
+      const { data, error: selectError } = await this.supabase
+        .from("school_user")
+        .select("id")
+        .eq("school_id", schoolId)
+        .eq("user_id", userId)
+        .eq("role", role)
+        .eq("is_deleted", false)
+        .maybeSingle();
+
+      if (selectError) {
+        console.error("Error selecting school_user:", selectError);
+        return;
+      }
+
+      if (!data) {
+        throw new Error("school_user not found.");
+      }
+
+      const updatedAt = new Date().toISOString();
+
+      // Update is_deleted and updated_at
+      const { error: updateError } = await this.supabase
+        .from("school_user")
+        .update({ is_deleted: true, updated_at: updatedAt })
+        .eq("id", data.id);
+
+      if (updateError) {
+        console.error("Error updating school_user:", updateError);
+        return;
+      }
+    } catch (error) {
+      console.error("SupabaseApi ~ deleteUserFromSchool ~ error:", error);
+    }
   }
-  async updateSchoolLastModified(id: string): Promise<void> {
-    throw new Error("Method not implemented.");
+  async updateSchoolLastModified(schoolId: string): Promise<void> {
+    if (!this.supabase) return;
+
+    const updatedAt = new Date().toISOString();
+
+    const { error } = await this.supabase
+      .from("school")
+      .update({ updated_at: updatedAt })
+      .eq("id", schoolId);
+
+    if (error) {
+      console.error("Error updating school's updated_at:", error);
+    }
   }
-  async updateClassLastModified(id: string): Promise<void> {
-    throw new Error("Method not implemented.");
+  async updateClassLastModified(classId: string): Promise<void> {
+    if (!this.supabase) return;
+
+    const updatedAt = new Date().toISOString();
+
+    const { error } = await this.supabase
+      .from("class")
+      .update({ updated_at: updatedAt })
+      .eq("id", classId);
+
+    if (error) {
+      console.error("Error updating class's updated_at:", error);
+    }
   }
-  async updateUserLastModified(id: string): Promise<void> {
-    throw new Error("Method not implemented.");
+  async updateUserLastModified(userId: string): Promise<void> {
+    if (!this.supabase) return;
+
+    const updatedAt = new Date().toISOString();
+
+    const { error } = await this.supabase
+      .from("user")
+      .update({ updated_at: updatedAt })
+      .eq("id", userId);
+
+    if (error) {
+      console.error("Error updating user's updated_at:", error);
+    }
   }
 
   async validateSchoolData(
@@ -1619,7 +5726,7 @@ export class SupabaseApi implements ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     if (!this.supabase) {
       return {
         status: "error",
@@ -1637,13 +5744,21 @@ export class SupabaseApi implements ServiceApi {
           input_school_udise_code: schoolId,
         }
       );
-      if (data?.status === "error" && (data as any).message) {
-        return {
-          status: "error",
-          errors: [(data as any).message],
-        };
+      // Narrow the type from Json to expected shape
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "status" in data &&
+        typeof (data as any).status === "string"
+      ) {
+        return data as { status: string; errors?: string[]; message?: string };
       }
-      return data as { status: string; errors?: string[] };
+
+      // Fallback if data isn't in expected shape
+      return {
+        status: "error",
+        errors: ["Unexpected response format from Supabase function"],
+      };
     } catch (error) {
       return {
         status: "error",
@@ -1651,6 +5766,43 @@ export class SupabaseApi implements ServiceApi {
       };
     }
   }
+  async validateProgramName(
+    programName: string
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: "error",
+        errors: ["Supabase client is not initialized"],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc("validate_program_name", {
+        input_program_name: programName,
+      });
+      // Narrow the type from Json to expected shape
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "status" in data &&
+        typeof (data as any).status === "string"
+      ) {
+        return data as { status: string; errors?: string[]; message?: string };
+      }
+
+      // Fallback if data isn't in expected shape
+      return {
+        status: "error",
+        errors: ["Unexpected response format from Supabase function 1111"],
+      };
+    } catch (error) {
+      return {
+        status: "error",
+        errors: [String(error)],
+      };
+    }
+  }
+
   async validateSchoolUdiseCode(
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }> {
@@ -1668,13 +5820,21 @@ export class SupabaseApi implements ServiceApi {
           input_school_udise_code: schoolId,
         }
       );
-      if (data?.status === "error" && (data as any).message) {
-        return {
-          status: "error",
-          errors: [(data as any).message],
-        };
+      // Narrow the type from Json to expected shape
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "status" in data &&
+        typeof (data as any).status === "string"
+      ) {
+        return data as { status: string; errors?: string[]; message?: string };
       }
-      return data as { status: string; errors?: string[] };
+
+      // Fallback if data isn't in expected shape
+      return {
+        status: "error",
+        errors: ["Unexpected response format from Supabase function"],
+      };
     } catch (error) {
       return {
         status: "error",
@@ -1701,13 +5861,21 @@ export class SupabaseApi implements ServiceApi {
           input_school_udise_code: schoolId,
         }
       );
-      if (data?.status === "error" && (data as any).message) {
-        return {
-          status: "error",
-          errors: [(data as any).message],
-        };
+      // Narrow the type from Json to expected shape
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "status" in data &&
+        typeof (data as any).status === "string"
+      ) {
+        return data as { status: string; errors?: string[]; message?: string };
       }
-      return data as { status: string; errors?: string[] };
+
+      // Fallback if data isn't in expected shape
+      return {
+        status: "error",
+        errors: ["Unexpected response format from Supabase function"],
+      };
     } catch (error) {
       return {
         status: "error",
@@ -1719,7 +5887,7 @@ export class SupabaseApi implements ServiceApi {
     studentName: string,
     className: string,
     schoolId: string
-  ): Promise<{ status: string; errors?: string[] }> {
+  ): Promise<{ status: string; errors?: string[]; message?: string }> {
     if (!this.supabase) {
       return {
         status: "error",
@@ -1737,14 +5905,21 @@ export class SupabaseApi implements ServiceApi {
         }
       );
 
-      if (data?.status === "error" && (data as any).message) {
-        return {
-          status: "error",
-          errors: [(data as any).message],
-        };
+      // Narrow the type from Json to expected shape
+      if (
+        typeof data === "object" &&
+        data !== null &&
+        "status" in data &&
+        typeof (data as any).status === "string"
+      ) {
+        return data as { status: string; errors?: string[]; message?: string };
       }
 
-      return data as { status: string; errors?: string[] };
+      // Fallback if data isn't in expected shape
+      return {
+        status: "error",
+        errors: ["Unexpected response format from Supabase function"],
+      };
     } catch (error) {
       return {
         status: "error",
@@ -1800,7 +5975,8 @@ export class SupabaseApi implements ServiceApi {
       .select("id")
       .eq("curriculum_id", curriculumId)
       .eq("grade_id", gradeId)
-      .eq("name", subjectName.trim());
+      .eq("name", subjectName.trim())
+      .eq("is_deleted", false);
     if (courseError || !courseData || courseData.length === 0) {
       return {
         status: "error",
@@ -1811,6 +5987,7 @@ export class SupabaseApi implements ServiceApi {
     }
     return { status: "success" };
   }
+
   async validateUserContacts(
     programManagerPhone: string,
     fieldCoordinatorPhone?: string
@@ -1827,7 +6004,7 @@ export class SupabaseApi implements ServiceApi {
         "validate_user_contacts_rpc",
         {
           program_manager_contact: programManagerPhone.trim(),
-          field_coordinator_contact: fieldCoordinatorPhone?.trim() ?? null,
+          field_coordinator_contact: fieldCoordinatorPhone?.trim(),
         }
       );
       if (error || !data) {
@@ -1838,8 +6015,21 @@ export class SupabaseApi implements ServiceApi {
           ],
         };
       }
+      if (
+        error ||
+        !data ||
+        typeof data !== "object" ||
+        data === null ||
+        !("status" in data) ||
+        typeof (data as any).status !== "string"
+      ) {
+        return {
+          status: "error",
+          errors: ["Invalid response from validation RPC"],
+        };
+      }
 
-      return data;
+      return data as { status: string; errors?: string[] };
     } catch (err) {
       return {
         status: "error",
@@ -1897,7 +6087,33 @@ export class SupabaseApi implements ServiceApi {
     studentId: string,
     starsCount: number
   ): Promise<void> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase || !studentId) return;
+
+    try {
+      // Read existing stars map from localStorage
+      const previousStarsRaw = localStorage.getItem(STARS_COUNT);
+      const previousStars = previousStarsRaw
+        ? JSON.parse(previousStarsRaw)
+        : {};
+
+      // Get current stars for this student from localStorage or default 0
+      const currentStars = previousStars[studentId] ?? 0;
+
+      // Calculate new total stars
+      const totalStars = currentStars + starsCount;
+
+      // Update stars count in Supabase DB
+      const { error: updateError } = await this.supabase
+        .from("user")
+        .update({ stars: totalStars })
+        .eq("id", studentId);
+
+      if (updateError) {
+        console.error("Error updating stars in Supabase:", updateError);
+      }
+    } catch (error) {
+      console.error("Error in setStarsForStudents:", error);
+    }
   }
   async countAllPendingPushes(): Promise<number> {
     throw new Error("Method not implemented.");
@@ -1906,28 +6122,1990 @@ export class SupabaseApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
   async getClassByUserId(userId: string): Promise<TableTypes<"class">> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return {} as TableTypes<"class">;
+
+    // Get class_id from class_user
+    const { data: classUserData, error: classUserError } = await this.supabase
+      .from("class_user")
+      .select("class_id")
+      .eq("user_id", userId)
+      .eq("is_deleted", false)
+      .limit(1)
+      .single();
+
+    if (classUserError || !classUserData) {
+      console.error("Error fetching class_user:", classUserError);
+      return {} as TableTypes<"class">;
+    }
+
+    const classId = classUserData.class_id;
+    if (!classId) return {} as TableTypes<"class">;
+
+    // Get class from class table using class_id
+    const { data: classData, error: classError } = await this.supabase
+      .from("class")
+      .select("*")
+      .eq("id", classId)
+      .eq("is_deleted", false)
+      .limit(1)
+      .single();
+
+    if (classError || !classData) {
+      console.error("Error fetching class:", classError);
+      return {} as TableTypes<"class">;
+    }
+    return classData;
   }
 
   async getCoursesForPathway(
     studentId: string
   ): Promise<TableTypes<"course">[]> {
-    throw new Error("Method not implemented in SupabaseApi.");
+    if (!this.supabase) return [];
+
+    // Get course IDs from user_course for the student
+    const { data: userCourses, error: userCoursesError } = await this.supabase
+      .from(TABLES.UserCourse)
+      .select("course_id")
+      .eq("user_id", studentId)
+      .eq("is_deleted", false);
+
+    if (userCoursesError) {
+      console.error("Error fetching user courses:", userCoursesError);
+      return [];
+    }
+    if (!userCourses || userCourses.length === 0) {
+      return [];
+    }
+
+    // Extract course IDs as array of strings
+    const courseIds = userCourses.map((uc) => uc.course_id);
+
+    // Fetch course details ordered by sort_index
+    const { data: courses, error: coursesError } = await this.supabase
+      .from(TABLES.Course)
+      .select("*")
+      .in("id", courseIds)
+      .eq("is_deleted", false)
+      .order("sort_index", { ascending: true });
+
+    if (coursesError) {
+      console.error("Error fetching courses:", coursesError);
+      return [];
+    }
+
+    return courses ?? [];
   }
   async updateLearningPath(
     student: TableTypes<"user">,
     learning_path: string
   ): Promise<TableTypes<"user">> {
-    throw new Error("Method not implemented.");
+    if (!this.supabase) return student;
+
+    const { error } = await this.supabase
+      .from(TABLES.User)
+      .update({ learning_path: learning_path })
+      .eq("id", student.id)
+      .single();
+    student.learning_path = learning_path;
+    if (error) {
+      console.error("Error updating learning path:", error);
+      throw error;
+    }
+    return student;
   }
+
+  async getProgramFilterOptions(): Promise<Record<string, string[]>> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized");
+      return {};
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "get_program_filter_options"
+      );
+      if (error) {
+        console.error("RPC error:", error);
+        return {};
+      }
+
+      const parsed: Record<string, string[]> = {};
+      if (data && typeof data === "object") {
+        for (const key in data) {
+          const val = data[key];
+          if (Array.isArray(val)) {
+            parsed[key] = val.filter(
+              (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+            );
+          } else {
+            parsed[key] = [];
+          }
+        }
+      }
+      return parsed;
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      return {};
+    }
+  }
+
+  async getPrograms({
+    currentUserId,
+    filters = {},
+    searchTerm = "",
+    tab = PROGRAM_TAB.ALL,
+    limit = 10,
+    offset = 0,
+    orderBy = "name",
+    order = "asc",
+  }: {
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    searchTerm?: string;
+    tab?: TabType;
+    limit?: number;
+    offset?: number;
+    orderBy?: string;
+    order?: "asc" | "desc";
+  }): Promise<{ data: any[] }> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized");
+      return { data: [] };
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc("get_programs_for_user", {
+        _current_user_id: currentUserId,
+        _filters: filters,
+        _search_term: searchTerm,
+        _tab: tab,
+        _limit: limit,
+        _offset: offset,
+        _order_by: orderBy,
+        _order: order,
+      });
+
+      if (error) {
+        console.error("Error calling get_programs_for_user RPC:", error);
+        return { data: [] };
+      }
+      return { data: data || [] };
+    } catch (err) {
+      console.error("Unexpected error in getPrograms:", err);
+      return { data: [] };
+    }
+  }
+
+  async getProgramManagers(): Promise<{ name: string; id: string }[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+
+    const { data, error } = await this.supabase.rpc("get_program_managers");
+
+    if (error) {
+      console.error("Error fetching managers:", error);
+      return [];
+    }
+
+    return (data as { name: string; id: string }[]) || [];
+  }
+
+  async getUniqueGeoData(): Promise<{
+    Country: string[];
+    State: string[];
+    Block: string[];
+    Cluster: string[];
+    District: string[];
+  }> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return {
+        Country: [],
+        State: [],
+        Block: [],
+        Cluster: [],
+        District: [],
+      };
+    }
+
+    const { data, error } = await this.supabase.rpc("get_unique_geo_data");
+
+    if (error) throw error;
+
+    if (!data)
+      return { Country: [], State: [], Block: [], Cluster: [], District: [] };
+    return data as {
+      Country: string[];
+      State: string[];
+      Block: string[];
+      Cluster: string[];
+      District: string[];
+    };
+  }
+
+  async insertProgram(payload: any): Promise<boolean> {
+    try {
+      if (!this.supabase) {
+        console.error("Supabase client is not initialized.");
+        return false;
+      }
+      const programId = uuidv4();
+      const _currentUser =
+        await ServiceConfig.getI().authHandler.getCurrentUser();
+
+      const record: any = {
+        id: programId,
+        name: payload.programName,
+        model: payload.models,
+
+        implementation_partner: payload.partners.implementation,
+        funding_partner: payload.partners.funding,
+        institute_partner: payload.partners.institute,
+
+        country: payload.locations.Country,
+        state: payload.locations.State,
+        block: payload.locations.Block,
+        cluster: payload.locations.Cluster,
+        district: payload.locations.District,
+
+        program_type: payload.programType,
+        institutes_count: payload.stats.schools,
+        students_count: payload.stats.students,
+        devices_count: payload.stats.devices,
+
+        start_date: payload.startDate,
+        end_date: payload.endDate,
+
+        is_deleted: false,
+        is_ops: null,
+      };
+
+      // Step 1: Insert the program
+      const { data, error } = await this.supabase
+        .from(TABLES.Program)
+        .insert(record)
+        .single();
+
+      if (error) {
+        console.error("Insert error:", error);
+        return false;
+      }
+
+      // Step 2: Insert into program_user table
+      if (!payload.selectedManagers.includes(_currentUser?.id)) {
+        payload.selectedManagers.push(_currentUser?.id);
+      }
+      const programUserRows = payload.selectedManagers.map(
+        (userId: string) => ({
+          program_id: programId,
+          user: userId,
+          is_deleted: false,
+          is_ops: null,
+          role: RoleType.PROGRAM_MANAGER,
+        })
+      );
+      const { error: programUserError } = await this.supabase
+        .from(TABLES.ProgramUser)
+        .insert(programUserRows);
+
+      if (programUserError) {
+        console.error("Error inserting program users:", programUserError);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("insertProgram failed:", error);
+      return false;
+    }
+  }
+  async getSchoolsForAdmin(
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<TableTypes<"school">[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+    const { data, error } = await this.supabase
+      .from(TABLES.School)
+      .select("*")
+      .eq("is_deleted", false)
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error("Error fetching schools:", error);
+      return [];
+    }
+    return data ?? [];
+  }
+
+  async getSchoolsByModel(
+    model: MODEL,
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<TableTypes<"school">[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.School)
+      .select("*")
+      .eq("is_deleted", false)
+      .eq("model", model)
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error("Error fetching schools by model:", error);
+      return [];
+    }
+    return data ?? [];
+  }
+
+  async getTeachersForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+
+    const { data: classes, error: classError } = await this.supabase
+      .from(TABLES.Class)
+      .select("id, school_id")
+      .in("school_id", schoolIds)
+      .eq("is_deleted", false);
+
+    if (classError || !classes) {
+      console.error("Error fetching classes:", classError);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const classIds = classes.map((cls) => cls.id);
+    const classIdToSchoolId: Record<string, string> = {};
+    for (const cls of classes) {
+      classIdToSchoolId[cls.id] = cls.school_id;
+    }
+
+    const { data: classUsers, error: classUserError } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select("user: user_id (*), class_id")
+      .in("class_id", classIds.length ? classIds : [""])
+      .eq("is_deleted", false)
+      .eq("role", RoleType.TEACHER);
+
+    if (classUserError || !classUsers) {
+      console.error("Error fetching class users:", classUserError);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const schoolMap: Map<string, TableTypes<"user">[]> = new Map();
+    for (const schoolId of schoolIds) {
+      schoolMap.set(schoolId, []);
+    }
+
+    for (const entry of classUsers) {
+      const schoolId = classIdToSchoolId[entry.class_id];
+      const user = entry.user as unknown as TableTypes<"user">;
+      if (!schoolId || !user) continue;
+
+      const existing = schoolMap.get(schoolId) || [];
+      const alreadyExists = existing.some((u) => u.id === user.id);
+      if (!alreadyExists) {
+        existing.push(user);
+        schoolMap.set(schoolId, existing);
+      }
+    }
+
+    const result: SchoolRoleMap[] = [];
+    for (const schoolId of schoolIds) {
+      result.push({ schoolId, users: schoolMap.get(schoolId) ?? [] });
+    }
+    return result;
+  }
+  async getStudentsForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+
+    const { data: classes, error: classError } = await this.supabase
+      .from(TABLES.Class)
+      .select("id, school_id")
+      .in("school_id", schoolIds)
+      .eq("is_deleted", false);
+
+    if (classError || !classes) {
+      console.error("Error fetching classes:", classError);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const classIds = classes.map((cls) => cls.id);
+    const classIdToSchoolId: Record<string, string> = {};
+    for (const cls of classes) {
+      classIdToSchoolId[cls.id] = cls.school_id;
+    }
+
+    const { data: classUsers, error: classUserError } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select("user: user_id (*), class_id")
+      .in("class_id", classIds.length ? classIds : [""])
+      .eq("is_deleted", false)
+      .eq("role", RoleType.STUDENT);
+
+    if (classUserError || !classUsers) {
+      console.error("Error fetching class users:", classUserError);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const schoolMap: Map<string, TableTypes<"user">[]> = new Map();
+    for (const schoolId of schoolIds) {
+      schoolMap.set(schoolId, []);
+    }
+
+    for (const entry of classUsers) {
+      const schoolId = classIdToSchoolId[entry.class_id];
+      const user = entry.user as unknown as TableTypes<"user">;
+      if (!schoolId || !user) continue;
+
+      const existing = schoolMap.get(schoolId) || [];
+      const alreadyExists = existing.some((u) => u.id === user.id);
+      if (!alreadyExists) {
+        existing.push(user);
+        schoolMap.set(schoolId, existing);
+      }
+    }
+
+    const result: SchoolRoleMap[] = [];
+    for (const schoolId of schoolIds) {
+      result.push({ schoolId, users: schoolMap.get(schoolId) ?? [] });
+    }
+    return result;
+  }
+
+  async getProgramManagersForSchools(
+    schoolIds: string[]
+  ): Promise<SchoolRoleMap[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select("user: user_id (*), school_id")
+      .in("school_id", schoolIds.length ? schoolIds : [""])
+      .eq("is_deleted", false)
+      .eq("role", RoleType.PROGRAM_MANAGER);
+
+    if (error || !data) {
+      console.error("Error fetching program managers:", error);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const schoolMap: Map<string, TableTypes<"user">[]> = new Map();
+    for (const schoolId of schoolIds) {
+      schoolMap.set(schoolId, []);
+    }
+
+    for (const row of data) {
+      const user = row.user as unknown as TableTypes<"user">;
+      const schoolId = row.school_id;
+
+      if (!user || !schoolMap.has(schoolId)) continue;
+
+      const users = schoolMap.get(schoolId)!;
+      if (!users.find((u) => u.id === user.id)) {
+        users.push(user);
+      }
+    }
+
+    return schoolIds.map((id) => ({
+      schoolId: id,
+      users: schoolMap.get(id) ?? [],
+    }));
+  }
+
+  async getFieldCoordinatorsForSchools(
+    schoolIds: string[]
+  ): Promise<SchoolRoleMap[]> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select("user: user_id (*), school_id")
+      .in("school_id", schoolIds.length ? schoolIds : ["dummy"])
+      .eq("is_deleted", false)
+      .eq("role", RoleType.FIELD_COORDINATOR);
+
+    if (error || !data) {
+      console.error("Error fetching field coordinators:", error);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const schoolMap: Map<string, TableTypes<"user">[]> = new Map();
+    for (const schoolId of schoolIds) {
+      schoolMap.set(schoolId, []);
+    }
+
+    for (const row of data) {
+      const user = row.user as unknown as TableTypes<"user">;
+      const schoolId = row.school_id;
+
+      if (!user || !schoolMap.has(schoolId)) continue;
+
+      const users = schoolMap.get(schoolId)!;
+      if (!users.find((u) => u.id === user.id)) {
+        users.push(user);
+      }
+    }
+
+    return schoolIds.map((id) => ({
+      schoolId: id,
+      users: schoolMap.get(id) ?? [],
+    }));
+  }
+
+  async getProgramForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"program"> | undefined> {
+    if (!this.supabase) return;
+    const { data, error } = await this.supabase
+      .from("school")
+      .select("program:program_id(*)")
+      .eq("id", schoolId)
+      .maybeSingle();
+    if (error) {
+      console.error("Error fetching program with join:", error);
+      return;
+    }
+    const program = (data?.program ?? undefined) as
+      | TableTypes<"program">
+      | undefined;
+    return program;
+  }
+
+  async getProgramManagersForSchool(
+    schoolId: string
+  ): Promise<TableTypes<"user">[] | undefined> {
+    if (!this.supabase) return;
+    const { data: schoolData } = await this.supabase
+      .from("school")
+      .select("program_id")
+      .eq("id", schoolId)
+      .maybeSingle();
+    const programId = schoolData?.program_id;
+    if (!programId) return [];
+    const { data: managers } = await this.supabase
+      .from("program_user")
+      .select("role, is_deleted, user(*)")
+      .eq("program_id", programId);
+    const managerUsers = (managers ?? [])
+      .filter(
+        (pu) =>
+          pu.role === RoleType.PROGRAM_MANAGER && !pu.is_deleted && pu.user
+      )
+      .flatMap((pu) =>
+        Array.isArray(pu.user) ? pu.user : [pu.user]
+      ) as TableTypes<"user">[];
+    return managerUsers;
+  }
+
   async updateStudentStars(
     studentId: string,
     totalStars: number
   ): Promise<void> {
+    if (!this.supabase || !studentId) return;
+    try {
+      const { error } = await this.supabase
+        .from(TABLES.User)
+        .update({ stars: totalStars })
+        .eq("id", studentId);
+
+      if (error) {
+        console.error("Error setting stars for student:", error);
+        throw error;
+      }
+    } catch (error) {
+      console.error("Error setting stars for student:", error);
+    }
+  }
+
+  async getProgramData(programId: string): Promise<{
+    programDetails: { id: string; label: string; value: string }[];
+    locationDetails: { id: string; label: string; value: string }[];
+    partnerDetails: { id: string; label: string; value: string }[];
+    programManagers: { name: string; role: string; phone: string }[];
+  } | null> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return null;
+    }
+
+    try {
+      const { data: program, error: programError } = await this.supabase
+        .from("program")
+        .select("*")
+        .eq("id", programId)
+        .single();
+
+      if (programError || !program) {
+        console.error("Error fetching program:", programError);
+        return null;
+      }
+
+      const { data: mappings, error: mappingsError } = await this.supabase
+        .from("program_user")
+        .select("user")
+        .eq("program_id", programId)
+        .eq("role", "program_manager");
+
+      if (mappingsError) {
+        console.error("Error fetching program managers:", mappingsError);
+        return null;
+      }
+
+      const userIds = mappings.map((m) => m.user);
+
+      const { data: users, error: usersError } = await this.supabase
+        .from("user")
+        .select("id, name, phone")
+        .in("id", userIds);
+      if (usersError) {
+        console.error("Error fetching user details:", usersError);
+        return null;
+      }
+
+      const programDetails = [
+        {
+          id: "program_name",
+          label: "Program Name",
+          value: program.name ?? "",
+        },
+        {
+          id: "program_type",
+          label: "Program Type",
+          value: program.program_type ?? "",
+        },
+        {
+          id: "program_model",
+          label: "Program Model",
+          value: Array.isArray(program.model)
+            ? program.model.join(", ")
+            : program.model ?? "",
+        },
+        {
+          id: "program_date",
+          label: "Program Date",
+          value: `${program.start_date ?? ""}  ${program.end_date ?? ""}`,
+        },
+      ];
+
+      const locationDetails = [
+        { id: "country", label: "Country", value: program.country ?? "" },
+        { id: "state", label: "State", value: program.state ?? "" },
+        { id: "district", label: "District", value: program.district ?? "" },
+        { id: "cluster", label: "Cluster", value: program.cluster ?? "" },
+        { id: "block", label: "Block", value: program.block ?? "" },
+        { id: "village", label: "Village", value: program.village ?? "" },
+      ];
+
+      const partnerDetails = [
+        {
+          id: "implementation_partner",
+          label: "Implementation Partner",
+          value: program.implementation_partner ?? "",
+        },
+        {
+          id: "funding_partner",
+          label: "Funding Partner",
+          value: program.funding_partner ?? "",
+        },
+        {
+          id: "institute_owner",
+          label: "Institute Owner",
+          value: program.institute_partner ?? "",
+        },
+      ];
+
+      const programManagers = users.map((user) => ({
+        name: user.name ?? "",
+        role: "Program Manager",
+        phone: user.phone ?? "",
+      }));
+
+      return {
+        programDetails,
+        locationDetails,
+        partnerDetails,
+        programManagers,
+      };
+    } catch (err) {
+      console.error("Unexpected error in getProgramData:", err);
+      return null;
+    }
+  }
+  async getSchoolFilterOptionsForSchoolListing(): Promise<
+    Record<string, string[]>
+  > {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized");
+      return {};
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "get_school_filter_options",
+        {}
+      );
+
+      if (error) {
+        console.error("RPC error in getSchoolFilterOptions:", error);
+        return {};
+      }
+
+      const parsed: Record<string, string[]> = {
+        state: [],
+        district: [],
+        block: [],
+        programType: [],
+        partner: [],
+        programManager: [],
+        fieldCoordinator: [],
+        cluster: [],
+      };
+
+      if (data && typeof data === "object") {
+        for (const key in parsed) {
+          const val = data[key];
+          parsed[key] = Array.isArray(val)
+            ? val.filter(
+                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+              )
+            : [];
+        }
+      }
+
+      return parsed;
+    } catch (err) {
+      console.error("Unexpected error in getSchoolFilterOptions:", err);
+      return {};
+    }
+  }
+
+  async createOrAddUserOps(payload: {
+    name: string;
+    email?: string;
+    phone?: string;
+    role: string;
+  }): Promise<{
+    success: boolean;
+    user_id?: string;
+    message?: string;
+    error?: string;
+  }> {
+    if (!this.supabase)
+      return { success: false, error: "Supabase not initialized" };
+    try {
+      const { data, error: functionError } =
+        await this.supabase.functions.invoke("ops_adding_and_creating_user", {
+          body: payload,
+        });
+      return {
+        success: true,
+        user_id: data?.user_id,
+        message: data?.message,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        error: err?.message || "Unexpected error occurred",
+      };
+    }
+  }
+
+  async getFilteredSchoolsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: "asc" | "desc";
+    search?: string;
+  }): Promise<{
+    data: FilteredSchoolsForSchoolListingOps[];
+    total: number;
+  }> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized");
+      return { data: [], total: 0 };
+    }
+
+    const { filters, programId, page, page_size, order_by, order_dir, search } =
+      params;
+    const payload: any = {};
+
+    if (filters && Object.keys(filters).length > 0) payload.filters = filters;
+    if (programId) payload._program_id = programId;
+    if (page) payload.page = page;
+    if (page_size) payload.page_size = page_size;
+    if (order_by) payload.order_by = order_by;
+    if (order_dir) payload.order_dir = order_dir;
+    if (search) payload.search = search;
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "get_filtered_schools_with_optional_program",
+        payload
+      );
+      if (error) {
+        console.error(
+          "RPC error in get_filtered_schools_with_optional_program:",
+          error
+        );
+        return { data: [], total: 0 };
+      }
+
+      if (
+        !data ||
+        typeof data !== "object" ||
+        !("data" in data) ||
+        !("total" in data)
+      ) {
+        throw new Error(
+          "Supabase RPC did not return expected { data, total } shape"
+        );
+      }
+
+      return {
+        data: (data.data ??
+          []) as unknown as FilteredSchoolsForSchoolListingOps[],
+        total: typeof data.total === "number" ? data.total : 0,
+      };
+    } catch (err) {
+      console.error(
+        "Unexpected error in get_filtered_schools_with_optional_program:",
+        err
+      );
+      return { data: [], total: 0 };
+    }
+  }
+
+  async createAutoProfile(
+    languageDocId: string | undefined
+  ): Promise<TableTypes<"user">> {
+    if (!this.supabase) throw new Error("Supabase instance is not initialized");
+
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw new Error("User is not Logged in");
+    const randomAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)];
+    const studentProfile = await this.getParentStudentProfiles();
+    if (studentProfile.length > 0) return studentProfile[0];
+
+    const studentId = uuidv4();
+    const now = new Date().toISOString();
+
+    const newStudent: TableTypes<"user"> = {
+      id: studentId,
+      name: null,
+      age: null,
+      gender: null,
+      avatar: randomAvatar,
+      image: null,
+      curriculum_id: null,
+      grade_id: null,
+      language_id: languageDocId ?? null,
+      created_at: now,
+      updated_at: now,
+      is_deleted: false,
+      is_tc_accepted: true,
+      email: null,
+      phone: null,
+      fcm_token: null,
+      music_off: false,
+      sfx_off: false,
+      student_id: null,
+      firebase_id: null,
+      is_firebase: null,
+      is_ops: null,
+      learning_path: null,
+      ops_created_by: null,
+      stars: null,
+    };
+
+    // Insert user
+    const { error: userInsertError } = await this.supabase
+      .from(TABLES.User)
+      .insert([newStudent]);
+    if (userInsertError) {
+      console.error("Error inserting auto profile user:", userInsertError);
+      throw userInsertError;
+    }
+
+    // Insert parent_user
+    const parentUserId = uuidv4();
+    const parentUserData: TableTypes<"parent_user"> = {
+      id: parentUserId,
+      parent_id: _currentUser.id,
+      student_id: studentId,
+      created_at: now,
+      updated_at: now,
+      is_deleted: false,
+      is_firebase: null,
+      is_ops: null,
+      ops_created_by: null,
+    };
+    const { error: parentInsertError } = await this.supabase
+      .from(TABLES.ParentUser)
+      .insert([parentUserData]);
+    if (parentInsertError) {
+      console.error(
+        "Error inserting parent_user for auto profile:",
+        parentInsertError
+      );
+      throw parentInsertError;
+    }
+
+    // Find English, Maths, and language-dependent subject
+    const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
+    const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+    const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
+    const language = languageDocId
+      ? await this.getLanguageWithId(languageDocId)
+      : undefined;
+    let langCourse: TableTypes<"course"> | undefined;
+    if (language && language.code !== COURSES.ENGLISH) {
+      // Map language code to courseId
+      const thirdLanguageCourseMap: Record<string, string> = {
+        hi: CHIMPLE_HINDI,
+        kn: GRADE1_KANNADA,
+        mr: GRADE1_MARATHI,
+      };
+      const courseId = thirdLanguageCourseMap[language.code ?? ""];
+      if (courseId) {
+        langCourse = await this.getCourse(courseId);
+      }
+    }
+    // Add only these three courses to the student
+    const coursesToAdd = [
+      englishCourse,
+      mathsCourse,
+      langCourse,
+      digitalSkillsCourse,
+    ].filter(Boolean) as TableTypes<"course">[];
+
+    // Insert user_course entries
+    for (const course of coursesToAdd) {
+      const newUserCourse: TableTypes<"user_course"> = {
+        id: uuidv4(),
+        user_id: studentId,
+        course_id: course.id,
+        created_at: now,
+        updated_at: now,
+        is_deleted: false,
+        is_firebase: null,
+      };
+      const { error: userCourseInsertError } = await this.supabase
+        .from(TABLES.UserCourse)
+        .insert([newUserCourse]);
+      if (userCourseInsertError) {
+        console.error(
+          "Error inserting user_course for auto profile:",
+          userCourseInsertError
+        );
+      }
+    }
+
+    return newStudent;
+  }
+
+  async isProgramUser(): Promise<boolean> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return false;
+    }
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw new Error("User is not Logged in");
+
+    const userId = _currentUser.id;
+
+    const { data, error } = await this.supabase
+      .from("program_user")
+      .select("id")
+      .eq("user", userId)
+      .in("role", ["program_manager", "field_coordinator"])
+      .eq("is_deleted", false)
+      .limit(1);
+
+    if (error) {
+      console.error("Error checking program_user table", error);
+      return false;
+    }
+
+    return !!(data && data.length > 0);
+  }
+
+  async getManagersAndCoordinators(
+    page: number = 1,
+    search: string = "",
+    limit: number = 10,
+    sortBy: keyof TableTypes<"user"> = "name",
+    sortOrder: "asc" | "desc" = "asc"
+  ): Promise<{
+    data: { user: TableTypes<"user">; role: string }[];
+    totalCount: number;
+  }> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return { data: [], totalCount: 0 };
+    }
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw new Error("User not logged in");
+    const userId = _currentUser.id;
+    const roles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+    const isSuperAdmin = roles.includes(RoleType.SUPER_ADMIN);
+    const isOpsDirector = roles.includes(RoleType.OPERATIONAL_DIRECTOR);
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+    if (isSuperAdmin || isOpsDirector) {
+      let query = this.supabase
+        .from("user")
+        .select(
+          `
+          *,
+          special_users!inner (
+            role
+          )
+        `,
+          { count: "exact" }
+        )
+        .eq("is_deleted", false)
+        .ilike("name", `%${search}%`)
+        .eq("special_users.is_deleted", false);
+      if (isOpsDirector && !isSuperAdmin) {
+        query = query.neq("special_users.role", RoleType.SUPER_ADMIN);
+      }
+      const { data, count, error } = await query
+        .order(sortBy, { ascending: sortOrder === "asc" })
+        .range(from, to);
+      if (error) {
+        console.error("Supabase fetch error:", error);
+        return { data: [], totalCount: 0 };
+      }
+      if (!data) return { data: [], totalCount: 0 };
+      const result = data.map((d) => {
+        const { special_users, ...userObject } = d;
+        const role = special_users[0]?.role || "";
+        return {
+          user: userObject as TableTypes<"user">,
+          role,
+        };
+      });
+      return { data: result, totalCount: count || 0 };
+    }
+    if (roles.includes(RoleType.PROGRAM_MANAGER)) {
+      const { data: programs, error: programsError } = await this.supabase
+        .from("program_user")
+        .select("program_id")
+        .eq("user", userId)
+        .eq("role", RoleType.PROGRAM_MANAGER)
+        .eq("is_deleted", false);
+      if (programsError) {
+        console.error(
+          "Error fetching program manager's programs:",
+          programsError
+        );
+        return { data: [], totalCount: 0 };
+      }
+      if (!programs || programs.length === 0) {
+        return { data: [], totalCount: 0 };
+      }
+      const programIds = programs.map((p) => p.program_id);
+      let query = this.supabase
+        .from("user")
+        .select(
+          `
+        *,
+        program_user!inner(role)
+        `,
+          { count: "exact" }
+        )
+        .in("program_user.program_id", programIds)
+        .eq("program_user.role", RoleType.FIELD_COORDINATOR)
+        .eq("program_user.is_deleted", false)
+        .eq("is_deleted", false);
+      if (search) {
+        query = query.ilike("name", `%${search}%`);
+      }
+      const {
+        data: users,
+        count,
+        error,
+      } = await query
+        .order(sortBy, { ascending: sortOrder === "asc" })
+        .range(from, to);
+      if (error) {
+        console.error("Error fetching field coordinators:", error);
+        return { data: [], totalCount: 0 };
+      }
+      if (!users) {
+        return { data: [], totalCount: 0 };
+      }
+      const result = users.map((u) => {
+        const { program_user, ...userObject } = u;
+        const role = program_user[0]?.role || RoleType.FIELD_COORDINATOR;
+        return {
+          user: userObject as TableTypes<"user">,
+          role,
+        };
+      });
+      return { data: result, totalCount: count || 0 };
+    }
+    return { data: [], totalCount: 0 };
+  }
+
+  async program_activity_stats(programId: string): Promise<{
+    total_students: number;
+    total_teachers: number;
+    total_schools: number;
+    active_student_percentage: number;
+    active_teacher_percentage: number;
+    avg_weekly_time_minutes: number;
+  }> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return {
+        total_students: 0,
+        total_teachers: 0,
+        total_schools: 0,
+        active_student_percentage: 0,
+        active_teacher_percentage: 0,
+        avg_weekly_time_minutes: 0,
+      };
+    }
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "get_program_activity_stats",
+        {
+          p_program_id: programId,
+        }
+      );
+
+      if (error || !data) {
+        console.error("RPC error:", error);
+        return {
+          total_students: 0,
+          total_teachers: 0,
+          total_schools: 0,
+          active_student_percentage: 0,
+          active_teacher_percentage: 0,
+          avg_weekly_time_minutes: 0,
+        };
+      }
+      const stats = data as unknown as {
+        total_students: number;
+        total_teachers: number;
+        total_schools: number;
+        active_student_percentage: number;
+        active_teacher_percentage: number;
+        avg_weekly_time_minutes: number;
+      };
+
+      return {
+        total_students: stats.total_students ?? 0,
+        total_teachers: stats.total_teachers ?? 0,
+        total_schools: stats.total_schools ?? 0,
+        active_student_percentage: stats.active_student_percentage ?? 0,
+        active_teacher_percentage: stats.active_teacher_percentage ?? 0,
+        avg_weekly_time_minutes: stats.avg_weekly_time_minutes ?? 0,
+      };
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      return {
+        total_students: 0,
+        total_teachers: 0,
+        total_schools: 0,
+        active_student_percentage: 0,
+        active_teacher_percentage: 0,
+        avg_weekly_time_minutes: 0,
+      };
+    }
+  }
+
+  async school_activity_stats(schoolId: string): Promise<{
+    active_student_percentage: number;
+    active_teacher_percentage: number;
+    avg_weekly_time_minutes: number;
+  }> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized.");
+      return {
+        active_student_percentage: 0,
+        active_teacher_percentage: 0,
+        avg_weekly_time_minutes: 0,
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "get_school_activity_stats",
+        {
+          p_school_id: schoolId,
+        }
+      );
+
+      if (error) {
+        console.error("RPC error:", error);
+        return {
+          active_student_percentage: 0,
+          active_teacher_percentage: 0,
+          avg_weekly_time_minutes: 0,
+        };
+      }
+      const stats = data as unknown as {
+        active_student_percentage: number;
+        active_teacher_percentage: number;
+        avg_weekly_time_minutes: number;
+      };
+      return {
+        active_student_percentage: stats?.active_student_percentage ?? 0,
+        active_teacher_percentage: stats?.active_teacher_percentage ?? 0,
+        avg_weekly_time_minutes: stats?.avg_weekly_time_minutes ?? 0,
+      };
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      return {
+        active_student_percentage: 0,
+        active_teacher_percentage: 0,
+        avg_weekly_time_minutes: 0,
+      };
+    }
+  }
+
+  async isProgramManager(): Promise<boolean> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return false;
+    }
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!_currentUser) throw new Error("User is not Logged in");
+    const userId = _currentUser.id;
+    const { data, error } = await this.supabase
+      .from("program_user")
+      .select("id")
+      .eq("user", userId)
+      .in("role", ["program_manager"])
+      .eq("is_deleted", false)
+      .limit(1);
+    if (error) {
+      console.error("Error checking program_user table", error);
+      return false;
+    }
+    return !!(data && data.length > 0);
+  }
+
+  async getUserSpecialRoles(userId: string): Promise<string[]> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return [];
+    }
+
+    if (!userId) {
+      console.warn("userId is missing. Cannot fetch roles.");
+      return [];
+    }
+
+    try {
+      const { data, error } = await this.supabase
+        .from("special_users")
+        .select("role")
+        .eq("user_id", userId)
+        .in("role", [
+          RoleType.SUPER_ADMIN,
+          RoleType.PROGRAM_MANAGER,
+          RoleType.FIELD_COORDINATOR,
+          RoleType.OPERATIONAL_DIRECTOR,
+        ])
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.error(
+          "Error fetching roles from special_users:",
+          error.message
+        );
+        return [];
+      }
+
+      const roles = (data ?? [])
+        .map((item) => item.role)
+        .filter((role): role is NonNullable<typeof role> => role !== null);
+
+      return roles;
+    } catch (e) {
+      console.error("Unexpected error while fetching user special roles:", e);
+      return [];
+    }
+  }
+
+  async updateSpecialUserRole(userId: string, role: string): Promise<void> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return;
+    }
+    const updatedAt = new Date().toISOString();
+    try {
+      const { error } = await this.supabase
+        .from("special_users")
+        .update({
+          role: role as RoleType.PROGRAM_MANAGER | RoleType.FIELD_COORDINATOR,
+          updated_at: updatedAt,
+        })
+        .eq("user_id", userId)
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.error("Error updating role in special_users:", error.message);
+      }
+    } catch (e) {
+      console.error("Unexpected error while updating user role:", e);
+    }
+  }
+  async deleteSpecialUser(userId: string): Promise<void> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return;
+    }
+    try {
+      const { error } = await this.supabase
+        .from("special_users")
+        .update({ is_deleted: true })
+        .eq("user_id", userId)
+        .eq("is_deleted", false);
+      if (error) {
+        console.error("Error deleting user in special_users:", error.message);
+      }
+    } catch (e) {
+      console.error("Unexpected error while deleting user:", e);
+    }
+  }
+
+  async updateProgramUserRole(userId: string, role: string): Promise<void> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return;
+    }
+    const updatedAt = new Date().toISOString();
+    try {
+      const { error } = await this.supabase
+        .from("program_user")
+        .update({
+          role: role as RoleType.PROGRAM_MANAGER | RoleType.FIELD_COORDINATOR,
+          updated_at: updatedAt,
+        })
+        .eq("user", userId)
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.error("Error updating role in program_user:", error.message);
+      }
+    } catch (e) {
+      console.error("Unexpected error while updating user role:", e);
+    }
+  }
+
+  async deleteProgramUser(userId: string): Promise<void> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return;
+    }
+    try {
+      const { error } = await this.supabase
+        .from("program_user")
+        .update({ is_deleted: true })
+        .eq("user", userId)
+        .eq("is_deleted", false);
+      if (error) {
+        console.error("Error deleting user in program_user:", error.message);
+      }
+    } catch (e) {
+      console.error("Unexpected error while deleting user:", e);
+    }
+  }
+
+  async deleteUserFromSchoolsWithRole(
+    userId: string,
+    role: string
+  ): Promise<void> {
+    if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return;
+    }
+    try {
+      const { error } = await this.supabase
+        .from("school_user")
+        .update({ is_deleted: true })
+        .eq("user_id", userId)
+        .eq("role", role)
+        .eq("is_deleted", false);
+      if (error) {
+        console.error("Error deleting user in program_user:", error.message);
+      }
+    } catch (e) {
+      console.error("Unexpected error while deleting user:", e);
+    }
+  }
+  async getChaptersByIds(
+    chapterIds: string[]
+  ): Promise<TableTypes<"chapter">[]> {
+    if (!this.supabase) {
+      console.error(
+        "getChaptersByIds failed: Supabase client not initialized."
+      );
+      return [];
+    }
+
+    if (!chapterIds || chapterIds.length === 0) {
+      console.warn("getChaptersByIds was called with no chapter IDs.");
+      return [];
+    }
+
+    try {
+      const { data, error } = await this.supabase
+        .from(TABLES.Chapter)
+        .select("*")
+        .in("id", chapterIds)
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.warn("Error fetching chapters by IDs:", chapterIds);
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error("Error fetching chapters", error);
+      return [];
+    }
+  }
+  async getChapterIdbyQrLink(
+    link: string
+  ): Promise<TableTypes<"chapter_links"> | undefined> {
     throw new Error("Method not implemented.");
   }
-  async getChapterIdbyQrLink(link: string): Promise<TableTypes<"chapter_links"> | undefined> {
-      throw new Error("Method not implemented.");
+  async addParentToNewClass(classID: string, studentId: string) {
+    try {
+      if (!this.supabase) return;
+      const { error } = await this.supabase.rpc("add_parent_to_newclass", {
+        _class_id: classID,
+        _student_id: studentId,
+      });
+
+      if (error) {
+        console.error("Failed to add parent to class:", error.message);
+      }
+    } catch (error) {
+      console.error("Error in addParentToNewClass:", error);
+    }
+  }
+
+  async getOpsRequests(
+    requestStatus: EnumType<"ops_request_status">,
+    page: number = 1,
+    limit: number = 20,
+    orderBy: string = "created_at",
+    orderDir: "asc" | "desc" = "asc",
+    filters?: { request_type?: string[]; school?: string[] },
+    searchTerm?: string
+  ) {
+    try {
+      if (!this.supabase) return;
+
+      const offset = (page - 1) * limit;
+
+      // Allowed DB orderBy fields
+      const allowedOrderByDb = ["created_at", "updated_at"];
+      const isSchoolNameOrder = orderBy === "school_name";
+
+      if (!isSchoolNameOrder && !allowedOrderByDb.includes(orderBy)) {
+        console.warn(
+          `[getOpsRequests] Invalid orderBy "${orderBy}", defaulting to "created_at"`
+        );
+        orderBy = "created_at";
+      }
+
+      if (!["asc", "desc"].includes(orderDir.toLowerCase())) {
+        console.warn(
+          `[getOpsRequests] Invalid orderDir "${orderDir}", defaulting to "asc"`
+        );
+        orderDir = "asc";
+      }
+
+      const applyFilters = (query: any, schoolIds?: string[]) => {
+        if (filters?.request_type?.length) {
+          query = query.in("request_type", filters.request_type);
+        }
+        if (schoolIds?.length) {
+          query = query.in("school_id", schoolIds);
+        }
+        if (searchTerm?.trim()) {
+          query = query.ilike("request_id", `%${searchTerm}%`);
+        }
+        if (!isSchoolNameOrder) {
+          query = query.order(orderBy, { ascending: orderDir === "asc" });
+        }
+        return query;
+      };
+
+      let schoolIds: string[] | undefined;
+      if (filters?.school?.length) {
+        const { data: schoolData, error: schoolError } = await this.supabase
+          .from(TABLES.School)
+          .select("id")
+          .in("name", filters.school)
+          .eq("is_deleted", false);
+
+        if (schoolError) throw schoolError;
+        schoolIds = (schoolData || []).map((s) => s.id);
+
+        if (!schoolIds.length) {
+          return { data: [], total: 0 };
+        }
+      }
+
+      let combinedData: any[] = [];
+      let totalCount = 0;
+
+      if (requestStatus === Constants.public.Enums.ops_request_status[2]) {
+        // Approved requests
+        let approvedQuery = this.supabase
+          .from(TABLES.OpsRequests)
+          .select("*", { count: "exact" })
+          .eq("is_deleted", false)
+          .eq("request_status", Constants.public.Enums.ops_request_status[2]);
+
+        approvedQuery = applyFilters(approvedQuery, schoolIds);
+        const {
+          data: approvedData,
+          error: approvedError,
+          count: approvedCount,
+        } = await approvedQuery.range(offset, offset + limit - 1);
+        if (approvedError) throw approvedError;
+
+        // Expired pending requests (students only)
+        let expiredQuery = this.supabase
+          .from(TABLES.OpsRequests)
+          .select("*", { count: "exact" })
+          .eq("is_deleted", false)
+          .eq("request_status", Constants.public.Enums.ops_request_status[0])
+          .eq("request_type", RequestTypes.STUDENT)
+          .lte("request_ends_at", new Date().toISOString());
+
+        expiredQuery = applyFilters(expiredQuery, schoolIds);
+        const {
+          data: expiredPendingData,
+          error: expiredError,
+          count: expiredCount,
+        } = await expiredQuery.range(offset, offset + limit - 1);
+        if (expiredError) throw expiredError;
+
+        combinedData = [...(approvedData || []), ...(expiredPendingData || [])];
+        totalCount = (approvedCount ?? 0) + (expiredCount ?? 0);
+      } else if (
+        requestStatus === Constants.public.Enums.ops_request_status[0]
+      ) {
+        // Pending requests
+        const now = new Date().toISOString();
+        let pendingQuery = this.supabase
+          .from(TABLES.OpsRequests)
+          .select("*", { count: "exact" })
+          .eq("is_deleted", false)
+          .eq("request_status", requestStatus)
+          .or(
+            `request_type.neq.student,and(request_type.eq.student,request_ends_at.gt.${now})`
+          );
+
+        pendingQuery = applyFilters(pendingQuery, schoolIds);
+        const { data, error, count } = await pendingQuery.range(
+          offset,
+          offset + limit - 1
+        );
+        if (error) throw error;
+
+        combinedData = data || [];
+        totalCount = count ?? 0;
+      } else {
+        // Other statuses
+        let query = this.supabase
+          .from(TABLES.OpsRequests)
+          .select("*", { count: "exact" })
+          .eq("is_deleted", false)
+          .eq("request_status", requestStatus);
+
+        query = applyFilters(query, schoolIds);
+        const { data, error, count } = await query.range(
+          offset,
+          offset + limit - 1
+        );
+        if (error) throw error;
+
+        combinedData = data || [];
+        totalCount = count ?? 0;
+      }
+
+      if (!combinedData.length) {
+        return { data: [], total: totalCount };
+      }
+
+      // Map related entities
+      const mappedRequests = await Promise.all(
+        combinedData.map(async (req) => {
+          const [school, classInfo, requestedBy, respondedBy] =
+            await Promise.all([
+              this.getSchoolById(req.school_id!),
+              req.class_id ? this.getClassById(req.class_id) : null,
+              this.getUserByDocId(req.requested_by!),
+              req.responded_by ? this.getUserByDocId(req.responded_by) : null,
+            ]);
+
+          return { ...req, school, classInfo, requestedBy, respondedBy };
+        })
+      );
+
+      // Handle in-memory sorting by school_name
+      if (isSchoolNameOrder) {
+        mappedRequests.sort((a, b) => {
+          const nameA = a.school?.name || "";
+          const nameB = b.school?.name || "";
+          return orderDir === "asc"
+            ? nameA.localeCompare(nameB)
+            : nameB.localeCompare(nameA);
+        });
+      }
+
+      return { data: mappedRequests, total: totalCount };
+    } catch (error) {
+      console.error("Error in getOpsRequests:", error);
+      throw error;
+    }
+  }
+
+  async getRequestFilterOptions() {
+    try {
+      if (!this.supabase) return null;
+
+      const [requestTypeResponse, schoolResponse] = await Promise.all([
+        this.supabase
+          .from(TABLES.OpsRequests)
+          .select("request_type")
+          .eq("is_deleted", false),
+
+        this.supabase
+          .from(TABLES.OpsRequests)
+          .select("school:school(name)")
+          .eq("is_deleted", false)
+          .not("school_id", "is", null),
+      ]);
+
+      if (requestTypeResponse.error) {
+        console.error(
+          "Failed to fetch request types:",
+          requestTypeResponse.error.message
+        );
+        throw requestTypeResponse.error;
+      }
+
+      if (schoolResponse.error) {
+        console.error("Failed to fetch schools:", schoolResponse.error.message);
+        throw schoolResponse.error;
+      }
+      // 1. Get unique request types
+      const allRequestTypes = (requestTypeResponse.data || []).map(
+        (item) => item.request_type
+      );
+      const uniqueRequestTypes = [...new Set(allRequestTypes)];
+
+      // 2. Get unique school names
+      const schoolNames = new Set<string>();
+
+      ((schoolResponse.data as any[]) || []).forEach((item) => {
+        if (item.school && item.school.name) {
+          schoolNames.add(item.school.name);
+        }
+      });
+
+      const uniqueSchoolNames = Array.from(schoolNames);
+
+      return {
+        requestType: uniqueRequestTypes,
+        school: uniqueSchoolNames,
+      };
+    } catch (error) {
+      console.error("Error in getRequestFilterOptions:", error);
+      throw error;
+    }
+  }
+
+  async searchStudentsInSchool(
+    schoolId: string,
+    searchTerm: string,
+    page: number,
+    limit: number
+  ): Promise<{ data: any[]; total: number }> {
+    if (!this.supabase) return { data: [], total: 0 };
+    try {
+      // Step 1: Get all class_ids for the school
+      const { data: classData, error: classError } = await this.supabase
+        .from("class")
+        .select("id, name")
+        .eq("school_id", schoolId)
+        .eq("is_deleted", false);
+      if (classError || !classData) {
+        console.error("Error fetching classes for school:", classError);
+        return { data: [], total: 0 };
+      }
+      const classIds = classData.map((row: any) => row.id);
+      if (classIds.length === 0) return { data: [], total: 0 };
+      // Step 2: Get all class_user rows for those classes and role student, filter by name using ilike
+      const { data: classUserData, error: classUserError } = await this.supabase
+        .from("class_user")
+        .select(`user:user_id (*), class_id`)
+        .in("class_id", classIds)
+        .eq("role", "student")
+        .eq("is_deleted", false)
+        .ilike("user.name", `%${searchTerm}%`)
+        .not("user", "is", null);
+      if (classUserError || !classUserData) {
+        console.error("Error fetching class_user rows:", classUserError);
+        return { data: [], total: 0 };
+      }
+      // Step 3: Get parent phone numbers for each student using an inner query
+      const studentIds = classUserData.map((row: any) => row.user.id);
+      let parentPhoneMap: Record<
+        string,
+        {
+          parent_id: string;
+          parent_name: string | null;
+          parent_phone: string | null;
+        }
+      > = {};
+      if (studentIds.length > 0) {
+        const { data: parentData, error: parentError } = await this.supabase
+          .from("parent_user")
+          .select("student_id, parent_id, user:parent_id(id, name, phone)")
+          .in("student_id", studentIds)
+          .eq("is_deleted", false);
+        if (parentError) {
+          console.error("Error fetching parent_user rows:", parentError);
+        } else {
+          for (const row of parentData ?? []) {
+            let parent_name = null;
+            let parent_phone = null;
+            if (
+              row.user &&
+              typeof row.user === "object" &&
+              !Array.isArray(row.user)
+            ) {
+              parent_name = (row.user as any).name ?? null;
+              parent_phone = (row.user as any).phone ?? null;
+            }
+            parentPhoneMap[row.student_id] = {
+              parent_id: row.parent_id,
+              parent_name,
+              parent_phone,
+            };
+          }
+        }
+      }
+      // Step 4: Pagination
+      const offset = (page - 1) * limit;
+      const pagedRows = classUserData.slice(offset, offset + limit);
+      // Step 5: Build result objects
+      const result = pagedRows.map((row: any) => {
+        const classInfo = classData.find((c: any) => c.id === row.class_id);
+        const className = classInfo?.name ?? "";
+        const { grade, section } = this.parseClassName(className);
+        const parentInfo = parentPhoneMap[row.user.id] ?? {};
+        return {
+          id: row.user.id,
+          name: row.user.name,
+          gender: row.user.gender ?? null,
+          student_id: row.user.student_id,
+          phone: row.user.phone,
+          class_id: row.class_id,
+          class_name: className,
+          grade,
+          classSection: section,
+          parent: {
+            id: parentInfo.parent_id ?? undefined,
+            name: parentInfo.parent_name ?? undefined,
+            phone: parentInfo.parent_phone ?? undefined,
+          },
+        };
+      });
+      return { data: result, total: classUserData.length };
+    } catch (err) {
+      console.error("Error searching students in school:", err);
+      return { data: [], total: 0 };
+    }
+  }
+  async searchTeachersInSchool(
+    schoolId: string,
+    searchTerm: string,
+    page: number,
+    limit: number
+  ): Promise<{ data: any[]; total: number }> {
+    if (!this.supabase) return { data: [], total: 0 };
+    try {
+      // Step 1: Get all class_ids for the school
+      const { data: classData, error: classError } = await this.supabase
+        .from("class")
+        .select("id, name")
+        .eq("school_id", schoolId)
+        .eq("is_deleted", false);
+      if (classError || !classData) {
+        console.error("Error fetching classes for school:", classError);
+        return { data: [], total: 0 };
+      }
+      const classIds = classData.map((row: any) => row.id);
+      if (classIds.length === 0) return { data: [], total: 0 };
+      // Step 2: Get all class_user rows for those classes and role teacher
+      const { data: classUserData, error: classUserError } = await this.supabase
+        .from("class_user")
+        .select(`user:user_id (*), class_id`)
+        .in("class_id", classIds)
+        .eq("role", "teacher")
+        .eq("is_deleted", false)
+        .ilike("user.name", `%${searchTerm}%`)
+        .not("user", "is", null);
+      if (classUserError || !classUserData) {
+        console.error("Error fetching class_user rows:", classUserError);
+        return { data: [], total: 0 };
+      }
+      // Step 3: Get parent info for each teacher using an inner query
+      const teacherIds = classUserData.map((row: any) => row.user.id);
+      let parentInfoMap: Record<
+        string,
+        {
+          parent_id: string;
+          parent_name: string | null;
+          parent_phone: string | null;
+        }
+      > = {};
+      if (teacherIds.length > 0) {
+        const { data: parentUserData, error: parentUserError } =
+          await this.supabase
+            .from("parent_user")
+            .select("parent_id, student_id")
+            .in("student_id", teacherIds)
+            .eq("is_deleted", false);
+        if (!parentUserError && parentUserData && parentUserData.length > 0) {
+          const parentIds = parentUserData.map((row: any) => row.parent_id);
+          let parentDetailsMap: Record<
+            string,
+            { name: string | null; phone: string | null }
+          > = {};
+          if (parentIds.length > 0) {
+            const { data: parentDetails, error: parentDetailsError } =
+              await this.supabase
+                .from("user")
+                .select("id, name, phone")
+                .in("id", parentIds)
+                .eq("is_deleted", false);
+            if (
+              !parentDetailsError &&
+              parentDetails &&
+              parentDetails.length > 0
+            ) {
+              for (const parent of parentDetails) {
+                parentDetailsMap[parent.id] = {
+                  name: parent.name ?? null,
+                  phone: parent.phone ?? null,
+                };
+              }
+            }
+          }
+          for (const row of parentUserData) {
+            parentInfoMap[row.student_id] = {
+              parent_id: row.parent_id,
+              parent_name: parentDetailsMap[row.parent_id]?.name ?? null,
+              parent_phone: parentDetailsMap[row.parent_id]?.phone ?? null,
+            };
+          }
+        }
+      }
+      // Step 4: Pagination
+      const offset = (page - 1) * limit;
+      const pagedRows = classUserData.slice(offset, offset + limit);
+      // Step 5: Build result objects (with parent info)
+      const result = pagedRows.map((row: any) => {
+        const classInfo = classData.find((c: any) => c.id === row.class_id);
+        const className = classInfo?.name ?? "";
+        const { grade, section } = this.parseClassName(className);
+        const parentInfo = parentInfoMap[row.user.id] ?? null;
+        return {
+          id: row.user.id,
+          name: row.user.name,
+          gender: row.user.gender ?? null,
+          email: row.user.email,
+          phone: row.user.phone,
+          class_id: row.class_id,
+          class_name: className,
+          grade,
+          classSection: section,
+          parent: parentInfo,
+        };
+      });
+      return { data: result, total: classUserData.length };
+    } catch (err) {
+      console.error("Error searching teachers in school:", err);
+      return { data: [], total: 0 };
+    }
+  }
+  async approveOpsRequest(
+    requestId: string,
+    respondedBy: string,
+    role: (typeof RequestTypes)[keyof typeof RequestTypes],
+    schoolId?: string,
+    classId?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined> {
+    if (!this.supabase) return undefined;
+
+    // Build update payload dynamically
+    const updatePayload: any = {
+      request_status: "approved",
+      responded_by: respondedBy,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (role === "principal" && schoolId) {
+      updatePayload.school_id = schoolId;
+    } else if (classId) {
+      updatePayload.class_id = classId;
+    }
+
+    const { data, error } = await this.supabase
+      .from("ops_requests")
+      .update(updatePayload)
+      .eq("request_id", requestId)
+      .eq("is_deleted", false)
+      .select("*")
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error approving ops_request:", error);
+      return undefined;
+    }
+
+    return data as TableTypes<"ops_requests">;
   }
   createDeeplinkUser(): void | PromiseLike<void> {
       throw new Error("Method not implemented.");
