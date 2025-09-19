@@ -127,6 +127,7 @@ const DisplaySchools: FC = () => {
       }
     } else if (schoolList.length === 0) {
       await checkSchoolRequest();
+      return;
     }
     if (schoolList.length === 1) {
       return selectSchool(schoolList[0]);
