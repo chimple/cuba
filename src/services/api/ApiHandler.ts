@@ -22,6 +22,9 @@ import {
   CACHETABLES,
   RequestTypes,
   STATUS,
+  GeoDataParams,
+  SearchSchoolsParams,
+  SearchSchoolsResult,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -1508,17 +1511,17 @@ export class ApiHandler implements ServiceApi {
       rejectionReason
     );
   }
-  getFieldCoordinatorsByProgram(
+  public async getFieldCoordinatorsByProgram(
   programId: string,
     ): Promise<{ data: TableTypes<"user">[] }>{ 
       return this.s.getFieldCoordinatorsByProgram(programId); 
     }
 
-  getProgramsByRole(
+  public async getProgramsByRole(
     ): Promise<{ data: TableTypes<"program">[] }> {
       return this.s.getProgramsByRole();
     }
-    async updateSchoolStatus(
+  public async updateSchoolStatus(
     schoolId: string,
     schoolStatus: (typeof STATUS)[keyof typeof STATUS],
     address?: {
@@ -1545,5 +1548,22 @@ export class ApiHandler implements ServiceApi {
       schoolId,
       classId
     );
+  }
+  async getGeoData(params: GeoDataParams): Promise<string[]> {
+    return await this.s.getGeoData(params);
+  }
+
+  async searchSchools(params: SearchSchoolsParams): Promise<SearchSchoolsResult> {
+    return await this.s.searchSchools(params);
+  }
+  public async sendJoinSchoolRequest(
+    schoolId : string,
+    requestType : RequestTypes,
+    classId? : string,
+  ): Promise<void> {
+    return this.s.sendJoinSchoolRequest(schoolId,requestType, classId);
+  }
+  public async getAllClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> {
+    return this.s.getAllClassesBySchoolId(schoolId);
   }
 }

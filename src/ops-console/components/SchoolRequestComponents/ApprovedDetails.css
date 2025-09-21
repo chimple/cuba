@@ -7,9 +7,12 @@
 }
 
 .approved-details-title {
-  font-weight: 500;
-  font-size: 18px;
-  color: #222;
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.75;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  color: black;
+  letter-spacing: 0.00938em;
   margin-bottom: 8px;
 }
 
@@ -26,13 +29,13 @@
 }
 
 .approved-details-label {
-  font-size: 14px;
+  font-size: 1rem;
   font-weight: 500;
   color: #666;
 }
 
 .approved-details-value {
-  font-size: 16px;
+  font-size: 1rem;
   color: #222;
   word-break: break-word;
 }

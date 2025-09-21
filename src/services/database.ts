@@ -926,10 +926,8 @@ export type Database = {
           district: string | null
           id: string
           is_deleted: boolean | null
-          pincode: string | null
           state: string | null
           updated_at: string | null
-          village: string | null
         }
         Insert: {
           block?: string | null
@@ -938,10 +936,8 @@ export type Database = {
           district?: string | null
           id?: string
           is_deleted?: boolean | null
-          pincode?: string | null
           state?: string | null
           updated_at?: string | null
-          village?: string | null
         }
         Update: {
           block?: string | null
@@ -950,10 +946,8 @@ export type Database = {
           district?: string | null
           id?: string
           is_deleted?: boolean | null
-          pincode?: string | null
           state?: string | null
           updated_at?: string | null
-          village?: string | null
         }
         Relationships: []
       }
@@ -1227,8 +1221,8 @@ export type Database = {
           created_at: string
           id: string
           is_deleted: boolean | null
-          rejected_reason_description: string
-          rejected_reason_type: string
+          rejected_reason_description: string | null
+          rejected_reason_type: string | null
           request_ends_at: string | null
           request_id: string | null
           request_status:
@@ -1246,8 +1240,8 @@ export type Database = {
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          rejected_reason_description: string
-          rejected_reason_type: string
+          rejected_reason_description?: string | null
+          rejected_reason_type?: string | null
           request_ends_at?: string | null
           request_id?: string | null
           request_status?:
@@ -1258,15 +1252,15 @@ export type Database = {
           requested_to?: string | null
           responded_by?: string | null
           school_id?: string | null
-          updated_at: string
+          updated_at?: string
         }
         Update: {
           class_id?: string | null
           created_at?: string
           id?: string
           is_deleted?: boolean | null
-          rejected_reason_description?: string
-          rejected_reason_type?: string
+          rejected_reason_description?: string | null
+          rejected_reason_type?: string | null
           request_ends_at?: string | null
           request_id?: string | null
           request_status?:
@@ -1694,6 +1688,48 @@ export type Database = {
         }
         Relationships: []
       }
+      rive_reward: {
+        Row: {
+          accessory_name: string
+          animation_name: string
+          created_at: string | null
+          id: string
+          is_deleted: boolean | null
+          max_state_value: number
+          state_input_name: string | null
+          state_machine: string | null
+          state_number_input: number | null
+          type: Database["public"]["Enums"]["rive_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          accessory_name: string
+          animation_name: string
+          created_at?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          max_state_value?: number
+          state_input_name?: string | null
+          state_machine?: string | null
+          state_number_input?: number | null
+          type?: Database["public"]["Enums"]["rive_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          accessory_name?: string
+          animation_name?: string
+          created_at?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          max_state_value?: number
+          state_input_name?: string | null
+          state_machine?: string | null
+          state_number_input?: number | null
+          type?: Database["public"]["Enums"]["rive_type"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       saved_queries: {
         Row: {
           created_at: string | null
@@ -1716,6 +1752,7 @@ export type Database = {
         Row: {
           academic_year: string | null
           address: string | null
+          country: string | null
           created_at: string
           firebase_id: string | null
           group1: string | null
@@ -1741,6 +1778,7 @@ export type Database = {
         Insert: {
           academic_year?: string | null
           address?: string | null
+          country?: string | null
           created_at?: string
           firebase_id?: string | null
           group1?: string | null
@@ -1766,6 +1804,7 @@ export type Database = {
         Update: {
           academic_year?: string | null
           address?: string | null
+          country?: string | null
           created_at?: string
           firebase_id?: string | null
           group1?: string | null
@@ -2174,6 +2213,7 @@ export type Database = {
           name: string | null
           ops_created_by: string | null
           phone: string | null
+          reward: string | null
           sfx_off: boolean | null
           stars: number | null
           student_id: string | null
@@ -2201,6 +2241,7 @@ export type Database = {
           name?: string | null
           ops_created_by?: string | null
           phone?: string | null
+          reward?: string | null
           sfx_off?: boolean | null
           stars?: number | null
           student_id?: string | null
@@ -2228,6 +2269,7 @@ export type Database = {
           name?: string | null
           ops_created_by?: string | null
           phone?: string | null
+          reward?: string | null
           sfx_off?: boolean | null
           stars?: number | null
           student_id?: string | null
@@ -2588,9 +2630,9 @@ export type Database = {
           updated_at: string
         }[]
       }
-      generate_otp_msg91: {
-        Args: { phone_number: string }
-        Returns: Json
+      generate_custom_request_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       generate_unique_class_code: {
         Args: { class_id_input: string }
@@ -2607,6 +2649,26 @@ export type Database = {
           type: string
         }[]
       }
+      get_classes_by_school_id: {
+        Args: { school_id_input: string }
+        Returns: {
+          academic_year: string | null
+          created_at: string
+          firebase_id: string | null
+          group_id: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          is_firebase: boolean | null
+          is_ops: boolean | null
+          name: string
+          ops_created_by: string | null
+          school_id: string
+          standard: string | null
+          status: string | null
+          updated_at: string | null
+        }[]
+      }
       get_filtered_schools_with_optional_program: {
         Args: {
           _program_id?: string
@@ -2618,6 +2680,15 @@ export type Database = {
           search?: string
         }
         Returns: Json
+      }
+      get_geo_data: {
+        Args: {
+          p_block?: string
+          p_country?: string
+          p_district?: string
+          p_state?: string
+        }
+        Returns: string[]
       }
       get_latest_results_by_student: {
         Args: { student_uuid: string }
@@ -2788,6 +2859,7 @@ export type Database = {
           name: string | null
           ops_created_by: string | null
           phone: string | null
+          reward: string | null
           sfx_off: boolean | null
           stars: number | null
           student_id: string | null
@@ -2825,6 +2897,7 @@ export type Database = {
           name: string | null
           ops_created_by: string | null
           phone: string | null
+          reward: string | null
           sfx_off: boolean | null
           stars: number | null
           student_id: string | null
@@ -2855,6 +2928,7 @@ export type Database = {
           name: string | null
           ops_created_by: string | null
           phone: string | null
+          reward: string | null
           sfx_off: boolean | null
           stars: number | null
           student_id: string | null
@@ -3103,6 +3177,22 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      search_schools: {
+        Args: {
+          p_block?: string
+          p_cluster?: string
+          p_country?: string
+          p_district?: string
+          p_page_limit?: number
+          p_page_offset?: number
+          p_search_text?: string
+          p_state?: string
+        }
+        Returns: {
+         total_count: number;
+         schools: Tables<'school'>[];
+      }
+      }
       search_students_in_school: {
         Args: {
           p_limit: number
@@ -3138,6 +3228,10 @@ export type Database = {
           parent_name: string
           phone: string
         }[]
+      }
+      send_otp_request: {
+        Args: { input_data: Json }
+        Returns: Json
       }
       set_confirmation: {
         Args: { code: string; phone_number: string }
@@ -3489,6 +3583,7 @@ export type Database = {
         Returns: {
           academic_year: string | null
           address: string | null
+          country: string | null
           created_at: string
           firebase_id: string | null
           group1: string | null
@@ -3612,6 +3707,7 @@ export type Database = {
           name: string | null
           ops_created_by: string | null
           phone: string | null
+          reward: string | null
           sfx_off: boolean | null
           stars: number | null
           student_id: string | null
@@ -3642,6 +3738,7 @@ export type Database = {
           name: string | null
           ops_created_by: string | null
           phone: string | null
+          reward: string | null
           sfx_off: boolean | null
           stars: number | null
           student_id: string | null
@@ -3736,6 +3833,7 @@ export type Database = {
       ops_request_type: "student" | "teacher" | "principal" | "school"
       program_model: "hybrid" | "at_home" | "at_school"
       program_type: "government" | "private" | "learning_centers"
+      rive_type: "idle" | "normal" | "celebrating"
       role:
         | "coordinator"
         | "principal"
@@ -3887,6 +3985,7 @@ export const Constants = {
       ops_request_type: ["student", "teacher", "principal", "school"],
       program_model: ["hybrid", "at_home", "at_school"],
       program_type: ["government", "private", "learning_centers"],
+      rive_type: ["idle", "normal", "celebrating"],
       role: [
         "coordinator",
         "principal",

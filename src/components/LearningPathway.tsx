@@ -67,8 +67,11 @@ const LearningPathway: React.FC = () => {
   };
 
   const fetchLearningPathway = async (student: any) => {
-    const currClass = schoolUtil.getCurrentClass();
-
+    let currClass;
+    const isLinked = await api.isStudentLinked(student.id);
+    if (isLinked) {
+      currClass = schoolUtil.getCurrentClass();
+    }
     try {
       const userCourses = currClass
         ? await api.getCoursesForClassStudent(currClass.id)
@@ -90,15 +93,16 @@ const LearningPathway: React.FC = () => {
         );
 
         let learning_path_completed: { [key: string]: number } = {};
-        learningPath.courses.courseList.forEach(course => {
+        learningPath.courses.courseList.forEach((course) => {
           const { subject_id, currentIndex } = course;
           if (subject_id && currentIndex !== undefined) {
-            learning_path_completed[`${subject_id}_path_completed`] = currentIndex;
+            learning_path_completed[`${subject_id}_path_completed`] =
+              currentIndex;
           }
         });
-        updateLocalAttributes({learning_path_completed});
+        updateLocalAttributes({ learning_path_completed });
         setGbUpdated(true);
-        
+
         if (updated) await saveLearningPath(student, learningPath);
       }
     } catch (error) {
@@ -184,7 +188,8 @@ const LearningPathway: React.FC = () => {
       undefined
     );
 
-    const currentCourse = path.courses.courseList[path.courses.currentCourseIndex];
+    const currentCourse =
+      path.courses.courseList[path.courses.currentCourseIndex];
     const currentPath = currentCourse.path;
 
     const LessonSlice = currentPath.slice(
@@ -195,13 +200,9 @@ const LearningPathway: React.FC = () => {
     // Extract lesson IDs
     const LessonIds = LessonSlice.map((item: any) => item.lesson_id);
 
-
     const eventData = {
       user_id: student.id,
-      path_id:
-        path.courses.courseList[
-          path.courses.currentCourseIndex
-        ].path_id,
+      path_id: path.courses.courseList[path.courses.currentCourseIndex].path_id,
       current_course_id:
         path.courses.courseList[path.courses.currentCourseIndex].course_id,
       current_lesson_id:

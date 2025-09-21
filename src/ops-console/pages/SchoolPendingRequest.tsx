@@ -21,13 +21,16 @@ const SchoolPendingRequest: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [rejectPopupOpen, setRejectPopupOpen] = useState(false);
-
+  const auth = ServiceConfig.getI().authHandler;
   useEffect(() => {
     async function fetchRequest() {
       setLoading(true);
       try {
         const state = location.state as { request?: any } | undefined;
         if (state?.request && state.request.request_id === id) {
+          const respondedBy = await auth.getCurrentUser();
+          state.request.responded_by= respondedBy?.id;      
+          state.request.respondedBy = respondedBy;   
           setRequestData(state.request);
           setUser(state.request.requestedBy);
         }
