@@ -7703,6 +7703,7 @@ export class SupabaseApi implements ServiceApi {
         let approvedQuery = this.supabase
           .from(TABLES.OpsRequests)
           .select(`*, school:school_id(id, name)`, { count: "exact" })
+          .eq("is_deleted", false)
           .eq("request_status", Constants.public.Enums.ops_request_status[2]);
 
         approvedQuery = applyFilters(approvedQuery, schoolIds);
