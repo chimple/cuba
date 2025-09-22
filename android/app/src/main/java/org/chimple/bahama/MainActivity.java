@@ -49,6 +49,7 @@ public  class MainActivity extends BridgeActivity {
 
         registerPlugin(PortPlugin.class);
         super.onCreate(savedInstanceState);
+        this.bridge.setWebViewClient(new MyCustomWebViewClient(this.bridge, this));
         appContext = this;
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
