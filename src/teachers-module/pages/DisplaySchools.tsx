@@ -20,7 +20,6 @@ import { IonFabButton, IonIcon, IonItem, IonPage } from "@ionic/react";
 import { PiUserSwitchFill } from "react-icons/pi";
 import CommonToggle from "../../common/CommonToggle";
 import { schoolUtil } from "../../utility/schoolUtil";
-import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
 import AddButton from "../../common/AddButton";
 import { addOutline } from "ionicons/icons";
@@ -70,7 +69,7 @@ const DisplaySchools: FC = () => {
 
   const lockOrientation = () => {
     if (Capacitor.isNativePlatform()) {
-      ScreenOrientation.lock({ orientation: "portrait" });
+      window.dispatchEvent(new Event('roleChanged'));
     }
   };
 

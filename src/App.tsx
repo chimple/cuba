@@ -50,6 +50,7 @@ import CocosGame from "./pages/CocosGame";
 import { End } from "./pages/End";
 import { useEffect, useState } from "react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
+import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Filesystem, Directory } from "@capacitor/filesystem";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
@@ -147,6 +148,7 @@ import RequestList from "./ops-console/pages/RequestList";
 import AddTeacherName from "./teachers-module/pages/AddTeacherName";
 import SearchSchool from "./teachers-module/pages/SearchSchool";
 import JoinSchool from "./pages/JoinSchool";
+import { RoleType } from "./interface/modelInterfaces";
 
 setupIonicReact();
 interface ExtraData {
@@ -182,6 +184,54 @@ const App: React.FC = () => {
   const [isActive, setIsActive] = useState(true);
   const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
   const learningPathAssets: any = useFeatureValue(LEARNING_PATH_ASSETS, {});
+  const [role, setRole] = useState<string>("");
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+
+  const setOrientation = async (orientation: "portrait" | "landscape") => {
+    try {
+      const current = await ScreenOrientation.orientation();
+      if (current?.type && !current.type.includes(orientation)) {
+        await ScreenOrientation.lock({ orientation });
+      }
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    const updateRole = async () => {
+      const loggedIn = await ServiceConfig.getI().authHandler.isUserLoggedIn();
+      setIsLoggedIn(loggedIn);
+      let userRole = "";
+      if (loggedIn) {
+        const user = await ServiceConfig.getI().authHandler.getCurrentUser();
+        userRole = user ? String((user as any).role || "").toLowerCase() : "";
+      }
+      setRole(userRole);
+    };
+    updateRole();
+    const handler = () => updateRole();
+    window.addEventListener('roleChanged', handler);
+    return () => {
+      window.removeEventListener('roleChanged', handler);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setOrientation("portrait");
+    } else if ([
+      RoleType.TEACHER,
+      RoleType.OPERATIONAL_DIRECTOR,
+      RoleType.SUPER_ADMIN,
+      RoleType.PROGRAM_MANAGER,
+      RoleType.FIELD_COORDINATOR
+    ].includes(role as RoleType)) {
+      setOrientation("portrait");
+    } else if (role === RoleType.STUDENT) {
+      setOrientation("landscape");
+    } else {
+      setOrientation("portrait");
+    }
+  }, [role, isLoggedIn]);
 
   useEffect(() => {
     const cleanup = initializeClickListener();

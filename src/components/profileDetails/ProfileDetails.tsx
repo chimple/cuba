@@ -23,7 +23,6 @@ import {
 } from "../../common/constants";
 import { useHistory, useLocation } from "react-router";
 import { Capacitor } from "@capacitor/core";
-import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { initializeFireBase } from "../../services/Firebase";
 import Loading from "../Loading";
@@ -140,9 +139,8 @@ const ProfileDetails = () => {
   }, [isEdit]);
 
   useEffect(() => {
-    initializeFireBase();
-    lockOrientation();
-    Util.loadBackgroundImage();
+  initializeFireBase();
+  Util.loadBackgroundImage();
     const loadLanguages = async () => {
       const langs = await api.getAllLanguages();
       setLanguages(langs);
@@ -153,13 +151,8 @@ const ProfileDetails = () => {
       setParentHasStudent(student.length > 0);
     }
     isParentHasStudent();
+    window.dispatchEvent(new Event('roleChanged'));
    }, []);
-
-  const lockOrientation = () => {
-    if (Capacitor.isNativePlatform()) {
-      ScreenOrientation.lock({ orientation: "landscape" });
-    }
-  };
 
   const isFormComplete =
     mode === FORM_MODES.ALL_REQUIRED

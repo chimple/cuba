@@ -28,7 +28,6 @@ import { schoolUtil } from "../utility/schoolUtil";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { Capacitor } from "@capacitor/core";
-import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -49,7 +48,7 @@ const DisplayStudents: FC<{}> = () => {
   }, []);
   const lockOrientation = () => {
     if (Capacitor.isNativePlatform()) {
-      ScreenOrientation.lock({ orientation: "landscape" });
+      window.dispatchEvent(new Event('roleChanged'));
     }
   };
   const getStudents = async () => {

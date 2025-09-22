@@ -4,7 +4,6 @@ import { useHistory, useLocation } from "react-router-dom";
 import "./HomePage.css";
 import DashBoard from "../components/homePage/dashBoard/DashBoard";
 import Header from "../components/homePage/Header";
-import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import TeacherAssignment from "../components/homePage/assignment/TeacherAssignment";
 import Library from "../components/library/Library";
@@ -80,7 +79,7 @@ const HomePage: React.FC = () => {
   };
   const init = async () => {
     if (Capacitor.isNativePlatform()) {
-      ScreenOrientation.lock({ orientation: "portrait" });
+      window.dispatchEvent(new Event('roleChanged'));
     }
     const currentUser = await auth.getCurrentUser();
     await Util.handleClassAndSubjects(

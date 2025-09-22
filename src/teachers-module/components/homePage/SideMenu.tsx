@@ -172,6 +172,7 @@ const SideMenu: React.FC<{
   const switchUser = async () => {
     schoolUtil.setCurrMode(MODES.PARENT);
     history.replace(PAGES.DISPLAY_STUDENT);
+    window.dispatchEvent(new Event('roleChanged'));
   };
 
   const getClassCodeById = async (class_id: string) => {
