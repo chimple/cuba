@@ -17,6 +17,7 @@ import {
   IS_OPS_USER,
   MODES,
   PAGES,
+  ROLE_CHANGED,
   SCHOOL,
   USER_ROLE,
 } from "../../../common/constants";
@@ -172,7 +173,7 @@ const SideMenu: React.FC<{
   const switchUser = async () => {
     schoolUtil.setCurrMode(MODES.PARENT);
     history.replace(PAGES.DISPLAY_STUDENT);
-    window.dispatchEvent(new Event('roleChanged'));
+    window.dispatchEvent(new Event(ROLE_CHANGED));
   };
 
   const getClassCodeById = async (class_id: string) => {

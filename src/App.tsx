@@ -71,6 +71,7 @@ import {
   MODES,
   PAGES,
   PortPlugin,
+  ROLE_CHANGED,
   SHOULD_SHOW_REMOTE_ASSETS,
 } from "./common/constants";
 import { Util } from "./utility/util";
@@ -209,9 +210,9 @@ const App: React.FC = () => {
     };
     updateRole();
     const handler = () => updateRole();
-    window.addEventListener('roleChanged', handler);
+    window.addEventListener(ROLE_CHANGED, handler);
     return () => {
-      window.removeEventListener('roleChanged', handler);
+      window.removeEventListener(ROLE_CHANGED, handler);
     };
   }, []);
 

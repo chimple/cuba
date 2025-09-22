@@ -16,6 +16,7 @@ import {
   CURRENT_STUDENT,
   LANG,
   LANGUAGE,
+  ROLE_CHANGED,
 } from "../common/constants";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { useHistory } from "react-router";
@@ -48,7 +49,7 @@ const DisplayStudents: FC<{}> = () => {
   }, []);
   const lockOrientation = () => {
     if (Capacitor.isNativePlatform()) {
-      window.dispatchEvent(new Event('roleChanged'));
+      window.dispatchEvent(new Event(ROLE_CHANGED));
     }
   };
   const getStudents = async () => {

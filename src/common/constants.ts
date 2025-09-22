@@ -892,6 +892,7 @@ export const CURRENT_SELECTED_COURSE = "currentSelectedCourse";
 export const CURRENT_SELECTED_CHAPTER = "currentSelectedChapter";
 export const CURRENT_STAGE = "currentStage";
 export const CURRENT_SELECTED_GRADE = "currentSelectedGrade";
+export const ROLE_CHANGED = "roleChanged";
 export interface HomeWeeklySummary {
   assignments: {
     asgnmetCmptd: number;

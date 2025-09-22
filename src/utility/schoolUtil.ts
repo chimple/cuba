@@ -5,6 +5,7 @@ import {
   CURRENT_USER,
   MODES,
   PAGES,
+  ROLE_CHANGED,
   SCHOOL_LOGIN,
   TableTypes,
 } from "../common/constants";
@@ -155,7 +156,7 @@ export class schoolUtil {
     const api = ServiceConfig.getI().apiHandler;
     api.currentMode = currMode;
     localStorage.setItem(CURRENT_MODE, currMode);
-    window.dispatchEvent(new Event('roleChanged'));
+    window.dispatchEvent(new Event(ROLE_CHANGED));
   };
 
   public static async trySchoolRelogin(): Promise<boolean> {

@@ -19,6 +19,7 @@ import {
   LANGUAGE,
   PAGES,
   PROFILE_DETAILS_GROWTHBOOK_VARIATION,
+  ROLE_CHANGED,
   TableTypes,
 } from "../../common/constants";
 import { useHistory, useLocation } from "react-router";
@@ -151,7 +152,7 @@ const ProfileDetails = () => {
       setParentHasStudent(student.length > 0);
     }
     isParentHasStudent();
-    window.dispatchEvent(new Event('roleChanged'));
+    window.dispatchEvent(new Event(ROLE_CHANGED));
    }, []);
 
   const isFormComplete =

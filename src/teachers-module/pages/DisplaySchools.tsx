@@ -9,6 +9,7 @@ import {
   MODES,
   USER_SELECTION_STAGE,
   IS_OPS_USER,
+  ROLE_CHANGED,
 } from "../../common/constants";
 import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
@@ -69,7 +70,7 @@ const DisplaySchools: FC = () => {
 
   const lockOrientation = () => {
     if (Capacitor.isNativePlatform()) {
-      window.dispatchEvent(new Event('roleChanged'));
+      window.dispatchEvent(new Event(ROLE_CHANGED));
     }
   };
 

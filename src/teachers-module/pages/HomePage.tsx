@@ -11,6 +11,7 @@ import ReportTable from "../components/reports/ReportsTable";
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   PAGES,
+  ROLE_CHANGED,
   TableTypes,
 } from "../../common/constants";
 import { Util } from "../../utility/util";
@@ -79,7 +80,7 @@ const HomePage: React.FC = () => {
   };
   const init = async () => {
     if (Capacitor.isNativePlatform()) {
-      window.dispatchEvent(new Event('roleChanged'));
+      window.dispatchEvent(new Event(ROLE_CHANGED));
     }
     const currentUser = await auth.getCurrentUser();
     await Util.handleClassAndSubjects(
