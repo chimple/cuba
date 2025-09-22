@@ -31,16 +31,12 @@ public class MyCustomWebViewClient extends BridgeWebViewClient {
                 new RuntimeException("WebView RenderProcessGone: Crashed=" + detail.didCrash())
         );
 
-       // --- REMOVED THIS BLOCK ---
-        // Do NOT manually destroy the broken WebView. Let the Activity's lifecycle handle it.
-        /*
         if (view != null) {
             if (view.getParent() instanceof ViewGroup) {
                 ((ViewGroup) view.getParent()).removeView(view);
             }
             view.destroy();
         }
-        */
 
         // 3. Inform the user and gracefully exit
         Toast.makeText(
