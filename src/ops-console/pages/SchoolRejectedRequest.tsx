@@ -19,7 +19,6 @@ const SchoolRejectedRequest: React.FC = () => {
 
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     async function fetchRequest() {
       setLoading(true);
@@ -64,11 +63,14 @@ const SchoolRejectedRequest: React.FC = () => {
               <Grid item xs={12} md={4}>
                 <SchoolDetailsCard requestData={requestData} />
                 <Box mt={2}>
-                <RequestFromCard requestedBy={user} />
+                {requestData.rejected_reason_description?.trim() && (<RequestFromCard requestedBy={user} />)}
                 </Box>
               </Grid>
-              <Grid item xs={12} md={5}>
+              <Grid item xs={12} md={4}>
                 {requestData && <RejectionDetails requestData={requestData} />}
+                <Box mt={2}>
+                {!requestData.rejected_reason_description?.trim() && (<RequestFromCard requestedBy={user} />)}
+                </Box>
               </Grid>
             </Grid>
           </div>
