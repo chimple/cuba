@@ -76,6 +76,7 @@ export enum TABLES {
   Program = "program",
   SpecialUsers = "special_users",
   OpsRequests = "ops_requests",
+  GeoLocations = "geo_locations",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -430,6 +431,7 @@ export enum PAGES {
   LEADERBOARD = "/leaderboard",
   ASSIGNMENT = "/assignment",
   JOIN_CLASS = "/join-class",
+  JOIN_SCHOOL = "/join-school",
   LIVE_QUIZ = "/live-quiz",
   SELECT_MODE = "/select-mode",
   TERMS_AND_CONDITIONS = "/terms-and-conditions",
@@ -494,6 +496,7 @@ export enum PAGES {
   OPS_APPROVED_REQUEST = "/student-approved-request",
   OPS_REJECTED_REQUEST = "/student-rejected-request",
   PRINCIPAL_TEACHER_PENDING_REQUEST = "/principal-teacher-pending-request",
+  SEARCH_SCHOOL = "/search-school",
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -551,6 +554,7 @@ export enum REQUEST_TABS {
 }
 export enum STATUS {
   ACTIVE = "active",
+  REQUESTED = "requested",
   APPROVED = "approved",
   REJECTED = "rejected",
   MIGRATED = "migrated",
@@ -1004,6 +1008,29 @@ export interface CoordinatorAPIResponse {
   total: number;
 }
 export const CHIMPLE_RIVE_STATE_MACHINE_MAX = "chimple_rive_state_machine_max";
+
+export interface GeoDataParams {
+  p_country?: string;
+  p_state?: string;
+  p_district?: string;
+  p_block?: string;
+}
+
+export interface SearchSchoolsParams {
+  p_country?: string;
+  p_state?: string;
+  p_district?: string;
+  p_block?: string;
+  p_cluster?: string;
+  p_search_text?: string;
+  p_page_limit?: number;
+  p_page_offset?: number;
+}
+
+export interface SearchSchoolsResult {
+  total_count: number;
+  schools: TableTypes<"school">[];
+}
 
 export const CACHE_TABLES_TO_CLEAR = [
   "school",

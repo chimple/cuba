@@ -23,7 +23,6 @@ import { RoleType } from "../../interface/modelInterfaces";
 const SchoolFormPage: React.FC = () => {
   const history = useHistory();
   const location = useLocation();
-  const theme = useTheme();
   const { id } = useParams<{ id: string }>();
 
   const [requestData, setRequestData] = useState<any>(null);
@@ -160,6 +159,16 @@ const SchoolFormPage: React.FC = () => {
   function handleAddressChange(name: string, value: string) {
     setAddress((prev) => ({ ...prev, [name]: value }));
   }
+  const isSaveDisabled = () => {
+    return (
+      !address.state?.trim() ||
+      !address.city?.trim() ||
+      !address.district?.trim() ||
+      !program ||
+      !fieldCoordinator
+    );
+  };
+
   async function handleApprove() {
     try {
       // Convert contacts state to JSON
@@ -193,20 +202,37 @@ const SchoolFormPage: React.FC = () => {
           fieldCoordinator,
           RoleType.FIELD_COORDINATOR
         ),
+        api.addUserToSchool(school.id, user, RoleType.PRINCIPAL),
         api.respondToSchoolRequest(
-          requestData.request_id,
+          requestData.id,
           requestData.respondedBy.id,
-          STATUS.APPROVED,
+          STATUS.APPROVED
         ),
       ]);
 
-      history.push(
-        `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.APPROVED}`
-      );
+      history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`);
     } catch (error) {
       console.error("Error saving school:", error);
     }
   }
+
+  const dropdownMenuProps = {
+    disablePortal: true,
+    PaperProps: {
+      style: {
+        maxHeight: 300,
+      },
+    },
+    anchorOrigin: {
+      vertical: "top",
+      horizontal: "center",
+    },
+    transformOrigin: {
+      vertical: "bottom", 
+      horizontal: "center",
+    },
+    getContentAnchorEl: null,
+  };
 
   return (
     <div className="school-form-main-container">
@@ -262,6 +288,7 @@ const SchoolFormPage: React.FC = () => {
                 name: "state",
                 value: address.state,
                 required: true,
+                editable: false,
                 onChange: handleAddressChange,
               },
               {
@@ -269,6 +296,7 @@ const SchoolFormPage: React.FC = () => {
                 name: "city",
                 value: address.city,
                 required: true,
+                editable: false,
                 onChange: handleAddressChange,
               },
               {
@@ -276,12 +304,14 @@ const SchoolFormPage: React.FC = () => {
                 name: "district",
                 value: address.district,
                 required: true,
+                editable: false,
                 onChange: handleAddressChange,
               },
               {
                 label: t("Address"),
                 name: "address",
                 value: address.address,
+                editable: false,
                 onChange: handleAddressChange,
               },
             ]}
@@ -328,6 +358,7 @@ const SchoolFormPage: React.FC = () => {
                         </span>
                       )
                     }
+                    MenuProps={dropdownMenuProps as any}
                   >
                     {programs.map((p) => (
                       <MenuItem key={p.id ?? p.name} value={p.id}>
@@ -367,6 +398,7 @@ const SchoolFormPage: React.FC = () => {
                         </span>
                       )
                     }
+                    MenuProps={dropdownMenuProps as any}
                   >
                     {fieldCoordinators.map((fc) => (
                       <MenuItem key={fc.id ?? fc.name} value={fc.id}>
@@ -387,7 +419,11 @@ const SchoolFormPage: React.FC = () => {
               >
                 {t("Cancel")}
               </button>
-              <button className="user-details-save-btn" onClick={handleApprove}>
+              <button
+                className="user-details-save-btn"
+                onClick={handleApprove}
+                disabled={isSaveDisabled()}
+              >
                 {t("Save")}
               </button>
             </>

@@ -112,6 +112,7 @@ const StudentRejectedRequestDetails = () => {
           {t("Requests")}
         </span>
         <span> &gt; </span>
+
         <span
           onClick={() =>
             history.push({
@@ -124,10 +125,12 @@ const StudentRejectedRequestDetails = () => {
           {t("Rejected")}
         </span>
         <span> &gt; </span>
+
         <span className="ops-rejected-request-details-active">
           {t("Request ID - {{id}}", { id })}{" "}
         </span>
       </div>
+
       <Grid
         container
         spacing={3}

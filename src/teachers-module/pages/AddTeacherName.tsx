@@ -23,11 +23,11 @@ const AddTeacherName: React.FC = () => {
     setError(false);
     await api.updateUserProfile(
       user!,
-      firstName + " " + lastName,
-      user?.email || "",
-      user?.phone || "",
-      user?.language_id || "",
-      user?.image || ""
+      (firstName + " " + lastName).trim(),
+      user?.email!,
+      user?.phone!,
+      user?.language_id!,
+      user?.image!
     );
     history.replace(PAGES.DISPLAY_SCHOOLS);
   };

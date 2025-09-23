@@ -21,13 +21,16 @@ const SchoolPendingRequest: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [rejectPopupOpen, setRejectPopupOpen] = useState(false);
-
+  const auth = ServiceConfig.getI().authHandler;
   useEffect(() => {
     async function fetchRequest() {
       setLoading(true);
       try {
         const state = location.state as { request?: any } | undefined;
         if (state?.request && state.request.request_id === id) {
+          const respondedBy = await auth.getCurrentUser();
+          state.request.responded_by= respondedBy?.id;      
+          state.request.respondedBy = respondedBy;   
           setRequestData(state.request);
           setUser(state.request.requestedBy);
         }
@@ -76,8 +79,9 @@ const SchoolPendingRequest: React.FC = () => {
                     size="large"
                     style={{
                       minWidth: 130,
+                      padding:"8px 50px",
                       fontWeight: 600,
-                      fontSize: "14px",
+                      fontSize: "16px",
                       textTransform: "none",
                     }}
                     onClick={() => {
@@ -92,8 +96,9 @@ const SchoolPendingRequest: React.FC = () => {
                     size="large"
                     style={{
                       minWidth: 140,
+                      padding:"8px 30px",
                       fontWeight: 600,
-                      fontSize: "14px",
+                      fontSize: "16px",
                       textTransform: "none",
                       backgroundColor:"#1A71F6",
                     }}

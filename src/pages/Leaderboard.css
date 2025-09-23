@@ -18,9 +18,9 @@
   margin: var(--margin);
   margin-bottom: 0;
 }
-#back-button-in-LeaderBoard-Header img{
+#back-button-in-LeaderBoard-Header {
   height: 35px;
-  width: 60px;
+  width: 101px;
   cursor: pointer;
 }
 
@@ -90,8 +90,8 @@
   align-items: center;
 }
 .leaderboard-avatar-img {
-  height: clamp(60px,8vh,80px);
-  width: clamp(60px,8vh,80px);
+  height: clamp(60px, 8vh, 80px);
+  width: clamp(60px, 8vh, 80px);
 }
 
 #leaderboard-student-name {
@@ -109,18 +109,19 @@
 }
 
 #leaderboard-switch-user-button {
-  margin-top: -2vh;
+  margin-top: 0.5vh;
   cursor: pointer;
   color: var(--text-color);
   font-size: var(--text-size);
   text-align: center;
+  width: 7vw;
 }
 
 #leaderboard-switch-user-button-img {
   width: auto;
   height: clamp(30px, 12vh, 44px);
 }
-.leaderboard-switch-text{
+.leaderboard-switch-text {
   font-size: 11px;
   white-space: nowrap;
   display: block;
@@ -129,8 +130,8 @@
   overflow: hidden;
 }
 
-#leaderboard-page-tab-bar{
-  color: #182A4F !important;
+#leaderboard-page-tab-bar {
+  color: #182a4f !important;
   font-size: 24px;
   font-style: normal;
   font-weight: 500;

@@ -980,7 +980,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
               } else if (isNewClassForThisUpload) {
                 // LOGIC FOR A **NEW CLASS**: Only perform FORMAT validation.
                 if (
-                  schoolModel !== "AT SCHOOL" &&
+                  schoolModel !== "AT_SCHOOL" &&
                   schoolModel !== "at_school"
                 ) {
                   if (!studentLoginType) {

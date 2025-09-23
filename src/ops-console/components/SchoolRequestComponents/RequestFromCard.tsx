@@ -6,7 +6,7 @@ import { t } from "i18next";
 interface RequestFromCardProps {
   requestedBy: {
     name: string;
-    phone_number: string;
+    phone: string;
     email?: string;
   };
 }
@@ -26,7 +26,7 @@ const RequestFromCard: React.FC<RequestFromCardProps> = ({ requestedBy }) => {
 
       <div className="request-from-field-stack">
         <div className="request-from-label">{t("Phone Number")}</div>
-        <div className="request-from-value">{requestedBy?.phone_number || "-"}</div>
+        <div className="request-from-value">{requestedBy?.phone || "-"}</div>
       </div>
 
       <div className="request-from-field-stack">

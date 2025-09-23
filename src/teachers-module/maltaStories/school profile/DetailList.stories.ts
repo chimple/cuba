@@ -34,6 +34,7 @@ const mockSchools: SchoolWithRole[] = [
       student_login_type: null,
       status: null,
       key_contacts: null,
+      country: null
     },
     role: RoleType.PRINCIPAL,
   },
@@ -62,6 +63,7 @@ const mockSchools: SchoolWithRole[] = [
       student_login_type: null,
       status: null,
       key_contacts: null,
+      country: null
     },
     role: RoleType.COORDINATOR,
   },
@@ -156,6 +158,7 @@ const meta: Meta<typeof DetailList> = {
       student_login_type: null,
       status: null,
       key_contacts: null,
+      country: null
     },
   },
 };
