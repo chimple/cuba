@@ -202,25 +202,37 @@ const SchoolFormPage: React.FC = () => {
           fieldCoordinator,
           RoleType.FIELD_COORDINATOR
         ),
-        api.addUserToSchool(
-          school.id,
-          user,
-          RoleType.PRINCIPAL
-        ),
+        api.addUserToSchool(school.id, user, RoleType.PRINCIPAL),
         api.respondToSchoolRequest(
           requestData.id,
           requestData.respondedBy.id,
-          STATUS.APPROVED,
+          STATUS.APPROVED
         ),
       ]);
 
-      history.push(
-        `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`
-      );
+      history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`);
     } catch (error) {
       console.error("Error saving school:", error);
     }
   }
+
+  const dropdownMenuProps = {
+    disablePortal: true,
+    PaperProps: {
+      style: {
+        maxHeight: 300,
+      },
+    },
+    anchorOrigin: {
+      vertical: "top",
+      horizontal: "center",
+    },
+    transformOrigin: {
+      vertical: "bottom", 
+      horizontal: "center",
+    },
+    getContentAnchorEl: null,
+  };
 
   return (
     <div className="school-form-main-container">
@@ -346,6 +358,7 @@ const SchoolFormPage: React.FC = () => {
                         </span>
                       )
                     }
+                    MenuProps={dropdownMenuProps as any}
                   >
                     {programs.map((p) => (
                       <MenuItem key={p.id ?? p.name} value={p.id}>
@@ -385,6 +398,7 @@ const SchoolFormPage: React.FC = () => {
                         </span>
                       )
                     }
+                    MenuProps={dropdownMenuProps as any}
                   >
                     {fieldCoordinators.map((fc) => (
                       <MenuItem key={fc.id ?? fc.name} value={fc.id}>
@@ -405,7 +419,11 @@ const SchoolFormPage: React.FC = () => {
               >
                 {t("Cancel")}
               </button>
-              <button className="user-details-save-btn" onClick={handleApprove} disabled={isSaveDisabled()}>
+              <button
+                className="user-details-save-btn"
+                onClick={handleApprove}
+                disabled={isSaveDisabled()}
+              >
                 {t("Save")}
               </button>
             </>
@@ -413,7 +431,6 @@ const SchoolFormPage: React.FC = () => {
         </div>
       )}
     </div>
-
   );
 };
 
