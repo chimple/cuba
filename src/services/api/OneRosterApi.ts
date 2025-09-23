@@ -3039,9 +3039,9 @@ export class OneRosterApi implements ServiceApi {
     const data = await portPlugin.sendLaunchData();
     const actorObj = typeof data.actor === "string" ? JSON.parse(data.actor) : data.actor;
 
-    const actorName = actorObj.name?.[0] || "";
-    const actorMbox = actorObj.mbox?.[0] || "";
-    const registration = data.registration;
+    const actorName = actorObj.name?.[0] || "John Doe";
+    const actorMbox = actorObj.mbox?.[0] || "mailto:tincan@scorm.com";
+    const registration = data.registration || "760e3480-ba55-4991-94b0-01820dbd23a";
 
     const user: TableTypes<"user"> = {
       age: null,
