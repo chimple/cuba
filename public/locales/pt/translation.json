@@ -1,7 +1,7 @@
 {
     " OFF ": "DESLIGADO",
     " ON ": "LIGADO",
-    " to choose and assign.": "para escolher e atribuir.",
+    " to choose and assign.": " para escolher e atribuir.",
     "***Be among the top performers in your class to win an exciting reward": "***Esteja entre os melhores da sua turma para ganhar um prémio fantástico",
     "🎉Congratulations🎊": "🎉Parabéns🎊",
     "10's Subtraction": "Subtração de 10",
@@ -39,7 +39,7 @@
     "Add Subject": "Adicionar Disciplina",
     "Add Teacher": "Adicionar Professor",
     "Add": "Adicionar",
-    "Adding": "A adicionar",
+    "Adding": "Adicionando",
     "Addition 1": "Adição 1",
     "Addition 11-20": "Adição 11-20",
     "Addition 2": "Adição 2",
@@ -800,7 +800,7 @@
     "Add 10 - 100": "Adicionar 10 - 100",
     "Add 10 - 20": "Adicionar 10 - 20",
     "Add 11 - 100": "Adicionar 11 - 100",
-    "Add-1": "Adicionar 1",
+    "Add-1": "Adicionar-1",
     "Add-2": "Adicionar-2",
     "Add-3 and 4": "Adicionar-3 e 4",
     "Addition-1": "Adição 1",
@@ -851,5 +851,6 @@
     "Count and Subtract-3": "Contagem e Subtrato-3",
     "Count Backwards - 2": "Contar para trás - 2",
     "Country is required": "O país é obrigatório",
-    "Curriculum & Subjects": "Currículo e Assuntos"
+    "Curriculum & Subjects": "Currículo e Assuntos",
+    "Basics": "Básico"
 }
