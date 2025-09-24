@@ -1027,10 +1027,10 @@ export interface SearchSchoolsParams {
   p_page_limit?: number;
   p_page_offset?: number;
 }
-
+export type School = TableTypes<'school'>;
 export interface SearchSchoolsResult {
   total_count: number;
-  schools: TableTypes<"school">[];
+  schools: School[];
 }
 
 export const CACHE_TABLES_TO_CLEAR = [
