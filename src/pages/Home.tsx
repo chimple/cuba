@@ -32,6 +32,7 @@ import { schoolUtil } from "../utility/schoolUtil";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import { t } from "i18next";
 import { App } from "@capacitor/app";
+import { Capacitor } from "@capacitor/core";
 // import ChimpleAvatar from "../components/animation/ChimpleAvatar";
 import SearchLesson from "./SearchLesson";
 import AssignmentPage from "./Assignment";
@@ -42,6 +43,7 @@ import { AvatarObj } from "../components/animation/Avatar";
 import LearningPathway from "../components/LearningPathway";
 import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 import { Device } from "@capacitor/device";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 import i18n from "../i18n";
 
 const localData: any = {};
@@ -123,6 +125,17 @@ const Home: FC = () => {
   };
 
   useEffect(() => {
+    const lockLandscapeForStudentMode = () => {
+      if (Capacitor.isNativePlatform()) {
+          const student = Util.getCurrentStudent();
+          if (student) {
+              ScreenOrientation.lock({ orientation: "landscape" });
+          } else {
+              ScreenOrientation.unlock();
+          }
+      }
+    };
+    lockLandscapeForStudentMode();
     const student = Util.getCurrentStudent();
     if (!student) {
       history.replace(PAGES.SELECT_MODE);

@@ -147,6 +147,7 @@ import RequestList from "./ops-console/pages/RequestList";
 import AddTeacherName from "./teachers-module/pages/AddTeacherName";
 import SearchSchool from "./teachers-module/pages/SearchSchool";
 import JoinSchool from "./pages/JoinSchool";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 
 setupIonicReact();
 interface ExtraData {
@@ -184,6 +185,18 @@ const App: React.FC = () => {
   const learningPathAssets: any = useFeatureValue(LEARNING_PATH_ASSETS, {});
 
   useEffect(() => {
+    const lockPortraitIfNotLoggedIn = async () => {
+      if (Capacitor.isNativePlatform()) {
+        const authHandler = ServiceConfig.getI().authHandler;
+        const isLoggedIn = await authHandler.isUserLoggedIn();
+        if (!isLoggedIn) {
+          await ScreenOrientation.lock({ orientation: "portrait" });
+        } else {
+          await ScreenOrientation.unlock();
+        }
+      }
+    };
+    lockPortraitIfNotLoggedIn();
     const cleanup = initializeClickListener();
     const handleOnline = () => {
       if (!online) {
