@@ -2522,6 +2522,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      can_access_class: {
+        Args: { p_class_id: string; p_school_id: string; p_user: string }
+        Returns: boolean
+      }
       check_class_exists_by_name_and_school: {
         Args: { class_name: string; input_school_udise_code: string }
         Returns: Json
@@ -3188,10 +3192,7 @@ export type Database = {
           p_search_text?: string
           p_state?: string
         }
-        Returns: {
-         total_count: number;
-         schools: Tables<'school'>[];
-      }
+        Returns: Json
       }
       search_students_in_school: {
         Args: {
@@ -3236,6 +3237,28 @@ export type Database = {
       set_confirmation: {
         Args: { code: string; phone_number: string }
         Returns: string
+      }
+      sql_get_accessible_ops_requests: {
+        Args: { p_updated_at?: string }
+        Returns: {
+          class_id: string | null
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          rejected_reason_description: string | null
+          rejected_reason_type: string | null
+          request_ends_at: string | null
+          request_id: string | null
+          request_status:
+            | Database["public"]["Enums"]["ops_request_status"]
+            | null
+          request_type: Database["public"]["Enums"]["ops_request_type"] | null
+          requested_by: string | null
+          requested_to: string | null
+          responded_by: string | null
+          school_id: string | null
+          updated_at: string
+        }[]
       }
       sql_get_assignment_cart: {
         Args: { p_updated_at?: string }

@@ -979,7 +979,8 @@ export class SupabaseApi implements ServiceApi {
     image: File | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
+    country: string | null
   ): Promise<TableTypes<"school">> {
     if (!this.supabase) return {} as TableTypes<"school">;
     const _currentUser =
@@ -1016,9 +1017,9 @@ export class SupabaseApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
-      status: null,
+      status: STATUS.REQUESTED,
       key_contacts: null,
-      country: null,
+      country: country ?? null,
     };
 
     // Insert school

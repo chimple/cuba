@@ -497,6 +497,7 @@ export enum PAGES {
   OPS_REJECTED_REQUEST = "/student-rejected-request",
   PRINCIPAL_TEACHER_PENDING_REQUEST = "/principal-teacher-pending-request",
   SEARCH_SCHOOL = "/search-school",
+  CREATE_SCHOOL = "/create-school",
 }
 
 export const enum ASSIGNMENT_TYPE {

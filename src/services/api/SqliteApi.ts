@@ -688,7 +688,8 @@ export class SqliteApi implements ServiceApi {
     image: File | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
+    country: string |null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -720,15 +721,15 @@ export class SqliteApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
-      status: null,
+      status: STATUS.REQUESTED,
       key_contacts: null,
-      country: null,
+      country: country,
     };
 
     await this.executeQuery(
       `
-      INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted, status, country)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         newSchool.id,
@@ -740,6 +741,8 @@ export class SqliteApi implements ServiceApi {
         newSchool.created_at,
         newSchool.updated_at,
         newSchool.is_deleted,
+        newSchool.status,
+        newSchool.country
       ]
     );
 
