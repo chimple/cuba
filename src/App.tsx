@@ -185,18 +185,6 @@ const App: React.FC = () => {
   const learningPathAssets: any = useFeatureValue(LEARNING_PATH_ASSETS, {});
 
   useEffect(() => {
-    const lockPortraitIfNotLoggedIn = async () => {
-      if (Capacitor.isNativePlatform()) {
-        const authHandler = ServiceConfig.getI().authHandler;
-        const isLoggedIn = await authHandler.isUserLoggedIn();
-        if (!isLoggedIn) {
-          await ScreenOrientation.lock({ orientation: "portrait" });
-        } else {
-          await ScreenOrientation.unlock();
-        }
-      }
-    };
-    lockPortraitIfNotLoggedIn();
     const cleanup = initializeClickListener();
     const handleOnline = () => {
       if (!online) {
@@ -242,6 +230,21 @@ const App: React.FC = () => {
     };
   }, [online, presentToast]);
   useEffect(() => {
+
+     const lockPortraitIfNotLoggedIn = async () => {
+      if (Capacitor.isNativePlatform()) {
+        const authHandler = ServiceConfig.getI().authHandler;
+        const isLoggedIn = await authHandler.isUserLoggedIn();
+        if (!isLoggedIn) {
+          await ScreenOrientation.lock({ orientation: "portrait" });
+        } else {
+          await ScreenOrientation.unlock();
+        }
+      }
+    };
+    lockPortraitIfNotLoggedIn();
+
+    
     initializeUsage();
     document.addEventListener("visibilitychange", handleVisibilityChange);
     startTimeout();
