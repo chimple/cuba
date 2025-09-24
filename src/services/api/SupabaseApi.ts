@@ -47,6 +47,7 @@ import {
   SearchSchoolsParams,
   SearchSchoolsResult,
   GeoDataParams,
+  School,
 } from "../../common/constants";
 import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
@@ -8338,10 +8339,11 @@ export class SupabaseApi implements ServiceApi {
       console.error("RPC 'search_schools' failed:", params, error);
       return { total_count: 0, schools: [] };
     }
-
+    const resultRow = Array.isArray(data) ? data[0] : data;
+    console.log("searchSchools result:", data);
     return {
-      total_count: data?.total_count || 0,
-      schools: data?.schools || [],
+      total_count: resultRow.total_count,
+      schools: (resultRow.schools as School[]) ?? [],
     };
   }
 

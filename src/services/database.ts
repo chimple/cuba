@@ -3192,7 +3192,10 @@ export type Database = {
           p_search_text?: string
           p_state?: string
         }
-        Returns: Json
+        Returns: {
+          schools: Json
+          total_count: number
+        }[]
       }
       search_students_in_school: {
         Args: {
