@@ -4787,6 +4787,7 @@ order by
       `
     INSERT INTO school_user (id, school_id, user_id, role, created_at, updated_at, is_deleted)
     VALUES (?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT (school_id, user_id, role) DO NOTHING;
     `,
       [
         schoolUser.id,
