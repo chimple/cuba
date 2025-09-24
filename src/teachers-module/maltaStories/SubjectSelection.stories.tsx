@@ -31,7 +31,7 @@ const meta: Meta = {
     },
     selectedSubjects: {
       control: {
-        type: "array",
+        type: "object",
       },
       defaultValue: [],
     },

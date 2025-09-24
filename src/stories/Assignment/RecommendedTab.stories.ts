@@ -15,8 +15,8 @@ const meta = {
       options: Object.values(Lesson),
       mapping: Object.values(Lesson),
       control: {
-        type: Lesson,
-        labels: Object.keys(""),
+        type: "select",
+        labels: Object.keys(Lesson),
       },
     },
   },
