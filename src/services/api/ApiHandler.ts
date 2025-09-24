@@ -183,7 +183,8 @@ export class ApiHandler implements ServiceApi {
     image: File | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
+    country: string | null
   ): Promise<TableTypes<"school">> {
     return await this.s.createSchool(
       name,
@@ -194,7 +195,8 @@ export class ApiHandler implements ServiceApi {
       image,
       program_id,
       udise,
-      address
+      address,
+      country
     );
   }
   public async updateSchoolProfile(

@@ -9,7 +9,7 @@ const CreateSchoolPrompt: FC = () => {
   const history = useHistory();
 
   const handleCreateSchool = () => {
-    history.push(PAGES.REQ_ADD_SCHOOL, { origin: PAGES.SEARCH_SCHOOL });
+    history.push(PAGES.CREATE_SCHOOL, { origin: PAGES.SEARCH_SCHOOL });
   };
 
   return (
