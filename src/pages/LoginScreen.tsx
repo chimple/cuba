@@ -1,7 +1,6 @@
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Keyboard } from "@capacitor/keyboard";
 import { Toast } from "@capacitor/toast";
-import { useHistory } from "react-router-dom";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { IonText } from "@ionic/react";
 import { t } from "i18next";
@@ -41,6 +40,7 @@ import i18n from "../i18n";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { SqliteApi } from "../services/api/SqliteApi";
 import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
+import { useHistory } from "react-router-dom";
 
 const LoginScreen: React.FC = () => {
   const history = useHistory();
@@ -84,7 +84,7 @@ const LoginScreen: React.FC = () => {
   );
   const [isPromptNumbers, setIsPromptNumbers] = useState<boolean>(false);
   const PortPlugin = registerPlugin<any>("Port");
-  const phoneNumberErrorRef = useRef<any>();
+  const phoneNumberErrorRef = useRef<any>(null);
 
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
   const [isInputFocus, setIsInputFocus] = useState<boolean>(false);

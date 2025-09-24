@@ -83,7 +83,6 @@ import {
   AppUpdateResultCode,
 } from "@capawesome/capacitor-app-update";
 import { LocalNotifications } from "@capacitor/local-notifications";
-import { RateApp } from "capacitor-rate-app";
 import { getFunctions, httpsCallable } from "firebase/functions";
 // import { CollectionIds } from "../common/courseConstants";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
@@ -93,6 +92,7 @@ import { URLOpenListenerEvent } from "@capacitor/app";
 import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 import CryptoJS from "crypto-js";
+import { InAppReview } from "@capacitor-community/in-app-review";
 declare global {
   interface Window {
     cc: any;
@@ -153,8 +153,9 @@ export class Util {
       let studentResult:
         | { [lessonDocId: string]: TableTypes<"result"> }
         | undefined = {};
-      const studentProfile =
-        await api.getStudentResultInMap(currentStudentDocId);
+      const studentProfile = await api.getStudentResultInMap(
+        currentStudentDocId
+      );
       studentResult = studentProfile;
 
       if (!studentResult) return undefined;
@@ -391,7 +392,7 @@ export class Util {
               const fs = createFilesystem(Filesystem, {
                 rootDir: "/",
                 directory: Directory.External,
-                base64Alway: false,
+                // base64Alway: false,// property does not exist
               });
               const androidPath = await this.getAndroidBundlePath();
               const path = androidPath + lessonId + "/config.json";
@@ -530,7 +531,7 @@ export class Util {
       const fs = createFilesystem(Filesystem, {
         rootDir: "",
         directory: Directory.External,
-        base64Alway: false,
+        // base64Alway: false, // property does not exist
       });
       const androidPath = await this.getAndroidBundlePath();
 
@@ -544,7 +545,7 @@ export class Util {
             directory: Directory.External,
           });
 
-          const decoded = atob(configFile.data); // base64 → string
+          const decoded = atob(configFile.data as string); // base64 → string
           const config = JSON.parse(decoded); // string → object
 
           if (config.uniqueId === uniqueId) {
@@ -582,10 +583,13 @@ export class Util {
         path: "remoteAsset/config.json",
         directory: Directory.External,
       });
-      const decoded = atob(configFile.data);
+      const decoded = atob(configFile.data as string);
       const config = JSON.parse(decoded);
       if (typeof config.riveMax === "number") {
-        localStorage.setItem(CHIMPLE_RIVE_STATE_MACHINE_MAX, config.riveMax.toString());
+        localStorage.setItem(
+          CHIMPLE_RIVE_STATE_MACHINE_MAX,
+          config.riveMax.toString()
+        );
       }
       this.setGameUrl(androidPath);
       return true;
@@ -1155,7 +1159,7 @@ export class Util {
     }
   }
 
-   public static switchToOpsUser(history: any): void {
+  public static switchToOpsUser(history: any): void {
     localStorage.setItem(IS_OPS_USER, "true");
     ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
     schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
@@ -1557,7 +1561,7 @@ export class Util {
 
   public static async showInAppReview() {
     try {
-      await RateApp.requestReview();
+      await InAppReview.requestReview();
     } catch (error) {
       console.error(
         "🚀 ~ file: util.ts:694 ~ showInAppReview ~ error:",
@@ -2277,10 +2281,12 @@ export class Util {
           path: "remoteAsset/remoteBackground.svg",
           directory: Directory.External,
         });
-        const svgData = atob(result.data); // decode base64
+        const svgData = atob(result.data as string); // decode base64
 
         if (body) {
-          body.style.backgroundImage = `url('data:image/svg+xml;utf8,${encodeURIComponent(svgData)}')`;
+          body.style.backgroundImage = `url('data:image/svg+xml;utf8,${encodeURIComponent(
+            svgData
+          )}')`;
           body.style.backgroundRepeat = "no-repeat";
           body.style.backgroundSize = "cover";
           body.style.backgroundPosition = "center center";

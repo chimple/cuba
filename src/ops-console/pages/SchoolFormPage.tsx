@@ -124,8 +124,8 @@ const SchoolFormPage: React.FC = () => {
           f.name === "name"
             ? { ...f, value: user.name || "" }
             : f.name === "phone"
-              ? { ...f, value: user.phone || "" }
-              : f
+            ? { ...f, value: user.phone || "" }
+            : f
         );
         return updated;
       });
@@ -228,7 +228,7 @@ const SchoolFormPage: React.FC = () => {
       horizontal: "center",
     },
     transformOrigin: {
-      vertical: "bottom", 
+      vertical: "bottom",
       horizontal: "center",
     },
     getContentAnchorEl: null,
@@ -330,7 +330,7 @@ const SchoolFormPage: React.FC = () => {
             </Typography>
             <Grid container spacing={3}>
               {/* Program Dropdown */}
-              <Grid item xs={12} md={3.5}>
+              <Grid size={{ xs: 12, md: 3.5 }}>
                 <FormControl
                   fullWidth
                   size="small"
@@ -370,7 +370,7 @@ const SchoolFormPage: React.FC = () => {
               </Grid>
 
               {/* fieldCoordinator Dropdown */}
-              <Grid item xs={12} md={3.5}>
+              <Grid size={{ xs: 12, md: 3.5 }}>
                 <FormControl
                   fullWidth
                   size="small"

@@ -312,7 +312,7 @@ const NewProgram: React.FC = () => {
                 key: "institute",
               },
             ].map(({ title, placeholder, key }) => (
-              <Grid item xs={12} sm={4} key={key} mb={3}>
+              <Grid size={{ xs: 12, sm: 4 }} key={key} mb={3}>
                 <Typography
                   fontWeight="bold"
                   color="text.primary"
@@ -339,7 +339,7 @@ const NewProgram: React.FC = () => {
               </Grid>
             ))}
 
-            <Grid item xs={12} sm={4} md={4} mb={3}>
+            <Grid size={{ xs: 12, sm: 4 }} mb={3}>
               <Typography
                 fontWeight="bold"
                 color="text.primary"
@@ -381,7 +381,7 @@ const NewProgram: React.FC = () => {
               />
             </Grid>
 
-            <Grid item xs={12} mb={3}>
+            <Grid size={{ xs: 12 }} mb={3}>
               <Typography
                 variant="subtitle1"
                 color="text.primary"
@@ -392,7 +392,7 @@ const NewProgram: React.FC = () => {
               </Typography>
               <Grid container spacing={2}>
                 {Object.keys(geoData).map((label) => (
-                  <Grid item xs={12} sm={6} md={4} lg={2.4} key={label}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }} key={label}>
                     <FormControl
                       fullWidth
                       error={!!errors[`location-${label}`]}
@@ -442,7 +442,7 @@ const NewProgram: React.FC = () => {
               </Grid>
             </Grid>
 
-            <Grid item xs={12} sm={4} md={4} mb={3}>
+            <Grid size={{ xs: 12, sm: 4, md: 4 }} mb={3}>
               <Typography
                 variant="subtitle1"
                 color="text.primary"
@@ -472,7 +472,7 @@ const NewProgram: React.FC = () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} mb={3}>
+            <Grid size={{ xs: 12 }} mb={3}>
               <Typography
                 variant="subtitle1"
                 color="text.primary"
@@ -506,7 +506,7 @@ const NewProgram: React.FC = () => {
             </Grid>
 
             <Grid container ml={3} mb={3}>
-              <Grid item xs={12} sm={4} md={4}>
+              <Grid size={{ xs: 12, sm: 4, md: 4 }}>
                 <Typography
                   variant="subtitle1"
                   color="text.primary"
@@ -568,7 +568,7 @@ const NewProgram: React.FC = () => {
                 placeholder: "Enter No. of Devices",
               },
             ].map(({ label, key, placeholder }) => (
-              <Grid item xs={12} sm={4} key={key} mb={3}>
+              <Grid size={{ xs: 12, sm: 4 }} key={key} mb={3}>
                 <Typography
                   variant="subtitle1"
                   color="text.primary"
@@ -594,7 +594,7 @@ const NewProgram: React.FC = () => {
             ))}
 
             <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <Grid item xs={12} mb={3}>
+              <Grid size={{ xs: 12 }} mb={3}>
                 <Typography
                   variant="subtitle1"
                   color="text.primary"
@@ -604,53 +604,51 @@ const NewProgram: React.FC = () => {
                   {t("Program Date")}
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={3}>
-                    <DatePicker
-                      label={t("Start Date")}
-                      value={startDate}
-                      onChange={(date: Dayjs | null) => setStartDate(date)}
-                      inputFormat="DD/MM/YYYY"
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          fullWidth
-                          error={!!errors["startDate"] || !!errors["date"]}
-                          helperText={errors["startDate"] || errors["date"]}
-                          variant="outlined"
-                          InputProps={{
-                            ...params.InputProps,
-                            sx: { borderRadius: "12px" },
-                          }}
-                        />
-                      )}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <DatePicker
                       label={t("End Date")}
                       value={endDate}
                       onChange={(date: Dayjs | null) => setEndDate(date)}
-                      inputFormat="DD/MM/YYYY"
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          fullWidth
-                          error={!!errors["endDate"] || !!errors["date"]}
-                          helperText={errors["endDate"] || errors["date"]}
-                          variant="outlined"
-                          InputProps={{
-                            ...params.InputProps,
+                      format="DD/MM/YYYY" // ✅ use format instead of inputFormat
+                      slots={{ textField: TextField }} // ✅ replace renderInput with slots
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          error: !!errors["endDate"] || !!errors["date"],
+                          helperText: errors["endDate"] || errors["date"],
+                          variant: "outlined",
+                          InputProps: {
                             sx: { borderRadius: "12px" },
-                          }}
-                        />
-                      )}
+                          },
+                        },
+                      }}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <DatePicker
+                      label={t("End Date")}
+                      value={endDate}
+                      onChange={(date: Dayjs | null) => setEndDate(date)}
+                      format="DD/MM/YYYY"
+                      slots={{ textField: TextField }} // ✅ Replace renderInput
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          error: !!errors["endDate"] || !!errors["date"],
+                          helperText: errors["endDate"] || errors["date"],
+                          variant: "outlined",
+                          InputProps: {
+                            sx: { borderRadius: "12px" }, // ✅ Styling preserved
+                          },
+                        },
+                      }}
                     />
                   </Grid>
                 </Grid>
               </Grid>
             </LocalizationProvider>
 
-            <Grid item xs={12} textAlign="right">
+            <Grid size={{ xs: 12 }} textAlign="right">
               <Button
                 sx={{ mr: 2 }}
                 color="primary"

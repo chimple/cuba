@@ -127,10 +127,10 @@ const Login: React.FC = () => {
   const scollToRef = useRef<null | HTMLDivElement>(null);
   const [currentStudent, setStudent] = useState<TableTypes<"user">>();
 
-  const otpBtnRef = useRef<any>();
-  const getOtpBtnRef = useRef<any>();
-  const parentNameRef = useRef<any>();
-  const phoneNumberErrorRef = useRef<any>();
+  const otpBtnRef = useRef<any>(null);
+  const getOtpBtnRef = useRef<any>(null);
+  const parentNameRef = useRef<any>(null);
+  const phoneNumberErrorRef = useRef<any>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [isPromptNumbers, setIsPromptNumbers] = useState<boolean>(false);
   let verificationCodeMessageFlags = {

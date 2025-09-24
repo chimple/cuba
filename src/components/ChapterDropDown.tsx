@@ -1,5 +1,6 @@
 import { IonList, IonItem, IonSelect, IonSelectOption } from "@ionic/react";
 import { Chapter } from "../interface/curriculumInterfaces";
+import "./ChapterDropDown.css";
 
 const ChapterDropDown: React.FC<{
   chapters: Chapter[];
@@ -8,7 +9,7 @@ const ChapterDropDown: React.FC<{
 }> = ({ chapters, currentChapter: currentChapter, onChapterChange }) => {
   return (
     <IonList>
-      <IonItem lines="none" fill="outline">
+      <IonItem lines="none" className="chapter-dropdown-custom-outline">
         <IonSelect
           onIonChange={onChapterChange}
           interface="popover"

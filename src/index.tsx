@@ -18,7 +18,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
-import reportWebVitals from "./reportWebVitals";
+// import reportWebVitals from "./reportWebVitals";
 import "./index.css";
 import "./i18n";
 import { APIMode, ServiceConfig } from "./services/ServiceConfig";
@@ -47,7 +47,7 @@ import { initializeFireBase } from "./services/Firebase";
 // Extend React's JSX namespace to include Stencil components
 declare global {
   namespace JSX {
-    interface IntrinsicElements extends LocalJSX.IntrinsicElements { }
+    interface IntrinsicElements extends LocalJSX.IntrinsicElements {}
   }
 }
 defineCustomElements(window);
@@ -67,9 +67,8 @@ SplashScreen.show();
 if (Capacitor.isNativePlatform()) {
   await ScreenOrientation.lock({ orientation: "landscape" });
 }
-applyPolyfills().then(() => {
-  jeepSqlite(window);
-});
+jeepSqlite(window);
+
 const recordExecption = (message: string, error: string) => {
   if (Capacitor.getPlatform() != "web") {
     FirebaseCrashlytics.recordException({ message: message, domain: error });
@@ -151,4 +150,4 @@ serviceWorkerRegistration.unregister();
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+// reportWebVitals();

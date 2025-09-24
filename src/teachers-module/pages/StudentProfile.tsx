@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useHistory, useLocation } from "react-router-dom";
 import "./StudentProfile.css";
 import { CLASS, PAGES, PROFILETYPE, SCHOOL, TableTypes } from "../../common/constants";
 import { ServiceConfig } from "../../services/ServiceConfig";
@@ -9,6 +8,7 @@ import UserProfile from "../components/studentProfile/UserProfile";
 import { t } from "i18next";
 import { Util } from "../../utility/util";
 import { subDays } from "date-fns";
+import { useHistory } from "react-router-dom";
 
 const StudentProfile: React.FC = () => {
   const history = useHistory();
