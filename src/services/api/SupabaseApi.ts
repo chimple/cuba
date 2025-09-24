@@ -545,6 +545,13 @@ export class SupabaseApi implements ServiceApi {
             });
             break;
           }
+          case TABLES.OpsRequests: {
+            rpcName = "sql_get_accessible_ops_requests";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
           case TABLES.Course: {
             rpcName = "sql_get_course";
             res = await this.supabase?.rpc(rpcName, {
@@ -964,6 +971,20 @@ export class SupabaseApi implements ServiceApi {
 
       if (error) {
         console.error("Error deleting user from class_user:", error);
+      }
+
+      const { error: reqerror } = await this.supabase
+        .from(TABLES.OpsRequests)
+        .update({
+          is_deleted: true,
+          updated_at: updatedAt,
+        })
+        .eq("requested_by", userId)
+        .eq("class_id", class_id)
+        .eq("is_deleted", false);
+
+      if (reqerror) {
+        console.error("Error deleting user from ops_requests:", reqerror);
       }
     } catch (err) {
       console.error("Exception in deleteUserFromClass:", err);
