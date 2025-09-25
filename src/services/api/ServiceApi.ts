@@ -77,6 +77,7 @@ export interface ServiceApi {
    * @param {string | null} program_id - Linked program ID if any.
    * @param {string | null} udise - School's UDISE code (11 digits).
    * @param {string | null} address - Full address of the school.
+   * @param {string | null} country - Country of the school.
    * @returns {Promise<TableTypes<"school">>} The created school object.
    */
   createSchool(
@@ -88,7 +89,8 @@ export interface ServiceApi {
     image: File | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
+    country: string | null,
   ): Promise<TableTypes<"school">>;
   /**
    * Updates the school details and returns the updated school object.

@@ -47,6 +47,7 @@ import {
   SearchSchoolsParams,
   SearchSchoolsResult,
   GeoDataParams,
+  School,
 } from "../../common/constants";
 import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
@@ -545,6 +546,13 @@ export class SupabaseApi implements ServiceApi {
             });
             break;
           }
+          case TABLES.OpsRequests: {
+            rpcName = "sql_get_accessible_ops_requests";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
           case TABLES.Course: {
             rpcName = "sql_get_course";
             res = await this.supabase?.rpc(rpcName, {
@@ -965,6 +973,20 @@ export class SupabaseApi implements ServiceApi {
       if (error) {
         console.error("Error deleting user from class_user:", error);
       }
+
+      const { error: reqerror } = await this.supabase
+        .from(TABLES.OpsRequests)
+        .update({
+          is_deleted: true,
+          updated_at: updatedAt,
+        })
+        .eq("requested_by", userId)
+        .eq("class_id", class_id)
+        .eq("is_deleted", false);
+
+      if (reqerror) {
+        console.error("Error deleting user from ops_requests:", reqerror);
+      }
     } catch (err) {
       console.error("Exception in deleteUserFromClass:", err);
     }
@@ -979,7 +1001,8 @@ export class SupabaseApi implements ServiceApi {
     image: File | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
+    country: string | null
   ): Promise<TableTypes<"school">> {
     if (!this.supabase) return {} as TableTypes<"school">;
     const _currentUser =
@@ -1016,9 +1039,9 @@ export class SupabaseApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
-      status: null,
+      status: STATUS.REQUESTED,
       key_contacts: null,
-      country: null,
+      country: country ?? null,
     };
 
     // Insert school
@@ -5568,6 +5591,21 @@ export class SupabaseApi implements ServiceApi {
     const schoolUserId = uuidv4();
     const timestamp = new Date().toISOString();
 
+    const { data: existing, error: selectError } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select("id")
+      .eq("school_id", schoolId)
+      .eq("user_id", user.id)
+      .eq("role", role)
+      .eq("is_deleted", false)
+      .limit(1);
+
+    if (selectError) {
+      console.error("Error checking existing school_user:", selectError);
+      return;
+    }
+    if (existing && existing.length > 0) return;
+
     const schoolUser = {
       id: schoolUserId,
       school_id: schoolId,
@@ -7638,8 +7676,6 @@ export class SupabaseApi implements ServiceApi {
       if (!this.supabase) return;
 
       const offset = (page - 1) * limit;
-
-      // Allowed DB orderBy fields
       const allowedOrderByDb = ["created_at", "updated_at"];
       const isSchoolNameOrder = orderBy === "school_name";
 
@@ -7657,6 +7693,7 @@ export class SupabaseApi implements ServiceApi {
         orderDir = "asc";
       }
 
+      // Filters + ordering helper
       const applyFilters = (query: any, schoolIds?: string[]) => {
         if (filters?.request_type?.length) {
           query = query.in("request_type", filters.request_type);
@@ -7667,12 +7704,19 @@ export class SupabaseApi implements ServiceApi {
         if (searchTerm?.trim()) {
           query = query.ilike("request_id", `%${searchTerm}%`);
         }
-        if (!isSchoolNameOrder) {
+
+        if (isSchoolNameOrder) {
+          query = query.order("school(name)", {
+            ascending: orderDir === "asc",
+          });
+        } else {
           query = query.order(orderBy, { ascending: orderDir === "asc" });
         }
+
         return query;
       };
 
+      // School filter
       let schoolIds: string[] | undefined;
       if (filters?.school?.length) {
         const { data: schoolData, error: schoolError } = await this.supabase
@@ -7693,48 +7737,59 @@ export class SupabaseApi implements ServiceApi {
       let totalCount = 0;
 
       if (requestStatus === Constants.public.Enums.ops_request_status[2]) {
-        // Approved requests
+        // ✅ Approved requests
         let approvedQuery = this.supabase
           .from(TABLES.OpsRequests)
-          .select("*", { count: "exact" })
+          .select(`*, school:school_id(id, name)`, { count: "exact" })
           .eq("is_deleted", false)
           .eq("request_status", Constants.public.Enums.ops_request_status[2]);
 
         approvedQuery = applyFilters(approvedQuery, schoolIds);
+
         const {
           data: approvedData,
           error: approvedError,
           count: approvedCount,
         } = await approvedQuery.range(offset, offset + limit - 1);
-        if (approvedError) throw approvedError;
 
-        // Expired pending requests (students only)
+        if (approvedError) throw approvedError;
         let expiredQuery = this.supabase
           .from(TABLES.OpsRequests)
-          .select("*", { count: "exact" })
+          .select(`*, school:school_id(id, name)`, { count: "exact" })
           .eq("is_deleted", false)
           .eq("request_status", Constants.public.Enums.ops_request_status[0])
           .eq("request_type", RequestTypes.STUDENT)
           .lte("request_ends_at", new Date().toISOString());
 
         expiredQuery = applyFilters(expiredQuery, schoolIds);
-        const {
-          data: expiredPendingData,
-          error: expiredError,
-          count: expiredCount,
-        } = await expiredQuery.range(offset, offset + limit - 1);
-        if (expiredError) throw expiredError;
 
-        combinedData = [...(approvedData || []), ...(expiredPendingData || [])];
-        totalCount = (approvedCount ?? 0) + (expiredCount ?? 0);
+        let expiredPendingData: any[] = [];
+        let expiredCount = 0;
+
+        try {
+          const { data, error, count } = await expiredQuery.range(
+            offset,
+            offset + limit - 1
+          );
+          if (error) {
+            console.error("Expired query error:", error);
+          }
+          expiredPendingData = data || [];
+          expiredCount = count ?? 0;
+        } catch (err: any) {
+          console.error("Unexpected expiredQuery error:", err);
+        }
+
+        combinedData = [...(approvedData || []), ...expiredPendingData];
+        totalCount = (approvedCount ?? 0) + expiredCount;
       } else if (
         requestStatus === Constants.public.Enums.ops_request_status[0]
       ) {
-        // Pending requests
+        // ✅ Pending requests
         const now = new Date().toISOString();
         let pendingQuery = this.supabase
           .from(TABLES.OpsRequests)
-          .select("*", { count: "exact" })
+          .select(`*, school:school_id(id, name)`, { count: "exact" })
           .eq("is_deleted", false)
           .eq("request_status", requestStatus)
           .or(
@@ -7742,6 +7797,7 @@ export class SupabaseApi implements ServiceApi {
           );
 
         pendingQuery = applyFilters(pendingQuery, schoolIds);
+
         const { data, error, count } = await pendingQuery.range(
           offset,
           offset + limit - 1
@@ -7751,14 +7807,15 @@ export class SupabaseApi implements ServiceApi {
         combinedData = data || [];
         totalCount = count ?? 0;
       } else {
-        // Other statuses
+        // ✅ Other statuses (Rejected, etc.)
         let query = this.supabase
           .from(TABLES.OpsRequests)
-          .select("*", { count: "exact" })
+          .select(`*, school:school_id(id, name)`, { count: "exact" })
           .eq("is_deleted", false)
           .eq("request_status", requestStatus);
 
         query = applyFilters(query, schoolIds);
+
         const { data, error, count } = await query.range(
           offset,
           offset + limit - 1
@@ -7783,29 +7840,16 @@ export class SupabaseApi implements ServiceApi {
               this.getUserByDocId(req.requested_by!),
               req.responded_by ? this.getUserByDocId(req.responded_by) : null,
             ]);
-
           return { ...req, school, classInfo, requestedBy, respondedBy };
         })
       );
 
-      // Handle in-memory sorting by school_name
-      if (isSchoolNameOrder) {
-        mappedRequests.sort((a, b) => {
-          const nameA = a.school?.name || "";
-          const nameB = b.school?.name || "";
-          return orderDir === "asc"
-            ? nameA.localeCompare(nameB)
-            : nameB.localeCompare(nameA);
-        });
-      }
-
       return { data: mappedRequests, total: totalCount };
     } catch (error) {
       console.error("Error in getOpsRequests:", error);
-      throw error;
+      return { data: [], total: 0 };
     }
   }
-
   async getRequestFilterOptions() {
     try {
       if (!this.supabase) return null;
@@ -8310,10 +8354,11 @@ export class SupabaseApi implements ServiceApi {
       console.error("RPC 'search_schools' failed:", params, error);
       return { total_count: 0, schools: [] };
     }
-
+    const resultRow = Array.isArray(data) ? data[0] : data;
+    console.log("searchSchools result:", data);
     return {
-      total_count: data?.total_count || 0,
-      schools: data?.schools || [],
+      total_count: resultRow.total_count,
+      schools: (resultRow.schools as School[]) ?? [],
     };
   }
 

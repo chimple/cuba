@@ -22,10 +22,14 @@ const JoinSchool: React.FC = () => {
         const currentSchool = location.state?.school;
         setSchool(currentSchool);
 
-        const allClasses = await api.getAllClassesBySchoolId(
-          currentSchool?.id
-        );
+        const allClasses = await api.getAllClassesBySchoolId(currentSchool?.id);
         setClassList(allClasses);
+
+        // Set default Teacher and First Class
+        if (allClasses && allClasses.length > 0) {
+          setRequestType(RequestTypes.TEACHER);
+          setSelectedClass(allClasses[0]);
+        }
       } catch (error) {
         console.error("Error fetching request data:", error);
       }
@@ -53,7 +57,7 @@ const JoinSchool: React.FC = () => {
   };
 
   return (
-    <div className="join-school-main">
+    <div className="join-school-page">
       <div className="join-school-header">
         <Header
           isBackButton={true}
@@ -98,35 +102,23 @@ const JoinSchool: React.FC = () => {
 
           <div className="join-school-role-container">
             <div
-              className="join-school-role-card"
+              className={`join-school-role-card ${
+                requestType === RequestTypes.TEACHER ? "selected-teacher" : ""
+              }`}
               onClick={() => setRequestType(RequestTypes.TEACHER)}
             >
-              <div className="join-school-role-icon">
-                <img
-                  src={
-                    requestType === RequestTypes.TEACHER
-                      ? "/assets/icons/teacher_selected.png"
-                      : "/assets/icons/teacher.png"
-                  }
-                  alt="Teacher"
-                />
-              </div>
+              <img src="/assets/icons/teacher.png" alt="Teacher" />
             </div>
 
             <div
-              className="join-school-role-card"
+              className={`join-school-role-card ${
+                requestType === RequestTypes.PRINCIPAL
+                  ? "selected-principal"
+                  : ""
+              }`}
               onClick={() => setRequestType(RequestTypes.PRINCIPAL)}
             >
-              <div className="join-school-role-icon">
-                <img
-                  src={
-                    requestType === RequestTypes.PRINCIPAL
-                      ? "/assets/icons/principal_selected.png"
-                      : "/assets/icons/principal.png"
-                  }
-                  alt="Principal"
-                />
-              </div>
+              <img src="/assets/icons/principal.png" alt="Principal" />
             </div>
           </div>
 

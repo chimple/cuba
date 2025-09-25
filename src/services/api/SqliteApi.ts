@@ -688,7 +688,8 @@ export class SqliteApi implements ServiceApi {
     image: File | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
+    country: string |null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -720,15 +721,15 @@ export class SqliteApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
-      status: null,
+      status: STATUS.REQUESTED,
       key_contacts: null,
-      country: null,
+      country: country,
     };
 
     await this.executeQuery(
       `
-      INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted, status, country)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         newSchool.id,
@@ -740,6 +741,8 @@ export class SqliteApi implements ServiceApi {
         newSchool.created_at,
         newSchool.updated_at,
         newSchool.is_deleted,
+        newSchool.status,
+        newSchool.country
       ]
     );
 
@@ -2663,24 +2666,55 @@ export class SqliteApi implements ServiceApi {
   async deleteUserFromClass(userId: string, class_id: string): Promise<void> {
     const updatedAt = new Date().toISOString();
     try {
-      await this.executeQuery(
-        `UPDATE class_user SET is_deleted = 1, updated_at = ? WHERE user_id = ? AND class_id = ? AND is_deleted = 0`,
-        [updatedAt, userId, class_id]
+      const opsBefore = await this._db?.query(
+        `SELECT * FROM ops_requests WHERE requested_by = ? AND class_id = ? AND is_deleted = 0`,
+        [userId, class_id]
       );
-      const query = `
-      SELECT *
-      FROM ${TABLES.ClassUser}
-      WHERE user_id = ? AND class_id = ? AND updated_at = ? AND is_deleted = 1`;
-      const res = await this._db?.query(query, [userId, class_id, updatedAt]);
-      let userData;
-      if (res && res.values && res.values.length > 0) {
-        userData = res.values[0];
+      const opsIds: string[] = opsBefore?.values?.map((r: any) => r.id) ?? [];
+
+      const cuBefore = await this._db?.query(
+        `SELECT id FROM ${TABLES.ClassUser} WHERE user_id = ? AND class_id = ? AND is_deleted = 0`,
+        [userId, class_id]
+      );
+      const cuIds: string[] = cuBefore?.values?.map((r: any) => r.id) ?? [];
+
+      if (cuIds.length > 0) {
+        await this.executeQuery(
+          `UPDATE ${TABLES.ClassUser} SET is_deleted = 1, updated_at = ? WHERE user_id = ? AND class_id = ? AND is_deleted = 0`,
+          [updatedAt, userId, class_id]
+        );
+        for (const id of cuIds) {
+          this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
+            id,
+            is_deleted: true,
+            updated_at: updatedAt,
+          });
+        }
+      } else {
+        console.warn("No class_user row to soft delete for", {
+          userId,
+          class_id,
+        });
       }
-      this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
-        id: userData.id,
-        is_deleted: true,
-        updated_at: updatedAt,
-      });
+
+      if (opsIds.length > 0) {
+        await this.executeQuery(
+          `UPDATE ops_requests SET is_deleted = 1, updated_at = ? WHERE requested_by = ? AND class_id = ? AND is_deleted = 0`,
+          [updatedAt, userId, class_id]
+        );
+        for (const id of opsIds) {
+          this.updatePushChanges(TABLES.OpsRequests, MUTATE_TYPES.UPDATE, {
+            id,
+            is_deleted: true,
+            updated_at: updatedAt,
+          });
+        }
+      } else {
+        console.warn("No ops_requests row to soft delete for", {
+          userId,
+          class_id,
+        });
+      }
     } catch (error) {
       console.error("Error deleting user from class_user", error);
     }
@@ -4753,6 +4787,7 @@ order by
       `
     INSERT INTO school_user (id, school_id, user_id, role, created_at, updated_at, is_deleted)
     VALUES (?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT (school_id, user_id, role, is_deleted) DO NOTHING;
     `,
       [
         schoolUser.id,
@@ -6328,7 +6363,11 @@ order by
         newRequest.is_deleted,
       ]
     );
-    await this.updatePushChanges(TABLES.OpsRequests, MUTATE_TYPES.INSERT, newRequest);
+    await this.updatePushChanges(
+      TABLES.OpsRequests,
+      MUTATE_TYPES.INSERT,
+      newRequest
+    );
   }
   async getAllClassesBySchoolId(
     schoolId: string

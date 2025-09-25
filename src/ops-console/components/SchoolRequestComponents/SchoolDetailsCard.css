@@ -2,7 +2,7 @@
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow:none !important;
   background: #fff;
 }
 
@@ -11,13 +11,17 @@
   font-size: 1rem ;
   margin-bottom: 4px;
 }
+.school-details-text {
+  font-weight: 600 !important;
+  margin-bottom: 12px !important;
+}
 
 .school-details-field-stack {
   margin: 10px 0;
 }
 
 .school-details-label {
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: #666;
   margin-bottom: 2px;
@@ -34,7 +38,7 @@
 }
 
 .school-details-label-sm {
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: #666;
 }

@@ -118,8 +118,8 @@ const ContactFormSection: React.FC<ContactFormSectionProps> = ({
                         borderRadius: "6px",
                         fontSize: "1rem",
                       },
-                      readOnly: field.disabled,
                     }}
+                    disabled={field.disabled}
                   />
                 </Grid>
               ))}

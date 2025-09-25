@@ -79,8 +79,9 @@ const SchoolPendingRequest: React.FC = () => {
                     size="large"
                     style={{
                       minWidth: 130,
+                      padding:"8px 50px",
                       fontWeight: 600,
-                      fontSize: "14px",
+                      fontSize: "16px",
                       textTransform: "none",
                     }}
                     onClick={() => {
@@ -95,8 +96,9 @@ const SchoolPendingRequest: React.FC = () => {
                     size="large"
                     style={{
                       minWidth: 140,
+                      padding:"8px 30px",
                       fontWeight: 600,
-                      fontSize: "14px",
+                      fontSize: "16px",
                       textTransform: "none",
                       backgroundColor:"#1A71F6",
                     }}
