@@ -125,16 +125,16 @@ const Home: FC = () => {
   };
 
   useEffect(() => {
-    const lockLandscapeForStudentMode = () => {
-      if (Capacitor.isNativePlatform()) {
-          const student = Util.getCurrentStudent();
-          if (student) {
-              ScreenOrientation.lock({ orientation: "landscape" });
-          } else {
-              ScreenOrientation.unlock();
-          }
-      }
-    };
+    const lockLandscapeForStudentMode = async () => {
+	      if (Capacitor.isNativePlatform()) {
+	          const student = Util.getCurrentStudent();
+	          if (student) {
+	              await ScreenOrientation.lock({ orientation: "landscape" });
+	          } else {
+	              await ScreenOrientation.unlock();
+	          }
+	      }
+	  };
     lockLandscapeForStudentMode();
     const student = Util.getCurrentStudent();
     if (!student) {
