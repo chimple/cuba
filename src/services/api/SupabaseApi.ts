@@ -5596,6 +5596,7 @@ export class SupabaseApi implements ServiceApi {
       .eq("school_id", schoolId)
       .eq("user_id", user.id)
       .eq("role", role)
+      .eq("is_deleted", false)
       .limit(1);
 
     if (selectError) {
