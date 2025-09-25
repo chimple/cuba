@@ -44,6 +44,10 @@ import {
   EnumType,
   CACHETABLES,
   RequestTypes,
+  STATUS,
+  GeoDataParams,
+  SearchSchoolsParams,
+  SearchSchoolsResult,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -74,7 +78,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 4;
+  private DB_VERSION = 5;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -281,21 +285,27 @@ export class SqliteApi implements ServiceApi {
       }
     }
 
-    const config = ServiceConfig.getInstance(APIMode.SQLITE);
-    const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
-    if (isUserLoggedIn) {
-      console.log("syncing");
-      let user;
-      try {
-        user = await config.authHandler.getCurrentUser();
-      } catch (error) {
-        console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
+    // Move sync logic to a separate method that can be called after full initialization
+    await this.checkAndSyncData();
+  }
+
+  private async checkAndSyncData() {
+    try {
+      const config = ServiceConfig.getInstance(APIMode.SQLITE);
+      const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
+
+      if (isUserLoggedIn) {
+        console.log("syncing");
+        const user = await config.authHandler.getCurrentUser();
+
+        if (!user) {
+          await this.syncDbNow();
+        } else {
+          this.syncDbNow();
+        }
       }
-      if (!user) {
-        await this.syncDbNow();
-      } else {
-        this.syncDbNow();
-      }
+    } catch (error) {
+      console.log("🚀 ~ SqliteApi ~ checkAndSyncData ~ error:", error);
     }
   }
 
@@ -537,6 +547,7 @@ export class SqliteApi implements ServiceApi {
       is_ops: null,
       learning_path: null,
       ops_created_by: null,
+      reward: null,
       stars: null,
     };
 
@@ -683,7 +694,8 @@ export class SqliteApi implements ServiceApi {
     image: File | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
+    country: string |null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -715,12 +727,15 @@ export class SqliteApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
+      status: STATUS.REQUESTED,
+      key_contacts: null,
+      country: country,
     };
 
     await this.executeQuery(
       `
-      INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted, status, country)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         newSchool.id,
@@ -732,6 +747,8 @@ export class SqliteApi implements ServiceApi {
         newSchool.created_at,
         newSchool.updated_at,
         newSchool.is_deleted,
+        newSchool.status,
+        newSchool.country
       ]
     );
 
@@ -817,6 +834,9 @@ export class SqliteApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
+      status: null,
+      key_contacts: null,
+      country: null,
     };
     const updatedSchoolQuery = `
     UPDATE school
@@ -964,6 +984,7 @@ export class SqliteApi implements ServiceApi {
       learning_path: null,
       ops_created_by: null,
       stars: null,
+      reward: null,
     };
     // Insert into user table
     await this.executeQuery(
@@ -2651,24 +2672,55 @@ export class SqliteApi implements ServiceApi {
   async deleteUserFromClass(userId: string, class_id: string): Promise<void> {
     const updatedAt = new Date().toISOString();
     try {
-      await this.executeQuery(
-        `UPDATE class_user SET is_deleted = 1, updated_at = ? WHERE user_id = ? AND class_id = ? AND is_deleted = 0`,
-        [updatedAt, userId, class_id]
+      const opsBefore = await this._db?.query(
+        `SELECT * FROM ops_requests WHERE requested_by = ? AND class_id = ? AND is_deleted = 0`,
+        [userId, class_id]
       );
-      const query = `
-      SELECT *
-      FROM ${TABLES.ClassUser}
-      WHERE user_id = ? AND class_id = ? AND updated_at = ? AND is_deleted = 1`;
-      const res = await this._db?.query(query, [userId, class_id, updatedAt]);
-      let userData;
-      if (res && res.values && res.values.length > 0) {
-        userData = res.values[0];
+      const opsIds: string[] = opsBefore?.values?.map((r: any) => r.id) ?? [];
+
+      const cuBefore = await this._db?.query(
+        `SELECT id FROM ${TABLES.ClassUser} WHERE user_id = ? AND class_id = ? AND is_deleted = 0`,
+        [userId, class_id]
+      );
+      const cuIds: string[] = cuBefore?.values?.map((r: any) => r.id) ?? [];
+
+      if (cuIds.length > 0) {
+        await this.executeQuery(
+          `UPDATE ${TABLES.ClassUser} SET is_deleted = 1, updated_at = ? WHERE user_id = ? AND class_id = ? AND is_deleted = 0`,
+          [updatedAt, userId, class_id]
+        );
+        for (const id of cuIds) {
+          this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
+            id,
+            is_deleted: true,
+            updated_at: updatedAt,
+          });
+        }
+      } else {
+        console.warn("No class_user row to soft delete for", {
+          userId,
+          class_id,
+        });
       }
-      this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
-        id: userData.id,
-        is_deleted: true,
-        updated_at: updatedAt,
-      });
+
+      if (opsIds.length > 0) {
+        await this.executeQuery(
+          `UPDATE ops_requests SET is_deleted = 1, updated_at = ? WHERE requested_by = ? AND class_id = ? AND is_deleted = 0`,
+          [updatedAt, userId, class_id]
+        );
+        for (const id of opsIds) {
+          this.updatePushChanges(TABLES.OpsRequests, MUTATE_TYPES.UPDATE, {
+            id,
+            is_deleted: true,
+            updated_at: updatedAt,
+          });
+        }
+      } else {
+        console.warn("No ops_requests row to soft delete for", {
+          userId,
+          class_id,
+        });
+      }
     } catch (error) {
       console.error("Error deleting user from class_user", error);
     }
@@ -4741,6 +4793,7 @@ order by
       `
     INSERT INTO school_user (id, school_id, user_id, role, created_at, updated_at, is_deleted)
     VALUES (?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT (school_id, user_id, role, is_deleted) DO NOTHING;
     `,
       [
         schoolUser.id,
@@ -5555,6 +5608,7 @@ order by
             learning_path: null,
             music_off: false,
             ops_created_by: null,
+            reward: null,
             sfx_off: false,
             stars: null,
             student_id: null,
@@ -5666,6 +5720,7 @@ order by
             learning_path: null,
             music_off: false,
             ops_created_by: null,
+            reward: null,
             sfx_off: false,
             stars: null,
             student_id: null,
@@ -5734,7 +5789,8 @@ order by
   async mergeStudentRequest(
     requestId: string,
     existingStudentId: string,
-    newStudentId: string
+    newStudentId: string,
+    respondedBy: string
   ): Promise<void> {
     if (!this._db) {
       throw new Error("SQLite DB not initialized.");
@@ -5833,8 +5889,8 @@ order by
 
       // 7. (Optional) mark ops_requests as approved/merged
       await this._db.run(
-        `UPDATE ops_requests SET status = 'approved', merged_to = ?, updated_at = ? WHERE request_id = ?`,
-        [existingStudentId, now, requestId]
+        `UPDATE ops_requests SET status = 'approved', merged_to = ?, updated_at = ?, responded_by = ? WHERE request_id = ?`,
+        [existingStudentId, now, respondedBy, requestId]
       );
     } catch (error) {
       console.error(
@@ -5873,6 +5929,7 @@ order by
       phone: null,
       fcm_token: null,
       music_off: false,
+      reward: null,
       sfx_off: false,
       student_id: null,
       firebase_id: null,
@@ -6194,6 +6251,45 @@ order by
     const result = await this._db.query(query, [...params, limit, offset]);
     return { data: result?.values ?? [], total };
   }
+  async respondToSchoolRequest(
+    requestId: string,
+    respondedBy: string,
+    status: (typeof STATUS)[keyof typeof STATUS],
+    rejectionReason?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined> {
+    return await this._serverApi.respondToSchoolRequest(
+      requestId,
+      respondedBy,
+      status,
+      rejectionReason
+    );
+  }
+  async getFieldCoordinatorsByProgram(
+    programId: string
+  ): Promise<{ data: TableTypes<"user">[] }> {
+    return await this._serverApi.getFieldCoordinatorsByProgram(programId);
+  }
+  async getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }> {
+    return await this._serverApi.getProgramsByRole();
+  }
+  async updateSchoolStatus(
+    schoolId: string,
+    schoolStatus: (typeof STATUS)[keyof typeof STATUS],
+    address?: {
+      state?: string;
+      district?: string;
+      city?: string;
+      address?: string;
+    },
+    keyContacts?: any
+  ): Promise<void> {
+    return await this._serverApi.updateSchoolStatus(
+      schoolId,
+      schoolStatus,
+      address,
+      keyContacts
+    );
+  }
   async clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
     if (!this._db) return;
     const query = `PRAGMA foreign_keys=OFF;`;
@@ -6222,5 +6318,66 @@ order by
       schoolId,
       classId
     );
+  }
+  async getGeoData(params: GeoDataParams): Promise<string[]> {
+    return await this._serverApi.getGeoData(params);
+  }
+  async searchSchools(
+    params: SearchSchoolsParams
+  ): Promise<SearchSchoolsResult> {
+    {
+      return await this._serverApi.searchSchools(params);
+    }
+  }
+  async sendJoinSchoolRequest(
+    schoolId: string,
+    requestType: RequestTypes,
+    classId?: string
+  ): Promise<void> {
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!currentUser) throw "User is not Logged in";
+
+    const now = new Date().toISOString();
+    const newRequest = {
+      school_id: schoolId,
+      class_id: classId ?? null,
+      request_type: requestType,
+      requested_by: currentUser.id,
+      request_status: STATUS.REQUESTED,
+      rejected_reason_description: "",
+      rejected_reason_type: "",
+      created_at: now,
+      updated_at: now,
+      is_deleted: false,
+    };
+    await this.executeQuery(
+      `
+      INSERT INTO ops_requests
+        (school_id, class_id, request_type, requested_by, request_status, rejected_reason_description, rejected_reason_type, created_at, updated_at, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `,
+      [
+        newRequest.school_id,
+        newRequest.class_id,
+        newRequest.request_type,
+        newRequest.requested_by,
+        newRequest.request_status,
+        newRequest.rejected_reason_description,
+        newRequest.rejected_reason_type,
+        newRequest.created_at,
+        newRequest.updated_at,
+        newRequest.is_deleted,
+      ]
+    );
+    await this.updatePushChanges(
+      TABLES.OpsRequests,
+      MUTATE_TYPES.INSERT,
+      newRequest
+    );
+  }
+  async getAllClassesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"class">[]> {
+    return await this._serverApi.getAllClassesBySchoolId(schoolId);
   }
 }

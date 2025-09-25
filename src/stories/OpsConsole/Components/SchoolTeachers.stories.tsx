@@ -38,6 +38,7 @@ const createMockTeacher = (
       sfx_off: false,
       stars: 0,
       updated_at: null,
+      reward: null
     },
     grade,
     classSection,

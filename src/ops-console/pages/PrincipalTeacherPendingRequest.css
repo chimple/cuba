@@ -1,16 +1,15 @@
 /* StudentPendingRequest.css */
 
-.principal-teacher-pending-requests-details-layout {
+.principal-teacher-pending-details-layout {
   min-height: 100vh;
-  background: #fcfcff;
+  /* background: #fcfcff; */
   padding: 1vw 2vw 0 2vw;
 }
 .principal-teacher-pending-page-title {
-  font-weight: 700;
+  font-weight: 600;
   margin-bottom: 0.8vw;
-  font-size: 2.2rem;
+  font-size: 2rem;
   color: #222;
-  margin-top: 1.5vw;
 }
 .principal-teacher-pending-breadcrumbs {
   color: #888;
@@ -41,7 +40,7 @@
 }
 
 .principal-teacher-pending-section-title {
-  font-weight: 600;
+  font-weight: 750 !important;
   color: #333;
   font-size: 1.13rem;
   margin-bottom: 2px;
@@ -50,7 +49,7 @@
 
 .principal-teacher-pending-row {
   display: flex;
-  font-size: 1.08rem;
+  font-size: 1rem;
   margin-top: 1vw;
   color: #333;
   justify-content: center;
@@ -71,7 +70,7 @@
 
 .principal-teacher-pending-action-buttons-row {
   display: flex;
-  gap: 24px;
+  gap: 20px;
   margin-top: 22px;
   margin-bottom: 30px;
   justify-content: flex-start;
@@ -215,9 +214,40 @@
 .principal-teacher-pending-first-pending-row {
   display: flex;
   justify-content: space-between;
-  font-size: 1.08rem;
   margin-top: 1vw;
   color: #333;
   margin-left: 1vh;
   margin-right: 5vh;
+}
+.principal-teacher-pending-label {
+  font-size: 1rem;
+  color: #777;
+}
+.principal-teacher-pending-first-pending-row-title {
+  color: #777;
+  font-weight: 400;
+}
+
+.principal-teacher-pending-active {
+  color: #333; /* gray or your theme color */
+  cursor: default;
+  font-weight: 600;
+  margin-left: 0.7vw;
+}
+.principal-teacher-pending-link {
+  color: blue;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.principal-teacher-pending-link:hover {
+  text-decoration: underline;
+}
+.principal-teacher-pending-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.principal-teacher-pending-page-icon {
+  margin-bottom: 1vw;
 }
