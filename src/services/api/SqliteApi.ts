@@ -195,10 +195,10 @@ export class SqliteApi implements ServiceApi {
     if (!this._db || !this._sqlite) return;
     try {
       const exportedData = await this._db.exportToJson("full");
-      console.log(
-        "🚀 ~ Api ~ setUpDatabase ~ exportedData:",
-        JSON.stringify(exportedData.export?.tables)
-      );
+      // console.log(
+      //   "🚀 ~ Api ~ setUpDatabase ~ exportedData:",
+      //   JSON.stringify(exportedData.export?.tables)
+      // );
     } catch (error) {
       console.error("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
     }
