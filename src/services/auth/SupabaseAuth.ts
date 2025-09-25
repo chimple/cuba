@@ -14,7 +14,6 @@ import {
   SCHOOL_LOGIN,
   PAGES,
   USER_ROLE,
-  CURRENT_MODE,
 } from "../../common/constants";
 import { SupabaseClient, UserAttributes } from "@supabase/supabase-js";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
@@ -29,7 +28,6 @@ export class SupabaseAuth implements ServiceAuth {
 
   private _auth: SupabaseAuthClient | undefined;
   private _supabaseDb: SupabaseClient<Database> | undefined;
-
   // private _auth = getAuth();
 
   private constructor() {}
@@ -251,26 +249,13 @@ export class SupabaseAuth implements ServiceAuth {
       // await this.doRefreshSession();
       const authData = await this._auth?.getSession();
       if (!authData || !authData.data.session?.user?.id) return;
-      let api = ServiceConfig.getI().apiHandler;
 
-      if (!api || Object.keys(api).length === 0) {
-        // API is empty → reinitialize
-        const mode = localStorage.getItem(CURRENT_MODE);
-        if (mode === MODES.OPS_CONSOLE) {
-          ServiceConfig.getInstance(APIMode.SUPABASE);
-        } else {
-          ServiceConfig.getInstance(APIMode.SQLITE);
-        }
-
-        // refresh api reference after reinit
-        api = ServiceConfig.getI().apiHandler;
-      }
+      const api = ServiceConfig.getI().apiHandler;
 
       const userRole = await api.getUserSpecialRoles(
         authData.data.session?.user.id
       );
-
-      if (userRole?.length > 0) {
+      if (userRole.length > 0) {
         localStorage.setItem(USER_ROLE, JSON.stringify(userRole));
       } else {
         localStorage.removeItem(USER_ROLE);
