@@ -49,6 +49,7 @@ const RequestList: React.FC = () => {
   const location = useLocation();
   const history = useHistory();
   const qs = new URLSearchParams(location.search);
+  const tableScrollRef = React.useRef<HTMLDivElement>(null);
 
   function parseJSONParam<T>(param: string | null, fallback: T): T {
     try {
@@ -229,6 +230,7 @@ const RequestList: React.FC = () => {
 
   useEffect(() => {
     fetchData();
+    tableScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [fetchData, orderBy, orderDir]);
 
   const formatDateOnly = (dateStr?: string) => {
@@ -423,6 +425,7 @@ const RequestList: React.FC = () => {
       RequestTypes.STUDENT,
       RequestTypes.TEACHER,
       RequestTypes.PRINCIPAL,
+      RequestTypes.SCHOOL,
     ];
     const matchedType = validTypes.find((t) => type.includes(t));
     if (!matchedType) {
@@ -454,6 +457,11 @@ const RequestList: React.FC = () => {
         [REQUEST_TABS.PENDING]: PAGES.PRINCIPAL_TEACHER_PENDING_REQUEST, // can also be PRINCIPAL_PENDING_REQUEST if needed
         [REQUEST_TABS.APPROVED]: PAGES.OPS_APPROVED_REQUEST,
         [REQUEST_TABS.REJECTED]: PAGES.OPS_REJECTED_REQUEST,
+      },
+      school: {
+        [REQUEST_TABS.PENDING]: PAGES.SCHOOL_PENDING_REQUEST,
+        [REQUEST_TABS.APPROVED]: PAGES.SCHOOL_APPROVED_REQUEST,
+        [REQUEST_TABS.REJECTED]: PAGES.SCHOOL_REJECTED_REQUEST,
       },
     };
 
@@ -578,6 +586,7 @@ const RequestList: React.FC = () => {
             onSort={handleSort}
             loading={isLoading}
             onRowClick={handleRowClick}
+            ref={tableScrollRef}
           />
         </div>
 
@@ -600,7 +609,13 @@ const RequestList: React.FC = () => {
             <DataTablePagination
               pageCount={pageCount}
               page={page}
-              onPageChange={(val) => setPage(val)}
+              onPageChange={(val) => {
+                setPage(val);
+                tableScrollRef.current?.scrollTo({
+                  top: 0,
+                  behavior: "smooth",
+                });
+              }}
             />
           </div>
         )}

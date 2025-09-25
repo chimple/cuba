@@ -29,12 +29,12 @@ html {
   margin-bottom: 2rem;
   font-size: 1.07rem;
 }
-.student-pending-request-details-link {
+/* .student-pending-request-details-link {
   color: #3799fd;
   cursor: pointer;
   text-decoration: underline;
   margin-right: 0.7rem;
-}
+} */
 .student-pending-request-details-active {
   color: #232323;
   font-weight: 600;

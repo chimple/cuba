@@ -27,7 +27,8 @@ const mockTeacher: TableTypes<"user"> = {
   is_ops: null,
   learning_path: null,
   ops_created_by: null,
-  stars: null
+  stars: null,
+  reward: null
 };
 
 const mockClassDoc: TableTypes<"class"> = {

@@ -1,0 +1,31 @@
+.create-school-prompt-box {
+  width: auto;
+  background-color: #f4eefe;
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: clamp(280px, 90vw, 550px);
+  margin: 1.5rem auto;
+}
+
+.create-school-prompt-box p {
+  margin: 0;
+  color: #333;
+  font-weight: 600;
+  line-height: 1.3rem;
+}
+
+.create-school-prompt-box .create-school-button {
+  --background: #7c5db0;
+  --background-activated: #7c5db0;
+  --border-radius: 5px;
+  margin-top: 1rem;
+  text-transform: none;
+  font-weight: 700;
+  width: 9.3rem;
+  max-width: 250px;
+}
