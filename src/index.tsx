@@ -129,7 +129,7 @@ if (isOpsUser) {
   );
   SplashScreen.hide();
 } else {
-  // Show splash until SQLite is ready
+  SplashScreen.show();
   SqliteApi.getInstance().then(() => {
     serviceInstance.switchMode(APIMode.SQLITE);
     root.render(
