@@ -5591,6 +5591,21 @@ export class SupabaseApi implements ServiceApi {
     const schoolUserId = uuidv4();
     const timestamp = new Date().toISOString();
 
+    const { data: existing, error: selectError } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select("id")
+      .eq("school_id", schoolId)
+      .eq("user_id", user.id)
+      .eq("role", role)
+      .eq("is_deleted", false)
+      .limit(1);
+
+    if (selectError) {
+      console.error("Error checking existing school_user:", selectError);
+      return;
+    }
+    if (existing && existing.length > 0) return;
+
     const schoolUser = {
       id: schoolUserId,
       school_id: schoolId,
