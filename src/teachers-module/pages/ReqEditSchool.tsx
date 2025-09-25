@@ -193,44 +193,39 @@ const ReqEditSchool: React.FC = () => {
       {isRequestSent === true && !isSaving ? (
         // **SUCCESS SCREEN**
         <div className="edit-school-confirm-page">
-          <h2 className="edit-school-confirm-title">
-            {t("Request Confirmation")}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 600 600"
-              style={{ verticalAlign: "middle", marginLeft: "5px" }}
-            >
-              <circle cx="300" cy="300" r="300" fill="#4CAF50" />
-              <path
-                fill="#fff"
-                d="M243 427c-8-8-22-8-30 0l-97-97c-8-8-8-22 0-30l30-30c8-8 22-8 30 0l67 67 175-175c8-8 22-8 30 0l30 30c8 8 8 22 0 30L243 427z"
-              />
-            </svg>
-          </h2>
           <div className="edit-school-confirm-message">
+            <p className="edit-school-sent-request-header">
+              {t("Your request has been sent successfully")}
+            </p>
             <p>
               {t("After a short while kindly check to access your school")}
             </p>
+          </div>
+          <div className="edit-school-request-box">
             <a href="https://www.bit.ly/chimple-help-line" target="_blank" style={{ textDecoration: "none" }}>
-              <div className="edit-school-whatsapp-support">
+              <div className="edit-school-create-school-whatsapp-support">
                 <div className="edit-school-whatsapp-support-icon">
               <img src="assets/icons/whatsapp.svg" alt="whatsapp" width="25" />
                 </div>
-                <div className="edit-school-whatsapp-support-text">
-                  <p>{t("Whatsapp Us For Any Questions")}</p>
+                <div className="edit-school-create-school-whatsapp-support-text">
+                  <p>{t("Chat with us on ")}</p><p className="edit-school-span-text-whatsapp">{t("WhatsApp")}</p>
                 </div>
               </div>
             </a>
+            <div className="edit-school-create-school-youtube-div">
+              <iframe src="https://www.youtube.com/embed/G_OW3hNtZ3o?si=U5jhUwks05doZ_2R" width={"70%"} height={"315px"} title="YouTube video player" allowFullScreen className="edit-school-create-school-youtube-video"></iframe>
+              <p className="edit-school-create-school-youtube-subtext">
+                {t("Take a look at our Teacher's App")}
+              </p>
+            </div>
           </div>
           <hr className="edit-school-divider" />
-          <div className="edit-school-confirm-subtext">
+          <div className="edit-school-create-school-confirm-subtext">
             <p>
-              {t("Why not explore our Apps? You are just one click away!")}
+              {t("Click below to explore Chimple App")}
             </p>
           </div>
-          <div className="edit-school-app-links">
+          <div className="edit-school-create-school-app-links">
             <a
               href="https://youtu.be/G_OW3hNtZ3o?si=Txs7SMRDbjbhb4nq"
               target="_blank"
@@ -240,44 +235,18 @@ const ReqEditSchool: React.FC = () => {
               <div
                 className="edit-school-app-card"
               >
-                <p className="edit-school-app-title">{t("Teacher’s App")}</p>
-                <div className="edit-school-card-content">
-                  <p className="edit-school-app-subtext">
-                    {t("Teacher’s Task Made Easy")}
-                  </p>
-                  <img className="edit-school-card-content-img" src="assets/icons/redirectToYoutube.png" alt="" />
+                <div className="edit-school-card-content">                 
+                  <span className="edit-school-create-school-app-subtext">
+                    {t("Fun filled activities for children")}
+                  </span>
+                  <div className="edit-school-create-school-card-content-div">
+                    <img className="edit-school-card-content-img" src="assets/icons/switchToKidsMode.png" alt="" />
+                    <p className="edit-school-create-school-img-footer">{t("Gamified Learning")}</p>
+                  </div>
                 </div>
               </div>
             </a>
-            <div className="edit-school-app-card" onClick={switchUser}>
-              <p className="edit-school-app-title">{t("Chimple App")}</p>
-              <div className="edit-school-card-content">
-                <p className="edit-school-app-subtext">
-                  {t("Fun Gamified Learning")}
-                </p>
-                <img className="edit-school-card-content-img" src="assets/icons/switchToKidsMode.png" alt="" />
-              </div>
-            </div>
           </div>
-          <hr className="edit-school-divider" />
-          <IonButton
-            color="#fff"
-            className="edit-school-logout-button"
-            onClick={() => setShowDialogBox(true)}
-          >
-            {t("Logout")}
-          </IonButton>
-          <DialogBoxButtons
-            width="100%"
-            height="20%"
-            message={t("Are you sure you want to logout?")}
-            showDialogBox={showDialogBox}
-            yesText={t("Cancel")}
-            noText={t("Logout")}
-            handleClose={() => setShowDialogBox(false)}
-            onYesButtonClicked={() => setShowDialogBox(false)}
-            onNoButtonClicked={onSignOut}
-          />
         </div>
       ) : (
         // **FORM SCREEN**
@@ -295,7 +264,7 @@ const ReqEditSchool: React.FC = () => {
           <div className="edit-school-text-div">
             {isEditMode ? t("Edit School") : t("Add School")}
           </div>
-          <div className="single-container">
+          <div className="edit-school-single-container">
             <div className="profile-image">
               <ProfileDetails
                 imgSrc={
@@ -308,8 +277,8 @@ const ReqEditSchool: React.FC = () => {
                 isEditMode={true}
               />
             </div>
-            {/* <div className="school-text">{schoolData.name}</div> */}
-            <div className="school-content">
+            {/* <div className="edit-school-text">{schoolData.name}</div> */}
+            <div className="edit-school-content">
               <Box className="edit-school-div">
                 <EditSchoolSection
                   name={schoolData.name}
@@ -323,11 +292,11 @@ const ReqEditSchool: React.FC = () => {
                   onCityChange={handleCityChange}
                   onUDISE_IDChange={handleUDISE_IDChange}
                 />
-                <div className="editSchool-button-container">
+                <div className="edit-school-button-container">
                   <IonButton
                     color="#7C5DB0"
                     onClick={handleSendRequest}
-                    className="editSchool-update-button"
+                    className="edit-school-update-button"
                     disabled={isButtonDisabled || isSaving}
                   >
                     {isSaving ? t("Saving") + "..." : t("Send Request")}

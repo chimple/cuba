@@ -107,6 +107,7 @@ const StudentPendingRequestDetails = () => {
         setLoading(false);
       }
     }
+
     fetchRequest();
   }, [id, api, location.state]);
 
@@ -125,6 +126,13 @@ const StudentPendingRequestDetails = () => {
     const currentRequestId = requestData?.request_id;
     const currentSelectedStudent = selectedStudent;
     const newStudentUserId = requestData?.requestedBy?.id;
+    // RespondedBy: whoever is logged in
+    const auth = ServiceConfig.getI().authHandler;
+    const user = await auth.getCurrentUser();
+    if (!user?.id) {
+      throw new Error("No logged-in user found. Cannot approve request.");
+    }
+    const respondedBy = user?.id;
 
     if (!currentRequestId) {
       console.error(t("Missing request ID for approval."));
@@ -138,8 +146,12 @@ const StudentPendingRequestDetails = () => {
         await api.mergeStudentRequest(
           currentRequestId,
           currentSelectedStudent,
-          newStudentUserId
+          newStudentUserId,
+          respondedBy
         );
+      } else {
+        const requestRole = requestData?.request_type; // e.g., 'student'
+        await api.approveOpsRequest(currentRequestId, respondedBy, requestRole);
       }
 
       history.push(
@@ -183,10 +195,8 @@ const StudentPendingRequestDetails = () => {
         onClick={() => history.push(PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST)}
         className="student-pending-request-details-link"
       >
-        {t("Requests")}
+        {t("Pending")}
       </span>
-      <span> &gt; </span>
-      <span>{t("Pending")}</span>
       <span> &gt; </span>
       <span className="student-pending-request-details-active">
         {t(`Request ID - ${id}`)}
@@ -199,8 +209,8 @@ const StudentPendingRequestDetails = () => {
     (stu) => stu.user.id !== requestData?.requested_by
   );
   // Also update the total students count for display
-  const filteredTotalStudents = totalStudents - (students.length - filteredStudents.length);
-
+  const filteredTotalStudents =
+    totalStudents - (students.length - filteredStudents.length);
 
   return (
     <div className="student-pending-request-details-layout">
@@ -363,7 +373,7 @@ const StudentPendingRequestDetails = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredStudents.map((stu) => { 
+                  {filteredStudents.map((stu) => {
                     const fullStudentClassName = `${stu.grade || ""}${
                       stu.classSection || ""
                     }`;

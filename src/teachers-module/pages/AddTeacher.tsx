@@ -40,9 +40,11 @@ const AddTeacher: React.FC = () => {
   };
 
   const handleSearch = async () => {
-    try {
-      setIsLoading(true);
+    setUser(undefined);
+    setShowUserNotFoundAlert(false);
+    setIsLoading(true);
 
+    try {
       let fetchedUser;
       if (useEmail) {
         fetchedUser = await api?.getUserByEmail(inputValue);
@@ -50,7 +52,7 @@ const AddTeacher: React.FC = () => {
         fetchedUser = await api?.getUserByPhoneNumber(inputValue);
       }
 
-      if (school && classDoc && fetchedUser) {
+      if (school && classDoc && fetchedUser && fetchedUser.id) {
         const userInClass = await api?.checkTeacherExistInClass(
           school.id,
           classDoc.id,
@@ -68,22 +70,26 @@ const AddTeacher: React.FC = () => {
       }
     } catch (error) {
       console.error("Failed to fetch user", error);
+      setShowUserNotFoundAlert(true);
     } finally {
       setIsLoading(false);
     }
   };
+
   const handleAddTeacher = async () => {
+    if (!classDoc || !user || !school) return;
+
     setIsLoading(true);
-
-    if (classDoc && user) {
+    try {
       await api.addTeacherToClass(classDoc.id, user);
-
       await api.updateSchoolLastModified(school.id);
       await api.updateClassLastModified(classDoc.id);
       await api.updateUserLastModified(user.id);
-
-      setIsLoading(false);
       history.replace(`${PAGES.CLASS_USERS}?tab=Teachers`, classDoc);
+    } catch (error) {
+      console.error("Failed to add teacher", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 

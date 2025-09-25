@@ -144,6 +144,10 @@ import { useFeatureValue, useFeatureIsOn } from "@growthbook/growthbook-react";
 import LoginScreen from "./pages/LoginScreen";
 import ProfileDetails from "./components/profileDetails/ProfileDetails";
 import RequestList from "./ops-console/pages/RequestList";
+import AddTeacherName from "./teachers-module/pages/AddTeacherName";
+import SearchSchool from "./teachers-module/pages/SearchSchool";
+import JoinSchool from "./pages/JoinSchool";
+import CreateSchool from "./teachers-module/pages/CreateSchool";
 
 setupIonicReact();
 interface ExtraData {
@@ -239,10 +243,7 @@ const App: React.FC = () => {
 
       const portPlugin = registerPlugin<PortPlugin>("Port");
       portPlugin.addListener("notificationOpened", (data: any) => {
-        if (data.fullPayload) {
-          const formattedPayload = JSON.parse(data.fullPayload);
-          processNotificationData(formattedPayload);
-        } else {
+        if (data) {
           processNotificationData(data);
         }
       });
@@ -497,6 +498,12 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.JOIN_CLASS} exact={true}>
               <Home />
             </ProtectedRoute>
+            <ProtectedRoute path={PAGES.JOIN_SCHOOL} exact={true}>
+              <JoinSchool />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.CREATE_SCHOOL} exact={true}>
+              <CreateSchool />
+            </ProtectedRoute>
             <ProtectedRoute path={PAGES.SELECT_MODE} exact={true}>
               <SelectMode />
             </ProtectedRoute>
@@ -511,6 +518,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.USER_PROFILE} exact={true}>
               <UserProfile />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.ADD_TEACHER_NAME} exact={true}>
+              <AddTeacherName />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.SUBJECTS_PAGE} exact={true}>
               <SubjectSelection />
@@ -532,6 +542,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.DISPLAY_SCHOOLS} exact={true}>
               <DisplaySchools />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SEARCH_SCHOOL} exact={true}>
+              <SearchSchool />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.STUDENT_REPORT} exact={true}>
               <StudentReport />

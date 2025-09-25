@@ -38,7 +38,8 @@ export const Test2: Story = {
       is_ops: null,
       learning_path: null,
       ops_created_by: null,
-      stars: null
+      stars: null,
+      reward: null
     },
     mappedSubjectOptions: [{ id: "a", name: "Digital", icon: "/assets/icons/DefaultIcon.png", subjectDetail: "Digital Skills - Grade 4", }],
     onSubjectChange: () => {},
@@ -104,7 +105,8 @@ export const Test3: Story = {
       is_ops: null,
       learning_path: null,
       ops_created_by: null,
-      stars: null
+      stars: null,
+      reward: null
     },
     mappedSubjectOptions: [
   {
@@ -189,6 +191,7 @@ export const Test4: Story = {
       is_ops: null,
       learning_path: null,
       ops_created_by: null,
+      reward: null,
       stars: null
     },
     mappedSubjectOptions: [{ id: "a", name: "Digital Skills",icon: "/assets/icons/DefaultIcon.png" ,subjectDetail: "Digital Skills - Grade 4", },{ id: "a", name: "Kannada", icon: "/assets/icons/DefaultIcon.png", subjectDetail: "Kannada - Grade 5" }],
