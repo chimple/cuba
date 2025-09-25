@@ -11,6 +11,10 @@
   font-size: 1rem ;
   margin-bottom: 4px;
 }
+.school-details-text {
+  font-weight: 600 !important;
+  margin-bottom: 12px !important;
+}
 
 .school-details-field-stack {
   margin: 10px 0;

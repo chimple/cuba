@@ -67,7 +67,7 @@ const SchoolDetailsCard: React.FC<SchoolDetailsCardProps> = ({
 
       <Divider sx={{ my: 1.5 }} />
 
-      <Typography variant="subtitle1" className="school-details-title">
+      <Typography variant="subtitle1" className="school-details-text">
         Request Details
       </Typography>
       <Grid container spacing={1}>

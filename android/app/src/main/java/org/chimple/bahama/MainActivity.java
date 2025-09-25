@@ -5,12 +5,14 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
+import android.content.Intent;
+import android.os.Build;
 
 import com.getcapacitor.BridgeActivity;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.appcheck.FirebaseAppCheck;
-import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;       
+import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory;
 
 import android.app.Activity;
 
@@ -37,8 +39,9 @@ public  class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) ->{
-                SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+            SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
             String userId = sharedPreferences.getString("userId", null);
             if(userId !=null){
                 FirebaseCrashlytics.getInstance().setUserId(userId);
@@ -46,15 +49,13 @@ public  class MainActivity extends BridgeActivity {
             FirebaseCrashlytics.getInstance().recordException(throwable);
         });
         initializeActivityLauncher();
-
         registerPlugin(PortPlugin.class);
-        super.onCreate(savedInstanceState);
+        this.bridge.setWebViewClient(new MyCustomWebViewClient(this.bridge, this));
         appContext = this;
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
-
         FirebaseApp.initializeApp(/*context=*/ this);
     }
     public void initializeActivityLauncher(){

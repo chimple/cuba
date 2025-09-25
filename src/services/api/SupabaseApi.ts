@@ -47,6 +47,7 @@ import {
   SearchSchoolsParams,
   SearchSchoolsResult,
   GeoDataParams,
+  School,
 } from "../../common/constants";
 import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
@@ -545,6 +546,13 @@ export class SupabaseApi implements ServiceApi {
             });
             break;
           }
+          case TABLES.OpsRequests: {
+            rpcName = "sql_get_accessible_ops_requests";
+            res = await this.supabase?.rpc(rpcName, {
+              p_updated_at: lastModifiedDate,
+            });
+            break;
+          }
           case TABLES.Course: {
             rpcName = "sql_get_course";
             res = await this.supabase?.rpc(rpcName, {
@@ -965,6 +973,20 @@ export class SupabaseApi implements ServiceApi {
       if (error) {
         console.error("Error deleting user from class_user:", error);
       }
+
+      const { error: reqerror } = await this.supabase
+        .from(TABLES.OpsRequests)
+        .update({
+          is_deleted: true,
+          updated_at: updatedAt,
+        })
+        .eq("requested_by", userId)
+        .eq("class_id", class_id)
+        .eq("is_deleted", false);
+
+      if (reqerror) {
+        console.error("Error deleting user from ops_requests:", reqerror);
+      }
     } catch (err) {
       console.error("Exception in deleteUserFromClass:", err);
     }
@@ -979,7 +1001,8 @@ export class SupabaseApi implements ServiceApi {
     image: File | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
+    country: string | null
   ): Promise<TableTypes<"school">> {
     if (!this.supabase) return {} as TableTypes<"school">;
     const _currentUser =
@@ -1016,9 +1039,9 @@ export class SupabaseApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
-      status: null,
+      status: STATUS.REQUESTED,
       key_contacts: null,
-      country: null,
+      country: country ?? null,
     };
 
     // Insert school
@@ -8316,10 +8339,11 @@ export class SupabaseApi implements ServiceApi {
       console.error("RPC 'search_schools' failed:", params, error);
       return { total_count: 0, schools: [] };
     }
-
+    const resultRow = Array.isArray(data) ? data[0] : data;
+    console.log("searchSchools result:", data);
     return {
-      total_count: data?.total_count || 0,
-      schools: data?.schools || [],
+      total_count: resultRow.total_count,
+      schools: (resultRow.schools as School[]) ?? [],
     };
   }
 
