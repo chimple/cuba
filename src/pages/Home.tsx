@@ -131,10 +131,14 @@ const Home: FC = () => {
             const isLoggedIn = await authHandler.isUserLoggedIn();
 	          const student = Util.getCurrentStudent();
 	          if (isLoggedIn && student) {
+              try {
 	              await ScreenOrientation.lock({ orientation: "landscape" });
-	          }
-	      }
-	  };
+              } catch (error) {
+                  console.error("Error locking screen orientation:", error);
+              }
+          }
+      }
+    };
     lockLandscapeForStudentMode();
     const student = Util.getCurrentStudent();
     if (!student) {

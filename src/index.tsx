@@ -69,7 +69,11 @@ SplashScreen.show();
       const authHandler = ServiceConfig.getI().authHandler;
       const isLoggedIn = await authHandler.isUserLoggedIn();
       if (isLoggedIn) {
-        await ScreenOrientation.lock({ orientation: "landscape" });
+        try {
+          await ScreenOrientation.lock({ orientation: "landscape" });
+        } catch (error) {
+          console.error("Error locking screen orientation:", error);
+        }
       }
     }
   await applyPolyfills();
