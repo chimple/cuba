@@ -578,16 +578,18 @@ const RequestList: React.FC = () => {
         </div>
 
         <div className="request-list-table-container">
-          <DataTableBody
-            columns={columns}
-            rows={requestData}
-            orderBy={orderBy}
-            order={orderDir}
-            onSort={handleSort}
-            loading={isLoading}
-            onRowClick={handleRowClick}
-            ref={tableScrollRef}
-          />
+          {(isLoading || requestData.length > 0) && (
+            <DataTableBody
+              columns={columns}
+              rows={requestData}
+              orderBy={orderBy}
+              order={orderDir}
+              onSort={handleSort}
+              loading={isLoading} // let DataTableBody show skeleton/loader
+              onRowClick={handleRowClick}
+              ref={tableScrollRef}
+            />
+          )}
         </div>
 
         {!isLoading && requestData.length === 0 && (

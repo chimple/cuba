@@ -148,6 +148,7 @@ import AddTeacherName from "./teachers-module/pages/AddTeacherName";
 import SearchSchool from "./teachers-module/pages/SearchSchool";
 import JoinSchool from "./pages/JoinSchool";
 import CreateSchool from "./teachers-module/pages/CreateSchool";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 
 setupIonicReact();
 interface ExtraData {
@@ -230,6 +231,21 @@ const App: React.FC = () => {
     };
   }, [online, presentToast]);
   useEffect(() => {
+
+     const lockPortraitIfNotLoggedIn = async () => {
+      if (Capacitor.isNativePlatform()) {
+        const authHandler = ServiceConfig.getI().authHandler;
+        const isLoggedIn = await authHandler.isUserLoggedIn();
+        if (!isLoggedIn) {
+          await ScreenOrientation.lock({ orientation: "portrait" });
+        } else {
+          await ScreenOrientation.unlock();
+        }
+      }
+    };
+    lockPortraitIfNotLoggedIn();
+
+    
     initializeUsage();
     document.addEventListener("visibilitychange", handleVisibilityChange);
     startTimeout();
