@@ -4812,29 +4812,41 @@ order by
       is_deleted: false,
     };
 
-    await this.executeQuery(
+    // Check if a duplicate already exists
+    const existing = await this.executeQuery(
       `
-    INSERT INTO school_user (id, school_id, user_id, role, created_at, updated_at, is_deleted)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT (school_id, user_id, role, is_deleted) DO NOTHING;
-    `,
-      [
-        schoolUser.id,
-        schoolUser.school_id,
-        schoolUser.user_id,
-        schoolUser.role,
-        schoolUser.created_at,
-        schoolUser.updated_at,
-        schoolUser.is_deleted,
-      ]
+      SELECT 1 FROM school_user
+      WHERE school_id = ? AND user_id = ? AND role = ? AND is_deleted = ?
+      LIMIT 1
+      `,
+      [schoolUser.school_id, schoolUser.user_id, schoolUser.role, schoolUser.is_deleted]
     );
 
-    await this.updatePushChanges(
-      TABLES.SchoolUser,
-      MUTATE_TYPES.INSERT,
-      schoolUser
-    );
-    // var user_doc = await this._serverApi.getUserByDocId(userId);
+    // Only insert if not exists
+    if (!existing || !existing.values || existing.values.length === 0) {
+      await this.executeQuery(
+        `
+        INSERT INTO school_user (id, school_id, user_id, role, created_at, updated_at, is_deleted)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        `,
+        [
+          schoolUser.id,
+          schoolUser.school_id,
+          schoolUser.user_id,
+          schoolUser.role,
+          schoolUser.created_at,
+          schoolUser.updated_at,
+          schoolUser.is_deleted,
+        ]
+      );
+
+      await this.updatePushChanges(
+        TABLES.SchoolUser,
+        MUTATE_TYPES.INSERT,
+        schoolUser
+      );
+    }
+
     if (user) {
       await this.executeQuery(
         `
