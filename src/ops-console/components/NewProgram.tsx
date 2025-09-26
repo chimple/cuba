@@ -609,8 +609,8 @@ const NewProgram: React.FC = () => {
                       label={t("End Date")}
                       value={endDate}
                       onChange={(date: Dayjs | null) => setEndDate(date)}
-                      format="DD/MM/YYYY" // ✅ use format instead of inputFormat
-                      slots={{ textField: TextField }} // ✅ replace renderInput with slots
+                      format="DD/MM/YYYY" // use format instead of inputFormat
+                      slots={{ textField: TextField }} // replace renderInput with slots
                       slotProps={{
                         textField: {
                           fullWidth: true,
@@ -630,7 +630,7 @@ const NewProgram: React.FC = () => {
                       value={endDate}
                       onChange={(date: Dayjs | null) => setEndDate(date)}
                       format="DD/MM/YYYY"
-                      slots={{ textField: TextField }} // ✅ Replace renderInput
+                      slots={{ textField: TextField }} // Replace renderInput
                       slotProps={{
                         textField: {
                           fullWidth: true,
@@ -638,7 +638,7 @@ const NewProgram: React.FC = () => {
                           helperText: errors["endDate"] || errors["date"],
                           variant: "outlined",
                           InputProps: {
-                            sx: { borderRadius: "12px" }, // ✅ Styling preserved
+                            sx: { borderRadius: "12px" }, // Styling preserved
                           },
                         },
                       }}
