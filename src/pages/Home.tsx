@@ -127,11 +127,11 @@ const Home: FC = () => {
   useEffect(() => {
     const lockLandscapeForStudentMode = async () => {
 	      if (Capacitor.isNativePlatform()) {
+            const authHandler = ServiceConfig.getI().authHandler;
+            const isLoggedIn = await authHandler.isUserLoggedIn();
 	          const student = Util.getCurrentStudent();
-	          if (student) {
+	          if (isLoggedIn && student) {
 	              await ScreenOrientation.lock({ orientation: "landscape" });
-	          } else {
-	              await ScreenOrientation.unlock();
 	          }
 	      }
 	  };

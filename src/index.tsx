@@ -65,13 +65,13 @@ if (typeof window !== "undefined") {
 }
 SplashScreen.show();
 (async () => {
-  if (Capacitor.isNativePlatform()) {
-    try {
-      await ScreenOrientation.lock({ orientation: "landscape" });
-    } catch (e) {
-      console.warn("ScreenOrientation lock failed", e);
+   if (Capacitor.isNativePlatform()) {
+      const authHandler = ServiceConfig.getI().authHandler;
+      const isLoggedIn = await authHandler.isUserLoggedIn();
+      if (isLoggedIn) {
+        await ScreenOrientation.lock({ orientation: "landscape" });
+      }
     }
-  }
   await applyPolyfills();
   jeepSqlite(window);
 })();
