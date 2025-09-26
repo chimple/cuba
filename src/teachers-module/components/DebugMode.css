@@ -2,12 +2,11 @@
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* top-align content */
+  justify-content: flex-start;
   margin-top: 7%;
-  width: fit-content;
-  overflow-y: auto; /* only scroll when needed */
-  max-height: calc(100vh - 7%); /* account for top margin */
-  margin-right: 2%;
+  width: 100vw;
+  min-height: 80vh;
+  overflow-y: auto;
 }
 .debug-scroll-wrapper {
   max-height: 80vh; /* or any desired height */

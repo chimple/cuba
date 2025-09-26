@@ -64,12 +64,17 @@ if (typeof window !== "undefined") {
   }
 }
 SplashScreen.show();
-if (Capacitor.isNativePlatform()) {
-  await ScreenOrientation.lock({ orientation: "landscape" });
-}
-applyPolyfills().then(() => {
+(async () => {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      await ScreenOrientation.lock({ orientation: "landscape" });
+    } catch (e) {
+      console.warn("ScreenOrientation lock failed", e);
+    }
+  }
+  await applyPolyfills();
   jeepSqlite(window);
-});
+})();
 const recordExecption = (message: string, error: string) => {
   if (Capacitor.getPlatform() != "web") {
     FirebaseCrashlytics.recordException({ message: message, domain: error });
@@ -79,7 +84,7 @@ window.onunhandledrejection = (event: PromiseRejectionEvent) => {
   recordExecption(event.reason.toString(), event.type.toString());
 };
 window.onerror = (message, source, lineno, colno, error) => {
-  recordExecption(message.toString, error.toString());
+  recordExecption(message?.toString?.(), error?.toString?.());
 };
 const container = document.getElementById("root");
 const root = createRoot(container!);
@@ -115,7 +120,6 @@ const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
 
 if (isOpsUser) {
   serviceInstance.switchMode(APIMode.SUPABASE);
-
   root.render(
     <GrowthBookProvider growthbook={gb}>
       <GbProvider>
@@ -123,14 +127,11 @@ if (isOpsUser) {
       </GbProvider>
     </GrowthBookProvider>
   );
-
   SplashScreen.hide();
 } else {
   SplashScreen.show();
-
   SqliteApi.getInstance().then(() => {
     serviceInstance.switchMode(APIMode.SQLITE);
-
     root.render(
       <GrowthBookProvider growthbook={gb}>
         <GbProvider>
@@ -138,7 +139,6 @@ if (isOpsUser) {
         </GbProvider>
       </GrowthBookProvider>
     );
-
     SplashScreen.hide();
   });
 }

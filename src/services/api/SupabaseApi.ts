@@ -47,6 +47,7 @@ import {
   SearchSchoolsParams,
   SearchSchoolsResult,
   GeoDataParams,
+  School,
 } from "../../common/constants";
 import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
@@ -1000,7 +1001,8 @@ export class SupabaseApi implements ServiceApi {
     image: File | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
+    country: string | null
   ): Promise<TableTypes<"school">> {
     if (!this.supabase) return {} as TableTypes<"school">;
     const _currentUser =
@@ -1037,9 +1039,9 @@ export class SupabaseApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
-      status: null,
+      status: STATUS.REQUESTED,
       key_contacts: null,
-      country: null,
+      country: country ?? null,
     };
 
     // Insert school
@@ -5589,6 +5591,21 @@ export class SupabaseApi implements ServiceApi {
     const schoolUserId = uuidv4();
     const timestamp = new Date().toISOString();
 
+    const { data: existing, error: selectError } = await this.supabase
+      .from(TABLES.SchoolUser)
+      .select("id")
+      .eq("school_id", schoolId)
+      .eq("user_id", user.id)
+      .eq("role", role)
+      .eq("is_deleted", false)
+      .limit(1);
+
+    if (selectError) {
+      console.error("Error checking existing school_user:", selectError);
+      return;
+    }
+    if (existing && existing.length > 0) return;
+
     const schoolUser = {
       id: schoolUserId,
       school_id: schoolId,
@@ -8337,10 +8354,11 @@ export class SupabaseApi implements ServiceApi {
       console.error("RPC 'search_schools' failed:", params, error);
       return { total_count: 0, schools: [] };
     }
-
+    const resultRow = Array.isArray(data) ? data[0] : data;
+    console.log("searchSchools result:", data);
     return {
-      total_count: data?.total_count || 0,
-      schools: data?.schools || [],
+      total_count: resultRow.total_count,
+      schools: (resultRow.schools as School[]) ?? [],
     };
   }
 

@@ -285,21 +285,27 @@ export class SqliteApi implements ServiceApi {
       }
     }
 
-    const config = ServiceConfig.getInstance(APIMode.SQLITE);
-    const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
-    if (isUserLoggedIn) {
-      console.log("syncing");
-      let user;
-      try {
-        user = await config.authHandler.getCurrentUser();
-      } catch (error) {
-        console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
+    // Move sync logic to a separate method that can be called after full initialization
+    await this.checkAndSyncData();
+  }
+
+  private async checkAndSyncData() {
+    try {
+      const config = ServiceConfig.getInstance(APIMode.SQLITE);
+      const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
+
+      if (isUserLoggedIn) {
+        console.log("syncing");
+        const user = await config.authHandler.getCurrentUser();
+
+        if (!user) {
+          await this.syncDbNow();
+        } else {
+          this.syncDbNow();
+        }
       }
-      if (!user) {
-        await this.syncDbNow();
-      } else {
-        this.syncDbNow();
-      }
+    } catch (error) {
+      console.log("🚀 ~ SqliteApi ~ checkAndSyncData ~ error:", error);
     }
   }
 
@@ -688,7 +694,8 @@ export class SqliteApi implements ServiceApi {
     image: File | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
+    country: string |null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -720,15 +727,15 @@ export class SqliteApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
-      status: null,
+      status: STATUS.REQUESTED,
       key_contacts: null,
-      country: null,
+      country: country,
     };
 
     await this.executeQuery(
       `
-      INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted, status, country)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         newSchool.id,
@@ -740,6 +747,8 @@ export class SqliteApi implements ServiceApi {
         newSchool.created_at,
         newSchool.updated_at,
         newSchool.is_deleted,
+        newSchool.status,
+        newSchool.country
       ]
     );
 
@@ -4784,6 +4793,7 @@ order by
       `
     INSERT INTO school_user (id, school_id, user_id, role, created_at, updated_at, is_deleted)
     VALUES (?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT (school_id, user_id, role, is_deleted) DO NOTHING;
     `,
       [
         schoolUser.id,

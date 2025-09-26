@@ -185,7 +185,7 @@ const SearchSchool: FC = () => {
     };
     // The API now returns an object: { schools, total_count }
     const result = await api.searchSchools(params);
-    const newSchools = result.schools;
+    const newSchools = result.schools ?? [];
 
     // Set the total count ONLY on the first search of a new query
     if (isNewSearch) {
