@@ -142,7 +142,7 @@ const AddCourse: FC<{
                       </div>
                     ) : null}
                     <div id="subject-card-subject-name">
-                      <p>{gradeTitle}</p>
+                      <p>{t(gradeTitle)}</p>
                     </div>
                     <div
                       className="course-icon"

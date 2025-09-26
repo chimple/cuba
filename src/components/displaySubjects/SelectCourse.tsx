@@ -71,7 +71,7 @@ const SelectCourse: FC<{
             >
               <div id="subject-card-subject-name">
                 <p>
-                  <p>{grade?.name}</p>
+                  <p>{t(grade?.name || "")}</p>
                 </p>
               </div>
               <div
@@ -88,9 +88,9 @@ const SelectCourse: FC<{
                   imageHeight={"auto"}
                 />
               </div>
-              <div className="course-title">{course.name}</div>
+              <div className="course-title">{t(course.name)}</div>
               {curriculum && (
-                <div className="course-curriculum">{curriculum.name}</div>
+                <div className="course-curriculum">{t(curriculum.name)}</div>
               )}
             </div>
           </SplideSlide>
