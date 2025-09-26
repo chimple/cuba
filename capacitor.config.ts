@@ -8,7 +8,7 @@ const config: CapacitorConfig = {
   appId: "org.chimple.bahama",
   appName: "Chimple",
   webDir: "build",
-  bundledWebRuntime: false,
+  // bundledWebRuntime: false,
   plugins: {
     FirebaseAuthentication: {
       skipNativeAuth: false,

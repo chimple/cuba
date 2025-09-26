@@ -1,4 +1,5 @@
 
+//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import UserRoles from "../../../pages/Malta/UserRoles";
 

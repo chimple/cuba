@@ -106,9 +106,12 @@ export class SqliteApi implements ServiceApi {
     if (platform === "web") {
       const jeepEl = document.createElement("jeep-sqlite");
       document.body.appendChild(jeepEl);
+
       await customElements.whenDefined("jeep-sqlite");
+
       await this._sqlite.initWebStore();
     }
+
     let ret: capSQLiteResult | undefined;
     let isConn: boolean | undefined;
     try {
@@ -119,6 +122,7 @@ export class SqliteApi implements ServiceApi {
     }
     try {
       const localVersion = localStorage.getItem(CURRENT_SQLITE_VERSION);
+
       if (
         localVersion &&
         !Number.isNaN(localVersion) &&
@@ -126,17 +130,20 @@ export class SqliteApi implements ServiceApi {
       ) {
         const upgradeStatements: capSQLiteVersionUpgrade[] = [];
         const localVersionNumber = Number(localVersion);
+
         const data = await fetch("databases/upgradeStatements.json");
+
         if (!data || !data.ok) return;
-        const upgradeStatementsMap: {
-          [key: string]: string[];
-        } = await data.json();
+        const upgradeStatementsMap: { [key: string]: string[] } =
+          await data.json();
+
         for (
           let version = localVersionNumber + 1;
           version <= this.DB_VERSION;
           version++
         ) {
           const versionData = upgradeStatementsMap[version];
+
           if (versionData && versionData["statements"]) {
             upgradeStatements.push({
               toVersion: version,
@@ -189,7 +196,7 @@ export class SqliteApi implements ServiceApi {
       );
     }
     try {
-      await this._db.open();
+      await this._db?.open();
     } catch (err) {
       console.error("🚀 ~ SqliteApi ~ init ~ err:", err);
     }

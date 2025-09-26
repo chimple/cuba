@@ -47,6 +47,7 @@ import {
 import { RoleType } from "../interface/modelInterfaces";
 import { schoolUtil } from "../utility/schoolUtil";
 import LoginWithEmail from "../components/LoginWithEmail";
+import SkeltonLoading from "../components/SkeltonLoading";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -879,13 +880,13 @@ const Login: React.FC = () => {
                   {isInputFocus ? (
                     <div ref={scollToRef} id="scroll"></div>
                   ) : null}
-                  <IonLoading
+                  {/* <IonLoading
                     id="custom-loading"
                     // trigger="open-loading"
                     message="Loading"
                     // duration={3000}
                     isOpen={spinnerLoading}
-                  />
+                  /> */}
 
                   <div id="Google-horizontal-line-main-container">
                     <div id="Google-horizontal-line"></div>
@@ -1266,7 +1267,7 @@ const Login: React.FC = () => {
           ) : null}
         </div>
       )}
-      <Loading isLoading={sentOtpLoading} />
+      <SkeltonLoading isLoading={sentOtpLoading} />
     </IonPage>
   );
 };

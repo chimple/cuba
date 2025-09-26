@@ -79,7 +79,7 @@ const AppLangSelection: React.FC = () => {
           </div>
         </div>
       ) : null}
-      <Loading isLoading={isLoading} />
+      {/* <Loading isLoading={isLoading} /> */}
     </IonPage>
   );
 };

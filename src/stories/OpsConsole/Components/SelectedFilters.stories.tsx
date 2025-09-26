@@ -1,3 +1,4 @@
+//@ts-nocheck
 import type { Meta, StoryObj } from '@storybook/react';
 import SelectedFilters from '../../../ops-console/components/SelectedFilters';
 

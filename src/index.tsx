@@ -22,13 +22,10 @@ import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import "./index.css";
 import "./i18n";
 import { APIMode, ServiceConfig } from "./services/ServiceConfig";
-import {
-  defineCustomElements as jeepSqlite,
-  applyPolyfills,
-} from "jeep-sqlite/loader";
+import { defineCustomElements as jeepSqlite } from "jeep-sqlite/loader";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 import { SqliteApi } from "./services/api/SqliteApi";
-import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
+// import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { IonLoading } from "@ionic/react";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
@@ -82,11 +79,11 @@ window.onerror = (message, source, lineno, colno, error) => {
 };
 const container = document.getElementById("root");
 const root = createRoot(container!);
-GoogleAuth.initialize({
-  clientId: process.env.REACT_APP_CLIENT_ID,
-  scopes: ["profile", "email"],
-  // grantOfflineAccess: true,
-});
+// GoogleAuth.initialize({
+//   clientId: process.env.REACT_APP_CLIENT_ID,
+//   scopes: ["profile", "email"],
+//   // grantOfflineAccess: true,
+// });
 
 const gb = new GrowthBook({
   apiHost: "https://cdn.growthbook.io",

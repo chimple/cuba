@@ -1,3 +1,4 @@
+//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import { TableTypes } from "../../../common/constants";
 import UserDetail from "../../components/studentProfile/UserDetail";

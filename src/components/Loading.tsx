@@ -8,10 +8,7 @@ interface LoadingProps extends LoadingOptions {
   msg?: string;
 }
 
-const Loading: React.FC<LoadingProps> = ({
-  isLoading,
-  msg = "",
-}) => {
+const Loading: React.FC<LoadingProps> = ({ isLoading, msg = "" }) => {
   return isLoading ? (
     <div>
       <IonLoading
