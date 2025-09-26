@@ -32,14 +32,16 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
   };
-  useEffect(() => {
-    chapterSelectedLessons(chapter.id, selectedLessons);
-  }, [selectedLessons]);
+  // useEffect(() => {
+  //   chapterSelectedLessons(chapter.id, selectedLessons);
+  // }, [selectedLessons]);
   const handleLessonToggle = (lesson) => {
     setSelectedLessons((prevSelectedLessons) => {
       if (prevSelectedLessons.includes(lesson)) {
+        chapterSelectedLessons(chapter.id, lesson, false);   //remove lesson
         return prevSelectedLessons.filter((item) => item !== lesson);
       } else {
+        chapterSelectedLessons(chapter.id, lesson, true);   //add lesson
         return [...prevSelectedLessons, lesson];
       }
     });
