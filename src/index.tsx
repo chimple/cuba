@@ -47,7 +47,7 @@ import { initializeFireBase } from "./services/Firebase";
 // Extend React's JSX namespace to include Stencil components
 declare global {
   namespace JSX {
-    interface IntrinsicElements extends LocalJSX.IntrinsicElements { }
+    interface IntrinsicElements extends LocalJSX.IntrinsicElements {}
   }
 }
 defineCustomElements(window);
@@ -64,21 +64,12 @@ if (typeof window !== "undefined") {
   }
 }
 SplashScreen.show();
-(async () => {
-   if (Capacitor.isNativePlatform()) {
-      const authHandler = ServiceConfig.getI().authHandler;
-      const isLoggedIn = await authHandler.isUserLoggedIn();
-      if (isLoggedIn) {
-        try {
-          await ScreenOrientation.lock({ orientation: "landscape" });
-        } catch (error) {
-          console.error("Error locking screen orientation:", error);
-        }
-      }
-    }
-  await applyPolyfills();
+if (Capacitor.isNativePlatform()) {
+  await ScreenOrientation.lock({ orientation: "landscape" });
+}
+applyPolyfills().then(() => {
   jeepSqlite(window);
-})();
+});
 const recordExecption = (message: string, error: string) => {
   if (Capacitor.getPlatform() != "web") {
     FirebaseCrashlytics.recordException({ message: message, domain: error });
@@ -88,7 +79,7 @@ window.onunhandledrejection = (event: PromiseRejectionEvent) => {
   recordExecption(event.reason.toString(), event.type.toString());
 };
 window.onerror = (message, source, lineno, colno, error) => {
-  recordExecption(message?.toString?.(), error?.toString?.());
+  recordExecption(message.toString(), error.toString());
 };
 const container = document.getElementById("root");
 const root = createRoot(container!);
