@@ -1,0 +1,31 @@
+
+.request-from-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  background: #fff;
+}
+
+.request-from-title {
+  font-weight: 600 !important;
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.request-from-field-stack {
+  margin: 10px 0;
+}
+
+.request-from-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 2px;
+}
+
+.request-from-value {
+  font-size: 1rem;
+  color: #222;
+  word-break: break-word; /* handles long emails */
+}

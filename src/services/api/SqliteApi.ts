@@ -42,6 +42,12 @@ import {
   CoordinatorAPIResponse,
   EVENTS,
   EnumType,
+  CACHETABLES,
+  RequestTypes,
+  STATUS,
+  GeoDataParams,
+  SearchSchoolsParams,
+  SearchSchoolsResult,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -72,7 +78,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 4;
+  private DB_VERSION = 5;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -279,21 +285,27 @@ export class SqliteApi implements ServiceApi {
       }
     }
 
-    const config = ServiceConfig.getInstance(APIMode.SQLITE);
-    const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
-    if (isUserLoggedIn) {
-      console.log("syncing");
-      let user;
-      try {
-        user = await config.authHandler.getCurrentUser();
-      } catch (error) {
-        console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
+    // Move sync logic to a separate method that can be called after full initialization
+    await this.checkAndSyncData();
+  }
+
+  private async checkAndSyncData() {
+    try {
+      const config = ServiceConfig.getInstance(APIMode.SQLITE);
+      const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
+
+      if (isUserLoggedIn) {
+        console.log("syncing");
+        const user = await config.authHandler.getCurrentUser();
+
+        if (!user) {
+          await this.syncDbNow();
+        } else {
+          this.syncDbNow();
+        }
       }
-      if (!user) {
-        await this.syncDbNow();
-      } else {
-        this.syncDbNow();
-      }
+    } catch (error) {
+      console.log("🚀 ~ SqliteApi ~ checkAndSyncData ~ error:", error);
     }
   }
 
@@ -535,6 +547,7 @@ export class SqliteApi implements ServiceApi {
       is_ops: null,
       learning_path: null,
       ops_created_by: null,
+      reward: null,
       stars: null,
     };
 
@@ -681,7 +694,8 @@ export class SqliteApi implements ServiceApi {
     image: File | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
+    country: string | null
   ): Promise<TableTypes<"school">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -713,12 +727,15 @@ export class SqliteApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
+      status: STATUS.REQUESTED,
+      key_contacts: null,
+      country: country,
     };
 
     await this.executeQuery(
       `
-      INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted, status, country)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         newSchool.id,
@@ -730,6 +747,8 @@ export class SqliteApi implements ServiceApi {
         newSchool.created_at,
         newSchool.updated_at,
         newSchool.is_deleted,
+        newSchool.status,
+        newSchool.country,
       ]
     );
 
@@ -815,6 +834,9 @@ export class SqliteApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
+      status: null,
+      key_contacts: null,
+      country: null,
     };
     const updatedSchoolQuery = `
     UPDATE school
@@ -962,6 +984,7 @@ export class SqliteApi implements ServiceApi {
       learning_path: null,
       ops_created_by: null,
       stars: null,
+      reward: null,
     };
     // Insert into user table
     await this.executeQuery(
@@ -2274,6 +2297,24 @@ export class SqliteApi implements ServiceApi {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
+  async getCourses(courseIds: string[]): Promise<TableTypes<"course">[]> {
+    if (!courseIds || courseIds.length === 0) {
+      return [];
+    }
+
+    // create placeholders (?, ?, ?) based on number of courseIds
+    const placeholders = courseIds.map(() => "?").join(",");
+
+    const query = `
+      SELECT *
+      FROM ${TABLES.Course}
+      WHERE id IN (${placeholders})
+        AND is_deleted = 0
+    `;
+
+    const res = await this._db?.query(query, courseIds);
+    return res?.values ?? [];
+  }
 
   async getStudentResult(
     studentId: string,
@@ -2652,6 +2693,60 @@ export class SqliteApi implements ServiceApi {
     } catch (error) {
       console.error("Error deleting user from class_user", error);
     }
+    // const updatedAt = new Date().toISOString();
+    // try {
+    //   const opsBefore = await this._db?.query(
+    //     `SELECT * FROM ops_requests WHERE requested_by = ? AND class_id = ? AND is_deleted = 0`,
+    //     [userId, class_id]
+    //   );
+    //   const opsIds: string[] = opsBefore?.values?.map((r: any) => r.id) ?? [];
+
+    //   const cuBefore = await this._db?.query(
+    //     `SELECT id FROM ${TABLES.ClassUser} WHERE user_id = ? AND class_id = ? AND is_deleted = 0`,
+    //     [userId, class_id]
+    //   );
+    //   const cuIds: string[] = cuBefore?.values?.map((r: any) => r.id) ?? [];
+
+    //   if (cuIds.length > 0) {
+    //     await this.executeQuery(
+    //       `UPDATE ${TABLES.ClassUser} SET is_deleted = 1, updated_at = ? WHERE user_id = ? AND class_id = ? AND is_deleted = 0`,
+    //       [updatedAt, userId, class_id]
+    //     );
+    //     for (const id of cuIds) {
+    //       this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
+    //         id,
+    //         is_deleted: true,
+    //         updated_at: updatedAt,
+    //       });
+    //     }
+    //   } else {
+    //     console.warn("No class_user row to soft delete for", {
+    //       userId,
+    //       class_id,
+    //     });
+    //   }
+
+    //   if (opsIds.length > 0) {
+    //     await this.executeQuery(
+    //       `UPDATE ops_requests SET is_deleted = 1, updated_at = ? WHERE requested_by = ? AND class_id = ? AND is_deleted = 0`,
+    //       [updatedAt, userId, class_id]
+    //     );
+    //     for (const id of opsIds) {
+    //       this.updatePushChanges(TABLES.OpsRequests, MUTATE_TYPES.UPDATE, {
+    //         id,
+    //         is_deleted: true,
+    //         updated_at: updatedAt,
+    //       });
+    //     }
+    //   } else {
+    //     console.warn("No ops_requests row to soft delete for", {
+    //       userId,
+    //       class_id,
+    //     });
+    //   }
+    // } catch (error) {
+    //   console.error("Error deleting user from class_user", error);
+    // }
   }
 
   async getStudentsForClass(classId: string): Promise<TableTypes<"user">[]> {
@@ -4717,28 +4812,41 @@ order by
       is_deleted: false,
     };
 
-    await this.executeQuery(
+    // Check if a duplicate already exists
+    const existing = await this.executeQuery(
       `
-    INSERT INTO school_user (id, school_id, user_id, role, created_at, updated_at, is_deleted)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-    `,
-      [
-        schoolUser.id,
-        schoolUser.school_id,
-        schoolUser.user_id,
-        schoolUser.role,
-        schoolUser.created_at,
-        schoolUser.updated_at,
-        schoolUser.is_deleted,
-      ]
+      SELECT 1 FROM school_user
+      WHERE school_id = ? AND user_id = ? AND role = ? AND is_deleted = ?
+      LIMIT 1
+      `,
+      [schoolUser.school_id, schoolUser.user_id, schoolUser.role, schoolUser.is_deleted]
     );
 
-    await this.updatePushChanges(
-      TABLES.SchoolUser,
-      MUTATE_TYPES.INSERT,
-      schoolUser
-    );
-    // var user_doc = await this._serverApi.getUserByDocId(userId);
+    // Only insert if not exists
+    if (!existing || !existing.values || existing.values.length === 0) {
+      await this.executeQuery(
+        `
+        INSERT INTO school_user (id, school_id, user_id, role, created_at, updated_at, is_deleted)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        `,
+        [
+          schoolUser.id,
+          schoolUser.school_id,
+          schoolUser.user_id,
+          schoolUser.role,
+          schoolUser.created_at,
+          schoolUser.updated_at,
+          schoolUser.is_deleted,
+        ]
+      );
+
+      await this.updatePushChanges(
+        TABLES.SchoolUser,
+        MUTATE_TYPES.INSERT,
+        schoolUser
+      );
+    }
+
     if (user) {
       await this.executeQuery(
         `
@@ -5535,6 +5643,7 @@ order by
             learning_path: null,
             music_off: false,
             ops_created_by: null,
+            reward: null,
             sfx_off: false,
             stars: null,
             student_id: null,
@@ -5554,6 +5663,277 @@ order by
       data: studentInfoList,
       total,
     };
+  }
+  async getStudentsAndParentsByClassId(
+    classId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<StudentAPIResponse> {
+    if (!this._db) {
+      console.warn("Database not initialized, cannot fetch student info.");
+      return { data: [], total: 0 };
+    }
+
+    const offset = (page - 1) * limit;
+
+    // Step 1: Get total count for the specified class
+    const countQuery = `
+    SELECT COUNT(DISTINCT cu.user_id) as total
+    FROM ${TABLES.ClassUser} cu
+    INNER JOIN ${TABLES.Class} c ON cu.class_id = c.id
+    WHERE cu.role = 'student'
+      AND cu.is_deleted = false
+      AND cu.class_id = ? -- Filter by class_id directly
+      AND c.is_deleted = false;
+  `;
+    const countRes = await this._db.query(countQuery, [classId]);
+    const total = countRes?.values?.[0]?.total ?? 0;
+
+    if (total === 0) {
+      return { data: [], total: 0 };
+    }
+
+    // Step 2: Fetch paginated data for the specified class
+    const query = `
+    SELECT
+      u.*,
+      c.name as class_name,
+      p.id as parent_id,
+      p.name as parent_name,
+      p.email as parent_email,
+      p.phone as parent_phone
+      -- Add any other parent fields you want here, aliased with 'parent_'
+    FROM ${TABLES.ClassUser} cu
+    INNER JOIN ${TABLES.Class} c ON cu.class_id = c.id
+    INNER JOIN ${TABLES.User} u ON cu.user_id = u.id
+    LEFT JOIN ${TABLES.ParentUser} pu ON pu.student_id = u.id AND pu.is_deleted = false
+    LEFT JOIN ${TABLES.User} p ON p.id = pu.parent_id AND p.is_deleted = false
+    WHERE cu.role = 'student'
+      AND cu.is_deleted = false
+      AND cu.class_id = ? -- Filter by class_id directly
+      AND c.is_deleted = false
+      AND u.is_deleted = false
+    -- Important to group by student to avoid duplicates if a student is in multiple classes (though less likely when filtering by specific class)
+    GROUP BY u.id
+    ORDER BY u.name ASC
+    LIMIT ? OFFSET ?;
+  `;
+    const res = await this._db.query(query, [classId, limit, offset]);
+    const rows = res?.values ?? [];
+
+    const studentInfoList: StudentInfo[] = rows.map((row: any) => {
+      const {
+        class_name,
+        parent_id,
+        parent_name,
+        parent_email,
+        parent_phone,
+        ...studentUser
+      } = row;
+
+      const { grade, section } = this.parseClassName(class_name || "");
+      const parentObject: TableTypes<"user"> | null = parent_id
+        ? {
+            id: parent_id,
+            name: parent_name,
+            email: parent_email,
+            phone: parent_phone,
+            age: null, // Assuming these fields are nullable or have default values in your User table type
+            avatar: null,
+            created_at: new Date().toISOString(), // Example, adjust if you fetch this
+            curriculum_id: null,
+            fcm_token: null,
+            firebase_id: null,
+            gender: null,
+            grade_id: null,
+            image: null,
+            is_deleted: false,
+            is_firebase: false,
+            is_ops: false,
+            is_tc_accepted: false,
+            language_id: null,
+            learning_path: null,
+            music_off: false,
+            ops_created_by: null,
+            reward: null,
+            sfx_off: false,
+            stars: null,
+            student_id: null,
+            updated_at: null,
+          }
+        : null;
+
+      return {
+        user: studentUser as TableTypes<"user">,
+        grade,
+        classSection: section,
+        parent: parentObject,
+      };
+    });
+
+    return {
+      data: studentInfoList,
+      total,
+    };
+  }
+  async getStudentAndParentByStudentId(
+    studentId: string
+  ): Promise<{ user: any; parents: any[] }> {
+    if (!this._db) {
+      console.warn("Database not initialized.");
+      return { user: null, parents: [] };
+    }
+
+    try {
+      // Fetch student details
+      const studentRes = await this._db.query(
+        `SELECT * FROM user WHERE id = ? AND is_deleted = 0`,
+        [studentId]
+      );
+      const studentRows = studentRes?.values ?? [];
+
+      if (studentRows.length === 0) {
+        return { user: null, parents: [] };
+      }
+
+      const student = studentRows[0];
+
+      // Fetch parent details
+      const parentRes = await this._db.query(
+        `SELECT p.*
+       FROM parent_user pu
+       JOIN user p ON pu.parent_id = p.id
+       WHERE pu.student_id = ? AND p.is_deleted = 0`,
+        [studentId]
+      );
+      const parentRows = parentRes?.values ?? [];
+
+      return {
+        user: student,
+        parents: parentRows,
+      };
+    } catch (error) {
+      console.error(
+        "Error fetching student and parent by student ID (SQLite):",
+        error
+      );
+      return { user: null, parents: [] };
+    }
+  }
+
+  async mergeStudentRequest(
+    requestId: string,
+    existingStudentId: string,
+    newStudentId: string,
+    respondedBy: string
+  ): Promise<void> {
+    if (!this._db) {
+      throw new Error("SQLite DB not initialized.");
+    }
+
+    const now = new Date().toISOString();
+
+    try {
+      // 1. Get new student details + parents
+      const newStudentRes = await this._db.query(
+        `SELECT * FROM user WHERE id = ? AND is_deleted = 0`,
+        [newStudentId]
+      );
+      const newStudent = newStudentRes?.values?.[0];
+      if (!newStudent) throw new Error("New student not found");
+
+      const newParentsRes = await this._db.query(
+        `SELECT p.* FROM parent_user pu
+       JOIN user p ON pu.parent_id = p.id
+       WHERE pu.student_id = ? AND pu.is_deleted = 0 AND p.is_deleted = 0`,
+        [newStudentId]
+      );
+      const newParents = newParentsRes?.values || [];
+
+      // 2. Get existing student details + parents
+      const existingStudentRes = await this._db.query(
+        `SELECT * FROM user WHERE id = ? AND is_deleted = 0`,
+        [existingStudentId]
+      );
+      const existingStudent = existingStudentRes?.values?.[0];
+      if (!existingStudent) throw new Error("Existing student not found");
+
+      const existingParentsRes = await this._db.query(
+        `SELECT p.* FROM parent_user pu
+       JOIN user p ON pu.parent_id = p.id
+       WHERE pu.student_id = ? AND pu.is_deleted = 0 AND p.is_deleted = 0`,
+        [existingStudentId]
+      );
+      const existingParents = existingParentsRes?.values || [];
+
+      // 3. Compare phone/email
+      const existingContact =
+        existingParents?.[0]?.phone || existingParents?.[0]?.email || null;
+      const newContact =
+        newParents?.[0]?.phone || newParents?.[0]?.email || null;
+
+      // 4. Transfer results
+      const resultRes = await this._db.query(
+        `SELECT * FROM result WHERE student_id = ? AND is_deleted = 0`,
+        [newStudentId]
+      );
+      const results = resultRes?.values || [];
+
+      if (results.length > 0) {
+        await this._db.run(
+          `UPDATE result SET student_id = ?, updated_at = ? 
+         WHERE student_id = ? AND is_deleted = 0`,
+          [existingStudentId, now, newStudentId]
+        );
+      }
+
+      // 5. Link new parents if contact differs
+      if (newContact && newContact !== existingContact) {
+        for (const parent of newParents) {
+          const alreadyLinked = existingParents.some(
+            (p: any) =>
+              (p.phone && parent.phone && p.phone === parent.phone) ||
+              (p.email && parent.email && p.email === parent.email)
+          );
+
+          if (!alreadyLinked) {
+            await this._db.run(
+              `INSERT INTO parent_user (student_id, parent_id, is_deleted, created_at, updated_at)
+             VALUES (?, ?, 0, ?, ?)`,
+              [existingStudentId, parent.id, now, now]
+            );
+          }
+        }
+      }
+
+      // 6. Soft-delete merged student + relations
+      await this._db.run(
+        `UPDATE class_user SET is_deleted = 1, updated_at = ? WHERE user_id = ?`,
+        [now, newStudentId]
+      );
+
+      await this._db.run(
+        `UPDATE parent_user SET is_deleted = 1, updated_at = ? WHERE student_id = ?`,
+        [now, newStudentId]
+      );
+
+      await this._db.run(
+        `UPDATE user SET is_deleted = 1, updated_at = ? WHERE id = ?`,
+        [now, newStudentId]
+      );
+
+      // 7. (Optional) mark ops_requests as approved/merged
+      await this._db.run(
+        `UPDATE ops_requests SET status = 'approved', merged_to = ?, updated_at = ?, responded_by = ? WHERE request_id = ?`,
+        [existingStudentId, now, respondedBy, requestId]
+      );
+    } catch (error) {
+      console.error(
+        "Error merging student in SQLite (mergeStudentRequestSqlite):",
+        error
+      );
+      throw error;
+    }
   }
 
   async createAutoProfile(
@@ -5584,6 +5964,7 @@ order by
       phone: null,
       fcm_token: null,
       music_off: false,
+      reward: null,
       sfx_off: false,
       student_id: null,
       firebase_id: null,
@@ -5699,7 +6080,7 @@ order by
   async program_activity_stats(programId: string): Promise<{
     total_students: number;
     total_teachers: number;
-    total_institutes: number;
+    total_schools: number;
     active_student_percentage: number;
     active_teacher_percentage: number;
     avg_weekly_time_minutes: number;
@@ -5819,7 +6200,9 @@ order by
   async getOpsRequests(
     requestStatus: EnumType<"ops_request_status">,
     page: number = 1,
-    limit: number = 8,
+    limit: number = 20,
+    orderBy: string = "created_at",
+    orderDir: "asc" | "desc" = "asc",
     filters?: { request_type?: string[]; school?: string[] },
     searchTerm?: string
   ) {
@@ -5902,5 +6285,134 @@ order by
     `;
     const result = await this._db.query(query, [...params, limit, offset]);
     return { data: result?.values ?? [], total };
+  }
+  async respondToSchoolRequest(
+    requestId: string,
+    respondedBy: string,
+    status: (typeof STATUS)[keyof typeof STATUS],
+    rejectionReason?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined> {
+    return await this._serverApi.respondToSchoolRequest(
+      requestId,
+      respondedBy,
+      status,
+      rejectionReason
+    );
+  }
+  async getFieldCoordinatorsByProgram(
+    programId: string
+  ): Promise<{ data: TableTypes<"user">[] }> {
+    return await this._serverApi.getFieldCoordinatorsByProgram(programId);
+  }
+  async getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }> {
+    return await this._serverApi.getProgramsByRole();
+  }
+  async updateSchoolStatus(
+    schoolId: string,
+    schoolStatus: (typeof STATUS)[keyof typeof STATUS],
+    address?: {
+      state?: string;
+      district?: string;
+      city?: string;
+      address?: string;
+    },
+    keyContacts?: any
+  ): Promise<void> {
+    return await this._serverApi.updateSchoolStatus(
+      schoolId,
+      schoolStatus,
+      address,
+      keyContacts
+    );
+  }
+  async clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
+    if (!this._db) return;
+    const query = `PRAGMA foreign_keys=OFF;`;
+    const result = await this._db?.query(query);
+    console.log(result);
+    for (const table of tableNames) {
+      const tableDel = `DELETE FROM "${table}";`;
+      const res = await this._db.query(tableDel);
+      console.log(res);
+    }
+    const vaccum = `VACUUM;`;
+    const resv = await this._db.query(vaccum);
+    console.log(resv);
+  }
+  async approveOpsRequest(
+    requestId: string,
+    respondedBy: string,
+    role: (typeof RequestTypes)[keyof typeof RequestTypes],
+    schoolId?: string,
+    classId?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined> {
+    return await this._serverApi.approveOpsRequest(
+      requestId,
+      respondedBy,
+      role,
+      schoolId,
+      classId
+    );
+  }
+  async getGeoData(params: GeoDataParams): Promise<string[]> {
+    return await this._serverApi.getGeoData(params);
+  }
+  async searchSchools(
+    params: SearchSchoolsParams
+  ): Promise<SearchSchoolsResult> {
+    {
+      return await this._serverApi.searchSchools(params);
+    }
+  }
+  async sendJoinSchoolRequest(
+    schoolId: string,
+    requestType: RequestTypes,
+    classId?: string
+  ): Promise<void> {
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!currentUser) throw "User is not Logged in";
+
+    const now = new Date().toISOString();
+    const newRequest = {
+      school_id: schoolId,
+      class_id: classId ?? null,
+      request_type: requestType,
+      requested_by: currentUser.id,
+      request_status: STATUS.REQUESTED,
+      rejected_reason_description: "",
+      rejected_reason_type: "",
+      created_at: now,
+      updated_at: now,
+      is_deleted: false,
+    };
+    await this.executeQuery(
+      `
+      INSERT INTO ops_requests
+        (school_id, class_id, request_type, requested_by, request_status, rejected_reason_description, rejected_reason_type, created_at, updated_at, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `,
+      [
+        newRequest.school_id,
+        newRequest.class_id,
+        newRequest.request_type,
+        newRequest.requested_by,
+        newRequest.request_status,
+        newRequest.rejected_reason_description,
+        newRequest.rejected_reason_type,
+        newRequest.created_at,
+        newRequest.updated_at,
+        newRequest.is_deleted,
+      ]
+    );
+    await this.updatePushChanges(
+      TABLES.OpsRequests,
+      MUTATE_TYPES.INSERT,
+      newRequest
+    );
+  }
+  async getAllClassesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"class">[]> {
+    return await this._serverApi.getAllClassesBySchoolId(schoolId);
   }
 }
