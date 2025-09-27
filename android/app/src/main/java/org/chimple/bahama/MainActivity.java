@@ -39,7 +39,6 @@ public  class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) ->{
             SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
             String userId = sharedPreferences.getString("userId", null);
@@ -48,8 +47,8 @@ public  class MainActivity extends BridgeActivity {
             }
             FirebaseCrashlytics.getInstance().recordException(throwable);
         });
-        initializeActivityLauncher();
         registerPlugin(PortPlugin.class);
+        super.onCreate(savedInstanceState);
         this.bridge.setWebViewClient(new MyCustomWebViewClient(this.bridge, this));
         appContext = this;
         View decorView = getWindow().getDecorView();
@@ -57,6 +56,7 @@ public  class MainActivity extends BridgeActivity {
                 | View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
         FirebaseApp.initializeApp(/*context=*/ this);
+        initializeActivityLauncher();
     }
     public void initializeActivityLauncher(){
         // Register the ActivityResultLauncher for Phone Number Hint
