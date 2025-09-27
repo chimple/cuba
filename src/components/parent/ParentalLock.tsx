@@ -38,9 +38,9 @@ const ParentalLock: React.FC<{
       setTitle(str);
     }, []);
 
-    const checkSwipeDirection = (swipeDirection: FourSides) => {
+    const checkSwipeDirection = async (swipeDirection: FourSides) => {
       if (swipeDirection.length > 0 && userDirection === swipeDirection) {
-        Util.setParentLanguagetoLocal();
+        await Util.setParentLanguagetoLocal();
         Util.setPathToBackButton(PAGES.PARENT, history);
       }
     };
@@ -132,7 +132,7 @@ const ParentalLock: React.FC<{
       <div>
         <Dialog
           sx={{
-            "& .MuiPaper-root": { borderRadius: "4vh !important", width: "390px", height: "225px" },
+            "& .MuiPaper-root": { borderRadius: "4vh !important", background: '#FFFDEE', width: "390px", height: "225px" },
           }}
           open={showDialogBox}
           onClose={handleClose}
@@ -145,7 +145,6 @@ const ParentalLock: React.FC<{
           onMouseEnter={onMouseDown}
         >
           <div style={{
-            background: '#FFFDEE',
             color: 'black',
             display: 'flex',
             flexDirection: 'column',
@@ -154,12 +153,12 @@ const ParentalLock: React.FC<{
             <div id="parent-lock-header">
               <div id="parental-lock-close-icon" onClick={onHandleClose}>
                 <img
-                  src="/assets/icons/CrossIcon.svg"
+                  src="pathwayAssets/menuCross.svg"
                   alt="Close"
                 />
               </div>
               <div id="parent-screen">
-                {t("Parent's Screen")}
+                {t("Parents Section")}
               </div>
             </div>
 
@@ -172,7 +171,6 @@ const ParentalLock: React.FC<{
             <DialogContent
               style={{
                 width: '35vw',
-                background: '#FFFDEE',
                 color: 'black',
                 display: 'flex',
                 justifyContent: 'center',

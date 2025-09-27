@@ -40,7 +40,7 @@ import {
 } from "./utility/WindowsSpeech";
 import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 import { Util } from "./utility/util";
-import { EVENTS, IS_OPS_USER } from "./common/constants";
+import { CURRENT_USER, EVENTS, IS_OPS_USER } from "./common/constants";
 import { GbProvider } from "./growthbook/Growthbook";
 import { initializeFireBase } from "./services/Firebase";
 
@@ -79,7 +79,7 @@ window.onunhandledrejection = (event: PromiseRejectionEvent) => {
   recordExecption(event.reason.toString(), event.type.toString());
 };
 window.onerror = (message, source, lineno, colno, error) => {
-  recordExecption(message.toString, error.toString());
+  recordExecption(message.toString(), error.toString());
 };
 const container = document.getElementById("root");
 const root = createRoot(container!);
@@ -93,11 +93,18 @@ const gb = new GrowthBook({
   apiHost: "https://cdn.growthbook.io",
   clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
   enableDevMode: true,
-  trackingCallback: (experiment, result) => {
-    Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
-      experimentId: experiment.key,
-      variationId: result.key,
-    });
+  trackingCallback: async (experiment, result) => {
+    try {
+      const userData = localStorage.getItem(CURRENT_USER);
+      const userId = userData ? JSON.parse(userData).id : undefined;
+      await Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
+        user_id: userId,
+        experimentId: experiment.key,
+        variationId: result.key,
+      });
+    } catch (error) {
+      console.error("Error in GrowthBook tracking callback:", error);
+    }
   },
 });
 gb.init({
@@ -108,7 +115,6 @@ const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
 
 if (isOpsUser) {
   serviceInstance.switchMode(APIMode.SUPABASE);
-
   root.render(
     <GrowthBookProvider growthbook={gb}>
       <GbProvider>
@@ -116,14 +122,11 @@ if (isOpsUser) {
       </GbProvider>
     </GrowthBookProvider>
   );
-
   SplashScreen.hide();
 } else {
   SplashScreen.show();
-
   SqliteApi.getInstance().then(() => {
     serviceInstance.switchMode(APIMode.SQLITE);
-
     root.render(
       <GrowthBookProvider growthbook={gb}>
         <GbProvider>
@@ -131,7 +134,6 @@ if (isOpsUser) {
         </GbProvider>
       </GrowthBookProvider>
     );
-
     SplashScreen.hide();
   });
 }

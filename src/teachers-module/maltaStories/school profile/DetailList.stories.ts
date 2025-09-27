@@ -31,7 +31,10 @@ const mockSchools: SchoolWithRole[] = [
       is_ops: null,
       language: null,
       ops_created_by: null,
-      student_login_type: null
+      student_login_type: null,
+      status: null,
+      key_contacts: null,
+      country: null
     },
     role: RoleType.PRINCIPAL,
   },
@@ -57,7 +60,10 @@ const mockSchools: SchoolWithRole[] = [
       is_ops: null,
       language: null,
       ops_created_by: null,
-      student_login_type: null
+      student_login_type: null,
+      status: null,
+      key_contacts: null,
+      country: null
     },
     role: RoleType.COORDINATOR,
   },
@@ -149,7 +155,10 @@ const meta: Meta<typeof DetailList> = {
       is_ops: null,
       language: null,
       ops_created_by: null,
-      student_login_type: null
+      student_login_type: null,
+      status: null,
+      key_contacts: null,
+      country: null
     },
   },
 };

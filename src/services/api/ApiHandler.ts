@@ -19,6 +19,12 @@ import {
   PrincipalAPIResponse,
   CoordinatorAPIResponse,
   EnumType,
+  CACHETABLES,
+  RequestTypes,
+  STATUS,
+  GeoDataParams,
+  SearchSchoolsParams,
+  SearchSchoolsResult,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -33,9 +39,15 @@ export class ApiHandler implements ServiceApi {
 
   private constructor(service: ServiceApi) {
     this.s = service;
+    console.log("ApiHandler constructor called with service:", service);
   }
 
   public static getInstance(service: ServiceApi): ApiHandler {
+    if (!service) {
+      console.error(
+        "ApiHandler.getInstance was called with an undefined service. This will cause errors."
+      );
+    }
     // Only create a new instance if the service has changed
     if (!ApiHandler.i || ApiHandler.i.s !== service) {
       ApiHandler.i = new ApiHandler(service);
@@ -91,6 +103,10 @@ export class ApiHandler implements ServiceApi {
       timeSpent,
       score
     );
+  }
+
+  public clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
+    return this.s.clearCacheData(tableNames);
   }
 
   public async joinLiveQuiz(
@@ -173,7 +189,8 @@ export class ApiHandler implements ServiceApi {
     image: File | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
+    country: string | null
   ): Promise<TableTypes<"school">> {
     return await this.s.createSchool(
       name,
@@ -184,7 +201,8 @@ export class ApiHandler implements ServiceApi {
       image,
       program_id,
       udise,
-      address
+      address,
+      country
     );
   }
   public async updateSchoolProfile(
@@ -718,6 +736,11 @@ export class ApiHandler implements ServiceApi {
     id: string
   ): Promise<TableTypes<"course"> | undefined> {
     return await this.s.getCourse(id);
+  }
+  public async getCourses(
+    courseIds: string[]
+  ): Promise<TableTypes<"course">[]> {
+    return await this.s.getCourses(courseIds);
   }
 
   public async getLeaderboardResults(
@@ -1314,6 +1337,32 @@ export class ApiHandler implements ServiceApi {
   ): Promise<StudentAPIResponse> {
     return await this.s.getStudentInfoBySchoolId(schoolId, page, limit);
   }
+  public async getStudentsAndParentsByClassId(
+    classId: string,
+    page: number,
+    limit: number
+  ): Promise<StudentAPIResponse> {
+    return await this.s.getStudentsAndParentsByClassId(classId, page, limit);
+  }
+  public async getStudentAndParentByStudentId(
+    studentId: string
+  ): Promise<{ user: any; parents: any[] }> {
+    return await this.s.getStudentAndParentByStudentId(studentId);
+  }
+  public async mergeStudentRequest(
+    requestId: string,
+    existingStudentId: string,
+    newStudentId: string,
+    respondedBy: string
+  ): Promise<void> {
+    return await this.s.mergeStudentRequest(
+      requestId,
+      existingStudentId,
+      newStudentId,
+      respondedBy
+    );
+  }
+
   public async getClassesBySchoolId(
     schoolId: string
   ): Promise<TableTypes<"class">[]> {
@@ -1332,7 +1381,7 @@ export class ApiHandler implements ServiceApi {
   public async program_activity_stats(programId: string): Promise<{
     total_students: number;
     total_teachers: number;
-    total_institutes: number;
+    total_schools: number;
     active_student_percentage: number;
     active_teacher_percentage: number;
     avg_weekly_time_minutes: number;
@@ -1410,7 +1459,9 @@ export class ApiHandler implements ServiceApi {
   public async getOpsRequests(
     requestStatus: EnumType<"ops_request_status">,
     page: number = 1,
-    limit: number = 8,
+    limit: number = 20,
+    orderBy: string = "created_at",
+    orderDir: "asc" | "desc" = "asc",
     filters?: { request_type?: string[]; school?: string[] },
     searchTerm?: string
   ) {
@@ -1418,6 +1469,8 @@ export class ApiHandler implements ServiceApi {
       requestStatus,
       page,
       limit,
+      orderBy,
+      orderDir,
       filters,
       searchTerm
     );
@@ -1432,15 +1485,101 @@ export class ApiHandler implements ServiceApi {
     page: number = 1,
     limit: number = 20
   ): Promise<StudentAPIResponse> {
-    return await this.s.searchStudentsInSchool(schoolId, searchTerm, page, limit);
+    return await this.s.searchStudentsInSchool(
+      schoolId,
+      searchTerm,
+      page,
+      limit
+    );
   }
 
   public async searchTeachersInSchool(
-    schoolId: string, 
-    searchTerm: string,    
+    schoolId: string,
+    searchTerm: string,
     page: number = 1,
     limit: number = 20
   ): Promise<TeacherAPIResponse> {
-    return await this.s.searchTeachersInSchool(schoolId, searchTerm, page, limit);
+    return await this.s.searchTeachersInSchool(
+      schoolId,
+      searchTerm,
+      page,
+      limit
+    );
+  }
+  public async respondToSchoolRequest(
+    requestId: string,
+    respondedBy: string,
+    status: (typeof STATUS)[keyof typeof STATUS],
+    rejectionReason?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined> {
+    return await this.s.respondToSchoolRequest(
+      requestId,
+      respondedBy,
+      status,
+      rejectionReason
+    );
+  }
+  public async getFieldCoordinatorsByProgram(
+    programId: string
+  ): Promise<{ data: TableTypes<"user">[] }> {
+    return this.s.getFieldCoordinatorsByProgram(programId);
+  }
+
+  public async getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }> {
+    return this.s.getProgramsByRole();
+  }
+  public async updateSchoolStatus(
+    schoolId: string,
+    schoolStatus: (typeof STATUS)[keyof typeof STATUS],
+    address?: {
+      state?: string;
+      district?: string;
+      city?: string;
+      address?: string;
+    },
+    keyContacts?: any
+  ): Promise<void> {
+    return await this.s.updateSchoolStatus(
+      schoolId,
+      schoolStatus,
+      address,
+      keyContacts
+    );
+  }
+  async approveOpsRequest(
+    requestId: string,
+    respondedBy: string,
+    role: (typeof RequestTypes)[keyof typeof RequestTypes],
+    schoolId?: string,
+    classId?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined> {
+    return await this.s.approveOpsRequest(
+      requestId,
+      respondedBy,
+      role,
+      schoolId,
+      classId
+    );
+  }
+  async getGeoData(params: GeoDataParams): Promise<string[]> {
+    return await this.s.getGeoData(params);
+  }
+
+  async searchSchools(
+    params: SearchSchoolsParams
+  ): Promise<SearchSchoolsResult> {
+    return await this.s.searchSchools(params);
+  }
+  public async sendJoinSchoolRequest(
+    schoolId: string,
+    requestType: RequestTypes,
+    classId?: string
+  ): Promise<void> {
+    return this.s.sendJoinSchoolRequest(schoolId, requestType, classId);
+  }
+  public async getAllClassesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"class">[]> {
+    return this.s.getAllClassesBySchoolId(schoolId);
   }
 }

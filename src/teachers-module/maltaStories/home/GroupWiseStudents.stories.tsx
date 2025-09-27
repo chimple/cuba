@@ -27,7 +27,8 @@ const mockStudent: TableTypes<"user"> = {
   is_ops: null,
   learning_path: null,
   ops_created_by: null,
-  stars: null
+  stars: null,
+  reward: null
 };
 const result: TableTypes<"result"> = {
   id: "student-1",

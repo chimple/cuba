@@ -1,14 +1,17 @@
-import React from 'react';
+import React from "react";
 interface TableRightHeaderProps {
-  headerDetails: Map<string,{ headerName: string; startAt: string; endAt: string }>[];
-  showSubjects?: boolean;  // Add this line
-  subjects?: {id: string; name: string}[];  // Add this line
+  headerDetails: Map<
+    string,
+    { headerName: string; startAt: string; endAt: string; courseId?: any }
+  >[];
+  showSubjects?: boolean; // Add this line
+  subjects?: { id: string; name: string }[]; // Add this line
 }
 
-const TableRightHeader: React.FC<TableRightHeaderProps> = ({ 
-  headerDetails, 
+const TableRightHeader: React.FC<TableRightHeaderProps> = ({
+  headerDetails,
   showSubjects = false,
-  subjects = []
+  subjects = [],
 }) => {
   
   // For Assignment Report with All Subjects, show subjects as headers

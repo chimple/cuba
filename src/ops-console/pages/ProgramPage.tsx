@@ -17,7 +17,7 @@ import HeaderTab from "../components/HeaderTab";
 import { Add } from "@mui/icons-material";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
-import { useHistory, useLocation  } from "react-router";
+import { useHistory, useLocation } from "react-router";
 import {
   PAGES,
   PROGRAM_TAB,
@@ -30,7 +30,7 @@ import { BsFillBellFill } from "react-icons/bs";
 
 type ProgramRow = {
   programName: any;
-  institutes: any;
+  schools: any;
   students: any;
   devices: any;
   manager: any;
@@ -45,13 +45,13 @@ const columns: Column<ProgramRow>[] = [
     sortable: true,
   },
   {
-    key: "institutes",
-    label: "No of Institutes",
+    key: "schools",
+    label: "No. of Schools",
     align: "left",
     sortable: true,
   },
-  { key: "students", label: "No of Students", align: "left", sortable: true },
-  { key: "devices", label: "No of Devices", align: "left", sortable: true },
+  { key: "students", label: "No. of Students", align: "left", sortable: true },
+  { key: "devices", label: "No. of Devices", align: "left", sortable: true },
   {
     key: "manager",
     label: "Program Manager",
@@ -68,7 +68,7 @@ const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([key, label]) => ({
 
 const orderByMap: Record<string, string> = {
   programName: "name",
-  institutes: "institutes_count",
+  schools: "institutes_count",
   students: "students_count",
   devices: "devices_count",
   manager: "manager_names",
@@ -82,39 +82,42 @@ const ProgramsPage: React.FC = () => {
   const auth = ServiceConfig.getI().authHandler;
   const isSmallScreen = useMediaQuery("(max-width: 900px)");
 
-const location = useLocation();
-const qs = new URLSearchParams(location.search);
+  const location = useLocation();
+  const qs = new URLSearchParams(location.search);
 
-function parseJSONParam<T>(param: string | null, fallback: T): T {
-  try { return param ? (JSON.parse(param) as T) : fallback; }
-  catch { return fallback; }
-}
+  function parseJSONParam<T>(param: string | null, fallback: T): T {
+    try {
+      return param ? (JSON.parse(param) as T) : fallback;
+    } catch {
+      return fallback;
+    }
+  }
 
-const [activeTabIndex, setActiveTabIndex] = useState(() => {
-  const n = parseInt(qs.get("tab") || "", 10);
-  return isNaN(n) ? 0 : n;
-});
-const [filters, setFilters] = useState<Record<string, string[]>>(
-  () => parseJSONParam(qs.get("filters"), {})
-);
-const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({});
-const [searchTerm, setSearchTerm] = useState(() => qs.get("search") || "");
-const [programs, setPrograms] = useState<any[]>([]);
-const [totalCount, setTotalCount] = useState(0);
-const [loadingPrograms, setLoadingPrograms] = useState(false);
-const [loadingFilters, setLoadingFilters] = useState(false);
-const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>({});
-const [isFilterOpen, setIsFilterOpen] = useState(false);
-const [isProgramManager, setIsProgramManager] = useState(false);
-const [isOpsRole, setIsOpsRole] = useState(false);
-const [page, setPage] = useState(() => {
-  const p = parseInt(qs.get("page") || "", 10);
-  return isNaN(p) || p < 1 ? 1 : p;
-});
-const [orderBy, setOrderBy] = useState("name");
-const [order, setOrder] = useState<"asc" | "desc">("asc");
-
-
+  const [activeTabIndex, setActiveTabIndex] = useState(() => {
+    const n = parseInt(qs.get("tab") || "", 10);
+    return isNaN(n) ? 0 : n;
+  });
+  const [filters, setFilters] = useState<Record<string, string[]>>(() =>
+    parseJSONParam(qs.get("filters"), {})
+  );
+  const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({});
+  const [searchTerm, setSearchTerm] = useState(() => qs.get("search") || "");
+  const [programs, setPrograms] = useState<any[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loadingPrograms, setLoadingPrograms] = useState(false);
+  const [loadingFilters, setLoadingFilters] = useState(false);
+  const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>(
+    {}
+  );
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isProgramManager, setIsProgramManager] = useState(false);
+  const [isOpsRole, setIsOpsRole] = useState(false);
+  const [page, setPage] = useState(() => {
+    const p = parseInt(qs.get("page") || "", 10);
+    return isNaN(p) || p < 1 ? 1 : p;
+  });
+  const [orderBy, setOrderBy] = useState("name");
+  const [order, setOrder] = useState<"asc" | "desc">("asc");
 
   const tab: TabType = tabOptions[activeTabIndex].value;
   const tableScrollRef = React.useRef<HTMLDivElement>(null);
@@ -152,15 +155,14 @@ const [order, setOrder] = useState<"asc" | "desc">("asc");
   }, []);
 
   useEffect(() => {
-  const params = new URLSearchParams();
-  if (page !== 1) params.set("page", String(page));
-  if (searchTerm) params.set("search", searchTerm);
-  if (Object.values(filters).some(arr => arr.length))
-    params.set("filters", JSON.stringify(filters));
-  if (activeTabIndex !== 0) params.set("tab", String(activeTabIndex));
-  history.replace({ search: params.toString() });
-}, [page, searchTerm, filters, activeTabIndex, history]);
-
+    const params = new URLSearchParams();
+    if (page !== 1) params.set("page", String(page));
+    if (searchTerm) params.set("search", searchTerm);
+    if (Object.values(filters).some((arr) => arr.length))
+      params.set("filters", JSON.stringify(filters));
+    if (activeTabIndex !== 0) params.set("tab", String(activeTabIndex));
+    history.replace({ search: params.toString() });
+  }, [page, searchTerm, filters, activeTabIndex, history]);
 
   useEffect(() => {
     const fetchPrograms = async () => {
@@ -216,7 +218,7 @@ const [order, setOrder] = useState<"asc" | "desc">("asc");
             </Box>
           ),
         },
-        institutes:
+        schools:
           typeof row.institutes_count === "number" ? row.institutes_count : "—",
         students:
           typeof row.students_count === "number" ? row.students_count : "—",
@@ -236,7 +238,7 @@ const [order, setOrder] = useState<"asc" | "desc">("asc");
       setOrder(order === "asc" ? "desc" : "asc");
     } else {
       setOrderBy(backendOrderBy);
-      setOrder("asc");
+      setOrder("desc");
     }
     setPage(1);
   };

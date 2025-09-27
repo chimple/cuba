@@ -18,12 +18,16 @@ import {
   MODES,
   USER_ROLE,
   CLASS,
+  CURRENT_USER,
+  CURRENT_MODE,
+  IS_OPS_USER,
+  USER_DATA,
 } from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
 import ToggleButton from "../../components/parent/ToggleButton";
 import { schoolUtil } from "../../utility/schoolUtil";
 import { Util } from "../../utility/util";
-import { ServiceConfig } from "../../services/ServiceConfig";
+import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
 import { IonItem } from "@ionic/react";
 import CommonToggle from "../../common/CommonToggle";
 import { Capacitor } from "@capacitor/core";
@@ -31,6 +35,8 @@ import {
   IoGitPullRequestOutline,
   IoGitPullRequestSharp,
 } from "react-icons/io5";
+import { t } from "i18next";
+import DialogBoxButtons from "../../components/parent/DialogBoxButtons​";
 
 interface SidebarProps {
   name: string;
@@ -87,6 +93,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
   const location = useLocation();
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
+  const [showDialogBox, setShowDialogBox] = useState(false);
   const [currentUser, setCurrentUser] = useState<
     TableTypes<"user"> | undefined
   >();
@@ -147,6 +154,16 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
     setIsOpen(false);
   }, [location?.pathname]);
 
+  const onSignOut = async () => {
+    const auth = ServiceConfig.getI().authHandler;
+    await auth.logOut();
+    Util.unSubscribeToClassTopicForAllStudents();
+    localStorage.clear();
+    const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
+    serviceInstance.switchMode(APIMode.SQLITE);
+    history.replace(PAGES.LOGIN);
+    if (Capacitor.isNativePlatform()) window.location.reload();
+  };
   return (
     <>
       {!isOpen && (
@@ -200,21 +217,36 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             );
           })}
         </ul>
-        {!Capacitor.isNativePlatform() && (
-          <div className="ops-side-menu-switch-user-toggle">
-            <IonItem className="ops-side-menu-ion-item-container">
-              <img
-                src="assets/icons/userSwitch.svg"
-                alt="OPS"
-                className="icon"
-              />
-              <CommonToggle
-                onChange={switchUserToTeacher}
-                label="Switch to Teacher's Mode"
-              />
-            </IonItem>
-          </div>
+        <div className="ops-side-menu-switch-user-toggle">
+          <IonItem className="ops-side-menu-ion-item-container">
+            <img src="assets/icons/userSwitch.svg" alt="OPS" className="icon" />
+            <CommonToggle
+              onChange={switchUserToTeacher}
+              label="Switch to Teacher's Mode"
+            />
+          </IonItem>
+        </div>
+        {isOpen && (
+          <>
+            <div
+              className="sidebar-logout-btn"
+              onClick={() => setShowDialogBox(true)}
+            >
+              {t("Logout")}
+            </div>
+          </>
         )}
+        <DialogBoxButtons
+          width="100%"
+          height="20%"
+          message={t("Are you sure you want to logout?")}
+          showDialogBox={showDialogBox}
+          yesText={t("Cancel")}
+          noText={t("Logout")}
+          handleClose={() => setShowDialogBox(false)}
+          onYesButtonClicked={() => setShowDialogBox(false)}
+          onNoButtonClicked={onSignOut}
+        />
       </aside>
     </>
   );

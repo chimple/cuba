@@ -1,0 +1,38 @@
+/* Container */
+.ops-dropdown {
+  width: 184px;
+  height: 39px;
+}
+
+/* The select box */
+.ops-dropdown-select {
+  background-color: #fff;
+  border: 1px solid #1976d2 !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+  padding: 0 10px !important;
+  height: 100% !important;
+  display: flex;
+  align-items: center;
+}
+
+/* Hover effect */
+.ops-dropdown-select:hover {
+  border-color: #1976d2 !important;
+}
+
+/* Focus effect */
+.Mui-focused .ops-dropdown-select {
+  border-color: #1976d2 !important;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+/* Menu dropdown */
+.ops-dropdown-menu {
+  max-height: 200px !important;
+}
+
+/* Options */
+.MuiMenuItem-root {
+  font-size: 14px;
+}
