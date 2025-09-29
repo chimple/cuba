@@ -4,7 +4,7 @@ import { useHistory } from "react-router-dom";
 import { t } from "i18next";
 import Header from "../components/homePage/Header";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { RequestTypes } from "../../common/constants";
+import { PAGES, RequestTypes } from "../../common/constants";
 import SelectField from "../components/SelectField";
 
 const CreateSchool: React.FC = () => {
@@ -93,21 +93,27 @@ const CreateSchool: React.FC = () => {
   }, [district, state, country, api]);
 
   const handleSendRequest = async () => {
-    setSending(true);
-    const school = await api.createSchool(
-      schoolName,
-      state,
-      district,
-      block,
-      null,
-      null,
-      null,
-      udise,
-      null,
-      country
-    );
-    await api.sendJoinSchoolRequest(school.id, RequestTypes.SCHOOL);
-    setSending(false);
+    try {
+      setSending(true);
+      const school = await api.createSchool(
+        schoolName,
+        state,
+        district,
+        block,
+        null,
+        null,
+        null,
+        udise,
+        null,
+        country
+      );
+      await api.sendJoinSchoolRequest(school.id, RequestTypes.SCHOOL);
+      history.replace(PAGES.POST_SUCCESS);
+    } catch (error) {
+      console.error("Error creating school:", error);
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
