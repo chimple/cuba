@@ -67,8 +67,11 @@ const LearningPathway: React.FC = () => {
   };
 
   const fetchLearningPathway = async (student: any) => {
-    const currClass = schoolUtil.getCurrentClass();
-
+    let currClass;
+    const isLinked = await api.isStudentLinked(student.id);
+    if (isLinked) {
+      currClass = schoolUtil.getCurrentClass();
+    }
     try {
       const userCourses = currClass
         ? await api.getCoursesForClassStudent(currClass.id)
@@ -77,7 +80,6 @@ const LearningPathway: React.FC = () => {
       let learningPath = student.learning_path
         ? JSON.parse(student.learning_path)
         : null;
-
       if (!learningPath || !learningPath.courses?.courseList?.length) {
         setLoading(true);
         learningPath = await buildInitialLearningPath(userCourses);
@@ -145,7 +147,6 @@ const LearningPathway: React.FC = () => {
 
     // Check if any course is missing path_id
     const isPathIdMissing = oldCourseList.some((course) => !course.path_id);
-
     if (isSameLengthAndOrder && !isPathIdMissing) {
       return false; // No need to rebuild
     }

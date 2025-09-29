@@ -181,12 +181,8 @@ const PathwayStructure: React.FC = () => {
     const preloadAllLessonImages = async (lessons: any[]) => {
       await Promise.all(
         lessons.map((lesson) => {
-          const isValidUrl =
-            typeof lesson.image === "string" &&
-            /^(https?:\/\/|\/)/.test(lesson.image);
-          const src = isValidUrl
-            ? lesson.image
-            : "assets/icons/DefaultIcon.png";
+          let src: string;
+          src = `assets/icons/${lesson.cocos_lesson_id}.png`;
           return preloadImage(src);
         })
       );
@@ -286,9 +282,11 @@ const PathwayStructure: React.FC = () => {
 
             const isValidUrl = (url: string) =>
               typeof url === "string" && /^(https?:\/\/|\/)/.test(url);
-            const lesson_image = isValidUrl(lesson.image)
-              ? lesson.image
-              : "assets/icons/DefaultIcon.png";
+            const lesson_image = lesson.cocos_lesson_id
+              ? `assets/icons/${lesson.cocos_lesson_id}.png`
+              : isValidUrl(lesson.image)
+                ? lesson.image
+                : "assets/icons/DefaultIcon.png";
 
             const positionMappings = {
               playedLesson: {
@@ -389,6 +387,7 @@ const PathwayStructure: React.FC = () => {
                     lesson: JSON.stringify(lesson),
                     chapter: JSON.stringify({ chapter_id: lesson.chapter_id }),
                     from: history.location.pathname + `?${CONTINUE}=true`,
+                    learning_path: true,
                   });
                 }
               });

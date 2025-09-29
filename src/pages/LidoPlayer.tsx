@@ -35,7 +35,7 @@ const LidoPlayer: FC = () => {
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [gameResult, setGameResult] = useState<any>(null);
   const [isDeviceAwake, setDeviceAwake] = useState(false);
-
+  const learning_path: string = state?.learning_path ?? false;
   const urlSearchParams = new URLSearchParams(window.location.search);
   const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
 
@@ -47,24 +47,7 @@ const LidoPlayer: FC = () => {
 
     setShowDialogBox(true);
   };
-  // const push = () => {
-  //   const fromPath: string = state?.from ?? PAGES.HOME;
 
-  //   console.log("fromPath", fromPath);
-
-  //   try {
-  //     // Defensive check: empty, malformed, or suspicious path
-  //     if (!fromPath || typeof fromPath !== "string" || fromPath.length < 2) {
-  //       throw new Error("Invalid fromPath");
-  //     }
-
-  //     Util.setPathToBackButton(fromPath, history);
-  //   } catch (error) {
-  //     console.warn("Navigation error:", error);
-  //     history.replace(PAGES.HOME);
-  //     return;
-  //   }
-  // };
   const handleAppStateChange = (state) => {
     if (state.isActive) {
       setDeviceAwake(true);
@@ -100,7 +83,9 @@ const LidoPlayer: FC = () => {
     const currentStudent = Util.getCurrentStudent()!;
     const data = lessonData;
     let assignmentId = assignment ? assignment.id : null;
-
+    if (learning_path) {
+      await updateLearningPath();
+    }
     const isStudentLinked = await api.isStudentLinked(currentStudent.id);
     let classId;
     let schoolId;
@@ -331,3 +316,105 @@ const LidoPlayer: FC = () => {
 };
 
 export default LidoPlayer;
+
+// ---------- ADDED FUNCTION ----------
+const updateLearningPath = async () => {
+  console.log("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW");
+  const currentStudent = Util.getCurrentStudent();
+  if (!currentStudent) return;
+  const api = ServiceConfig.getI().apiHandler;
+  const learningPath = currentStudent.learning_path
+    ? JSON.parse(currentStudent.learning_path)
+    : null;
+
+  if (!learningPath) return;
+
+  try {
+    const { courses } = learningPath;
+    const currentCourse = courses.courseList[courses.currentCourseIndex];
+
+    const prevLessonId =
+      learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+        .path[
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .currentIndex
+      ].lesson_id;
+    const prevChapterId =
+      learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+        .path[
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .currentIndex
+      ].chapter_id;
+    const prevCourseId =
+      learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+        .course_id;
+    const prevPathId =
+      learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+        .path_id;
+    // Update currentIndex
+    currentCourse.currentIndex += 1;
+
+    // Check if currentIndex exceeds pathEndIndex
+    if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
+      currentCourse.startIndex = currentCourse.currentIndex;
+      currentCourse.pathEndIndex += 5;
+
+      // Ensure pathEndIndex does not exceed the path length
+      if (currentCourse.pathEndIndex > currentCourse.path.length) {
+        currentCourse.pathEndIndex = currentCourse.path.length - 1;
+      }
+
+      // Move to the next course
+      courses.currentCourseIndex += 1;
+
+      await api.setStarsForStudents(currentStudent.id, 10);
+      // Loop back to the first course if at the last course
+      if (courses.currentCourseIndex >= courses.courseList.length) {
+        courses.currentCourseIndex = 0;
+      }
+      const pathwayEndData = {
+        user_id: currentStudent.id,
+        current_path_id:
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].path_id,
+        current_course_id:
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].course_id,
+        current_lesson_id:
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].path[
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].currentIndex
+          ].lesson_id,
+        current_chapter_id:
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].path[
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].currentIndex
+          ].chapter_id,
+        prev_path_id: prevPathId,
+        prev_course_id: prevCourseId,
+        prev_lesson_id: prevLessonId,
+        prev_chapter_id: prevChapterId,
+      };
+      await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
+      await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
+    }
+
+    // Update the learning path in the database
+    await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
+    // Update the current student object
+    const updatedStudent = await api.getUserByDocId(currentStudent.id);
+    if (updatedStudent) {
+      Util.setCurrentStudent(updatedStudent);
+    }
+  } catch (error) {
+    console.error("Error updating learning path:", error);
+  }
+};
