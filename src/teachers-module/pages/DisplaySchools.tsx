@@ -54,7 +54,7 @@ const DisplaySchools: FC = () => {
       _currentUser?.id as string
     );
     if (existingRequest) {
-      history.replace(PAGES.REQ_ADD_SCHOOL);
+      history.replace(PAGES.POST_SUCCESS);
     }
   };
 

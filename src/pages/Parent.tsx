@@ -98,6 +98,19 @@ const Parent: React.FC = () => {
     getStudentProfile();
   }, [reloadProfiles]);
 
+  const pendingSchoolRequest = async () => {
+    const api = ServiceConfig.getI().apiHandler;
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
+    const existingRequest = await api.getExistingSchoolRequest(
+      _currentUser?.id as string
+    );
+    console.log("pending schools: ", existingRequest)
+  }
+
+  useEffect(() =>{
+    pendingSchoolRequest();
+  }, [currentUser])
   async function getStudentProfile() {
     const userProfilePromise: TableTypes<"user">[] =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
@@ -318,7 +331,7 @@ const Parent: React.FC = () => {
           </div>
           <div className="parent-teachermode-toggle">
             <ToggleButton
-              title={"Switch to Teacher's Mode"}
+              title={"Switch to Teacher's Modeee"}
               layout="vertical"
               onIonChangeClick={async () => {
                 const isNativePlatform = Capacitor.isNativePlatform();
@@ -426,7 +439,7 @@ const Parent: React.FC = () => {
                   title="YouTube video player"
                   // frameborder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  // allowfullscreen
+                // allowfullscreen
                 ></iframe>
               </div>
             </div>

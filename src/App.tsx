@@ -150,6 +150,8 @@ import JoinSchool from "./pages/JoinSchool";
 import CreateSchool from "./teachers-module/pages/CreateSchool";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 
+import PostSuccess from "./teachers-module/pages/PostSuccess";
+
 setupIonicReact();
 interface ExtraData {
   notificationType?: string;
@@ -615,6 +617,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.HOME_PAGE} exact={true}>
               <HomePage />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.POST_SUCCESS} exact={true}>
+              <PostSuccess />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.CLASS_USERS} exact={true}>
               <ClassUsers />

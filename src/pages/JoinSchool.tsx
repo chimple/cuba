@@ -16,24 +16,24 @@ const JoinSchool: React.FC = () => {
   const [sending, setSending] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
 
-  useEffect(() => {
-    async function fetchRequest() {
-      try {
-        const currentSchool = location.state?.school;
-        setSchool(currentSchool);
+  const fetchRequest = async () => {
+    try {
+      const currentSchool = location.state?.school;
+      setSchool(currentSchool);
 
-        const allClasses = await api.getAllClassesBySchoolId(currentSchool?.id);
-        setClassList(allClasses);
+      const allClasses = await api.getAllClassesBySchoolId(currentSchool?.id);
+      setClassList(allClasses);
 
-        // Set default Teacher and First Class
-        if (allClasses && allClasses.length > 0) {
-          setRequestType(RequestTypes.TEACHER);
-          setSelectedClass(allClasses[0]);
-        }
-      } catch (error) {
-        console.error("Error fetching request data:", error);
+      // Set default Teacher and First Class
+      if (allClasses && allClasses.length > 0) {
+        setRequestType(RequestTypes.TEACHER);
+        setSelectedClass(allClasses[0]);
       }
+    } catch (error) {
+      console.error("Error fetching request data:", error);
     }
+  }
+  useEffect(() => {
     fetchRequest();
   }, []);
 
@@ -49,7 +49,7 @@ const JoinSchool: React.FC = () => {
 
     try {
       await api.sendJoinSchoolRequest(schoolId, requestType, classId);
-      history.replace(PAGES.REQ_ADD_SCHOOL);
+      history.replace(PAGES.POST_SUCCESS);
     } catch (error) {
       console.error("Error sending join school request:", error);
       setSending(false);
@@ -102,20 +102,18 @@ const JoinSchool: React.FC = () => {
 
           <div className="join-school-role-container">
             <div
-              className={`join-school-role-card ${
-                requestType === RequestTypes.TEACHER ? "selected-teacher" : ""
-              }`}
+              className={`join-school-role-card ${requestType === RequestTypes.TEACHER ? "selected-teacher" : ""
+                }`}
               onClick={() => setRequestType(RequestTypes.TEACHER)}
             >
               <img src="/assets/icons/teacher.png" alt="Teacher" />
             </div>
 
             <div
-              className={`join-school-role-card ${
-                requestType === RequestTypes.PRINCIPAL
-                  ? "selected-principal"
-                  : ""
-              }`}
+              className={`join-school-role-card ${requestType === RequestTypes.PRINCIPAL
+                ? "selected-principal"
+                : ""
+                }`}
               onClick={() => setRequestType(RequestTypes.PRINCIPAL)}
             >
               <img src="/assets/icons/principal.png" alt="Principal" />

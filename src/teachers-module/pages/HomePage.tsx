@@ -83,6 +83,8 @@ const HomePage: React.FC = () => {
       ScreenOrientation.lock({ orientation: "portrait" });
     }
     const currentUser = await auth.getCurrentUser();
+    const existingRequest = await api.getExistingSchoolRequest(currentUser?.id as string);
+    if(existingRequest) history.replace(PAGES.POST_SUCCESS)
     await Util.handleClassAndSubjects(
       currentSchool?.id!,
       currentUser?.id!,
