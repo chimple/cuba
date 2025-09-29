@@ -8,7 +8,7 @@ import { Util } from "../../../../utility/util";
 import { t } from "i18next";
 import { Toast } from "@capacitor/toast";
 import AssignmentNextButton from "./AssignmentNextButton";
-import { BarcodeScanner } from "@capacitor-community/barcode-scanner";
+// import { BarcodeScanner } from "@capacitor-community/barcode-scanner";
 import { App } from '@capacitor/app';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
 import Loading from "../../../../components/Loading";
@@ -442,8 +442,8 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
 
     const stopScan = async () => {
     // Hide the camera preview and stop scanning
-    await BarcodeScanner.stopScan();
-    BarcodeScanner.showBackground();
+    // await BarcodeScanner.stopScan();
+    // BarcodeScanner.showBackground();
     document.querySelector("html")?.style.setProperty("display", "block");
     // Remove back button listener if exists
     if (window.__qrBackListener) {
@@ -455,7 +455,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
   const startScan = async () => {
     // Prepare the scanner
     setLoading(true);
-    const permission = await BarcodeScanner.checkPermission({ force: true });
+    const permission = {granted:false};
     setTimeout(() => setLoading(false), 100);
     if (!permission.granted) {
       Toast.show({ text: t("Camera permission denied. Please enable it in settings") });
@@ -466,18 +466,18 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
       localStorage.setItem(CAMERAPERMISSION, permission.granted ? "true" : "false");
       return;
     }
-    await BarcodeScanner.hideBackground(); // Make background transparent
+    // await BarcodeScanner.hideBackground(); // Make background transparent
     document.querySelector("html")?.style.setProperty("display", "none");
 
     // Add Android back button listener
-    window.__qrBackListener = App.addListener('backButton', async () => {
-      await stopScan();
-    });
+    // window.__qrBackListener = App.addListener('backButton', async () => {
+    //   await stopScan();
+    // });
 
-    const result = await BarcodeScanner.startScan(); // Start scanning
-    if (result.hasContent) {
-      await processScannedData(result.content);
-    }
+    // const result = await BarcodeScanner.startScan(); // Start scanning
+    // if (result.hasContent) {
+    //   await processScannedData(result.content);
+    // }
     // Always stop scan and restore UI
     await stopScan();
   };

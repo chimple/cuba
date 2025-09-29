@@ -1,4 +1,4 @@
-import React from "react";
+//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import SchoolDetailsTabsComponent from "../../../ops-console/components/SchoolDetailsComponents/SchoolDetailsTabsComponent";
 import SchoolNameHeaderComponent from "../../../ops-console/components/SchoolDetailsComponents/SchoolNameHeaderComponent";

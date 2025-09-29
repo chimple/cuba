@@ -130,14 +130,14 @@ const AddCourses: React.FC = () => {
 
   return (
     <IonPage id="display-subjects-page">
-      <Loading isLoading={isLoading} />
+      {/* <Loading isLoading={isLoading} /> */}
       <div className="subjects-header">
         <div id="back-button-container">
           <BackButton onClicked={onBackButton} />
         </div>
         <div id="next-button">
           <NextButton
-            disabled={selectedCourses === (null || undefined) ? true : false}
+            disabled={selectedCourses == null}
             onClicked={() => {
               if (!online) {
                 presentToast({

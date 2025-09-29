@@ -62,6 +62,7 @@ import {
   CapacitorSQLite,
   capSQLiteResult,
   DBSQLiteValues,
+  capSQLiteVersionUpgrade,
 } from "@capacitor-community/sqlite";
 import { Capacitor } from "@capacitor/core";
 import { SupabaseApi } from "./SupabaseApi";
@@ -105,9 +106,12 @@ export class SqliteApi implements ServiceApi {
     if (platform === "web") {
       const jeepEl = document.createElement("jeep-sqlite");
       document.body.appendChild(jeepEl);
+
       await customElements.whenDefined("jeep-sqlite");
+
       await this._sqlite.initWebStore();
     }
+
     let ret: capSQLiteResult | undefined;
     let isConn: boolean | undefined;
     try {
@@ -118,61 +122,59 @@ export class SqliteApi implements ServiceApi {
     }
     try {
       const localVersion = localStorage.getItem(CURRENT_SQLITE_VERSION);
+
       if (
         localVersion &&
         !Number.isNaN(localVersion) &&
         Number(localVersion) !== this.DB_VERSION
       ) {
-        let upgradeStatements: string[] = [];
+        const upgradeStatements: capSQLiteVersionUpgrade[] = [];
         const localVersionNumber = Number(localVersion);
+
         const data = await fetch("databases/upgradeStatements.json");
+
         if (!data || !data.ok) return;
-        const upgradeStatementsMap: {
-          [key: string]: string[];
-        } = await data.json();
+        const upgradeStatementsMap: { [key: string]: string[] } =
+          await data.json();
+
         for (
           let version = localVersionNumber + 1;
           version <= this.DB_VERSION;
           version++
         ) {
-          if (
-            upgradeStatementsMap[version] &&
-            upgradeStatementsMap[version]["statements"]
-          ) {
-            upgradeStatements = upgradeStatements.concat(
-              upgradeStatementsMap[version]["statements"]
-            );
+          const versionData = upgradeStatementsMap[version];
 
-            const versionData = upgradeStatementsMap[version];
-            if (versionData && versionData["tableChanges"]) {
-              if (versionData["tableChanges"]) {
-                for (const tableName in versionData["tableChanges"]) {
-                  const changeDate = versionData["tableChanges"][tableName];
+          if (versionData && versionData["statements"]) {
+            upgradeStatements.push({
+              toVersion: version,
+              statements: versionData["statements"],
+            });
 
-                  if (!this._syncTableData[tableName]) {
+            if (versionData["tableChanges"]) {
+              for (const tableName in versionData["tableChanges"]) {
+                const changeDate = versionData["tableChanges"][tableName];
+                if (!this._syncTableData[tableName]) {
+                  this._syncTableData[tableName] = changeDate;
+                } else {
+                  if (
+                    new Date(this._syncTableData[tableName]) >
+                    new Date(changeDate)
+                  ) {
                     this._syncTableData[tableName] = changeDate;
-                  } else {
-                    if (
-                      new Date(this._syncTableData[tableName]) >
-                      new Date(changeDate)
-                    ) {
-                      this._syncTableData[tableName] = changeDate;
-                    }
                   }
                 }
               }
             }
           }
         }
+
         console.log(
           "🚀 ~ SqliteApi ~ init ~ upgradeStatements:",
           upgradeStatements
         );
-        await this._sqlite.addUpgradeStatement(
-          this.DB_NAME,
-          this.DB_VERSION,
-          upgradeStatements
-        );
+
+        await this._sqlite.addUpgradeStatement(this.DB_NAME, upgradeStatements);
+
         localStorage.setItem(
           CURRENT_SQLITE_VERSION,
           this.DB_VERSION.toString()
@@ -194,7 +196,7 @@ export class SqliteApi implements ServiceApi {
       );
     }
     try {
-      await this._db.open();
+      await this._db?.open();
     } catch (err) {
       console.error("🚀 ~ SqliteApi ~ init ~ err:", err);
     }
@@ -350,7 +352,9 @@ export class SqliteApi implements ServiceApi {
 
         const fieldValues = fieldNames.map((f) => row[f]);
         const placeholders = fieldNames.map(() => "?").join(", ");
-        const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(", ")}) VALUES (${placeholders})`;
+        const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(
+          ", "
+        )}) VALUES (${placeholders})`;
 
         batchQueries.push({ statement: stmt, values: fieldValues });
       }
@@ -1788,8 +1792,9 @@ export class SqliteApi implements ServiceApi {
   async getLiveQuizRoomDoc(
     liveQuizRoomDocId: string
   ): Promise<TableTypes<"live_quiz_room">> {
-    const roomData =
-      await this._serverApi.getLiveQuizRoomDoc(liveQuizRoomDocId);
+    const roomData = await this._serverApi.getLiveQuizRoomDoc(
+      liveQuizRoomDocId
+    );
     return roomData;
   }
 
@@ -3219,8 +3224,9 @@ export class SqliteApi implements ServiceApi {
       user_data: TableTypes<"user">[];
     }[]
   > {
-    const res =
-      await this._serverApi.getStudentResultsByAssignmentId(assignmentId);
+    const res = await this._serverApi.getStudentResultsByAssignmentId(
+      assignmentId
+    );
     return res;
   }
   async getAssignmentById(
@@ -4918,8 +4924,9 @@ order by
   async validateSchoolUdiseCode(
     schoolId: string
   ): Promise<{ status: string; errors?: string[] }> {
-    const validatedData =
-      await this._serverApi.validateSchoolUdiseCode(schoolId);
+    const validatedData = await this._serverApi.validateSchoolUdiseCode(
+      schoolId
+    );
     if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>
         typeof err === "string" ? err : err.message || JSON.stringify(err)
@@ -4932,8 +4939,9 @@ order by
   async validateProgramName(
     programName: string
   ): Promise<{ status: string; errors?: string[] }> {
-    const validatedData =
-      await this._serverApi.validateProgramName(programName);
+    const validatedData = await this._serverApi.validateProgramName(
+      programName
+    );
     if (validatedData.status === "error") {
       const errors = validatedData.errors?.map((err: any) =>
         typeof err === "string" ? err : err.message || JSON.stringify(err)
@@ -5344,7 +5352,7 @@ order by
     return await this._serverApi.getSchoolsForAdmin(limit, offset);
   }
   async getSchoolsByModel(
-    model: MODEL,
+    model: EnumType<"program_model">,
     limit: number = 10,
     offset: number = 0
   ): Promise<TableTypes<"school">[]> {
@@ -6090,7 +6098,7 @@ order by
   }
   async deleteUserFromSchoolsWithRole(
     userId: string,
-    role: string
+    role: RoleType
   ): Promise<void> {
     return await this._serverApi.deleteUserFromSchoolsWithRole(userId, role);
   }

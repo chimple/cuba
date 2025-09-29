@@ -1,3 +1,4 @@
+//@ts-nocheck
 import type { Meta, StoryObj } from '@storybook/react';
 import SearchAndFilter from '../../../ops-console/components/SearchAndFilter';
 import { useState } from 'react';

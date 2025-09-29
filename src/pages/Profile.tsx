@@ -153,7 +153,7 @@ const Profile: React.FC = () => {
           })}
         </div>
       ) : null}
-      <Loading isLoading={isLoading} />
+      {/* <Loading isLoading={isLoading} /> */}
     </IonPage>
   );
 };
