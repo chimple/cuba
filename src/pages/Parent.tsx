@@ -98,19 +98,6 @@ const Parent: React.FC = () => {
     getStudentProfile();
   }, [reloadProfiles]);
 
-  const pendingSchoolRequest = async () => {
-    const api = ServiceConfig.getI().apiHandler;
-    const _currentUser =
-      await ServiceConfig.getI().authHandler.getCurrentUser();
-    const existingRequest = await api.getExistingSchoolRequest(
-      _currentUser?.id as string
-    );
-    console.log("pending schools: ", existingRequest)
-  }
-
-  useEffect(() =>{
-    pendingSchoolRequest();
-  }, [currentUser])
   async function getStudentProfile() {
     const userProfilePromise: TableTypes<"user">[] =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
