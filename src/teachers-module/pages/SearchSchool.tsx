@@ -79,6 +79,15 @@ const SearchSchool: FC = () => {
   const [isSearchingSchools, setSearchingSchools] = useState(false);
   const [hasMoreSchools, setHasMoreSchools] = useState(true);
 
+  const checkPendingRequests = async () => {
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    const existingRequest = await api.getExistingSchoolRequest(currentUser?.id as string);
+    if(existingRequest) history.replace(PAGES.POST_SUCCESS);
+  }
+  useEffect(() => {
+    checkPendingRequests();
+  }, []);
+
   useEffect(() => {
     const loadCountries = async () => {
       setCountriesLoading(true);

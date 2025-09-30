@@ -498,6 +498,7 @@ export enum PAGES {
   PRINCIPAL_TEACHER_PENDING_REQUEST = "/principal-teacher-pending-request",
   SEARCH_SCHOOL = "/search-school",
   CREATE_SCHOOL = "/create-school",
+  POST_SUCCESS = "/post-success"
 }
 
 export const enum ASSIGNMENT_TYPE {

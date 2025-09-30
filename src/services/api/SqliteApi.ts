@@ -931,11 +931,11 @@ export class SqliteApi implements ServiceApi {
   }
   // Add this new function to check if a create school request already exists
   async getExistingSchoolRequest(
-    userId: string
-  ): Promise<TableTypes<"req_new_school"> | null> {
+    requested_by: string
+  ): Promise<TableTypes<"ops_requests"> | null> {
     const res = await this.executeQuery(
-      `SELECT * FROM req_new_school WHERE user_id = ?`,
-      [userId]
+      `SELECT * FROM ops_requests WHERE requested_by = ? AND request_status = ?`,
+      [requested_by, STATUS.REQUESTED]
     );
     return res?.values?.length ? res.values[0] : null;
   }

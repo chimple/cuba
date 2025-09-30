@@ -700,6 +700,7 @@ export class SupabaseApi implements ServiceApi {
               .select("*")
               .gte("updated_at", lastModifiedDate);
             data.set(tableName, res?.data ?? []);
+            
         }
 
         if (res == null || res.error || !res.data) {
@@ -1159,15 +1160,15 @@ export class SupabaseApi implements ServiceApi {
     return newRequest;
   }
   async getExistingSchoolRequest(
-    userId: string
-  ): Promise<TableTypes<"req_new_school"> | null> {
+    requested_by: string
+  ): Promise<TableTypes<"ops_requests"> | null> {
     if (!this.supabase) return null;
 
     const { data, error } = await this.supabase
-      .from(TABLES.ReqNewSchool)
+      .from(TABLES.OpsRequests)
       .select("*")
-      .eq("user_id", userId)
-      .eq("is_resolved", false)
+      .eq("requested_by", requested_by)
+      .eq("request_status", STATUS.REQUESTED)
       .eq("is_deleted", false)
       .limit(1)
       .maybeSingle();
