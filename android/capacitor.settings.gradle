@@ -70,3 +70,6 @@ project(':capawesome-capacitor-app-update').projectDir = new File('../node_modul
 
 include ':capgo-capacitor-social-login'
 project(':capgo-capacitor-social-login').projectDir = new File('../node_modules/@capgo/capacitor-social-login/android')
+
+include ':sentry-capacitor'
+project(':sentry-capacitor').projectDir = new File('../node_modules/@sentry/capacitor/android')

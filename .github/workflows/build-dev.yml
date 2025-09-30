@@ -59,6 +59,8 @@ jobs:
           REACT_APP_GROWTHBOOK_ID: ${{ secrets.REACT_APP_GROWTHBOOK_ID }}
           REACT_APP_RAPIDAPI_KEY: ${{ secrets.REACT_APP_RAPIDAPI_KEY }}
           REACT_APP_ENCRYPTION_KEY: ${{ secrets.REACT_APP_ENCRYPTION_KEY }}
+          REACT_APP_SENTRY_DSN: ${{ secrets.REACT_APP_SENTRY_DSN }}
+
 
         run: npm run build
 
