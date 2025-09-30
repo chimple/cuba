@@ -497,6 +497,7 @@ export enum PAGES {
   OPS_REJECTED_REQUEST = "/student-rejected-request",
   PRINCIPAL_TEACHER_PENDING_REQUEST = "/principal-teacher-pending-request",
   SEARCH_SCHOOL = "/search-school",
+  CREATE_SCHOOL = "/create-school",
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -1026,10 +1027,10 @@ export interface SearchSchoolsParams {
   p_page_limit?: number;
   p_page_offset?: number;
 }
-
+export type School = TableTypes<'school'>;
 export interface SearchSchoolsResult {
   total_count: number;
-  schools: TableTypes<"school">[];
+  schools: School[];
 }
 
 export const CACHE_TABLES_TO_CLEAR = [

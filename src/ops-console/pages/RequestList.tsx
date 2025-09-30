@@ -49,6 +49,7 @@ const RequestList: React.FC = () => {
   const location = useLocation();
   const history = useHistory();
   const qs = new URLSearchParams(location.search);
+  const tableScrollRef = React.useRef<HTMLDivElement>(null);
 
   function parseJSONParam<T>(param: string | null, fallback: T): T {
     try {
@@ -229,6 +230,7 @@ const RequestList: React.FC = () => {
 
   useEffect(() => {
     fetchData();
+    tableScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [fetchData, orderBy, orderDir]);
 
   const formatDateOnly = (dateStr?: string) => {
@@ -576,15 +578,18 @@ const RequestList: React.FC = () => {
         </div>
 
         <div className="request-list-table-container">
-          <DataTableBody
-            columns={columns}
-            rows={requestData}
-            orderBy={orderBy}
-            order={orderDir}
-            onSort={handleSort}
-            loading={isLoading}
-            onRowClick={handleRowClick}
-          />
+          {(isLoading || requestData.length > 0) && (
+            <DataTableBody
+              columns={columns}
+              rows={requestData}
+              orderBy={orderBy}
+              order={orderDir}
+              onSort={handleSort}
+              loading={isLoading} // let DataTableBody show skeleton/loader
+              onRowClick={handleRowClick}
+              ref={tableScrollRef}
+            />
+          )}
         </div>
 
         {!isLoading && requestData.length === 0 && (
@@ -606,7 +611,13 @@ const RequestList: React.FC = () => {
             <DataTablePagination
               pageCount={pageCount}
               page={page}
-              onPageChange={(val) => setPage(val)}
+              onPageChange={(val) => {
+                setPage(val);
+                tableScrollRef.current?.scrollTo({
+                  top: 0,
+                  behavior: "smooth",
+                });
+              }}
             />
           </div>
         )}

@@ -75,7 +75,7 @@ window.onunhandledrejection = (event: PromiseRejectionEvent) => {
   recordExecption(event.reason.toString(), event.type.toString());
 };
 window.onerror = (message, source, lineno, colno, error) => {
-  recordExecption(message.toString, error.toString());
+  recordExecption(message.toString(), error.toString());
 };
 const container = document.getElementById("root");
 const root = createRoot(container!);
@@ -111,7 +111,6 @@ const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
 
 if (isOpsUser) {
   serviceInstance.switchMode(APIMode.SUPABASE);
-
   root.render(
     <GrowthBookProvider growthbook={gb}>
       <GbProvider>
@@ -119,14 +118,11 @@ if (isOpsUser) {
       </GbProvider>
     </GrowthBookProvider>
   );
-
   SplashScreen.hide();
 } else {
   SplashScreen.show();
-
   SqliteApi.getInstance().then(() => {
     serviceInstance.switchMode(APIMode.SQLITE);
-
     root.render(
       <GrowthBookProvider growthbook={gb}>
         <GbProvider>
@@ -134,7 +130,6 @@ if (isOpsUser) {
         </GbProvider>
       </GrowthBookProvider>
     );
-
     SplashScreen.hide();
   });
 }
