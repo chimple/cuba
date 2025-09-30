@@ -153,9 +153,8 @@ export class Util {
       let studentResult:
         | { [lessonDocId: string]: TableTypes<"result"> }
         | undefined = {};
-      const studentProfile = await api.getStudentResultInMap(
-        currentStudentDocId
-      );
+      const studentProfile =
+        await api.getStudentResultInMap(currentStudentDocId);
       studentResult = studentProfile;
 
       if (!studentResult) return undefined;
@@ -805,6 +804,8 @@ export class Util {
               const container = document.getElementById("Cocos2dGameContainer");
               if (container) {
                 container.style.display = "";
+                container.style.width = "100%";
+                container.style.height = "100%";
               }
               var div = document.getElementById("GameDiv");
               if (div) {
@@ -836,6 +837,9 @@ export class Util {
     const container = document.getElementById("Cocos2dGameContainer");
     if (container) {
       container.style.display = "none";
+      container.style.width = "0px";
+      container.style.height = "0px";
+      container.style.overflow = "hidden";
     }
   }
 
