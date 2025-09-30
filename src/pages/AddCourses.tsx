@@ -130,7 +130,7 @@ const AddCourses: React.FC = () => {
 
   return (
     <IonPage id="display-subjects-page">
-      {/* <Loading isLoading={isLoading} /> */}
+      <Loading isLoading={isLoading} />
       <div className="subjects-header">
         <div id="back-button-container">
           <BackButton onClicked={onBackButton} />

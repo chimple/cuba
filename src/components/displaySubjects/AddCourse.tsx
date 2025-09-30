@@ -179,7 +179,7 @@ const AddCourse: FC<{
             }
           })}
 
-          {/* <Loading isLoading={isLoading} /> */}
+          <Loading isLoading={isLoading} />
         </Splide>
       </div>
     );

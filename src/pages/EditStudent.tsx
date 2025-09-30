@@ -488,7 +488,7 @@ const EditStudent = () => {
               </>
             )}
           </div>
-          {/* <Loading isLoading={isLoading} /> */}
+          <Loading isLoading={isLoading} />
         </IonPage>
       )}
     </>

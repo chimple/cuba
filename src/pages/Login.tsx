@@ -1267,7 +1267,7 @@ const Login: React.FC = () => {
           ) : null}
         </div>
       )}
-      <SkeltonLoading isLoading={sentOtpLoading} />
+      <Loading isLoading={sentOtpLoading} />
     </IonPage>
   );
 };
