@@ -12,7 +12,9 @@ import DropDown from "../components/DropDown";
 const AppLangSelection: React.FC = () => {
   const history = useHistory();
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [langList, setLangList] = useState<{ id: string; displayName: string }[]>([]);
+  const [langList, setLangList] = useState<
+    { id: string; displayName: string }[]
+  >([]);
   const [currentAppLang, setCurrentAppLang] = useState<string>();
 
   useEffect(() => {
@@ -79,7 +81,7 @@ const AppLangSelection: React.FC = () => {
           </div>
         </div>
       ) : null}
-      {/* <Loading isLoading={isLoading} /> */}
+      <Loading isLoading={isLoading} />
     </IonPage>
   );
 };
