@@ -29,7 +29,7 @@ const PostSuccess: React.FC = () => {
           </p>
         </div>
         <div className="post-success-request-box">
-          <a href="https://www.bit.ly/chimple-help-line" target="_blank" style={{ textDecoration: "none" }}>
+          <a href="https://wa.me/919606018552" target="_blank" style={{ textDecoration: "none" }}>
             <div className="post-success-create-school-whatsapp-support">
               <div className="post-success-whatsapp-support-icon">
                 <img src="assets/icons/whatsapp.svg" alt="whatsapp" width="25" />
