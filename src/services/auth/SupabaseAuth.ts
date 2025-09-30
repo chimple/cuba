@@ -166,7 +166,7 @@ export class SupabaseAuth implements ServiceAuth {
         provider: "google",
         options: {
           scopes: ['profile', 'email'],
-          nonce:""
+          forceRefreshToken: true
         }
       })
       if (response.result?.responseType !== "online") {
@@ -237,7 +237,7 @@ export class SupabaseAuth implements ServiceAuth {
       if (rpcRes?.data) {
         await api.subscribeToClassTopic();
       }
-      return { success: true, isSpl: false };
+      return { success: true, isSpl: isSplValue };
     } catch (error: any) {
       console.error(
         "🚀 ~ SupabaseAuth ~ googleSign ~ error:",
