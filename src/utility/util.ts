@@ -748,6 +748,8 @@ export class Util {
               const container = document.getElementById("Cocos2dGameContainer");
               if (container) {
                 container.style.display = "";
+                container.style.width = "100%";
+                container.style.height = "100%";
               }
               var div = document.getElementById("GameDiv");
               if (div) {
@@ -779,6 +781,9 @@ export class Util {
     const container = document.getElementById("Cocos2dGameContainer");
     if (container) {
       container.style.display = "none";
+      container.style.width = "0px";
+      container.style.height = "0px";
+      container.style.overflow = "hidden";
     }
   }
 
