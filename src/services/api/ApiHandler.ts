@@ -39,9 +39,15 @@ export class ApiHandler implements ServiceApi {
 
   private constructor(service: ServiceApi) {
     this.s = service;
+    console.log("ApiHandler constructor called with service:", service);
   }
 
   public static getInstance(service: ServiceApi): ApiHandler {
+    if (!service) {
+      console.error(
+        "ApiHandler.getInstance was called with an undefined service. This will cause errors."
+      );
+    }
     // Only create a new instance if the service has changed
     if (!ApiHandler.i || ApiHandler.i.s !== service) {
       ApiHandler.i = new ApiHandler(service);
@@ -183,7 +189,8 @@ export class ApiHandler implements ServiceApi {
     image: File | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
+    country: string | null
   ): Promise<TableTypes<"school">> {
     return await this.s.createSchool(
       name,
@@ -194,7 +201,8 @@ export class ApiHandler implements ServiceApi {
       image,
       program_id,
       udise,
-      address
+      address,
+      country
     );
   }
   public async updateSchoolProfile(

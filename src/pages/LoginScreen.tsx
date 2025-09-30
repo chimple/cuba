@@ -98,6 +98,8 @@ const LoginScreen: React.FC = () => {
   const [otpExpiryCounter, setOtpExpiryCounter] = useState(15);
   const [animatedLoading, setAnimatedLoading] = useState<boolean>(false);
   const [initializing, setInitializing] = useState(true);
+  const [showStudentCredentialLogin, setStudentCredentialLogin] =
+    useState<boolean>(false);
 
   const loadingMessages = [
     t("Track your learning progress."),
@@ -486,9 +488,14 @@ const LoginScreen: React.FC = () => {
       // AUTOUSER → school‐mode
       const auto = schools.find((s) => s.role === RoleType.AUTOUSER);
       if (auto) {
-        await ScreenOrientation.lock({ orientation: "landscape" });
-        schoolUtil.setCurrMode(MODES.SCHOOL);
-        return history.replace(PAGES.SELECT_MODE);
+        if (Capacitor.isNativePlatform()) {
+          await ScreenOrientation.lock({ orientation: "landscape" });
+          schoolUtil.setCurrMode(MODES.SCHOOL);
+          return history.replace(PAGES.SELECT_MODE);
+        } else {
+          schoolUtil.setCurrMode(MODES.SCHOOL);
+          return history.replace(PAGES.SELECT_MODE);
+        }
       }
 
       // else teacher
@@ -512,6 +519,7 @@ const LoginScreen: React.FC = () => {
 
   // Handler for student credentials login
   const handleStudentLogin = async () => {
+    setStudentCredentialLogin(false);
     try {
       if (!online) {
         presentToast({
@@ -533,38 +541,38 @@ const LoginScreen: React.FC = () => {
           schoolCode.trimEnd() + studentId.trimEnd() + DOMAIN,
           studentPassword.trimEnd()
         );
-
-      if (result) {
-        setAnimatedLoading(false);
-        setIsLoading(false);
-        const user = JSON.parse(localStorage.getItem(USER_DATA)!);
-        const userSchools = await getSchoolsForUser(user.id);
-        await redirectUser(userSchools, isOps);
-        localStorage.setItem(CURRENT_USER, JSON.stringify(result));
-        localStorage.setItem(USER_DATA, JSON.stringify(user));
-        let studentDetails: any = user;
-        studentDetails.parent_id = user.uid;
-        updateLocalAttributes({
-          studentDetails,
-        });
-        setGbUpdated(true);
-        // Log the login event
-        Util.logEvent(EVENTS.USER_PROFILE, {
-          user_id: user.uid,
-          user_name: user.name,
-          user_username: user.username,
-          user_type: RoleType.STUDENT,
-          action_type: ACTION.LOGIN,
-          login_type: "student-credentials",
-        });
-      } else {
+      if (!result) {
+        setStudentCredentialLogin(true);
         setAnimatedLoading(false);
         setIsLoading(false);
         setStudentErrorMessage(
           "Incorrect credentials - Please check & try again!"
         );
       }
+      setAnimatedLoading(false);
+      setIsLoading(false);
+      localStorage.setItem(CURRENT_USER, JSON.stringify(result));
+      const user = JSON.parse(localStorage.getItem(USER_DATA)!);
+      const userSchools = await getSchoolsForUser(user.id);
+      await redirectUser(userSchools, isOps);
+      localStorage.setItem(USER_DATA, JSON.stringify(user));
+      let studentDetails: any = user;
+      studentDetails.parent_id = user.uid;
+      updateLocalAttributes({
+        studentDetails,
+      });
+      setGbUpdated(true);
+      // Log the login event
+      Util.logEvent(EVENTS.USER_PROFILE, {
+        user_id: user.uid,
+        user_name: user.name,
+        user_username: user.username,
+        user_type: RoleType.STUDENT,
+        action_type: ACTION.LOGIN,
+        login_type: "student-credentials",
+      });
     } catch (error) {
+      setStudentCredentialLogin(true);
       setAnimatedLoading(false);
       setIsLoading(false);
       setStudentErrorMessage("Login unsuccessful. Please try again later.");

@@ -61,12 +61,8 @@ export class SupabaseAuth implements ServiceAuth {
         email: email,
         password: password,
       });
-      if (error) {
-        throw new Error(error.message || "Authentication failed.");
-      }
-      if (data.session?.refresh_token) {
+      if (data.session?.refresh_token)
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
-      }
       if (this._supabaseDb) {
         const { data: isSplResult, error: isSplError } =
           await this._supabaseDb.rpc("is_special_or_program_user");
@@ -78,13 +74,13 @@ export class SupabaseAuth implements ServiceAuth {
       } else {
         console.error("Supabase DB client is not initialized.");
       }
-      if (isSpl) {
-        ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
-      } else {
-        await api.syncDB(Object.values(TABLES), REFRESH_TABLES_ON_LOGIN);
-      }
       await api.updateFcmToken(data?.user?.id ?? "");
       Util.storeLoginDetails(email, password);
+      if (!isSpl) {
+        await api.syncDB(Object.values(TABLES), REFRESH_TABLES_ON_LOGIN);
+      } else {
+        ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+      }
       await api.subscribeToClassTopic();
       return { success: true, isSpl };
     } catch (error) {
@@ -251,16 +247,12 @@ export class SupabaseAuth implements ServiceAuth {
       if (!authData || !authData.data.session?.user?.id) return;
 
       const api = ServiceConfig.getI().apiHandler;
-
       const userRole = await api.getUserSpecialRoles(
         authData.data.session?.user.id
       );
       if (userRole.length > 0) {
         localStorage.setItem(USER_ROLE, JSON.stringify(userRole));
-      } else {
-        localStorage.removeItem(USER_ROLE);
       }
-
       let user = await api.getUserByDocId(authData.data.session?.user.id);
       if (user) {
         localStorage.setItem(USER_DATA, JSON.stringify(user));

@@ -19,7 +19,8 @@ export default function ChimpleRiveMascot() {
   const { rive, RiveComponent } = useRive({
     src: should_show_remote_asset? riveSrc : "/pathwayAssets/chimpleRive.riv",
     artboard: "Artboard",
-    stateMachines: "State Machine 2",
+    // stateMachines: "State Machine 2",
+    animations: "id",
     autoplay: true,
     layout: new Layout({
       fit: Fit.Contain,
@@ -27,7 +28,7 @@ export default function ChimpleRiveMascot() {
     }),
   });
 
-  const numberInput = useStateMachineInput(rive, "State Machine 2", "Number 1", CHIMPLE_RIVE_STATE_MIN);
+  // const numberInput = useStateMachineInput(rive, "State Machine 2", "Number 1", CHIMPLE_RIVE_STATE_MIN);
   // Get today's date and map to state 1-MAX
   const today = new Date();
   const day = today.getDate();
@@ -59,15 +60,15 @@ export default function ChimpleRiveMascot() {
     getRemoteMascotUrl();
   }, [should_show_remote_asset]);
 
-  useEffect(() => {
-    try {
-      if (numberInput && "value" in numberInput && typeof numberInput.value === 'number' && !isNaN(numberInput.value) && typeof value === "number" && !isNaN(value)) {
-        numberInput.value = value;
-      }
-    } catch (error) {
-      console.error("Failed to set numberInput value:", error);
-    }
-  }, [value, numberInput]);
+  // useEffect(() => {
+  //   try {
+  //     if (numberInput && "value" in numberInput && typeof numberInput.value === 'number' && !isNaN(numberInput.value) && typeof value === "number" && !isNaN(value)) {
+  //       numberInput.value = value;
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to set numberInput value:", error);
+  //   }
+  // }, [value, numberInput]);
 
   return <RiveComponent key={riveSrc} style={{ width: "100%", height: "100%" }} />;
 }
