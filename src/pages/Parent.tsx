@@ -318,7 +318,7 @@ const Parent: React.FC = () => {
           </div>
           <div className="parent-teachermode-toggle">
             <ToggleButton
-              title={"Switch to Teacher's Modeee"}
+              title={"Switch to Teacher's Mode"}
               layout="vertical"
               onIonChangeClick={async () => {
                 const isNativePlatform = Capacitor.isNativePlatform();

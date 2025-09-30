@@ -38,20 +38,21 @@ const JoinSchool: React.FC = () => {
   }, []);
 
   const handleSendRequest = async () => {
-    setSending(true);
-    const schoolId = school?.id;
-    if (!schoolId || !requestType) return;
-
-    const classId =
-      requestType === RequestTypes.TEACHER
-        ? selectedClass.id ?? undefined
-        : undefined;
-
     try {
+      setSending(true);
+      const schoolId = school?.id;
+      if (!schoolId || !requestType) return;
+
+      const classId =
+        requestType === RequestTypes.TEACHER
+          ? selectedClass.id ?? undefined
+          : undefined;
+
       await api.sendJoinSchoolRequest(schoolId, requestType, classId);
       history.replace(PAGES.POST_SUCCESS);
     } catch (error) {
       console.error("Error sending join school request:", error);
+    } finally {
       setSending(false);
     }
   };
