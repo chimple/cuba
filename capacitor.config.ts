@@ -25,11 +25,6 @@ const config: CapacitorConfig = {
     LocalNotifications: {
       smallIcon: "chimple_monkey_icon",
     },
-    GoogleAuth: {
-      scopes: ["profile", "email"],
-      androidClientId: process.env.REACT_APP_CLIENT_ID,
-      forceCodeForRefreshToken: true,
-    },
     SplashScreen: {
       launchShowDuration: 5000,
       launchAutoHide: false,

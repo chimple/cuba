@@ -17,7 +17,7 @@ import {
 } from "../../common/constants";
 import { SupabaseClient, UserAttributes } from "@supabase/supabase-js";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
-// import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
+import { SocialLogin } from '@capgo/capacitor-social-login';
 import { Util } from "../../utility/util";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 import { schoolUtil } from "../../utility/schoolUtil";
@@ -163,71 +163,84 @@ export class SupabaseAuth implements ServiceAuth {
   }
   async googleSign(): Promise<{ success: boolean; isSpl: boolean }> {
     try {
-      // if (!this._auth) return { success: false, isSpl: false };
+      if (!this._auth) return { success: false, isSpl: false };
 
-      // const api = ServiceConfig.getI().apiHandler;
-      // // const authUser = await GoogleAuth.signIn();
-      // // const { data, error } = await this._auth.signInWithIdToken({
-      // //   provider: "google",
-      // //   token: authUser.authentication.idToken,
-      // //   access_token: authUser.authentication.accessToken,
-      // // });
+      const api = ServiceConfig.getI().apiHandler;
+      const response = await SocialLogin.login({
+        provider: "google",
+        options: {
+          scopes: ['profile', 'email'],
+          nonce:""
+        }
+      })
+      if (response.result?.responseType !== "online") {
+        return { success: false, isSpl: false };
+      }
+      const authentication  = response.result;
+      const authUser  = authentication.profile;
 
-      // if (data.session?.refresh_token) {
-      //   Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
-      // }
-      // const rpcRes = await this._supabaseDb?.rpc("isUserExists", {
-      //   user_email: authUser.email,
-      //   user_phone: "",
-      // });
+      if(authentication.idToken===null || authUser.email === null || authUser.id ===null ) return { success: false, isSpl: false };
+      const { data, error } = await this._auth.signInWithIdToken({
+        provider: "google",
+        token: authentication.idToken,
+        access_token: authentication.accessToken?.token,
+      });
 
-      // if (!rpcRes?.data) {
-      //   const createdUser = await api.createUserDoc({
-      //     age: null,
-      //     avatar: null,
-      //     created_at: new Date().toISOString(),
-      //     curriculum_id: null,
-      //     gender: null,
-      //     grade_id: null,
-      //     id: data.user?.id ?? authUser.id,
-      //     image: authUser.imageUrl,
-      //     is_deleted: false,
-      //     is_tc_accepted: true,
-      //     language_id: null,
-      //     name: authUser.name,
-      //     updated_at: new Date().toISOString(),
-      //     email: authUser.email,
-      //     phone: data.user?.phone ?? null,
-      //     music_off: false,
-      //     sfx_off: false,
-      //     fcm_token: null,
-      //     student_id: null,
-      //     firebase_id: null,
-      //     is_firebase: null,
-      //     is_ops: null,
-      //     learning_path: null,
-      //     ops_created_by: null,
-      //     reward: null,
-      //     stars: null,
-      //   });
-      //   this._currentUser = createdUser;
-      // }
+      if (data.session?.refresh_token) {
+        Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
+      }
+      const rpcRes = await this._supabaseDb?.rpc("isUserExists", {
+        user_email: authUser.email,
+        user_phone: "",
+      });
 
-      // const isSpl = await this._supabaseDb?.rpc("is_special_or_program_user");
-      // const isSplValue = isSpl?.data === true;
-      // if (isSplValue) {
-      //   ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
-      // } else {
-      //   await ServiceConfig.getI().apiHandler.syncDB(
-      //     Object.values(TABLES),
-      //     REFRESH_TABLES_ON_LOGIN
-      //   );
-      // }
+      if (!rpcRes?.data) {
+        const createdUser = await api.createUserDoc({
+          age: null,
+          avatar: null,
+          created_at: new Date().toISOString(),
+          curriculum_id: null,
+          gender: null,
+          grade_id: null,
+          id: data.user?.id ?? authUser.id,
+          image: authUser.imageUrl,
+          is_deleted: false,
+          is_tc_accepted: true,
+          language_id: null,
+          name: authUser.name,
+          updated_at: new Date().toISOString(),
+          email: authUser.email,
+          phone: data.user?.phone ?? null,
+          music_off: false,
+          sfx_off: false,
+          fcm_token: null,
+          student_id: null,
+          firebase_id: null,
+          is_firebase: null,
+          is_ops: null,
+          learning_path: null,
+          ops_created_by: null,
+          reward: null,
+          stars: null,
+        });
+        this._currentUser = createdUser;
+      }
 
-      // await api.updateFcmToken(data.user?.id ?? authUser.id);
-      // if (rpcRes?.data) {
-      //   await api.subscribeToClassTopic();
-      // }
+      const isSpl = await this._supabaseDb?.rpc("is_special_or_program_user");
+      const isSplValue = isSpl?.data === true;
+      if (isSplValue) {
+        ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+      } else {
+        await ServiceConfig.getI().apiHandler.syncDB(
+          Object.values(TABLES),
+          REFRESH_TABLES_ON_LOGIN
+        );
+      }
+
+      await api.updateFcmToken(data.user?.id ?? authUser.id);
+      if (rpcRes?.data) {
+        await api.subscribeToClassTopic();
+      }
       return { success: true, isSpl: false };
     } catch (error: any) {
       console.error(
