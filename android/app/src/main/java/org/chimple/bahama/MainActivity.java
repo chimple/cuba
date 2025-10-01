@@ -36,6 +36,7 @@ public  class MainActivity extends BridgeActivity {
     private static Context appContext;
     private static String phoneNumber;
     private static ActivityResultLauncher activityResultLauncher;
+    private MyWebGLMonitor webGLMonitor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,8 +58,17 @@ public  class MainActivity extends BridgeActivity {
         decorView.setSystemUiVisibility(uiOptions);
         FirebaseApp.initializeApp(/*context=*/ this);
         initializeActivityLauncher();
+
+        // --- ✅ Initialize WebGL Monitor ---
+        if (this.bridge != null && this.bridge.getWebView() != null) {
+            Log.e("MainActivity", "Initializing WebGL monitor...");
+            webGLMonitor = new MyWebGLMonitor(this, this.bridge.getWebView());
+        } else {
+            Log.e("MainActivity", "WebView not ready for WebGL monitor");
+        }
     }
-    public void initializeActivityLauncher(){
+
+    public void initializeActivityLauncher() {
         // Register the ActivityResultLauncher for Phone Number Hint
         ActivityResultLauncher<IntentSenderRequest> phoneNumberHintLauncher = registerForActivityResult (
                 new ActivityResultContracts.StartIntentSenderForResult(),
@@ -95,6 +105,16 @@ public  class MainActivity extends BridgeActivity {
                     }
                 })
                 .addOnFailureListener(e -> Log.e("TAG", "Phone Number Hint Request failed", e));
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Re-inject WebGL watcher when app comes back from background
+        if (this.bridge != null && this.bridge.getWebView() != null && webGLMonitor != null) {
+            Log.e("MainActivity", "Re-injecting WebGL monitor after resume");
+            webGLMonitor.reInjectWatcher();
+        }
     }
 
     @Override
