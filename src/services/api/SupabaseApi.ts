@@ -465,7 +465,8 @@ export class SupabaseApi implements ServiceApi {
 
   async getTablesData(
     tableNames: TABLES[] = Object.values(TABLES),
-    tablesLastModifiedTime: Map<string, string> = new Map()
+    tablesLastModifiedTime: Map<string, string> = new Map(),
+    isInitialFetch = false
   ): Promise<Map<string, any[]>> {
     try {
       const data = new Map<string, any[]>();
@@ -722,7 +723,15 @@ export class SupabaseApi implements ServiceApi {
             error_hint: res?.error?.hint || null,
             error_message: res?.error?.message || null,
           });
+          if (isInitialFetch) {
+            throw new Error(
+              `Initial fetch failed for ${rpcName || tableName}: ${res?.error?.message}`
+            );
+          }
         }
+        // console.log(
+        //   `Fetched ${JSON.stringify(res?.data)} records from ${tableName}`
+        // );
         data.set(tableName, res?.data ?? []);
       });
 

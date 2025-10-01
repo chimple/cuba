@@ -322,17 +322,15 @@ export class SqliteApi implements ServiceApi {
     return res;
   }
 
-  // show a toast with an optional action button and return true if user tapped the action.
-  // Resolves false when the toast duration elapses or if no presenter supports actions.
-  private showToastWithRetry(
+  private async showToastWithRetry(
     message: string,
-    duration = 30000,
-    actionLabel = "Retry"
+    actionLabel = "Retry",
+    duration = 15000
   ): Promise<boolean> {
-    return new Promise(async (resolve) => {
+    return new Promise((resolve) => {
       let resolved = false;
-      let timeoutId: number | undefined;
-      let overlay: HTMLElement | null = null;
+      let timeoutId: number | null = null;
+      let overlay: HTMLDivElement | null = null;
 
       const finish = (val: boolean) => {
         if (resolved) return;
@@ -346,57 +344,25 @@ export class SqliteApi implements ServiceApi {
       };
 
       try {
-        // Preferred instance presenter that accepts buttons (Ionic-like)
-        if (typeof (this as any).present === "function") {
-          const toastOptions: any = {
+        // Ionic style presenter
+        if (typeof (window as any).presentToast === "function") {
+          (window as any).presentToast({
             message,
             duration,
+            position: "bottom",
+            color: "warning",
             buttons: [
               {
                 text: actionLabel,
-                role: "cancel",
                 handler: () => finish(true),
               },
             ],
-          };
-          await (this as any).present(toastOptions);
-          timeoutId = window.setTimeout(() => finish(false), duration + 100);
+          });
+          timeoutId = window.setTimeout(() => finish(false), duration + 200);
           return;
         }
 
-        // Global presenter fallback that may accept buttons
-        if (typeof (window as any).present === "function") {
-          try {
-            (window as any).present({
-              message,
-              duration,
-              buttons: [
-                {
-                  text: actionLabel,
-                  handler: () => finish(true),
-                },
-              ],
-            });
-            timeoutId = window.setTimeout(() => finish(false), duration + 100);
-            return;
-          } catch (err) {
-            // fallthrough to DOM fallback
-          }
-        }
-
-        // presentToast exists but doesn't accept buttons — show it and also show DOM fallback
-        if (typeof (window as any).presentToast === "function") {
-          try {
-            (window as any).presentToast(message);
-          } catch {}
-          // continue to DOM fallback below so we still have an actionable Retry button
-        }
-      } catch (e) {
-        console.warn("showToastWithRetry: presenter threw", e);
-      }
-
-      // DOM fallback (non-blocking, avoids `confirm`)
-      try {
+        // Fallback DOM toast
         overlay = document.createElement("div");
         overlay.setAttribute(
           "style",
@@ -446,42 +412,21 @@ export class SqliteApi implements ServiceApi {
 
         overlay.appendChild(msgSpan);
         overlay.appendChild(btn);
+        document.body?.appendChild(overlay);
 
-        // attach to body (guard in case document.body is not available)
-        if (document && document.body) {
-          document.body.appendChild(overlay);
-        } else {
-          // if no DOM, just resolve false after duration
-          timeoutId = window.setTimeout(() => finish(false), duration + 100);
-          return;
-        }
-
-        // auto-dismiss after duration
-        timeoutId = window.setTimeout(() => finish(false), duration + 100);
+        timeoutId = window.setTimeout(() => finish(false), duration + 200);
       } catch (err) {
-        console.warn("showToastWithRetry DOM fallback failed:", err);
-        // final fallback: log and resolve false after short timeout
-        console.log("TOAST:", message);
-        timeoutId = window.setTimeout(() => finish(false), duration + 100);
+        console.warn("Fallback toast failed:", err);
+        timeoutId = window.setTimeout(() => finish(false), duration);
       }
     });
   }
 
-  private sleep(ms: number) {
-    return new Promise((res) => setTimeout(res, ms));
-  }
-  private backoffDelay(attempt: number, base = 500) {
-    const jitter = Math.floor(Math.random() * 100);
-    return base * Math.pow(2, Math.max(0, attempt - 1)) + jitter;
-  }
-
-  private async pullChanges(
-    tableNames: TABLES[],
-    maxAttempts = 5,
-    attempt = 1
-  ) {
+  private _hasPulledOnce: boolean = false;
+  private async pullChanges(tableNames: TABLES[], attempt = 1) {
     if (!this._db) return;
 
+    const isInitialFetch = !this._hasPulledOnce;
     const tables = tableNames.map((t) => `'${t}'`).join(", ");
     const tablePullSync = `SELECT * FROM pull_sync_info WHERE table_name IN (${tables});`;
     let lastPullTables = new Map<string, string>();
@@ -492,109 +437,47 @@ export class SqliteApi implements ServiceApi {
       console.error("🚀 ~ Api ~ syncDB ~ error:", error);
       await this.createSyncTables();
     }
-
-    let data: Map<string, any[]> | null = null;
+    let data = new Map<string, any[]>();
     try {
-      data = await this._serverApi.getTablesData(tableNames, lastPullTables);
-    } catch (err) {
-      console.error(
-        `pullChanges: getTablesData threw on attempt ${attempt}:`,
-        err
+      data = await this._serverApi.getTablesData(
+        tableNames,
+        lastPullTables,
+        isInitialFetch
       );
-    }
-
-    const totalRows = data
-      ? Array.from(data.values()).reduce(
-          (acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0),
-          0
-        )
-      : 0;
-
-    if (totalRows === 0) {
-      if (attempt < maxAttempts) {
-        const delay = this.backoffDelay(attempt);
-        console.warn(
-          `pullChanges: attempt ${attempt} returned 0 rows — retrying after ${delay}ms`
-        );
-        await this.sleep(delay);
-        return this.pullChanges(tableNames, maxAttempts, attempt + 1); // recall
+      this._hasPulledOnce = true;
+    } catch (err) {
+      console.error(`❌ Attempt ${attempt}: getTablesData failed`, err);
+      if (attempt < 5) {
+        const delay = 500 * Math.pow(2, attempt);
+        await new Promise((res) => setTimeout(res, delay));
+        return this.pullChanges(tableNames, attempt + 1);
       } else {
-        console.error(
-          `pullChanges: exhausted ${maxAttempts} attempts with no data — about to truncate local tables and perform one final pull`
-        );
-
-        console.log(
-          `pullChanges: reached final attempt (${attempt}). Performing delete/truncate of local tables: [${tableNames.join(
-            ", "
-          )}] and clearing pull_sync_info before final pull.`
-        );
-
-        try {
-          const stmts: { statement: string; values?: any[] }[] = [];
-          stmts.push({ statement: `PRAGMA foreign_keys = OFF;` });
-
-          for (const t of tableNames) {
-            stmts.push({ statement: `DELETE FROM ${t};` });
-            stmts.push({
-              statement: `DELETE FROM sqlite_sequence WHERE name = ?;`,
-              values: [t],
-            });
+        console.warn("❌ All 5 retries failed. Truncating local tables...");
+        await this._db?.execute("PRAGMA foreign_keys = OFF");
+        for (const table of tableNames) {
+          try {
+            await this._db?.execute(`DELETE FROM ${table}`);
+          } catch (e) {
+            console.error(`❌ Failed to truncate ${table}:`, e);
           }
-
-          stmts.push({ statement: `PRAGMA foreign_keys = ON;` });
-
-          await this._db.executeSet(stmts as any[]);
-          console.log("pullChanges: local tables truncated successfully.");
-        } catch (err) {
-          console.error("pullChanges: error truncating tables:", err);
-          // continue to final pull attempt even if truncate failed
         }
-
-        // show toast with Retry button. If user taps Retry it'll resolve immediately; otherwise resolves false after duration.
-        const userTappedRetry = await this.showToastWithRetry(
-          "Sync retries exhausted. Clearing local DB — tap Retry to fetch fresh data now.",
-          5000,
-          "Retry"
+        await this._db?.execute("PRAGMA foreign_keys = ON");
+        const userWantsRetry = await this.showToastWithRetry(
+          "Sync failed. Retry now?"
         );
-
-        // whether user tapped or toast timed out, we proceed to perform the final pull now.
-        // (If you prefer to only do the final pull when user taps Retry, change the logic to skip this block when userTappedRetry === false.)
-        try {
-          data = await this._serverApi.getTablesData(tableNames, new Map());
-        } catch (err) {
-          console.error(
-            "pullChanges: final getTablesData after truncate threw:",
-            err
-          );
-          return; // give up after final attempt
+        if (userWantsRetry) {
+          console.warn("🔁 Final retry triggered by user.");
+          return this.pullChanges(tableNames); // restart pullChanges
+        } else {
+          console.warn("⛔ User canceled final retry.");
+          return; // do nothing
         }
-
-        const finalTotalRows = data
-          ? Array.from(data.values()).reduce(
-              (acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0),
-              0
-            )
-          : 0;
-
-        console.log(
-          `pullChanges: final pull after truncation returned ${finalTotalRows} rows.`
-        );
-
-        if (finalTotalRows === 0) {
-          console.error(
-            "pullChanges: final pull after truncation returned 0 rows — aborting"
-          );
-          return;
-        }
-        // continue to normal processing below with data populated
       }
     }
-
-    // --- proceed with the existing processing (unchanged) ---
     const lastPulled = new Date().toISOString();
     let batchQueries: { statement: string; values: any[] }[] = [];
     for (const tableName of tableNames) {
-      const tableData = data!.get(tableName) ?? [];
+      const tableData = data.get(tableName) ?? [];
       if (tableData.length === 0) continue;
 
       const existingColumns = await this.getTableColumns(tableName);
@@ -608,26 +491,25 @@ export class SqliteApi implements ServiceApi {
 
         const fieldValues = fieldNames.map((f) => row[f]);
         const placeholders = fieldNames.map(() => "?").join(", ");
-        const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(
-          ", "
-        )}) VALUES (${placeholders})`;
+        const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(", ")}) VALUES (${placeholders})`;
 
         batchQueries.push({ statement: stmt, values: fieldValues });
       }
 
+      // Update sync timestamp
       batchQueries.push({
         statement: `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
         values: [tableName, lastPulled],
       });
     }
 
-    // debug info
+    // Update debug info
     let totalpulledRows = 0;
-    let filteredObject: Record<string, any[]> = {};
-    for (const [key, value] of data!.entries()) {
+    let filteredObject = {};
+    for (const [key, value] of data.entries()) {
       if (Array.isArray(value) && value.length > 0) {
         totalpulledRows += value.length;
-        filteredObject[key] = value;
+        filteredObject[key] = value; // include only non-empty arrays
       }
     }
     const jsonString = JSON.stringify(filteredObject);
