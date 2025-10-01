@@ -560,6 +560,7 @@ export enum STATUS {
   APPROVED = "approved",
   REJECTED = "rejected",
   MIGRATED = "migrated",
+  FLAGGED = "flagged"
 }
 
 export interface SchoolWithRole {

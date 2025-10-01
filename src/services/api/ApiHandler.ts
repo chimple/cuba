@@ -1510,13 +1510,14 @@ export class ApiHandler implements ServiceApi {
     requestId: string,
     respondedBy: string,
     status: (typeof STATUS)[keyof typeof STATUS],
-    rejectionReason?: string
+    rejectedReasonType?: string,
+    rejectedReasonDescription?: string
   ): Promise<TableTypes<"ops_requests"> | undefined> {
     return await this.s.respondToSchoolRequest(
       requestId,
       respondedBy,
       status,
-      rejectionReason
+      rejectedReasonDescription
     );
   }
   public async getFieldCoordinatorsByProgram(
