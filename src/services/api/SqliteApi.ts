@@ -324,9 +324,111 @@ export class SqliteApi implements ServiceApi {
     return res;
   }
 
-  private async pullChanges(tableNames: TABLES[]) {
+  private async showToastWithRetry(
+    message: string,
+    actionLabel = "Retry",
+    duration = 15000
+  ): Promise<boolean> {
+    return new Promise((resolve) => {
+      let resolved = false;
+      let timeoutId: number | null = null;
+      let overlay: HTMLDivElement | null = null;
+
+      const finish = (val: boolean) => {
+        if (resolved) return;
+        resolved = true;
+        try {
+          if (overlay && overlay.parentElement)
+            overlay.parentElement.removeChild(overlay);
+        } catch {}
+        if (timeoutId) window.clearTimeout(timeoutId);
+        resolve(val);
+      };
+
+      try {
+        // Ionic style presenter
+        if (typeof (window as any).presentToast === "function") {
+          (window as any).presentToast({
+            message,
+            duration,
+            position: "bottom",
+            color: "warning",
+            buttons: [
+              {
+                text: actionLabel,
+                handler: () => finish(true),
+              },
+            ],
+          });
+          timeoutId = window.setTimeout(() => finish(false), duration + 200);
+          return;
+        }
+
+        // Fallback DOM toast
+        overlay = document.createElement("div");
+        overlay.setAttribute(
+          "style",
+          [
+            "position:fixed",
+            "left:12px",
+            "right:12px",
+            "bottom:20px",
+            "z-index:2147483647",
+            "display:flex",
+            "align-items:center",
+            "justify-content:space-between",
+            "gap:12px",
+            "padding:10px 14px",
+            "background:rgba(0,0,0,0.85)",
+            "color:#fff",
+            "border-radius:8px",
+            "font-family:system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial",
+            "box-shadow:0 6px 18px rgba(0,0,0,0.3)",
+          ].join(";")
+        );
+
+        const msgSpan = document.createElement("div");
+        msgSpan.textContent = message;
+        msgSpan.style.flex = "1";
+        msgSpan.style.fontSize = "13px";
+        msgSpan.style.overflow = "hidden";
+        msgSpan.style.textOverflow = "ellipsis";
+        msgSpan.style.whiteSpace = "nowrap";
+
+        const btn = document.createElement("button");
+        btn.textContent = actionLabel;
+        btn.setAttribute(
+          "style",
+          [
+            "margin-left:12px",
+            "padding:6px 10px",
+            "border-radius:6px",
+            "border:none",
+            "background:#fff",
+            "color:#000",
+            "cursor:pointer",
+            "font-weight:600",
+          ].join(";")
+        );
+        btn.onclick = () => finish(true);
+
+        overlay.appendChild(msgSpan);
+        overlay.appendChild(btn);
+        document.body?.appendChild(overlay);
+
+        timeoutId = window.setTimeout(() => finish(false), duration + 200);
+      } catch (err) {
+        console.warn("Fallback toast failed:", err);
+        timeoutId = window.setTimeout(() => finish(false), duration);
+      }
+    });
+  }
+
+  private _hasPulledOnce: boolean = false;
+  private async pullChanges(tableNames: TABLES[], attempt = 1) {
     if (!this._db) return;
 
+    const isInitialFetch = !this._hasPulledOnce;
     const tables = tableNames.map((t) => `'${t}'`).join(", ");
     const tablePullSync = `SELECT * FROM pull_sync_info WHERE table_name IN (${tables});`;
     let lastPullTables = new Map<string, string>();
@@ -337,10 +439,43 @@ export class SqliteApi implements ServiceApi {
       console.error("🚀 ~ Api ~ syncDB ~ error:", error);
       await this.createSyncTables();
     }
-    const data = await this._serverApi.getTablesData(
-      tableNames,
-      lastPullTables
-    );
+    let data = new Map<string, any[]>();
+    try {
+      data = await this._serverApi.getTablesData(
+        tableNames,
+        lastPullTables,
+        isInitialFetch
+      );
+      this._hasPulledOnce = true;
+    } catch (err) {
+      console.error(`❌ Attempt ${attempt}: getTablesData failed`, err);
+      if (attempt < 5) {
+        const delay = 500 * Math.pow(2, attempt);
+        await new Promise((res) => setTimeout(res, delay));
+        return this.pullChanges(tableNames, attempt + 1);
+      } else {
+        console.warn("❌ All 5 retries failed. Truncating local tables...");
+        await this._db?.execute("PRAGMA foreign_keys = OFF");
+        for (const table of tableNames) {
+          try {
+            await this._db?.execute(`DELETE FROM ${table}`);
+          } catch (e) {
+            console.error(`❌ Failed to truncate ${table}:`, e);
+          }
+        }
+        await this._db?.execute("PRAGMA foreign_keys = ON");
+        const userWantsRetry = await this.showToastWithRetry(
+          "Sync failed. Retry now?"
+        );
+        if (userWantsRetry) {
+          console.warn("🔁 Final retry triggered by user.");
+          return this.pullChanges(tableNames); // restart pullChanges
+        } else {
+          console.warn("⛔ User canceled final retry.");
+          return; // do nothing
+        }
+      }
+    }
     const lastPulled = new Date().toISOString();
     let batchQueries: { statement: string; values: any[] }[] = [];
     for (const tableName of tableNames) {
@@ -358,9 +493,7 @@ export class SqliteApi implements ServiceApi {
 
         const fieldValues = fieldNames.map((f) => row[f]);
         const placeholders = fieldNames.map(() => "?").join(", ");
-        const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(
-          ", "
-        )}) VALUES (${placeholders})`;
+        const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(", ")}) VALUES (${placeholders})`;
 
         batchQueries.push({ statement: stmt, values: fieldValues });
       }
