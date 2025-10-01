@@ -547,7 +547,7 @@ export class SupabaseApi implements ServiceApi {
             break;
           }
           case TABLES.OpsRequests: {
-            rpcName = "sql_get_accessible_ops_requests";
+            rpcName = "sql_get_ops_requests";
             res = await this.supabase?.rpc(rpcName, {
               p_updated_at: lastModifiedDate,
             });
