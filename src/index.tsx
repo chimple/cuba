@@ -48,22 +48,22 @@ Sentry.init(
     dsn: process.env.REACT_APP_SENTRY_DSN,
 
     sendDefaultPii: true,
-    enableLogs: true,
-    // Logs requires @sentry/capacitor 2.0.0 or newer.
-    _experiments: {
-      enableLogs: true,
-      beforeSendLog: (log) => {
-        return log;
-      },
-    },
+    // enableLogs: true,
+    // // Logs requires @sentry/capacitor 2.0.0 or newer.
+    // _experiments: {
+    //   enableLogs: true,
+    //   beforeSendLog: (log) => {
+    //     return log;
+    //   },
+    // },
 
     integrations: [
       Sentry.browserTracingIntegration(),
 
       // send console.log, console.warn, and console.error calls as logs to Sentry
-      SentryReact.consoleLoggingIntegration({
-        levels: ["log", "warn", "error"],
-      }),
+      // SentryReact.consoleLoggingIntegration({
+      //   levels: ["log", "warn", "error"],
+      // }),
     ],
   },
   // Forward the init method from @sentry/react
