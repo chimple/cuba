@@ -446,7 +446,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
   const stopScan = async () => {
     document.querySelector("html")?.style.setProperty("display", "block");
     if (window.__qrBackListener) {
-      (await window.__qrBackListener).remove();
+      await window.__qrBackListener.remove();
       window.__qrBackListener = null;
     }
   };
@@ -476,6 +476,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
       console.error("Scan failed:", err);
       Toast.show({ text: "Error while scanning." });
     } finally {
+      setLoading(false);
       await stopScan();
     }
   };
