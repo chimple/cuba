@@ -33,7 +33,7 @@ const mockUser: TableTypes<"user"> = {
 };
 
 const meta: Meta<typeof SchoolUserDetail> = {
-  title: "/components/schoolUsers/SchoolUserDetail",
+  title: "components/schoolUsers/SchoolUserDetail",
   component: SchoolUserDetail,
   parameters: {
     layout: "centered",
