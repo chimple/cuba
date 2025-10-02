@@ -950,7 +950,7 @@ export interface ServiceApi {
    *          - `false` if there were any errors or if no synchronization was necessary.
    */
 
-  syncDB(tableNames: TABLES[], refreshTables: TABLES[]): Promise<boolean>;
+  syncDB(tableNames: TABLES[], refreshTables: TABLES[], isFirstSync?: boolean): Promise<boolean>;
 
   /**
    * Function to get Recommended Lessons.

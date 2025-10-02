@@ -17,7 +17,7 @@ import {
 } from "../../common/constants";
 import { SupabaseClient, UserAttributes } from "@supabase/supabase-js";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
-import { SocialLogin } from '@capgo/capacitor-social-login';
+import { SocialLogin } from "@capgo/capacitor-social-login";
 import { Util } from "../../utility/util";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 import { schoolUtil } from "../../utility/schoolUtil";
@@ -64,12 +64,25 @@ export class SupabaseAuth implements ServiceAuth {
       if (data.session?.refresh_token)
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
       if (this._supabaseDb) {
-        const { data: isSplResult, error: isSplError } =
-          await this._supabaseDb.rpc("is_special_or_program_user");
-        if (isSplError) {
-          console.error("Error checking special/program user:", isSplError);
+        let isSpl = false;
+        try {
+          isSpl = await this.rpcRetry<boolean>(async () => {
+            const { data, error } = await this._supabaseDb!.rpc(
+              "is_special_or_program_user"
+            ).maybeSingle();
+
+            return { data: Boolean(data), error } as {
+              data: boolean;
+              error: any;
+            };
+          });
+        } catch (err) {
+          console.error("Error checking special/program user:", err);
+        }
+        if (isSpl) {
+          console.log("User is a special or program user");
         } else {
-          isSpl = isSplResult;
+          console.log("User is NOT a special or program user");
         }
       } else {
         console.error("Supabase DB client is not initialized.");
@@ -77,7 +90,12 @@ export class SupabaseAuth implements ServiceAuth {
       await api.updateFcmToken(data?.user?.id ?? "");
       Util.storeLoginDetails(email, password);
       if (!isSpl) {
-        await api.syncDB(Object.values(TABLES), REFRESH_TABLES_ON_LOGIN);
+        let isFirstSync = true;
+        await api.syncDB(
+          Object.values(TABLES),
+          REFRESH_TABLES_ON_LOGIN,
+          isFirstSync
+        );
       } else {
         ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
       }
@@ -165,17 +183,22 @@ export class SupabaseAuth implements ServiceAuth {
       const response = await SocialLogin.login({
         provider: "google",
         options: {
-          scopes: ['profile', 'email'],
-          forceRefreshToken: true
-        }
-      })
+          scopes: ["profile", "email"],
+          forceRefreshToken: true,
+        },
+      });
       if (response.result?.responseType !== "online") {
         return { success: false, isSpl: false };
       }
-      const authentication  = response.result;
-      const authUser  = authentication.profile;
+      const authentication = response.result;
+      const authUser = authentication.profile;
 
-      if(authentication.idToken===null || authUser.email === null || authUser.id ===null ) return { success: false, isSpl: false };
+      if (
+        authentication.idToken === null ||
+        authUser.email === null ||
+        authUser.id === null
+      )
+        return { success: false, isSpl: false };
       const { data, error } = await this._auth.signInWithIdToken({
         provider: "google",
         token: authentication.idToken,
@@ -185,12 +208,15 @@ export class SupabaseAuth implements ServiceAuth {
       if (data.session?.refresh_token) {
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
       }
-      const rpcRes = await this._supabaseDb?.rpc("isUserExists", {
-        user_email: authUser.email,
-        user_phone: "",
+      const rpcRes = await this.rpcRetry<boolean>(async () => {
+        const { data, error } = await this._supabaseDb!.rpc("isUserExists", {
+          user_email: authUser.email!,
+          user_phone: "",
+        }).maybeSingle();
+        return { data: !!data, error };
       });
 
-      if (!rpcRes?.data) {
+      if (!rpcRes) {
         const createdUser = await api.createUserDoc({
           age: null,
           avatar: null,
@@ -222,22 +248,29 @@ export class SupabaseAuth implements ServiceAuth {
         this._currentUser = createdUser;
       }
 
-      const isSpl = await this._supabaseDb?.rpc("is_special_or_program_user");
-      const isSplValue = isSpl?.data === true;
-      if (isSplValue) {
+      const isSpl = await this.rpcRetry<boolean>(async () => {
+        const { data, error } = await this._supabaseDb!.rpc(
+          "is_special_or_program_user"
+        ).maybeSingle();
+
+        return { data: !!data, error } as { data: boolean; error: any };
+      });
+      if (isSpl) {
         ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
       } else {
-        await ServiceConfig.getI().apiHandler.syncDB(
+        let isFirstSync = true;
+        await api.syncDB(
           Object.values(TABLES),
-          REFRESH_TABLES_ON_LOGIN
+          REFRESH_TABLES_ON_LOGIN,
+          isFirstSync
         );
       }
 
       await api.updateFcmToken(data.user?.id ?? authUser.id);
-      if (rpcRes?.data) {
+      if (rpcRes) {
         await api.subscribeToClassTopic();
       }
-      return { success: true, isSpl: isSplValue };
+      return { success: true, isSpl: isSpl };
     } catch (error: any) {
       console.error(
         "🚀 ~ SupabaseAuth ~ googleSign ~ error:",
@@ -418,7 +451,9 @@ export class SupabaseAuth implements ServiceAuth {
         if (nextAttempt > max) throw err;
         const backoff = Math.min(2000 * (burn ? attempt : 1), 8000);
         console.warn(
-          `RPC attempt ${attempt}/${max} failed${burn ? "" : " (not counting)"}; retrying in ${backoff}ms`,
+          `RPC attempt ${attempt}/${max} failed${
+            burn ? "" : " (not counting)"
+          }; retrying in ${backoff}ms`,
           err
         );
         await this.sleep(backoff);
@@ -503,7 +538,12 @@ export class SupabaseAuth implements ServiceAuth {
       if (isSpl) {
         ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
       } else {
-        await api.syncDB(Object.values(TABLES), REFRESH_TABLES_ON_LOGIN);
+        let isFirstSync = true;
+        await api.syncDB(
+          Object.values(TABLES),
+          REFRESH_TABLES_ON_LOGIN,
+          isFirstSync
+        );
       }
 
       await api.updateFcmToken(user?.user?.id ?? "");
