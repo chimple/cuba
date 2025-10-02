@@ -41,11 +41,13 @@ ion-select::part(icon) {
 .customdropdown-select {
   --placeholder-color: #999;
   --color: #333;
-  --background: #f0f0f0;
+  /* --background: #f0f0f0; */
   --border-radius: 8px;
   padding: 0.8vh 1vw;
   display: flex;
   align-items: center;
+  --highlight-color-focused: none;
+  --highlight-color-hover: none;
 }
 
 ion-modal,
