@@ -52,7 +52,7 @@ const DashBoardStudentProgres: React.FC<DashBoardStudentProgresProps> = ({
     <div className="dashboard-student-progress-container">
       <div className="dashboard-student-avatar-container" key={"avatar"}>
         <img
-          src={student?.image ?? `assets/avatars/${student?.avatar}.png`}
+          src={student?.image || `assets/avatars/${student?.avatar}.png`}
           alt="Profile"
           className="dashboard-avatar"
           onError={(e) => {
