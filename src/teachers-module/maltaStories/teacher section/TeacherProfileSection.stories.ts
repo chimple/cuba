@@ -51,7 +51,7 @@ const mockClassDoc: TableTypes<"class"> = {
 };
 
 const meta: Meta<typeof TeacherProfileSection> = {
-  title: "/components/addTeacher/TeacherProfileSection",
+  title: "components/addTeacher/TeacherProfileSection",
   component: TeacherProfileSection,
   parameters: {
     layout: "centered",
