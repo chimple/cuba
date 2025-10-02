@@ -9,6 +9,11 @@ import android.content.Intent;
 import android.os.Build;
 
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.PluginHandle;
+import com.getcapacitor.Plugin;
+import ee.forgr.capacitor.social.login.GoogleProvider;
+import ee.forgr.capacitor.social.login.SocialLoginPlugin;
+import ee.forgr.capacitor.social.login.ModifiedMainActivityForSocialLoginPlugin;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.appcheck.FirebaseAppCheck;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;       
@@ -32,7 +37,7 @@ import com.google.android.gms.common.api.ApiException;
 import java.security.MessageDigest;
 
 
-public  class MainActivity extends BridgeActivity {
+public class MainActivity extends BridgeActivity implements ModifiedMainActivityForSocialLoginPlugin {
     private static Context appContext;
     private static String phoneNumber;
     private static ActivityResultLauncher activityResultLauncher;
@@ -129,4 +134,29 @@ public  class MainActivity extends BridgeActivity {
         return phoneNumber;
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Handle Google Sign-In result
+        if (requestCode >= GoogleProvider.REQUEST_AUTHORIZE_GOOGLE_MIN && requestCode < GoogleProvider.REQUEST_AUTHORIZE_GOOGLE_MAX) {
+            PluginHandle pluginHandle = getBridge().getPlugin("SocialLogin");
+            if (pluginHandle == null) {
+                Log.i("Google Activity Result", "SocialLogin login handle is null");
+                return;
+            }
+            Plugin plugin = pluginHandle.getInstance();
+            if (!(plugin instanceof SocialLoginPlugin)) {
+                Log.i("Google Activity Result", "SocialLogin plugin instance is not SocialLoginPlugin");
+                return;
+            }
+            ((SocialLoginPlugin) plugin).handleGoogleLoginIntent(requestCode, data);
+        }
+    }
+
+    @Override
+    public void IHaveModifiedTheMainActivityForTheUseWithSocialLoginPlugin() {
+        // This method is required by the ModifiedMainActivityForSocialLoginPlugin interface
+        // It's used to verify that the MainActivity has been properly modified
+    }
 }

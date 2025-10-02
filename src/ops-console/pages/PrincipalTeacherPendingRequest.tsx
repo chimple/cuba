@@ -240,7 +240,7 @@ const PrincipalTeacherPendingRequest = () => {
         className="principal-teacher-pending-main-content-row"
         alignItems="flex-start"
       >
-        <Grid item xs={12} md={4} lg={4}>
+        <Grid size={{ xs: 12, md: 4, lg: 4 }}>
           <Paper
             className="principal-teacher-pending-details-card"
             elevation={0}
@@ -352,7 +352,7 @@ const PrincipalTeacherPendingRequest = () => {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} md={4} lg={4}>
+        <Grid size={{ xs: 12, md: 4, lg: 4 }}>
           <Paper
             className="principal-teacher-pending-details-card"
             elevation={0}

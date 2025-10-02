@@ -5,7 +5,11 @@ import "./HomePage.css";
 import DashBoard from "../components/homePage/dashBoard/DashBoard";
 import Header from "../components/homePage/Header";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
-import { Capacitor, registerPlugin } from "@capacitor/core";
+import {
+  Capacitor,
+  PluginListenerHandle,
+  registerPlugin,
+} from "@capacitor/core";
 import TeacherAssignment from "../components/homePage/assignment/TeacherAssignment";
 import Library from "../components/library/Library";
 import ReportTable from "../components/reports/ReportsTable";
@@ -19,7 +23,10 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { App } from "@capacitor/app";
 import { t } from "i18next";
 import ComingSoon from "../components/homePage/ai/comingSoon";
-import { updateLocalAttributes, useGbContext } from "../../growthbook/Growthbook";
+import {
+  updateLocalAttributes,
+  useGbContext,
+} from "../../growthbook/Growthbook";
 import { toPng } from "html-to-image";
 import { IoShareSocialSharp } from "react-icons/io5";
 import { Filesystem, Directory } from "@capacitor/filesystem";
@@ -36,8 +43,9 @@ const HomePage: React.FC = () => {
   // 1) Safely grab tabValue (default to 0)
   const initialTab = location.state?.tabValue ?? 0;
   const [tabValue, setTabValue] = useState<number>(initialTab);
-  const [currentClass, setCurrentClass] =
-    useState<TableTypes<"class"> | null>(null);
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(
+    null
+  );
   const currentSchool = Util.getCurrentSchool();
   const [refresh, setRefresh] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
@@ -47,22 +55,30 @@ const HomePage: React.FC = () => {
   const { setGbUpdated } = useGbContext();
   useEffect(() => {
     init();
+
     const handleClassChange = () => {
       init();
-      setRefresh(prev => !prev);
+      setRefresh((prev) => !prev);
     };
     window.addEventListener(CLASS_OR_SCHOOL_CHANGE_EVENT, handleClassChange);
-    const listener = App.addListener("appStateChange", ({ isActive }) => {
-      if (isActive) {
-        setRenderKey(prev => prev + 1);
-      }
-    });
+
+    let listener: PluginListenerHandle | null = null;
+
+    const setupListener = async () => {
+      listener = await App.addListener("appStateChange", ({ isActive }) => {
+        if (isActive) {
+          setRenderKey((prev) => prev + 1);
+        }
+      });
+    };
+    setupListener();
+
     return () => {
       window.removeEventListener(
         CLASS_OR_SCHOOL_CHANGE_EVENT,
         handleClassChange
       );
-      listener.remove();
+      listener?.remove();
     };
   }, [currentSchool, currentClass]);
   const fetchClassDetails = async () => {
@@ -143,7 +159,10 @@ const HomePage: React.FC = () => {
     const prevMargin = el.style.marginTop;
     el.style.marginTop = "0px";
     try {
-      const dataUrl = await toPng(el, { cacheBust: true, backgroundColor: "white" });
+      const dataUrl = await toPng(el, {
+        cacheBust: true,
+        backgroundColor: "white",
+      });
       const fileName = `report-screenshot-${Date.now()}.png`;
       if (!Capacitor.isNativePlatform()) {
         const file = dataURLtoFile(dataUrl, fileName);
