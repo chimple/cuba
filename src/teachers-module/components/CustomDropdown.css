@@ -45,6 +45,8 @@ ion-select::part(icon) {
   padding: 0.8vh 1vw;
   display: flex;
   align-items: center;
+  --highlight-color-focused: none;
+  --highlight-color-hover: none;
 }
 
 ion-modal,
