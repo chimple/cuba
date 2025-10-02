@@ -601,7 +601,6 @@ export class SqliteApi implements ServiceApi {
     await this.executeQuery(
       `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`
     );
-    console.log("coming here");
     await this.pullChanges(tableNames, isFirstSync);
     const res = await this.pushChanges(tableNames);
     const tables = "'" + tableNames.join("', '") + "'";
