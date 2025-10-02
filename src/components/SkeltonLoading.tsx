@@ -104,7 +104,7 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
       <>
         {[...Array(8)].map((_, index) => (
           <div
-            key={index} // Don't forget to add a unique key for each mapped element
+            key={`skeleton-${index}`}
             className={
               header === HOMEHEADERLIST.SUBJECTS
                 ? "skelton-subject-card-size"
@@ -113,6 +113,7 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
           >
             <div className="skelton-card-display">
               <Skeleton
+                key={`skeleton-main-${index}`}
                 style={skeletonStyle}
                 className={
                   header === HOMEHEADERLIST.SUBJECTS
@@ -121,6 +122,7 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
                 }
               />
               <Skeleton
+                key={`skeleton-text-${index}`}
                 style={skeletonStyle}
                 width={
                   header === HOMEHEADERLIST.SUBJECTS
@@ -130,7 +132,11 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
               />
               {header === HOMEHEADERLIST.SUBJECTS ||
               header === PAGES.DISPLAY_CHAPTERS ? null : (
-                <Skeleton style={skeletonStyle} width={textWidth} />
+                <Skeleton
+                  key={`skeleton-extra-${index}`}
+                  style={skeletonStyle}
+                  width={textWidth}
+                />
               )}
             </div>
           </div>
@@ -207,7 +213,7 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
         {isChapter ? (
           <div className="skelton-display-chapters">
             {[...Array(30)].map((_, index) => (
-              <div>
+              <div key={index}>
                 <Skeleton className="skelton-chapter-icon" />
                 <Skeleton className="skelton-chapter-name" />
               </div>

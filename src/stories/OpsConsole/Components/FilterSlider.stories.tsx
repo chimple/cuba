@@ -1,3 +1,4 @@
+//@ts-nocheck
 import type { Meta, StoryObj } from '@storybook/react';
 import FilterSlider from '../../../ops-console/components/FilterSlider';
 import { useState } from 'react';

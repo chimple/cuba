@@ -138,7 +138,7 @@ const StudentRejectedRequestDetails = () => {
         alignItems="flex-start"
       >
         {/* LEFT: Request Details */}
-        <Grid item xs={12} md={6} lg={5}>
+        <Grid size={{ xs: 12, md: 6, lg: 5 }}>
           <Paper className="ops-rejected-request-details-details-card">
             <Typography
               variant="h6"
@@ -201,7 +201,7 @@ const StudentRejectedRequestDetails = () => {
               {t("Request Details")} {/* Translated */}
             </Typography>
             <Grid container spacing={1}>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <div className="ops-rejected-request-details-label-sm">
                   {t("Request For:")}
                 </div>{" "}
@@ -210,7 +210,7 @@ const StudentRejectedRequestDetails = () => {
                   {requestDetails.request_type || t("-")} {/* Translated '-' */}
                 </div>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <div className="ops-rejected-request-details-label-sm">
                   {t("Requested On:")}
                 </div>{" "}
@@ -221,7 +221,7 @@ const StudentRejectedRequestDetails = () => {
           </Paper>
         </Grid>
         {/* RIGHT: Rejection Details (red), Request From */}
-        <Grid item xs={12} md={6} lg={4}>
+        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
           <Paper className="ops-rejected-request-details-rejection-card ops-rejected-request-details-details-card">
             <Typography
               variant="h6"

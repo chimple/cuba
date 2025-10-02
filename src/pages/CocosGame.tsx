@@ -24,12 +24,17 @@ import { t } from "i18next";
 import { AvatarObj } from "../components/animation/Avatar";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
+
 const CocosGame: React.FC = () => {
   const history = useHistory();
-  const location = history.location.state as { from?: string, assignment?: any }; 
-  // const playedFrom = location?.from?.split('/')[1].split('?')[0] 
-  const playedFrom = localStorage.getItem("currentHeader")
-  const assignmentType = location?.assignment?.type || 'self-played';
+  const location = history.location.state as {
+    from?: string;
+    assignment?: any;
+  };
+  // const playedFrom = location?.from?.split('/')[1].split('?')[0]
+  const playedFrom = localStorage.getItem("currentHeader");
+  const assignmentType = location?.assignment?.type || "self-played";
   const state = history.location.state as any;
   const iFrameUrl = state?.url;
   const [isLoading, setIsLoading] = useState<any>();
@@ -66,6 +71,7 @@ const CocosGame: React.FC = () => {
   useEffect(() => {
     init();
     Util.checkingIfGameCanvasAvailable();
+    ScreenOrientation.lock({ orientation: "landscape" });
     CapApp.addListener("appStateChange", handleAppStateChange);
     return () => {
       CapApp.removeAllListeners();
@@ -95,7 +101,7 @@ const CocosGame: React.FC = () => {
     if (Capacitor.isNativePlatform()) {
       if (!!isDeviceAwake) {
         history.replace(fromPath + "&isReload=true");
-        window.location.reload();
+        // window.location.reload();
       } else {
         history.replace(fromPath + "&isReload=false");
       }
@@ -152,14 +158,13 @@ const CocosGame: React.FC = () => {
       document.body.removeEventListener(LESSON_END, handleLessonEndListner);
       setShowDialogBox(false);
       push();
-    }, 100)
-
+    }, 100);
   };
   const handleLessonEndListner = (event) => {
     saveTempData(event.detail);
     setGameResult(event);
   };
-  
+
   const updateLearningPath = async () => {
     if (!currentStudent) return;
     const learningPath = currentStudent.learning_path
@@ -186,13 +191,12 @@ const CocosGame: React.FC = () => {
             learningPath.courses.currentCourseIndex
           ].currentIndex
         ].chapter_id;
-        const prevCourseId =
+      const prevCourseId =
         learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
           .course_id;
       const prevPathId =
-        learningPath.courses.courseList[
-          learningPath.courses.currentCourseIndex
-          ].path_id;
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path_id;
       // Update currentIndex
       currentCourse.currentIndex += 1;
 
@@ -208,7 +212,7 @@ const CocosGame: React.FC = () => {
 
         // Move to the next course
         courses.currentCourseIndex += 1;
-       
+
         await api.setStarsForStudents(currentStudent.id, 10);
         // Loop back to the first course if at the last course
         if (courses.currentCourseIndex >= courses.courseList.length) {
@@ -217,9 +221,9 @@ const CocosGame: React.FC = () => {
         const pathwayEndData = {
           user_id: currentStudent.id,
           current_path_id:
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].path_id,            
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path_id,
           current_course_id:
             learningPath.courses.courseList[
               learningPath.courses.currentCourseIndex
@@ -250,7 +254,10 @@ const CocosGame: React.FC = () => {
       }
 
       // Update the learning path in the database
-    await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
+      await api.updateLearningPath(
+        currentStudent,
+        JSON.stringify(learningPath)
+      );
       // Update the current student object
       const updatedStudent = await api.getUserByDocId(currentStudent.id);
       if (updatedStudent) {

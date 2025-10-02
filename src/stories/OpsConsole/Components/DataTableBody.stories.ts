@@ -1,3 +1,4 @@
+//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import DataTableBody from "../../../ops-console/components/DataTableBody";
 import React from "react";

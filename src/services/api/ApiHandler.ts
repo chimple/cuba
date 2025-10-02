@@ -39,9 +39,15 @@ export class ApiHandler implements ServiceApi {
 
   private constructor(service: ServiceApi) {
     this.s = service;
+    console.log("ApiHandler constructor called with service:", service);
   }
 
   public static getInstance(service: ServiceApi): ApiHandler {
+    if (!service) {
+      console.error(
+        "ApiHandler.getInstance was called with an undefined service. This will cause errors."
+      );
+    }
     // Only create a new instance if the service has changed
     if (!ApiHandler.i || ApiHandler.i.s !== service) {
       ApiHandler.i = new ApiHandler(service);
@@ -183,7 +189,8 @@ export class ApiHandler implements ServiceApi {
     image: File | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
+    country: string | null
   ): Promise<TableTypes<"school">> {
     return await this.s.createSchool(
       name,
@@ -194,7 +201,8 @@ export class ApiHandler implements ServiceApi {
       image,
       program_id,
       udise,
-      address
+      address,
+      country
     );
   }
   public async updateSchoolProfile(
@@ -1267,7 +1275,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getChapterIdbyQrLink(link);
   }
   public async getSchoolsByModel(
-    model: MODEL,
+    model: EnumType<"program_model">,
     limit: number = 10,
     offset: number = 0
   ): Promise<TableTypes<"school">[]> {
@@ -1435,7 +1443,7 @@ export class ApiHandler implements ServiceApi {
   }
   public async deleteUserFromSchoolsWithRole(
     userId: string,
-    role: string
+    role: RoleType
   ): Promise<void> {
     return await this.s.deleteUserFromSchoolsWithRole(userId, role);
   }
@@ -1512,27 +1520,31 @@ export class ApiHandler implements ServiceApi {
     );
   }
   public async getFieldCoordinatorsByProgram(
-  programId: string,
-    ): Promise<{ data: TableTypes<"user">[] }>{ 
-      return this.s.getFieldCoordinatorsByProgram(programId); 
-    }
+    programId: string
+  ): Promise<{ data: TableTypes<"user">[] }> {
+    return this.s.getFieldCoordinatorsByProgram(programId);
+  }
 
-  public async getProgramsByRole(
-    ): Promise<{ data: TableTypes<"program">[] }> {
-      return this.s.getProgramsByRole();
-    }
+  public async getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }> {
+    return this.s.getProgramsByRole();
+  }
   public async updateSchoolStatus(
     schoolId: string,
     schoolStatus: (typeof STATUS)[keyof typeof STATUS],
     address?: {
-    state?: string;
-    district?: string;
-    city?: string;
-    address?: string;
-  },
-  keyContacts?: any 
+      state?: string;
+      district?: string;
+      city?: string;
+      address?: string;
+    },
+    keyContacts?: any
   ): Promise<void> {
-    return await this.s.updateSchoolStatus(schoolId, schoolStatus,address, keyContacts);
+    return await this.s.updateSchoolStatus(
+      schoolId,
+      schoolStatus,
+      address,
+      keyContacts
+    );
   }
   async approveOpsRequest(
     requestId: string,
@@ -1553,17 +1565,21 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getGeoData(params);
   }
 
-  async searchSchools(params: SearchSchoolsParams): Promise<SearchSchoolsResult> {
+  async searchSchools(
+    params: SearchSchoolsParams
+  ): Promise<SearchSchoolsResult> {
     return await this.s.searchSchools(params);
   }
   public async sendJoinSchoolRequest(
-    schoolId : string,
-    requestType : RequestTypes,
-    classId? : string,
+    schoolId: string,
+    requestType: RequestTypes,
+    classId?: string
   ): Promise<void> {
-    return this.s.sendJoinSchoolRequest(schoolId,requestType, classId);
+    return this.s.sendJoinSchoolRequest(schoolId, requestType, classId);
   }
-  public async getAllClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> {
+  public async getAllClassesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"class">[]> {
     return this.s.getAllClassesBySchoolId(schoolId);
   }
 }

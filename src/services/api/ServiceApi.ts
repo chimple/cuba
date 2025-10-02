@@ -77,6 +77,7 @@ export interface ServiceApi {
    * @param {string | null} program_id - Linked program ID if any.
    * @param {string | null} udise - School's UDISE code (11 digits).
    * @param {string | null} address - Full address of the school.
+   * @param {string | null} country - Country of the school.
    * @returns {Promise<TableTypes<"school">>} The created school object.
    */
   createSchool(
@@ -88,7 +89,8 @@ export interface ServiceApi {
     image: File | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
+    country: string | null,
   ): Promise<TableTypes<"school">>;
   /**
    * Updates the school details and returns the updated school object.
@@ -1690,13 +1692,13 @@ export interface ServiceApi {
 
   /**
    * Fetches schools by operational model ("AT_HOME" or "AT_SCHOOL") with pagination.
-   * @param {MODEL} model - The model type to filter schools ("AT_HOME" or "AT_SCHOOL").
+   * @param {EnumType<"program_model">} model - The model type to filter schools ("AT_HOME" or "AT_SCHOOL").
    * @param {number} limit - Number of schools to fetch.
    * @param {number} offset - Offset for pagination.
    * @returns {Promise<TableTypes<"school">[]>} - A promise that resolves to a list of schools filtered by model.
    */
   getSchoolsByModel(
-    model: MODEL,
+    model: EnumType<"program_model">,
     limit: number,
     offset: number
   ): Promise<TableTypes<"school">[]>;
@@ -1948,9 +1950,9 @@ export interface ServiceApi {
   /**
    * Delete the user from school_user table by role.
    * @param {string} userId - user Id.
-   * @param {number} role - user Role.
+   * @param {RoleType} role - user Role.
    */
-  deleteUserFromSchoolsWithRole(userId: string, role: string): Promise<void>;
+  deleteUserFromSchoolsWithRole(userId: string, role: RoleType): Promise<void>;
 
   /**
    * Fetch student login type and program model by UDISE code.
@@ -2048,20 +2050,20 @@ export interface ServiceApi {
     status: (typeof STATUS)[keyof typeof STATUS],
     rejectionReason?: string
   ): Promise<TableTypes<"ops_requests"> | undefined>;
-  
+
   /**
    * fetch all field coordintaors connected to the program.
    * @param programId program ID
    */
   getFieldCoordinatorsByProgram(
-    programId: string,
+    programId: string
   ): Promise<{ data: TableTypes<"user">[] }>;
 
   /**
    * fetch all the programs for the ops_director and super admin.
    * for program manager it will fetch only their programs.
    */
-  getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }> ;
+  getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }>;
 
   /**
    * Update school status to rejected or active .
@@ -2080,8 +2082,8 @@ export interface ServiceApi {
       city?: string;
       address?: string;
     },
-    keyContacts?: any 
-  ): Promise<void> ;
+    keyContacts?: any
+  ): Promise<void>;
 
   /**
    * Fetches a list of geographic locations (countries, states, districts, etc.).
@@ -2100,19 +2102,18 @@ export interface ServiceApi {
   searchSchools(params: SearchSchoolsParams): Promise<SearchSchoolsResult>;
   /**
    * Creates a request to join a school as principle or teacher
-   * @param {string} schoolId - school Id 
+   * @param {string} schoolId - school Id
    * @param {string} requestType - type of request (PRINCIPAL or TEACHER)
-   * @param {string} classId - class Id 
+   * @param {string} classId - class Id
    */
   sendJoinSchoolRequest(
-    schoolId : string,
-    requestType : RequestTypes,
-    classId? : string,
-  ): Promise<void> ;
+    schoolId: string,
+    requestType: RequestTypes,
+    classId?: string
+  ): Promise<void>;
   /**
-     * Get all classes connected to school using rpc call
-     * @param {string} schoolId - school Id 
-  */
-  getAllClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> ;
+   * Get all classes connected to school using rpc call
+   * @param {string} schoolId - school Id
+   */
+  getAllClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
 }
-
