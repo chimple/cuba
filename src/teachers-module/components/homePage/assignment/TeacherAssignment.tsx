@@ -8,7 +8,10 @@ import { Util } from "../../../../utility/util";
 import { t } from "i18next";
 import { Toast } from "@capacitor/toast";
 import AssignmentNextButton from "./AssignmentNextButton";
-import { BarcodeScanner } from "@capacitor-community/barcode-scanner";
+import {
+  CapacitorBarcodeScanner,
+  CapacitorBarcodeScannerTypeHint,
+} from "@capacitor/barcode-scanner";
 import { App } from '@capacitor/app';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
 import Loading from "../../../../components/Loading";
@@ -440,48 +443,43 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
     ));
   };
 
-    const stopScan = async () => {
-    // Hide the camera preview and stop scanning
-    await BarcodeScanner.stopScan();
-    BarcodeScanner.showBackground();
+  const stopScan = async () => {
     document.querySelector("html")?.style.setProperty("display", "block");
-    // Remove back button listener if exists
     if (window.__qrBackListener) {
-      window.__qrBackListener.remove();
+      await window.__qrBackListener.remove();
       window.__qrBackListener = null;
     }
   };
 
   const startScan = async () => {
-    // Prepare the scanner
-    setLoading(true);
-    const permission = await BarcodeScanner.checkPermission({ force: true });
-    setTimeout(() => setLoading(false), 100);
-    if (!permission.granted) {
-      Toast.show({ text: t("Camera permission denied. Please enable it in settings") });
-      return;
-    }
-    // Only allow scan if permission is granted
-    if (!localStorage.getItem(CAMERAPERMISSION) || localStorage.getItem(CAMERAPERMISSION) !== "true") {
-      localStorage.setItem(CAMERAPERMISSION, permission.granted ? "true" : "false");
-      return;
-    }
-    await BarcodeScanner.hideBackground(); // Make background transparent
-    document.querySelector("html")?.style.setProperty("display", "none");
+    try {
+      setLoading(true);
+      document.querySelector("html")?.style.setProperty("display", "none");
 
-    // Add Android back button listener
-    window.__qrBackListener = App.addListener('backButton', async () => {
+      // Android back button
+      window.__qrBackListener = await App.addListener('backButton', async () => {
+        await stopScan();
+      });
+
+      // Start scanning (permissions handled automatically)
+      const result = await CapacitorBarcodeScanner.scanBarcode({
+        hint: CapacitorBarcodeScannerTypeHint.ALL, // QR + all barcodes
+      });
+
+      if (result.ScanResult) {
+        await processScannedData(result.ScanResult);
+      } else {
+        Toast.show({ text: "No QR code detected." });
+      }
+
+    } catch (err) {
+      console.error("Scan failed:", err);
+      Toast.show({ text: "Error while scanning." });
+    } finally {
+      setLoading(false);
       await stopScan();
-    });
-
-    const result = await BarcodeScanner.startScan(); // Start scanning
-    if (result.hasContent) {
-      await processScannedData(result.content);
     }
-    // Always stop scan and restore UI
-    await stopScan();
   };
-
 const processScannedData = async (scannedText: string) => {
   try {
     // Ensure scannedText uses https if it starts with http

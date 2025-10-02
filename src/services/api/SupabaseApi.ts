@@ -1928,9 +1928,10 @@ export class SupabaseApi implements ServiceApi {
 
     // Extract unique grade_ids
     const gradeIds = [
-      ...new Set(courses.map((c) => c.grade_id).filter(Boolean)),
+      ...new Set(
+        courses.map((c) => c.grade_id).filter((id): id is string => !!id)
+      ),
     ];
-
     if (gradeIds.length === 0) {
       return { grades: [], courses }; // no grades to fetch
     }
@@ -5574,7 +5575,7 @@ export class SupabaseApi implements ServiceApi {
 
     const { data, error } = await this.supabase
       .from("school_user")
-      .select("user(*)")
+      .select("user:user!user_id(*)")
       .eq("school_id", schoolId)
       .eq("role", RoleType.SPONSOR)
       .eq("is_deleted", false);
@@ -5584,9 +5585,9 @@ export class SupabaseApi implements ServiceApi {
       return;
     }
 
-    const sponsors = (data ?? [])
+    const sponsors = (data as { user: TableTypes<"user"> | null }[])
       .map((item) => item.user)
-      .filter((user): user is TableTypes<"user"> => !!user);
+      .filter((u): u is TableTypes<"user"> => !!u);
 
     return sponsors;
   }
@@ -6497,7 +6498,7 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async getSchoolsByModel(
-    model: MODEL,
+    model: EnumType<"program_model">,
     limit: number = 10,
     offset: number = 0
   ): Promise<TableTypes<"school">[]> {
@@ -6824,7 +6825,9 @@ export class SupabaseApi implements ServiceApi {
         return null;
       }
 
-      const userIds = mappings.map((m) => m.user);
+      const userIds = mappings
+        .map((m) => m.user)
+        .filter((id): id is string => !!id);
 
       const { data: users, error: usersError } = await this.supabase
         .from("user")
@@ -7598,7 +7601,7 @@ export class SupabaseApi implements ServiceApi {
 
   async deleteUserFromSchoolsWithRole(
     userId: string,
-    role: string
+    role: RoleType
   ): Promise<void> {
     if (!this.supabase) {
       console.error("Supabase client not initialized.");
@@ -8286,7 +8289,9 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error fetching program_user:", linkError);
       return { data: [] };
     }
-    const userIds = programUsers.map((pu) => pu.user);
+    const userIds = programUsers
+      .map((pu) => pu.user)
+      .filter((id): id is string => !!id);
     const { data: users, error: userError } = await this.supabase
       .from("user")
       .select("*")

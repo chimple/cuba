@@ -17,7 +17,7 @@ import {
 } from "../../common/constants";
 import { SupabaseClient, UserAttributes } from "@supabase/supabase-js";
 import { APIMode, ServiceConfig } from "../ServiceConfig";
-import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
+import { SocialLogin } from '@capgo/capacitor-social-login';
 import { Util } from "../../utility/util";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 import { schoolUtil } from "../../utility/schoolUtil";
@@ -162,11 +162,24 @@ export class SupabaseAuth implements ServiceAuth {
       if (!this._auth) return { success: false, isSpl: false };
 
       const api = ServiceConfig.getI().apiHandler;
-      const authUser = await GoogleAuth.signIn();
+      const response = await SocialLogin.login({
+        provider: "google",
+        options: {
+          scopes: ['profile', 'email'],
+          forceRefreshToken: true
+        }
+      })
+      if (response.result?.responseType !== "online") {
+        return { success: false, isSpl: false };
+      }
+      const authentication  = response.result;
+      const authUser  = authentication.profile;
+
+      if(authentication.idToken===null || authUser.email === null || authUser.id ===null ) return { success: false, isSpl: false };
       const { data, error } = await this._auth.signInWithIdToken({
         provider: "google",
-        token: authUser.authentication.idToken,
-        access_token: authUser.authentication.accessToken,
+        token: authentication.idToken,
+        access_token: authentication.accessToken?.token,
       });
 
       if (data.session?.refresh_token) {
