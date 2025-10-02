@@ -2103,8 +2103,8 @@ export class Util {
         });
 
         if (path && path.uri) {
-          const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.bahama/cache
-          return uri;
+          const uri = Capacitor.convertFileSrc(path.uri);
+          return uri + "/"; // file:///data/user/0/org.chimple.bahama/cache
         }
       } catch (error) {
         console.error("path error", error);
