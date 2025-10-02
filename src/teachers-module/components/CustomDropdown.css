@@ -14,7 +14,7 @@ ion-select {
 
 ion-select::part(placeholder),
 ion-select::part(text) {
-  color: #7B7676;
+  color: #7b7676;
   flex: 0 0 auto;
   padding-right: 0;
   font-size: clamp(20px, 2.5vw, 23px);
@@ -41,7 +41,6 @@ ion-select::part(icon) {
 .customdropdown-select {
   --placeholder-color: #999;
   --color: #333;
-  /* --background: #f0f0f0; */
   --border-radius: 8px;
   padding: 0.8vh 1vw;
   display: flex;
