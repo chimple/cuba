@@ -101,7 +101,7 @@ const CocosGame: React.FC = () => {
     if (Capacitor.isNativePlatform()) {
       if (!!isDeviceAwake) {
         history.replace(fromPath + "&isReload=true");
-        window.location.reload();
+        // window.location.reload();
       } else {
         history.replace(fromPath + "&isReload=false");
       }

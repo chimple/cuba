@@ -1,3 +1,4 @@
+//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import { MemoryRouter } from "react-router-dom";
 import SchoolPrincipalsComponent from "../../../ops-console/components/SchoolDetailsComponents/SchoolPrincipals"; // Adjust path

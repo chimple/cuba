@@ -1275,7 +1275,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getChapterIdbyQrLink(link);
   }
   public async getSchoolsByModel(
-    model: MODEL,
+    model: EnumType<"program_model">,
     limit: number = 10,
     offset: number = 0
   ): Promise<TableTypes<"school">[]> {
@@ -1443,7 +1443,7 @@ export class ApiHandler implements ServiceApi {
   }
   public async deleteUserFromSchoolsWithRole(
     userId: string,
-    role: string
+    role: RoleType
   ): Promise<void> {
     return await this.s.deleteUserFromSchoolsWithRole(userId, role);
   }
