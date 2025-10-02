@@ -153,8 +153,9 @@ export class Util {
       let studentResult:
         | { [lessonDocId: string]: TableTypes<"result"> }
         | undefined = {};
-      const studentProfile =
-        await api.getStudentResultInMap(currentStudentDocId);
+      const studentProfile = await api.getStudentResultInMap(
+        currentStudentDocId
+      );
       studentResult = studentProfile;
 
       if (!studentResult) return undefined;
@@ -398,7 +399,7 @@ export class Util {
               const lessonConfigPath = androidPath + lessonId + "/config.json";
               try {
                 const file = await Filesystem.readFile({
-                  path: lessonConfigPath,
+                  path: lessonId + "/config.json",
                   directory: Directory.External,
                 });
                 const decoded =
@@ -2103,7 +2104,7 @@ export class Util {
 
         if (path && path.uri) {
           const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.bahama/cache
-          return uri + "/";
+          return uri;
         }
       } catch (error) {
         console.error("path error", error);
