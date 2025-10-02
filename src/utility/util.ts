@@ -396,7 +396,6 @@ export class Util {
                 directory: Directory.External,
               });
               const androidPath = await this.getAndroidBundlePath();
-              const lessonConfigPath = androidPath + lessonId + "/config.json";
               try {
                 const file = await Filesystem.readFile({
                   path: lessonId + "/config.json",
