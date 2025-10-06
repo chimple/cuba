@@ -33,6 +33,9 @@
   margin-left: 24px;
   margin-top: 2px;
 }
+.reject-reason-section {
+  margin-top: 16px;
+}
 .reject-popup-overlay {
   position: fixed;
   top: 0;

@@ -71,7 +71,7 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
         <div className="reject-popup-body">
           <label>{t("Reason for Rejection")}</label>
           {isTeacherOrPrincipal ? (
-            <div style={{ marginBottom: 16 }}>
+            <div className="reject-reason-section">
               <div className="reject-reason-radio-group">
                 <label className={`reject-reason-radio${selectedReason === VERIFICATION_FAILED ? " selected" : ""}`}>
                   <input
@@ -112,7 +112,6 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
                   value={customReason}
                   onChange={(e) => setCustomReason(e.target.value)}
                   placeholder={t("Add any additional context or instructions...") || ""}
-                  style={{ marginTop: 8 }}
                 ></textarea>
               )}
             </div>
