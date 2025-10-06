@@ -443,23 +443,9 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
     ));
   };
 
-  const stopScan = async () => {
-    document.querySelector("html")?.style.setProperty("display", "block");
-    if (window.__qrBackListener) {
-      await window.__qrBackListener.remove();
-      window.__qrBackListener = null;
-    }
-  };
-
   const startScan = async () => {
     try {
       setLoading(true);
-      document.querySelector("html")?.style.setProperty("display", "none");
-
-      // Android back button
-      window.__qrBackListener = await App.addListener('backButton', async () => {
-        await stopScan();
-      });
 
       // Start scanning (permissions handled automatically)
       const result = await CapacitorBarcodeScanner.scanBarcode({
@@ -477,7 +463,6 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
       Toast.show({ text: "Error while scanning." });
     } finally {
       setLoading(false);
-      await stopScan();
     }
   };
 const processScannedData = async (scannedText: string) => {
@@ -561,7 +546,8 @@ const processScannedData = async (scannedText: string) => {
 
     await api.createOrUpdateAssignmentCart(currentUser?.id!, finalLessonsJson);
 
-    await init();
+    history.push(PAGES.SCAN_REDIRECT);
+    // await init();
   } catch (error) {
     Toast.show({ text: t("Something Went wrong") });
     console.error("Error processing scanned data:", error);

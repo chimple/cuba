@@ -148,6 +148,7 @@ import AddTeacherName from "./teachers-module/pages/AddTeacherName";
 import SearchSchool from "./teachers-module/pages/SearchSchool";
 import JoinSchool from "./pages/JoinSchool";
 import CreateSchool from "./teachers-module/pages/CreateSchool";
+import ScanRedirect from "./teachers-module/components/homePage/assignment/ScanRedirect";
 
 setupIonicReact();
 interface ExtraData {
@@ -565,6 +566,9 @@ const App: React.FC = () => {
             </ProtectedRoute> */}
             <ProtectedRoute path={PAGES.REQ_ADD_SCHOOL} exact={true}>
               <ReqEditSchool />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SCAN_REDIRECT}>
+              <ScanRedirect />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.MANAGE_CLASS} exact={true}>
               <ManageClass />
