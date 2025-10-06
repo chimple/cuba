@@ -139,7 +139,11 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
               ? "profile-header-center"
               : "profile-header-left"
           }`}
-          onClick={() => onEdit()}
+          onClick={() => {
+            if (currentMode !== MODES.SCHOOL) {
+              onEdit();
+            }
+          }}
         >
           <img
             src={
