@@ -13,7 +13,7 @@
   display: flex;
   flex-direction: column;
   width: clamp(300px, 90vw, 320px);
-  height: clamp(300px, 90vh, 320px);
+  height: clamp(330px, 95vh, 360px);
 }
 .confirm-button {
   color: #7c5db0;
