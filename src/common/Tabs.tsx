@@ -27,7 +27,7 @@ const Tabs: React.FC<{
             margin: "1vh 0",
             minHeight: "37px",
             textTransform: "none",
-            fontSize: "var(--text-size)",
+            fontSize: "12.5px",
             color: "#707070 !important",
             "&:hover": {
               backgroundColor: "transparent",
