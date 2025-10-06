@@ -11,7 +11,9 @@ import { Util } from "../../utility/util";
 interface ShowChaptersProps {}
 
 const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(
+    null
+  );
   const currentSchool = Util.getCurrentSchool();
   const history = useHistory();
   const course: TableTypes<"course"> = history.location.state![
@@ -90,7 +92,10 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
       );
       setSelectedLesson(sync_lesson);
       const sync_lesson_data = sync_lesson.get(current_class?.id ?? "");
-      const class_sync_lesson: Map<string, Partial<Record<AssignmentSource, string[]>>> = new Map(
+      const class_sync_lesson: Map<
+        string,
+        Partial<Record<AssignmentSource, string[]>>
+      > = new Map(
         Object.entries(sync_lesson_data ? JSON.parse(sync_lesson_data) : {})
       );
       setClassSelectedLesson(class_sync_lesson);
@@ -217,7 +222,9 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
           {chapters?.map((chapter, index) => (
             <div
               key={chapter.id}
-              ref={(el) => (chapterRefs.current[index] = el)} // Assign the ref to each chapter
+              ref={(el) => {
+                chapterRefs.current[index] = el;
+              }}
             >
               <ChapterContainer
                 chapter={chapter}

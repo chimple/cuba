@@ -229,7 +229,7 @@ const StudentPendingRequestDetails = () => {
         alignItems="flex-start"
       >
         {/* Left Side Cards */}
-        <Grid item xs={12} md={5} lg={4.5}>
+        <Grid size={{ xs: 12, md: 5, lg: 4.5 }}>
           <Paper className="student-pending-request-details-card" elevation={0}>
             <Typography
               variant="subtitle1"
@@ -335,7 +335,7 @@ const StudentPendingRequestDetails = () => {
         </Grid>
 
         {/* Right Side Table */}
-        <Grid item xs={12} md={7} lg={7.5}>
+        <Grid size={{ xs: 12, md: 7, lg: 7.5 }}>
           <Paper
             className="student-pending-request-details-table-card"
             elevation={0}
@@ -345,7 +345,9 @@ const StudentPendingRequestDetails = () => {
               className="student-pending-request-details-section-title"
             >
               {t(
-                `Students in Grade ${parsedGrade > 0 ? parsedGrade : "N/A"} - ${parsedSection || "N/A"}`
+                `Students in Grade ${parsedGrade > 0 ? parsedGrade : "N/A"} - ${
+                  parsedSection || "N/A"
+                }`
               )}
             </Typography>
             <Typography className="student-pending-request-details-total-students-count">
@@ -397,7 +399,11 @@ const StudentPendingRequestDetails = () => {
                         <TableCell>{stu.user.gender || t("N/A")}</TableCell>
                         <TableCell>
                           {t(
-                            `${studentParsedGrade > 0 ? studentParsedGrade : "N/A"} - ${studentParsedSection || "N/A"}`
+                            `${
+                              studentParsedGrade > 0
+                                ? studentParsedGrade
+                                : "N/A"
+                            } - ${studentParsedSection || "N/A"}`
                           )}
                         </TableCell>
                         <TableCell>{stu.parent?.phone || t("N/A")}</TableCell>

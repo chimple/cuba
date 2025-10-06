@@ -27,8 +27,8 @@
   height: 5vh;
   width: 10vw;
 
-  --track-background: #ddd;
-  --track-background-checked: #ddd;
+  --track-background: #eb7769 !important;
+  --track-background-checked: #95c34e !important;
 
   --background: #eb7769 !important;
   --background-checked: #95c34e !important;

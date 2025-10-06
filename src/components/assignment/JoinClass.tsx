@@ -5,7 +5,7 @@ import Loading from "../Loading";
 import DialogBoxButtons from "../parent/DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, PluginListenerHandle } from "@capacitor/core";
 import { Keyboard } from "@capacitor/keyboard";
 import { NUMBER_REGEX, PAGES } from "../../common/constants";
 import { useHistory, useLocation } from "react-router";
@@ -80,7 +80,7 @@ const JoinClass: FC<{
     // setShowDialogBox(false);
     if (loading) return;
     setLoading(true);
-    
+
     try {
       const student = Util.getCurrentStudent();
 
@@ -147,34 +147,43 @@ const JoinClass: FC<{
     }
   }, []);
 
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.setScroll({ isDisabled: true });
 
-useEffect(() => {
-  if (Capacitor.isNativePlatform()) {
-    Keyboard.setScroll({ isDisabled: true });
-    const handleKeyboardShow = () => {
-      setIsInputFocus(true);
-    };
+      const handleKeyboardShow = () => {
+        setIsInputFocus(true);
+      };
 
-    const handleKeyboardHide = () => {
-      setIsInputFocus(false);
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    };
+      const handleKeyboardHide = () => {
+        setIsInputFocus(false);
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      };
 
-    const showSub = Keyboard.addListener("keyboardWillShow", handleKeyboardShow);
-    const hideSub = Keyboard.addListener("keyboardWillHide", handleKeyboardHide);
+      let showSub: PluginListenerHandle;
+      let hideSub: PluginListenerHandle;
 
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }
-}, []);
+      // Use an async IIFE to await the subscriptions
+      (async () => {
+        showSub = await Keyboard.addListener(
+          "keyboardWillShow",
+          handleKeyboardShow
+        );
+        hideSub = await Keyboard.addListener(
+          "keyboardWillHide",
+          handleKeyboardHide
+        );
+      })();
 
-
-
+      return () => {
+        showSub?.remove();
+        hideSub?.remove();
+      };
+    }
+  }, []);
 
   useEffect(() => {
     if (inviteCode && inviteCode.length === 6) {
@@ -224,38 +233,58 @@ useEffect(() => {
           maxLength={6}
           statusIcon={
             inviteCode?.toString().length === 6 ? (
-              codeResult && !error ? (
-                <img src="assets/icons/CheckIcon.svg" alt="Status icon" />
-              ) : error && error !== "" ? (
-                <img src="assets/icons/Vector.svg" alt="Status icon" />
+                codeResult && !error ? (
+                  <img src="assets/icons/CheckIcon.svg" alt="Status icon" />
+                ) : error && error !== "" ? (
+                  <img src="assets/icons/Vector.svg" alt="Status icon" />
+                ) : null
               ) : null
-            ) : null
-          }
-          required = {true}
-          labelOffsetClass="with-icon-label-offset-small"
-        />
-        
+            }
+            required={true}
+            labelOffsetClass="with-icon-label-offset-small"
+          />
 
-      </div>
+          <InputWithIcons
+            label={t("Class Code")}
+            placeholder={t("Enter the code to join a class") ?? ""}
+            value={inviteCode}
+            setValue={setInviteCode}
+            icon="assets/icons/OpenBook.svg"
+            type="number"
+            maxLength={6}
+            statusIcon={
+              inviteCode?.toString().length === 6 ? (
+                codeResult && !error ? (
+                  <img src="assets/icons/CheckIcon.svg" alt="Status icon" />
+                ) : error && error !== "" ? (
+                  <img src="assets/icons/Vector.svg" alt="Status icon" />
+                ) : null
+              ) : null
+            }
+            required={true}
+            labelOffsetClass="with-icon-label-offset-small"
+          />
+        </div>
 
-      <div className="join-class-message">
-        {codeResult &&
-        !error &&
-        error == "" &&
-        inviteCode?.toString().length === 6
-          ? `${t("School")}: ${codeResult["school_name"]}, ${t("Class")}: ${codeResult["class_name"]}`
-          : error && inviteCode?.toString().length === 6
+        <div className="join-class-message">
+          {codeResult &&
+          !error &&
+          error == "" &&
+          inviteCode?.toString().length === 6
+            ? `${t("School")}: ${codeResult["school_name"]}, ${t("Class")}: ${
+                codeResult["class_name"]
+              }`
+            : error && inviteCode?.toString().length === 6
             ? error
             : null}
-      </div>
-      <button
-        className="join-class-confirm-button"
-        onClick={onJoin}
-        disabled={loading || !isFormValid}
+        </div>
+        <button
+          className="join-class-confirm-button"
+          onClick={onJoin}
+          disabled={loading || !isFormValid}
         >
-        <span className="join-class-confirm-text">{t("Confirm")}</span>
-      </button>
-
+          <span className="join-class-confirm-text">{t("Confirm")}</span>
+        </button>
       </div>
     </div>
   );

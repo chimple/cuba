@@ -70,9 +70,9 @@ const SelectCourse: FC<{
               key={course.id}
             >
               <div id="subject-card-subject-name">
-                <p>
+                <div>
                   <p>{grade?.name}</p>
-                </p>
+                </div>
               </div>
               <div
                 className="course-icon"
