@@ -18,6 +18,7 @@
   background-color: transparent;
   text-align: center;
   width: clamp(360px, 45vw, 700px);
+  justify-self: center !important;
 }
 
 
