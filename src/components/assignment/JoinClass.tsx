@@ -19,7 +19,7 @@ const JoinClass: FC<{
 }> = ({ onClassJoin }) => {
   const [loading, setLoading] = useState(false);
   const [showDialogBox, setShowDialogBox] = useState(false);
-  const [inviteCode, setInviteCode] = useState<number>();
+  const [inviteCode, setInviteCode] = useState("");
   const [codeResult, setCodeResult] = useState();
   const [error, setError] = useState("");
   const [schoolName, setSchoolName] = useState<string>();
@@ -60,9 +60,8 @@ const JoinClass: FC<{
       // if (!isNextButtonEnabled()) return;
       setLoading(true);
       try {
-        const result = await api.getDataByInviteCode(
-          urlClassCode.inviteCode ? urlClassCode.inviteCode : inviteCode
-        );
+        const codeToVerify = urlClassCode.inviteCode || inviteCode;
+        const result = await api.getDataByInviteCode(parseInt(codeToVerify, 10));
         setCodeResult(result);
         setShowDialogBox(true);
       } catch (error) {
@@ -85,7 +84,7 @@ const JoinClass: FC<{
     try {
       const student = Util.getCurrentStudent();
 
-      if (!student || inviteCode == null) {
+      if (!student || inviteCode.length !== 6) {
         throw new Error("Student or invite code is missing.");
       }
       if (student.name == null || student.name === "") {
@@ -101,7 +100,7 @@ const JoinClass: FC<{
           student.language_id!
         );
       }
-      await api.linkStudent(inviteCode, student.id);
+      await api.linkStudent(parseInt(inviteCode, 10), student.id);
       if (!!codeResult) {
         Util.subscribeToClassTopic(
           codeResult["class_id"],
@@ -139,14 +138,10 @@ const JoinClass: FC<{
     const joinClassParam = urlParams.get("join-class");
     const classCode = urlParams.get("classCode");
 
-    if (classCode != "") {
-      let tempClassCode =
-        !!classCode && !isNaN(parseInt(classCode))
-          ? parseInt(classCode)
-          : undefined;
-      setInviteCode(tempClassCode);
-      urlClassCode.inviteCode = tempClassCode;
-      if (classCode && classCode != "") {
+    if (classCode && /^\d{1,6}$/.test(classCode)) {
+      setInviteCode(classCode);
+      urlClassCode.inviteCode = classCode;
+      if (classCode.length === 6) {
         getClassData();
       }
     }
@@ -191,16 +186,16 @@ const JoinClass: FC<{
   }, []);
 
   useEffect(() => {
-    if (inviteCode && inviteCode.toString().length === 6) {
+    if (inviteCode && inviteCode.length === 6) {
       getClassData();
     }
   }, [inviteCode]);
 
   const isFormValid =
-    codeResult &&
-    error === "" &&
+    !!codeResult &&
+    !error &&
     (fullName.length >= 3 || fullName === currStudent.name) &&
-    inviteCode?.toString().length === 6;
+    inviteCode?.length === 6;
 
   return (
     <div className="join-class-parent-container">
@@ -235,12 +230,17 @@ const JoinClass: FC<{
             label={t("Class Code")}
             placeholder={t("Enter the code to join a class") ?? ""}
             value={inviteCode}
-            setValue={setInviteCode}
+            setValue={(val: string) => {
+              // Only allow digits to be entered.
+              if (/^\d*$/.test(val)) {
+                setInviteCode(val);
+              }
+            }}
             icon="assets/icons/OpenBook.svg"
-            type="number"
+            type="text"
             maxLength={6}
             statusIcon={
-              inviteCode?.toString().length === 6 ? (
+              inviteCode?.length === 6 ? (
                 codeResult && !error ? (
                   <img src="assets/icons/CheckIcon.svg" alt="Status icon" />
                 ) : error && error !== "" ? (
@@ -257,11 +257,11 @@ const JoinClass: FC<{
           {codeResult &&
           !error &&
           error == "" &&
-          inviteCode?.toString().length === 6
+          inviteCode?.length === 6
             ? `${t("School")}: ${codeResult["school_name"]}, ${t("Class")}: ${
                 codeResult["class_name"]
               }`
-            : error && inviteCode?.toString().length === 6
+            : error && inviteCode?.length === 6
             ? error
             : null}
         </div>
