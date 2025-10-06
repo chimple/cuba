@@ -15,18 +15,42 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
   requestData,
   onClose,
 }) => {
-  const [reason, setReason] = useState("");
+  const requestType = requestData?.type;
+  const isTeacherOrPrincipal = requestType === 'teacher' || requestType === 'principal';
+  const [selectedReason, setSelectedReason] = useState<string>("");
+  const [customReason, setCustomReason] = useState<string>("");
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
 
+
+  const VERIFICATION_FAILED = t("Verification Failed");
+  const WRONG_SCHOOL_SELECTED = t("Wrong School Selected");
+  const OTHER = t("Other");
+
+  function getFinalReason() {
+    if (isTeacherOrPrincipal) {
+      if (selectedReason === VERIFICATION_FAILED) return VERIFICATION_FAILED;
+      if (selectedReason === WRONG_SCHOOL_SELECTED) return WRONG_SCHOOL_SELECTED;
+      if (selectedReason === OTHER) return customReason;
+      return customReason;
+    } else {
+      return customReason;
+    }
+  }
+
+  const ctaLabel = isTeacherOrPrincipal && selectedReason === WRONG_SCHOOL_SELECTED ? t("Flag for Review") : t("Reject Request");
+
   async function handleReject() {
+    const status = isTeacherOrPrincipal && selectedReason === WRONG_SCHOOL_SELECTED ? STATUS.FLAGGED : STATUS.REJECTED;
+    // Send selectedReason as rejected_reason_type, customReason as rejected_reason_description
     await api.respondToSchoolRequest(
       requestData.id,
       requestData.respondedBy.id,
-      STATUS.REJECTED,
-      reason
+      status,
+      selectedReason,
+      customReason
     );
-    await api.updateSchoolStatus(requestData.school.id, STATUS.REJECTED);
+    await api.updateSchoolStatus(requestData.school.id, status);
     history.push(
       `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.REJECTED}`
     );
@@ -46,11 +70,58 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
 
         <div className="reject-popup-body">
           <label>{t("Reason for Rejection")}</label>
-          <textarea
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder={t("Add any additional context or instructions...")||""}
-          ></textarea>
+          {isTeacherOrPrincipal ? (
+            <div className="reject-reason-section">
+              <div className="reject-reason-radio-group">
+                <label className={`reject-reason-radio${selectedReason === VERIFICATION_FAILED ? " selected" : ""}`}>
+                  <input
+                    type="radio"
+                    name="reject-reason"
+                    value={VERIFICATION_FAILED}
+                    checked={selectedReason === VERIFICATION_FAILED}
+                    onChange={() => setSelectedReason(VERIFICATION_FAILED)}
+                  />
+                  <span>{VERIFICATION_FAILED}</span>
+                  <div className="reject-reason-desc">{t("Unable to verify provided information")}</div>
+                </label>
+                <label className={`reject-reason-radio${selectedReason === WRONG_SCHOOL_SELECTED ? " selected" : ""}`}>
+                  <input
+                    type="radio"
+                    name="reject-reason"
+                    value={WRONG_SCHOOL_SELECTED}
+                    checked={selectedReason === WRONG_SCHOOL_SELECTED}
+                    onChange={() => setSelectedReason(WRONG_SCHOOL_SELECTED)}
+                  />
+                  <span>{WRONG_SCHOOL_SELECTED}</span>
+                  <div className="reject-reason-desc">{t("Incorrect school name was selected for this request")}</div>
+                </label>
+                <label className={`reject-reason-radio${selectedReason === OTHER ? " selected" : ""}`}>
+                  <input
+                    type="radio"
+                    name="reject-reason"
+                    value={OTHER}
+                    checked={selectedReason === OTHER}
+                    onChange={() => setSelectedReason(OTHER)}
+                  />
+                  <span>{OTHER}</span>
+                  <div className="reject-reason-desc">{t("Please specify the reason in the custom field")}</div>
+                </label>
+              </div>
+              {selectedReason === "Other" && (
+                <textarea
+                  value={customReason}
+                  onChange={(e) => setCustomReason(e.target.value)}
+                  placeholder={t("Add any additional context or instructions...") || ""}
+                ></textarea>
+              )}
+            </div>
+          ) : (
+            <textarea
+              value={customReason}
+              onChange={(e) => setCustomReason(e.target.value)}
+              placeholder={t("Add any additional context or instructions...") || ""}
+            ></textarea>
+          )}
         </div>
 
         <div className="reject-popup-footer">
@@ -58,7 +129,7 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
             {t("Cancel")}
           </button>
           <button className="reject-popup-reject-btn" onClick={handleReject}>
-            {t("Reject Request")}
+            {ctaLabel}
           </button>
         </div>
       </div>

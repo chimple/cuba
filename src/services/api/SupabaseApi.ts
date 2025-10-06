@@ -8164,7 +8164,8 @@ export class SupabaseApi implements ServiceApi {
     requestId: string,
     respondedBy: string,
     status: (typeof STATUS)[keyof typeof STATUS],
-    rejectionReason?: string
+    rejectedReasonType?: string,
+    rejectedReasonDescription?: string
   ): Promise<TableTypes<"ops_requests"> | undefined> {
     if (!this.supabase) return undefined;
 
@@ -8173,8 +8174,11 @@ export class SupabaseApi implements ServiceApi {
       responded_by: respondedBy,
       updated_at: new Date().toISOString(),
     };
-    if (status === STATUS.REJECTED && rejectionReason) {
-      updatePayload.rejected_reason_description = rejectionReason;
+    if (rejectedReasonType) {
+      updatePayload.rejected_reason_type = rejectedReasonType;
+    }
+    if (rejectedReasonDescription) {
+      updatePayload.rejected_reason_description = rejectedReasonDescription;
     }
 
     const { data, error } = await this.supabase
