@@ -97,7 +97,7 @@ const UserProfile: React.FC<{
     <>
       <div className="first-content">
         <div className="profile-details-container">
-          {isEditing && <span className="add-student-text">Edit Student</span>}
+          {isEditing && <span className="add-student-text">{("Edit Student")}</span>}
           <ProfileDetails
             imgSrc={
               profilePic ||
