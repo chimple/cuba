@@ -2245,6 +2245,18 @@ export class SupabaseApi implements ServiceApi {
         };
 
         await this.supabase.from(TABLES.ClassUser).insert(newClassUser);
+        
+        if (currentClassUser) {
+          await this.supabase
+            .from(TABLES.Result)
+            .update({ 
+              is_deleted: true, 
+              updated_at: now 
+            })
+            .eq("student_id", student.id)
+            .eq("class_id", currentClassUser.class_id);
+        }
+        
         await this.addParentToNewClass(newClassId, student.id);
       }
 

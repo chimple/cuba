@@ -2273,6 +2273,20 @@ export class SqliteApi implements ServiceApi {
           MUTATE_TYPES.INSERT,
           newClassUser
         );
+        
+        const deleteResultsQuery = `
+          UPDATE ${TABLES.Result}
+          SET is_deleted = 1, updated_at = ?
+          WHERE student_id = ? AND class_id = ?;
+        `;
+        const updateTimestamp = new Date().toISOString();
+        await this.executeQuery(deleteResultsQuery, [
+          updateTimestamp,
+          student.id,
+          currentClassId,
+        ]);
+
+        await this.clearCacheData([TABLES.Result]);
         await this._serverApi.addParentToNewClass(newClassId, student.id);
       }
       return student;
