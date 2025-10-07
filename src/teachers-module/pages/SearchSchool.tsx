@@ -358,11 +358,11 @@ const SearchSchool: FC = () => {
           {totalResults > 0 && (
             <div className="search-school-results-summary">
               <h3 className="search-school-found-results-text">
-                Found {totalResults} results..
+                {t("Found {{count}} results..", { count: totalResults })}
               </h3>
               <p className="search-school-refine-results-text">
                 {t(
-                  "Refine your results using filters or by rephrasing your schoolname"
+                  "Refine your results using filters or by rephrasing your school name"
                 )}
               </p>
             </div>
