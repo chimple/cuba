@@ -460,7 +460,6 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
 
     } catch (err) {
       console.error("Scan failed:", err);
-      Toast.show({ text: "Error while scanning." });
     } finally {
       setLoading(false);
     }
