@@ -75,7 +75,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
                   alt="placeholder-icon"
                   className="imageDropdown-icon"
                 />
-                <span>{placeholder}</span>
+                <span>{t(placeholder)}</span>
               </div>
             )
           }
@@ -106,10 +106,10 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
               )}
               <div className="imageDropdown-text">
                 <span className="imageDropdown-subject-text">
-                  {splitText(option.name, option.subjectDetail).subject}
+                  {t(splitText(option.name, option.subjectDetail).subject)}
                 </span>
                 <span className="grade-text">
-                  {splitText(option.name, option.subjectDetail).grade}
+                  {t(splitText(option.name, option.subjectDetail).grade)}
                 </span>
               </div>
             </MenuItem>
