@@ -496,7 +496,7 @@ const CreateSelectedAssignment = ({
                 source = AssignmentSource.RECOMMENDED;
               }
 
-              const res = await api.createAssignment(
+              await api.createAssignment(
                 studentList,
                 currUser.id,
                 startDate,

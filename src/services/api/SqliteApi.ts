@@ -3740,7 +3740,7 @@ export class SqliteApi implements ServiceApi {
     batch_id: string,
     source: string | null,
     created_at?: string
-  ): Promise<boolean> {
+  ): Promise<void> {
     const assignmentUUid = uuidv4();
     const timestamp = new Date().toISOString(); // Cache timestamp for reuse
 
@@ -3792,7 +3792,7 @@ export class SqliteApi implements ServiceApi {
         is_firebase: null,
       };
 
-      const res = await this.updatePushChanges(
+      this.updatePushChanges(
         TABLES.Assignment,
         MUTATE_TYPES.INSERT,
         assignment_data
@@ -3826,7 +3826,7 @@ export class SqliteApi implements ServiceApi {
               false,
             ]
           );
-          const assignmentUserPushRes = await this.updatePushChanges(
+          this.updatePushChanges(
             TABLES.Assignment_user,
             MUTATE_TYPES.INSERT,
             newAssignmentUser
@@ -3834,10 +3834,8 @@ export class SqliteApi implements ServiceApi {
         }
       }
 
-      return res ?? false;
     } catch (error) {
       console.error("Error in createAssignment:", error);
-      return false; // Return false in case of error
     }
   }
 

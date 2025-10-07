@@ -918,7 +918,7 @@ export class ApiHandler implements ServiceApi {
     batch_id: string,
     source: string | null,
     created_at?: string
-  ): Promise<boolean> {
+  ): Promise<void> {
     return this.s.createAssignment(
       student_list,
       userId,

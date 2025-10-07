@@ -1106,7 +1106,7 @@ export interface ServiceApi {
     batch_id: string,
     source: string | null,
     created_at?: string
-  ): Promise<boolean>;
+  ): Promise<void>;
 
   /**
    * This function gets all the teachers for the class.
