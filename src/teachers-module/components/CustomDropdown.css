@@ -29,7 +29,9 @@ ion-select::part(text) {
 ion-select::part(text) {
   color: #707070;
   text-align: left;
-  width: clamp(190px, 7vw, 300px);
+  width: clamp(151px, 7vw, 300px);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 ion-select::part(icon) {

@@ -19,7 +19,7 @@
 .profiledetails-avatar-form {
   display: flex;
   gap: 40px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
   width: clamp(360px, 95%, 800px);
@@ -179,6 +179,7 @@
   cursor: pointer;
   transition: background-color 0.2s ease;
   transform: none;
+  gap: 10px;
 }
 
 .profiledetails-gender-btn.selected {
