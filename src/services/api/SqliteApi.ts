@@ -2273,8 +2273,6 @@ export class SqliteApi implements ServiceApi {
           MUTATE_TYPES.INSERT,
           newClassUser
         );
-        
-        await this.clearCacheData([TABLES.Result]);
         await this._serverApi.addParentToNewClass(newClassId, student.id);
       }
       return student;
