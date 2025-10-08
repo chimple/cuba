@@ -82,10 +82,10 @@ const DisplaySchools: FC = () => {
       page: pageNo,
       page_size: PAGE_SIZE,
     });
-    if (pageNo === 1 && result.length === 0) {
-      history.replace(PAGES.SEARCH_SCHOOL);
-      return; 
-    }
+    // if (pageNo === 1 && result.length === 0) {
+    //   history.replace(PAGES.SEARCH_SCHOOL);
+    //   return; 
+    // }
     if (result.length < PAGE_SIZE) setHasMore(false);
     setSchoolList((prev) => (pageNo === 1 ? result : [...prev, ...result]));
     setLoading(false);
