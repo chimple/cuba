@@ -2245,18 +2245,6 @@ export class SupabaseApi implements ServiceApi {
         };
 
         await this.supabase.from(TABLES.ClassUser).insert(newClassUser);
-        
-        if (currentClassUser) {
-          await this.supabase
-            .from(TABLES.Result)
-            .update({ 
-              is_deleted: true, 
-              updated_at: now 
-            })
-            .eq("student_id", student.id)
-            .eq("class_id", currentClassUser.class_id);
-        }
-        
         await this.addParentToNewClass(newClassId, student.id);
       }
 
@@ -4809,6 +4797,36 @@ export class SupabaseApi implements ServiceApi {
 
     if (error) {
       console.error("Error fetching results by assignment IDs:", error.message);
+      return;
+    }
+
+    return data ?? [];
+  }
+
+  async getResultByAssignmentIdsForCurrentClassMembers(
+    assignmentIds: string[], 
+    classId: string
+  ): Promise<TableTypes<"result">[] | undefined> {
+    if (!this.supabase || assignmentIds.length === 0) return;
+
+    const { data, error } = await this.supabase
+      .from("result")
+      .select(`
+        *,
+        class_user!inner(
+          class_id,
+          is_deleted,
+          role
+        )
+      `)
+      .in("assignment_id", assignmentIds)
+      .eq("is_deleted", false)
+      .eq("class_user.class_id", classId)
+      .eq("class_user.is_deleted", false)
+      .eq("class_user.role", "student");
+
+    if (error) {
+      console.error("Error fetching results for current class members:", error.message);
       return;
     }
 

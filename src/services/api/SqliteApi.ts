@@ -2274,18 +2274,6 @@ export class SqliteApi implements ServiceApi {
           newClassUser
         );
         
-        const deleteResultsQuery = `
-          UPDATE ${TABLES.Result}
-          SET is_deleted = 1, updated_at = ?
-          WHERE student_id = ? AND class_id = ?;
-        `;
-        const updateTimestamp = new Date().toISOString();
-        await this.executeQuery(deleteResultsQuery, [
-          updateTimestamp,
-          student.id,
-          currentClassId,
-        ]);
-
         await this.clearCacheData([TABLES.Result]);
         await this._serverApi.addParentToNewClass(newClassId, student.id);
       }
@@ -4080,6 +4068,30 @@ order by
       WHERE assignment_id IN (${placeholders});`;
 
     const res = await this._db?.query(query, assignmentIds);
+
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values;
+  }
+
+  async getResultByAssignmentIdsForCurrentClassMembers(
+    assignmentIds: string[], 
+    classId: string
+  ): Promise<TableTypes<"result">[] | undefined> {
+    if (!assignmentIds || assignmentIds.length === 0) return;
+
+    const placeholders = assignmentIds.map(() => "?").join(", ");
+    const query = `
+      SELECT r.*
+      FROM ${TABLES.Result} r
+      INNER JOIN ${TABLES.ClassUser} cu ON r.student_id = cu.user_id
+      WHERE r.assignment_id IN (${placeholders})
+        AND cu.class_id = ?
+        AND cu.is_deleted = 0
+        AND cu.role = 'student'
+        AND r.is_deleted = 0;
+    `;
+
+    const res = await this._db?.query(query, [...assignmentIds, classId]);
 
     if (!res || !res.values || res.values.length < 1) return;
     return res.values;

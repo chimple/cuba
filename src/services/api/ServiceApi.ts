@@ -1069,6 +1069,16 @@ export interface ServiceApi {
   ): Promise<TableTypes<"result">[] | undefined>;
 
   /**
+   * Get results by assignment ids for students currently in the specified class
+   * @param assignmentIds
+   * @param classId
+   */
+  getResultByAssignmentIdsForCurrentClassMembers(
+    assignmentIds: string[],
+    classId: string
+  ): Promise<TableTypes<"result">[] | undefined>;
+
+  /**
    *  Get the last assignments by course wise
    * @param classId
    */
