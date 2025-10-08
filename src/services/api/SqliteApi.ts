@@ -424,7 +424,7 @@ export class SqliteApi implements ServiceApi {
     });
   }
 
-  private async pullChanges(tableNames: TABLES[], isFirstSync, attempt = 1) {
+  private async pullChanges(tableNames: TABLES[], isFirstSync?: boolean) {
     if (!this._db) return;
 
     const isInitialFetch = isFirstSync;
@@ -440,46 +440,55 @@ export class SqliteApi implements ServiceApi {
       await this.createSyncTables();
     }
     let data = new Map<string, any[]>();
-    try {
+    if (isInitialFetch === true) {
+      let attempt = 1;
+      try {
+        data = await this._serverApi.getTablesData(
+          tableNames,
+          lastPullTables,
+          isInitialFetch
+        );
+      } catch (err) {
+        console.error(`❌ Attempt ${attempt}: getTablesData failed`, err);
+        if (attempt < 5) {
+          const delay = 500 * Math.pow(2, attempt);
+          await new Promise((res) => setTimeout(res, delay));
+          return this.pullChanges(tableNames, isFirstSync);
+        } else {
+          console.warn("❌ All 5 retries failed. Truncating local tables...");
+          if (!this._db) return;
+          const query = `PRAGMA foreign_keys=OFF;`;
+          const result = await this._db?.query(query);
+          console.log(result);
+          for (const table of tableNames) {
+            const tableDel = `DELETE FROM "${table}";`;
+            const res = await this._db.query(tableDel);
+            console.log(res);
+          }
+          const vaccum = `VACUUM;`;
+          const resv = await this._db.query(vaccum);
+          console.log(resv);
+          const querys = `PRAGMA foreign_keys=ON;`;
+          const results = await this._db?.query(querys);
+          console.log(results);
+          const userWantsRetry = await this.showToastWithRetry(
+            "Sync failed. Retry now?"
+          );
+          if (userWantsRetry) {
+            console.warn("🔁 Final retry triggered by user.");
+            return this.pullChanges(tableNames, isFirstSync); // restart pullChanges
+          } else {
+            console.warn("⛔ User canceled final retry.");
+            return; // do nothing
+          }
+        }
+      }
+    } else {
       data = await this._serverApi.getTablesData(
         tableNames,
         lastPullTables,
         isInitialFetch
       );
-    } catch (err) {
-      console.error(`❌ Attempt ${attempt}: getTablesData failed`, err);
-      if (attempt < 5) {
-        const delay = 500 * Math.pow(2, attempt);
-        await new Promise((res) => setTimeout(res, delay));
-        return this.pullChanges(tableNames, isFirstSync, attempt + 1);
-      } else {
-        console.warn("❌ All 5 retries failed. Truncating local tables...");
-        if (!this._db) return;
-        const query = `PRAGMA foreign_keys=OFF;`;
-        const result = await this._db?.query(query);
-        console.log(result);
-        for (const table of tableNames) {
-          const tableDel = `DELETE FROM "${table}";`;
-          const res = await this._db.query(tableDel);
-          console.log(res);
-        }
-        const vaccum = `VACUUM;`;
-        const resv = await this._db.query(vaccum);
-        console.log(resv);
-        const querys = `PRAGMA foreign_keys=ON;`;
-        const results = await this._db?.query(querys);
-        console.log(results);
-        const userWantsRetry = await this.showToastWithRetry(
-          "Sync failed. Retry now?"
-        );
-        if (userWantsRetry) {
-          console.warn("🔁 Final retry triggered by user.");
-          return this.pullChanges(tableNames, isFirstSync); // restart pullChanges
-        } else {
-          console.warn("⛔ User canceled final retry.");
-          return; // do nothing
-        }
-      }
     }
     const lastPulled = new Date().toISOString();
     let batchQueries: { statement: string; values: any[] }[] = [];
@@ -3833,7 +3842,6 @@ export class SqliteApi implements ServiceApi {
           );
         }
       }
-
     } catch (error) {
       console.error("Error in createAssignment:", error);
     }
