@@ -501,7 +501,7 @@ export class ClassUtil {
     ];
 
     const assignmentResults =
-      await this.api.getResultByAssignmentIdsForCurrentClassMembers(assignmentIds, classId);
+      await this.api.getResultByAssignmentIds(assignmentIds);
     const lessonDetails = await this.api.getLessonsBylessonIds(lessonIds);
 
     const assignmentUserRecords =
