@@ -4070,6 +4070,30 @@ order by
     if (!res || !res.values || res.values.length < 1) return;
     return res.values;
   }
+
+  async getResultByAssignmentIdsForCurrentClassMembers(
+    assignmentIds: string[], 
+    classId: string
+  ): Promise<TableTypes<"result">[] | undefined> {
+    if (!assignmentIds || assignmentIds.length === 0) return;
+
+    const placeholders = assignmentIds.map(() => "?").join(", ");
+    const query = `
+      SELECT r.*
+      FROM ${TABLES.Result} r
+      INNER JOIN ${TABLES.ClassUser} cu ON r.student_id = cu.user_id
+      WHERE r.assignment_id IN (${placeholders})
+        AND cu.class_id = ?
+        AND cu.is_deleted = 0
+        AND cu.role = 'student'
+        AND r.is_deleted = 0;
+    `;
+
+    const res = await this._db?.query(query, [...assignmentIds, classId]);
+
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values;
+  }
   async getAssignmentUserByAssignmentIds(
     assignmentIds: string[]
   ): Promise<TableTypes<"assignment_user">[]> {

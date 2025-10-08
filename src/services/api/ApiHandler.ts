@@ -897,6 +897,14 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"result">[] | undefined> {
     return this.s.getResultByAssignmentIds(assignmentIds);
   }
+
+  getResultByAssignmentIdsForCurrentClassMembers(
+    assignmentIds: string[],
+    classId: string
+  ): Promise<TableTypes<"result">[] | undefined> {
+    return this.s.getResultByAssignmentIdsForCurrentClassMembers(assignmentIds, classId);
+  }
+
   async getLastAssignmentsForRecommendations(
     classId: string
   ): Promise<TableTypes<"assignment">[] | undefined> {
