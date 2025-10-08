@@ -1,3 +1,4 @@
+//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import FabList from "../../components/malta/school/AddEditDeleteFab";
 import { fn } from "@storybook/test";

@@ -32,10 +32,10 @@ const InputWithIcons: FC<InputProps> = ({
 }) => {
   return (
     <div className="with-icon-input-wrapper">
-      <label className={`with-icon-input-label ${labelOffsetClass ?? ""}`}>
+      <div className={`with-icon-input-label ${labelOffsetClass ?? ""}`}>
         {label}
         {required && <span className="with-icon-required">*</span>}
-      </label>
+      </div>
       <div className="with-icon-input-box">
         <div className="with-icon-icon-area">
           <img src={icon} alt="Input icon" />

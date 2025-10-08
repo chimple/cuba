@@ -19,6 +19,13 @@ android {
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
+        buildTypes {
+            debug {
+                ndk {
+                    abiFilters "arm64-v8a", "armeabi-v7a"
+                }
+            }
+        }
     }
     signingConfigs {
         release {
@@ -30,7 +37,8 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
@@ -58,8 +66,6 @@ dependencies {
     implementation project(':capacitor-cordova-android-plugins')
     // Import the BoM for the Firebase platform
     implementation platform('com.google.firebase:firebase-bom:32.1.0')
-    // When using the BoM, you don't specify versions in Firebase library dependencies
-    implementation 'com.google.firebase:firebase-appcheck-playintegrity'
 
     implementation 'com.google.android.gms:play-services-auth:21.3.0'
     implementation 'com.google.android.gms:play-services-auth-api-phone:18.1.0'
@@ -67,10 +73,7 @@ dependencies {
     implementation "androidx.work:work-runtime:2.8.1"
     implementation 'com.google.firebase:firebase-messaging:23.3.1'
 
-    implementation 'com.google.firebase:firebase-appcheck-debug:17.0.1'
     implementation("com.google.firebase:firebase-crashlytics")
-    androidTestImplementation 'com.google.firebase:firebase-appcheck-debug-testing:17.0.1'
-
 }
 
 

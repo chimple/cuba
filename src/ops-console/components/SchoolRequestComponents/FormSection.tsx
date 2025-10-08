@@ -18,16 +18,29 @@ interface FormSectionProps {
 
 const FormSection: React.FC<FormSectionProps> = ({ title, fields }) => {
   return (
-    <Box sx={{ borderRadius: "8px", padding: "10px", marginBottom: "20px", backgroundColor: "#f9fbfd" }}>
-      <Typography variant="subtitle2" fontWeight="bold" sx={{ marginBottom: "16px", fontSize: "1rem", color: "#111827" }}>
+    <Box
+      sx={{
+        borderRadius: "8px",
+        padding: "10px",
+        marginBottom: "20px",
+        backgroundColor: "#f9fbfd",
+      }}
+    >
+      <Typography
+        variant="subtitle2"
+        fontWeight="bold"
+        sx={{ marginBottom: "16px", fontSize: "1rem", color: "#111827" }}
+      >
         {title}
       </Typography>
 
       <Grid container spacing={2}>
         {fields.map((field, index) => (
-          <Grid item xs={12} md={6} key={index}>
+          <Grid size={{ xs: 12, md: 6 }} key={index}>
             <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <FormLabel sx={{ fontSize: "1rem", color: "#111827", fontWeight: 500 }}>
+              <FormLabel
+                sx={{ fontSize: "1rem", color: "#111827", fontWeight: 500 }}
+              >
                 {field.label} {field.required ? "*" : ""}
               </FormLabel>
               <TextField
@@ -39,7 +52,11 @@ const FormSection: React.FC<FormSectionProps> = ({ title, fields }) => {
                 size="small"
                 disabled={field.editable === false}
                 InputProps={{
-                  sx: { backgroundColor: "#fff", borderRadius: "6px", fontSize: "1rem" },
+                  sx: {
+                    backgroundColor: "#fff",
+                    borderRadius: "6px",
+                    fontSize: "1rem",
+                  },
                 }}
               />
             </Box>

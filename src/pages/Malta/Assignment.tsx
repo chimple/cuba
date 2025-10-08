@@ -1,6 +1,5 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { useHistory, useLocation } from "react-router-dom";
 import { IonHeader, IonPage } from "@ionic/react";
 import { t } from "i18next";
 import {
@@ -22,6 +21,7 @@ import RecommendedTab from "../../components/malta/assignment/RecommendedTab";
 import QuizTab from "../../components/malta/assignment/QuizTab";
 import AssignmentTabList from "../../components/malta/assignment/AssignmentTabList";
 import CommonAppBar from "../../components/malta/common/CommonAppBar";
+import { useHistory, useLocation } from "react-router-dom";
 
 const localData: any = {};
 let localStorageData: any = {};
