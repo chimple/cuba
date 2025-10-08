@@ -128,7 +128,7 @@ export class OneRosterAuth implements ServiceAuth {
   generateOtp(
     phoneNumber: string,
     appName: string
-  ): Promise<boolean | undefined> {
+  ): Promise<{ success: boolean; error?: any }> {
     throw new Error("Method not implemented.");
   }
   resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined> {

@@ -24,7 +24,10 @@ const mockSchoolDoc: TableTypes<"school"> = {
   is_ops: null,
   language: null,
   ops_created_by: null,
-  student_login_type: null
+  student_login_type: null,
+  status: null,
+  key_contacts: null,
+  country: null
 };
 
 // Mock user data
@@ -54,7 +57,8 @@ const mockUsers: TableTypes<"user">[] = [
     is_ops: null,
     learning_path: null,
     ops_created_by: null,
-    stars: null
+    stars: null,
+    reward: null
   },
   {
     id: "2",
@@ -81,7 +85,8 @@ const mockUsers: TableTypes<"user">[] = [
     is_ops: null,
     learning_path: null,
     ops_created_by: null,
-    stars: null
+    stars: null,
+    reward: null
   },
 ];
 

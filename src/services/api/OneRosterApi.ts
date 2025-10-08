@@ -3132,12 +3132,20 @@ export class OneRosterApi implements ServiceApi {
   mergeStudentRequest(
     requestId: string,
     existingStudentId: string,
-    newStudentId: string
+    newStudentId: string,
+    respondedBy: string
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
 
   getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getGeoData(params: GeoDataParams): Promise<string[]> {
+    throw new Error("Method not implemented.");
+  }
+
+  searchSchools(params: SearchSchoolsParams): Promise<SearchSchoolsResult> {
     throw new Error("Method not implemented.");
   }
 }

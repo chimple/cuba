@@ -12,6 +12,8 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+import android.content.Intent;
+import android.os.Build;
 
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.Plugin;
@@ -26,6 +28,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics;       
+import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory;
 
 import android.app.Activity;
 
@@ -58,6 +61,7 @@ public  class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         instance = this;
+        super.onCreate(savedInstanceState);
 
         // Handle global crash exceptions
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
@@ -77,6 +81,9 @@ public  class MainActivity extends BridgeActivity {
 //        respectClientManager.bindService(this);
 
         // Hide navigation bar and set fullscreen mode
+        initializeActivityLauncher();
+        registerPlugin(PortPlugin.class);
+        this.bridge.setWebViewClient(new MyCustomWebViewClient(this.bridge, this));
         appContext = this;
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;

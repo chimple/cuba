@@ -7,6 +7,7 @@ import {
   CoordinatorAPIResponse,
   EnumType,
   FilteredSchoolsForSchoolListingOps,
+  GeoDataParams,
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODEL,
@@ -15,6 +16,9 @@ import {
   PROFILETYPE,
   RequestTypes,
   SchoolRoleMap,
+  SearchSchoolsParams,
+  SearchSchoolsResult,
+  STATUS,
   StudentAPIResponse,
   TABLES,
   TableTypes,
@@ -74,6 +78,7 @@ export interface ServiceApi {
    * @param {string | null} program_id - Linked program ID if any.
    * @param {string | null} udise - School's UDISE code (11 digits).
    * @param {string | null} address - Full address of the school.
+   * @param {string | null} country - Country of the school.
    * @returns {Promise<TableTypes<"school">>} The created school object.
    */
   createSchool(
@@ -85,7 +90,8 @@ export interface ServiceApi {
     image: File | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
+    country: string | null,
   ): Promise<TableTypes<"school">>;
   /**
    * Updates the school details and returns the updated school object.
@@ -1825,7 +1831,8 @@ export interface ServiceApi {
   mergeStudentRequest(
     requestId: string,
     existingStudentId: string,
-    newStudentId: string
+    newStudentId: string,
+    respondedBy: string
   ): Promise<void>;
 
   getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
@@ -2034,4 +2041,85 @@ export interface ServiceApi {
     schoolId?: string,
     classId?: string
   ): Promise<TableTypes<"ops_requests"> | undefined>;
+
+  /**
+   * update the ops_request to approved or rejected .
+   * @param requestId unique id of ops_request table
+   * @param respondedBy user who responded or reviewed
+   * @param status "approved" | "rejected"
+   * @param rejectionReason reason for rejection (if status is "rejected")
+   */
+  respondToSchoolRequest(
+    requestId: string,
+    respondedBy: string,
+    status: (typeof STATUS)[keyof typeof STATUS],
+    rejectionReason?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined>;
+  
+  /**
+   * fetch all field coordintaors connected to the program.
+   * @param programId program ID
+   */
+  getFieldCoordinatorsByProgram(
+    programId: string,
+  ): Promise<{ data: TableTypes<"user">[] }>;
+
+  /**
+   * fetch all the programs for the ops_director and super admin.
+   * for program manager it will fetch only their programs.
+   */
+  getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }> ;
+
+  /**
+   * Update school status to rejected or active .
+   * Update address and key contacts if provided.
+   * @param schoolId School ID
+   * @param schoolStatus status of school
+   * @param address address of school
+   * @param keyContacts provide contact details of key contacts
+   */
+  updateSchoolStatus(
+    schoolId: string,
+    schoolStatus: (typeof STATUS)[keyof typeof STATUS],
+    address?: {
+      state?: string;
+      district?: string;
+      city?: string;
+      address?: string;
+    },
+    keyContacts?: any 
+  ): Promise<void> ;
+
+  /**
+   * Fetches a list of geographic locations (countries, states, districts, etc.).
+   * The returned data is dependent on the parameters provided, allowing for a cascading fetch.
+   * @param params An object containing the optional filter criteria.
+   * @returns A promise that resolves to an array of location names (strings).
+   */
+  getGeoData(params: GeoDataParams): Promise<string[]>;
+
+  /**
+   * Fetches a list of schools based on  locations (countries, states, districts, etc.).
+   * The returned data is dependent on the parameters provided, allowing for a cascading fetch.
+   * @param params An object containing the optional filter criteria.
+   * @returns A promise that resolves to an array of schools list (strings).
+   * */
+  searchSchools(params: SearchSchoolsParams): Promise<SearchSchoolsResult>;
+  /**
+   * Creates a request to join a school as principle or teacher
+   * @param {string} schoolId - school Id 
+   * @param {string} requestType - type of request (PRINCIPAL or TEACHER)
+   * @param {string} classId - class Id 
+   */
+  sendJoinSchoolRequest(
+    schoolId : string,
+    requestType : RequestTypes,
+    classId? : string,
+  ): Promise<void> ;
+  /**
+     * Get all classes connected to school using rpc call
+     * @param {string} schoolId - school Id 
+  */
+  getAllClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> ;
 }
+

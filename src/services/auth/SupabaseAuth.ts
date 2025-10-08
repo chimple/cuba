@@ -67,12 +67,8 @@ export class SupabaseAuth implements ServiceAuth {
         email: email,
         password: password,
       });
-      if (error) {
-        throw new Error(error.message || "Authentication failed.");
-      }
-      if (data.session?.refresh_token) {
+      if (data.session?.refresh_token)
         Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
-      }
       if (this._supabaseDb) {
         const { data: isSplResult, error: isSplError } =
           await this._supabaseDb.rpc("is_special_or_program_user");
@@ -84,13 +80,13 @@ export class SupabaseAuth implements ServiceAuth {
       } else {
         console.error("Supabase DB client is not initialized.");
       }
-      if (isSpl) {
-        ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
-      } else {
-        await api.syncDB(Object.values(TABLES), REFRESH_TABLES_ON_LOGIN);
-      }
       await api.updateFcmToken(data?.user?.id ?? "");
       Util.storeLoginDetails(email, password);
+      if (!isSpl) {
+        await api.syncDB(Object.values(TABLES), REFRESH_TABLES_ON_LOGIN);
+      } else {
+        ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+      }
       await api.subscribeToClassTopic();
       return { success: true, isSpl };
     } catch (error) {
@@ -213,6 +209,7 @@ export class SupabaseAuth implements ServiceAuth {
           is_ops: null,
           learning_path: null,
           ops_created_by: null,
+          reward: null,
           stars: null,
         });
         this._currentUser = createdUser;
@@ -281,15 +278,14 @@ export class SupabaseAuth implements ServiceAuth {
       }
 
       let user = await api.getUserByDocId(authData.data.session?.user.id);
-        if (user){
-          localStorage.setItem(USER_DATA, JSON.stringify(user));
-          this._currentUser = user;
-          return this._currentUser;
-        }
-        else{
-          this._auth?.signOut()
-          return
-        }
+      if (user) {
+        localStorage.setItem(USER_DATA, JSON.stringify(user));
+        this._currentUser = user;
+        return this._currentUser;
+      } else {
+        this._auth?.signOut();
+        return;
+      }
     }
   }
   async doRefreshSession(): Promise<void> {
@@ -364,22 +360,41 @@ export class SupabaseAuth implements ServiceAuth {
   phoneNumberSignIn(phoneNumber: any, recaptchaVerifier: any): Promise<any> {
     throw new Error("Method not implemented.");
   }
-  resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined> {
-    return this.generateOtp(phoneNumber, "");
+  async resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined> {
+    try {
+      const result = await this.generateOtp(phoneNumber, "");
+      return result.success;
+    } catch (error) {
+      console.error("Resend OTP failed: ", error);
+      return false;
+    }
   }
   async generateOtp(
     phoneNumber: string,
     appName: string
-  ): Promise<boolean | undefined> {
+  ): Promise<{ success: boolean; error?: string }> {
     try {
-      if (!this._auth) return false;
+      if (!this._auth)
+        return { success: false, error: "Auth service not initialized" };
       const { data, error } = await this._auth.signInWithOtp({
         phone: phoneNumber,
       });
-      if (!error) return true;
-      return false;
-    } catch (error) {
+      if (error) {
+        return {
+          success: false,
+          error: error.message || "Failed to generate OTP",
+        };
+      }
+      return { success: true };
+    } catch (error: any) {
       console.error("Failed with ", error);
+      return {
+        success: false,
+        error:
+          error.message ||
+          String(error) ||
+          "An unknown error occurred during OTP generation.",
+      };
     }
   }
 
@@ -436,6 +451,7 @@ export class SupabaseAuth implements ServiceAuth {
           is_ops: null,
           learning_path: null,
           ops_created_by: null,
+          reward: null,
           stars: null,
         });
         this._currentUser = createdUser;
