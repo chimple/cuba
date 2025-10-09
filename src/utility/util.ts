@@ -2406,30 +2406,34 @@ export class Util {
   }
   public static async updateUserLanguage(languageCode: string) {
     if (!languageCode) return;
+    try {
+      const api = ServiceConfig.getI().apiHandler;
+      const auth = ServiceConfig.getI().authHandler;
+      const currentUser = await auth.getCurrentUser();
+      if (!currentUser) return;
 
-    const api = ServiceConfig.getI().apiHandler;
-    const auth = ServiceConfig.getI().authHandler;
-    const currentUser =await auth.getCurrentUser();
-    if (!currentUser) return;
+      const allLanguages = await api.getAllLanguages();
+      const selectedLanguage = allLanguages.find(
+        (lang) => lang.code === languageCode
+      );
 
-    const allLanguages = await api.getAllLanguages();
-    const selectedLanguage = allLanguages.find(
-      (lang) => lang.code === languageCode
-    );
+      // Skip if no language found or already set to the same language
+      if (!selectedLanguage || selectedLanguage.id === currentUser.language_id)
+        return;
 
-    // Skip if no language found or already set to the same language
-    if (!selectedLanguage || selectedLanguage.id === currentUser.language_id ) return;
+      localStorage.setItem(LANGUAGE, languageCode);
+      await i18n.changeLanguage(languageCode ?? "");
+      await api.updateLanguage(currentUser.id, selectedLanguage.id);
 
-    localStorage.setItem(LANGUAGE, languageCode);
-    await i18n.changeLanguage(languageCode ?? "");
-    await api.updateLanguage(currentUser.id, selectedLanguage.id);
+      const updatedUserData: TableTypes<"user"> = {
+        ...currentUser,
+        language_id: selectedLanguage.id,
+      };
 
-    const updatedUserData: TableTypes<"user"> = {
-      ...currentUser,
-      language_id: selectedLanguage.id,
-    };
-
-    localStorage.setItem(USER_DATA, JSON.stringify(updatedUserData));
-    auth.currentUser = updatedUserData;
+      localStorage.setItem(USER_DATA, JSON.stringify(updatedUserData));
+      auth.currentUser = updatedUserData;
+    } catch (error) {
+      console.error("Failed to update user language:", error);
+    }
   }
 }
