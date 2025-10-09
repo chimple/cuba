@@ -132,8 +132,8 @@ const Home: FC = () => {
     const currentUser: any = localStorage.getItem('currentUser');
     const parsedUser = currentUser ? JSON.parse(currentUser) : {};
     Util.logEvent(EVENTS.HOME_PAGE_VISIT, {
-      user_id: student.id,
-      parent_id: parsedUser.id,
+      user_id: parsedUser.id,
+      student_id: student.id,
       timestamp: Date.now(),
     });
     const studentDetails = student;
