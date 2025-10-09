@@ -221,7 +221,7 @@ const AddStudent: React.FC = () => {
         onBackButtonClick={handleBack}
       />
       <div className="profile-details-centered">
-        <span className="add-student-text">Add Student</span>
+        <span className="add-student-text">{t("Add Student")}</span>
         <ProfileDetails
           imgSrc={profilePic || ""}
           imgAlt="Profile Pic"

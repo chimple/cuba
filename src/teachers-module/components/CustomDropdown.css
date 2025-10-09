@@ -14,7 +14,7 @@ ion-select {
 
 ion-select::part(placeholder),
 ion-select::part(text) {
-  color: #7B7676;
+  color: #7b7676;
   flex: 0 0 auto;
   padding-right: 0;
   font-size: clamp(20px, 2.5vw, 23px);
@@ -29,7 +29,9 @@ ion-select::part(text) {
 ion-select::part(text) {
   color: #707070;
   text-align: left;
-  width: clamp(190px, 7vw, 300px);
+  width: clamp(151px, 7vw, 300px);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 ion-select::part(icon) {
@@ -41,11 +43,12 @@ ion-select::part(icon) {
 .customdropdown-select {
   --placeholder-color: #999;
   --color: #333;
-  --background: #f0f0f0;
   --border-radius: 8px;
   padding: 0.8vh 1vw;
   display: flex;
   align-items: center;
+  --highlight-color-focused: none;
+  --highlight-color-hover: none;
 }
 
 ion-modal,

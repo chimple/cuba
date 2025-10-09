@@ -461,7 +461,7 @@ export enum PAGES {
   CLASS_PROFILE = "/class-profile",
   SHOW_STUDENTS_IN_ASSIGNED_PAGE = "/show-students-in-assigned-page",
   ADD_TEACHER = "/add-teacher",
-  ADD_TEACHER_NAME ="/add-teacher-name",
+  ADD_TEACHER_NAME = "/add-teacher-name",
   TEACHER_PROFILE = "/teacher-profile",
   STUDENT_REPORT = "/student-report",
   SCHOOL_USERS = "/school-users",
@@ -498,7 +498,8 @@ export enum PAGES {
   PRINCIPAL_TEACHER_PENDING_REQUEST = "/principal-teacher-pending-request",
   SEARCH_SCHOOL = "/search-school",
   CREATE_SCHOOL = "/create-school",
-  POST_SUCCESS = "/post-success"
+  POST_SUCCESS = "/post-success",
+  SCAN_REDIRECT = "/scan-redirect",
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -560,7 +561,7 @@ export enum STATUS {
   APPROVED = "approved",
   REJECTED = "rejected",
   MIGRATED = "migrated",
-  FLAGGED = "flagged"
+  FLAGGED = "flagged",
 }
 
 export interface SchoolWithRole {
@@ -1029,7 +1030,7 @@ export interface SearchSchoolsParams {
   p_page_limit?: number;
   p_page_offset?: number;
 }
-export type School = TableTypes<'school'>;
+export type School = TableTypes<"school">;
 export interface SearchSchoolsResult {
   total_count: number;
   schools: School[];

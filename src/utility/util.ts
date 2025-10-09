@@ -83,7 +83,6 @@ import {
   AppUpdateResultCode,
 } from "@capawesome/capacitor-app-update";
 import { LocalNotifications } from "@capacitor/local-notifications";
-import { RateApp } from "capacitor-rate-app";
 import { getFunctions, httpsCallable } from "firebase/functions";
 // import { CollectionIds } from "../common/courseConstants";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
@@ -93,6 +92,7 @@ import { URLOpenListenerEvent } from "@capacitor/app";
 import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 import CryptoJS from "crypto-js";
+import { InAppReview } from "@capacitor-community/in-app-review";
 declare global {
   interface Window {
     cc: any;
@@ -153,8 +153,9 @@ export class Util {
       let studentResult:
         | { [lessonDocId: string]: TableTypes<"result"> }
         | undefined = {};
-      const studentProfile =
-        await api.getStudentResultInMap(currentStudentDocId);
+      const studentProfile = await api.getStudentResultInMap(
+        currentStudentDocId
+      );
       studentResult = studentProfile;
 
       if (!studentResult) return undefined;
@@ -377,7 +378,9 @@ export class Util {
     chapterId?: string
   ): Promise<boolean> {
     try {
-      if (!Capacitor.isNativePlatform()) return true;
+      if (!Capacitor.isNativePlatform()) {
+        return true;
+      }
 
       for (let i = 0; i < lessonIds.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
         const lessonIdsChunk = lessonIds.slice(
@@ -387,137 +390,185 @@ export class Util {
         const results = await Promise.all(
           lessonIdsChunk.map(async (lessonId) => {
             try {
-              let lessonDownloadSuccess = true; // Flag to track lesson download success
+              let lessonDownloadSuccess = true;
               const fs = createFilesystem(Filesystem, {
                 rootDir: "/",
                 directory: Directory.External,
-                base64Alway: false,
               });
               const androidPath = await this.getAndroidBundlePath();
-              const path = androidPath + lessonId + "/config.json";
-              const res = await fetch(path);
-              const isExists = res.ok;
-              if (isExists) {
+              try {
+                const file = await Filesystem.readFile({
+                  path: lessonId + "/config.json",
+                  directory: Directory.External,
+                });
+                const decoded =
+                  typeof file.data === "string"
+                    ? atob(file.data)
+                    : await this.blobToString(file.data as Blob);
                 this.setGameUrl(androidPath);
                 this.storeLessonIdToLocalStorage(
                   lessonId,
                   DOWNLOADED_LESSON_ID
                 );
                 return true;
-              } // Skip if lesson exists
+              } catch {
+                console.error(
+                  `[LessonDownloader] Lesson ${lessonId} not found at Android path`
+                );
+              }
+
               const localBundlePath =
                 LOCAL_BUNDLES_PATH + `${lessonId}/config.json`;
-              const fetchingLocalBundle = await fetch(localBundlePath);
-              if (fetchingLocalBundle.ok) {
+              try {
+                const file = await Filesystem.readFile({
+                  path: localBundlePath,
+                  directory: Directory.External,
+                });
+                const decoded =
+                  typeof file.data === "string"
+                    ? atob(file.data)
+                    : await this.blobToString(file.data as Blob);
                 this.setGameUrl(LOCAL_BUNDLES_PATH);
                 return true;
+              } catch {
+                console.error(
+                  `[LessonDownloader] Lesson ${lessonId} not found at local bundle path`
+                );
               }
               const bundleZipUrls: string[] = await RemoteConfig.getJSON(
                 REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS
               );
-              if (!bundleZipUrls || bundleZipUrls.length < 1) return false;
-              let zip;
+              if (!bundleZipUrls || bundleZipUrls.length < 1) {
+                console.error("[LessonDownloader] No remote ZIP URLs found");
+                return false;
+              }
 
+              let zip: any;
               let downloadAttempts = 0;
+
               while (downloadAttempts < MAX_DOWNLOAD_LESSON_ATTEMPTS) {
-                for (let bundleUrl of bundleZipUrls) {
+                for (const bundleUrl of bundleZipUrls) {
                   const zipUrl = bundleUrl + lessonId + ".zip";
                   try {
                     zip = await CapacitorHttp.get({
                       url: zipUrl,
                       responseType: "blob",
+                      headers: {},
                     });
-
-                    if (!!zip && !!zip.data && zip.status === 200) break;
-                  } catch (error) {
+                    if (zip && zip.data && zip.status === 200) {
+                      break;
+                    }
+                  } catch (err) {
                     console.error(
-                      "🚀 ~ file: util.ts:216 ~ downloadZipBundle ~ error:",
-                      error
+                      `[LessonDownloader] Error downloading ${zipUrl}:`,
+                      err
                     );
                   }
                 }
                 downloadAttempts++;
               }
-              if (!zip || !zip.data || zip.status !== 200)
-                lessonDownloadSuccess = false;
-              if (zip instanceof Object) {
-                const buffer = Uint8Array.from(atob(zip.data), (c) =>
-                  c.charCodeAt(0)
-                );
 
-                // Store the size and lesson data in a single object
-                const lessonData = JSON.parse(
-                  localStorage.getItem("downloaded_lessons_size") || "{}"
+              if (!zip || !zip.data || zip.status !== 200) {
+                console.error(
+                  `[LessonDownloader] Failed to download lesson ${lessonId}`
                 );
-                lessonData[lessonId] = {
-                  size: buffer.byteLength,
-                };
-                localStorage.setItem(
-                  "downloaded_lessons_size",
-                  JSON.stringify(lessonData)
-                );
-
-                const lessonData1 = JSON.parse(
-                  localStorage.getItem("downloaded_lessons_size") || "{}"
-                ) as { [lessonId: string]: { size: number } };
-
-                await unzip({
-                  fs: fs,
-                  extractTo: lessonId,
-                  filepaths: ["."],
-                  filter: (filepath: string) =>
-                    filepath.startsWith("dist/") === false,
-                  onProgress: (event) =>
-                    console.log(
-                      "event unzipping ",
-                      event.total,
-                      event.filename,
-                      event.isDirectory,
-                      event.loaded
-                    ),
-                  data: buffer,
-                });
-                this.setGameUrl(androidPath);
-                this.storeLessonIdToLocalStorage(
-                  lessonId,
-                  DOWNLOADED_LESSON_ID
-                );
-
-                const customEvent = new CustomEvent(
-                  LESSON_DOWNLOAD_SUCCESS_EVENT,
-                  {
-                    detail: { lessonId },
-                  }
-                );
-
-                window.dispatchEvent(customEvent);
+                return false;
               }
+              const zipDataStr =
+                typeof zip.data === "string"
+                  ? zip.data
+                  : await this.blobToString(zip.data as Blob);
+              const buffer = Uint8Array.from(atob(zipDataStr), (c) =>
+                c.charCodeAt(0)
+              );
 
-              return lessonDownloadSuccess; // Return the result of lesson download
-            } catch (error) {
-              console.error("Error during lesson download: ", error);
+              await unzip({
+                fs,
+                extractTo: lessonId,
+                filepaths: ["."],
+                filter: (filepath) => !filepath.startsWith("dist/"),
+                onProgress: (event) =>
+                  console.log(
+                    "[LessonDownloader] Unzipping progress:",
+                    event.filename,
+                    event.loaded,
+                    event.total
+                  ),
+                data: buffer,
+              });
+
+              const lessonData = JSON.parse(
+                localStorage.getItem("downloaded_lessons_size") || "{}"
+              );
+              lessonData[lessonId] = { size: buffer.byteLength };
+              localStorage.setItem(
+                "downloaded_lessons_size",
+                JSON.stringify(lessonData)
+              );
+              this.setGameUrl(androidPath);
+              this.storeLessonIdToLocalStorage(lessonId, DOWNLOADED_LESSON_ID);
+              window.dispatchEvent(
+                new CustomEvent(LESSON_DOWNLOAD_SUCCESS_EVENT, {
+                  detail: { lessonId },
+                })
+              );
+              return lessonDownloadSuccess;
+            } catch (err) {
+              console.error(
+                `[LessonDownloader] Error processing lesson ${lessonId}:`,
+                err
+              );
               return false;
             }
           })
         );
 
-        if (!results.every((result) => result === true)) {
-          return false; // If any lesson download failed, return false
+        if (!results.every((r) => r === true)) {
+          console.error(
+            "[LessonDownloader] Some lessons in chunk failed to download:",
+            lessonIdsChunk
+          );
+          return false;
         }
       }
-      const customEvent = new CustomEvent(ALL_LESSON_DOWNLOAD_SUCCESS_EVENT, {
-        detail: { chapterId },
-      });
-      if (chapterId) {
-        this.removeLessonIdFromLocalStorage(chapterId, DOWNLOADING_CHAPTER_ID);
-      }
 
-      window.dispatchEvent(customEvent);
-      return true; // Return true if all lessons are successfully downloaded
-    } catch (error) {
-      console.error("Error during lesson download: ", error);
+      window.dispatchEvent(
+        new CustomEvent(ALL_LESSON_DOWNLOAD_SUCCESS_EVENT, {
+          detail: { chapterId },
+        })
+      );
+      if (chapterId)
+        this.removeLessonIdFromLocalStorage(chapterId, DOWNLOADING_CHAPTER_ID);
+
+      return true;
+    } catch (err) {
+      console.error(
+        "[LessonDownloader] Unexpected error in downloadZipBundle:",
+        err
+      );
       return false;
     }
+  }
+
+  public static async blobToString(data: string | Blob): Promise<string> {
+    if (typeof data === "string") {
+      return data;
+    }
+
+    if (data instanceof Blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result?.toString() ?? "";
+          const base64 = result.split(",")[1] || "";
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(data);
+      });
+    }
+
+    throw new Error("Invalid data type — expected string or Blob");
   }
 
   public static async DownloadLearningPathAssets(
@@ -530,7 +581,7 @@ export class Util {
       const fs = createFilesystem(Filesystem, {
         rootDir: "",
         directory: Directory.External,
-        base64Alway: false,
+        // base64Alway: false, // property does not exist
       });
       const androidPath = await this.getAndroidBundlePath();
 
@@ -544,7 +595,9 @@ export class Util {
             directory: Directory.External,
           });
 
-          const decoded = atob(configFile.data); // base64 → string
+          const base64Data = await this.blobToString(configFile.data);
+
+          const decoded = atob(base64Data); // base64 → string
           const config = JSON.parse(decoded); // string → object
 
           if (config.uniqueId === uniqueId) {
@@ -582,10 +635,13 @@ export class Util {
         path: "remoteAsset/config.json",
         directory: Directory.External,
       });
-      const decoded = atob(configFile.data);
+      const decoded = atob(await this.blobToString(configFile.data));
       const config = JSON.parse(decoded);
       if (typeof config.riveMax === "number") {
-        localStorage.setItem(CHIMPLE_RIVE_STATE_MACHINE_MAX, config.riveMax.toString());
+        localStorage.setItem(
+          CHIMPLE_RIVE_STATE_MACHINE_MAX,
+          config.riveMax.toString()
+        );
       }
       this.setGameUrl(androidPath);
       return true;
@@ -748,6 +804,8 @@ export class Util {
               const container = document.getElementById("Cocos2dGameContainer");
               if (container) {
                 container.style.display = "";
+                container.style.width = "100%";
+                container.style.height = "100%";
               }
               var div = document.getElementById("GameDiv");
               if (div) {
@@ -779,6 +837,9 @@ export class Util {
     const container = document.getElementById("Cocos2dGameContainer");
     if (container) {
       container.style.display = "none";
+      container.style.width = "0px";
+      container.style.height = "0px";
+      container.style.overflow = "hidden";
     }
   }
 
@@ -1155,7 +1216,7 @@ export class Util {
     }
   }
 
-   public static switchToOpsUser(history: any): void {
+  public static switchToOpsUser(history: any): void {
     localStorage.setItem(IS_OPS_USER, "true");
     ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
     schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
@@ -1557,7 +1618,7 @@ export class Util {
 
   public static async showInAppReview() {
     try {
-      await RateApp.requestReview();
+      await InAppReview.requestReview();
     } catch (error) {
       console.error(
         "🚀 ~ file: util.ts:694 ~ showInAppReview ~ error:",
@@ -2041,8 +2102,8 @@ export class Util {
         });
 
         if (path && path.uri) {
-          const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.bahama/cache
-          return uri + "/";
+          const uri = Capacitor.convertFileSrc(path.uri);
+          return uri + "/"; // file:///data/user/0/org.chimple.bahama/cache
         }
       } catch (error) {
         console.error("path error", error);
@@ -2277,10 +2338,15 @@ export class Util {
           path: "remoteAsset/remoteBackground.svg",
           directory: Directory.External,
         });
-        const svgData = atob(result.data); // decode base64
+        const res = await this.blobToString(result.data);
+        console.log("llllllllllllllllllllllll", res);
+
+        const svgData = atob(res); // decode base64
 
         if (body) {
-          body.style.backgroundImage = `url('data:image/svg+xml;utf8,${encodeURIComponent(svgData)}')`;
+          body.style.backgroundImage = `url('data:image/svg+xml;utf8,${encodeURIComponent(
+            svgData
+          )}')`;
           body.style.backgroundRepeat = "no-repeat";
           body.style.backgroundSize = "cover";
           body.style.backgroundPosition = "center center";

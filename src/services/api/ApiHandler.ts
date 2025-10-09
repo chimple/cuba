@@ -810,9 +810,10 @@ export class ApiHandler implements ServiceApi {
 
   syncDB(
     tableNames: TABLES[] = Object.values(TABLES),
-    refreshTables: TABLES[] = []
+    refreshTables: TABLES[] = [],
+    isFirstSync?: boolean
   ): Promise<boolean> {
-    return this.s.syncDB(tableNames, refreshTables);
+    return this.s.syncDB(tableNames, refreshTables, isFirstSync);
   }
 
   async getRecommendedLessons(
@@ -925,7 +926,7 @@ export class ApiHandler implements ServiceApi {
     batch_id: string,
     source: string | null,
     created_at?: string
-  ): Promise<boolean> {
+  ): Promise<void> {
     return this.s.createAssignment(
       student_list,
       userId,
@@ -1283,7 +1284,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getChapterIdbyQrLink(link);
   }
   public async getSchoolsByModel(
-    model: MODEL,
+    model: EnumType<"program_model">,
     limit: number = 10,
     offset: number = 0
   ): Promise<TableTypes<"school">[]> {
@@ -1451,7 +1452,7 @@ export class ApiHandler implements ServiceApi {
   }
   public async deleteUserFromSchoolsWithRole(
     userId: string,
-    role: string
+    role: RoleType
   ): Promise<void> {
     return await this.s.deleteUserFromSchoolsWithRole(userId, role);
   }

@@ -137,8 +137,9 @@ const NewUserPage: React.FC = () => {
     }
 
     const payload = { ...form, phone: finalPhone };
-    const { success, error, user_id, message } =
-      await api.createOrAddUserOps(payload);
+    const { success, error, user_id, message } = await api.createOrAddUserOps(
+      payload
+    );
 
     const errorMsgMap: Record<string, string> = {
       "auth-create-failed":
@@ -218,7 +219,7 @@ const NewUserPage: React.FC = () => {
             spacing={isMobile ? 1.5 : 2}
             className="ops-new-user-form_grid"
           >
-            <Grid item xs={12} className="ops-new-user-form_group">
+            <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
               <Typography className="ops-new-user-form_label">
                 {t("Name")}
               </Typography>
@@ -229,7 +230,7 @@ const NewUserPage: React.FC = () => {
                 onChange={handleInputChange("name")}
               />
             </Grid>
-            <Grid item xs={12} className="ops-new-user-form_group">
+            <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
               <Typography className="ops-new-user-form_label">
                 {t("Phone Number")}
               </Typography>
@@ -261,7 +262,7 @@ const NewUserPage: React.FC = () => {
                 }}
               />
             </Grid>
-            <Grid item xs={12} className="ops-new-user-form_group">
+            <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
               <Typography className="ops-new-user-form_label">
                 {t("Email ID")}
               </Typography>
@@ -272,7 +273,7 @@ const NewUserPage: React.FC = () => {
                 onChange={handleInputChange("email")}
               />
             </Grid>
-            <Grid item xs={12} className="ops-new-user-form_group">
+            <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
               <Typography className="ops-new-user-form_label">
                 {t("Roles")}
               </Typography>

@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import NewProgram from '../../../ops-console/components/NewProgram';
