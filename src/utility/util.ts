@@ -2421,9 +2421,9 @@ export class Util {
       if (!selectedLanguage || selectedLanguage.id === currentUser.language_id)
         return;
 
+      await api.updateLanguage(currentUser.id, selectedLanguage.id);
       localStorage.setItem(LANGUAGE, languageCode);
       await i18n.changeLanguage(languageCode ?? "");
-      await api.updateLanguage(currentUser.id, selectedLanguage.id);
 
       const updatedUserData: TableTypes<"user"> = {
         ...currentUser,
