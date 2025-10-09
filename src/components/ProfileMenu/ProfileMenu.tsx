@@ -34,14 +34,14 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const [isClosing, setIsClosing] = useState(false);
 
   const currentHeader = HOMEHEADERLIST.PROFILE;
-  const menuItems = [
+  let menuItems = [
       { icon: "/assets/icons/Ranking.svg", label: "Leaderboard", onClick: () => onLeaderboard() },
       { icon: "/assets/icons/TreasureChest.svg", label: "Rewards", onClick: () => onReward() },
       { icon: "/assets/icons/Pencil.svg", label: "Edit Profile", onClick: () => onEdit() },
       { icon: "/assets/icons/Account.svg", label: "Parents Section", onClick: () => setShowDialogBox(true) },
       { icon: "/assets/icons/UserSwitch1.svg", label: "Switch Profile", onClick: () => onSwichUser() },
     ];
-  
+
   const menuItemsForRespectMode = [
     { icon: "/assets/icons/Account.svg", label: "Parents Section", onClick: () => setShowDialogBox(true) },
     { icon: "/assets/icons/UserSwitch1.svg", label: "Switch Profile", onClick: () => onSwichUser() },
@@ -118,7 +118,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
   const HIDE_IN_SCHOOL = new Set(["Parents Section", "Edit Profile"]);
 
-  const menuItems = allMenuItems
+   menuItems = allMenuItems
     .filter(
       (item) =>
         !(currentMode === MODES.SCHOOL && HIDE_IN_SCHOOL.has(item.label))

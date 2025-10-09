@@ -76,7 +76,7 @@ public  class MainActivity extends BridgeActivity {
         // Register plugins
         registerPlugin(PortPlugin.class);
         registerPlugin(NativeSSOPlugin.class);
-        super.onCreate(savedInstanceState);
+//        super.onCreate(savedInstanceState);
 //        var respectClientManager = RespectClientManager();
 //        respectClientManager.bindService(this);
 
