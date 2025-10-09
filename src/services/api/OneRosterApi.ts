@@ -14,6 +14,7 @@ import {
   LeaderboardRewards,
   MODES,
   MUSIC,
+  GeoDataParams,
   PROFILETYPE,
   RESPECT_GRADES,
   SOUND,
@@ -26,13 +27,16 @@ import {
   TeacherAPIResponse,
   CACHETABLES,
   CoordinatorAPIResponse,
+  SearchSchoolsParams,
+  SearchSchoolsResult,
   EnumType,
   FilteredSchoolsForSchoolListingOps,
   MODEL,
   PrincipalAPIResponse,
   RequestTypes,
   SchoolRoleMap,
-  TabType
+  TabType,
+  STATUS
 } from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
 import Assignment from "../../models/assignment";
@@ -771,6 +775,24 @@ export class OneRosterApi implements ServiceApi {
     ACTIVE_HEADER_ICON_CONFIGS.delete(
       HOMEHEADERLIST.ASSIGNMENT,
     )
+  }
+  respondToSchoolRequest(requestId: string, respondedBy: string, status: STATUS[keyof STATUS], rejectionReason?: string): Promise<TableTypes<"ops_requests"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getFieldCoordinatorsByProgram(programId: string): Promise<{ data: TableTypes<"user">[]; }> {
+    throw new Error("Method not implemented.");
+  }
+  getProgramsByRole(): Promise<{ data: TableTypes<"program">[]; }> {
+    throw new Error("Method not implemented.");
+  }
+  updateSchoolStatus(schoolId: string, schoolStatus: STATUS[keyof STATUS], address?: { state?: string; district?: string; city?: string; address?: string; }, keyContacts?: any): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  sendJoinSchoolRequest(schoolId: string, requestType: RequestTypes, classId?: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  getAllClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> {
+    throw new Error("Method not implemented.");
   }
   clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
     throw new Error("Method not implemented.");
@@ -3068,7 +3090,8 @@ export class OneRosterApi implements ServiceApi {
       is_firebase: null,
       is_ops: null,
       ops_created_by: null,
-      stars: null
+      stars: null,
+      reward: null
     };
     ServiceConfig.getI().authHandler.currentUser = user;
     Util.setCurrentStudent(user);

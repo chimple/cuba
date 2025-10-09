@@ -177,7 +177,8 @@ export class OneRosterAuth implements ServiceAuth {
       is_firebase: null,
       is_ops: null,
       ops_created_by: null,
-      stars: null
+      stars: null,
+      reward: null
     };
     return Promise.resolve(user);
   }
