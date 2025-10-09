@@ -57,6 +57,7 @@ import {
   SHOULD_SHOW_REMOTE_ASSETS,
   IS_OPS_USER,
   CHIMPLE_RIVE_STATE_MACHINE_MAX,
+  USER_DATA,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -2402,5 +2403,33 @@ export class Util {
         await i18n.changeLanguage(tempLangCode);
       }
     }
+  }
+  public static async updateUserLanguage(languageCode: string) {
+    if (!languageCode) return;
+
+    const api = ServiceConfig.getI().apiHandler;
+    const auth = ServiceConfig.getI().authHandler;
+    const currentUser =await auth.getCurrentUser();
+    if (!currentUser) return;
+
+    const allLanguages = await api.getAllLanguages();
+    const selectedLanguage = allLanguages.find(
+      (lang) => lang.code === languageCode
+    );
+
+    // Skip if no language found or already set to the same language
+    if (!selectedLanguage || selectedLanguage.id === currentUser.language_id ) return;
+
+    localStorage.setItem(LANGUAGE, languageCode);
+    await i18n.changeLanguage(languageCode ?? "");
+    await api.updateLanguage(currentUser.id, selectedLanguage.id);
+
+    const updatedUserData: TableTypes<"user"> = {
+      ...currentUser,
+      language_id: selectedLanguage.id,
+    };
+
+    localStorage.setItem(USER_DATA, JSON.stringify(updatedUserData));
+    auth.currentUser = updatedUserData;
   }
 }

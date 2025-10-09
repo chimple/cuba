@@ -113,6 +113,7 @@ const UserProfile: React.FC = () => {
     const selectedLanguage = languages.find(
       (lang) => lang.value === languageCode
     );
+    Util.updateUserLanguage(languageCode ?? "en");
     if (selectedLanguage) {
       setLanguage(selectedLanguage.value);
       setLanguageId(selectedLanguage.id);
