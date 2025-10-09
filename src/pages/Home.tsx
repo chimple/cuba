@@ -129,8 +129,11 @@ const Home: FC = () => {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
+    const currentUser: any = localStorage.getItem('currentUser');
+    const parsedUser = currentUser ? JSON.parse(currentUser) : {};
     Util.logEvent(EVENTS.HOME_PAGE_VISIT, {
       user_id: student.id,
+      parent_id: parsedUser.id,
       timestamp: Date.now(),
     });
     const studentDetails = student;
