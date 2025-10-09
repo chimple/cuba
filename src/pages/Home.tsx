@@ -16,6 +16,7 @@ import {
   STARS_COUNT,
   LANGUAGE,
   LANG,
+  EVENTS,
 } from "../common/constants";
 import "./Home.css";
 import LessonSlider from "../components/LessonSlider";
@@ -128,6 +129,10 @@ const Home: FC = () => {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
+    Util.logEvent(EVENTS.HOME_PAGE_VISIT, {
+      user_id: student.id,
+      timestamp: Date.now(),
+    });
     const studentDetails = student;
     updateLocalAttributes({ studentDetails });
     setGbUpdated(true);

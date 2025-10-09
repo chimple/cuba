@@ -807,6 +807,7 @@ export enum EVENTS {
   DEEPLINK_CLICKED = "deeplink_clicked",
   ERROR_LOGS = "error_logs",
   PROFILE_CLICKS_ANALYTICS = "profile_clicks_analytics",
+  HOME_PAGE_VISIT = "home_page_visit"
 }
 
 export const FCM_TOKENS = "fcmTokens";
