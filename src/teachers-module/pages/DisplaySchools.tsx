@@ -102,8 +102,12 @@ const DisplaySchools: FC = () => {
     setUser(currentUser);
     const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
     if (isOpsUser) setIsAuthorizedForOpsMode(true);
-    const languageCode = localStorage.getItem(LANGUAGE);
-    Util.updateUserLanguage(languageCode ?? "en");
+    try {
+      const languageCode = localStorage.getItem(LANGUAGE);
+      await Util.updateUserLanguage(languageCode ?? "en");
+    } catch (error) {
+      console.error("Failed to update user language on init:", error);
+    }
     setPage(1);
     setHasMore(true);
     await fetchSchools(1, currentUser.id);
