@@ -20,8 +20,10 @@ const Library: React.FC = () => {
 
   const init = async () => {
     const current_class = await Util.getCurrentClass();
-    const course_res = await api.getCoursesForClassStudent(current_class?.id ?? "");
-    
+    const course_res = await api.getCoursesForClassStudent(
+      current_class?.id ?? ""
+    );
+
     course_res.sort(
       (a, b) => (a.sort_index ?? Infinity) - (b.sort_index ?? Infinity)
     );
@@ -30,18 +32,18 @@ const Library: React.FC = () => {
 
   return (
     <div className="library-container">
-      <div style={{display: 'flex', flexDirection: 'column-reverse'}}>
+      <div style={{ display: "flex", flexDirection: "column-reverse" }}>
         <div
-        className="lesson-search"
-        onClick={() => history.replace(PAGES.SEARCH_LESSON)}
-      >
-        <SearchOutlinedIcon style={{ color: "black" }} />
-        <span className="text">{t("Search")}...</span>
-      </div>
-      <span className="library-title">Library</span>
+          className="lesson-search"
+          onClick={() => history.replace(PAGES.SEARCH_LESSON)}
+        >
+          <SearchOutlinedIcon style={{ color: "black" }} />
+          <span className="text">{t("Search")}...</span>
+        </div>
+        <span className="library-title"> {t("Library")}</span>
       </div>
       <div className="course-grid">
-        {courses.map(course => (
+        {courses.map((course) => (
           <CourseComponent
             key={course.id}
             course={course}

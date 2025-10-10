@@ -465,7 +465,8 @@ export class SupabaseApi implements ServiceApi {
 
   async getTablesData(
     tableNames: TABLES[] = Object.values(TABLES),
-    tablesLastModifiedTime: Map<string, string> = new Map()
+    tablesLastModifiedTime: Map<string, string> = new Map(),
+    isInitialFetch = false
   ): Promise<Map<string, any[]>> {
     try {
       const data = new Map<string, any[]>();
@@ -722,7 +723,15 @@ export class SupabaseApi implements ServiceApi {
             error_hint: res?.error?.hint || null,
             error_message: res?.error?.message || null,
           });
+          if (isInitialFetch) {
+            throw new Error(
+              `Initial fetch failed for ${rpcName || tableName}: ${res?.error?.message}`
+            );
+          }
         }
+        // console.log(
+        //   `Fetched ${JSON.stringify(res?.data)} records from ${tableName}`
+        // );
         data.set(tableName, res?.data ?? []);
       });
 
@@ -1919,9 +1928,10 @@ export class SupabaseApi implements ServiceApi {
 
     // Extract unique grade_ids
     const gradeIds = [
-      ...new Set(courses.map((c) => c.grade_id).filter(Boolean)),
+      ...new Set(
+        courses.map((c) => c.grade_id).filter((id): id is string => !!id)
+      ),
     ];
-
     if (gradeIds.length === 0) {
       return { grades: [], courses }; // no grades to fetch
     }
@@ -4852,8 +4862,8 @@ export class SupabaseApi implements ServiceApi {
     batch_id: string,
     source: string | null,
     created_at?: string
-  ): Promise<boolean> {
-    if (!this.supabase) return false;
+  ): Promise<void> {
+    if (!this.supabase) return;
 
     const assignmentId = uuidv4();
     const timestamp = new Date().toISOString();
@@ -4885,7 +4895,6 @@ export class SupabaseApi implements ServiceApi {
 
       if (assignmentError) {
         console.error("Error inserting assignment:", assignmentError.message);
-        return false;
       }
 
       // If not class-wise, insert into assignment_user
@@ -4908,14 +4917,11 @@ export class SupabaseApi implements ServiceApi {
             "Error inserting assignment_user records:",
             userError.message
           );
-          return false;
         }
       }
 
-      return true;
     } catch (error) {
       console.error("Unexpected error in createAssignment:", error);
-      return false;
     }
   }
 
@@ -5565,7 +5571,7 @@ export class SupabaseApi implements ServiceApi {
 
     const { data, error } = await this.supabase
       .from("school_user")
-      .select("user(*)")
+      .select("user:user!user_id(*)")
       .eq("school_id", schoolId)
       .eq("role", RoleType.SPONSOR)
       .eq("is_deleted", false);
@@ -5575,9 +5581,9 @@ export class SupabaseApi implements ServiceApi {
       return;
     }
 
-    const sponsors = (data ?? [])
+    const sponsors = (data as { user: TableTypes<"user"> | null }[])
       .map((item) => item.user)
-      .filter((user): user is TableTypes<"user"> => !!user);
+      .filter((u): u is TableTypes<"user"> => !!u);
 
     return sponsors;
   }
@@ -6488,7 +6494,7 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async getSchoolsByModel(
-    model: MODEL,
+    model: EnumType<"program_model">,
     limit: number = 10,
     offset: number = 0
   ): Promise<TableTypes<"school">[]> {
@@ -6815,7 +6821,9 @@ export class SupabaseApi implements ServiceApi {
         return null;
       }
 
-      const userIds = mappings.map((m) => m.user);
+      const userIds = mappings
+        .map((m) => m.user)
+        .filter((id): id is string => !!id);
 
       const { data: users, error: usersError } = await this.supabase
         .from("user")
@@ -7589,7 +7597,7 @@ export class SupabaseApi implements ServiceApi {
 
   async deleteUserFromSchoolsWithRole(
     userId: string,
-    role: string
+    role: RoleType
   ): Promise<void> {
     if (!this.supabase) {
       console.error("Supabase client not initialized.");
@@ -8277,7 +8285,9 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error fetching program_user:", linkError);
       return { data: [] };
     }
-    const userIds = programUsers.map((pu) => pu.user);
+    const userIds = programUsers
+      .map((pu) => pu.user)
+      .filter((id): id is string => !!id);
     const { data: users, error: userError } = await this.supabase
       .from("user")
       .select("*")

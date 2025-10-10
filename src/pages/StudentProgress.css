@@ -10,8 +10,8 @@
 
 #student-progress-display-progress-content {
   margin: 3vw 1vw 1vw 8vw;
-  height: 80vh;
-  max-height: 200px;
+  max-height: 51vh;
+  height: auto;
   overflow-y: auto;
 }
 

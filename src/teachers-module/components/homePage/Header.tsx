@@ -103,12 +103,18 @@ const Header: React.FC<HeaderProps> = ({
       <div className="header">
         <div aria-label={String(t("Menu"))} id="header-menu-element">
           {isBackButton ? (
-            <img src="assets/icons/HeaderBackBtn.svg" alt={String(t("Back"))}
-            onClick={handleBackButtonClick} className={disableBackButton ? "disabled-back-button" : ""} />
+            <img
+              src="assets/icons/HeaderBackBtn.svg"
+              alt={String(t("Back"))}
+              onClick={handleBackButtonClick}
+              className={disableBackButton ? "disabled-back-button" : ""}
+            />
           ) : showSideMenu ? (
             <SideMenu
               aria-label={t("Menu")}
-              handleManageSchoolClick={() => history.replace(PAGES.MANAGE_SCHOOL)}
+              handleManageSchoolClick={() =>
+                history.replace(PAGES.MANAGE_SCHOOL)
+              }
               handleManageClassClick={() => history.replace(PAGES.MANAGE_CLASS)}
             />
           ) : null}
@@ -152,31 +158,48 @@ const Header: React.FC<HeaderProps> = ({
         </Drawer>
 
         <div className="search-section">
-        {onSearchChange && (
-          <div className="header-search-container">
-            <SearchOutlinedIcon className="search-icon-inside" />
-            <input
-              type="text"
-              className="header-search-input"
-              placeholder={String(t("Search School"))}
-              onChange={(e) => onSearchChange(e.target.value)}
-            />
-        </div>
-        )}
-        <div className="help-icon-container" style={{ display: 'flex', alignItems: 'center' }}>
-          {onShareClick && (
-            <button
-              onClick={onShareClick}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: 8, marginTop: 4 }}
-            >
-              <IoShareSocialSharp size={28} color="white" />
-            </button>
+          {onSearchChange && (
+            <div className="header-search-container">
+              <SearchOutlinedIcon className="search-icon-inside" />
+              <input
+                type="text"
+                className="header-search-input"
+                placeholder={String(t("Search School"))}
+                onChange={(e) => onSearchChange(e.target.value)}
+              />
+            </div>
           )}
-        <img src="assets/icons/helpIcon.svg" alt={String(t("Menu"))} className="help-icon" />
+          <div
+            className="help-icon-container"
+            style={{ display: "flex", alignItems: "center" }}
+          >
+            {onShareClick && (
+              <button
+                onClick={onShareClick}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                  marginLeft: 8,
+                  marginTop: 4,
+                }}
+              >
+                <IoShareSocialSharp size={28} color="white" />
+              </button>
+            )}
+           
+          </div>
+        </div>
+         <div className="help-icon-container">
+              <img
+                src="assets/icons/helpIcon.svg"
+                alt={String(t("Menu"))}
+                className="help-icon"
+              />
+            </div>
       </div>
-    </div>
-    </div>
-  </header>
+    </header>
   );
 };
 

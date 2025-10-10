@@ -20,7 +20,9 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
   const history = useHistory();
 
   if (data.length === 0) {
-    return <div className="no-school-available">{t("School is not Available")}</div>;
+    return (
+      <div className="no-school-available">{t("School is not Available")}</div>
+    );
   }
 
   const handleItemClick = (item: any) => {
@@ -58,8 +60,10 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
       <div className="detail-list__header">
         <div />
         <div className="detail-list__icon-container">
-          <div>{t("Users")}</div>
-          <div>{t("Subjects")}</div>
+          <div className="detail-list__icon-container-users">{t("Users")}</div>
+          <div className="detail-list__icon-container-subjects">
+            {t("Subjects")}
+          </div>
         </div>
       </div>
 
