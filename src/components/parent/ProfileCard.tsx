@@ -151,7 +151,8 @@ const ProfileCard: React.FC<{
             Util.setPathToBackButton(PAGES.STUDENT_PROGRESS, history);
           }}
         >
-          {t("Progress Report")}
+          {/* {t("Progress Report")} */}
+          Progress
         </div>
       ) : (
         // <></>

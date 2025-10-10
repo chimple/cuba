@@ -1,3 +1,4 @@
+//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import { TableTypes } from "../../../common/constants";
 import UserDetail from "../../components/studentProfile/UserDetail";
@@ -27,7 +28,8 @@ const mockStudent: TableTypes<"user"> = {
   is_ops: null,
   learning_path: null,
   ops_created_by: null,
-  stars: null
+  stars: null,
+  reward: null
 };
 
 const meta: Meta<typeof UserDetail> = {

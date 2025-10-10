@@ -38,7 +38,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
   const progressRef = useRef(10);
   const [verifyingProgressState, setVerifyingProgressState] = useState(10);
   const [isReupload, setIsReupload] = useState(false);
-  const processedDataRef = useRef();
+  const processedDataRef = useRef(null);
   const [finalPayload, setFinalPayload] = useState<any[] | null>(null);
   const [isVerified, setIsVerified] = useState(false);
   const [step, setStep] = useState<FileUploadStep>(FileUploadStep.Idle);
@@ -163,6 +163,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
     let validatedSchoolIds: Set<string> = new Set();
     let studentLoginTypeMap = new Map<string, string>();
     let validatedSchoolClassPairs: Set<string> = new Set();
+    let newlyCreatedClasses: Set<string> = new Set();
     let validatedProgramNames = new Set<string>();
     let schoolProgramModelMap = new Map<string, string>();
 
@@ -370,8 +371,9 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
 
           // First, check if the school is already active in the main `school` table.
           if (schoolId) {
-            const activeSchoolCheck =
-              await api.validateSchoolUdiseCode(schoolId);
+            const activeSchoolCheck = await api.validateSchoolUdiseCode(
+              schoolId
+            );
             if (activeSchoolCheck.status === "success") {
               isExistingAndActiveSchool = true;
               validatedSchoolIds.add(schoolId);
@@ -465,8 +467,9 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             }
 
             if (programName) {
-              const programValidation =
-                await api.validateProgramName(programName);
+              const programValidation = await api.validateProgramName(
+                programName
+              );
               if (programValidation.status === "error") {
                 groupLevelErrors.push(
                   ...(programValidation.errors || ["Program name not found."])
@@ -564,11 +567,14 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
               false
             );
             schoolRows.forEach((row) => (row["Updated"] = successMessage));
-            masterRow.programManagers = collectedPMs;
-            masterRow.fieldCoordinators = collectedFCs;
-            masterRow.principals = collectedPrincipals;
-            masterRow.schoolCoordinators = collectedSchoolCoordinators;
-            masterSchoolRowsForPayload.push(masterRow);
+            const payloadRow = {
+              ...masterRow,
+              programManagers: collectedPMs,
+              fieldCoordinators: collectedFCs,
+              principals: collectedPrincipals,
+              schoolCoordinators: collectedSchoolCoordinators,
+            };
+            masterSchoolRowsForPayload.push(payloadRow);
           }
         }
         validatedSheets.school = masterSchoolRowsForPayload;
@@ -609,6 +615,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             const schoolClassKey = `${schoolId}_${className}`;
             if (!validatedSchoolClassPairs.has(schoolClassKey)) {
               validatedSchoolClassPairs.add(schoolClassKey);
+              newlyCreatedClasses.add(schoolClassKey);
             }
           }
 
@@ -672,7 +679,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
       }
       // **Teacher Sheet Validation**
       if (sheet.toLowerCase().includes("teacher")) {
-        for (let row of processedData) {
+        for (const row of processedData) {
           let errors: string[] = [];
           const schoolId = row["SCHOOL ID"]?.toString().trim();
           let grade = row["GRADE"]?.toString().trim();
@@ -683,7 +690,6 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           const teacherContact = row["TEACHER PHONE NUMBER OR EMAIL"]
             ?.toString()
             .trim();
-          const classId = `${schoolId}_${grade}_${classSection}`;
 
           if (!grade) {
             errors.push("Missing GRADE.");
@@ -710,37 +716,45 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           if (!schoolId || schoolId.trim() === "") {
             errors.push("Missing schoolId.");
           } else {
-            if (!validatedSchoolIds.has(schoolId)) {
-              const result = await api.validateSchoolUdiseCode(schoolId);
-              if (result?.status === "error") {
-                errors.push("SCHOOL ID does not match any validated school.");
-                errors.push(...(result.errors || []));
-              } else if (className && schoolId) {
-                if (!validatedSchoolClassPairs.has(schoolClassKey)) {
-                  // Validate class name and schoolId pair from server if not validated already
-                  const classValidationResponse =
-                    await api.validateClassNameWithSchoolID(
-                      schoolId,
-                      className
-                    );
+            // This 'isSchoolValidatedInFile' flag helps direct the logic
+            const isSchoolValidatedInFile = validatedSchoolIds.has(schoolId);
 
-                  if (classValidationResponse?.status === "error") {
-                    errors.push(
-                      "Class name does not exist for the given school ID."
-                    );
-                    errors.push(...(classValidationResponse.errors || []));
-                  } else {
-                    // Store valid school and class pairs
-                    validatedSchoolClassPairs.add(schoolClassKey);
-                  }
+            // First, check if the class was defined in this upload's "Class" sheet
+            const isClassValidatedInFile =
+              validatedSchoolClassPairs.has(schoolClassKey);
+
+            if (isClassValidatedInFile) {
+              // Class was found in the sheet, no further DB check needed for the class.
+            } else {
+              // Class was NOT in the sheet. We must check the database.
+              // But first, ensure the school itself is valid (either from the sheet or the DB).
+              let isSchoolValidInDB = false;
+              if (isSchoolValidatedInFile) {
+                isSchoolValidInDB = true;
+              } else {
+                const schoolResult = await api.validateSchoolUdiseCode(
+                  schoolId
+                );
+                if (schoolResult?.status === "success") {
+                  isSchoolValidInDB = true;
+                } else {
+                  errors.push("SCHOOL ID does not exist in the database.");
+                  errors.push(...(schoolResult.errors || []));
                 }
               }
-            } else {
-              //if validatedSchoolIds already has the schoolId, we can skip the validation
-              if (!validatedSchoolClassPairs.has(schoolClassKey)) {
-                errors.push(
-                  `Class "${className}" for school "${schoolId}" not found in Class sheet.`
-                );
+
+              // If the school is valid, now check the class in the database
+              if (isSchoolValidInDB) {
+                const classValidationResponse =
+                  await api.validateClassNameWithSchoolID(schoolId, className);
+                if (classValidationResponse?.status === "error") {
+                  errors.push(
+                    `Class "${className}" for school "${schoolId}" was not found in the Class sheet AND does not exist in the database.`
+                  );
+                } else {
+                  // Success! The class exists in the DB. Cache it to avoid re-checking.
+                  validatedSchoolClassPairs.add(schoolClassKey);
+                }
               }
             }
           }
@@ -773,8 +787,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           { schoolModel?: string; studentLoginType?: string }
         >();
 
-        // ---------- ✅  UDISE + backend validations HELPER FUNCTION ----------
-        // This function handles the STRICT validation for "AT SCHOOL" / "HYBRID" models.
+        // ---------- Helper Function for DB Validation (for EXISTING schools/classes) ----------
         async function validateStudentData(
           studentLoginType: string | undefined,
           parentContact: string,
@@ -811,12 +824,10 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                   schoolId
                 );
                 if (result?.status === "error") {
-                  if (result.message) {
-                    errors.push(result.message);
-                  }
+                  if (result.message) errors.push(result.message);
                   if (result.errors && result.errors.length > 0) {
-                  errors.push(...result.errors);
-                }
+                    errors.push(...result.errors);
+                  }
                 }
               } catch (e) {
                 errors.push(
@@ -837,9 +848,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                 schoolId
               );
               if (result?.status === "error") {
-                if (result.message) {
-                  errors.push(result.message);
-                }
+                if (result.message) errors.push(result.message);
                 if (result.errors && result.errors.length > 0) {
                   errors.push(...result.errors);
                 }
@@ -851,9 +860,8 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
         }
 
         // --- Start processing each row in the Student sheet ---
-        for (let row of processedData) {
+        for (const row of processedData) {
           let errors: string[] = [];
-
           const schoolId = row["SCHOOL ID"]?.toString().trim();
           const studentId = row["STUDENT ID"]?.toString().trim();
           const studentName = row["STUDENT NAME"]?.toString().trim();
@@ -867,30 +875,6 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           const className = `${grade}${classSection}`.trim();
           const schoolClassKey = `${schoolId}_${className}`;
           const classId = `${schoolId}_${grade}_${classSection}`.trim();
-
-          // --- 2. In-Sheet Duplicate Checks (Fastest check, do it first) ---
-          if (studentName && classId) {
-            const nameClassKey = `${studentName}_${classId}`.toLowerCase();
-            if (seenNameClassCombos.has(nameClassKey)) {
-              errors.push(
-                "Duplicate student name in the same class within this sheet."
-              );
-            } else {
-              seenNameClassCombos.add(nameClassKey);
-            }
-          }
-
-          const identifier = parentContact || studentId;
-          if (identifier && classId) {
-            const classIdentifierKey = `${classId}_${identifier}`.toLowerCase();
-            if (seenClassIdCombos.has(classIdentifierKey)) {
-              errors.push(
-                "Duplicate Parent Phone/Student ID in the same class within this sheet."
-              );
-            } else {
-              seenClassIdCombos.add(classIdentifierKey);
-            }
-          }
 
           if (!studentName) errors.push("Missing STUDENT NAME.");
           if (!gender) {
@@ -915,73 +899,147 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           if (!className)
             errors.push("Class details (Grade/Section) are required.");
 
-          // --- 4. Main Conditional Validation Logic based on Program Model ---
+          // --- In-sheet duplicate checks ---
+          if (studentName && classId) {
+            const nameClassKey = `${studentName}_${classId}`.toLowerCase();
+            if (seenNameClassCombos.has(nameClassKey)) {
+              errors.push(
+                "Duplicate student name in the same class within this sheet."
+              );
+            } else {
+              seenNameClassCombos.add(nameClassKey);
+            }
+          }
+          const identifier = parentContact || studentId;
+          if (identifier && classId) {
+            const classIdentifierKey = `${classId}_${identifier}`.toLowerCase();
+            if (seenClassIdCombos.has(classIdentifierKey)) {
+              errors.push(
+                "Duplicate Parent Phone/Student ID in the same class within this sheet."
+              );
+            } else {
+              seenClassIdCombos.add(classIdentifierKey);
+            }
+          }
+
+          // 3. Main Conditional Validation Logic
           if (!schoolId) {
             errors.push("Missing SCHOOL ID.");
           } else {
-            let schoolModel: string | undefined;
-            let studentLoginType: string | undefined;
-
-            // Step A: Get school details (from sheet, cache, or DB)
-            if (schoolProgramModelMap.has(schoolId)) {
-              schoolModel = schoolProgramModelMap.get(schoolId);
-              studentLoginType = studentLoginTypeMap.get(schoolId);
-              if (!validatedSchoolClassPairs.has(schoolClassKey)) {
-                errors.push(
-                  `Class "${className}" for school "${schoolId}" not found in Class sheet.`
-                );
-              }
-            } else if (schoolDetailsCache.has(schoolId)) {
-              const details = schoolDetailsCache.get(schoolId)!;
-              schoolModel = details.schoolModel;
-              studentLoginType = details.studentLoginType;
-            } else {
-              const schoolDetailsResult =
-                await api.getSchoolDetailsByUdise(schoolId);
-              if (!schoolDetailsResult) {
-                errors.push(`School ID ${schoolId} not found in database.`);
+            // Validate the class first (from sheet or DB)
+            let isClassValid = validatedSchoolClassPairs.has(schoolClassKey);
+            if (!isClassValid) {
+              const classValidationResponse =
+                await api.validateClassNameWithSchoolID(schoolId, className);
+              if (classValidationResponse?.status === "success") {
+                isClassValid = true;
+                validatedSchoolClassPairs.add(schoolClassKey);
               } else {
-                schoolModel = schoolDetailsResult.schoolModel?.toUpperCase();
-                studentLoginType = schoolDetailsResult.studentLoginType;
-
-                schoolDetailsCache.set(schoolId, {
-                  schoolModel,
-                  studentLoginType,
-                });
-
-                if (schoolModel)
-                  schoolProgramModelMap.set(schoolId, schoolModel);
-                if (studentLoginType)
-                  studentLoginTypeMap.set(schoolId, studentLoginType);
+                errors.push(
+                  `Class "${className}" for school "${schoolId}" was not found in the Class sheet or the database.`
+                );
               }
             }
-            if (schoolModel) {
-              if (schoolModel === "AT SCHOOL" || schoolModel === "at_school") {
-                // **"AT SCHOOL"ID/Phone are optional.
-                const result = await api.validateStudentInClassWithoutPhone(
-                  studentName,
-                  className,
-                  schoolId
-                );
-                if (result?.status === "error") {
-                  errors.push(...(result.errors || []));
+
+            // Only proceed if the class is valid and there are no basic errors yet
+            if (isClassValid && errors.length === 0) {
+              const isNewClassForThisUpload =
+                newlyCreatedClasses.has(schoolClassKey);
+              let schoolModel: string | undefined;
+              let studentLoginType: string | undefined;
+
+              if (schoolProgramModelMap.has(schoolId)) {
+                // New school case
+                schoolModel = schoolProgramModelMap.get(schoolId);
+                studentLoginType = studentLoginTypeMap.get(schoolId);
+              } else {
+                // Existing school case
+                if (schoolDetailsCache.has(schoolId)) {
+                  const details = schoolDetailsCache.get(schoolId)!;
+                  schoolModel = details.schoolModel;
+                  studentLoginType = details.studentLoginType;
+                } else {
+                  const schoolDetailsResult = await api.getSchoolDetailsByUdise(
+                    schoolId
+                  );
+                  if (!schoolDetailsResult) {
+                    errors.push(`School ID ${schoolId} not found in database.`);
+                  } else {
+                    schoolModel =
+                      schoolDetailsResult.schoolModel?.toUpperCase();
+                    studentLoginType = schoolDetailsResult.studentLoginType;
+                    schoolDetailsCache.set(schoolId, {
+                      schoolModel,
+                      studentLoginType,
+                    });
+                  }
+                }
+              }
+
+              if (!schoolModel) {
+                if (errors.length === 0)
+                  errors.push(
+                    `Could not determine Program Model for School ID ${schoolId}.`
+                  );
+              } else if (isNewClassForThisUpload) {
+                // LOGIC FOR A **NEW CLASS**: Only perform FORMAT validation.
+                if (
+                  schoolModel !== "AT_SCHOOL" &&
+                  schoolModel !== "at_school"
+                ) {
+                  if (!studentLoginType) {
+                    errors.push(
+                      `Could not determine STUDENT LOGIN TYPE for school ${schoolId}.`
+                    );
+                  } else if (
+                    studentLoginType.toUpperCase() === "PARENT PHONE NUMBER"
+                  ) {
+                    if (!parentContact)
+                      errors.push(
+                        "PARENT PHONE NUMBER OR LOGIN ID is required for this school's login type."
+                      );
+                    else if (!/^\d{10}$/.test(parentContact))
+                      errors.push(
+                        "PARENT PHONE NUMBER must be a valid 10-digit mobile number."
+                      );
+                  } else {
+                    if (!studentId || studentId.trim() === "")
+                      errors.push(
+                        "STUDENT ID is required for this school's login type."
+                      );
+                  }
                 }
               } else {
-                await validateStudentData(
-                  studentLoginType,
-                  parentContact,
-                  className,
-                  studentName,
-                  schoolId,
-                  studentId,
-                  errors
-                );
+                // LOGIC FOR AN **EXISTING CLASS**: Safe to call database validation.
+                if (
+                  schoolModel === "AT SCHOOL" ||
+                  schoolModel === "at_school" ||
+                  schoolModel === "AT_SCHOOL"
+                ) {
+                  const result = await api.validateStudentInClassWithoutPhone(
+                    studentName,
+                    className,
+                    schoolId
+                  );
+                  if (result?.status === "error") {
+                    errors.push(
+                      ...(result.errors || [
+                        result.message || "Validation failed.",
+                      ])
+                    );
+                  }
+                } else {
+                  await validateStudentData(
+                    studentLoginType,
+                    parentContact,
+                    className,
+                    studentName,
+                    schoolId,
+                    studentId,
+                    errors
+                  );
+                }
               }
-            } else if (errors.length === 0) {
-              // This case handles when schoolId was valid but we couldn't find its details.
-              errors.push(
-                `Could not determine Program Model for School ID ${schoolId} to run validation.`
-              );
             }
           }
 

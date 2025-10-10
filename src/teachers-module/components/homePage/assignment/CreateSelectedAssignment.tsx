@@ -331,13 +331,12 @@ const CreateSelectedAssignment = ({
 
     text += `${t(
       "Please click this link to access your Homework"
-    )}: https://chimple.cc/assignment?batch_id=${assignmentBatchId}`;
+    )}: https://chimple.cc/assignment?batch_id=${assignmentBatchId}&source=teacher`;
 
     return text.trim();
   };
 
   const createAssignmentsForStudents = async () => {
-    try {
       const studentList = getSelectedStudentList(groupWiseStudents);
       if (studentList.length <= 0) {
         await Toast.show({
@@ -346,9 +345,13 @@ const CreateSelectedAssignment = ({
         });
         return;
       }
-      setIsLoading(true);
 
-      // Get current class and user
+    const batchId = uuidv4();
+    setAssignmentBatchId(batchId);
+
+    // Step 1: Update assignment cart immediately to remove assigned lessons from UI
+    (async () => {
+    try {
       const current_class = await Util.getCurrentClass();
       const currUser = await auth.getCurrentUser();
 
@@ -358,8 +361,6 @@ const CreateSelectedAssignment = ({
         setIsLoading(false);
         return;
       }
-      const batchId = uuidv4();
-      setAssignmentBatchId(batchId);
       const previous_sync_lesson = currUser?.id
         ? await api.getUserAssignmentCart(currUser?.id)
         : null;
@@ -369,7 +370,62 @@ const CreateSelectedAssignment = ({
           : []
       );
       const sync_lesson_data = all_sync_lesson.get(current_class?.id ?? "");
+      let sync_lesson: Map<string, Record<string, string[]>> = new Map(
+        sync_lesson_data ? Object.entries(JSON.parse(sync_lesson_data)) : []
+      );
 
+      // Remove lessons from sync_lesson in memory immediately
+      for (const type of Object.keys(selectedAssignments)) {
+        for (const subjectId of Object.keys(selectedAssignments[type])) {
+          const subjectData = selectedAssignments[type][subjectId];
+          if (!subjectData || subjectId === "count") continue;
+
+          for (const lessonId of subjectData.count) {
+            for (const [chapterId, sourceMap] of sync_lesson.entries()) {
+              Object.keys(sourceMap).forEach((key) => {
+                if (sourceMap[key]?.includes(lessonId)) {
+                  sourceMap[key] = sourceMap[key].filter(
+                    (id) => id !== lessonId
+                  );
+                }
+              });
+              sync_lesson.set(chapterId, sourceMap);
+            }
+          }
+        }
+      }
+
+      // Update assignment cart immediately (async)
+      const _selectedLesson = JSON.stringify(Object.fromEntries(sync_lesson));
+      all_sync_lesson.set(current_class?.id ?? "", _selectedLesson);
+      const _totalSelectedLesson = JSON.stringify(
+        Object.fromEntries(all_sync_lesson)
+      );
+      api.createOrUpdateAssignmentCart(currUser?.id, _totalSelectedLesson);
+    } catch (error) {
+      console.error("Error updating assignment cart:", error);
+    }
+    })();
+
+    // Step 2: Show confirmation popup immediately
+    setShowConfirm(true);
+
+    // Step 3: Run actual assignment creation in background
+    (async () => {
+    try {
+      const current_class = await Util.getCurrentClass();
+      const currUser = await auth.getCurrentUser();
+      if (!currUser || !current_class) return;
+
+      const previous_sync_lesson = currUser?.id
+        ? await api.getUserAssignmentCart(currUser?.id)
+        : null;
+      const all_sync_lesson: Map<string, string> = new Map(
+        previous_sync_lesson?.lessons
+          ? Object.entries(JSON.parse(previous_sync_lesson.lessons))
+          : []
+      );
+      const sync_lesson_data = all_sync_lesson.get(current_class?.id ?? "");
       let sync_lesson: Map<string, Record<string, string[]>> = new Map(
         sync_lesson_data ? Object.entries(JSON.parse(sync_lesson_data)) : []
       );
@@ -411,7 +467,10 @@ const CreateSelectedAssignment = ({
                 return;
               }
 
-              const tempChapterId = lessonToChapterMap.get(lessonId) ?? "";
+              const tempChapterId =
+                tempLes?.source === AssignmentSource.RECOMMENDED
+                  ? await api.getChapterByLesson(tempLes.id, current_class.id)
+                  : lessonToChapterMap.get(lessonId);
               if (!tempChapterId) {
                 console.warn(`Chapter not found for lessonId: ${lessonId}`);
                 return;
@@ -422,21 +481,22 @@ const CreateSelectedAssignment = ({
               // 🌟 Determine Source (manual, qr_code, recommended)
               let source: string | null = null;
 
-              const chapterSourceMap = sync_lesson.get(tempChapterId as string) ?? {};
+              const chapterSourceMap =
+                sync_lesson.get(tempChapterId as string) ?? {};
 
-              if (chapterSourceMap[AssignmentSource.MANUAL]?.includes(lessonId)) {
+              if (
+                chapterSourceMap[AssignmentSource.MANUAL]?.includes(lessonId)
+              ) {
                 source = AssignmentSource.MANUAL;
               } else if (
                 chapterSourceMap[AssignmentSource.QR_CODE]?.includes(lessonId)
               ) {
                 source = AssignmentSource.QR_CODE;
-              } else if (
-                tempLes?.source === AssignmentSource.RECOMMENDED
-              ) {
+              } else if (tempLes?.source === AssignmentSource.RECOMMENDED) {
                 source = AssignmentSource.RECOMMENDED;
               }
 
-              const res = await api.createAssignment(
+              await api.createAssignment(
                 studentList,
                 currUser.id,
                 startDate,
@@ -451,7 +511,7 @@ const CreateSelectedAssignment = ({
                   ? ASSIGNMENT_TYPE.LIVEQUIZ
                   : ASSIGNMENT_TYPE.ASSIGNMENT,
                 batchId,
-                source, 
+                source,
                 createdAt
               );
 
@@ -464,9 +524,16 @@ const CreateSelectedAssignment = ({
               }
             })
           );
-          setIsLoading(false);
-          setShowConfirm(true);
         }
+      }
+      // Remove any keys other than manual and qr_code from each chapter's source map
+      for (const [chapterId, sourceMap] of sync_lesson.entries()) {
+        Object.keys(sourceMap).forEach((key) => {
+          if (key !== AssignmentSource.MANUAL && key !== AssignmentSource.QR_CODE) {
+            delete sourceMap[key];
+          }
+        });
+        sync_lesson.set(chapterId, sourceMap);
       }
       const _selectedLesson = JSON.stringify(Object.fromEntries(sync_lesson));
       all_sync_lesson.set(current_class?.id ?? "", _selectedLesson);
@@ -479,9 +546,9 @@ const CreateSelectedAssignment = ({
         _totalSelectedLesson
       );
     } catch (error) {
-      setIsLoading(false);
-      console.error("Error creating assignments:", error);
+      console.error("Error creating assignments in background:", error);
     }
+    })();
   };
 
   return !isLoading ? (

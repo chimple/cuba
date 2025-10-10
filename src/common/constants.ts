@@ -1,6 +1,6 @@
 import { Capacitor } from "@capacitor/core";
 import Auth from "../models/auth";
-import { Database } from "../services/database";
+import { Constants, Database } from "../services/database";
 import { RoleType } from "../interface/modelInterfaces";
 import SelectIconImage from "../teachers-module/assets/icons/all_subject_icon.png";
 
@@ -12,8 +12,18 @@ export enum COURSES {
   MATHS = "maths",
   Português = "pt",
 }
+export enum CocosCourseIdentifier {
+  maths = "maths",
+  en = "en",
+  kn = "kn",
+  hi = "hi",
+  mr = "mr",
+}
+
 export type TableTypes<T extends keyof Database["public"]["Tables"]> =
   Database["public"]["Tables"][T]["Row"];
+export type EnumType<K extends keyof (typeof Constants)["public"]["Enums"]> =
+  (typeof Constants)["public"]["Enums"][K][number];
 
 export enum MUTATE_TYPES {
   INSERT = "insert",
@@ -66,6 +76,8 @@ export enum TABLES {
   ChapterLinks = "chapter_links",
   Program = "program",
   SpecialUsers = "special_users",
+  OpsRequests = "ops_requests",
+  GeoLocations = "geo_locations",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -423,6 +435,7 @@ export enum PAGES {
   LEADERBOARD = "/leaderboard",
   ASSIGNMENT = "/assignment",
   JOIN_CLASS = "/join-class",
+  JOIN_SCHOOL = "/join-school",
   LIVE_QUIZ = "/live-quiz",
   SELECT_MODE = "/select-mode",
   TERMS_AND_CONDITIONS = "/terms-and-conditions",
@@ -452,6 +465,7 @@ export enum PAGES {
   CLASS_PROFILE = "/class-profile",
   SHOW_STUDENTS_IN_ASSIGNED_PAGE = "/show-students-in-assigned-page",
   ADD_TEACHER = "/add-teacher",
+  ADD_TEACHER_NAME ="/add-teacher-name",
   TEACHER_PROFILE = "/teacher-profile",
   STUDENT_REPORT = "/student-report",
   SCHOOL_USERS = "/school-users",
@@ -477,6 +491,18 @@ export enum PAGES {
   USER_DETAILS = "/user-details",
   PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS = "/program-connected-school-list-page-ops",
   NEW_USERS_OPS = "/new-user-ops",
+  REQUEST_LIST = "/request-list",
+  SCHOOL_PENDING_REQUEST = "/school-pending-request",
+  SCHOOL_APPROVED_REQUEST = "/school-approved-request",
+  SCHOOL_REJECTED_REQUEST = "/school-rejected-request",
+  SCHOOL_FORM_PAGE = "/school-form-page",
+  STUDENT_PENDING_REQUEST = "/student-pending-request",
+  OPS_APPROVED_REQUEST = "/student-approved-request",
+  OPS_REJECTED_REQUEST = "/student-rejected-request",
+  PRINCIPAL_TEACHER_PENDING_REQUEST = "/principal-teacher-pending-request",
+  SEARCH_SCHOOL = "/search-school",
+  CREATE_SCHOOL = "/create-school",
+  SCAN_REDIRECT = "/scan-redirect",
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -509,15 +535,36 @@ export enum NavItems {
   PROGRAMS = "Programs",
   SCHOOLS = "Schools",
   COMPAIGNS = "Campaigns",
+  REQUESTS = "Requests",
   USERS = "Users",
   DEVICES = "Devices",
   RESOURCES = "Resources",
 }
 
 export enum ProgramType {
-  Govt = "govt",
+  Government = "government",
   Private = "private",
   LearningCenter = "learning_centers",
+}
+export enum RequestTypes {
+  STUDENT = "student",
+  TEACHER = "teacher",
+  PRINCIPAL = "principal",
+  SCHOOL = "school",
+}
+export const DEFAULT_PAGE_SIZE = 20;
+
+export enum REQUEST_TABS {
+  PENDING = "Pending",
+  APPROVED = "Approved",
+  REJECTED = "Rejected",
+}
+export enum STATUS {
+  ACTIVE = "active",
+  REQUESTED = "requested",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+  MIGRATED = "migrated",
 }
 
 export interface SchoolWithRole {
@@ -943,3 +990,78 @@ export enum AssignmentSource {
   CHATBOT = "chatbot",
   QR_CODE = "qr_code",
 }
+export interface StudentInfo {
+  user: TableTypes<"user">;
+  grade: number;
+  classSection: string;
+  parent: TableTypes<"user"> | null;
+}
+export interface StudentAPIResponse {
+  data: StudentInfo[];
+  total: number;
+}
+export interface TeacherInfo {
+  user: TableTypes<"user">;
+  grade: number;
+  classSection: string;
+}
+export interface TeacherAPIResponse {
+  data: TeacherInfo[];
+  total: number;
+}
+export type PrincipalInfo = TableTypes<"user">;
+export interface PrincipalAPIResponse {
+  data: PrincipalInfo[];
+  total: number;
+}
+export type CoordinatorInfo = TableTypes<"user">;
+export interface CoordinatorAPIResponse {
+  data: CoordinatorInfo[];
+  total: number;
+}
+export const CHIMPLE_RIVE_STATE_MACHINE_MAX = "chimple_rive_state_machine_max";
+
+export interface GeoDataParams {
+  p_country?: string;
+  p_state?: string;
+  p_district?: string;
+  p_block?: string;
+}
+
+export interface SearchSchoolsParams {
+  p_country?: string;
+  p_state?: string;
+  p_district?: string;
+  p_block?: string;
+  p_cluster?: string;
+  p_search_text?: string;
+  p_page_limit?: number;
+  p_page_offset?: number;
+}
+export type School = TableTypes<'school'>;
+export interface SearchSchoolsResult {
+  total_count: number;
+  schools: School[];
+}
+
+export const CACHE_TABLES_TO_CLEAR = [
+  "school",
+  "class",
+  "user",
+  "class_invite_code",
+  "class_user",
+  "favorite_lesson",
+  "class_course",
+  "parent_user",
+  "school_course",
+  "school_user",
+  "user_badge",
+  "user_bonus",
+  "user_course",
+  "user_sticker",
+  "assignment",
+  "assignment_user",
+  "result",
+  "program",
+] as const;
+export type CACHETABLES = (typeof CACHE_TABLES_TO_CLEAR)[number];

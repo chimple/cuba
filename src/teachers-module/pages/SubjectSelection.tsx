@@ -20,12 +20,12 @@ import {
   SCHOOL,
   School_Creation_Stages,
 } from "../../common/constants";
-import { useHistory, useLocation } from "react-router";
 import { Util } from "../../utility/util";
 import { t } from "i18next";
 import SubjectSelectionComponent from "../components/SubjectSelectionComponent";
 import AddButton from "../../common/AddButton";
 import { RoleType } from "../../interface/modelInterfaces";
+import { useHistory, useLocation } from "react-router-dom";
 
 interface CurriculumWithCourses {
   curriculum: { id: string; name: string; grade?: string };
@@ -85,25 +85,25 @@ const SubjectSelection: React.FC = () => {
   const [canModify, setCanModify] = useState(true);
 
   useEffect(() => {
-  const init = async () => {
-    const cls = await Util.getCurrentClass();
-    if ((cls as any)?.role === RoleType.TEACHER) {
-      setCanModify(false);
-    }
+    const init = async () => {
+      const cls = await Util.getCurrentClass();
+      if ((cls as any)?.role === RoleType.TEACHER) {
+        setCanModify(false);
+      }
 
-    if (paramClassId) {
-      await fetchSchoolAndClassSubjects(paramClassId, CLASS);
-      await fetchClassDetails();
-      if (isSelectSubject) setIsSelecting(true);
-    } else if (paramSchoolId) {
-      await fetchCurriculumsAndCourses(SCHOOL);
-      await fetchSchoolAndClassSubjects(paramSchoolId, SCHOOL);
-      if (isSelectSubject) setIsSelecting(true);
-    }
-  };
+      if (paramClassId) {
+        await fetchSchoolAndClassSubjects(paramClassId, CLASS);
+        await fetchClassDetails();
+        if (isSelectSubject) setIsSelecting(true);
+      } else if (paramSchoolId) {
+        await fetchCurriculumsAndCourses(SCHOOL);
+        await fetchSchoolAndClassSubjects(paramSchoolId, SCHOOL);
+        if (isSelectSubject) setIsSelecting(true);
+      }
+    };
 
-  init();
-}, [paramClassId, paramSchoolId]);
+    init();
+  }, [paramClassId, paramSchoolId]);
 
   const fetchCurriculumsAndCourses = async (
     context: "school" | "class",

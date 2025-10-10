@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { Meta, StoryObj } from "@storybook/react";
 import { SCHOOL_USERS, TableTypes } from "../../../common/constants";
 import SchoolUserDetail from "../../components/schoolUsers/SchoolUserDetail";
@@ -27,11 +28,12 @@ const mockUser: TableTypes<"user"> = {
   is_ops: null,
   learning_path: null,
   ops_created_by: null,
-  stars: null
+  stars: null,
+  reward: null
 };
 
 const meta: Meta<typeof SchoolUserDetail> = {
-  title: "/components/schoolUsers/SchoolUserDetail",
+  title: "components/schoolUsers/SchoolUserDetail",
   component: SchoolUserDetail,
   parameters: {
     layout: "centered",

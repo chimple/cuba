@@ -1,3 +1,4 @@
+//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import TeacherProfileSection from "../../components/addTeacher/TeacherProfileSection";
 import { TableTypes } from "../../../common/constants";
@@ -27,7 +28,8 @@ const mockTeacher: TableTypes<"user"> = {
   is_ops: null,
   learning_path: null,
   ops_created_by: null,
-  stars: null
+  stars: null,
+  reward: null
 };
 
 const mockClassDoc: TableTypes<"class"> = {
@@ -49,7 +51,7 @@ const mockClassDoc: TableTypes<"class"> = {
 };
 
 const meta: Meta<typeof TeacherProfileSection> = {
-  title: "/components/addTeacher/TeacherProfileSection",
+  title: "components/addTeacher/TeacherProfileSection",
   component: TeacherProfileSection,
   parameters: {
     layout: "centered",

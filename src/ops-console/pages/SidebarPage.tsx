@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { PAGES, TableTypes } from "../../common/constants";
+import { PAGES, TableTypes, USER_ROLE } from "../../common/constants";
 import { IonPage } from "@ionic/react";
 import Sidebar from "../components/Sidebar";
 import Dashboard from "../components/Dashboard";
@@ -22,6 +22,17 @@ import NewProgram from "../components/NewProgram";
 import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPageOps";
 import NewUserPage from "./NewUserPageOps";
 import UserDetailsPage from "./UserDetailsPage";
+import { RoleType } from "../../interface/modelInterfaces";
+import RequestList from "./RequestList";
+import StudentPendingRequest from "./StudentPendingRequest";
+import SchoolPendingRequest from "./SchoolPendingRequest";
+import SchoolApprovedRequest from "./SchoolApprovedRequest";
+import SchoolRejectedRequest from "./SchoolRejectedRequest";
+import SchoolFormPage from "./SchoolFormPage";
+import StudentApprovedRequestDetails from "./OpsApprovedRequestDetails";
+import PrincipalTeacherPendingRequest from "./PrincipalTeacherPendingRequest";
+import OpsRejectedRequestDetails from "./OpsRejectedRequestDetails";
+import OpsApprovedRequestDetails from "./OpsApprovedRequestDetails";
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
@@ -29,6 +40,7 @@ const SidebarPage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
     null
   );
+  const userRole = localStorage.getItem(USER_ROLE) || "[]";
 
   useEffect(() => {
     fetchData();
@@ -73,6 +85,57 @@ const SidebarPage: React.FC = () => {
             <ProtectedRoute path={`${path}${PAGES.SCHOOL_LIST}`} exact={true}>
               <SchoolList />
             </ProtectedRoute>
+            <ProtectedRoute path={`${path}${PAGES.REQUEST_LIST}`} exact={true}>
+              <RequestList />
+            </ProtectedRoute>
+             <ProtectedRoute
+              path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_PENDING_REQUEST}/:id`}
+              exact={true}
+            >
+              <SchoolPendingRequest />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_APPROVED_REQUEST}/:id`}
+              exact={true}
+            >
+              <SchoolApprovedRequest />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_REJECTED_REQUEST}/:id`}
+              exact={true}
+            >
+              <SchoolRejectedRequest />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_PENDING_REQUEST}${PAGES.SCHOOL_FORM_PAGE}/:id`}
+              exact={true}
+            >
+              <SchoolFormPage />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.REQUEST_LIST}${PAGES.STUDENT_PENDING_REQUEST}/:id`}
+              exact={true}
+            >
+              <StudentPendingRequest />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.REQUEST_LIST}${PAGES.OPS_APPROVED_REQUEST}/:id`}
+              exact={true}
+            >
+              <OpsApprovedRequestDetails />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.REQUEST_LIST}${PAGES.OPS_REJECTED_REQUEST}/:id`}
+              exact={true}
+            >
+              <OpsRejectedRequestDetails />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.REQUEST_LIST}${PAGES.PRINCIPAL_TEACHER_PENDING_REQUEST}/:id`}
+              exact={true}
+            >
+              <PrincipalTeacherPendingRequest />
+            </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/:school_id`}
               exact={true}
@@ -96,9 +159,11 @@ const SidebarPage: React.FC = () => {
             <ProtectedRoute path={`${path}${PAGES.NEW_PROGRAM}`} exact={true}>
               <NewProgram />
             </ProtectedRoute>
-            <ProtectedRoute path={`${path}${PAGES.USERS}`} exact={true}>
-              <UsersPage />
-            </ProtectedRoute>
+            {!userRole.includes(RoleType.FIELD_COORDINATOR) && (
+              <ProtectedRoute path={`${path}${PAGES.USERS}`} exact={true}>
+                <UsersPage />
+              </ProtectedRoute>
+            )}
             <ProtectedRoute
               path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS}/:program_id`}
               exact={true}
@@ -119,8 +184,9 @@ const SidebarPage: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.ADMIN_USERS}${PAGES.USER_DETAILS}`}
-              exact={true}>
-              <UserDetailsPage/>
+              exact={true}
+            >
+              <UserDetailsPage />
             </ProtectedRoute>
           </Switch>
         </div>

@@ -1,10 +1,10 @@
-import React from "react";
+//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import SchoolDetailsTabsComponent from "../../../ops-console/components/SchoolDetailsComponents/SchoolDetailsTabsComponent";
 import SchoolNameHeaderComponent from "../../../ops-console/components/SchoolDetailsComponents/SchoolNameHeaderComponent";
 import Breadcrumb from "../../../ops-console/components/Breadcrumb";
-
 const SchoolDetailPageLayout = ({
+  schoolId,
   schoolName,
   udise,
   group1,
@@ -83,7 +83,11 @@ const SchoolDetailPageLayout = ({
       )}
       <div className="school-detail-tertiary-gap" />
       <div className="school-detail-tertiary-header">
-        <SchoolDetailsTabsComponent data={data} isMobile={isMobile} />
+        <SchoolDetailsTabsComponent
+          data={data}
+          isMobile={isMobile}
+          schoolId={schoolId}
+        />
       </div>
       <div className="school-detail-columns-gap" />
     </div>
@@ -94,6 +98,7 @@ const meta: Meta<typeof SchoolDetailPageLayout> = {
   title: "SchoolDetails/SchoolDetailPage",
   component: SchoolDetailPageLayout,
   argTypes: {
+    schoolId: { control: "text" },
     schoolName: { control: "text" },
     udise: { control: "text" },
     group1: { control: "text" },
@@ -122,6 +127,7 @@ type Story = StoryObj<typeof SchoolDetailPageLayout>;
 
 export const FullPage: Story = {
   args: {
+    schoolId: "school-green-valley-123",
     schoolName: "Green Valley High",
     udise: "12345678901",
     group1: "Karnataka",

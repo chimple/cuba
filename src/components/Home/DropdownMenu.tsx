@@ -217,8 +217,14 @@ const DropdownMenu: FC = () => {
             >
               {courseDetails.map((detail, index) => (
                 <div
-                  ref={(el) => (itemRefs.current[detail.course.id] = el)}
-                  className={`menu-item ${selected?.course.id === detail.course.id ? "selected-expanded" : ""}`}
+                  ref={(el) => {
+                    itemRefs.current[detail.course.id] = el;
+                  }}
+                  className={`menu-item ${
+                    selected?.course.id === detail.course.id
+                      ? "selected-expanded"
+                      : ""
+                  }`}
                   key={detail.course.id}
                   onClick={() => handleSelect(detail, index)}
                 >

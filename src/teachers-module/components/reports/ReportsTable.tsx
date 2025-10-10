@@ -39,6 +39,7 @@ type AssignmentHeader = {
   endAt: string;
   belongsToClass?: boolean;
   subjectName?: string; // Add subject name to the header data
+  courseId?: string;  // Add subject name to the header data
 };
 
 const ReportTable: React.FC<ReportTableProps> = ({
@@ -76,7 +77,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
   >(new Map());
 
   const [mappedSubjectOptions, setMappedSubjectOptions] = useState<
-    { icon: string; id: string; name: string; subjectDetail: string }[]
+    { icon: string; id: string; name: string; subjectDetail: string  ;code:string}[]
   >([]);
 
   const subjectOptionsWithAll = [
@@ -173,6 +174,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
         // icon: curriculum?.image,
         icon: subject?.image || "/assets/icons/DefaultIcon.png",
         name: subject.name,
+        code:subject.code ||""
       };
     });
     var _mappedChaptersOptions = _chapters?.map((option) => ({
@@ -443,6 +445,14 @@ const ReportTable: React.FC<ReportTableProps> = ({
 
                   <TableRightHeader
                     headerDetails={headerData}
+                    courseCode={
+                      selectedSubject?.code 
+                        ? selectedSubject.code 
+                        : selectedSubject?.id === "all" 
+                          ? selectedSubject.id 
+                          : ""
+                    }
+                    
                   />
                 </tr>
               </thead>
@@ -454,7 +464,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
                         style={{
                           borderRight: expandedRow === key ? "0" : "",
                           borderBottom:
-                            expandedRow === key ? "0" : "2px solid #EFF2F4",
+                            expandedRow === key ? "0" : "2px solid #rgb(255, 255, 255)",
                         }}
                         onClick={() => {
                           if (

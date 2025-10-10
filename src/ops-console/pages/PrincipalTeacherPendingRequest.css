@@ -1,0 +1,253 @@
+/* StudentPendingRequest.css */
+
+.principal-teacher-pending-details-layout {
+  min-height: 100vh;
+  /* background: #fcfcff; */
+  padding: 1vw 2vw 0 2vw;
+}
+.principal-teacher-pending-page-title {
+  font-weight: 600;
+  margin-bottom: 0.8vw;
+  font-size: 2rem;
+  color: #222;
+}
+.principal-teacher-pending-breadcrumbs {
+  color: #888;
+  margin-bottom: 2vw;
+  font-size: 1.07rem;
+}
+.principal-teacher-pending-breadcrumbs .link {
+  color: #3799fd;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-right: 0.7vw;
+}
+.principal-teacher-pending-breadcrumbs .active {
+  color: #232323;
+  font-weight: 600;
+  margin-left: 0.7vw;
+}
+.principal-teacher-pending-main-content-row {
+  margin-top: 0vw;
+}
+
+.principal-teacher-pending-details-card {
+  border-radius: 0.8rem;
+  background: #fff;
+  padding: 1.8vw 2vw;
+  margin-bottom: 2vw;
+  box-shadow: 0 2px 14px rgba(40, 50, 65, 0.06);
+}
+
+.principal-teacher-pending-section-title {
+  font-weight: 750 !important;
+  color: #333;
+  font-size: 1.13rem;
+  margin-bottom: 2px;
+  letter-spacing: 0.01rem;
+}
+
+.principal-teacher-pending-row {
+  display: flex;
+  font-size: 1rem;
+  margin-top: 1vw;
+  color: #333;
+  justify-content: center;
+  align-content: flex-start;
+  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: baseline;
+}
+.principal-teacher-pending-row span:first-child {
+  color: #777;
+  min-width: 120px;
+}
+.principal-teacher-pending-row span:last-child {
+  font-weight: 500;
+  color: #232323;
+  text-align: right;
+}
+
+.principal-teacher-pending-action-buttons-row {
+  display: flex;
+  gap: 20px;
+  margin-top: 22px;
+  margin-bottom: 30px;
+  justify-content: flex-start;
+}
+
+/* StudentPendingRequest.css */
+.principal-teacher-pending-students-table-card th,
+.principal-teacher-pending-students-table-card .MuiTableCell-head {
+  transform: none !important;
+}
+
+.principal-teacher-pending-students-table-card {
+  border-radius: 0.8rem;
+  background: #fff;
+  padding: 1.8vw 2vw;
+  margin-bottom: 2vw;
+  box-shadow: 0 2px 10px rgba(40, 50, 65, 0.06);
+  min-width: 350px;
+}
+
+/* --- Table Specific Styles --- */
+
+.MuiTableContainer-root {
+  border: none !important; /* Remove border around the table container */
+  box-shadow: none !important; /* Ensure no shadow if it's there */
+  border-radius: 0.8rem; /* Match card border radius */
+}
+
+.principal-teacher-pending-table-header-cell {
+  font-weight: 600 !important;
+  color: #373737 !important;
+  background: #fafafa !important; /* Header background color */
+  font-size: 1.03rem !important;
+  padding: 12px 16px !important; /* Adjust padding for header cells */
+}
+
+/* Styles for table body rows */
+.MuiTableRow-root.MuiTableRow-hover:hover {
+  background-color: #f5f5f5; /* Subtle hover effect */
+}
+
+.MuiTableRow-root:nth-of-type(odd) {
+  background-color: #fdfdfd; /* Light background for odd rows */
+}
+
+.MuiTableRow-root:nth-of-type(even) {
+  background-color: #ffffff; /* White background for even rows */
+}
+
+/* Style for cells in the table body */
+.MuiTableCell-body {
+  padding: 10px 16px !important; /* Adjust padding for body cells */
+  color: #444; /* Darker text for body cells */
+  font-size: 0.95rem; /* Slightly smaller font */
+  border-bottom: 1px solid #eee; /* Subtle bottom border for cells */
+}
+
+/* Remove bottom border from the last row's cells */
+.MuiTableBody-root .MuiTableRow-root:last-child .MuiTableCell-body {
+  border-bottom: none !important;
+}
+
+/* --- Table Pagination Specific Styles --- */
+
+.MuiTablePagination-root {
+  border-top: 1px solid #f0f0f0; /* Subtle border for pagination */
+  margin-top: 1vw; /* Match existing margin */
+}
+
+/* Adjust pagination text styles */
+.MuiTablePagination-caption {
+  color: #666;
+  font-size: 0.9rem;
+}
+.MuiTablePagination-selectLabel,
+.MuiTablePagination-displayedRows {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Hide rowsPerPage dropdown and label */
+.MuiTablePagination-selectLabel,
+.MuiTablePagination-select {
+  display: none !important;
+}
+
+/* Adjust pagination actions alignment if needed */
+.MuiTablePagination-actions {
+  margin-left: 0; /* Ensures buttons are aligned correctly */
+}
+
+.centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 70vh;
+  flex-direction: column;
+}
+
+@media (max-width: 1100px) {
+  .principal-teacher-pending-details-card,
+  .principal-teacher-pending-students-table-card {
+    padding: 3vw 1.2vw;
+    border-radius: 0.6rem;
+  }
+}
+@media (max-width: 900px) {
+  .principal-teacher-pending-main-content-row {
+    flex-direction: column !important;
+  }
+  .principal-teacher-pending-details-card,
+  .principal-teacher-pending-students-table-card {
+    margin-bottom: 3vw;
+    padding: 4vw 3vw;
+  }
+  .principal-teacher-pending-action-buttons-row {
+    flex-direction: column;
+    gap: 10px;
+    justify-content: flex-start;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 600px) {
+  .principal-teacher-pending-details-card,
+  .principal-teacher-pending-students-table-card {
+    padding: 6vw 2.2vw;
+    font-size: 0.97rem;
+    min-width: unset;
+  }
+  .principal-teacher-pending-page-title {
+    font-size: 1.13rem;
+  }
+  .principal-teacher-pending-breadcrumbs {
+    font-size: 0.98rem;
+  }
+}
+.principal-teacher-pending-field-stack {
+  margin-top: 3vh;
+}
+.principal-teacher-pending-first-pending-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1vw;
+  color: #333;
+  margin-left: 1vh;
+  margin-right: 5vh;
+}
+.principal-teacher-pending-label {
+  font-size: 1rem;
+  color: #777;
+}
+.principal-teacher-pending-first-pending-row-title {
+  color: #777;
+  font-weight: 400;
+}
+
+.principal-teacher-pending-active {
+  color: #333; /* gray or your theme color */
+  cursor: default;
+  font-weight: 600;
+  margin-left: 0.7vw;
+}
+.principal-teacher-pending-link {
+  color: blue;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.principal-teacher-pending-link:hover {
+  text-decoration: underline;
+}
+.principal-teacher-pending-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.principal-teacher-pending-page-icon {
+  margin-bottom: 1vw;
+}
