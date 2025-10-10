@@ -92,7 +92,7 @@ if (typeof window !== "undefined") {
     (window as any).SpeechSynthesisUtterance = SpeechSynthesisUtterance;
   }
 }
-SplashScreen.show();
+SplashScreen.hide();
 if (Capacitor.isNativePlatform()) {
   await ScreenOrientation.lock({ orientation: "landscape" });
 }
@@ -159,7 +159,7 @@ if (isOpsUser) {
   );
   SplashScreen.hide();
 } else {
-  SplashScreen.show();
+  SplashScreen.hide();
   SqliteApi.getInstance().then(() => {
     serviceInstance.switchMode(APIMode.SQLITE);
     root.render(
