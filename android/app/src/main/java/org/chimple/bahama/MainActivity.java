@@ -158,9 +158,6 @@ public  class MainActivity extends BridgeActivity {
             Log.e("MainActivity", "Re-injecting WebGL monitor after resume");
             webGLMonitor.reInjectWatcher();
         }
-
-        // Delay launch to ensure Capacitor is ready
-        new Handler(Looper.getMainLooper()).postDelayed(() -> PortPlugin.sendLaunch(), 5000);
     }
 
     public boolean isAppInstalled(String packageName) {
