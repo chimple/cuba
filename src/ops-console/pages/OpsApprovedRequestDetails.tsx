@@ -116,7 +116,7 @@ const OpsApprovedRequestDetails = () => {
               search: `?tab=${REQUEST_TABS.APPROVED}`,
             })
           }
-          className="ops-approved-request-details-link" 
+          className="ops-approved-request-details-link"
         >
           {t("Approved")}
         </span>
@@ -133,7 +133,7 @@ const OpsApprovedRequestDetails = () => {
         justifyContent="flex-start"
       >
         {/* LEFT SIDE */}
-        <Grid item xs={12} md={6} lg={5}>
+        <Grid size={{ xs: 12, md: 6, lg: 5 }}>
           <Paper className="ops-approved-request-details-card">
             <Typography
               variant="h6"
@@ -185,13 +185,13 @@ const OpsApprovedRequestDetails = () => {
               {t("Request Details")}
             </Typography>
             <Grid container spacing={1}>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <div className="ops-approved-request-details-label-sm">
                   {t("Request For")}
                 </div>
                 <div>{requestDetails.request_type || "-"}</div>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <div className="ops-approved-request-details-label-sm">
                   {t("Requested On")}
                 </div>
@@ -202,7 +202,7 @@ const OpsApprovedRequestDetails = () => {
         </Grid>
 
         {/* RIGHT SIDE */}
-        <Grid item xs={12} md={6} lg={4}>
+        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
           <Paper className="ops-approved-request-details-card">
             <Typography
               variant="h6"

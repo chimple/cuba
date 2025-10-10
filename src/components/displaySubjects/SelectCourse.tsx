@@ -70,9 +70,9 @@ const SelectCourse: FC<{
               key={course.id}
             >
               <div id="subject-card-subject-name">
-                <p>
+                <div>
                   <p>{grade?.name}</p>
-                </p>
+                </div>
               </div>
               <div
                 className="course-icon"
@@ -88,7 +88,7 @@ const SelectCourse: FC<{
                   imageHeight={"auto"}
                 />
               </div>
-              <div className="course-title">{course.name}</div>
+              <div className="course-title">{t(course.name)}</div>
               {curriculum && (
                 <div className="course-curriculum">{curriculum.name}</div>
               )}

@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { Meta, StoryObj } from "@storybook/react";
 import { SCHOOL_USERS, TableTypes } from "../../../common/constants";
 import SchoolUserList from "../../components/schoolUsers/SchoolUserList";

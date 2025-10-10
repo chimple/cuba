@@ -1,3 +1,4 @@
+//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react"; 
 import TableChoiceHeader from "../../components/reports/TableChoiceHeader";
 import { subMonths } from "date-fns";

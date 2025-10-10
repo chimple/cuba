@@ -1,3 +1,4 @@
+//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import ContactCard from "../../../ops-console/components/ContactCard";
 

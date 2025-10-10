@@ -19,7 +19,7 @@ const SchoolDetailsCard: React.FC<SchoolDetailsCardProps> = ({
       <Divider sx={{ my: 1.5 }} />
 
       <div className="school-details-field-stack">
-        <div className="school-details-label">{t("School Name")||""}</div>
+        <div className="school-details-label">{t("School Name") || ""}</div>
         <div className="school-details-value">
           {requestData.school.name || "-"}
         </div>
@@ -71,11 +71,11 @@ const SchoolDetailsCard: React.FC<SchoolDetailsCardProps> = ({
         Request Details
       </Typography>
       <Grid container spacing={1}>
-        <Grid item xs={6}>
+        <Grid size={{ xs: 6 }}>
           <div className="school-details-label-sm">{t("Request For")}:</div>
           <div className="school-details-value-sm">{t("New School")}</div>
         </Grid>
-        <Grid item xs={6}>
+        <Grid size={{ xs: 6 }}>
           <div className="school-details-label-sm">{t("Requested On")}:</div>
           <div className="school-details-value-sm">
             {OpsUtil.formatDT(requestData?.created_at)}

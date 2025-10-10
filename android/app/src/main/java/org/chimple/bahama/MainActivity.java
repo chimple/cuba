@@ -1,24 +1,23 @@
 package org.chimple.bahama;
 
-import android.Manifest;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.content.Intent;
-import android.os.Build;
 
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.PluginHandle;
+import com.getcapacitor.Plugin;
+import ee.forgr.capacitor.social.login.GoogleProvider;
+import ee.forgr.capacitor.social.login.SocialLoginPlugin;
+import ee.forgr.capacitor.social.login.ModifiedMainActivityForSocialLoginPlugin;
 import com.google.firebase.FirebaseApp;
-import com.google.firebase.appcheck.FirebaseAppCheck;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;       
-import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import android.app.Activity;
 
-import android.content.pm.PackageManager;
-
-import android.util.Base64;
 import android.util.Log;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -29,13 +28,13 @@ import com.google.android.gms.auth.api.identity.GetPhoneNumberHintIntentRequest;
 import com.google.android.gms.auth.api.identity.Identity;
 import com.google.android.gms.common.api.ApiException;
 
-import java.security.MessageDigest;
 
 
-public  class MainActivity extends BridgeActivity {
+public class MainActivity extends BridgeActivity implements ModifiedMainActivityForSocialLoginPlugin {
     private static Context appContext;
     private static String phoneNumber;
     private static ActivityResultLauncher activityResultLauncher;
+    private MyWebGLMonitor webGLMonitor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,8 +56,17 @@ public  class MainActivity extends BridgeActivity {
         decorView.setSystemUiVisibility(uiOptions);
         FirebaseApp.initializeApp(/*context=*/ this);
         initializeActivityLauncher();
+
+        // --- ✅ Initialize WebGL Monitor ---
+        if (this.bridge != null && this.bridge.getWebView() != null) {
+            Log.e("MainActivity", "Initializing WebGL monitor...");
+            webGLMonitor = new MyWebGLMonitor(this, this.bridge.getWebView());
+        } else {
+            Log.e("MainActivity", "WebView not ready for WebGL monitor");
+        }
     }
-    public void initializeActivityLauncher(){
+
+    public void initializeActivityLauncher() {
         // Register the ActivityResultLauncher for Phone Number Hint
         ActivityResultLauncher<IntentSenderRequest> phoneNumberHintLauncher = registerForActivityResult (
                 new ActivityResultContracts.StartIntentSenderForResult(),
@@ -98,6 +106,16 @@ public  class MainActivity extends BridgeActivity {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        // Re-inject WebGL watcher when app comes back from background
+        if (this.bridge != null && this.bridge.getWebView() != null && webGLMonitor != null) {
+            Log.e("MainActivity", "Re-injecting WebGL monitor after resume");
+            webGLMonitor.reInjectWatcher();
+        }
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
     }
@@ -109,4 +127,29 @@ public  class MainActivity extends BridgeActivity {
         return phoneNumber;
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Handle Google Sign-In result
+        if (requestCode >= GoogleProvider.REQUEST_AUTHORIZE_GOOGLE_MIN && requestCode < GoogleProvider.REQUEST_AUTHORIZE_GOOGLE_MAX) {
+            PluginHandle pluginHandle = getBridge().getPlugin("SocialLogin");
+            if (pluginHandle == null) {
+                Log.i("Google Activity Result", "SocialLogin login handle is null");
+                return;
+            }
+            Plugin plugin = pluginHandle.getInstance();
+            if (!(plugin instanceof SocialLoginPlugin)) {
+                Log.i("Google Activity Result", "SocialLogin plugin instance is not SocialLoginPlugin");
+                return;
+            }
+            ((SocialLoginPlugin) plugin).handleGoogleLoginIntent(requestCode, data);
+        }
+    }
+
+    @Override
+    public void IHaveModifiedTheMainActivityForTheUseWithSocialLoginPlugin() {
+        // This method is required by the ModifiedMainActivityForSocialLoginPlugin interface
+        // It's used to verify that the MainActivity has been properly modified
+    }
 }

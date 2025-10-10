@@ -1,3 +1,4 @@
+//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import { fn } from "@storybook/test";
 import ChapterContainer from "../../components/library/ChapterContainer";

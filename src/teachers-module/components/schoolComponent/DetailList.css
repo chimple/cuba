@@ -2,17 +2,18 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  padding: 0 16px;
 }
 
 .detail-list__icon-container {
   display: flex;
   align-items: center;
-  gap: 4vw;
   color: #707070;
   font-weight: 600;
   font-size: 14px;
-  padding-right: 5px;
+  padding-right: 2px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .header-text {
@@ -24,19 +25,19 @@
 .class-icons {
   display: flex;
   align-items: center;
-  gap: 4vw;
+  gap: 3vw;
   margin: 0 10px;
   justify-content: flex-start;
 }
 
-.class-user-icon{
+.class-user-icon {
   width: 20px;
   height: 20px;
   margin-left: 8px;
   margin-right: 8px;
 }
 
-.class-subjects-icon{
+.class-subjects-icon {
   width: 20px;
   height: 20px;
   margin-left: 8px;
@@ -79,7 +80,7 @@
 .detail-container {
   display: flex;
   justify-content: space-between;
-  padding: 0px 23px;
+  padding: 0px 13px;
   align-items: center;
   width: 100%;
   flex-wrap: nowrap;
@@ -102,10 +103,18 @@
   flex: 1;
   min-width: 0;
 }
-.detail-horizontal-line{
+.detail-horizontal-line {
   height: 0.6px;
   border-width: 0;
   box-sizing: border-box;
   background: lightgrey;
   margin: 5px 15px;
+}
+.detail-list__icon-container-users,
+.detail-list__icon-container-subjects {
+  width: 61px; /* fixed width */
+  text-align: center; /* keep it centered */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* show ... if too long */
 }
