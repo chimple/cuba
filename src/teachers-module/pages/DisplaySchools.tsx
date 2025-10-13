@@ -9,6 +9,7 @@ import {
   MODES,
   USER_SELECTION_STAGE,
   IS_OPS_USER,
+  LANGUAGE,
 } from "../../common/constants";
 import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
@@ -105,6 +106,7 @@ const DisplaySchools: FC = () => {
   const initData = async () => {
     setLoading(true);
     const currentUser = await auth.getCurrentUser();
+    const languageCode = localStorage.getItem(LANGUAGE);
     if (!currentUser?.name || currentUser.name.trim() === "") {
       history.replace(PAGES.ADD_TEACHER_NAME);
     }
@@ -112,6 +114,11 @@ const DisplaySchools: FC = () => {
     setUser(currentUser);
     const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
     if (isOpsUser) setIsAuthorizedForOpsMode(true);
+    try {
+      await Util.updateUserLanguage(languageCode ?? "en");
+    } catch (error) {
+      console.error("Failed to update user language on init:", error);
+    }
     setPage(1);
     setHasMore(true);
     await fetchSchools(1, currentUser.id);
