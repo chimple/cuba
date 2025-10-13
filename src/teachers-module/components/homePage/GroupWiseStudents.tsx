@@ -45,7 +45,7 @@ const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
             return (
               <div className="student-avatar-container" key={student.id}>
                 <img
-                  src={student.image ?? ""}
+                  src={student.image || `assets/avatars/${student.avatar}.png`}
                   alt="Profile"
                   className="avatar"
                   onError={(e) => {

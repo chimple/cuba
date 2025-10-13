@@ -950,7 +950,7 @@ export interface ServiceApi {
    *          - `false` if there were any errors or if no synchronization was necessary.
    */
 
-  syncDB(tableNames: TABLES[], refreshTables: TABLES[]): Promise<boolean>;
+  syncDB(tableNames: TABLES[], refreshTables: TABLES[], isFirstSync?: boolean): Promise<boolean>;
 
   /**
    * Function to get Recommended Lessons.
@@ -1106,7 +1106,7 @@ export interface ServiceApi {
     batch_id: string,
     source: string | null,
     created_at?: string
-  ): Promise<boolean>;
+  ): Promise<void>;
 
   /**
    * This function gets all the teachers for the class.

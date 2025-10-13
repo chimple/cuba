@@ -1,12 +1,11 @@
 package org.chimple.bahama;
 
-import android.Manifest;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.content.Intent;
-import android.os.Build;
 
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.PluginHandle;
@@ -15,15 +14,10 @@ import ee.forgr.capacitor.social.login.GoogleProvider;
 import ee.forgr.capacitor.social.login.SocialLoginPlugin;
 import ee.forgr.capacitor.social.login.ModifiedMainActivityForSocialLoginPlugin;
 import com.google.firebase.FirebaseApp;
-import com.google.firebase.appcheck.FirebaseAppCheck;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;       
-import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import android.app.Activity;
 
-import android.content.pm.PackageManager;
-
-import android.util.Base64;
 import android.util.Log;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -34,7 +28,6 @@ import com.google.android.gms.auth.api.identity.GetPhoneNumberHintIntentRequest;
 import com.google.android.gms.auth.api.identity.Identity;
 import com.google.android.gms.common.api.ApiException;
 
-import java.security.MessageDigest;
 
 
 public class MainActivity extends BridgeActivity implements ModifiedMainActivityForSocialLoginPlugin {

@@ -109,11 +109,12 @@ const UserProfile: React.FC = () => {
     setIsEditMode(false);
   };
 
-  const handleLanguageChange = (languageCode: string) => {
+  const handleLanguageChange = async(languageCode: string) => {
     const selectedLanguage = languages.find(
       (lang) => lang.value === languageCode
     );
     if (selectedLanguage) {
+      await Util.updateUserLanguage(languageCode);
       setLanguage(selectedLanguage.value);
       setLanguageId(selectedLanguage.id);
     }

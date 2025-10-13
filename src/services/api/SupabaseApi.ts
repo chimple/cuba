@@ -4862,8 +4862,8 @@ export class SupabaseApi implements ServiceApi {
     batch_id: string,
     source: string | null,
     created_at?: string
-  ): Promise<boolean> {
-    if (!this.supabase) return false;
+  ): Promise<void> {
+    if (!this.supabase) return;
 
     const assignmentId = uuidv4();
     const timestamp = new Date().toISOString();
@@ -4895,7 +4895,6 @@ export class SupabaseApi implements ServiceApi {
 
       if (assignmentError) {
         console.error("Error inserting assignment:", assignmentError.message);
-        return false;
       }
 
       // If not class-wise, insert into assignment_user
@@ -4918,14 +4917,11 @@ export class SupabaseApi implements ServiceApi {
             "Error inserting assignment_user records:",
             userError.message
           );
-          return false;
         }
       }
 
-      return true;
     } catch (error) {
       console.error("Unexpected error in createAssignment:", error);
-      return false;
     }
   }
 

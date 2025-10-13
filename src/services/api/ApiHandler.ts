@@ -810,9 +810,10 @@ export class ApiHandler implements ServiceApi {
 
   syncDB(
     tableNames: TABLES[] = Object.values(TABLES),
-    refreshTables: TABLES[] = []
+    refreshTables: TABLES[] = [],
+    isFirstSync?: boolean
   ): Promise<boolean> {
-    return this.s.syncDB(tableNames, refreshTables);
+    return this.s.syncDB(tableNames, refreshTables, isFirstSync);
   }
 
   async getRecommendedLessons(
@@ -917,7 +918,7 @@ export class ApiHandler implements ServiceApi {
     batch_id: string,
     source: string | null,
     created_at?: string
-  ): Promise<boolean> {
+  ): Promise<void> {
     return this.s.createAssignment(
       student_list,
       userId,

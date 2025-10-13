@@ -206,15 +206,15 @@ export class SqliteApi implements ServiceApi {
 
   private async setUpDatabase() {
     if (!this._db || !this._sqlite) return;
-    try {
-      const exportedData = await this._db.exportToJson("full");
-      console.log(
-        "🚀 ~ Api ~ setUpDatabase ~ exportedData:",
-        JSON.stringify(exportedData.export?.tables)
-      );
-    } catch (error) {
-      console.error("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
-    }
+    // try {
+    //   const exportedData = await this._db.exportToJson("full");
+    //   console.log(
+    //     "🚀 ~ Api ~ setUpDatabase ~ exportedData:",
+    //     JSON.stringify(exportedData.export?.tables)
+    //   );
+    // } catch (error) {
+    //   console.error("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
+    // }
     let res1: DBSQLiteValues | undefined = undefined;
     try {
       const stmt =
@@ -424,11 +424,11 @@ export class SqliteApi implements ServiceApi {
     });
   }
 
-  private _hasPulledOnce: boolean = false;
-  private async pullChanges(tableNames: TABLES[], attempt = 1) {
+  private async pullChanges(tableNames: TABLES[], isFirstSync?: boolean) {
     if (!this._db) return;
 
-    const isInitialFetch = !this._hasPulledOnce;
+    const isInitialFetch = isFirstSync;
+    console.log("🚀 ~ pullChanges ~ isInitialFetch:", isInitialFetch);
     const tables = tableNames.map((t) => `'${t}'`).join(", ");
     const tablePullSync = `SELECT * FROM pull_sync_info WHERE table_name IN (${tables});`;
     let lastPullTables = new Map<string, string>();
@@ -440,41 +440,55 @@ export class SqliteApi implements ServiceApi {
       await this.createSyncTables();
     }
     let data = new Map<string, any[]>();
-    try {
+    if (isInitialFetch === true) {
+      let attempt = 1;
+      try {
+        data = await this._serverApi.getTablesData(
+          tableNames,
+          lastPullTables,
+          isInitialFetch
+        );
+      } catch (err) {
+        console.error(`❌ Attempt ${attempt}: getTablesData failed`, err);
+        if (attempt < 5) {
+          const delay = 500 * Math.pow(2, attempt);
+          await new Promise((res) => setTimeout(res, delay));
+          return this.pullChanges(tableNames, isFirstSync);
+        } else {
+          console.warn("❌ All 5 retries failed. Truncating local tables...");
+          if (!this._db) return;
+          const query = `PRAGMA foreign_keys=OFF;`;
+          const result = await this._db?.query(query);
+          console.log(result);
+          for (const table of tableNames) {
+            const tableDel = `DELETE FROM "${table}";`;
+            const res = await this._db.query(tableDel);
+            console.log(res);
+          }
+          const vaccum = `VACUUM;`;
+          const resv = await this._db.query(vaccum);
+          console.log(resv);
+          const querys = `PRAGMA foreign_keys=ON;`;
+          const results = await this._db?.query(querys);
+          console.log(results);
+          const userWantsRetry = await this.showToastWithRetry(
+            "Sync failed. Retry now?"
+          );
+          if (userWantsRetry) {
+            console.warn("🔁 Final retry triggered by user.");
+            return this.pullChanges(tableNames, isFirstSync); // restart pullChanges
+          } else {
+            console.warn("⛔ User canceled final retry.");
+            return; // do nothing
+          }
+        }
+      }
+    } else {
       data = await this._serverApi.getTablesData(
         tableNames,
         lastPullTables,
         isInitialFetch
       );
-      this._hasPulledOnce = true;
-    } catch (err) {
-      console.error(`❌ Attempt ${attempt}: getTablesData failed`, err);
-      if (attempt < 5) {
-        const delay = 500 * Math.pow(2, attempt);
-        await new Promise((res) => setTimeout(res, delay));
-        return this.pullChanges(tableNames, attempt + 1);
-      } else {
-        console.warn("❌ All 5 retries failed. Truncating local tables...");
-        await this._db?.execute("PRAGMA foreign_keys = OFF");
-        for (const table of tableNames) {
-          try {
-            await this._db?.execute(`DELETE FROM ${table}`);
-          } catch (e) {
-            console.error(`❌ Failed to truncate ${table}:`, e);
-          }
-        }
-        await this._db?.execute("PRAGMA foreign_keys = ON");
-        const userWantsRetry = await this.showToastWithRetry(
-          "Sync failed. Retry now?"
-        );
-        if (userWantsRetry) {
-          console.warn("🔁 Final retry triggered by user.");
-          return this.pullChanges(tableNames); // restart pullChanges
-        } else {
-          console.warn("⛔ User canceled final retry.");
-          return; // do nothing
-        }
-      }
     }
     const lastPulled = new Date().toISOString();
     let batchQueries: { statement: string; values: any[] }[] = [];
@@ -493,7 +507,9 @@ export class SqliteApi implements ServiceApi {
 
         const fieldValues = fieldNames.map((f) => row[f]);
         const placeholders = fieldNames.map(() => "?").join(", ");
-        const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(", ")}) VALUES (${placeholders})`;
+        const stmt = `INSERT OR REPLACE INTO ${tableName} (${fieldNames.join(
+          ", "
+        )}) VALUES (${placeholders})`;
 
         batchQueries.push({ statement: stmt, values: fieldValues });
       }
@@ -585,7 +601,8 @@ export class SqliteApi implements ServiceApi {
 
   async syncDbNow(
     tableNames: TABLES[] = Object.values(TABLES),
-    refreshTables: TABLES[] = []
+    refreshTables: TABLES[] = [],
+    isFirstSync?: boolean
   ) {
     if (!this._db) return;
     const refresh_tables = "'" + refreshTables.join("', '") + "'";
@@ -593,7 +610,7 @@ export class SqliteApi implements ServiceApi {
     await this.executeQuery(
       `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`
     );
-    await this.pullChanges(tableNames);
+    await this.pullChanges(tableNames, isFirstSync);
     const res = await this.pushChanges(tableNames);
     const tables = "'" + tableNames.join("', '") + "'";
     console.log("logs to check synced tables1", JSON.stringify(tables));
@@ -3732,7 +3749,7 @@ export class SqliteApi implements ServiceApi {
     batch_id: string,
     source: string | null,
     created_at?: string
-  ): Promise<boolean> {
+  ): Promise<void> {
     const assignmentUUid = uuidv4();
     const timestamp = new Date().toISOString(); // Cache timestamp for reuse
 
@@ -3784,7 +3801,7 @@ export class SqliteApi implements ServiceApi {
         is_firebase: null,
       };
 
-      const res = await this.updatePushChanges(
+      this.updatePushChanges(
         TABLES.Assignment,
         MUTATE_TYPES.INSERT,
         assignment_data
@@ -3818,18 +3835,15 @@ export class SqliteApi implements ServiceApi {
               false,
             ]
           );
-          const assignmentUserPushRes = await this.updatePushChanges(
+          this.updatePushChanges(
             TABLES.Assignment_user,
             MUTATE_TYPES.INSERT,
             newAssignmentUser
           );
         }
       }
-
-      return res ?? false;
     } catch (error) {
       console.error("Error in createAssignment:", error);
-      return false; // Return false in case of error
     }
   }
 
@@ -3859,10 +3873,11 @@ export class SqliteApi implements ServiceApi {
 
   async syncDB(
     tableNames: TABLES[] = Object.values(TABLES),
-    refreshTables: TABLES[] = []
+    refreshTables: TABLES[] = [],
+    isFirstSync?: boolean
   ): Promise<boolean> {
     try {
-      await this.syncDbNow(tableNames, refreshTables);
+      await this.syncDbNow(tableNames, refreshTables, isFirstSync);
       return true;
     } catch (error) {
       console.error("🚀 ~ SqliteApi ~ syncDB ~ error:", error);
@@ -4958,7 +4973,12 @@ order by
       WHERE school_id = ? AND user_id = ? AND role = ? AND is_deleted = ?
       LIMIT 1
       `,
-      [schoolUser.school_id, schoolUser.user_id, schoolUser.role, schoolUser.is_deleted]
+      [
+        schoolUser.school_id,
+        schoolUser.user_id,
+        schoolUser.role,
+        schoolUser.is_deleted,
+      ]
     );
 
     // Only insert if not exists

@@ -57,6 +57,7 @@ import {
   SHOULD_SHOW_REMOTE_ASSETS,
   IS_OPS_USER,
   CHIMPLE_RIVE_STATE_MACHINE_MAX,
+  USER_DATA,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -153,8 +154,9 @@ export class Util {
       let studentResult:
         | { [lessonDocId: string]: TableTypes<"result"> }
         | undefined = {};
-      const studentProfile =
-        await api.getStudentResultInMap(currentStudentDocId);
+      const studentProfile = await api.getStudentResultInMap(
+        currentStudentDocId
+      );
       studentResult = studentProfile;
 
       if (!studentResult) return undefined;
@@ -395,10 +397,9 @@ export class Util {
                 directory: Directory.External,
               });
               const androidPath = await this.getAndroidBundlePath();
-              const lessonConfigPath = androidPath + lessonId + "/config.json";
               try {
                 const file = await Filesystem.readFile({
-                  path: lessonConfigPath,
+                  path: lessonId + "/config.json",
                   directory: Directory.External,
                 });
                 const decoded =
@@ -2102,8 +2103,8 @@ export class Util {
         });
 
         if (path && path.uri) {
-          const uri = Capacitor.convertFileSrc(path.uri); // file:///data/user/0/org.chimple.bahama/cache
-          return uri + "/";
+          const uri = Capacitor.convertFileSrc(path.uri);
+          return uri + "/"; // file:///data/user/0/org.chimple.bahama/cache
         }
       } catch (error) {
         console.error("path error", error);
@@ -2401,6 +2402,38 @@ export class Util {
         localStorage.setItem(LANGUAGE, tempLangCode);
         await i18n.changeLanguage(tempLangCode);
       }
+    }
+  }
+  public static async updateUserLanguage(languageCode: string) {
+    if (!languageCode) return;
+    try {
+      const api = ServiceConfig.getI().apiHandler;
+      const auth = ServiceConfig.getI().authHandler;
+      const currentUser = await auth.getCurrentUser();
+      if (!currentUser) return;
+
+      const allLanguages = await api.getAllLanguages();
+      const selectedLanguage = allLanguages.find(
+        (lang) => lang.code === languageCode
+      );
+
+      // Skip if no language found or already set to the same language
+      if (!selectedLanguage || selectedLanguage.id === currentUser.language_id)
+        return;
+
+      await api.updateLanguage(currentUser.id, selectedLanguage.id);
+      localStorage.setItem(LANGUAGE, languageCode);
+      await i18n.changeLanguage(languageCode ?? "");
+
+      const updatedUserData: TableTypes<"user"> = {
+        ...currentUser,
+        language_id: selectedLanguage.id,
+      };
+
+      localStorage.setItem(USER_DATA, JSON.stringify(updatedUserData));
+      auth.currentUser = updatedUserData;
+    } catch (error) {
+      console.error("Failed to update user language:", error);
     }
   }
 }
