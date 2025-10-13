@@ -17,7 +17,7 @@ const OpsApprovedRequestDetails = () => {
     school?: {
       name?: string;
       udise?: string;
-      group2?: string;
+      country?: string;
       group1?: string;
       group3?: string;
     };
@@ -160,9 +160,9 @@ const OpsApprovedRequestDetails = () => {
             <div className="ops-approved-request-details-flex-row">
               <div className="ops-approved-request-details-field-stack ops-approved-request-details-mr">
                 <div className="ops-approved-request-details-label">
-                  {t("City")}
+                  {t("District")}
                 </div>
-                <div>{school.group2 || "N/A"}</div>
+                <div>{school.group3 || "N/A"}</div>
               </div>
               <div className="ops-approved-request-details-field-stack">
                 <div className="ops-approved-request-details-label">
@@ -173,9 +173,9 @@ const OpsApprovedRequestDetails = () => {
             </div>
             <div className="ops-approved-request-details-field-stack">
               <div className="ops-approved-request-details-label">
-                {t("District")}
+                {t("Country")}
               </div>
-              <div>{school.group3 || "N/A"}</div>
+              <div>{school.country || "N/A"}</div>
             </div>
             <Divider className="ops-approved-request-details-divider" />
             <Typography

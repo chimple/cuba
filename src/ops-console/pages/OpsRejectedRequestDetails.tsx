@@ -17,7 +17,7 @@ const StudentRejectedRequestDetails = () => {
     school?: {
       name?: string;
       udise?: string;
-      group2?: string;
+      country?: string;
       group1?: string;
       group3?: string;
     };
@@ -172,10 +172,10 @@ const StudentRejectedRequestDetails = () => {
                 className="ops-rejected-request-details-field-stack ops-rejected-request-details-field-stack-margin" // Class name updated
               >
                 <div className="ops-rejected-request-details-label">
-                  {t("City")}
+                  {t("District")}
                 </div>{" "}
                 {/* Class name updated & Translated */}
-                <div>{school.group2 || t("-")}</div> {/* Translated '-' */}
+                <div>{school.group3 || t("-")}</div> {/* Translated '-' */}
               </div>
               <div className="ops-rejected-request-details-field-stack">
                 <div className="ops-rejected-request-details-label">
@@ -187,10 +187,10 @@ const StudentRejectedRequestDetails = () => {
             </div>
             <div className="ops-rejected-request-details-field-stack">
               <div className="ops-rejected-request-details-label">
-                {t("District")}
+                {t("Country")}
               </div>{" "}
               {/* Class name updated & Translated */}
-              <div>{school.group3 || t("-")}</div> {/* Translated '-' */}
+              <div>{school.country || t("-")}</div> {/* Translated '-' */}
             </div>
             <Divider className="ops-rejected-request-details-divider-margin" />{" "}
             {/* Class name updated */}
@@ -231,16 +231,7 @@ const StudentRejectedRequestDetails = () => {
             </Typography>
             <Divider className="ops-rejected-request-details-divider-margin" />{" "}
             {/* Class name updated */}
-            <div className="ops-rejected-request-details-label-row">
-              <span className="ops-rejected-request-details-label-reject">
-                {t("Reason :")}
-              </span>{" "}
-              {/* Class name updated & Translated */}
-              <span>
-                {requestDetails.rejected_reason_type || t("-")}{" "}
-                {/* Translated '-' */}
-              </span>
-            </div>
+            <div className="ops-rejected-request-details-label-row"></div>
             <div className="ops-rejected-request-details-label-row">
               <span className="ops-rejected-request-details-label-reject">
                 {t("Rejected By:")}

@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -153,7 +153,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "school";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       assignment_cart: {
@@ -191,7 +191,7 @@ export type Database = {
             isOneToOne: true;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       assignment_user: {
@@ -236,7 +236,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       auto_chatbot: {
@@ -271,7 +271,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "school";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       badge: {
@@ -345,7 +345,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "course";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       chapter_lesson: {
@@ -390,7 +390,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "lesson";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       chapter_links: {
@@ -455,7 +455,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "grade";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       chatbot: {
@@ -551,7 +551,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "school";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       class_course: {
@@ -609,7 +609,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "course";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       class_invite_code: {
@@ -653,7 +653,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "class";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       class_user: {
@@ -714,7 +714,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       connector_users: {
@@ -805,7 +805,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "subject";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       curriculum: {
@@ -870,7 +870,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       favorite_lesson: {
@@ -915,7 +915,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       geo_locations: {
@@ -1131,7 +1131,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "subject";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       live_quiz_room: {
@@ -1212,7 +1212,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "school";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       ops_requests: {
@@ -1308,7 +1308,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "school";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       parent_user: {
@@ -1366,7 +1366,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       program: {
@@ -1489,7 +1489,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       req_new_school: {
@@ -1542,7 +1542,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       result: {
@@ -1652,7 +1652,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       reward: {
@@ -1848,7 +1848,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "program";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       school_course: {
@@ -1906,7 +1906,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       school_data: {
@@ -2030,7 +2030,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       special_users: {
@@ -2065,7 +2065,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       sticker: {
@@ -2187,7 +2187,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       user: {
@@ -2303,7 +2303,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       user_badge: {
@@ -2351,7 +2351,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       user_bonus: {
@@ -2399,7 +2399,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       user_course: {
@@ -2444,7 +2444,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       user_sticker: {
@@ -2492,7 +2492,7 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "user";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
     };
@@ -2522,10 +2522,6 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: undefined;
       };
-      // can_access_class: {
-      //   Args: { p_class_id: string; p_school_id: string; p_user: string }
-      //   Returns: boolean
-      // }
       check_class_exists_by_name_and_school: {
         Args: { class_name: string; input_school_udise_code: string };
         Returns: Json;
@@ -3241,28 +3237,6 @@ export type Database = {
         Args: { code: string; phone_number: string };
         Returns: string;
       };
-      // sql_get_accessible_ops_requests: {
-      //   Args: { p_updated_at?: string }
-      //   Returns: {
-      //     class_id: string | null
-      //     created_at: string
-      //     id: string
-      //     is_deleted: boolean | null
-      //     rejected_reason_description: string | null
-      //     rejected_reason_type: string | null
-      //     request_ends_at: string | null
-      //     request_id: string | null
-      //     request_status:
-      //       | Database["public"]["Enums"]["ops_request_status"]
-      //       | null
-      //     request_type: Database["public"]["Enums"]["ops_request_type"] | null
-      //     requested_by: string | null
-      //     requested_to: string | null
-      //     responded_by: string | null
-      //     school_id: string | null
-      //     updated_at: string
-      //   }[]
-      // }
       sql_get_assignment_cart: {
         Args: { p_updated_at?: string };
         Returns: {
@@ -3524,6 +3498,28 @@ export type Database = {
           school_id: string;
           starts_at: string;
           updated_at: string | null;
+        }[];
+      };
+      sql_get_ops_requests: {
+        Args: { p_updated_at?: string };
+        Returns: {
+          class_id: string | null;
+          created_at: string;
+          id: string;
+          is_deleted: boolean | null;
+          rejected_reason_description: string | null;
+          rejected_reason_type: string | null;
+          request_ends_at: string | null;
+          request_id: string | null;
+          request_status:
+            | Database["public"]["Enums"]["ops_request_status"]
+            | null;
+          request_type: Database["public"]["Enums"]["ops_request_type"] | null;
+          requested_by: string | null;
+          requested_to: string | null;
+          responded_by: string | null;
+          school_id: string | null;
+          updated_at: string;
         }[];
       };
       sql_get_parent_users: {
@@ -3855,7 +3851,7 @@ export type Database = {
     Enums: {
       assignment_source: "manual" | "recommended" | "qr_code" | "chatbot";
       login_type: "student_id" | "parent_phone_number";
-      ops_request_status: "requested" | "rejected" | "approved";
+      ops_request_status: "requested" | "rejected" | "approved" | "flagged";
       ops_request_type: "student" | "teacher" | "principal" | "school";
       program_model: "hybrid" | "at_home" | "at_school";
       program_type: "government" | "private" | "learning_centers";
@@ -3901,7 +3897,7 @@ export type Tables<
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never = never
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -3912,14 +3908,14 @@ export type Tables<
     ? R
     : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R;
-      }
-      ? R
-      : never
-    : never;
+      DefaultSchema["Views"])
+  ? (DefaultSchema["Tables"] &
+      DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+      Row: infer R;
+    }
+    ? R
+    : never
+  : never;
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
@@ -3929,7 +3925,7 @@ export type TablesInsert<
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never = never
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -3939,12 +3935,12 @@ export type TablesInsert<
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I;
-      }
-      ? I
-      : never
-    : never;
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+      Insert: infer I;
+    }
+    ? I
+    : never
+  : never;
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
@@ -3954,7 +3950,7 @@ export type TablesUpdate<
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never = never
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -3964,12 +3960,12 @@ export type TablesUpdate<
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U;
-      }
-      ? U
-      : never
-    : never;
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+      Update: infer U;
+    }
+    ? U
+    : never
+  : never;
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
@@ -3979,14 +3975,14 @@ export type Enums<
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never = never
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never;
+  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  : never;
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
@@ -3996,21 +3992,21 @@ export type CompositeTypes<
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never = never
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never;
+  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : never;
 
 export const Constants = {
   public: {
     Enums: {
       assignment_source: ["manual", "recommended", "qr_code", "chatbot"],
       login_type: ["student_id", "parent_phone_number"],
-      ops_request_status: ["requested", "rejected", "approved"],
+      ops_request_status: ["requested", "rejected", "approved", "flagged"],
       ops_request_type: ["student", "teacher", "principal", "school"],
       program_model: ["hybrid", "at_home", "at_school"],
       program_type: ["government", "private", "learning_centers"],
