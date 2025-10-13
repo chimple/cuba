@@ -59,9 +59,6 @@ const DropDown: React.FC<{
       }
       }
     >
-      <MenuItem hidden={true} value={placeholderTextItem} >
-        {placeholder}
-      </MenuItem>
 
       {optionList.map((option, index) => (
 

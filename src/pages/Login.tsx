@@ -45,6 +45,8 @@ import { RoleType } from "../interface/modelInterfaces";
 // import { Plugins } from "@capacitor/core";
 import { OneRosterAuth } from "../services/auth/OneRosterAuth";
 import { schoolUtil } from "../utility/schoolUtil";
+import LoginWithEmail from "../components/LoginWithEmail";
+import SkeltonLoading from "../components/SkeltonLoading";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -91,9 +93,12 @@ const Login: React.FC = () => {
   const [currentStudent, setStudent] = useState<TableTypes<"user">>();
 
   const scollToRef = useRef<null | HTMLDivElement>(null);
-  const otpBtnRef = useRef<any>();
-  const getOtpBtnRef = useRef<any>();
-  const phoneNumberErrorRef = useRef<any>();
+  const otpBtnRef = useRef<any>(null);
+  const getOtpBtnRef = useRef<any>(null);
+  const parentNameRef = useRef<any>(null);
+  const phoneNumberErrorRef = useRef<any>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isPromptNumbers, setIsPromptNumbers] = useState<boolean>(false);
   let verificationCodeMessageFlags = {
     isInvalidCode: false,
     isInvalidCodeLength: false,
@@ -729,7 +734,64 @@ const Login: React.FC = () => {
                       </div>
                       <div id="Google-horizontal-line2"></div>
                     </div>
-                    <div className="login-with-google-or-student-credentials-container">
+                    <div id="recaptcha-container" />
+                    <div
+                      ref={otpBtnRef}
+                      id="login-continue-button"
+                      style={{ backgroundColor: currentButtonColor }}
+                      onClick={async () => {
+                        if (!online) {
+                          presentToast({
+                            message: t(
+                              `Device is offline. Login requires an internet connection`
+                            ),
+                            color: "danger",
+                            duration: 3000,
+                            position: "bottom",
+                            buttons: [
+                              {
+                                text: "Dismiss",
+                                role: "cancel",
+                              },
+                            ],
+                          });
+                          return;
+                        }
+
+                        // setSpinnerLoading(true);
+                        if (phoneNumber.length === 10) {
+                          await onPhoneNumberSubmit();
+                        } else {
+                          phoneNumberErrorRef.current.style.display = "block";
+                        }
+                        // setShowVerification(true);
+                        setSpinnerLoading(false);
+                        setErrorMessage("");
+                      }}
+                    >
+                      {t("Send OTP")}
+                    </div>
+                  </div>
+                  {isInputFocus ? (
+                    <div ref={scollToRef} id="scroll"></div>
+                  ) : null}
+                  {/* <IonLoading
+                    id="custom-loading"
+                    // trigger="open-loading"
+                    message="Loading"
+                    // duration={3000}
+                    isOpen={spinnerLoading}
+                  /> */}
+
+                  <div id="Google-horizontal-line-main-container">
+                    <div id="Google-horizontal-line"></div>
+                    <div id="login-google-icon-text">
+                      {t("Continue with Google")}
+                    </div>
+                    <div id="Google-horizontal-line2"></div>
+                  </div>
+                  <div className="login-with-google-or-student-credentials-container">
+                    <div>
                       <img
                         id="login-google-icon"
                         alt="Google Icon"

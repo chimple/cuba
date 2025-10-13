@@ -29,8 +29,8 @@ const SchoolPendingRequest: React.FC = () => {
         const state = location.state as { request?: any } | undefined;
         if (state?.request && state.request.request_id === id) {
           const respondedBy = await auth.getCurrentUser();
-          state.request.responded_by= respondedBy?.id;      
-          state.request.respondedBy = respondedBy;   
+          state.request.responded_by = respondedBy?.id;
+          state.request.respondedBy = respondedBy;
           setRequestData(state.request);
           setUser(state.request.requestedBy);
         }
@@ -67,10 +67,10 @@ const SchoolPendingRequest: React.FC = () => {
           <div className="school-detail-tertiary-gap" />
           <div className="school-request">
             <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <SchoolDetailsCard requestData={requestData} />
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 6, lg: 5 }}>
                 <RequestFromCard requestedBy={user} />
                 <div className="request-action-buttons">
                   <Button
@@ -79,7 +79,7 @@ const SchoolPendingRequest: React.FC = () => {
                     size="large"
                     style={{
                       minWidth: 130,
-                      padding:"8px 50px",
+                      padding: "8px 50px",
                       fontWeight: 600,
                       fontSize: "16px",
                       textTransform: "none",
@@ -96,11 +96,11 @@ const SchoolPendingRequest: React.FC = () => {
                     size="large"
                     style={{
                       minWidth: 140,
-                      padding:"8px 30px",
+                      padding: "8px 30px",
                       fontWeight: 600,
                       fontSize: "16px",
                       textTransform: "none",
-                      backgroundColor:"#1A71F6",
+                      backgroundColor: "#1A71F6",
                     }}
                     onClick={() => {
                       history.push({

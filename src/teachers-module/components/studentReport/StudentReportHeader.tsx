@@ -27,7 +27,7 @@ const StudentReportHeader: React.FC<StudentReportHeaderProps> = ({
           <div className="report-student-class-name">{currentClass?.name}</div>
         </div>
         <img
-          src={student.image ?? ""}
+          src={student.image ?? `assets/avatars/${student.avatar}.png`}
           alt="Profile"
           className="report-student-avatar"
           onError={(e) => {

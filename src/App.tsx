@@ -159,7 +159,14 @@ import AddTeacherName from "./teachers-module/pages/AddTeacherName";
 import SearchSchool from "./teachers-module/pages/SearchSchool";
 import JoinSchool from "./pages/JoinSchool";
 import CreateSchool from "./teachers-module/pages/CreateSchool";
-import { ScreenOrientation } from "@capacitor/screen-orientation";
+import ScanRedirect from "./teachers-module/components/homePage/assignment/ScanRedirect";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+} from "@mui/material";
 
 setupIonicReact();
 interface ExtraData {
@@ -305,21 +312,6 @@ const App: React.FC = () => {
     };
   }, [online, presentToast]);
   useEffect(() => {
-
-     const lockPortraitIfNotLoggedIn = async () => {
-      if (Capacitor.isNativePlatform()) {
-        const authHandler = ServiceConfig.getI().authHandler;
-        const isLoggedIn = await authHandler.isUserLoggedIn();
-        if (!isLoggedIn) {
-          await ScreenOrientation.lock({ orientation: "portrait" });
-        } else {
-          await ScreenOrientation.unlock();
-        }
-      }
-    };
-    lockPortraitIfNotLoggedIn();
-
-    
     initializeUsage();
     document.addEventListener("visibilitychange", handleVisibilityChange);
     startTimeout();
@@ -705,6 +697,9 @@ const App: React.FC = () => {
             <ProtectedRoute path={PAGES.REQ_ADD_SCHOOL} exact={true}>
               <ReqEditSchool />
             </ProtectedRoute>
+            <ProtectedRoute path={PAGES.SCAN_REDIRECT}>
+              <ScanRedirect />
+            </ProtectedRoute>
             <ProtectedRoute path={PAGES.MANAGE_CLASS} exact={true}>
               <ManageClass />
             </ProtectedRoute>
@@ -792,26 +787,43 @@ const App: React.FC = () => {
             </ProtectedRoute>
           </Switch>
         </IonRouterOutlet>
-        <IonAlert
-          isOpen={showModal}
-          onDidDismiss={() => setShowModal(false)}
-          header={t("Time for a break!") || ""}
-          message={
-            t(
+
+        <Dialog
+          open={showModal}
+          onClose={(event, reason) => {
+            if (reason === "backdropClick" || reason === "escapeKeyDown") {
+              // prevent closing
+              return;
+            }
+            handleContinue();
+          }}
+          className="custom-dialog"
+        >
+          <DialogTitle sx={{ textAlign: "center" }}>
+            {t("Time for a break!") || ""}
+          </DialogTitle>
+          <DialogContent sx={{ textAlign: "center" }}>
+            {t(
               "You’ve used Chimple for 25 minutes today. Take a break to rest your eyes!"
-            ) || ""
-          }
-          cssClass="custom-alert"
-          buttons={[
-            {
-              text: t("Continue"),
-              role: "cancel",
-              cssClass: "time-exceed-continue",
-              handler: handleContinue,
-            },
-          ]}
-          backdropDismiss={false}
-        />
+            ) || ""}
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: "center" }}>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={handleContinue}
+              sx={{
+                borderRadius: "1vh",
+                padding: "1vh 2vw",
+                minWidth: "20vh",
+                fontWeight: "bold",
+              }}
+            >
+              {t("Continue")}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
         {/*Toast notification for acknowledgment */}
         <IonToast
           isOpen={showToast}

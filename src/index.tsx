@@ -18,17 +18,14 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
-import reportWebVitals from "./reportWebVitals";
+// import reportWebVitals from "./reportWebVitals";
 import "./index.css";
 import "./i18n";
 import { APIMode, ServiceConfig } from "./services/ServiceConfig";
-import {
-  defineCustomElements as jeepSqlite,
-  applyPolyfills,
-} from "jeep-sqlite/loader";
+import { defineCustomElements as jeepSqlite } from "jeep-sqlite/loader";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 import { SqliteApi } from "./services/api/SqliteApi";
-import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
+import { SocialLogin } from "@capgo/capacitor-social-login";
 import { IonLoading } from "@ionic/react";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
@@ -44,11 +41,43 @@ import { Util } from "./utility/util";
 import { CURRENT_USER, EVENTS, IS_OPS_USER } from "./common/constants";
 import { GbProvider } from "./growthbook/Growthbook";
 import { initializeFireBase } from "./services/Firebase";
+import * as Sentry from "@sentry/capacitor";
+import * as SentryReact from "@sentry/react";
+
+Sentry.init(
+  {
+    dsn: process.env.REACT_APP_SENTRY_DSN,
+
+    sendDefaultPii: true,
+    // enableLogs: true,
+    // // Logs requires @sentry/capacitor 2.0.0 or newer.
+    // _experiments: {
+    //   enableLogs: true,
+    //   beforeSendLog: (log) => {
+    //     return log;
+    //   },
+    // },
+
+    integrations: [
+      Sentry.browserTracingIntegration(),
+
+      // send console.log, console.warn, and console.error calls as logs to Sentry
+      // SentryReact.consoleLoggingIntegration({
+      //   levels: ["log", "warn", "error"],
+      // }),
+    ],
+  },
+  // Forward the init method from @sentry/react
+  SentryReact.init
+);
+const userData = localStorage.getItem(CURRENT_USER);
+const userId = userData ? JSON.parse(userData).id : undefined;
+if (userId) Sentry.setUser({ id: userId });
 
 // Extend React's JSX namespace to include Stencil components
 declare global {
   namespace JSX {
-    interface IntrinsicElements extends LocalJSX.IntrinsicElements { }
+    interface IntrinsicElements extends LocalJSX.IntrinsicElements {}
   }
 }
 defineCustomElements(window);
@@ -64,18 +93,12 @@ if (typeof window !== "undefined") {
     (window as any).SpeechSynthesisUtterance = SpeechSynthesisUtterance;
   }
 }
-SplashScreen.show();
-(async () => {
-  if (Capacitor.isNativePlatform()) {
-    try {
-      await ScreenOrientation.lock({ orientation: "landscape" });
-    } catch (e) {
-      console.warn("ScreenOrientation lock failed", e);
-    }
-  }
-  await applyPolyfills();
-  jeepSqlite(window);
-})();
+SplashScreen.hide();
+if (Capacitor.isNativePlatform()) {
+  await ScreenOrientation.lock({ orientation: "landscape" });
+}
+jeepSqlite(window);
+
 const recordExecption = (message: string, error: string) => {
   if (Capacitor.getPlatform() != "web") {
     FirebaseCrashlytics.recordException({ message: message, domain: error });
@@ -85,14 +108,21 @@ window.onunhandledrejection = (event: PromiseRejectionEvent) => {
   recordExecption(event.reason.toString(), event.type.toString());
 };
 window.onerror = (message, source, lineno, colno, error) => {
-  recordExecption(message?.toString?.(), error?.toString?.());
+  recordExecption(message.toString(), error.toString());
 };
 const container = document.getElementById("root");
-const root = createRoot(container!);
-GoogleAuth.initialize({
-  clientId: process.env.REACT_APP_CLIENT_ID,
-  scopes: ["profile", "email"],
-  // grantOfflineAccess: true,
+const root = createRoot(container!, {
+  onUncaughtError: SentryReact.reactErrorHandler((error, errorInfo) => {
+    console.warn("Uncaught error", error, errorInfo.componentStack);
+  }),
+  onCaughtError: SentryReact.reactErrorHandler(),
+  // Callback called when React automatically recovers from errors.
+  onRecoverableError: SentryReact.reactErrorHandler(),
+});
+await SocialLogin.initialize({
+  google: {
+    webClientId: process.env.REACT_APP_CLIENT_ID,
+  },
 });
 
 // Util.isRespectMode = await Util.checkRespectApp();
@@ -169,7 +199,7 @@ if (isOpsUser) {
   );
   SplashScreen.hide();
 } else {
-  SplashScreen.show();
+  SplashScreen.hide();
   SqliteApi.getInstance().then(() => {
     serviceInstance.switchMode(APIMode.SQLITE);
     root.render(
@@ -191,4 +221,4 @@ serviceWorkerRegistration.unregister();
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+// reportWebVitals();

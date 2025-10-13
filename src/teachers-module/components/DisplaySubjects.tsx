@@ -38,8 +38,7 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
   setIsModalOpen,
 }) => {
   // State to track whether the last subject warning should be shown
-  const [isLastSubjectAlertOpen, setIsLastSubjectAlertOpen] =
-    useState(false);
+  const [isLastSubjectAlertOpen, setIsLastSubjectAlertOpen] = useState(false);
   const [canModify, setCanModify] = useState(true);
 
   useEffect(() => {
@@ -54,7 +53,7 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
 
   // Trigger subject removal logic
   const triggerRemoveSubject = (subject: string) => {
-    if (!canModify) return; 
+    if (!canModify) return;
     if (selectedSubjects.length === 1) {
       // If only one subject is left, show the "cannot delete" alert
       setIsLastSubjectAlertOpen(true);
@@ -115,7 +114,7 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
                       alt={course.name || "Default Subject Icon"}
                       className="subject-icon-in-display-subject-page"
                     />
-                    <span> {course.name}</span>
+                    <span> {t(course.name)}</span>
                   </div>
                   {canModify && (
                     <IonIcon
@@ -163,7 +162,11 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
         isOpen={isLastSubjectAlertOpen}
         onDidDismiss={() => setIsLastSubjectAlertOpen(false)}
         header={t("Action Not Allowed") || ""}
-        message={t("The Subject you have chosen is the last one left and cannot be deleted") || ""}
+        message={
+          t(
+            "The Subject you have chosen is the last one left and cannot be deleted"
+          ) || ""
+        }
         cssClass="custom-alert"
         buttons={[
           {

@@ -169,7 +169,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
 
         <Grid container spacing={2}>
           {/* Column 1 */}
-          <Grid item xs={12} md={4} order={{ xs: 2, md: 1 }}>
+          <Grid size={{ xs: 12, md: 4 }} order={{ xs: 2, md: 1 }}>
             <Box className="program-detail-page-column-container">
               <InfoCard
                 title={t("Program Details")}
@@ -183,7 +183,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
           </Grid>
 
           {/* Column 2 */}
-          <Grid item xs={12} md={4} order={{ xs: 3, md: 2 }}>
+          <Grid size={{ xs: 12, md: 4 }} order={{ xs: 3, md: 2 }}>
             <Box className="program-detail-page-column-container">
               <InfoCard
                 title={t("Location Details")}
@@ -224,7 +224,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
           </Grid>
 
           {/* Column 3 */}
-          <Grid item xs={12} md={4} order={{ xs: 1, md: 3 }}>
+          <Grid size={{ xs: 12, md: 4 }} order={{ xs: 1, md: 3 }}>
             <Box className="program-detail-page-column-container">
               <InfoCard title={t("Program Performance")} items={[]}>
                 <Box
