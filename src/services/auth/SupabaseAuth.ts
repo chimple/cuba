@@ -90,8 +90,6 @@ export class SupabaseAuth implements ServiceAuth {
       } else {
         console.error("Supabase DB client is not initialized.");
       }
-      await api.updateFcmToken(data?.user?.id ?? "");
-      Util.storeLoginDetails(email, password);
       if (!isSpl) {
         let isFirstSync = true;
         await api.syncDB(
@@ -102,6 +100,8 @@ export class SupabaseAuth implements ServiceAuth {
       } else {
         ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
       }
+      await api.updateFcmToken(data?.user?.id ?? "");
+      Util.storeLoginDetails(email, password);
       await api.subscribeToClassTopic();
       return { success: true, isSpl };
     } catch (error) {
