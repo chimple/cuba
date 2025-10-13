@@ -81,9 +81,11 @@ const SearchSchool: FC = () => {
 
   const checkPendingRequests = async () => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    const existingRequest = await api.getExistingSchoolRequest(currentUser?.id as string);
-    if(existingRequest) history.replace(PAGES.POST_SUCCESS);
-  }
+    const existingRequest = await api.getExistingSchoolRequest(
+      currentUser?.id as string
+    );
+    if (existingRequest) history.replace(PAGES.POST_SUCCESS);
+  };
   useEffect(() => {
     checkPendingRequests();
   }, []);
@@ -277,6 +279,13 @@ const SearchSchool: FC = () => {
     </div>
   );
 
+  const showCreateSchoolPrompt =
+    !isSearchingSchools &&
+    country &&
+    state &&
+    district &&
+    (schools.length === 0 || !hasMoreSchools);
+
   return (
     <IonPage className="search-school-page">
       <IonHeader mode="ios">
@@ -385,40 +394,41 @@ const SearchSchool: FC = () => {
           </div>
         )}
 
-        {!isSearchingSchools &&
-          schools.length === 0 &&
-          country &&
-          state &&
-          district && <NoSchoolsFound />}
-
         {schools.length > 0 && (
-          <>
-            <IonList className="search-school-results-list-cards" lines="none">
-              {schools.map((school) => (
-                <SchoolListItem
-                  key={school.id}
-                  school={school}
-                  isExpanded={expandedSchoolId === school.id}
-                  onToggle={() => handleToggleSchool(school.id)}
-                  onJoin={handleJoinSchool}
-                  searchText={searchText}
-                />
-              ))}
-            </IonList>
-
-            <IonInfiniteScroll
-              onIonInfinite={loadMoreSchools}
-              threshold="200px"
-              disabled={!hasMoreSchools || isSearchingSchools}
-            >
-              <IonInfiniteScrollContent
-                loadingSpinner="bubbles"
-                loadingText={t("Loading more schools...") as string}
+          <IonList className="search-school-results-list-cards" lines="none">
+            {schools.map((school) => (
+              <SchoolListItem
+                key={school.id}
+                school={school}
+                isExpanded={expandedSchoolId === school.id}
+                onToggle={() => handleToggleSchool(school.id)}
+                onJoin={handleJoinSchool}
+                searchText={searchText}
               />
-            </IonInfiniteScroll>
+            ))}
+          </IonList>
+        )}
 
-            {!hasMoreSchools && <CreateSchoolPrompt />}
-          </>
+        {schools.length > 0 && hasMoreSchools && (
+          <IonInfiniteScroll
+            onIonInfinite={loadMoreSchools}
+            threshold="200px"
+            disabled={!hasMoreSchools || isSearchingSchools}
+          >
+            <IonInfiniteScrollContent
+              loadingSpinner="bubbles"
+              loadingText={t("Loading more schools...") as string}
+            />
+          </IonInfiniteScroll>
+        )}
+
+        {showCreateSchoolPrompt && (
+          <CreateSchoolPrompt
+            country={country}
+            state={state}
+            district={district}
+            block={block}
+          />
         )}
       </IonContent>
     </IonPage>

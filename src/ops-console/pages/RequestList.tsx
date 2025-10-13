@@ -130,8 +130,8 @@ const RequestList: React.FC = () => {
         selectedTab === REQUEST_TABS.PENDING
           ? Constants.public.Enums.ops_request_status[0]
           : selectedTab === REQUEST_TABS.APPROVED
-            ? Constants.public.Enums.ops_request_status[2]
-            : Constants.public.Enums.ops_request_status[1];
+          ? Constants.public.Enums.ops_request_status[2]
+          : Constants.public.Enums.ops_request_status[1];
       const cleanedFilters = Object.fromEntries(
         Object.entries({ ...filters }).filter(
           ([_, v]) => Array.isArray(v) && v.length > 0
@@ -369,15 +369,9 @@ const RequestList: React.FC = () => {
       orderBy: "rejected_date",
     },
     {
-      key: "rejected_reason",
-      label: t("Reason"),
-      width: "10%",
-      sortable: false,
-    },
-    {
       key: "rejected_by",
       label: t("Rejected By"),
-      width: "10%",
+      width: "20%",
       sortable: false,
     },
   ];
