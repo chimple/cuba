@@ -557,8 +557,8 @@ const CocosGame: React.FC = () => {
     }
   };
   return (
-    <IonPage id="cocos-game-page" placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
-      <IonContent placeholder={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+    <IonPage id="cocos-game-page">
+      <IonContent>
         <Loading isLoading={isLoading} />
         {showDialogBox && (!Util.isRespectMode || isSaveTempDataFinished) && (
           <div>

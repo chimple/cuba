@@ -1,6 +1,6 @@
 import { TinCan } from 'tincants';
-import {Plugins} from '@capacitor/core';
-const { Port } = Plugins;
+import { registerPlugin } from '@capacitor/core';
+const Port = registerPlugin<any>('Port');
 
 interface Actor {
   name: string | string[];
