@@ -195,7 +195,7 @@ const Parent: React.FC = () => {
             <DropDown
               currentValue={currentAppLang}
               optionList={langList}
-              placeholder="Select Language"
+              placeholder=""
               width="26vw"
               onValueChange={async (selectedLangDocId) => {
                 // setIsLoading(true);

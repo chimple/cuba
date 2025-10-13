@@ -1,18 +1,22 @@
 {
   "1": {
-    "statements": [],
-    "tableChanges": {}
+    "toVersion": 1,
+    "statements": []
   },
-    "2": {
-     "statements": [
-    "CREATE TABLE IF NOT EXISTS chapter_links( id TEXT PRIMARY KEY, created_at TEXT NOT NULL DEFAULT (datetime('now')), chapter_id TEXT, link TEXT, curriculum_id TEXT, course_id TEXT, grade_id TEXT, updated_at TEXT DEFAULT (datetime('now')), is_deleted INTEGER );"],
-    "tableChanges": {}
+  "2": {
+    "toVersion": 2,
+    "statements": [
+      "CREATE TABLE IF NOT EXISTS chapter_links( id TEXT PRIMARY KEY, created_at TEXT NOT NULL DEFAULT (datetime('now')), chapter_id TEXT, link TEXT, curriculum_id TEXT, course_id TEXT, grade_id TEXT, updated_at TEXT DEFAULT (datetime('now')), is_deleted INTEGER );"
+    ]
   },
   "3": {
-    "statements": ["CREATE TABLE IF NOT EXISTS program ( id TEXT PRIMARY KEY, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), name TEXT NOT NULL, model TEXT NOT NULL, is_deleted INTEGER, school_id TEXT, is_ops INTEGER, implementation_partner TEXT, funding_partner TEXT, institute_partner TEXT, country TEXT, state TEXT, block TEXT, cluster TEXT, village TEXT, program_type TEXT, institutes_count TEXT, students_count TEXT, devices_count TEXT, start_date TEXT, end_date TEXT, program_manager TEXT, district TEXT);"],
-    "tableChanges": {}
+    "toVersion": 3,
+    "statements": [
+      "CREATE TABLE IF NOT EXISTS program ( id TEXT PRIMARY KEY, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), name TEXT NOT NULL, model TEXT NOT NULL, is_deleted INTEGER, school_id TEXT, is_ops INTEGER, implementation_partner TEXT, funding_partner TEXT, institute_partner TEXT, country TEXT, state TEXT, block TEXT, cluster TEXT, village TEXT, program_type TEXT, institutes_count TEXT, students_count TEXT, devices_count TEXT, start_date TEXT, end_date TEXT, program_manager TEXT, district TEXT);"
+    ]
   },
   "4": {
+    "toVersion": 4,
     "statements": [
       "ALTER TABLE assignment ADD COLUMN firebase_id TEXT;",
       "ALTER TABLE assignment ADD COLUMN is_firebase BOOLEAN;",
@@ -54,16 +58,15 @@
       "ALTER TABLE user ADD COLUMN ops_created_by TEXT;",
       "ALTER TABLE assignment ADD COLUMN batch_id TEXT;",
       "ALTER TABLE assignment ADD COLUMN source TEXT;"
-    ],
-    "tableChanges": {}
+    ]
   },
   "5": {
+    "toVersion": 5,
     "statements": [
       "ALTER TABLE school ADD COLUMN status TEXT;",
       "ALTER TABLE school ADD COLUMN key_contacts TEXT;",
       "ALTER TABLE school ADD COLUMN country TEXT;",
       "CREATE TABLE IF NOT EXISTS ops_requests ( id TEXT PRIMARY KEY, class_id TEXT, created_at TEXT DEFAULT (datetime('now')), is_deleted INTEGER DEFAULT 0, rejected_reason_description TEXT, rejected_reason_type TEXT, request_ends_at TEXT, request_id TEXT, request_status TEXT, request_type TEXT, requested_by TEXT, requested_to TEXT, responded_by TEXT, school_id TEXT, updated_at TEXT DEFAULT (datetime('now')) );"
-    ],
-    "tableChanges": {}
+    ]
   }
 }

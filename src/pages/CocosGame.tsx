@@ -29,6 +29,8 @@ import { AvatarObj } from "../components/animation/Avatar";
 import { Capacitor } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
 import { parseJSON } from "date-fns";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
+
 const CocosGame: React.FC = () => {
   const history = useHistory();
   const location = history.location.state as {
@@ -77,6 +79,7 @@ const CocosGame: React.FC = () => {
   useEffect(() => {
     init();
     Util.checkingIfGameCanvasAvailable();
+    ScreenOrientation.lock({ orientation: "landscape" });
     CapApp.addListener("appStateChange", handleAppStateChange);
     return () => {
       CapApp.removeAllListeners();
@@ -231,7 +234,6 @@ const CocosGame: React.FC = () => {
       setGameResult(event);
     }
   };
-  
 
   const updateLearningPath = async () => {
     if (!currentStudent) return;

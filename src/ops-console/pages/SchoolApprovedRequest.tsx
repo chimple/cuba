@@ -62,10 +62,10 @@ const SchoolApprovedRequest: React.FC = () => {
           <div className="school-detail-tertiary-gap" />
           <div className="school-request">
             <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <SchoolDetailsCard requestData={requestData} />
               </Grid>
-              <Grid item xs={12} md={4} spacing={2}>
+              <Grid size={{ xs: 12, md: 4 }} spacing={2}>
                 <ApprovedDetails
                   approvedBy={requestData.respondedBy.name}
                   approvedOn={requestData.created_at}

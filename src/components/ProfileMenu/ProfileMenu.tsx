@@ -164,7 +164,9 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
               : "profile-header-left"
           }`}
           onClick={() => {
-            if (!Util.isRespectMode) onEdit();
+            if (currentMode !== MODES.SCHOOL || !Util.isRespectMode) {
+              onEdit();
+            }
           }}
         >
           <img
