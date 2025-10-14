@@ -24,7 +24,6 @@ import { t } from "i18next";
 import { App as CapApp } from "@capacitor/app";
 import React from "react";
 
-
 const LidoPlayer: FC = () => {
   const history = useHistory();
   const [present] = useIonToast();
@@ -271,7 +270,7 @@ const LidoPlayer: FC = () => {
         return;
       }
     } else {
-      const path = `/assets/lessonBundles/${lessonId}/`;
+      const path = `/assets/lessonBundles/${lessonId}`;
       setBasePath(path);
     }
     setIsLoading(false);
@@ -305,11 +304,13 @@ const LidoPlayer: FC = () => {
           }}
         />
       )}
-  {xmlPath || basePath
-    ? React.createElement('lido-standalone', { 'xml-path': xmlPath, 'base-url': basePath })
-    : null}
-</IonPage>
-
+      {xmlPath || basePath
+        ? React.createElement("lido-standalone", {
+            "xml-path": xmlPath,
+            "base-url": basePath,
+          })
+        : null}
+    </IonPage>
   );
 };
 

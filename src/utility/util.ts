@@ -389,11 +389,11 @@ export class Util {
       }
 
       if (gameUrl.startsWith(LOCAL_BUNDLES_PATH)) {
-        const webPath = `${LOCAL_BUNDLES_PATH}${lessonId}/index.xml`;
+        const webPath = `${"/assets/lessonBundles/"}${lessonId}/index.xml`;
         try {
           const res = await fetch(webPath);
           if (res.ok) {
-            return `${LOCAL_BUNDLES_PATH}${lessonId}/`;
+            return `/assets/lessonBundles/${lessonId}`;
           }
         } catch (err) {
           console.warn("Error accessing web path from localStorage:", err);
@@ -469,20 +469,12 @@ export class Util {
                   `[LessonDownloader] Lesson ${lessonId} not found at Android path`
                 );
               }
-
-              const localBundlePath =
-                LOCAL_BUNDLES_PATH + `${lessonId}/config.json`;
+              const localBundlePath = `/assets/lessonBundles/${lessonId}/config.json`;
               try {
-                const file = await Filesystem.readFile({
-                  path: localBundlePath,
-                  directory: Directory.External,
-                });
-                const decoded =
-                  typeof file.data === "string"
-                    ? atob(file.data)
-                    : await this.blobToString(file.data as Blob);
-                this.setGameUrl(LOCAL_BUNDLES_PATH);
-                return true;
+                const response = await fetch(localBundlePath);
+                if (response.ok) {
+                  return true;
+                }
               } catch {
                 console.error(
                   `[LessonDownloader] Lesson ${lessonId} not found at local bundle path`
