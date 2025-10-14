@@ -417,20 +417,14 @@ export class Util {
                   `[LessonDownloader] Lesson ${lessonId} not found at Android path`
                 );
               }
-
               const localBundlePath =
-                LOCAL_BUNDLES_PATH + `${lessonId}/config.json`;
+                "/assets/lessonBundles/" + `${lessonId}/config.json`;
               try {
-                const file = await Filesystem.readFile({
-                  path: localBundlePath,
-                  directory: Directory.External,
-                });
-                const decoded =
-                  typeof file.data === "string"
-                    ? atob(file.data)
-                    : await this.blobToString(file.data as Blob);
-                this.setGameUrl(LOCAL_BUNDLES_PATH);
-                return true;
+                const response = await fetch(localBundlePath);
+                if (response.ok) {
+                  this.setGameUrl(LOCAL_BUNDLES_PATH);
+                  return true;
+                }
               } catch {
                 console.error(
                   `[LessonDownloader] Lesson ${lessonId} not found at local bundle path`
