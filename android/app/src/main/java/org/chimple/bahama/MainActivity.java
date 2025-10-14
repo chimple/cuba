@@ -59,7 +59,10 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
             }
             FirebaseCrashlytics.getInstance().recordException(throwable);
         });
+         // Register plugins
         registerPlugin(PortPlugin.class);
+//        super.onCreate(savedInstanceState);
+//        var respectClientManager = RespectClientManager();
         super.onCreate(savedInstanceState);
         this.bridge.setWebViewClient(new MyCustomWebViewClient(this.bridge, this));
         appContext = this;
