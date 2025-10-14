@@ -20,6 +20,21 @@ import { schoolUtil } from "../utility/schoolUtil";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import ProfileMenu from "./ProfileMenu/ProfileMenu";
 
+// Define the Props for StarsCounter
+interface StarsCounterProps {
+  starsCount: number;
+}
+
+// StarsCounter Component
+const StarsCounter: React.FC<StarsCounterProps> = ({ starsCount }) => {
+  return (
+    <div className="home-header-stars-counter">
+        <span>{starsCount}</span>
+        <img src="assets/StarsCounter.svg" alt="Stars" className="home-header-star-icon" /> 
+    </div>
+  );
+};
+
 const HomeHeader: React.FC<{
   currentHeader: string;
   onHeaderIconClick: Function;
@@ -41,6 +56,7 @@ const HomeHeader: React.FC<{
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
   const [isProfileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [starsCount, setStarsCount] = useState<number>(0); // State for stars count
 
   const [isLinked, setIsLinked] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
@@ -59,6 +75,10 @@ const HomeHeader: React.FC<{
       setIsLinked(linked);
       setStudentMode(currMode);
 
+      // Fetch stars count for the current student
+      const currentStudent = Util.getCurrentStudent();
+      setStarsCount(currentStudent?.stars || 0);
+      
       DEFAULT_HEADER_ICON_CONFIGS.forEach(async (element) => {
         if (
           !(
@@ -134,22 +154,23 @@ const HomeHeader: React.FC<{
       </div>
 
       <div className="home-header-outer-icon">
-        <HeaderIcon
-          headerConfig={{
-            displayName: student?.name ?? "Profile",
-            iconSrc:
-              (studentMode === MODES.SCHOOL && student?.image) ||
-              `assets/avatars/${student?.avatar ?? AVATARS[0]}.png`,
-            headerList: HOMEHEADERLIST.PROFILE,
-          }}
-          currentHeader={currentHeader}
-          pendingAssignmentCount={0}
-          pendingLiveQuizCount={0}
-          onHeaderIconClick={() => {
-            setProfileMenuOpen(true)
-          }}
-        />
-      </div>
+          <StarsCounter starsCount={starsCount} />
+          <HeaderIcon
+            headerConfig={{
+              displayName: student?.name ?? "Profile",
+              iconSrc:
+                (studentMode === MODES.SCHOOL && student?.image) ||
+                `assets/avatars/${student?.avatar ?? AVATARS[0]}.png`,
+              headerList: HOMEHEADERLIST.PROFILE,
+            }}
+            currentHeader={currentHeader}
+            pendingAssignmentCount={0}
+            pendingLiveQuizCount={0}
+            onHeaderIconClick={() => {
+              setProfileMenuOpen(true)
+            }}
+          />
+        </div>
       {isProfileMenuOpen && (
         <div className="home-header-menu-overlay" onClick={() => setProfileMenuOpen(false)}>
           <div onClick={(e) => e.stopPropagation()}>

@@ -48,6 +48,7 @@ import {
   GeoDataParams,
   SearchSchoolsParams,
   SearchSchoolsResult,
+  REWARD_LESSON_ID,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -79,7 +80,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 5;
+  private DB_VERSION = 6;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -2093,6 +2094,37 @@ export class SqliteApi implements ServiceApi {
         newResult.class_id,
       ]
     );
+    // ⭐ reward update 
+    const currentUser = await this.getUserByDocId(studentId);
+    const rewardLessonId = sessionStorage.getItem(REWARD_LESSON_ID);
+    let newReward: { reward_id: string; timestamp: string } | null = null;
+    let currentUserReward: { reward_id: string; timestamp: string } | null = null;
+
+    if (rewardLessonId && currentUser) {
+      sessionStorage.removeItem(REWARD_LESSON_ID);
+
+      const todaysReward = await Util.fetchTodaysReward();
+      const todaysTimestamp = new Date().toISOString();
+
+      currentUserReward = currentUser.reward
+        ? JSON.parse(currentUser.reward as string)
+        : null;
+
+      if (todaysReward) {
+        const alreadyGiven =
+          currentUserReward &&
+          currentUserReward.reward_id === todaysReward.id &&
+          new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
+            todaysTimestamp.split("T")[0];
+
+        if (!alreadyGiven) {
+          newReward = {
+            reward_id: todaysReward.id,
+            timestamp: todaysTimestamp,
+          };
+        }
+      }
+    }
     let starsEarned = 0;
     if (score > 25) starsEarned++;
     if (score > 50) starsEarned++;
@@ -2104,21 +2136,47 @@ export class SqliteApi implements ServiceApi {
 
     allStars[studentId] = currentLocalStars + starsEarned;
     localStorage.setItem(LATEST_STARS, JSON.stringify(allStars));
-    await this.executeQuery(
-      `UPDATE ${TABLES.User} SET stars = COALESCE(stars, 0) + ? WHERE id = ?;`,
-      [starsEarned, studentId]
-    );
+    let query = `UPDATE ${TABLES.User} SET `;
+    let params: any[] = [];
+
+    if (newReward !== null) {
+      query += `reward = ?, `;
+      params.push(JSON.stringify(newReward));
+    }
+
+    query += `stars = COALESCE(stars, 0) + ? WHERE id = ?;`;
+    params.push(starsEarned, studentId);
+
+    await this.executeQuery(query, params);
 
     const updatedStudent = await this.getUserByDocId(studentId);
     if (updatedStudent) {
       Util.setCurrentStudent(updatedStudent);
     }
     this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+    const pushData: any = {
       id: studentId,
       stars: updatedStudent?.stars,
-    });
+    };
+    if (newReward !== null && currentUser) {
+      pushData.reward = JSON.stringify(newReward);
+      await Util.logEvent(EVENTS.REWARD_COLLECTED, {
+        user_id: currentUser.id,
+        reward_id: newReward.reward_id,
+        prev_reward_id: currentUserReward?.reward_id ?? null,
+        timestamp: newReward.timestamp,
+        course_id: courseId ?? null,
+        chapter_id: chapterId,
+        lesson_id: lessonId,
+        assignment_id: assignmentId ?? null,
+        class_id: classId ?? null,
+        school_id: schoolId ?? null,
+        score: score,
+        stars_earned: starsEarned,
+      });
 
+    }
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushData);
     return newResult;
   }
 
@@ -6576,5 +6634,73 @@ order by
     schoolId: string
   ): Promise<TableTypes<"class">[]> {
     return await this._serverApi.getAllClassesBySchoolId(schoolId);
+  }
+  async getRewardById(
+    rewardId: string
+  ): Promise<TableTypes<"rive_reward"> | undefined> {
+    try {
+      const query = `SELECT * FROM rive_reward WHERE id = ? AND is_deleted = 0;`;
+      const res = await this.executeQuery(query, [rewardId]);
+      if (!res || !res.values || res.values.length === 0) {
+        console.warn(`No reward found for ID: ${rewardId}`);
+        return undefined;
+      }
+      return res.values[0] as TableTypes<"rive_reward">;
+    } catch (error) {
+      console.error("Error fetching reward by ID", error);
+      return undefined;
+    }
+  }
+  async getAllRewards(): Promise<TableTypes<"rive_reward">[] | []> {
+    try {
+      const query = `SELECT * FROM rive_reward WHERE type='normal' AND is_deleted = 0 ORDER BY state_number_input ASC;`;
+      const res = await this.executeQuery(query, []);
+      if (!res || !res.values) {
+        console.warn(`No rewards found`);
+        return [];
+      }
+      return res.values as TableTypes<"rive_reward">[];
+    } catch (error) {
+      console.error("Error fetching all rewards", error);
+      return [];
+    }
+  }
+  async updateUserReward(userId: string, rewardId: string, created_at?: string): Promise<void> {
+    if (!rewardId) {
+      console.warn("No rewardId provided to updateUserReward");
+      return;
+    }
+
+    try {
+      const currentUser = await this.getUserByDocId(
+        userId
+      ) as TableTypes<"user"> | null;
+      if (!currentUser) {
+        console.warn(`No user found`);
+        return;
+      }
+
+      const timestamp = created_at ?? new Date().toISOString();
+
+      const newReward = {
+        reward_id: rewardId,
+        timestamp: timestamp,
+      };
+      const rewardString = JSON.stringify(newReward);
+
+      // Update the same currentUser object
+      currentUser.reward = rewardString;
+
+      const query = `UPDATE user SET reward = ?, updated_at= ? WHERE id = ? AND is_deleted = 0;`;
+      await this.executeQuery(query, [rewardString, timestamp, userId]);
+      await this.updatePushChanges(
+        TABLES.User,
+        MUTATE_TYPES.UPDATE,
+        currentUser
+      );
+      Util.setCurrentStudent(currentUser);
+    } catch (error) {
+      console.error("❌ Error updating user reward:", error);
+    }
   }
 }

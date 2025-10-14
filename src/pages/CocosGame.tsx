@@ -8,6 +8,8 @@ import {
   LESSONS_PLAYED_COUNT,
   LESSON_END,
   PAGES,
+  REWARD_LEARNING_PATH,
+  REWARD_LESSON_ID,
   TableTypes,
 } from "../common/constants";
 import Loading from "../components/Loading";
@@ -165,7 +167,7 @@ const CocosGame: React.FC = () => {
     setGameResult(event);
   };
 
-  const updateLearningPath = async () => {
+  const updateLearningPath = async (isRewardLesson: boolean) => {
     if (!currentStudent) return;
     const learningPath = currentStudent.learning_path
       ? JSON.parse(currentStudent.learning_path)
@@ -202,6 +204,9 @@ const CocosGame: React.FC = () => {
 
       // Check if currentIndex exceeds pathEndIndex
       if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
+        if(isRewardLesson){
+           sessionStorage.setItem(REWARD_LEARNING_PATH, JSON.stringify(learningPath));
+        }
         currentCourse.startIndex = currentCourse.currentIndex;
         currentCourse.pathEndIndex += 5;
 
@@ -354,6 +359,10 @@ const CocosGame: React.FC = () => {
     }
     // Check if the game was played from `learning_pathway`
     const learning_path: string = state?.learning_path ?? false;
+    const isReward: boolean = state?.reward ?? false;
+    if (isReward===true){
+      sessionStorage.setItem(REWARD_LESSON_ID, lesson.id);
+    }
 
     let avatarObj = AvatarObj.getInstance();
     let finalProgressTimespent =
@@ -379,7 +388,7 @@ const CocosGame: React.FC = () => {
     );
     // Check if the game was played from the `/home` URL and if the user is connected to a class, Update the learning path only if the conditions are met
     if (learning_path) {
-      await updateLearningPath();
+      await updateLearningPath(isReward);
     }
     // if (!!lessonDetail.cocos_chapter_code) {
     //   let cChap = courseDetail.chapters.find(

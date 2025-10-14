@@ -68,5 +68,12 @@
       "ALTER TABLE school ADD COLUMN country TEXT;",
       "CREATE TABLE IF NOT EXISTS ops_requests ( id TEXT PRIMARY KEY, class_id TEXT, created_at TEXT DEFAULT (datetime('now')), is_deleted INTEGER DEFAULT 0, rejected_reason_description TEXT, rejected_reason_type TEXT, request_ends_at TEXT, request_id TEXT, request_status TEXT, request_type TEXT, requested_by TEXT, requested_to TEXT, responded_by TEXT, school_id TEXT, updated_at TEXT DEFAULT (datetime('now')) );"
     ]
+  },
+  "6": {
+    "toVersion": 6,
+    "statements": [
+      "ALTER TABLE user ADD COLUMN reward TEXT;",
+      "CREATE TABLE IF NOT EXISTS rive_reward (id TEXT PRIMARY KEY, accessory_name TEXT, state_machine TEXT, state_number_input INTEGER, animation_name TEXT, is_deleted BOOLEAN, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), state_input_name TEXT), type TEXT, max_state_value INTEGER;"
+    ]
   }
 }

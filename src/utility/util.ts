@@ -59,6 +59,7 @@ import {
   CHIMPLE_RIVE_STATE_MACHINE_MAX,
   USER_DATA,
   LOCAL_LESSON_BUNDLES_PATH,
+  DAILY_USER_REWARD,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -2429,6 +2430,90 @@ export class Util {
       auth.currentUser = updatedUserData;
     } catch (error) {
       console.error("Failed to update user language:", error);
+    }
+  }
+  public static async fetchTodaysReward() {
+    try {
+      const allRewards = await ServiceConfig.getI().apiHandler.getAllRewards();
+      if (allRewards.length === 0) return;
+      const today = new Date();
+      const day = today.getDate();
+      let chimpleRiveMaxState = allRewards[0].max_state_value ?? 8;
+      if (localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === "true") {
+        chimpleRiveMaxState =
+          parseInt(
+            localStorage.getItem(CHIMPLE_RIVE_STATE_MACHINE_MAX) as string
+          ) ?? 8;
+      }
+
+      const mappedState = ((day - 1) % chimpleRiveMaxState) + 1;
+      const todaysReward = allRewards.find(
+        (reward) =>
+          reward.state_number_input === mappedState && reward.type === "normal"
+      );
+      return todaysReward;
+    } catch (error) {
+      console.error("Error fetching Chimple Rive config:", error);
+    }
+  }
+  public static async updateUserReward() {
+    try {
+      // Get daily user reward from localStorage
+      const dailyUserReward = JSON.parse(
+        localStorage.getItem(DAILY_USER_REWARD) ?? "{}"
+      );
+
+      const currentStudent = Util.getCurrentStudent();
+      if (!currentStudent) return;
+      // Fetch current reward
+      const currentReward = currentStudent.reward
+        ? JSON.parse(currentStudent.reward as string)
+        : null;
+      if (!currentReward) return;
+
+      // Initialize student's reward object if it doesn't exist
+      if (!dailyUserReward[currentStudent.id]) {
+        dailyUserReward[currentStudent.id] = {};
+      }
+
+      if (
+        !dailyUserReward[currentStudent.id].timestamp ||
+        new Date(dailyUserReward[currentStudent.id].timestamp)
+          .toISOString()
+          .split("T")[0] !== new Date().toISOString().split("T")[0] ||
+        dailyUserReward[currentStudent.id].reward_id !==
+          currentReward?.reward_id
+      ) {
+        // Update localStorage
+        dailyUserReward[currentStudent.id].reward_id = currentReward.reward_id;
+        dailyUserReward[currentStudent.id].timestamp = currentReward.timestamp;
+        localStorage.setItem(
+          DAILY_USER_REWARD,
+          JSON.stringify(dailyUserReward)
+        );
+      }
+    } catch (error) {
+      console.error("Error updating student reward:", error);
+    }
+  }
+  public static retrieveUserReward() {
+    const currentStudent = Util.getCurrentStudent();
+    if (!currentStudent) return {};
+    const studentId = currentStudent.id;
+    try {
+      const allRewards = JSON.parse(
+        localStorage.getItem(DAILY_USER_REWARD) || "{}"
+      );
+
+      if (!allRewards[studentId]) {
+        allRewards[studentId] = {};
+      }
+      const currentReward = allRewards[studentId];
+
+      return currentReward;
+    } catch (error) {
+      console.error("Error managing daily user reward in localStorage:", error);
+      return {};
     }
   }
 }

@@ -1592,4 +1592,13 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"class">[]> {
     return this.s.getAllClassesBySchoolId(schoolId);
   }
+  getRewardById(rewardId: string): Promise<TableTypes<"rive_reward"> | undefined> { 
+    return this.s.getRewardById(rewardId);
+  }
+  getAllRewards(): Promise<TableTypes<"rive_reward">[]| []> { 
+    return this.s.getAllRewards();
+  }
+  updateUserReward(userId: string, rewardId: string, created_at?: string) :Promise<void> {
+    return this.s.updateUserReward(userId, rewardId, created_at);
+  }
 }
