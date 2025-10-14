@@ -461,7 +461,7 @@ export enum PAGES {
   CLASS_PROFILE = "/class-profile",
   SHOW_STUDENTS_IN_ASSIGNED_PAGE = "/show-students-in-assigned-page",
   ADD_TEACHER = "/add-teacher",
-  ADD_TEACHER_NAME ="/add-teacher-name",
+  ADD_TEACHER_NAME = "/add-teacher-name",
   TEACHER_PROFILE = "/teacher-profile",
   STUDENT_REPORT = "/student-report",
   SCHOOL_USERS = "/school-users",
@@ -889,7 +889,7 @@ export const CURRENT_SCHOOL_NAME = "currentSchoolName";
 export const DOWNLOADING_CHAPTER_ID = "downloading_chapter_id";
 export const USER_DATA = "userData";
 export const REFRESH_TOKEN = "refreshToken";
-export const LOCAL_BUNDLES_PATH = "http://localhost/assets/lessonBundles/";
+export const LOCAL_BUNDLES_PATH = "https://localhost/assets/lessonBundles/";
 export const CURRENT_SELECTED_COURSE = "currentSelectedCourse";
 export const CURRENT_SELECTED_CHAPTER = "currentSelectedChapter";
 export const CURRENT_STAGE = "currentStage";
@@ -918,6 +918,7 @@ export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
 export const GrowthBookAttributes = "growthBookAttributes";
 export const SCHOOL_LOGIN = "schoolLogin";
 export const CAMERAPERMISSION = "cameraPermission";
+export const LOCAL_LESSON_BUNDLES_PATH = "/assets/lessonBundles/";
 
 export const ALL_SUBJECT = {
   id: "all",
@@ -1028,7 +1029,7 @@ export interface SearchSchoolsParams {
   p_page_limit?: number;
   p_page_offset?: number;
 }
-export type School = TableTypes<'school'>;
+export type School = TableTypes<"school">;
 export interface SearchSchoolsResult {
   total_count: number;
   schools: School[];
