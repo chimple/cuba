@@ -58,6 +58,7 @@ import {
   IS_OPS_USER,
   CHIMPLE_RIVE_STATE_MACHINE_MAX,
   USER_DATA,
+  LOCAL_LESSON_BUNDLES_PATH,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -418,7 +419,7 @@ export class Util {
                 );
               }
               const localBundlePath =
-                "/assets/lessonBundles/" + `${lessonId}/config.json`;
+                LOCAL_LESSON_BUNDLES_PATH + `${lessonId}/config.json`;
               try {
                 const response = await fetch(localBundlePath);
                 if (response.ok) {
