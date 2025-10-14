@@ -223,7 +223,7 @@ const App: React.FC = () => {
     try{
       await i18n.changeLanguage(LANG.ENGLISH);
     } catch(e){
-      console.error(`Failed to change language to ${LANG.ENGLISH}`, e); 
+      console.error(`Failed to change language to ${LANG.ENGLISH}`, e);
     }
 
     const authHandler = ServiceConfig.getI().authHandler;
@@ -259,7 +259,7 @@ const App: React.FC = () => {
       const portPlugin = registerPlugin<PortPlugin>("Port");
       document.addEventListener(TRIGGER_DEEPLINK, sendLaunch);
       const data = await portPlugin.sendLaunchData();
-      if (data.registration) {
+      if (data.lessonId) {
         document.dispatchEvent(new Event(TRIGGER_DEEPLINK));
       } else if (Util.isRespectMode === true) {
         ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
@@ -690,7 +690,7 @@ const App: React.FC = () => {
               <SchoolProfile />
             </ProtectedRoute>
             {/* <ProtectedRoute path={PAGES.ADD_SCHOOL} exact={true}>
-              
+
                 <EditSchool />
 
             </ProtectedRoute> */}
@@ -704,7 +704,7 @@ const App: React.FC = () => {
               <ManageClass />
             </ProtectedRoute>
             {/* <ProtectedRoute path={PAGES.EDIT_SCHOOL} exact={true}>
-              
+
                 <EditSchool />
 
             </ProtectedRoute> */}

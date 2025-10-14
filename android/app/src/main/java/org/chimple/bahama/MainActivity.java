@@ -1,7 +1,5 @@
 package org.chimple.bahama;
 
-import android.content.Intent;
-import android.Manifest;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -10,25 +8,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 import android.content.Intent;
 
 import com.getcapacitor.BridgeActivity;
-import com.getcapacitor.Plugin;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.appcheck.FirebaseAppCheck;
-import com.google.firebase.appcheck.AppCheckProviderFactory;
-import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
-
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-
-import com.google.firebase.crashlytics.FirebaseCrashlytics;       
-import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory;
 import com.getcapacitor.PluginHandle;
 import com.getcapacitor.Plugin;
 import ee.forgr.capacitor.social.login.GoogleProvider;
@@ -40,6 +23,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import android.app.Activity;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
@@ -49,10 +33,13 @@ import com.google.android.gms.auth.api.identity.GetPhoneNumberHintIntentRequest;
 import com.google.android.gms.auth.api.identity.Identity;
 import com.google.android.gms.common.api.ApiException;
 
+import org.json.JSONObject;
 
 
 public class MainActivity extends BridgeActivity implements ModifiedMainActivityForSocialLoginPlugin {
     private static Context appContext;
+    private static final String TAG = "RespectLauncher";
+
     private static String phoneNumber;
     private static ActivityResultLauncher activityResultLauncher;
     // private RespectClientManager respectClientManager; // Declare RespectClientManager
@@ -60,42 +47,36 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
     static String activity_id = "";
     static JSONObject deepLinkData = new JSONObject();
     static boolean isRespect = false;
+    private MyWebGLMonitor webGLMonitor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        instance = this;
-        super.onCreate(savedInstanceState);
-
-        // Handle global crash exceptions
-        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) ->{
             SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
             String userId = sharedPreferences.getString("userId", null);
-            if (userId != null) {
+            if(userId !=null){
                 FirebaseCrashlytics.getInstance().setUserId(userId);
             }
             FirebaseCrashlytics.getInstance().recordException(throwable);
         });
-
-        // Register plugins
+         // Register plugins
         registerPlugin(PortPlugin.class);
-        registerPlugin(NativeSSOPlugin.class);
 //        super.onCreate(savedInstanceState);
 //        var respectClientManager = RespectClientManager();
 //        respectClientManager.bindService(this);
 
-        // Hide navigation bar and set fullscreen mode
-        initializeActivityLauncher();
-        registerPlugin(PortPlugin.class);
         super.onCreate(savedInstanceState);
         this.bridge.setWebViewClient(new MyCustomWebViewClient(this.bridge, this));
         appContext = this;
         View decorView = getWindow().getDecorView();
-        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN;
+        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
-
-        // Initialize Firebase services
+        // Handle deep linking on cold start
+        handleDeepLink(getIntent());
+        isRespect = isAppInstalled("com.whatsapp");
+        Log.d("TAG ---> ", isRespect + " : " + "Respect is Installed");
         FirebaseApp.initializeApp(/*context=*/ this);
-        FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();
         initializeActivityLauncher();
 
         // --- ✅ Initialize WebGL Monitor ---
@@ -105,45 +86,6 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         } else {
             Log.e("MainActivity", "WebView not ready for WebGL monitor");
         }
-        // Try to use Debug App Check when the debug provider is on the classpath; else fall back to Play Integrity
-        try {
-            Class<?> debugFactoryClass = Class.forName("com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory");
-            java.lang.reflect.Method getInstance = debugFactoryClass.getMethod("getInstance");
-            Object factory = getInstance.invoke(null);
-            firebaseAppCheck.installAppCheckProviderFactory((AppCheckProviderFactory) factory);
-        } catch (Throwable ignored) {
-            // Fallback to Play Integrity in case debug factory is unavailable (e.g., release builds)
-            firebaseAppCheck.installAppCheckProviderFactory(PlayIntegrityAppCheckProviderFactory.getInstance());
-        }
-        // Initialize and bind RespectClientManager
-//        respectClientManager = new RespectClientManager(); // Initialize RespectClientManager
-//        respectClientManager.bindService(this); // Bind the service
-
-        // Handle deep linking on cold start
-        handleDeepLink(getIntent());
-        isRespect = isAppInstalled("com.whatsapp");
-        Log.d("TAG ---> ", isRespect + " : " + "Respect is Installed");
-        var _hash = getAppHash(this);
-        System.out.println("HashCode: " + _hash);
-        initializeActivityLauncher();
-    }
-
-    public static String getAppHash(Context context) {
-        try {
-            String packageName = context.getPackageName();
-            String signature = context.getPackageManager()
-                    .getPackageInfo(packageName, PackageManager.GET_SIGNATURES)
-                    .signatures[0]
-                    .toCharsString();
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update((packageName + " " + signature).getBytes());
-            byte[] hash = md.digest();
-            String appHash = Base64.encodeToString(hash, Base64.NO_WRAP).substring(0, 11);
-            return appHash;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     public void initializeActivityLauncher() {
@@ -226,6 +168,7 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         new Handler(Looper.getMainLooper()).postDelayed(() -> PortPlugin.sendLaunch(), 5000);
     }
 
+
     public boolean isAppInstalled(String packageName) {
         PackageManager pm = getPackageManager();
         try {
@@ -236,6 +179,7 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
             return false;
         }
     }
+
     public static Context getAppContext() {
         return appContext;
     }

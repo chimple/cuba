@@ -714,7 +714,22 @@ export class OneRosterApi implements ServiceApi {
   getLastAssignmentsForRecommendations(classId: string): Promise<TableTypes<"assignment">[] | undefined> {
     throw new Error("Method not implemented.");
   }
-  createAssignment(student_list: string[], userId: string, starts_at: string, ends_at: string, is_class_wise: boolean, class_id: string, school_id: string, lesson_id: string, chapter_id: string, course_id: string, type: string): Promise<boolean> {
+  createAssignment(
+    student_list: string[],
+    userId: string,
+    starts_at: string,
+    ends_at: string,
+    is_class_wise: boolean,
+    class_id: string,
+    school_id: string,
+    lesson_id: string,
+    chapter_id: string,
+    course_id: string,
+    type: string,
+    batch_id: string,
+    source: string | null,
+    created_at?: string
+  ): Promise<void> {
     throw new Error("Method not implemented.");
   }
   getTeachersForClass(classId: string): Promise<TableTypes<"user">[] | undefined> {
@@ -833,7 +848,7 @@ export class OneRosterApi implements ServiceApi {
   getFieldCoordinatorsForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
     throw new Error("Method not implemented.");
   }
-  getSchoolsByModel(model: MODEL, limit: number, offset: number): Promise<TableTypes<"school">[]> {
+  getSchoolsByModel(model: EnumType<"program_model">, limit: number, offset: number): Promise<TableTypes<"school">[]> {
     throw new Error("Method not implemented.");
   }
   getProgramData(programId: string): Promise<{ programDetails: { id: string; label: string; value: string; }[]; locationDetails: { id: string; label: string; value: string; }[]; partnerDetails: { id: string; label: string; value: string; }[]; programManagers: { name: string; role: string; phone: string; }[]; } | null> {
@@ -3061,8 +3076,8 @@ export class OneRosterApi implements ServiceApi {
     const data = await portPlugin.sendLaunchData();
     const actorObj = typeof data.actor === "string" ? JSON.parse(data.actor) : data.actor;
 
-    const actorName = actorObj.name?.[0] || "";
-    const actorMbox = actorObj.mbox?.[0] || "";
+    const actorName = actorObj.name?.[0];
+    const actorMbox = actorObj.mbox?.[0];
     const registration = data.registration;
 
     const user: TableTypes<"user"> = {
