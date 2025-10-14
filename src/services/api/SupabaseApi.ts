@@ -6987,6 +6987,53 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
+  async getSchoolFilterOptionsForProgram(programId: string): Promise<Record<string, string[]>> {
+    if (!this.supabase) {
+      console.error("Supabase client is not initialized");
+      return {};
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        "get_school_filter_options_for_program",
+        { input_program_id: programId }
+      );
+
+      if (error) {
+        console.error("RPC error in getSchoolFilterOptionsForProgram:", error);
+        return {};
+      }
+
+      const parsed: Record<string, string[]> = {
+        state: [],
+        district: [],
+        block: [],
+        cluster: [],
+        programType: [],
+        partner: [],
+        programManager: [],
+        fieldCoordinator: [],
+        model: [],
+      };
+
+      if (data && typeof data === "object") {
+        for (const key in parsed) {
+          const val = data[key];
+          parsed[key] = Array.isArray(val)
+            ? val.filter(
+                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+              )
+            : [];
+        }
+      }
+
+      return parsed;
+    } catch (err) {
+      console.error("Unexpected error in getSchoolFilterOptionsForProgram:", err);
+      return {};
+    }
+  }
+
   async createOrAddUserOps(payload: {
     name: string;
     email?: string;

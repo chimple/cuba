@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import DataTableBody, { Column } from "../components/DataTableBody";
 import DataTablePagination from "../components/DataTablePagination";
-import { useDataTableLogic } from "../OpsUtility/useDataTableLogic";
 import {
   Box,
   Typography,
@@ -18,6 +17,8 @@ import { PAGES } from "../../common/constants";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import Breadcrumb from "../components/Breadcrumb";
 import SearchAndFilter from "../components/SearchAndFilter";
+import FilterSlider from "../components/FilterSlider";
+import SelectedFilters from "../components/SelectedFilters";
 
 interface ProgramConnectedSchoolPageProps {
   id: string;
@@ -34,7 +35,10 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<Record<string, string[]>>({});
+  const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({});
   const [loadingFilters, setLoadingFilters] = useState(false);
+  const [filterOptions, setFilterOptions] = useState<Record<string, string[]>>({});
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [schools, setSchools] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [programName, setProgramName] = useState("");
@@ -48,8 +52,51 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
     setPage(1);
   };
 
-  const onFilterClick = () => {
-    return;
+  const handleFilterChange = (name: string, value: string[]) => {
+    setTempFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleDeleteFilter = (key: string, value: string) => {
+    setFilters((prev) => {
+      const updatedFilters = {
+        ...prev,
+        [key]: prev[key].filter((v) => v !== value),
+      };
+      setTempFilters(updatedFilters);
+      return updatedFilters;
+    });
+    setPage(1);
+  };
+
+  const onFilterClick = () => setIsFilterOpen(true);
+
+  const handleClose = () => {
+    setIsFilterOpen(false);
+    setTempFilters(filters);
+  };
+
+  const handleApplyFilters = () => {
+    setFilters(tempFilters);
+    setIsFilterOpen(false);
+    setPage(1);
+  };
+
+  const handleCancelFilters = () => {
+    const reset = {
+      state: [],
+      district: [],
+      block: [],
+      cluster: [],
+      programType: [],
+      partner: [],
+      programManager: [],
+      fieldCoordinator: [],
+      model: [],
+    };
+    setTempFilters(reset);
+    setFilters(reset);
+    setIsFilterOpen(false);
+    setPage(1);
   };
 
   const fetchSchools = async () => {
@@ -120,14 +167,27 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
   };
 
   useEffect(() => {
+    const fetchFilterOptions = async () => {
+      setLoadingFilters(true);
+      try {
+        const response = await api.getSchoolFilterOptionsForProgram(id);
+        setFilterOptions(response || {});
+      } catch (error) {
+        console.error("Error loading filter options:", error);
+        setFilterOptions({});
+      } finally {
+        setLoadingFilters(false);
+      }
+    };
+
+    if (id) {
+      fetchFilterOptions();
+    }
+  }, [id]);
+
+  useEffect(() => {
     fetchSchools();
   }, [id, filters, searchTerm, orderBy, orderDir, page]);
-
-  const filteredSchools = useMemo(() => {
-    return schools.filter((school) =>
-      school.name.value.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [schools, searchTerm]);
 
   const columns: Column<Record<string, any>>[] = [
     {
@@ -173,6 +233,51 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
   };
 
   const pageCount = Math.ceil(total / DEFAULT_PAGE_SIZE);
+
+  const filterConfigsForSchools = useMemo(() => {
+    const configs: { key: string; label: string }[] = [];
+    
+    // Only show Program Manager filter if multiple managers exist
+    if (filterOptions["programManager"]?.length > 1) {
+      configs.push({ key: "programManager", label: t("Select Program Manager") });
+    }
+    
+    // Only show School Model filter if both models exist
+    if (filterOptions["model"]?.length > 1) {
+      configs.push({ key: "model", label: t("Select School Model") });
+    }
+    
+    // Only show Program Type filter if multiple types exist
+    if (filterOptions["programType"]?.length > 1) {
+      configs.push({ key: "programType", label: t("Select Program Type") });
+    }
+    
+    // Only show Partner filter if partners exist
+    if (filterOptions["partner"]?.length > 0) {
+      configs.push({ key: "partner", label: t("Select Partner") });
+    }
+    
+    // Only show Field Coordinator filter if coordinators exist
+    if (filterOptions["fieldCoordinator"]?.length > 0) {
+      configs.push({ key: "fieldCoordinator", label: t("Select Field Coordinator") });
+    }
+    
+    // Geography filters (always available if data exists)
+    if (filterOptions["state"]?.length > 0) {
+      configs.push({ key: "state", label: t("Select State") });
+    }
+    if (filterOptions["district"]?.length > 0) {
+      configs.push({ key: "district", label: t("Select District") });
+    }
+    if (filterOptions["block"]?.length > 0) {
+      configs.push({ key: "block", label: t("Select Block") });
+    }
+    if (filterOptions["cluster"]?.length > 0) {
+      configs.push({ key: "cluster", label: t("Select Cluster") });
+    }
+    
+    return configs;
+  }, [filterOptions]);
 
   return (
     <div className="ops-program-schools-page-container">
@@ -228,15 +333,32 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
                   onSearchChange={handleSearchChange}
                   filters={filters}
                   onFilterClick={onFilterClick}
+                  onClearFilters={handleCancelFilters}
                 />
               )}
             </div>
           </div>
         </Box>
+
+        <SelectedFilters
+          filters={filters}
+          onDeleteFilter={handleDeleteFilter}
+        />
+
+        <FilterSlider
+          isOpen={isFilterOpen}
+          onClose={handleClose}
+          filters={tempFilters}
+          filterOptions={filterOptions}
+          onFilterChange={handleFilterChange}
+          onApply={handleApplyFilters}
+          onCancel={handleCancelFilters}
+          filterConfigs={filterConfigsForSchools}
+        />
       </Box>
 
       <div className="ops-program-schools-table-container">
-        {!loadingData && filteredSchools.length === 0 ? (
+        {!loadingData && schools.length === 0 ? (
           <Box
             display="flex"
             justifyContent="center"
@@ -248,7 +370,7 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
         ) : (
           <DataTableBody
             columns={columns}
-            rows={filteredSchools}
+            rows={schools}
             orderBy={orderBy}
             order={orderDir}
             onSort={handleSort}
@@ -257,7 +379,7 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
         )}
       </div>
 
-      {!loadingData && filteredSchools.length > 0 && (
+      {!loadingData && schools.length > 0 && (
         <div className="ops-program-schools-list-footer">
           <DataTablePagination
             pageCount={pageCount}

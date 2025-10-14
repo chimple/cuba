@@ -1737,6 +1737,17 @@ export interface ServiceApi {
   getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>>;
 
   /**
+   * Fetch filter options for schools within a specific program.
+   * Returns an object where keys are filter categories (e.g., 'state', 'district')
+   * and values are arrays of filter option strings specific to that program.
+   * 
+   * @param programId - The ID of the program to get filter options for
+   * @returns Promise resolving to an object where keys are filter categories
+   * and values are arrays of filter option strings.
+   */
+  getSchoolFilterOptionsForProgram(programId: string): Promise<Record<string, string[]>>;
+
+  /**
    * Fetch a list of schools filtered by given criteria, with pagination, sorting, and search.
    *
    * @param params - An object containing filters (keys as categories and values as selected options),

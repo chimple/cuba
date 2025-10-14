@@ -5588,6 +5588,12 @@ order by
     return await this._serverApi.getSchoolFilterOptionsForSchoolListing();
   }
 
+  async getSchoolFilterOptionsForProgram(programId: string): Promise<
+    Record<string, string[]>
+  > {
+    return await this._serverApi.getSchoolFilterOptionsForProgram(programId);
+  }
+
   async getFilteredSchoolsForSchoolListing(params: {
     filters?: Record<string, string[]>;
     programId?: string;
