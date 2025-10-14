@@ -1,31 +1,17 @@
 package org.chimple.bahama;
 
-import android.content.Intent;
-import android.Manifest;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 import android.content.Intent;
 
 import com.getcapacitor.BridgeActivity;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
-
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-
-import com.google.firebase.crashlytics.FirebaseCrashlytics;       
-import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory;
 import com.getcapacitor.PluginHandle;
 import com.getcapacitor.Plugin;
 import ee.forgr.capacitor.social.login.GoogleProvider;
@@ -47,6 +33,7 @@ import com.google.android.gms.auth.api.identity.GetPhoneNumberHintIntentRequest;
 import com.google.android.gms.auth.api.identity.Identity;
 import com.google.android.gms.common.api.ApiException;
 
+import org.json.JSONObject;
 
 
 public class MainActivity extends BridgeActivity implements ModifiedMainActivityForSocialLoginPlugin {
@@ -74,44 +61,12 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         });
         registerPlugin(PortPlugin.class);
         super.onCreate(savedInstanceState);
-
-        // Hide navigation bar and set fullscreen mode
-        initializeActivityLauncher();
-        registerPlugin(PortPlugin.class);
-        super.onCreate(savedInstanceState);
         this.bridge.setWebViewClient(new MyCustomWebViewClient(this.bridge, this));
         appContext = this;
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
-
-        // Initialize Firebase services
-        FirebaseApp.initializeApp(/*context=*/ this);
-        FirebaseAppCheck firebaseAppCheck = FirebaseAppCheck.getInstance();
-        initializeActivityLauncher();
-
-        // --- ✅ Initialize WebGL Monitor ---
-        if (this.bridge != null && this.bridge.getWebView() != null) {
-            Log.e("MainActivity", "Initializing WebGL monitor...");
-            webGLMonitor = new MyWebGLMonitor(this, this.bridge.getWebView());
-        } else {
-            Log.e("MainActivity", "WebView not ready for WebGL monitor");
-        }
-        // Try to use Debug App Check when the debug provider is on the classpath; else fall back to Play Integrity
-        try {
-            Class<?> debugFactoryClass = Class.forName("com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory");
-            java.lang.reflect.Method getInstance = debugFactoryClass.getMethod("getInstance");
-            Object factory = getInstance.invoke(null);
-            firebaseAppCheck.installAppCheckProviderFactory((AppCheckProviderFactory) factory);
-        } catch (Throwable ignored) {
-            // Fallback to Play Integrity in case debug factory is unavailable (e.g., release builds)
-            firebaseAppCheck.installAppCheckProviderFactory(PlayIntegrityAppCheckProviderFactory.getInstance());
-        }
-        // Initialize and bind RespectClientManager
-//        respectClientManager = new RespectClientManager(); // Initialize RespectClientManager
-//        respectClientManager.bindService(this); // Bind the service
-
         // Handle deep linking on cold start
         handleDeepLink(getIntent());
         isRespect = isAppInstalled("com.whatsapp");
@@ -208,15 +163,6 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         new Handler(Looper.getMainLooper()).postDelayed(() -> PortPlugin.sendLaunch(), 5000);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        // Re-inject WebGL watcher when app comes back from background
-        if (this.bridge != null && this.bridge.getWebView() != null && webGLMonitor != null) {
-            Log.e("MainActivity", "Re-injecting WebGL monitor after resume");
-            webGLMonitor.reInjectWatcher();
-        }
-    }
 
     public boolean isAppInstalled(String packageName) {
         PackageManager pm = getPackageManager();
@@ -229,10 +175,6 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         }
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
     public static Context getAppContext() {
         return appContext;
     }
