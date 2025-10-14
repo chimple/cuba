@@ -235,49 +235,65 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
   const pageCount = Math.ceil(total / DEFAULT_PAGE_SIZE);
 
   const filterConfigsForSchools = useMemo(() => {
-    const configs: { key: string; label: string }[] = [];
-    
-    // Only show Program Manager filter if multiple managers exist
-    if (filterOptions["programManager"]?.length > 1) {
-      configs.push({ key: "programManager", label: t("Select Program Manager") });
-    }
-    
-    // Only show School Model filter if both models exist
-    if (filterOptions["model"]?.length > 1) {
-      configs.push({ key: "model", label: t("Select School Model") });
-    }
-    
-    // Only show Program Type filter if multiple types exist
-    if (filterOptions["programType"]?.length > 1) {
-      configs.push({ key: "programType", label: t("Select Program Type") });
-    }
-    
-    // Only show Partner filter if partners exist
-    if (filterOptions["partner"]?.length > 0) {
-      configs.push({ key: "partner", label: t("Select Partner") });
-    }
-    
-    // Only show Field Coordinator filter if coordinators exist
-    if (filterOptions["fieldCoordinator"]?.length > 0) {
-      configs.push({ key: "fieldCoordinator", label: t("Select Field Coordinator") });
-    }
-    
-    // Geography filters (always available if data exists)
-    if (filterOptions["state"]?.length > 0) {
-      configs.push({ key: "state", label: t("Select State") });
-    }
-    if (filterOptions["district"]?.length > 0) {
-      configs.push({ key: "district", label: t("Select District") });
-    }
-    if (filterOptions["block"]?.length > 0) {
-      configs.push({ key: "block", label: t("Select Block") });
-    }
-    if (filterOptions["cluster"]?.length > 0) {
-      configs.push({ key: "cluster", label: t("Select Cluster") });
-    }
-    
-    return configs;
-  }, [filterOptions]);
+    // Configuration array for all possible filters
+    const filterConfigurations = [
+      {
+        key: "programManager",
+        label: t("Select Program Manager"),
+        shouldShow: (options: string[]) => options.length > 1, // Only show if multiple managers exist
+      },
+      {
+        key: "model",
+        label: t("Select School Model"),
+        shouldShow: (options: string[]) => options.length > 1, // Only show if multiple models exist
+      },
+      {
+        key: "programType",
+        label: t("Select Program Type"),
+        shouldShow: (options: string[]) => options.length > 1, // Only show if multiple types exist
+      },
+      {
+        key: "partner",
+        label: t("Select Partner"),
+        shouldShow: (options: string[]) => options.length > 0, // Show if any partners exist
+      },
+      {
+        key: "fieldCoordinator",
+        label: t("Select Field Coordinator"),
+        shouldShow: (options: string[]) => options.length > 0, // Show if any coordinators exist
+      },
+      {
+        key: "state",
+        label: t("Select State"),
+        shouldShow: (options: string[]) => options.length > 0, // Geography filters - show if data exists
+      },
+      {
+        key: "district",
+        label: t("Select District"),
+        shouldShow: (options: string[]) => options.length > 0,
+      },
+      {
+        key: "block",
+        label: t("Select Block"),
+        shouldShow: (options: string[]) => options.length > 0,
+      },
+      {
+        key: "cluster",
+        label: t("Select Cluster"),
+        shouldShow: (options: string[]) => options.length > 0,
+      },
+    ];
+
+    return filterConfigurations
+      .filter(config => {
+        const options = filterOptions[config.key] || [];
+        return config.shouldShow(options);
+      })
+      .map(config => ({
+        key: config.key,
+        label: config.label,
+      }));
+  }, [filterOptions, t]);
 
   return (
     <div className="ops-program-schools-page-container">
