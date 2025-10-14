@@ -2401,6 +2401,9 @@ export class Util {
           "background-image",
           "url(/pathwayAssets/pathwayBackground.svg)"
         );
+        body?.style.setProperty("background-repeat", "no-repeat");
+        body?.style.setProperty("background-size", "cover");
+        body?.style.setProperty("background-position", "center center");
         console.error("Failed to load remote background image:", e);
       }
     } else {
@@ -2408,6 +2411,9 @@ export class Util {
         "background-image",
         "url(/pathwayAssets/pathwayBackground.svg)"
       );
+      body?.style.setProperty("background-repeat", "no-repeat");
+      body?.style.setProperty("background-size", "cover");
+      body?.style.setProperty("background-position", "center center");
     }
   }
   public static async handleDeeplinkClick(
