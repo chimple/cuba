@@ -1306,6 +1306,12 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getSchoolFilterOptionsForSchoolListing();
   }
 
+  async getSchoolFilterOptionsForProgram(programId: string): Promise<
+    Record<string, string[]>
+  > {
+    return await this.s.getSchoolFilterOptionsForProgram(programId);
+  }
+
   async getFilteredSchoolsForSchoolListing(params: {
     filters?: Record<string, string[]>;
     programId?: string;

@@ -2812,6 +2812,10 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: Json;
       };
+      get_school_filter_options_for_program: {
+        Args: { input_program_id: string };
+        Returns: Json;
+      };
       get_schools_by_filters_with_program_id: {
         Args: { _program_id?: string; filters?: Json };
         Returns: {
