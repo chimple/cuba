@@ -1064,7 +1064,7 @@ export const REWARD_MODAL_SHOWN_DATE= "RewardModalShownDate";
 export const TODAYS_RIVE_REWARD = "TodaysRiveReward";
 export const DAILY_USER_REWARD = "DailyUserReward";
 export const IDLE_REWARD_ID = "5dfa8e34-14a3-42de-ae3a-977862712b1e";
-export const  REWARD_LESSON_ID = "RewardLessonId"
+export const  REWARD_LESSON = "RewardLesson"
 export const  REWARD_LEARNING_PATH = "RewardLearningPath"
 export enum RewardBoxState {
   IDLE = "idle",

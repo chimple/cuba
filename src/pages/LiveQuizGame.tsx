@@ -34,6 +34,9 @@ const LiveQuizGame: FC = () => {
   const [quizData, setQuizData] = useState<any>();
   const [scoreData, setScoreData] = useState<any>();
   let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
+  // Check if the game was played from `learning_pathway`
+  const learning_path: boolean = state?.learning_path ?? false;
+  const isReward: boolean = state?.reward ?? false;
 
   useEffect(() => {
     if (!paramLiveRoomId && !paramLessonId) {
@@ -143,6 +146,8 @@ const LiveQuizGame: FC = () => {
                   setScoreData(scoreData);
                 }}
                 onQuizEnd={handleQuizEnd}
+                isLearningPathway={learning_path}
+                isReward={isReward}
               />
             )}
           </div>

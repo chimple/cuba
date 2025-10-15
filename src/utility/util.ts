@@ -60,6 +60,7 @@ import {
   USER_DATA,
   LOCAL_LESSON_BUNDLES_PATH,
   DAILY_USER_REWARD,
+  REWARD_LEARNING_PATH,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -2514,6 +2515,121 @@ export class Util {
     } catch (error) {
       console.error("Error managing daily user reward in localStorage:", error);
       return {};
+    }
+  }
+  public static async updateLearningPath(
+    currentStudent: TableTypes<"user">,
+    isRewardLesson: boolean
+  ) {
+    if (!currentStudent) return;
+    const learningPath = currentStudent.learning_path
+      ? JSON.parse(currentStudent.learning_path)
+      : null;
+
+    if (!learningPath) return;
+
+    try {
+      const { courses } = learningPath;
+      const currentCourse = courses.courseList[courses.currentCourseIndex];
+
+      const prevLessonId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path[
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].currentIndex
+        ].lesson_id;
+      const prevChapterId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path[
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].currentIndex
+        ].chapter_id;
+      const prevCourseId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .course_id;
+      const prevPathId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path_id;
+      // Update currentIndex
+      currentCourse.currentIndex += 1;
+
+      // Check if currentIndex exceeds pathEndIndex
+      if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
+        if (isRewardLesson) {
+          sessionStorage.setItem(
+            REWARD_LEARNING_PATH,
+            JSON.stringify(learningPath)
+          );
+        }
+        currentCourse.startIndex = currentCourse.currentIndex;
+        currentCourse.pathEndIndex += 5;
+
+        // Ensure pathEndIndex does not exceed the path length
+        if (currentCourse.pathEndIndex > currentCourse.path.length) {
+          currentCourse.pathEndIndex = currentCourse.path.length - 1;
+        }
+
+        // Move to the next course
+        courses.currentCourseIndex += 1;
+
+        await ServiceConfig.getI().apiHandler.setStarsForStudents(
+          currentStudent.id,
+          10
+        );
+        // Loop back to the first course if at the last course
+        if (courses.currentCourseIndex >= courses.courseList.length) {
+          courses.currentCourseIndex = 0;
+        }
+        const pathwayEndData = {
+          user_id: currentStudent.id,
+          current_path_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path_id,
+          current_course_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].course_id,
+          current_lesson_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path[
+              learningPath.courses.courseList[
+                learningPath.courses.currentCourseIndex
+              ].currentIndex
+            ].lesson_id,
+          current_chapter_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path[
+              learningPath.courses.courseList[
+                learningPath.courses.currentCourseIndex
+              ].currentIndex
+            ].chapter_id,
+          prev_path_id: prevPathId,
+          prev_course_id: prevCourseId,
+          prev_lesson_id: prevLessonId,
+          prev_chapter_id: prevChapterId,
+        };
+        await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
+        await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
+      }
+
+      // Update the learning path in the database
+      await ServiceConfig.getI().apiHandler.updateLearningPath(
+        currentStudent,
+        JSON.stringify(learningPath)
+      );
+      // Update the current student object
+      const updatedStudent =
+        await ServiceConfig.getI().apiHandler.getUserByDocId(currentStudent.id);
+      if (updatedStudent) {
+        Util.setCurrentStudent(updatedStudent);
+      }
+    } catch (error) {
+      console.error("Error updating learning path:", error);
     }
   }
 }

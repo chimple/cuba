@@ -6,12 +6,17 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { useHistory } from "react-router";
 import {
   CAN_ACCESS_REMOTE_ASSETS,
+  COCOS,
+  CONTINUE,
   DAILY_USER_REWARD,
   IDLE_REWARD_ID,
+  LIDO,
+  LIVE_QUIZ,
   PAGES,
   REWARD_LEARNING_PATH,
   REWARD_MODAL_SHOWN_DATE,
   RewardBoxState,
+  TableTypes,
 } from "../../common/constants";
 import PathwayModal from "./PathwayModal";
 import { t } from "i18next";
@@ -61,7 +66,8 @@ const PathwayStructure: React.FC = () => {
   checkAndUpdateReward,
   shouldShowDailyRewardModal,
   } = useReward();
-
+  const [currentCourse, setCurrentCourse] = useState<TableTypes<"course">>();
+  const [currentChapter, setCurrentChapter] = useState<TableTypes<"chapter">>();
 
   // State for daily reward modal and reward box visibility
   const [rewardModalOpen, setRewardModalOpen] = useState(false);
@@ -247,6 +253,12 @@ const PathwayStructure: React.FC = () => {
         const currentCourseIndex = learningPath?.courses.currentCourseIndex;
         const course = learningPath?.courses.courseList[currentCourseIndex];
         const { startIndex, currentIndex, pathEndIndex } = course;
+        const [courseData, chapterData] = await Promise.all([
+            api.getCourse(course.id),
+            api.getChapterById(course.path[currentIndex].chapter_id)
+        ]);
+        setCurrentCourse(courseData);
+        setCurrentChapter(chapterData);
 
         const [
           svgContent,
@@ -420,18 +432,40 @@ const PathwayStructure: React.FC = () => {
               activeGroup.setAttribute("style", "cursor: pointer;");
 
               activeGroup.addEventListener("click", () => {
-                if (lesson.plugin_type === "cocos") {
+                if (lesson.plugin_type === COCOS) {
                   const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
                   history.replace(PAGES.GAME + params, {
                     url: "chimple-lib/index.html" + params,
                     lessonId: lesson.cocos_lesson_id,
                     courseDocId: course.course_id,
                     lesson: JSON.stringify(lesson),
-                    chapter: JSON.stringify({ chapter_id: lesson.chapter_id }),
-                    from: history.location.pathname + `?continue=true`,
+                    chapter: JSON.stringify(currentChapter),
+                    from: history.location.pathname + `?${CONTINUE}=true`,
+                    course: JSON.stringify(currentCourse),
                     learning_path: true,
                   });
-                }
+                } else if(lesson.plugin_type === LIVE_QUIZ){
+                  history.replace(
+                    PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
+                    {
+                      courseId: course.course_id,
+                      lesson: JSON.stringify(lesson),
+                      from: history.location.pathname + `?${CONTINUE}=true`,
+                      learning_path: true,
+                    }
+                  );
+                } else if (lesson.plugin_type === LIDO) {
+                    const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+                    history.replace(PAGES.LIDO_PLAYER + parmas, {
+                      lessonId: lesson.cocos_lesson_id,
+                      courseDocId: course.course_id,
+                      course: JSON.stringify(currentCourse),
+                      lesson: JSON.stringify(lesson),
+                      chapter: JSON.stringify(currentChapter),
+                      from: history.location.pathname + `?${CONTINUE}=true`,
+                      learning_path: true,
+                    });
+                  }
               });
               fragment.appendChild(activeGroup);
             } else {
@@ -563,7 +597,7 @@ const PathwayStructure: React.FC = () => {
             const rewardRecord = await api.getRewardById(newRewardId);
             if (!rewardRecord) return;
 
-            setHasTodayReward(true);
+            setHasTodayReward(false);
 
             // The reward flies to the completed lesson's position (currentIndex - 1)
             const completedLessonIndex = lessons.findIndex(
@@ -713,8 +747,19 @@ const PathwayStructure: React.FC = () => {
 
     const initializePathway = async () => {
       // Load SVG and check for new rewards in parallel
-      await Promise.all([loadSVG(), checkAndUpdateReward()]);
+      const todaysReward = await Promise.all([
+        loadSVG(),
+        checkAndUpdateReward(),
+        Util.fetchTodaysReward(),
+      ]).then(([, , resultOfFetchTodaysReward]) => resultOfFetchTodaysReward);
       const currentReward = Util.retrieveUserReward();
+      const today = new Date().toISOString().split("T")[0];
+      const receivedTodayReward =
+        currentReward?.timestamp &&
+        new Date(currentReward.timestamp).toISOString().split("T")[0] ===
+          today &&
+        todaysReward?.id === currentReward?.reward_id;
+      setHasTodayReward(!receivedTodayReward);
       if (currentReward.reward_id !== IDLE_REWARD_ID) {
         await updateMascotToNormalState(currentReward.reward_id);
       }
@@ -789,22 +834,42 @@ const PathwayStructure: React.FC = () => {
       const { currentIndex } = course;
 
       const lesson = await api.getLesson(course.path[currentIndex].lesson_id);
-      const courseDoc = await api.getCourse(course.course_id);
-      const chapter = await api.getChapterById(
-        course.path[currentIndex].chapter_id
-      );
+ 
       if (!lesson) return;
 
-      if (lesson.plugin_type === "cocos") {
+      if (lesson.plugin_type === COCOS) {
         const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
         history.replace(PAGES.GAME + params, {
           url: "chimple-lib/index.html" + params,
           lessonId: lesson.cocos_lesson_id,
           courseDocId: course.course_id,
-          course: JSON.stringify(courseDoc),
+          course: JSON.stringify(currentCourse),
           lesson: JSON.stringify(lesson),
-          chapter: JSON.stringify(chapter),
-          from: history.location.pathname + `?continue=true`,
+          chapter: JSON.stringify(currentChapter),
+          from: history.location.pathname + `?${CONTINUE}=true`,
+          learning_path: true,
+          reward: true,
+        });
+      } else if (lesson.plugin_type === LIVE_QUIZ) {
+        history.replace(
+          PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
+          {
+            courseId: course.course_id,
+            lesson: JSON.stringify(lesson),
+            from: history.location.pathname + `?${CONTINUE}=true`,
+            learning_path: true,
+            reward: true,
+          }
+        );
+      } else if (lesson.plugin_type === LIDO) {
+        const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+        history.replace(PAGES.LIDO_PLAYER + parmas, {
+          lessonId: lesson.cocos_lesson_id,
+          courseDocId: course.course_id,
+          course: JSON.stringify(currentCourse),
+          lesson: JSON.stringify(lesson),
+          chapter: JSON.stringify(currentChapter),
+          from: history.location.pathname + `?${CONTINUE}=true`,
           learning_path: true,
           reward: true,
         });
@@ -844,7 +909,7 @@ const PathwayStructure: React.FC = () => {
           rewardRiveContainer
         )}
 
-      {!hasTodayReward && <RewardBox onRewardClick={handleOpen} />}
+      {hasTodayReward && <RewardBox onRewardClick={handleOpen} />}
 
       {rewardModalOpen && (
         <DailyRewardModal

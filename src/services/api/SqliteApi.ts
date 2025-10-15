@@ -48,7 +48,7 @@ import {
   GeoDataParams,
   SearchSchoolsParams,
   SearchSchoolsResult,
-  REWARD_LESSON_ID,
+  REWARD_LESSON,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -2096,12 +2096,12 @@ export class SqliteApi implements ServiceApi {
     );
     // ⭐ reward update 
     const currentUser = await this.getUserByDocId(studentId);
-    const rewardLessonId = sessionStorage.getItem(REWARD_LESSON_ID);
+    const rewardLesson = sessionStorage.getItem(REWARD_LESSON);
     let newReward: { reward_id: string; timestamp: string } | null = null;
     let currentUserReward: { reward_id: string; timestamp: string } | null = null;
 
-    if (rewardLessonId && currentUser) {
-      sessionStorage.removeItem(REWARD_LESSON_ID);
+    if (rewardLesson == "true" && currentUser) {
+      sessionStorage.removeItem(REWARD_LESSON);
 
       const todaysReward = await Util.fetchTodaysReward();
       const todaysTimestamp = new Date().toISOString();

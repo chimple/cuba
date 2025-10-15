@@ -10,6 +10,7 @@ import {
   LidoLessonEndKey,
   LidoNextContainerKey,
   PAGES,
+  REWARD_LESSON,
   TableTypes,
 } from "../common/constants";
 import Loading from "../components/Loading";
@@ -109,6 +110,12 @@ const LidoPlayer: FC = () => {
     avatarObj.weeklyTimeSpent["min"] = computeMinutes;
     avatarObj.weeklyTimeSpent["sec"] = computeSec;
     avatarObj.weeklyPlayedLesson++;
+    // Check if the game was played from `learning_pathway`
+    const learning_path: string = state?.learning_path ?? false;
+    const isReward: boolean = state?.reward ?? false;
+    if (isReward===true){
+      sessionStorage.setItem(REWARD_LESSON, "true");
+    }
     const result = await api.updateResult(
       currentStudent.id,
       courseDocId,
@@ -122,7 +129,10 @@ const LidoPlayer: FC = () => {
       classId,
       schoolId
     );
-
+    // Update the learning path
+    if (learning_path) {
+      await Util.updateLearningPath(currentStudent, isReward);
+    }
     Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.id,
       // assignment_id: lesson.assignment?.id,

@@ -4,7 +4,7 @@ import { IDLE_REWARD_ID, REWARD_MODAL_SHOWN_DATE } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
 
 export const useReward = () => {
-  const [hasTodayReward, setHasTodayReward] = useState(false);
+  const [hasTodayReward, setHasTodayReward] = useState(true);
 
   const checkAndUpdateReward = async (): Promise<string | null> => {
     const student = Util.getCurrentStudent();
@@ -33,7 +33,7 @@ export const useReward = () => {
       new Date(studentReward.timestamp).toISOString().split("T")[0] === today &&
       todaysReward?.id === studentReward.reward_id
     ) {
-      setHasTodayReward(true);
+      setHasTodayReward(false);
       return studentReward.reward_id;
     }
 
@@ -42,8 +42,12 @@ export const useReward = () => {
 
   const shouldShowDailyRewardModal = async () => {
     const today = new Date().toISOString().split("T")[0];
+    const currentStudent = Util.getCurrentStudent();
+    if (!currentStudent) return false;
+    const dailyUserReward = currentStudent?.reward
+      ? JSON.parse(currentStudent.reward)
+      : {};
     const lastShownDate = sessionStorage.getItem(REWARD_MODAL_SHOWN_DATE);
-    const dailyUserReward = Util.retrieveUserReward();
     const todaysReward = await Util.fetchTodaysReward();
     // Check if the reward was received today by comparing dates
     const rewardDate = dailyUserReward.timestamp
@@ -52,11 +56,7 @@ export const useReward = () => {
     const isRewardFromToday = rewardDate ? rewardDate === today : false;
 
     // Check if user has today's reward by comparing reward IDs and date
-    const hasReceivedTodayReward =
-      dailyUserReward?.reward_id != null &&
-      todaysReward?.id != null &&
-      todaysReward.id === dailyUserReward.reward_id &&
-      isRewardFromToday;
+    const hasReceivedTodayReward = todaysReward!.id === dailyUserReward.reward_id && isRewardFromToday;
 
     if (
       !hasReceivedTodayReward &&
