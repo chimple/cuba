@@ -197,8 +197,9 @@ const PathwayStructure: React.FC = () => {
 
       try {
         const startTime = performance.now();
-
-        const currentStudent = Util.getCurrentStudent();
+        const currentStudent = Util.isRespectMode 
+          ? Util.getCurrentStudent() 
+          : updatedStudent || await Util.getCurrentStudent();
         const learningPath = currentStudent?.learning_path
           ? JSON.parse(currentStudent.learning_path)
           : null;
