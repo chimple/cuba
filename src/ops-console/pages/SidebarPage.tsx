@@ -88,7 +88,7 @@ const SidebarPage: React.FC = () => {
             <ProtectedRoute path={`${path}${PAGES.REQUEST_LIST}`} exact={true}>
               <RequestList />
             </ProtectedRoute>
-             <ProtectedRoute
+            <ProtectedRoute
               path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_PENDING_REQUEST}/:id`}
               exact={true}
             >
@@ -159,11 +159,9 @@ const SidebarPage: React.FC = () => {
             <ProtectedRoute path={`${path}${PAGES.NEW_PROGRAM}`} exact={true}>
               <NewProgram />
             </ProtectedRoute>
-            {!userRole.includes(RoleType.FIELD_COORDINATOR) && (
-              <ProtectedRoute path={`${path}${PAGES.USERS}`} exact={true}>
-                <UsersPage />
-              </ProtectedRoute>
-            )}
+            <ProtectedRoute path={`${path}${PAGES.USERS}`} exact={true}>
+              <UsersPage />
+            </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS}/:program_id`}
               exact={true}
