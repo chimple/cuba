@@ -81,8 +81,10 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
                     checked={selectedReason === VERIFICATION_FAILED}
                     onChange={() => setSelectedReason(VERIFICATION_FAILED)}
                   />
-                  <span>{VERIFICATION_FAILED}</span>
-                  <div className="reject-reason-desc">{t("Unable to verify provided information")}</div>
+                  <div>
+                    <span>{VERIFICATION_FAILED}</span>
+                    <div className="reject-reason-desc">{t("Unable to verify provided information")}</div>
+                  </div>
                 </label>
                 <label className={`reject-reason-radio${selectedReason === WRONG_SCHOOL_SELECTED ? " selected" : ""}`}>
                   <input
@@ -92,8 +94,10 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
                     checked={selectedReason === WRONG_SCHOOL_SELECTED}
                     onChange={() => setSelectedReason(WRONG_SCHOOL_SELECTED)}
                   />
-                  <span>{WRONG_SCHOOL_SELECTED}</span>
-                  <div className="reject-reason-desc">{t("Incorrect school name was selected for this request")}</div>
+                  <div>
+                    <span>{WRONG_SCHOOL_SELECTED}</span>
+                    <div className="reject-reason-desc">{t("Incorrect school name was selected for this request")}</div>
+                  </div>
                 </label>
                 <label className={`reject-reason-radio${selectedReason === OTHER ? " selected" : ""}`}>
                   <input
@@ -103,16 +107,21 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
                     checked={selectedReason === OTHER}
                     onChange={() => setSelectedReason(OTHER)}
                   />
-                  <span>{OTHER}</span>
-                  <div className="reject-reason-desc">{t("Please specify the reason in the custom field")}</div>
+                  <div>
+                    <span>{OTHER}</span>
+                    <div className="reject-reason-desc">{t("Please specify the reason in the custom field")}</div>
+                  </div>
                 </label>
               </div>
-              {selectedReason === "Other" && (
-                <textarea
-                  value={customReason}
-                  onChange={(e) => setCustomReason(e.target.value)}
-                  placeholder={t("Add any additional context or instructions...") || ""}
-                ></textarea>
+              {selectedReason === OTHER && (
+                <div className="reject-popup-custom-field">
+                  <label>{t("Message to Admin")}</label>
+                  <textarea
+                    value={customReason}
+                    onChange={(e) => setCustomReason(e.target.value)}
+                    placeholder={t("Add any additional context or instructions...") || ""}
+                  ></textarea>
+                </div>
               )}
             </div>
           ) : (
@@ -128,7 +137,13 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
           <button className="reject-popup-cancel-btn" onClick={onClose}>
             {t("Cancel")}
           </button>
-          <button className="reject-popup-reject-btn" onClick={handleReject}>
+          <button 
+            className={isTeacherOrPrincipal && selectedReason === WRONG_SCHOOL_SELECTED 
+              ? "reject-popup-flag-btn" 
+              : "reject-popup-reject-btn"
+            } 
+            onClick={handleReject}
+          >
             {ctaLabel}
           </button>
         </div>

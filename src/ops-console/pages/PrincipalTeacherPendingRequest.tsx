@@ -16,6 +16,7 @@ import OpsCustomDropdown from "../components/OpsCustomDropdown";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
 import { t } from "i18next";
 import { BsFillBellFill } from "react-icons/bs";
+import RejectRequestPopup from "../components/SchoolRequestComponents/RejectRequestPopup";
 
 const PrincipalTeacherPendingRequest = () => {
   const [gradeOptions, setGradeOptions] = useState<
@@ -36,6 +37,8 @@ const PrincipalTeacherPendingRequest = () => {
   const [selectedGradeId, setSelectedGradeId] = useState<string>("");
   const [requestData, setRequestData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showRejectPopup, setShowRejectPopup] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string>("");
 
   const editClicked = async () => {
     const options = Object.values(RequestTypes).map((type) => ({
@@ -165,7 +168,19 @@ const PrincipalTeacherPendingRequest = () => {
       console.error("Error approving request:", error);
     }
   };
-  const handleRemoveClick = () => {};
+  
+  const handleRejectClick = async () => {
+    const auth = ServiceConfig.getI().authHandler;
+    const user = await auth.getCurrentUser();
+    if (!user?.id) {
+      console.error("No logged-in user found. Cannot reject request.");
+      return;
+    }
+    const userId = user?.id;
+    setCurrentUserId(userId ?? "");
+    setShowRejectPopup(true);
+  };
+  
   if (loading || !requestData)
     return (
       <div className="centered">
@@ -454,7 +469,7 @@ const PrincipalTeacherPendingRequest = () => {
                     fontSize: "1.1rem",
                     textTransform: "none",
                   }}
-                  onClick={handleRemoveClick}
+                  onClick={handleRejectClick}
                 >
                   {t("Reject")}
                 </Button>
@@ -484,6 +499,17 @@ const PrincipalTeacherPendingRequest = () => {
           </div>
         </Grid>
       </Grid>
+      
+      {showRejectPopup && (
+        <RejectRequestPopup
+          requestData={{
+            ...requestData,
+            type: requestData.request_type,
+            respondedBy: { id: currentUserId }
+          }}
+          onClose={() => setShowRejectPopup(false)}
+        />
+      )}
     </div>
   );
 };
