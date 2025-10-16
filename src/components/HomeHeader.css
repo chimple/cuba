@@ -52,3 +52,24 @@
   justify-content: flex-end; 
   z-index: 999; 
 }
+/* StarsCounter */
+.home-header-stars-counter{
+    position: fixed;
+    top: 2.5vh;
+    right: 12%;
+}
+
+.home-header-stars-counter .home-header-star-icon{
+    display: block;
+    width: 10vw;;
+}
+
+.home-header-stars-counter > span{
+    position: absolute;
+    left: 32%; /* roughly over the white badge area on the left */
+    top: 49%;
+    transform: translate(-50%, -50%);
+    color: var(--text-color);
+    font-weight: 400;
+    font-size: 2vw;
+}

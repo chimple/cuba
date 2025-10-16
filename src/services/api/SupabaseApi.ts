@@ -48,6 +48,7 @@ import {
   SearchSchoolsResult,
   GeoDataParams,
   School,
+  REWARD_LESSON,
 } from "../../common/constants";
 import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
@@ -2092,6 +2093,39 @@ export class SupabaseApi implements ServiceApi {
       return {} as TableTypes<"result">;
     }
 
+    // ⭐ reward update
+    const currentUser = await this.getUserByDocId(studentId);
+    const rewardLesson = sessionStorage.getItem(REWARD_LESSON);
+    let newReward: { reward_id: string; timestamp: string } | null = null;
+    let currentUserReward: { reward_id: string; timestamp: string } | null =
+      null;
+
+    if (rewardLesson == "true" && currentUser) {
+      sessionStorage.removeItem(REWARD_LESSON);
+
+      const todaysReward = await Util.fetchTodaysReward();
+      const todaysTimestamp = new Date().toISOString();
+
+      currentUserReward = currentUser.reward
+        ? JSON.parse(currentUser.reward as string)
+        : null;
+
+      if (todaysReward) {
+        const alreadyGiven =
+          currentUserReward &&
+          currentUserReward.reward_id === todaysReward.id &&
+          new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
+            todaysTimestamp.split("T")[0];
+
+        if (!alreadyGiven) {
+          newReward = {
+            reward_id: todaysReward.id,
+            timestamp: todaysTimestamp,
+          };
+        }
+      }
+    }
+
     // Calculate earned stars
     let starsEarned = 0;
     if (score > 25) starsEarned++;
@@ -2104,10 +2138,12 @@ export class SupabaseApi implements ServiceApi {
       : 0;
     const totalStars = currentStars + starsEarned;
 
+    const updateData: any = { stars: totalStars };
+    if (newReward) updateData.reward = JSON.stringify(newReward);
     // Update user stars
     const { error: updateError } = await this.supabase
       .from("user")
-      .update({ stars: totalStars })
+      .update(updateData)
       .eq("id", studentId);
 
     if (updateError) {
@@ -2118,6 +2154,23 @@ export class SupabaseApi implements ServiceApi {
     const updatedStudent = await this.getUserByDocId(studentId);
     if (updatedStudent) {
       Util.setCurrentStudent(updatedStudent);
+    }
+    // 8️⃣ Log reward event if any
+    if (newReward && currentUser) {
+      await Util.logEvent(EVENTS.REWARD_COLLECTED, {
+        user_id: currentUser.id,
+        reward_id: newReward.reward_id,
+        prev_reward_id: currentUserReward?.reward_id ?? null,
+        timestamp: newReward.timestamp,
+        course_id: courseId ?? null,
+        chapter_id: chapterId,
+        lesson_id: lessonId,
+        assignment_id: assignmentId ?? null,
+        class_id: classId ?? null,
+        school_id: schoolId ?? null,
+        score,
+        stars_earned: starsEarned,
+      });
     }
 
     return newResult;
@@ -8505,5 +8558,86 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
     return classes || [];
+  }
+  async getRewardById(
+    rewardId: string
+  ): Promise<TableTypes<"rive_reward"> | undefined> {
+    if (!this.supabase) return undefined;
+    try {
+      const { data, error } = await this.supabase
+        .from("rive_reward")
+        .select("*")
+        .eq("id", rewardId)
+        .eq("is_deleted", false);
+      if (error) {
+        console.error("Error fetching reward by ID:", error);
+      }
+      return data && data.length > 0
+        ? (data[0] as TableTypes<"rive_reward">)
+        : undefined;
+    } catch (error) {
+      console.log("Unexpected error fetching reward by ID:", error);
+      return undefined;
+    }
+  }
+  async getAllRewards(): Promise<TableTypes<"rive_reward">[] | []> {
+    if (!this.supabase) return [];
+    try {
+      const { data, error } = await this.supabase
+        .from(TABLES.RiveReward)
+        .select("*")
+        .eq("type", "normal")
+        .eq("is_deleted", false)
+        .order("state_number_input");
+
+      if (error) {
+        console.error("Error fetching all rewards", error);
+        return [];
+      }
+      return data as TableTypes<"rive_reward">[];
+    } catch (error) {
+      console.error("Error fetching all rewards", error);
+      return [];
+    }
+  }
+  async updateUserReward(
+    userId: string,
+    rewardId: string,
+    created_at?: string
+  ): Promise<void> {
+    if (!this.supabase) return;
+    try {
+      const currentUser = (await this.getUserByDocId(
+        userId
+      )) as TableTypes<"user"> | null;
+      if (!currentUser) {
+        console.warn(`No user found`);
+        return;
+      }
+
+      const timestamp = created_at ?? new Date().toISOString();
+
+      const newReward = {
+        reward_id: rewardId,
+        timestamp: timestamp,
+      };
+      const rewardString = JSON.stringify(newReward);
+
+      // Update the same currentUser object
+      currentUser.reward = rewardString;
+      const { error } = await this.supabase
+        .from("user")
+        .update({ reward: currentUser.reward, updated_at: timestamp })
+        .eq("id", userId)
+        .eq("is_deleted", false);
+
+      if (error) {
+        console.error("Error updating user reward:", error);
+        return;
+      }
+      Util.setCurrentStudent(currentUser);
+    } catch (error) {
+      console.error("❌ Error updating user reward:", error);
+    }
   }
 }

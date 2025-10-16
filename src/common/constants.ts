@@ -77,6 +77,7 @@ export enum TABLES {
   SpecialUsers = "special_users",
   OpsRequests = "ops_requests",
   GeoLocations = "geo_locations",
+  RiveReward = "rive_reward",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -809,6 +810,7 @@ export enum EVENTS {
   DEEPLINK_CLICKED = "deeplink_clicked",
   ERROR_LOGS = "error_logs",
   PROFILE_CLICKS_ANALYTICS = "profile_clicks_analytics",
+  REWARD_COLLECTED = "reward_collected",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -1058,3 +1060,14 @@ export const CACHE_TABLES_TO_CLEAR = [
   "program",
 ] as const;
 export type CACHETABLES = (typeof CACHE_TABLES_TO_CLEAR)[number];
+export const REWARD_MODAL_SHOWN_DATE= "RewardModalShownDate";
+export const TODAYS_RIVE_REWARD = "TodaysRiveReward";
+export const DAILY_USER_REWARD = "DailyUserReward";
+export const IDLE_REWARD_ID = "5dfa8e34-14a3-42de-ae3a-977862712b1e";
+export const  REWARD_LESSON = "RewardLesson"
+export const  REWARD_LEARNING_PATH = "RewardLearningPath"
+export enum RewardBoxState {
+  IDLE = "idle",
+  SHAKING = "shaking",
+  BLAST = "blast",
+}

@@ -236,7 +236,7 @@ const LearningPathway: React.FC = () => {
             width: "35vw",
           }}
         />
-        <TressureBox startNumber={from} endNumber={to} />
+        {/* <TressureBox startNumber={from} endNumber={to} /> */}
       </div>
     </div>
   );

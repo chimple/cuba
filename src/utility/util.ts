@@ -59,6 +59,8 @@ import {
   CHIMPLE_RIVE_STATE_MACHINE_MAX,
   USER_DATA,
   LOCAL_LESSON_BUNDLES_PATH,
+  DAILY_USER_REWARD,
+  REWARD_LEARNING_PATH,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -2429,6 +2431,205 @@ export class Util {
       auth.currentUser = updatedUserData;
     } catch (error) {
       console.error("Failed to update user language:", error);
+    }
+  }
+  public static async fetchTodaysReward() {
+    try {
+      const allRewards = await ServiceConfig.getI().apiHandler.getAllRewards();
+      if (allRewards.length === 0) return;
+      const today = new Date();
+      const day = today.getDate();
+      let chimpleRiveMaxState = allRewards[0].max_state_value ?? 8;
+      if (localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === "true") {
+        chimpleRiveMaxState =
+          parseInt(
+            localStorage.getItem(CHIMPLE_RIVE_STATE_MACHINE_MAX) as string
+          ) ?? 8;
+      }
+
+      const mappedState = ((day - 1) % chimpleRiveMaxState) + 1;
+      const todaysReward = allRewards.find(
+        (reward) =>
+          reward.state_number_input === mappedState && reward.type === "normal"
+      );
+      return todaysReward;
+    } catch (error) {
+      console.error("Error fetching Chimple Rive config:", error);
+    }
+  }
+  public static async updateUserReward() {
+    try {
+      // Get daily user reward from localStorage
+      const dailyUserReward = JSON.parse(
+        localStorage.getItem(DAILY_USER_REWARD) ?? "{}"
+      );
+
+      const currentStudent = Util.getCurrentStudent();
+      if (!currentStudent) return;
+      // Fetch current reward
+      const currentReward = currentStudent.reward
+        ? JSON.parse(currentStudent.reward as string)
+        : null;
+      if (!currentReward) return;
+
+      // Initialize student's reward object if it doesn't exist
+      if (!dailyUserReward[currentStudent.id]) {
+        dailyUserReward[currentStudent.id] = {};
+      }
+
+      if (
+        !dailyUserReward[currentStudent.id].timestamp ||
+        new Date(dailyUserReward[currentStudent.id].timestamp)
+          .toISOString()
+          .split("T")[0] !== new Date().toISOString().split("T")[0] ||
+        dailyUserReward[currentStudent.id].reward_id !==
+          currentReward?.reward_id
+      ) {
+        // Update localStorage
+        dailyUserReward[currentStudent.id].reward_id = currentReward.reward_id;
+        dailyUserReward[currentStudent.id].timestamp = currentReward.timestamp;
+        localStorage.setItem(
+          DAILY_USER_REWARD,
+          JSON.stringify(dailyUserReward)
+        );
+      }
+    } catch (error) {
+      console.error("Error updating student reward:", error);
+    }
+  }
+  public static retrieveUserReward() {
+    const currentStudent = Util.getCurrentStudent();
+    if (!currentStudent) return {};
+    const studentId = currentStudent.id;
+    try {
+      const allRewards = JSON.parse(
+        localStorage.getItem(DAILY_USER_REWARD) || "{}"
+      );
+
+      if (!allRewards[studentId]) {
+        allRewards[studentId] = {};
+      }
+      const currentReward = allRewards[studentId];
+
+      return currentReward;
+    } catch (error) {
+      console.error("Error managing daily user reward in localStorage:", error);
+      return {};
+    }
+  }
+  public static async updateLearningPath(
+    currentStudent: TableTypes<"user">,
+    isRewardLesson: boolean
+  ) {
+    if (!currentStudent) return;
+    const learningPath = currentStudent.learning_path
+      ? JSON.parse(currentStudent.learning_path)
+      : null;
+
+    if (!learningPath) return;
+
+    try {
+      const { courses } = learningPath;
+      const currentCourse = courses.courseList[courses.currentCourseIndex];
+
+      const prevLessonId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path[
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].currentIndex
+        ].lesson_id;
+      const prevChapterId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path[
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].currentIndex
+        ].chapter_id;
+      const prevCourseId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .course_id;
+      const prevPathId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path_id;
+      // Update currentIndex
+      currentCourse.currentIndex += 1;
+
+      // Check if currentIndex exceeds pathEndIndex
+      if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
+        if (isRewardLesson) {
+          sessionStorage.setItem(
+            REWARD_LEARNING_PATH,
+            JSON.stringify(learningPath)
+          );
+        }
+        currentCourse.startIndex = currentCourse.currentIndex;
+        currentCourse.pathEndIndex += 5;
+
+        // Ensure pathEndIndex does not exceed the path length
+        if (currentCourse.pathEndIndex > currentCourse.path.length) {
+          currentCourse.pathEndIndex = currentCourse.path.length - 1;
+        }
+
+        // Move to the next course
+        courses.currentCourseIndex += 1;
+
+        await ServiceConfig.getI().apiHandler.setStarsForStudents(
+          currentStudent.id,
+          10
+        );
+        // Loop back to the first course if at the last course
+        if (courses.currentCourseIndex >= courses.courseList.length) {
+          courses.currentCourseIndex = 0;
+        }
+        const pathwayEndData = {
+          user_id: currentStudent.id,
+          current_path_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path_id,
+          current_course_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].course_id,
+          current_lesson_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path[
+              learningPath.courses.courseList[
+                learningPath.courses.currentCourseIndex
+              ].currentIndex
+            ].lesson_id,
+          current_chapter_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path[
+              learningPath.courses.courseList[
+                learningPath.courses.currentCourseIndex
+              ].currentIndex
+            ].chapter_id,
+          prev_path_id: prevPathId,
+          prev_course_id: prevCourseId,
+          prev_lesson_id: prevLessonId,
+          prev_chapter_id: prevChapterId,
+        };
+        await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
+        await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
+      }
+
+      // Update the learning path in the database
+      await ServiceConfig.getI().apiHandler.updateLearningPath(
+        currentStudent,
+        JSON.stringify(learningPath)
+      );
+      // Update the current student object
+      const updatedStudent =
+        await ServiceConfig.getI().apiHandler.getUserByDocId(currentStudent.id);
+      if (updatedStudent) {
+        Util.setCurrentStudent(updatedStudent);
+      }
+    } catch (error) {
+      console.error("Error updating learning path:", error);
     }
   }
 }

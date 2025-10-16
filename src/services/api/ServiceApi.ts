@@ -2137,4 +2137,17 @@ export interface ServiceApi {
    * @param {string} schoolId - school Id
    */
   getAllClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
+  /**
+   * Fetch reward by rewardId
+   * @param rewardId reward ID
+   */
+  getRewardById(rewardId: string): Promise<TableTypes<"rive_reward"> | undefined>
+  /**
+   * Fetch all rive_rewards
+   */
+  getAllRewards(): Promise<TableTypes<"rive_reward">[] | []>
+  /**
+   * update user reward by userId and rewardId
+   */
+  updateUserReward(userId: string, rewardId: string, created_at?: string): Promise<void>
 }
