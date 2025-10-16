@@ -46,7 +46,7 @@ export class ServiceConfig {
     this.initializeByMode(mode);
   }
 
-  private initializeByMode(mode: APIMode) {
+  private async initializeByMode(mode: APIMode) {
     switch (mode) {
       case APIMode.FIREBASE:
         this.initializeFireBase();
@@ -55,7 +55,7 @@ export class ServiceConfig {
         this.initializeOneroster();
         break;
       case APIMode.SQLITE:
-        this.initializeSqlite();
+        await this.initializeSqlite();
         break;
       case APIMode.SUPABASE:
         this.initializeSupabase();
