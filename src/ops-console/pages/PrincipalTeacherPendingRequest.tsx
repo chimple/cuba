@@ -172,6 +172,10 @@ const PrincipalTeacherPendingRequest = () => {
   const handleRejectClick = async () => {
     const auth = ServiceConfig.getI().authHandler;
     const user = await auth.getCurrentUser();
+    if (!user?.id) {
+      console.error("No logged-in user found. Cannot reject request.");
+      return;
+    }
     const userId = user?.id;
     setCurrentUserId(userId ?? "");
     setShowRejectPopup(true);
