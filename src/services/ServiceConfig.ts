@@ -37,13 +37,13 @@ export class ServiceConfig {
     return ServiceConfig.instance;
   }
 
-  public async switchMode(newMode: APIMode) {
-    await this.setMode(newMode);
+  public switchMode(newMode: APIMode) {
+    this.setMode(newMode);
   }
 
-  private async setMode(mode: APIMode) {
+  private setMode(mode: APIMode) {
     this.mode = mode;
-    await this.initializeByMode(mode);
+    this.initializeByMode(mode);
   }
 
   private async initializeByMode(mode: APIMode) {
