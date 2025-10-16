@@ -1,7 +1,6 @@
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Keyboard } from "@capacitor/keyboard";
 import { Toast } from "@capacitor/toast";
-import { useHistory } from "react-router-dom";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { IonText } from "@ionic/react";
 import { t } from "i18next";
@@ -41,6 +40,7 @@ import i18n from "../i18n";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { SqliteApi } from "../services/api/SqliteApi";
 import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
+import { useHistory } from "react-router-dom";
 
 const LoginScreen: React.FC = () => {
   const history = useHistory();
@@ -84,7 +84,7 @@ const LoginScreen: React.FC = () => {
   );
   const [isPromptNumbers, setIsPromptNumbers] = useState<boolean>(false);
   const PortPlugin = registerPlugin<any>("Port");
-  const phoneNumberErrorRef = useRef<any>();
+  const phoneNumberErrorRef = useRef<any>(null);
 
   const [spinnerLoading, setSpinnerLoading] = useState<boolean>(false);
   const [isInputFocus, setIsInputFocus] = useState<boolean>(false);
@@ -98,6 +98,8 @@ const LoginScreen: React.FC = () => {
   const [otpExpiryCounter, setOtpExpiryCounter] = useState(15);
   const [animatedLoading, setAnimatedLoading] = useState<boolean>(false);
   const [initializing, setInitializing] = useState(true);
+  const [showStudentCredentialLogin, setStudentCredentialLogin] =
+    useState<boolean>(false);
 
   const loadingMessages = [
     t("Track your learning progress."),
@@ -246,7 +248,7 @@ const LoginScreen: React.FC = () => {
       }
 
       if (phoneNumber.length !== 10) {
-        setPhoneErrorMessage("Please Enter 10 digit Mobile Number");
+        setPhoneErrorMessage(t("Please Enter 10 digit Mobile Number"));
         return;
       }
 
@@ -254,12 +256,12 @@ const LoginScreen: React.FC = () => {
       setSpinnerLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
 
-      let response = await authInstance.generateOtp(
+      let result = await authInstance.generateOtp(
         phoneNumberWithCountryCode,
         "Chimple"
       );
 
-      if (response) {
+      if (result.success) {
         setSentOtpLoading(false);
         setSpinnerLoading(false);
         setCounter(59);
@@ -269,26 +271,33 @@ const LoginScreen: React.FC = () => {
         setCurrentPhone(phoneNumber);
         setDisableOtpButtonIfSameNumber(true);
         setAllowSubmittingOtpCounter(counter);
+      } else {
+        setSentOtpLoading(false);
+        setSpinnerLoading(false);
+        const errorMessage = result.error;
+        if (errorMessage) {
+          setPhoneErrorMessage(
+            t("Kindly wait for 1 minute and then try logging in again.")
+          );
+        } else {
+          setPhoneErrorMessage(
+            t("Phone Number signin Failed. Please try again later.")
+          );
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       setSentOtpLoading(false);
       setSpinnerLoading(false);
-      if (typeof error === "string") {
-        if (
-          error.includes("blocked all requests") ||
-          error.includes("Timed out waiting for SMS")
-        ) {
-          setPhoneErrorMessage(
-            "Something went wrong. Please try again after some time."
-          );
-        } else if (error.includes("E.164 format")) {
-          setPhoneErrorMessage("Incorrect phone number format");
-        }
-      } else {
-        setPhoneErrorMessage(
-          "Phone Number signin Failed. Please try again later."
-        );
+      // This catch block handles unexpected exceptions from generateOtp, not errors returned in the 'result' object.
+      let displayErrorMessage = t(
+        "Phone Number signin Failed. Please try again later."
+      );
+      if (error && typeof error === "string") {
+        displayErrorMessage = error;
+      } else if (error && error.message) {
+        displayErrorMessage = error.message;
       }
+      setPhoneErrorMessage(displayErrorMessage);
     }
   };
 
@@ -479,9 +488,14 @@ const LoginScreen: React.FC = () => {
       // AUTOUSER → school‐mode
       const auto = schools.find((s) => s.role === RoleType.AUTOUSER);
       if (auto) {
-        await ScreenOrientation.lock({ orientation: "landscape" });
-        schoolUtil.setCurrMode(MODES.SCHOOL);
-        return history.replace(PAGES.SELECT_MODE);
+        if (Capacitor.isNativePlatform()) {
+          await ScreenOrientation.lock({ orientation: "landscape" });
+          schoolUtil.setCurrMode(MODES.SCHOOL);
+          return history.replace(PAGES.SELECT_MODE);
+        } else {
+          schoolUtil.setCurrMode(MODES.SCHOOL);
+          return history.replace(PAGES.SELECT_MODE);
+        }
       }
 
       // else teacher
@@ -505,6 +519,7 @@ const LoginScreen: React.FC = () => {
 
   // Handler for student credentials login
   const handleStudentLogin = async () => {
+    setStudentCredentialLogin(false);
     try {
       if (!online) {
         presentToast({
@@ -526,38 +541,38 @@ const LoginScreen: React.FC = () => {
           schoolCode.trimEnd() + studentId.trimEnd() + DOMAIN,
           studentPassword.trimEnd()
         );
-
-      if (result) {
-        setAnimatedLoading(false);
-        setIsLoading(false);
-        const user = JSON.parse(localStorage.getItem(USER_DATA)!);
-        const userSchools = await getSchoolsForUser(user.id);
-        await redirectUser(userSchools, isOps);
-        localStorage.setItem(CURRENT_USER, JSON.stringify(result));
-        localStorage.setItem(USER_DATA, JSON.stringify(user));
-        let studentDetails: any = user;
-        studentDetails.parent_id = user.uid;
-        updateLocalAttributes({
-          studentDetails,
-        });
-        setGbUpdated(true);
-        // Log the login event
-        Util.logEvent(EVENTS.USER_PROFILE, {
-          user_id: user.uid,
-          user_name: user.name,
-          user_username: user.username,
-          user_type: RoleType.STUDENT,
-          action_type: ACTION.LOGIN,
-          login_type: "student-credentials",
-        });
-      } else {
+      if (!result) {
+        setStudentCredentialLogin(true);
         setAnimatedLoading(false);
         setIsLoading(false);
         setStudentErrorMessage(
           "Incorrect credentials - Please check & try again!"
         );
       }
+      setAnimatedLoading(false);
+      setIsLoading(false);
+      localStorage.setItem(CURRENT_USER, JSON.stringify(result));
+      const user = JSON.parse(localStorage.getItem(USER_DATA)!);
+      const userSchools = await getSchoolsForUser(user.id);
+      await redirectUser(userSchools, isOps);
+      localStorage.setItem(USER_DATA, JSON.stringify(user));
+      let studentDetails: any = user;
+      studentDetails.parent_id = user.uid;
+      updateLocalAttributes({
+        studentDetails,
+      });
+      setGbUpdated(true);
+      // Log the login event
+      Util.logEvent(EVENTS.USER_PROFILE, {
+        user_id: user.uid,
+        user_name: user.name,
+        user_username: user.username,
+        user_type: RoleType.STUDENT,
+        action_type: ACTION.LOGIN,
+        login_type: "student-credentials",
+      });
     } catch (error) {
+      setStudentCredentialLogin(true);
       setAnimatedLoading(false);
       setIsLoading(false);
       setStudentErrorMessage("Login unsuccessful. Please try again later.");

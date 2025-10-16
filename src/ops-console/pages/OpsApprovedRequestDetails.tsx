@@ -3,7 +3,7 @@ import { useHistory, useParams, useLocation } from "react-router-dom";
 import { Typography, Paper, Grid, Divider, Button } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { DEFAULT_PAGE_SIZE, PAGES } from "../../common/constants";
+import { DEFAULT_PAGE_SIZE, PAGES, REQUEST_TABS } from "../../common/constants";
 import "./OpsApprovedRequestDetails.css";
 
 const OpsApprovedRequestDetails = () => {
@@ -44,7 +44,11 @@ const OpsApprovedRequestDetails = () => {
         if (state?.request && state.request.request_id === id) {
           setRequestDetails(state.request);
         } else {
-          const approvedRequest = await api.getOpsRequests("approved", 1, DEFAULT_PAGE_SIZE);
+          const approvedRequest = await api.getOpsRequests(
+            "approved",
+            1,
+            DEFAULT_PAGE_SIZE
+          );
           const req = approvedRequest?.find((r) => r.request_id === id);
           if (req) setRequestDetails(req);
           else setError(t("requestNotFound"));
@@ -104,7 +108,19 @@ const OpsApprovedRequestDetails = () => {
         >
           {t("Requests")}
         </span>
-        <span>&gt;</span>
+        <span> &gt; </span>
+        <span
+          onClick={() =>
+            history.push({
+              pathname: PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST,
+              search: `?tab=${REQUEST_TABS.APPROVED}`,
+            })
+          }
+          className="ops-approved-request-details-link"
+        >
+          {t("Approved")}
+        </span>
+        <span> &gt; </span>
         <span className="ops-approved-request-details-active">
           {t("RequestId")} - {id}
         </span>
@@ -117,7 +133,7 @@ const OpsApprovedRequestDetails = () => {
         justifyContent="flex-start"
       >
         {/* LEFT SIDE */}
-        <Grid item xs={12} md={6} lg={5}>
+        <Grid size={{ xs: 12, md: 6, lg: 5 }}>
           <Paper className="ops-approved-request-details-card">
             <Typography
               variant="h6"
@@ -169,13 +185,13 @@ const OpsApprovedRequestDetails = () => {
               {t("Request Details")}
             </Typography>
             <Grid container spacing={1}>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <div className="ops-approved-request-details-label-sm">
                   {t("Request For")}
                 </div>
                 <div>{requestDetails.request_type || "-"}</div>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <div className="ops-approved-request-details-label-sm">
                   {t("Requested On")}
                 </div>
@@ -186,7 +202,7 @@ const OpsApprovedRequestDetails = () => {
         </Grid>
 
         {/* RIGHT SIDE */}
-        <Grid item xs={12} md={6} lg={4}>
+        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
           <Paper className="ops-approved-request-details-card">
             <Typography
               variant="h6"

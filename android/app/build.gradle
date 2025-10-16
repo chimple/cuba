@@ -11,8 +11,8 @@ android {
         applicationId "org.chimple.bahama"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 79
-        versionName "8.1.1"
+        versionCode 80
+        versionName "9.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -21,6 +21,13 @@ android {
         }
         // Keep only required locales from transitive libraries to reduce resources
         resConfigs 'en', 'hi', 'kn', 'mr'
+        buildTypes {
+            debug {
+                ndk {
+                    abiFilters "arm64-v8a", "armeabi-v7a"
+                }
+            }
+        }
     }
     signingConfigs {
         release {
@@ -34,7 +41,7 @@ android {
         release {
             minifyEnabled true
             shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
         debug {
@@ -68,20 +75,13 @@ dependencies {
     implementation project(':capacitor-cordova-android-plugins')
     // Import the BoM for the Firebase platform
     implementation platform('com.google.firebase:firebase-bom:32.1.0')
-    // When using the BoM, you don't specify versions in Firebase library dependencies
-    implementation 'com.google.firebase:firebase-appcheck-playintegrity'
 
     implementation 'com.google.android.gms:play-services-auth:21.3.0'
     implementation 'com.google.android.gms:play-services-auth-api-phone:18.1.0'
 
     implementation "androidx.work:work-runtime:2.8.1"
     implementation 'com.google.firebase:firebase-messaging:23.3.1'
-    
-    // Include debug-only App Check helper only in debug builds
-    debugImplementation 'com.google.firebase:firebase-appcheck-debug:17.0.1'
     implementation("com.google.firebase:firebase-crashlytics")
-    androidTestImplementation 'com.google.firebase:firebase-appcheck-debug-testing:17.0.1'
-
 }
 
 

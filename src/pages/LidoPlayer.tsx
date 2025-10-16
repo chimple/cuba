@@ -19,6 +19,7 @@ import { ServiceConfig } from "../services/ServiceConfig";
 import { Lesson } from "../interface/curriculumInterfaces";
 import { AvatarObj } from "../components/animation/Avatar";
 import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
+import React from "react";
 
 const LidoPlayer: FC = () => {
   const history = useHistory();
@@ -265,11 +266,12 @@ const LidoPlayer: FC = () => {
 
   return (
     <IonPage>
-      <Loading isLoading={isLoading} />
-      {(xmlPath || basePath) && (
-        <lido-standalone xml-path={xmlPath} base-url={basePath} />
-      )}
-    </IonPage>
+  <Loading isLoading={isLoading} />
+  {xmlPath || basePath
+    ? React.createElement('lido-standalone', { 'xml-path': xmlPath, 'base-url': basePath })
+    : null}
+</IonPage>
+
   );
 };
 

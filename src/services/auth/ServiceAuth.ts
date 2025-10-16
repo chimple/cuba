@@ -39,7 +39,7 @@ export interface ServiceAuth {
   generateOtp(
     phoneNumber: string,
     appName: string
-  ): Promise<boolean | undefined>;
+  ): Promise<{ success: boolean; error?: any }>;
 
   proceedWithVerificationCode(
     verificationId,

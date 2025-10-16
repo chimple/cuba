@@ -37,3 +37,7 @@ ion-label {
 ion-popover::part(backdrop) {
   --ion-backdrop-color: transparent;
 }
+.custom-dropdown-custom-outline {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}

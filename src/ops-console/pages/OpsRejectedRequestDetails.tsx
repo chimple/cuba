@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useHistory, useParams, useLocation } from "react-router-dom";
 import { Typography, Paper, Grid, Divider, Button } from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { DEFAULT_PAGE_SIZE, PAGES } from "../../common/constants";
+import { DEFAULT_PAGE_SIZE, PAGES, REQUEST_TABS } from "../../common/constants";
 import "./OpsRejectedRequestDetails.css";
 import { useTranslation } from "react-i18next"; // Import useTranslation
 
@@ -107,27 +107,30 @@ const StudentRejectedRequestDetails = () => {
       <div className="ops-rejected-request-details-breadcrumbs">
         <span
           onClick={() => history.push(PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST)}
-          className="ops-rejected-request-details-link" // Class name updated
+          className="ops-rejected-request-details-link"
         >
-          {t("Requests")} {/* Translated */}
+          {t("Requests")}
         </span>
         <span> &gt; </span>
+
         <span
           onClick={() =>
-            history.push(
-              PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST + "?tab=REJECTED"
-            )
+            history.push({
+              pathname: PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST,
+              search: `?tab=${REQUEST_TABS.REJECTED}`,
+            })
           }
-          className="ops-rejected-request-details-link" // Class name updated
+          className="ops-rejected-request-details-link"
         >
-          {t("Rejected")} {/* Translated */}
+          {t("Rejected")}
         </span>
         <span> &gt; </span>
+
         <span className="ops-rejected-request-details-active">
           {t("Request ID - {{id}}", { id })}{" "}
-          {/* Translated with interpolation */}
         </span>
       </div>
+
       <Grid
         container
         spacing={3}
@@ -135,7 +138,7 @@ const StudentRejectedRequestDetails = () => {
         alignItems="flex-start"
       >
         {/* LEFT: Request Details */}
-        <Grid item xs={12} md={6} lg={5}>
+        <Grid size={{ xs: 12, md: 6, lg: 5 }}>
           <Paper className="ops-rejected-request-details-details-card">
             <Typography
               variant="h6"
@@ -198,7 +201,7 @@ const StudentRejectedRequestDetails = () => {
               {t("Request Details")} {/* Translated */}
             </Typography>
             <Grid container spacing={1}>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <div className="ops-rejected-request-details-label-sm">
                   {t("Request For:")}
                 </div>{" "}
@@ -207,7 +210,7 @@ const StudentRejectedRequestDetails = () => {
                   {requestDetails.request_type || t("-")} {/* Translated '-' */}
                 </div>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <div className="ops-rejected-request-details-label-sm">
                   {t("Requested On:")}
                 </div>{" "}
@@ -218,7 +221,7 @@ const StudentRejectedRequestDetails = () => {
           </Paper>
         </Grid>
         {/* RIGHT: Rejection Details (red), Request From */}
-        <Grid item xs={12} md={6} lg={4}>
+        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
           <Paper className="ops-rejected-request-details-rejection-card ops-rejected-request-details-details-card">
             <Typography
               variant="h6"

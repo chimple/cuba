@@ -38,7 +38,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
   const progressRef = useRef(10);
   const [verifyingProgressState, setVerifyingProgressState] = useState(10);
   const [isReupload, setIsReupload] = useState(false);
-  const processedDataRef = useRef();
+  const processedDataRef = useRef(null);
   const [finalPayload, setFinalPayload] = useState<any[] | null>(null);
   const [isVerified, setIsVerified] = useState(false);
   const [step, setStep] = useState<FileUploadStep>(FileUploadStep.Idle);
@@ -371,8 +371,9 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
 
           // First, check if the school is already active in the main `school` table.
           if (schoolId) {
-            const activeSchoolCheck =
-              await api.validateSchoolUdiseCode(schoolId);
+            const activeSchoolCheck = await api.validateSchoolUdiseCode(
+              schoolId
+            );
             if (activeSchoolCheck.status === "success") {
               isExistingAndActiveSchool = true;
               validatedSchoolIds.add(schoolId);
@@ -466,8 +467,9 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             }
 
             if (programName) {
-              const programValidation =
-                await api.validateProgramName(programName);
+              const programValidation = await api.validateProgramName(
+                programName
+              );
               if (programValidation.status === "error") {
                 groupLevelErrors.push(
                   ...(programValidation.errors || ["Program name not found."])
@@ -730,8 +732,9 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
               if (isSchoolValidatedInFile) {
                 isSchoolValidInDB = true;
               } else {
-                const schoolResult =
-                  await api.validateSchoolUdiseCode(schoolId);
+                const schoolResult = await api.validateSchoolUdiseCode(
+                  schoolId
+                );
                 if (schoolResult?.status === "success") {
                   isSchoolValidInDB = true;
                 } else {
@@ -956,8 +959,9 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                   schoolModel = details.schoolModel;
                   studentLoginType = details.studentLoginType;
                 } else {
-                  const schoolDetailsResult =
-                    await api.getSchoolDetailsByUdise(schoolId);
+                  const schoolDetailsResult = await api.getSchoolDetailsByUdise(
+                    schoolId
+                  );
                   if (!schoolDetailsResult) {
                     errors.push(`School ID ${schoolId} not found in database.`);
                   } else {
@@ -980,7 +984,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
               } else if (isNewClassForThisUpload) {
                 // LOGIC FOR A **NEW CLASS**: Only perform FORMAT validation.
                 if (
-                  schoolModel !== "AT SCHOOL" &&
+                  schoolModel !== "AT_SCHOOL" &&
                   schoolModel !== "at_school"
                 ) {
                   if (!studentLoginType) {

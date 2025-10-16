@@ -1,3 +1,4 @@
+//@ts-nocheck
 import SubjectSelection from "../pages/SubjectSelection";
 import type { Meta, StoryObj } from "@storybook/react";
 

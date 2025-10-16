@@ -20,7 +20,7 @@ const OtpVerification: React.FC<OtpVerificationProps> = ({
   errorMessage,
   isLoading,
   verificationCode,
-  setVerificationCode
+  setVerificationCode,
 }) => {
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(""));
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
@@ -35,7 +35,10 @@ const OtpVerification: React.FC<OtpVerificationProps> = ({
     }
   }, [verificationCode]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    idx: number
+  ) => {
     const val = e.target.value.replace(/\D/g, "");
     if (!val) return;
     const newOtp = [...otp];
@@ -58,7 +61,10 @@ const OtpVerification: React.FC<OtpVerificationProps> = ({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, idx: number) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    idx: number
+  ) => {
     if (e.key === "Backspace" || e.key === "Delete") {
       if (otp[idx]) {
         const newOtp = [...otp];
@@ -117,8 +123,9 @@ const OtpVerification: React.FC<OtpVerificationProps> = ({
 
   return (
     <div className="OtpVerification-method">
-      <div className="OtpVerification-title">{phoneNumber && t("Enter the OTP sent to +91", { phoneNumber })}
-</div>
+      <div className="OtpVerification-title">
+        {phoneNumber && t("Enter the OTP sent to +91", { phoneNumber })}
+      </div>
       <div className="OtpVerification-inputs">
         {[...Array(OTP_LENGTH)].map((_, i) => (
           <input
@@ -132,13 +139,17 @@ const OtpVerification: React.FC<OtpVerificationProps> = ({
             onChange={(e) => handleChange(e, i)}
             onKeyDown={(e) => handleKeyDown(e, i)}
             onPaste={handlePaste}
-            ref={(el) => (inputsRef.current[i] = el)}
+            ref={(el) => {
+              inputsRef.current[i] = el;
+            }}
             autoFocus={i === 0}
             disabled={isLoading}
           />
         ))}
       </div>
-      {errorMessage && <div className="OtpVerification-error">{errorMessage}</div>}
+      {errorMessage && (
+        <div className="OtpVerification-error">{errorMessage}</div>
+      )}
     </div>
   );
 };

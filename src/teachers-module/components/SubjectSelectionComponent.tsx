@@ -72,7 +72,7 @@ const SubjectSelectionComponent: React.FC<SubjectSelectionProps> = ({
                     alt={course.name || "Default Subject Icon"}
                     className="subject-icon"
                   />
-                  {course.name}
+                  {t(course.name)}
                 </div>
                 <IonIcon
                   icon={isSelected ? checkmarkCircle : ellipseOutline}

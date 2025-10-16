@@ -13,7 +13,7 @@ const DisplayLesson: FC<{
   onLessonSelect;
   currentChapterId: string | undefined;
 }> = ({ lessons, onLessonSelect, currentChapterId }) => {
-  let currentChapterRef = useRef<any>();
+  let currentChapterRef = useRef<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [lesson, setLesson] = useState<Lesson[]>();
   const api = ServiceConfig.getI().apiHandler;

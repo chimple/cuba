@@ -32,6 +32,7 @@ import { schoolUtil } from "../utility/schoolUtil";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import { t } from "i18next";
 import { App } from "@capacitor/app";
+import { Capacitor } from "@capacitor/core";
 // import ChimpleAvatar from "../components/animation/ChimpleAvatar";
 import SearchLesson from "./SearchLesson";
 import AssignmentPage from "./Assignment";
@@ -80,7 +81,6 @@ const Home: FC = () => {
   let currentStudent: TableTypes<"user"> | undefined;
   const { setGbUpdated } = useGbContext();
 
-
   let tempPageNumber = 1;
   const location = useLocation();
   const getCanShowAvatar = async () => {
@@ -117,8 +117,8 @@ const Home: FC = () => {
       os_version: info.osVersion,
       operating_system: info.operatingSystem,
       is_virtual: info.isVirtual,
-      device_language: device_language.value
-    }
+      device_language: device_language.value,
+    };
     return device;
   };
 
@@ -129,7 +129,7 @@ const Home: FC = () => {
       return;
     }
     const studentDetails = student;
-    updateLocalAttributes({studentDetails});
+    updateLocalAttributes({ studentDetails });
     setGbUpdated(true);
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
@@ -181,7 +181,7 @@ const Home: FC = () => {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
-    const langDoc = await api.getLanguageWithId(student.language_id??"");
+    const langDoc = await api.getLanguageWithId(student.language_id ?? "");
     if (langDoc) {
       const tempLangCode = langDoc.code ?? LANG.ENGLISH;
       localStorage.setItem(LANGUAGE, tempLangCode);
@@ -190,8 +190,12 @@ const Home: FC = () => {
     const studentResult = await api.getStudentResultInMap(student.id);
     if (!!studentResult) {
       setLessonResultMap(studentResult);
-      const count_of_lessons_played = Object.values(studentResult).filter(item => item.assignment_id === null);
-      const total_assignments_played = Object.values(studentResult).filter(item => item.assignment_id !== null);
+      const count_of_lessons_played = Object.values(studentResult).filter(
+        (item) => item.assignment_id === null
+      );
+      const total_assignments_played = Object.values(studentResult).filter(
+        (item) => item.assignment_id !== null
+      );
       let latestDate = null;
       for (const lessonId in studentResult) {
         const currentDate: any = studentResult[lessonId].updated_at;
@@ -203,8 +207,8 @@ const Home: FC = () => {
         count_of_lessons_played: count_of_lessons_played.length,
         count_of_assignment_played: total_assignments_played.length,
         last_assignment_played_at: latestDate,
-      }
-      updateLocalAttributes(attributes)
+      };
+      updateLocalAttributes(attributes);
       setGbUpdated(true);
     }
     const lessonCourseMap = Object.fromEntries(
@@ -367,7 +371,7 @@ const Home: FC = () => {
         pending_course_counts: result,
         pending_subject_counts: counts,
         ...device,
-      }
+      };
       updateLocalAttributes(attributeParams);
       setGbUpdated(true);
       setDataCourse(reqLes);
@@ -524,8 +528,11 @@ const Home: FC = () => {
         const key = `${courseId}_course_completed`;
         courseCounts[key] = (courseCounts[key] || 0) + 1;
       }
-      updateLocalAttributes({ courseCounts, total_assignments_played: allValidPlayedLessonDocIds.length });
-      setGbUpdated(true)
+      updateLocalAttributes({
+        courseCounts,
+        total_assignments_played: allValidPlayedLessonDocIds.length,
+      });
+      setGbUpdated(true);
       return allValidPlayedLessonDocIds;
     }
   };
@@ -936,70 +943,70 @@ const Home: FC = () => {
           currentHeader === HOMEHEADERLIST.FAVOURITES ||
           currentHeader === HOMEHEADERLIST.HISTORY ||
           (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME)) && (
-            <div id="home-page-bottom">
-              <AppBar className="home-page-app-bar">
-                <Box>
-                  <Tabs
-                    value={subTab}
-                    onChange={handleChange}
-                    TabIndicatorProps={{ style: { display: "none" } }}
-                    sx={{
-                      "& .MuiTab-root": {
-                        color: "black",
-                        borderRadius: "5vh",
-                        padding: "0 3vw",
-                        margin: "1vh 1vh",
-                        minHeight: "37px",
-                      },
-                      "& .Mui-selected": {
-                        backgroundColor: "#FF7925",
-                        borderRadius: "8vh",
-                        color: "#FFFFFF !important",
-                        minHeight: "37px",
-                      },
+          <div id="home-page-bottom">
+            <AppBar className="home-page-app-bar">
+              <Box>
+                <Tabs
+                  value={subTab}
+                  onChange={handleChange}
+                  TabIndicatorProps={{ style: { display: "none" } }}
+                  sx={{
+                    "& .MuiTab-root": {
+                      color: "black",
+                      borderRadius: "5vh",
+                      padding: "0 3vw",
+                      margin: "1vh 1vh",
+                      minHeight: "37px",
+                    },
+                    "& .Mui-selected": {
+                      backgroundColor: "#FF7925",
+                      borderRadius: "8vh",
+                      color: "#FFFFFF !important",
+                      minHeight: "37px",
+                    },
+                  }}
+                >
+                  <Tab
+                    id="home-page-sub-tab"
+                    label={t("For You")}
+                    onClick={() => {
+                      setCurrentHeader(
+                        canShowAvatar
+                          ? HOMEHEADERLIST.SUGGESTIONS
+                          : HOMEHEADERLIST.HOME
+                      );
+                      setSubTab(SUBTAB.SUGGESTIONS);
                     }}
-                  >
-                    <Tab
-                      id="home-page-sub-tab"
-                      label={t("For You")}
-                      onClick={() => {
-                        setCurrentHeader(
-                          canShowAvatar
-                            ? HOMEHEADERLIST.SUGGESTIONS
-                            : HOMEHEADERLIST.HOME
-                        );
-                        setSubTab(SUBTAB.SUGGESTIONS);
-                      }}
-                    />
-                    <Tab
-                      id="home-page-sub-tab"
-                      label={t("Favourite")}
-                      onClick={() => {
-                        setCurrentHeader(
-                          canShowAvatar
-                            ? HOMEHEADERLIST.SUGGESTIONS
-                            : HOMEHEADERLIST.HOME
-                        );
-                        setSubTab(SUBTAB.FAVOURITES);
-                      }}
-                    />
-                    <Tab
-                      id="home-page-sub-tab"
-                      label={t("History")}
-                      onClick={() => {
-                        setCurrentHeader(
-                          canShowAvatar
-                            ? HOMEHEADERLIST.SUGGESTIONS
-                            : HOMEHEADERLIST.HOME
-                        );
-                        setSubTab(SUBTAB.HISTORY);
-                      }}
-                    />
-                  </Tabs>
-                </Box>
-              </AppBar>
-            </div>
-          )}
+                  />
+                  <Tab
+                    id="home-page-sub-tab"
+                    label={t("Favourite")}
+                    onClick={() => {
+                      setCurrentHeader(
+                        canShowAvatar
+                          ? HOMEHEADERLIST.SUGGESTIONS
+                          : HOMEHEADERLIST.HOME
+                      );
+                      setSubTab(SUBTAB.FAVOURITES);
+                    }}
+                  />
+                  <Tab
+                    id="home-page-sub-tab"
+                    label={t("History")}
+                    onClick={() => {
+                      setCurrentHeader(
+                        canShowAvatar
+                          ? HOMEHEADERLIST.SUGGESTIONS
+                          : HOMEHEADERLIST.HOME
+                      );
+                      setSubTab(SUBTAB.HISTORY);
+                    }}
+                  />
+                </Tabs>
+              </Box>
+            </AppBar>
+          </div>
+        )}
         <SkeltonLoading isLoading={isLoading} header={currentHeader} />
       </div>
     </IonPage>

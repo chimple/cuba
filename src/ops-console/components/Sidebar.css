@@ -6,7 +6,6 @@
   width: 65px;
   background: #fff;
   border-right: 1px solid #dde1e6;
-  overflow-y: auto;
   padding: 24px 8px;
   display: flex;
   flex-direction: column;

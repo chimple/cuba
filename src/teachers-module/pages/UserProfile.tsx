@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useHistory } from "react-router-dom";
 import "./UserProfile.css";
 import Header from "../components/homePage/Header";
 import { PAGES, TableTypes } from "../../common/constants";
@@ -9,6 +8,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import UserProfileSection from "../components/UserProfileSection";
 import { Util } from "../../utility/util";
 import ProfileDetails from "../components/library/ProfileDetails";
+import { useHistory } from "react-router-dom";
 
 const UserProfile: React.FC = () => {
   const history = useHistory();
@@ -109,11 +109,12 @@ const UserProfile: React.FC = () => {
     setIsEditMode(false);
   };
 
-  const handleLanguageChange = (languageCode: string) => {
+  const handleLanguageChange = async(languageCode: string) => {
     const selectedLanguage = languages.find(
       (lang) => lang.value === languageCode
     );
     if (selectedLanguage) {
+      await Util.updateUserLanguage(languageCode);
       setLanguage(selectedLanguage.value);
       setLanguageId(selectedLanguage.id);
     }

@@ -1,0 +1,41 @@
+.approved-details-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  background: #fff;
+}
+
+.approved-details-title {
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.75;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  color: black;
+  letter-spacing: 0.00938em;
+  margin-bottom: 8px;
+}
+
+.approved-details-divider {
+  height: 1px;
+  background-color: #e0e0e0;
+  margin-bottom: 12px;
+}
+
+.approved-details-row {
+  display: flex;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.approved-details-label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #666;
+}
+
+.approved-details-value {
+  font-size: 1rem;
+  color: #222;
+  word-break: break-word;
+}

@@ -137,7 +137,7 @@ const AddCourses: React.FC = () => {
         </div>
         <div id="next-button">
           <NextButton
-            disabled={selectedCourses === (undefined) ? true : false}
+            disabled={selectedCourses == null}
             onClicked={() => {
               if (!online) {
                 presentToast({

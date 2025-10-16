@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { Typography, Paper, Grid, Divider, Button } from "@mui/material";
+import {
+  Typography,
+  Paper,
+  Grid,
+  Divider,
+  Button,
+  IconButton,
+} from "@mui/material";
 import { useHistory, useParams, useLocation } from "react-router-dom";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { PAGES, REQUEST_TABS, RequestTypes } from "../../common/constants";
@@ -8,8 +15,7 @@ import { Constants } from "../../services/database";
 import OpsCustomDropdown from "../components/OpsCustomDropdown";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
 import { t } from "i18next";
-
-// Utility function for parsing class names (keep this as is)
+import { BsFillBellFill } from "react-icons/bs";
 
 const PrincipalTeacherPendingRequest = () => {
   const [gradeOptions, setGradeOptions] = useState<
@@ -42,8 +48,8 @@ const PrincipalTeacherPendingRequest = () => {
         const response = await api.getClassesBySchoolId(requestData.school.id);
         const classes = Array.isArray(response) ? response : [response];
         const gradeOpts = classes.map((cls: any) => ({
-          label: cls.name, // shown in dropdown
-          value: cls.id, // actual value stored
+          label: cls.name,
+          value: cls.id,
         }));
 
         setGradeOptions(gradeOpts);
@@ -52,7 +58,7 @@ const PrincipalTeacherPendingRequest = () => {
       }
     }
 
-    setIsEditing(true); // switch to edit mode
+    setIsEditing(true);
   };
 
   useEffect(() => {
@@ -63,7 +69,6 @@ const PrincipalTeacherPendingRequest = () => {
         if (state?.request && state.request.request_id === id) {
           setRequestData(state.request);
         } else {
-          // Fetch all types of requests to find it if not in state
           const [pendingRequests, approvedRequests, rejectedRequests] =
             await Promise.all([
               api.getOpsRequests(
@@ -108,15 +113,20 @@ const PrincipalTeacherPendingRequest = () => {
     }
 
     try {
-      // Role: from edit mode OR existing request type
-      const role: (typeof RequestTypes)[keyof typeof RequestTypes] =
-        editableRequestType || requestData.request_type;
+      // ✅ Use edited values if in edit mode
+      const role =
+        isEditing && editableRequestType
+          ? editableRequestType
+          : requestData.request_type;
 
-      // SchoolId and ClassId
       const schoolId = requestData?.school?.id || undefined;
-      const classId = selectedGradeId || requestData?.class_id || undefined;
 
-      // RespondedBy: whoever is logged in
+      const classId =
+        isEditing &&
+        (role === RequestTypes.TEACHER || role === RequestTypes.STUDENT)
+          ? selectedGradeId
+          : requestData?.class_id || undefined;
+
       const auth = ServiceConfig.getI().authHandler;
       const user = await auth.getCurrentUser();
       if (!user?.id) {
@@ -124,46 +134,30 @@ const PrincipalTeacherPendingRequest = () => {
       }
       const respondedBy = user?.id;
 
-      // 1. Approve request
+      if (schoolId && requestData) {
+        if (role === RequestTypes.PRINCIPAL) {
+          try {
+            await api.addUserToSchool(schoolId, requestData.requestedBy, role);
+          } catch (err) {
+            console.error("Error adding user to school:", err);
+          }
+        } else if (role === RequestTypes.TEACHER) {
+          try {
+            await api.addTeacherToClass(classId, requestData.requestedBy);
+          } catch (err) {
+            console.error("Error adding teacher to class:", err);
+          }
+        }
+      }
+
       await api.approveOpsRequest(
         requestData.request_id,
-        respondedBy, // current user who approves
+        respondedBy,
         role,
         schoolId,
         classId
       );
 
-      // 2. Add user to school or class based on request type
-
-      if (schoolId && requestData) {
-        if (request_type === RequestTypes.PRINCIPAL) {
-          try {
-            await api.addUserToSchool(
-              schoolId,
-              requestedBy, // must be of type TableTypes<"user">
-              request_type
-            );
-          } catch (err) {
-            console.error("Error adding user to school:", err);
-          }
-        } else if (request_type === RequestTypes.TEACHER) {
-          try {
-            await api.addTeacherToClass(classId, requestedBy);
-          } catch (err) {
-            console.error("Error adding teacher to class:", err);
-          }
-        } else {
-          console.warn(
-            "Skipping addUserToSchool/addTeacherToClass: unsupported request type"
-          );
-        }
-      } else {
-        console.warn(
-          "Skipping addUserToSchool/addTeacherToClass: schoolId or requestData.user missing"
-        );
-      }
-
-      // 3. Navigate
       history.push(
         `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.APPROVED}`
       );
@@ -171,8 +165,6 @@ const PrincipalTeacherPendingRequest = () => {
       console.error("Error approving request:", error);
     }
   };
-
-  // Handlers for Reject Dialog
   const handleRemoveClick = () => {};
   if (loading || !requestData)
     return (
@@ -183,36 +175,63 @@ const PrincipalTeacherPendingRequest = () => {
 
   const { school = {}, requestedBy = {}, request_type } = requestData;
 
-  // Use classInfo.name if available, otherwise fallback to classInfo.standard
   const fullRequestClassName =
     requestData.classInfo?.name || `${requestData.classInfo?.standard || ""}`;
 
   const { grade: parsedGrade, section: parsedSection } =
     OpsUtil.parseClassName(fullRequestClassName);
-  console.groupEnd();
-
   const navBreadcrumbs = (
     <div className="principal-teacher-pending-breadcrumbs">
+      {/* Pending link */}
       <span
         onClick={() => history.push(PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST)}
         className="principal-teacher-pending-link"
       >
-        {t("Requests")}
+        {t("Pending")}
       </span>
+
       <span> &gt; </span>
-      <span>{t("Pending ")}</span>
-      <span> &gt; </span>
-      <span className="principal-teacher-pending-active">
+
+      {/* Request ID breadcrumb */}
+      <span
+        onClick={() => {
+          if (isEditing) {
+            setIsEditing(false);
+            setEditableRequestType("");
+            setSelectedGradeId("");
+          }
+        }}
+        className={
+          isEditing
+            ? "principal-teacher-pending-link"
+            : "principal-teacher-pending-active"
+        }
+      >
         {t("Request ID - ")} {id}
       </span>
+
+      {/* Edit breadcrumb only in edit mode */}
+      {isEditing && (
+        <>
+          <span> &gt; </span>
+          <span className="principal-teacher-pending-active">{t("Edit")}</span>
+        </>
+      )}
     </div>
   );
 
   return (
     <div className="principal-teacher-pending-details-layout">
-      <Typography variant="h4" className="principal-teacher-pending-page-title">
-        {t("Request ID - ")} {id}
-      </Typography>
+      <div className="principal-teacher-pending-page-header">
+        <div className="principal-teacher-pending-page-title">
+          {t("Request ID - ")} {id}
+        </div>
+        <div className="principal-teacher-pending-page-icon">
+          <IconButton sx={{ color: "black" }}>
+            <BsFillBellFill />
+          </IconButton>
+        </div>
+      </div>
       {navBreadcrumbs}
 
       <Grid
@@ -221,8 +240,7 @@ const PrincipalTeacherPendingRequest = () => {
         className="principal-teacher-pending-main-content-row"
         alignItems="flex-start"
       >
-        {/* Left Side Cards */}
-        <Grid item xs={12} md={5} lg={4.5}>
+        <Grid size={{ xs: 12, md: 4, lg: 4 }}>
           <Paper
             className="principal-teacher-pending-details-card"
             elevation={0}
@@ -235,14 +253,21 @@ const PrincipalTeacherPendingRequest = () => {
             </Typography>
             <Divider />
             <div className="principal-teacher-pending-first-pending-row">
-              <span>{t("Name")}</span> <span>{requestedBy.name || "-"}</span>
+              <span className="principal-teacher-pending-first-pending-row-title">
+                {t("Name")}
+              </span>
+              <span>{requestedBy.name || "-"}</span>
             </div>
             <div className="principal-teacher-pending-first-pending-row">
-              <span>{t("Phone Number")}</span>{" "}
-              <span>{requestedBy.phone_number || "-"}</span>
+              <span className="principal-teacher-pending-first-pending-row-title">
+                {t("Phone Number")}
+              </span>{" "}
+              <span>{requestedBy.phone || "-"}</span>
             </div>
             <div className="principal-teacher-pending-first-pending-row">
-              <span>{t("Email ID")}</span>{" "}
+              <span className="principal-teacher-pending-first-pending-row-title">
+                {t("Email ID")}
+              </span>{" "}
               <span>{requestedBy.email || "-"}</span>
             </div>
           </Paper>
@@ -261,15 +286,14 @@ const PrincipalTeacherPendingRequest = () => {
             {isEditing ? (
               <>
                 <div className="principal-teacher-pending-first-pending-row">
-                  <span> {t("Role")}</span>
+                  <span>{t("Request Type")}</span>
                   <span>
                     <OpsCustomDropdown
                       value={editableRequestType}
-                      placeholder={request_type}
+                      placeholder={"Request Type"}
                       options={roleOptions}
                       onChange={(val) => {
                         setEditableRequestType(val as RequestTypes);
-                        // Update requestData immediately
                         setRequestData((prev: any) => ({
                           ...prev,
                           request_type: val,
@@ -279,47 +303,56 @@ const PrincipalTeacherPendingRequest = () => {
                   </span>
                 </div>
 
-                <div className="principal-teacher-pending-first-pending-row">
-                  <span> {t("Grade")}</span>
-                  <span>
-                    <OpsCustomDropdown
-                      placeholder={`${parsedGrade > 0 ? parsedGrade : "-"}${parsedSection ? parsedSection : ""}`}
-                      value={selectedGradeId}
-                      options={gradeOptions}
-                      onChange={(val: string) => {
-                        setSelectedGradeId(val);
-                        // Update requestData immediately
-                        setRequestData((prev: any) => ({
-                          ...prev,
-                          class_id: val,
-                        }));
-                      }}
-                    />
-                  </span>
-                </div>
+                {(editableRequestType === RequestTypes.TEACHER ||
+                  editableRequestType === RequestTypes.STUDENT) && (
+                  <div className="principal-teacher-pending-first-pending-row">
+                    <span className="principal-teacher-pending-first-pending-row-title">
+                      {t("Grade")}
+                    </span>
+                    <span>
+                      <OpsCustomDropdown
+                        placeholder={"Select Grade"}
+                        value={selectedGradeId}
+                        options={gradeOptions}
+                        onChange={(val: string) => {
+                          setSelectedGradeId(val);
+                          setRequestData((prev: any) => ({
+                            ...prev,
+                            class_id: val,
+                          }));
+                        }}
+                      />
+                    </span>
+                  </div>
+                )}
               </>
             ) : (
-              // non-editing view
               <>
                 <div className="principal-teacher-pending-first-pending-row">
-                  <span>{t("Role")}</span>
+                  <span className="principal-teacher-pending-first-pending-row-title">
+                    {t("Role")}
+                  </span>
                   <span>{request_type || "-"}</span>
                 </div>
 
-                <div className="principal-teacher-pending-first-pending-row">
-                  <span>{t("Grade")}</span>
-                  <span>
-                    {parsedGrade > 0 ? parsedGrade : "-"}
-                    {parsedSection ? parsedSection : ""}
-                  </span>
-                </div>
+                {(request_type === RequestTypes.TEACHER ||
+                  request_type === RequestTypes.STUDENT) && (
+                  <div className="principal-teacher-pending-first-pending-row">
+                    <span className="principal-teacher-pending-first-pending-row-title">
+                      {t("Grade")}
+                    </span>
+                    <span>
+                      {parsedGrade > 0 ? parsedGrade : "-"}
+                      {parsedSection ? parsedSection : ""}
+                    </span>
+                  </div>
+                )}
               </>
             )}
           </Paper>
         </Grid>
 
-        {/* Right Side Table */}
-        <Grid item xs={12} md={7} lg={7.5}>
+        <Grid size={{ xs: 12, md: 4, lg: 4 }}>
           <Paper
             className="principal-teacher-pending-details-card"
             elevation={0}
@@ -350,9 +383,9 @@ const PrincipalTeacherPendingRequest = () => {
                 style={{ flex: 1, marginRight: "1rem" }}
               >
                 <div className="principal-teacher-pending-label">
-                  {t("City")}
+                  {t("District")}
                 </div>
-                <div>{school.group2 || "N/A"}</div>
+                <div>{school.group3 || "N/A"}</div>
               </div>
               <div
                 className="principal-teacher-pending-field-stack"
@@ -365,10 +398,8 @@ const PrincipalTeacherPendingRequest = () => {
               </div>
             </div>
             <div className="principal-teacher-pending-field-stack">
-              <div className="principal-teacher-pending-label">
-                {t("District")}
-              </div>
-              <div>{school.group3 || "N/A"}</div>
+              <div className="principal-teacher-pending-label">{t("City")}</div>
+              <div>{school.group2 || "N/A"}</div>
             </div>
           </Paper>
 
@@ -379,20 +410,19 @@ const PrincipalTeacherPendingRequest = () => {
                   variant="outlined"
                   color="error"
                   size="large"
-                  style={{ minWidth: 140, fontWeight: 700, fontSize: "1.1rem" }}
-                  onClick={() => setIsEditing(false)}
+                  style={{
+                    minWidth: 110,
+                    fontWeight: 700,
+                    fontSize: "1.1rem",
+                    textTransform: "none",
+                  }}
+                  onClick={() => {
+                    setIsEditing(false);
+                    setEditableRequestType("");
+                    setSelectedGradeId("");
+                  }}
                 >
                   {t("Cancel")}
-                </Button>
-
-                <Button
-                  variant="contained"
-                  color="success"
-                  size="large"
-                  style={{ minWidth: 140, fontWeight: 700, fontSize: "1.1rem" }}
-                  onClick={handleApproveClick}
-                >
-                  {t("Approve")}
                 </Button>
               </>
             ) : (
@@ -401,7 +431,12 @@ const PrincipalTeacherPendingRequest = () => {
                   variant="contained"
                   color="primary"
                   size="large"
-                  style={{ minWidth: 140, fontWeight: 700, fontSize: "1.1rem" }}
+                  style={{
+                    minWidth: 110,
+                    fontWeight: 700,
+                    fontSize: "1.1rem",
+                    textTransform: "none",
+                  }}
                   onClick={editClicked}
                 >
                   {t("Edit")}
@@ -411,23 +446,39 @@ const PrincipalTeacherPendingRequest = () => {
                   variant="contained"
                   color="error"
                   size="large"
-                  style={{ minWidth: 140, fontWeight: 700, fontSize: "1.1rem" }}
+                  style={{
+                    minWidth: 110,
+                    fontWeight: 700,
+                    fontSize: "1.1rem",
+                    textTransform: "none",
+                  }}
                   onClick={handleRemoveClick}
                 >
                   {t("Reject")}
                 </Button>
-
-                <Button
-                  variant="contained"
-                  color="success"
-                  size="large"
-                  style={{ minWidth: 140, fontWeight: 700, fontSize: "1.1rem" }}
-                  onClick={handleApproveClick}
-                >
-                  {t("Approve")}
-                </Button>
               </>
             )}
+
+            {/* ✅ Single Approve button shared by both cases */}
+            <Button
+              variant="contained"
+              color="success"
+              size="large"
+              disabled={
+                (editableRequestType === RequestTypes.TEACHER ||
+                  editableRequestType === RequestTypes.STUDENT) &&
+                !selectedGradeId
+              }
+              style={{
+                minWidth: 110,
+                fontWeight: 700,
+                fontSize: "1.1rem",
+                textTransform: "none",
+              }}
+              onClick={handleApproveClick}
+            >
+              {t("Approve")}
+            </Button>
           </div>
         </Grid>
       </Grid>

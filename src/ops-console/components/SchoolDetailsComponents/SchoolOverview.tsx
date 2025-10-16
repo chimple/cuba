@@ -200,7 +200,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
         </Box>
       ) : (
         <Grid container spacing={2}>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Box className="column-container">
               <InfoCard
                 title={t("School Details")}
@@ -240,7 +240,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
               </Box> */}
             </Box>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Box className="column-container">
               <InfoCard
                 title={t("Key Contacts")}
@@ -359,7 +359,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
               </InfoCard>
             </Box>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <InfoCard
               title={t("School Performance")}
               className="performance-card"

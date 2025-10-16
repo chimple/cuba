@@ -23,7 +23,7 @@ const SelectChapter: FC<{
   course,
   currentChapterId,
 }) => {
-  let currentChapterRef = useRef<any>();
+  let currentChapterRef = useRef<any>(null);
 
   useEffect(() => {
     currentChapterRef.current?.scrollIntoView({ behavior: "instant" });

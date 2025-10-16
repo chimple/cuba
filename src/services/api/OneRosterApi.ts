@@ -14,6 +14,7 @@ import {
   LeaderboardRewards,
   MODES,
   MUSIC,
+  GeoDataParams,
   PROFILETYPE,
   RESPECT_GRADES,
   SOUND,
@@ -26,13 +27,16 @@ import {
   TeacherAPIResponse,
   CACHETABLES,
   CoordinatorAPIResponse,
+  SearchSchoolsParams,
+  SearchSchoolsResult,
   EnumType,
   FilteredSchoolsForSchoolListingOps,
   MODEL,
   PrincipalAPIResponse,
   RequestTypes,
   SchoolRoleMap,
-  TabType
+  TabType,
+  STATUS
 } from "../../common/constants";
 import { Chapter } from "../../interface/curriculumInterfaces";
 import Assignment from "../../models/assignment";
@@ -710,7 +714,22 @@ export class OneRosterApi implements ServiceApi {
   getLastAssignmentsForRecommendations(classId: string): Promise<TableTypes<"assignment">[] | undefined> {
     throw new Error("Method not implemented.");
   }
-  createAssignment(student_list: string[], userId: string, starts_at: string, ends_at: string, is_class_wise: boolean, class_id: string, school_id: string, lesson_id: string, chapter_id: string, course_id: string, type: string): Promise<boolean> {
+  createAssignment(
+    student_list: string[],
+    userId: string,
+    starts_at: string,
+    ends_at: string,
+    is_class_wise: boolean,
+    class_id: string,
+    school_id: string,
+    lesson_id: string,
+    chapter_id: string,
+    course_id: string,
+    type: string,
+    batch_id: string,
+    source: string | null,
+    created_at?: string
+  ): Promise<void> {
     throw new Error("Method not implemented.");
   }
   getTeachersForClass(classId: string): Promise<TableTypes<"user">[] | undefined> {
@@ -772,6 +791,24 @@ export class OneRosterApi implements ServiceApi {
       HOMEHEADERLIST.ASSIGNMENT,
     )
   }
+  respondToSchoolRequest(requestId: string, respondedBy: string, status: STATUS[keyof STATUS], rejectionReason?: string): Promise<TableTypes<"ops_requests"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+  getFieldCoordinatorsByProgram(programId: string): Promise<{ data: TableTypes<"user">[]; }> {
+    throw new Error("Method not implemented.");
+  }
+  getProgramsByRole(): Promise<{ data: TableTypes<"program">[]; }> {
+    throw new Error("Method not implemented.");
+  }
+  updateSchoolStatus(schoolId: string, schoolStatus: STATUS[keyof STATUS], address?: { state?: string; district?: string; city?: string; address?: string; }, keyContacts?: any): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  sendJoinSchoolRequest(schoolId: string, requestType: RequestTypes, classId?: string): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+  getAllClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> {
+    throw new Error("Method not implemented.");
+  }
   clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
     throw new Error("Method not implemented.");
   }
@@ -811,7 +848,7 @@ export class OneRosterApi implements ServiceApi {
   getFieldCoordinatorsForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
     throw new Error("Method not implemented.");
   }
-  getSchoolsByModel(model: MODEL, limit: number, offset: number): Promise<TableTypes<"school">[]> {
+  getSchoolsByModel(model: EnumType<"program_model">, limit: number, offset: number): Promise<TableTypes<"school">[]> {
     throw new Error("Method not implemented.");
   }
   getProgramData(programId: string): Promise<{ programDetails: { id: string; label: string; value: string; }[]; locationDetails: { id: string; label: string; value: string; }[]; partnerDetails: { id: string; label: string; value: string; }[]; programManagers: { name: string; role: string; phone: string; }[]; } | null> {
@@ -3039,8 +3076,8 @@ export class OneRosterApi implements ServiceApi {
     const data = await portPlugin.sendLaunchData();
     const actorObj = typeof data.actor === "string" ? JSON.parse(data.actor) : data.actor;
 
-    const actorName = actorObj.name?.[0] || "";
-    const actorMbox = actorObj.mbox?.[0] || "";
+    const actorName = actorObj.name?.[0];
+    const actorMbox = actorObj.mbox?.[0];
     const registration = data.registration;
 
     const user: TableTypes<"user"> = {
@@ -3068,7 +3105,8 @@ export class OneRosterApi implements ServiceApi {
       is_firebase: null,
       is_ops: null,
       ops_created_by: null,
-      stars: null
+      stars: null,
+      reward: null
     };
     ServiceConfig.getI().authHandler.currentUser = user;
     Util.setCurrentStudent(user);
@@ -3132,12 +3170,20 @@ export class OneRosterApi implements ServiceApi {
   mergeStudentRequest(
     requestId: string,
     existingStudentId: string,
-    newStudentId: string
+    newStudentId: string,
+    respondedBy: string
   ): Promise<void> {
     throw new Error("Method not implemented.");
   }
 
   getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getGeoData(params: GeoDataParams): Promise<string[]> {
+    throw new Error("Method not implemented.");
+  }
+
+  searchSchools(params: SearchSchoolsParams): Promise<SearchSchoolsResult> {
     throw new Error("Method not implemented.");
   }
 }
