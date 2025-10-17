@@ -65,6 +65,7 @@ const RequestList: React.FC = () => {
       : REQUEST_TABS.PENDING;
   });
   const [searchTerm, setSearchTerm] = useState(() => qs.get("search") || "");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
   const [filters, setFilters] = useState<Filters>(() =>
     parseJSONParam(qs.get("filters"), INITIAL_FILTERS)
   );
@@ -92,15 +93,28 @@ const RequestList: React.FC = () => {
   const isSmallScreen = useMediaQuery("(max-width: 900px)");
 
   useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearchTerm, filters]);
+
+  useEffect(() => {
     const params = new URLSearchParams();
     if (selectedTab !== REQUEST_TABS.PENDING)
       params.set("tab", String(selectedTab));
-    if (searchTerm) params.set("search", searchTerm);
+    if (debouncedSearchTerm) params.set("search", debouncedSearchTerm);
     if (Object.values(filters).some((arr) => arr.length))
       params.set("filters", JSON.stringify(filters));
     if (page !== 1) params.set("page", String(page));
     history.replace({ search: params.toString() });
-  }, [selectedTab, searchTerm, filters, page, history]);
+  }, [selectedTab, debouncedSearchTerm, filters, page, history]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -123,115 +137,126 @@ const RequestList: React.FC = () => {
     fetchFilterOptions();
   }, [api]);
 
-  const fetchData = useCallback(async () => {
-    setIsDataLoading(true);
-    try {
-      const tempTab: EnumType<"ops_request_status"> =
-        selectedTab === REQUEST_TABS.PENDING
-          ? Constants.public.Enums.ops_request_status[0]
-          : selectedTab === REQUEST_TABS.APPROVED
-          ? Constants.public.Enums.ops_request_status[2]
-          : Constants.public.Enums.ops_request_status[1];
-      const cleanedFilters = Object.fromEntries(
-        Object.entries({ ...filters }).filter(
-          ([_, v]) => Array.isArray(v) && v.length > 0
-        )
-      );
-      const orderByMapping = {
-        approved_date: "updated_at",
-        rejected_date: "updated_at",
-        requested_date: "created_at",
-      };
-      const backendOrderBy = orderByMapping[orderBy] || orderBy;
-      const { data, total } = await api.getOpsRequests(
-        tempTab,
-        page,
-        pageSize,
-        backendOrderBy,
-        orderDir,
-        cleanedFilters,
-        searchTerm
-      );
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsDataLoading(true);
+      try {
+        const tempTab: EnumType<"ops_request_status"> =
+          selectedTab === REQUEST_TABS.PENDING
+            ? Constants.public.Enums.ops_request_status[0]
+            : selectedTab === REQUEST_TABS.APPROVED
+            ? Constants.public.Enums.ops_request_status[2]
+            : Constants.public.Enums.ops_request_status[1];
 
-      setRawRequestData(data || []);
-      let mappedData: any[] = [];
+        const cleanedFilters = Object.fromEntries(
+          Object.entries({ ...filters }).filter(
+            ([_, v]) => Array.isArray(v) && v.length > 0
+          )
+        );
 
-      switch (selectedTab) {
-        case REQUEST_TABS.APPROVED:
-          mappedData = (data || []).map((req) => ({
-            request_id: req.request_id,
-            request_type: req.request_type,
-            school_name: req.school?.name || "-",
-            class: req.classInfo?.name || "-",
-            from: req.requestedBy?.name || "-",
-            approved_date: formatDateOnly(req.updated_at),
-            approved_by: req.respondedBy?.name || "-",
-          }));
-          break;
+        const orderByMapping = {
+          approved_date: "updated_at",
+          rejected_date: "updated_at",
+          requested_date: "created_at",
+        };
+        const backendOrderBy = orderByMapping[orderBy] || orderBy;
 
-        case REQUEST_TABS.REJECTED:
-          mappedData = (data || []).map((req) => ({
-            request_id: req.request_id,
-            request_type: req.request_type,
-            school_name: req.school?.name || "-",
-            class: req.classInfo?.name || "-",
-            from: req.requestedBy?.name || "-",
-            rejected_date: formatDateOnly(req.updated_at),
-            rejected_reason: req.rejected_reason_type || "-",
-            rejected_by: req.respondedBy?.name || "-",
-          }));
-          break;
+        console.log("🚀 MAKING API CALL WITH:", {
+          status: tempTab,
+          page: page,
+          pageSize: pageSize,
+          orderBy: backendOrderBy,
+          orderDir: orderDir,
+          filters: cleanedFilters,
+          search: debouncedSearchTerm,
+        });
 
-        case REQUEST_TABS.PENDING:
-        default:
-          mappedData = (data || []).map((req) => {
-            const requestedDate = new Date(req.created_at).toLocaleString(
-              "en-IN",
-              {
-                timeZone: "Asia/Kolkata",
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: true,
-              }
-            );
-            return {
+        const { data, total } = await api.getOpsRequests(
+          tempTab,
+          page,
+          pageSize,
+          backendOrderBy,
+          orderDir,
+          cleanedFilters,
+          debouncedSearchTerm
+        );
+
+        setRawRequestData(data || []);
+        let mappedData: any[] = [];
+        switch (selectedTab) {
+          case REQUEST_TABS.APPROVED:
+            mappedData = (data || []).map((req) => ({
               request_id: req.request_id,
               request_type: req.request_type,
               school_name: req.school?.name || "-",
               class: req.classInfo?.name || "-",
               from: req.requestedBy?.name || "-",
-              requested_date: requestedDate,
-            };
-          });
-          break;
-      }
-      setRequestData(mappedData);
-      setTotal(total || 0);
-    } catch (error) {
-      console.error("Failed to fetch requests:", error);
-      setRequestData([]);
-      setTotal(0);
-    } finally {
-      setIsDataLoading(false);
-    }
-  }, [
-    api,
-    filters,
-    page,
-    pageSize,
-    searchTerm,
-    selectedTab,
-    orderBy,
-    orderDir,
-  ]);
+              approved_date: formatDateOnly(req.updated_at),
+              approved_by: req.respondedBy?.name || "-",
+            }));
+            break;
 
-  useEffect(() => {
+          case REQUEST_TABS.REJECTED:
+            mappedData = (data || []).map((req) => ({
+              request_id: req.request_id,
+              request_type: req.request_type,
+              school_name: req.school?.name || "-",
+              class: req.classInfo?.name || "-",
+              from: req.requestedBy?.name || "-",
+              rejected_date: formatDateOnly(req.updated_at),
+              rejected_reason: req.rejected_reason_type || "-",
+              rejected_by: req.respondedBy?.name || "-",
+            }));
+            break;
+
+          case REQUEST_TABS.PENDING:
+          default:
+            mappedData = (data || []).map((req) => {
+              const requestedDate = new Date(req.created_at).toLocaleString(
+                "en-IN",
+                {
+                  timeZone: "Asia/Kolkata",
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                }
+              );
+              return {
+                request_id: req.request_id,
+                request_type: req.request_type,
+                school_name: req.school?.name || "-",
+                class: req.classInfo?.name || "-",
+                from: req.requestedBy?.name || "-",
+                requested_date: requestedDate,
+              };
+            });
+            break;
+        }
+        setRequestData(mappedData);
+        setTotal(total || 0);
+      } catch (error) {
+        console.error("Failed to fetch requests:", error);
+        setRequestData([]);
+        setTotal(0);
+      } finally {
+        setIsDataLoading(false);
+      }
+    };
     fetchData();
     tableScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-  }, [fetchData, orderBy, orderDir]);
+  }, [
+    api,
+    selectedTab,
+    page,
+    pageSize,
+    orderBy,
+    orderDir,
+    filters,
+    debouncedSearchTerm,
+  ]);
 
   const formatDateOnly = (dateStr?: string) => {
     if (!dateStr) return "-";
@@ -520,7 +545,6 @@ const RequestList: React.FC = () => {
                 searchTerm={searchTerm}
                 onSearchChange={(e) => {
                   setSearchTerm(e.target.value);
-                  setPage(1);
                 }}
                 filters={filters}
                 onFilterClick={() => setIsFilterOpen(true)}
