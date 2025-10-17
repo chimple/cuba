@@ -8,8 +8,8 @@ import {
   CAN_ACCESS_REMOTE_ASSETS,
   COCOS,
   CONTINUE,
-  DAILY_USER_REWARD,
   IDLE_REWARD_ID,
+  IS_REWARD_FEATURE_ON,
   LIDO,
   LIVE_QUIZ,
   PAGES,
@@ -77,6 +77,7 @@ const PathwayStructure: React.FC = () => {
   );
   const rewardText = t("Complete these 5 lessons to earn rewards");
   const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
+  const isRewardFeatureOn: boolean = localStorage.getItem(IS_REWARD_FEATURE_ON) === "true";
 
   const shouldAnimate = modalText === rewardText;
   const fetchLocalSVGGroup = async (
@@ -703,7 +704,7 @@ const PathwayStructure: React.FC = () => {
           };
 
           const newRewardId = await checkAndUpdateReward();
-          if (newRewardId !== null && typeof newRewardId === "string") {
+          if (newRewardId !== null && typeof newRewardId === "string" && isRewardFeatureOn) {
             runRewardAnimation(newRewardId);
           }
 
@@ -715,7 +716,7 @@ const PathwayStructure: React.FC = () => {
               (_, idx) => startIndex + idx === (currentIndex) - 1
             );
             const chimpleXValues = [-60, 66, 180, 295, 412]
-            if (idx < 0 || newRewardId == null) {
+            if (idx < 0 || newRewardId == null || !isRewardFeatureOn) {
               chimple.setAttribute("x", `${xValues[idx + 1] - 87}`);
             } else {
             chimple.setAttribute("x", `${chimpleXValues[idx]}`);
@@ -778,7 +779,11 @@ const PathwayStructure: React.FC = () => {
       "courseChanged",
       handleCourseChange as EventListener
     );
-    initializePathway();
+      if (isRewardFeatureOn) {
+        initializePathway();
+      } else {
+        loadSVG();
+      }
 
     return () => {
       window.removeEventListener("courseChanged", handleCourseChange);
@@ -790,7 +795,7 @@ const PathwayStructure: React.FC = () => {
       const showModal = await shouldShowDailyRewardModal();
       setRewardModalOpen(showModal);
     };
-    showModalIfNeeded();
+  if(isRewardFeatureOn) {showModalIfNeeded();}
   }, []);
 
   const updateMascotToNormalState = async (rewardId: string) => {
@@ -909,9 +914,9 @@ const PathwayStructure: React.FC = () => {
           rewardRiveContainer
         )}
 
-      {hasTodayReward && <RewardBox onRewardClick={handleOpen} />}
+      {(hasTodayReward && isRewardFeatureOn) && <RewardBox onRewardClick={handleOpen} />}
 
-      {rewardModalOpen && (
+      {(rewardModalOpen && isRewardFeatureOn) && (
         <DailyRewardModal
           text={t("Play one lesson and collect your daily reward!")}
           onClose={handleClose}
