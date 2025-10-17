@@ -15,6 +15,7 @@ import Library from "../components/library/Library";
 import ReportTable from "../components/reports/ReportsTable";
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
+  LANGUAGE,
   PAGES,
   TableTypes,
 } from "../../common/constants";
@@ -99,6 +100,9 @@ const HomePage: React.FC = () => {
       ScreenOrientation.lock({ orientation: "portrait" });
     }
     const currentUser = await auth.getCurrentUser();
+    const languageCode = localStorage.getItem(LANGUAGE);
+    await Util.updateUserLanguage(languageCode!);
+
     const existingRequest = await api.getExistingSchoolRequest(currentUser?.id as string);
     if(existingRequest) history.replace(PAGES.POST_SUCCESS)
     await Util.handleClassAndSubjects(
