@@ -161,15 +161,15 @@ const RequestList: React.FC = () => {
         };
         const backendOrderBy = orderByMapping[orderBy] || orderBy;
 
-        console.log("🚀 MAKING API CALL WITH:", {
-          status: tempTab,
-          page: page,
-          pageSize: pageSize,
-          orderBy: backendOrderBy,
-          orderDir: orderDir,
-          filters: cleanedFilters,
-          search: debouncedSearchTerm,
-        });
+        // console.log("🚀 MAKING API CALL WITH:", {
+        //   status: tempTab,
+        //   page: page,
+        //   pageSize: pageSize,
+        //   orderBy: backendOrderBy,
+        //   orderDir: orderDir,
+        //   filters: cleanedFilters,
+        //   search: debouncedSearchTerm,
+        // });
 
         const { data, total } = await api.getOpsRequests(
           tempTab,
