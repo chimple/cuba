@@ -321,7 +321,7 @@ const PathwayStructure: React.FC = () => {
           "http://www.w3.org/2000/svg",
           "foreignObject"
         );
-        chimple.setAttribute("width", "33%");
+        chimple.setAttribute("width", "32.5%");
         chimple.setAttribute("height", "100%");
 
         requestAnimationFrame(async () => {
@@ -563,7 +563,7 @@ const PathwayStructure: React.FC = () => {
 
             // place the foreignObject at the target x/y (so transform translates relative to correct baseline)
             chimple.setAttribute("x", `${toX - 87}`);
-            chimple.setAttribute("y", `${startPoint.y - 9}`);
+            chimple.setAttribute("y", `${startPoint.y - 15}`);
 
             // Ensure CSS transforms are applied to the SVG element
             chimple.style.display = "block";
@@ -721,7 +721,7 @@ const PathwayStructure: React.FC = () => {
             } else {
             chimple.setAttribute("x", `${chimpleXValues[idx]}`);
           }
-            chimple.setAttribute("y", `${startPoint.y - 9}`);
+            chimple.setAttribute("y", `${startPoint.y - 15}`);
             chimple.style.pointerEvents = "none";
             const riveDiv = document.createElement("div");
             riveDiv.style.width = "100%";

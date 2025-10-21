@@ -2444,7 +2444,7 @@ export class Util {
         chimpleRiveMaxState =
           parseInt(
             localStorage.getItem(CHIMPLE_RIVE_STATE_MACHINE_MAX) as string
-          ) ?? 8;
+          ) ?? chimpleRiveMaxState;
       }
 
       const mappedState = ((day - 1) % chimpleRiveMaxState) + 1;
