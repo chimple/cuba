@@ -7040,7 +7040,9 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  async getSchoolFilterOptionsForProgram(programId: string): Promise<Record<string, string[]>> {
+  async getSchoolFilterOptionsForProgram(
+    programId: string
+  ): Promise<Record<string, string[]>> {
     if (!this.supabase) {
       console.error("Supabase client is not initialized");
       return {};
@@ -7082,7 +7084,10 @@ export class SupabaseApi implements ServiceApi {
 
       return parsed;
     } catch (err) {
-      console.error("Unexpected error in getSchoolFilterOptionsForProgram:", err);
+      console.error(
+        "Unexpected error in getSchoolFilterOptionsForProgram:",
+        err
+      );
       return {};
     }
   }
@@ -7808,192 +7813,240 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async getOpsRequests(
+    this: any,
     requestStatus: EnumType<"ops_request_status">,
     page: number = 1,
     limit: number = 20,
     orderBy: string = "created_at",
     orderDir: "asc" | "desc" = "asc",
-    filters?: { request_type?: string[]; school?: string[] },
+    filters?: {
+      request_type?: EnumType<"ops_request_type">[];
+      school?: string[];
+    },
     searchTerm?: string
-  ) {
+  ): Promise<{
+    data: any[];
+    total: number;
+    totalPages: number;
+    page: number;
+    limit: number;
+  }> {
     try {
-      if (!this.supabase) return;
+      if (!this.supabase)
+        return { data: [], total: 0, totalPages: 0, page, limit };
 
-      const offset = (page - 1) * limit;
-      const allowedOrderByDb = ["created_at", "updated_at"];
-      const isSchoolNameOrder = orderBy === "school_name";
+      const offset = Math.max(0, (page - 1) * limit);
+      const allowedOrderByDb = ["created_at", "updated_at"] as const;
+      if (!allowedOrderByDb.includes(orderBy as any)) orderBy = "created_at";
+      if (!["asc", "desc"].includes(orderDir.toLowerCase())) orderDir = "asc";
 
-      if (!isSchoolNameOrder && !allowedOrderByDb.includes(orderBy)) {
-        console.warn(
-          `[getOpsRequests] Invalid orderBy "${orderBy}", defaulting to "created_at"`
-        );
-        orderBy = "created_at";
+      const trimmedSearchTerm = searchTerm?.trim();
+      const doTextSearch = !!trimmedSearchTerm && trimmedSearchTerm.length >= 3;
+
+      let searchSchoolIds: string[] = [];
+      let searchUserIds: string[] = [];
+
+      if (doTextSearch) {
+        const [{ data: schoolData }, { data: userData }] = await Promise.all([
+          this.supabase
+            .from(TABLES.School)
+            .select("id")
+            .eq("is_deleted", false)
+            .ilike("name", `%${trimmedSearchTerm}%`),
+          this.supabase
+            .from(TABLES.User)
+            .select("id")
+            .eq("is_deleted", false)
+            .ilike("name", `%${trimmedSearchTerm}%`),
+        ]);
+        if (schoolData?.length)
+          searchSchoolIds = schoolData.map((s: any) => String(s.id));
+        if (userData?.length)
+          searchUserIds = userData.map((u: any) => String(u.id));
       }
 
-      if (!["asc", "desc"].includes(orderDir.toLowerCase())) {
-        console.warn(
-          `[getOpsRequests] Invalid orderDir "${orderDir}", defaulting to "asc"`
-        );
-        orderDir = "asc";
-      }
+      const applyFilters = (q: any) => {
+        q = q.eq("is_deleted", false);
 
-      // Filters + ordering helper
-      const applyFilters = (query: any, schoolIds?: string[]) => {
-        if (filters?.request_type?.length) {
-          query = query.in("request_type", filters.request_type);
-        }
-        if (schoolIds?.length) {
-          query = query.in("school_id", schoolIds);
-        }
-        if (searchTerm?.trim()) {
-          query = query.ilike("request_id", `%${searchTerm}%`);
-        }
+        const RS = Constants.public.Enums.ops_request_status;
+        const nowIso = new Date().toISOString();
+        const isComplexStatus =
+          requestStatus === RS[0] || requestStatus === RS[2];
 
-        if (isSchoolNameOrder) {
-          query = query.order("school(name)", {
-            ascending: orderDir === "asc",
-          });
+        if (isComplexStatus) {
+          if (requestStatus === RS[2]) {
+            q = q.or(
+              [
+                `request_status.eq.${requestStatus}`,
+                `and(request_status.eq.requested,request_type.eq.student,request_ends_at.lte.${nowIso})`,
+              ].join(",")
+            );
+          } else {
+            q = q.or(
+              [
+                `and(request_status.eq.requested,request_type.neq.student)`,
+                `and(request_status.eq.requested,request_type.eq.student,request_ends_at.gt.${nowIso})`,
+              ].join(",")
+            );
+          }
         } else {
-          query = query.order(orderBy, { ascending: orderDir === "asc" });
+          q = q.eq("request_status", requestStatus);
         }
 
-        return query;
+        if (filters?.request_type?.length)
+          q = q.in("request_type", filters.request_type);
+
+        const schoolFilterIds: string[] | undefined = filters?.school?.filter(
+          (x: unknown): x is string => typeof x === "string"
+        );
+        if (schoolFilterIds?.length) q = q.in("school_id", schoolFilterIds);
+
+        if (doTextSearch) {
+          const orConditions: string[] = [];
+
+          const allRequestTypes: string[] = Object.values(
+            RequestTypes
+          ) as string[];
+          const st = trimmedSearchTerm!.toLowerCase();
+
+          const matchingRequestTypes = allRequestTypes.filter((rt) =>
+            rt.toLowerCase().includes(st)
+          );
+          if (matchingRequestTypes.length)
+            orConditions.push(
+              `request_type.in.(${matchingRequestTypes.join(",")})`
+            );
+
+          if (!isNaN(parseInt(trimmedSearchTerm!, 10))) {
+            orConditions.push(`request_id.eq.${trimmedSearchTerm}`);
+          }
+
+          if (searchSchoolIds.length)
+            orConditions.push(`school_id.in.(${searchSchoolIds.join(",")})`);
+          if (searchUserIds.length) {
+            orConditions.push(
+              `requested_by.in.(${searchUserIds.join(",")})`,
+              `responded_by.in.(${searchUserIds.join(",")})`
+            );
+          }
+
+          if (orConditions.length) q = q.or(orConditions.join(","));
+          else return { q, earlyEmpty: true };
+        }
+
+        return { q, earlyEmpty: false };
       };
 
-      // School filter
-      let schoolIds: string[] | undefined;
-      if (filters?.school?.length) {
-        const { data: schoolData, error: schoolError } = await this.supabase
-          .from(TABLES.School)
-          .select("id")
-          .in("name", filters.school)
-          .eq("is_deleted", false);
+      let countQ = this.supabase
+        .from(TABLES.OpsRequests)
+        .select("id", { count: "exact", head: true });
+      const { q: cq, earlyEmpty } = applyFilters(countQ);
+      if (earlyEmpty) return { data: [], total: 0, totalPages: 0, page, limit };
+      const { error: countErr, count: total } = await cq;
+      if (countErr) throw countErr;
 
-        if (schoolError) throw schoolError;
-        schoolIds = (schoolData || []).map((s) => s.id);
-
-        if (!schoolIds.length) {
-          return { data: [], total: 0 };
-        }
-      }
-
-      let combinedData: any[] = [];
-      let totalCount = 0;
-
-      if (requestStatus === Constants.public.Enums.ops_request_status[2]) {
-        // ✅ Approved requests
-        let approvedQuery = this.supabase
-          .from(TABLES.OpsRequests)
-          .select(`*, school:school_id(id, name)`, { count: "exact" })
-          .eq("is_deleted", false)
-          .eq("request_status", Constants.public.Enums.ops_request_status[2]);
-
-        approvedQuery = applyFilters(approvedQuery, schoolIds);
-
-        const {
-          data: approvedData,
-          error: approvedError,
-          count: approvedCount,
-        } = await approvedQuery.range(offset, offset + limit - 1);
-
-        if (approvedError) throw approvedError;
-        let expiredQuery = this.supabase
-          .from(TABLES.OpsRequests)
-          .select(`*, school:school_id(id, name)`, { count: "exact" })
-          .eq("is_deleted", false)
-          .eq("request_status", Constants.public.Enums.ops_request_status[0])
-          .eq("request_type", RequestTypes.STUDENT)
-          .lte("request_ends_at", new Date().toISOString());
-
-        expiredQuery = applyFilters(expiredQuery, schoolIds);
-
-        let expiredPendingData: any[] = [];
-        let expiredCount = 0;
-
-        try {
-          const { data, error, count } = await expiredQuery.range(
-            offset,
-            offset + limit - 1
-          );
-          if (error) {
-            console.error("Expired query error:", error);
-          }
-          expiredPendingData = data || [];
-          expiredCount = count ?? 0;
-        } catch (err: any) {
-          console.error("Unexpected expiredQuery error:", err);
-        }
-
-        combinedData = [...(approvedData || []), ...expiredPendingData];
-        totalCount = (approvedCount ?? 0) + expiredCount;
-      } else if (
-        requestStatus === Constants.public.Enums.ops_request_status[0]
-      ) {
-        // ✅ Pending requests
-        const now = new Date().toISOString();
-        let pendingQuery = this.supabase
-          .from(TABLES.OpsRequests)
-          .select(`*, school:school_id(id, name)`, { count: "exact" })
-          .eq("is_deleted", false)
-          .eq("request_status", requestStatus)
-          .or(
-            `request_type.neq.student,and(request_type.eq.student,request_ends_at.gt.${now})`
-          );
-
-        pendingQuery = applyFilters(pendingQuery, schoolIds);
-
-        const { data, error, count } = await pendingQuery.range(
-          offset,
-          offset + limit - 1
+      let rowsQ = this.supabase
+        .from(TABLES.OpsRequests)
+        .select(
+          "id, request_id, request_status, request_type, request_ends_at, is_deleted, school_id, class_id, requested_by, responded_by, created_at, updated_at"
         );
-        if (error) throw error;
+      const { q: rq } = applyFilters(rowsQ);
 
-        combinedData = data || [];
-        totalCount = count ?? 0;
-      } else {
-        // ✅ Other statuses (Rejected, etc.)
-        let query = this.supabase
-          .from(TABLES.OpsRequests)
-          .select(`*, school:school_id(id, name)`, { count: "exact" })
-          .eq("is_deleted", false)
-          .eq("request_status", requestStatus);
+      const { data: rows, error: rowsErr } = await rq
+        .order(orderBy, { ascending: orderDir === "asc" })
+        .range(offset, offset + limit - 1);
+      if (rowsErr) throw rowsErr;
 
-        query = applyFilters(query, schoolIds);
-
-        const { data, error, count } = await query.range(
-          offset,
-          offset + limit - 1
-        );
-        if (error) throw error;
-
-        combinedData = data || [];
-        totalCount = count ?? 0;
+      if (!rows?.length) {
+        const totalPages = total ? Math.max(1, Math.ceil(total / limit)) : 0;
+        return { data: [], total: total ?? 0, totalPages, page, limit };
       }
 
-      if (!combinedData.length) {
-        return { data: [], total: totalCount };
-      }
-
-      // Map related entities
-      const mappedRequests = await Promise.all(
-        combinedData.map(async (req) => {
-          const [school, classInfo, requestedBy, respondedBy] =
-            await Promise.all([
-              this.getSchoolById(req.school_id!),
-              req.class_id ? this.getClassById(req.class_id) : null,
-              this.getUserByDocId(req.requested_by!),
-              req.responded_by ? this.getUserByDocId(req.responded_by) : null,
-            ]);
-          return { ...req, school, classInfo, requestedBy, respondedBy };
-        })
+      const schoolIds: string[] = Array.from(
+        new Set(
+          rows
+            .map((r: any) => r.school_id)
+            .filter((x: unknown): x is string => typeof x === "string")
+        )
+      );
+      const userIds: string[] = Array.from(
+        new Set(
+          rows
+            .flatMap((r: any) => [r.requested_by, r.responded_by])
+            .filter((x: unknown): x is string => typeof x === "string")
+        )
+      );
+      const classIds: string[] = Array.from(
+        new Set(
+          rows
+            .map((r: any) => r.class_id)
+            .filter((x: unknown): x is string => typeof x === "string")
+        )
       );
 
-      return { data: mappedRequests, total: totalCount };
-    } catch (error) {
-      console.error("Error in getOpsRequests:", error);
-      return { data: [], total: 0 };
+      const [schoolsResp, usersResp, classesResp] = await Promise.all([
+        schoolIds.length
+          ? this.supabase
+              .from(TABLES.School)
+              .select("id, name")
+              .in("id", schoolIds)
+          : Promise.resolve({ data: [] as any[], error: null }),
+        userIds.length
+          ? this.supabase
+              .from(TABLES.User)
+              .select("id, name, email")
+              .in("id", userIds)
+          : Promise.resolve({ data: [] as any[], error: null }),
+        classIds.length
+          ? this.supabase
+              .from(TABLES.Class)
+              .select("id, name, school_id")
+              .in("id", classIds)
+          : Promise.resolve({ data: [] as any[], error: null }),
+      ]);
+      if (schoolsResp.error) throw schoolsResp.error;
+      if (usersResp.error) throw usersResp.error;
+      if (classesResp.error) throw classesResp.error;
+
+      const schoolMap = new Map(
+        (schoolsResp.data || []).map((s: any): [string, any] => [
+          s.id as string,
+          s,
+        ])
+      );
+      const userMap = new Map(
+        (usersResp.data || []).map((u: any): [string, any] => [
+          u.id as string,
+          u,
+        ])
+      );
+      const classMap = new Map(
+        (classesResp.data || []).map((c: any): [string, any] => [
+          c.id as string,
+          c,
+        ])
+      );
+
+      const data = rows.map((r: any) => ({
+        ...r,
+        school: r.school_id ? schoolMap.get(r.school_id) ?? null : null,
+        requestedBy: r.requested_by
+          ? userMap.get(r.requested_by) ?? null
+          : null,
+        respondedBy: r.responded_by
+          ? userMap.get(r.responded_by) ?? null
+          : null,
+        classInfo: r.class_id ? classMap.get(r.class_id) ?? null : null,
+      }));
+
+      const totalPages = total ? Math.max(1, Math.ceil(total / limit)) : 0;
+      return { data, total: total ?? 0, totalPages, page, limit };
+    } catch (err) {
+      console.error("Error in getOpsRequests:", err);
+      return { data: [], total: 0, totalPages: 0, page, limit };
     }
   }
+
   async getRequestFilterOptions() {
     try {
       if (!this.supabase) return null;
