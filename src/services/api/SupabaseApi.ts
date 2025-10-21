@@ -7851,10 +7851,12 @@ export class SupabaseApi implements ServiceApi {
           this.supabase
             .from(TABLES.School)
             .select("id")
+            .eq("is_deleted", false)
             .ilike("name", `%${trimmedSearchTerm}%`),
           this.supabase
             .from(TABLES.User)
             .select("id")
+            .eq("is_deleted", false)
             .ilike("name", `%${trimmedSearchTerm}%`),
         ]);
         if (schoolData?.length)
