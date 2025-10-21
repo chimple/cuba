@@ -203,7 +203,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             const canAccessUsersPage = userRoles.some((role) =>
               rolesWithAccess.includes(role as RoleType)
             );
-            if (!canAccessUsersPage) {
+            if (item.label === NavItems.USERS && !canAccessUsersPage) {
               return null;
             }
             return (
