@@ -187,7 +187,6 @@ export class SupabaseAuth implements ServiceAuth {
         provider: "google",
         options: {
           scopes: ["profile", "email"],
-          forceRefreshToken: true,
         },
       });
       if (response.result?.responseType !== "online") {
