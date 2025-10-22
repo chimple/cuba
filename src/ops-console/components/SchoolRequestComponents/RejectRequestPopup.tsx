@@ -19,6 +19,8 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
   const isTeacherOrPrincipal = requestType === 'teacher' || requestType === 'principal';
   const [selectedReason, setSelectedReason] = useState<string>("");
   const [customReason, setCustomReason] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
 
@@ -29,10 +31,10 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
 
   function getFinalReason() {
     if (isTeacherOrPrincipal) {
-      if (selectedReason === VERIFICATION_FAILED) return VERIFICATION_FAILED;
-      if (selectedReason === WRONG_SCHOOL_SELECTED) return WRONG_SCHOOL_SELECTED;
-      if (selectedReason === OTHER) return customReason;
-      return customReason;
+      if (selectedReason === OTHER) {
+        return customReason;
+      }
+      return selectedReason;
     } else {
       return customReason;
     }
@@ -40,24 +42,49 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
 
   const ctaLabel = isTeacherOrPrincipal && selectedReason === WRONG_SCHOOL_SELECTED ? t("Flag for Review") : t("Reject Request");
 
+  function isFormValid() {
+    if (isTeacherOrPrincipal) {
+      if (!selectedReason) return false;
+      if (selectedReason === OTHER && !customReason.trim()) return false;
+    } else {
+      if (!customReason.trim()) return false;
+    }
+    return true;
+  }
+
   async function handleReject() {
-    const status = isTeacherOrPrincipal && selectedReason === WRONG_SCHOOL_SELECTED ? STATUS.FLAGGED : STATUS.REJECTED;
-    // Send selectedReason as rejected_reason_type, customReason as rejected_reason_description
-    await api.respondToSchoolRequest(
-      requestData.id,
-      requestData.respondedBy.id,
-      status,
-      selectedReason,
-      customReason
-    );
-    await api.updateSchoolStatus(requestData.school.id, status);
-    history.push(
-      `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.REJECTED}`
-    );
+    if (!isFormValid()) return;
+    
+    setIsLoading(true);
+    setError("");
+    
+    try {
+      const status = isTeacherOrPrincipal && selectedReason === WRONG_SCHOOL_SELECTED ? STATUS.FLAGGED : STATUS.REJECTED;
+      const finalReason = getFinalReason();
+      
+      await api.respondToSchoolRequest(
+        requestData.id,
+        requestData.respondedBy.id,
+        status,
+        isTeacherOrPrincipal ? selectedReason : undefined,
+        finalReason
+      );
+      await api.updateSchoolStatus(requestData.school.id, status);
+      
+      const targetTab = status === STATUS.FLAGGED ? REQUEST_TABS.PENDING : REQUEST_TABS.REJECTED;
+      history.push(
+        `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${targetTab}`
+      );
+    } catch (err) {
+      console.error("Error processing request:", err);
+      setError(t("Failed to process request. Please try again.") || "Failed to process request. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   }
   return (
-    <div className="reject-popup-overlay">
-      <div className="reject-popup-container">
+    <div className="reject-popup-overlay" onClick={onClose}>
+      <div className="reject-popup-container" onClick={(e) => e.stopPropagation()}>
         <div className="reject-popup-header">
           <div className="reject-popup-header-img">
             <img src={ExclamationIcon} alt="error icon" />
@@ -69,6 +96,11 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
         </div>
 
         <div className="reject-popup-body">
+          {error && (
+            <div className="reject-error-message">
+              {error}
+            </div>
+          )}
           <label>{t("Reason for Rejection")}</label>
           {isTeacherOrPrincipal ? (
             <div className="reject-reason-section">
@@ -79,7 +111,10 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
                     name="reject-reason"
                     value={VERIFICATION_FAILED}
                     checked={selectedReason === VERIFICATION_FAILED}
-                    onChange={() => setSelectedReason(VERIFICATION_FAILED)}
+                    onChange={() => {
+                      setSelectedReason(VERIFICATION_FAILED);
+                      setCustomReason("");
+                    }}
                   />
                   <div>
                     <span>{VERIFICATION_FAILED}</span>
@@ -92,7 +127,10 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
                     name="reject-reason"
                     value={WRONG_SCHOOL_SELECTED}
                     checked={selectedReason === WRONG_SCHOOL_SELECTED}
-                    onChange={() => setSelectedReason(WRONG_SCHOOL_SELECTED)}
+                    onChange={() => {
+                      setSelectedReason(WRONG_SCHOOL_SELECTED);
+                      setCustomReason("");
+                    }}
                   />
                   <div>
                     <span>{WRONG_SCHOOL_SELECTED}</span>
@@ -125,11 +163,14 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
               )}
             </div>
           ) : (
-            <textarea
-              value={customReason}
-              onChange={(e) => setCustomReason(e.target.value)}
-              placeholder={t("Add any additional context or instructions...") || ""}
-            ></textarea>
+            <div className="reject-popup-custom-field">
+              <textarea
+                value={customReason}
+                onChange={(e) => setCustomReason(e.target.value)}
+                placeholder={t("Add any additional context or instructions...") || ""}
+                required
+              ></textarea>
+            </div>
           )}
         </div>
 
@@ -143,8 +184,9 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
               : "reject-popup-reject-btn"
             } 
             onClick={handleReject}
+            disabled={!isFormValid() || isLoading}
           >
-            {ctaLabel}
+            {isLoading ? t("Processing...") : ctaLabel}
           </button>
         </div>
       </div>
