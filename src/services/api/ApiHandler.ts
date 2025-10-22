@@ -1532,6 +1532,7 @@ export class ApiHandler implements ServiceApi {
       requestId,
       respondedBy,
       status,
+      rejectedReasonType,
       rejectedReasonDescription
     );
   }
