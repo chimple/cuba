@@ -21,6 +21,7 @@ import { SocialLogin } from "@capgo/capacitor-social-login";
 import { Util } from "../../utility/util";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 import { schoolUtil } from "../../utility/schoolUtil";
+import { Capacitor } from "@capacitor/core";
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -183,13 +184,23 @@ export class SupabaseAuth implements ServiceAuth {
       if (!this._auth) return { success: false, isSpl: false };
 
       const api = ServiceConfig.getI().apiHandler;
-      const response = await SocialLogin.login({
-        provider: "google",
-        options: {
-          scopes: ["profile", "email"],
-          forceRefreshToken: true,
-        },
-      });
+      let response;
+      if (Capacitor.isNativePlatform()) {
+        response = await SocialLogin.login({
+          provider: "google",
+          options: {
+            scopes: ["profile", "email"],
+            forceRefreshToken: true,
+          },
+        });
+      } else {
+        response = await SocialLogin.login({
+          provider: "google",
+          options: {
+            scopes: ["profile", "email"],
+          },
+        });
+      }
       if (response.result?.responseType !== "online") {
         return { success: false, isSpl: false };
       }
