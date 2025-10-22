@@ -184,13 +184,23 @@ export class SupabaseAuth implements ServiceAuth {
       if (!this._auth) return { success: false, isSpl: false };
 
       const api = ServiceConfig.getI().apiHandler;
-      const response = await SocialLogin.login({
-        provider: "google",
-        options: {
-          scopes: ["profile", "email"],
-          forceRefreshToken: Capacitor.isNativePlatform() ? true : false,
-        },
-      });
+      let response;
+      if (Capacitor.isNativePlatform()) {
+        response = await SocialLogin.login({
+          provider: "google",
+          options: {
+            scopes: ["profile", "email"],
+            forceRefreshToken: true,
+          },
+        });
+      } else {
+        response = await SocialLogin.login({
+          provider: "google",
+          options: {
+            scopes: ["profile", "email"],
+          },
+        });
+      }
       if (response.result?.responseType !== "online") {
         return { success: false, isSpl: false };
       }
