@@ -6504,13 +6504,15 @@ order by
     requestId: string,
     respondedBy: string,
     status: (typeof STATUS)[keyof typeof STATUS],
-    rejectionReason?: string
+    rejectedReasonType?: string,
+    rejectedReasonDescription?: string
   ): Promise<TableTypes<"ops_requests"> | undefined> {
     return await this._serverApi.respondToSchoolRequest(
       requestId,
       respondedBy,
       status,
-      rejectionReason
+      rejectedReasonType,
+      rejectedReasonDescription
     );
   }
   async getFieldCoordinatorsByProgram(

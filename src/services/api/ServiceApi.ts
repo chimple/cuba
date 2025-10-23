@@ -2063,13 +2063,15 @@ export interface ServiceApi {
    * @param requestId unique id of ops_request table
    * @param respondedBy user who responded or reviewed
    * @param status "approved" | "rejected"
-   * @param rejectionReason reason for rejection (if status is "rejected")
+   * @param rejectedReasonType type/category of rejection (for teacher/principal requests)
+   * @param rejectedReasonDescription detailed reason for rejection
    */
   respondToSchoolRequest(
     requestId: string,
     respondedBy: string,
     status: (typeof STATUS)[keyof typeof STATUS],
-    rejectionReason?: string
+    rejectedReasonType?: string,
+    rejectedReasonDescription?: string
   ): Promise<TableTypes<"ops_requests"> | undefined>;
 
   /**

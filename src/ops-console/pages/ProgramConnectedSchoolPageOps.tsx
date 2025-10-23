@@ -87,6 +87,7 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
       district: [],
       block: [],
       cluster: [],
+      village: [],
       programType: [],
       partner: [],
       programManager: [],
@@ -244,23 +245,13 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
       },
       {
         key: "model",
-        label: t("Select School Model"),
+        label: t("School Model"),
         shouldShow: (options: string[]) => options.length > 1, // Only show if multiple models exist
       },
       {
         key: "programType",
-        label: t("Select Program Type"),
+        label: t("Program Type"),
         shouldShow: (options: string[]) => options.length > 1, // Only show if multiple types exist
-      },
-      {
-        key: "partner",
-        label: t("Select Partner"),
-        shouldShow: (options: string[]) => options.length > 0, // Show if any partners exist
-      },
-      {
-        key: "fieldCoordinator",
-        label: t("Select Field Coordinator"),
-        shouldShow: (options: string[]) => options.length > 0, // Show if any coordinators exist
       },
       {
         key: "state",
@@ -275,6 +266,11 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
       {
         key: "block",
         label: t("Select Block"),
+        shouldShow: (options: string[]) => options.length > 0,
+      },
+      {
+        key: "village",
+        label: t("Select Village"),
         shouldShow: (options: string[]) => options.length > 0,
       },
       {
