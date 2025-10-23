@@ -138,8 +138,15 @@ const Home: FC = () => {
       return;
     }
     const studentDetails = student;
+    let parent;
+    (async () => {
+    if(!(studentDetails as any).parent_id){
+      parent = await ServiceConfig.getI()?.authHandler.getCurrentUser();
+      (studentDetails as any).parent_id = parent?.id;
+    }
     updateLocalAttributes({ studentDetails });
     setGbUpdated(true);
+    })();
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
     initData();
