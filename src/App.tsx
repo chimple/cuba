@@ -204,52 +204,69 @@ const App: React.FC = () => {
   const handleLessonClick = useHandleLessonClick(customHistory);
 
   const sendLaunch = async () => {
-    const currentAPIMode = ServiceConfig.getI().mode;
-    // If not ONEROSTER, log out and switch mode
-    if (currentAPIMode !== APIMode.ONEROSTER) {
-      try {
-        const isUserLoggedIn = await ServiceConfig.getI().authHandler.isUserLoggedIn();
-        if(isUserLoggedIn){
-          await ServiceConfig.getI().authHandler.logOut();
-        }
-        ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
-      } catch (error) {
-        console.error("Error during logout and mode switch:", error);
-        return;
-      }
-    }
-    localStorage.setItem(isRespectMode, "true");
-    localStorage.setItem(LANGUAGE, LANG.ENGLISH);  //for deeplink default is English - change according to requirement
-    try{
-      await i18n.changeLanguage(LANG.ENGLISH);
-    } catch(e){
-      console.error(`Failed to change language to ${LANG.ENGLISH}`, e);
-    }
 
-    const authHandler = ServiceConfig.getI().authHandler;
-    const isUserLoggedIn = await authHandler.isUserLoggedIn();
-      try {
-        handleLessonClick(null,true,undefined,true);
-      } catch (e) {
-        console.error("Failed to fetch deeplink params or lesson/course", e);
-      }
-      if (!isUserLoggedIn) {
-      Util.isDeepLinkPending = true;
-      await ServiceConfig.getI().apiHandler.createDeeplinkUser();
-      await Toast.show({
-        text: t("User not logged in. Logging in the user..."),
-        duration: "long",
-      });
-      }
-      else{
-        if(!Util.getCurrentStudent()?.id){
-          const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-          if(currentUser){
-            await Util.setCurrentStudent(currentUser);
+    const ensureOneRosterMode = async () => {
+      const currentAPIMode = ServiceConfig.getI().mode;
+      // If not ONEROSTER, log out and switch mode
+      if (currentAPIMode !== APIMode.ONEROSTER) {
+        try {
+          const isUserLoggedIn = await ServiceConfig.getI().authHandler.isUserLoggedIn();
+          if(isUserLoggedIn){
+            await ServiceConfig.getI().authHandler.logOut();
           }
+          ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
+        } catch (error) {
+          console.error("Error during logout and mode switch:", error);
+          return;
         }
       }
-  };
+    };
+
+    const setupLanguage = async () => {
+      localStorage.setItem(isRespectMode, "true");
+      localStorage.setItem(LANGUAGE, LANG.ENGLISH);  //for deeplink default is English - change according to requirement
+      try{
+        await i18n.changeLanguage(LANG.ENGLISH);
+      } catch(e){
+        console.error(`Failed to change language to ${LANG.ENGLISH}`, e);
+      }
+    };
+
+    const handleLesson = async () => {
+      const authHandler = ServiceConfig.getI().authHandler;
+      const isUserLoggedIn = await authHandler.isUserLoggedIn();
+        try {
+          handleLessonClick(null,true,undefined,true);
+        } catch (e) {
+          console.error("Failed to fetch deeplink params or lesson/course", e);
+        }
+        if (!isUserLoggedIn) {
+        Util.isDeepLinkPending = true;
+        await ServiceConfig.getI().apiHandler.createDeeplinkUser();
+        await Toast.show({
+          text: t("User not logged in. Logging in the user..."),
+          duration: "long",
+        });
+        }
+        else{
+          if(!Util.getCurrentStudent()?.id){
+            const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+            if(currentUser){
+              await Util.setCurrentStudent(currentUser);
+            }
+          }
+      }
+    };
+
+    try {
+      await ensureOneRosterMode();
+      await setupLanguage();
+      await handleLesson();
+    } catch (error) {
+      console.error("Error in sendLaunch:", error);
+    }
+};
+
   const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
   const learningPathAssets: any = useFeatureValue(LEARNING_PATH_ASSETS, {});
 

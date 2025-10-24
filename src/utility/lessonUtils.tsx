@@ -1,4 +1,4 @@
-import { PAGES, CONTINUE, COCOS, LIVE_QUIZ } from "../common/constants";
+import { PAGES, CONTINUE, COCOS, LIVE_QUIZ,PortPlugin } from "../common/constants";
 import Lesson from "../models/lesson";
 import Course from "../models/course";
 import { Util } from "../utility/util";
@@ -6,7 +6,7 @@ import { useHistory } from "react-router-dom";
 import { registerPlugin } from "@capacitor/core";
 import { ServiceConfig } from "../services/ServiceConfig";
 
-const PortPlugin = registerPlugin<any>("Port");
+const portPlugin = registerPlugin<PortPlugin>("Port");
 
 export const useHandleLessonClick = (customHistory) => {
   const history = useHistory();
@@ -20,7 +20,7 @@ export const useHandleLessonClick = (customHistory) => {
   ) => {
     if (!isUnlocked) return;
 
-    const data = await PortPlugin.sendLaunchData();
+    const data = await portPlugin.sendLaunchData();
     const api = ServiceConfig.getI().apiHandler;
 
     console.log("LessonCard course:", JSON.stringify(data));
@@ -60,7 +60,7 @@ export const useHandleLessonClick = (customHistory) => {
 
 export const sendDataToJava = async (eventName: string, params: any) => {
   try {
-    const response = await PortPlugin.sendDataToNative({
+    const response = await portPlugin.sendDataToNative({
       eventName,
       params
     });
