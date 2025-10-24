@@ -1,0 +1,75 @@
+.profile-details {
+  text-align: justify;
+  margin-top: 1.2vh;
+}
+
+.profile-container {
+  line-height: 0;
+  display: inline-block;
+  margin: 1vw;
+  border: 0.5vw solid rgba(200, 200, 200, 0.4);
+  border-radius: 50%;
+  box-shadow: 0px 0px 2vw rgba(0, 0, 0, 0.4);
+  transition: linear 0.25s;
+  height: 20vh;
+  width: 20vh;
+  background-color: white;
+}
+
+.profile-details-img {
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  background-color: #C4C4C4;
+}
+.profile-container:hover {
+  transition: ease-out 0.2s;
+  border: 2vw solid rgba(0, 0, 0, 0.2);
+  -webkit-transition: ease-out 0.2s;
+}
+
+/* .profile-details-container {
+  margin-top: 20px; 
+} */
+
+.profile-details {
+  cursor: pointer;
+  margin-left: 0 !important;
+  justify-content: center;
+  height: 100px;
+}
+
+.profile-container {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.camera-icon {
+  width: 24px;
+  height: 24px;
+  color: black;
+}
+
+.profile-details-data {
+  position: relative;      /* ← new */
+  display: inline-block;   /* so it wraps tightly around the img */
+}
+
+.profile-details-data .overlay {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;          
+  align-items: center;
+  justify-content: center;
+  width: 80px;             
+  height: 80px;           
+  border-radius: 50%;     
+  pointer-events: none;   
+}
+
+.profile-details-data:hover .overlay {
+  opacity: 1;
+}
+

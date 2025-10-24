@@ -16,11 +16,11 @@
 }
 
 .back-button-in-custom-app-bar::before {
-  content: "Back"; /* Keeps accessibility if needed */
+  content: "Back";
   visibility: hidden;
   display: none;
 }
 
 .hidden-text {
-  display: none; /* Completely removes the text */
+  display: none;
 }

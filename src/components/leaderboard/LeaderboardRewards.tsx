@@ -19,15 +19,13 @@ const LeaderboardRewards: FC = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const rewardsTab = urlParams.get("rewards");
     let currentTab = LEADERBOARD_REWARD_LIST.STICKER;
-
     if (rewardsTab) {
       if (rewardsTab === LEADERBOARD_REWARD_LIST.BONUS.toLowerCase()) {
         currentTab = LEADERBOARD_REWARD_LIST.BONUS;
-      } else if (rewardsTab === LEADERBOARD_REWARD_LIST.BADGES.toLowerCase()) {
-        currentTab = LEADERBOARD_REWARD_LIST.BADGES;
+      } else if (rewardsTab === LEADERBOARD_REWARD_LIST.STICKER.toLowerCase()) {
+        currentTab = LEADERBOARD_REWARD_LIST.STICKER;
       }
     }
-
     setTabIndex(currentTab);
   }, []);
 

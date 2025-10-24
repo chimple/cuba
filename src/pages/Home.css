@@ -1,5 +1,6 @@
 #home-header {
   position: initial !important;
+  box-shadow: none !important;
 }
 
 div p {
@@ -8,13 +9,23 @@ div p {
   text-align: center;
 }
 
+.no-lesson {
+  color: var(--text-color);
+  position: relative;
+  top: 25vh;
+}
+
+.no-played {
+  color: var(--text-color);
+  position: relative;
+  top: 25vh;
+}
+
 .slider-content {
   height: 100%;
 }
 
 .space-between {
-  height: 100%;
-  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;

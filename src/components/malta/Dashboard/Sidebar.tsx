@@ -2,7 +2,7 @@ import { t } from "i18next";
 import React, { useState } from "react";
 import { useHistory } from "react-router";
 import { PAGES } from "../../../common/constants";
-import ProfileDetails from "../ProfileDetails";
+// import ProfileDetails from "../../../teachers-module/components/homePage/library/ProfileDetails";
 import "./Sidebar.css";
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -27,7 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const history = useHistory();
 
   const navigateToProfile = () => {
-    history.replace(PAGES.TEACHER_PROFILE);
+    history.replace(PAGES.USER_PROFILE);
   };
 
   return (
@@ -35,9 +35,11 @@ const Sidebar: React.FC<SidebarProps> = ({
       <button onClick={toggleSidebar} className="close-sidebar">
         <CloseIcon />
       </button>
-      <div className="profile-section" >
-        <ProfileDetails imgSrc="" width="10vw" height="10vh"/>
-        <div className="profile-name-in-sidebar" onClick={navigateToProfile}>{name} </div>
+      <div className="profile-section">
+        {/* <ProfileDetails imgSrc="" width="10vw" height="10vh"/> */}
+        <div className="profile-name-in-sidebar" onClick={navigateToProfile}>
+          {name}{" "}
+        </div>
         <div className="profile-email-in-sidebar">{email}</div>
         <select className="profile-dropdown-in-sidebar">
           {classOptions.map((option, index) => (

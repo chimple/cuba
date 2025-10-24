@@ -1,0 +1,22 @@
+.info-card-children {
+  text-align: left;
+  padding-top: 10px;
+  gap: 8px;
+}
+
+.info-card-title {
+  font-weight: 900; /* bold */
+  width: 100%;
+  text-align: left;
+}
+
+.info-card-divider {
+  margin-bottom: 16px; /* approx mb:2 */
+}
+
+.info-card-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* approx gap:1 */
+  padding-top: 10px;
+}

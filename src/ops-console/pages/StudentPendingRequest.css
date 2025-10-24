@@ -1,0 +1,245 @@
+/* StudentPendingRequest.css */
+
+html {
+  font-size: 16px;
+}
+
+.student-pending-request-details-layout {
+  min-height: 100vh;
+  background: #fcfcff;
+  padding: 1rem 2rem 0 2rem;
+}
+.student-pending-request-details-page-title {
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+  font-size: 2.2rem;
+  color: #222;
+  margin-top: 1.5rem;
+}
+.student-pending-request-details-total-students-count {
+  text-align: left;
+  margin: 0;
+  color: #767676;
+  font-size: 1rem;
+  font-weight: 400;
+  margin-bottom: 1rem;
+}
+.student-pending-request-details-breadcrumbs {
+  color: #888;
+  margin-bottom: 2rem;
+  font-size: 1.07rem;
+}
+/* .student-pending-request-details-link {
+  color: #3799fd;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-right: 0.7rem;
+} */
+.student-pending-request-details-active {
+  color: #232323;
+  font-weight: 600;
+  margin-left: 0.7rem;
+}
+.student-pending-request-details-main-content-row {
+  margin-top: 0;
+}
+
+.student-pending-request-details-card {
+  border-radius: 0.8rem;
+  background: #fff;
+  padding: 1.8rem 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 0.875rem rgba(40, 50, 65, 0.06);
+}
+
+.student-pending-request-details-section-title {
+  font-weight: 700 !important;
+  font-family: Roboto;
+  color: #333;
+  font-size: 1.13rem;
+  margin-bottom: 0.125rem;
+  letter-spacing: 0.01rem;
+}
+
+.student-pending-request-details-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.08rem;
+  margin-top: 1rem;
+  color: #333;
+}
+.student-pending-request-details-row span:first-child {
+  color: #777;
+  min-width: 7.5rem;
+}
+.student-pending-request-details-row span:last-child {
+  font-weight: 500;
+  color: #232323;
+  text-align: right;
+}
+
+.student-pending-request-details-field-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.student-pending-request-details-field-stack {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.student-pending-request-details-field-stack-margin {
+  margin-right: 1rem;
+}
+
+.student-pending-request-details-label {
+  color: #777;
+}
+
+.student-pending-request-details-divider-margin {
+  margin: 1rem 0;
+}
+
+.student-pending-request-details-action-buttons-row {
+  display: flex;
+  margin-top: 1.375rem;
+  margin-bottom: 1.875rem;
+  justify-content: space-around;
+}
+
+.student-pending-request-details-remove-button {
+  min-width: 8.75rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  background-color: #e93445 !important;
+}
+
+.student-pending-request-details-approve-button {
+  min-width: 8.75rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  background-color: #1cc487 !important;
+}
+
+.student-pending-request-details-table-card th,
+.student-pending-request-details-table-card .MuiTableCell-head {
+  transform: none !important;
+}
+
+.student-pending-request-details-table-card {
+  border-radius: 0.8rem;
+  background: #fff;
+  padding: 1.8rem 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 0.125rem 0.625rem rgba(40, 50, 65, 0.06);
+  min-width: 21.875rem;
+}
+
+.MuiTableContainer-root {
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0.8rem;
+}
+
+.student-pending-request-details-table-header-cell {
+  font-weight: 600 !important;
+  color: #373737 !important;
+  background: #fafafa !important;
+  font-size: 1.03rem !important;
+  padding: 0.75rem 1rem !important;
+}
+
+.MuiTableRow-root.MuiTableRow-hover:hover {
+  background-color: #f5f5f5;
+}
+
+.MuiTableRow-root:nth-of-type(odd) {
+  background-color: #fdfdfd;
+}
+
+.MuiTableRow-root:nth-of-type(even) {
+  background-color: #ffffff;
+}
+
+.MuiTableCell-body {
+  padding: 0.625rem 1rem !important;
+  color: #444;
+  font-size: 0.95rem;
+  border-bottom: 0.0625rem solid #eee;
+}
+
+.MuiTableBody-root .MuiTableRow-root:last-child .MuiTableCell-body {
+  border-bottom: none !important;
+}
+
+.student-pending-request-details-table-pagination {
+  border-top: 0.0625rem solid #f0f0f0;
+  margin-top: 1rem;
+}
+
+.MuiTablePagination-caption {
+  color: #666;
+  font-size: 0.9rem;
+}
+.MuiTablePagination-selectLabel,
+.MuiTablePagination-displayedRows {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.MuiTablePagination-selectLabel,
+.MuiTablePagination-select {
+  display: none !important;
+}
+
+.MuiTablePagination-actions {
+  margin-left: 0;
+}
+
+.student-pending-request-details-centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 70vh;
+  flex-direction: column;
+}
+
+@media (max-width: 1100px) {
+  .student-pending-request-details-card,
+  .student-pending-request-details-table-card {
+    padding: 3vw 1.2vw;
+    border-radius: 0.6rem;
+  }
+}
+@media (max-width: 900px) {
+  .student-pending-request-details-main-content-row {
+    flex-direction: column !important;
+  }
+  .student-pending-request-details-card,
+  .student-pending-request-details-table-card {
+    margin-bottom: 3vw;
+    padding: 4vw 3vw;
+  }
+  .student-pending-request-details-action-buttons-row {
+    flex-direction: column;
+    gap: 0.625rem;
+    justify-content: flex-start;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 600px) {
+  .student-pending-request-details-card,
+  .student-pending-request-details-table-card {
+    padding: 6vw 2.2vw;
+    font-size: 0.97rem;
+    min-width: unset;
+  }
+  .student-pending-request-details-page-title {
+    font-size: 1.13rem;
+  }
+  .student-pending-request-details-breadcrumbs {
+    font-size: 0.98rem;
+  }
+}

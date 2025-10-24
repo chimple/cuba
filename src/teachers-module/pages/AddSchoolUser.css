@@ -1,0 +1,47 @@
+.add-school-user-main {
+  background: white;
+  height: 100%;
+}
+.user-info-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  justify-content: space-around;
+}
+.horizontal-line {
+  height: 0.6px;
+  border-width: 0;
+  box-sizing: border-box;
+  background: lightgrey;
+  margin: 5px 0;
+}
+.add-school-user-div {
+  font-size: clamp(20px, 5vh, 30px);
+  color: grey;
+  padding: 20px 20px 0 20px;
+}
+.user-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-name {
+  font-size: 1.2rem;
+}
+.add-user-btn {
+  background-color: #7c5db0;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 2vh;
+}
+.no-data-div {
+  font-size: var(--text-size);
+  font-weight: bold;
+  color: var(--text-color);
+  text-align: center;
+}

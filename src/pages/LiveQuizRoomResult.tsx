@@ -6,17 +6,21 @@ import User from "../models/user";
 import Confetti from "react-confetti";
 import NextButton from "../components/common/NextButton";
 import { useHistory } from "react-router";
-import { PAGES } from "../common/constants";
+import { PAGES, TableTypes } from "../common/constants";
 import { GiCrown } from "react-icons/gi";
 import { t } from "i18next";
 import { IonPage } from "@ionic/react";
 
 const LiveQuizRoomResult: React.FC = () => {
-  const [topThreeStudents, setTopThreeStudents] = useState<User[]>([]);
-  const [students, setStudents] = useState(new Map<String, User>());
+  const [topThreeStudents, setTopThreeStudents] = useState<
+    TableTypes<"user">[]
+  >([]);
+  const [students, setStudents] = useState<Map<String, TableTypes<"user">>>(
+    new Map()
+  );
   const [showConfetti, setShowConfetti] = useState(true);
   const history = useHistory();
-  const [sortedStudentScores, setSortedStudentScores] = useState<any>([]);
+  const [sortedStudentScores, setSortedStudentScores] = useState<any[]>([]);
   const [isCongratsVisible, setCongratsVisible] = useState(true);
   const urlSearchParams = new URLSearchParams(window.location.search);
   const paramLiveRoomId = urlSearchParams.get("liveRoomId") ?? "";
@@ -28,21 +32,21 @@ const LiveQuizRoomResult: React.FC = () => {
 
   async function init() {
     try {
+      const tempStudentMap = new Map<String, TableTypes<"user">>();
       const liveQuizRoomDoc = await api.getLiveQuizRoomDoc(paramLiveRoomId);
-      const classRef = liveQuizRoomDoc?.class;
-      const classId = classRef?.id;
-      let tempStudentMap = new Map<String, User>();
+      const classId = liveQuizRoomDoc?.class_id;
       if (!!classId) {
-        const studentsData = await api.getStudentsForClass(classId);
-
-        for (let student of studentsData) {
-          tempStudentMap.set(student.docId, student);
-        }
+        const results = await api.getStudentResultsByAssignmentId(
+          liveQuizRoomDoc.assignment_id
+        );
+        const studentsData = results[0];
+        studentsData.user_data.map((student) => {
+          tempStudentMap.set(student.id, student);
+        });
         setStudents(tempStudentMap);
       }
 
       const liveQuizRoomResults = liveQuizRoomDoc?.results;
-      console.log("liveQuizRoomResults..", liveQuizRoomResults);
       type Participant = {
         studentDocId: string;
         totalScore: number;
@@ -56,13 +60,11 @@ const LiveQuizRoomResult: React.FC = () => {
             (acc: number, question) => acc + question.score,
             0
           );
-          console.log("totalScore!!", totalScore);
 
           const totalTimeSpent = studentResult.reduce(
             (acc: number, question) => acc + question.timeSpent,
             0
           );
-          console.log("totalTimeSpent!!", totalTimeSpent);
           studentResults.push({
             studentDocId,
             totalScore,
@@ -77,16 +79,15 @@ const LiveQuizRoomResult: React.FC = () => {
             return a.totalTimeSpent - b.totalTimeSpent;
           }
         });
-        console.log("studentresults!!!", studentResults);
 
         const sortedScores: Participant[] = studentResults;
         setSortedStudentScores(sortedScores);
 
         const topThreePerformers = sortedScores.slice(0, 3);
-        const topthreeStudents = topThreePerformers.map((perf) =>
-          tempStudentMap.get(perf.studentDocId)
-        ) as User[];
-        setTopThreeStudents(topthreeStudents);
+        const topThreeStudents = topThreePerformers
+          .map((perf) => tempStudentMap.get(perf.studentDocId))
+          .filter((student) => !!student) as TableTypes<"user">[];
+        setTopThreeStudents(topThreeStudents);
       }
     } catch (error) {
       console.error("Error fetching LiveQuizRoom data:", error);
@@ -127,7 +128,7 @@ const LiveQuizRoomResult: React.FC = () => {
 
               <div className="student-avatar-container">
                 <StudentAvatar
-                  key={student.docId}
+                  key={student.id}
                   student={student}
                   onClicked={() => {}}
                   nameLabel="1st"
@@ -148,7 +149,7 @@ const LiveQuizRoomResult: React.FC = () => {
           {topThreeStudents.slice(1).map((student, index) => (
             <div key={index + 1} className={`performer-${index + 2}`}>
               <StudentAvatar
-                key={student.docId}
+                key={student.id}
                 student={student}
                 onClicked={() => {}}
                 nameLabel={getOrdinal(index + 2)}
@@ -166,7 +167,7 @@ const LiveQuizRoomResult: React.FC = () => {
               <div key={scoreData.studentDocId} className="student-info">
                 {student && (
                   <StudentAvatar
-                    key={student.docId}
+                    key={student.id}
                     student={student}
                     onClicked={() => {}}
                     namePosition="above"

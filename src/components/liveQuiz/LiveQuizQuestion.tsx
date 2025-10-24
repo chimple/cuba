@@ -8,12 +8,13 @@ import LiveQuiz, {
 import "./LiveQuizQuestion.css";
 import { Capacitor } from "@capacitor/core";
 import { Util } from "../../utility/util";
-import { PAGES } from "../../common/constants";
+import { PAGES, REWARD_LESSON, TableTypes } from "../../common/constants";
 import { useHistory } from "react-router";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { HiSpeakerWave } from "react-icons/hi2";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import LiveQuizNavigationDots from "./LiveQuizNavigationDots";
+import { schoolUtil } from "../../utility/schoolUtil";
 
 let questionInterval;
 let audiosMap: { [key: string]: HTMLAudioElement } = {};
@@ -21,33 +22,40 @@ let totalLessonScore = 0;
 let totalLessonTimeSpent = 0;
 let lessonCorrectMoves = 0;
 const LiveQuizQuestion: FC<{
-  roomDoc?: LiveQuizRoomObject;
+  roomDoc?: TableTypes<"live_quiz_room">;
   showQuiz: boolean;
   isTimeOut: boolean;
+  cocosLessonId?: string | null;
   onNewQuestionChange?: (newQuestionIndex: number) => void;
   onQuizEnd?: Function;
   onConfigLoaded?: (liveQuizConfig: LiveQuiz) => void;
   onRemainingTimeChange?: (remainingTime: number) => void;
   onShowAnswer?: (canShow: boolean) => void;
   lessonId?: string;
+  quizData?: any;
   onTotalScoreChange?;
+  isLearningPathway?: boolean;
+  isReward?: boolean;
 }> = ({
   roomDoc,
   onNewQuestionChange,
   onQuizEnd,
+  cocosLessonId,
   onConfigLoaded,
   showQuiz,
   onRemainingTimeChange,
   onShowAnswer,
   isTimeOut,
   lessonId,
+  quizData,
   onTotalScoreChange,
+  isLearningPathway,
+  isReward = false,
 }) => {
   const quizPath =
     (localStorage.getItem("gameUrl") ??
       "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-    (lessonId || roomDoc?.lesson.id);
-
+    (lessonId || cocosLessonId);
   const [liveQuizConfig, setLiveQuizConfig] = useState<LiveQuiz>();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
   const [remainingTime, setRemainingTime] = useState(LIVE_QUIZ_QUESTION_TIME);
@@ -60,7 +68,6 @@ const LiveQuizQuestion: FC<{
   const history = useHistory();
   const student = Util.getCurrentStudent();
   const api = ServiceConfig.getI().apiHandler;
-
   useEffect(() => {
     if (!roomDoc && !lessonId) return;
     if (!student) {
@@ -103,7 +110,6 @@ const LiveQuizQuestion: FC<{
       const correctAnswersList = liveQuizConfig.data.map((question) =>
         question.options.findIndex((option) => option.isCorrect)
       );
-      console.log("correctAnswersList.......", correctAnswersList);
       setCorrectAnswers(correctAnswersList);
     }
   }, [liveQuizConfig]);
@@ -112,7 +118,6 @@ const LiveQuizQuestion: FC<{
     setSelectedAnswers((prevSelectedAnswers) => {
       const updatedSelectedAnswers = [...prevSelectedAnswers];
       updatedSelectedAnswers[questionIndex] = optionIndex;
-      console.log("updatedSelectedAnswers......", updatedSelectedAnswers);
       return updatedSelectedAnswers;
     });
     if (lessonId) {
@@ -129,9 +134,11 @@ const LiveQuizQuestion: FC<{
       changeQuestion();
     }
   };
+
   const downloadQuiz = async (lessonId: string) => {
     const dow = await Util.downloadZipBundle([lessonId]);
   };
+
   const getConfigJson = async () => {
     if (liveQuizConfig) return liveQuizConfig;
     if (!Capacitor.isNativePlatform()) {
@@ -282,6 +289,7 @@ const LiveQuizQuestion: FC<{
             questionType: "text",
           },
         ],
+
         type: "multiOptions",
       } as LiveQuiz;
       preLoadAudiosWithLiveQuizConfig(config);
@@ -291,20 +299,12 @@ const LiveQuizQuestion: FC<{
         changeQuestion(config, true);
       return config;
     }
-
-    // Attempt to fetch the config file
     let response = await fetch(quizPath + "/config.json");
-
-    // Check if the file is found
     if (!response.ok) {
       if (response.status === 404) {
-        console.log("Config file not found, triggering downloadQuiz...");
         if (lessonId) await downloadQuiz(lessonId); // Trigger the downloadQuiz function if the file is missing
 
-        // After triggering downloadQuiz, check if the file exists now
         response = await fetch(quizPath + "/config.json");
-
-        // If the file still isn't fetched, throw an error
         if (!response.ok) {
           throw new Error(
             `Failed to fetch config file after downloadQuiz. Status: ${response.status}`
@@ -317,13 +317,9 @@ const LiveQuizQuestion: FC<{
       }
     }
 
-    // Parse and load the config file after it's successfully fetched
     const configFile: LiveQuiz = (await response.json()) as LiveQuiz;
-    console.log("Live Quiz Config Loaded:", configFile);
-
     setLiveQuizConfig(configFile);
     if (onConfigLoaded) onConfigLoaded(configFile);
-
     return configFile;
   };
 
@@ -333,7 +329,8 @@ const LiveQuizQuestion: FC<{
     if (!results) return;
     const participantsPlayedCount = Object.values(results).reduce(
       (accumulator, liveQuizResult) => {
-        const lastQuestionId = liveQuizResult[liveQuizResult.length - 1].id;
+        const lastQuestionId =
+          liveQuizResult[liveQuizResult.length - 1].question_id;
         if (
           lastQuestionId ===
           liveQuizConfig?.data[currentQuestionIndex].question.id
@@ -344,16 +341,17 @@ const LiveQuizQuestion: FC<{
       },
       0
     );
-    if (participantsPlayedCount === roomDoc.participants.length) {
-      clearInterval(questionInterval);
-      // setTimeout(() => {
-      changeQuestion();
-      // }, 1000);
+    if (roomDoc.participants) {
+      if (participantsPlayedCount === roomDoc.participants.length) {
+        clearInterval(questionInterval);
+        // setTimeout(() => {
+        changeQuestion();
+        // }, 1000);
+      }
     }
   };
 
   const onTimeOut = (_liveQuizConfig?: LiveQuiz) => {
-    console.log("🚀 ~ file: LiveQuizQuestion.tsx:335 ~ onTimeOut ~ onTimeOut:");
     changeQuestion(_liveQuizConfig);
   };
 
@@ -396,10 +394,6 @@ const LiveQuizQuestion: FC<{
     setSelectedAnswerIndex(undefined);
     setRemainingTime(LIVE_QUIZ_QUESTION_TIME);
     if (onRemainingTimeChange) onRemainingTimeChange(LIVE_QUIZ_QUESTION_TIME);
-    console.log(
-      "🚀 ~ file: LiveQuizQuestion.tsx:380 ~ onQuestionChange ~ questionInterval:",
-      questionInterval
-    );
     if (questionInterval) clearInterval(questionInterval);
     questionInterval = setInterval(() => {
       setRemainingTime((remainingTime) => {
@@ -438,45 +432,55 @@ const LiveQuizQuestion: FC<{
     let totalTimeSpent = 0;
     const totalQuestions = liveQuizConfig?.data.length || 0;
     let correctMoves = 0;
-
     if (lessonId) {
-      if (onTotalScoreChange) {
-        const scoreData = {
-          student: student!,
-          courseId: undefined,
-          lessonId: lessonId,
-          totalScore: totalLessonScore,
-          correctMoves: lessonCorrectMoves,
-          incorrectMoves: totalQuestions - lessonCorrectMoves,
-          totalTimeSpent: totalLessonTimeSpent,
-          isLoved: false,
-          assignmentId: undefined,
-          classId: undefined,
-          schoolId: undefined,
-        };
-        onTotalScoreChange(scoreData);
+      onTotalScoreChange(totalLessonScore);
+      const classData = schoolUtil.getCurrentClass();
+      if (isReward===true) {
+        sessionStorage.setItem(REWARD_LESSON, "true");
+      }
+      await api.updateResult(
+        student!.id,
+        quizData.courseId,
+        quizData.lessonid,
+        Math.round(totalLessonScore),
+        lessonCorrectMoves,
+        totalQuestions - lessonCorrectMoves,
+        totalLessonTimeSpent,
+        undefined,
+        quizData.chapterId,
+        classData?.id,
+        classData?.school_id
+      );
+      totalLessonScore = 0;
+      totalLessonTimeSpent = 0;
+      lessonCorrectMoves = 0;
+      // Update the learning path
+      if (isLearningPathway) {
+        const currentStudent = Util.getCurrentStudent() as TableTypes<"user">;
+        await Util.updateLearningPath(currentStudent, isReward);
       }
     } else {
       if (!roomDoc?.results) return;
-      for (let result of roomDoc.results[student!.docId]) {
+      for (let result of roomDoc.results[student!.id]) {
         totalScore += result.score || 0;
         totalTimeSpent += result.timeSpent || 0;
         if (result.score > 0) {
           correctMoves++;
         }
       }
+      var _assignment = await api.getAssignmentById(roomDoc.assignment_id);
       await api.updateResult(
-        student!,
-        roomDoc.course.id,
-        roomDoc.lesson.id,
-        totalScore,
+        student!.id,
+        roomDoc.course_id,
+        roomDoc.lesson_id,
+        Math.round(totalScore),
         correctMoves,
         totalQuestions - correctMoves,
         totalTimeSpent,
-        undefined,
-        roomDoc.assignment.id,
-        roomDoc.class.id,
-        roomDoc.school.id
+        roomDoc.assignment_id,
+        _assignment?.chapter_id ?? "",
+        roomDoc.class_id,
+        roomDoc.school_id
       );
     }
   }
@@ -504,7 +508,7 @@ const LiveQuizQuestion: FC<{
         setAudio(false);
       }
     } catch (error) {
-      console.log("🚀 ~ file: LiveQuizQuestion.tsx:485 ~ error:", error);
+      console.error("🚀 ~ file: LiveQuizQuestion.tsx:348 ~ error:", error);
     }
   };
 
@@ -539,8 +543,8 @@ const LiveQuizQuestion: FC<{
     try {
       await TextToSpeech.stop();
     } catch (error) {
-      console.log(
-        "🚀 ~ file: LiveQuizQuestion.tsx:520 ~ stopAllAudios ~ error:",
+      console.error(
+        "🚀 ~ file: LiveQuizQuestion.tsx:384 ~ stopAllAudios ~ error:",
         error
       );
     }
@@ -551,8 +555,8 @@ const LiveQuizQuestion: FC<{
         audio.currentTime = 0;
       });
     } catch (error) {
-      console.log(
-        "🚀 ~ file: LiveQuizQuestion.tsx:530 ~ stopAllAudios ~ error:",
+      console.error(
+        "🚀 ~ file: LiveQuizQuestion.tsx:393 ~ stopAllAudios ~ error:",
         error
       );
     }
@@ -562,7 +566,7 @@ const LiveQuizQuestion: FC<{
     <div>
       <div
         className="live-quiz-navigation-dots"
-        style={lessonId ? { paddingTop: "5vh", paddingBottom: "10vh" } : {}}
+        style={lessonId ? { paddingTop: "5vh", paddingBottom: "5vh" } : {}}
       >
         {isTimeOut && liveQuizConfig && currentQuestionIndex != null && (
           <LiveQuizNavigationDots
@@ -586,7 +590,6 @@ const LiveQuizQuestion: FC<{
                       playLiveQuizAudio(
                         liveQuizConfig.data[currentQuestionIndex].question
                       );
-                      console.log("on audio question click");
                     }}
                     className={audio ? "audio-playing" : ""}
                   />
@@ -632,8 +635,8 @@ const LiveQuizQuestion: FC<{
                         LIVE_QUIZ_QUESTION_TIME - remainingTime
                       );
                       await api.updateLiveQuiz(
-                        lessonId ?? roomDoc?.docId ?? "",
-                        student?.docId!,
+                        lessonId ?? roomDoc?.id ?? "",
+                        student?.id!,
                         liveQuizConfig.data[currentQuestionIndex].question.id,
                         LIVE_QUIZ_QUESTION_TIME - remainingTime,
                         score
@@ -666,19 +669,13 @@ const LiveQuizQuestion: FC<{
                           onClick={(e) => {
                             e.stopPropagation();
                             playLiveQuizAudio(option);
-                            console.log("on audio click");
                           }}
                           className={audio ? "audio-playing" : ""}
                         />
                       </div>
                     )}
 
-                    {!option.isTextTTS && !option.image && (
-                      <span className="live-quiz-option-text">
-                        {option.text}
-                      </span>
-                    )}
-
+                    {!option.isTextTTS && !option.image && option.text}
                     {option.image && (
                       <img
                         className="live-quiz-option-image"

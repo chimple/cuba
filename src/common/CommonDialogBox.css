@@ -1,0 +1,51 @@
+.custom-dailog-alert {
+  --background: white;
+}
+
+.custom-dailog-alert .custom-dailog-alert-delete-button {
+  background: #f72121 !important;
+  opacity: 0.5;
+  color: white;
+  border-radius: 8px;
+  flex: 1;
+  padding: 15px clamp(5px, 2vw, 30px);
+  text-transform: none;
+  font-size: var(--text-size);
+}
+
+.custom-dailog-alert .custom-dailog-alert-cancel-button {
+  text-transform: none;
+  background-color: #83c327;
+  font-size: var(--text-size);
+  opacity: 0.9;
+  color: white;
+  border-radius: 8px;
+  flex: 1;
+  padding: 15px clamp(5px, 2vw, 30px);
+}
+
+.alert-button-group.sc-ion-alert-md {
+  display: flex;
+  justify-content: space-around;
+}
+.alert-wrapper.sc-ion-alert-md {
+  padding: 1vh;
+  border-radius: 3vh;
+}
+.alert-message.sc-ion-alert-md {
+  color: var(--text-color);
+  text-align: center;
+}
+
+.alert-title.sc-ion-alert-md {
+  text-align: center;
+}
+
+.custom-dailog-alert .alert-button-group.sc-ion-alert-ios {
+  width: 80%;
+  align-self: center;
+}
+
+.custom-dailog-alert .alert-button-group.sc-ion-alert-ios button {
+  flex: 1;
+}

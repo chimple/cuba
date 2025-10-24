@@ -2,30 +2,37 @@
 
 android {
   compileOptions {
-      sourceCompatibility JavaVersion.VERSION_17
-      targetCompatibility JavaVersion.VERSION_17
+      sourceCompatibility JavaVersion.VERSION_21
+      targetCompatibility JavaVersion.VERSION_21
   }
 }
 
 apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
-    implementation project(':basecom-gmbh-capacitor-jailbreak-root-detection')
     implementation project(':capacitor-community-firebase-analytics')
     implementation project(':capacitor-community-http')
+    implementation project(':capacitor-community-in-app-review')
+    implementation project(':capacitor-community-sqlite')
     implementation project(':capacitor-community-text-to-speech')
     implementation project(':capacitor-firebase-authentication')
+    implementation project(':capacitor-firebase-crashlytics')
     implementation project(':capacitor-firebase-messaging')
     implementation project(':capacitor-firebase-remote-config')
     implementation project(':capacitor-app')
+    implementation project(':capacitor-barcode-scanner')
+    implementation project(':capacitor-browser')
     implementation project(':capacitor-device')
     implementation project(':capacitor-filesystem')
     implementation project(':capacitor-haptics')
     implementation project(':capacitor-keyboard')
     implementation project(':capacitor-local-notifications')
+    implementation project(':capacitor-screen-orientation')
+    implementation project(':capacitor-splash-screen')
     implementation project(':capacitor-status-bar')
     implementation project(':capacitor-toast')
     implementation project(':capawesome-capacitor-app-update')
-    implementation project(':capacitor-rate-app')
+    implementation project(':capgo-capacitor-social-login')
+    implementation project(':sentry-capacitor')
 
 }
 

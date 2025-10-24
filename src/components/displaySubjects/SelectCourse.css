@@ -64,6 +64,7 @@
   align-items: center;
   color: var(--text-color);
 }
+
 .course-curriculum {
   font-size: 14px;
   text-transform: none;
@@ -77,4 +78,14 @@
 }
 .slide {
   max-width: fit-content;
+}
+
+#ignore {
+  background: transparent !important;
+  color: transparent !important;
+  position: absolute;
+  display: grid;
+  align-self: center !important;
+  justify-self: center !important;
+  width: fit-content;
 }

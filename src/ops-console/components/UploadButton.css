@@ -1,0 +1,11 @@
+.custom-fab-upload {
+  border-radius: 96px;
+  background: #fff;
+}
+.upload-button-file-upload-button-container {
+  display: flex;
+  padding: 14px 20px;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}

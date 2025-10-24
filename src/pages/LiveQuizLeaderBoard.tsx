@@ -2,22 +2,26 @@ import React, { useEffect, useState } from "react";
 import { IonPage, IonRow, IonContent } from "@ionic/react";
 import "./LiveQuizLeaderBoard.css";
 import { ServiceConfig } from "../services/ServiceConfig";
-import User from "../models/user";
 import StudentAvatar from "../components/common/StudentAvatar";
-import { PAGES } from "../common/constants";
+import { PAGES, TableTypes } from "../common/constants";
 import { t } from "i18next";
 import { useHistory } from "react-router";
 import NextButton from "../components/common/NextButton";
+import { Util } from "../utility/util";
 
 const LiveQuizLeaderBoard: React.FC = () => {
   const [combinedStudentScores, setCombinedStudentScores] = useState<any>([]);
-  const [students, setStudents] = useState(new Map<String, User>());
+  const [students, setStudents] = useState(
+    new Map<String, TableTypes<"user">>()
+  );
   const urlSearchParams = new URLSearchParams(window.location.search);
   const paramLiveRoomId = urlSearchParams.get("liveRoomId") ?? "";
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
-
+  let resultData: TableTypes<"result">[] | null = [];
+  let userData: TableTypes<"user">[] | null = [];
   useEffect(() => {
+    Util.loadBackgroundImage();
     init();
   }, []);
 
@@ -25,7 +29,6 @@ const LiveQuizLeaderBoard: React.FC = () => {
     try {
       const liveQuizRoomDoc = await api.getLiveQuizRoomDoc(paramLiveRoomId);
       const liveQuizRoomResults = liveQuizRoomDoc?.results;
-      console.log("liveQuizRoomResults..", liveQuizRoomResults);
       type Participant = {
         studentDocId: string;
         totalScore: number;
@@ -50,7 +53,6 @@ const LiveQuizLeaderBoard: React.FC = () => {
             totalTimeSpent,
           });
         });
-        console.log("studentresults!!!", studentResults);
 
         const liveQuizRoomScores: Participant[] = studentResults;
         const leaderboardScores = await fetchAssignmentResults();
@@ -60,18 +62,19 @@ const LiveQuizLeaderBoard: React.FC = () => {
           leaderboardScores
         );
         combinedScores.sort((a, b) => b.totalScore - a.totalScore);
-        console.log("combinedSortedScores..", combinedScores);
         setCombinedStudentScores(combinedScores);
-        const tempStudentsMap = new Map<string, User>();
+        const tempStudentsMap = new Map<string, TableTypes<"user">>();
         await Promise.all(
           combinedScores.map(async (participant) => {
-            const user = await api.getUserByDocId(participant.studentDocId);
-            if (!!user) {
-              tempStudentsMap.set(participant.studentDocId, user);
+            if (!!userData) {
+              for (let user of userData) {
+                if (participant.studentDocId === user.id) {
+                  tempStudentsMap.set(participant.studentDocId, user);
+                }
+              }
             }
           })
         );
-        console.log("tempStudentsMap..", tempStudentsMap);
         setStudents(tempStudentsMap);
       }
     } catch (error) {
@@ -83,37 +86,42 @@ const LiveQuizLeaderBoard: React.FC = () => {
   };
   const fetchAssignmentResults = async () => {
     const res = await api.getLiveQuizRoomDoc(paramLiveRoomId);
-    const assignmentId = res?.assignment.id;
-    const assignmentDoc = await api.getAssignmentById(assignmentId);
-    console.log("AssignmentDoc:", assignmentDoc);
-    let scoresData: any;
+    if (res) {
+      const assignmentId = res?.assignment_id;
+      const assignmentDoc = await api.getAssignmentById(assignmentId);
+      let scoresData: any;
 
-    if (!!assignmentDoc && !!assignmentDoc.results) {
-      const playedStudentIds = Object.keys(assignmentDoc.results);
-      console.log("Played Student IDs:", playedStudentIds);
-      if (playedStudentIds.length > 0) {
-        scoresData = playedStudentIds.map((studentDocId) => ({
-          studentDocId,
-          totalScore: assignmentDoc.results[studentDocId]?.score || 0,
-        }));
-      } else {
-        scoresData = [];
+      if (assignmentDoc) {
+        const results = await api.getStudentResultsByAssignmentId(
+          assignmentDoc?.id
+        );
+        userData = results[0].user_data;
+        resultData = results[0].result_data;
+        const playedStudentIds = [
+          ...new Set(resultData.map((result) => result.student_id)),
+        ];
+
+        scoresData = playedStudentIds.map((studentDocId) => {
+          const totalScore = resultData
+            ?.filter((data) => data.student_id === studentDocId)
+            .reduce((sum, data) => sum + (data.score || 0), 0);
+
+          return {
+            studentDocId,
+            totalScore,
+          };
+        });
       }
+      return scoresData;
     }
-    console.log("Scores Data:", scoresData);
-
-    return scoresData;
   };
   const combineScores = (roomResultScores, leaderboardScores) => {
-    console.log("roomResultScores", roomResultScores);
-    console.log("leaderboardScores", leaderboardScores);
     const uniqueStudentDocIds = Array.from(
       new Set([
         ...roomResultScores.map((res) => res.studentDocId),
         ...leaderboardScores.map((res) => res.studentDocId),
       ])
     );
-    console.log("uniqueStudentDocIds..", uniqueStudentDocIds);
 
     const combinedScores = uniqueStudentDocIds.map((studentDocId) => {
       const roomResultScore = roomResultScores.find(
@@ -137,7 +145,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
 
   return (
     <IonPage>
-      <IonContent>
+      <IonContent className="livequiz-leaderboard-page-content">
         <div className="livequiz-leaderboard">
           <div className="leaderboard-header">
             <div className="empty"></div>

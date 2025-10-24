@@ -1,0 +1,104 @@
+.create-school-page {
+  background: #fff;
+  position: relative;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.create-school-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+}
+
+.create-school-container {
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  background-color: #fff;
+  align-items: center;
+  flex-direction: column;
+}
+
+.create-school-box {
+  width: 354px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3vh 0;
+}
+
+.create-school-icon {
+  margin: 10px 0;
+}
+
+.create-school-card {
+  width: 100%;
+  max-width: 380px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.create-school-row {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #eff2f4;
+}
+
+.create-school-row.no-border {
+  margin-bottom: 0;
+}
+
+.create-school-label {
+  width: 120px;
+  font-weight: 400;
+  color: #676767;
+  flex-shrink: 0;
+}
+
+.create-school-input {
+  color: #4a4949;
+  font-weight: 600;
+  flex-grow: 1;
+  margin: 2vh 12px;
+  border: none;
+  background: #fff;
+  width: 100%;
+  text-align: left;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.create-school-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 1vh 0;
+  color: #707070;
+  align-self: flex-start;
+}
+
+.create-school-btn {
+  border: none;
+  border-radius: 0.5vh;
+  background-color: #7c5db0;
+  color: white;
+  font-size: 3vh;
+  font-weight: bold;
+  cursor: pointer;
+  height: 50px;
+  width: 210px;
+  margin-top: 3vh;
+}
+
+.create-school-btn:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
+
+.create-school-btn:hover:enabled {
+  background: #5a3eb4;
+}

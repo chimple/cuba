@@ -7,6 +7,7 @@ import {
   PAGES,
   MODES,
   CURRENT_MODE,
+  TableTypes,
 } from "../common/constants";
 import "./HomeHeader.css";
 import HeaderIcon from "./HeaderIcon";
@@ -17,6 +18,22 @@ import User from "../models/user";
 import { useHistory } from "react-router";
 import { schoolUtil } from "../utility/schoolUtil";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
+import ProfileMenu from "./ProfileMenu/ProfileMenu";
+
+// Define the Props for StarsCounter
+interface StarsCounterProps {
+  starsCount: number;
+}
+
+// StarsCounter Component
+const StarsCounter: React.FC<StarsCounterProps> = ({ starsCount }) => {
+  return (
+    <div className="home-header-stars-counter">
+        <span>{starsCount}</span>
+        <img src="assets/StarsCounter.svg" alt="Stars" className="home-header-star-icon" /> 
+    </div>
+  );
+};
 
 const HomeHeader: React.FC<{
   currentHeader: string;
@@ -35,9 +52,11 @@ const HomeHeader: React.FC<{
   var headerIconList: HeaderIconConfig[] = [];
 
   const history = useHistory();
-  const [student, setStudent] = useState<User>();
+  const [student, setStudent] = useState<TableTypes<"user">>();
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
+  const [isProfileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [starsCount, setStarsCount] = useState<number>(0); // State for stars count
 
   const [isLinked, setIsLinked] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
@@ -52,12 +71,15 @@ const HomeHeader: React.FC<{
         history.replace(PAGES.SELECT_MODE);
         return;
       }
-      const linked = await api.isStudentLinked(student.docId, fromCache);
+      const linked = await api.isStudentLinked(student.id, fromCache);
       setIsLinked(linked);
       setStudentMode(currMode);
 
+      // Fetch stars count for the current student
+      const currentStudent = Util.getCurrentStudent();
+      setStarsCount(currentStudent?.stars || 0);
+      
       DEFAULT_HEADER_ICON_CONFIGS.forEach(async (element) => {
-        console.log("element.headerList", element.headerList);
         if (
           !(
             (currMode === MODES.SCHOOL &&
@@ -81,8 +103,12 @@ const HomeHeader: React.FC<{
 
   useEffect(() => {
     init();
+    window.addEventListener("JoinClassListner", handleJoinClassListner);
   }, []);
-
+  const handleJoinClassListner = () => {
+    setIsLinked(true);
+    window.removeEventListener("JoinClassListner", handleJoinClassListner);
+  };
   // const student =await Util.getCurrentStudent();
   return (
     <div id="home-header-icons">
@@ -90,7 +116,7 @@ const HomeHeader: React.FC<{
         <HeaderIcon
           headerConfig={{
             displayName: t("Home"),
-            iconSrc: "assets/icons/homeInactiveIcon.svg",
+            iconSrc: "assets/icons/HomeIconInactive.svg",
             headerList: HOMEHEADERLIST.HOME,
           }}
           currentHeader={currentHeader}
@@ -127,8 +153,8 @@ const HomeHeader: React.FC<{
           })}
       </div>
 
-      {student && (
-        <div className="home-header-outer-icon">
+      <div className="home-header-outer-icon">
+          <StarsCounter starsCount={starsCount} />
           <HeaderIcon
             headerConfig={{
               displayName: student?.name ?? "Profile",
@@ -141,11 +167,15 @@ const HomeHeader: React.FC<{
             pendingAssignmentCount={0}
             pendingLiveQuizCount={0}
             onHeaderIconClick={() => {
-              if (currentHeader != HOMEHEADERLIST.PROFILE) {
-                onHeaderIconClick(HOMEHEADERLIST.PROFILE);
-              }
+              setProfileMenuOpen(true)
             }}
           />
+        </div>
+      {isProfileMenuOpen && (
+        <div className="home-header-menu-overlay" onClick={() => setProfileMenuOpen(false)}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <ProfileMenu onClose={() => setProfileMenuOpen(false)} />
+          </div>
         </div>
       )}
     </div>

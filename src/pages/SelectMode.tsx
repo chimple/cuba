@@ -1,21 +1,25 @@
 import { IonPage } from "@ionic/react";
 import { FC, useEffect, useState } from "react";
 import Loading from "../components/Loading";
-import { FirebaseApi } from "../services/api/FirebaseApi";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { useHistory } from "react-router";
+import { RoleType } from "../interface/modelInterfaces";
 import {
   LANGUAGE,
   AVATARS,
-  CURRENT_CLASS,
-  CURRENT_MODE,
-  CURRENT_SCHOOL,
   MODES,
   PAGES,
+  TableTypes,
+  SELECTED_CLASSES,
   SELECTED_STUDENTS,
+  CURRENT_MODE,
   CURRENT_SCHOOL_NAME,
   CURRENT_CLASS_NAME,
-  SELECTED_CLASSES,
+  USER_SELECTION_STAGE,
+  STAGES,
+  CURRENT_CLASS,
+  CURRENT_SCHOOL,
+  IS_OPS_USER,
 } from "../common/constants";
 import SelectModeButton from "../components/selectMode/SelectModeButton";
 import { IoMdPeople } from "react-icons/io";
@@ -23,43 +27,34 @@ import { GiTeacher } from "react-icons/gi";
 import { t } from "i18next";
 import "./SelectMode.css";
 import BackButton from "../components/common/BackButton";
-import Class from "../models/class";
-import User from "../models/user";
-import School from "../models/school";
 import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
 import i18n from "../i18n";
 import DropDown from "../components/DropDown";
-import React from "react";
 
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  enum STAGES {
-    MODE = "mode",
-    SCHOOL = "school",
-    CLASS = "class",
-    STUDENT = "student",
-  }
   const [schoolList, setSchoolList] = useState<
     {
       id: string;
       displayName: string;
-      school: School;
+      school: TableTypes<"school">;
     }[]
   >([]);
   const [currentSchoolName, setCurrentSchoolName] = useState<string>();
-  const [currentSchool, setCurrentSchool] = useState<any>();
+  const [currentSchool, setCurrentSchool] = useState<TableTypes<"school">>();
   const [currentSchoolId, setCurrentSchoolId] = useState<string>();
-  const [currentUser, setCurrentUser] = useState<any>();
-  const [currentClasses, setCurrentClasses] = useState<Class[]>();
-  const [currentStudents, setCurrentStudents] = useState<User[]>();
-  const [currStudent, setCurrStudent] = useState<User>();
-  const [currClass, setCurrClass] = useState<any>();
+  const [currentUser, setCurrentUser] = useState<TableTypes<"user">>();
+  const [currentClasses, setCurrentClasses] = useState<TableTypes<"class">[]>();
+  const [currentStudents, setCurrentStudents] =
+    useState<TableTypes<"user">[]>();
+  const [currStudent, setCurrStudent] = useState<TableTypes<"user">>();
+  const [currClass, setCurrClass] = useState<TableTypes<"class">>();
   let count = 1;
   const tempSchoolList: {
     id: string;
     displayName: string;
-    school: School;
+    school: TableTypes<"school">;
   }[] = [];
   useEffect(() => {
     init();
@@ -72,81 +67,144 @@ const SelectMode: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
-
   const [stage, setStage] = useState(STAGES.MODE);
   const [isOkayButtonDisabled, setIsOkayButtonDisabled] = useState(true);
+  useEffect(() => {
+    if (currClass && stage === STAGES.STUDENT) {
+      displayStudents(currClass);
+    }
+  }, [currClass, stage]);
   const init = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const setTab = urlParams.get("tab");
-
+    const currentMode = await schoolUtil.getCurrMode();
     if (setTab) {
       if (setTab === STAGES.STUDENT) {
         setStage(STAGES.STUDENT);
+        const className = localStorage.getItem(CURRENT_CLASS_NAME);
+        if (className) {
+          const parsedClass = JSON.parse(className);
+          setCurrClass(parsedClass);
+          await displayStudents(parsedClass);
+        }
+      } else if (setTab === STAGES.CLASS) {
+        setStage(STAGES.CLASS);
       }
     }
-    const displayClasses = localStorage.getItem(SELECTED_CLASSES);
-    if (displayClasses) {
-      setCurrentClasses(JSON.parse(displayClasses));
+    const selectedClasses = localStorage.getItem(SELECTED_CLASSES);
+    if (selectedClasses) {
+      setCurrentClasses(JSON.parse(selectedClasses));
     }
     const displayStudent = localStorage.getItem(SELECTED_STUDENTS);
     if (displayStudent) {
       setCurrentStudents(JSON.parse(displayStudent));
     }
 
-    const currentMode = localStorage.getItem(CURRENT_MODE);
     if (currentMode == MODES.PARENT) {
-      schoolUtil.setCurrMode(MODES.PARENT);
+      const student = Util.getCurrentStudent();
+      if (student) {
+        history.replace(PAGES.HOME);
+        return;
+      }
       history.replace(PAGES.DISPLAY_STUDENT);
+      return;
     } else if (currentMode == MODES.SCHOOL) {
       const schoolName = localStorage.getItem(CURRENT_SCHOOL_NAME);
       if (schoolName) setCurrentSchoolName(JSON.parse(schoolName));
       const className = localStorage.getItem(CURRENT_CLASS_NAME);
       if (className) setCurrClass(JSON.parse(className));
       if (schoolName && className) {
-        setStage(STAGES.STUDENT);
+        const selectedUser = localStorage.getItem(USER_SELECTION_STAGE);
+        if (selectedUser) {
+          const parsedClass = JSON.parse(className);
+          setCurrClass(parsedClass);
+          setStage(STAGES.STUDENT);
+        } else {
+          setStage(STAGES.CLASS);
+        }
       } else {
         setStage(STAGES.MODE);
       }
+    } else if (currentMode === MODES.TEACHER) {
+      return history.replace(PAGES.DISPLAY_SCHOOLS);
+    } else if (currentMode === MODES.OPS_CONSOLE) {
+      history.replace(PAGES.SIDEBAR_PAGE);
+      return;
     }
+
     const currUser = await auth.getCurrentUser();
     if (!currUser) return;
-    const allSchool = await api.getSchoolsForUser(currUser);
-    const students = await api.getParentStudentProfiles();
-    // const isTeacher = await api.isUserTeacher(currUser);
-    // console.log("This is the current status of teacher " + isTeacher);
-    if (!allSchool || allSchool.length < 1) {
-      api.currentMode = MODES.PARENT;
-      schoolUtil.setCurrMode(MODES.PARENT);
-      console.log(students);
-      if (!!students && students.length == 0) {
-        history.replace(PAGES.CREATE_STUDENT);
-      } else history.replace(PAGES.DISPLAY_STUDENT);
+    const allSchool = await api.getSchoolsForUser(currUser.id);
+    // Extract school IDs from schoolList
+    const schoolIds = allSchool.map((school) => school.school.id);
+    const filteredSchools = await api.getSchoolsWithRoleAutouser(schoolIds);
+    const filteredSchoolIds = filteredSchools?.map((school) => school.id) || [];
+    // Filter allSchool to include only schools that are in filteredSchools
+    const matchedSchools = allSchool.filter((entry) =>
+      filteredSchoolIds.includes(entry.school.id)
+    );
+
+    const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
+    // If user is ops or program user
+    if (isOpsUser) {
+      schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
+      history.replace(PAGES.SIDEBAR_PAGE);
       return;
     } else {
-      setIsLoading(false);
-    }
-    // if (!currentUser) {
-    //   history.push(PAGES.DISPLAY_STUDENT);
-    //   return;
-    // }
+      const students = await api.getParentStudentProfiles();
 
-    for (let i = 0; i < allSchool.length; i++) {
-      const element = allSchool[i];
-      tempSchoolList.push({
-        id: element.docId,
-        displayName: element.name,
-        school: allSchool[i],
-      });
+      if (!allSchool || allSchool.length < 1) {
+        api.currentMode = MODES.PARENT;
+        schoolUtil.setCurrMode(MODES.PARENT);
+        if (!!students && students.length == 0) {
+          history.replace(PAGES.CREATE_STUDENT);
+        } else history.replace(PAGES.DISPLAY_STUDENT);
+        return;
+      } else {
+        setIsLoading(false);
+      }
+      for (let i = 0; i < matchedSchools.length; i++) {
+        const element = matchedSchools[i];
+        tempSchoolList.push({
+          id: element.school.id,
+          displayName: element.school.name,
+          school: element.school,
+        });
+      }
+      setCurrentUser(currUser);
+      setSchoolList(tempSchoolList);
+      if (matchedSchools.length > 0) {
+        const selectedUser = localStorage.getItem(USER_SELECTION_STAGE);
+        if (tempSchoolList.length === 1) {
+          setCurrentSchool(tempSchoolList[0].school);
+          await displayClasses(tempSchoolList[0].school, currUser);
+          if (selectedUser) {
+            setStage(STAGES.STUDENT);
+          } else {
+            setStage(STAGES.CLASS);
+          }
+        } else {
+          if (selectedUser) {
+            setStage(STAGES.STUDENT);
+          } else {
+            setStage(STAGES.SCHOOL);
+          }
+        }
+      } else if (allSchool.length === 0) {
+        onParentSelect();
+      }
     }
 
-    setCurrentUser(currUser);
-    setSchoolList(tempSchoolList);
+    setIsLoading(false);
   };
+
   async function changeLanguage() {
     const languageDocId = localStorage.getItem(LANGUAGE);
-    console.log("This is the lang " + languageDocId);
     if (!!languageDocId) await i18n.changeLanguage(languageDocId);
   }
+  const onSchoolSelect = async () => {
+    history.replace(PAGES.DISPLAY_SCHOOLS);
+  };
   const onParentSelect = async () => {
     api.currentMode = MODES.PARENT;
     const students = await api.getParentStudentProfiles();
@@ -164,38 +222,46 @@ const SelectMode: FC = () => {
     schoolUtil.setCurrMode(MODES.SCHOOL);
     setStage(STAGES.SCHOOL);
   };
-  const displayClasses = async () => {
-    const element = await api.getClassesForSchool(currentSchool, currentUser);
-    console.log("this are the classes " + element);
-    setCurrentClasses(element);
-    localStorage.setItem(SELECTED_CLASSES, JSON.stringify(element));
 
-    return;
+  const displayClasses = async (
+    school?: TableTypes<"school">,
+    user?: TableTypes<"user">
+  ) => {
+    const activeSchool = currentSchool ?? school;
+    const activeUser = currentUser ?? user;
+    if (!activeSchool || !activeUser) {
+      return;
+    }
+    try {
+      const element = await api.getClassesForSchool(
+        activeSchool.id,
+        activeUser.id
+      );
+      if (!element || element.length === 0) {
+        return;
+      }
+      setCurrentClasses(element);
+      localStorage.setItem(SELECTED_CLASSES, JSON.stringify(element));
+    } catch (error) {
+      console.error("Error fetching classes:", error);
+    }
   };
   const displayStudents = async (curClass) => {
     // if(!currClass) return;
-    const element = await api.getStudentsForClass(curClass.docId);
-    console.log("THis are the students " + element);
+    const element = await api.getStudentsForClass(curClass.id);
     if (!element) return;
     setCurrentStudents(element);
-
-    localStorage.setItem(SELECTED_STUDENTS, JSON.stringify(element));
+    // localStorage.setItem(SELECTED_STUDENTS, JSON.stringify(element));
     return;
   };
-  const onStudentClick = async (student: User) => {
-    console.log(
-      "🚀 ~ file: DisplayStudents.tsx:30 ~ onStudentClick:student",
-      student
-    );
+  const onStudentClick = async (student: TableTypes<"user">) => {
     await Util.setCurrentStudent(student, undefined, true);
     history.replace(PAGES.HOME);
   };
   function randomValue() {
     let random = Math.floor(Math.random() * 37);
-    console.log("This is the random generated value  " + random);
     return random;
   }
-
   return (
     <IonPage>
       {!isLoading && (
@@ -224,60 +290,49 @@ const SelectMode: FC = () => {
 
           <div>
             {stage === STAGES.SCHOOL && (
-              <div>
-                <div className="back-button-container">
-                  <BackButton
-                    aria-label={t("Back")}
-                    onClicked={() => {
-                      //  history.replace(PAGES.SELECT_SCHOOL);
-                      setStage(STAGES.MODE);
-                    }}
-                  />
-                </div>
-                <div className="select-school-main">
-                  <span className="select-school-text">
-                    {t("Choose the School")}
-                  </span>
-                  <DropDown
-                    placeholder={t("Select the School").toString()}
-                    onValueChange={async (selectedSchoolDocId) => {
-                      const currSchool = schoolList.find(
-                        (element) => element.id === selectedSchoolDocId
-                      )?.school;
+              <div className="select-school-main">
+                <span className="select-school-text">
+                  {t("Choose the School")}
+                </span>
+                <DropDown
+                  placeholder={t("Select the School").toString()}
+                  onValueChange={async (selectedSchoolDocId) => {
+                    const currSchool = schoolList.find(
+                      (element) => element.id === selectedSchoolDocId
+                    )?.school;
 
-                      if (!currSchool) {
-                        setIsOkayButtonDisabled(true);
-                        return;
-                      }
-                      setCurrentSchool(currSchool);
-                      localStorage.setItem(
-                        CURRENT_SCHOOL_NAME,
-                        JSON.stringify(currSchool.name)
-                      );
-                      setCurrentSchoolName(currSchool.name);
-                      setCurrentSchoolId(currSchool.docId);
-                      setIsOkayButtonDisabled(false);
-                      schoolUtil.setCurrentSchool(currSchool);
-                    }}
-                    optionList={schoolList}
-                    width="26vw"
-                    currentValue={currentSchoolId}
-                  />
-                  <button
-                    className={`okay-btn ${
-                      isOkayButtonDisabled ? "okay-btn-disabled" : ""
-                    }`}
-                    onClick={async function () {
-                      // history.replace(PAGES.SELECT_CLASS);
-                      await displayClasses();
-                      setStage(STAGES.CLASS);
+                    if (!currSchool) {
+                      setIsOkayButtonDisabled(true);
                       return;
-                    }}
-                    disabled={isOkayButtonDisabled}
-                  >
-                    {t("Okay")}
-                  </button>
-                </div>
+                    }
+                    setCurrentSchool(currSchool);
+                    localStorage.setItem(
+                      CURRENT_SCHOOL_NAME,
+                      JSON.stringify(currSchool.name)
+                    );
+                    setCurrentSchoolName(currSchool.name);
+                    setCurrentSchoolId(currSchool.id);
+                    setIsOkayButtonDisabled(false);
+                    schoolUtil.setCurrentSchool(currSchool);
+                  }}
+                  optionList={schoolList}
+                  width="26vw"
+                  currentValue={currentSchoolId}
+                />
+                <button
+                  className={`okay-btn ${
+                    isOkayButtonDisabled ? "okay-btn-disabled" : ""
+                  }`}
+                  onClick={async function () {
+                    // history.replace(PAGES.SELECT_CLASS);
+                    await displayClasses();
+                    setStage(STAGES.CLASS);
+                    return;
+                  }}
+                  disabled={isOkayButtonDisabled}
+                >
+                  {t("Okay")}
+                </button>
               </div>
             )}
           </div>
@@ -286,29 +341,33 @@ const SelectMode: FC = () => {
             {stage === STAGES.CLASS && (
               <div className="class-main">
                 <div className="class-header">
-                  <BackButton
+                  <div></div>
+                  {/* <BackButton
                     aria-label={t("Back")}
                     onClicked={() => {
                       //  history.replace(PAGES.SELECT_SCHOOL);
+                      localStorage.removeItem(SELECTED_CLASSES);
+                      localStorage.removeItem(CURRENT_SCHOOL);
+                      localStorage.removeItem(CURRENT_SCHOOL_NAME);
                       setStage(STAGES.SCHOOL);
                     }}
-                  />
+                  /> */}
 
-                  <div className="schoolname-header">{currentSchoolName}</div>
-                  <div className="right-button"></div>
+                  <div className="selectmode-schoolname-header">
+                    {currentSchool?.name}
+                  </div>
+                  <div></div>
                 </div>
 
                 <div className="class-container">
                   {currentClasses?.map((tempClass) => (
                     <div
-                      key={tempClass.docId}
+                      key={tempClass.id}
                       onClick={async () => {
                         if (!tempClass) return;
                         // localStorage.setItem(CURRENT_CLASS,JSON.stringify(tempClass));
                         schoolUtil.setCurrentClass(tempClass);
-                        console.log("This is the selected class " + tempClass);
                         setCurrClass(tempClass);
-
                         localStorage.setItem(
                           CURRENT_CLASS_NAME,
                           JSON.stringify(tempClass)
@@ -318,7 +377,9 @@ const SelectMode: FC = () => {
                       }}
                       className="class-avatar"
                     >
-                      <div className="class-avatar-counter">{count++}</div>
+                      <div className="class-avatar-counter">
+                        {tempClass.name}
+                      </div>
                       <span className="class-name">{tempClass.name}</span>
                     </div>
                   ))}
@@ -331,32 +392,37 @@ const SelectMode: FC = () => {
             {stage === STAGES.STUDENT && (
               <div>
                 <div className="class-header">
-                  <BackButton
-                    aria-label={t("Back")}
-                    onClicked={() => {
-                      //  history.replace(PAGES.SELECT_SCHOOL);
-                      setStage(STAGES.CLASS);
-                    }}
-                  />
-
-                  <div className="schoolClassname-header">
-                    {currentSchoolName + ", " + currClass?.name}
+                  <div id="back-button-in-school-Header">
+                    <img
+                      src="/assets/icons/BackButtonIcon.svg"
+                      alt="BackButtonIcon"
+                      onClick={() => {
+                        //  history.replace(PAGES.SELECT_SCHOOL);
+                        localStorage.removeItem(SELECTED_STUDENTS);
+                        localStorage.removeItem(CURRENT_CLASS);
+                        localStorage.removeItem(CURRENT_CLASS_NAME);
+                        localStorage.removeItem(USER_SELECTION_STAGE);
+                        setStage(STAGES.CLASS);
+                      }}
+                    />
                   </div>
-                  <div className="right-button"></div>
+
+                  <div className="selectmode-schoolClassname-header">
+                    {currentSchool?.name + ", " + currClass?.name}
+                  </div>
+                  <div></div>
                 </div>
 
                 <div className="class-container">
                   {currentStudents?.map((tempStudent) => (
                     <div
-                      key={tempStudent.docId}
+                      key={tempStudent.id}
                       onClick={() => {
                         setCurrStudent(tempStudent);
                         // setStage(STAGES.STUDENT);
+                        localStorage.setItem(USER_SELECTION_STAGE, "true");
                         onStudentClick(tempStudent);
                         // Util.setCurrentStudent(tempStudent);
-                        console.log(
-                          "This is the selected student " + tempStudent.name
-                        );
                       }}
                       className="class-avatar"
                     >

@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./Parent.css";
 import {
+  CLASS,
+  EDIT_STUDENTS_MAP,
   LANGUAGE,
-  LANG,
   MAX_STUDENTS_ALLOWED,
+  MODES,
   PAGES,
   PARENTHEADERLIST,
-  CONTINUE,
-  APP_LANGUAGES,
+  SCHOOL,
+  TableTypes,
+  USER_DATA,
 } from "../common/constants";
 import ProfileCard from "../components/parent/ProfileCard";
 import User from "../models/user";
@@ -27,18 +30,17 @@ import { TfiWorld } from "react-icons/tfi";
 import i18n from "../i18n";
 import { ServiceConfig } from "../services/ServiceConfig";
 import ParentLogout from "../components/parent/ParentLogout";
-import { AppBar, Box, Tab, Tabs } from "@mui/material";
-import { blue, red, green } from "@mui/material/colors";
-import { common } from "@mui/material/colors";
-import BackButton from "../components/common/BackButton";
+import { Box } from "@mui/material";
 import { useHistory } from "react-router-dom";
 import CustomAppBar from "../components/studentProgress/CustomAppBar";
-import DeleteParentAccount from "../components/parent/DeleteParentAccount";
-import { TrueFalseEnum } from "../interface/modelInterfaces";
 import { Util } from "../utility/util";
 import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
-
+import { RoleType } from "../interface/modelInterfaces";
+import DeleteParentAccount from "../components/parent/DeleteParentAccount";
+import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
+import DebugMode from "../teachers-module/components/DebugMode";
+import { Capacitor } from "@capacitor/core";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 const Parent: React.FC = () => {
@@ -46,9 +48,12 @@ const Parent: React.FC = () => {
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [soundFlag, setSoundFlag] = useState<number>();
   const [musicFlag, setMusicFlag] = useState<number>();
-  const [userProfile, setUserProfile] = useState<User[]>([]);
+  const [userProfile, setUserProfile] = useState<TableTypes<"user">[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
-  const [tabs, setTabs] = useState({});
+  // Commented out because Debug Mode has been moved to the Leaderboard page
+  // const clickCount = useRef(0);
+  // const [showDialogBox, setShowDialogBox] = useState(false);
+  // const [showDebug, setShowDebug] = useState(false);
   const [langList, setLangList] = useState<
     {
       id: string;
@@ -60,12 +65,22 @@ const Parent: React.FC = () => {
   //  const [localLangDocId, setLocalLangDocId] = useState<any>();
   const [reloadProfiles, setReloadProfiles] = useState<boolean>(false);
   const [studentMode, setStudentMode] = useState<string | undefined>();
+  const [currentUser, setCurrentUser] = useState<
+    TableTypes<"user"> | undefined
+  >();
+  const [schools, setSchools] = useState<
+    {
+      school: TableTypes<"school">;
+      role: RoleType;
+    }[]
+  >();
   let tempLangList: {
     id: string;
     displayName: string;
   }[] = [];
   // let langDocIds: Map<string, string> = new Map();
   const localAppLang = localStorage.getItem(LANGUAGE);
+  const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const parentHeaderIconList = [
     { header: "profile", displayName: "Profile" },
@@ -73,71 +88,66 @@ const Parent: React.FC = () => {
     { header: "help", displayName: "Help" },
     { header: "faq", displayName: "FAQ" },
   ];
-
+  const [tabs, setTabs] = useState({});
+  const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
+  const localClass = JSON.parse(localStorage.getItem(CLASS)!);
   useEffect(() => {
     setIsLoading(true);
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
     init();
     getStudentProfile();
   }, [reloadProfiles]);
-  useEffect(() => {
-    const updatedTabs = {};
-    parentHeaderIconList.forEach((item) => {
-      updatedTabs[t(item.header)] = t(item.header);
-    });
-    setTabs(updatedTabs);
-  }, [currentAppLang]);
+
   async function getStudentProfile() {
-    console.log("getStudentProfile");
-    const userProfilePromise: User[] =
+    const userProfilePromise: TableTypes<"user">[] =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];
+    const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
+    const mergedStudents = Util.mergeStudentsByUpdatedAt(
+      userProfilePromise,
+      storedMapStr
+    );
     for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
-      finalUser.push(userProfilePromise[i]);
+      finalUser.push(mergedStudents[i]);
     }
     setUserProfile(finalUser);
-    // });
   }
   async function init(): Promise<void> {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (parentUser != undefined) {
+    if (parentUser) {
+      setCurrentUser(parentUser);
+      const schools = await api.getSchoolsForUser(parentUser.id);
+      if (schools && schools.length > 0) {
+        setSchools(schools);
+      }
       const currMode = await schoolUtil.getCurrMode();
       setStudentMode(currMode);
-      console.log("User ", parentUser?.musicOff!);
       const sound = Util.getCurrentSound();
       const music = Util.getCurrentMusic();
       setSoundFlag(sound);
       setMusicFlag(music);
 
-
+      const allLang = await ServiceConfig.getI().apiHandler.getAllLanguages();
       let tempLangDocIds: Map<string, string> = new Map();
       let keytempLangDocIds: Map<string, string> = new Map();
-      Object.keys(APP_LANGUAGES).forEach((key) => {
-        tempLangList.push({
-          id: key,
-          displayName: APP_LANGUAGES[key],
-        });
-        tempLangDocIds.set(APP_LANGUAGES[key], key);
-      });
+      for (let i = 0; i < allLang.length; i++) {
+        const element = allLang[i];
 
+        tempLangList.push({
+          id: element.id,
+          displayName: element.name,
+        });
+        tempLangDocIds.set(element.name, element.id);
+        keytempLangDocIds.set(element.id, element.name);
+      }
 
       setLangDocIds(tempLangDocIds);
       setLangList(tempLangList);
 
-      console.log(
-        "current Lang",
-        langDocIds,
-        langDocIds.get(parentUser?.language?.id!),
-        keytempLangDocIds.get(parentUser?.language?.id!),
-        langDocIds.get(parentUser?.language?.id!) || langList[0]
-      );
+      const element = allLang.find((obj) => obj.code === localAppLang);
+      if (!element) return;
 
-      const localAppLang = localStorage.getItem(LANGUAGE);
-      if (localAppLang) {
-        setCurrentAppLang(localAppLang);
-      } else {
-        setCurrentAppLang(tempLangList[0]?.id);
-      }
+      setCurrentAppLang(element.id);
 
       setIsLoading(false);
     }
@@ -153,10 +163,8 @@ const Parent: React.FC = () => {
     return (
       <div id="parent-page-profile">
         {userProfile.map((element) => {
-          console.log("userProfile", userProfile);
           let studentUserType: boolean = true;
           if (element === undefined) {
-            console.log("element", element);
             studentUserType = false;
           }
           return (
@@ -185,33 +193,45 @@ const Parent: React.FC = () => {
             <DropDown
               currentValue={currentAppLang}
               optionList={langList}
-              placeholder={t("Select Language").toString()}
+              placeholder=""
               width="26vw"
-              onValueChange={async (selectedLang) => {
-                if (!selectedLang) return;
+              onValueChange={async (selectedLangDocId) => {
+                // setIsLoading(true);
 
-                localStorage.setItem(LANGUAGE, selectedLang);
-                await i18n.changeLanguage(selectedLang);
+                const api = ServiceConfig.getI().apiHandler;
+                const auth = ServiceConfig.getI().authHandler;
+                // api.deleteAllUserData
+                // const langDoc = await api.getLanguageWithId(selectedLangDocId);
+                const allLang = await api.getAllLanguages();
 
-                const currentUser =
-                  await ServiceConfig.getI().authHandler.getCurrentUser();
+                const langDoc = allLang.find(
+                  (obj) => obj.id === selectedLangDocId
+                );
+
+                if (!langDoc) return;
+                localStorage.setItem(LANGUAGE, langDoc.code ?? "");
+                await i18n.changeLanguage(langDoc.code ?? "");
+                const currentUser = await auth.getCurrentUser();
                 setTabIndex(t(parentHeaderIconList[1].header));
-                const appLang = localStorage.getItem(LANGUAGE);
-                let langDocId;
-                if (!!appLang) {
-                  const languages =
-                    await ServiceConfig.getI().apiHandler.getAllLanguages();
-                  langDocId = languages.find(
-                    (lang) => lang.code === appLang
-                  )?.docId;
+
+                const langId = langDocIds.get(langDoc.code ?? "");
+
+                if (currentUser && selectedLangDocId) {
+                  api.updateLanguage(currentUser.id, selectedLangDocId);
                 }
-                if (currentUser && langDocId) {
-                  ServiceConfig.getI().apiHandler.updateLanguage(
-                    currentUser,
-                    langDocId
-                  );
+                setCurrentAppLang(selectedLangDocId);
+                const updatedUserData: TableTypes<"user"> | undefined =
+                  currentUser
+                    ? { ...currentUser, language_id: selectedLangDocId }
+                    : undefined;
+                localStorage.setItem(
+                  USER_DATA,
+                  JSON.stringify(updatedUserData)
+                );
+                if (updatedUserData) {
+                  auth.currentUser = updatedUserData;
                 }
-                setCurrentAppLang(selectedLang);
+                // window.location.reload();
               }}
             />
           </div>
@@ -220,33 +240,69 @@ const Parent: React.FC = () => {
               flag={soundFlag!}
               title={t("Sound")}
               onIonChangeClick={async (v) => {
-                console.log("ion change value ", v.detail?.checked ? 0 : 1);
                 setSoundFlag(v.detail?.checked ? 0 : 1);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
                 Util.setCurrentSound(v.detail?.checked ? 0 : 1);
                 if (currentUser) {
                   ServiceConfig.getI().apiHandler.updateSoundFlag(
-                    currentUser,
-                    v.detail?.checked ? 0 : 1
+                    currentUser.id,
+                    v.detail?.checked
                   );
                 }
+                // Commented out because Debug Mode has been moved to the Leaderboard page
+                // clickCount.current += 1;
+                // // If clicked 7 times, show popup for debug mode
+                // if (clickCount.current === 7) {
+                //   setShowDialogBox(true);
+                //   clickCount.current = 0;
+                // }
               }}
             ></ToggleButton>
+            {/* Commented out because Debug Mode has been moved to the Leaderboard page */}
+            {/* {showDialogBox && (
+              <DialogBoxButtons
+                width={"40vw"}
+                height={"30vh"}
+                message={t("Do you want to Open Debug Mode?")}
+                showDialogBox={true}
+                yesText={t("Cancel")}
+                noText={t("debugMode")}
+                handleClose={() => {
+                  setShowDialogBox(true);
+                }}
+                onYesButtonClicked={() => {
+                  setShowDialogBox(false);
+                }}
+                onNoButtonClicked={() => {
+                  setShowDebug(true);
+                  parentHeaderIconList.push({
+                    header: "debugMode",
+                    displayName: t("debugMode"),
+                  });
+
+                  setTabs((prevTabs: any) => ({
+                    ...prevTabs,
+                    [t("debugMode")]: t("debugMode"),
+                  }));
+                  setTabIndex(t("debugMode"));
+                  setShowDialogBox(false);
+                }}
+              />
+            )} */}
 
             <ToggleButton
               flag={musicFlag!}
               title={t("Music")}
               onIonChangeClick={async (v) => {
-                console.log("ion change value ", v.detail?.checked ? 0 : 1);
                 setMusicFlag(v.detail?.checked ? 0 : 1);
                 const currentUser =
                   await ServiceConfig.getI().authHandler.getCurrentUser();
                 Util.setCurrentMusic(v.detail?.checked ? 0 : 1);
                 if (currentUser) {
                   ServiceConfig.getI().apiHandler.updateMusicFlag(
-                    currentUser,
-                    v.detail?.checked ? 0 : 1
+                    currentUser.id,
+                    v.detail?.checked
                   );
                 }
               }}
@@ -257,8 +313,47 @@ const Parent: React.FC = () => {
           <div id="parent-logout">
             <ParentLogout />
           </div>
-          <div id="parent-delete">
+          <div id="parent_logout-btn">
             <DeleteParentAccount />
+          </div>
+          <div className="parent-teachermode-toggle">
+            <ToggleButton
+              title={"Switch to Teacher's Mode"}
+              layout="vertical"
+              onIonChangeClick={async () => {
+                const isNativePlatform = Capacitor.isNativePlatform();
+                if (localSchool && localClass) {
+                  schoolUtil.setCurrMode(MODES.TEACHER);
+                  history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+                  isNativePlatform && window.location.reload();
+                  isNativePlatform && window.location.reload();
+                } else if (schools && schools.length > 0) {
+                  if (schools?.length === 1) {
+                    Util.setCurrentSchool(schools[0].school, schools[0].role);
+                    const tempClasses = await api.getClassesForSchool(
+                      schools[0].school.id,
+                      currentUser?.id!
+                    );
+                    if (tempClasses.length > 0) {
+                      Util.setCurrentClass(tempClasses[0]);
+                      schoolUtil.setCurrMode(MODES.TEACHER);
+                      history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+                      isNativePlatform && window.location.reload();
+                    }
+                  } else {
+                    schoolUtil.setCurrMode(MODES.TEACHER);
+                    history.replace(PAGES.DISPLAY_SCHOOLS);
+                    isNativePlatform && window.location.reload();
+                    isNativePlatform && window.location.reload();
+                  }
+                } else {
+                  schoolUtil.setCurrMode(MODES.TEACHER);
+                  history.replace(PAGES.DISPLAY_SCHOOLS);
+                  isNativePlatform && window.location.reload();
+                  isNativePlatform && window.location.reload();
+                }
+              }}
+            />
           </div>
         </div>
       </div>
@@ -287,7 +382,6 @@ const Parent: React.FC = () => {
               <div
                 id="parent-page-help-share-button"
                 onClick={() => {
-                  console.log("Value clicked");
                   window.open("https://www.chimple.org/", "_system");
                 }}
               >
@@ -340,7 +434,6 @@ const Parent: React.FC = () => {
               <div
                 id="parent-page-help-share-button-e3"
                 onClick={() => {
-                  console.log("Value clicked");
                   // let message = "Hiii !!!!";
                   window.open(
                     `https://api.instagram.com/chimple_learning/`,
@@ -414,6 +507,9 @@ const Parent: React.FC = () => {
     );
   }
 
+  // function debugModeUI() {
+  //   return <DebugMode />;
+  // }
   const handleChange = (newValue: string) => {
     const selectedHeader = parentHeaderIconList.find(
       (item) => item.header === newValue
@@ -433,12 +529,19 @@ const Parent: React.FC = () => {
       setTabIndex(t(parentHeaderIconList[0].header));
     }
   }, []);
+  useEffect(() => {
+    const updatedTabs = {};
+    parentHeaderIconList.forEach((item) => {
+      updatedTabs[t(item.header)] = t(item.header);
+    });
+    setTabs(updatedTabs);
+  }, [localAppLang]);
 
   return (
     <Box>
       <div>
         <CustomAppBar
-          tabNames={tabs}
+          tabs={tabs}
           value={tabIndex}
           onChange={handleChange}
           handleBackButton={handleBackButton}
@@ -448,6 +551,8 @@ const Parent: React.FC = () => {
         {tabIndex === t("setting") && <div>{settingUI()}</div>}
         {tabIndex === t("help") && <div>{helpUI()}</div>}
         {tabIndex === t("faq") && <div>{faqUI()}</div>}
+        {/* Commented out because Debug Mode has been moved to the Leaderboard pagex */}
+        {/* {tabIndex === t("debugMode") && <div>{debugModeUI()}</div>} */}
       </div>
     </Box>
   );

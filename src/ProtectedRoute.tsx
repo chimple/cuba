@@ -7,7 +7,7 @@ import { use } from "i18next";
 
 export default function ProtectedRoute({ children, ...rest }) {
   const [isAuth, setIsAuth] = useState<Boolean | null>(null); // initially undefined
-  const [isTcAccept, setTcAccept] = useState<Boolean>();
+  const [isTcAccept, setTcAccept] = useState<any>();
   useEffect(() => {
     checkAuth();
   }, []);
@@ -16,11 +16,8 @@ export default function ProtectedRoute({ children, ...rest }) {
       const authHandler = ServiceConfig.getI()?.authHandler;
       const isUserLoggedIn = await authHandler?.isUserLoggedIn();
       const currentUser = await authHandler?.getCurrentUser();
-      console.log("currentUser", currentUser, children)
       setIsAuth(!!isUserLoggedIn);
-      setTcAccept(currentUser?.tcAccept);
-      console.log("tcAccept", !!currentUser?.tcAccept);
-
+      setTcAccept(currentUser?.is_tc_accepted ?? false);
     } catch (error) {
       setIsAuth(false);
     }
@@ -30,7 +27,7 @@ export default function ProtectedRoute({ children, ...rest }) {
   return (
     <Route {...rest}>
       {isAuth === true ? (
-        isTcAccept === true ? (
+        isTcAccept === true || isTcAccept === 1 ? (
           children
         ) : (
           <Redirect

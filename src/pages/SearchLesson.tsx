@@ -1,146 +1,61 @@
-import { createQuerySuggestionsPlugin } from "@algolia/autocomplete-plugin-query-suggestions";
-import { createLocalStorageRecentSearchesPlugin } from "@algolia/autocomplete-plugin-recent-searches";
-import algoliasearch from "algoliasearch/lite";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Configure,
-  connectSearchBox,
-  InstantSearch,
-} from "react-instantsearch-dom";
+import { useEffect, useRef, useState } from "react";
 import "@algolia/autocomplete-theme-classic";
 import "./SearchLesson.css";
 
-import { Autocomplete } from "../components/search/Autocomplete";
 import LessonSlider from "../components/LessonSlider";
-import Lesson from "../models/lesson";
 import { ServiceConfig } from "../services/ServiceConfig";
 import { useHistory, useLocation } from "react-router";
-import {
-  ACTION,
-  CONTINUE,
-  EVENTS,
-  INSTANT_SEARCH_INDEX_NAME,
-  PAGES,
-} from "../common/constants";
-import BackButton from "../components/common/BackButton";
+import { CONTINUE, PAGES, TableTypes } from "../common/constants";
 import { Util } from "../utility/util";
-import { StudentLessonResult } from "../common/courseConstants";
-import User from "../models/user";
-import { t } from "i18next";
-
-const searchClient = algoliasearch(
-  process.env.REACT_APP_ALGOLIA_APP_ID!,
-  process.env.REACT_APP_ALGOLIA_API_KEY!
-);
-const searchIndex = searchClient.initIndex(INSTANT_SEARCH_INDEX_NAME);
-
-const VirtualSearchBox = connectSearchBox(() => null);
+import { IonSearchbar } from "@ionic/react";
 
 const dataToContinue: any = {};
 function SearchLesson() {
   const [searchTerm, setSearchTerm] = useState("");
-  const SEARCH_KEYWORD_COUNT_STORAGE_KEY = "searchKeywordFrequency";
-  const [lessons, setLessons] = useState<Lesson[]>([]);
-  const [currentStudent, setStudent] = useState<User>();
-  const searchStartTime = useRef<number>(0);
-  const onSearch = async (params) => {
-    const term  = params.state.query;
-    searchStartTime.current = Date.now();
-    const results = await searchIndex.search(term);
-    const tempLessons = results.hits.map((hit) => {
-      const lesson = hit as any as Lesson;
-      lesson.docId = hit.objectID;
-      return lesson;
-    });
-    dataToContinue.lessons = tempLessons;
-    dataToContinue.search = term;
-    setLessons(tempLessons);
-    setSearchTerm(term);
-    // Track query count in localStorage
-    const keywordVolume = JSON.parse(
-      localStorage.getItem(SEARCH_KEYWORD_COUNT_STORAGE_KEY) || "{}"
-    );
-    keywordVolume[term] = (keywordVolume[term] || 0) + 1;
-    localStorage.setItem(
-      SEARCH_KEYWORD_COUNT_STORAGE_KEY,
-      JSON.stringify(keywordVolume)
-    );
-    logSearchEvent(term, results.nbHits, keywordVolume[term]);
-  };
-  const logSearchEvent = (
-    term: string,
-    resultCount: number,
-    volume: number
-  ) => {
-    if (!currentStudent) return;
-    const timeSpent = (Date.now() - searchStartTime.current) / 1000; // Time in seconds
-    const eventParams = {
-      user_id: currentStudent.docId,
-      user_type: currentStudent.role,
-      user_name: currentStudent.name,
-      user_gender: currentStudent.gender,
-      user_age: currentStudent.age,
-      phone_number: currentStudent.username,
-      parent_id: currentStudent.uid,
-      parent_username: currentStudent.username,
-      action_type: ACTION.SEARCH,
-      search_keyword: term,
-      search_results: resultCount,
-      search_keyword_frequency: volume,
-      time_spent: timeSpent.toFixed(2), 
-    };
+  const [lessons, setLessons] = useState<TableTypes<"lesson">[]>([]);
+  const inputEl = useRef<HTMLIonSearchbarElement>(null);
 
-    console.log(
-      "Util.logEvent(EVENTS.SEARCH_ANALYSIS, eventParams);",
-      EVENTS.SEARCH_TRENDS,
-      eventParams
-    );
-    Util.logEvent(EVENTS.SEARCH_TRENDS, eventParams);
+  const onSearch = async (term: string) => {
+    if (dataToContinue.search === term) return;
+    if (!term) {
+      dataToContinue.lessons = [];
+      dataToContinue.search = term;
+      setLessons([]);
+      setSearchTerm(term);
+      return;
+    }
+    // setSearchTerm(term);
+    const api = ServiceConfig.getI().apiHandler;
+    const results = await api.searchLessons(term);
+    dataToContinue.lessons = results;
+    dataToContinue.search = term;
+    localStorage.setItem("searchTerm", dataToContinue.search);
+    setLessons(results);
   };
+
   const history = useHistory();
   const location = useLocation();
   const [lessonResultMap, setLessonResultMap] = useState<{
-    [lessonDocId: string]: StudentLessonResult;
+    [lessonDocId: string]: TableTypes<"result">;
   }>();
-
   async function init() {
-    const currentStudent = await Util.getCurrentStudent();
+    const currentStudent = Util.getCurrentStudent();
+    const api = ServiceConfig.getI().apiHandler;
     if (!currentStudent) {
-      history.replace(PAGES.HOME);
+      history.replace(PAGES.DISPLAY_STUDENT);
       return;
     }
-
-    setStudent(currentStudent);
-    if (currentStudent) {
-      const api = ServiceConfig.getI().apiHandler;
-      // const currentStudent =await Util.getCurrentStudent();
-      if (!currentStudent) {
-        history.replace(PAGES.DISPLAY_STUDENT);
-        return;
-      }
-      if (!dataToContinue.lessonResultMap) {
-        const res = await api.getStudentResultInMap(currentStudent.docId);
-        console.log("tempResultLessonMap = res;", res);
-        dataToContinue.lessonResultMap = res;
-        setLessonResultMap(res);
-      }
-      // api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
-      //   console.log("tempResultLessonMap = res;", res);
-      //   setLessonResultMap(res);
-      // });
+    if (!dataToContinue.lessonResultMap) {
+      const res = await api.getStudentResultInMap(currentStudent.id);
+      dataToContinue.lessonResultMap = res;
+      setLessonResultMap(res);
     }
   }
 
-  // useEffect(() => {
-  //   init();
-  //   // const currentStudent = await Util.getCurrentStudent();
-  //   const urlParams = new URLSearchParams(location.search);
-  //   if (!!urlParams.get("continue") && !!dataToContinue.lessons) {
-  //     setLessons(dataToContinue.lessons);
-  //     setSearchTerm(dataToContinue.search);
-  //   }
-  // }, []);
   useEffect(() => {
+    setTimeout(() => {
+      inputEl.current?.setFocus();
+    }, 300);
     init();
 
     const urlParams = new URLSearchParams(location.search);
@@ -154,105 +69,47 @@ function SearchLesson() {
       setSearchTerm(savedSearchTerm);
       onSearch(savedSearchTerm);
     }
-    localStorage.setItem("searchTerm", searchTerm);
     return () => {
       localStorage.removeItem("searchTerm");
     };
-  }, [searchTerm]);
-
-  const plugins = useMemo(() => {
-    const recentSearchesPlugin = createLocalStorageRecentSearchesPlugin({
-      key: "search",
-      limit: 3,
-      transformSource({ source }) {
-        return {
-          ...source,
-        };
-      },
-    });
-
-    const querySuggestionsPlugin = createQuerySuggestionsPlugin({
-      searchClient,
-      indexName: INSTANT_SEARCH_INDEX_NAME,
-      //@ts-ignore
-      getSearchParams() {
-        return recentSearchesPlugin.data?.getAlgoliaSearchParams({
-          hitsPerPage: 3,
-          attributesToHighlight: ["title", "outcome"],
-        });
-      },
-      categoryAttribute: [
-        INSTANT_SEARCH_INDEX_NAME,
-        "facets",
-        "exact_matches",
-        // INSTANT_SEARCH_HIERARCHICAL_ATTRIBUTES[0],
-      ],
-
-      transformSource({ source }) {
-        return {
-          ...source,
-          sourceId: "Lesson",
-          getItems(params) {
-            return source.getItems(params);
-          },
-          templates: {
-            ...source.templates,
-            item(params) {
-              params.item.query = params.item.title.toString();
-              return source.templates.item(params);
-            },
-          },
-        };
-      },
-    });
-
-    return [recentSearchesPlugin, querySuggestionsPlugin];
   }, []);
 
   return (
     <div className="search-container">
       <div className="search-header">
-        {/* <BackButton
-          onClicked={() => {
-            history.replace(PAGES.HOME);
+        <IonSearchbar
+          ref={inputEl}
+          showClearButton="focus"
+          color={"light"}
+          inputMode="search"
+          enterkeyhint="search"
+          onIonClear={() => {
+            onSearch("");
           }}
-        /> */}
-        <InstantSearch
-          searchClient={searchClient}
-          indexName={INSTANT_SEARCH_INDEX_NAME}
-          initialUiState={{
-            [INSTANT_SEARCH_INDEX_NAME]: {
-              query: "phone",
-              page: 5,
-            },
+          onInput={(ev) => {
+            setSearchTerm(ev.currentTarget.value ?? "");
           }}
-        >
-          {/* A virtual search box is required for InstantSearch to understand the `query` search state property */}
-          <VirtualSearchBox />
-          <Autocomplete
-            placeholder={t("Search for a Lesson...")}
-            detachedMediaQuery="none"
-            initialState={{
-              query: searchTerm,
-            }}
-            openOnFocus={true}
-            onSubmit={onSearch}
-            plugins={plugins}
-            insights
-          />
-          <Configure
-            attributesToSnippet={["title:10", "outcome:20"]}
-            snippetEllipsisText="…"
-          />
-        </InstantSearch>
+          onKeyDown={(ev) => {
+            if (ev.key === "Enter") {
+              onSearch(ev.currentTarget.value ?? "");
+              //@ts-ignore
+              ev.target?.blur();
+            }
+          }}
+          debounce={1000}
+          onIonChange={(evOnChange) => {
+            onSearch(evOnChange.detail.value ?? "");
+          }}
+          value={searchTerm}
+          animated={true}
+        />
         <div className="right-button"></div>
       </div>
       <LessonSlider
-        key={searchTerm}
         lessonData={lessons}
         isHome={true}
         course={undefined}
-        lessonsScoreMap={lessonResultMap || {}}
+        lessonsScoreMap={lessonResultMap ?? {}}
         startIndex={0}
         showSubjectName={true}
         showChapterName={false}

@@ -1,36 +1,25 @@
 import { IonPage, IonHeader } from "@ionic/react";
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import {
-  COURSES,
   HOMEHEADERLIST,
-  CURRENT_LESSON_LEVEL,
   PAGES,
   PREVIOUS_SELECTED_COURSE,
-  PRE_QUIZ,
-  ALL_COURSES,
-  PREVIOUS_PLAYED_COURSE,
-  SL_GRADES,
-  SELECTED_GRADE,
   HeaderIconConfig,
   DEFAULT_HEADER_ICON_CONFIGS,
-  CURRENT_STUDENT,
-  CURRENT_CLASS,
   MODES,
-  CURRENT_MODE,
-  RECOMMENDATIONS,
   CONTINUE,
   LIVE_QUIZ,
   SHOW_DAILY_PROGRESS_FLAG,
   IS_CONECTED,
-  SUBTAB_MAPPINGS,
-  QUIZ_POPUP_SHOWN,
-  ASSIGNMENT_POPUP_SHOWN,
+  TableTypes,
+  RECOMMENDATIONS,
+  STARS_COUNT,
+  LANGUAGE,
+  LANG,
+  IS_REWARD_FEATURE_ON,
 } from "../common/constants";
-import CurriculumController from "../models/curriculumController";
 import "./Home.css";
 import LessonSlider from "../components/LessonSlider";
-import Loading from "../components/Loading";
-import { Splide } from "@splidejs/react-splide";
 import HomeHeader from "../components/HomeHeader";
 import { useHistory, useLocation } from "react-router";
 // Default theme
@@ -38,97 +27,78 @@ import "@splidejs/react-splide/css";
 // or only core styles
 import "@splidejs/react-splide/css/core";
 import { Util } from "../utility/util";
-import { OneRosterApi } from "../services/api/OneRosterApi";
 import { ServiceConfig } from "../services/ServiceConfig";
-import RectangularIconButton from "../components/parent/RectangularIconButton";
-import User from "../models/user";
-import Course from "../models/course";
-import { Chapter, StudentLessonResult } from "../common/courseConstants";
-import Lesson from "../models/lesson";
-import { FirebaseApi } from "../services/api/FirebaseApi";
-import { DocumentReference } from "firebase/firestore";
-import LeaderBoardButton from "./LeaderBoardButton";
-import Class from "../models/class";
+import { Timestamp } from "firebase/firestore";
 import { schoolUtil } from "../utility/schoolUtil";
-import Assignment from "../models/assignment";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
-import { auto } from "@popperjs/core";
-import { margin } from "@mui/system";
-import { push } from "ionicons/icons";
 import { t } from "i18next";
-import { App, URLOpenListenerEvent } from "@capacitor/app";
-import ChimpleAvatar from "../components/animation/ChimpleAvatar";
-import DisplaySubjects from "./DisplaySubjects";
+import { App } from "@capacitor/app";
+import { Capacitor } from "@capacitor/core";
+// import ChimpleAvatar from "../components/animation/ChimpleAvatar";
 import SearchLesson from "./SearchLesson";
 import AssignmentPage from "./Assignment";
-import { Console } from "console";
 import Subjects from "./Subjects";
-import { RemoteConfig, REMOTE_CONFIG_KEYS } from "../services/RemoteConfig";
 import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
-import React from "react";
-import Dashboard from "./Malta/Dashboard";
-import PopupTemplate from "./PopupTemplate";
-import { useGrowthBook, useFeatureValue } from "@growthbook/growthbook-react";
-import { SUBTAB } from "../common/constants";
+import LearningPathway from "../components/LearningPathway";
+import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
+import { Device } from "@capacitor/device";
+import i18n from "../i18n";
+import { useFeatureIsOn } from "@growthbook/growthbook-react";
 
 const localData: any = {};
 const Home: FC = () => {
-
-  const growthbook = useGrowthBook();
-
-  const [dataCourse, setDataCourse] = useState<Lesson[]>([]);
+  const [dataCourse, setDataCourse] = useState<TableTypes<"lesson">[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [currentStudent, setCurrentStudent] = useState<User>();
-  const [currentClass, setCurrentClass] = useState<Class>();
+  const [isStudentLinked, setIsStudentLinked] = useState<boolean>();
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [lessonCourseMap, setLessonCourseMap] = useState<{
+    [lessonId: string]: { course_id: string };
+  }>({});
   const [lessonResultMap, setLessonResultMap] = useState<{
-    [lessonDocId: string]: StudentLessonResult;
+    [lessonDocId: string]: TableTypes<"result">;
   }>();
-  const [courses, setCourses] = useState<Course[]>();
-  const [lessons, setLessons] = useState<Lesson[]>();
-  //const [currentHeader, setCurrentHeader] = useState<any>(undefined);
-  // const [currentHeader, setCurrentHeader] = useState<any>(() => {
-  //   //Initialize with the value from local storage (if available)
-  //   return localStorage.getItem("currentHeader") || HOMEHEADERLIST.HOME;
-  // });
-  const [lessonsScoreMap, setLessonsScoreMap] = useState<any>();
-  const [currentLessonIndex, setCurrentLessonIndex] = useState<number>(-1);
-  const [levelChapter, setLevelChapter] = useState<Chapter>();
-  const [gradeMap, setGradeMap] = useState<any>({});
-  const [pendingAssignmentsCount, setPendingAssignmentsCount] =
-    useState<number>(0);
-  const [pendingLiveQuizCount, setPendingLiveQuizCount] = useState<number>(0);
-  const history = useHistory();
-  const [PlayedLessonsList, setPlayedLessonsList] = useState<Lesson[]>([]);
-  const [favouriteLessons, setFavouriteLessons] = useState<Lesson[]>([]);
-  const [favouritesPageSize, setFavouritesPageSize] = useState<number>(10);
-
-  const [initialFavoriteLessons, setInitialFavoriteLessons] = useState<
-    Lesson[]
+  const [pendingAssignments, setPendingAssignments] = useState<
+    TableTypes<"assignment">[]
   >([]);
-  const [initialHistoryLessons, setInitialHistoryLessons] = useState<Lesson[]>(
+  const [pendingLiveQuizCount, setPendingLiveQuizCount] = useState<number>(0);
+  const [pendingAssignmentCount, setPendingAssignmentCount] =
+    useState<number>(0);
+  const history = useHistory();
+  const [favouriteLessons, setFavouriteLessons] = useState<
+    TableTypes<"lesson">[]
+  >([]);
+  const [favouritesPageSize, setFavouritesPageSize] = useState<number>(10);
+  const [historyLessons, setHistoryLessons] = useState<TableTypes<"lesson">[]>(
     []
   );
-  const [historyLessons, setHistoryLessons] = useState<Lesson[]>([]);
   const [validLessonIds, setValidLessonIds] = useState<string[]>([]);
-  const [historySortIndex, setHistorySortIndex] = useState<number>(0);
-  const assignmentCount = '50';
-  const [favLessonIndex, setFavLessonIndex] = useState<number>(0);
-  let allPlayedLessonIds: string[] = [];
-  // const [tempPageNumber, setTempPageNumber] = useState<number>(1);
-  const tempPageRef = useRef(1);
-  let linked: boolean;
+  const [allFavLessons, setAllFavLessons] = useState<TableTypes<"lesson">[]>(
+    []
+  );
+  const [recommendedLessonCourseMap, setRecommendedLessonCourseMap] = useState<{
+    [lessonId: string]: { course_id: string };
+  }>({});
+  let currentStudent: TableTypes<"user"> | undefined;
+  const { setGbUpdated } = useGbContext();
+  const isRewardFeatureOn = useFeatureIsOn(IS_REWARD_FEATURE_ON);
+
+  if (isRewardFeatureOn === true) {
+    localStorage.setItem(IS_REWARD_FEATURE_ON, "true");
+  } else if (isRewardFeatureOn === false) {
+    localStorage.setItem(IS_REWARD_FEATURE_ON, "false");
+  }
+
+  let tempPageNumber = 1;
   const location = useLocation();
-  const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
   const getCanShowAvatar = async () => {
-    const canShowAvatarValue = await Util.getCanShowAvatar();
-    console.log("const canShowAvatarValue in home ", canShowAvatarValue);
+    // const canShowAvatarValue = await Util.getCanShowAvatar();
 
-    setCanShowAvatar(canShowAvatarValue);
+    setCanShowAvatar(true);
   };
-
   const urlParams = new URLSearchParams(location.search);
+  const [canShowAvatar, setCanShowAvatar] = useState<boolean>(true);
   const [currentHeader, setCurrentHeader] = useState(() => {
     const currPage = urlParams.get("tab");
     if (
@@ -140,29 +110,63 @@ const Home: FC = () => {
       return localStorage.getItem("currentHeader") || HOMEHEADERLIST.HOME;
     }
   });
-  const [value, setValue] = useState(SUBTAB.SUGGESTIONS);
+  const appStateChange = (isActive) => {
+    Util.onAppStateChange({ isActive });
+  };
 
-  const currentMode = localStorage.getItem(CURRENT_MODE);
+  const [from, setFrom] = useState<number>(0);
+  const [to, setTo] = useState<number>(0);
+  const logDeviceInfo = async () => {
+    const info = await Device.getInfo();
+    const device_language = await Device.getLanguageCode();
+    const device = {
+      model: info.model,
+      manufacturer: info.manufacturer,
+      platform: info.platform,
+      os_version: info.osVersion,
+      operating_system: info.operatingSystem,
+      is_virtual: info.isVirtual,
+      device_language: device_language.value,
+    };
+    return device;
+  };
 
   useEffect(() => {
     const student = Util.getCurrentStudent();
-
     if (!student) {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
-    urlOpenListenerEvent();
-    fetchData();
+    const studentDetails = student;
+    let parent;
+    (async () => {
+    if(!(studentDetails as any).parent_id){
+      parent = await ServiceConfig.getI()?.authHandler.getCurrentUser();
+      (studentDetails as any).parent_id = parent?.id;
+    }
+    updateLocalAttributes({ studentDetails });
+    setGbUpdated(true);
+    })();
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
     initData();
     setCurrentHeader(HOMEHEADERLIST.HOME);
-    setValue(SUBTAB.SUGGESTIONS);
+    setSubTab(SUBTAB.SUGGESTIONS);
     getCanShowAvatar();
     if (!!urlParams.get(CONTINUE)) {
       setCurrentHeader(currentHeader);
     }
-    App.addListener("appStateChange", Util.onAppStateChange);
+    window.addEventListener("JoinClassListner", handleJoinClassEvent);
+    App.addListener("appStateChange", ({ isActive }) =>
+      appStateChange(isActive)
+    );
+    const handlePathwayCreated = (e: Event) => {
+      const customEvent = e as CustomEvent;
+    };
+    window.addEventListener("PathwayCreated", handlePathwayCreated);
+    return () => {
+      window.removeEventListener("PathwayCreated", handlePathwayCreated);
+    };
   }, []);
 
   useEffect(() => {
@@ -172,29 +176,87 @@ const Home: FC = () => {
         : currentHeader
     );
     localStorage.setItem("currentHeader", currentHeader);
-    if (
-      currentHeader !== HOMEHEADERLIST.HOME &&
-      currentHeader !== HOMEHEADERLIST.PROFILE
-    ) {
+    if (currentHeader !== HOMEHEADERLIST.HOME) {
       fetchData();
     }
-    getAssignments();
   }, [currentHeader]);
+  // adding background image for learning-pathway
+  useEffect(() => {
+    Util.loadBackgroundImage();
+  }, [currentHeader, canShowAvatar]);
+  const handleJoinClassEvent = async (event) => {
+    await getAssignments();
+    setCanShowAvatar(true);
+    setIsStudentLinked(true);
+    setRefreshKey((oldKey) => oldKey + 1);
+    window.removeEventListener("JoinClassListner", handleJoinClassEvent);
+  };
   const initData = async () => {
+    const student = Util.getCurrentStudent();
+    if (!student) {
+      history.replace(PAGES.SELECT_MODE);
+      return;
+    }
+    const langDoc = await api.getLanguageWithId(student.language_id ?? "");
+    if (langDoc) {
+      const tempLangCode = langDoc.code ?? LANG.ENGLISH;
+      localStorage.setItem(LANGUAGE, tempLangCode);
+      await i18n.changeLanguage(tempLangCode);
+    }
+    const studentResult = await api.getStudentResultInMap(student.id);
+    if (!!studentResult) {
+      setLessonResultMap(studentResult);
+      const count_of_lessons_played = Object.values(studentResult).filter(
+        (item) => item.assignment_id === null
+      );
+      const total_assignments_played = Object.values(studentResult).filter(
+        (item) => item.assignment_id !== null
+      );
+      let latestDate = null;
+      for (const lessonId in studentResult) {
+        const currentDate: any = studentResult[lessonId].updated_at;
+        if (!latestDate || new Date(currentDate) > new Date(latestDate)) {
+          latestDate = currentDate;
+        }
+      }
+      const attributes = {
+        count_of_lessons_played: count_of_lessons_played.length,
+        count_of_assignment_played: total_assignments_played.length,
+        last_assignment_played_at: latestDate,
+      };
+      updateLocalAttributes(attributes);
+      setGbUpdated(true);
+    }
+    const lessonCourseMap = Object.fromEntries(
+      Object.entries(studentResult).map(([lessonDocId, details]) => [
+        lessonDocId,
+        { course_id: details.course_id || "" },
+      ])
+    );
+    setLessonCourseMap(lessonCourseMap);
     fetchData();
     await isLinked();
-    await getRecommendeds(HOMEHEADERLIST.HOME);
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("page") === PAGES.JOIN_CLASS) {
+      setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
+      setTimeout(() => {
+        setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
+      }, 500);
+    } else if (urlParams.get("page") === PAGES.LIVE_QUIZ) {
+      if (isStudentLinked) setCurrentHeader(HOMEHEADERLIST.LIVEQUIZ);
+      else setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
+    }
   };
 
-  function sortPlayedLessonDocByDate(playedLessonData) {
+  function sortPlayedLessonDocByDate(playedLessonData: TableTypes<"result">[]) {
     const lessonArray: { lessonDoc: string; combinedTime: number }[] = [];
-    for (const lessonDoc in playedLessonData) {
-      if (playedLessonData.hasOwnProperty(lessonDoc)) {
-        const lessonDate = playedLessonData[lessonDoc].date;
-        const combinedTime =
-          lessonDate.seconds * 1000000000 + lessonDate.nanoseconds;
-        lessonArray.push({ lessonDoc, combinedTime });
-      }
+    for (const lessonDoc of playedLessonData) {
+      const lessonDate = Timestamp.fromDate(
+        new Date(lessonDoc?.updated_at ?? "")
+      );
+      const combinedTime =
+        lessonDate.seconds * 1000000000 + lessonDate.nanoseconds;
+      lessonArray.push({ lessonDoc: lessonDoc.lesson_id ?? "", combinedTime });
     }
     lessonArray.sort((a, b) => b.combinedTime - a.combinedTime);
     return lessonArray.map((item) => item.lessonDoc);
@@ -203,31 +265,31 @@ const Home: FC = () => {
   const fetchData = async () => {
     setIsLoading(true);
 
+    const lessonResult = await getRecommendeds(HOMEHEADERLIST.HOME);
     const allLessonIds = await getHistory();
-    if (allLessonIds) {
-      setValidLessonIds(allLessonIds);
-      await updateFavouriteLessons(validLessonIds);
-      await updateHistoryLessons(validLessonIds);
-    }
+    if (allLessonIds) setValidLessonIds(allLessonIds);
     AvatarObj.getInstance().unlockedRewards =
       (await Util.getAllUnlockedRewards()) || [];
     setIsLoading(false);
   };
+
   async function isLinked() {
     const student = Util.getCurrentStudent();
     const conectedData = localStorage.getItem(IS_CONECTED);
 
     const parsedConectedData = conectedData ? JSON.parse(conectedData) : {};
-    if (student && parsedConectedData[student.docId] != undefined) {
-      linked = parsedConectedData[student.docId];
+    if (student && parsedConectedData[student.id] != undefined) {
+      setIsStudentLinked(parsedConectedData[student.id]);
+      // linked = parsedConectedData[student.id];
     }
     if (student) {
-      if (linked == undefined) {
-        linked = await api.isStudentLinked(student.docId);
-        parsedConectedData[student.docId] = linked;
+      if (isStudentLinked == undefined) {
+        var linked = await api.isStudentLinked(student.id);
+        parsedConectedData[student.id] = linked;
+        setIsStudentLinked(linked);
       } else {
-        api.isStudentLinked(student.docId).then((value) => {
-          parsedConectedData[student.docId] = value;
+        api.isStudentLinked(student.id).then((value) => {
+          parsedConectedData[student.id] = value;
         });
       }
 
@@ -237,85 +299,95 @@ const Home: FC = () => {
       (await Util.getAllUnlockedRewards()) || [];
   }
 
-  function urlOpenListenerEvent() {
-    App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
-      const slug = event.url.split(".cc").pop();
-      let subtabConfig = SUBTAB_MAPPINGS[HOMEHEADERLIST.HOME];
-      if (slug) {
-        console.log("setting subtabConfig slug with:", slug);
-        subtabConfig = SUBTAB_MAPPINGS[slug];
-      }
-      if (subtabConfig) {
-        console.log("subtabConfig is:", subtabConfig);
-        if (subtabConfig.isLinked && !linked) {
-          // pageConfig.isLinked is true but student is not linked to any class, so redirect to join class
-          setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
-          return;
-        }
-
-        if (subtabConfig.redirect) {
-          history.replace(subtabConfig.redirect);
-        } else {
-          setCurrentHeader(subtabConfig.header);
-          if (subtabConfig.subtab) {
-            setValue(subtabConfig.subtab);
-            fetchData();
-          }
-        }
-      }
-      // if (slug) {
-      //   history.replace(slug);
-      // }
-    });
-  }
-
   const api = ServiceConfig.getI().apiHandler;
 
-  async function getAssignments(): Promise<Lesson[]> {
-    let reqLes: Lesson[] = [];
+  async function getAssignments(): Promise<TableTypes<"lesson">[]> {
+    let reqLes: TableTypes<"lesson">[] = [];
     // setIsLoading(true);
     const student = Util.getCurrentStudent();
-    const studentResult =
-      student != null ? await api.getStudentResult(student.docId) : null;
+    // const studentResult = await api.getStudentResult(student.id, false);
+    const linkedData =
+      student != null
+        ? await api.getStudentClassesAndSchools(student.id)
+        : null;
+    const classDoc = linkedData?.classes[0];
+    if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
+    if (student) await api.assignmentUserListner(student.id, () => {});
+
     if (
-      student &&
-      !!studentResult &&
-      !!studentResult.classes &&
-      studentResult.classes.length > 0
+      student != null &&
+      !!linkedData &&
+      !!linkedData.classes &&
+      linkedData.classes.length > 0
     ) {
-      const allAssignments: Assignment[] = [];
+      const allAssignments: TableTypes<"assignment">[] = [];
+
       await Promise.all(
-        studentResult.classes.map(async (_class) => {
-          const res = await api.getPendingAssignments(_class, student.docId, assignmentCount);
+        linkedData.classes.map(async (_class) => {
+          const res = await api.getPendingAssignments(_class.id, student.id);
           allAssignments.push(...res);
         })
       );
-      let count = 0;
+      let assignmentCount = 0;
       let liveQuizCount = 0;
+
+      const counts: Record<string, number> = {};
+
       await Promise.all(
         allAssignments.map(async (_assignment) => {
-          const res = await api.getLesson(
-            _assignment.lesson.id,
-            undefined,
-            true,
-            _assignment
-          );
-          console.log(res);
+          const res = await api.getLesson(_assignment.lesson_id);
+          const now = new Date().toISOString();
           if (_assignment.type !== LIVE_QUIZ) {
-            count++;
+            assignmentCount++;
+            const subject_id = res?.subject_id;
+            if (!subject_id) return;
+            const key = `count_of_subject_${subject_id}_pending`;
+            counts[key] = (counts[key] || 0) + 1;
           } else {
-            liveQuizCount++;
+            if (_assignment.ends_at && _assignment.starts_at) {
+              if (_assignment.starts_at <= now && _assignment.ends_at > now) {
+                liveQuizCount++;
+              }
+            }
           }
           if (!!res) {
-            res.assignment = _assignment;
+            // res.assignment = _assignment;
+            (res as any).course_id = _assignment.course_id || null;
             reqLes.push(res);
           }
         })
       );
-      setPendingLiveQuizCount(liveQuizCount);
-      setPendingAssignmentsCount(count);
 
-      // setDataCourse(reqLes);
+      setPendingLiveQuizCount(liveQuizCount);
+      setPendingAssignmentCount(assignmentCount);
+      setPendingAssignments(allAssignments);
+
+      const courseCount = allAssignments.reduce((accumulator, current: any) => {
+        if (accumulator[current.course_id]) {
+          accumulator[current.course_id] += 1;
+        } else {
+          accumulator[current.course_id] = 1;
+        }
+        return accumulator;
+      }, {});
+      const result = Object.keys(courseCount).reduce((acc, courseId) => {
+        acc[`count_of_course_${courseId}_pending`] = courseCount[courseId];
+        return acc;
+      }, {});
+      const device = await logDeviceInfo();
+      const attributeParams = {
+        studentDetails: student,
+        schools: linkedData.schools.map((item: any) => item.id),
+        classes: linkedData.classes.map((item: any) => item.id),
+        liveQuizCount: liveQuizCount,
+        assignmentCount: assignmentCount,
+        pending_course_counts: result,
+        pending_subject_counts: counts,
+        ...device,
+      };
+      updateLocalAttributes(attributeParams);
+      setGbUpdated(true);
+      setDataCourse(reqLes);
       // storeRecommendationsInLocalStorage(reqLes);
       // setIsLoading(true);
       return reqLes;
@@ -327,26 +399,16 @@ const Home: FC = () => {
 
   async function getRecommendeds(
     subjectCode: string
-  ): Promise<Lesson[] | undefined> {
-    let recommendationResult: Lesson[] = [];
+  ): Promise<TableTypes<"lesson">[] | undefined> {
+    let recommendationResult: TableTypes<"lesson">[] = [];
     setIsLoading(true);
     const currentStudent = await Util.getCurrentStudent();
 
     if (!currentStudent) {
-      history.replace(PAGES.SELECT_MODE);
+      // history.replace(PAGES.SELECT_MODE);
       return;
     }
-    setCurrentStudent(currentStudent);
-    // const currClass = schoolUtil.getCurrentClass();
-    let currClass;
-    const result = await api.getStudentResult(currentStudent.docId, true);
-    if (result?.classes && result.classes.length > 0) {
-      const classId = result.classes[0];
-      currClass = await api.getClassById(classId);
-    } else {
-      console.log("No classes found for the student.");
-    }
-    if (!!currClass) setCurrentClass(currClass);
+    const currClass = schoolUtil.getCurrentClass();
     if (
       subjectCode === HOMEHEADERLIST.HOME ||
       subjectCode === HOMEHEADERLIST.SUGGESTIONS
@@ -362,68 +424,76 @@ const Home: FC = () => {
           currClass
         );
         recommendationResult = recommendationResult.concat(tempRecommendations);
-        console.log("Final RECOMMENDATION List ", recommendationResult);
+
+        const lessonCourseMap: { [lessonId: string]: { course_id: string } } =
+          {}; // Initialize the object
+
+        recommendationResult.forEach(async (lesson: any) => {
+          lessonCourseMap[lesson.id] = { course_id: lesson.course_id };
+          setRecommendedLessonCourseMap(lessonCourseMap);
+        });
         setDataCourse(recommendationResult);
-        setIsLoading(false);
         return recommendationResult;
       } catch (error) {
         console.error("Error fetching recommendation:", error);
       }
     }
   }
+  enum SUBTAB {
+    SUGGESTIONS,
+    FAVOURITES,
+    HISTORY,
+  }
+  const [subTab, setSubTab] = useState(SUBTAB.SUGGESTIONS);
 
-  const handleChange = async (
-    event: React.SyntheticEvent,
-    newValue: SUBTAB
-  ) => {
-    setValue(newValue);
-    setFavLessonIndex(0);
+  const handleChange = async (event: any, newValue: SUBTAB) => {
+    setSubTab(newValue);
     if (newValue === SUBTAB.HISTORY) {
       // setIsLoading(true);
-      setFavouriteLessons([]);
       if (lessonResultMap) {
         // const startIndex = (tempPageNumber - 1) * favouritesPageSize;
         // const endIndex = startIndex + favouritesPageSize;
+
         // const initialHistoryLessonsSlice = initialHistoryLessons.slice(
         //   startIndex,
         //   endIndex
         // );
         // setHistoryLessons(initialHistoryLessonsSlice);
-        tempPageRef.current = 1;
-        await updateHistoryLessons(validLessonIds);
+        setFavouriteLessons([]);
       }
+      tempPageNumber = 1;
+      await updateHistoryLessons(validLessonIds);
       setIsLoading(false);
     } else if (newValue === SUBTAB.FAVOURITES) {
       setHistoryLessons([]);
       if (lessonResultMap) {
         // const startIndex = (tempPageNumber - 1) * favouritesPageSize;
         // const endIndex = startIndex + favouritesPageSize;
-        // console.log("initial history lessons", initialHistoryLessons);
         // const initialFavouriteLessonsSlice = initialFavoriteLessons.slice(
         //   startIndex,
         //   endIndex
         // );
-        tempPageRef.current = 1;
         await updateFavouriteLessons(validLessonIds);
       }
+      tempPageNumber = 1;
     } else {
       setHistoryLessons([]);
       setFavouriteLessons([]);
     }
-    console.log("Changing...", newValue);
   };
   const handleHomeIconClick = () => {
-    setValue(SUBTAB.SUGGESTIONS);
+    setSubTab(SUBTAB.SUGGESTIONS);
   };
 
-  const getLessonsForChapter = async (chapter: Chapter): Promise<Lesson[]> => {
+  const getLessonsForChapter = async (
+    chapter: TableTypes<"chapter">
+  ): Promise<TableTypes<"lesson">[]> => {
     setIsLoading(true);
-    if (!chapter) {
+    if (!chapter || !chapter.id) {
       setIsLoading(false);
       return [];
     }
-    const lessons = await api.getLessonsForChapter(chapter);
-    setLessons(lessons);
+    const lessons = await api.getLessonsForChapter(chapter.id ?? "");
     setIsLoading(false);
     return lessons;
   };
@@ -433,277 +503,74 @@ const Home: FC = () => {
     if (!currentStudent) {
       return;
     }
-    const studentResult = await api.getStudentResult(currentStudent.docId);
+    const studentResult = await api.getStudentResult(currentStudent.id, false);
+    const courseCounts: any = {};
 
-    if (studentResult?.lessons) {
-      const playedLessonData = studentResult.lessons;
+    if (studentResult) {
+      const playedLessonData = studentResult;
       const sortedLessonDocIds = sortPlayedLessonDocByDate(playedLessonData);
       const allValidPlayedLessonDocIds = sortedLessonDocIds.filter(
         (lessonDoc) => lessonDoc !== undefined
       );
+      for (const course of studentResult) {
+        const courseId = course.course_id;
+        if (!courseId) {
+          continue;
+        }
+        const key = `${courseId}_course_completed`;
+        courseCounts[key] = (courseCounts[key] || 0) + 1;
+      }
+      updateLocalAttributes({
+        courseCounts,
+        total_assignments_played: allValidPlayedLessonDocIds.length,
+      });
+      setGbUpdated(true);
       return allValidPlayedLessonDocIds;
     }
   };
 
-  const currentStudentDocId = Util.getCurrentStudent()?.docId;
-  // const storeRecommendationsInLocalStorage = (recommendations: any[]) => {
-  //   const recommendationsInLocal = localStorage.getItem(
-  //     `${currentStudentDocId}-${RECOMMENDATIONS}`
-  //   );
-  //   let existingRecommendations: any[] = [];
+  const sortLessonResultByDate = (lesMap: {
+    [lessonDocId: string]: TableTypes<"result">;
+  }) => {
+    if (!lesMap) {
+      return;
+    }
+    const lesList = Object.entries(lesMap).sort((a, b) => {
+      if (new Date(a[1].updated_at ?? "") === new Date(b[1].updated_at ?? "")) {
+        return 0;
+      } else {
+        return new Date(a[1].updated_at ?? "") > new Date(b[1].updated_at ?? "")
+          ? -1
+          : 1;
+      }
+    });
 
-  //   if (recommendationsInLocal !== null) {
-  //     existingRecommendations = JSON.parse(recommendationsInLocal);
-  //   }
-
-  //   if (!lessonResultMap && existingRecommendations.length === 0) {
-  //     let lessonMap = new Map();
-
-  //     for (let i = 0; i < recommendations.length; i++) {
-  //       const lesson = recommendations[i];
-  //       if (lesson.cocosSubjectCode && lesson.id) {
-  //         lessonMap[lesson.cocosSubjectCode] = lesson.id;
-  //       }
-  //     }
-
-  //     localStorage.setItem(
-  //       `${currentStudentDocId}-${RECOMMENDATIONS}`,
-  //       JSON.stringify(lessonMap)
-  //     );
-  //     setDataCourse(existingRecommendations.concat(lessonMap) as Lesson[]);
-  //   } else {
-  //     setDataCourse(existingRecommendations);
-  //   }
-  // };
+    // Rebuild the map after sorting it.
+    let tempLesMap: {
+      [lessonDocId: string]: TableTypes<"result">;
+    } = {};
+    lesList.forEach((res) => (tempLesMap[res[0]] = res[1]));
+    return tempLesMap;
+  };
 
   async function getCourseRecommendationLessons(
-    currentStudent: User,
-    currClass: Class | undefined
-  ): Promise<Lesson[]> {
-    //   const recommendationsInLocal = localStorage.getItem(
-    //     `${currentStudentDocId}-${RECOMMENDATIONS}`
-    //   );
-    //   let existingRecommendations: any[] = [];
-
-    //   if (recommendationsInLocal !== null) {
-    //     existingRecommendations = JSON.parse(recommendationsInLocal);
-    //   }
-
-    //   if (!lessonResultMap && existingRecommendations.length === 0) {
-    //     let lessonMap = new Map();
-
-    //     for (let i = 0; i < recommendations.length; i++) {
-    //       const lesson = recommendations[i];
-    //       if (lesson.cocosSubjectCode && lesson.id) {
-    //         lessonMap[lesson.cocosSubjectCode] = lesson.id;
-    //       }
-    //     }
-
-    //     localStorage.setItem(
-    //       `${currentStudentDocId}-${RECOMMENDATIONS}`,
-    //       JSON.stringify(lessonMap)
-    //     );
-    //     setDataCourse(existingRecommendations.concat(lessonMap) as Lesson[]);
-    //   } else {
-    //     setDataCourse(existingRecommendations);
-    //   }
-
-    let reqLes: Lesson[] = [];
-    // setIsLoading(true);
-    let tempResultLessonMap:
-      | { [lessonDocId: string]: StudentLessonResult }
-      | undefined = {};
-    const sortLessonResultByDate = (lesMap: {
-      [lessonDocId: string]: StudentLessonResult;
-    }) => {
-      if (!lesMap) {
-        return;
-      }
-      console.log("Object.entries(lesMap)", lesMap, Object.entries(lesMap));
-      const lesList = Object.entries(lesMap).sort((a, b) => {
-        if (a[1].date === b[1].date) {
-          return 0;
-        } else {
-          return a[1].date > b[1].date ? -1 : 1;
-        }
-      });
-
-      // Rebuild the map after sorting it.
-      let tempLesMap: {
-        [lessonDocId: string]: StudentLessonResult;
-      } = {};
-      lesList.forEach((res) => (tempLesMap[res[0]] = res[1]));
-      return tempLesMap;
-    };
-    const currMode = await schoolUtil.getCurrMode();
-    console.log(currMode);
-    let sortLessonResultMap:
-      | {
-          [lessonDocId: string]: StudentLessonResult;
-        }
-      | undefined;
-    const res = await api.getStudentResult(currentStudent.docId);
-    // console.log("tempResultLessonMap = res;", JSON.stringify(res));
-    tempResultLessonMap = res?.lessons;
-    setLessonResultMap(res?.lessons);
-    if (tempResultLessonMap) {
-      console.log("tempResultLessonMap", tempResultLessonMap);
-      sortLessonResultMap = sortLessonResultByDate(tempResultLessonMap);
-      console.log("sortLessonResultMap ", sortLessonResultMap);
-    }
-
-    const courses: Course[] = await (!!currClass
-      ? api.getCoursesForClassStudent(currClass)
-      : api.getCoursesForParentsStudent(currentStudent));
-    setCourses(courses);
-    for (const tempCourse of courses) {
-      // setIsLoading(true);
-      if (tempCourse.chapters.length <= 0) {
-        console.log("Chapters are empty", tempCourse);
-        continue;
-      }
-      let islessonPushed = false;
-      if (tempCourse.chapters.length <= 0) {
-        console.log("Chapter are empty", tempCourse);
-        continue;
-      }
-      if (
-        tempResultLessonMap === undefined &&
-        tempCourse.chapters[0].id === tempCourse.courseCode + "_quiz"
-      ) {
-        const tempLes = tempCourse.chapters[0].lessons;
-        for (let i = 0; i < tempLes.length; i++) {
-          const element = tempLes[i];
-          if (element instanceof DocumentReference) {
-            const lessonObj = await api.getLessonFromCourse(
-              tempCourse,
-              element.id
-            );
-            // await res.lessons[tempCourse.courseCode][l.id];
-            if (lessonObj) {
-              let chapterTitle = tempCourse.chapters[0].title;
-              lessonObj.chapterTitle = chapterTitle;
-              console.log(lessonObj, "lessons pushed");
-              reqLes.push(lessonObj as Lesson);
-              // setDataCourse(reqLes);
-            }
-          } else {
-            console.log("Wrong place");
-            console.log(element, "lessons pushed");
-            reqLes.push(element as Lesson);
-            // setDataCourse(reqLes);
-          }
-        }
-        console.log("pushed lessons", reqLes);
-      } else {
-        for (let c = 0; c < tempCourse.chapters.length; c++) {
-          if (islessonPushed) {
-            break;
-          }
-          const chapter = tempCourse.chapters[c];
-          // console.log("chapter in for ", chapter);
-          for (let l = 0; l < chapter.lessons.length; l++) {
-            const lesson = chapter.lessons[l];
-            // console.log("lesson id", lesson.id);
-            if (!tempResultLessonMap || !tempResultLessonMap[lesson.id]) {
-              // if (lesson instanceof DocumentReference) {
-              const lessonObj = await api.getLessonFromCourse(
-                tempCourse,
-                lesson.id
-              );
-              // await res.lessons[tempCourse.courseCode][
-              //   lesson.id
-              // ];
-              // console.log(
-              //   "await FirebaseApi.i.getLessonFromCourse(tempCourse, lesson.id)",
-              //   await FirebaseApi.i.getLessonFromCourse(tempCourse, lesson.id)
-              // );
-
-              if (lessonObj) {
-                let chapterTitle = chapter.title;
-                lessonObj.chapterTitle = chapterTitle;
-                console.log(lessonObj, "lessons pushed");
-                reqLes.push(lessonObj as Lesson);
-              }
-              // } else {
-              //   console.log(lesson, "lessons pushed");
-              //   reqLes.push(lesson);
-              // }
-              console.log("DWSGSGSG");
-              // setDataCourse(reqLes);
-              islessonPushed = true;
-              break;
-            }
-          }
-        }
-        islessonPushed = false;
-      }
-
-      //Last Played Lessons
-      islessonPushed = false;
-      if (!sortLessonResultMap) {
-        console.log("ERERERER");
-        // setDataCourse(reqLes);
-        // setIsLoading(false);
-        continue;
-      }
-      Object.entries(sortLessonResultMap).forEach(async (v, k) => {
-        const lessonObj = await api.getLessonFromCourse(tempCourse, v[0]);
-        if (
-          lessonObj?.subject.id === tempCourse.subject.id &&
-          !islessonPushed
-        ) {
-          console.log("last played ", lessonObj, "lessons pushed");
-          reqLes.push(lessonObj as Lesson);
-          islessonPushed = true;
-          // break;
-          console.log("reqLes.", reqLes);
-          // setDataCourse(reqLes);
-          // return;
-        }
-      });
-      console.log("reqLes in if.", reqLes);
-    }
-    console.log("reqLes outside.", reqLes);
-    // setDataCourse(reqLes);
-    // storeRecommendationsInLocalStorage(reqLes);
-    // setIsLoading(false);
-    // return sortLessonResultMap;
-    return reqLes;
+    currentStudent: TableTypes<"user">,
+    currentClass?: TableTypes<"class">
+  ): Promise<TableTypes<"lesson">[]> {
+    // const allCourses: TableTypes<"course">[] =
+    //   await api.getCoursesForParentsStudent(currentStudent.id);
+    // const lessons = await api.getAllLessonsForCourse(allCourses[0].id);
+    let tempRecommendedLesson = await api.getRecommendedLessons(
+      currentStudent.id,
+      currentClass?.id
+    );
+    return tempRecommendedLesson;
   }
 
-  async function getDataForSubject(course: Course): Promise<{
-    chapters: Chapter[];
-    lessons: {
-      [key: string]: {
-        [key: string]: Lesson;
-      };
-    };
-  }> {
-    const chapters = course.chapters;
-    const lessons = await api.getAllLessonsForCourse(course);
-    // setLessons(lessons);
-    // console.log("lessons ", lessons);
-
-    if (!currentStudent) {
-      // console.log("return in getdataForSubject");
-
-      return {
-        chapters: chapters,
-        lessons: lessons,
-      };
-    }
-
-    return {
-      chapters: chapters,
-      lessons: lessons,
-    };
-  }
   async function onHeaderIconClick(selectedHeader: any) {
-    let reqLes: Lesson[] = [];
+    let reqLes: TableTypes<"lesson">[] = [];
     var headerIconList: HeaderIconConfig[] = [];
     DEFAULT_HEADER_ICON_CONFIGS.forEach((element) => {
-      //  console.log("elements", element);
       headerIconList.push(element);
     });
     setCurrentHeader(selectedHeader);
@@ -727,6 +594,8 @@ const Home: FC = () => {
         break;
       case HOMEHEADERLIST.PROFILE:
         Util.setPathToBackButton(PAGES.LEADERBOARD, history);
+        const body = document.querySelector("body");
+        body?.style.removeProperty("background-image");
         break;
       // case HOMEHEADERLIST.SEARCH:
       //   history.replace(PAGES.SEARCH);
@@ -741,116 +610,54 @@ const Home: FC = () => {
         break;
     }
   }
-  // const sortedPlayedLessonsList = PlayedLessonsList.sort((a, b) => {
-  //   const lessonResultA = lessonResultMap?.[a.docId];
-  //   const lessonResultB = lessonResultMap?.[b.docId];
-
-  //   if (!lessonResultA || !lessonResultB) {
-  //     return 0;
-  //   }
-
-  //   return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
-  // });
-  // setPlayedLessonsList(sortedPlayedLessonsList);
-  // function sortPlayedLessonsByDate(lessons: Lesson[], lessonResultMap: any): Lesson[] {
-  //   const sortedLessons = lessons.slice().sort((a, b) => {
-  //     const lessonResultA = lessonResultMap?.[a.docId];
-  //     const lessonResultB = lessonResultMap?.[b.docId];
-
-  //     if (!lessonResultA || !lessonResultB) {
-  //       return 0;
-  //     }
-
-  //     return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
-  //   });
-
-  //   return sortedLessons;
-  // }
-
-  const getLovedLessons = () => {
-    return PlayedLessonsList.filter((lesson) => {
-      const lessonResult = lessonResultMap?.[lesson.docId];
-      return lessonResult?.isLoved ?? false;
-    }).sort((a, b) => {
-      const lessonResultA = lessonResultMap?.[a.docId];
-      const lessonResultB = lessonResultMap?.[b.docId];
-      if (!lessonResultA || !lessonResultB) return 0;
-      return lessonResultB.date.toMillis() - lessonResultA.date.toMillis();
-    });
-  };
 
   const handleLoadMoreHistoryLessons = async () => {
-    if (currentHeader === HOMEHEADERLIST.SUGGESTIONS || HOMEHEADERLIST.HOME) {
-      tempPageRef.current = tempPageRef.current + 1;
-      await updateHistoryLessons(validLessonIds);
-    }
+    tempPageNumber = tempPageNumber + 1;
+    await updateHistoryLessons(validLessonIds);
   };
 
   const handleLoadMoreLessons = async () => {
-    if (currentHeader === HOMEHEADERLIST.SUGGESTIONS || HOMEHEADERLIST.HOME) {
-      tempPageRef.current = tempPageRef.current + 1;
-      setFavLessonIndex(favouriteLessons.length - 1);
+    if (currentHeader === HOMEHEADERLIST.FAVOURITES) {
+      tempPageNumber = tempPageNumber + 1;
       await updateFavouriteLessons(validLessonIds);
     }
   };
-  const updateFavouriteLessons = async (allLessonIds) => {
+
+  const updateFavouriteLessons = async (allLessonIds: string[]) => {
     setIsLoading(true);
     const currentStudent = Util.getCurrentStudent();
-    if (!currentStudent || !lessonResultMap) {
-      setIsLoading(false);
+    if (!currentStudent) {
       return;
     }
-    const totalLikedLessons = validLessonIds.filter(
-      (lessonId) => lessonResultMap?.[lessonId]?.isLoved ?? false
-    );
-    if (favouriteLessons.length >= totalLikedLessons.length) {
-      setIsLoading(false);
-      return;
+    let favLessons = allFavLessons;
+    if (!favLessons || favLessons.length < 1) {
+      favLessons = await api.getFavouriteLessons(currentStudent.id);
     }
-    const favouritesStartIndex = (tempPageRef.current - 1) * favouritesPageSize;
-    const favouritesEndIndex = favouritesStartIndex + favouritesPageSize;
 
-    const slicedLessonIdsForFavourite = totalLikedLessons.slice(
-      favouritesStartIndex,
-      favouritesEndIndex
-    );
-    const lessonPromisesForFavourite = slicedLessonIdsForFavourite.map(
-      (lessonId) => api.getLesson(lessonId)
-    );
-    const lessonsForFavourite: (Lesson | undefined)[] = await Promise.all(
-      lessonPromisesForFavourite
-    );
+    setFavouriteLessons(favLessons);
+    // const favouritesStartIndex = (tempPageNumber - 1) * favouritesPageSize;
+    // const favouritesEndIndex = favouritesStartIndex + favouritesPageSize;
 
-    const validLessonsForFavourite: Lesson[] = lessonsForFavourite.filter(
-      (lesson): lesson is Lesson => {
-        if (!lesson) return false;
-        return lessonResultMap?.[lesson.docId]?.isLoved ?? false;
-      }
-    );
-    setValidLessonIds(allLessonIds);
-    const existingDocIds = new Set(
-      favouriteLessons.map((lesson) => lesson.docId)
-    );
-
-    const newLessons = validLessonsForFavourite.filter(
-      (lesson) => !existingDocIds.has(lesson.docId)
-    );
-
-    favouriteLessons.push(...newLessons);
+    // const lessonsForFavourite = favLessons.slice(
+    //   favouritesStartIndex,
+    //   favouritesEndIndex
+    // );
+    // favouriteLessons.push(...lessonsForFavourite);
+    // setFavouriteLessons((_favouriteLessons) => {
+    //   _favouriteLessons.push(...lessonsForFavourite);
+    //   return _favouriteLessons;
+    // });
     setIsLoading(false);
   };
 
-  const updateHistoryLessons = async (allLessonIds) => {
-    if (historyLessons.length >= allLessonIds.length) {
-      return;
-    }
+  const updateHistoryLessons = async (allLessonIds: string[]) => {
     setIsLoading(true);
     const currentStudent = Util.getCurrentStudent();
     if (!currentStudent || !lessonResultMap) {
       return;
     }
 
-    const historyStartIndex = (tempPageRef.current - 1) * favouritesPageSize;
+    const historyStartIndex = (tempPageNumber - 1) * favouritesPageSize;
     const historyEndIndex = historyStartIndex + favouritesPageSize;
 
     const slicedLessonIdsForHistory = validLessonIds.slice(
@@ -862,94 +669,59 @@ const Home: FC = () => {
       api.getLesson(lessonId)
     );
 
-    const lessonsForHistory: (Lesson | undefined)[] = await Promise.all(
-      lessonPromisesForHistory
-    );
-    const validLessonsForHIstory: Lesson[] = lessonsForHistory.filter(
-      (lesson): lesson is Lesson => lesson !== undefined
-    );
+    const lessonsForHistory: (TableTypes<"lesson"> | undefined)[] =
+      await Promise.all(lessonPromisesForHistory);
+    const validLessonsForHIstory: TableTypes<"lesson">[] =
+      lessonsForHistory.filter(
+        (lesson): lesson is TableTypes<"lesson"> => lesson !== undefined
+      );
 
     const latestTenPlayedLessons = historyLessons.slice(0, 10);
     setValidLessonIds(allLessonIds);
-    setHistorySortIndex(historyLessons.length - 1);
-
-    historyLessons.push(...validLessonsForHIstory);
-    setInitialHistoryLessons(latestTenPlayedLessons);
+    setHistoryLessons((_historyLessons) => {
+      _historyLessons.push(...validLessonsForHIstory);
+      return _historyLessons;
+    });
     setIsLoading(false);
-  };
-
-  console.log("lesson slider favourite", favouriteLessons);
-  console.log("lesson slider history", historyLessons);
-
-  // To work with LiveQuizPopup and AssignmentPopup Handling
-  const [showQuizPopup, setShowQuizPopup] = useState(false);
-  const [showAssignmentPopup, setShowAssignmentPopup] = useState(false);
-
-  useEffect(() => {
-    const hasShownQuizPopup = sessionStorage.getItem(QUIZ_POPUP_SHOWN);
-    const hasShownAssignmentPopup = sessionStorage.getItem(
-      ASSIGNMENT_POPUP_SHOWN
-    );
-
-    if (!hasShownQuizPopup && pendingLiveQuizCount !== 0) {
-      setShowQuizPopup(true);
-    } else if (
-      !hasShownAssignmentPopup &&
-      pendingAssignmentsCount !== 0 &&
-      currentMode !== MODES.SCHOOL
-    ) {
-      setShowAssignmentPopup(true);
-    }
-  }, [pendingLiveQuizCount, pendingAssignmentsCount]);
-
-  const handleJoinNow = () => {
-    setShowQuizPopup(false);
-    setCurrentHeader(HOMEHEADERLIST.LIVEQUIZ);
-
-    if (pendingAssignmentsCount !== 0) {
-      setTimeout(() => {
-        setShowAssignmentPopup(true);
-      }, 60000); // Show assignment popup after 60 seconds
-    }
-  };
-
-  const handleJoinNowAssign = () => {
-    if (pendingAssignmentsCount > 0) {
-      setShowAssignmentPopup(false);
-      setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
-    }
   };
 
   return (
     <IonPage id="home-page">
       <IonHeader id="home-header">
         <HomeHeader
+          key={refreshKey}
           currentHeader={currentHeader}
           onHeaderIconClick={onHeaderIconClick}
-          pendingAssignmentCount={pendingAssignmentsCount}
+          pendingAssignmentCount={pendingAssignmentCount}
           pendingLiveQuizCount={pendingLiveQuizCount}
-        ></HomeHeader>
+        />
       </IonHeader>
       <div className="slider-content">
         {!isLoading ? (
           <div className="space-between">
             {currentHeader === HOMEHEADERLIST.HOME && !!canShowAvatar ? (
-              <ChimpleAvatar
-                recommadedSuggestion={dataCourse}
-                style={{
-                  marginBottom: "2vh",
-                  display: "flex",
-                  justifyContent: "space-around",
-                }}
-              ></ChimpleAvatar>
+              // <ChimpleAvatar
+              //   recommadedSuggestion={dataCourse}
+              //   assignments={pendingAssignments}
+              //   style={{
+              //     marginBottom: "2vh",
+              //     display: "flex",
+              //     justifyContent: "space-around",
+              //   }}
+              // ></ChimpleAvatar>
+              <LearningPathway />
             ) : null}
 
             {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
 
-            {currentHeader === HOMEHEADERLIST.ASSIGNMENT && <AssignmentPage />}
+            {currentHeader === HOMEHEADERLIST.ASSIGNMENT && (
+              <AssignmentPage assignmentCount={setPendingAssignmentCount} />
+            )}
 
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
-            {currentHeader === HOMEHEADERLIST.LIVEQUIZ && <LiveQuiz />}
+            {currentHeader === HOMEHEADERLIST.LIVEQUIZ && (
+              <LiveQuiz liveQuizCount={setPendingLiveQuizCount} />
+            )}
 
             {/* 
             {value === SUBTAB.SUGGESTIONS &&
@@ -1002,29 +774,29 @@ const Home: FC = () => {
             }
             */}
 
-            {(value === SUBTAB.SUGGESTIONS ||
-              value === SUBTAB.FAVOURITES ||
-              value === SUBTAB.HISTORY) &&
+            {(subTab === SUBTAB.SUGGESTIONS ||
+              subTab === SUBTAB.FAVOURITES ||
+              subTab === SUBTAB.HISTORY) &&
               ((canShowAvatar &&
                 currentHeader === HOMEHEADERLIST.SUGGESTIONS) ||
-                (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME) ||
-                (!canShowAvatar &&
-                  currentHeader === HOMEHEADERLIST.SUGGESTIONS)) && (
+                (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME)) && (
                 <div>
-                  {value === SUBTAB.SUGGESTIONS && (
+                  {subTab === SUBTAB.SUGGESTIONS && (
                     <LessonSlider
                       lessonData={dataCourse}
                       isHome={true}
                       course={undefined}
                       lessonsScoreMap={lessonResultMap || {}}
+                      assignments={pendingAssignments}
                       startIndex={0}
                       showSubjectName={true}
                       showChapterName={true}
                       showDate={true}
+                      lessonCourseMap={recommendedLessonCourseMap}
                     />
                   )}
 
-                  {value === SUBTAB.FAVOURITES && (
+                  {subTab === SUBTAB.FAVOURITES && (
                     <>
                       {!!favouriteLessons && favouriteLessons.length > 0 ? (
                         <LessonSlider
@@ -1032,18 +804,21 @@ const Home: FC = () => {
                           isHome={true}
                           course={undefined}
                           lessonsScoreMap={lessonResultMap || {}}
-                          startIndex={favLessonIndex}
+                          startIndex={0}
                           showSubjectName={true}
                           showChapterName={true}
                           onEndReached={handleLoadMoreLessons}
+                          lessonCourseMap={lessonCourseMap}
                         />
                       ) : (
-                        <p>{t("No liked lessons available.")}</p>
+                        <p className="no-lesson">
+                          {t("No liked lessons available.")}
+                        </p>
                       )}
                     </>
                   )}
 
-                  {value === SUBTAB.HISTORY && (
+                  {subTab === SUBTAB.HISTORY && (
                     <>
                       {!!historyLessons && historyLessons.length > 0 ? (
                         <LessonSlider
@@ -1051,13 +826,16 @@ const Home: FC = () => {
                           isHome={true}
                           course={undefined}
                           lessonsScoreMap={lessonResultMap || {}}
-                          startIndex={historySortIndex}
+                          startIndex={0}
                           showSubjectName={true}
                           showChapterName={true}
                           onEndReached={handleLoadMoreHistoryLessons}
+                          lessonCourseMap={lessonCourseMap}
                         />
                       ) : (
-                        <p>{t("No played lessons available.")}</p>
+                        <p className="no-played">
+                          {t("No played lessons available.")}
+                        </p>
                       )}
                     </>
                   )}
@@ -1137,12 +915,11 @@ const Home: FC = () => {
           currentHeader === HOMEHEADERLIST.FAVOURITES ||
           currentHeader === HOMEHEADERLIST.HISTORY ||
           (!canShowAvatar && currentHeader === HOMEHEADERLIST.HOME)) && (
-          // {!isLoading ? (
           <div id="home-page-bottom">
             <AppBar className="home-page-app-bar">
               <Box>
                 <Tabs
-                  value={value}
+                  value={subTab}
                   onChange={handleChange}
                   TabIndicatorProps={{ style: { display: "none" } }}
                   sx={{
@@ -1170,7 +947,7 @@ const Home: FC = () => {
                           ? HOMEHEADERLIST.SUGGESTIONS
                           : HOMEHEADERLIST.HOME
                       );
-                      setValue(SUBTAB.SUGGESTIONS);
+                      setSubTab(SUBTAB.SUGGESTIONS);
                     }}
                   />
                   <Tab
@@ -1182,7 +959,7 @@ const Home: FC = () => {
                           ? HOMEHEADERLIST.SUGGESTIONS
                           : HOMEHEADERLIST.HOME
                       );
-                      setValue(SUBTAB.FAVOURITES);
+                      setSubTab(SUBTAB.FAVOURITES);
                     }}
                   />
                   <Tab
@@ -1194,32 +971,13 @@ const Home: FC = () => {
                           ? HOMEHEADERLIST.SUGGESTIONS
                           : HOMEHEADERLIST.HOME
                       );
-                      setValue(SUBTAB.HISTORY);
+                      setSubTab(SUBTAB.HISTORY);
                     }}
                   />
                 </Tabs>
               </Box>
             </AppBar>
           </div>
-          // ) : null}
-        )}
-        {/* Calling LiveQuiz popup, Assignment popup and checking the condition */}
-        {showQuizPopup && (
-          <PopupTemplate
-            onJoin={handleJoinNow}
-            message={t("Live Quiz is Starting Soon!")}
-            buttonMessage={t("Join Now")}
-            imagePath="/assets/icons/quiz_icon.gif"
-          />
-        )}
-        {/* To deal with assignments should not be shown to teachers */}
-        {showAssignmentPopup && (
-          <PopupTemplate
-            onJoin={handleJoinNowAssign}
-            message={t("You have pending homework.")}
-            buttonMessage={t("Play Now")}
-            imagePath="/assets/icons/Homework_icon.gif"
-          />
         )}
         <SkeltonLoading isLoading={isLoading} header={currentHeader} />
       </div>

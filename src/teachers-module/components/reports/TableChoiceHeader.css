@@ -1,0 +1,231 @@
+.date-range-selector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: Arial, sans-serif;
+  height: 100%;
+  justify-content: space-around;
+  min-width: 180px;
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
+  
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 20px;
+  transition: 0.4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background-color: white;
+  transition: 0.4s;
+  left: 2px;
+  bottom: 2px;
+}
+
+input:checked + .slider {
+  background-color: #7c5db0;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.toggle-label {
+  margin-left: 5px;
+  font-weight: bold;
+  color: #666;
+  font-size: var(--text-sizeS);
+}
+
+.table-date-range-text {
+  color: #707070;
+  font-size: 8px;
+}
+
+.date-range-container {
+  text-align: center;
+  font-weight: 100;
+  margin: 0 5px 0 5px;
+}
+.table-choice-header-toggle{
+  display: flex;
+  justify-content: flex-start;
+  width: 18vh;
+  align-items: center;
+}
+
+.date-range-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 12px;
+  padding: 2px;
+  font-weight: bold;
+  color: #7c5db0;
+  gap: 4px;
+}
+nav-btn:hover {
+  background-color: #7c5db0;
+}
+.nav-btn {
+  background-color: #7c5db0;
+  color: white;
+  border: none;
+  border-radius: 25%;
+  width: clamp(20px, 2.4vh, 30px);
+  height: clamp(20px, 2.6vh, 30px);
+  font-size: clamp(20px, 1.5vh, 30px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.date-range {
+  padding: 0 6px;
+  font-size: 1.5vh;
+  background-color: #f3ebff;
+  height: 2.5vh;
+  max-width: 120px;
+  min-width: 100px;
+  border-radius: 5px;
+  color: #707070;
+}
+.table-sort-divider {
+  width: 100%;
+  border-top: 1px black solid;
+}
+.pill-toggle {
+  display: flex;
+  background-color: #F2EBFE;
+  border-radius: 15px;
+  overflow: hidden;
+  width: auto;
+  height: 25px;
+  font-size: 1.2vh;
+  font-weight: 600;
+  user-select: none;
+}
+
+.pill-option {
+  flex: 1;
+  text-align: center;
+  padding: 3px 8px;
+  cursor: pointer;
+  color: #707070;
+  transition: background-color 0.3s, color 0.3s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.pill-option.active {
+  background-color: #7C5DB0;
+  color: white;
+  border-radius: 12px;
+}
+
+.table-choice-filter {
+  padding: 6px;
+  padding-right: 30px;
+  font-size: 16px;
+  line-height: 1.5;
+  border: 1px solid #fff;
+  border-radius: 4px;
+  appearance: none;
+  background-color: #fff;
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 12px;
+  width: auto;
+  max-width: 100%;
+  cursor: pointer;
+  background-size: 18px 18px;
+  vertical-align: middle;
+}
+
+.tablechoice-custom-dropdown-wrapper {
+  position: relative;
+  width: fit-content;
+  font-family: Arial, sans-serif;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.tablechoice-custom-dropdown-header {
+  background-color: #fff;
+  border: none;
+  border-radius: 6px;
+  /* padding: 6px 12px; */
+  min-width: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #707070;
+  font-weight: 600;
+}
+
+.tablechoice-custom-dropdown-header span {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.arrow-icon {
+  margin-left: 8px;
+  font-size: 12px;
+}
+
+.tablechoice-custom-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border: 2px solid #EFF2F4;
+  border-radius: 6px;
+  margin-top: 4px;
+}
+
+.tablechoice-custom-dropdown-item {
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #707070;
+}
+
+.tablechoice-custom-dropdown-item.selected {
+  background-color: #F4EEFE;
+  font-weight: 600;
+}

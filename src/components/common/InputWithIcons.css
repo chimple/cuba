@@ -1,0 +1,93 @@
+.with-icon-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  margin: clamp(20px, 5vh, 40px) auto;
+  position: relative;
+}
+
+.with-icon-input-box {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  height: clamp(44px, 6vh, 80px);
+  border: 1px solid #182a4f;
+  border-radius: 12px;
+  padding: clamp(8px, 2vw, 12px) clamp(12px, 3vw, 20px);
+  background-color: white;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.with-icon-input-label {
+  position: absolute;
+  top: -11px;
+  left: 13px;
+  background: transparent;
+  padding: 0 6px;
+  font-style: normal;
+  font-size: 12px;
+  color: #182a4f;
+  z-index: 1;
+  width: fit-content;
+}
+
+.with-icon-input-label::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 3px;
+  background-color: white;
+  z-index: -1;
+  border-radius: 2px;
+}
+
+.with-icon-label-offset-small {
+  top: -9px !important;
+}
+
+.with-icon-required {
+  color: #182a4f;
+  margin-left: 2px;
+}
+
+.with-icon-icon-area {
+  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.with-icon-icon-area img {
+  width: 26px;
+  height: 22px;
+}
+
+.with-icon-divider {
+  height: 30px;
+  width: 1px;
+  background-color: #182a4f;
+  margin: 0 22px;
+}
+
+.with-icon-status {
+  width: 18px;
+  height: 18px;
+}
+
+.with-icon-text-input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 14px;
+  background: transparent;
+  color: #182a4f;
+}
+.with-icon-text-input::placeholder {
+  color: #182a4f;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 14px;
+}

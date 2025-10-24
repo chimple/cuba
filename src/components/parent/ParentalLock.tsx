@@ -12,7 +12,7 @@ import { Util } from "../../utility/util";
 const ParentalLock: React.FC<{
   showDialogBox: boolean;
   handleClose: (event: CustomEvent<OverlayEventDetail<any>>) => void;
-  onHandleClose: MouseEventHandler<SVGElement>;
+  onHandleClose: React.MouseEventHandler<HTMLDivElement | HTMLImageElement>;
 }> = ({
   showDialogBox,
   handleClose,
@@ -38,14 +38,10 @@ const ParentalLock: React.FC<{
       setTitle(str);
     }, []);
 
-    const checkSwipeDirection = (swipeDirection: FourSides) => {
-      console.log("RandomDirection", userDirection);
-      console.log("User swipeDirection", swipeDirection);
-
+    const checkSwipeDirection = async (swipeDirection: FourSides) => {
       if (swipeDirection.length > 0 && userDirection === swipeDirection) {
+        await Util.setParentLanguagetoLocal();
         Util.setPathToBackButton(PAGES.PARENT, history);
-      } else {
-        console.log('not matched');
       }
     };
 
@@ -136,7 +132,7 @@ const ParentalLock: React.FC<{
       <div>
         <Dialog
           sx={{
-            "& .MuiPaper-root": { borderRadius: "4vh !important" },
+            "& .MuiPaper-root": { borderRadius: "4vh !important", background: '#FFFDEE', width: "390px", height: "225px" },
           }}
           open={showDialogBox}
           onClose={handleClose}
@@ -149,38 +145,32 @@ const ParentalLock: React.FC<{
           onMouseEnter={onMouseDown}
         >
           <div style={{
-            background: 'white',
             color: 'black',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
           }}>
             <div id="parent-lock-header">
-              <div id="parental-lock-close-icon">
-                <IoCloseCircle
-                  size={"10vh"}
-                  onClick={onHandleClose}
-                ></IoCloseCircle>
+              <div id="parental-lock-close-icon" onClick={onHandleClose}>
+                <img
+                  src="pathwayAssets/menuCross.svg"
+                  alt="Close"
+                />
               </div>
               <div id="parent-screen">
-                <p style={{
-                  fontWeight: 'bold',
-                  fontSize: 'var(--text-size)',
-                }}>{t("Parent's Screen")}</p>
+                {t("Parents Section")}
               </div>
             </div>
 
             <FcLock
               style={{
-                height: '14vh',
-                width: '10vw',
+                height: '53px',
+                width: '60px',
               }}></FcLock>
 
             <DialogContent
               style={{
                 width: '35vw',
-                height: '15vh',
-                background: 'white',
                 color: 'black',
                 display: 'flex',
                 justifyContent: 'center',
@@ -192,8 +182,8 @@ const ParentalLock: React.FC<{
 
               <p style={{
                 userSelect: "none",
-                fontWeight: 'bold',
-                fontSize: 'var(--text-size)',
+                fontWeight: '600',
+                fontSize: '20px',
               }}>{title}</p>
             </DialogContent>
           </div>

@@ -57,7 +57,7 @@ ion-popover {
 }
 
 ion-list {
-  outline-style: solid;
+  outline-style: hidden;
   outline-width: 0.1px;
   outline-color: black;
   border-radius: var(--border-radius);

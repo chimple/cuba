@@ -1,0 +1,146 @@
+.dropdown-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1vh;
+  left: 3vh;
+  top: 42%;
+  position: absolute;
+}
+
+.truncate-style {
+  font-size: 10px;
+  margin-top: -6px;
+}
+
+.dropdown-container {
+  max-width: 9vw;
+  min-height: 13vh;
+  height: auto;
+  border: 2px solid #F34D08;
+  border-radius: 20px;
+  background-color: #FFF9CF;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  box-shadow: 0vh 0.3vh 0.2vh 0vh rgba(0, 0, 0, 0.25);
+  align-items: stretch;
+  position: absolute;
+}
+
+.dropdown-container.expanded {
+  display: flex;
+  align-items: flex-start;
+  background-color: white;
+}
+.dropdown-container.expanded .dropdown-left {
+  max-height: 52vh;
+  overflow-y: auto;
+}
+
+.dropdown-left {
+  background-color: #FFF9CF;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: hidden; 
+  width: 11vw;
+  height: auto;
+  max-height: 12vh;
+  transition: max-height 0.1s ease-in-out;
+}
+
+.selected-icon {
+  position: absolute;
+  height: auto;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  top: 1vh;
+}
+
+.hide-icon {
+  display: none;
+}
+
+.dropdown-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dropdown-arrow {
+  width: 4vw;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top-right-radius: 2.5vh;
+  border-bottom-right-radius: 2.5vh;
+}
+
+.dropdown-arrow.expanded-arrow {
+  padding-bottom: 0 !important; 
+  margin-top: 5vh;                
+  padding-right: 0.1vw;          
+  width: 4vw;                     
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-img {
+  box-shadow: 0vh 0.1vh 0vh 0vh #00000040;
+  border-radius: 50%;
+  width: auto;
+  height: auto;
+}
+
+.dropdown-label {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 400;
+  color: black;
+  width: 8vw;
+  height: 2vh;
+  color: #182A4F;
+  margin-top: 13vh;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5vh;
+  padding: 0 0.6vw;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.menu-ItemIcon {
+  width: auto;
+  height: auto;
+}
+
+.menu-item.selected-expanded {
+  background-color: #FFB792;
+  width: auto;
+  height: auto;
+  padding-top: 4px;
+}
+
+.menu-label {
+  font-size: 10px;
+  text-align: center;
+  color: #182A4F;
+  font-weight: 400;
+}
+
+.menu-selected {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1vh;
+  height: 100%;
+  width: 100%;
+}

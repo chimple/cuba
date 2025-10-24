@@ -3,12 +3,18 @@ import User from "../../models/user";
 import { ServiceAuth } from "./ServiceAuth";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 import { ConfirmationResult } from "@firebase/auth";
+import { Database } from "../database";
+import { TableTypes } from "../../common/constants";
+import { UserAttributes } from "@supabase/supabase-js";
 
 export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
 
   private constructor() {}
-  loginWithEmailAndPassword(email: any, password: any): Promise<boolean> {
+  loginWithEmailAndPassword(
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; isSpl: boolean }> {
     throw new Error("Method not implemented.");
   }
 
@@ -26,21 +32,21 @@ export class OneRosterAuth implements ServiceAuth {
     return OneRosterAuth.i;
   }
 
-  public set currentUser(user: User) {
+  public set currentUser(user: TableTypes<"user">) {
     throw new Error("Method not implemented.");
   }
 
-  googleSign(): Promise<any> {
+  googleSign(): Promise<{ success: boolean; isSpl: boolean }> {
     throw new Error("Method not implemented.");
   }
 
   phoneNumberSignIn(phoneNumber: any, recaptchaVerifier: any): Promise<any> {
     throw new Error("Method not implemented.");
   }
-  msg91OtpGenerate(
+  generateOtp(
     phoneNumber: string,
     appName: string
-  ): Promise<boolean | undefined> {
+  ): Promise<{ success: boolean; error?: any }> {
     throw new Error("Method not implemented.");
   }
   resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined> {
@@ -49,11 +55,29 @@ export class OneRosterAuth implements ServiceAuth {
   proceedWithVerificationCode(
     verificationId: any,
     verificationCode: any
-  ): Promise<{ user: any; isUserExist: boolean } | undefined> {
+  ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean } | undefined> {
     throw new Error("Method not implemented.");
   }
 
-  getCurrentUser(): Promise<User | undefined> {
+  getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
+    throw new Error("Method not implemented.");
+  }
+
+  doRefreshSession(): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
+
+  signInWithEmail(
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; isSpl: boolean }> {
+    throw new Error("Method not implemented.");
+  }
+  sendResetPasswordEmail(email: string): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+
+  updateUser(attributes: UserAttributes): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
 }
