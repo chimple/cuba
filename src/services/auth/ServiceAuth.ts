@@ -1,34 +1,63 @@
-import { DocumentReference } from "firebase/firestore";
-import User from "../../models/user";
-import { ConfirmationResult } from "@firebase/auth";
+import { UserAttributes } from "@supabase/supabase-js";
+import { TableTypes } from "../../common/constants";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 
 export interface ServiceAuth {
-  loginWithEmailAndPassword(email, password): Promise<boolean>;
+  loginWithEmailAndPassword(
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; isSpl: boolean }>;
 
-  googleSign(): Promise<boolean>;
+  googleSign(): Promise<{ success: boolean; isSpl: boolean }>;
 
-  getCurrentUser(): Promise<User | undefined>;
+  getCurrentUser(): Promise<TableTypes<"user"> | undefined>;
 
-  set currentUser(user: User);
+  set currentUser(user: TableTypes<"user">);
 
   isUserLoggedIn(): Promise<boolean>;
 
   phoneNumberSignIn(phoneNumber, recaptchaVerifier): Promise<any>;
 
-  resendOtpMsg91(
-    phoneNumber: string,
-  ): Promise<boolean | undefined>;
+  resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined>;
 
-  msg91OtpGenerate(
+  generateOtp(
     phoneNumber: string,
     appName: string
-  ): Promise<boolean | undefined>;
+  ): Promise<{ success: boolean; error?: any }>;
 
   proceedWithVerificationCode(
     verificationId,
     verificationCode
-  ): Promise<{ user: any; isUserExist: boolean } | undefined>;
+  ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean } | undefined>;
 
   logOut(): Promise<void>;
+  doRefreshSession(): Promise<void>;
+  /**
+   * Authenticates a user using their email and password.
+   *
+   * @param email - The user's email address.
+   * @param password - The user's password.
+   * @returns A promise that resolves to an object containing:
+   *  - `success`: `true` if sign-in is successful, otherwise `false`.
+   *  - `isSpl`: `true` if the user is a special user (e.g., super admin or operational director)
+   *             or belongs to a program, otherwise `false`.
+   */
+  signInWithEmail(
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; isSpl: boolean }>;
+  /**
+   * Sends a password reset email to the given address.
+   *
+   * @param email - The email address to which the reset password link will be sent.
+   * @returns A promise that resolves to `true` if the email was sent successfully, otherwise `false`.
+   */
+  sendResetPasswordEmail(email: string): Promise<boolean>;
+  /**
+   * Updates the attributes of the currently authenticated user.
+   *
+   * @param attributes - An object containing user attributes to be updated (e.g., password).
+   * @returns A promise that resolves to `true` if the update was successful, otherwise `false`.
+   */
+  updateUser(attributes: UserAttributes): Promise<boolean>;
 }

@@ -1,31 +1,62 @@
 import { Util } from "../utility/util";
-import { EVENTS, MODES, PAGES } from "../common/constants";
+import { EVENTS, PAGES } from "../common/constants";
 import { RoleType } from "../interface/modelInterfaces";
-import { ServiceConfig } from "../services/ServiceConfig";
+import { SupabaseAuth } from "../services/auth/SupabaseAuth";
 
-let storedStudent: {
+const storedStudent: {
   id?: string;
   name?: string;
-  username?: string;
-  phone?: string;
+  gender?: string;
   type?: string;
 } = {};
 
 const handleClick = async (event: MouseEvent) => {
-  const student = Util.getCurrentStudent();
-  storedStudent.id = student?.docId || storedStudent.id || "null";
+  const student = await SupabaseAuth.i.getCurrentUser();
+  storedStudent.id = student?.id || storedStudent.id || "null";
   storedStudent.name = student?.name || storedStudent.name || "null";
-  storedStudent.username =
-    student?.username || storedStudent.username || "null";
-  storedStudent.phone = student?.username || storedStudent.username || "null";
-  storedStudent.type = RoleType.STUDENT;
+  storedStudent.gender = student?.gender || storedStudent.gender || "null";
+  storedStudent.type = RoleType.STUDENT || "null";
 
   let target = event.target as HTMLElement;
-  const getTextContent = (element: HTMLElement): any => {
+  const getTextContent = (element: HTMLElement | null): string | undefined => {
+    if (!element) return undefined;
+    //Handle Checkboxes
+    if (target?.matches('input[type="checkbox"]')) {
+      const checkbox = element as HTMLInputElement;
+      const isChecked = checkbox.checked;
+      // Find associated label
+      let labelText: string | undefined;
+      let parentElement: HTMLElement | null = checkbox.parentElement;
+      while (!labelText && parentElement && parentElement !== document.body) {
+        labelText = parentElement.innerText?.trim();
+        if (labelText) break;
+        parentElement = parentElement.parentElement;
+      }
+      let textContent = `${labelText}_${isChecked}`;
+      return textContent;
+    }
+    //Handle Texts
     let textContent;
-    textContent =
-      target.innerText?.trim() || target.getAttribute("aria-label")?.trim();
+    if (element) {
+      const textIn =
+        element.innerText?.trim() || element.getAttribute("aria-label")?.trim();
+      textContent = textIn;
+    } else {
+      textContent = target.getAttribute("aria-label")?.trim();
+    }
     if (!textContent) {
+      let currentElement: HTMLElement | null = element;
+      while (
+        !textContent &&
+        currentElement &&
+        currentElement !== document.body
+      ) {
+        textContent =
+          target.innerText?.replace(/\s+/g, " ").trim() ||
+          target.getAttribute("aria-label");
+        if (textContent) break;
+        target = target.parentElement as HTMLElement;
+      }
       if (PAGES.EDIT_STUDENT === window.location.pathname) {
         textContent = target
           .getAttribute("src")
@@ -35,14 +66,6 @@ const handleClick = async (event: MouseEvent) => {
           ?.split(".")[0];
         return textContent;
       }
-      while (target && target !== document.body) {
-        textContent = target.innerText?.trim();
-        if (textContent) break;
-        target = target.parentElement as HTMLElement;
-      }
-      textContent =
-        target.innerText?.replace(/\s+/g, " ").trim() ||
-        target.getAttribute("aria-label");
     }
     return textContent;
   };
@@ -71,10 +94,9 @@ const handleClick = async (event: MouseEvent) => {
   const eventData = {
     user_id: storedStudent.id,
     user_name: storedStudent.name,
-    user_username: storedStudent.username,
-    user_phone: storedStudent.phone,
+    user_gender: storedStudent.gender,
     user_type: storedStudent.type,
-    click_value: textContent || "null",
+    click_value: textContent,
     click_identifier: id || className || "null",
     page_name: window.location.pathname.replace("/", ""),
     page_path: window.location.pathname,
@@ -82,7 +104,6 @@ const handleClick = async (event: MouseEvent) => {
     action_type: event.type,
   };
 
-  console.log("Clicked Logging Event Data:", eventData);
   Util.logEvent(EVENTS.CLICKS_ANALYTICS, eventData);
 };
 

@@ -1,9 +1,5 @@
 [
 	{
-		"pkg": "@basecom-gmbh/capacitor-jailbreak-root-detection",
-		"classpath": "de.basecom.plugins.jailbreakroot.JailbreakRootPlugin"
-	},
-	{
 		"pkg": "@capacitor-community/firebase-analytics",
 		"classpath": "com.getcapacitor.community.firebaseanalytics.FirebaseAnalytics"
 	},
@@ -12,12 +8,24 @@
 		"classpath": "com.getcapacitor.plugin.http.Http"
 	},
 	{
+		"pkg": "@capacitor-community/in-app-review",
+		"classpath": "com.getcapacitor.community.inappreview.InAppReviewPlugin"
+	},
+	{
+		"pkg": "@capacitor-community/sqlite",
+		"classpath": "com.getcapacitor.community.database.sqlite.CapacitorSQLitePlugin"
+	},
+	{
 		"pkg": "@capacitor-community/text-to-speech",
 		"classpath": "com.getcapacitor.community.tts.TextToSpeechPlugin"
 	},
 	{
 		"pkg": "@capacitor-firebase/authentication",
 		"classpath": "io.capawesome.capacitorjs.plugins.firebase.authentication.FirebaseAuthenticationPlugin"
+	},
+	{
+		"pkg": "@capacitor-firebase/crashlytics",
+		"classpath": "io.capawesome.capacitorjs.plugins.firebase.crashlytics.FirebaseCrashlyticsPlugin"
 	},
 	{
 		"pkg": "@capacitor-firebase/messaging",
@@ -30,6 +38,14 @@
 	{
 		"pkg": "@capacitor/app",
 		"classpath": "com.capacitorjs.plugins.app.AppPlugin"
+	},
+	{
+		"pkg": "@capacitor/barcode-scanner",
+		"classpath": "com.capacitorjs.barcodescanner.CapacitorBarcodeScannerPlugin"
+	},
+	{
+		"pkg": "@capacitor/browser",
+		"classpath": "com.capacitorjs.plugins.browser.BrowserPlugin"
 	},
 	{
 		"pkg": "@capacitor/device",
@@ -52,6 +68,14 @@
 		"classpath": "com.capacitorjs.plugins.localnotifications.LocalNotificationsPlugin"
 	},
 	{
+		"pkg": "@capacitor/screen-orientation",
+		"classpath": "com.capacitorjs.plugins.screenorientation.ScreenOrientationPlugin"
+	},
+	{
+		"pkg": "@capacitor/splash-screen",
+		"classpath": "com.capacitorjs.plugins.splashscreen.SplashScreenPlugin"
+	},
+	{
 		"pkg": "@capacitor/status-bar",
 		"classpath": "com.capacitorjs.plugins.statusbar.StatusBarPlugin"
 	},
@@ -64,7 +88,11 @@
 		"classpath": "io.capawesome.capacitorjs.plugins.appupdate.AppUpdatePlugin"
 	},
 	{
-		"pkg": "capacitor-rate-app",
-		"classpath": "com.capacitor.rateApp.CapacitorRateAppPlugin"
+		"pkg": "@capgo/capacitor-social-login",
+		"classpath": "ee.forgr.capacitor.social.login.SocialLoginPlugin"
+	},
+	{
+		"pkg": "@sentry/capacitor",
+		"classpath": "io.sentry.capacitor.SentryCapacitor"
 	}
 ]

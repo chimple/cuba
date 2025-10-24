@@ -1,0 +1,162 @@
+.userprofile-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+}
+
+.edit-icon {
+  cursor: pointer;
+  margin-left: 10px;
+  color: black;
+}
+
+.userprofile-card {
+  width: 300px;
+  padding: 10px;
+  border-radius: 2vh;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.userprofile-row {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+}
+
+.first-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.student-name1 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+  font-size: clamp(15px, 5vh, 26px);
+  font-weight: 600;
+  color: #707070;
+}
+
+.userprofile-label {
+  width: 30%;
+  text-align: left;
+}
+.userprofile-label span {
+  color: #707070;
+}
+
+.userprofile-value {
+  color: #707070;
+  font-size: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 16px;
+  display: block; 
+}
+
+.userprofile-value input,
+.userprofile-value select {
+  border: none;
+  background-color: transparent;
+  color: #707070;
+  font-size: 20px;
+  text-align: center;
+  box-sizing: border-box;
+  appearance: none;
+}
+
+.profile-info input {
+  border: none;
+  border-bottom: 0.2vh solid #333;
+  background-color: transparent;
+  font-size: 2vh;
+  color: #707070;
+}
+.usergender-options input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1px solid #333;
+  border-radius: 50%;
+  background-color: transparent;
+  position: relative;
+  cursor: pointer;
+}
+
+.usergender-options input[type="radio"]:checked::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background-color: black;
+  border-radius: 50%;
+  display: block;
+  transform: translate(-50%, -50%);
+}
+.usergender-options input[type="radio"]:checked {
+  background-color: transparent;
+  border: 1px solid #333;
+}
+.usergender-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.usergender-options label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 18px;
+}
+
+.profile-details-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+  gap: 16px;
+}
+
+.add-student-text {
+  position: absolute;
+  right: 100%;
+  margin-right: 16px;
+  margin-top: 20px;
+  transform: translateY(-50%);
+  font-size: 18px;
+  font-weight: bold;
+  color: #707070;
+  white-space: nowrap;
+}
+
+.userprofile-value input:focus,
+.userprofile-value select:focus {
+  outline: none;
+  border: none;
+}
+
+.userprofile-dropdown{
+  margin-left: 33%;
+}
+
+.userprofile-dropdown .custom-dropdown-container {
+  width: 60%;
+}

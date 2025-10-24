@@ -12,6 +12,7 @@ import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,7 +58,6 @@ public class OTPReceiver extends BroadcastReceiver {
                     break;
             }
         }
-
     }
     private String extractOtp(String messageBody) {
         String otpPattern = "\\b\\d{6}\\b";

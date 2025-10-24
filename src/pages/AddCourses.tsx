@@ -4,10 +4,12 @@ import { useHistory } from "react-router-dom";
 import { ServiceConfig } from "../services/ServiceConfig";
 import {
   ACTION,
+  // DISPLAY_SUBJECTS_STORE,
   EVENTS,
   HOMEHEADERLIST,
   MODES,
   PAGES,
+  TableTypes,
 } from "../common/constants";
 import { IonPage } from "@ionic/react";
 import "./DisplaySubjects.css";
@@ -32,9 +34,10 @@ const AddCourses: React.FC = () => {
   }
   const [stage, setStage] = useState(STAGES.SUBJECTS);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [courses, setCourses] = useState<Course[]>();
+  const [courses, setCourses] = useState<TableTypes<"course">[]>();
   const [reloadSubjects, setReloadSubjects] = useState<boolean>(false);
-  const [selectedCourses, setSelectedCourses] = useState<Course[]>();
+  const [selectedCourses, setSelectedCourses] =
+    useState<TableTypes<"course">[]>();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
@@ -51,13 +54,13 @@ const AddCourses: React.FC = () => {
   };
 
   // function addDataToLocalStorage() {
-    // localStorage.setItem(
-    //   DISPLAY_SUBJECTS_STORE,
-    //   JSON.stringify(localStorageData)
-    // );
+  //   localStorage.setItem(
+  //     DISPLAY_SUBJECTS_STORE,
+  //     JSON.stringify(localStorageData)
+  //   );
   // }
 
-  const getCourses = async (): Promise<Course[]> => {
+  const getCourses = async (): Promise<TableTypes<"course">[]> => {
     setIsLoading(true);
     let isGrade1: string | boolean = false;
     let isGrade2: string | boolean = false;
@@ -72,7 +75,7 @@ const AddCourses: React.FC = () => {
     const currClass = schoolUtil.getCurrentClass();
     const currMode = await schoolUtil.getCurrMode();
 
-    const courses = await api.getAdditionalCourses(currentStudent);
+    const courses = await api.getAdditionalCourses(currentStudent.id);
     localData.courses = courses;
     localStorageData.courses = courses;
     setCourses(courses);
@@ -83,23 +86,20 @@ const AddCourses: React.FC = () => {
 
   const updateCourses = async (): Promise<Course[]> => {
     setIsLoading(true);
-    await api.addCourseForParentsStudent(selectedCourses!, currentStudent!);
+    if (selectedCourses && currentStudent) {
+      await api.addCourseForParentsStudent(selectedCourses, currentStudent);
+    }
     const eventParams = {
-      user_id: currentStudent?.docId,
-      user_type: currentStudent?.role,
-      user_name: currentStudent?.name,
-      user_gender: currentStudent?.gender!,
-      user_age: currentStudent?.age!,
-      phone_number: currentStudent?.username,
-      parent_id: currentStudent?.uid,
-      parent_username: currentStudent?.username,
-      action_type: ACTION.UPDATE,
+      // user_id: currentStudent?.id,
+      // user_type: currentStudent?.role,
+      // user_name: currentStudent?.name,
+      // user_gender: currentStudent?.gender!,
+      // user_age: currentStudent?.age!,
+      // phone_number: currentStudent?.username,
+      // parent_id: currentStudent?.uid,
+      // parent_username: currentStudent?.username,
+      // action_type: ACTION.UPDATE,
     };
-    console.log(
-      "Util.logEvent(EVENTS.USER_PROFILE, eventParams);",
-      EVENTS.USER_PROFILE,
-      eventParams
-    );
     Util.logEvent(EVENTS.USER_PROFILE, eventParams);
     setIsLoading(false);
     switch (stage) {
@@ -124,7 +124,7 @@ const AddCourses: React.FC = () => {
     }
   };
 
-  function handleCallback(data: Course[]) {
+  function handleCallback(data: TableTypes<"course">[]) {
     setSelectedCourses(data);
   }
 
@@ -137,7 +137,7 @@ const AddCourses: React.FC = () => {
         </div>
         <div id="next-button">
           <NextButton
-            disabled={selectedCourses === (null || undefined) ? true : false}
+            disabled={selectedCourses == null}
             onClicked={() => {
               if (!online) {
                 presentToast({

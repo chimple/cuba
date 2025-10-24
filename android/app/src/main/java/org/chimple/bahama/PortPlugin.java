@@ -1,34 +1,48 @@
 package org.chimple.bahama;
 
+import static android.content.Intent.getIntent;
+
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
+import androidx.activity.result.ActivityResult;
+import androidx.core.content.FileProvider;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
-import com.google.android.gms.auth.api.phone.SmsRetriever;
-import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
 import com.google.android.gms.tasks.Task;
-
+import com.google.android.gms.auth.api.phone.SmsRetrieverClient;
+import com.google.android.gms.auth.api.phone.SmsRetriever;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+
 @CapacitorPlugin(name = "Port")
 public class PortPlugin extends Plugin {
   private static String _otp;
   private static PortPlugin instance;
+  private String fileDataStorage = null;
   public PortPlugin() {
     instance = this; // Assign instance when PortPlugin is created
   }
-
 
 //  @PluginMethod
 //  public void getPort(PluginCall call) {
@@ -36,12 +50,15 @@ public class PortPlugin extends Plugin {
 //      JSObject ret = new JSObject();
 //      if (((MainActivity) getActivity()).mHttpOverIpcProxy != null) {
 //        ret.put(
-//            "port",
-//            ((MainActivity) getActivity()).mHttpOverIpcProxy.getListeningPort());
+//          "port",
+//          ((MainActivity) getActivity()).mHttpOverIpcProxy.getListeningPort()
+//        );
 //        Log.d(
-//            "Porting",
-//            String.valueOf(
-//                ((MainActivity) getActivity()).mHttpOverIpcProxy.getListeningPort()));
+//          "Porting",
+//          String.valueOf(
+//            ((MainActivity) getActivity()).mHttpOverIpcProxy.getListeningPort()
+//          )
+//        );
 //        call.resolve(ret);
 //      } else {
 //        call.reject("Not Found");
@@ -77,7 +94,6 @@ public class PortPlugin extends Plugin {
     if (getInstance().bridge != null) {
       getInstance().bridge.triggerDocumentJSEvent("otpReceived", "{ \"otp\": \"" + otp + "\" }");
     }
-
   }
 
   @PluginMethod
@@ -85,8 +101,8 @@ public class PortPlugin extends Plugin {
     if (getInstance().bridge != null) {
       getInstance().bridge.triggerDocumentJSEvent("isPhoneNumberSelected");
     }
-
   }
+
   @PluginMethod
   public void otpRetrieve(PluginCall call) {
     JSObject result = new JSObject();
@@ -97,7 +113,7 @@ public class PortPlugin extends Plugin {
   @PluginMethod
   public void requestPermission(PluginCall call) {
     Context appContext = MainActivity.getAppContext();
-    SmsRetrieverClient client = SmsRetriever.getClient(appContext /* context */);
+    SmsRetrieverClient client = SmsRetriever.getClient(appContext);
     Task<Void> task = client.startSmsRetriever();
     MainActivity.promptPhoneNumbers();
     call.resolve(null);
@@ -150,7 +166,7 @@ public class PortPlugin extends Plugin {
 
     String ret = null;
     try {
-      // String selectQuery = "SELECT * FROM 'data' where key='UserId'";
+      //      String selectQuery = "SELECT * FROM 'data' where key='UserId'";
       String selectQuery = "SELECT * FROM data WHERE `key`='UserId'";
 
       Cursor c = db.rawQuery(selectQuery, null);
@@ -165,10 +181,12 @@ public class PortPlugin extends Plugin {
         JSONArray obj = new JSONArray(ret);
         for (int o = 0; o < obj.length(); o++) {
           Log.d(
-              TAG_NAME,
-              "The key contains value '" + obj.get(o).toString() + "'");
+            TAG_NAME,
+            "The key contains value '" + obj.get(o).toString() + "'"
+          );
           String userId = (String) obj.get(o);
-          String selectQuery1 = "SELECT * FROM 'data' where key='" + userId + "'";
+          String selectQuery1 =
+            "SELECT * FROM 'data' where key='" + userId + "'";
           Cursor c1 = db.rawQuery(selectQuery1, null);
           String reg = null;
           while (c1.moveToNext()) {
@@ -191,4 +209,136 @@ public class PortPlugin extends Plugin {
       call.reject(e.toString());
     }
   }
+  
+@PluginMethod
+public void shareContentWithAndroidShare(PluginCall call) {
+    try {
+        String text = call.getString("text");
+        String url = call.getString("url") != null ? call.getString("url") : "";
+        String title = call.getString("title");
+
+        JSObject imageFileObject = call.getObject("imageFile"); // Expecting a File in JSON format
+
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, text + "\n\n" + url);
+        sendIntent.setType("text/plain");
+
+        // Check if an imageFile is provided, and convert it to a Uri for sharing
+        if (imageFileObject != null) {
+            String fileName = imageFileObject.getString("name");
+            String filePath = imageFileObject.getString("path"); // Assuming the file path is accessible here
+
+            File imageFile = new File(filePath);
+            if (imageFile.exists()) {
+                Uri imageUri = FileProvider.getUriForFile(
+                        getContext(),
+                        getContext().getPackageName() + ".fileprovider",
+                        imageFile
+                );
+                sendIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+                sendIntent.setType("image/*");
+                sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            } else {
+                call.reject("Image file does not exist at provided path");
+                return;
+            }
+        }
+
+        Intent shareIntent = Intent.createChooser(sendIntent, title);
+        getContext().startActivity(shareIntent);
+
+        call.resolve();
+    } catch (Exception e) {
+        e.printStackTrace();
+        call.reject("Failed to share content: " + e.toString());
+    }
 }
+    @PluginMethod
+    public void shareUserId(PluginCall call) {
+        try {
+            String userId = call.getString("userId");
+            if (userId != null) {
+                SharedPreferences sharedPreferences = getContext().getSharedPreferences("AppPreferences", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString("userId", userId);
+                editor.apply();
+                call.resolve();
+            } else {
+                call.reject("Key required");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            call.reject("Failed to share content: " + e.toString());
+        }
+    }
+
+
+    @PluginMethod
+    public void saveProceesedXlsxFile(PluginCall call) {
+        String fileData = call.getString("fileData"); // Base64 encoded file data
+        String fileName = call.getString("fileName"); // Full file name expected from the caller
+
+        if (fileData == null || fileData.isEmpty()) {
+            call.reject("No file data provided");
+            return;
+        }
+
+        if (fileName == null || fileName.trim().isEmpty()) {
+              fileName = "ProcessedFile.xlsx";
+       }
+       
+        fileDataStorage = fileData;
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        intent.putExtra(Intent.EXTRA_TITLE, fileName);
+        call.setKeepAlive(true);
+        startActivityForResult(call, intent, "handleFileSaveResult");
+    }
+
+    @PluginMethod
+    public void getLocalDatabaseSize(PluginCall call) {
+      Context appContext = getContext(); 
+      File dbFile = appContext.getDatabasePath("db_issue10SQLite.db");
+      long dbSizeInBytes = dbFile.length();
+      JSObject result = new JSObject();
+      result.put("dbSize", dbSizeInBytes);
+      call.resolve(result);
+    }
+
+    @ActivityCallback
+    private void handleFileSaveResult(PluginCall call, ActivityResult result) {
+        if (call == null || result.getResultCode() != Activity.RESULT_OK || result.getData() == null) {
+            call.reject("File save cancelled");
+            return;
+        }
+
+        Uri uri = result.getData().getData();
+        if (uri == null) {
+            call.reject("Invalid file URI");
+            return;
+        }
+
+        if (fileDataStorage == null) {
+            call.reject("File data is missing");
+            return;
+        }
+
+        try (OutputStream outputStream = getContext().getContentResolver().openOutputStream(uri);
+             BufferedOutputStream bos = new BufferedOutputStream(outputStream)) {
+
+            byte[] fileBytes = Base64.decode(fileDataStorage, Base64.NO_WRAP);
+            bos.write(fileBytes);
+            bos.flush();
+
+            fileDataStorage = null; // ✅ Clear stored data after writing
+            Toast.makeText(getContext(), "File saved successfully", Toast.LENGTH_SHORT).show();
+            call.resolve();
+        } catch (IOException e) {
+            call.reject("Error saving file: " + e.getMessage());
+        }
+    }
+}
+
+

@@ -1,35 +1,33 @@
-import { FC, useState, useEffect, useRef } from "react";
+import { FC, useState, useEffect } from "react";
 import Course from "../../models/course";
 import "./SelectCourse.css";
 import { t } from "i18next";
 import SelectIconImage from "./SelectIconImage";
-import { IoAddCircleSharp } from "react-icons/io5";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
-import { DEFUALT_SUBJECT_CARD_COLOUR } from "../../common/constants";
-import { useHistory } from "react-router";
+import {
+  DEFUALT_SUBJECT_CARD_COLOUR,
+  TableTypes,
+} from "../../common/constants";
 import { BsFillCheckCircleFill } from "react-icons/bs";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
-import DialogBoxButtons from "../parent/DialogBoxButtons​";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { Util } from "../../utility/util";
 import Loading from "../Loading";
 import "../LessonSlider.css";
 import "../../pages/DisplayChapters.css";
-import Curriculum from "../../models/curriculum";
-import Grade from "../../models/grade";
+import { ServiceConfig } from "../../services/ServiceConfig";
 
 const AddCourse: FC<{
-  courses: Course[];
+  courses: TableTypes<"course">[];
   onSelectedCoursesChange;
 }> = ({ courses, onSelectedCoursesChange }) => {
-  const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [coursesSelected, setCoursesSelected] = useState<Course[]>();
-  const currentStudent = Util.getCurrentStudent();
-  const [curriculums, setCurriculums] = useState<Curriculum[]>();
-  const [gradesMap, setGradesMap] = useState(new Map<String, Grade>());
+  const [coursesSelected, setCoursesSelected] =
+    useState<TableTypes<"course">[]>();
+  const [curriculums, setCurriculums] = useState<TableTypes<"curriculum">[]>();
+  const [gradesMap, setGradesMap] = useState(
+    new Map<String, TableTypes<"grade">>()
+  );
   const api = ServiceConfig.getI().apiHandler;
   const [allCourses, setAllCourses] = useState([
     ...courses.map((course) => {
@@ -37,9 +35,9 @@ const AddCourse: FC<{
     }),
   ]);
   allCourses.sort((a, b) => {
-    return a.course.sortIndex - b.course.sortIndex;
+    return (a.course.sort_index ?? 0) - (b.course.sort_index ?? 0);
   });
-  let selectedCourses: Course[] = [];
+  let selectedCourses: TableTypes<"course">[] = [];
 
   useEffect(() => {
     getCurriculum();
@@ -54,9 +52,9 @@ const AddCourse: FC<{
   const getAllGradeDocs = async () => {
     const grades = await api.getAllGrades();
     if (grades && grades.length > 0) {
-      const temp = new Map<string, Grade>();
+      const temp = new Map<string, TableTypes<"grade">>();
       grades.forEach((grade) => {
-        temp.set(grade.docId, grade);
+        temp.set(grade.id, grade);
       });
       setGradesMap(temp);
     }
@@ -85,12 +83,12 @@ const AddCourse: FC<{
       } else {
         selectedCourses = coursesSelected!;
         const cCourse = selectedCourses?.find(
-          (courseObject) => courseObject.docId === course.docId
+          (courseObject) => courseObject.id === course.id
         );
         if (cCourse == null || cCourse == undefined) {
           selectedCourses.push(course);
           setCoursesSelected(selectedCourses);
-        } else if (cCourse?.docId === course?.docId) {
+        } else if (cCourse?.id === course?.id) {
           selectedCourses.splice(selectedCourses?.indexOf(cCourse!), 1);
           setCoursesSelected(selectedCourses);
         }
@@ -99,7 +97,7 @@ const AddCourse: FC<{
     }
   };
 
-  const renderSubjectCard = (curr) => {
+  const renderSubjectCard = (curr, currt) => {
     return (
       <div className="Subject-slider-content">
         <Splide
@@ -113,25 +111,23 @@ const AddCourse: FC<{
           }}
         >
           {allCourses.map((course) => {
-            if (course.course.curriculum.id === curr) {
-              const grade = gradesMap.get(course.course.grade.id);
-              const gradeTitle = grade ? grade.title : "";
-              // const ccCourse = setSelectedCourses.find(o=> o.docId === course.docId);
+            if (course.course.curriculum_id === curr) {
+              const grade = gradesMap.get(course.course.grade_id!);
+              const gradeTitle = grade ? grade.name : "";
+
               return (
-                <SplideSlide className="slide">
+                <SplideSlide className="slide" key={course.course.id}>
                   <div
                     onClick={async () => {
-                      const newCourses = allCourses.map((c, i) => {
-                        if (c.course.docId === course.course.docId)
+                      const newCourses = allCourses.map((c) => {
+                        if (c.course.id === course.course.id)
                           c.selected = !c.selected;
                         return c;
                       });
-
                       setAllCourses(newCourses);
                       handleClick(course.course!);
                     }}
                     className="subject-button"
-                    key={course.course.docId}
                   >
                     {course.selected ? (
                       <div id="subject-card-select-icon">
@@ -144,12 +140,11 @@ const AddCourse: FC<{
                         </div>
                       </div>
                     ) : null}
+
                     <div id="subject-card-subject-name">
-                      <p>
-                        {gradeTitle}
-                        {/* {subject.title==="English"?subject.title:t(subject.title)} */}
-                      </p>
+                      <p>{gradeTitle}</p>
                     </div>
+
                     <div
                       className="course-icon"
                       style={{
@@ -159,23 +154,31 @@ const AddCourse: FC<{
                       }}
                     >
                       <SelectIconImage
-                        localSrc={`courses/chapter_icons/${course.course.courseCode}.png`}
+                        localSrc={`courses/chapter_icons/${course.course.code}.png`}
                         defaultSrc={"assets/icons/DefaultIcon.png"}
                         webSrc={
-                          course.course.thumbnail ||
-                          "assets/icons/DefaultIcon.png"
+                          course.course.image || "assets/icons/DefaultIcon.png"
                         }
-                        imageWidth={"100%"}
-                        imageHeight={"100%"}
+                        imageWidth={"80%"}
+                        imageHeight={"auto"}
                       />
                     </div>
-                    {t(course?.course.title)}
-                    {/* {course.title === "English" ? course.title : course.title} */}
+
+                    <div>
+                      <p> {t(course?.course.name)}</p>
+                    </div>
+
+                    {currt ? (
+                      <div id="ignore">
+                        <p id="ignore">{currt} Curriculum</p>
+                      </div>
+                    ) : null}
                   </div>
                 </SplideSlide>
               );
             }
           })}
+
           <Loading isLoading={isLoading} />
         </Splide>
       </div>
@@ -188,16 +191,16 @@ const AddCourse: FC<{
         <div>
           {curriculums.map((curriculum) => {
             const coursesForCurriculum = allCourses.filter(
-              (course) => course.course.curriculum.id === curriculum.docId
+              (course) => course.course.curriculum_id === curriculum.id
             );
 
             if (coursesForCurriculum.length > 0) {
               return (
-                <div key={curriculum.docId}>
+                <div key={curriculum.id}>
                   <div className="subject-header">
-                    {t(curriculum.title + " " + "Curriculum")}
+                    {t(curriculum.name) + " " + t("Curriculum")}
                   </div>
-                  {renderSubjectCard(curriculum.docId)}
+                  {renderSubjectCard(curriculum.id, curriculum.name)}
                 </div>
               );
             }

@@ -4,18 +4,19 @@ import { useHistory } from "react-router-dom";
 import {
   COCOS,
   CONTINUE,
+  CocosCourseIdentifier,
+  COURSES,
   LESSON_CARD_COLORS,
+  LIDO,
   LIVE_QUIZ,
   PAGES,
   TYPE,
+  TableTypes,
 } from "../common/constants";
 import "./LessonCard.css";
 import LessonCardStarIcons from "./LessonCardStarIcons";
 import React from "react";
-import Lesson from "../models/lesson";
-import Course from "../models/course";
 import { ServiceConfig } from "../services/ServiceConfig";
-import Subject from "../models/subject";
 import { t } from "i18next";
 import LovedIcon from "./LovedIcon";
 import SelectIconImage from "./displaySubjects/SelectIconImage";
@@ -26,22 +27,24 @@ import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErro
 const LessonCard: React.FC<{
   width: string;
   height: string;
-  lesson: Lesson;
-  course: Course | undefined;
+  lesson: TableTypes<"lesson">;
+  course: TableTypes<"course"> | undefined;
   isPlayed: boolean;
   isUnlocked: boolean;
-  isHome: boolean;
   showSubjectName: boolean;
   showText?: boolean;
   showScoreCard?: boolean;
   score: any;
   isLoved: boolean | undefined;
-  lessonData: Lesson[];
-  startIndex: number;
   showChapterName: boolean;
   downloadButtonLoading?: boolean;
   showDate?: boolean;
   onDownloadOrDelete?: () => void;
+  chapter?: TableTypes<"chapter">;
+  assignment?: TableTypes<"assignment">;
+  lessonCourseMap?: {
+    [lessonId: string]: { course_id: string };
+  };
 }> = ({
   width,
   height,
@@ -49,82 +52,55 @@ const LessonCard: React.FC<{
   course,
   isPlayed,
   isUnlocked,
-  isHome,
   showSubjectName = false,
   showText = true,
   showScoreCard = true,
   score,
   isLoved,
-  lessonData,
-  startIndex,
   showChapterName = false,
   downloadButtonLoading,
   showDate,
   onDownloadOrDelete,
+  chapter,
+  assignment,
+  lessonCourseMap,
 }) => {
   const history = useHistory();
   const [showImage, setShowImage] = useState(true);
-  const [subject, setSubject] = useState<Subject>();
+  const [subject, setSubject] = useState<TableTypes<"subject">>();
   // const [subject, setSubject] = useState<Subject>();
-  const [currentCourse, setCurrentCourse] = useState<Course>();
+  const [currentCourse, setCurrentCourse] = useState<TableTypes<"course">>();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [date, setDate] = useState<Date>();
   const hideImg = (event: any) => {
     setShowImage(false);
   };
-  // const subjectCode = lesson.chapter.course.id;
   useEffect(() => {
-    // getSubject();
     getCurrentCourse();
     getDate();
-    console.log('lessonData: ', lesson)
   }, [lesson]);
 
-  // const getSubject = async () => {
-  //   const subjectId = lesson?.subject?.toString()?.split("/")?.at(-1);
-  //   if (!subjectId) return;
-  //   let subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
-  //   if (!subject) {
-  //     const subjectId = lesson?.subject.path?.toString()?.split("/")?.at(-1);
-  //     if (!subjectId) return;
-  //     subject = await ServiceConfig.getI().apiHandler.getSubject(subjectId);
-  //   }
-  //   setSubject(subject);
-  // };
   const getDate = () => {
-    const res = lesson.assignment?.updatedAt;
+    const res = assignment?.starts_at;
     if (!!res) {
-      const dateObj = res?.toDate();
+      const dateObj = new Date(res);
       setDate(dateObj);
     }
   };
+
   const getCurrentCourse = async () => {
-    const currentStudent = Util.getCurrentStudent();
-    if (!currentStudent) {
-      return;
-    }
     const api = ServiceConfig.getI().apiHandler;
-    const courses = await api.getCoursesForParentsStudent(currentStudent);
-    console.log("Student Courses ", courses);
-
-    let currentCourse = courses.find(
-      (course) => lesson.cocosSubjectCode === course.courseCode
-    );
-
-    console.log("current Course ", currentCourse);
-    if (!currentCourse) {
-      const lessonCourse = await api.getCourseFromLesson(lesson);
-      if (lessonCourse) {
-        setCurrentCourse(lessonCourse);
+    try {
+      if (lessonCourseMap) {
+        const lessonData = lessonCourseMap[lesson.id];
+        if (lessonData?.course_id) {
+          const course = await api.getCourse(lessonData.course_id);
+          setCurrentCourse(course);
+          return;
+        }
       }
-    } else if (!Util.checkLessonPresentInCourse(currentCourse, lesson.docId)) {
-      const lessonCourse = await api.getCourseFromLesson(lesson);
-      if (lessonCourse) {
-        console.log("Current course from all courses:", lessonCourse);
-        setCurrentCourse(lessonCourse);
-      }
-    } else {
-      setCurrentCourse(currentCourse);
+    } catch (error) {
+      console.error("Error fetching course data:", error);
     }
   };
 
@@ -132,6 +108,31 @@ const LessonCard: React.FC<{
   //   LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)];
 
   const [lessonCardColor, setLessonCardColor] = useState("");
+
+  const COURSE_VALUES_SET = new Set(
+    (Object.values(CocosCourseIdentifier) as string[]).map((v) =>
+      v.toLowerCase()
+    )
+  );
+
+  const getCourseIdFromCocosLesson = (
+    rawLessonId: string | null,
+    subjectCode: string | null
+  ): string | null => {
+    if (!rawLessonId) {
+      return subjectCode;
+    }
+    const parts = rawLessonId
+      .trim()
+      .toLowerCase()
+      .split(/[^a-z]+/);
+    for (const part of parts) {
+      if (COURSE_VALUES_SET.has(part)) {
+        return part;
+      }
+    }
+    return subjectCode;
+  };
 
   useEffect(() => {
     setLessonCardColor(
@@ -142,7 +143,7 @@ const LessonCard: React.FC<{
   return (
     <>
       <div className="assigned-date-div">
-        {!!showDate && lesson.assignment ? (
+        {!!showDate && assignment ? (
           <div id="lesson-card-date">
             <p>
               {t("Assigned") + ": "}
@@ -177,47 +178,40 @@ const LessonCard: React.FC<{
             //   lesson.orig_lesson_id != undefined
             // ) {
             //   const parmas = `?courseid=${lesson.orig_course_id}&chapterid=${lesson.orig_chapter_id}&lessonid=${lesson.orig_lesson_id}`;
-            //   console.log("parmas", parmas);
             //   history.push(PAGES.GAME + parmas, {
             //     url: "chimple-lib/index.html" + parmas,
-            //     lessonId: lesson.orig_lesson_id,
-            //     lesson: lesson,
+            //     lessonId: TableTypes<"lesson">.orig_lesson_id,
+            //     lesson: TableTypes<"lesson">,
             //     from: history.location.pathname,
             //   });
             // } else {
-            // console.log("LessonCard course: subject,", subject);
-            console.log("LessonCard course: course,", currentCourse);
-            if (lesson.pluginType === COCOS) {
-              let subjectDocID: string;
+            if (!course && !currentCourse) {
+              await getCurrentCourse();
+            }
 
-              if (typeof lesson.subject === "string") {
-                const subjectReference = Util.getReference(lesson.subject);
-                subjectDocID = subjectReference.id;
-              } else {
-                subjectDocID = lesson.subject.id;
-              }
-              const api = ServiceConfig.getI().apiHandler;
-              const parmas = `?courseid=${lesson.cocosSubjectCode}&chapterid=${lesson.cocosChapterCode}&lessonid=${lesson.id}`;
-              console.log(
-                "🚀 ~ file: LessonCard.tsx:73 ~ parmas:",
-                parmas,
-                Lesson.toJson(lesson)
+            if (lesson.plugin_type === COCOS) {
+              const courseId = getCourseIdFromCocosLesson(
+                lesson.cocos_lesson_id,
+                lesson.cocos_subject_code
               );
+              const parmas = `?courseid=${courseId}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
               history.replace(PAGES.GAME + parmas, {
                 url: "chimple-lib/index.html" + parmas,
-                lessonId: lesson.id,
+                lessonId: lesson.cocos_lesson_id,
                 courseDocId:
-                  course?.docId ??
-                  lesson?.assignment?.course?.id ??
-                  lesson.courseId ??
-                  currentCourse?.docId,
-                course: JSON.stringify(Course.toJson(currentCourse!)),
-                lesson: JSON.stringify(Lesson.toJson(lesson)),
+                  course?.id ??
+                  assignment?.course_id ??
+                  // lesson.courseId ??
+                  currentCourse?.id,
+                course: JSON.stringify(currentCourse!),
+                lesson: JSON.stringify(lesson),
+                assignment: assignment,
+                chapter: JSON.stringify(chapter),
                 from: history.location.pathname + `?${CONTINUE}=true`,
               });
             } else if (
-              // !!lesson?.assignment?.docId &&
-              lesson.pluginType === LIVE_QUIZ
+              // !!assignment?.id &&
+              lesson.plugin_type === LIVE_QUIZ
             ) {
               if (!online) {
                 presentToast({
@@ -234,12 +228,32 @@ const LessonCard: React.FC<{
                 });
                 return;
               }
-              history.replace(
-                lesson?.assignment
-                  ? PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${lesson.assignment.docId}`
-                  : PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson?.id}`,
-                lesson?.assignment ? { assignment: JSON.stringify(lesson.assignment) } :  {from: history.location.pathname + `?${CONTINUE}=true`},
-              );              
+              if (assignment) {
+                history.replace(
+                  PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${assignment?.id}`,
+                  { assignment: JSON.stringify(assignment) }
+                );
+              } else {
+                history.replace(
+                  PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
+                  {
+                    courseId: course?.id ?? currentCourse?.id,
+                    lesson: JSON.stringify(lesson),
+                    from: history.location.pathname + `?${CONTINUE}=true`,
+                  }
+                );
+              }
+            } else if (lesson.plugin_type === LIDO) {
+              const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+              history.replace(PAGES.LIDO_PLAYER + parmas, {
+                lessonId: lesson.cocos_lesson_id,
+                courseDocId: course?.id ?? currentCourse?.id,
+                course: JSON.stringify(currentCourse!),
+                lesson: JSON.stringify(lesson),
+                assignment: assignment,
+                chapter: JSON.stringify(chapter),
+                from: history.location.pathname + `?${CONTINUE}=true`,
+              });
             }
           }
         }}
@@ -251,7 +265,10 @@ const LessonCard: React.FC<{
         >
           <div
             style={{
-              background: lessonCardColor,
+              background:
+                lesson?.color && lesson.color !== "null"
+                  ? lesson.color
+                  : lessonCardColor,
               borderRadius: "7vh",
               width: width,
               height: height,
@@ -263,9 +280,8 @@ const LessonCard: React.FC<{
             color={lessonCardColor}
           >
             <div id="lesson-card-homework-icon">
-              {lesson.assignment !== undefined &&
-                (!(TYPE in lesson.assignment) ||
-                lesson.assignment.type !== LIVE_QUIZ ? (
+              {assignment !== undefined &&
+                (!(TYPE in assignment) || assignment.type !== LIVE_QUIZ ? (
                   <div>
                     <img
                       src="assets/icons/homework_icon.svg"
@@ -284,21 +300,31 @@ const LessonCard: React.FC<{
                 ))}
             </div>
 
-            {showSubjectName && currentCourse?.title ? (
+            {showSubjectName && currentCourse?.name ? (
               <div id="lesson-card-subject-name">
+                <p className="ignore">
+                  {course?.code === COURSES.ENGLISH
+                    ? lesson?.name
+                    : t(lesson?.name ?? "")}
+                </p>
+
                 <p>
-                  {currentCourse?.title}
+                  {currentCourse?.name}
                   {/* {subject.title==="English"?subject.title:t(subject.title)} */}
                 </p>
               </div>
             ) : null}
             <div className="pattern">
               <SelectIconImage
+                imageWidth={"100%"}
+                imageHeight={"auto"}
                 localSrc={
                   // this is for lesson card background
-                  "courses/lessonCaredPattern/ChallengePattern.webp"
+                  "courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"
                 }
-                defaultSrc={"courses/lessonCaredPattern/ChallengePattern.webp"}
+                defaultSrc={
+                  "courses/" + "sl_en1_mp" + "/icons/" + "ChallengePattern.png"
+                }
                 webSrc={
                   "https://firebasestorage.googleapis.com/v0/b/cuba-stage.appspot.com/o/lesson_thumbnails%2FlessonCaredPattern%2FChallengePattern.png?alt=media&token=be64aec1-f70f-43c3-95de-fd4b1afe5806"
                 }
@@ -309,15 +335,15 @@ const LessonCard: React.FC<{
               <SelectIconImage
                 localSrc={
                   "courses/" +
-                  lesson.cocosSubjectCode +
+                  lesson.cocos_subject_code +
                   "/icons/" +
                   lesson.id +
                   ".webp"
                 }
                 defaultSrc={"assets/icons/DefaultIcon.png"}
-                webSrc={lesson.thumbnail || "assets/icons/DefaultIcon.png"}
+                webSrc={lesson.image || "assets/icons/DefaultIcon.png"}
                 imageWidth={"60%"}
-                imageHeight={"60%"}
+                imageHeight={"auto"}
               />
               {!isUnlocked ? (
                 <div id="lesson-card-status-icon">
@@ -348,28 +374,35 @@ const LessonCard: React.FC<{
             {/* {isLoved && <LovedIcon isLoved={isLoved} hasChapterTitle={!!lesson.chapterTitle && showChapterName} />} */}
           </div>
           <div className="lesson-download-button-container">
-            <DownloadLesson
-              lessonId={lesson.id}
-              downloadButtonLoading={downloadButtonLoading}
-              onDownloadOrDelete={onDownloadOrDelete}
-            />
+            {lesson.cocos_lesson_id && (
+              <DownloadLesson
+                aria-label="Download-button"
+                lessonId={lesson.cocos_lesson_id}
+                downloadButtonLoading={downloadButtonLoading}
+                onDownloadOrDelete={onDownloadOrDelete}
+              />
+            )}
           </div>
           {isLoved && (
             <LovedIcon
               isLoved={isLoved}
-              hasChapterTitle={!!lesson.chapterTitle && showChapterName}
+              hasChapterTitle={!!chapter?.name && showChapterName}
             />
           )}
         </div>
         <div>
           {showText ? (
             <p id={`lesson-card-name${isLoved ? "-fav-icon" : ""}`}>
-              {t(lesson?.title)}
+              {course?.code === COURSES.ENGLISH
+                ? lesson?.name
+                : t(lesson?.name ?? "")}
             </p>
           ) : null}
-          {showChapterName && lesson.chapterTitle && (
+          {showChapterName && chapter?.name && (
             <div id={`chapter-title${isLoved ? "-fav-icon" : ""}`}>
-              {lesson.chapterTitle}
+              {course?.code === COURSES.ENGLISH
+                ? chapter?.name
+                : t(chapter?.name)}
             </div>
           )}
         </div>

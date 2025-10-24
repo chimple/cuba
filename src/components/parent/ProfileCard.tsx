@@ -3,16 +3,14 @@ import { useHistory } from "react-router-dom";
 import "./ProfileCard.css";
 import React, { useState } from "react";
 import { MdModeEditOutline } from "react-icons/md";
-import { FcPlus } from "react-icons/fc";
 import { HiPlusCircle } from "react-icons/hi";
-import User from "../../models/user";
 import {
   ACTION,
   AVATARS,
   EVENTS,
   PAGES,
   MODES,
-  CONTINUE,
+  TableTypes,
 } from "../../common/constants";
 import { Util } from "../../utility/util";
 import DialogBoxButtons from "./DialogBoxButtons​";
@@ -26,10 +24,10 @@ const ProfileCard: React.FC<{
   height: string;
   //true for User, false for no user
   userType: boolean;
-  user: User;
+  user: TableTypes<"user">;
   showText?: boolean;
   setReloadProfiles: (event: boolean) => void;
-  profiles?: User[];
+  profiles?: TableTypes<"user">[];
   studentCurrMode: string | undefined;
 }> = ({
   width,
@@ -57,14 +55,13 @@ const ProfileCard: React.FC<{
         height: "auto",
         padding: userType ? "1.5% 1.5% 3% 1.5%" : "0% 0% 0% 0%",
       }}
-      onClick={() => {
-        console.log("Profile card Icon is clicked");
-      }}
+      onClick={() => {}}
     >
       <div id="profile-card-edit-icon-div">
         {userType ? (
           <MdModeEditOutline
             id="profile-card-edit-icon"
+            aria-label="Edit"
             size={"5%"}
             onClick={() => {
               if (!online) {
@@ -84,7 +81,6 @@ const ProfileCard: React.FC<{
                 });
                 return;
               }
-              console.log("click on edit icon");
               setShowDialogBox(true);
             }}
           ></MdModeEditOutline>
@@ -110,7 +106,7 @@ const ProfileCard: React.FC<{
             }
             alt=""
           />
-          <p id="profile-card-user-name">{user.name}</p>
+          <p id="profile-card-user-name">{user.name ? user.name : "\u00A0"}</p>
         </div>
       ) : (
         <div id="profile-card-new-user">
@@ -155,7 +151,8 @@ const ProfileCard: React.FC<{
             Util.setPathToBackButton(PAGES.STUDENT_PROGRESS, history);
           }}
         >
-          {t("Progress Report")}
+          {/* {t("Progress Report")} */}
+          Progress
         </div>
       ) : (
         // <></>
@@ -173,14 +170,11 @@ const ProfileCard: React.FC<{
           noText={t("Edit Profile")}
           handleClose={() => {
             setShowDialogBox(false);
-            console.log("Close", false);
           }}
           onYesButtonClicked={async ({}) => {
-            console.log(`Delete Profile`, "yes", user.docId);
             setShowWarningDialogBox(true);
           }}
           onNoButtonClicked={async ({}) => {
-            console.log(`Edit Profile`, "no", user.docId);
             const api = ServiceConfig.getI().apiHandler;
             await Util.setCurrentStudent(user, undefined, false);
             history.replace(PAGES.EDIT_STUDENT, {
@@ -200,37 +194,29 @@ const ProfileCard: React.FC<{
           noText={t("No")}
           handleClose={() => {
             setShowDialogBox(false);
-            console.log("Close", false);
           }}
           onYesButtonClicked={async ({}) => {
-            console.log(`Show warning yes:`, user.docId);
             setShowWarningDialogBox(false);
             setShowDialogBox(false);
             setIsLoading(true);
             setReloadProfiles(false);
-            await ServiceConfig.getI().apiHandler.deleteProfile(user.docId);
-            await setReloadProfiles(true);
+            await ServiceConfig.getI().apiHandler.deleteProfile(user.id);
+            setReloadProfiles(true);
             const eventParams = {
-              user_id: user.docId,
-              user_type: user.role,
+              user_id: user.id,
+              // user_type: user.role,
               user_name: user.name,
               user_gender: user.gender!,
               user_age: user.age!,
-              phone_number: user.username,
-              parent_id: user.uid,
-              parent_username: user.username,
+              phone_number: user.phone,
+              // parent_id: user.uid,
+              // parent_username: user.username,
               action_type: ACTION.DELETE,
             };
-            console.log(
-              "Util.logEvent(EVENTS.USER_PROFILE, eventParams);",
-              EVENTS.USER_PROFILE,
-              eventParams
-            );
             Util.logEvent(EVENTS.USER_PROFILE, eventParams);
             setIsLoading(false);
           }}
           onNoButtonClicked={async ({}) => {
-            console.log(`Show warning No:`);
             setShowWarningDialogBox(false);
           }}
         ></DialogBoxButtons>

@@ -1,0 +1,21 @@
+.class-text-field {
+  background: white;
+  /* border-bottom: 0.3px solid gray; */
+  color: #707070;
+  text-align: center;
+}
+.edit-classname-div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: justify;
+  /* padding: 3vh; */
+}
+.edit-class-name {
+  font-size: clamp(18px, 5vh, 22px);
+  color: #707070;
+  padding-left: 30px;
+}
+.custom.sc-ion-input-ios-h {
+  padding-left: 5px !important;
+}

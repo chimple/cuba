@@ -10,6 +10,12 @@ import {
   PAGES,
   MODES,
   CONTINUE,
+  TableTypes,
+  CURRENT_CLASS,
+  EDIT_STUDENTS_MAP,
+  CURRENT_STUDENT,
+  LANG,
+  LANGUAGE,
 } from "../common/constants";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { useHistory } from "react-router";
@@ -21,93 +27,75 @@ import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
 import { schoolUtil } from "../utility/schoolUtil";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import SkeltonLoading from "../components/SkeltonLoading";
-// import { FirebaseApi } from "../services/api/FirebaseApi";
-// import { FirebaseAuth } from "../services/auth/FirebaseAuth";
-
+import { Capacitor } from "@capacitor/core";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
+import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [students, setStudents] = useState<User[]>();
+  const [students, setStudents] = useState<TableTypes<"user">[]>();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [studentMode, setStudentMode] = useState<string | undefined>();
+  const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+  const { setGbUpdated } = useGbContext();
   useEffect(() => {
+    Util.loadBackgroundImage();
     getStudents();
+    lockOrientation();
     return () => {
       setIsLoading(false);
     };
   }, []);
+  const lockOrientation = () => {
+    if (Capacitor.isNativePlatform()) {
+      ScreenOrientation.lock({ orientation: "landscape" });
+    }
+  };
   const getStudents = async () => {
     const currMode = await schoolUtil.getCurrMode();
     setStudentMode(currMode);
-    const students =
-      await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
-    console.log(
-      "🚀 ~ file: DisplayStudents.tsx:13 ~ getStudents ~ students:",
-      students
+    const tempStudents = await api.getParentStudentProfiles();
+    const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
+    const mergedStudents = Util.mergeStudentsByUpdatedAt(
+      tempStudents,
+      storedMapStr
     );
-
-    if (!students || students.length < 1) {
+    if (!mergedStudents || mergedStudents.length < 1) {
       history.replace(PAGES.CREATE_STUDENT, {
         showBackButton: false,
       });
       return;
     }
-    setStudents(students);
-
-    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!currentUser) {
-      return;
-    }
-
-    await FirebaseAnalytics.setUserId({
-      userId: currentUser.docId,
-    });
-
-    Util.setUserProperties(currentUser);
-
-    // setStudents([students[0]]);
-
-    // setStudents([...students, students[0]]);
-
-    // const currentUser = await FirebaseAuth.getInstance().getCurrentUser();
-    // const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    // console.log(
-    //   "🚀 ~ file: DisplayStudents.tsx:35 ~ getStudents ~ FirebaseAuth.getInstance().currentUser:",
-    //   currentUser
-    // );
-    // // const iseTeacher = await FirebaseApi.getInstance().isUserTeacher(
-    //   currentUser!
-    // );
-    //  if (!currentUser) return;
-    // const iseTeacher = await ServiceConfig.getI().apiHandler.isUserTeacher(
-    //   currentUser
-    // );
-    // console.log(
-    //   "🚀 ~ file: DisplayStudents.tsx:34 ~ getStudents ~ iseTeacher:",
-    //   iseTeacher
-    // );
-
+    setStudents(mergedStudents);
+    updateLocalAttributes({ count_of_children: mergedStudents.length });
+    setGbUpdated(true);
     setIsLoading(false);
   };
-  const onStudentClick = async (student: User) => {
-    console.log(
-      "🚀 ~ file: DisplayStudents.tsx:30 ~ onStudentClick:student",
-      student
-    );
+  const onStudentClick = async (student: TableTypes<"user">) => {
     await Util.setCurrentStudent(student, undefined, true);
-
+    const linkedData = await api.getStudentClassesAndSchools(student.id);
+    if (linkedData.classes && linkedData.classes.length > 0) {
+      const firstClass = linkedData.classes[0];
+      const currClass = await api.getClassById(firstClass.id);
+      await schoolUtil.setCurrentClass(currClass ?? undefined);
+    } else {
+      console.warn("No classes found for the student.");
+      await schoolUtil.setCurrentClass(undefined);
+    }
     if (
-      !student.board ||
-      !student.language ||
-      !student.grade ||
-      !student.courses
+      // !student.curriculum_id ||
+      !student.language_id
+      //  ||
+      // !student.grade_id ||
+      // !student.courses
     ) {
       history.replace(PAGES.EDIT_STUDENT, {
         from: history.location.pathname,
       });
     } else {
-      Util.setPathToBackButton(PAGES.HOME, history);
+      // Util.setPathToBackButton(PAGES.HOME + history.location.search, history);
+      history.replace(PAGES.HOME + window.location.search);
     }
   };
   const onCreateNewStudent = () => {
@@ -133,12 +121,20 @@ const DisplayStudents: FC<{}> = () => {
       : undefined;
     history.replace(PAGES.CREATE_STUDENT, locationState);
   };
-
   return (
     <IonPage id="display-students">
-      {/* <IonContent> */}
+      {/* <IonContent> */} 
       <div id="display-students-chimple-logo">
-        <div id="display-students-parent-icon"></div>
+        <div id="display-students-parent-icon">
+          {Util.getCurrentStudent() &&<img
+            src="/assets/icons/BackButtonIcon.svg"
+            alt="BackButtonIcon"
+            onClick={() => {
+              Util.setPathToBackButton(PAGES.HOME, history);
+            }}
+          />
+          }
+        </div>
         <ChimpleLogo
           header={t("Welcome to Chimple!")}
           msg={[
@@ -162,9 +158,9 @@ const DisplayStudents: FC<{}> = () => {
           <div className="avatar-container">
             {students.map((student) => (
               <div
-                key={student.docId}
+                key={student.id}
                 onClick={() => onStudentClick(student)}
-                className="avatar"
+                className="display-students-avatar"
               >
                 <img
                   className="avatar-img"
@@ -174,7 +170,12 @@ const DisplayStudents: FC<{}> = () => {
                   }
                   alt=""
                 />
-                <span className="student-name">{student.name}</span>
+                {student.name && (
+                  <span className="display-student-name-profile">Profile:</span>
+                )}
+                <span className="display-student-name">
+                  {student.name ? student.name : "\u00A0"}
+                </span>
               </div>
             ))}
           </div>
@@ -193,17 +194,15 @@ const DisplayStudents: FC<{}> = () => {
               showDialogBox={showDialogBox}
               handleClose={() => {
                 setShowDialogBox(true);
-                console.log("Close", false);
               }}
               onHandleClose={() => {
                 setShowDialogBox(false);
-                console.log("Close", false);
               }}
             ></ParentalLock>
           ) : null}
         </div>
       )}
-      <SkeltonLoading isLoading={isLoading} header={PAGES.DISPLAY_STUDENT}/>
+      <SkeltonLoading isLoading={isLoading} header={PAGES.DISPLAY_STUDENT} />
       {/* </IonContent> */}
     </IonPage>
   );

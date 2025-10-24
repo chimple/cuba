@@ -1,15 +1,10 @@
-import { Filesystem } from "@capacitor/filesystem";
 import {
   CURRENT_AVATAR_SUGGESTION_NO,
-  LEADERBOARD_REWARD_LIST,
   LeaderboardDropdownList,
-  LeaderboardRewardsType,
   SHOW_DAILY_PROGRESS_FLAG,
+  TableTypes,
   unlockedRewardsInfo,
 } from "../../common/constants";
-import { Chapter, StudentLessonResult } from "../../common/courseConstants";
-import Course from "../../models/course";
-import Lesson from "../../models/lesson";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
@@ -29,14 +24,6 @@ export enum AvatarModes {
   GoodProgress,
   // scores < 70
   BadProgress,
-}
-
-export enum AvatarAnimations {
-  IDLE1 = "Idle",
-  IDLE2 = "idle_2",
-  TALK = "talking",
-  LOSE = "Fail",
-  WIN = "Success",
 }
 
 export class AvatarObj {
@@ -59,13 +46,13 @@ export class AvatarObj {
   public static _i: AvatarObj | undefined;
   unlockedRewards: unlockedRewardsInfo[];
 
-  currentCourse: Course;
-  currentChapter: Chapter;
-  currentLesson: Lesson | undefined;
+  currentCourse: TableTypes<"course">;
+  currentChapter: TableTypes<"chapter">;
+  currentLesson: TableTypes<"lesson"> | undefined;
   currentLessonSuggestionIndex: number;
   currentRecommendedLessonIndex: number = 0;
   weeklyProgressGoal: number = 60;
-  weeklyTimeSpent: { min; sec } = { min: 0, sec: 0 };
+  weeklyTimeSpent: {} = { min: 0, sec: 0 };
   weeklyPlayedLesson: number = 0;
   wrongAttempts: number = 0;
   // gamifyTimespentMessage = "Play ' x1 ' to win your daily reward";
@@ -188,7 +175,7 @@ export class AvatarObj {
 
   suggestionConstant = () => {
     const currentStudent = Util.getCurrentStudent();
-    return currentStudent?.docId + "-" + CURRENT_AVATAR_SUGGESTION_NO;
+    return currentStudent?.id + "-" + CURRENT_AVATAR_SUGGESTION_NO;
   };
 
   public getCurrentSuggestionNo() {
@@ -242,17 +229,11 @@ export class AvatarObj {
         //     path: path,
         //   });
         //   let suggesstionJson = await response.data;
-        //   console.log("Avatar Sugguestion Json ", suggesstionJson);
 
-        //   console.log(
-        //     "Avatar suggesstionJson.data ",
-        //     suggesstionJson,
-        //     JSON.parse(suggesstionJson).data
-        //   );
+       
 
         //   this._allSuggestions = JSON.parse(suggesstionJson).data;
         // } catch (error) {
-        //   console.log("await Filesystem.readFile({ failed");
 
         response = await fetch(path);
         let suggesstionJson = await response.json();
@@ -279,7 +260,7 @@ export class AvatarObj {
       this._option3 = currentSuggestionInJson[11];
       this._option4 = currentSuggestionInJson[12];
     } catch (error) {
-      console.log("Failed to load Avatar Data", error);
+      console.error("Failed to load Avatar Data", error);
     }
   }
 
@@ -316,25 +297,27 @@ export class AvatarObj {
 
   public async loadAvatarWeeklyProgressData() {
     try {
-      const currentStudent = await Util.getCurrentStudent();
+      const currentStudent = Util.getCurrentStudent();
       if (!currentStudent) {
         return;
       }
 
       const api = ServiceConfig.getI().apiHandler;
-      const studentProfile = await api.getStudentResult(currentStudent.docId);
+      const studentProfile = await api.getStudentClassesAndSchools(
+        currentStudent.id
+      );
 
       let weeKlyProgressData: LeaderboardInfo | undefined;
 
       if (studentProfile?.classes != undefined) {
         weeKlyProgressData = await api.getLeaderboardResults(
-          studentProfile?.classes[0],
+          studentProfile?.classes[0].id,
           LeaderboardDropdownList.WEEKLY
         );
       } else {
         weeKlyProgressData =
           await api.getLeaderboardStudentResultFromB2CCollection(
-            currentStudent.docId
+            currentStudent.id
           );
       }
 
@@ -354,7 +337,7 @@ export class AvatarObj {
 
       for (let i = 0; i < weeklyData.length; i++) {
         const element = weeklyData[i];
-        if (currentStudent.docId == element.userId) {
+        if (currentStudent.id == element.userId) {
           let finalProgressTimespent = element.timeSpent;
           let computeMinutes = Math.floor(finalProgressTimespent / 60);
           let computeSec = finalProgressTimespent % 60;
@@ -380,7 +363,7 @@ export class AvatarObj {
       }
       this._mode = AvatarModes.ShowWeeklyProgress;
     } catch (error) {
-      console.log("loadAvatarWeeklyProgressData error ", error);
+      console.error("loadAvatarWeeklyProgressData error ", error);
     }
   }
 }

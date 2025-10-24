@@ -1,0 +1,108 @@
+.school-coordinators-page-container {
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0 1.5rem;
+}
+
+.school-coordinators-data-cable-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid #eaecf0;
+  border-radius: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.school-coordinators-data-cable-container table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 37.5rem;
+}
+
+.school-coordinators-data-cable-container th,
+.school-coordinators-data-cable-container td {
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.school-coordinators-data-cable-container th {
+  background-color: #f9fafb;
+  color: #667085;
+  font-weight: 500;
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.school-coordinators-data-cable-container td {
+  color: #344054;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  border-bottom: 1px solid #eaecf0;
+}
+.school-coordinators-data-cable-container tbody tr:last-child td {
+  border-bottom: none;
+}
+.school-coordinators-data-cable-container .principal-name-data.MuiTypography-root {
+  font-weight: 500 !important;
+  color: #1d2939 !important;
+}
+.school-coordinators-data-cable-container .truncate-text {
+  max-width: 15.625rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: middle;
+}
+.school-coordinators-footer {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0.75rem 0;
+}
+.school-coordinators-empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex-grow: 1;
+}
+
+.school-coordinators-empty-state-title.MuiTypography-root {
+  font-weight: 600 !important;
+  color: #1d2939 !important;
+  margin-bottom: 1rem !important;
+  font-size: 1.125rem;
+}
+
+.school-coordinators-empty-state-message.MuiTypography-root {
+  color: #475467 !important;
+  font-size: 0.875rem !important;
+  max-width: 20rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .school-coordinators-page-container {
+    padding: 0 1rem;
+  }
+
+  .school-coordinators-data-cable-container {
+    margin-top: 1rem;
+    overflow-x: auto;
+  }
+
+  .school-coordinators-data-cable-container th,
+  .school-coordinators-data-cable-container td {
+    padding: 0.625rem 1rem;
+  }
+}

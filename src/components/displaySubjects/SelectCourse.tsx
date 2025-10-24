@@ -5,68 +5,49 @@ import { t } from "i18next";
 import SelectIconImage from "./SelectIconImage";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
-import { DEFUALT_SUBJECT_CARD_COLOUR, PAGES } from "../../common/constants";
+import {
+  DEFUALT_SUBJECT_CARD_COLOUR,
+  PAGES,
+  TableTypes,
+} from "../../common/constants";
 import { useHistory } from "react-router";
-import { getDoc } from "firebase/firestore";
-import Curriculum from "../../models/curriculum";
-import Grade from "../../models/grade";
-
-// Define course priority using a constant map
-const COURSE_PRIORITY_MAP: Record<string, number> = {
-  en: 1, 
-  maths: 2, 
-  puzzle: 4, 
-};
-
-const getCoursePriority = (courseCode: string): number => {
-  return COURSE_PRIORITY_MAP[courseCode.toLowerCase()] ?? 3; 
-  // If courseCode isn't in the map, it defaults to position 3 (Other subjects).
-};
-
+import { ServiceConfig } from "../../services/ServiceConfig";
 interface CourseDetails {
-  course: Course;
-  grade?: Grade | null;
-  curriculum?: Curriculum | null;
+  course: TableTypes<"course">;
+  grade?: TableTypes<"grade"> | null;
+  curriculum?: TableTypes<"curriculum"> | null;
 }
-
 const SelectCourse: FC<{
-  courses: Course[];
+  courses: TableTypes<"course">[];
   modeParent: boolean;
-  onCourseChange: (course: Course) => void;
+  onCourseChange: (course: TableTypes<"course">) => void;
 }> = ({ courses, modeParent, onCourseChange }) => {
   const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
-  const history = useHistory();
+  const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
     fetchCourseDetails();
   }, [courses]);
-
-  // Fetch Course Details (with Grade & Curriculum)
   const fetchCourseDetails = async () => {
     const detailedCourses: CourseDetails[] = await Promise.all(
       courses.map(async (course) => {
-        const gradeDoc = await getDoc(course.grade);
-        const curriculumDoc = await getDoc(course.curriculum);
+        const gradeDoc = await api.getGradeById(course.grade_id!);
+        const curriculumDoc = await api.getCurriculumById(
+          course.curriculum_id!
+        );
         return {
           course,
-          grade: gradeDoc.exists() ? (gradeDoc.data() as Grade) : null,
-          curriculum: curriculumDoc.exists()
-            ? (curriculumDoc.data() as Curriculum)
-            : null,
+          grade: gradeDoc,
+          curriculum: curriculumDoc,
         };
       })
     );
-
-    // Sorting courses based on fixed priority order
-    detailedCourses.sort(
-      (a, b) =>
-        getCoursePriority(a.course.courseCode) -
-        getCoursePriority(b.course.courseCode)
-    );
-
     setCourseDetails(detailedCourses);
   };
-
+  courseDetails.sort((a, b) => {
+    return a.course.sort_index! - b.course.sort_index!;
+  });
+  const history = useHistory();
   return (
     <Splide
       hasTrack={true}
@@ -78,17 +59,20 @@ const SelectCourse: FC<{
         pagination: false,
       }}
     >
-      {courseDetails.map(({ course, grade, curriculum }) => {
+      {courseDetails.map(({ course, grade, curriculum }, index) => {
         return (
-          <SplideSlide className="slide" key={course.docId}>
+          <SplideSlide key={index} className="slide">
             <div
               onClick={() => {
                 onCourseChange(course);
               }}
               className="subject-button"
+              key={course.id}
             >
               <div id="subject-card-subject-name">
-                <p>{grade?.title}</p>
+                <div>
+                  <p>{grade?.name}</p>
+                </div>
               </div>
               <div
                 className="course-icon"
@@ -97,28 +81,29 @@ const SelectCourse: FC<{
                 }}
               >
                 <SelectIconImage
-                  localSrc={`courses/chapter_icons/${course.courseCode}.webp`}
+                  localSrc={`courses/chapter_icons/${course.code}.webp`}
                   defaultSrc={"assets/icons/DefaultIcon.png"}
-                  webSrc={course.thumbnail || "assets/icons/DefaultIcon.png"}
-                  imageWidth={"100%"}
-                  imageHeight={"80%"}
+                  webSrc={course.image || "assets/icons/DefaultIcon.png"}
+                  imageWidth={"80%"}
+                  imageHeight={"auto"}
                 />
               </div>
-              <div className="course-title">{course.title}</div>
+              <div className="course-title">{t(course.name)}</div>
               {curriculum && (
-                <div className="course-curriculum">{curriculum.title}</div>
+                <div className="course-curriculum">{curriculum.name}</div>
               )}
             </div>
           </SplideSlide>
         );
       })}
-      {modeParent && courseDetails.length > 0  ? (
+      {modeParent && courseDetails.length > 0 ? (
         <SplideSlide className="slide">
           <div
             onClick={() => {
               history.replace(PAGES.ADD_SUBJECTS);
             }}
             className="subject-button"
+            key={courses[0].id}
           >
             <div
               className="course-icon"
@@ -131,9 +116,10 @@ const SelectCourse: FC<{
             {t("Add Subject")}
           </div>
         </SplideSlide>
-      ) : null}
+      ) : (
+        <></>
+      )}
     </Splide>
   );
 };
-
 export default SelectCourse;

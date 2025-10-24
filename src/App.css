@@ -1,0 +1,36 @@
+/* Styles only for your custom MUI dialog */
+.custom-dialog .MuiPaper-root {
+  background-color: white;
+  color: black;
+  border-radius: 3vh;
+  z-index: 99999; /* ensures it is on top of dropdowns */
+  text-align: center;
+}
+
+.custom-dialog .MuiDialogTitle-root {
+  text-align: center;
+}
+
+.custom-dialog .MuiDialogContent-root {
+  text-align: center;
+  font-size: 1rem;
+}
+
+.custom-dialog .MuiDialogActions-root {
+  justify-content: center;
+}
+
+.custom-dialog .time-exceed-continue {
+  background-color: #83c327;
+  color: white;
+  opacity: 1;
+  border-radius: 1vh;
+  padding: 1vh 2vw;
+  font-weight: bold;
+  text-align: center;
+  width: auto;
+  min-width: 20vh;
+  max-width: 20vh;
+  display: inline-block;
+  margin-bottom: 1vw;
+}

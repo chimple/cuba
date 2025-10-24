@@ -7,6 +7,14 @@
   color: black;
   font-weight: bold;
 }
+
+#student-progress-display-progress-content {
+  margin: 3vw 1vw 1vw 8vw;
+  max-height: 51vh;
+  height: auto;
+  overflow-y: auto;
+}
+
 .course-detail-div {
   display: flex;
   flex-direction: column;
@@ -22,6 +30,7 @@
 .grade-text {
   font-size: 15px;
   text-transform: none;
+  color: #707070;
 }
 .curriculum-text {
   font-size: 14px;
@@ -30,12 +39,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-#student-progress-display-progress-content {
-  margin: 3vw 1vw 1vw 8vw;
-  height: 80vh;
-  overflow-y: scroll;
-}
-
 #student-progress-display-progress-content-text {
   white-space: nowrap;
   overflow: hidden;
@@ -46,4 +49,11 @@
 #student-progress-display-progress-no-data-message {
   text-align: center;
   color: black;
+}
+
+/*  */
+@media screen and (min-height: 500px) {
+  #student-progress-display-progress-content {
+    max-height: 300px;
+  }
 }

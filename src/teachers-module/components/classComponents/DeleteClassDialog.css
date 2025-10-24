@@ -1,0 +1,74 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.del-class-dialog {
+  cursor: pointer;
+  color: #4B79F0;
+}
+
+.modal-box {
+  background-color: white;
+  border-radius: 24px;
+  width: 80vw;
+  max-width: 400px;
+  padding: 1.4rem;
+  border: 1px solid #707070;
+}
+
+.modal-header {
+  font-weight: bold;
+  font-size: 1.2rem;
+  text-align: center;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.modal-message {
+  color: #707070;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+  font-weight: 400;
+  line-height: 25px;
+}
+.delete-class-modal-message{
+  text-align: center;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-around;
+  gap: 1rem;
+}
+
+.modal-button-confirm {
+  background: #9bc344;
+  opacity: 0.5;
+  color: white;
+  border-radius: 8px;
+  padding: 15px 30px;
+  text-transform: none;
+  font-size: 20px;
+  border: none;
+  cursor: pointer;
+}
+
+.modal-button-cancel {
+  background-color: #e68d8d;
+  opacity: 0.9;
+  color: white;
+  border-radius: 8px;
+  padding: 15px 30px;
+  text-transform: none;
+  font-size: 20px;
+  border: none;
+  cursor: pointer;
+}

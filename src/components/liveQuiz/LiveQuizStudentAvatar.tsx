@@ -1,7 +1,7 @@
 import { FC } from "react";
 import "./LiveQuizStudentAvatar.css";
 import User from "../../models/user";
-import { AVATARS } from "../../common/constants";
+import { AVATARS, TableTypes } from "../../common/constants";
 import {
   CircularProgressbarWithChildren,
   buildStyles,
@@ -10,8 +10,8 @@ import { Util } from "../../utility/util";
 import { t } from "i18next";
 
 const LiveQuizStudentAvatar: FC<{
-  student: User;
-  score: number;
+  student: TableTypes<"user">;
+  score?: number;
   percentage?: number;
   isCorrect?: boolean;
 }> = ({ student, score, percentage, isCorrect }) => {
@@ -42,13 +42,13 @@ const LiveQuizStudentAvatar: FC<{
           />
         )}
       </div>
-      {student && student.docId === Util.getCurrentStudent()?.docId ? (
+      {student && student.id === Util.getCurrentStudent()?.id ? (
         <p className="live-quiz-student-Name">{t("Me")}</p>
       ) : (
         <p className="live-quiz-student-Name">{student.name}</p>
       )}
 
-      <p className="live-quiz-student-score">{Math.round(score)}</p>
+      {score && <p className="live-quiz-student-score">{Math.round(score!)}</p>}
     </div>
   );
 };

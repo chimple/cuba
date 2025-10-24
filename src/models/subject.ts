@@ -4,11 +4,10 @@ import BaseObject from "./baseObject";
 export default class Subject extends BaseObject {
   private _description: string;
   private _title: string;
-  private _id: string;
+
   constructor(
     description: string,
     title: string,
-    id: string,
     updatedAt: Timestamp,
     createdAt: Timestamp,
     docId: string
@@ -16,7 +15,6 @@ export default class Subject extends BaseObject {
     super(updatedAt, createdAt, docId);
     this._description = description;
     this._title = title;
-    this._id = id;
   }
 
   public get description(): string {
@@ -30,11 +28,5 @@ export default class Subject extends BaseObject {
   }
   public set title(value: string) {
     this._title = value;
-  }
-  public get id(): string {
-    return this._id;
-  }
-  public set id(value: string) {
-    this._id = value;
   }
 }

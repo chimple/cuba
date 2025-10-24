@@ -1,38 +1,43 @@
 import { IonButton, IonPage } from "@ionic/react";
 import { useEffect, useState } from "react";
-import { FirebaseApi } from "../services/api/FirebaseApi";
 import { Util } from "../utility/util";
-import User from "../models/user";
 import { useHistory } from "react-router";
-import Assignment from "../models/assignment";
 import StudentAvatar from "../components/common/StudentAvatar";
-import { HOMEHEADERLIST, PAGES } from "../common/constants";
+import { PAGES, TableTypes } from "../common/constants";
 import "./LiveQuizRoom.css";
 import { t } from "i18next";
 import BarLoader from "react-spinners/BarLoader";
-import Lesson from "../models/lesson";
-import Course from "../models/course";
 import { FaHeart } from "react-icons/fa";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
 import BackButton from "../components/common/BackButton";
 import SkeltonLoading from "../components/SkeltonLoading";
+import { ServiceConfig } from "../services/ServiceConfig";
 const LiveQuizRoom: React.FC = () => {
-  const [students, setStudents] = useState(new Map<String, User>());
-  const [prevPlayedStudents, setPrevPlayedStudents] = useState<User[]>([]);
-  const [notPlayedStudents, setNotPlayedStudents] = useState<User[]>([]);
-  const [currentAssignment, setCurrentAssignment] = useState<Assignment>();
-  const api = FirebaseApi.getInstance();
+  const [students, setStudents] = useState(
+    new Map<String, TableTypes<"user">>()
+  );
+  const [prevPlayedStudents, setPrevPlayedStudents] = useState<
+    TableTypes<"user">[]
+  >([]);
+  const [notPlayedStudents, setNotPlayedStudents] = useState<
+    TableTypes<"user">[]
+  >([]);
+  const [currentAssignment, setCurrentAssignment] =
+    useState<TableTypes<"assignment">>();
+  const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const urlSearchParams = new URLSearchParams(window.location.search);
   const paramAssignmentId = urlSearchParams.get("assignmentId") ?? "";
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
-  const [lesson, setLesson] = useState<Lesson | undefined>();
-  const [course, setCourse] = useState<Course | undefined>();
+  const [lesson, setLesson] = useState<TableTypes<"lesson"> | undefined>();
+  const [course, setCourse] = useState<TableTypes<"course"> | undefined>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  let lessonRef;
-  let courseRef;
+  let lessonId;
+  let courseId;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+  const [assignmentResult, setAssignmentResult] =
+    useState<TableTypes<"result">[]>();
 
   const state = (history.location.state as any) ?? {};
   useEffect(() => {
@@ -44,49 +49,45 @@ const LiveQuizRoom: React.FC = () => {
     const currentStudent = Util.getCurrentStudent();
 
     if (!currentStudent) return;
-    let assignment: Assignment | undefined;
+    let assignment;
     if (!!state?.assignment) {
-      const tempAssignment = JSON.parse(state.assignment);
+      const tempAssignment: TableTypes<"assignment"> = JSON.parse(
+        state.assignment
+      );
       if (
-        tempAssignment?.assigner &&
-        tempAssignment?.class &&
-        tempAssignment?.lesson &&
-        tempAssignment?.school &&
-        tempAssignment?.course
+        tempAssignment?.created_by &&
+        tempAssignment?.class_id &&
+        tempAssignment?.lesson_id &&
+        tempAssignment?.school_id &&
+        tempAssignment?.course_id
       ) {
-        tempAssignment.assigner = Util.getRef(tempAssignment?.assigner);
-        tempAssignment.class = Util.getRef(tempAssignment?.class);
-        tempAssignment.lesson = Util.getRef(tempAssignment?.lesson);
-        tempAssignment.school = Util.getRef(tempAssignment?.school);
-        tempAssignment.course = Util.getRef(tempAssignment?.course);
         assignment = tempAssignment;
       }
     }
     if (!assignment) {
       assignment = await api.getAssignmentById(paramAssignmentId);
     }
-    lessonRef = assignment?.lesson;
-    courseRef = assignment?.course;
-    const tempLesson = await api.getLesson(
-      lessonRef.id,
-      undefined,
-      true,
-      assignment
-    );
+    lessonId = assignment?.lesson_id;
+    courseId = assignment?.course_id;
+    const tempLesson = await api.getLesson(lessonId);
     if (!!tempLesson) {
       setLesson(tempLesson);
     }
-    const tempCourse = await api.getCourse(courseRef?.id);
+    const tempCourse = await api.getCourse(courseId);
     if (!!tempCourse) {
       setCourse(tempCourse);
     }
-    if (!assignment?.lesson?.id) return;
+    if (!assignment?.lesson_id) return;
     setCurrentAssignment(assignment);
-    downloadQuiz(assignment.lesson.id);
-    const linked = await api.isStudentLinked(currentStudent.docId, true);
+    if (tempLesson?.cocos_lesson_id) {
+      downloadQuiz(tempLesson?.cocos_lesson_id);
+    }
+    const linked = await api.isStudentLinked(currentStudent.id, true);
     if (!linked) return;
 
-    const studentResult = await api.getStudentResult(currentStudent.docId);
+    const studentResult = await api.getStudentClassesAndSchools(
+      currentStudent.id
+    );
     if (
       !studentResult ||
       !studentResult.classes ||
@@ -95,36 +96,41 @@ const LiveQuizRoom: React.FC = () => {
       return;
     const classId = studentResult.classes[0];
     if (!classId) return;
-    const studentsData = await api.getStudentsForClass(classId);
-    const tempStudentMap = new Map<String, User>();
-    for (let student of studentsData) {
-      tempStudentMap.set(student.docId, student);
-    }
+    const results =
+      await api.getStudentResultsByAssignmentId(paramAssignmentId);
+    const studentsData = results[0];
+    const tempStudentMap = new Map<String, TableTypes<"user">>();
+    studentsData.user_data.map((student) => {
+      tempStudentMap.set(student.id, student);
+    });
     setStudents(tempStudentMap);
 
     const allStudents = tempStudentMap ?? students;
-    let tempPrevPlayedStudents: User[] = prevPlayedStudents;
-    let tempNotPlayedStudents: User[] = [];
+    let tempPrevPlayedStudents: TableTypes<"user">[] = prevPlayedStudents;
+    let tempNotPlayedStudents: TableTypes<"user">[] = [];
     // const tempLiveStudents: User[] = [];
     if (tempPrevPlayedStudents.length < 1) {
-      if (
-        !!assignment &&
-        !!assignment.completedStudents &&
-        assignment.completedStudents.length > 0
-      ) {
-        tempPrevPlayedStudents = assignment.completedStudents
-          .map((value) => allStudents.get(value))
-          .filter((student) => !!student) as User[];
+      let resultData: TableTypes<"result">[] | null = studentsData.result_data;
+      let userData: TableTypes<"user">[] | null = studentsData.user_data;
+      if (results) {
+        setAssignmentResult(resultData);
+        const uniqueUserIds = new Set<string>();
+        for (let userResult of resultData) {
+          for (let user of userData) {
+            if (user.id === userResult.student_id) {
+              if (user && !uniqueUserIds.has(user.id)) {
+                tempPrevPlayedStudents.push(user);
+                uniqueUserIds.add(user.id);
+              }
+            }
+          }
+        }
       }
     }
-    console.log(
-      "🚀 ~ file: LiveQuizRoom.tsx:98 ~ hasPlayedBefore ~ tempPrevPlayedStudents:",
-      tempPrevPlayedStudents
-    );
     tempNotPlayedStudents = Array.from(allStudents.values()).filter(
       (student) => {
         const hasPlayedBefore = tempPrevPlayedStudents.some(
-          (prevStudent) => prevStudent.docId === student.docId
+          (prevStudent) => prevStudent.id === student.id
         );
         return !hasPlayedBefore;
       }
@@ -136,21 +142,11 @@ const LiveQuizRoom: React.FC = () => {
 
   const downloadQuiz = async (lessonId: string) => {
     const dow = await Util.downloadZipBundle([lessonId]);
-    console.log("🚀 ~ file: LiveQuizRoom.tsx:103 ~ downloadQuiz ~ dow:", dow);
     setIsDownloaded(dow);
   };
   const joinQuiz = async (studentId: string, assignmentId: string) => {
-    console.log(
-      "🚀 ~ file: LiveQuizRoom.tsx:111 ~ joinQuiz ~ assignmentId:",
-      assignmentId
-    );
-    console.log(
-      "🚀 ~ file: LiveQuizRoom.tsx:111 ~ joinQuiz ~ studentId:",
-      studentId
-    );
     setIsJoining(true);
-    const res = await api.joinLiveQuiz(studentId, assignmentId);
-    console.log("🚀 ~ file: LiveQuizRoom.tsx:108 ~ joinQuiz ~ res:", res);
+    const res = await api.joinLiveQuiz(assignmentId, studentId);
     if (!res || !online) {
       setIsJoining(false);
       history.replace(PAGES.LIVE_QUIZ_JOIN);
@@ -174,11 +170,11 @@ const LiveQuizRoom: React.FC = () => {
         <div className="main-header-text">
           <p id="header-text-1">{t("Live Challenge")}</p>
           <p id="header-text-2">
-            {course?.title +
+            {course?.name +
               " | " +
-              lesson?.chapterTitle +
+              // lesson?.chapterTitle +
               " | " +
-              lesson?.title}
+              lesson?.name}
           </p>
         </div>
         <div></div>
@@ -212,14 +208,19 @@ const LiveQuizRoom: React.FC = () => {
             ) : prevPlayedStudents.length > 0 ? (
               prevPlayedStudents
                 .sort((a, b) => {
-                  const scoreA =
-                    currentAssignment?.results[a.docId]?.score || 0;
-                  const scoreB =
-                    currentAssignment?.results[b.docId]?.score || 0;
+                  const resultA = assignmentResult?.find(
+                    (result) => result.student_id === a.id
+                  );
+                  const resultB = assignmentResult?.find(
+                    (result) => result.student_id === b.id
+                  );
+                  const scoreA = resultA?.score || 0;
+                  const scoreB = resultB?.score || 0;
                   return scoreB - scoreA;
                 })
+
                 .map((student, index) => (
-                  <div key={student.docId} className="student-avatar-container">
+                  <div key={student.id} className="student-avatar-container">
                     {index < 3 && (
                       <div
                         className={`top-performer-circle color-${index + 1}`}
@@ -234,10 +235,14 @@ const LiveQuizRoom: React.FC = () => {
                         width={70}
                         namePosition={"below"}
                       />
-                      {!!currentAssignment?.results && (
+                      {assignmentResult?.some(
+                        (result) => result.student_id === student.id
+                      ) && (
                         <p className="student-score">
                           {Math.round(
-                            currentAssignment.results[student.docId]?.score
+                            assignmentResult.find(
+                              (result) => result.student_id === student.id
+                            )?.score || 0
                           )}
                         </p>
                       )}
@@ -271,14 +276,14 @@ const LiveQuizRoom: React.FC = () => {
               />
             ) : (
               notPlayedStudents.map((student) => (
-                <div key={student.docId} className="student-avatar-container">
-                  {student.docId === Util.getCurrentStudent()?.docId && (
+                <div key={student.id} className="student-avatar-container">
+                  {student.id === Util.getCurrentStudent()?.id && (
                     <div className="green-circle">
                       <FaHeart color="white" />
                     </div>
                   )}
                   <StudentAvatar
-                    key={student.docId}
+                    key={student.id}
                     student={student}
                     onClicked={() => {}}
                     width={70}
@@ -316,11 +321,8 @@ const LiveQuizRoom: React.FC = () => {
                 });
                 return;
               }
-              if (!!currentAssignment?.docId) {
-                joinQuiz(
-                  Util.getCurrentStudent()?.docId!,
-                  currentAssignment.docId
-                );
+              if (!!currentAssignment?.id) {
+                joinQuiz(Util.getCurrentStudent()?.id!, currentAssignment.id);
               }
             }}
           >

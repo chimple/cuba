@@ -1,0 +1,22 @@
+.rewardBox-box-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: absolute;
+  bottom: -3%;
+  right: -2%;
+  z-index: 0;
+}
+
+.rewardBox-box-wrapper {
+  position: relative;
+  width: 20.5vw;
+  height: 23vh;
+  min-width: 170px;
+  max-width: 250px;
+  min-height: 170px;
+  max-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

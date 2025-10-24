@@ -11,7 +11,7 @@ const TextBox: React.FC<{
   onFocus?;
   maxLength: number;
   inputValue: string;
-  icon?: JSX.Element; // Define icon prop as JSX.Element
+  icon?: React.JSX.Element; // Define icon prop as JSX.Element
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   // onChange: (event: IonInputCustomEvent<InputChangeEventDetail>) => void;
 }> = ({
@@ -35,9 +35,9 @@ const TextBox: React.FC<{
           <div id="text-box-container">
             <div id="text-box-label-content">
               <input
+                id="text-box-floating-input"
                 ref={ref}
                 onFocus={onFocus}
-                id="text-box-floating-input"
                 type={inputType}
                 value={inputValue}
                 onChange={onChange}

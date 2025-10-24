@@ -1,6 +1,6 @@
 import { IonButton, IonContent, IonPage, IonRow } from "@ionic/react";
 import { useEffect, useState } from "react";
-import { COURSES, MIN_PASS, PAGES } from "../common/constants";
+import { COURSES, MIN_PASS, PAGES, TableTypes } from "../common/constants";
 import LessonCard from "../components/LessonCard";
 import Loading from "../components/Loading";
 import ProfileHeader from "../components/ProfileHeader";
@@ -23,7 +23,7 @@ const Profile: React.FC = () => {
   );
   // const [unlockUpTo, setUnlockUpTo] = useState(-1);
   const history = useHistory();
-  const [currentStudent, setStudent] = useState<User>();
+  const [currentStudent, setStudent] = useState<TableTypes<"user">>();
   useEffect(() => {
     if (!ServiceConfig.getI().apiHandler.currentStudent) {
       // history.replace(PAGES.DISPLAY_STUDENT);
@@ -34,7 +34,7 @@ const Profile: React.FC = () => {
   }, []);
 
   async function init(subjectCode = Util.getCourseByGrade(COURSES.ENGLISH)) {
-    const currentStudent = await Util.getCurrentStudent();
+    const currentStudent = Util.getCurrentStudent();
     if (!currentStudent) {
       history.replace(PAGES.DISPLAY_STUDENT);
     }

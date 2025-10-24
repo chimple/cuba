@@ -1,0 +1,120 @@
+.detail-list__header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.detail-list__icon-container {
+  display: flex;
+  align-items: center;
+  color: #707070;
+  font-weight: 600;
+  font-size: 14px;
+  padding-right: 2px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.header-text {
+  margin-bottom: 4px;
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.class-icons {
+  display: flex;
+  align-items: center;
+  gap: 3vw;
+  margin: 0 10px;
+  justify-content: flex-start;
+}
+
+.class-user-icon {
+  width: 20px;
+  height: 20px;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+.class-subjects-icon {
+  width: 20px;
+  height: 20px;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+.horizontal-line {
+  height: 0.6px;
+  border-width: 0;
+  box-sizing: border-box;
+  background: lightgrey;
+  margin: 8px 15px 0 15px;
+}
+.name-div span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 150px;
+}
+.list-icon {
+  color: black !important;
+}
+.name-div {
+  color: var(--text-color);
+}
+.detail-list-div {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.main-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-bottom: 70px;
+}
+
+.no-school-available {
+  text-align: center;
+}
+.detail-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 0px 13px;
+  align-items: center;
+  width: 100%;
+  flex-wrap: nowrap;
+}
+.detail-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 70%;
+  overflow: hidden;
+}
+
+.detail-school-name {
+  color: #707070;
+  font-size: 18px;
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+.detail-horizontal-line {
+  height: 0.6px;
+  border-width: 0;
+  box-sizing: border-box;
+  background: lightgrey;
+  margin: 5px 15px;
+}
+.detail-list__icon-container-users,
+.detail-list__icon-container-subjects {
+  width: 61px; /* fixed width */
+  text-align: center; /* keep it centered */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* show ... if too long */
+}
