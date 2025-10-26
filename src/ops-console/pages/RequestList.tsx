@@ -452,7 +452,7 @@ const RequestList: React.FC = () => {
       return;
     }
 
-    // Find the full request data (raw, not mapped)
+    // Find the full request data
     const fullRequestData = rawRequestData.find(
       (r) => r.request_id === row.request_id
     );
@@ -497,7 +497,7 @@ const RequestList: React.FC = () => {
       return;
     }
 
-    // Navigate with state, pass the full raw request object (not mappedData)
+    // Navigate with state
     history.push({
       pathname: pathToNavigate,
       state: { request: fullRequestData },
