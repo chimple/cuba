@@ -59,6 +59,10 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
     setError("");
     
     try {
+      if (!requestData || !requestData.id || !requestData.respondedBy || !requestData.respondedBy.id || !requestData.school || !requestData.school.id) {
+        setIsLoading(false);
+        return;
+      }
       const status = isTeacherOrPrincipal && selectedReason === WRONG_SCHOOL_SELECTED ? STATUS.FLAGGED : STATUS.REJECTED;
       const finalReason = getFinalReason();
       

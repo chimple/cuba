@@ -22,12 +22,14 @@ const StudentRejectedRequestDetails = () => {
       group3?: string;
     };
     rejectedBy?: { name?: string };
+    respondedBy?: { name?: string };
     requestedBy?: { name?: string; phone_number?: string; email?: string };
     request_id?: string;
     request_type?: string;
     created_at?: string;
     updated_at?: string;
     rejected_reason_type?: string;
+    rejected_reason_description?: string;
   };
 
   const [requestDetails, setRequestDetails] = useState<RequestDetails | null>(
@@ -93,7 +95,7 @@ const StudentRejectedRequestDetails = () => {
       : t("-"); // Translated '-'
 
   const school = requestDetails.school || {};
-  const rejectedBy = requestDetails.rejectedBy || {};
+  const rejectedBy = requestDetails.respondedBy || {};
   const requestedBy = requestDetails.requestedBy || {};
 
   return (
@@ -245,6 +247,15 @@ const StudentRejectedRequestDetails = () => {
               </span>{" "}
               {/* Class name updated & Translated */}
               <span>{formatDT(requestDetails.updated_at)}</span>
+            </div>
+            <Divider className="ops-rejected-request-details-divider-margin" />
+            <div className="ops-rejected-request-details-label-row">
+              <span className="ops-rejected-request-details-label-reject">
+                {t("Message to Admin:")}
+              </span>
+            </div>
+            <div className="ops-rejected-request-details-message-box">
+              {requestDetails.rejected_reason_description?.trim()}
             </div>
           </Paper>
           <Paper className="ops-rejected-request-details-details-card">
