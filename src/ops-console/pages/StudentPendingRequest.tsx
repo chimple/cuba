@@ -425,7 +425,7 @@ const StudentPendingRequestDetails = () => {
         <RejectRequestPopup
           requestData={{
             ...requestData,
-            respondedBy: requestData?.respondedBy || requestData?.requestedBy || {},
+            respondedBy: requestData?.respondedBy || {},
             school: requestData?.school || school || {},
           }}
           onClose={() => setShowRejectPopup(false)}
