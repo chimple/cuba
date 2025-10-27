@@ -7917,7 +7917,7 @@ export class SupabaseApi implements ServiceApi {
               `request_type.in.(${matchingRequestTypes.join(",")})`
             );
 
-          if (!isNaN(parseInt(trimmedSearchTerm!, 10))) {
+          if (trimmedSearchTerm.length) {
             orConditions.push(`request_id.eq.${trimmedSearchTerm}`);
           }
 
@@ -7948,7 +7948,7 @@ export class SupabaseApi implements ServiceApi {
       let rowsQ = this.supabase
         .from(TABLES.OpsRequests)
         .select(
-          "id, request_id, request_status, request_type, request_ends_at, is_deleted, school_id, class_id, requested_by, responded_by, created_at, updated_at, rejected_reason_description, rejected_reason_type"
+          "id, request_id, request_status, request_type, request_ends_at, is_deleted, school_id, class_id, requested_by, responded_by, created_at, updated_at, rejected_reason_description, rejected_reason_type, school:school_id(id, name)"
         );
       const { q: rq } = applyFilters(rowsQ);
 
@@ -8029,7 +8029,7 @@ export class SupabaseApi implements ServiceApi {
 
       const data = rows.map((r: any) => ({
         ...r,
-        school: r.school_id ? schoolMap.get(r.school_id) ?? null : null,
+        school: r.school || (r.school_id ? schoolMap.get(r.school_id) ?? null : null),
         requestedBy: r.requested_by
           ? userMap.get(r.requested_by) ?? null
           : null,
@@ -8059,7 +8059,7 @@ export class SupabaseApi implements ServiceApi {
 
         this.supabase
           .from(TABLES.OpsRequests)
-          .select("school:school(name)")
+          .select("school_id, school:school(id, name)")
           .eq("is_deleted", false)
           .not("school_id", "is", null),
       ]);
@@ -8082,20 +8082,23 @@ export class SupabaseApi implements ServiceApi {
       );
       const uniqueRequestTypes = [...new Set(allRequestTypes)];
 
-      // 2. Get unique school names
-      const schoolNames = new Set<string>();
+      // 2. Get unique schools with id and name
+      const schoolMap = new Map<string, { id: string; name: string }>();
 
       ((schoolResponse.data as any[]) || []).forEach((item) => {
-        if (item.school && item.school.name) {
-          schoolNames.add(item.school.name);
+        if (item.school && item.school.id && item.school.name) {
+          schoolMap.set(item.school.id, {
+            id: item.school.id,
+            name: item.school.name,
+          });
         }
       });
 
-      const uniqueSchoolNames = Array.from(schoolNames);
+      const uniqueSchools = Array.from(schoolMap.values());
 
       return {
         requestType: uniqueRequestTypes,
-        school: uniqueSchoolNames,
+        school: uniqueSchools,
       };
     } catch (error) {
       console.error("Error in getRequestFilterOptions:", error);
