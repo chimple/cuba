@@ -1,45 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useHistory, useLocation } from "react-router-dom";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { DEFAULT_PAGE_SIZE, PAGES, REQUEST_TABS } from "../../common/constants";
+import React, { useState } from "react";
+import { useParams, useHistory } from "react-router-dom";
+import { PAGES } from "../../common/constants";
 import { useTranslation } from "react-i18next";
-import { Typography, Divider, Paper, Button, TextField, Select, MenuItem, FormControl, InputLabel, Grid } from "@mui/material";
+import { Typography, Divider, Paper, Button, TextField, Select, MenuItem, FormControl, Grid } from "@mui/material";
 import "./OpsFlaggedRequestDetails.css";
 
 const OpsFlaggedRequestDetails = () => {
   const { id } = useParams<{ id: string }>();
   const history = useHistory();
-  const location = useLocation();
-  const api = ServiceConfig.getI().apiHandler;
   const { t } = useTranslation();
 
-  type RequestDetails = {
-    school?: {
-      id?: string;
-      name?: string;
-      udise?: string;
-      country?: string;
-      group1?: string;
-      group3?: string;
-      district?: string;
-      state?: string;
-    };
-    respondedBy?: { id?: string; name?: string; phone_number?: string; email?: string };
-    requestedBy?: { id?: string; name?: string; phone_number?: string; email?: string };
-    request_id?: string;
-    request_type?: string;
-    created_at?: string;
-    updated_at?: string;
-    classInfo?: { name?: string; section?: string };
-    class_id?: string;
-    flagged_by?: string;
-    flagged_date?: string;
-  };
-
-  const [requestDetails, setRequestDetails] = useState<RequestDetails | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
+  // Editable state for design only
   const [selectedRequestType, setSelectedRequestType] = useState("");
   const [selectedGrade, setSelectedGrade] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
@@ -49,91 +20,14 @@ const OpsFlaggedRequestDetails = () => {
   const [selectedState, setSelectedState] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
 
-  useEffect(() => {
-    const fetchRequestDetails = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const state = location.state as { request?: any } | undefined;
-        if (state?.request && state.request.request_id === id) {
-          setRequestDetails(state.request);
-          setSelectedRequestType(state.request.request_type || "");
-          setSelectedGrade(state.request.classInfo?.name || "");
-          setSelectedSection(state.request.classInfo?.section || "");
-          setSelectedSchoolUdise(state.request.school?.udise || "");
-          setSelectedSchoolName(state.request.school?.name || "");
-          setSelectedDistrict(state.request.school?.district || "");
-          setSelectedState(state.request.school?.state || "");
-          setSelectedCountry(state.request.school?.country || "");
-        } else {
-          const flaggedRequests = await api.getOpsRequests(
-            "flagged",
-            1,
-            DEFAULT_PAGE_SIZE
-          );
-          const req = flaggedRequests?.find((r: any) => r.request_id === id);
-          if (req) {
-            setRequestDetails(req);
-            setSelectedRequestType(req.request_type || "");
-            setSelectedGrade(req.classInfo?.name || "");
-            setSelectedSection(req.classInfo?.section || "");
-            setSelectedSchoolUdise(req.school?.udise || "");
-            setSelectedSchoolName(req.school?.name || "");
-            setSelectedDistrict(req.school?.district || "");
-            setSelectedState(req.school?.state || "");
-            setSelectedCountry(req.school?.country || "");
-          }
-          else setError(t("Request not found"));
-        }
-      } catch (e) {
-        setError(t("Failed to load request details. Please try again."));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchRequestDetails();
-  }, [id, api, location.state, t]);
+  // Dropdown options (empty for design only)
+  const requestTypeOptions: string[] = [];
+  const gradeOptions: string[] = [];
+  const sectionOptions: string[] = [];
+  const schoolOptions: string[] = [];
 
-  if (isLoading)
-    return (
-      <div className="ops-flagged-request-details-centered">
-        <Typography>{t("Loading request details...")}</Typography>
-      </div>
-    );
-  if (error)
-    return (
-      <div className="ops-flagged-request-details-centered">
-        <Typography color="error">{error}</Typography>
-        <Button onClick={() => history.goBack()}>{t("Go Back")}</Button>
-      </div>
-    );
-  if (!requestDetails) return null;
-
-  const formatDT = (d: string | undefined) =>
-    d
-      ? new Date(d).toLocaleString("en-IN", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })
-      : t("-");
-
-  const school = requestDetails.school || {};
-  const flaggedBy = requestDetails.respondedBy || {};
-  const requestedBy = requestDetails.requestedBy || {};
-
-  // Example dropdown options (replace with real data as needed)
-  const requestTypeOptions = [];
-  const gradeOptions = [];
-  const sectionOptions = [];
-  const schoolOptions = [];
-
-  const handleApprove = async () => {
-    // TODO: Implement approve functionality
-    console.log("Approve button clicked");
+  const handleApprove = () => {
+    // implement later
   };
 
   const handleCancel = () => {
@@ -170,15 +64,15 @@ const OpsFlaggedRequestDetails = () => {
             <Divider className="ops-flagged-request-details-divider" />
             <div className="ops-flagged-request-details-field-stack">
               <div className="ops-flagged-request-details-label">{t("Name")}</div>
-              <div>{requestedBy.name || t("-")}</div>
+              <div>-</div>
             </div>
             <div className="ops-flagged-request-details-field-stack">
               <div className="ops-flagged-request-details-label">{t("Phone Number")}</div>
-              <div>{requestedBy.phone_number || t("-")}</div>
+              <div>-</div>
             </div>
             <div className="ops-flagged-request-details-field-stack">
               <div className="ops-flagged-request-details-label">{t("Email ID")}</div>
-              <div>{requestedBy.email || t("-")}</div>
+              <div>-</div>
             </div>
             <Divider className="ops-flagged-request-details-divider" />
             <Typography variant="h6" className="ops-flagged-request-details-card-title">
@@ -234,15 +128,15 @@ const OpsFlaggedRequestDetails = () => {
             <Divider className="ops-flagged-request-details-divider" />
             <div className="ops-flagged-request-details-label-row">
               <span className="ops-flagged-request-details-label-flagged">{t("Flagged By")}</span>
-              <span className="ops-flagged-request-details-value-flagged">{flaggedBy.name || t("-")}</span>
+              <span className="ops-flagged-request-details-value-flagged">-</span>
             </div>
             <div className="ops-flagged-request-details-label-row">
               <span className="ops-flagged-request-details-label-flagged">{t("Phone Number")}</span>
-              <span className="ops-flagged-request-details-value-flagged">{flaggedBy.phone_number || t("-")}</span>
+              <span className="ops-flagged-request-details-value-flagged">-</span>
             </div>
             <div className="ops-flagged-request-details-label-row">
               <span className="ops-flagged-request-details-label-flagged">{t("Flagged on")}</span>
-              <span className="ops-flagged-request-details-value-flagged">{formatDT(requestDetails.updated_at)}</span>
+              <span className="ops-flagged-request-details-value-flagged">-</span>
             </div>
           </Paper>
         </Grid>
