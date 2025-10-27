@@ -60,6 +60,7 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
     
     try {
       if (!requestData || !requestData.id || !requestData.respondedBy || !requestData.respondedBy.id || !requestData.school || !requestData.school.id) {
+        setError(t("Incomplete request data. Please try again.") || "Incomplete request data. Please try again.");
         setIsLoading(false);
         return;
       }
