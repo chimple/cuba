@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import "./RejectRequestPopup.css";
-import ExclamationIcon from "../../assets/icons/Exclamation.svg";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import { PAGES, REQUEST_TABS, STATUS } from "../../../common/constants";
 import { useHistory } from "react-router-dom";
@@ -59,7 +58,7 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
     setError("");
     
     try {
-      if (!requestData || !requestData.id || !requestData.respondedBy || !requestData.respondedBy.id || !requestData.school || !requestData.school.id) {
+      if (!requestData || !requestData.id) {
         setError(t("Incomplete request data. Please try again.") || "Incomplete request data. Please try again.");
         setIsLoading(false);
         return;
@@ -92,7 +91,7 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
       <div className="reject-popup-container" onClick={(e) => e.stopPropagation()}>
         <div className="reject-popup-header">
           <div className="reject-popup-header-img">
-            <img src={ExclamationIcon} alt="error icon" />
+            <img src="assets/icons/Exclamation.svg" alt="error icon" />
           </div>
           <div className="reject-popup-header-content error">
             <span>{t("Reject Request")} - {requestData.request_id}</span>
