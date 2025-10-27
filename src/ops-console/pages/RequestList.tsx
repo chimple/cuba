@@ -33,7 +33,17 @@ const filterConfigsForRequests = [
 
 type Filters = Record<string, string[]>;
 
+type FilterOptions = {
+  request_type: string[];
+  school: Array<{ id: string; name: string }>;
+};
+
 const INITIAL_FILTERS: Filters = {
+  request_type: [],
+  school: [],
+};
+
+const INITIAL_FILTER_OPTIONS: FilterOptions = {
   request_type: [],
   school: [],
 };
@@ -85,7 +95,8 @@ const RequestList: React.FC = () => {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [tempFilters, setTempFilters] = useState<Filters>(INITIAL_FILTERS);
-  const [filterOptions, setFilterOptions] = useState<Filters>(INITIAL_FILTERS);
+  const [filterOptions, setFilterOptions] = useState(INITIAL_FILTER_OPTIONS);
+  const [schoolNameToIdMap, setSchoolNameToIdMap] = useState<Map<string, string>>(new Map());
   const [orderBy, setOrderBy] = useState("");
   const [orderDir, setOrderDir] = useState<"asc" | "desc">("asc");
   const [pageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -126,6 +137,12 @@ const RequestList: React.FC = () => {
             request_type: data.requestType || [],
             school: data.school || [],
           });
+          
+          const nameToIdMap = new Map<string, string>();
+          (data.school || []).forEach((school: { id: string; name: string }) => {
+            nameToIdMap.set(school.name, school.id);
+          });
+          setSchoolNameToIdMap(nameToIdMap);
         }
       } catch (error) {
         console.error("Failed to fetch filter options", error);
@@ -159,8 +176,13 @@ const RequestList: React.FC = () => {
             tempTab = Constants.public.Enums.ops_request_status[0];
         }
 
+        const filtersWithSchoolIds = {
+          ...filters,
+          school: filters.school.map((name) => schoolNameToIdMap.get(name) || name).filter(Boolean),
+        };
+
         const cleanedFilters = Object.fromEntries(
-          Object.entries({ ...filters }).filter(
+          Object.entries(filtersWithSchoolIds).filter(
             ([_, v]) => Array.isArray(v) && v.length > 0
           )
         );
@@ -280,6 +302,7 @@ const RequestList: React.FC = () => {
     orderDir,
     filters,
     debouncedSearchTerm,
+    schoolNameToIdMap,
   ]);
 
   const formatDateOnly = (dateStr?: string) => {
@@ -308,7 +331,7 @@ const RequestList: React.FC = () => {
       key: "school_name",
       label: t("School Name"),
       width: "fit-content",
-      sortable: true,
+      sortable: false,
       orderBy: "school_name",
     },
     {
@@ -348,7 +371,7 @@ const RequestList: React.FC = () => {
       key: "school_name",
       label: t("School Name"),
       width: "15%",
-      sortable: true,
+      sortable: false,
       orderBy: "school_name",
     },
     {
@@ -395,7 +418,7 @@ const RequestList: React.FC = () => {
       key: "school_name",
       label: t("School Name"),
       width: "15%",
-      sortable: true,
+      sortable: false,
       orderBy: "school_name",
     },
     {
@@ -441,7 +464,7 @@ const RequestList: React.FC = () => {
       key: "school_name",
       label: t("School Name"),
       width: "15%",
-      sortable: true,
+      sortable: false,
       orderBy: "school_name",
     },
     {
@@ -504,6 +527,11 @@ const RequestList: React.FC = () => {
     setPage(1);
   };
   const pageCount = Math.ceil(total / pageSize);
+  
+  const filterOptionsForSlider: Record<string, string[]> = {
+    request_type: filterOptions.request_type,
+    school: filterOptions.school.map((s) => s.name),
+  };
 
   const handleRowClick = (id: string | number, row: any) => {
     // Ensure request_type exists and is a string
@@ -651,7 +679,7 @@ const RequestList: React.FC = () => {
               setTempFilters(filters);
             }}
             filters={tempFilters}
-            filterOptions={filterOptions}
+            filterOptions={filterOptionsForSlider}
             onFilterChange={(name, value) =>
               setTempFilters((prev) => ({ ...prev, [name]: value }))
             }
