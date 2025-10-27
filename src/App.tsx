@@ -217,7 +217,7 @@ const App: React.FC = () => {
           ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
         } catch (error) {
           console.error("Error during logout and mode switch:", error);
-          return;
+          throw error;
         }
       }
     };

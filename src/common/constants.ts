@@ -721,7 +721,7 @@ export interface PortPlugin {
   }): Promise<void>;
   sendDataToNative(options: {
     eventName: string;
-    params: any;
+    params: Record<string, unknown>;
   }): Promise<void>;
 }
 export const DEBUG_15 = "debug15";
