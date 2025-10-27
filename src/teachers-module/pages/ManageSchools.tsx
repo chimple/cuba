@@ -83,7 +83,6 @@ const ManageSchools: React.FC = () => {
   };
 
   const loadMoreSchools = async (event: any) => {
-    console.log("Loading more schools...");
     if (isLoading || !hasMore || !currentUser) {
       event.target.complete();
       return;
