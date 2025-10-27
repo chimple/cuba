@@ -140,7 +140,11 @@ const SideMenu: React.FC<{
         setClassCode(classCode);
       }
 
-      const allSchools = await api.getSchoolsForUser(currentUser.id);
+      const allSchools = await api.getSchoolsForUser(currentUser.id,{
+        page: 1,
+        page_size: 500, 
+      });
+
       if (allSchools && allSchools.length > 0) {
         const schoolMap = allSchools.map(({ school }: any) => ({
           id: school.id,
