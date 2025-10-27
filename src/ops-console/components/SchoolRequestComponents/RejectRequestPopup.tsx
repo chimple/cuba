@@ -75,7 +75,7 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
       );
       await api.updateSchoolStatus(requestData.school.id, status);
       
-      const targetTab = status === STATUS.FLAGGED ? REQUEST_TABS.PENDING : REQUEST_TABS.REJECTED;
+      const targetTab = status === STATUS.FLAGGED ? REQUEST_TABS.FLAGGED : REQUEST_TABS.REJECTED;
       history.push(
         `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${targetTab}`
       );
