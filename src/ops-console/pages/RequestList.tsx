@@ -27,8 +27,8 @@ import "./RequestList.css";
 import { Constants } from "../../services/database";
 
 const filterConfigsForRequests = [
-  { key: "request_type", label: t("Request Type") },
   { key: "school", label: t("Select School") },
+  { key: "request_type", label: t("Request Type") },
 ];
 
 type Filters = Record<string, string[]>;
@@ -141,12 +141,23 @@ const RequestList: React.FC = () => {
     const fetchData = async () => {
       setIsDataLoading(true);
       try {
-        const tempTab: EnumType<"ops_request_status"> =
-          selectedTab === REQUEST_TABS.PENDING
-            ? Constants.public.Enums.ops_request_status[0]
-            : selectedTab === REQUEST_TABS.APPROVED
-            ? Constants.public.Enums.ops_request_status[2]
-            : Constants.public.Enums.ops_request_status[1];
+        let tempTab: EnumType<"ops_request_status">;
+        switch (selectedTab) {
+          case REQUEST_TABS.PENDING:
+            tempTab = Constants.public.Enums.ops_request_status[0];
+            break;
+          case REQUEST_TABS.APPROVED:
+            tempTab = Constants.public.Enums.ops_request_status[2];
+            break;
+          case REQUEST_TABS.REJECTED:
+            tempTab = Constants.public.Enums.ops_request_status[1];
+            break;
+          case REQUEST_TABS.FLAGGED:
+            tempTab = Constants.public.Enums.ops_request_status[3];
+            break;
+          default:
+            tempTab = Constants.public.Enums.ops_request_status[0];
+        }
 
         const cleanedFilters = Object.fromEntries(
           Object.entries({ ...filters }).filter(
@@ -158,6 +169,7 @@ const RequestList: React.FC = () => {
           approved_date: "updated_at",
           rejected_date: "updated_at",
           requested_date: "created_at",
+          flagged_date: "updated_at",
         };
         const backendOrderBy = orderByMapping[orderBy] || orderBy;
 
@@ -206,6 +218,18 @@ const RequestList: React.FC = () => {
               rejected_date: formatDateOnly(req.updated_at),
               rejected_reason: req.rejected_reason_type || "-",
               rejected_by: req.respondedBy?.name || "-",
+            }));
+            break;
+
+          case REQUEST_TABS.FLAGGED:
+            mappedData = (data || []).map((req) => ({
+              request_id: req.request_id,
+              request_type: req.request_type,
+              school_name: req.school?.name || "-",
+              class: req.classInfo?.name || "-",
+              from: req.requestedBy?.name || "-",
+              flagged_date: formatDateOnly(req.updated_at),
+              flagged_by: req.respondedBy?.name || "-",
             }));
             break;
 
@@ -400,12 +424,61 @@ const RequestList: React.FC = () => {
       sortable: false,
     },
   ];
+  const flaggedColumns: Column<Record<string, any>>[] = [
+    {
+      key: "request_id",
+      label: t("Request ID"),
+      width: "10%",
+      sortable: false,
+    },
+    {
+      key: "request_type",
+      label: t("Request Type"),
+      width: "15%",
+      sortable: false,
+    },
+    {
+      key: "school_name",
+      label: t("School Name"),
+      width: "15%",
+      sortable: true,
+      orderBy: "school_name",
+    },
+    {
+      key: "class",
+      label: t("Grade"),
+      width: "10%",
+      sortable: false,
+    },
+    {
+      key: "from",
+      label: t("From"),
+      width: "15%",
+      sortable: false,
+    },
+    {
+      key: "flagged_date",
+      label: t("Flagged Date"),
+      width: "15%",
+      sortable: true,
+      orderBy: "flagged_date",
+    },
+    {
+      key: "flagged_by",
+      label: t("Flagged By"),
+      width: "10%",
+      sortable: false,
+    },
+  ];
+
   const columns = useMemo(() => {
     switch (selectedTab) {
       case REQUEST_TABS.APPROVED:
         return approvedColumns;
       case REQUEST_TABS.REJECTED:
         return rejectedColumns;
+      case REQUEST_TABS.FLAGGED:
+        return flaggedColumns;
       case REQUEST_TABS.PENDING:
       default:
         return pendingColumns;
@@ -471,16 +544,19 @@ const RequestList: React.FC = () => {
         [REQUEST_TABS.PENDING]: PAGES.STUDENT_PENDING_REQUEST,
         [REQUEST_TABS.APPROVED]: PAGES.OPS_APPROVED_REQUEST,
         [REQUEST_TABS.REJECTED]: PAGES.OPS_REJECTED_REQUEST,
+        [REQUEST_TABS.FLAGGED]: PAGES.OPS_REJECTED_FLAGGED,
       },
       ops: {
         [REQUEST_TABS.PENDING]: PAGES.PRINCIPAL_TEACHER_PENDING_REQUEST, // can also be PRINCIPAL_PENDING_REQUEST if needed
         [REQUEST_TABS.APPROVED]: PAGES.OPS_APPROVED_REQUEST,
         [REQUEST_TABS.REJECTED]: PAGES.OPS_REJECTED_REQUEST,
+        [REQUEST_TABS.FLAGGED]: PAGES.OPS_REJECTED_FLAGGED,
       },
       school: {
         [REQUEST_TABS.PENDING]: PAGES.SCHOOL_PENDING_REQUEST,
         [REQUEST_TABS.APPROVED]: PAGES.SCHOOL_APPROVED_REQUEST,
         [REQUEST_TABS.REJECTED]: PAGES.SCHOOL_REJECTED_REQUEST,
+        [REQUEST_TABS.FLAGGED]: PAGES.OPS_REJECTED_FLAGGED,
       },
     };
 

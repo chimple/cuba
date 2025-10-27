@@ -496,6 +496,7 @@ export enum PAGES {
   STUDENT_PENDING_REQUEST = "/student-pending-request",
   OPS_APPROVED_REQUEST = "/student-approved-request",
   OPS_REJECTED_REQUEST = "/student-rejected-request",
+  OPS_REJECTED_FLAGGED = "/student-flagged-request",
   PRINCIPAL_TEACHER_PENDING_REQUEST = "/principal-teacher-pending-request",
   SEARCH_SCHOOL = "/search-school",
   CREATE_SCHOOL = "/create-school",
@@ -555,6 +556,7 @@ export enum REQUEST_TABS {
   PENDING = "Pending",
   APPROVED = "Approved",
   REJECTED = "Rejected",
+  FLAGGED = "Flagged",
 }
 export enum STATUS {
   ACTIVE = "active",

@@ -7948,7 +7948,7 @@ export class SupabaseApi implements ServiceApi {
       let rowsQ = this.supabase
         .from(TABLES.OpsRequests)
         .select(
-          "id, request_id, request_status, request_type, request_ends_at, is_deleted, school_id, class_id, requested_by, responded_by, created_at, updated_at"
+          "id, request_id, request_status, request_type, request_ends_at, is_deleted, school_id, class_id, requested_by, responded_by, created_at, updated_at, rejected_reason_description, rejected_reason_type"
         );
       const { q: rq } = applyFilters(rowsQ);
 

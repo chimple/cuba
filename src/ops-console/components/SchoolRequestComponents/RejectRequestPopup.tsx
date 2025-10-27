@@ -59,6 +59,11 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
     setError("");
     
     try {
+      if (!requestData || !requestData.id || !requestData.respondedBy || !requestData.respondedBy.id || !requestData.school || !requestData.school.id) {
+        setError(t("Incomplete request data. Please try again.") || "Incomplete request data. Please try again.");
+        setIsLoading(false);
+        return;
+      }
       const status = isTeacherOrPrincipal && selectedReason === WRONG_SCHOOL_SELECTED ? STATUS.FLAGGED : STATUS.REJECTED;
       const finalReason = getFinalReason();
       
@@ -71,7 +76,7 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
       );
       await api.updateSchoolStatus(requestData.school.id, status);
       
-      const targetTab = status === STATUS.FLAGGED ? REQUEST_TABS.PENDING : REQUEST_TABS.REJECTED;
+      const targetTab = status === STATUS.FLAGGED ? REQUEST_TABS.FLAGGED : REQUEST_TABS.REJECTED;
       history.push(
         `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${targetTab}`
       );
