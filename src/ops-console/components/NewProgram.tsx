@@ -505,50 +505,48 @@ const NewProgram: React.FC = () => {
               </FormControl>
             </Grid>
 
-            <Grid container ml={3} mb={3}>
-              <Grid size={{ xs: 12, sm: 4, md: 4 }}>
-                <Typography
-                  variant="subtitle1"
-                  color="text.primary"
-                  fontWeight="bold"
-                  mb={1}
-                >
-                  {t("Program Manager")}
-                  <span className="new-program-mandatory">*</span>
-                </Typography>
-                <Autocomplete
-                  multiple
-                  disableCloseOnSelect
-                  options={programManagers}
-                  getOptionLabel={(option) => option.name}
-                  value={programManagers.filter((pm) =>
-                    selectedManagers.includes(pm.id)
-                  )}
-                  onChange={(_, newValue) => {
-                    setSelectedManagers(newValue.map((pm) => pm.id));
-                  }}
-                  renderOption={(props, option, { selected }) => (
-                    <li {...props}>
-                      <Checkbox checked={selected} sx={{ mr: 1 }} />
-                      {option.name}
-                    </li>
-                  )}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label={`Select ${t("Program Managers")}`}
-                      error={!!errors["programManager"]}
-                      helperText={errors["programManager"] || ""}
-                      InputProps={{
-                        ...params.InputProps,
-                        sx: {
-                          borderRadius: "12px",
-                        },
-                      }}
-                    />
-                  )}
-                />
-              </Grid>
+            <Grid size={{ xs: 12, sm: 4, md: 4 }} mb={3}>
+              <Typography
+                variant="subtitle1"
+                color="text.primary"
+                fontWeight="bold"
+                mb={1}
+              >
+                {t("Program Manager")}
+                <span className="new-program-mandatory">*</span>
+              </Typography>
+              <Autocomplete
+                multiple
+                disableCloseOnSelect
+                options={programManagers}
+                getOptionLabel={(option) => option.name}
+                value={programManagers.filter((pm) =>
+                  selectedManagers.includes(pm.id)
+                )}
+                onChange={(_, newValue) => {
+                  setSelectedManagers(newValue.map((pm) => pm.id));
+                }}
+                renderOption={(props, option, { selected }) => (
+                  <li {...props}>
+                    <Checkbox checked={selected} sx={{ mr: 1 }} />
+                    {option.name}
+                  </li>
+                )}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label={`Select ${t("Program Managers")}`}
+                    error={!!errors["programManager"]}
+                    helperText={errors["programManager"] || ""}
+                    InputProps={{
+                      ...params.InputProps,
+                      sx: {
+                        borderRadius: "12px",
+                      },
+                    }}
+                  />
+                )}
+              />
             </Grid>
 
             {[
@@ -606,16 +604,17 @@ const NewProgram: React.FC = () => {
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <DatePicker
-                      label={t("End Date")}
-                      value={endDate}
-                      onChange={(date: Dayjs | null) => setEndDate(date)}
+                      label={t("Start Date")}
+                      value={startDate}
+                      onChange={(date: Dayjs | null) => setStartDate(date)}
                       format="DD/MM/YYYY" // use format instead of inputFormat
+                      enableAccessibleFieldDOMStructure={false}
                       slots={{ textField: TextField }} // replace renderInput with slots
                       slotProps={{
                         textField: {
                           fullWidth: true,
-                          error: !!errors["endDate"] || !!errors["date"],
-                          helperText: errors["endDate"] || errors["date"],
+                          error: !!errors["startDate"] || !!errors["date"],
+                          helperText: errors["startDate"] || errors["date"],
                           variant: "outlined",
                           InputProps: {
                             sx: { borderRadius: "12px" },
@@ -630,6 +629,7 @@ const NewProgram: React.FC = () => {
                       value={endDate}
                       onChange={(date: Dayjs | null) => setEndDate(date)}
                       format="DD/MM/YYYY"
+                      enableAccessibleFieldDOMStructure={false}
                       slots={{ textField: TextField }} // Replace renderInput
                       slotProps={{
                         textField: {
