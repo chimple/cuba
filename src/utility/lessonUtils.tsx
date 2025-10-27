@@ -58,7 +58,7 @@ export const useHandleLessonClick = (customHistory) => {
   };
 };
 
-export const sendDataToJava = async (eventName: string, params: any) => {
+export const sendDataToJava = async (eventName: string, params: Record<string, unknown>) => {
   try {
     const response = await portPlugin.sendDataToNative({
       eventName,
