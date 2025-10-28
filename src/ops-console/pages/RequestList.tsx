@@ -193,7 +193,9 @@ const RequestList: React.FC = () => {
           requested_date: "created_at",
           flagged_date: "updated_at",
         };
-        const backendOrderBy = orderByMapping[orderBy] || orderBy;
+        
+        const backendOrderBy = orderBy === "school_name" ? "created_at" : (orderByMapping[orderBy] || orderBy);
+        const backendOrderDir = orderBy === "school_name" ? "desc" : orderDir;
 
         // console.log("🚀 MAKING API CALL WITH:", {
         //   status: tempTab,
@@ -210,7 +212,7 @@ const RequestList: React.FC = () => {
           page,
           pageSize,
           backendOrderBy,
-          orderDir,
+          backendOrderDir,
           cleanedFilters,
           debouncedSearchTerm
         );
@@ -281,6 +283,17 @@ const RequestList: React.FC = () => {
             });
             break;
         }
+        if (orderBy === "school_name" && mappedData.length > 0) {
+          mappedData.sort((a, b) => {
+            const nameA = (a.school_name || "").toLowerCase();
+            const nameB = (b.school_name || "").toLowerCase();
+            if (orderDir === "asc") {
+              return nameA.localeCompare(nameB);
+            } else {
+              return nameB.localeCompare(nameA);
+            }
+          });
+        }
         setRequestData(mappedData);
         setTotal(total || 0);
       } catch (error) {
@@ -331,7 +344,7 @@ const RequestList: React.FC = () => {
       key: "school_name",
       label: t("School Name"),
       width: "fit-content",
-      sortable: false,
+      sortable: true,
       orderBy: "school_name",
     },
     {
@@ -371,7 +384,7 @@ const RequestList: React.FC = () => {
       key: "school_name",
       label: t("School Name"),
       width: "15%",
-      sortable: false,
+      sortable: true,
       orderBy: "school_name",
     },
     {
@@ -418,7 +431,7 @@ const RequestList: React.FC = () => {
       key: "school_name",
       label: t("School Name"),
       width: "15%",
-      sortable: false,
+      sortable: true,
       orderBy: "school_name",
     },
     {
@@ -464,7 +477,7 @@ const RequestList: React.FC = () => {
       key: "school_name",
       label: t("School Name"),
       width: "15%",
-      sortable: false,
+      sortable: true,
       orderBy: "school_name",
     },
     {
