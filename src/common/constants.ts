@@ -719,10 +719,6 @@ export interface PortPlugin {
     fileData: string;
     fileName?: string;
   }): Promise<void>;
-  sendDataToNative(options: {
-    eventName: string;
-    params: Record<string, unknown>;
-  }): Promise<void>;
 }
 export const DEBUG_15 = "debug15";
 export const DEFAULT_SUBJECT_IDS = [
