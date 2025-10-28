@@ -146,26 +146,107 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         super.onDestroy();
     }
 
+    /**
+     * Handles incoming deep links with proper validation and error handling
+     * @param intent The incoming intent containing the deep link
+     */
     private void handleDeepLink(Intent intent) {
-        if (intent == null || intent.getData() == null) {
+        if (intent == null) {
+            Log.w(TAG, "Received null intent in handleDeepLink");
             return;
         }
 
         Uri data = intent.getData();
-        try {
-            for (String key : data.getQueryParameterNames()) {
-                if (key.equals("activity_id")) {
-                    Toast.makeText(this, "Please Wait, We are launching the Lesson...", Toast.LENGTH_LONG).show();
-                    activity_id = data.getQueryParameter(key);
-                }
-                deepLinkData.put(key, data.getQueryParameter(key));
-            }
-        } catch (Exception e) {
+        if (data == null) {
+            Log.d(TAG, "No deep link data found in intent");
             return;
         }
 
-        // Delay launch to ensure Capacitor is ready
-        new Handler(Looper.getMainLooper()).postDelayed(() -> PortPlugin.sendLaunch(), 5000);
+        Log.d(TAG, "Processing deep link: " + data.toString());
+
+        try {
+            // Clear previous deep link data
+            deepLinkData = new JSONObject();
+            
+            // Add all query parameters to deepLinkData
+            for (String key : data.getQueryParameterNames()) {
+                String value = data.getQueryParameter(key);
+                if (value != null) {
+                    deepLinkData.put(key, value);
+                    
+                    // Special handling for activity_id
+                    if ("activity_id".equals(key)) {
+                        activity_id = value;
+                        showDeepLinkToast("Preparing your lesson...");
+                    }
+                }
+            }
+
+            // Validate required parameters
+            if (deepLinkData.length() == 0) {
+                Log.w(TAG, "No valid query parameters found in deep link");
+                return;
+            }
+
+            // Notify the web view about the deep link
+            notifyDeepLinkReceived();
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error processing deep link", e);
+            showDeepLinkToast("Error processing the link. Please try again.");
+        }
+    }
+
+    /**
+     * Shows a toast message for deep link related notifications
+     */
+    private void showDeepLinkToast(String message) {
+        runOnUiThread(() -> 
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        );
+    }
+
+    /**
+     * Notifies the web view that a deep link was received
+     */
+    private void notifyDeepLinkReceived() {
+        // Check if bridge is ready
+        if (this.bridge != null && this.bridge.getWebView() != null) {
+            // If bridge is ready, send the deep link data immediately
+            PortPlugin.sendLaunch();
+        } else {
+            // If bridge isn't ready, wait for it with a timeout
+            waitForBridgeAndSend();
+        }
+    }
+
+    /**
+     * Waits for the WebView bridge to be ready with a timeout
+     */
+    private void waitForBridgeAndSend() {
+        final int maxAttempts = 10; // 5 seconds total (500ms * 10)
+        final long delayMs = 500;
+        
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            int attempts = 0;
+            
+            @Override
+            public void run() {
+                attempts++;
+                
+                if (bridge != null && bridge.getWebView() != null) {
+                    // Bridge is ready, send the deep link data
+                    PortPlugin.sendLaunch();
+                } else if (attempts < maxAttempts) {
+                    // Try again after delay
+                    new Handler(Looper.getMainLooper()).postDelayed(this, delayMs);
+                } else {
+                    // Timeout reached
+                    Log.w(TAG, "Timeout waiting for WebView bridge to be ready");
+                    showDeepLinkToast("App is taking longer to load. Please try again.");
+                }
+            }
+        }, delayMs);
     }
 
 

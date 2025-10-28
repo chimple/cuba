@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -104,6 +105,86 @@ public class PortPlugin extends Plugin {
         _otp = otp;
         if (getInstance().bridge != null) {
             getInstance().bridge.triggerDocumentJSEvent("otpReceived", "{ \"otp\": \"" + otp + "\" }");
+        }
+    }
+
+    /**
+     * Sends the deep link data to the web view
+     */
+    public static void sendLaunch() {
+        if (getInstance() == null || getInstance().bridge == null) {
+            Log.e(TAG, "Cannot send launch data: Bridge not available");
+            return;
+        }
+
+        try {
+            // Create a safe JSON object with the deep link data
+            JSONObject launchData = new JSONObject();
+
+            // Add activity_id if available
+            if (activity_id != null && !activity_id.isEmpty()) {
+                launchData.put("activity_id", activity_id);
+            }
+
+            // Add all other deep link parameters
+            if (deepLinkData != null) {
+                Iterator<String> keys = deepLinkData.keys();
+                while (keys.hasNext()) {
+                    String key = keys.next();
+                    if (!"activity_id".equals(key)) { // Skip as we already added it
+                        launchData.put(key, deepLinkData.optString(key));
+                    }
+                }
+            }
+
+            // Log the data being sent
+            Log.d(TAG, "Sending deep link data to web: " + launchData.toString());
+
+            // Trigger the event with the complete data
+            getInstance().bridge.triggerDocumentJSEvent("deepLinkReceived", launchData.toString());
+
+            // Also trigger the legacy event for backward compatibility
+            if (activity_id != null && !activity_id.isEmpty()) {
+                getInstance().bridge.triggerDocumentJSEvent(
+                    "launchData",
+                    "{ \"activity_id\": \"" + activity_id + "\" }"
+                );
+            }
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error sending deep link data to web", e);
+        }
+    }
+
+    /**
+     * Handles deep link intents from the web view
+     */
+    @PluginMethod
+    public void processDeepLink(PluginCall call) {
+        try {
+            // Check if we have deep link data to process
+            if (deepLinkData != null && deepLinkData.length() > 0) {
+                // Convert the deep link data to a JSObject and return it
+                JSObject result = new JSObject();
+
+                // Add all deep link parameters to the result
+                Iterator<String> keys = deepLinkData.keys();
+                while (keys.hasNext()) {
+                    String key = keys.next();
+                    result.put(key, deepLinkData.optString(key));
+                }
+
+                call.resolve(result);
+
+                // Clear the deep link data after it's been processed
+                deepLinkData = new JSONObject();
+            } else {
+                // No deep link data available
+                call.resolve(new JSObject().put("status", "no_deep_link"));
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error processing deep link", e);
+            call.reject("Error processing deep link", e);
         }
     }
 
@@ -308,14 +389,6 @@ public class PortPlugin extends Plugin {
         call.resolve(result);
     }
 
-    @PluginMethod
-    public static void sendLaunch() {
-        Log.d(TAG, "Calling Send Launch: " + activity_id);
-        if (getInstance().bridge != null) {
-            String jsonPayload = "{}"; // Empty JSON payload
-            getInstance().bridge.triggerDocumentJSEvent("sendLaunch", jsonPayload);
-        }
-    }
 
     @PluginMethod
     public void isAppInstalledCheck(PluginCall call) {
