@@ -9,7 +9,6 @@
   padding: 4px;
   width: 100%;
   box-sizing: border-box;
-  height: 35vh;
 }
 
 .live-quiz-center-div {
@@ -18,6 +17,7 @@
   align-items: start;
   justify-content: center;
   width: 100%;
+  height: 100vh;
   box-sizing: border-box;
 }
 
@@ -26,6 +26,8 @@
   justify-content: center;
 }
 .live-quiz-navigation-dots {
+  display: flex;
+  justify-content: center;
   margin-bottom: 2vh;
   text-align: center;
 }

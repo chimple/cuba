@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { Meta, StoryObj } from "@storybook/react";
 import { SCHOOL_USERS, TableTypes } from "../../../common/constants";
 import SchoolUserDetail from "../../components/schoolUsers/SchoolUserDetail";
@@ -32,7 +33,7 @@ const mockUser: TableTypes<"user"> = {
 };
 
 const meta: Meta<typeof SchoolUserDetail> = {
-  title: "/components/schoolUsers/SchoolUserDetail",
+  title: "components/schoolUsers/SchoolUserDetail",
   component: SchoolUserDetail,
   parameters: {
     layout: "centered",

@@ -1,6 +1,7 @@
 import React from "react";
 import { MenuItem, Select, SelectChangeEvent } from "@mui/material";
 import "./imageDropdown.css";
+import { t } from "i18next";
 
 interface DropdownOption {
   id: string | number;
@@ -33,9 +34,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
   isDownBorder = true,
 }) => {
   const handleChange = (event: SelectChangeEvent<string | number>) => {
-    const selectedOption = options.find(
-      (opt) => opt.id === event.target.value
-    );
+    const selectedOption = options.find((opt) => opt.id === event.target.value);
     if (selectedOption) onOptionSelect(selectedOption);
   };
 
@@ -67,7 +66,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
                     className="imageDropdown-icon"
                   />
                 )}
-                <span>{selectedValue.name}</span>
+                <span>{t(selectedValue.name)}</span>
               </div>
             ) : (
               <div className="placeholder">
@@ -76,7 +75,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
                   alt="placeholder-icon"
                   className="imageDropdown-icon"
                 />
-                <span>{placeholder}</span>
+                <span>{t(placeholder)}</span>
               </div>
             )
           }
@@ -107,10 +106,10 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
               )}
               <div className="imageDropdown-text">
                 <span className="imageDropdown-subject-text">
-                  {splitText(option.name, option.subjectDetail).subject}
+                  {t(splitText(option.name, option.subjectDetail).subject)}
                 </span>
                 <span className="grade-text">
-                  {splitText(option.name, option.subjectDetail).grade}
+                  {t(splitText(option.name, option.subjectDetail).grade)}
                 </span>
               </div>
             </MenuItem>

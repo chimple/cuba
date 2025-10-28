@@ -60,16 +60,20 @@ const SchoolRejectedRequest: React.FC = () => {
           <div className="school-detail-tertiary-gap" />
           <div className="school-request">
             <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <SchoolDetailsCard requestData={requestData} />
                 <Box mt={2}>
-                {requestData.rejected_reason_description?.trim() && (<RequestFromCard requestedBy={user} />)}
+                  {requestData.rejected_reason_description?.trim() && (
+                    <RequestFromCard requestedBy={user} />
+                  )}
                 </Box>
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 {requestData && <RejectionDetails requestData={requestData} />}
                 <Box mt={2}>
-                {!requestData.rejected_reason_description?.trim() && (<RequestFromCard requestedBy={user} />)}
+                  {!requestData.rejected_reason_description?.trim() && (
+                    <RequestFromCard requestedBy={user} />
+                  )}
                 </Box>
               </Grid>
             </Grid>

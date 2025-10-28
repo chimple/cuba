@@ -123,33 +123,35 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
       {!isAssignmentReport && (
         <div className="toggle-container">
           <div className="pill-toggle">
-      <div
-        className={`pill-option ${isAssignmentsOnly ? "active" : ""}`}
-        onClick={() => {
-          if (!isAssignmentsOnly) {
-            setIsAssignmentsOnly(true);
-            onIsAssignments(true);
-          }
-        }}
-      >
-        {t("Assignments")}
-      </div>
-      <div
-        className={`pill-option ${!isAssignmentsOnly ? "active" : ""}`}
-        onClick={() => {
-          if (isAssignmentsOnly) {
-            setIsAssignmentsOnly(false);
-            onIsAssignments(false);
-          }
-        }}
-      >
-        {t("All Activities")}
-           </div>
-         </div>
+            <div
+              className={`pill-option ${isAssignmentsOnly ? "active" : ""}`}
+              onClick={() => {
+                if (!isAssignmentsOnly) {
+                  setIsAssignmentsOnly(true);
+                  onIsAssignments(true);
+                }
+              }}
+            >
+              {t("Assignments")}
+            </div>
+            <div
+              className={`pill-option ${!isAssignmentsOnly ? "active" : ""}`}
+              onClick={() => {
+                if (isAssignmentsOnly) {
+                  setIsAssignmentsOnly(false);
+                  onIsAssignments(false);
+                }
+              }}
+            >
+              {t("All activities")}
+            </div>
+          </div>
         </div>
       )}
       <div className="date-range-container">
-        <p className="table-date-range-text">{t("Click date to select Date Range")}</p>
+        <p className="table-date-range-text">
+          {t("Click date to select Date Range")}
+        </p>
         <div className="date-range-controls">
           <button className="nav-btn" onClick={handlePrevDateRange}>
             {"<"}
@@ -159,12 +161,10 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
               dateRange.startDate.getMonth() + 1
             )
               .toString()
-              .padStart(
-                2,
-                "0"
-              )} - ${dateRange.endDate.getDate().toString().padStart(2, "0")}/${(
-              dateRange.endDate.getMonth() + 1
-            )
+              .padStart(2, "0")} - ${dateRange.endDate
+              .getDate()
+              .toString()
+              .padStart(2, "0")}/${(dateRange.endDate.getMonth() + 1)
               .toString()
               .padStart(2, "0")}`}
           </div>
@@ -184,9 +184,7 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
           className="tablechoice-custom-dropdown-header"
           onClick={() => setDropdownOpen(!isDropdownOpen)}
         >
-          <span>
-            {sortBy ? t(sortBy) : t("Sort By")}
-          </span>
+          <span>{sortBy ? t(sortBy) : t("Sort By")}</span>
           <img src="assets/icons/filterArrow.svg" alt="Filter_icon" />
         </div>
 
@@ -195,19 +193,21 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
             {Object.entries(TABLESORTBY).map(([key, value]) => {
               return (
                 <div
-                key={key}
-                className={`tablechoice-custom-dropdown-item ${sortBy === value ? "selected" : ""}`}
-                onClick={() => {
-                  handleNameSort({ id: key, name: value });
-                  setDropdownOpen(false);
-                }}
+                  key={key}
+                  className={`tablechoice-custom-dropdown-item ${
+                    sortBy === value ? "selected" : ""
+                  }`}
+                  onClick={() => {
+                    handleNameSort({ id: key, name: value });
+                    setDropdownOpen(false);
+                  }}
                 >
                   {t(value)}
                 </div>
               );
             })}
           </div>
-    )}
+        )}
       </div>
     </div>
   );

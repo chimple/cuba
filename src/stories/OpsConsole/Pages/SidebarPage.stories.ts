@@ -1,3 +1,4 @@
+//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import SidebarPage from "../../../ops-console/pages/SidebarPage";
 

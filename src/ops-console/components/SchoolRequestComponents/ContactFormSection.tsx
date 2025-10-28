@@ -45,7 +45,7 @@ const ContactFormSection: React.FC<ContactFormSectionProps> = ({
 
       <Grid container spacing={3}>
         {fields.map((contact, index) => (
-          <Grid item xs={12} md={6} key={index}>
+          <Grid size={{ xs: 12, md: 6 }} key={index}>
             <Typography
               variant="subtitle2"
               fontWeight="bold"
@@ -61,7 +61,7 @@ const ContactFormSection: React.FC<ContactFormSectionProps> = ({
 
             <Grid container spacing={2}>
               {contact.fields.map((field, idx) => (
-                <Grid item xs={12} key={idx}>
+                <Grid size={{ xs: 12 }} key={idx}>
                   <Typography
                     variant="body2"
                     sx={{
