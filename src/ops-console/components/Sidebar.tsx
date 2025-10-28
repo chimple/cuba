@@ -195,10 +195,15 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             const userRoles = JSON.parse(
               localStorage.getItem(USER_ROLE) || "[]"
             );
-            if (
-              item.label === NavItems.USERS &&
-              userRoles.includes(RoleType.FIELD_COORDINATOR)
-            ) {
+            const rolesWithAccess = [
+              RoleType.SUPER_ADMIN,
+              RoleType.OPERATIONAL_DIRECTOR,
+              RoleType.PROGRAM_MANAGER,
+            ];
+            const canAccessUsersPage = userRoles.some((role) =>
+              rolesWithAccess.includes(role as RoleType)
+            );
+            if (item.label === NavItems.USERS && !canAccessUsersPage) {
               return null;
             }
             return (
