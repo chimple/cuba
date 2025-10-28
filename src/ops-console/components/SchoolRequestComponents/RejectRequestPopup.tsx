@@ -4,6 +4,7 @@ import { ServiceConfig } from "../../../services/ServiceConfig";
 import { PAGES, REQUEST_TABS, STATUS } from "../../../common/constants";
 import { useHistory } from "react-router-dom";
 import { t } from "i18next";
+import ExclamationIcon from "../../assets/icons/Exclamation.svg";
 
 interface RejectRequestPopupProps {
   requestData?: any;
@@ -91,7 +92,7 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
       <div className="reject-popup-container" onClick={(e) => e.stopPropagation()}>
         <div className="reject-popup-header">
           <div className="reject-popup-header-img">
-            <img src="assets/icons/Exclamation.svg" alt="error icon" />
+            <img src={ExclamationIcon} alt="Exclamation Icon" />
           </div>
           <div className="reject-popup-header-content error">
             <span>{t("Reject Request")} - {requestData.request_id}</span>
