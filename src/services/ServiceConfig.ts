@@ -37,16 +37,16 @@ export class ServiceConfig {
     return ServiceConfig.instance;
   }
 
-  public async switchMode(newMode: APIMode) {
-    await this.setMode(newMode);
+  public switchMode(newMode: APIMode) {
+    this.setMode(newMode);
   }
 
-  private async setMode(mode: APIMode) {
+  private setMode(mode: APIMode) {
     this.mode = mode;
-    await this.initializeByMode(mode);
+    this.initializeByMode(mode);
   }
 
-  private async initializeByMode(mode: APIMode) {
+  private initializeByMode(mode: APIMode) {
     switch (mode) {
       case APIMode.FIREBASE:
         this.initializeFireBase();
@@ -55,7 +55,7 @@ export class ServiceConfig {
         this.initializeOneroster();
         break;
       case APIMode.SQLITE:
-        await this.initializeSqlite();
+        this.initializeSqlite();
         break;
       case APIMode.SUPABASE:
         this.initializeSupabase();
@@ -79,8 +79,8 @@ export class ServiceConfig {
     this._authHandler = AuthHandler.getInstance(FirebaseAuth.getInstance());
   }
 
-  private async initializeSqlite() {
-    this._apiHandler = ApiHandler.getInstance(await SqliteApi.getInstance());
+  private initializeSqlite() {
+    this._apiHandler = ApiHandler.getInstance(SqliteApi.getI());
     this._authHandler = AuthHandler.getInstance(SupabaseAuth.getInstance());
   }
 
