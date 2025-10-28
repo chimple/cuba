@@ -79,8 +79,8 @@ export class ServiceConfig {
     this._authHandler = AuthHandler.getInstance(FirebaseAuth.getInstance());
   }
 
-  private async initializeSqlite() {
-    this._apiHandler = ApiHandler.getInstance(await SqliteApi.getInstance());
+  private initializeSqlite() {
+    this._apiHandler = ApiHandler.getInstance(SqliteApi.getI());
     this._authHandler = AuthHandler.getInstance(SupabaseAuth.getInstance());
   }
 
