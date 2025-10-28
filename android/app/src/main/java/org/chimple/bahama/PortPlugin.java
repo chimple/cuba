@@ -143,14 +143,6 @@ public class PortPlugin extends Plugin {
             // Trigger the event with the complete data
             getInstance().bridge.triggerDocumentJSEvent("deepLinkReceived", launchData.toString());
 
-            // Also trigger the legacy event for backward compatibility
-            if (activity_id != null && !activity_id.isEmpty()) {
-                getInstance().bridge.triggerDocumentJSEvent(
-                    "launchData",
-                    "{ \"activity_id\": \"" + activity_id + "\" }"
-                );
-            }
-
         } catch (Exception e) {
             Log.e(TAG, "Error sending deep link data to web", e);
         }
@@ -178,6 +170,7 @@ public class PortPlugin extends Plugin {
 
                 // Clear the deep link data after it's been processed
                 deepLinkData = new JSONObject();
+                activity_id = "";
             } else {
                 // No deep link data available
                 call.resolve(new JSObject().put("status", "no_deep_link"));
