@@ -21,7 +21,7 @@ export class ServiceConfig {
   private _authHandler: AuthHandler;
   private _mode: APIMode;
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(mode: APIMode): ServiceConfig {
     if (!ServiceConfig.instance) {
@@ -80,7 +80,7 @@ export class ServiceConfig {
   }
 
   private initializeSqlite() {
-    this._apiHandler = ApiHandler.getInstance(SqliteApi.i);
+    this._apiHandler = ApiHandler.getInstance(SqliteApi.getI());
     this._authHandler = AuthHandler.getInstance(SupabaseAuth.getInstance());
   }
 
