@@ -131,9 +131,11 @@ const gb = new GrowthBook({
   trackingCallback: async (experiment, result) => {
     try {
       const data = localStorage.getItem(CURRENT_USER);
-      const userData = data ? JSON.parse(data) : undefined;
-      let userId;
-      (userData.user) ? userId = userData.user.id : userId = userData.id;
+      let userId: string = "anonymous";
+      if (data) {
+        const userData = JSON.parse(data);
+        userId = userData?.user?.id ?? userData?.id ?? "anonymous";
+      }
       await Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
         user_id: userId,
         experimentId: experiment.key,

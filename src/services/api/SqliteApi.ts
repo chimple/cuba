@@ -2160,10 +2160,16 @@ export class SqliteApi implements ServiceApi {
       stars: updatedStudent?.stars,
     };
     if (newReward !== null && currentUser) {
-      const data = localStorage.getItem(CURRENT_USER);
-      const userData = data ? JSON.parse(data) : undefined;
-      let userId;
-      (userData.user) ? userId = userData.user.id : userId = userData.id;
+      let userId: string = "anonymous";
+        try {
+          const data = localStorage.getItem(CURRENT_USER);
+          if (data) {
+            const userData = JSON.parse(data);
+            userId = userData?.user?.id ?? userData?.id ?? "anonymous";
+          }
+        } catch (error) {
+          console.error("Failed to parse CURRENT_USER from localStorage:", error);
+        }
       pushData.reward = JSON.stringify(newReward);
       await Util.logEvent(EVENTS.REWARD_COLLECTED, {
         user_id: userId,
