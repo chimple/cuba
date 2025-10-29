@@ -49,6 +49,7 @@ import {
   SearchSchoolsParams,
   SearchSchoolsResult,
   REWARD_LESSON,
+  CURRENT_USER,
 } from "../../common/constants";
 import { StudentLessonResult } from "../../common/courseConstants";
 import { AvatarObj } from "../../components/animation/Avatar";
@@ -2169,9 +2170,20 @@ export class SqliteApi implements ServiceApi {
       stars: updatedStudent?.stars,
     };
     if (newReward !== null && currentUser) {
+      let userId: string = "anonymous";
+        try {
+          const data = localStorage.getItem(CURRENT_USER);
+          if (data) {
+            const userData = JSON.parse(data);
+            userId = userData?.user?.id ?? userData?.id ?? "anonymous";
+          }
+        } catch (error) {
+          console.error("Failed to parse CURRENT_USER from localStorage:", error);
+        }
       pushData.reward = JSON.stringify(newReward);
       await Util.logEvent(EVENTS.REWARD_COLLECTED, {
-        user_id: currentUser.id,
+        user_id: userId,
+        student_id: currentUser.id,
         reward_id: newReward.reward_id,
         prev_reward_id: currentUserReward?.reward_id ?? null,
         timestamp: newReward.timestamp,
