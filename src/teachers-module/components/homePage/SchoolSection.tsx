@@ -38,7 +38,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
 
     try {
       const result = await api.getSchoolsForUser(currentUser.id, {
-        page: 1,
+        page,
         page_size: 20,
         search: query || "",
       });

@@ -1,7 +1,8 @@
 /* Container for the entire component */
 .searchable-dropdown-container {
   position: relative;
-  width: 100%;
+  width: 90%;
+  left: 10%;
 }
 
 /* Wrapper for the input field and icons */
@@ -13,13 +14,14 @@
 /* The main text input field */
 .searchable-input {
   width: 100%;
-  padding: 10px 30px 10px 10px; /* Right padding for icons */
+  padding: 10px 0px 10px 0px; /* Right padding for icons */
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 16px;
   outline: none;
   transition: border-color 0.2s;
   background-color: white;
+  white-space: nowrap; 
   color: black;
   border: none;
 }
@@ -152,7 +154,7 @@
 
 .dropdown-toggle-button {
   position: absolute;
-  right: 8px;
+  right: 15px;
   top: 50%;
   transform: translateY(-50%);
   background: transparent;
