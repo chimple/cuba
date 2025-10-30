@@ -142,7 +142,7 @@ const SideMenu: React.FC<{
 
       const allSchools = await api.getSchoolsForUser(currentUser.id,{
         page: 1,
-        page_size: 500, 
+        page_size: 20, 
       });
 
       if (allSchools && allSchools.length > 0) {
