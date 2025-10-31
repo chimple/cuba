@@ -4,6 +4,7 @@ import { ServiceConfig } from "../../../services/ServiceConfig";
 import { t } from "i18next";
 import "./SchoolSection.css";
 import AutocompleteDropdown from "../SearchableDropdown";
+import { TableTypes } from "../../../common/constants";
 
 interface SchoolSectionProps {
   schoolData: { id: string | number; name: string }[];
@@ -19,7 +20,7 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
   handleManageSchoolClick,
 }) => {
   const api = ServiceConfig.getI()?.apiHandler;
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
