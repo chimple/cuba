@@ -582,7 +582,7 @@ export interface ServiceApi {
    */
   getSchoolsForUser(
     userId: string,
-    options?: { page?: number; page_size?: number }
+    options?: { page?: number; page_size?: number ; search?: string }
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]>;
 
   /**

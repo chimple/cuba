@@ -256,7 +256,7 @@ export class ApiHandler implements ServiceApi {
 
   public async getSchoolsForUser(
     userId: string,
-    options?: { page?: number; page_size?: number }
+    options?: { page?: number; page_size?: number; search?: string  }
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
     return await this.s.getSchoolsForUser(userId, options);
   }
