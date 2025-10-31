@@ -118,6 +118,27 @@ const StudentPendingRequestDetails = () => {
     }
   }, [requestData, currentPage, pageSize, fetchStudents]);
 
+  useEffect(() => {
+    async function fetchRequest() {
+      setLoading(true);
+      try {
+        const state = location.state as { request?: any } | undefined;
+        if (state?.request && state.request.request_id === id) {
+          const authHandler = ServiceConfig.getI().authHandler;
+          const respondedBy = await authHandler.getCurrentUser();
+          state.request.responded_by = respondedBy?.id;
+          state.request.respondedBy = respondedBy;
+          setRequestData(state.request);
+        }
+      } catch (error) {
+        console.error("Error fetching student data:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchRequest();
+  }, [id, api, location.state]);
+
   const handleRadioChange = (studentId: string) =>
     setSelectedStudent(studentId);
   const handlePageChange = (event: unknown, newPage: number) =>
@@ -425,7 +446,6 @@ const StudentPendingRequestDetails = () => {
         <RejectRequestPopup
           requestData={{
             ...requestData,
-            respondedBy: requestData?.respondedBy || {},
             school: requestData?.school || {},
           }}
           onClose={() => setShowRejectPopup(false)}
