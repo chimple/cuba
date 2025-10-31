@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import "./SearchableDropdown.css";
+import { t } from "i18next";
 
 interface Option {
   id: string | number;
@@ -67,20 +68,12 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
     if (nearBottom) setPage((p) => p + 1);
   }, [isLoading, hasMore]);
 
-  useEffect(() => {
-    const div = listRef.current;
-    if (!div) return;
-    div.addEventListener("scroll", handleScroll);
-    return () => div.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
-
   const handleSelect = (option: Option) => {
     onOptionSelect(option);
     setInputValue(option.name);
     setIsOpen(false);
   };
 
-  // 🔽 Toggle dropdown or clear
   const handleToggleDropdown = () => {
     if (isOpen) {
       setInputValue("");
@@ -122,7 +115,7 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
       </div>
 
       {isOpen && (
-        <div className="searchable-list" ref={listRef}>
+        <div className="searchable-list" ref={listRef} onScroll={handleScroll}>
           {options.map((option) => (
             <div
               key={option.id}
@@ -134,9 +127,9 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
               {option.name}
             </div>
           ))}
-          {isLoading && <div className="searchable-option">Loading...</div>}
+          {isLoading && <div className="searchable-option">{t("Loading...")}</div>}
           {!isLoading && options.length === 0 && (
-            <div className="searchable-option">No results found</div>
+            <div className="searchable-option">{t("No Results Found")}</div>
           )}
         </div>
       )}
