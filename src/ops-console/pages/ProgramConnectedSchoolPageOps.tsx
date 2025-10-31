@@ -241,41 +241,49 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
       {
         key: "programManager",
         label: t("Select Program Manager"),
+        placeholder: t("Program Manager"),
         shouldShow: (options: string[]) => options.length > 1, // Only show if multiple managers exist
       },
       {
         key: "fieldCoordinator",
         label: t("Select Field Coordinator"),
+        placeholder: t("Field Coordinator"),
         shouldShow: (options: string[]) => options.length > 1, // Only show if multiple coordinators exist
       },
       {
         key: "model",
         label: t("School Model"),
+        placeholder: t("School Model"),
         shouldShow: (options: string[]) => options.length > 1, // Only show if multiple models exist
       },
       {
         key: "state",
         label: t("Select State"),
+        placeholder: t("State"),
         shouldShow: (options: string[]) => options.length > 0, // Geography filters - show if data exists
       },
       {
         key: "district",
         label: t("Select District"),
+        placeholder: t("District"),
         shouldShow: (options: string[]) => options.length > 0,
       },
       {
         key: "block",
         label: t("Select Block"),
+        placeholder: t("Block"),
         shouldShow: (options: string[]) => options.length > 0,
       },
       {
         key: "village",
         label: t("Select Village"),
+        placeholder: t("Village"),
         shouldShow: (options: string[]) => options.length > 0,
       },
       {
         key: "cluster",
         label: t("Select Cluster"),
+        placeholder: t("Cluster"),
         shouldShow: (options: string[]) => options.length > 0,
       },
     ];
@@ -288,6 +296,7 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
       .map(config => ({
         key: config.key,
         label: config.label,
+        placeholder: config.placeholder,
       }));
   }, [filterOptions, t]);
 
