@@ -43,7 +43,7 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
         setOptions((prev) =>
           page === 1 ? newOptions : [...prev, ...newOptions]
         );
-        setHasMore(newOptions.length >= 10);
+        setHasMore(newOptions.length >= 20);
       }
       setIsLoading(false);
     };
