@@ -254,11 +254,6 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
         shouldShow: (options: string[]) => options.length > 1, // Only show if multiple models exist
       },
       {
-        key: "programType",
-        label: t("Program Type"),
-        shouldShow: (options: string[]) => options.length > 1, // Only show if multiple types exist
-      },
-      {
         key: "state",
         label: t("Select State"),
         shouldShow: (options: string[]) => options.length > 0, // Geography filters - show if data exists
