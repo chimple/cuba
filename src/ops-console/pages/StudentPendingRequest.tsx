@@ -69,7 +69,12 @@ const StudentPendingRequestDetails = () => {
       setLoading(true);
       try {
         const state = location.state as { request?: any } | undefined;
+        const authHandler = ServiceConfig.getI().authHandler;
+        const respondedBy = await authHandler.getCurrentUser();
+        
         if (state?.request && state.request.request_id === id) {
+          state.request.responded_by = respondedBy?.id;
+          state.request.respondedBy = respondedBy;
           setRequestData(state.request);
         } else {
           const [pendingRequests, approvedRequests, rejectedRequests] =
@@ -104,6 +109,8 @@ const StudentPendingRequestDetails = () => {
             setRequestData(null);
           }
         }
+      } catch (error) {
+        console.error("Error fetching request data:", error);
       } finally {
         setLoading(false);
       }
@@ -425,7 +432,6 @@ const StudentPendingRequestDetails = () => {
         <RejectRequestPopup
           requestData={{
             ...requestData,
-            respondedBy: requestData?.respondedBy || {},
             school: requestData?.school || {},
           }}
           onClose={() => setShowRejectPopup(false)}

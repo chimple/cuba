@@ -244,14 +244,14 @@ const ProgramConnectedSchoolPage: React.FC<ProgramConnectedSchoolPageProps> = ({
         shouldShow: (options: string[]) => options.length > 1, // Only show if multiple managers exist
       },
       {
+        key: "fieldCoordinator",
+        label: t("Select Field Coordinator"),
+        shouldShow: (options: string[]) => options.length > 1, // Only show if multiple coordinators exist
+      },
+      {
         key: "model",
         label: t("School Model"),
         shouldShow: (options: string[]) => options.length > 1, // Only show if multiple models exist
-      },
-      {
-        key: "programType",
-        label: t("Program Type"),
-        shouldShow: (options: string[]) => options.length > 1, // Only show if multiple types exist
       },
       {
         key: "state",
