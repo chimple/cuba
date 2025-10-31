@@ -51,9 +51,14 @@ const INITIAL_FILTER_OPTIONS: FilterOptions = {
 };
 
 const getTabOptions = () => {
-  const userRoles: string[] = JSON.parse(
-    localStorage.getItem(USER_ROLE) || "[]"
-  );
+  let userRoles: string[] = [];
+  try {
+    userRoles = JSON.parse(
+      localStorage.getItem(USER_ROLE) || "[]"
+    );
+  } catch (error) {
+    console.error("Failed to parse user roles from localStorage:", error);
+  }
   // Only Super Admin and Operational Director can see the Flagged tab
   const canSeeFlaggedTab = 
     userRoles.includes(RoleType.SUPER_ADMIN) ||
