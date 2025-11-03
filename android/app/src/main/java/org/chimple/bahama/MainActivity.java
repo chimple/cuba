@@ -153,6 +153,11 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
 
         Uri data = intent.getData();
         try {
+            if(PortPlugin.getInstance().isNetworkAvailable(getAppContext()) == false) {
+                Toast.makeText(this, "No Internet Connection. Cannot Launch the Lesson.", Toast.LENGTH_LONG).show();
+                finishAffinity();
+                return;
+            } 
             for (String key : data.getQueryParameterNames()) {
                 if (key.equals("activity_id")) {
                     Toast.makeText(this, "Please Wait, We are launching the Lesson...", Toast.LENGTH_LONG).show();
