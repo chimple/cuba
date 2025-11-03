@@ -7825,7 +7825,7 @@ export class SupabaseApi implements ServiceApi {
         return { data: [], total: 0, totalPages: 0, page, limit };
 
       const offset = Math.max(0, (page - 1) * limit);
-      const allowedOrderByDb = ["created_at", "updated_at"] as const;
+      const allowedOrderByDb = ["created_at", "updated_at", "school(name)"] as const;
       if (!allowedOrderByDb.includes(orderBy as any)) orderBy = "created_at";
       if (!["asc", "desc"].includes(orderDir.toLowerCase())) orderDir = "asc";
 

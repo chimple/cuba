@@ -217,10 +217,10 @@ const RequestList: React.FC = () => {
           rejected_date: "updated_at",
           requested_date: "created_at",
           flagged_date: "updated_at",
+          school_name: "school(name)",
         };
         
-        const backendOrderBy = orderBy === "school_name" ? "created_at" : (orderByMapping[orderBy] || orderBy);
-        const backendOrderDir = orderBy === "school_name" ? "desc" : orderDir;
+        const backendOrderBy = orderByMapping[orderBy] || orderBy;
 
         // console.log("🚀 MAKING API CALL WITH:", {
         //   status: tempTab,
@@ -237,7 +237,7 @@ const RequestList: React.FC = () => {
           page,
           pageSize,
           backendOrderBy,
-          backendOrderDir,
+          orderDir,
           cleanedFilters,
           debouncedSearchTerm
         );
@@ -307,17 +307,6 @@ const RequestList: React.FC = () => {
               };
             });
             break;
-        }
-        if (orderBy === "school_name" && mappedData.length > 0) {
-          mappedData.sort((a, b) => {
-            const nameA = (a.school_name || "").toLowerCase();
-            const nameB = (b.school_name || "").toLowerCase();
-            if (orderDir === "asc") {
-              return nameA.localeCompare(nameB);
-            } else {
-              return nameB.localeCompare(nameA);
-            }
-          });
         }
         setRequestData(mappedData);
         setTotal(total || 0);
