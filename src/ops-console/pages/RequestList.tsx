@@ -217,7 +217,7 @@ const RequestList: React.FC = () => {
           rejected_date: "updated_at",
           requested_date: "created_at",
           flagged_date: "updated_at",
-          school_name: "school_name",
+          school_name: "school(name)",
         };
         
         const backendOrderBy = orderByMapping[orderBy] || orderBy;
