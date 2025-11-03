@@ -7955,9 +7955,8 @@ export class SupabaseApi implements ServiceApi {
       const { data: rows, error: rowsErr } = await rq
         .order(orderBy, { ascending: orderDir === "asc" })
         .range(offset, offset + limit - 1);
-      
       if (rowsErr) throw rowsErr;
-      
+
       if (!rows?.length) {
         const totalPages = total ? Math.max(1, Math.ceil(total / limit)) : 0;
         return { data: [], total: total ?? 0, totalPages, page, limit };
