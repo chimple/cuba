@@ -26,7 +26,7 @@ interface FilterSliderProps {
   onApply: () => void;
   onCancel: () => void;
   autocompleteStyles?: object;
-  filterConfigs: { key: string; label: string }[];
+  filterConfigs: { key: string; label: string; placeholder?: string }[];
 }
 
 const FilterSlider: React.FC<FilterSliderProps> = ({
@@ -69,7 +69,7 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
       <Divider sx={{ mb: 3 }} />
 
       <Stack className="filter-content-FilterSlider">
-        {filterConfigs.map(({ key, label }) => (
+        {filterConfigs.map(({ key, label, placeholder }) => (
           <Autocomplete
             key={key}
             multiple
@@ -89,7 +89,7 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
               <TextField
                 {...params}
                 label={label}
-                placeholder={t("Search {{key}}...", { key }) ?? ""}
+                placeholder={(placeholder ? t("Search {{placeholder}}...", { placeholder }) : t("Search {{key}}...", { key })) ?? ""}
                 variant="outlined"
               />
             )}

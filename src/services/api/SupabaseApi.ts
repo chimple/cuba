@@ -7825,7 +7825,7 @@ export class SupabaseApi implements ServiceApi {
         return { data: [], total: 0, totalPages: 0, page, limit };
 
       const offset = Math.max(0, (page - 1) * limit);
-      const allowedOrderByDb = ["created_at", "updated_at"] as const;
+      const allowedOrderByDb = ["created_at", "updated_at", "school(name)"] as const;
       if (!allowedOrderByDb.includes(orderBy as any)) orderBy = "created_at";
       if (!["asc", "desc"].includes(orderDir.toLowerCase())) orderDir = "asc";
 
@@ -7977,13 +7977,13 @@ export class SupabaseApi implements ServiceApi {
         schoolIds.length
           ? this.supabase
               .from(TABLES.School)
-              .select("id, name")
+              .select("id, name, udise, group1, group3, country")
               .in("id", schoolIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         userIds.length
           ? this.supabase
               .from(TABLES.User)
-              .select("id, name, email")
+              .select("id, name, email, phone")
               .in("id", userIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         classIds.length
@@ -8018,7 +8018,7 @@ export class SupabaseApi implements ServiceApi {
 
       const data = rows.map((r: any) => ({
         ...r,
-        school: r.school || (r.school_id ? schoolMap.get(r.school_id) ?? null : null),
+        school: r.school_id ? (schoolMap.get(r.school_id) ?? r.school ?? null) : null,
         requestedBy: r.requested_by
           ? userMap.get(r.requested_by) ?? null
           : null,
@@ -8327,9 +8327,11 @@ export class SupabaseApi implements ServiceApi {
       updated_at: new Date().toISOString(),
     };
 
-    if (role === "principal" && schoolId) {
+    if (schoolId) {
       updatePayload.school_id = schoolId;
-    } else if (classId) {
+    }
+
+    if (classId) {
       updatePayload.class_id = classId;
     }
 

@@ -14,6 +14,7 @@ import {
   PAGES,
   REQUEST_TABS,
   RequestTypes,
+  USER_ROLE,
 } from "../../common/constants";
 import DataTablePagination from "../components/DataTablePagination";
 import DataTableBody, { Column } from "../components/DataTableBody";
@@ -25,6 +26,7 @@ import { BsFillBellFill } from "react-icons/bs";
 import { useLocation, useHistory } from "react-router";
 import "./RequestList.css";
 import { Constants } from "../../services/database";
+import { RoleType } from "../../interface/modelInterfaces";
 
 const filterConfigsForRequests = [
   { key: "school", label: t("Select School") },
@@ -48,10 +50,32 @@ const INITIAL_FILTER_OPTIONS: FilterOptions = {
   school: [],
 };
 
-const tabOptions = Object.entries(REQUEST_TABS).map(([key, val]) => ({
-  label: val,
-  value: val,
-}));
+const getTabOptions = () => {
+  let userRoles: string[] = [];
+  try {
+    userRoles = JSON.parse(
+      localStorage.getItem(USER_ROLE) || "[]"
+    );
+  } catch (error) {
+    console.error("Failed to parse user roles from localStorage:", error);
+  }
+  // Only Super Admin and Operational Director can see the Flagged tab
+  const canSeeFlaggedTab = 
+    userRoles.includes(RoleType.SUPER_ADMIN) ||
+    userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
+  
+  const allTabs = Object.entries(REQUEST_TABS).map(([key, val]) => ({
+    label: val,
+    value: val,
+  }));
+  
+  // Filter out FLAGGED tab for users who don't have permission
+  if (!canSeeFlaggedTab) {
+    return allTabs.filter((tab) => tab.value !== REQUEST_TABS.FLAGGED);
+  }
+  
+  return allTabs;
+};
 
 const RequestList: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -60,6 +84,7 @@ const RequestList: React.FC = () => {
   const history = useHistory();
   const qs = new URLSearchParams(location.search);
   const tableScrollRef = React.useRef<HTMLDivElement>(null);
+  const tabOptions = useMemo(() => getTabOptions(), []);
 
   function parseJSONParam<T>(param: string | null, fallback: T): T {
     try {
@@ -192,10 +217,10 @@ const RequestList: React.FC = () => {
           rejected_date: "updated_at",
           requested_date: "created_at",
           flagged_date: "updated_at",
+          school_name: "school(name)",
         };
         
-        const backendOrderBy = orderBy === "school_name" ? "created_at" : (orderByMapping[orderBy] || orderBy);
-        const backendOrderDir = orderBy === "school_name" ? "desc" : orderDir;
+        const backendOrderBy = orderByMapping[orderBy] || orderBy;
 
         // console.log("🚀 MAKING API CALL WITH:", {
         //   status: tempTab,
@@ -212,7 +237,7 @@ const RequestList: React.FC = () => {
           page,
           pageSize,
           backendOrderBy,
-          backendOrderDir,
+          orderDir,
           cleanedFilters,
           debouncedSearchTerm
         );
@@ -282,17 +307,6 @@ const RequestList: React.FC = () => {
               };
             });
             break;
-        }
-        if (orderBy === "school_name" && mappedData.length > 0) {
-          mappedData.sort((a, b) => {
-            const nameA = (a.school_name || "").toLowerCase();
-            const nameB = (b.school_name || "").toLowerCase();
-            if (orderDir === "asc") {
-              return nameA.localeCompare(nameB);
-            } else {
-              return nameB.localeCompare(nameA);
-            }
-          });
         }
         setRequestData(mappedData);
         setTotal(total || 0);
