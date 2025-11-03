@@ -122,7 +122,7 @@ const RequestList: React.FC = () => {
   const [tempFilters, setTempFilters] = useState<Filters>(INITIAL_FILTERS);
   const [filterOptions, setFilterOptions] = useState(INITIAL_FILTER_OPTIONS);
   const [schoolNameToIdMap, setSchoolNameToIdMap] = useState<Map<string, string>>(new Map());
-  const [orderBy, setOrderBy] = useState("");
+  const [orderBy, setOrderBy] = useState("school_name");
   const [orderDir, setOrderDir] = useState<"asc" | "desc">("asc");
   const [pageSize] = useState(DEFAULT_PAGE_SIZE);
 

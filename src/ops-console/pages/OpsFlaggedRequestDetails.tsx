@@ -7,6 +7,7 @@ import "./OpsFlaggedRequestDetails.css";
 import { ServiceConfig } from "../../services/ServiceConfig";
 
 type RequestDetails = {
+  id?: string;
   school?: {
     id?: string;
     name?: string;
@@ -264,10 +265,15 @@ const OpsFlaggedRequestDetails = () => {
         return;
       }
 
+      if (!requestDetails?.id) {
+        setError(t("Request ID not found"));
+        return;
+      }
+
       const role = selectedRequestType as any;
 
       await api.approveOpsRequest(
-        id,
+        requestDetails.id,
         currentUser.id,
         role,
         selectedSchoolId,
