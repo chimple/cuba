@@ -156,7 +156,7 @@ const ManageSchools: React.FC = () => {
             <IonInfiniteScroll
               onIonInfinite={loadMoreSchools}
               threshold="100px"
-              disabled={!hasMore || isLoading}
+              disabled={!hasMore}
             >
               <IonInfiniteScrollContent
                 loadingSpinner="bubbles"

@@ -5,11 +5,16 @@ import { t } from "i18next";
 import "./SchoolSection.css";
 import AutocompleteDropdown from "../SearchableDropdown";
 import { TableTypes } from "../../../common/constants";
+import { RoleType } from "../../../interface/modelInterfaces";
 
 interface SchoolSectionProps {
   schoolData: { id: string | number; name: string }[];
   currentSchoolDetail: { id: string | number; name: string };
-  handleSchoolSelect: (school: { id: string | number; name: string }) => void;
+  handleSchoolSelect: (school: {
+    id: string | number;
+    name: string;
+    role?: RoleType;
+  }) => void;
   handleManageSchoolClick: () => void;
 }
 
@@ -20,7 +25,9 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
   handleManageSchoolClick,
 }) => {
   const api = ServiceConfig.getI()?.apiHandler;
-  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(null);
+  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -44,9 +51,10 @@ const SchoolSection: React.FC<SchoolSectionProps> = ({
         search: query || "",
       });
 
-      return result.map(({ school }: any) => ({
+      return result.map(({ school, role }: any) => ({
         id: school.id,
         name: school.name,
+        role: role,
       }));
     } catch (err) {
       console.error("Error fetching schools:", err);
