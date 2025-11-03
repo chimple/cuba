@@ -8338,7 +8338,7 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from("ops_requests")
       .update(updatePayload)
-      .eq("request_id", requestId)
+      .eq("id", requestId)
       .eq("is_deleted", false)
       .select("*")
       .maybeSingle();
