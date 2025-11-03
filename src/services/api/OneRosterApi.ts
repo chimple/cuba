@@ -46,7 +46,6 @@ import CurriculumController from "../../models/curriculumController";
 import Result from "../../models/result";
 import User from "../../models/user";
 import { LeaderboardInfo, ServiceApi } from "./ServiceApi";
-// import { Chapter } from "../../common/courseConstants";
 import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import { StudentLessonResult } from "../../common/courseConstants";
@@ -282,14 +281,11 @@ export class OneRosterApi implements ServiceApi {
       const allCourses = await this.getAllCourses();
       const student = await Util.getCurrentStudent();
 
-      console.log("getCoursesForParentsStudent called ", getStudentCourseFromLocalStorage, !getStudentCourseFromLocalStorage);
-
       if (!getStudentCourseFromLocalStorage) {
         // If localStorage doesn't have any course data, filter based on student's curriculum_id and grade_id
 
         // If student doesn't have curriculum_id or grade_id, return all courses
         if (!student || (!student.curriculum_id && !student.grade_id)) {
-          console.log("Student missing or missing curriculum_id/grade_id, returning all courses");
           return allCourses;
         }
 
@@ -319,8 +315,6 @@ export class OneRosterApi implements ServiceApi {
         // Update localStorage with the list of course IDs (make sure it's in valid JSON format)
         localStorage.setItem(USER_COURSES, JSON.stringify(setUserCourses));
 
-        // Log the courses
-        console.log(`Filtered courses for student ${student?.name || 'unknown'}:`, filteredCourses);
         return filteredCourses;
       } else {
         // Check if the stored value is a valid JSON array or a plain comma-separated string
@@ -330,8 +324,6 @@ export class OneRosterApi implements ServiceApi {
           // Try to parse it as JSON (array of course IDs)
           storedCourseIds = JSON.parse(getStudentCourseFromLocalStorage);
         } catch (e) {
-          // If parsing fails, assume it's a plain comma-separated string and split it into an array
-          console.log("Stored course data is not valid JSON, splitting string into array.");
           storedCourseIds = getStudentCourseFromLocalStorage.split(',');
         }
 
@@ -340,7 +332,6 @@ export class OneRosterApi implements ServiceApi {
           storedCourseIds.includes(course.id)
         );
 
-        console.log("Filtered courses based on stored course IDs:", filteredCourses);
         return filteredCourses;
       }
     } catch (error) {
@@ -356,7 +347,6 @@ export class OneRosterApi implements ServiceApi {
     try {
       const allCourses = await this.getAllCourses(); // Get all available courses
       const studentCourses = await this.getCoursesForParentsStudent(studentId); // Get student's courses
-      console.log("getAdditionalCourses ", allCourses, studentCourses);
 
 
       // Create a set of student course IDs for quick lookup
@@ -389,12 +379,10 @@ export class OneRosterApi implements ServiceApi {
           storedCourseIds = JSON.parse(getStudentCourseFromLocalStorage);
         } catch (e) {
           // If parsing fails, handle the case where it's a comma-separated string
-          console.log("Stored course data is not valid JSON, splitting string into array.");
           storedCourseIds = getStudentCourseFromLocalStorage.split(',');
         }
       }
 
-      console.log("Current courses in localStorage:", storedCourseIds);
 
       // Add the courses to the stored list, ensuring no duplicates
       courses.forEach(course => {
@@ -406,9 +394,6 @@ export class OneRosterApi implements ServiceApi {
 
       // Update localStorage with the new course list
       localStorage.setItem(USER_COURSES, JSON.stringify(storedCourseIds));
-
-      // Log the updated courses in localStorage
-      console.log("Updated courses in localStorage:", storedCourseIds);
 
     } catch (error) {
       console.error("Error adding courses:", error);
@@ -429,9 +414,7 @@ export class OneRosterApi implements ServiceApi {
       const courseJson = await this.loadCourseJson(
         this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0]
       );
-      const lessonwithCocosLessonIds = courseJson.groups
-
-      console.log("getLessonWithCocosLessonId :", lessonwithCocosLessonIds);
+      const lessonwithCocosLessonIds = courseJson.groups;
 
       for (const group of lessonwithCocosLessonIds) {
         for (const lesson of group.navigation) {
@@ -471,16 +454,13 @@ export class OneRosterApi implements ServiceApi {
     try {
       for (let i = 0; i < this.studentAvailableCourseIds.length; i++) {
         const element = this.studentAvailableCourseIds[i];
-        console.log("const element = allCourseIds[i]; ", element);
         const courseJson = await this.loadCourseJson(element);
 
         const getLessonData = courseJson.groups
-        console.log("getLesson : ", getLessonData);
 
         for (const group of getLessonData) {
           for (const lesson of group.navigation) {
             if (lesson.id === id) {
-              console.log("cocos lesson a --->", lesson);
               return {
                 id: lesson.id,
                 name: lesson.title,
@@ -543,13 +523,10 @@ export class OneRosterApi implements ServiceApi {
     grades: TableTypes<"grade">[];
     courses: TableTypes<"course">[];
   }> {
-    console.log("Fetching different grades for course:", course);
 
     const allCourses: TableTypes<"course">[] = await this.getAllCourses();
-    console.log("All courses fetched:", allCourses);
 
     const allGrades: TableTypes<"grade">[] = await this.getAllGrades();
-    console.log("All grades fetched:", allGrades);
 
     const gradeMap: {
       grades: TableTypes<"grade">[];
@@ -560,11 +537,6 @@ export class OneRosterApi implements ServiceApi {
     const currentCourseJson = await this.loadCourseJson(course.id);
     const currentSubject = currentCourseJson.metadata.subject;
     const currentCurriculum = currentCourseJson.metadata.curriculum;
-
-    console.log("Current course metadata:", {
-      subject: currentSubject,
-      curriculum: currentCurriculum
-    });
 
     // Filter courses by matching subject and curriculum in their metadata
     const filteredCourses: TableTypes<"course">[] = [];
@@ -580,18 +552,15 @@ export class OneRosterApi implements ServiceApi {
       }
     }
 
-    console.log("Filtered courses based on subject and curriculum:", filteredCourses);
 
     for (const course of filteredCourses) {
       const grade = allGrades.find(g => g.id === course.grade_id);
-      console.log(`Checking course: ${course.name}, found grade:`, grade);
 
       if (grade) {
         const gradeAlreadyExists = gradeMap.grades.find(_grade => _grade.id === grade.id);
         if (!gradeAlreadyExists) {
           gradeMap.grades.push(grade);
           gradeMap.courses.push(course);
-          console.log(`Added grade: ${grade.name} for course: ${course.name}`);
         } else {
           console.log(`Grade: ${grade.name} already exists in the map.`);
         }
@@ -605,7 +574,6 @@ export class OneRosterApi implements ServiceApi {
       const sortIndexB = b.sort_index || Number.MAX_SAFE_INTEGER;
       return sortIndexA - sortIndexB;
     });
-    console.log("Sorted grades:", gradeMap.grades);
 
     return gradeMap;
   }
@@ -1071,7 +1039,6 @@ export class OneRosterApi implements ServiceApi {
       const courseJson = await this.loadCourseJson(courseId);
       console.log("courseId id ---> ", courseId);
 
-      console.log("getChaptersForCourse data:", courseJson.groups);
       let defaultCourse: TableTypes<"course"> = {
         code: courseJson.metadata.courseCode,
         color: null,
@@ -1346,7 +1313,6 @@ export class OneRosterApi implements ServiceApi {
       });
 
       const res = ApiDataProcessor.dataProcessorGetStudentProgress(sortedStatements);
-      console.log("async getStudentProgress(): sorted statements ", res);
 
       return res;
     } catch (error) {
@@ -1370,7 +1336,6 @@ export class OneRosterApi implements ServiceApi {
       // Filter out statements with null lesson_id
       const filteredStatements = statements.filter(statement => statement.lesson_id !== null) as { lesson_id: string }[];
       const res = ApiDataProcessor.dataProcessorGetStudentResultInMap(filteredStatements) as { [lessonDocId: string]: TableTypes<"result"> };
-      console.log("getStudentResultInMap const statements ", res);
       return res;
     } catch (error) {
       console.error("Error in getStudentResultInMap:", error);
@@ -1448,8 +1413,6 @@ export class OneRosterApi implements ServiceApi {
 
       // Add the course to the Map instead of assigning it directly
       this.currentCourse.set(id, tCourse);
-
-      console.log("getCourses data ", tCourse);
       return tCourse;
     } catch (error) {
       console.log("Error getCourse", error);
@@ -1668,14 +1631,11 @@ export class OneRosterApi implements ServiceApi {
 
     // If there are existing statements for the given lessonId , will return the oldest one
     if (filteredStatements !== null && filteredStatements !== undefined && filteredStatements.length > 0) {
-      console.log(`Statements for lesson ID ${lessonId} already exist. Returning the oldest entry.`);
       const oldestStatement = filteredStatements.sort((a, b) => {
         const aTimestamp = new Date(a.created_at).getTime();
         const bTimestamp = new Date(b.created_at).getTime();
         return aTimestamp - bTimestamp;
       })[0];
-      console.log("Oldest Statement Data:", oldestStatement);
-      console.log("Oldest Statement Lesson ID:", oldestStatement.lesson_id);
       return oldestStatement;
     }
 
@@ -1741,7 +1701,6 @@ export class OneRosterApi implements ServiceApi {
     try {
       const tincanInstance = await reinitializeTincan();
       await tincanInstance.sendStatement(statement);
-      console.log("updateResult ~ statement Success", statement);
 
       const newResult: TableTypes<"result"> = {
         id: statement.id || "",
@@ -1831,10 +1790,6 @@ export class OneRosterApi implements ServiceApi {
   }
   async getParentStudentProfiles(): Promise<TableTypes<"user">[]> {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    console.log(
-      "OneRosterApi ~ getParentStudentProfiles ~ Ln:442",
-      currentUser
-    );
     let profile: TableTypes<"user">[] = []
     if (currentUser) {
       profile.push(currentUser)
@@ -2803,8 +2758,6 @@ export class OneRosterApi implements ServiceApi {
         this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0]
       );
 
-      console.log("getLessonsBylessonIds data:", courseJson.groups);
-
       if (!courseJson.groups) return [];
 
       const lessons: TableTypes<"lesson">[] = courseJson.groups.flatMap(group =>
@@ -3024,7 +2977,6 @@ export class OneRosterApi implements ServiceApi {
       // Get student's result history and all available courses
       const studentResults = await this.getStudentResult(studentId, false);
       const currentStudent = await Util.getCurrentStudent();
-      console.log("current student details : ", currentStudent);
       const allCourses = await this.getCoursesForParentsStudent(currentStudent?.id || "");
 
       // If student has played lessons before
