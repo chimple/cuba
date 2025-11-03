@@ -7836,7 +7836,7 @@ export class SupabaseApi implements ServiceApi {
         return { data: [], total: 0, totalPages: 0, page, limit };
 
       const offset = Math.max(0, (page - 1) * limit);
-      const allowedOrderByDb = ["created_at", "updated_at"] as const;
+      const allowedOrderByDb = ["created_at", "updated_at", "school_name"] as const;
       if (!allowedOrderByDb.includes(orderBy as any)) orderBy = "created_at";
       if (!["asc", "desc"].includes(orderDir.toLowerCase())) orderDir = "asc";
 
@@ -7952,11 +7952,45 @@ export class SupabaseApi implements ServiceApi {
         );
       const { q: rq } = applyFilters(rowsQ);
 
-      const { data: rows, error: rowsErr } = await rq
-        .order(orderBy, { ascending: orderDir === "asc" })
-        .range(offset, offset + limit - 1);
-      if (rowsErr) throw rowsErr;
-
+      // Handle ordering
+      let rows;
+      let rowsErr;
+      
+      if (orderBy === "school_name") {
+        const allDataResult = await rq.order("created_at", { ascending: false });
+        
+        if (allDataResult.error) {
+          rowsErr = allDataResult.error;
+          rows = null;
+        } else {
+          const allRows = allDataResult.data || [];
+          
+          // Sort by school name
+          allRows.sort((a: any, b: any) => {
+            const nameA = (a.school?.name || "").toLowerCase();
+            const nameB = (b.school?.name || "").toLowerCase();
+            const comparison = nameA.localeCompare(nameB);
+            return orderDir === "asc" ? comparison : -comparison;
+          });
+          
+          // Apply pagination
+          const start = offset;
+          const end = Math.min(offset + limit, allRows.length);
+          rows = allRows.slice(start, end);
+        }
+      } else {
+        const result = await rq
+          .order(orderBy, { ascending: orderDir === "asc" })
+          .range(offset, offset + limit - 1);
+        rows = result.data;
+        rowsErr = result.error;
+      }
+      
+      if (rowsErr) {
+        console.error("❌ Error fetching rows:", rowsErr);
+        throw rowsErr;
+      }
+      
       if (!rows?.length) {
         const totalPages = total ? Math.max(1, Math.ceil(total / limit)) : 0;
         return { data: [], total: total ?? 0, totalPages, page, limit };
