@@ -214,6 +214,11 @@
           ]
         }
       ]
+    },
+    {
+      "public": "build",
+      "site": "ibiza-stage-supabase-master-play",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
     }
   ]
 }
