@@ -92,8 +92,7 @@ export class ServiceConfig {
   }
 
   private initializeSqlite() {
-    console.debug("[ServiceConfig] Initializing SQLite API and Supabase Auth");
-    this._apiHandler = ApiHandler.getInstance(SqliteApi.i);
+    this._apiHandler = ApiHandler.getInstance(SqliteApi.getI());
     this._authHandler = AuthHandler.getInstance(SupabaseAuth.getInstance());
   }
 
