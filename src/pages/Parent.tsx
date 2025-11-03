@@ -321,37 +321,8 @@ const Parent: React.FC = () => {
               title={"Switch to Teacher's Mode"}
               layout="vertical"
               onIonChangeClick={async () => {
-                const isNativePlatform = Capacitor.isNativePlatform();
-                if (localSchool && localClass) {
-                  schoolUtil.setCurrMode(MODES.TEACHER);
-                  history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
-                  isNativePlatform && window.location.reload();
-                  isNativePlatform && window.location.reload();
-                } else if (schools && schools.length > 0) {
-                  if (schools?.length === 1) {
-                    Util.setCurrentSchool(schools[0].school, schools[0].role);
-                    const tempClasses = await api.getClassesForSchool(
-                      schools[0].school.id,
-                      currentUser?.id!
-                    );
-                    if (tempClasses.length > 0) {
-                      Util.setCurrentClass(tempClasses[0]);
-                      schoolUtil.setCurrMode(MODES.TEACHER);
-                      history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
-                      isNativePlatform && window.location.reload();
-                    }
-                  } else {
-                    schoolUtil.setCurrMode(MODES.TEACHER);
-                    history.replace(PAGES.DISPLAY_SCHOOLS);
-                    isNativePlatform && window.location.reload();
-                    isNativePlatform && window.location.reload();
-                  }
-                } else {
-                  schoolUtil.setCurrMode(MODES.TEACHER);
-                  history.replace(PAGES.DISPLAY_SCHOOLS);
-                  isNativePlatform && window.location.reload();
-                  isNativePlatform && window.location.reload();
-                }
+                schoolUtil.setCurrMode(MODES.TEACHER);
+                history.replace(PAGES.DISPLAY_SCHOOLS);
               }}
             />
           </div>
@@ -426,7 +397,7 @@ const Parent: React.FC = () => {
                   title="YouTube video player"
                   // frameborder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                // allowfullscreen
+                  // allowfullscreen
                 ></iframe>
               </div>
             </div>
