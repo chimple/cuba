@@ -1,16 +1,17 @@
 
 .ops-flagged-request-details-layout {
-  padding: 32px 24px;
-  background: #f7f8fa;
+  padding: 24px 20px;
+  background: #f9fafb;
   min-height: 100vh;
 }
 .ops-flagged-request-details-page-title {
   font-weight: 700;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  font-size: 24px;
 }
 .ops-flagged-request-details-breadcrumbs {
-  margin-bottom: 24px;
-  font-size: 15px;
+  margin-bottom: 20px;
+  font-size: 14px;
   color: #6b7280;
 }
 .ops-flagged-request-details-link {
@@ -27,20 +28,21 @@
   margin-top: 0;
 }
 .ops-flagged-request-details-card {
-  padding: 24px;
-  border-radius: 12px;
+  padding: 20px;
+  border-radius: 8px;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  margin-bottom: 24px;
-  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+  border: 1px solid #e5e7eb;
 }
 .ops-flagged-request-details-card-title {
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 8px;
-  font-size: 20px;
+  font-size: 18px;
+  font-style: italic;
 }
 .ops-flagged-request-details-divider {
-  margin: 16px 0;
+  margin: 12px 0;
 }
 .ops-flagged-request-details-field-stack {
   margin-bottom: 12px;
@@ -48,71 +50,78 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 .ops-flagged-request-details-field-row-label {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
-  gap: 16px;
+  margin-top: 12px;
+  gap: 12px;
 }
 .ops-flagged-request-details-field-column {
   display: flex;
   flex-direction: column;
   flex: 1;
   gap: 8px;
+  min-width: 0;
+}
+.ops-flagged-request-details-field-column .ops-flagged-request-details-label {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 400;
+  white-space: normal;
+  flex: unset;
+  min-width: unset;
+  margin-bottom: 4px;
+}
+.ops-flagged-request-details-value {
+  font-size: 14px;
+  color: #111827;
+  font-weight: 400;
+  line-height: 1.5;
 }
 .ops-flagged-request-details-dropdown {
-  flex: 1;
-  min-width: 200px;
+  flex: 0 0 60%;
+  min-width: 180px;
+  max-width: 300px;
 }
 .ops-flagged-request-details-textfield {
-  flex: 1;
-  min-width: 200px;
+  flex: 0 0 60%;
+  min-width: 180px;
+  max-width: 300px;
 }
 .ops-flagged-request-details-textfield-small {
   width: 100%;
 }
 .ops-flagged-request-details-label {
-  font-size: 16px;
-  color: #222;
-  font-weight: 500;
+  font-size: 14px;
+  color: #333;
+  font-weight: 400;
   white-space: nowrap;
+  flex: 0 0 35%;
+  min-width: 120px;
 }
 .ops-flagged-request-details-flex-row {
   display: flex;
-  gap: 24px;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 .ops-flagged-request-details-mr {
-  margin-right: 24px;
+  margin-right: 0;
 }
 .ops-flagged-request-details-label-row {
   display: flex;
   justify-content: space-between;
   margin-bottom: 10px;
 }
-.ops-flagged-request-details-label-flagged {
-  color: #fbbc05;
-  font-weight: 600;
-  font-size: 16px;
-}
-.ops-flagged-request-details-value-flagged {
-  color: #333;
-  font-weight: 500;
-  font-size: 16px;
-}
 .ops-flagged-request-details-flagged-card {
-  border-left: 4px solid #fbbc05;
-  background: #fffbe6;
+  background: #fff;
   margin-top: 0;
-  margin-bottom: 24px;
-  border-radius: 12px;
-  border: 1px solid #ffe082;
-}
-.ops-flagged-request-details-flagged-title {
-  color: #fbbc05;
-  font-size: 20px;
-  font-weight: 700;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
 }
 .ops-flagged-request-details-centered {
   display: flex;
@@ -123,31 +132,73 @@
 }
 .ops-flagged-request-details-action-row {
   display: flex;
-  gap: 32px;
+  gap: 16px;
   justify-content: center;
-  margin-top: 32px;
+  margin-top: 24px;
 }
 .ops-flagged-request-details-cancel-btn {
-  border: 2px solid #e53935 !important;
-  color: #e53935 !important;
+  border: 2px solid #ef4444 !important;
+  color: #ef4444 !important;
   background: #fff !important;
   font-weight: 600 !important;
-  min-width: 160px;
-  height: 48px;
-  font-size: 18px;
-  border-radius: 8px;
-  margin-right: 8px;
+  min-width: 140px;
+  height: 44px;
+  font-size: 16px;
+  border-radius: 6px;
+  text-transform: none !important;
 }
 .ops-flagged-request-details-approve-btn {
-  background: #22c55e !important;
+  background: #10b981 !important;
   color: #fff !important;
   font-weight: 600 !important;
-  min-width: 160px;
-  height: 48px;
-  font-size: 18px;
-  border-radius: 8px;
+  min-width: 140px;
+  height: 44px;
+  font-size: 16px;
+  border-radius: 6px;
   box-shadow: none !important;
+  text-transform: none !important;
 }
+
+/* TextField and Select/Dropdown Styling */
+.ops-flagged-request-details-textfield .MuiOutlinedInput-root,
+.ops-flagged-request-details-dropdown .MuiOutlinedInput-root {
+  border-radius: 6px;
+}
+
+.ops-flagged-request-details-textfield .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline,
+.ops-flagged-request-details-dropdown .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+  border-color: #3b82f6;
+  border-width: 1px;
+}
+
+.ops-flagged-request-details-textfield .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline,
+.ops-flagged-request-details-dropdown .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #2563eb;
+}
+
+.ops-flagged-request-details-textfield .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline,
+.ops-flagged-request-details-dropdown .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #3b82f6;
+  border-width: 2px;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.ops-flagged-request-details-textfield .MuiOutlinedInput-root,
+.ops-flagged-request-details-dropdown .MuiOutlinedInput-root {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+}
+
+.ops-flagged-request-details-textfield .MuiOutlinedInput-root.Mui-disabled,
+.ops-flagged-request-details-dropdown .MuiOutlinedInput-root.Mui-disabled {
+  background-color: #f9fafb;
+  box-shadow: none;
+}
+
+.ops-flagged-request-details-textfield .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline,
+.ops-flagged-request-details-dropdown .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline {
+  border-color: #e5e7eb;
+}
+
 @media (max-width: 900px) {
   .ops-flagged-request-details-main-content-row {
     flex-direction: column;

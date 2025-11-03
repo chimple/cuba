@@ -22,7 +22,7 @@ const OpsApprovedRequestDetails = () => {
       group3?: string;
     };
     respondedBy?: { name?: string };
-    requestedBy?: { name?: string; phone_number?: string; email?: string };
+    requestedBy?: { name?: string; phone?: string; email?: string };
     request_id?: string;
     request_type?: string;
     created_at?: string;
@@ -239,7 +239,7 @@ const OpsApprovedRequestDetails = () => {
               <div className="ops-approved-request-details-label">
                 {t("Phone Number")}
               </div>
-              <div>{requestedBy.phone_number || "N/A"}</div>
+              <div>{requestedBy.phone || "N/A"}</div>
             </div>
             <div className="ops-approved-request-details-field-stack">
               <div className="ops-approved-request-details-label">

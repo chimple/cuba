@@ -23,7 +23,7 @@ const StudentRejectedRequestDetails = () => {
     };
     rejectedBy?: { name?: string };
     respondedBy?: { name?: string };
-    requestedBy?: { name?: string; phone_number?: string; email?: string };
+    requestedBy?: { name?: string; phone?: string; email?: string };
     request_id?: string;
     request_type?: string;
     created_at?: string;
@@ -279,7 +279,7 @@ const StudentRejectedRequestDetails = () => {
                 {t("Phone Number :")}
               </div>{" "}
               {/* Class name updated & Translated */}
-              <div>{requestedBy.phone_number || t("N/A")}</div>{" "}
+              <div>{requestedBy.phone || t("N/A")}</div>{" "}
               {/* Translated 'N/A' */}
             </div>
             <div className="ops-rejected-request-details-field-stack">
