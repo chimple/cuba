@@ -57,7 +57,6 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
     };
   }, [inputValue, page, isOpen]);
 
-  // ✅ Sync with selectedValue from parent
   useEffect(() => {
     if (selectedValue?.name !== undefined) {
       setInputValue(selectedValue.name);
