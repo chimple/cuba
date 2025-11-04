@@ -22,8 +22,6 @@ import android.util.Log;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResult;
 import androidx.core.content.FileProvider;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -263,16 +261,6 @@ public class PortPlugin extends Plugin {
             e.printStackTrace();
             call.reject("Failed to share content: " + e.toString());
         }
-    }
-
-    @PluginMethod
-    public boolean isNetworkAvailable(Context context) {
-        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (connectivityManager != null) {
-            NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-            return networkInfo != null && networkInfo.isConnected();
-        }
-        return false;
     }
 
     @PluginMethod
