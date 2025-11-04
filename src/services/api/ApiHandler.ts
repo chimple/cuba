@@ -190,7 +190,9 @@ export class ApiHandler implements ServiceApi {
     program_id: string | null,
     udise: string | null,
     address: string | null,
-    country: string | null
+    country: string | null,
+    onlySchool?: boolean,
+    onlySchoolUser?: boolean
   ): Promise<TableTypes<"school">> {
     return await this.s.createSchool(
       name,
@@ -202,7 +204,9 @@ export class ApiHandler implements ServiceApi {
       program_id,
       udise,
       address,
-      country
+      country,
+      onlySchool,
+      onlySchoolUser
     );
   }
   public async updateSchoolProfile(
@@ -256,7 +260,7 @@ export class ApiHandler implements ServiceApi {
 
   public async getSchoolsForUser(
     userId: string,
-    options?: { page?: number; page_size?: number; search?: string  }
+    options?: { page?: number; page_size?: number; search?: string }
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]> {
     return await this.s.getSchoolsForUser(userId, options);
   }
@@ -903,7 +907,10 @@ export class ApiHandler implements ServiceApi {
     assignmentIds: string[],
     classId: string
   ): Promise<TableTypes<"result">[] | undefined> {
-    return this.s.getResultByAssignmentIdsForCurrentClassMembers(assignmentIds, classId);
+    return this.s.getResultByAssignmentIdsForCurrentClassMembers(
+      assignmentIds,
+      classId
+    );
   }
 
   async getLastAssignmentsForRecommendations(
@@ -1306,9 +1313,9 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getSchoolFilterOptionsForSchoolListing();
   }
 
-  async getSchoolFilterOptionsForProgram(programId: string): Promise<
-    Record<string, string[]>
-  > {
+  async getSchoolFilterOptionsForProgram(
+    programId: string
+  ): Promise<Record<string, string[]>> {
     return await this.s.getSchoolFilterOptionsForProgram(programId);
   }
 
@@ -1599,13 +1606,19 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"class">[]> {
     return this.s.getAllClassesBySchoolId(schoolId);
   }
-  getRewardById(rewardId: string): Promise<TableTypes<"rive_reward"> | undefined> { 
+  getRewardById(
+    rewardId: string
+  ): Promise<TableTypes<"rive_reward"> | undefined> {
     return this.s.getRewardById(rewardId);
   }
-  getAllRewards(): Promise<TableTypes<"rive_reward">[]| []> { 
+  getAllRewards(): Promise<TableTypes<"rive_reward">[] | []> {
     return this.s.getAllRewards();
   }
-  updateUserReward(userId: string, rewardId: string, created_at?: string) :Promise<void> {
+  updateUserReward(
+    userId: string,
+    rewardId: string,
+    created_at?: string
+  ): Promise<void> {
     return this.s.updateUserReward(userId, rewardId, created_at);
   }
 }
