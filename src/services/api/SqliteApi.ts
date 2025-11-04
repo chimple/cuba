@@ -867,8 +867,6 @@ export class SqliteApi implements ServiceApi {
   ): Promise<TableTypes<"school">> {
     const oSchool = onlySchool ?? true;
     const oSchoolUser = onlySchoolUser ?? true;
-    console.log("School", oSchool);
-    console.log("SchoolUser", onlySchoolUser);
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
