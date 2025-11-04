@@ -60,6 +60,8 @@ const OpsFlaggedRequestDetails = () => {
   // Validation errors
   const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
   const [isFetchingSchool, setIsFetchingSchool] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [initialUdiseSet, setInitialUdiseSet] = useState(false);
 
   useEffect(() => {
     fetchRequestDetails();
@@ -68,16 +70,35 @@ const OpsFlaggedRequestDetails = () => {
 
   // Debounce UDISE input and fetch school details
   useEffect(() => {
+    if (isInitialLoad) {
+      return;
+    }
+
+    if (!initialUdiseSet) {
+      setInitialUdiseSet(true);
+      return;
+    }
+
     const handler = setTimeout(() => {
       if (selectedSchoolUdise && selectedSchoolUdise.length >= 3) {
         fetchSchoolByUdise(selectedSchoolUdise);
+      } else if (!selectedSchoolUdise || selectedSchoolUdise.length === 0) {
+        setSelectedSchoolId("");
+        setSelectedSchoolName("");
+        setSchoolInputValue("");
+        setSelectedDistrict("");
+        setSelectedState("");
+        setSelectedCountry("");
+        setClassOptions([]);
+        setSelectedClassId("");
+        setSelectedClass("");
       }
     }, 800);
 
     return () => {
       clearTimeout(handler);
     };
-  }, [selectedSchoolUdise]);
+  }, [selectedSchoolUdise, isInitialLoad]);
 
   useEffect(() => {
     if (selectedRequestType === RequestTypes.PRINCIPAL) {
@@ -122,10 +143,12 @@ const OpsFlaggedRequestDetails = () => {
     setSelectedDistrict(req.school?.group3 || "");
     setSelectedState(req.school?.group1 || "");
     setSelectedCountry(req.school?.country || "");
-    setSelectedClassId(req.class_id || "");
+    
+    const initialClassId = req.class_id || "";
+    setSelectedClassId(initialClassId);
     
     if (req.school_id) {
-      fetchClasses(req.school_id);
+      fetchClasses(req.school_id, initialClassId);
     }
   };
 
@@ -143,10 +166,26 @@ const OpsFlaggedRequestDetails = () => {
     }
   };
 
-  const fetchClasses = async (schoolId: string) => {
+  const fetchClasses = async (schoolId: string, preserveClassId?: string) => {
     try {
       const classes = await api.getClassesBySchoolId(schoolId);
-      setClassOptions(classes.map((c) => ({ id: c.id, name: c.name })));
+      const mappedClasses = classes.map((c) => ({ id: c.id, name: c.name }));
+      setClassOptions(mappedClasses);
+      
+      if (preserveClassId && preserveClassId.trim() !== "") {
+        const classExists = mappedClasses.some((c) => c.id === preserveClassId);
+        
+        if (classExists) {
+          const selectedClassItem = mappedClasses.find((c) => c.id === preserveClassId);
+
+          setTimeout(() => {
+            setSelectedClassId(preserveClassId);
+            if (selectedClassItem) {
+              setSelectedClass(selectedClassItem.name);
+            }
+          }, 50);
+        }
+      }
     } catch (e) {
       console.error("Error fetching classes:", e);
     }
@@ -157,6 +196,11 @@ const OpsFlaggedRequestDetails = () => {
       setSchoolOptions([]);
       return;
     }
+
+    if (isInitialLoad) {
+      return;
+    }
+    
     try {
       const result = await api.searchSchools({
         p_search_text: searchTerm,
@@ -177,6 +221,7 @@ const OpsFlaggedRequestDetails = () => {
 
   const handleSchoolSelect = (school: { id: string; name: string; udise?: string } | null) => {
     if (school) {
+      setIsInitialLoad(false);
       setSelectedSchoolId(school.id);
       setSelectedSchoolName(school.name);
       setSchoolInputValue(school.name);
@@ -435,7 +480,7 @@ const OpsFlaggedRequestDetails = () => {
               <div className="ops-flagged-request-details-label">{t("Select Class")}</div>
               <FormControl className="ops-flagged-request-details-dropdown" error={!!validationErrors.class}>
                 <Select
-                  value={selectedClassId}
+                  value={selectedClassId || ""}
                   onChange={(e) => {
                     setSelectedClassId(e.target.value);
                     const selectedClassItem = classOptions.find((c) => c.id === e.target.value);
@@ -450,9 +495,11 @@ const OpsFlaggedRequestDetails = () => {
                       ? t("No classes available for this school")
                       : t("Select Class")}
                   </MenuItem>
-                  {classOptions.map((opt) => (
-                    <MenuItem key={opt.id} value={opt.id}>{opt.name}</MenuItem>
-                  ))}
+                  {classOptions.map((opt) => {
+                    return (
+                      <MenuItem key={opt.id} value={opt.id}>{opt.name}</MenuItem>
+                    );
+                  })}
                 </Select>
                 {validationErrors.class && (
                   <Typography variant="caption" color="error">{validationErrors.class}</Typography>
@@ -496,6 +543,8 @@ const OpsFlaggedRequestDetails = () => {
               <TextField
                 value={selectedSchoolUdise}
                 onChange={(e) => {
+                  setIsInitialLoad(false);
+                  setInitialUdiseSet(true);
                   setSelectedSchoolUdise(e.target.value);
                   setValidationErrors({ ...validationErrors, udise: "" });
                 }}
@@ -513,6 +562,9 @@ const OpsFlaggedRequestDetails = () => {
               <Autocomplete
                 freeSolo
                 onChange={(_, newValue) => {
+                  if (isInitialLoad) {
+                    return;
+                  }
                   if (typeof newValue === 'object' && newValue !== null) {
                     handleSchoolSelect(newValue);
                   } else if (typeof newValue === 'string') {
@@ -526,6 +578,9 @@ const OpsFlaggedRequestDetails = () => {
                   }
                 }}
                 onInputChange={(_, newInputValue, reason) => {
+                  if (isInitialLoad && reason === "reset") {
+                    return;
+                  }
                   setSchoolInputValue(newInputValue);
                   if (reason === "clear" || (reason === "input" && newInputValue === "")) {
                     handleSchoolSelect(null);
