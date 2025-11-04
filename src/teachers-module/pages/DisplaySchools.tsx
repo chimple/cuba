@@ -10,6 +10,7 @@ import {
   USER_SELECTION_STAGE,
   IS_OPS_USER,
   LANGUAGE,
+  STATUS,
 } from "../../common/constants";
 import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
@@ -102,6 +103,7 @@ const DisplaySchools: FC = () => {
     if (result.length < PAGE_SIZE) setHasMore(false);
     setSchoolList((prev) => (pageNo === 1 ? result : [...prev, ...result]));
     setLoading(false);
+    return result;
   };
 
   const initData = async () => {
@@ -123,22 +125,65 @@ const DisplaySchools: FC = () => {
     setPage(1);
     setHasMore(true);
     await fetchSchools(1, currentUser.id);
-    // if they’d already picked a school previously
-    const tempSchool = Util.getCurrentSchool();
-    if (tempSchool) {
+    // If user already has both school & class chosen and app is in Teacher mode, go Home
+    const mode = await schoolUtil.getCurrMode();
+    const done = JSON.parse(
+      localStorage.getItem(USER_SELECTION_STAGE) ?? "false"
+    );
+    if (
+      mode === MODES.TEACHER &&
+      done &&
+      location.pathname !== PAGES.HOME_PAGE
+    ) {
+      history.replace(PAGES.HOME_PAGE);
+      setLoading(false);
+      return;
+    }
+    // Previously selected school? Respect it
+    const preSelectedSchool = Util.getCurrentSchool();
+    if (preSelectedSchool) {
       const role = await api.getUserRoleForSchool(
         currentUser.id,
-        tempSchool.id
+        preSelectedSchool.id
       );
       if (role) {
-        return selectSchool({ school: tempSchool, role });
+        await selectSchool({ school: preSelectedSchool, role });
+        return;
       }
-    } else if (schoolList.length === 0) {
-      await checkSchoolRequest();
     }
-    if (schoolList.length === 1) {
-      return selectSchool(schoolList[0]);
+    // Fresh fetch and decide
+    const firstPage = await fetchSchools(1, currentUser.id);
+    if (!firstPage || firstPage.length === 0) {
+      // If a request was already sent, go to Post Success; else go to Request School page
+      const _currentUser =
+        await ServiceConfig.getI().authHandler.getCurrentUser();
+      const existingRequest = await api.getExistingSchoolRequest(
+        _currentUser?.id as string
+      );
+      console.log(existingRequest?.request_status);
+      if (existingRequest?.request_status === STATUS.REQUESTED) {
+        console.log("entered here 1");
+        history.replace(PAGES.POST_SUCCESS, { tabValue: 0 });
+      } else if (existingRequest?.request_status === STATUS.REJECTED) {
+        console.log("entered here 2");
+        history.replace(PAGES.SEARCH_SCHOOL, { tabValue: 0 });
+      } else if (existingRequest?.request_status === STATUS.APPROVED) {
+        console.log("entered here 3");
+        history.replace(PAGES.DISPLAY_SCHOOLS, { tabValue: 0 });
+      } else {
+        console.log("entered here 4");
+        history.replace(PAGES.SEARCH_SCHOOL, {
+          origin: PAGES.DISPLAY_SCHOOLS,
+        });
+      }
+      setLoading(false);
+      return;
     }
+    if (firstPage.length === 1) {
+      await selectSchool(firstPage[0]); // auto-select the only school → Home
+      return;
+    }
+    // Else: multiple schools → stay on DisplaySchools and let the user choose
     setLoading(false);
   };
   // infinite scroll listener with debounce and robust guard
@@ -242,7 +287,7 @@ const DisplaySchools: FC = () => {
                 <PiUserSwitchFill className="display-user-user-switch-icon" />
                 <CommonToggle
                   onChange={() => Util.switchToOpsUser(history)}
-                  label={t("switch to ops mode") as string}
+                  label={t("Switch to Ops Mode").toString()}
                 />
               </div>
             )}

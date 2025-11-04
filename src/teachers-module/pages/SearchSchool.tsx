@@ -31,6 +31,7 @@ import {
   MODES,
   PAGES,
   SearchSchoolsParams,
+  STATUS,
   TableTypes,
 } from "../../common/constants";
 
@@ -84,7 +85,11 @@ const SearchSchool: FC = () => {
     const existingRequest = await api.getExistingSchoolRequest(
       currentUser?.id as string
     );
-    if (existingRequest) history.replace(PAGES.POST_SUCCESS);
+    if (existingRequest?.request_status === STATUS.REQUESTED) {
+      history.replace(PAGES.POST_SUCCESS, { tabValue: 0 });
+    } else {
+      history.replace(PAGES.SEARCH_SCHOOL, { tabValue: 0 });
+    }
   };
   useEffect(() => {
     checkPendingRequests();
