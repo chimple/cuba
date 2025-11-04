@@ -24,6 +24,9 @@
   white-space: nowrap; 
   color: black;
   border: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 65px);
 }
 
 .searchable-input:focus {
