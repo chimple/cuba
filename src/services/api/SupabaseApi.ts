@@ -6434,9 +6434,6 @@ export class SupabaseApi implements ServiceApi {
       }
 
       // Step 2: Insert into program_user table
-      if (!payload.selectedManagers.includes(_currentUser?.id)) {
-        payload.selectedManagers.push(_currentUser?.id);
-      }
       const programUserRows = payload.selectedManagers.map(
         (userId: string) => ({
           program_id: programId,
