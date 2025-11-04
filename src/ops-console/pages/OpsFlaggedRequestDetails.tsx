@@ -40,21 +40,19 @@ const OpsFlaggedRequestDetails = () => {
 
   // Editable field states
   const [selectedRequestType, setSelectedRequestType] = useState("");
-  const [selectedGrade, setSelectedGrade] = useState("");
-  const [selectedGradeId, setSelectedGradeId] = useState("");
-  const [selectedSection, setSelectedSection] = useState("");
-  const [selectedSectionId, setSelectedSectionId] = useState("");
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedClassId, setSelectedClassId] = useState("");
   const [selectedSchoolUdise, setSelectedSchoolUdise] = useState("");
   const [selectedSchoolId, setSelectedSchoolId] = useState("");
   const [selectedSchoolName, setSelectedSchoolName] = useState("");
+  const [schoolInputValue, setSchoolInputValue] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedState, setSelectedState] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
 
   // Dropdown options states
   const [requestTypeOptions, setRequestTypeOptions] = useState<string[]>([]);
-  const [gradeOptions, setGradeOptions] = useState<Array<{ id: string; name: string }>>([]);
-  const [sectionOptions, setSectionOptions] = useState<Array<{ id: string; name: string }>>([]);
+  const [classOptions, setClassOptions] = useState<Array<{ id: string; name: string }>>([]);
   const [schoolOptions, setSchoolOptions] = useState<Array<{ id: string; name: string; udise?: string }>>([]);
   const [isLoadingDropdowns, setIsLoadingDropdowns] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
@@ -80,6 +78,13 @@ const OpsFlaggedRequestDetails = () => {
       clearTimeout(handler);
     };
   }, [selectedSchoolUdise]);
+
+  useEffect(() => {
+    if (selectedRequestType === RequestTypes.PRINCIPAL) {
+      setSelectedClassId("");
+      setSelectedClass("");
+    }
+  }, [selectedRequestType]);
 
   const fetchRequestDetails = async () => {
     setIsLoading(true);
@@ -113,20 +118,24 @@ const OpsFlaggedRequestDetails = () => {
     setSelectedSchoolId(req.school_id || "");
     setSelectedSchoolUdise(req.school?.udise || "");
     setSelectedSchoolName(req.school?.name || "");
+    setSchoolInputValue(req.school?.name || "");
     setSelectedDistrict(req.school?.group3 || "");
     setSelectedState(req.school?.group1 || "");
     setSelectedCountry(req.school?.country || "");
-    setSelectedSectionId(req.class_id || "");
+    setSelectedClassId(req.class_id || "");
+    
+    if (req.school_id) {
+      fetchClasses(req.school_id);
+    }
   };
 
   const fetchDropdownOptions = async () => {
     setIsLoadingDropdowns(true);
     try {
-      const types = Object.values(RequestTypes);
+      const types = Object.values(RequestTypes).filter(
+        type => type === RequestTypes.TEACHER || type === RequestTypes.PRINCIPAL
+      );
       setRequestTypeOptions(types);
-
-      const grades = await api.getAllGrades();
-      setGradeOptions(grades.map((g) => ({ id: g.id, name: g.name })));
     } catch (e) {
       console.error("Error fetching dropdown options:", e);
     } finally {
@@ -134,12 +143,12 @@ const OpsFlaggedRequestDetails = () => {
     }
   };
 
-  const fetchSections = async (schoolId: string) => {
+  const fetchClasses = async (schoolId: string) => {
     try {
       const classes = await api.getClassesBySchoolId(schoolId);
-      setSectionOptions(classes.map((c) => ({ id: c.id, name: c.name })));
+      setClassOptions(classes.map((c) => ({ id: c.id, name: c.name })));
     } catch (e) {
-      console.error("Error fetching sections:", e);
+      console.error("Error fetching classes:", e);
     }
   };
 
@@ -170,13 +179,19 @@ const OpsFlaggedRequestDetails = () => {
     if (school) {
       setSelectedSchoolId(school.id);
       setSelectedSchoolName(school.name);
+      setSchoolInputValue(school.name);
       setSelectedSchoolUdise(school.udise || "");
-      fetchSections(school.id);
+      setSelectedClassId("");
+      setSelectedClass("");
+      fetchClasses(school.id);
       fetchFullSchoolDetails(school.id);
     } else {
       setSelectedSchoolId("");
       setSelectedSchoolName("");
-      setSectionOptions([]);
+      setSchoolInputValue("");
+      setClassOptions([]);
+      setSelectedClassId("");
+      setSelectedClass("");
     }
   };
 
@@ -196,10 +211,13 @@ const OpsFlaggedRequestDetails = () => {
           const school = result.schools[0];
           setSelectedSchoolId(school.id);
           setSelectedSchoolName(school.name);
+          setSchoolInputValue(school.name);
           setSelectedDistrict(school.group3 || "");
           setSelectedState(school.group1 || "");
           setSelectedCountry(school.country || "");
-          fetchSections(school.id);
+          setSelectedClassId("");
+          setSelectedClass("");
+          fetchClasses(school.id);
           setValidationErrors({ ...validationErrors, udise: "" });
         } else {
           setValidationErrors({ ...validationErrors, udise: t("School not found for this UDISE code") });
@@ -234,12 +252,10 @@ const OpsFlaggedRequestDetails = () => {
     if (!selectedRequestType) {
       errors.requestType = t("Request Type is required");
     }
-    if (!selectedGradeId) {
-      errors.grade = t("Grade is required");
-    }
-    // Only require section if school has sections available
-    if (selectedSchoolId && sectionOptions.length > 0 && !selectedSectionId) {
-      errors.section = t("Class Section is required");
+    if (selectedRequestType === RequestTypes.TEACHER) {
+      if (selectedSchoolId && classOptions.length > 0 && !selectedClassId) {
+        errors.class = t("Class is required");
+      }
     }
     if (!selectedSchoolUdise) {
       errors.udise = t("UDISE Code is required");
@@ -277,7 +293,7 @@ const OpsFlaggedRequestDetails = () => {
         currentUser.id,
         role,
         selectedSchoolId,
-        selectedSectionId || undefined
+        selectedClassId || undefined
       );
 
       history.push({
@@ -301,13 +317,13 @@ const OpsFlaggedRequestDetails = () => {
 
   const formatDT = (d: string | undefined) =>
     d
-      ? new Date(d).toLocaleString("en-IN", {
-          day: "2-digit",
+      ? new Date(d).toLocaleString("en-US", {
           month: "short",
+          day: "numeric",
           year: "numeric",
-          hour: "2-digit",
+          hour: "numeric",
           minute: "2-digit",
-          hour12: false,
+          hour12: true,
         })
       : t("-");
 
@@ -388,6 +404,7 @@ const OpsFlaggedRequestDetails = () => {
             <Typography variant="h6" className="ops-flagged-request-details-card-title">
               {t("Request Details")}
             </Typography>
+            <Divider className="ops-flagged-request-details-divider" />
             <div className="ops-flagged-request-details-field-row-label">
               <div className="ops-flagged-request-details-label">{t("Request Type")}</div>
               <FormControl className="ops-flagged-request-details-dropdown" error={!!validationErrors.requestType}>
@@ -404,7 +421,9 @@ const OpsFlaggedRequestDetails = () => {
                     {t("Select Request Type")}
                   </MenuItem>
                   {requestTypeOptions.map((opt) => (
-                    <MenuItem key={opt} value={opt}>{t(opt)}</MenuItem>
+                    <MenuItem key={opt} value={opt}>
+                      {opt.charAt(0).toUpperCase() + opt.slice(1).toLowerCase()}
+                    </MenuItem>
                   ))}
                 </Select>
                 {validationErrors.requestType && (
@@ -413,58 +432,32 @@ const OpsFlaggedRequestDetails = () => {
               </FormControl>
             </div>
             <div className="ops-flagged-request-details-field-row-label">
-              <div className="ops-flagged-request-details-label">{t("Grade")}</div>
-              <FormControl className="ops-flagged-request-details-dropdown" error={!!validationErrors.grade}>
+              <div className="ops-flagged-request-details-label">{t("Select Class")}</div>
+              <FormControl className="ops-flagged-request-details-dropdown" error={!!validationErrors.class}>
                 <Select
-                  value={selectedGradeId}
+                  value={selectedClassId}
                   onChange={(e) => {
-                    setSelectedGradeId(e.target.value);
-                    const grade = gradeOptions.find((g) => g.id === e.target.value);
-                    setSelectedGrade(grade?.name || "");
-                    setValidationErrors({ ...validationErrors, grade: "" });
+                    setSelectedClassId(e.target.value);
+                    const selectedClassItem = classOptions.find((c) => c.id === e.target.value);
+                    setSelectedClass(selectedClassItem?.name || "");
+                    setValidationErrors({ ...validationErrors, class: "" });
                   }}
                   displayEmpty
-                  disabled={isLoadingDropdowns}
+                  disabled={selectedRequestType === RequestTypes.PRINCIPAL || !selectedSchoolId || classOptions.length === 0}
                 >
                   <MenuItem value="" disabled>
-                    {t("Select Grade")}
+                    {classOptions.length === 0 && selectedSchoolId
+                      ? t("No classes available for this school")
+                      : t("Select Class")}
                   </MenuItem>
-                  {gradeOptions.map((opt) => (
+                  {classOptions.map((opt) => (
                     <MenuItem key={opt.id} value={opt.id}>{opt.name}</MenuItem>
                   ))}
                 </Select>
-                {validationErrors.grade && (
-                  <Typography variant="caption" color="error">{validationErrors.grade}</Typography>
+                {validationErrors.class && (
+                  <Typography variant="caption" color="error">{validationErrors.class}</Typography>
                 )}
-              </FormControl>
-            </div>
-            <div className="ops-flagged-request-details-field-row-label">
-              <div className="ops-flagged-request-details-label">{t("Class Section")}</div>
-              <FormControl className="ops-flagged-request-details-dropdown" error={!!validationErrors.section}>
-                <Select
-                  value={selectedSectionId}
-                  onChange={(e) => {
-                    setSelectedSectionId(e.target.value);
-                    const section = sectionOptions.find((s) => s.id === e.target.value);
-                    setSelectedSection(section?.name || "");
-                    setValidationErrors({ ...validationErrors, section: "" });
-                  }}
-                  displayEmpty
-                  disabled={!selectedSchoolId || sectionOptions.length === 0}
-                >
-                  <MenuItem value="" disabled>
-                    {sectionOptions.length === 0 && selectedSchoolId
-                      ? t("No sections available for this school")
-                      : t("Select Section")}
-                  </MenuItem>
-                  {sectionOptions.map((opt) => (
-                    <MenuItem key={opt.id} value={opt.id}>{opt.name}</MenuItem>
-                  ))}
-                </Select>
-                {validationErrors.section && (
-                  <Typography variant="caption" color="error">{validationErrors.section}</Typography>
-                )}
-                {selectedSchoolId && sectionOptions.length === 0 && !validationErrors.section && (
+                {selectedSchoolId && classOptions.length === 0 && !validationErrors.class && (
                   <Typography variant="caption" color="textSecondary">
                     {t("This school has no class sections configured")}
                   </Typography>
@@ -486,7 +479,7 @@ const OpsFlaggedRequestDetails = () => {
               <div>{flaggedBy.phone || t("-")}</div>
             </div>
             <div className="ops-flagged-request-details-field-stack">
-              <div className="ops-flagged-request-details-label">{t("Flagged on")}</div>
+              <div className="ops-flagged-request-details-label">{t("Flagged On")}</div>
               <div>{formatDT(requestDetails.updated_at)}</div>
             </div>
           </Paper>
@@ -518,15 +511,23 @@ const OpsFlaggedRequestDetails = () => {
             <div className="ops-flagged-request-details-field-row-label">
               <div className="ops-flagged-request-details-label">{t("School Name")}</div>
               <Autocomplete
-                value={selectedSchoolName ? { id: selectedSchoolId, name: selectedSchoolName } : null}
-                onChange={(_, newValue) => handleSchoolSelect(newValue)}
-                onInputChange={(_, newInputValue) => {
-                  if (newInputValue.length >= 3) {
+                freeSolo
+                onChange={(_, newValue) => {
+                  if (typeof newValue === 'object' && newValue !== null) {
+                    handleSchoolSelect(newValue);
+                  }
+                }}
+                onInputChange={(_, newInputValue, reason) => {
+                  setSchoolInputValue(newInputValue);
+                  if (reason === "clear" || (reason === "input" && newInputValue === "")) {
+                    handleSchoolSelect(null);
+                  } else if (reason === "input" && newInputValue.length >= 3) {
                     handleSchoolSearch(newInputValue);
                   }
                 }}
+                inputValue={schoolInputValue}
                 options={schoolOptions}
-                getOptionLabel={(option) => option.name}
+                getOptionLabel={(option) => typeof option === 'string' ? option : option.name}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -538,7 +539,7 @@ const OpsFlaggedRequestDetails = () => {
                   />
                 )}
                 className="ops-flagged-request-details-dropdown"
-                isOptionEqualToValue={(option, value) => option.id === value.id}
+                clearOnEscape
               />
             </div>
             <Divider className="ops-flagged-request-details-divider" />

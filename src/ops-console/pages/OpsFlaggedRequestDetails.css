@@ -36,16 +36,21 @@
   border: 1px solid #e5e7eb;
 }
 .ops-flagged-request-details-card-title {
+  font-family: Roboto;
   font-weight: 700;
-  margin-bottom: 8px;
-  font-size: 18px;
   font-style: italic;
+  font-size: 16px;
+  line-height: 100%;
+  letter-spacing: 0%;
+  color: #333333;
+  margin-bottom: 8px !important;
 }
 .ops-flagged-request-details-divider {
-  margin: 12px 0;
+  margin: 12px 0 !important;
 }
 .ops-flagged-request-details-field-stack {
   margin-bottom: 12px;
+  margin-top: 18px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -68,9 +73,9 @@
   min-width: 0;
 }
 .ops-flagged-request-details-field-column .ops-flagged-request-details-label {
-  font-size: 14px;
+  font-size: 13px;
   color: #6b7280;
-  font-weight: 400;
+  font-weight: 500;
   white-space: normal;
   flex: unset;
   min-width: unset;
@@ -79,7 +84,7 @@
 .ops-flagged-request-details-value {
   font-size: 14px;
   color: #111827;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1.5;
 }
 .ops-flagged-request-details-dropdown {
@@ -98,7 +103,7 @@
 .ops-flagged-request-details-label {
   font-size: 14px;
   color: #333;
-  font-weight: 400;
+  font-weight: 500;
   white-space: nowrap;
   flex: 0 0 35%;
   min-width: 120px;
@@ -137,8 +142,8 @@
   margin-top: 24px;
 }
 .ops-flagged-request-details-cancel-btn {
-  border: 2px solid #ef4444 !important;
-  color: #ef4444 !important;
+  border: 1px solid #E93445 !important;
+  color: #E93445 !important;
   background: #fff !important;
   font-weight: 600 !important;
   min-width: 140px;
@@ -146,9 +151,15 @@
   font-size: 16px;
   border-radius: 6px;
   text-transform: none !important;
+  transition: all 0.2s ease-in-out !important;
+}
+.ops-flagged-request-details-cancel-btn:hover {
+  background: #fef2f2 !important;
+  border-color: #dc2626 !important;
+  color: #dc2626 !important;
 }
 .ops-flagged-request-details-approve-btn {
-  background: #10b981 !important;
+  background: #1CC487 !important;
   color: #fff !important;
   font-weight: 600 !important;
   min-width: 140px;
@@ -157,12 +168,32 @@
   border-radius: 6px;
   box-shadow: none !important;
   text-transform: none !important;
+  transition: all 0.2s ease-in-out !important;
+}
+.ops-flagged-request-details-approve-btn:hover {
+  background: #17a36f !important;
+  box-shadow: 0 2px 8px rgba(28, 196, 135, 0.3) !important;
+  transform: translateY(-1px);
 }
 
 /* TextField and Select/Dropdown Styling */
 .ops-flagged-request-details-textfield .MuiOutlinedInput-root,
 .ops-flagged-request-details-dropdown .MuiOutlinedInput-root {
   border-radius: 6px;
+  height: 40px;
+  padding: 0;
+}
+
+.ops-flagged-request-details-dropdown .MuiSelect-select {
+  padding: 8px 14px !important;
+  height: auto;
+  display: flex;
+  align-items: center;
+}
+
+.ops-flagged-request-details-textfield .MuiOutlinedInput-input {
+  padding: 8px 14px;
+  height: auto;
 }
 
 .ops-flagged-request-details-textfield .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline,
