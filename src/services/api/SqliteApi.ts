@@ -861,8 +861,12 @@ export class SqliteApi implements ServiceApi {
     program_id: string | null,
     udise: string | null,
     address: string | null,
-    country: string | null
+    country: string | null,
+    onlySchool?: boolean,
+    onlySchoolUser?: boolean
   ): Promise<TableTypes<"school">> {
+    const oSchool = onlySchool ?? true;
+    const oSchoolUser = onlySchoolUser ?? true;
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
@@ -897,28 +901,33 @@ export class SqliteApi implements ServiceApi {
       key_contacts: null,
       country: country,
     };
-
-    await this.executeQuery(
-      `
+    if (oSchool) {
+      await this.executeQuery(
+        `
       INSERT INTO school (id, name, group1, group2, group3, image, created_at, updated_at, is_deleted, status, country)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
-      [
-        newSchool.id,
-        newSchool.name,
-        newSchool.group1,
-        newSchool.group2,
-        newSchool.group3,
-        newSchool.image,
-        newSchool.created_at,
-        newSchool.updated_at,
-        newSchool.is_deleted,
-        newSchool.status,
-        newSchool.country,
-      ]
-    );
+        [
+          newSchool.id,
+          newSchool.name,
+          newSchool.group1,
+          newSchool.group2,
+          newSchool.group3,
+          newSchool.image,
+          newSchool.created_at,
+          newSchool.updated_at,
+          newSchool.is_deleted,
+          newSchool.status,
+          newSchool.country,
+        ]
+      );
 
-    await this.updatePushChanges(TABLES.School, MUTATE_TYPES.INSERT, newSchool);
+      await this.updatePushChanges(
+        TABLES.School,
+        MUTATE_TYPES.INSERT,
+        newSchool
+      );
+    }
 
     // Insert into school_user table
     const schoolUserId = uuidv4();
@@ -935,27 +944,29 @@ export class SqliteApi implements ServiceApi {
       ops_created_by: null,
     };
 
-    await this.executeQuery(
-      `
+    if (oSchoolUser) {
+      await this.executeQuery(
+        `
       INSERT INTO school_user (id,school_id, user_id, role, created_at, updated_at, is_deleted)
       VALUES (?, ?, ?, ?, ?, ?, ?);
       `,
-      [
-        newSchoolUser.id,
-        newSchoolUser.school_id,
-        newSchoolUser.user_id,
-        newSchoolUser.role,
-        newSchoolUser.created_at,
-        newSchoolUser.updated_at,
-        newSchoolUser.is_deleted,
-      ]
-    );
+        [
+          newSchoolUser.id,
+          newSchoolUser.school_id,
+          newSchoolUser.user_id,
+          newSchoolUser.role,
+          newSchoolUser.created_at,
+          newSchoolUser.updated_at,
+          newSchoolUser.is_deleted,
+        ]
+      );
 
-    await this.updatePushChanges(
-      TABLES.SchoolUser,
-      MUTATE_TYPES.INSERT,
-      newSchoolUser
-    );
+      await this.updatePushChanges(
+        TABLES.SchoolUser,
+        MUTATE_TYPES.INSERT,
+        newSchoolUser
+      );
+    }
     return newSchool;
   }
   async updateSchoolProfile(

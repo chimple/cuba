@@ -91,6 +91,8 @@ export interface ServiceApi {
     udise: string | null,
     address: string | null,
     country: string | null,
+    onlySchool?: boolean,
+    onlySchoolUser?: boolean
   ): Promise<TableTypes<"school">>;
   /**
    * Updates the school details and returns the updated school object.
@@ -582,7 +584,7 @@ export interface ServiceApi {
    */
   getSchoolsForUser(
     userId: string,
-    options?: { page?: number; page_size?: number ; search?: string }
+    options?: { page?: number; page_size?: number; search?: string }
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]>;
 
   /**
@@ -950,7 +952,11 @@ export interface ServiceApi {
    *          - `false` if there were any errors or if no synchronization was necessary.
    */
 
-  syncDB(tableNames: TABLES[], refreshTables: TABLES[], isFirstSync?: boolean): Promise<boolean>;
+  syncDB(
+    tableNames: TABLES[],
+    refreshTables: TABLES[],
+    isFirstSync?: boolean
+  ): Promise<boolean>;
 
   /**
    * Function to get Recommended Lessons.
@@ -1740,12 +1746,14 @@ export interface ServiceApi {
    * Fetch filter options for schools within a specific program.
    * Returns an object where keys are filter categories (e.g., 'state', 'district')
    * and values are arrays of filter option strings specific to that program.
-   * 
+   *
    * @param programId - The ID of the program to get filter options for
    * @returns Promise resolving to an object where keys are filter categories
    * and values are arrays of filter option strings.
    */
-  getSchoolFilterOptionsForProgram(programId: string): Promise<Record<string, string[]>>;
+  getSchoolFilterOptionsForProgram(
+    programId: string
+  ): Promise<Record<string, string[]>>;
 
   /**
    * Fetch a list of schools filtered by given criteria, with pagination, sorting, and search.
@@ -2143,13 +2151,19 @@ export interface ServiceApi {
    * Fetch reward by rewardId
    * @param rewardId reward ID
    */
-  getRewardById(rewardId: string): Promise<TableTypes<"rive_reward"> | undefined>
+  getRewardById(
+    rewardId: string
+  ): Promise<TableTypes<"rive_reward"> | undefined>;
   /**
    * Fetch all rive_rewards
    */
-  getAllRewards(): Promise<TableTypes<"rive_reward">[] | []>
+  getAllRewards(): Promise<TableTypes<"rive_reward">[] | []>;
   /**
    * update user reward by userId and rewardId
    */
-  updateUserReward(userId: string, rewardId: string, created_at?: string): Promise<void>
+  updateUserReward(
+    userId: string,
+    rewardId: string,
+    created_at?: string
+  ): Promise<void>;
 }

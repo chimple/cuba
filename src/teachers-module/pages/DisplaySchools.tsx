@@ -162,16 +162,12 @@ const DisplaySchools: FC = () => {
       );
       console.log(existingRequest?.request_status);
       if (existingRequest?.request_status === STATUS.REQUESTED) {
-        console.log("entered here 1");
         history.replace(PAGES.POST_SUCCESS, { tabValue: 0 });
       } else if (existingRequest?.request_status === STATUS.REJECTED) {
-        console.log("entered here 2");
         history.replace(PAGES.SEARCH_SCHOOL, { tabValue: 0 });
       } else if (existingRequest?.request_status === STATUS.APPROVED) {
-        console.log("entered here 3");
         history.replace(PAGES.DISPLAY_SCHOOLS, { tabValue: 0 });
       } else {
-        console.log("entered here 4");
         history.replace(PAGES.SEARCH_SCHOOL, {
           origin: PAGES.DISPLAY_SCHOOLS,
         });

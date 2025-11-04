@@ -138,7 +138,9 @@ const CreateSchool: React.FC = () => {
         null,
         udise,
         null,
-        country
+        country,
+        true,
+        false,
       );
       await api.sendJoinSchoolRequest(school.id, RequestTypes.SCHOOL);
       history.replace(PAGES.POST_SUCCESS);
