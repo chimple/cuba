@@ -496,7 +496,7 @@ const RequestList: React.FC = () => {
     },
     {
       key: "class",
-      label: t("Grade"),
+      label: t("Class"),
       width: "10%",
       sortable: false,
     },
