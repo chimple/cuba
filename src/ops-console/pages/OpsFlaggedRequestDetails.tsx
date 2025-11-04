@@ -515,6 +515,14 @@ const OpsFlaggedRequestDetails = () => {
                 onChange={(_, newValue) => {
                   if (typeof newValue === 'object' && newValue !== null) {
                     handleSchoolSelect(newValue);
+                  } else if (typeof newValue === 'string') {
+                    setSelectedSchoolName(newValue);
+                    setSelectedSchoolId('');
+                    setClassOptions([]);
+                    setSelectedClassId('');
+                    setSelectedClass('');
+                  } else {
+                    handleSchoolSelect(null);
                   }
                 }}
                 onInputChange={(_, newInputValue, reason) => {
