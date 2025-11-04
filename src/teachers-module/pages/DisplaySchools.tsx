@@ -10,6 +10,7 @@ import {
   USER_SELECTION_STAGE,
   IS_OPS_USER,
   LANGUAGE,
+  STATUS,
 } from "../../common/constants";
 import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
@@ -154,12 +155,23 @@ const DisplaySchools: FC = () => {
     const firstPage = await fetchSchools(1, currentUser.id);
     if (!firstPage || firstPage.length === 0) {
       // If a request was already sent, go to Post Success; else go to Request School page
+      const _currentUser =
+        await ServiceConfig.getI().authHandler.getCurrentUser();
       const existingRequest = await api.getExistingSchoolRequest(
-        currentUser.id
+        _currentUser?.id as string
       );
-      if (existingRequest) {
-        history.replace(PAGES.POST_SUCCESS);
+      console.log(existingRequest?.request_status);
+      if (existingRequest?.request_status === STATUS.REQUESTED) {
+        console.log("entered here 1");
+        history.replace(PAGES.POST_SUCCESS, { tabValue: 0 });
+      } else if (existingRequest?.request_status === STATUS.REJECTED) {
+        console.log("entered here 2");
+        history.replace(PAGES.SEARCH_SCHOOL, { tabValue: 0 });
+      } else if (existingRequest?.request_status === STATUS.APPROVED) {
+        console.log("entered here 3");
+        history.replace(PAGES.DISPLAY_SCHOOLS, { tabValue: 0 });
       } else {
+        console.log("entered here 4");
         history.replace(PAGES.SEARCH_SCHOOL, {
           origin: PAGES.DISPLAY_SCHOOLS,
         });

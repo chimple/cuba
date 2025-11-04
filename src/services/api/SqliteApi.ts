@@ -1099,10 +1099,11 @@ export class SqliteApi implements ServiceApi {
   async getExistingSchoolRequest(
     requested_by: string
   ): Promise<TableTypes<"ops_requests"> | null> {
-    const res = await this.executeQuery(
-      `SELECT * FROM ops_requests WHERE requested_by = ? AND request_status = ?`,
-      [requested_by, STATUS.REQUESTED]
-    );
+    const query = `
+      SELECT *
+      FROM ${TABLES.OpsRequests}
+      WHERE requested_by = ? AND is_deleted = 0`;
+    const res = await this._db?.query(query, [requested_by]);
     return res?.values?.length ? res.values[0] : null;
   }
 
@@ -2105,11 +2106,12 @@ export class SqliteApi implements ServiceApi {
         newResult.class_id,
       ]
     );
-    // ⭐ reward update 
+    // ⭐ reward update
     const currentUser = await this.getUserByDocId(studentId);
     const rewardLesson = sessionStorage.getItem(REWARD_LESSON);
     let newReward: { reward_id: string; timestamp: string } | null = null;
-    let currentUserReward: { reward_id: string; timestamp: string } | null = null;
+    let currentUserReward: { reward_id: string; timestamp: string } | null =
+      null;
 
     if (rewardLesson == "true" && currentUser) {
       sessionStorage.removeItem(REWARD_LESSON);
@@ -2171,15 +2173,15 @@ export class SqliteApi implements ServiceApi {
     };
     if (newReward !== null && currentUser) {
       let userId: string = "anonymous";
-        try {
-          const data = localStorage.getItem(CURRENT_USER);
-          if (data) {
-            const userData = JSON.parse(data);
-            userId = userData?.user?.id ?? userData?.id ?? "anonymous";
-          }
-        } catch (error) {
-          console.error("Failed to parse CURRENT_USER from localStorage:", error);
+      try {
+        const data = localStorage.getItem(CURRENT_USER);
+        if (data) {
+          const userData = JSON.parse(data);
+          userId = userData?.user?.id ?? userData?.id ?? "anonymous";
         }
+      } catch (error) {
+        console.error("Failed to parse CURRENT_USER from localStorage:", error);
+      }
       pushData.reward = JSON.stringify(newReward);
       await Util.logEvent(EVENTS.REWARD_COLLECTED, {
         user_id: userId,
@@ -2196,7 +2198,6 @@ export class SqliteApi implements ServiceApi {
         score: score,
         stars_earned: starsEarned,
       });
-
     }
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushData);
     return newResult;
@@ -5656,9 +5657,9 @@ order by
     return await this._serverApi.getSchoolFilterOptionsForSchoolListing();
   }
 
-  async getSchoolFilterOptionsForProgram(programId: string): Promise<
-    Record<string, string[]>
-  > {
+  async getSchoolFilterOptionsForProgram(
+    programId: string
+  ): Promise<Record<string, string[]>> {
     return await this._serverApi.getSchoolFilterOptionsForProgram(programId);
   }
 
@@ -6683,16 +6684,20 @@ order by
       return [];
     }
   }
-  async updateUserReward(userId: string, rewardId: string, created_at?: string): Promise<void> {
+  async updateUserReward(
+    userId: string,
+    rewardId: string,
+    created_at?: string
+  ): Promise<void> {
     if (!rewardId) {
       console.warn("No rewardId provided to updateUserReward");
       return;
     }
 
     try {
-      const currentUser = await this.getUserByDocId(
+      const currentUser = (await this.getUserByDocId(
         userId
-      ) as TableTypes<"user"> | null;
+      )) as TableTypes<"user"> | null;
       if (!currentUser) {
         console.warn(`No user found`);
         return;
