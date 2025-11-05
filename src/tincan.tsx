@@ -1,7 +1,7 @@
 import { TinCan } from 'tincants';
 import { registerPlugin } from '@capacitor/core';
-const Port = registerPlugin<any>('Port');
-
+import { PortPlugin } from './common/constants';
+const Port = registerPlugin<PortPlugin>('Port');
 interface Actor {
   name: string | string[];
   mbox: string | string[];
@@ -31,8 +31,9 @@ async function getDeeplinkParams(): Promise<IRecordStoreCfg> {
   }
 
   return {
-    endpoint: 'https://chimple.lrs.io/xapi/',
-    auth: 'Basic ' + btoa('chimp:chimpoo'),
+    endpoint: result.endpoint,
+    // auth: 'Basic ' + btoa('chimp:chimpoo'),
+    auth: 'Basic ' + btoa(result.auth),
     actor: actor,
     registration: result.registration ?? '',
   };
