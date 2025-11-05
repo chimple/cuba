@@ -173,17 +173,11 @@ const OpsFlaggedRequestDetails = () => {
       setClassOptions(mappedClasses);
       
       if (preserveClassId && preserveClassId.trim() !== "") {
-        const classExists = mappedClasses.some((c) => c.id === preserveClassId);
+        const selectedClassItem = mappedClasses.find((c) => c.id === preserveClassId);
         
-        if (classExists) {
-          const selectedClassItem = mappedClasses.find((c) => c.id === preserveClassId);
-
-          setTimeout(() => {
-            setSelectedClassId(preserveClassId);
-            if (selectedClassItem) {
-              setSelectedClass(selectedClassItem.name);
-            }
-          }, 50);
+        if (selectedClassItem) {
+          setSelectedClassId(preserveClassId);
+          setSelectedClass(selectedClassItem.name);
         }
       }
     } catch (e) {
