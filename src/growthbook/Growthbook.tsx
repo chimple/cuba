@@ -86,7 +86,7 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       last_login_at: studentDetails?.last_sign_in_at,
       login_method: studentDetails?.login_method,
       school_ids: schools,
-      school_name: school_name,
+      school_name,
       class_ids: classes,
       language: localStorage.getItem(LANGUAGE) || "en",
       pending_live_quiz: liveQuizCount,

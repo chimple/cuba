@@ -337,7 +337,6 @@ const LoginScreen: React.FC = () => {
       }
       // Store user data and proceed with navigation
       const user = res.user;
-      console.log("Userdata after OTP login: ", user);
       localStorage.setItem(CURRENT_USER, JSON.stringify(user));
       localStorage.setItem(USER_DATA, JSON.stringify(user));
       let studentDetails = user?.user;
