@@ -23,17 +23,17 @@ async function getDeeplinkParams(): Promise<IRecordStoreCfg> {
     actor = {name: '', mbox: ''};
   }
 
-  if (result.endpoint == undefined || result.endpoint == '' || result.endpoint == null) {
+  if (!result.endpoint) {
     result.endpoint = 'https://chimple.lrs.io/xapi/';
   }
-  if (result.auth == undefined || result.auth == '' || result.auth == null) {
-    result.auth = 'Basic ' + btoa('chimp:chimpoo');
-  }
+
+  // If native provides a full header like "Basic <base64>", use it as-is.
+  // Otherwise, fall back to a default Basic header.
+  const authHeader = result.auth && result.auth !== '' ? result.auth : 'Basic ' + btoa('chimp:chimpoo');
 
   return {
     endpoint: result.endpoint,
-    // auth: 'Basic ' + btoa('chimp:chimpoo'),
-    auth: 'Basic ' + btoa(result.auth),
+    auth: authHeader,
     actor: actor,
     registration: result.registration ?? '',
   };
