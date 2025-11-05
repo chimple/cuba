@@ -65,6 +65,12 @@ const NewProgram: React.FC = () => {
     Block: string[];
     Cluster: string[];
   }>({ Country: [], State: [], District: [], Block: [], Cluster: [] });
+  
+  const [isCountriesLoading, setCountriesLoading] = useState(false);
+  const [isStatesLoading, setStatesLoading] = useState(false);
+  const [isDistrictsLoading, setDistrictsLoading] = useState(false);
+  const [isBlocksLoading, setBlocksLoading] = useState(false);
+  const [isClustersLoading, setClustersLoading] = useState(false);
   const [stats, setStats] = useState({
     schools: "",
     students: "",
@@ -165,29 +171,128 @@ const NewProgram: React.FC = () => {
       }
     };
 
-    const handlePartnerChange = (field: string, value: string) => {
-      setPartners((prev) => ({ ...prev, [field]: value }));
-      setIsEditingProgramName(false);
+    const loadCountries = async () => {
+      setCountriesLoading(true);
+      const data = await api.getGeoData({});
+      setGeoData((prev) => ({ ...prev, Country: data }));
+      setCountriesLoading(false);
     };
 
-    const fetchGeoData = async () => {
-      try {
-        const data = await api.getUniqueGeoData();
-        const uniqueGeoData = {
-          Country: [...new Set(data.Country.filter(Boolean))],
-          State: [...new Set(data.State.filter(Boolean))],
-          District: [...new Set(data.District.filter(Boolean))],
-          Block: [...new Set(data.Block.filter(Boolean))],
-          Cluster: [...new Set(data.Cluster.filter(Boolean))],
-        };
-        setGeoData(uniqueGeoData);
-      } catch (error) {
-        console.error("Error fetching geo data:", error);
-      }
-    };
-    fetchGeoData();
     fetchProgramManagers();
-  }, []);
+    loadCountries();
+  }, [api]);
+
+  // Load states when country changes
+  useEffect(() => {
+    setLocations((prev) => ({
+      ...prev,
+      State: "",
+      District: "",
+      Block: "",
+      Cluster: "",
+    }));
+    setGeoData((prev) => ({
+      ...prev,
+      State: [],
+      District: [],
+      Block: [],
+      Cluster: [],
+    }));
+    
+    if (locations.Country) {
+      const loadStates = async () => {
+        setStatesLoading(true);
+        const data = await api.getGeoData({ p_country: locations.Country });
+        setGeoData((prev) => ({ ...prev, State: data }));
+        setStatesLoading(false);
+      };
+      loadStates();
+    }
+  }, [locations.Country, api]);
+
+  // Load districts when state changes
+  useEffect(() => {
+    setLocations((prev) => ({
+      ...prev,
+      District: "",
+      Block: "",
+      Cluster: "",
+    }));
+    setGeoData((prev) => ({
+      ...prev,
+      District: [],
+      Block: [],
+      Cluster: [],
+    }));
+    
+    if (locations.Country && locations.State) {
+      const loadDistricts = async () => {
+        setDistrictsLoading(true);
+        const data = await api.getGeoData({
+          p_country: locations.Country,
+          p_state: locations.State,
+        });
+        setGeoData((prev) => ({ ...prev, District: data }));
+        setDistrictsLoading(false);
+      };
+      loadDistricts();
+    }
+  }, [locations.State, api]);
+
+  // Load blocks when district changes
+  useEffect(() => {
+    setLocations((prev) => ({
+      ...prev,
+      Block: "",
+      Cluster: "",
+    }));
+    setGeoData((prev) => ({
+      ...prev,
+      Block: [],
+      Cluster: [],
+    }));
+    
+    if (locations.Country && locations.State && locations.District) {
+      const loadBlocks = async () => {
+        setBlocksLoading(true);
+        const data = await api.getGeoData({
+          p_country: locations.Country,
+          p_state: locations.State,
+          p_district: locations.District,
+        });
+        setGeoData((prev) => ({ ...prev, Block: data }));
+        setBlocksLoading(false);
+      };
+      loadBlocks();
+    }
+  }, [locations.District, api]);
+
+  // Load clusters when block changes
+  useEffect(() => {
+    setLocations((prev) => ({
+      ...prev,
+      Cluster: "",
+    }));
+    setGeoData((prev) => ({
+      ...prev,
+      Cluster: [],
+    }));
+    
+    if (locations.Country && locations.State && locations.District && locations.Block) {
+      const loadClusters = async () => {
+        setClustersLoading(true);
+        const data = await api.getGeoData({
+          p_country: locations.Country,
+          p_state: locations.State,
+          p_district: locations.District,
+          p_block: locations.Block,
+        });
+        setGeoData((prev) => ({ ...prev, Cluster: data }));
+        setClustersLoading(false);
+      };
+      loadClusters();
+    }
+  }, [locations.Block, api]);
 
   const handlePartnerChange = (field: string, value: string) => {
     setPartners((prev) => ({ ...prev, [field]: value }));
@@ -518,55 +623,217 @@ const NewProgram: React.FC = () => {
                 {t("Location")}
               </Typography>
               <Grid container spacing={2}>
-                {Object.keys(geoData).map((label) => (
-                  <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }} key={label}>
-                    <FormControl
-                      fullWidth
-                      error={!!errors[`location-${label}`]}
-                    >
-                      <Box sx={{ display: "flex", alignItems: "center" }}>
-                        <Typography
-                          variant="subtitle2"
-                          sx={{
-                            fontWeight: 600,
-                            color: "text.primary",
-                            mr: 0.5,
-                            marginBottom: 1,
-                          }}
-                        >
-                          {label}
-                        </Typography>
-
-                        {label !== "Block" && label !== "Cluster" && (
-                          <span className="new-program-mandatory">*</span>
-                        )}
-                      </Box>
-
-                      <Autocomplete
-                        options={geoData[label as keyof typeof geoData]}
-                        value={locations[label as keyof typeof locations] || ""}
-                        onChange={(_, newValue) => {
-                          handleLocationChange(label, newValue || "");
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+                  <FormControl fullWidth error={!!errors[`location-Country`]}>
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontWeight: 600,
+                          color: "text.primary",
+                          mr: 0.5,
+                          marginBottom: 1,
                         }}
-                        onBlur={() => handleBlur(label)}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label={`Select ${label}`}
-                            error={!!errors[`location-${label}`] && touchedFields[label]}
-                            helperText={touchedFields[label] ? errors[`location-${label}`] : ""}
-                            InputProps={{
-                              ...params.InputProps,
-                              sx: {
-                                borderRadius: "12px",
-                              },
-                            }}
-                          />
-                        )}
-                      />
-                    </FormControl>
-                  </Grid>
-                ))}
+                      >
+                        Country
+                      </Typography>
+                      <span className="new-program-mandatory">*</span>
+                    </Box>
+                    <Autocomplete
+                      options={geoData.Country}
+                      value={locations.Country || ""}
+                      loading={isCountriesLoading}
+                      onChange={(_, newValue) => {
+                        handleLocationChange("Country", newValue || "");
+                      }}
+                      onBlur={() => handleBlur("Country")}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Select Country"
+                          error={!!errors[`location-Country`] && touchedFields["Country"]}
+                          helperText={touchedFields["Country"] ? errors[`location-Country`] : ""}
+                          InputProps={{
+                            ...params.InputProps,
+                            sx: {
+                              borderRadius: "12px",
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </FormControl>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+                  <FormControl fullWidth error={!!errors[`location-State`]}>
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontWeight: 600,
+                          color: "text.primary",
+                          mr: 0.5,
+                          marginBottom: 1,
+                        }}
+                      >
+                        State
+                      </Typography>
+                      <span className="new-program-mandatory">*</span>
+                    </Box>
+                    <Autocomplete
+                      options={geoData.State}
+                      value={locations.State || ""}
+                      loading={isStatesLoading}
+                      disabled={!locations.Country}
+                      onChange={(_, newValue) => {
+                        handleLocationChange("State", newValue || "");
+                      }}
+                      onBlur={() => handleBlur("State")}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Select State"
+                          error={!!errors[`location-State`] && touchedFields["State"]}
+                          helperText={touchedFields["State"] ? errors[`location-State`] : ""}
+                          InputProps={{
+                            ...params.InputProps,
+                            sx: {
+                              borderRadius: "12px",
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </FormControl>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+                  <FormControl fullWidth error={!!errors[`location-District`]}>
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontWeight: 600,
+                          color: "text.primary",
+                          mr: 0.5,
+                          marginBottom: 1,
+                        }}
+                      >
+                        District
+                      </Typography>
+                      <span className="new-program-mandatory">*</span>
+                    </Box>
+                    <Autocomplete
+                      options={geoData.District}
+                      value={locations.District || ""}
+                      loading={isDistrictsLoading}
+                      disabled={!locations.State}
+                      onChange={(_, newValue) => {
+                        handleLocationChange("District", newValue || "");
+                      }}
+                      onBlur={() => handleBlur("District")}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Select District"
+                          error={!!errors[`location-District`] && touchedFields["District"]}
+                          helperText={touchedFields["District"] ? errors[`location-District`] : ""}
+                          InputProps={{
+                            ...params.InputProps,
+                            sx: {
+                              borderRadius: "12px",
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </FormControl>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+                  <FormControl fullWidth error={!!errors[`location-Block`]}>
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontWeight: 600,
+                          color: "text.primary",
+                          mr: 0.5,
+                          marginBottom: 1,
+                        }}
+                      >
+                        Block
+                      </Typography>
+                    </Box>
+                    <Autocomplete
+                      options={geoData.Block}
+                      value={locations.Block || ""}
+                      loading={isBlocksLoading}
+                      disabled={!locations.District}
+                      onChange={(_, newValue) => {
+                        handleLocationChange("Block", newValue || "");
+                      }}
+                      onBlur={() => handleBlur("Block")}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Select Block"
+                          error={!!errors[`location-Block`] && touchedFields["Block"]}
+                          helperText={touchedFields["Block"] ? errors[`location-Block`] : ""}
+                          InputProps={{
+                            ...params.InputProps,
+                            sx: {
+                              borderRadius: "12px",
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </FormControl>
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+                  <FormControl fullWidth error={!!errors[`location-Cluster`]}>
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontWeight: 600,
+                          color: "text.primary",
+                          mr: 0.5,
+                          marginBottom: 1,
+                        }}
+                      >
+                        Cluster
+                      </Typography>
+                    </Box>
+                    <Autocomplete
+                      options={geoData.Cluster}
+                      value={locations.Cluster || ""}
+                      loading={isClustersLoading}
+                      disabled={!locations.Block}
+                      onChange={(_, newValue) => {
+                        handleLocationChange("Cluster", newValue || "");
+                      }}
+                      onBlur={() => handleBlur("Cluster")}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Select Cluster"
+                          error={!!errors[`location-Cluster`] && touchedFields["Cluster"]}
+                          helperText={touchedFields["Cluster"] ? errors[`location-Cluster`] : ""}
+                          InputProps={{
+                            ...params.InputProps,
+                            sx: {
+                              borderRadius: "12px",
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </FormControl>
+                </Grid>
               </Grid>
             </Grid>
 
