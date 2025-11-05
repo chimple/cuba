@@ -637,7 +637,7 @@ const LoginScreen: React.FC = () => {
         setAnimatedLoading(false);
         let studentDetails: any = user;
         studentDetails.parent_id = user.uid;
-        studentDetails.last_sign_in = user.last_login_at;
+        studentDetails.last_sign_in_at = user.last_login_at;
         studentDetails.login_method = "email-password";
         updateLocalAttributes({
           studentDetails,
