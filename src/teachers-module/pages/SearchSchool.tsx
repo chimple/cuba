@@ -360,7 +360,7 @@ const SearchSchool: FC = () => {
           </div>
 
           <div className="search-school-input-container">
-            <IonItem lines="none" className="search-school-item">
+            <IonItem disabled={(country && state && district)? false : true} lines="none" className="search-school-item">
               <IonIcon icon={searchOutline} slot="start" />
               <IonInput
                 value={searchText}
