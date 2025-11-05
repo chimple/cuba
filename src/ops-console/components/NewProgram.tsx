@@ -165,29 +165,128 @@ const NewProgram: React.FC = () => {
       }
     };
 
-    const handlePartnerChange = (field: string, value: string) => {
-      setPartners((prev) => ({ ...prev, [field]: value }));
-      setIsEditingProgramName(false);
+    const loadCountries = async () => {
+      setCountriesLoading(true);
+      const data = await api.getGeoData({});
+      setGeoData((prev) => ({ ...prev, Country: data }));
+      setCountriesLoading(false);
     };
 
-    const fetchGeoData = async () => {
-      try {
-        const data = await api.getUniqueGeoData();
-        const uniqueGeoData = {
-          Country: [...new Set(data.Country.filter(Boolean))],
-          State: [...new Set(data.State.filter(Boolean))],
-          District: [...new Set(data.District.filter(Boolean))],
-          Block: [...new Set(data.Block.filter(Boolean))],
-          Cluster: [...new Set(data.Cluster.filter(Boolean))],
-        };
-        setGeoData(uniqueGeoData);
-      } catch (error) {
-        console.error("Error fetching geo data:", error);
-      }
-    };
-    fetchGeoData();
     fetchProgramManagers();
-  }, []);
+    loadCountries();
+  }, [api]);
+
+  // Load states when country changes
+  useEffect(() => {
+    setLocations((prev) => ({
+      ...prev,
+      State: "",
+      District: "",
+      Block: "",
+      Cluster: "",
+    }));
+    setGeoData((prev) => ({
+      ...prev,
+      State: [],
+      District: [],
+      Block: [],
+      Cluster: [],
+    }));
+    
+    if (locations.Country) {
+      const loadStates = async () => {
+        setStatesLoading(true);
+        const data = await api.getGeoData({ p_country: locations.Country });
+        setGeoData((prev) => ({ ...prev, State: data }));
+        setStatesLoading(false);
+      };
+      loadStates();
+    }
+  }, [locations.Country, api]);
+
+  // Load districts when state changes
+  useEffect(() => {
+    setLocations((prev) => ({
+      ...prev,
+      District: "",
+      Block: "",
+      Cluster: "",
+    }));
+    setGeoData((prev) => ({
+      ...prev,
+      District: [],
+      Block: [],
+      Cluster: [],
+    }));
+    
+    if (locations.Country && locations.State) {
+      const loadDistricts = async () => {
+        setDistrictsLoading(true);
+        const data = await api.getGeoData({
+          p_country: locations.Country,
+          p_state: locations.State,
+        });
+        setGeoData((prev) => ({ ...prev, District: data }));
+        setDistrictsLoading(false);
+      };
+      loadDistricts();
+    }
+  }, [locations.State, api]);
+
+  // Load blocks when district changes
+  useEffect(() => {
+    setLocations((prev) => ({
+      ...prev,
+      Block: "",
+      Cluster: "",
+    }));
+    setGeoData((prev) => ({
+      ...prev,
+      Block: [],
+      Cluster: [],
+    }));
+    
+    if (locations.Country && locations.State && locations.District) {
+      const loadBlocks = async () => {
+        setBlocksLoading(true);
+        const data = await api.getGeoData({
+          p_country: locations.Country,
+          p_state: locations.State,
+          p_district: locations.District,
+        });
+        setGeoData((prev) => ({ ...prev, Block: data }));
+        setBlocksLoading(false);
+      };
+      loadBlocks();
+    }
+  }, [locations.District, api]);
+
+  // Load clusters when block changes
+  useEffect(() => {
+    setLocations((prev) => ({
+      ...prev,
+      Cluster: "",
+    }));
+    setGeoData((prev) => ({
+      ...prev,
+      Cluster: [],
+    }));
+    
+    if (locations.Country && locations.State && locations.District && locations.Block) {
+      const loadClusters = async () => {
+        setClustersLoading(true);
+        const data = await api.getGeoData({
+          p_country: locations.Country,
+          p_state: locations.State,
+          p_district: locations.District,
+          p_block: locations.Block,
+        });
+        setGeoData((prev) => ({ ...prev, Cluster: data }));
+        setClustersLoading(false);
+      };
+      loadClusters();
+    }
+  }, [locations.Block, api]);
 
   const handlePartnerChange = (field: string, value: string) => {
     setPartners((prev) => ({ ...prev, [field]: value }));
