@@ -342,7 +342,7 @@ const LoginScreen: React.FC = () => {
       localStorage.setItem(USER_DATA, JSON.stringify(user));
       let studentDetails = user?.user;
       studentDetails.parent_id = user?.user.id;
-      studentDetails.last_sign_in = user.last_login_at;
+      studentDetails.last_sign_in_at = user.last_login_at;
       studentDetails.login_method = "phone-number";
       updateLocalAttributes({
         studentDetails,
