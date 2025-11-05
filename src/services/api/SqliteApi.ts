@@ -6622,9 +6622,11 @@ order by
   ): Promise<void> {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!currentUser) throw "User is not Logged in";
+    const ops_request_id = uuidv4();
 
     const now = new Date().toISOString();
     const newRequest = {
+      id: ops_request_id,
       school_id: schoolId,
       class_id: classId ?? null,
       request_type: requestType,
@@ -6639,10 +6641,11 @@ order by
     await this.executeQuery(
       `
       INSERT INTO ops_requests
-        (school_id, class_id, request_type, requested_by, request_status, rejected_reason_description, rejected_reason_type, created_at, updated_at, is_deleted)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        (id,school_id, class_id, request_type, requested_by, request_status, rejected_reason_description, rejected_reason_type, created_at, updated_at, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
+        newRequest.id,
         newRequest.school_id,
         newRequest.class_id,
         newRequest.request_type,
