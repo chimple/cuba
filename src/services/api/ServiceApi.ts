@@ -1154,7 +1154,7 @@ export interface ServiceApi {
    * @param {string} user user;
    * @return void.
    */
-  addTeacherToClass(classId: string, user: TableTypes<"user">): Promise<void>;
+  addTeacherToClass(schoolId:string,classId: string, user: TableTypes<"user">): Promise<void>;
 
   /**
    * Checks the user present in school or not.

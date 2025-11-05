@@ -4523,6 +4523,7 @@ order by
     return this._serverApi.getUserByPhoneNumber(phone);
   }
   async addTeacherToClass(
+    schoolId:string,
     classId: string,
     user: TableTypes<"user">
   ): Promise<void> {
