@@ -252,7 +252,7 @@ const NewProgram: React.FC = () => {
       Cluster: [],
     }));
     
-    if (locations.State && locations.District) {
+    if (locations.Country && locations.State && locations.District) {
       const loadBlocks = async () => {
         setBlocksLoading(true);
         const data = await api.getGeoData({
