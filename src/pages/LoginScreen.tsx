@@ -337,10 +337,13 @@ const LoginScreen: React.FC = () => {
       }
       // Store user data and proceed with navigation
       const user = res.user;
+      console.log("Userdata after OTP login: ", user);
       localStorage.setItem(CURRENT_USER, JSON.stringify(user));
       localStorage.setItem(USER_DATA, JSON.stringify(user));
       let studentDetails = user?.user;
       studentDetails.parent_id = user?.user.id;
+      studentDetails.last_sign_in = user.last_login_at;
+      studentDetails.login_method = "phone-number";
       updateLocalAttributes({
         studentDetails,
       });
@@ -432,13 +435,15 @@ const LoginScreen: React.FC = () => {
       const ok = await authInstance.googleSign();
       if (!ok.success) throw new Error("Google sign in failed");
 
-      const user = await authInstance.getCurrentUser();
+      const user: any = await authInstance.getCurrentUser();
       if (!user) throw new Error("No user returned from auth handler");
 
       localStorage.setItem(CURRENT_USER, JSON.stringify(user));
       localStorage.setItem(USER_DATA, JSON.stringify(user));
       let studentDetails: any = user;
       studentDetails.parent_id = user.id;
+      studentDetails.last_sign_in = user.last_login_at;
+      studentDetails.login_method = "google-signin";
       updateLocalAttributes({
         studentDetails,
       });
@@ -558,6 +563,8 @@ const LoginScreen: React.FC = () => {
       localStorage.setItem(USER_DATA, JSON.stringify(user));
       let studentDetails: any = user;
       studentDetails.parent_id = user.uid;
+      studentDetails.last_sign_in = user.last_login_at;
+      studentDetails.login_method = "student-credentials";
       updateLocalAttributes({
         studentDetails,
       });
@@ -630,6 +637,8 @@ const LoginScreen: React.FC = () => {
         setAnimatedLoading(false);
         let studentDetails: any = user;
         studentDetails.parent_id = user.uid;
+        studentDetails.last_sign_in = user.last_login_at;
+        studentDetails.login_method = "email-password";
         updateLocalAttributes({
           studentDetails,
         });

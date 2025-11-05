@@ -92,15 +92,16 @@ const LearningPathway: React.FC = () => {
           userCourses
         );
 
+        let total_learning_path_completed = 0;
         let learning_path_completed: { [key: string]: number } = {};
         learningPath.courses.courseList.forEach((course) => {
           const { subject_id, currentIndex } = course;
           if (subject_id && currentIndex !== undefined) {
-            learning_path_completed[`${subject_id}_path_completed`] =
-              currentIndex;
+            learning_path_completed[`${subject_id}_path_completed`] = currentIndex;
+            total_learning_path_completed += currentIndex;
           }
         });
-        updateLocalAttributes({ learning_path_completed });
+        updateLocalAttributes({ learning_path_completed, total_learning_path_completed });
         setGbUpdated(true);
 
         if (updated) await saveLearningPath(student, learningPath);
