@@ -146,7 +146,7 @@ const PrincipalTeacherPendingRequest = () => {
           }
         } else if (role === RequestTypes.TEACHER) {
           try {
-            await api.addTeacherToClass(classId, requestData.requestedBy);
+            await api.addTeacherToClass(schoolId,classId, requestData.requestedBy);
           } catch (err) {
             console.error("Error adding teacher to class:", err);
           }
@@ -154,7 +154,7 @@ const PrincipalTeacherPendingRequest = () => {
       }
 
       await api.approveOpsRequest(
-        requestData.request_id,
+        requestData.id,
         respondedBy,
         role,
         schoolId,

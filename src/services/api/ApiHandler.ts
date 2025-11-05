@@ -962,8 +962,8 @@ export class ApiHandler implements ServiceApi {
   getUserByPhoneNumber(phone: string): Promise<TableTypes<"user"> | undefined> {
     return this.s.getUserByPhoneNumber(phone);
   }
-  addTeacherToClass(classId: string, user: TableTypes<"user">): Promise<void> {
-    return this.s.addTeacherToClass(classId, user);
+  addTeacherToClass(schoolId:string,classId: string, user: TableTypes<"user">): Promise<void> {
+    return this.s.addTeacherToClass(schoolId,classId, user);
   }
   checkUserExistInSchool(schoolId: string, userId: string): Promise<boolean> {
     return this.s.checkUserExistInSchool(schoolId, userId);

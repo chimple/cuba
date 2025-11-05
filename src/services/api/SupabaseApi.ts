@@ -5069,6 +5069,7 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async addTeacherToClass(
+    schoolId: string,
     classId: string,
     user: TableTypes<"user">
   ): Promise<void> {
@@ -5100,8 +5101,32 @@ export class SupabaseApi implements ServiceApi {
 
     // Fetch user doc from your server API
     // const user_doc = await this.getUserByDocId(userId);
-
+    const { error: schoolUpdateError } = await this.supabase
+        .from(TABLES.School)
+        .update({ updated_at: now })
+        .eq("id", schoolId)
+        .eq("is_deleted", false);
+    
+    // 🔹 Update 'school_course' table
+    const { error: schoolCourseUpdateError } = await this.supabase
+      .from(TABLES.SchoolCourse)
+      .update({ updated_at: now })
+      .eq("school_id", schoolId)
+      .eq("is_deleted", false);
     // Insert into user table with upsert logic (on conflict do nothing)
+
+        const { error: classUpdateError } = await this.supabase
+        .from(TABLES.Class)
+        .update({ updated_at: now })
+        .eq("id", classId)
+        .eq("is_deleted", false);
+    
+    // 🔹 Update 'school_course' table
+      const { error: classCourseUpdateError } = await this.supabase
+        .from(TABLES.ClassCourse)
+        .update({ updated_at: now })
+        .eq("class_id", classId)
+        .eq("is_deleted", false);
     if (user) {
       const { error: userInsertError } = await this.supabase
         .from(TABLES.User)
@@ -5708,7 +5733,17 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error inserting into school_user:", insertError);
       return;
     }
-
+    const { error: schoolUpdateError } = await this.supabase
+        .from(TABLES.School)
+        .update({ updated_at: timestamp })
+        .eq("id", schoolId)
+        .eq("is_deleted", false);
+    // 🔹 Update 'school_course' table
+    const { error: schoolCourseUpdateError } = await this.supabase
+      .from(TABLES.SchoolCourse)
+      .update({ updated_at: timestamp })
+      .eq("school_id", schoolId)
+      .eq("is_deleted", false);
     // const user_doc = await this.getUserByDocId(user.id);
 
     if (user) {
@@ -8331,7 +8366,6 @@ export class SupabaseApi implements ServiceApi {
     if (classId) {
       updatePayload.class_id = classId;
     }
-
     const { data, error } = await this.supabase
       .from("ops_requests")
       .update(updatePayload)
