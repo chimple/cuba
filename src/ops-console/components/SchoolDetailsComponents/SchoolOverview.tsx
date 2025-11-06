@@ -22,8 +22,8 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
     { label: "School ID (UDISE)", value: data.schoolData?.udise },
     { label: "State", value: data.schoolData?.group1 },
     { label: "District", value: data.schoolData?.group2 },
-    { label: "Cluster", value: data.schoolData?.group3 },
-    { label: "Block", value: data.schoolData?.group4 },
+    { label: "Cluster", value: data.schoolData?.group4 },
+    { label: "Block", value: data.schoolData?.group3 },
   ].filter((item) => item.value !== undefined && item.value !== null);
 
   // school address details

@@ -923,6 +923,7 @@ export const ASSIGNMENT_POPUP_SHOWN = "assignmentPopupShown";
 export const GrowthBookAttributes = "growthBookAttributes";
 export const SCHOOL_LOGIN = "schoolLogin";
 export const CAMERAPERMISSION = "cameraPermission";
+export const LOCAL_LESSON_BUNDLES_PATH = "/assets/lessonBundles/";
 
 export const ALL_SUBJECT = {
   id: "all",

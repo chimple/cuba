@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -27,17 +27,20 @@ import { OpsUtil } from "../OpsUtility/OpsUtil";
 import { PhoneInput } from "react-international-phone";
 import "react-international-phone/style.css";
 
-const validateEmailOrPhone = (value: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (emailRegex.test(value)) return true;
-  const digitsOnly = value.replace(/\D/g, "");
-  return /^\d{10}$/.test(digitsOnly);
-};
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const roles = [
   { label: "Program Manager", value: "program_manager" },
   { label: "Field Coordinator", value: "field_coordinator" },
 ];
+
+const normalizePhone10 = (raw: string): string => {
+  let digits = (raw || "").replace(/\D/g, "");
+  if (digits.startsWith("91") && digits.length > 10) digits = digits.slice(2);
+  if (digits.startsWith("0") && digits.length > 10) digits = digits.slice(1);
+  if (digits.length > 10) digits = digits.slice(-10);
+  return digits;
+};
 
 const NewUserPage: React.FC = () => {
   const [form, setForm] = useState({
@@ -46,7 +49,7 @@ const NewUserPage: React.FC = () => {
     email: "",
     role: "",
   });
-  const [tempPhone, setTempPhone] = useState<string>("");
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const history = useHistory();
@@ -61,85 +64,80 @@ const NewUserPage: React.FC = () => {
     open: false,
     message: "",
   });
-  const [errorDialog, setErrorDialog] = useState({
-    open: false,
-    message: "",
-  });
-  const handlePhoneChange = (fullNumber: string) => {
-    setTempPhone(fullNumber);
-  };
+  const [errorDialog, setErrorDialog] = useState({ open: false, message: "" });
+
   const handleInputChange =
-    (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
-      let value = event.target.value;
-      if (field === "phone") {
-        value = value.replace(/\D/g, "");
-      }
-      setForm((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
+    (field: "name" | "email") =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const value = event.target.value;
+      setForm((prev) => {
+        if (field === "email") {
+          return value
+            ? { ...prev, email: value, phone: "" }
+            : { ...prev, email: value };
+        }
+        return { ...prev, [field]: value };
+      });
     };
 
-  const handleRoleChange = (event: SelectChangeEvent<string>) => {
-    setForm((prev) => ({
-      ...prev,
-      role: event.target.value as string,
-    }));
+  const handlePhoneChange = (value: string) => {
+    setForm((prev) => {
+      if (!prev.email) {
+        return { ...prev, phone: value };
+      }
+      return { ...prev, phone: "" };
+    });
   };
+
+  const handleRoleChange = (event: SelectChangeEvent<string>) => {
+    setForm((prev) => ({ ...prev, role: event.target.value as string }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { name, email, role } = form;
+    const { name, email, phone, role } = form;
 
     if (!name.trim() || !role.trim()) {
       setShowAlert(true);
       return;
     }
 
-    if (!email.trim() && !tempPhone.trim()) {
+    const hasEmail = !!email.trim();
+    const chosenEmail = hasEmail ? email.trim().toLowerCase() : "";
+    const normalizedPhone10 = normalizePhone10(phone);
+    const hasPhone = !hasEmail && !!normalizedPhone10;
+
+    if (!hasEmail && !hasPhone) {
       setShowAlert(true);
       return;
     }
 
-    if (email && !validateEmailOrPhone(email)) {
-      setValidationDialog({
-        open: true,
-        message: "Please enter a valid email address.",
-      });
-      return;
-    }
-
-    let finalPhone = "";
-    if (tempPhone) {
-      let digitsOnly = tempPhone.replace(/\D/g, "");
-
-      if (digitsOnly.startsWith("91") && digitsOnly.length > 10) {
-        digitsOnly = digitsOnly.slice(2);
-      } else {
-        digitsOnly = digitsOnly;
+    if (hasEmail) {
+      if (!emailRegex.test(chosenEmail)) {
+        setValidationDialog({
+          open: true,
+          message: "Please enter a valid email address.",
+        });
+        return;
       }
-
-      if (digitsOnly.length < 10) {
+    } else {
+      if (normalizedPhone10.length !== 10) {
         setValidationDialog({
           open: true,
           message: "Phone number must be 10 digits.",
         });
         return;
       }
-
-      finalPhone = digitsOnly;
-      if (!validateEmailOrPhone(finalPhone)) {
-        setValidationDialog({
-          open: true,
-          message: "Please enter a valid phone number",
-        });
-        return;
-      }
     }
 
-    const payload = { ...form, phone: finalPhone };
-    const { success, error, user_id, message } = await api.createOrAddUserOps(
-      payload
-    );
+    const payload = {
+      name: name.trim(),
+      role: role.trim(),
+      email: hasEmail ? chosenEmail : "",
+      phone: hasEmail ? "" : normalizedPhone10,
+    };
+
+    const { success, message } = await api.createOrAddUserOps(payload);
 
     const errorMsgMap: Record<string, string> = {
       "auth-create-failed":
@@ -163,7 +161,7 @@ const NewUserPage: React.FC = () => {
     const isKnownError = !success || (message && knownErrors.includes(message));
 
     if (isKnownError) {
-      const safeError = message ?? "unknown-error";
+      const safeError = (message as string) ?? "unknown-error";
       setErrorDialog({
         open: true,
         message: errorMsgMap[safeError] || "Failed to add user.",
@@ -172,13 +170,13 @@ const NewUserPage: React.FC = () => {
     }
 
     const displayMsg =
-      successMsgMap[message as keyof typeof successMsgMap] || message || "";
+      successMsgMap[message as keyof typeof successMsgMap] ||
+      (message as string) ||
+      "";
     setSuccessDialog({ open: true, message: displayMsg });
   };
 
-  const handleCancel = () => {
-    history.goBack();
-  };
+  const handleCancel = () => history.goBack();
 
   return (
     <Box className="ops-new-user-page-container">
@@ -230,6 +228,7 @@ const NewUserPage: React.FC = () => {
                 onChange={handleInputChange("name")}
               />
             </Grid>
+
             <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
               <Typography className="ops-new-user-form_label">
                 {t("Phone Number")}
@@ -237,14 +236,15 @@ const NewUserPage: React.FC = () => {
 
               <PhoneInput
                 defaultCountry="in"
-                value={tempPhone}
-                disableCountryGuess
+                value={form.phone}
                 onChange={handlePhoneChange}
-                inputClassName="w-full"
+                disableCountryGuess
                 className="new-user-page-phone-input"
+                inputClassName="w-full"
+                disabled={!!form.email} 
                 inputProps={{
                   onKeyDown: (e) => {
-                    const input = e.currentTarget;
+                    const input = e.currentTarget as HTMLInputElement;
                     const selectionStart = input.selectionStart ?? 0;
 
                     const prefixMatch = input.value.match(/^\+\d+\s*/);
@@ -262,6 +262,7 @@ const NewUserPage: React.FC = () => {
                 }}
               />
             </Grid>
+
             <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
               <Typography className="ops-new-user-form_label">
                 {t("Email ID")}
@@ -273,6 +274,7 @@ const NewUserPage: React.FC = () => {
                 onChange={handleInputChange("email")}
               />
             </Grid>
+
             <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
               <Typography className="ops-new-user-form_label">
                 {t("Roles")}

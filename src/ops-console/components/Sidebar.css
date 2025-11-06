@@ -1,3 +1,7 @@
+.sidebar-scroll-container {
+  overflow-x: hidden;
+}
+
 /* Sidebar base */
 .nav-sidebar {
   top: 0;
@@ -9,9 +13,7 @@
   padding: 24px 8px;
   display: flex;
   flex-direction: column;
-  transition:
-    width 0.3s ease,
-    left 0.3s ease;
+  transition: width 0.3s ease, left 0.3s ease;
   z-index: 1000;
 }
 
@@ -73,6 +75,7 @@
   padding: 0;
   margin: 0;
   width: 100%;
+  overflow-y: auto;
 }
 
 .sidebar-item-list a {
@@ -172,7 +175,8 @@
   gap: 7px;
   margin-top: 2vh;
   box-sizing: border-box;
-  width: calc(100% + 1rem);
+  width: calc(100% - 0px);
+  flex-shrink: 0;
 }
 
 .ops-side-menu-user-switch-icon {
@@ -200,4 +204,5 @@
   border-radius: 0.5vh;
   cursor: pointer;
   border-radius: 6px;
+  flex-shrink: 0;
 }
