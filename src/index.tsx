@@ -138,8 +138,8 @@ const gb = new GrowthBook({
       }
       await Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
         user_id: userId,
-        experimentId: experiment.key,
-        variationId: result.key,
+        experiment_id: experiment.key,
+        variation_id: result.key,
       });
     } catch (error) {
       console.error("Error in GrowthBook tracking callback:", error);
