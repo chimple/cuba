@@ -899,6 +899,22 @@ export class Util {
     }
   }
 
+  public static async lessonExistsInLocal(folderName: string): Promise<boolean> {
+    try {
+      await Filesystem.readdir({
+        path: folderName,
+        directory: Directory.External,
+      });
+      return true;
+    } catch (error: any) {
+      if (error.message?.includes('does not exist') || error.message?.includes('NOT_FOUND')) {
+        return false;
+      }
+      console.error('Error checking folder:', error);
+      throw error;
+    }
+  };
+
   public static async checkDownloadedLessonsFromLocal() {
     const storedLastRendered = localStorage.getItem(LAST_FUNCTION_CALL);
 
@@ -2352,7 +2368,7 @@ export class Util {
       const PortPlugin = registerPlugin<any>("Port");
       const data = await PortPlugin.isAppInstalledCheck();
       console.log("data isRespect data--> ", JSON.stringify(data));
-      localStorage.setItem(isRespectMode, data.isRespect);  
+      localStorage.setItem(isRespectMode, data.isRespect);
       return data.isRespect;
     } catch (error) {
       console.log("error isRespect data--> ", JSON.stringify(error));
