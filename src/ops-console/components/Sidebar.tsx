@@ -70,6 +70,11 @@ const navItems = [
   //   route: PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST,
   //   icon: <IoGitPullRequestSharp />,
   // },
+  // {
+  //   label: NavItems.REQUESTS,
+  //   route: PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST,
+  //   icon: <IoGitPullRequestSharp />,
+  // },
   {
     label: NavItems.USERS,
     route: PAGES.SIDEBAR_PAGE + PAGES.ADMIN_USERS,
@@ -164,8 +169,9 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
     history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };
+
   return (
-    <>
+    <div className="sidebar-scroll-container">
       {!isOpen && (
         <button
           className="sidebar-hamburger-outside"
@@ -174,6 +180,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
           <MenuIcon />
         </button>
       )}
+
       <aside ref={sidebarRef} className={`nav-sidebar ${isOpen ? "open" : ""}`}>
         <button
           className="sidebar-hamburger-inside"
@@ -203,9 +210,9 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             const canAccessUsersPage = userRoles.some((role) =>
               rolesWithAccess.includes(role as RoleType)
             );
-            if (item.label === NavItems.USERS && !canAccessUsersPage) {
+            if (item.label === NavItems.USERS && !canAccessUsersPage)
               return null;
-            }
+
             return (
               <li key={item.label} className="sidebar-item-list">
                 <NavLink
@@ -222,6 +229,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             );
           })}
         </ul>
+
         <div className="ops-side-menu-switch-user-toggle">
           <IonItem className="ops-side-menu-ion-item-container">
             <img src="assets/icons/userSwitch.svg" alt="OPS" className="icon" />
@@ -231,16 +239,16 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             />
           </IonItem>
         </div>
+
         {isOpen && (
-          <>
-            <div
-              className="sidebar-logout-btn"
-              onClick={() => setShowDialogBox(true)}
-            >
-              {t("Logout")}
-            </div>
-          </>
+          <div
+            className="sidebar-logout-btn"
+            onClick={() => setShowDialogBox(true)}
+          >
+            {t("Logout")}
+          </div>
         )}
+
         <DialogBoxButtons
           width="100%"
           height="20%"
@@ -253,7 +261,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
           onNoButtonClicked={onSignOut}
         />
       </aside>
-    </>
+    </div>
   );
 };
 

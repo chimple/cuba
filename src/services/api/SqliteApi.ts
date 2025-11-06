@@ -90,10 +90,20 @@ export class SqliteApi implements ServiceApi {
     | undefined;
   private _syncTableData = {};
 
+  public static getI(): SqliteApi {
+    if (!SqliteApi.i) {
+      SqliteApi.i = new SqliteApi();
+      SqliteApi.i._serverApi = SupabaseApi.getInstance();
+    }
+    return SqliteApi.i;
+  }
+
   public static async getInstance(): Promise<SqliteApi> {
     if (!SqliteApi.i) {
       SqliteApi.i = new SqliteApi();
       SqliteApi.i._serverApi = SupabaseApi.getInstance();
+    }
+    if (!SqliteApi.i._db) {
       await SqliteApi.i.init();
     }
     return SqliteApi.i;

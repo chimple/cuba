@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { IconType, PAGES, SCHOOL, TableTypes } from "../../common/constants";
+import {
+  IonPage,
+  IonContent,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+  IonSpinner,
+} from "@ionic/react";
+import { IconType, PAGES, TableTypes } from "../../common/constants";
 import { useHistory } from "react-router-dom";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { RoleType } from "../../interface/modelInterfaces";
@@ -10,6 +17,10 @@ import { t } from "i18next";
 import DetailList from "../components/schoolComponent/DetailList";
 import { Util } from "../../utility/util";
 import UploadButton from "../../ops-console/components/UploadButton";
+import DetailListHeader from "../components/schoolComponent/DetailListHeader";
+import Loading from "../../components/Loading";
+
+const PAGE_SIZE = 20;
 
 let isManagerOrDirector = false;
 interface SchoolWithRole {
@@ -22,8 +33,12 @@ const ManageSchools: React.FC = () => {
     null
   );
   const [allSchools, setAllSchools] = useState<SchoolWithRole[]>([]);
-  const [searchQuery, setSearchQuery] = useState(""); // State for search query
-  const [filteredSchools, setFilteredSchools] = useState<SchoolWithRole[]>([]); // State for filtered schools
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredSchools, setFilteredSchools] = useState<SchoolWithRole[]>([]);
+
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
   const history = useHistory();
   const api = ServiceConfig.getI()?.apiHandler;
@@ -31,13 +46,16 @@ const ManageSchools: React.FC = () => {
 
   const init = async () => {
     try {
+      setIsLoading(true);
       const user = await auth.getCurrentUser();
-      if (!user) return;
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
       setCurrentUser(user);
 
       const school = await Util.getCurrentSchool();
 
-      // isManagerOrDirector will be true if user is PROGRAM_MANAGER or OPERATIONAL_DIRECTOR or FIELD_COORDINATOR
       if (school) {
         isManagerOrDirector = await api.checkUserIsManagerOrDirector(
           school.id,
@@ -45,11 +63,54 @@ const ManageSchools: React.FC = () => {
         );
       }
 
-      const fetchedSchools = await api.getSchoolsForUser(user.id);
+      const fetchedSchools = await api.getSchoolsForUser(user.id, {
+        page: 1,
+        page_size: PAGE_SIZE,
+      });
 
-      if (fetchedSchools) setAllSchools(fetchedSchools);
+      if (fetchedSchools) {
+        setAllSchools(fetchedSchools);
+        setPage(1);
+        if (fetchedSchools.length < PAGE_SIZE) {
+          setHasMore(false);
+        }
+      }
     } catch (error) {
       console.error("Error initializing data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadMoreSchools = async (event: any) => {
+    if (isLoading || !hasMore || !currentUser) {
+      event.target.complete();
+      return;
+    }
+
+    setIsLoading(true);
+    const nextPage = page + 1;
+
+    try {
+      const newSchools = await api.getSchoolsForUser(currentUser.id, {
+        page: nextPage,
+        page_size: PAGE_SIZE,
+      });
+
+      if (newSchools && newSchools.length > 0) {
+        setAllSchools((prevSchools) => [...prevSchools, ...newSchools]);
+        setPage(nextPage);
+        if (newSchools.length < PAGE_SIZE) {
+          setHasMore(false);
+        }
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("Error loading more schools:", error);
+    } finally {
+      setIsLoading(false);
+      event.target.complete();
     }
   };
 
@@ -63,7 +124,6 @@ const ManageSchools: React.FC = () => {
     init();
   }, []);
 
-  // Filter schools whenever allSchools or searchQuery changes
   useEffect(() => {
     const filtered = allSchools.filter((item) =>
       item.school.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -72,19 +132,42 @@ const ManageSchools: React.FC = () => {
   }, [allSchools, searchQuery]);
 
   return (
-    <div className="main-page">
+    <IonPage className="main-page">
       <div className="fixed-header">
         <Header
           isBackButton={true}
           onBackButtonClick={onBackButtonClick}
-          onSearchChange={setSearchQuery} // Pass the search callback
+          onSearchChange={setSearchQuery}
         />
       </div>
       <div className="school-div">{t("Schools")}</div>
-      <div className="school-list">
-        <DetailList data={filteredSchools} type={IconType.SCHOOL} />
-      </div>
+      {!(isLoading && allSchools.length === 0) && <DetailListHeader />}
+      <IonContent className="content-background">
+        {isLoading && allSchools.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "40px" }}>
+            <Loading isLoading={true} />
+          </div>
+        ) : (
+          <>
+            <div className="school-list">
+              <DetailList data={filteredSchools} type={IconType.SCHOOL} />
+            </div>
 
+            <IonInfiniteScroll
+              onIonInfinite={loadMoreSchools}
+              threshold="100px"
+              disabled={!hasMore}
+            >
+              <IonInfiniteScrollContent
+                loadingSpinner="bubbles"
+                loadingText={t("Loading more schools...") as string}
+              ></IonInfiniteScrollContent>
+            </IonInfiniteScroll>
+          </>
+        )}
+      </IonContent>
+
+      {/* Original commented out code */}
       {/* {isManagerOrDirector && (
         <UploadButton
           onClick={() => {
@@ -92,13 +175,12 @@ const ManageSchools: React.FC = () => {
           }}
         />
       )} */}
-
       {/* <AddButton
         onClick={() => {
           history.replace(PAGES.REQ_ADD_SCHOOL);
         }}
       /> */}
-    </div>
+    </IonPage>
   );
 };
 
