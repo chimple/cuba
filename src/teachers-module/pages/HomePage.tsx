@@ -89,6 +89,9 @@ const HomePage: React.FC = () => {
       updateLocalAttributes({
         teacher_class_id: tempClass?.id,
         teacher_school_id: currentSchool?.id,
+        teacher_school_state: currentSchool?.group1,
+        teacher_school_district: currentSchool?.group2,
+        teacher_school_block: currentSchool?.group3,
       });
       setGbUpdated(true);
     } catch (error) {

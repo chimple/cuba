@@ -378,6 +378,7 @@ const Home: FC = () => {
       const attributeParams = {
         studentDetails: student,
         schools: linkedData.schools.map((item: any) => item.id),
+        school_name: linkedData.schools[0]?.name,
         classes: linkedData.classes.map((item: any) => item.id),
         liveQuizCount: liveQuizCount,
         assignmentCount: assignmentCount,
