@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { fn } from "@storybook/test";
 import type { Meta, StoryObj } from "@storybook/react";
 import SelectAvatar from "../components/editStudent/SelectAvatar";

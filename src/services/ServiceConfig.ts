@@ -21,7 +21,7 @@ export class ServiceConfig {
   private _authHandler: AuthHandler;
   private _mode: APIMode;
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(mode: APIMode): ServiceConfig {
     if (!ServiceConfig.instance) {
@@ -79,8 +79,8 @@ export class ServiceConfig {
     this._authHandler = AuthHandler.getInstance(FirebaseAuth.getInstance());
   }
 
-  private initializeSqlite() {
-    this._apiHandler = ApiHandler.getInstance(SqliteApi.i);
+  private async initializeSqlite() {
+    this._apiHandler = ApiHandler.getInstance(await SqliteApi.getInstance());
     this._authHandler = AuthHandler.getInstance(SupabaseAuth.getInstance());
   }
 

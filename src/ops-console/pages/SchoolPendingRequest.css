@@ -1,0 +1,45 @@
+school-request-container{
+  width: 100%;
+  position: relative !important;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto; 
+ }
+
+ .school-common-header {
+  width: calc(100% - 32px);
+  margin: 0 auto;
+  height: 65px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+.school-common-secondary-header {
+  width: calc(100% - 32px);
+  margin: 0 auto;
+  padding-left: 11px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.school-common-secondary-header > * {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+}
+.school-request{
+  margin: 24px;
+}
+.request-action-buttons {
+  display: flex;
+  justify-content: space-between; 
+  margin-top: 20px;
+  padding-bottom: 0;
+}
+

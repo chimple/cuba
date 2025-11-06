@@ -50,10 +50,10 @@ const Parent: React.FC = () => {
   const [musicFlag, setMusicFlag] = useState<number>();
   const [userProfile, setUserProfile] = useState<TableTypes<"user">[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
-  const clickCount = useRef(0);
-  const [showDialogBox, setShowDialogBox] = useState(false);
-  const [showDebug, setShowDebug] = useState(false);
-
+  // Commented out because Debug Mode has been moved to the Leaderboard page
+  // const clickCount = useRef(0);
+  // const [showDialogBox, setShowDialogBox] = useState(false);
+  // const [showDebug, setShowDebug] = useState(false);
   const [langList, setLangList] = useState<
     {
       id: string;
@@ -193,7 +193,7 @@ const Parent: React.FC = () => {
             <DropDown
               currentValue={currentAppLang}
               optionList={langList}
-              placeholder="Select Language"
+              placeholder=""
               width="26vw"
               onValueChange={async (selectedLangDocId) => {
                 // setIsLoading(true);
@@ -250,16 +250,17 @@ const Parent: React.FC = () => {
                     v.detail?.checked
                   );
                 }
-
-                clickCount.current += 1;
-                // If clicked 7 times, show popup for debug mode
-                if (clickCount.current === 7) {
-                  setShowDialogBox(true);
-                  clickCount.current = 0;
-                }
+                // Commented out because Debug Mode has been moved to the Leaderboard page
+                // clickCount.current += 1;
+                // // If clicked 7 times, show popup for debug mode
+                // if (clickCount.current === 7) {
+                //   setShowDialogBox(true);
+                //   clickCount.current = 0;
+                // }
               }}
             ></ToggleButton>
-            {showDialogBox && (
+            {/* Commented out because Debug Mode has been moved to the Leaderboard page */}
+            {/* {showDialogBox && (
               <DialogBoxButtons
                 width={"40vw"}
                 height={"30vh"}
@@ -288,7 +289,7 @@ const Parent: React.FC = () => {
                   setShowDialogBox(false);
                 }}
               />
-            )}
+            )} */}
 
             <ToggleButton
               flag={musicFlag!}
@@ -325,6 +326,7 @@ const Parent: React.FC = () => {
                   schoolUtil.setCurrMode(MODES.TEACHER);
                   history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
                   isNativePlatform && window.location.reload();
+                  isNativePlatform && window.location.reload();
                 } else if (schools && schools.length > 0) {
                   if (schools?.length === 1) {
                     Util.setCurrentSchool(schools[0].school, schools[0].role);
@@ -336,16 +338,18 @@ const Parent: React.FC = () => {
                       Util.setCurrentClass(tempClasses[0]);
                       schoolUtil.setCurrMode(MODES.TEACHER);
                       history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
-                      isNativePlatform &&window.location.reload();
+                      isNativePlatform && window.location.reload();
                     }
                   } else {
                     schoolUtil.setCurrMode(MODES.TEACHER);
                     history.replace(PAGES.DISPLAY_SCHOOLS);
                     isNativePlatform && window.location.reload();
+                    isNativePlatform && window.location.reload();
                   }
                 } else {
                   schoolUtil.setCurrMode(MODES.TEACHER);
                   history.replace(PAGES.DISPLAY_SCHOOLS);
+                  isNativePlatform && window.location.reload();
                   isNativePlatform && window.location.reload();
                 }
               }}
@@ -503,9 +507,9 @@ const Parent: React.FC = () => {
     );
   }
 
-  function debugModeUI() {
-    return <DebugMode />;
-  }
+  // function debugModeUI() {
+  //   return <DebugMode />;
+  // }
   const handleChange = (newValue: string) => {
     const selectedHeader = parentHeaderIconList.find(
       (item) => item.header === newValue
@@ -547,7 +551,8 @@ const Parent: React.FC = () => {
         {tabIndex === t("setting") && <div>{settingUI()}</div>}
         {tabIndex === t("help") && <div>{helpUI()}</div>}
         {tabIndex === t("faq") && <div>{faqUI()}</div>}
-        {tabIndex === t("debugMode") && <div>{debugModeUI()}</div>}
+        {/* Commented out because Debug Mode has been moved to the Leaderboard pagex */}
+        {/* {tabIndex === t("debugMode") && <div>{debugModeUI()}</div>} */}
       </div>
     </Box>
   );

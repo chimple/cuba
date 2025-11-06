@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { NavLink, useHistory, useLocation } from "react-router-dom";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import SchoolIcon from "@mui/icons-material/School";
@@ -18,15 +18,25 @@ import {
   MODES,
   USER_ROLE,
   CLASS,
+  CURRENT_USER,
+  CURRENT_MODE,
+  IS_OPS_USER,
+  USER_DATA,
 } from "../../common/constants";
 import { RoleType } from "../../interface/modelInterfaces";
 import ToggleButton from "../../components/parent/ToggleButton";
 import { schoolUtil } from "../../utility/schoolUtil";
 import { Util } from "../../utility/util";
-import { ServiceConfig } from "../../services/ServiceConfig";
+import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
 import { IonItem } from "@ionic/react";
 import CommonToggle from "../../common/CommonToggle";
 import { Capacitor } from "@capacitor/core";
+import {
+  IoGitPullRequestOutline,
+  IoGitPullRequestSharp,
+} from "react-icons/io5";
+import { t } from "i18next";
+import DialogBoxButtons from "../../components/parent/DialogBoxButtons​";
 
 interface SidebarProps {
   name: string;
@@ -55,6 +65,11 @@ const navItems = [
     route: PAGES.SIDEBAR_PAGE + PAGES.ADMIN_COMPAIGNS,
     icon: <CampaignIcon />,
   },
+  // {
+  //   label: NavItems.REQUESTS,
+  //   route: PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST,
+  //   icon: <IoGitPullRequestSharp />,
+  // },
   {
     label: NavItems.USERS,
     route: PAGES.SIDEBAR_PAGE + PAGES.ADMIN_USERS,
@@ -74,9 +89,11 @@ const navItems = [
 
 const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
+  const [showDialogBox, setShowDialogBox] = useState(false);
   const [currentUser, setCurrentUser] = useState<
     TableTypes<"user"> | undefined
   >();
@@ -114,11 +131,39 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
     }
   };
 
+  // Close sidebar when user click on outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isOpen &&
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
   // Auto-close sidebar on mobile route change
   useEffect(() => {
     setIsOpen(false);
   }, [location?.pathname]);
 
+  const onSignOut = async () => {
+    const auth = ServiceConfig.getI().authHandler;
+    await auth.logOut();
+    Util.unSubscribeToClassTopicForAllStudents();
+    localStorage.clear();
+    const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
+    serviceInstance.switchMode(APIMode.SQLITE);
+    history.replace(PAGES.LOGIN);
+    if (Capacitor.isNativePlatform()) window.location.reload();
+  };
   return (
     <>
       {!isOpen && (
@@ -129,7 +174,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
           <MenuIcon />
         </button>
       )}
-      <aside className={`nav-sidebar ${isOpen ? "open" : ""}`}>
+      <aside ref={sidebarRef} className={`nav-sidebar ${isOpen ? "open" : ""}`}>
         <button
           className="sidebar-hamburger-inside"
           onClick={() => setIsOpen(!isOpen)}
@@ -172,21 +217,36 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             );
           })}
         </ul>
-        {!Capacitor.isNativePlatform() && (
-          <div className="ops-side-menu-switch-user-toggle">
-            <IonItem className="ops-side-menu-ion-item-container">
-              <img
-                src="assets/icons/userSwitch.svg"
-                alt="OPS"
-                className="icon"
-              />
-              <CommonToggle
-                onChange={switchUserToTeacher}
-                label="Switch to Teacher's Mode"
-              />
-            </IonItem>
-          </div>
+        <div className="ops-side-menu-switch-user-toggle">
+          <IonItem className="ops-side-menu-ion-item-container">
+            <img src="assets/icons/userSwitch.svg" alt="OPS" className="icon" />
+            <CommonToggle
+              onChange={switchUserToTeacher}
+              label="Switch to Teacher's Mode"
+            />
+          </IonItem>
+        </div>
+        {isOpen && (
+          <>
+            <div
+              className="sidebar-logout-btn"
+              onClick={() => setShowDialogBox(true)}
+            >
+              {t("Logout")}
+            </div>
+          </>
         )}
+        <DialogBoxButtons
+          width="100%"
+          height="20%"
+          message={t("Are you sure you want to logout?")}
+          showDialogBox={showDialogBox}
+          yesText={t("Cancel")}
+          noText={t("Logout")}
+          handleClose={() => setShowDialogBox(false)}
+          onYesButtonClicked={() => setShowDialogBox(false)}
+          onNoButtonClicked={onSignOut}
+        />
       </aside>
     </>
   );

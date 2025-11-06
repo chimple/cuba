@@ -3,16 +3,27 @@ import Course from "../../models/course";
 import Lesson from "../../models/lesson";
 import { StudentLessonResult } from "../../common/courseConstants";
 import {
+  CACHETABLES,
+  CoordinatorAPIResponse,
+  EnumType,
   FilteredSchoolsForSchoolListingOps,
+  GeoDataParams,
   LeaderboardDropdownList,
   LeaderboardRewards,
   MODEL,
   MODES,
+  PrincipalAPIResponse,
   PROFILETYPE,
+  RequestTypes,
   SchoolRoleMap,
+  SearchSchoolsParams,
+  SearchSchoolsResult,
+  STATUS,
+  StudentAPIResponse,
   TABLES,
   TableTypes,
   TabType,
+  TeacherAPIResponse,
 } from "../../common/constants";
 import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
@@ -66,6 +77,7 @@ export interface ServiceApi {
    * @param {string | null} program_id - Linked program ID if any.
    * @param {string | null} udise - School's UDISE code (11 digits).
    * @param {string | null} address - Full address of the school.
+   * @param {string | null} country - Country of the school.
    * @returns {Promise<TableTypes<"school">>} The created school object.
    */
   createSchool(
@@ -77,7 +89,8 @@ export interface ServiceApi {
     image: File | null,
     program_id: string | null,
     udise: string | null,
-    address: string | null
+    address: string | null,
+    country: string | null,
   ): Promise<TableTypes<"school">>;
   /**
    * Updates the school details and returns the updated school object.
@@ -105,6 +118,16 @@ export interface ServiceApi {
     udise: string | null,
     address: string | null
   ): Promise<TableTypes<"school">>;
+
+  /**
+   * Clears all rows from the specified tables in the local SQLite database.
+   * Keeps the database structure and files intact.
+   * Primarily used during logout or reset operations.
+   *
+   * @param {readonly TABLES[]} tableNames - List of table names to clear.
+   * @returns {Promise<void>} Resolves once the tables are cleared.
+   */
+  clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void>;
 
   requestNewSchool(
     name: string,
@@ -485,6 +508,13 @@ export interface ServiceApi {
   getCourse(id: string): Promise<TableTypes<"course"> | undefined>;
 
   /**
+   * Gives Courses for given a CourseIds
+   * @param  {courseIds: string[]} - CourseIds
+   * @returns {<TableTypes<"course">[]>}`Course` or `undefined` if it could not find the Course with given `id`
+   */
+  getCourses(courseIds: string[]): Promise<TableTypes<"course">[]>;
+
+  /**
    * Gives StudentProfile for given a Student firebase doc Id
    * @param {string} id - Student firebase doc id
    * @param {boolean} fromCache - If true, it will try to fetch the data from the cache. If the data is not found in the cache, it will look in the database.
@@ -545,14 +575,9 @@ export interface ServiceApi {
   ): Promise<TableTypes<"assignment">[]>;
   /**
    * Gets schools for a user (teacher, principal, or ops user).
-   *
-   * If pagination options are provided, returns only the requested page.
-   * If not, returns all schools for the user (legacy behavior).
+   * returns all schools for the user (legacy behavior).
    *
    * @param {string} userId - User's unique ID
-   * @param {Object} [options] - Optional pagination settings
-   * @param {number} [options.page] - The page number to fetch (1-based)
-   * @param {number} [options.page_size] - Number of schools per page
    * @returns {Promise<{ school: TableTypes<"school">; role: RoleType }[]>}
    */
   getSchoolsForUser(
@@ -925,7 +950,7 @@ export interface ServiceApi {
    *          - `false` if there were any errors or if no synchronization was necessary.
    */
 
-  syncDB(tableNames: TABLES[], refreshTables: TABLES[]): Promise<boolean>;
+  syncDB(tableNames: TABLES[], refreshTables: TABLES[], isFirstSync?: boolean): Promise<boolean>;
 
   /**
    * Function to get Recommended Lessons.
@@ -1080,8 +1105,8 @@ export interface ServiceApi {
     type: string,
     batch_id: string,
     source: string | null,
-    created_at?: string,
-  ): Promise<boolean>;
+    created_at?: string
+  ): Promise<void>;
 
   /**
    * This function gets all the teachers for the class.
@@ -1252,6 +1277,18 @@ export interface ServiceApi {
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined>;
   /**
+   * Fetches a paginated list of principal for a given school.
+   * @param {string} schoolId - The ID of the school.
+   * @param {number} [page=1] - The page number to fetch.
+   * @param {number} [limit=20] - The number of items per page.
+   * @returns A promise resolving to an object with principal data and a total count.
+   */
+  getPrincipalsForSchoolPaginated(
+    schoolId: string,
+    page?: number,
+    limit?: number
+  ): Promise<PrincipalAPIResponse>;
+  /**
    * This function gets all the coordinators for the school.
    * @param {string} schoolId school Id;
    * @return A promise to an array of coordinators.
@@ -1259,6 +1296,18 @@ export interface ServiceApi {
   getCoordinatorsForSchool(
     schoolId: string
   ): Promise<TableTypes<"user">[] | undefined>;
+  /**
+   * Fetches a paginated list of coordinators for a given school.
+   * @param {string} schoolId - The ID of the school.
+   * @param {number} [page=1] - The page number to fetch.
+   * @param {number} [limit=20] - The number of items per page.
+   * @returns A promise resolving to an object with coordinator data and a total count.
+   */
+  getCoordinatorsForSchoolPaginated(
+    schoolId: string,
+    page?: number,
+    limit?: number
+  ): Promise<CoordinatorAPIResponse>;
   /**
    * This function gets all the sponsors for the school.
    * @param {string} schoolId school Id;
@@ -1599,7 +1648,9 @@ export interface ServiceApi {
    * gets record from chpater_links table by QRCode link
    * @param link -Qrlink
    */
-  getChapterIdbyQrLink(link: string): Promise<TableTypes<"chapter_links"> | undefined>;
+  getChapterIdbyQrLink(
+    link: string
+  ): Promise<TableTypes<"chapter_links"> | undefined>;
   /**
    * Fetches all schools available to the admin user with pagination.
    * @param {number} limit - Number of schools to fetch.
@@ -1641,13 +1692,13 @@ export interface ServiceApi {
 
   /**
    * Fetches schools by operational model ("AT_HOME" or "AT_SCHOOL") with pagination.
-   * @param {MODEL} model - The model type to filter schools ("AT_HOME" or "AT_SCHOOL").
+   * @param {EnumType<"program_model">} model - The model type to filter schools ("AT_HOME" or "AT_SCHOOL").
    * @param {number} limit - Number of schools to fetch.
    * @param {number} offset - Offset for pagination.
    * @returns {Promise<TableTypes<"school">[]>} - A promise that resolves to a list of schools filtered by model.
    */
   getSchoolsByModel(
-    model: MODEL,
+    model: EnumType<"program_model">,
     limit: number,
     offset: number
   ): Promise<TableTypes<"school">[]>;
@@ -1716,30 +1767,68 @@ export interface ServiceApi {
     error?: string;
   }>;
 
-  //  * Fetch detailed teacher information for a given school ID.
-  //  * @param {string} schoolId - The ID of the school to fetch.
-  //  * @returns Promise resolving to user details, grade, and classSection.
-  //  */
-  getTeacherInfoBySchoolId(schoolId: string): Promise<
-    {
-      user: TableTypes<"user">;
-      grade: number;
-      classSection: string;
-    }[]
-  >;
+  /**
+   * Fetch detailed, paginated teacher information for a given school ID.
+   * @param {string} schoolId - The ID of the school to fetch.
+   * @param {number} [page=1] - The page number to fetch.
+   * @param {number} [limit=20] - The number of items per page.
+   * @returns Promise resolving to an object with teacher data and a total count.
+   */
+  getTeacherInfoBySchoolId(
+    schoolId: string,
+    page: number,
+    limit: number
+  ): Promise<TeacherAPIResponse>;
 
   /**
-   * Fetch detailed student information for a given school ID.
+   * Fetch detailed, paginated student information for a given school ID.
    * @param {string} schoolId - The ID of the school to fetch.
-   * @returns Promise resolving to user details, grade, and classSection.
+   * @param {number} [page=1] - The page number to fetch.
+   * @param {number} [limit=20] - The number of items per page.
+   * @returns Promise resolving to an object with student data and a total count.
    */
-  getStudentInfoBySchoolId(schoolId: string): Promise<
-    {
-      user: TableTypes<"user">;
-      grade: number;
-      classSection: string;
-    }[]
-  >;
+  getStudentInfoBySchoolId(
+    schoolId: string,
+    page: number,
+    limit: number
+  ): Promise<StudentAPIResponse>;
+
+  /**
+   * Fetch detailed, paginated student and parent information for a given class ID.
+   * @param {string} classId - The ID of the class to fetch.
+   * @param {number} [page=1] - The page number to fetch.
+   * @param {number} [limit=20] - The number of items per page.
+   * @returns Promise resolving to an object with student and parent data and a total count.
+   */
+  getStudentsAndParentsByClassId(
+    classId: string,
+    page: number,
+    limit: number
+  ): Promise<StudentAPIResponse>;
+
+  /**
+   * Fetch a single student's details along with their parent information.
+   * @param {string} studentId - The ID of the student to fetch.
+   * @returns Promise resolving to an object containing the student's data and an array of parents.
+   */
+  getStudentAndParentByStudentId(
+    studentId: string
+  ): Promise<{ user: any; parents: any[] }>;
+
+  /**
+   * Merge a new student into an existing student record in SQLite.
+   * Moves results, links parents (by phone or email), and soft-deletes the new record.
+   * @param {string} requestId - The request ID associated with this merge.
+   * @param {string} existingStudentId - The student ID to merge into.
+   * @param {string} newStudentId - The student ID being merged and marked as deleted.
+   * @returns Promise resolving when the merge is complete.
+   */
+  mergeStudentRequest(
+    requestId: string,
+    existingStudentId: string,
+    newStudentId: string,
+    respondedBy: string
+  ): Promise<void>;
 
   getClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
 
@@ -1759,7 +1848,7 @@ export interface ServiceApi {
   isProgramUser(): Promise<boolean>;
 
   /**
-   * Count total and active students, total and active teachers, and total institutes for a given program.
+   * Count total and active students, total and active teachers, and total schools for a given program.
    *
    * @param {string} programId - The ID of the program.
    * @returns {Promise<{
@@ -1768,13 +1857,13 @@ export interface ServiceApi {
    *   avg_time_spent: number;
    *   total_teachers: number;
    *   active_teachers: number;
-   *   total_institutes: number;
+   *   total_schools: number;
    * }>} Promise resolving to an object with student, teacher, and institute statistics.
    */
   program_activity_stats(programId: string): Promise<{
     total_students: number;
     total_teachers: number;
-    total_institutes: number;
+    total_schools: number;
     active_student_percentage: number;
     active_teacher_percentage: number;
     avg_weekly_time_minutes: number;
@@ -1861,9 +1950,9 @@ export interface ServiceApi {
   /**
    * Delete the user from school_user table by role.
    * @param {string} userId - user Id.
-   * @param {number} role - user Role.
+   * @param {RoleType} role - user Role.
    */
-  deleteUserFromSchoolsWithRole(userId: string, role: string): Promise<void>;
+  deleteUserFromSchoolsWithRole(userId: string, role: RoleType): Promise<void>;
 
   /**
    * Fetch student login type and program model by UDISE code.
@@ -1884,5 +1973,147 @@ export interface ServiceApi {
    * @param {string} classID
    * @param {string} studentID
    */
-  addParentToNewClass(classID:string, studentID:string): Promise<void>;
+  addParentToNewClass(classID: string, studentID: string): Promise<void>;
+
+  /**
+   * Fetches operational requests with pagination, sorting, and optional filters.
+   *
+   * @param {EnumType<"ops_request_status">} requestStatus - Status of the requests(e.g., PENDING, APPROVED, REJECTED).
+   * @param {number} page - Current page number for pagination (1-based).
+   * @param {number} limit - Number of records per page.
+   * @param {string} orderBy - Field to sort by. Supports "created_at", "updated_at", or "school_name" (school_name is handled in-memory).
+   * @param {"asc" | "desc"} orderDir - Sorting direction (ascending or descending).
+   * @param {{ request_type?: string[]; school?: string[] }} [filters] - Optional filters by request type(s) and/or school name(s).
+   * @param {string} [searchTerm] - Optional search keyword to filter results by request ID.
+   *
+   * @returns {Promise<{ data: any[]; total: number }>} - Paginated list of requests and total count.
+   */
+  getOpsRequests(
+    requestStatus: EnumType<"ops_request_status">,
+    page: number,
+    limit: number,
+    orderBy: string,
+    orderDir: "asc" | "desc",
+    filters?: { request_type?: string[]; school?: string[] },
+    searchTerm?: string
+  );
+
+  /**
+   * Retrieves available filter options for operational requests.
+   * Typically used for populating dropdowns or filters in UI.
+   * @returns {Promise<any>} - Returns a promise resolving to the available filter options.
+   */
+  getRequestFilterOptions();
+
+  /**
+   * Search teachers in a school by name, email, or phone (paginated)
+   */
+  searchTeachersInSchool(
+    schoolId: string,
+    searchTerm: string,
+    page?: number,
+    limit?: number
+  ): Promise<{ data: any[]; total: number }>;
+
+  /**
+   * Search students by name, student_id, or phone number in a school, paginated.
+   * @param schoolId School ID
+   * @param searchTerm Search string
+   * @param page Page number
+   * @param limit Page size
+   */
+  searchStudentsInSchool(
+    schoolId: string,
+    searchTerm: string,
+    page?: number,
+    limit?: number
+  ): Promise<StudentAPIResponse>;
+
+  approveOpsRequest(
+    requestId: string,
+    respondedBy: string,
+    role: (typeof RequestTypes)[keyof typeof RequestTypes],
+    schoolId?: string,
+    classId?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined>;
+
+  /**
+   * update the ops_request to approved or rejected .
+   * @param requestId unique id of ops_request table
+   * @param respondedBy user who responded or reviewed
+   * @param status "approved" | "rejected"
+   * @param rejectionReason reason for rejection (if status is "rejected")
+   */
+  respondToSchoolRequest(
+    requestId: string,
+    respondedBy: string,
+    status: (typeof STATUS)[keyof typeof STATUS],
+    rejectionReason?: string
+  ): Promise<TableTypes<"ops_requests"> | undefined>;
+
+  /**
+   * fetch all field coordintaors connected to the program.
+   * @param programId program ID
+   */
+  getFieldCoordinatorsByProgram(
+    programId: string
+  ): Promise<{ data: TableTypes<"user">[] }>;
+
+  /**
+   * fetch all the programs for the ops_director and super admin.
+   * for program manager it will fetch only their programs.
+   */
+  getProgramsByRole(): Promise<{ data: TableTypes<"program">[] }>;
+
+  /**
+   * Update school status to rejected or active .
+   * Update address and key contacts if provided.
+   * @param schoolId School ID
+   * @param schoolStatus status of school
+   * @param address address of school
+   * @param keyContacts provide contact details of key contacts
+   */
+  updateSchoolStatus(
+    schoolId: string,
+    schoolStatus: (typeof STATUS)[keyof typeof STATUS],
+    address?: {
+      state?: string;
+      district?: string;
+      city?: string;
+      address?: string;
+    },
+    keyContacts?: any
+  ): Promise<void>;
+
+  /**
+   * Fetches a list of geographic locations (countries, states, districts, etc.).
+   * The returned data is dependent on the parameters provided, allowing for a cascading fetch.
+   * @param params An object containing the optional filter criteria.
+   * @returns A promise that resolves to an array of location names (strings).
+   */
+  getGeoData(params: GeoDataParams): Promise<string[]>;
+
+  /**
+   * Fetches a list of schools based on  locations (countries, states, districts, etc.).
+   * The returned data is dependent on the parameters provided, allowing for a cascading fetch.
+   * @param params An object containing the optional filter criteria.
+   * @returns A promise that resolves to an array of schools list (strings).
+   * */
+  searchSchools(params: SearchSchoolsParams): Promise<SearchSchoolsResult>;
+  /**
+   * Creates a request to join a school as principle or teacher
+   * @param {string} schoolId - school Id
+   * @param {string} requestType - type of request (PRINCIPAL or TEACHER)
+   * @param {string} classId - class Id
+   */
+  sendJoinSchoolRequest(
+    schoolId: string,
+    requestType: RequestTypes,
+    classId?: string
+  ): Promise<void>;
+  /**
+   * Get all classes connected to school using rpc call
+   * @param {string} schoolId - school Id
+   */
+  getAllClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
 }

@@ -3,12 +3,15 @@ import { useHistory } from "react-router";
 import "./TeacherAssignment.css";
 import { ServiceConfig } from "../../../../services/ServiceConfig";
 import SelectIconImage from "../../../../components/displaySubjects/SelectIconImage";
-import { AssignmentSource, CAMERAPERMISSION, PAGES, TableTypes } from "../../../../common/constants";
+import { AssignmentSource, CAMERAPERMISSION, COURSES, PAGES, TableTypes } from "../../../../common/constants";
 import { Util } from "../../../../utility/util";
 import { t } from "i18next";
 import { Toast } from "@capacitor/toast";
 import AssignmentNextButton from "./AssignmentNextButton";
-import { BarcodeScanner } from "@capacitor-community/barcode-scanner";
+import {
+  CapacitorBarcodeScanner,
+  CapacitorBarcodeScannerTypeHint,
+} from "@capacitor/barcode-scanner";
 import { App } from '@capacitor/app';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
 import Loading from "../../../../components/Loading";
@@ -113,6 +116,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
          if (!tempLessons[courseId]) {
            tempLessons[courseId] = {
              name: l.course[0].name,
+             courseCode: l.course[0].code,
              lessons: [],
              isCollapsed: false,
              sort_index: l.course[0].sort_index,
@@ -147,6 +151,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
       if (!recommendedAssignments[course.id]) {
         recommendedAssignments[course.id] = {
           name: course.name,
+          courseCode:course.code,
           lessons: [],
           sort_index: course.sort_index, // Added sort_index here
         };
@@ -396,11 +401,13 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           )} */}
         </div>
         {!assignments[subjectId].isCollapsed && (
-          <div>
-            {assignments[subjectId].lessons.map((assignment: any, index: number) => {
-              const isSelected = assignment?.selected;
-              return (
-                <div key={index} className="assignment-list-item">
+        <div>
+        {assignments[subjectId].lessons.map(
+          (assignment: any, index: number) => {
+            const isSelected = assignment?.selected;
+            const courseCode = assignments[subjectId]?.courseCode;
+            return (
+              <div key={index} className="assignment-list-item">
                 <SelectIconImage
                   defaultSrc={"assets/icons/DefaultIcon.png"}
                   webSrc={assignment?.image}
@@ -408,70 +415,55 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
                   imageHeight="100px"
                 />
                 <span className="assignment-list-item-name">
-                  {assignment?.name}
+                  {courseCode ===COURSES.ENGLISH
+                    ? assignment?.name ?? ""
+                    : t(assignment?.name ?? "")}
                 </span>
+
                 <IonIcon
                   icon={isSelected ? checkmarkCircle : ellipseOutline}
                   className={`subject-page-checkbox ${isSelected ? "selected" : ""}`}
                   onClick={() =>
                     toggleAssignmentSelection(
-                    type,
-                    assignments,
-                    setCategory,
-                    subjectId,
-                    index
-                  )}
-                 />
+                      type,
+                      assignments,
+                      setCategory,
+                      subjectId,
+                      index
+                    )
+                  }
+                />
               </div>
-            )})}
-          </div>
+            );
+          }
+        )}
+      </div>
         )}
       </div>
     ));
   };
 
-    const stopScan = async () => {
-    // Hide the camera preview and stop scanning
-    await BarcodeScanner.stopScan();
-    BarcodeScanner.showBackground();
-    document.querySelector("html")?.style.setProperty("display", "block");
-    // Remove back button listener if exists
-    if (window.__qrBackListener) {
-      window.__qrBackListener.remove();
-      window.__qrBackListener = null;
-    }
-  };
-
   const startScan = async () => {
-    // Prepare the scanner
-    setLoading(true);
-    const permission = await BarcodeScanner.checkPermission({ force: true });
-    setTimeout(() => setLoading(false), 100);
-    if (!permission.granted) {
-      Toast.show({ text: t("Camera permission denied. Please enable it in settings") });
-      return;
-    }
-    // Only allow scan if permission is granted
-    if (!localStorage.getItem(CAMERAPERMISSION) || localStorage.getItem(CAMERAPERMISSION) !== "true") {
-      localStorage.setItem(CAMERAPERMISSION, permission.granted ? "true" : "false");
-      return;
-    }
-    await BarcodeScanner.hideBackground(); // Make background transparent
-    document.querySelector("html")?.style.setProperty("display", "none");
+    try {
+      setLoading(true);
 
-    // Add Android back button listener
-    window.__qrBackListener = App.addListener('backButton', async () => {
-      await stopScan();
-    });
+      // Start scanning (permissions handled automatically)
+      const result = await CapacitorBarcodeScanner.scanBarcode({
+        hint: CapacitorBarcodeScannerTypeHint.ALL, // QR + all barcodes
+      });
 
-    const result = await BarcodeScanner.startScan(); // Start scanning
-    if (result.hasContent) {
-      await processScannedData(result.content);
+      if (result.ScanResult) {
+        await processScannedData(result.ScanResult);
+      } else {
+        Toast.show({ text: "No QR code detected." });
+      }
+
+    } catch (err) {
+      console.error("Scan failed:", err);
+    } finally {
+      setLoading(false);
     }
-    // Always stop scan and restore UI
-    await stopScan();
   };
-
 const processScannedData = async (scannedText: string) => {
   try {
     // Ensure scannedText uses https if it starts with http
@@ -553,7 +545,8 @@ const processScannedData = async (scannedText: string) => {
 
     await api.createOrUpdateAssignmentCart(currentUser?.id!, finalLessonsJson);
 
-    await init();
+    history.push(PAGES.SCAN_REDIRECT);
+    // await init();
   } catch (error) {
     Toast.show({ text: t("Something Went wrong") });
     console.error("Error processing scanned data:", error);

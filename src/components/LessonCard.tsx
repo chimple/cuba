@@ -4,6 +4,8 @@ import { useHistory } from "react-router-dom";
 import {
   COCOS,
   CONTINUE,
+  CocosCourseIdentifier,
+  COURSES,
   LESSON_CARD_COLORS,
   LIDO,
   LIVE_QUIZ,
@@ -107,6 +109,31 @@ const LessonCard: React.FC<{
 
   const [lessonCardColor, setLessonCardColor] = useState("");
 
+  const COURSE_VALUES_SET = new Set(
+    (Object.values(CocosCourseIdentifier) as string[]).map((v) =>
+      v.toLowerCase()
+    )
+  );
+
+  const getCourseIdFromCocosLesson = (
+    rawLessonId: string | null,
+    subjectCode: string | null
+  ): string | null => {
+    if (!rawLessonId) {
+      return subjectCode;
+    }
+    const parts = rawLessonId
+      .trim()
+      .toLowerCase()
+      .split(/[^a-z]+/);
+    for (const part of parts) {
+      if (COURSE_VALUES_SET.has(part)) {
+        return part;
+      }
+    }
+    return subjectCode;
+  };
+
   useEffect(() => {
     setLessonCardColor(
       LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)]
@@ -163,7 +190,11 @@ const LessonCard: React.FC<{
             }
 
             if (lesson.plugin_type === COCOS) {
-              const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+              const courseId = getCourseIdFromCocosLesson(
+                lesson.cocos_lesson_id,
+                lesson.cocos_subject_code
+              );
+              const parmas = `?courseid=${courseId}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
               history.replace(PAGES.GAME + parmas, {
                 url: "chimple-lib/index.html" + parmas,
                 lessonId: lesson.cocos_lesson_id,
@@ -271,7 +302,12 @@ const LessonCard: React.FC<{
 
             {showSubjectName && currentCourse?.name ? (
               <div id="lesson-card-subject-name">
-                <p className="ignore">{lesson.name} </p>
+                <p className="ignore">
+                  {course?.code === COURSES.ENGLISH
+                    ? lesson?.name
+                    : t(lesson?.name ?? "")}
+                </p>
+
                 <p>
                   {currentCourse?.name}
                   {/* {subject.title==="English"?subject.title:t(subject.title)} */}
@@ -358,12 +394,16 @@ const LessonCard: React.FC<{
         <div>
           {showText ? (
             <p id={`lesson-card-name${isLoved ? "-fav-icon" : ""}`}>
-              {t(lesson?.name ?? "")}
+              {course?.code === COURSES.ENGLISH
+                ? lesson?.name
+                : t(lesson?.name ?? "")}
             </p>
           ) : null}
           {showChapterName && chapter?.name && (
             <div id={`chapter-title${isLoved ? "-fav-icon" : ""}`}>
-              {chapter?.name}
+              {course?.code === COURSES.ENGLISH
+                ? chapter?.name
+                : t(chapter?.name)}
             </div>
           )}
         </div>

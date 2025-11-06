@@ -25,7 +25,7 @@ interface ProgramDetailComponentProps {
 interface ProgramStats {
   total_students: number;
   total_teachers: number;
-  total_institutes: number;
+  total_schools: number;
   active_student_percentage: number;
   active_teacher_percentage: number;
   avg_weekly_time_minutes: number;
@@ -72,7 +72,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
   const [stats, setStats] = useState<ProgramStats>({
     total_students: 0,
     total_teachers: 0,
-    total_institutes: 0,
+    total_schools: 0,
     active_student_percentage: 0,
     active_teacher_percentage: 0,
     avg_weekly_time_minutes: 0,
@@ -95,7 +95,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
       setStats({
         total_students: countStats.total_students ?? 0,
         total_teachers: countStats.total_teachers ?? 0,
-        total_institutes: countStats.total_institutes ?? 0,
+        total_schools: countStats.total_schools ?? 0,
         active_student_percentage: countStats.active_student_percentage ?? 0,
         active_teacher_percentage: countStats.active_teacher_percentage ?? 0,
         avg_weekly_time_minutes: countStats.avg_weekly_time_minutes ?? 0,
@@ -169,7 +169,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
 
         <Grid container spacing={2}>
           {/* Column 1 */}
-          <Grid item xs={12} md={4} order={{ xs: 2, md: 1 }}>
+          <Grid size={{ xs: 12, md: 4 }} order={{ xs: 2, md: 1 }}>
             <Box className="program-detail-page-column-container">
               <InfoCard
                 title={t("Program Details")}
@@ -183,7 +183,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
           </Grid>
 
           {/* Column 2 */}
-          <Grid item xs={12} md={4} order={{ xs: 3, md: 2 }}>
+          <Grid size={{ xs: 12, md: 4 }} order={{ xs: 3, md: 2 }}>
             <Box className="program-detail-page-column-container">
               <InfoCard
                 title={t("Location Details")}
@@ -224,7 +224,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
           </Grid>
 
           {/* Column 3 */}
-          <Grid item xs={12} md={4} order={{ xs: 1, md: 3 }}>
+          <Grid size={{ xs: 12, md: 4 }} order={{ xs: 1, md: 3 }}>
             <Box className="program-detail-page-column-container">
               <InfoCard title={t("Program Performance")} items={[]}>
                 <Box
@@ -243,7 +243,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
                   <Box display="flex" justifyContent="space-between" mb={1}>
                     <Typography>{t("Avg week time in mins")}</Typography>
                     <Typography fontWeight="bold">
-                      {`${stats.avg_weekly_time_minutes.toFixed(2)} mins`}
+                      {`${stats.avg_weekly_time_minutes.toFixed(2)}`}
                     </Typography>
                   </Box>
 
@@ -268,21 +268,21 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
                   }}
                 >
                   <Box display="flex" justifyContent="space-between" mb={1}>
-                    <Typography>{t("No of Institutes")}</Typography>
+                    <Typography>{t("No. of Schools")}</Typography>
                     <Typography fontWeight="bold">
-                      {stats.total_institutes}
+                      {stats.total_schools}
                     </Typography>
                   </Box>
 
                   <Box display="flex" justifyContent="space-between" mb={1}>
-                    <Typography>{t("No of Students")}</Typography>
+                    <Typography>{t("No. of Students")}</Typography>
                     <Typography fontWeight="bold">
                       {stats.total_students}
                     </Typography>
                   </Box>
 
                   <Box display="flex" justifyContent="space-between" mb={2}>
-                    <Typography>{t("No of Teachers")}</Typography>
+                    <Typography>{t("No. of Teachers")}</Typography>
                     <Typography fontWeight="bold">
                       {stats.total_teachers}
                     </Typography>

@@ -1,10 +1,10 @@
 import React from "react";
-import { useHistory, useLocation } from "react-router-dom";
 import "./StudentProfile.css";
 import { CURRENT_TEACHER, PAGES, TableTypes } from "../../common/constants";
 import Header from "../components/homePage/Header";
 import { IonPage } from "@ionic/react";
 import TeacherProfileSection from "../components/addTeacher/TeacherProfileSection";
+import { useHistory, useLocation } from "react-router-dom";
 
 const TeacherProfile: React.FC = () => {
   const localTeacher = localStorage.getItem(CURRENT_TEACHER);
