@@ -501,21 +501,6 @@ export class SqliteApi implements ServiceApi {
         lastPullTables,
         isInitialFetch
       );
-      const new_school = data.get(TABLES.School);
-      if (new_school && new_school?.length > 0) {
-        await this.syncDbNow(Object.values(TABLES), [
-          TABLES.Assignment,
-          TABLES.Assignment_user,
-          TABLES.SchoolCourse,
-          TABLES.Class,
-          TABLES.ClassInvite_code,
-          TABLES.Result,
-          TABLES.User,
-          TABLES.ClassUser,
-          TABLES.SchoolUser,
-          TABLES.ClassCourse
-        ]);
-      }
     }
     const lastPulled = new Date().toISOString();
     let batchQueries: { statement: string; values: any[] }[] = [];
@@ -560,7 +545,6 @@ export class SqliteApi implements ServiceApi {
     const jsonString = JSON.stringify(filteredObject);
     const pulledRowsSizeInBytes = new TextEncoder().encode(jsonString).length;
     this.updateDebugInfo(0, totalpulledRows, pulledRowsSizeInBytes);
-
     if (batchQueries.length > 0) {
       try {
         await this._db.executeSet(batchQueries);
@@ -568,6 +552,21 @@ export class SqliteApi implements ServiceApi {
         console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
       }
     }
+    const new_school = data.get(TABLES.School);
+      if (new_school && new_school?.length > 0) {
+        await this.syncDbNow(Object.values(TABLES), [
+          TABLES.Assignment,
+          TABLES.Assignment_user,
+          TABLES.SchoolCourse,
+          TABLES.Class,
+          TABLES.ClassInvite_code,
+          TABLES.Result,
+          TABLES.User,
+          TABLES.ClassUser,
+          TABLES.SchoolUser,
+          TABLES.ClassCourse
+        ]);
+      }
   }
 
   async getTableColumns(tableName: string): Promise<string[] | undefined> {
