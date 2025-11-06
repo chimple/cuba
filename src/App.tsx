@@ -160,6 +160,7 @@ import SearchSchool from "./teachers-module/pages/SearchSchool";
 import JoinSchool from "./pages/JoinSchool";
 import CreateSchool from "./teachers-module/pages/CreateSchool";
 import ScanRedirect from "./teachers-module/components/homePage/assignment/ScanRedirect";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 import {
   Dialog,
   DialogTitle,
@@ -244,7 +245,7 @@ const App: React.FC = () => {
           if(online == false && lessonFlag == false){
             await Toast.show({
               text: t("Lesson Assets not available, please connect to internet to download the assets."),
-              duration: "short",
+              duration: 'short',
             });
 
             await new Promise(resolve => setTimeout(resolve, 10000));
@@ -292,6 +293,9 @@ const App: React.FC = () => {
       document.addEventListener(TRIGGER_DEEPLINK, sendLaunch);
       const data = await portPlugin.sendLaunchData();
       if (data.lessonId) {
+        if (Capacitor.isNativePlatform()) {
+          ScreenOrientation.lock({ orientation: "landscape" });
+        }
         document.dispatchEvent(new Event(TRIGGER_DEEPLINK));
       } else if (Util.isRespectMode === true) {
         ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
