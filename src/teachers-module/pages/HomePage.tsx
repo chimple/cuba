@@ -17,6 +17,7 @@ import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   LANGUAGE,
   PAGES,
+  STATUS,
   TableTypes,
 } from "../../common/constants";
 import { Util } from "../../utility/util";
@@ -107,7 +108,7 @@ const HomePage: React.FC = () => {
     await Util.updateUserLanguage(languageCode!);
 
     const existingRequest = await api.getExistingSchoolRequest(currentUser?.id as string);
-    if(existingRequest) history.replace(PAGES.POST_SUCCESS)
+    if(existingRequest && existingRequest.request_status ===  STATUS.REQUESTED) history.replace(PAGES.POST_SUCCESS)
     await Util.handleClassAndSubjects(
       currentSchool?.id!,
       currentUser?.id!,
