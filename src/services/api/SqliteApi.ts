@@ -4523,7 +4523,7 @@ order by
     return this._serverApi.getUserByPhoneNumber(phone);
   }
   async addTeacherToClass(
-    schoolId:string,
+    schoolId: string,
     classId: string,
     user: TableTypes<"user">
   ): Promise<void> {
@@ -6737,5 +6737,10 @@ order by
     } catch (error) {
       console.error("❌ Error updating user reward:", error);
     }
+  }
+  async getActiveStudentsCountByClass(
+    classId: string
+  ): Promise<string> {
+    return await this._serverApi.getActiveStudentsCountByClass(classId);
   }
 }

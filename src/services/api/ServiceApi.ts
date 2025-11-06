@@ -2166,4 +2166,12 @@ export interface ServiceApi {
     rewardId: string,
     created_at?: string
   ): Promise<void>;
+   /**
+   * Fetch active students count information for a given class ID.
+   * @param {string} classID - The ID of the school to fetch.
+   * @returns Promise resolving to an object with student count.
+   */
+  getActiveStudentsCountByClass(
+    classId: string,
+  ): Promise<string>;
 }
