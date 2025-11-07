@@ -1,17 +1,17 @@
-.cic-card {
+.classinfocard-cic-card {
   border-radius: 5px !important;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
   border: 1px solid #e5e7eb !important;
 }
-.cic-card-content {
+.classinfocard-cic-card-content {
   padding: 24px !important;
 }
-.cic-title {
+.classinfocard-cic-title {
   margin-bottom: 16px !important;
   text-align: left;
 }
 
-.cic-grid {
+.classinfocard-cic-grid {
   display: grid;
   grid-template-columns: 1fr;
   column-gap: 48px;
@@ -19,12 +19,12 @@
   align-items: start;
 }
 @media (min-width: 600px) {
-  .cic-grid {
+  .classinfocard-cic-grid {
     grid-template-columns: 1fr 1fr;
   }
 }
 
-.cic-info {
+.classinfocard-cic-info {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -32,22 +32,22 @@
   min-height: 48px;
   text-align: left;
 }
-.cic-label {
+.classinfocard-cic-label {
   display: block;
   line-height: 1;
   margin-bottom: 4px;
   text-align: left;
 }
-.cic-value {
+.classinfocard-cic-value {
   font-weight: 700 !important;
   line-height: 1.25;
   text-align: left;
 }
 
-.cic-full {
+.classinfocard-cic-full {
   grid-column: 1 / -1;
 }
-.cic-code {
+.classinfocard-cic-code {
   display: block;
   width: 100%;
   background: #f3f4f6; 
@@ -59,11 +59,11 @@
   text-align: left;
 }
 
-.cic-grid > * {
+.classinfocard-cic-grid > * {
   min-width: 0;
 }
 
-.cic-ellipsis {
+.classinfocard-cic-ellipsis {
   display: inline-block;
   max-width: 100%;
   overflow: hidden;
@@ -72,7 +72,7 @@
   vertical-align: bottom;
 }
 
-.cic-tooltip-anchor {
+.classinfocard-cic-tooltip-anchor {
   display: inline-block;
   max-width: 100%;
 }

@@ -7,6 +7,7 @@ import { ServiceConfig } from "../../../services/ServiceConfig";
 import "./ClassDetailsPage.css";
 import { useHistory } from "react-router-dom";
 import { t } from "i18next";
+import { TableTypes } from "../../../common/constants";
 
 type ApiStudent = any;
 const ROWS_PER_PAGE = 20;
@@ -17,13 +18,19 @@ const ClassDetailsPage: React.FC = () => {
   const handleBack = () => {
     history.goBack();
   };
-  const schoolId = "45259642-f271-449d-9a5f-cd1053cdde80";
-  const classID = "4d5d3a2a-64b1-4c29-a2d1-407c1ff1eacc";
+  const schoolId =
+    "" as TableTypes<"school">["id"];
+  const classId =
+    "" as TableTypes<"class">["id"];
   const [initialStudents, setInitialStudents] = useState<ApiStudent[]>([]);
   const [initialTotal, setInitialTotal] = useState<number>(0);
   const [activeStudentCount, setActiveStudentCount] = useState<string | null>(
     null
   );
+  const [classRow, setClassRow] = useState<TableTypes<"class"> | null>(null);
+  const subjectsStr =
+    "Mathematics, English, Hindi, Digital Skills, Kannada, Uttar Pradesh, Harayana";
+  const curriculumStr = "Chimple";
 
   useEffect(() => {
     (async () => {
@@ -36,7 +43,10 @@ const ClassDetailsPage: React.FC = () => {
         );
         setInitialStudents(res.data || []);
         setInitialTotal(res.total || 0);
-        const count = await api.getActiveStudentsCountByClass(classID);
+        const count = await api.getActiveStudentsCountByClass(classId);
+        const cls: TableTypes<"class"> | null =
+          (await api.getClassById(classId)) ?? null;
+        setClassRow(cls);
         setActiveStudentCount(count);
       } catch (e) {
         console.error("Failed to load initial students:", e);
@@ -77,9 +87,9 @@ const ClassDetailsPage: React.FC = () => {
         }}
       >
         <ClassInfoCard
-          classname="1A"
-          subjects="Mathematics, English, Hindi, Digital Skills, Kannada, Uttar Pradesh, Harayana"
-          curriculum="CBSE"
+          classRow={classRow}
+          subjects={subjectsStr}
+          curriculum={curriculumStr}
           totalStudents="25"
           activeStudents={activeStudentCount ?? ""}
           classCode="MATH1A2024"
@@ -87,7 +97,7 @@ const ClassDetailsPage: React.FC = () => {
       </Box>
 
       <Box
-        className="students-sticky"
+        className="classdetailspage-students-sticky"
         sx={{
           boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
           border: "1px solid #e5e7eb",

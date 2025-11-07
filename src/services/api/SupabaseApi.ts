@@ -7028,8 +7028,7 @@ export class SupabaseApi implements ServiceApi {
 
     try {
       const { data, error } = await this.supabase.rpc(
-        "get_school_filter_options",
-        {}
+        "get_school_filter_options"
       );
 
       if (error) {
@@ -8736,36 +8735,17 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase) {
       throw new Error("Supabase client is not initialized.");
     }
-    const { data: classUsers, error: cuErr } = await this.supabase
-      .from("class_user")
-      .select("user_id")
-      .eq("class_id", classId)
-      .eq("role", "student")
-      .eq("is_deleted", false);
-    if (cuErr) throw cuErr;
-    if (!classUsers || classUsers.length === 0) {
-      return "0";
+    const { data, error } = await this.supabase.rpc(
+      "get_active_students_count_by_class",
+      {
+        p_class_id: classId,
+        p_days: days,
+      }
+    );
+    if (error) {
+      console.error("Error fetching active students count:", error);
+      throw error;
     }
-    const studentIds = classUsers
-      .map((r) => r.user_id)
-      .filter((id): id is string => !!id);
-    if (studentIds.length === 0) {
-      return "0";
-    }
-    const sinceISO = new Date(
-      Date.now() - days * 24 * 60 * 60 * 1000
-    ).toISOString();
-    const { data: results, error } = await this.supabase
-      .from("result")
-      .select("student_id")
-      .in("student_id", studentIds)
-      .gte("created_at", sinceISO)
-      .eq("is_deleted", false);
-    if (error) throw error;
-    if (!results || results.length === 0) {
-      return "0";
-    }
-    const activeStudentIds = new Set(results.map((r) => r.student_id));
-    return activeStudentIds.size.toString();
+    return (data ?? 0).toString();
   }
 }

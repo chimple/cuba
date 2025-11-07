@@ -160,7 +160,6 @@ const DisplaySchools: FC = () => {
       const existingRequest = await api.getExistingSchoolRequest(
         _currentUser?.id as string
       );
-      console.log(existingRequest?.request_status);
       if (existingRequest?.request_status === STATUS.REQUESTED) {
         history.replace(PAGES.POST_SUCCESS, { tabValue: 0 });
       } else if (existingRequest?.request_status === STATUS.REJECTED) {

@@ -2,24 +2,28 @@ import React from "react";
 import { Box, Card, CardContent, Typography, Tooltip } from "@mui/material";
 import "./ClassInfoCard.css";
 import { t } from "i18next";
+import { TableTypes } from "../../../common/constants";
+
+type SubjectsProp = string | TableTypes<"subject">[];
+type CurriculumProp = string | TableTypes<"curriculum"> | null;
 
 type Props = {
-  classname: string;
-  subjects: string;
-  curriculum: string;
+  classRow: TableTypes<"class"> | null;
+  subjects: SubjectsProp;
+  curriculum: CurriculumProp;
   totalStudents: string;
   activeStudents: string;
   classCode: string;
 };
 
 const Label = ({ children }: { children: React.ReactNode }) => (
-  <Typography className="cic-label" variant="caption" color="text.secondary">
+  <Typography className="classinfocard-cic-label" variant="caption" color="text.secondary">
     {children}
   </Typography>
 );
 
 const Value = ({ children }: { children: React.ReactNode }) => (
-  <Typography className="cic-value" variant="body1">
+  <Typography className="classinfocard-cic-value" variant="body1">
     {children}
   </Typography>
 );
@@ -31,22 +35,22 @@ const Info = ({
   tooltip = "",
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   ellipsis?: boolean;
   tooltip?: string;
 }) => {
   const content = (
     <Value>
-      <span className={ellipsis ? "cic-ellipsis" : undefined}>{value}</span>
+      <span className={ellipsis ? "classinfocard-cic-ellipsis" : undefined}>{value}</span>
     </Value>
   );
 
   return (
-    <Box className="cic-info">
+    <Box className="classinfocard-cic-info">
       <Label>{label}</Label>
       {tooltip ? (
         <Tooltip title={tooltip} placement="top" arrow>
-          <span className="cic-tooltip-anchor">{content}</span>
+          <span className="classinfocard-cic-tooltip-anchor">{content}</span>
         </Tooltip>
       ) : (
         content
@@ -55,34 +59,56 @@ const Info = ({
   );
 };
 
+const toSubjectDisplay = (subjects?: SubjectsProp): string => {
+  if (!subjects) return "—";
+  if (typeof subjects === "string") return subjects || "—";
+  const list = subjects.map((s) => s?.name).filter(Boolean);
+  return list.length ? list.join(", ") : "—";
+};
+
+const toCurriculumDisplay = (curriculum?: CurriculumProp): string => {
+  if (!curriculum) return "—";
+  if (typeof curriculum === "string") return curriculum || "—";
+  return curriculum?.name ?? "—";
+};
+
 const ClassInfoCard: React.FC<Props> = ({
-  classname,
+  classRow,
   subjects,
   curriculum,
   totalStudents,
   activeStudents,
   classCode,
 }) => {
+  const subjectList = toSubjectDisplay(subjects);
+  const curriculumName = toCurriculumDisplay(curriculum);
+  const classLabel = classRow?.name ?? "—";
+
   return (
-    <Card className="cic-card">
-      <CardContent className="cic-card-content">
-        <Typography className="cic-title" variant="h6" fontWeight={700}>
+    <Card className="classinfocard-cic-card">
+      <CardContent className="classinfocard-cic-card-content">
+        <Typography className="classinfocard-cic-title" variant="h6" fontWeight={700}>
           {t("Class Information")}
         </Typography>
 
-        <Box className="cic-grid">
-          <Info label={t("Class")} value={classname} />
+        <Box className="classinfocard-cic-grid">
+          <Info label={t("Class")} value={classLabel} />
           <Info label="" value={""} />
 
-          <Info label={t("Subjects")} value={subjects} ellipsis tooltip={subjects} />
+          <Info
+            label={t("Subjects")}
+            value={subjectList}
+            ellipsis
+            tooltip={subjectList}
+          />
 
-          <Info label={t("Curriculum")} value={curriculum} />
+          <Info label={t("Curriculum")} value={curriculumName} />
           <Info label={t("Total Students")} value={totalStudents} />
           <Info label={t("Active Students")} value={activeStudents} />
 
-          <Box className="cic-full">
+          <Box className="classinfocard-cic-full">
             <Label>{t("Class Code")}</Label>
-            <Box className="cic-code">{classCode}</Box>
+            <Box className="classinfocard-cic-code">{classCode}</Box>
           </Box>
         </Box>
       </CardContent>
