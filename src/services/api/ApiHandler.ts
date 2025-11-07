@@ -852,12 +852,13 @@ export class ApiHandler implements ServiceApi {
   }
   createClass(
     schoolId: string,
-    className: string
+    className: string,
+    groupId?: string
   ): Promise<TableTypes<"class">> {
-    return this.s.createClass(schoolId, className);
+    return this.s.createClass(schoolId, className, groupId);
   }
-  updateClass(classId: string, className: string) {
-    return this.s.updateClass(classId, className);
+  updateClass(classId: string, className: string, groupId?: string) {
+    return this.s.updateClass(classId, className, groupId);
   }
   getAssignmentOrLiveQuizByClassByDate(
     classId: string,

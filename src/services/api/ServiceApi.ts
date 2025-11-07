@@ -1048,18 +1048,21 @@ export interface ServiceApi {
    * Creates a class for the given school
    * @param schoolId
    * @param className
+   * @param groupId - Whatsapp group id
    * @returns {TableTypes<"class">} Class Object
    */
   createClass(
     schoolId: string,
-    className: string
+    className: string,
+    groupId?: string
   ): Promise<TableTypes<"class">>;
   /**
    * Updates a class name for given classId
    * @param classId
    * @param className
+   * @param groupId
    */
-  updateClass(classId: string, className: string);
+  updateClass(classId: string, className: string, groupId?: string);
   /**
    * Deletes a class
    * @param classId
