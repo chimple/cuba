@@ -1295,4 +1295,9 @@ export class OneRosterApi implements ServiceApi {
   searchSchools(params: SearchSchoolsParams): Promise<SearchSchoolsResult> {
     throw new Error("Method not implemented.");
   }
+  async getActiveStudentsCountByClass(
+    classId: string
+  ): Promise<string> {
+    throw new Error("Method not implemented.");
+  }
 }

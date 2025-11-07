@@ -31,6 +31,7 @@ interface DisplayTeacher {
   classSection: string;
   phoneNumber: string;
   emailDisplay: string;
+  class: string;
 }
 
 interface SchoolTeachersProps {
@@ -80,7 +81,12 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         try {
           let response;
           if (search && search.trim() !== "") {
-            const result = await api.searchTeachersInSchool(schoolId, search, currentPage, ROWS_PER_PAGE);
+            const result = await api.searchTeachersInSchool(
+              schoolId,
+              search,
+              currentPage,
+              ROWS_PER_PAGE
+            );
             setTeachers(result.data);
             setTotalCount(result.total);
           } else {
@@ -160,19 +166,17 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
             phone: user.phone ?? undefined,
             gender: user.gender ?? "N/A",
           },
-          grade: t.grade ?? (t.grade ?? 0),
+          grade: t.grade ?? t.grade ?? 0,
           classSection: t.classSection ?? "N/A",
-          parent:
-            t.parent ?? {
-              id: t.parent_id ?? undefined,
-              name: t.parent_name ?? "",
-              phone: t.phone ?? undefined,
-            },
+          parent: t.parent ?? {
+            id: t.parent_id ?? undefined,
+            name: t.parent_name ?? "",
+            phone: t.phone ?? undefined,
+          },
         };
       }),
     [teachers]
   );
-
 
   const filteredTeachers = useMemo(
     () =>
@@ -238,6 +242,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         classSection: apiTeacher.classSection,
         phoneNumber: apiTeacher.user.phone || "N/A",
         emailDisplay: apiTeacher.user.email || "N/A",
+        class: apiTeacher.grade + apiTeacher.classSection,
       })
     );
   }, [sortedTeachers]);
@@ -281,8 +286,15 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       ),
     },
     { key: "gender", label: t("Gender") },
-    { key: "grade", label: t("Grade") },
-    { key: "classSection", label: t("Class Section") },
+    {
+      key: "class",
+      label: t("Class Name"),
+      renderCell: (s) => (
+        <Typography variant="body2" className="student-name-data">
+          {s.class}
+        </Typography>
+      ),
+    },
     { key: "phoneNumber", label: t("Phone Number") },
     {
       key: "emailDisplay",

@@ -918,6 +918,18 @@ export type Database = {
           }
         ];
       };
+      gb_response: {
+        Row: {
+          content: Json | null;
+        };
+        Insert: {
+          content?: Json | null;
+        };
+        Update: {
+          content?: Json | null;
+        };
+        Relationships: [];
+      };
       geo_locations: {
         Row: {
           block: string | null;
@@ -1800,6 +1812,7 @@ export type Database = {
           student_login_type?: Database["public"]["Enums"]["login_type"] | null;
           udise?: string | null;
           updated_at?: string | null;
+          whatsapp_bot_number?: string | null;
         };
         Update: {
           academic_year?: string | null;
@@ -1826,6 +1839,7 @@ export type Database = {
           student_login_type?: Database["public"]["Enums"]["login_type"] | null;
           udise?: string | null;
           updated_at?: string | null;
+          whatsapp_bot_number?: string | null;
         };
         Relationships: [
           {
@@ -2514,13 +2528,15 @@ export type Database = {
         Args: { _class_id: string; _student_id: string };
         Returns: undefined;
       };
-      call_send_badges: {
-        Args: Record<PropertyKey, never>;
-        Returns: undefined;
-      };
-      call_send_bonuses: {
-        Args: Record<PropertyKey, never>;
-        Returns: undefined;
+      call_send_badges: { Args: never; Returns: undefined };
+      call_send_bonuses: { Args: never; Returns: undefined };
+      can_soft_delete_ops_request: {
+        Args: {
+          is_sponsor_enabled: boolean;
+          p_class_id: string;
+          p_user_id: string;
+        };
+        Returns: boolean;
       };
       check_class_exists_by_name_and_school: {
         Args: { class_name: string; input_school_udise_code: string };
@@ -2572,32 +2588,20 @@ export type Database = {
         Args: { input_firebase_id: string };
         Returns: string;
       };
-      delete_student: {
-        Args: { student_id: string };
-        Returns: undefined;
-      };
+      delete_student: { Args: { student_id: string }; Returns: undefined };
       delete_student_profile: {
         Args: { p_student_id: string };
         Returns: undefined;
       };
-      delete_user: {
-        Args: { uuid: string };
-        Returns: boolean;
-      };
-      dump_user_table_policies: {
-        Args: Record<PropertyKey, never>;
-        Returns: string;
-      };
+      delete_user: { Args: { uuid: string }; Returns: boolean };
+      dump_user_table_policies: { Args: never; Returns: string };
       enqueue_message: {
         Args: { delay_seconds?: number; payload: Json; queue_name: string };
         Returns: number;
       };
-      execute_saved_query: {
-        Args: { p_query_id: string };
-        Returns: Json;
-      };
+      execute_saved_query: { Args: { p_query_id: string }; Returns: Json };
       fetch_leaderboard_data: {
-        Args: Record<PropertyKey, never>;
+        Args: never;
         Returns: {
           lessons_played: number;
           name: string;
@@ -2630,12 +2634,13 @@ export type Database = {
           updated_at: string;
         }[];
       };
-      generate_custom_request_id: {
-        Args: Record<PropertyKey, never>;
-        Returns: string;
-      };
+      generate_custom_request_id: { Args: never; Returns: string };
       generate_unique_class_code: {
         Args: { class_id_input: string };
+        Returns: number;
+      };
+      get_active_students_count_by_class: {
+        Args: { p_class_id: string; p_days: number };
         Returns: number;
       };
       get_class_leaderboard: {
@@ -2668,6 +2673,12 @@ export type Database = {
           status: string | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "class";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       get_filtered_schools_with_optional_program: {
         Args: {
@@ -2711,9 +2722,15 @@ export type Database = {
           updated_at: string | null;
           wrong_moves: number | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "result";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       get_leaderboard: {
-        Args: Record<PropertyKey, never>;
+        Args: never;
         Returns: {
           lessons_played: number;
           name: string;
@@ -2727,14 +2744,8 @@ export type Database = {
         Args: { p_program_id: string };
         Returns: Json;
       };
-      get_program_filter_options: {
-        Args: Record<PropertyKey, never>;
-        Returns: Json;
-      };
-      get_program_filters: {
-        Args: Record<PropertyKey, never>;
-        Returns: Json;
-      };
+      get_program_filter_options: { Args: never; Returns: Json };
+      get_program_filters: { Args: never; Returns: Json };
       get_program_for_user_v2: {
         Args: {
           _current_user_id: string;
@@ -2753,7 +2764,7 @@ export type Database = {
         }[];
       };
       get_program_managers: {
-        Args: Record<PropertyKey, never>;
+        Args: never;
         Returns: {
           id: string;
           name: string;
@@ -2781,18 +2792,12 @@ export type Database = {
           total_count: number;
         }[];
       };
-      get_query_data: {
-        Args: { p_query_id: string };
-        Returns: Json;
-      };
+      get_query_data: { Args: { p_query_id: string }; Returns: Json };
       get_query_data_v2: {
         Args: { p_query: string; p_secret: string };
         Returns: Json;
       };
-      get_query_metadata: {
-        Args: { p_query_id: string };
-        Returns: Json;
-      };
+      get_query_metadata: { Args: { p_query_id: string }; Returns: Json };
       get_query_metadata_v2: {
         Args: { p_query: string; p_secret: string };
         Returns: Json;
@@ -2808,10 +2813,7 @@ export type Database = {
         Args: { p_school_id: string };
         Returns: Json;
       };
-      get_school_filter_options: {
-        Args: Record<PropertyKey, never>;
-        Returns: Json;
-      };
+      get_school_filter_options: { Args: never; Returns: Json };
       get_school_filter_options_for_program: {
         Args: { input_program_id: string };
         Returns: Json;
@@ -2835,10 +2837,7 @@ export type Database = {
           school: Json;
         }[];
       };
-      get_unique_geo_data: {
-        Args: Record<PropertyKey, never>;
-        Returns: Json;
-      };
+      get_unique_geo_data: { Args: never; Returns: Json };
       get_user_by_email: {
         Args: { p_email: string };
         Returns: {
@@ -2868,6 +2867,12 @@ export type Database = {
           stars: number | null;
           student_id: string | null;
           updated_at: string | null;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "user";
+          isOneToOne: true;
+          isSetofReturn: false;
         };
       };
       get_user_by_phone: {
@@ -2907,6 +2912,12 @@ export type Database = {
           student_id: string | null;
           updated_at: string | null;
         };
+        SetofOptions: {
+          from: "*";
+          to: "user";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       get_users_for_parent_or_self_or_school: {
         Args: { p_uid: string; p_updated_at: string };
@@ -2938,11 +2949,14 @@ export type Database = {
           student_id: string | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "user";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
-      getDataByInviteCode: {
-        Args: { invite_code: number };
-        Returns: Json;
-      };
+      getDataByInviteCode: { Args: { invite_code: number }; Returns: Json };
       getfiltered_schools: {
         Args: { filters: Json };
         Returns: {
@@ -3079,10 +3093,7 @@ export type Database = {
         };
         Returns: string;
       };
-      invoke_master_checker_edge_function: {
-        Args: Record<PropertyKey, never>;
-        Returns: undefined;
-      };
+      invoke_master_checker_edge_function: { Args: never; Returns: undefined };
       is_program_admin_for_class: {
         Args: { p_class_id: string; p_user_id: string };
         Returns: boolean;
@@ -3100,17 +3111,11 @@ export type Database = {
         Returns: boolean;
       };
       is_program_manager_or_field_coordinator: {
-        Args: Record<PropertyKey, never>;
+        Args: never;
         Returns: boolean;
       };
-      is_special_or_program_user: {
-        Args: Record<PropertyKey, never>;
-        Returns: boolean;
-      };
-      is_special_user_privileged: {
-        Args: Record<PropertyKey, never>;
-        Returns: boolean;
-      };
+      is_special_or_program_user: { Args: never; Returns: boolean };
+      is_special_user_privileged: { Args: never; Returns: boolean };
       is_student_already_in_class: {
         Args: { _class_id: string; _user_id: string };
         Returns: boolean;
@@ -3141,6 +3146,16 @@ export type Database = {
           visible_at: string;
         }[];
       };
+      read_group_assignment_queue_v2: {
+        Args: { qty: number; queue_name: string; vt: number };
+        Returns: {
+          enqueued_at: string;
+          message: Json;
+          msg_id: number;
+          read_ct: number;
+          visible_at: string;
+        }[];
+      };
       read_group_notification_queue: {
         Args: { queue_name: string; vt: number };
         Returns: {
@@ -3149,6 +3164,15 @@ export type Database = {
           msg_id: number;
           read_ct: number;
           visible_at: string;
+        }[];
+      };
+      read_queue_generic: {
+        Args: { queue_name: string; read_limit?: number; vt_seconds?: number };
+        Returns: {
+          enqueued_at: string;
+          message: Json;
+          msg_id: number;
+          read_ct: number;
         }[];
       };
       research_get_programs_for_user: {
@@ -3173,14 +3197,8 @@ export type Database = {
           total_count: number;
         }[];
       };
-      resend_otp: {
-        Args: { phone_number: string };
-        Returns: Json;
-      };
-      run_both_notifications: {
-        Args: Record<PropertyKey, never>;
-        Returns: undefined;
-      };
+      resend_otp: { Args: { phone_number: string }; Returns: Json };
+      run_both_notifications: { Args: never; Returns: undefined };
       search_schools: {
         Args: {
           p_block?: string;
@@ -3233,10 +3251,7 @@ export type Database = {
           phone: string;
         }[];
       };
-      send_otp_request: {
-        Args: { input_data: Json };
-        Returns: Json;
-      };
+      send_otp_request: { Args: { input_data: Json }; Returns: Json };
       set_confirmation: {
         Args: { code: string; phone_number: string };
         Returns: string;
@@ -3252,6 +3267,12 @@ export type Database = {
           source: Database["public"]["Enums"]["assignment_source"] | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "assignment_cart";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_assignment_users: {
         Args: { p_updated_at: string };
@@ -3264,6 +3285,12 @@ export type Database = {
           updated_at: string | null;
           user_id: string;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "assignment_user";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_assignments: {
         Args: { p_updated_at: string };
@@ -3287,6 +3314,12 @@ export type Database = {
           type: string | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "assignment";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_badge: {
         Args: { p_updated_at?: string };
@@ -3299,6 +3332,12 @@ export type Database = {
           name: string;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "badge";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_chapter: {
         Args: { p_updated_at?: string };
@@ -3313,6 +3352,12 @@ export type Database = {
           sub_topics: string | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "chapter";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_chapter_lesson: {
         Args: { p_updated_at?: string };
@@ -3325,6 +3370,12 @@ export type Database = {
           sort_index: number | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "chapter_lesson";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_class: {
         Args: { p_updated_at: string };
@@ -3345,6 +3396,12 @@ export type Database = {
           status: string | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "class";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_class_course: {
         Args: { p_updated_at: string };
@@ -3359,6 +3416,12 @@ export type Database = {
           ops_created_by: string | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "class_course";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_class_invite_codes: {
         Args: { p_updated_at: string };
@@ -3373,6 +3436,12 @@ export type Database = {
           is_firebase: boolean | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "class_invite_code";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_class_user: {
         Args: { p_updated_at?: string };
@@ -3388,6 +3457,12 @@ export type Database = {
           updated_at: string | null;
           user_id: string;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "class_user";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_course: {
         Args: { p_updated_at?: string };
@@ -3407,6 +3482,12 @@ export type Database = {
           subject_id: string | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "course";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_curriculum: {
         Args: { p_updated_at?: string };
@@ -3421,6 +3502,12 @@ export type Database = {
           sort_index: number | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "curriculum";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_favorite_lessons: {
         Args: { p_updated_at?: string };
@@ -3433,6 +3520,12 @@ export type Database = {
           updated_at: string | null;
           user_id: string;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "favorite_lesson";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_grade: {
         Args: { p_updated_at?: string };
@@ -3448,6 +3541,12 @@ export type Database = {
           test: string | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "grade";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_language: {
         Args: { p_updated_at?: string };
@@ -3463,6 +3562,12 @@ export type Database = {
           sort_index: number | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "language";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_lessons: {
         Args: { p_updated_at?: string };
@@ -3486,6 +3591,12 @@ export type Database = {
           target_age_to: number | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "lesson";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_live_quiz_rooms: {
         Args: { p_updated_at?: string };
@@ -3503,6 +3614,12 @@ export type Database = {
           starts_at: string;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "live_quiz_room";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_ops_requests: {
         Args: { p_updated_at?: string };
@@ -3525,6 +3642,12 @@ export type Database = {
           school_id: string | null;
           updated_at: string;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "ops_requests";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_parent_users: {
         Args: { p_updated_at?: string };
@@ -3539,6 +3662,12 @@ export type Database = {
           student_id: string;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "parent_user";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_results: {
         Args: { p_updated_at: string };
@@ -3561,6 +3690,12 @@ export type Database = {
           updated_at: string | null;
           wrong_moves: number | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "result";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_reward: {
         Args: { p_updated_at?: string };
@@ -3574,6 +3709,12 @@ export type Database = {
           weeklySticker: string | null;
           year: number;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "reward";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_school_courses: {
         Args: { p_updated_at: string };
@@ -3588,6 +3729,12 @@ export type Database = {
           school_id: string;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "school_course";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_school_user: {
         Args: { p_updated_at?: string };
@@ -3603,6 +3750,12 @@ export type Database = {
           updated_at: string | null;
           user_id: string;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "school_user";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_schools: {
         Args: { p_updated_at: string };
@@ -3631,7 +3784,14 @@ export type Database = {
           student_login_type: Database["public"]["Enums"]["login_type"] | null;
           udise: string | null;
           updated_at: string | null;
+          whatsapp_bot_number: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "school";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_sticker: {
         Args: { p_updated_at?: string };
@@ -3644,6 +3804,12 @@ export type Database = {
           name: string;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "sticker";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_subject: {
         Args: { p_updated_at?: string };
@@ -3657,6 +3823,12 @@ export type Database = {
           sort_index: number | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "subject";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_user_badges: {
         Args: { p_updated_at: string };
@@ -3670,6 +3842,12 @@ export type Database = {
           updated_at: string | null;
           user_id: string;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "user_badge";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_user_bonus: {
         Args: { p_updated_at: string };
@@ -3683,6 +3861,12 @@ export type Database = {
           updated_at: string | null;
           user_id: string;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "user_bonus";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_user_courses: {
         Args: { p_updated_at: string };
@@ -3695,6 +3879,12 @@ export type Database = {
           updated_at: string | null;
           user_id: string;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "user_course";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_user_stickers: {
         Args: { p_updated_at: string };
@@ -3708,6 +3898,12 @@ export type Database = {
           updated_at: string | null;
           user_id: string;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "user_sticker";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_users: {
         Args: { p_updated_at: string };
@@ -3739,6 +3935,12 @@ export type Database = {
           student_id: string | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "user";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_users_test: {
         Args: { p_updated_at: string };
@@ -3770,6 +3972,12 @@ export type Database = {
           student_id: string | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: "*";
+          to: "user";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       update_class_firebase_trigger: {
         Args: {
@@ -3778,6 +3986,10 @@ export type Database = {
           p_name: string;
           p_status: string;
         };
+        Returns: undefined;
+      };
+      update_group_assignment_vt: {
+        Args: { msg_id: number; queue_name: string };
         Returns: undefined;
       };
       update_live_quiz: {
@@ -3820,10 +4032,7 @@ export type Database = {
         };
         Returns: string;
       };
-      user_exists: {
-        Args: { user_id: string };
-        Returns: boolean;
-      };
+      user_exists: { Args: { user_id: string }; Returns: boolean };
       validate_class_existence_rpc: {
         Args: {
           input_class_name: string;

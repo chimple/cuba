@@ -17,7 +17,12 @@ import SelectedFilters from "../SelectedFilters";
 import "./SchoolStudents.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import { StudentInfo } from "../../../common/constants";
-import { getGradeOptions, filterBySearchAndFilters, sortSchoolTeachers, paginateSchoolTeachers } from "../../OpsUtility/SearchFilterUtility"; 
+import {
+  getGradeOptions,
+  filterBySearchAndFilters,
+  sortSchoolTeachers,
+  paginateSchoolTeachers,
+} from "../../OpsUtility/SearchFilterUtility";
 
 type ApiStudentData = StudentInfo;
 
@@ -29,6 +34,7 @@ interface DisplayStudent {
   grade: number;
   classSection: string;
   phoneNumber: string;
+  class: string;
 }
 
 interface SchoolStudentsProps {
@@ -38,14 +44,32 @@ interface SchoolStudentsProps {
   };
   isMobile: boolean;
   schoolId: string;
+  isTotal?: boolean;
+  isFilter?: boolean;
+  customTitle?: string;
+  optionalGrade?: number | string;
+  optionalSection?: string;
 }
 
 const ROWS_PER_PAGE = 20;
+
+const sameSection = (a?: string, b?: string) =>
+  String(a ?? "")
+    .trim()
+    .toUpperCase() ===
+  String(b ?? "")
+    .trim()
+    .toUpperCase();
 
 const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   data,
   schoolId,
   isMobile,
+  isTotal,
+  isFilter,
+  customTitle,
+  optionalGrade,
+  optionalSection,
 }) => {
   const history = useHistory();
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
@@ -70,6 +94,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   });
   const [isFilterSliderOpen, setIsFilterSliderOpen] = useState(false);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("");
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -112,6 +137,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     [schoolId]
   );
 
+  const issTotal = isTotal ?? true;
+  const issFilter = isFilter ?? true;
+  const custoomTitle = customTitle ?? "Students";
+
   useEffect(() => {
     // Don't fetch on the initial render for page 1, because we already have the data from props.
     if (
@@ -125,7 +154,15 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       return;
     }
     fetchStudents(page, debouncedSearchTerm);
-  }, [page, debouncedSearchTerm, fetchStudents, data.students, data.totalStudentCount, filters.grade.length, filters.section.length]);
+  }, [
+    page,
+    debouncedSearchTerm,
+    fetchStudents,
+    data.students,
+    data.totalStudentCount,
+    filters.grade.length,
+    filters.section.length,
+  ]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -146,7 +183,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const handleApplyFilters = () => {
     setFilters(tempFilters);
     setIsFilterSliderOpen(false);
-    setPage(1); 
+    setPage(1);
   };
 
   const handleDeleteAppliedFilter = (key: string, value: string) => {
@@ -154,38 +191,68 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       ...prev,
       [key]: prev[key].filter((v) => v !== value),
     }));
-    setPage(1); 
+    setPage(1);
   };
 
-  const normalizedStudents = useMemo(() =>
-    students.map((s: any) => {
-      const user = s.user ?? s;
+  const baseStudents = useMemo(() => {
+    const gradeOn =
+      optionalGrade !== undefined &&
+      optionalGrade !== null &&
+      String(optionalGrade).trim() !== "";
+    const sectionOn =
+      optionalSection !== undefined && String(optionalSection).trim() !== "";
+    if (!gradeOn && !sectionOn) return students;
 
-      return {
-        ...s,
-        user: {
-          id: user.id,
-          name: user.name ?? undefined,
-          email: user.email ?? undefined,
-          student_id: user.student_id ?? undefined,
-          phone: user.phone ?? undefined,
-          gender: user.gender ?? "N/A",
-        },
-        grade: s.grade ?? (s.grade ?? 0),
-        classSection: s.classSection ?? "N/A",
-        parent: s.parent ?? {
-          id: s.parent_id ?? undefined,
-          name: s.parent_name ?? "",
-          phone: s.phone ?? undefined,
-        },
-      };
-    }),
-  [students]);
+    const filtered = students.filter((row: any) => {
+      const gradeOk = !gradeOn || String(row.grade) === String(optionalGrade);
+      const sectionOk =
+        !sectionOn || sameSection(row.classSection, optionalSection);
+      return gradeOk && sectionOk;
+    });
+
+    return filtered.length > 0 ? filtered : students;
+  }, [students, optionalGrade, optionalSection]);
+
+  const normalizedStudents = useMemo(
+    () =>
+      baseStudents.map((s: any) => {
+        const user = s.user ?? s;
+
+        return {
+          ...s,
+          user: {
+            id: user.id,
+            name: user.name ?? undefined,
+            email: user.email ?? undefined,
+            student_id: user.student_id ?? undefined,
+            phone: user.phone ?? undefined,
+            gender: user.gender ?? "N/A",
+          },
+          className: s.classSection ?? "N/A",
+          parent: s.parent ?? {
+            id: s.parent_id ?? undefined,
+            name: s.parent_name ?? "",
+            phone: s.phone ?? undefined,
+          },
+        };
+      }),
+    [baseStudents]
+  );
 
   const filteredStudents = useMemo(
-    () => filterBySearchAndFilters(normalizedStudents, filters, searchTerm, 'student'),
+    () =>
+      filterBySearchAndFilters(
+        normalizedStudents,
+        {
+          grade: filters.grade ?? [],
+          section: (filters.section ?? []).map((s) => String(s).trim()),
+        },
+        searchTerm,
+        "student"
+      ),
     [normalizedStudents, filters, searchTerm]
   );
+
   const sortedStudents = useMemo(() => {
     // Standard sorting for all columns
     return [...filteredStudents].sort((a, b) => {
@@ -240,7 +307,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         gender: s_api.user.gender ?? "N/A",
         grade: s_api.grade ?? 0,
         classSection: s_api.classSection ?? "N/A",
-        phoneNumber: s_api.parent?.phone ?? "N/A", 
+        phoneNumber: s_api.parent?.phone ?? "N/A",
+        class: (s_api.grade ?? 0) + (s_api.classSection ?? ""),
       })
     );
   }, [sortedStudents]);
@@ -289,19 +357,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     },
     { key: "gender", label: t("Gender") },
     {
-      key: "grade",
-      label: t("Grade"),
+      key: "class",
+      label: t("Class Name"),
       renderCell: (s) => (
-        <Typography variant="body2">
-          {s.grade > 0 ? String(s.grade) : t("N/A")}
+        <Typography variant="body2" className="student-name-data">
+          {s.class}
         </Typography>
-      ),
-    },
-    {
-      key: "classSection",
-      label: t("Class Section"),
-      renderCell: (s) => (
-        <Typography variant="body2">{s.classSection || t("N/A")}</Typography>
       ),
     },
     { key: "phoneNumber", label: t("Phone Number") },
@@ -313,11 +374,13 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       <Box className="schoolStudents-headerActionsRow">
         <Box className="schoolStudents-titleArea">
           <Typography variant="h5" className="schoolStudents-titleHeading">
-            {t("Students")}
+            {t(custoomTitle)}
           </Typography>
-          <Typography variant="body2" className="schoolStudents-totalText">
-            {t("Total")}: {totalCount} {t("students")}
-          </Typography>
+          {issTotal && (
+            <Typography variant="body2" className="schoolStudents-totalText">
+              {t("Total")}: {totalCount} {t("students")}
+            </Typography>
+          )}
         </Box>
         <Box className="schoolStudents-actionsGroup">
           <MuiButton
@@ -334,6 +397,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             filters={filters}
             onFilterClick={handleFilterIconClick}
             onClearFilters={handleClearFilters}
+            isFilter={issFilter}
           />
         </Box>
       </Box>
@@ -349,7 +413,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         onClose={() => setIsFilterSliderOpen(false)}
         filters={tempFilters}
         filterOptions={{
-          grade: getGradeOptions(students)
+          grade: getGradeOptions(baseStudents), 
         }}
         onFilterChange={handleSliderFilterChange}
         onApply={handleApplyFilters}
@@ -391,7 +455,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       ) : (
         <Box className="schoolStudents-emptyStateContainer">
           <Typography variant="h6" className="schoolStudents-emptyStateTitle">
-            {t("Students")}
+            {t(custoomTitle)}
           </Typography>
           <Typography className="schoolStudents-emptyStateMessage">
             {isFilteringOrSearching
