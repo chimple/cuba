@@ -56,7 +56,6 @@
   color: red;
 }
 
-/* Select Wrapper for custom dropdown arrow */
 .class-form-select-wrapper {
   position: relative;
   width: 100%;
@@ -80,7 +79,6 @@
   border-color: #007bff;
 }
 
-/* Custom dropdown arrow image */
 .class-form-dropdown-icon {
   position: absolute;
   right: 10px;

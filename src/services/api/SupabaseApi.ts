@@ -3458,7 +3458,8 @@ export class SupabaseApi implements ServiceApi {
   }
   async createClass(
     schoolId: string,
-    className: string
+    className: string,
+    groupId?: string
   ): Promise<TableTypes<"class">> {
     if (!this.supabase) throw new Error("Supabase instance is not initialized");
 
@@ -3474,7 +3475,7 @@ export class SupabaseApi implements ServiceApi {
       name: className,
       image: null,
       school_id: schoolId,
-      group_id: null,
+      group_id: groupId ?? null,
       created_at: timestamp,
       updated_at: timestamp,
       is_deleted: false,
@@ -3576,16 +3577,19 @@ export class SupabaseApi implements ServiceApi {
       throw error;
     }
   }
-  async updateClass(classId: string, className: string) {
+  async updateClass(classId: string, className: string, groupId?: string) {
     if (!this.supabase) return;
 
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw new Error("User is not Logged in");
 
+    const updateData: any = { name: className };
+    if (groupId !== undefined) updateData.group_id = groupId;
+
     const { error } = await this.supabase
       .from("class")
-      .update({ name: className })
+      .update(updateData)
       .eq("id", classId);
 
     if (error) {

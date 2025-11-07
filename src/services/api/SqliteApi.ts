@@ -2981,7 +2981,8 @@ export class SqliteApi implements ServiceApi {
   }
   async createClass(
     schoolId: string,
-    className: string
+    className: string,
+    groupId?: string
   ): Promise<TableTypes<"class">> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -2993,7 +2994,7 @@ export class SqliteApi implements ServiceApi {
       name: className,
       image: null,
       school_id: schoolId,
-      group_id: null,
+      group_id: groupId ?? null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
 
@@ -3009,8 +3010,8 @@ export class SqliteApi implements ServiceApi {
 
     await this.executeQuery(
       `
-      INSERT INTO class (id, name , image, school_id, created_at, updated_at, is_deleted)
-      VALUES (?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO class (id, name , image, school_id, created_at, updated_at, is_deleted, group_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         newClass.id,
@@ -3020,6 +3021,7 @@ export class SqliteApi implements ServiceApi {
         newClass.created_at,
         newClass.updated_at,
         newClass.is_deleted,
+        newClass.group_id,
       ]
     );
 
@@ -3103,22 +3105,25 @@ export class SqliteApi implements ServiceApi {
       throw error;
     }
   }
-  async updateClass(classId: string, className: string) {
+  async updateClass(classId: string, className: string, groupId?: string) {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw "User is not Logged in";
 
-    const updatedClassQuery = `
-    UPDATE class SET name = "${className}"
-    WHERE id = "${classId}";
-    `;
+    let updatedClassQuery = `UPDATE class SET name = "${className}"`;
+    if (groupId !== undefined) {
+      updatedClassQuery += `, group_id = "${groupId}"`;
+    }
+    updatedClassQuery += ` WHERE id = "${classId}";`;
+
     const res = await this.executeQuery(updatedClassQuery);
     console.log("🚀 ~ SqliteApi ~ updateClass ~ res:", res);
 
-    this.updatePushChanges(TABLES.Class, MUTATE_TYPES.UPDATE, {
-      name: className,
-      id: classId,
-    });
+    // Include group_id in push only if provided
+    const updatedData: any = { id: classId, name: className };
+    if (groupId !== undefined) updatedData.group_id = groupId;
+
+    this.updatePushChanges(TABLES.Class, MUTATE_TYPES.UPDATE, updatedData);
   }
   async linkStudent(inviteCode: number, studentId: string): Promise<any> {
     let linkData = await this._serverApi.linkStudent(inviteCode, studentId);

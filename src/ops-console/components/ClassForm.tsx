@@ -75,10 +75,26 @@ const ClassForm: React.FC<{
     if (!isFormValid) return;
     try {
       let classId = classData?.classId;
-      if (mode === "create" && !!schoolId) {
+      console.log("classId", classId);
+      if (mode === "edit") {
+        if (!classId) {
+          console.error("Class ID is missing.");
+          return;
+        }
+        await api.updateClass(
+          classId,
+          formValues.grade + formValues.section,
+          formValues.groupId
+        );
+      } else if (mode === "create") {
+        if (!schoolId) {
+          console.error("School ID is required to create a class.");
+          return;
+        }
         const newClass = await api.createClass(
           schoolId,
-          formValues.grade + formValues.section
+          formValues.grade + formValues.section,
+          formValues.groupId
         );
         classId = newClass.id;
       }
@@ -92,7 +108,7 @@ const ClassForm: React.FC<{
         allCourse.map((c: any) => c.id)
       );
     } catch (error) {
-      console.error("Error creating class:", error);
+      console.error("Error creating/updating class:", error);
     }
     onClose();
   };
