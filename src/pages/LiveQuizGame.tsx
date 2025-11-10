@@ -154,27 +154,12 @@ const LiveQuizGame: FC = () => {
           <IonContent>
             {showScoreCard ? (
               <ScoreCard
-                title={t("🎉Congratulations🎊")}
                 score={scoreData ?? 0}
                 message={t("You Completed the Lesson:")}
                 showDialogBox={showDialogBox}
-                yesText={t("Like the Game")}
                 lessonName={lesson?.name ?? ""}
                 noText={t("Continue Playing")}
                 handleClose={() => setShowDialogBox(true)}
-                onYesButtonClicked={() => {
-                  setShowDialogBox(false);
-                  saveLikedStatus();
-                  if (initialCount >= 5) {
-                    Util.showInAppReview();
-                    initialCount = 0;
-                    localStorage.setItem(
-                      LESSONS_PLAYED_COUNT,
-                      initialCount.toString()
-                    );
-                  }
-                  push();
-                }}
                 onContinueButtonClicked={() => {
                   setShowDialogBox(false);
                   if (initialCount >= 5) {
