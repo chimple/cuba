@@ -1,7 +1,8 @@
 import { TinCan } from 'tincants';
 import { registerPlugin } from '@capacitor/core';
-const Port = registerPlugin<any>('Port');
-
+import { PortPlugin } from './common/constants';
+import { Util } from './utility/util'; // << add import
+const Port = registerPlugin<PortPlugin>('Port');
 interface Actor {
   name: string | string[];
   mbox: string | string[];
@@ -23,16 +24,25 @@ async function getDeeplinkParams(): Promise<IRecordStoreCfg> {
     actor = {name: '', mbox: ''};
   }
 
-  if (result.endpoint == undefined || result.endpoint == '' || result.endpoint == null) {
-    result.endpoint = 'https://chimple.lrs.io/xapi/';
-  }
-  if (result.auth == undefined || result.auth == '' || result.auth == null) {
-    result.auth = 'Basic ' + btoa('chimp:chimpoo');
+  // 1) start with stored endpoint (or default)
+  const storedEndpoint = Util.getDbEndpoint(); // default fallback inside Util
+  let endpoint = storedEndpoint;
+
+  // 2) if deeplink provided endpoint, override and persist it
+  if (result.endpoint && result.endpoint !== "") {
+    endpoint = result.endpoint;
+    Util.setDbEndpoint(endpoint);
+  } else {
+    // ensure saved if nothing was present (getDbEndpoint already returns default)
+    Util.setDbEndpoint(endpoint);
   }
 
+  // Use auth from deeplink directly if present, otherwise fallback to default header
+  const authHeader = result.auth && result.auth !== '' ? result.auth : 'Basic ' + btoa('chimp:chimpoo');
+
   return {
-    endpoint: 'https://chimple.lrs.io/xapi/',
-    auth: 'Basic ' + btoa('chimp:chimpoo'),
+    endpoint,
+    auth: authHeader,
     actor: actor,
     registration: result.registration ?? '',
   };
