@@ -366,31 +366,15 @@ const CocosGame: React.FC = () => {
         {showDialogBox && (
           <div>
             <ScoreCard
-              title={t("🎉Congratulations🎊")}
               score={gameResult.detail?.score ?? 0}
               message={t("You Completed the Lesson:")}
               showDialogBox={showDialogBox}
-              yesText={t("Like the Game")}
               lessonName={lessonDetail.name ?? ""}
               noText={t("Continue Playing")}
               handleClose={(e: any) => {
                 setShowDialogBox(true);
                 //  saveTempData(gameResult.detail, undefined);
                 // push();
-              }}
-              onYesButtonClicked={async (e: any) => {
-                setShowDialogBox(false);
-                setIsLoading(true);
-                await updateLessonAsFavorite();
-                if (initialCount >= 5) {
-                  Util.showInAppReview();
-                  initialCount = 0;
-                  localStorage.setItem(
-                    LESSONS_PLAYED_COUNT,
-                    initialCount.toString()
-                  );
-                }
-                push();
               }}
               onContinueButtonClicked={async (e: any) => {
                 setShowDialogBox(false);
