@@ -1,6 +1,7 @@
 import { TinCan } from 'tincants';
 import { registerPlugin } from '@capacitor/core';
 import { PortPlugin } from './common/constants';
+import { Util } from './utility/util'; // << add import
 const Port = registerPlugin<PortPlugin>('Port');
 interface Actor {
   name: string | string[];
@@ -23,16 +24,24 @@ async function getDeeplinkParams(): Promise<IRecordStoreCfg> {
     actor = {name: '', mbox: ''};
   }
 
-  if (!result.endpoint) {
-    result.endpoint = 'https://chimple.lrs.io/xapi/';
+  // 1) start with stored endpoint (or default)
+  const storedEndpoint = Util.getDbEndpoint(); // default fallback inside Util
+  let endpoint = storedEndpoint;
+
+  // 2) if deeplink provided endpoint, override and persist it
+  if (result.endpoint && result.endpoint !== "") {
+    endpoint = result.endpoint;
+    Util.setDbEndpoint(endpoint);
+  } else {
+    // ensure saved if nothing was present (getDbEndpoint already returns default)
+    Util.setDbEndpoint(endpoint);
   }
 
-  // If native provides a full header like "Basic <base64>", use it as-is.
-  // Otherwise, fall back to a default Basic header.
+  // Use auth from deeplink directly if present, otherwise fallback to default header
   const authHeader = result.auth && result.auth !== '' ? result.auth : 'Basic ' + btoa('chimp:chimpoo');
 
   return {
-    endpoint: result.endpoint,
+    endpoint,
     auth: authHeader,
     actor: actor,
     registration: result.registration ?? '',

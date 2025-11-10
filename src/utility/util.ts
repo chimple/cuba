@@ -2215,6 +2215,34 @@ export class Util {
       return;
     }
   }
+  public static DB_ENDPOINT_KEY = "DB_ENDPOINT";
+
+  /**
+   * Get DB endpoint from localStorage or return default.
+   * Default: https://chimple.lrs.io/xapi/
+   */
+  public static getDbEndpoint(): string {
+    try {
+      const stored = localStorage.getItem(Util.DB_ENDPOINT_KEY);
+      return stored && stored !== "" ? stored : "https://chimple.lrs.io/xapi/";
+    } catch (err) {
+      console.error("Util.getDbEndpoint error", err);
+      return "https://chimple.lrs.io/xapi/";
+    }
+  }
+
+  /**
+   * Persist DB endpoint into localStorage.
+   * Call when deeplink provides a specific endpoint.
+   */
+  public static setDbEndpoint(endpoint: string | undefined): void {
+    try {
+      if (!endpoint || endpoint === "") return;
+      localStorage.setItem(Util.DB_ENDPOINT_KEY, endpoint);
+    } catch (err) {
+      console.error("Util.setDbEndpoint error", err);
+    }
+  }
 
   public static async sendContentToAndroidOrWebShare(
     text: string,
