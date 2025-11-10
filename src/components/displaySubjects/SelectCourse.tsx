@@ -81,7 +81,7 @@ const SelectCourse: FC<{
                 }}
               >
                 <SelectIconImage
-                  localSrc={`courses/chapter_icons/${course.code}.webp`}
+                  localSrc={`assets/icons/${course.id}.png`}
                   defaultSrc={"assets/icons/DefaultIcon.png"}
                   webSrc={course.image || "assets/icons/DefaultIcon.png"}
                   imageWidth={"80%"}

@@ -198,10 +198,11 @@ const DropdownMenu: FC = () => {
               <div className="menu-selected">
                 <div className="selected-icon">
                   <SelectIconImage
-                    localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
-                    defaultSrc={"assets/icons/DefaultIcon.png"}
+                    localSrc={`assets/icons/${selected.course.id}.png`}
+                    defaultSrc={`assets/icons/${selected.course.id}.png`}
                     webSrc={
-                      selected.course.image || "assets/icons/DefaultIcon.png"
+                      selected.course.image ||
+                      `assets/icons/${selected.course.id}.png`
                     }
                     imageWidth="10vh"
                     imageHeight="auto"
@@ -230,10 +231,11 @@ const DropdownMenu: FC = () => {
                 >
                   <SelectIconImage
                     key={detail.course.id} // Important for cache invalidation
-                    localSrc={`courses/chapter_icons/${detail.course.code}.webp`}
-                    defaultSrc="assets/icons/DefaultIcon.png"
+                    localSrc={`assets/icons/${detail.course.id}.png`}
+                    defaultSrc={`assets/icons/${detail.course.id}.png`}
                     webSrc={
-                      detail.course.image || "assets/icons/DefaultIcon.png"
+                      detail.course.image ||
+                      `assets/icons/${detail.course.id}.png`
                     }
                     imageWidth="85%"
                   />
