@@ -638,7 +638,6 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
 
           if (!curriculum) errors.push("Invalid curriculum selected.");
           if (!subject) errors.push("Invalid subject selected.");
-
           if (
             !schoolId &&
             !grade &&
@@ -683,9 +682,27 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           let errors: string[] = [];
           const schoolId = row["SCHOOL ID"]?.toString().trim();
           let grade = row["GRADE"]?.toString().trim();
-          const classSection = row["CLASS SECTION"]
+  
+          let classSection = row["CLASS SECTION"]
             ? row["CLASS SECTION"].toString().trim()
             : "";
+
+          // 🔍 Try to find the full class section (like "A BIA") from validatedSchoolClassPairs
+          if (
+            classSection &&
+            validatedSchoolClassPairs &&
+            validatedSchoolClassPairs.size > 0
+          ) {
+            for (let key of validatedSchoolClassPairs) {
+              // Example key: "29200412901_1A BIA"
+              if (key.startsWith(`${schoolId}_${grade}${classSection}`)) {
+                // Extract the part after grade (like "A BIA")
+                const matched = key.replace(`${schoolId}_${grade}`, "").trim();
+                classSection = matched; // now becomes "A BIA"
+                break;
+              }
+            }
+          }
           const teacherName = row["TEACHER NAME"]?.toString().trim();
           const teacherContact = row["TEACHER PHONE NUMBER OR EMAIL"]
             ?.toString()
@@ -706,7 +723,9 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             }
           }
           const className = `${grade}${classSection}`.trim();
+
           const schoolClassKey = `${schoolId}_${className}`;
+
 
           if (!teacherName || teacherName.trim() === "")
             errors.push("Missing teacher Name");
@@ -722,7 +741,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             // First, check if the class was defined in this upload's "Class" sheet
             const isClassValidatedInFile =
               validatedSchoolClassPairs.has(schoolClassKey);
-
+              
             if (isClassValidatedInFile) {
               // Class was found in the sheet, no further DB check needed for the class.
             } else {
@@ -868,7 +887,26 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           const gender = row["GENDER"]?.toString().trim();
           let age = row["AGE"]?.toString().trim();
           let grade = row["GRADE"]?.toString().trim();
-          const classSection = row["CLASS SECTION"]?.toString().trim() ?? "";
+          let classSection = row["CLASS SECTION"]
+            ? row["CLASS SECTION"].toString().trim()
+            : "";
+
+          // 🔍 Try to find the full class section (like "A BIA") from validatedSchoolClassPairs
+          if (
+            classSection &&
+            validatedSchoolClassPairs &&
+            validatedSchoolClassPairs.size > 0
+          ) {
+            for (let key of validatedSchoolClassPairs) {
+              // Example key: "29200412901_1A BIA"
+              if (key.startsWith(`${schoolId}_${grade}${classSection}`)) {
+                // Extract the part after grade (like "A BIA")
+                const matched = key.replace(`${schoolId}_${grade}`, "").trim();
+                classSection = matched; // now becomes "A BIA"
+                break;
+              }
+            }
+          }
           const parentContact = row["PARENT PHONE NUMBER OR LOGIN ID"]
             ?.toString()
             .trim();
