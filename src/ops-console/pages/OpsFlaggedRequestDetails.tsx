@@ -305,23 +305,18 @@ const OpsFlaggedRequestDetails = () => {
       }
 
       const role = selectedRequestType as any;
-      const requestedByUserId = (requestDetails as any)?.requestedBy?.id || requestDetails.requested_by;
+      const requestedByUser = (requestDetails as any)?.requestedBy;
       
-      if (selectedSchoolId && requestedByUserId) {
-        const requestedByUser = (requestDetails as any).requestedBy as TableTypes<"user">;
-        
+      if (!requestedByUser || !requestedByUser.id) {
+        setError(t("User information not found. Cannot approve request."));
+        return;
+      }
+      
+      if (selectedSchoolId) {
         if (role === RequestTypes.PRINCIPAL) {
-          try {
-            await api.addUserToSchool(selectedSchoolId, requestedByUser, role);
-          } catch (err) {
-            console.error("Error adding user to school:", err);
-          }
+          await api.addUserToSchool(selectedSchoolId, requestedByUser, role);
         } else if (role === RequestTypes.TEACHER && selectedClassId) {
-          try {
-            await api.addTeacherToClass(selectedSchoolId, selectedClassId, requestedByUser);
-          } catch (err) {
-            console.error("Error adding teacher to class:", err);
-          }
+          await api.addTeacherToClass(selectedSchoolId, selectedClassId, requestedByUser);
         }
       }
 
