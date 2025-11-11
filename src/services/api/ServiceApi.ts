@@ -2177,4 +2177,12 @@ export interface ServiceApi {
   getActiveStudentsCountByClass(
     classId: string,
   ): Promise<string>;
+  /**
+   * Fetch active courses information for a given class ID.
+   * @param {string} courseId - The ID of the courses to fetch.
+   * @returns Promise resolving to an object with courses.
+   */
+  getCoursesDeatislsbyCourseid(
+    courseId: string,
+  ): Promise<TableTypes<"course">[]>;
 }

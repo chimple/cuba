@@ -1629,4 +1629,7 @@ export class ApiHandler implements ServiceApi {
   public async getActiveStudentsCountByClass(classId): Promise<string> {
     return this.s.getActiveStudentsCountByClass(classId);
   }
+  public async getCoursesDeatislsbyCourseid(courseId): Promise<TableTypes<"course">[]> {
+    return this.s.getCoursesDeatislsbyCourseid(courseId);
+  }
 }
