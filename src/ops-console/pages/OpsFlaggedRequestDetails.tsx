@@ -91,20 +91,33 @@ const OpsFlaggedRequestDetails = () => {
     setError(null);
     try {
       const state = location.state as { request?: any } | undefined;
+      let req;
+      
       if (state?.request && state.request.request_id === id) {
-        const req = state.request;
-        setRequestDetails(req);
-        initializeFormFields(req);
+        req = state.request;
       } else {
-        const flaggedRequests = await api.getOpsRequests("flagged", 1, DEFAULT_PAGE_SIZE);
-        const req = flaggedRequests?.find((r) => r.request_id === id);
-        if (req) {
-          setRequestDetails(req);
-          initializeFormFields(req);
-        } else {
+        const response = await api.getOpsRequests("flagged", 1, DEFAULT_PAGE_SIZE);
+        req = response.data?.find((r: any) => r.request_id === id);
+        if (!req) {
           setError(t("Request not found"));
+          return;
         }
       }
+      
+      if (req.requestedBy?.id || req.requested_by) {
+        const userId = req.requestedBy?.id || req.requested_by;
+        try {
+          const fullUserDetails = await api.getUserByDocId(userId);
+          if (fullUserDetails) {
+            req.requestedBy = fullUserDetails;
+          }
+        } catch (userErr) {
+          console.error("Error fetching complete user details:", userErr);
+        }
+      }
+      
+      setRequestDetails(req);
+      initializeFormFields(req);
     } catch (e) {
       console.error("Error fetching flagged request:", e);
       setError(t("Failed to load request details. Please try again."));
