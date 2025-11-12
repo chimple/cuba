@@ -6,16 +6,24 @@ import SchoolStudents from "./SchoolStudents";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import "./ClassDetailsPage.css";
 import { t } from "i18next";
-import { TableTypes } from "../../../common/constants";
+import { StudentInfo, TableTypes } from "../../../common/constants";
 
-type ApiStudent = any;
+type ApiStudent = StudentInfo;
+type ClassRow = {
+  id: TableTypes<"class">["id"];
+  name?: string;
+  grade?: number | string;
+  section?: string;
+  subjectsNames?: string | null;
+  curriculumNames?: string | null;
+};
 const ROWS_PER_PAGE = 20;
 
 type Props = {
-  data: any;
+  data: { classData?: ClassRow[] };
   schoolId: TableTypes<"school">["id"];
   classId: TableTypes<"class">["id"];
-  classRow: any | null;
+  classRow: ClassRow | null;
   classCodeOverride?: string;
   totalStudentsOverride?: number;
   onBack?: () => void;
@@ -64,7 +72,7 @@ const ClassDetailsPage: React.FC<Props> = ({
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const onlyClassRow = Array.isArray(data?.classData)
-    ? (data.classData as any[]).find((r) => r?.id === classId) ?? null
+    ? (data.classData as ClassRow[]).find((r) => r?.id === classId) ?? null
     : null;
 
   const [initialStudents, setInitialStudents] = useState<ApiStudent[]>([]);
