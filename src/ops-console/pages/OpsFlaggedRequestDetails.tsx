@@ -119,7 +119,7 @@ const OpsFlaggedRequestDetails = () => {
     setSelectedSchoolUdise(req.school?.udise || "");
     setSelectedSchoolName(req.school?.name || "");
     setSchoolInputValue(req.school?.name || "");
-    setSelectedDistrict(req.school?.group3 || "");
+    setSelectedDistrict(req.school?.group2 || "");
     setSelectedState(req.school?.group1 || "");
     setSelectedCountry(req.school?.country || "");
     
@@ -230,7 +230,7 @@ const OpsFlaggedRequestDetails = () => {
           setSelectedSchoolId(school.id);
           setSelectedSchoolName(school.name);
           setSchoolInputValue(school.name);
-          setSelectedDistrict(school.group3 || "");
+          setSelectedDistrict(school.group2 || "");
           setSelectedState(school.group1 || "");
           setSelectedCountry(school.country || "");
           setSelectedClassId("");
@@ -255,7 +255,7 @@ const OpsFlaggedRequestDetails = () => {
     try {
       const school = await api.getSchoolById(schoolId);
       if (school) {
-        setSelectedDistrict(school.group3 || "");
+        setSelectedDistrict(school.group2 || "");
         setSelectedState(school.group1 || "");
         setSelectedCountry(school.country || "India");
       }

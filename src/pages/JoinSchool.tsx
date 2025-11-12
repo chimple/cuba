@@ -85,11 +85,11 @@ const JoinSchool: React.FC = () => {
             </div>
             <div className="join-school-row">
               <span className="join-school-label">{t("Block")}</span>
-              <span className="join-school-value">{school?.group4 || "-"}</span>
+              <span className="join-school-value">{school?.group3 || "-"}</span>
             </div>
             <div className="join-school-row">
               <span className="join-school-label">{t("District")}</span>
-              <span className="join-school-value">{school?.group3}</span>
+              <span className="join-school-value">{school?.group2}</span>
             </div>
             <div className="join-school-row">
               <span className="join-school-label">{t("State")}</span>
