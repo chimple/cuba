@@ -6,26 +6,6 @@ import { Typography, Divider, Paper, Button, TextField, Select, MenuItem, FormCo
 import "./OpsFlaggedRequestDetails.css";
 import { ServiceConfig } from "../../services/ServiceConfig";
 
-type RequestDetails = {
-  id?: string;
-  school?: {
-    id?: string;
-    name?: string;
-    udise?: string;
-    country?: string;
-    group1?: string;
-    group3?: string;
-  };
-  respondedBy?: { name?: string; phone?: string };
-  requestedBy?: { name?: string; phone?: string; email?: string };
-  request_id?: string;
-  request_type?: string;
-  class_id?: string;
-  school_id?: string;
-  created_at?: string;
-  updated_at?: string;
-};
-
 const OpsFlaggedRequestDetails = () => {
   const { id } = useParams<{ id: string }>();
   const history = useHistory();
@@ -33,8 +13,7 @@ const OpsFlaggedRequestDetails = () => {
   const api = ServiceConfig.getI().apiHandler;
   const { t } = useTranslation();
 
-  // Request data state
-  const [requestDetails, setRequestDetails] = useState<RequestDetails | null>(null);
+  const [requestDetails, setRequestDetails] = useState<TableTypes<"ops_requests"> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -326,6 +305,20 @@ const OpsFlaggedRequestDetails = () => {
       }
 
       const role = selectedRequestType as any;
+      const requestedByUser = (requestDetails as any)?.requestedBy;
+      
+      if (!requestedByUser || !requestedByUser.id) {
+        setError(t("User information not found. Cannot approve request."));
+        return;
+      }
+      
+      if (selectedSchoolId) {
+        if (role === RequestTypes.PRINCIPAL) {
+          await api.addUserToSchool(selectedSchoolId, requestedByUser, role);
+        } else if (role === RequestTypes.TEACHER && selectedClassId) {
+          await api.addTeacherToClass(selectedSchoolId, selectedClassId, requestedByUser);
+        }
+      }
 
       await api.approveOpsRequest(
         requestDetails.id,
@@ -384,8 +377,8 @@ const OpsFlaggedRequestDetails = () => {
   
   if (!requestDetails) return null;
 
-  const requestedBy = requestDetails.requestedBy || {};
-  const flaggedBy = requestDetails.respondedBy || {};
+  const requestedBy = (requestDetails as any).requestedBy || {};
+  const flaggedBy = (requestDetails as any).respondedBy || {};
 
   return (
     <div className="ops-flagged-request-details-layout">
