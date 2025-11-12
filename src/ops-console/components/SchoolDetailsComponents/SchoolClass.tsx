@@ -38,6 +38,26 @@ type SchoolClassesData = {
   totalClassCount?: number;
 };
 
+type TableRowData = {
+  id: string;
+  _raw: ClassRow;
+  code: string | { render: React.ReactNode };
+  class: { render: React.ReactNode };
+  subjects: string;
+  curriculum: string;
+  studentCount: number;
+  actions: { render: React.ReactNode };
+  whatsapp?: { render: React.ReactNode };
+};
+
+type ColumnDef = {
+  key: keyof TableRowData;
+  label: string;
+  align?: "left" | "right" | "center" | "justify" | "inherit";
+  sortable?: boolean;
+  width?: string | number;
+};
+
 interface Props {
   data: SchoolClassesData;
   schoolId: string;
@@ -74,21 +94,21 @@ const SchoolClasses: React.FC<Props> = ({
   const api = ServiceConfig.getI().apiHandler;
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
 
-  const allDataRef = useRef<any>(data ?? {});
+  const allDataRef = useRef<SchoolClassesData>(data);
   useEffect(() => {
-    allDataRef.current = data ?? {};
+    allDataRef.current = data;
   }, [data]);
 
-  const getAll = () => allDataRef.current as any;
+  const getAll = (): SchoolClassesData => allDataRef.current;
   const safeClasses: ClassRow[] = Array.isArray(getAll()?.classData)
-    ? (getAll().classData as ClassRow[])
+    ? getAll().classData!
     : Array.isArray(getAll()?.classes)
-    ? (getAll().classes as ClassRow[])
+    ? getAll().classes!
     : [];
 
   const bot = getAll()?.schoolData?.whatsapp_bot_number;
   const hasWhatsAppBot = typeof bot === "string" && /^\d{12}$/.test(bot.trim());
-  const hasValue = (v: any) => v != null && String(v).trim() !== "";
+  const hasValue = (v: string) => v != null && String(v).trim() !== "";
 
   const [codes, setCodes] = useState<Record<string, string | null>>({});
   const [loadingIds, setLoadingIds] = useState<Record<string, boolean>>({});
@@ -154,11 +174,9 @@ const SchoolClasses: React.FC<Props> = ({
     }
   };
 
-  const rows = useMemo(() => {
+  const rows = useMemo<TableRowData[]>(() => {
     return safeClasses.map((c) => {
-      const classLabel =
-        (c as any)?.name?.toString().trim() ||
-        ((getAll()?.classData?.name as string) || "").trim();
+      const classLabel = typeof c.name === "string" ? c.name.trim() : "";
 
       const subjectsDisplay = c.subjectsNames;
       const curriculumDisplay = c.curriculumNames;
@@ -196,7 +214,7 @@ const SchoolClasses: React.FC<Props> = ({
             ),
           };
 
-      const baseRow: any = {
+      const baseRow: TableRowData = {
         id: c.id,
         _raw: c,
         code: codeCell,
@@ -293,8 +311,8 @@ const SchoolClasses: React.FC<Props> = ({
       : undefined;
   }, [selectedRow]);
 
-  const columns = useMemo(() => {
-    const cols: any[] = [
+  const columns = useMemo<ColumnDef[]>(() => {
+    const cols: ColumnDef[] = [
       { key: "code", label: t("Class Code"), sortable: false },
       { key: "class", label: t("Class"), sortable: false },
       { key: "subjects", label: t("Subjects"), sortable: false },
@@ -366,12 +384,12 @@ const SchoolClasses: React.FC<Props> = ({
 
       <div className="schoolclass-table-container">
         <DataTableBody
-          columns={columns as any}
-          rows={rows as any}
+          columns={columns}
+          rows={rows}
           orderBy={"curriculum" as const}
           order={"asc" as const}
           onSort={() => {}}
-          onRowClick={(row: any) => setSelectedClassId(row)}
+          onRowClick={(id) => setSelectedClassId(String(id))}
         />
       </div>
     </div>

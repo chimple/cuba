@@ -6,7 +6,7 @@ import { TableTypes } from "../../../common/constants";
 
 type SubjectsProp = string | TableTypes<"subject">[];
 type CurriculumProp = string | TableTypes<"curriculum"> | null;
-type ClassProp = string | any | null;
+type ClassProp = Partial<Pick<TableTypes<"class">, "name">> | null;
 
 type Props = {
   classRow: ClassProp;
