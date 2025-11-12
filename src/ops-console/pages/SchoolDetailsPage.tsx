@@ -9,6 +9,7 @@ import SchoolNameHeaderComponent from "../components/SchoolDetailsComponents/Sch
 import Breadcrumb from "../components/Breadcrumb";
 import SchoolDetailsTabsComponent from "../components/SchoolDetailsComponents/SchoolDetailsTabsComponent";
 import { SupabaseApi } from "../../services/api/SupabaseApi";
+import { TableTypes } from "../../common/constants";
 
 interface SchoolDetailComponentProps {
   id: string;
@@ -30,6 +31,16 @@ type SchoolStats = {
   avg_weekly_time_minutes: number;
 };
 
+type ClassWithDetails = TableTypes<"class"> & {
+  subjects?: TableTypes<"course">[];
+  subjectsNames?: string;
+  curriculumNames?: string;
+  course_links?: TableTypes<"class_course">[];
+  courses?: TableTypes<"course">[];
+  curriculum?: TableTypes<"curriculum">[];
+  studentCount?: number;
+};
+
 const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const [data, setData] = useState<{
     schoolData?: any;
@@ -44,7 +55,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     totalTeacherCount?: number;
     totalStudentCount?: number;
     schoolStats?: SchoolStats;
-    classData?: any;
+    classData?: ClassWithDetails[];
     totalClassCount?: number;
   }>({});
   const isMobile = useIsMobile();
@@ -112,9 +123,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
             }
             const links = (await api.getCoursesByClassId(clasS.id)) ?? [];
             const detailArrays = await Promise.all(
-              links.map((ln: any) =>
-                api.getCourse(ln.course_id)
-              )
+              links.map((ln: any) => api.getCourse(ln.course_id))
             );
             const courses = detailArrays
               .flatMap((arr: any) => (Array.isArray(arr) ? arr : [arr]))

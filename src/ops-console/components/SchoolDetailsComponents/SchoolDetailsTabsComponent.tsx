@@ -10,7 +10,6 @@ import SchoolPrincipals from "./SchoolPrincipals";
 import SchoolCoordinators from "./SchoolCoordinators";
 import ClassDetailsPage from "./ClassDetailsPage";
 import SchoolClasses from "./SchoolClass";
-// import { MOCK_CLASSES } from "./mockClasses";
 
 const tabEnumValues = Object.values(SchoolTabs);
 
