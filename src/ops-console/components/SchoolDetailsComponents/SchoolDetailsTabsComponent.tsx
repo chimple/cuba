@@ -8,6 +8,8 @@ import SchoolTeachers from "./SchoolTeachers";
 import SchoolStudents from "./SchoolStudents";
 import SchoolPrincipals from "./SchoolPrincipals";
 import SchoolCoordinators from "./SchoolCoordinators";
+import ClassDetailsPage from "./ClassDetailsPage";
+import SchoolClasses from "./SchoolClass";
 
 const tabEnumValues = Object.values(SchoolTabs);
 
@@ -31,7 +33,9 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
           <button
             key={tabKey}
             onClick={() => setActiveTab(tabKey)}
-            className={`school-detail-role-tab-button ${activeTab === tabKey ? "selectedtab" : ""}`}
+            className={`school-detail-role-tab-button ${
+              activeTab === tabKey ? "selectedtab" : ""
+            }`}
           >
             {t(tabKey)}
           </button>
@@ -41,17 +45,28 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
         {activeTab === SchoolTabs.Overview && (
           <SchoolOverview data={data} isMobile={isMobile} />
         )}
-         {activeTab === SchoolTabs.Students && (
+        {activeTab === SchoolTabs.Classes && (
+          <SchoolClasses data={data} isMobile={isMobile} schoolId={schoolId} />
+        )}
+        {activeTab === SchoolTabs.Students && (
           <SchoolStudents data={data} isMobile={isMobile} schoolId={schoolId} />
         )}
-         {activeTab === SchoolTabs.Teachers && (
-          <SchoolTeachers data={data} isMobile={isMobile} schoolId={schoolId}/>
+        {activeTab === SchoolTabs.Teachers && (
+          <SchoolTeachers data={data} isMobile={isMobile} schoolId={schoolId} />
         )}
-         {activeTab === SchoolTabs.Principals && (
-          <SchoolPrincipals data={data} isMobile={isMobile} schoolId={schoolId}/>
+        {activeTab === SchoolTabs.Principals && (
+          <SchoolPrincipals
+            data={data}
+            isMobile={isMobile}
+            schoolId={schoolId}
+          />
         )}
-         {activeTab === SchoolTabs.Coordinators && (
-          <SchoolCoordinators data={data} isMobile={isMobile} schoolId={schoolId} />
+        {activeTab === SchoolTabs.Coordinators && (
+          <SchoolCoordinators
+            data={data}
+            isMobile={isMobile}
+            schoolId={schoolId}
+          />
         )}
       </div>
     </div>
