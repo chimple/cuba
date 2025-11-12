@@ -6,9 +6,10 @@ import { TableTypes } from "../../../common/constants";
 
 type SubjectsProp = string | TableTypes<"subject">[];
 type CurriculumProp = string | TableTypes<"curriculum"> | null;
+type ClassProp = string | any | null;
 
 type Props = {
-  classRow: string;
+  classRow: ClassProp;
   subjects: SubjectsProp;
   curriculum: CurriculumProp;
   totalStudents: string;
@@ -88,7 +89,7 @@ const ClassInfoCard: React.FC<Props> = ({
 }) => {
   const subjectList = toSubjectDisplay(subjects);
   const curriculumName = toCurriculumDisplay(curriculum);
-  const classLabel = classRow;
+  const classLabel = classRow?.name;
 
   return (
     <Card className="classinfocard-cic-card">

@@ -113,7 +113,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
             const links = (await api.getCoursesByClassId(clasS.id)) ?? [];
             const detailArrays = await Promise.all(
               links.map((ln: any) =>
-                api.getCoursesDeatislsbyCourseid(ln.course_id)
+                api.getCourse(ln.course_id)
               )
             );
             const courses = detailArrays

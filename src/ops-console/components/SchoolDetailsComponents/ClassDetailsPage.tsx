@@ -12,6 +12,7 @@ type ApiStudent = any;
 const ROWS_PER_PAGE = 20;
 
 type Props = {
+  data: any;
   schoolId: TableTypes<"school">["id"];
   classId: TableTypes<"class">["id"];
   classRow: any | null;
@@ -21,9 +22,9 @@ type Props = {
 };
 
 function toCommaString(x: unknown): string {
-  if (!x) return "—";
-  if (Array.isArray(x)) return x.filter(Boolean).join(", ") || "—";
-  if (typeof x === "string") return x.trim() || "—";
+  if (!x) return "";
+  if (Array.isArray(x)) return x.filter(Boolean).join(", ") || "";
+  if (typeof x === "string") return x.trim() || "";
   return String(x);
 }
 
@@ -53,6 +54,7 @@ function parseGradeSection(
 }
 
 const ClassDetailsPage: React.FC<Props> = ({
+  data,
   schoolId,
   classId,
   classRow,
@@ -61,6 +63,9 @@ const ClassDetailsPage: React.FC<Props> = ({
   onBack,
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const onlyClassRow = Array.isArray(data?.classData)
+    ? (data.classData as any[]).find((r) => r?.id === classId) ?? null
+    : null;
 
   const [initialStudents, setInitialStudents] = useState<ApiStudent[]>([]);
   const [initialTotal, setInitialTotal] = useState<number>(0);
@@ -143,7 +148,7 @@ const ClassDetailsPage: React.FC<Props> = ({
         }}
       >
         <ClassInfoCard
-          classRow={classNameSt}
+          classRow={onlyClassRow}
           subjects={subjectsSt}
           curriculum={curriculumSt}
           totalStudents={finalTotalStudentsSt}

@@ -53,7 +53,7 @@ const StatusChip: React.FC<{ ok?: boolean }> = ({ ok }) => (
         className="schoolclass-wa-chip__icon"
       />
     )}
-    {ok ? "Connected" : "Not Connected"}
+    {ok ? t("Connected") : t("Not Connected")}
   </span>
 );
 
@@ -185,7 +185,7 @@ const SchoolClasses: React.FC<Props> = ({
                   handleGenerateCode(c.id);
                 }}
               >
-                {isLoading ? "Generating..." : "Generate"}
+                {isLoading ? t("Generating...") : t("Generate")}
               </MuiButton>
             ),
           };
@@ -207,15 +207,15 @@ const SchoolClasses: React.FC<Props> = ({
               <ActionMenu
                 items={[
                   {
-                    name: "Edit Class",
+                    name: t("Edit Class"),
                     icon: <EditOutlined fontSize="small" />,
                   },
                   {
-                    name: "Add Student",
+                    name: t("Add Student"),
                     icon: <PersonAddAlt1Outlined fontSize="small" />,
                   },
                   {
-                    name: "Setup WhatsApp Group",
+                    name: t("Setup WhatsApp Group"),
                     icon: <ChatBubbleOutlineOutlined fontSize="small" />,
                   },
                 ]}
@@ -289,13 +289,13 @@ const SchoolClasses: React.FC<Props> = ({
 
   const columns = useMemo(() => {
     const cols: any[] = [
-      { key: "code", label: "Class Code", sortable: false },
-      { key: "class", label: "Class", sortable: false },
-      { key: "subjects", label: "Subjects", sortable: false },
-      { key: "curriculum", label: "Curriculum", sortable: false },
+      { key: "code", label: t("Class Code"), sortable: false },
+      { key: "class", label: t("Class"), sortable: false },
+      { key: "subjects", label: t("Subjects"), sortable: false },
+      { key: "curriculum", label: t("Curriculum"), sortable: false },
       {
         key: "studentCount",
-        label: "Student Count",
+        label: t("Student Count"),
         sortable: false,
         align: "right",
       },
@@ -303,14 +303,14 @@ const SchoolClasses: React.FC<Props> = ({
     if (hasWhatsAppBot) {
       cols.push({
         key: "whatsapp",
-        label: "WhatsApp Group",
+        label: t("WhatsApp Group"),
         align: "center",
         sortable: false,
       });
     }
     cols.push({
       key: "actions",
-      label: "Actions",
+      label: t("Actions"),
       align: "right",
       sortable: false,
     });
@@ -324,6 +324,7 @@ const SchoolClasses: React.FC<Props> = ({
 
   return selectedClassId ? (
     <ClassDetailsPage
+      data={data}
       schoolId={schoolId}
       classId={selectedClassId}
       classRow={selectedRow}

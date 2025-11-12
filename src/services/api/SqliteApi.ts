@@ -6763,7 +6763,4 @@ order by
   async getActiveStudentsCountByClass(classId: string): Promise<string> {
     return await this._serverApi.getActiveStudentsCountByClass(classId);
   }
-  async getCoursesDeatislsbyCourseid(courseId: string): Promise<TableTypes<"course">[]> {
-    return await this._serverApi.getCoursesDeatislsbyCourseid(courseId);
-  }
 }

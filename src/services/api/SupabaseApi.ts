@@ -8752,19 +8752,4 @@ export class SupabaseApi implements ServiceApi {
     }
     return (data ?? 0).toString();
   }
-  async getCoursesDeatislsbyCourseid(
-    courseId: string
-  ): Promise<TableTypes<"course">[]> {
-    if (!this.supabase) return [];
-    const { data, error } = await this.supabase
-      .from(TABLES.Course)
-      .select("*")
-      .eq("id", courseId)
-      .eq("is_deleted", false);
-    if (error) {
-      console.error("Error fetching class courses:", error);
-      return [];
-    }
-    return data ?? [];
-  }
 }
