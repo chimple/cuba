@@ -400,7 +400,7 @@ const PrincipalTeacherPendingRequest = () => {
                 <div className="principal-teacher-pending-label">
                   {t("District")}
                 </div>
-                <div>{school.group3 || "N/A"}</div>
+                <div>{school.group2 || "N/A"}</div>
               </div>
               <div
                 className="principal-teacher-pending-field-stack"

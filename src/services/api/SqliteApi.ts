@@ -283,7 +283,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -352,7 +352,7 @@ export class SqliteApi implements ServiceApi {
         try {
           if (overlay && overlay.parentElement)
             overlay.parentElement.removeChild(overlay);
-        } catch { }
+        } catch {}
         if (timeoutId) window.clearTimeout(timeoutId);
         resolve(val);
       };
@@ -552,21 +552,23 @@ export class SqliteApi implements ServiceApi {
         console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
       }
     }
-    const new_school = data.get(TABLES.School);
-      if (new_school && new_school?.length > 0) {
-        await this.syncDbNow(Object.values(TABLES), [
-          TABLES.Assignment,
-          TABLES.Assignment_user,
-          TABLES.SchoolCourse,
-          TABLES.Class,
-          TABLES.ClassInvite_code,
-          TABLES.Result,
-          TABLES.User,
-          TABLES.ClassUser,
-          TABLES.SchoolUser,
-          TABLES.ClassCourse
-        ]);
+    if(!isInitialFetch){
+     const new_school = data.get(TABLES.School);
+     if (new_school && new_school?.length > 0) {
+       await this.syncDbNow(Object.values(TABLES), [
+         TABLES.Assignment,
+         TABLES.Assignment_user,
+         TABLES.SchoolCourse,
+         TABLES.Class,
+         TABLES.ClassInvite_code,
+         TABLES.Result,
+         TABLES.User,
+         TABLES.ClassUser,
+         TABLES.SchoolUser,
+         TABLES.ClassCourse,
+       ]);
       }
+   }
   }
 
   async getTableColumns(tableName: string): Promise<string[] | undefined> {
@@ -2153,7 +2155,7 @@ export class SqliteApi implements ServiceApi {
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
           new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
-          todaysTimestamp.split("T")[0];
+            todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -5890,33 +5892,33 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-          id: parent_id,
-          name: parent_name,
-          email: parent_email,
-          phone: parent_phone,
-          age: null,
-          avatar: null,
-          created_at: new Date().toISOString(),
-          curriculum_id: null,
-          fcm_token: null,
-          firebase_id: null,
-          gender: null,
-          grade_id: null,
-          image: null,
-          is_deleted: false,
-          is_firebase: false,
-          is_ops: false,
-          is_tc_accepted: false,
-          language_id: null,
-          learning_path: null,
-          music_off: false,
-          ops_created_by: null,
-          reward: null,
-          sfx_off: false,
-          stars: null,
-          student_id: null,
-          updated_at: null,
-        }
+            id: parent_id,
+            name: parent_name,
+            email: parent_email,
+            phone: parent_phone,
+            age: null,
+            avatar: null,
+            created_at: new Date().toISOString(),
+            curriculum_id: null,
+            fcm_token: null,
+            firebase_id: null,
+            gender: null,
+            grade_id: null,
+            image: null,
+            is_deleted: false,
+            is_firebase: false,
+            is_ops: false,
+            is_tc_accepted: false,
+            language_id: null,
+            learning_path: null,
+            music_off: false,
+            ops_created_by: null,
+            reward: null,
+            sfx_off: false,
+            stars: null,
+            student_id: null,
+            updated_at: null,
+          }
         : null;
 
       return {
@@ -6002,33 +6004,33 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-          id: parent_id,
-          name: parent_name,
-          email: parent_email,
-          phone: parent_phone,
-          age: null, // Assuming these fields are nullable or have default values in your User table type
-          avatar: null,
-          created_at: new Date().toISOString(), // Example, adjust if you fetch this
-          curriculum_id: null,
-          fcm_token: null,
-          firebase_id: null,
-          gender: null,
-          grade_id: null,
-          image: null,
-          is_deleted: false,
-          is_firebase: false,
-          is_ops: false,
-          is_tc_accepted: false,
-          language_id: null,
-          learning_path: null,
-          music_off: false,
-          ops_created_by: null,
-          reward: null,
-          sfx_off: false,
-          stars: null,
-          student_id: null,
-          updated_at: null,
-        }
+            id: parent_id,
+            name: parent_name,
+            email: parent_email,
+            phone: parent_phone,
+            age: null, // Assuming these fields are nullable or have default values in your User table type
+            avatar: null,
+            created_at: new Date().toISOString(), // Example, adjust if you fetch this
+            curriculum_id: null,
+            fcm_token: null,
+            firebase_id: null,
+            gender: null,
+            grade_id: null,
+            image: null,
+            is_deleted: false,
+            is_firebase: false,
+            is_ops: false,
+            is_tc_accepted: false,
+            language_id: null,
+            learning_path: null,
+            music_off: false,
+            ops_created_by: null,
+            reward: null,
+            sfx_off: false,
+            stars: null,
+            student_id: null,
+            updated_at: null,
+          }
         : null;
 
       return {
@@ -6760,9 +6762,7 @@ order by
       console.error("❌ Error updating user reward:", error);
     }
   }
-  async getActiveStudentsCountByClass(
-    classId: string
-  ): Promise<string> {
+  async getActiveStudentsCountByClass(classId: string): Promise<string> {
     return await this._serverApi.getActiveStudentsCountByClass(classId);
   }
 }

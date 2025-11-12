@@ -19,6 +19,7 @@ const StudentRejectedRequestDetails = () => {
       udise?: string;
       country?: string;
       group1?: string;
+      group2?: string;
       group3?: string;
     };
     rejectedBy?: { name?: string };
@@ -177,7 +178,7 @@ const StudentRejectedRequestDetails = () => {
                   {t("District")}
                 </div>{" "}
                 {/* Class name updated & Translated */}
-                <div>{school.group3 || t("-")}</div> {/* Translated '-' */}
+                <div>{school.group2 || t("-")}</div> {/* Translated '-' */}
               </div>
               <div className="ops-rejected-request-details-field-stack">
                 <div className="ops-rejected-request-details-label">

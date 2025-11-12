@@ -1,5 +1,5 @@
 .classdetailspage-students-sticky {
-  height: calc(100vh - 380px);
+  height: calc(100vh - 125px);
   position: relative;
   overflow: hidden;
 }

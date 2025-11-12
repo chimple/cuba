@@ -6,9 +6,10 @@ import { TableTypes } from "../../../common/constants";
 
 type SubjectsProp = string | TableTypes<"subject">[];
 type CurriculumProp = string | TableTypes<"curriculum"> | null;
+type ClassProp = Partial<Pick<TableTypes<"class">, "name">> | null;
 
 type Props = {
-  classRow: TableTypes<"class"> | null;
+  classRow: ClassProp;
   subjects: SubjectsProp;
   curriculum: CurriculumProp;
   totalStudents: string;
@@ -17,7 +18,11 @@ type Props = {
 };
 
 const Label = ({ children }: { children: React.ReactNode }) => (
-  <Typography className="classinfocard-cic-label" variant="caption" color="text.secondary">
+  <Typography
+    className="classinfocard-cic-label"
+    variant="caption"
+    color="text.secondary"
+  >
     {children}
   </Typography>
 );
@@ -41,7 +46,9 @@ const Info = ({
 }) => {
   const content = (
     <Value>
-      <span className={ellipsis ? "classinfocard-cic-ellipsis" : undefined}>{value}</span>
+      <span className={ellipsis ? "classinfocard-cic-ellipsis" : undefined}>
+        {value}
+      </span>
     </Value>
   );
 
@@ -60,16 +67,16 @@ const Info = ({
 };
 
 const toSubjectDisplay = (subjects?: SubjectsProp): string => {
-  if (!subjects) return "—";
-  if (typeof subjects === "string") return subjects || "—";
+  if (!subjects) return "";
+  if (typeof subjects === "string") return subjects || "";
   const list = subjects.map((s) => s?.name).filter(Boolean);
-  return list.length ? list.join(", ") : "—";
+  return list.length ? list.join(", ") : "";
 };
 
 const toCurriculumDisplay = (curriculum?: CurriculumProp): string => {
-  if (!curriculum) return "—";
-  if (typeof curriculum === "string") return curriculum || "—";
-  return curriculum?.name ?? "—";
+  if (!curriculum) return "";
+  if (typeof curriculum === "string") return curriculum || "";
+  return curriculum?.name ?? "";
 };
 
 const ClassInfoCard: React.FC<Props> = ({
@@ -82,12 +89,16 @@ const ClassInfoCard: React.FC<Props> = ({
 }) => {
   const subjectList = toSubjectDisplay(subjects);
   const curriculumName = toCurriculumDisplay(curriculum);
-  const classLabel = classRow?.name ?? "—";
+  const classLabel = classRow?.name;
 
   return (
     <Card className="classinfocard-cic-card">
       <CardContent className="classinfocard-cic-card-content">
-        <Typography className="classinfocard-cic-title" variant="h6" fontWeight={700}>
+        <Typography
+          className="classinfocard-cic-title"
+          variant="h6"
+          fontWeight={700}
+        >
           {t("Class Information")}
         </Typography>
 
@@ -102,7 +113,12 @@ const ClassInfoCard: React.FC<Props> = ({
             tooltip={subjectList}
           />
 
-          <Info label={t("Curriculum")} value={curriculumName} />
+          <Info
+            label={t("Curriculum")}
+            value={curriculumName}
+            ellipsis
+            tooltip={curriculumName}
+          />
           <Info label={t("Total Students")} value={totalStudents} />
           <Info label={t("Active Students")} value={activeStudents} />
 

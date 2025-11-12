@@ -1,36 +1,103 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Box, Button, useMediaQuery } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import ClassInfoCard from "./ClassInfoCard";
 import SchoolStudents from "./SchoolStudents";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import "./ClassDetailsPage.css";
-import { useHistory } from "react-router-dom";
 import { t } from "i18next";
-import { TableTypes } from "../../../common/constants";
+import { StudentInfo, TableTypes } from "../../../common/constants";
 
-type ApiStudent = any;
+type ApiStudent = StudentInfo;
+type ClassRow = {
+  id: TableTypes<"class">["id"];
+  name?: string;
+  grade?: number | string;
+  section?: string;
+  subjectsNames?: string | null;
+  curriculumNames?: string | null;
+};
 const ROWS_PER_PAGE = 20;
 
-const ClassDetailsPage: React.FC = () => {
+type Props = {
+  data: { classData?: ClassRow[] };
+  schoolId: TableTypes<"school">["id"];
+  classId: TableTypes<"class">["id"];
+  classRow: ClassRow | null;
+  classCodeOverride?: string;
+  totalStudentsOverride?: number;
+  onBack?: () => void;
+};
+
+function toCommaString(x: unknown): string {
+  if (!x) return "";
+  if (Array.isArray(x)) return x.filter(Boolean).join(", ") || "";
+  if (typeof x === "string") return x.trim() || "";
+  return String(x);
+}
+
+function parseGradeSection(
+  name?: string,
+  fallbackGrade?: number | string,
+  fallbackSection?: string
+): { grade?: number | string; section?: string } {
+  if (!name) return { grade: fallbackGrade, section: fallbackSection };
+  const s = name.trim();
+  const patterns = [
+    /^(\d+)\s*[- ]?\s*([A-Za-z])?$/, // "1" or "1 A"
+    /^(\d+)([A-Za-z])$/, // "1A"
+  ];
+  for (const re of patterns) {
+    const m = s.match(re);
+    if (m) {
+      const g = m[1];
+      const sec = (m[2] || "").toUpperCase();
+      return {
+        grade: g ? Number(g) || g : fallbackGrade,
+        section: sec || fallbackSection,
+      };
+    }
+  }
+  return { grade: fallbackGrade, section: fallbackSection };
+}
+
+const ClassDetailsPage: React.FC<Props> = ({
+  data,
+  schoolId,
+  classId,
+  classRow,
+  classCodeOverride,
+  totalStudentsOverride,
+  onBack,
+}) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const history = useHistory();
-  const handleBack = () => {
-    history.goBack();
-  };
-  const schoolId =
-    "" as TableTypes<"school">["id"];
-  const classId =
-    "" as TableTypes<"class">["id"];
+  const onlyClassRow = Array.isArray(data?.classData)
+    ? (data.classData as ClassRow[]).find((r) => r?.id === classId) ?? null
+    : null;
+
   const [initialStudents, setInitialStudents] = useState<ApiStudent[]>([]);
   const [initialTotal, setInitialTotal] = useState<number>(0);
-  const [activeStudentCount, setActiveStudentCount] = useState<string | null>(
-    null
+  const [activeStudentCount, setActiveStudentCount] = useState<number>(0);
+
+  const classNameSt = (classRow?.name ?? "").toString().trim() || "";
+  const subjectsSt = useMemo(
+    () => toCommaString(classRow?.subjectsNames),
+    [classRow]
   );
-  const [classRow, setClassRow] = useState<TableTypes<"class"> | null>(null);
-  const subjectsStr =
-    "Mathematics, English, Hindi, Digital Skills, Kannada, Uttar Pradesh, Harayana";
-  const curriculumStr = "Chimple";
+  const curriculumSt = useMemo(
+    () => toCommaString(classRow?.curriculumNames),
+    [classRow]
+  );
+
+  const { grade: parsedGrade, section: parsedSection } = useMemo(
+    () =>
+      parseGradeSection(
+        classRow?.name,
+        classRow?.grade,
+        classRow?.section ?? ""
+      ),
+    [classRow]
+  );
 
   useEffect(() => {
     (async () => {
@@ -41,25 +108,27 @@ const ClassDetailsPage: React.FC = () => {
           1,
           ROWS_PER_PAGE
         );
-        setInitialStudents(res.data || []);
-        setInitialTotal(res.total || 0);
-        const count = await api.getActiveStudentsCountByClass(classId);
-        const cls: TableTypes<"class"> | null =
-          (await api.getClassById(classId)) ?? null;
-        setClassRow(cls);
-        setActiveStudentCount(count);
+        setInitialStudents(res?.data || []);
+        setInitialTotal(res?.total || 0);
+        const active = await api.getActiveStudentsCountByClass(classId);
+        setActiveStudentCount(Number(active) || 0);
       } catch (e) {
-        console.error("Failed to load initial students:", e);
+        console.error("Failed to load class details:", e);
+        setActiveStudentCount(0);
       }
     })();
-  }, [schoolId]);
+  }, [schoolId, classId]);
+
+  const finalClassCode = String(classCodeOverride);
+  const finalTotalStudentsSt = String(totalStudentsOverride);
+  const finalActiveStudentsSt = String(activeStudentCount);
 
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, bgcolor: "grey.50", minHeight: "100vh" }}>
       <Button
         variant="text"
         startIcon={<ArrowBack />}
-        onClick={handleBack}
+        onClick={onBack}
         sx={{
           textTransform: "none",
           mb: 1,
@@ -87,12 +156,12 @@ const ClassDetailsPage: React.FC = () => {
         }}
       >
         <ClassInfoCard
-          classRow={classRow}
-          subjects={subjectsStr}
-          curriculum={curriculumStr}
-          totalStudents="25"
-          activeStudents={activeStudentCount ?? ""}
-          classCode="MATH1A2024"
+          classRow={onlyClassRow}
+          subjects={subjectsSt}
+          curriculum={curriculumSt}
+          totalStudents={finalTotalStudentsSt}
+          activeStudents={finalActiveStudentsSt}
+          classCode={finalClassCode}
         />
       </Box>
 
@@ -111,8 +180,8 @@ const ClassDetailsPage: React.FC = () => {
           isTotal={false}
           isFilter={false}
           customTitle="Students in Class"
-          optionalGrade={2}
-          optionalSection="B"
+          optionalGrade={parsedGrade}
+          optionalSection={parsedSection}
         />
       </Box>
     </Box>
