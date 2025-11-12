@@ -19,6 +19,7 @@ const OpsApprovedRequestDetails = () => {
       udise?: string;
       country?: string;
       group1?: string;
+      group2?: string;
       group3?: string;
     };
     respondedBy?: { name?: string };
@@ -162,7 +163,7 @@ const OpsApprovedRequestDetails = () => {
                 <div className="ops-approved-request-details-label">
                   {t("District")}
                 </div>
-                <div>{school.group3 || "N/A"}</div>
+                <div>{school.group2 || "N/A"}</div>
               </div>
               <div className="ops-approved-request-details-field-stack">
                 <div className="ops-approved-request-details-label">
