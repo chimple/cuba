@@ -296,9 +296,9 @@ const StudentPendingRequestDetails = () => {
             <div className="student-pending-request-details-field-row">
               <div className="student-pending-request-details-field-stack student-pending-request-details-field-stack-margin">
                 <div className="student-pending-request-details-label">
-                  {t("City")}
+                  {t("Block")}
                 </div>
-                <div>{school.group2 || t("N/A")}</div>
+                <div>{school.group3 || t("N/A")}</div>
               </div>
               <div className="student-pending-request-details-field-stack">
                 <div className="student-pending-request-details-label">
@@ -311,7 +311,7 @@ const StudentPendingRequestDetails = () => {
               <div className="student-pending-request-details-label">
                 {t("District")}
               </div>
-              <div>{school.group3 || t("N/A")}</div>
+              <div>{school.group2 || t("N/A")}</div>
             </div>
           </Paper>
           <div className="student-pending-request-details-action-buttons-row">
