@@ -24,16 +24,22 @@ type ClassRow = {
   code?: string | number | null;
   grade: number | string;
   section: string;
-  subjectsNames?: any;
-  curriculum?: any;
-  curriculumNames?: any;
+  subjectsNames?: string;
+  curriculumNames?: string;
   studentCount: number;
-  group_id: any;
+  group_id: string;
   whatsapp_connected?: boolean;
 };
 
+type SchoolClassesData = {
+  classData?: ClassRow[];
+  classes?: ClassRow[];
+  schoolData?: { whatsapp_bot_number?: string | null };
+  totalClassCount?: number;
+};
+
 interface Props {
-  data: any;
+  data: SchoolClassesData;
   schoolId: string;
   isMobile?: boolean;
   onGenerateCode?: (classId: string) => void;
