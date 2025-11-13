@@ -261,14 +261,97 @@ export class OneRosterApi implements ServiceApi {
     return { agentEmail, queryStatement };
   }
 
+  // public async loadCourseJson(courseId: string) {
+  //   try {
+  //     if (this.allCoursesJson[courseId] != undefined) return this.allCoursesJson[courseId]
+  //     const jsonFile = "assets/courses/" + courseId + ".json";
+  //     const res = await Util.loadJson(jsonFile)
+  //     // Store the loaded JSON in the allCoursesJson object
+  //     this.allCoursesJson[courseId] = res;
+  //     return res;
+  //   } catch (error) {
+  //     console.error(`Failed to load ${courseId}:`, error);
+  //   }
+  // }
+
   public async loadCourseJson(courseId: string) {
     try {
-      if (this.allCoursesJson[courseId] != undefined) return this.allCoursesJson[courseId]
-      const jsonFile = "assets/courses/" + courseId + ".json";
-      const res = await Util.loadJson(jsonFile)
-      // Store the loaded JSON in the allCoursesJson object
-      this.allCoursesJson[courseId] = res;
-      return res;
+      if (this.allCoursesJson[courseId] !== undefined)
+        return this.allCoursesJson[courseId];
+
+      let jsonFile = "";
+
+      if(courseId === "en_g1") {
+        jsonFile = "englishgrade1";
+      } else if (courseId === "en_g2") {
+        jsonFile = "englishgrade2";
+      } else if (courseId === "maths_g1") {
+        jsonFile = "mathsgrade1";
+      } else if (courseId === "maths_g2") {
+        jsonFile = "mathsgrade2";
+      } else if( courseId === "puzzle") {
+        jsonFile = "digitalskills";
+      }
+
+      const jsonUrl = `https://chimple-respectify.web.app/grades/${jsonFile}.json`;
+
+      const response = await fetch(jsonUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const jsonData = await response.json();
+
+      const localJsonPath = "assets/courses/" + courseId + ".json";
+      let localJson: any = {};
+      try {
+        localJson = await Util.loadJson(localJsonPath);
+      } catch (e) {
+        console.warn(`[OneRosterApi] could not load local JSON at ${localJsonPath}:`, e);
+        localJson = {};
+      }
+
+      // Build a flattened navigation array from groups -> navigation
+      const navigation: any[] = Array.isArray(localJson?.groups)
+        ? localJson.groups.flatMap((g: any) => (Array.isArray(g.navigation) ? g.navigation : []))
+        : [];
+
+      if (!navigation.length) {
+        console.warn(`loadCourseJson: no navigation items found in local JSON for ${courseId}`);
+      }
+
+      console.log("[Anuj] Local navigation count:", navigation.length);
+
+      jsonData.publications = (jsonData.publications || []).map((pub: any) => {
+        // Defensive checks for metadata and identifier
+        const identifier: string | undefined = pub?.metadata?.identifier;
+        if (!identifier) return pub;
+
+        const match = identifier.match(/activity_id=([^&]+)/);
+        const id = match ? match[1] : null;
+        if (!id) return pub;
+
+        // Find the navigation object with the same id
+        const navObj = navigation.find((nav: any) => nav && nav.id === id);
+
+        // Add navigation object to metadata if found
+        if (navObj) {
+          return {
+            ...pub,
+            metadata: {
+              ...pub.metadata,
+              navigation: navObj,
+            },
+          };
+        }
+        return pub;
+      });
+
+      console.log("[Anuj] Final JSON:", JSON.stringify(jsonData, null, 2));
+
+      this.allCoursesJson[courseId] = jsonData;
+      return jsonData;
+
     } catch (error) {
       console.error(`Failed to load ${courseId}:`, error);
     }
