@@ -17,25 +17,35 @@ import ActionMenu from "./ActionMenu";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import ClassDetailsPage from "./ClassDetailsPage";
 import { t } from "i18next";
+import { ClassWithDetails, SchoolStats } from "../../pages/SchoolDetailsPage";
+import { TableTypes } from "../../../common/constants";
 
-type ClassRow = {
-  id: string;
-  name?: string;
-  code?: string | number | null;
-  grade: number | string;
-  section: string;
-  subjectsNames?: string;
-  curriculumNames?: string;
-  studentCount: number;
-  group_id: string;
-  whatsapp_connected?: boolean;
+export type SchoolDetailsData = {
+  schoolData?: SchoolData;
+  programData?: any;
+  programManagers?: any[];
+  principals?: any[];
+  totalPrincipalCount?: number;
+  coordinators?: any[]; 
+  totalCoordinatorCount?: number;
+  teachers?: any[]; 
+  students?: any[]; 
+  totalTeacherCount?: number;
+  totalStudentCount?: number;
+  schoolStats?: SchoolStats;
+  classData?: ClassRow[];
+  totalClassCount?: number;
 };
 
-type SchoolClassesData = {
-  classData?: ClassRow[];
-  classes?: ClassRow[];
-  schoolData?: { whatsapp_bot_number?: string | null };
-  totalClassCount?: number;
+export type SchoolData = TableTypes<"school"> & {
+  whatsapp_bot_number?: string | null;
+};
+
+export type ClassRow = ClassWithDetails & {
+  code?: string | number | null;
+  grade?: number | string;
+  section?: string;
+  whatsapp_connected?: boolean;
 };
 
 type TableRowData = {
@@ -45,7 +55,7 @@ type TableRowData = {
   class: { render: React.ReactNode };
   subjects: string;
   curriculum: string;
-  studentCount: number;
+  studentCount: number | undefined;
   actions: { render: React.ReactNode };
   whatsapp?: { render: React.ReactNode };
 };
@@ -59,7 +69,7 @@ type ColumnDef = {
 };
 
 interface Props {
-  data: SchoolClassesData;
+  data: SchoolDetailsData;
   schoolId: string;
   isMobile?: boolean;
   onGenerateCode?: (classId: string) => void;
@@ -94,16 +104,14 @@ const SchoolClasses: React.FC<Props> = ({
   const api = ServiceConfig.getI().apiHandler;
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
 
-  const allDataRef = useRef<SchoolClassesData>(data);
+  const allDataRef = useRef<SchoolDetailsData>(data);
   useEffect(() => {
     allDataRef.current = data;
   }, [data]);
 
-  const getAll = (): SchoolClassesData => allDataRef.current;
+  const getAll = (): SchoolDetailsData => allDataRef.current;
   const safeClasses: ClassRow[] = Array.isArray(getAll()?.classData)
     ? getAll().classData!
-    : Array.isArray(getAll()?.classes)
-    ? getAll().classes!
     : [];
 
   const bot = getAll()?.schoolData?.whatsapp_bot_number;
@@ -181,7 +189,7 @@ const SchoolClasses: React.FC<Props> = ({
       const subjectsDisplay = c.subjectsNames;
       const curriculumDisplay = c.curriculumNames;
 
-      const isGroupConnected = hasValue(c.group_id);
+      const isGroupConnected = hasValue(c.group_id ?? "");
 
       const codeVal = codes[c.id] ?? null;
       const hasCode = typeof codeVal === "string" && codeVal.trim().length > 0;
