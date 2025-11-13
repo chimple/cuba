@@ -29,6 +29,7 @@
       "ALTER TABLE class ADD COLUMN ops_created_by TEXT;",
       "ALTER TABLE class ADD COLUMN standard TEXT;",
       "ALTER TABLE class ADD COLUMN status TEXT;",
+      "ALTER TABLE class ADD COLUMN group_id TEXT;",
       "ALTER TABLE class_course ADD COLUMN is_firebase BOOLEAN;",
       "ALTER TABLE class_course ADD COLUMN is_ops BOOLEAN;",
       "ALTER TABLE class_course ADD COLUMN ops_created_by TEXT;",
