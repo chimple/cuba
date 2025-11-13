@@ -64,9 +64,9 @@ const ClassDetailsPage: React.FC<Props> = ({
   onBack,
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const onlyClassRow = Array.isArray(data?.classData)
-    ? (data.classData as ClassRow[]).find((r) => r?.id === classId) ?? null
-    : null;
+  const classDataArray = (data?.classData ?? []) as ClassRow[];
+  const onlyClassRow =
+    classDataArray.find((r) => r?.id === classId) ?? classRow ?? null;
 
   const [initialStudents, setInitialStudents] = useState<ApiStudent[]>([]);
   const [initialTotal, setInitialTotal] = useState<number>(0);
@@ -112,7 +112,8 @@ const ClassDetailsPage: React.FC<Props> = ({
     })();
   }, [schoolId, classId]);
 
-  const finalClassCode = (classCodeOverride ?? "").toString().trim() || t("Not Generated");
+  const finalClassCode =
+    (classCodeOverride ?? "").toString().trim() || t("Not Generated");
   const finalTotalStudentsSt = String(totalStudentsOverride);
   const finalActiveStudentsSt = String(activeStudentCount);
 
