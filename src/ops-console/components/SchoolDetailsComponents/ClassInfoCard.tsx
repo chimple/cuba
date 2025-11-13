@@ -3,10 +3,11 @@ import { Box, Card, CardContent, Typography, Tooltip } from "@mui/material";
 import "./ClassInfoCard.css";
 import { t } from "i18next";
 import { TableTypes } from "../../../common/constants";
+import { ClassRow } from "./SchoolClass";
 
 type SubjectsProp = string | TableTypes<"subject">[];
 type CurriculumProp = string | TableTypes<"curriculum"> | null;
-type ClassProp = Partial<Pick<TableTypes<"class">, "name">> | null;
+type ClassProp = ClassRow | null;
 
 type Props = {
   classRow: ClassProp;

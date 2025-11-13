@@ -25,13 +25,13 @@ function useIsMobile() {
   return isMobile;
 }
 
-type SchoolStats = {
+export type SchoolStats = {
   active_student_percentage: number;
   active_teacher_percentage: number;
   avg_weekly_time_minutes: number;
 };
 
-type ClassWithDetails = TableTypes<"class"> & {
+export type ClassWithDetails = TableTypes<"class"> & {
   subjects?: TableTypes<"course">[];
   subjectsNames?: string;
   curriculumNames?: string;

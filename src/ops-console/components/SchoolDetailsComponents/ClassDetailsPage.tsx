@@ -7,20 +7,13 @@ import { ServiceConfig } from "../../../services/ServiceConfig";
 import "./ClassDetailsPage.css";
 import { t } from "i18next";
 import { StudentInfo, TableTypes } from "../../../common/constants";
+import { ClassRow, SchoolDetailsData } from "./SchoolClass";
 
 type ApiStudent = StudentInfo;
-type ClassRow = {
-  id: TableTypes<"class">["id"];
-  name?: string;
-  grade?: number | string;
-  section?: string;
-  subjectsNames?: string | null;
-  curriculumNames?: string | null;
-};
 const ROWS_PER_PAGE = 20;
 
 type Props = {
-  data: { classData?: ClassRow[] };
+  data?: SchoolDetailsData;
   schoolId: TableTypes<"school">["id"];
   classId: TableTypes<"class">["id"];
   classRow: ClassRow | null;
@@ -119,7 +112,7 @@ const ClassDetailsPage: React.FC<Props> = ({
     })();
   }, [schoolId, classId]);
 
-  const finalClassCode = String(classCodeOverride);
+  const finalClassCode = (classCodeOverride ?? "").toString().trim() || t("Not Generated");
   const finalTotalStudentsSt = String(totalStudentsOverride);
   const finalActiveStudentsSt = String(activeStudentCount);
 
