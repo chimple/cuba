@@ -262,23 +262,7 @@ export class OneRosterApi implements ServiceApi {
     return { agentEmail, queryStatement };
   }
 
-  // public async loadCourseJson(courseId: string) {
-  //   try {
-  //     if (this.allCoursesJson[courseId] != undefined) return this.allCoursesJson[courseId]
-  //     const jsonFile = "assets/courses/" + courseId + ".json";
-  //     const res = await Util.loadJson(jsonFile)
-  //     // Store the loaded JSON in the allCoursesJson object
-  //     this.allCoursesJson[courseId] = res;
-  //     return res;
-  //   } catch (error) {
-  //     console.error(`Failed to load ${courseId}:`, error);
-  //   }
-  // }
-
   public async loadCourseJson(courseId: string) {
-    // jsonObject ?  -->  return : fetch server;
-    // jsonrespectobject[courseId] ?? --> return
-    console.log("[Anuj] course ID  :  ",courseId);
     try {
       if (this.allCoursesJson[courseId] !== undefined)
         return this.allCoursesJson[courseId];
@@ -315,17 +299,14 @@ export class OneRosterApi implements ServiceApi {
         localJson = {};
       }
 
-      // Pull groups from local JSON (preserve full groups structure)
       const groups: any[] = Array.isArray(localJson?.groups) ? localJson.groups : [];
 
       if (!groups.length) {
         console.warn(`loadCourseJson: no groups found in local JSON for ${courseId}`);
       }
 
-      // Build a flattened navigation array from groups -> navigation (optional convenience)
       const navigation: any[] = groups.flatMap((g: any) => (Array.isArray(g.navigation) ? g.navigation : []));
 
-      // Append localJson.metadata to jsonData.metadata
       if (localJson?.metadata) {
         if (jsonData.metadata && typeof jsonData.metadata === 'object' && typeof localJson.metadata === 'object') {
           jsonData.metadata = { ...jsonData.metadata, ...localJson.metadata };
@@ -334,12 +315,7 @@ export class OneRosterApi implements ServiceApi {
         }
       }
 
-      console.log("[Anuj] Local groups count:", groups.length, "navigation items:", navigation.length);
-
-      // Attach the full groups array to the top-level jsonData so callers can use it directly
       jsonData.groups = groups;
-
-      console.log("[Anuj] Final JSON:", JSON.stringify(jsonData, null, 2));
 
       this.allCoursesJson[courseId] = jsonData;
       return jsonData;
