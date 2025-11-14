@@ -280,18 +280,8 @@ export class OneRosterApi implements ServiceApi {
     // jsonrespectobject[courseId] ?? --> return
     console.log("[Anuj] course ID  :  ",courseId);
     try {
-      // Check in-memory cache first
       if (this.allCoursesJson[courseId] !== undefined)
         return this.allCoursesJson[courseId];
-
-      // Check localStorage cache
-      const localStorageKey = `course_json_${courseId}`;
-      const cachedJson = localStorage.getItem(localStorageKey);
-      if (cachedJson) {
-        const parsedJson = JSON.parse(cachedJson);
-        this.allCoursesJson[courseId] = parsedJson;
-        return parsedJson;
-      }
 
       let jsonFile = "";
 
@@ -351,10 +341,7 @@ export class OneRosterApi implements ServiceApi {
 
       console.log("[Anuj] Final JSON:", JSON.stringify(jsonData, null, 2));
 
-      // Cache in memory and localStorage
       this.allCoursesJson[courseId] = jsonData;
-      localStorage.setItem(localStorageKey, JSON.stringify(jsonData));
-
       return jsonData;
 
     } catch (error) {
@@ -856,7 +843,7 @@ export class OneRosterApi implements ServiceApi {
   getProgramsByRole(): Promise<{ data: TableTypes<"program">[]; }> {
     throw new Error("Method not implemented.");
   }
-  updateSchoolStatus(schoolId: string, schoolStatus: STATUS[keyof STATUS], address?: { state?: string; district?: string; city?: string; }, keyContacts?: any): Promise<void> {
+  updateSchoolStatus(schoolId: string, schoolStatus: STATUS[keyof STATUS], address?: { state?: string; district?: string; city?: string; address?: string; }, keyContacts?: any): Promise<void> {
     throw new Error("Method not implemented.");
   }
   sendJoinSchoolRequest(schoolId: string, requestType: RequestTypes, classId?: string): Promise<void> {
@@ -2145,7 +2132,7 @@ export class OneRosterApi implements ServiceApi {
     //       status: "active",
     //       updatedAt: "..Date/Time..",
     //       metaData: {
-    //         lessonId: "..NormalizedString..",
+    //         lessonId: lessonId,
     //       },
     //       lineItem: {
     //         href: "..URI..",
@@ -2324,7 +2311,6 @@ export class OneRosterApi implements ServiceApi {
     //   console.log(
     //     "🚀 ~ file: OneRosterApi.ts:216 ~ OneRosterApi ~ getLineItemForClassForLessonId ~ error:",
     //     JSON.stringify(error)
-    //   );
     return;
     // }
   }
