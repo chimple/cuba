@@ -325,6 +325,15 @@ export class OneRosterApi implements ServiceApi {
       // Build a flattened navigation array from groups -> navigation (optional convenience)
       const navigation: any[] = groups.flatMap((g: any) => (Array.isArray(g.navigation) ? g.navigation : []));
 
+      // Append localJson.metadata to jsonData.metadata
+      if (localJson?.metadata) {
+        if (jsonData.metadata && typeof jsonData.metadata === 'object' && typeof localJson.metadata === 'object') {
+          jsonData.metadata = { ...jsonData.metadata, ...localJson.metadata };
+        } else {
+          jsonData.metadata = localJson.metadata;
+        }
+      }
+
       console.log("[Anuj] Local groups count:", groups.length, "navigation items:", navigation.length);
 
       // Attach the full groups array to the top-level jsonData so callers can use it directly
