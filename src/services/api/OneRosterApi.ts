@@ -238,6 +238,7 @@ export class OneRosterApi implements ServiceApi {
     updated_at: null
   };
   public allCoursesJson: { [key: string]: TableTypes<"course"> } = {};
+
   public studentAvailableCourseIds = ["en_g1", "en_g2", "maths_g1", "maths_g2", "puzzle"]; //Later get all available courses
   private favoriteLessons: { [userId: string]: string[] } = {};
   private FAVORITE_LESSONS_STORAGE_KEY = "favorite_lessons";
@@ -275,6 +276,9 @@ export class OneRosterApi implements ServiceApi {
   // }
 
   public async loadCourseJson(courseId: string) {
+    // jsonObject ?  -->  return : fetch server;
+    // jsonrespectobject[courseId] ?? --> return
+    console.log("[Anuj] course ID  :  ",courseId);
     try {
       if (this.allCoursesJson[courseId] !== undefined)
         return this.allCoursesJson[courseId];
@@ -311,41 +315,20 @@ export class OneRosterApi implements ServiceApi {
         localJson = {};
       }
 
-      // Build a flattened navigation array from groups -> navigation
-      const navigation: any[] = Array.isArray(localJson?.groups)
-        ? localJson.groups.flatMap((g: any) => (Array.isArray(g.navigation) ? g.navigation : []))
-        : [];
+      // Pull groups from local JSON (preserve full groups structure)
+      const groups: any[] = Array.isArray(localJson?.groups) ? localJson.groups : [];
 
-      if (!navigation.length) {
-        console.warn(`loadCourseJson: no navigation items found in local JSON for ${courseId}`);
+      if (!groups.length) {
+        console.warn(`loadCourseJson: no groups found in local JSON for ${courseId}`);
       }
 
-      console.log("[Anuj] Local navigation count:", navigation.length);
+      // Build a flattened navigation array from groups -> navigation (optional convenience)
+      const navigation: any[] = groups.flatMap((g: any) => (Array.isArray(g.navigation) ? g.navigation : []));
 
-      jsonData.publications = (jsonData.publications || []).map((pub: any) => {
-        // Defensive checks for metadata and identifier
-        const identifier: string | undefined = pub?.metadata?.identifier;
-        if (!identifier) return pub;
+      console.log("[Anuj] Local groups count:", groups.length, "navigation items:", navigation.length);
 
-        const match = identifier.match(/activity_id=([^&]+)/);
-        const id = match ? match[1] : null;
-        if (!id) return pub;
-
-        // Find the navigation object with the same id
-        const navObj = navigation.find((nav: any) => nav && nav.id === id);
-
-        // Add navigation object to metadata if found
-        if (navObj) {
-          return {
-            ...pub,
-            metadata: {
-              ...pub.metadata,
-              navigation: navObj,
-            },
-          };
-        }
-        return pub;
-      });
+      // Attach the full groups array to the top-level jsonData so callers can use it directly
+      jsonData.groups = groups;
 
       console.log("[Anuj] Final JSON:", JSON.stringify(jsonData, null, 2));
 
