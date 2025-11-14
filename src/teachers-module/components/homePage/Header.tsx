@@ -108,6 +108,7 @@ const Header: React.FC<HeaderProps> = ({
               alt={String(t("Back"))}
               onClick={handleBackButtonClick}
               className={disableBackButton ? "disabled-back-button" : ""}
+              id="header-back-button"
             />
           ) : showSideMenu ? (
             <SideMenu
