@@ -46,12 +46,16 @@ const ScoreCardTitle: React.FC<ScoreCardTitleProps> = ({ score }) => {
   const { asset, message, mirrorRightIcon } = getTitleVariant(score);
 
   return (
-    <div className="title-scoreCard">
-      <img alt="" className="title-scoreCard-icon" src={asset} />
+    <div
+      className={`title-scoreCard ${
+        score <= 25 ? "title-scoreCard-text-down" : ""
+      }`}
+    >
+      <img alt="" className={`${score >75 ? "title-scoreCard-icon-3star":"title-scoreCard-icon"}`} src={asset} />
       <span>{message}</span>
       <img
         alt=""
-        className={`title-scoreCard-icon${
+        className={`${score >75 ? "title-scoreCard-icon-3star":"title-scoreCard-icon"} ${
           mirrorRightIcon ? " title-scoreCard-icon--mirror" : ""
         }`}
         src={asset}

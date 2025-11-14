@@ -1,22 +1,29 @@
 .dialog-box-button-style-score-card {
   color: #ffffff !important;
   background-color: #f34d08;
-  border-radius: 10px !important;
-  width: 196px !important;
-  height: 48px !important;
-  font-size: 22px !important;
+  border-radius: 10px;
+  font-size: 22px;
   font-weight: 600;
   text-align: center;
   white-space: nowrap;
+  min-width: 196px;
+  min-height: 48px;
+  max-width: 340px;
   /* font-size: var(--text-size) !important; */
   display: flex;
   justify-content: center;
   align-items: center;
   border: none;
-  border-radius: 12px;
   cursor: pointer;
-  padding-top: 4px;
+  padding: 10px 20px;
   border-bottom: 6px solid #8a2901;
+}
+
+.scorecard-button-kn {
+  border-radius: 12px !important;
+  font-size: 21.5px !important;
+  padding: 13px 9px !important;
+  margin-top: 2px;
 }
 
 .dialog-content-text {
@@ -39,8 +46,8 @@
   justify-content: space-around;
   align-items: center;
   flex-direction: column;
-  margin-top: 1.5vh;
-  font-size: 2vw;
+  margin-top: 3px;
+  gap: 3px;
 }
 
 .score-card-content-lesson-name {
@@ -57,7 +64,7 @@
 .image-icon {
   height: 75px;
   width: 75px;
-  transform: translateY(15px);
+  transform: translateY(20px);
 }
 
 .heart-icon {
@@ -107,6 +114,7 @@
 .score-card-content-message {
   color: var(--text-color);
   font-size: 14px;
+  font-weight: 500;
 }
 .ScoreCard-Continue-Button-div {
   display: flex;
@@ -116,6 +124,6 @@
   margin-top: 10px;
 }
 .dialog-box-button-style-score-card:active {
-  border-bottom: 4px solid #8a2901 !important;
+  border-bottom: 2px solid #8a2901 !important;
   transition: background 0.1s, color 0.1s;
 }

@@ -1,17 +1,21 @@
+/* Baloo 2 – Latin + Devanagari */
 @font-face {
-  font-family: "BalooRegular";
-  src:
-    local("BalooRegular"),
-    url("/public/assets/fonts/Baloo/Baloo2-Regular.ttf") format("truetype");
-  /* font-weight: bolder; */
+  font-family: 'BalooRegular';
+  src: url('/public/assets/fonts/Baloo/Baloo2-VariableFont.ttf') format('truetype-variations');
+  font-weight: 400 800;
+  font-style: normal;
+  unicode-range:
+    U+0000-024F,      /* Latin */
+    U+0900-097F;      /* Devanagari */
 }
 
+/* Baloo Tamma 2 – Kannada */
 @font-face {
-  font-family: "BalooExtraBold";
-  src:
-    local("BalooRegular"),
-    url("/public/assets/fonts/Baloo/Baloo2-ExtraBold.ttf") format("truetype");
-  font-weight: bolder;
+  font-family: 'BalooRegular';
+  src: url('/public/assets/fonts/Baloo/BalooTamma2-VariableFont.ttf') format('truetype-variations');
+  font-weight: 400 800;
+  font-style: normal;
+  unicode-range: U+0C80-0CFF; /* Kannada block */
 }
 
 * {
