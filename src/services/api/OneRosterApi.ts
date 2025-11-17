@@ -263,25 +263,13 @@ export class OneRosterApi implements ServiceApi {
   }
 
   public async loadCourseJson(courseId: string) {
+    console.log("ANMOL --- loadCourseJson called for courseId:", courseId);
     try {
+      console.log("ANMOL --- Checking cache for courseId:", courseId);
       if (this.allCoursesJson[courseId] !== undefined)
         return this.allCoursesJson[courseId];
-
-      let jsonFile = "";
-
-      if(courseId === "en_g1") {
-        jsonFile = "englishgrade1";
-      } else if (courseId === "en_g2") {
-        jsonFile = "englishgrade2";
-      } else if (courseId === "maths_g1") {
-        jsonFile = "mathsgrade1";
-      } else if (courseId === "maths_g2") {
-        jsonFile = "mathsgrade2";
-      } else if( courseId === "puzzle") {
-        jsonFile = "digitalskills";
-      }
-
-      const jsonUrl = `https://chimple-respectify.web.app/grades/${jsonFile}.json`;
+      
+      const jsonUrl = `https://chimple-respectify.web.app/grades/${courseId}.json`;
 
       const response = await fetch(jsonUrl);
       if (!response.ok) {
