@@ -238,6 +238,7 @@ export class OneRosterApi implements ServiceApi {
     updated_at: null
   };
   public allCoursesJson: { [key: string]: TableTypes<"course"> } = {};
+
   public studentAvailableCourseIds = ["en_g1", "en_g2", "maths_g1", "maths_g2", "puzzle"]; //Later get all available courses
   private favoriteLessons: { [userId: string]: string[] } = {};
   private FAVORITE_LESSONS_STORAGE_KEY = "favorite_lessons";
@@ -262,13 +263,51 @@ export class OneRosterApi implements ServiceApi {
   }
 
   public async loadCourseJson(courseId: string) {
+    console.log("ANMOL --- loadCourseJson called for courseId:", courseId);
     try {
-      if (this.allCoursesJson[courseId] != undefined) return this.allCoursesJson[courseId]
-      const jsonFile = "assets/courses/" + courseId + ".json";
-      const res = await Util.loadJson(jsonFile)
-      // Store the loaded JSON in the allCoursesJson object
-      this.allCoursesJson[courseId] = res;
-      return res;
+      console.log("ANMOL --- Checking cache for courseId:", courseId);
+      if (this.allCoursesJson[courseId] !== undefined)
+        return this.allCoursesJson[courseId];
+      
+      const jsonUrl = `https://chimple-respectify.web.app/grades/${courseId}.json`;
+
+      const response = await fetch(jsonUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const jsonData = await response.json();
+
+      const localJsonPath = "assets/courses/" + courseId + ".json";
+      let localJson: any = {};
+      try {
+        localJson = await Util.loadJson(localJsonPath);
+      } catch (e) {
+        console.warn(`[OneRosterApi] could not load local JSON at ${localJsonPath}:`, e);
+        localJson = {};
+      }
+
+      const groups: any[] = Array.isArray(localJson?.groups) ? localJson.groups : [];
+
+      if (!groups.length) {
+        console.warn(`loadCourseJson: no groups found in local JSON for ${courseId}`);
+      }
+
+      const navigation: any[] = groups.flatMap((g: any) => (Array.isArray(g.navigation) ? g.navigation : []));
+
+      if (localJson?.metadata) {
+        if (jsonData.metadata && typeof jsonData.metadata === 'object' && typeof localJson.metadata === 'object') {
+          jsonData.metadata = { ...jsonData.metadata, ...localJson.metadata };
+        } else {
+          jsonData.metadata = localJson.metadata;
+        }
+      }
+
+      jsonData.groups = groups;
+
+      this.allCoursesJson[courseId] = jsonData;
+      return jsonData;
+
     } catch (error) {
       console.error(`Failed to load ${courseId}:`, error);
     }
