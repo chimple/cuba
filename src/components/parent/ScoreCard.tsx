@@ -4,6 +4,7 @@ import { OverlayEventDetail } from "@ionic/react/dist/types/components/react-com
 import { Dialog, DialogContentText } from "@mui/material";
 import ScoreCardStarIcons from "./ScoreCardStarIcons";
 import ScoreCardTitle from "./ScoreCardTitle";
+import i18n from "../../i18n";
 
 const ScoreCard: React.FC<{
   showDialogBox: boolean;
@@ -12,7 +13,7 @@ const ScoreCard: React.FC<{
   lessonName: string;
   noText: string;
   handleClose: (event: CustomEvent<OverlayEventDetail<any>>) => void;
-  onContinueButtonClicked: MouseEventHandler<HTMLDivElement>;
+  onContinueButtonClicked: MouseEventHandler<HTMLButtonElement>;
 }> = ({
   showDialogBox,
   message,
@@ -56,13 +57,13 @@ const ScoreCard: React.FC<{
           </DialogContentText>
         </div>
         <div className="ScoreCard-Continue-Button-div">
-          <div
+          <button
             id={"noButton"}
-            className="dialog-box-button-style-score-card"
+            className={`dialog-box-button-style-score-card ${i18n.language === "kn" ? "scorecard-button-kn" : ""}`}
             onClick={onContinueButtonClicked}
           >
-            {noText}
-          </div>
+            <span>{noText}</span>
+          </button>
         </div>
       </Dialog>
     </div>
