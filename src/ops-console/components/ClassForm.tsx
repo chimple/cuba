@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./ClassForm.css";
 import { ServiceConfig } from "../../services/ServiceConfig";
+import { t } from "i18next";
 
 const ClassForm: React.FC<{
   onClose: () => void;
@@ -24,7 +25,14 @@ const ClassForm: React.FC<{
 
   useEffect(() => {
     if (mode === "edit" && classData) {
-      setFormValues(classData);
+      setFormValues({
+        grade: (classData.name || "").replace(/[^0-9]/g, "") || "",
+        section: (classData.name || "").replace(/[0-9]/g, "") || "",
+        subjectGrade: classData.courses[0].grade_id ?? "",
+        curriculum: classData.curriculum ?? "",
+        studentCount: classData.studentCount ?? "0",
+        groupId: classData.group_id ?? "",
+      });
     } else {
       setFormValues({
         grade: "",
@@ -74,7 +82,7 @@ const ClassForm: React.FC<{
   const handleSubmit = async () => {
     if (!isFormValid) return;
     try {
-      let classId = classData?.classId;
+      let classId = classData?.id;
       console.log("classId", classId);
       if (mode === "edit") {
         if (!classId) {
@@ -119,13 +127,13 @@ const ClassForm: React.FC<{
         <div className="class-form-title">
           {mode === "edit"
             ? `Class ${formValues.grade || ""} - ${formValues.section || ""}`
-            : "Create Class"}
+            : t("Create Class")}
         </div>
 
         <div className="class-form-row">
           <div className="class-form-group">
             <label>
-              Grade <span className="class-form-required">*</span>
+              {t("Grade")} <span className="class-form-required">*</span>
             </label>
             <input
               name="grade"
@@ -134,27 +142,27 @@ const ClassForm: React.FC<{
               max={10}
               value={formValues.grade || ""}
               onChange={handleChange}
-              placeholder="Enter Grade"
+              placeholder={t("Enter Grade")??""} 
             />
           </div>
 
           <div className="class-form-group">
             <label>
-              Class Section <span className="class-form-required">*</span>
+              {t("Class Section")} <span className="class-form-required">*</span>
             </label>
             <input
               name="section"
               type="text"
               value={formValues.section || ""}
               onChange={handleChange}
-              placeholder="Enter Class Section"
+              placeholder={t("Enter Class Section")??""} 
             />
           </div>
         </div>
 
         <div className="class-form-group class-form-full-width">
           <label>
-            Subject Grade <span className="class-form-required">*</span>
+            {t("Subject Grade")} <span className="class-form-required">*</span>
           </label>
           <div className="class-form-select-wrapper">
             <select
@@ -164,7 +172,7 @@ const ClassForm: React.FC<{
               disabled={loading}
             >
               <option value="" disabled>
-                Select Subject Grade
+                {t("Select Subject Grade")}
               </option>
               {grades.map((g: any) => (
                 <option key={g.id} value={g.id}>
@@ -183,7 +191,7 @@ const ClassForm: React.FC<{
 
         <div className="class-form-group class-form-full-width">
           <label>
-            Curriculum <span className="class-form-required">*</span>
+            {t("Curriculum")} <span className="class-form-required">*</span>
           </label>
           <div className="class-form-select-wrapper">
             <select
@@ -193,7 +201,7 @@ const ClassForm: React.FC<{
               disabled={loading}
             >
               <option value="" disabled>
-                Select Curriculum
+                {t("Select Curriculum")}
               </option>
               {curriculums.map((c: any) => (
                 <option key={c.id} value={c.id}>
@@ -211,36 +219,25 @@ const ClassForm: React.FC<{
         </div>
 
         <div className="class-form-group class-form-full-width">
-          <label>Students Count in Class</label>
-          <input
-            name="studentCount"
-            type="number"
-            value={formValues.studentCount || ""}
-            onChange={handleChange}
-            placeholder="Enter Student Count"
-          />
-        </div>
-
-        <div className="class-form-group class-form-full-width">
           <label>WhatsApp Group ID</label>
           <input
             name="groupId"
             type="text"
             value={formValues.groupId || ""}
             onChange={handleChange}
-            placeholder="Enter WhatsApp Group ID"
+            placeholder={t("Enter WhatsApp Group ID")??""}
           />
         </div>
         <div className="class-form-button-row">
           <button className="class-form-cancel-btn" onClick={onClose}>
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             className="class-form-save-btn"
             onClick={handleSubmit}
             disabled={!isFormValid || loading}
           >
-            {mode === "edit" ? "Save" : "Create Class"}
+            {mode === "edit" ? t("Save") : t("Create Class")}
           </button>
         </div>
       </div>
