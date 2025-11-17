@@ -17,6 +17,7 @@ import ActionMenu from "./ActionMenu";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import ClassDetailsPage from "./ClassDetailsPage";
 import { t } from "i18next";
+import ClassForm from "../ClassForm";
 import { ClassWithDetails, SchoolStats } from "../../pages/SchoolDetailsPage";
 import { TableTypes } from "../../../common/constants";
 
@@ -103,6 +104,9 @@ const SchoolClasses: React.FC<Props> = ({
   const isSmall = useMediaQuery("(max-width: 768px)");
   const api = ServiceConfig.getI().apiHandler;
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const [mode, setMode] = useState<"create" | "edit">("edit");
+  const [showForm, setShowForm] = useState<boolean>(false);
+  const [editingClass, setEditingClass] = useState<ClassRow | null>(null);
 
   const allDataRef = useRef<SchoolDetailsData>(data);
   useEffect(() => {
@@ -241,6 +245,11 @@ const SchoolClasses: React.FC<Props> = ({
                   {
                     name: t("Edit Class"),
                     icon: <EditOutlined fontSize="small" />,
+                    onClick: () => {
+                      setMode("edit");
+                      setEditingClass(c);
+                      setShowForm(true);
+                    },
                   },
                   {
                     name: t("Add Student"),
@@ -381,7 +390,10 @@ const SchoolClasses: React.FC<Props> = ({
         <Box className="schoolclass-actionsGroup">
           <MuiButton
             variant="outlined"
-            onClick={() => onCreateClass?.(schoolId)}
+            onClick={() => {
+              setMode("create");
+              setShowForm(true);
+            }}
             className="schoolclass-newStudentButton-outlined"
           >
             <AddIcon className="schoolclass-newStudentButton-outlined-icon" />
@@ -389,6 +401,8 @@ const SchoolClasses: React.FC<Props> = ({
           </MuiButton>
         </Box>
       </Box>
+
+      {showForm && <ClassForm mode = {mode} classData={editingClass} schoolId={schoolId} onClose={() => setShowForm(false)} />}
 
       <div className="schoolclass-table-container">
         <DataTableBody
