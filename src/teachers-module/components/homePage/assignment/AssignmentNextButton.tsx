@@ -21,7 +21,7 @@ const AssignmentNextButton: React.FC<AssignmentNextButtonProps> = ({
     <div className="assign-button" onClick={onClickCallBack}>
       <div className="assign-button-text">
         <LibraryBooksOutlinedIcon></LibraryBooksOutlinedIcon>
-        <span>
+        <span id="assignment-count">
           {assignmentCount.toString()} {t("Assignments")}
         </span>
       </div>

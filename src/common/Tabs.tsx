@@ -46,7 +46,7 @@ const Tabs: React.FC<{
         }}
       >
         {tabs.map((tab, index) => (
-          <Tab key={index} label={t(tab)} />
+          <Tab key={index} label={t(tab)} id="school-user-tabs"/>
         ))}
       </MuiTabs>
     </AppBar>

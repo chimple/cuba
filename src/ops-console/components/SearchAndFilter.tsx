@@ -36,6 +36,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width: 900px)");
+  const showfilter = isFilter ?? true;
   const isPortraitMobile = useMediaQuery(
     "(max-width: 600px) and (orientation: portrait)"
   );
@@ -136,7 +137,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
         />
       )}
 
-      {isFilter &&
+      {showfilter &&
         (isMobile ? (
           <IconButton
             aria-label="Open Filters"

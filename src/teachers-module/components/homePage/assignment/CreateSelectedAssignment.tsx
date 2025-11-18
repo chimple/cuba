@@ -553,7 +553,7 @@ const CreateSelectedAssignment = ({
 
   return !isLoading ? (
     <div className="assignments-container">
-      <div>
+      <div id="assignment-success-dialog">
         <CommonDialogBox
           header={t("Assignments are assigned Successfully.") ?? ""}
           message={t("Would you like to share the assignments?")}
