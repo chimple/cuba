@@ -151,6 +151,7 @@ const EditClass: FC = () => {
           onClick={isEditMode ? handleUpdateClass : handleCreateClass}
           className="view-progress-btn-2"
           disabled={isButtonDisabled || isSaving}
+          id="create-class-btn"
         >
           {isSaving
             ? t("Creating") + "..."

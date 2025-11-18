@@ -8021,7 +8021,7 @@ export class SupabaseApi implements ServiceApi {
         schoolIds.length
           ? this.supabase
               .from(TABLES.School)
-              .select("id, name, udise, group1, group3, country")
+              .select("id, name, udise, group1,group2, group3, country")
               .in("id", schoolIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         userIds.length

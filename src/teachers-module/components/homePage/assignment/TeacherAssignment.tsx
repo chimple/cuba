@@ -565,6 +565,7 @@ const processScannedData = async (scannedText: string) => {
           <p
             className="recommended-assignments-headings"
             style={{ width: !manualCollapsed ? "60%" : "100%" }}
+            id = "manual-assignments-heading"
           >
             {t("Manual Assignments")}
           </p>
@@ -694,6 +695,7 @@ const processScannedData = async (scannedText: string) => {
           <p
             className="recommended-assignments-headings"
             style={{ width: !recommendedCollapsed ? "60%" : "100%" }}
+            id="recommended-assignments-heading"
           >
             {t("Recommended Assignments")}
           </p>
