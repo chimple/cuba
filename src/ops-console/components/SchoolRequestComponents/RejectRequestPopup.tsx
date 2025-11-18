@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import "./RejectRequestPopup.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
-import { PAGES, REQUEST_TABS, STATUS } from "../../../common/constants";
+import { PAGES, REQUEST_TABS, STATUS, USER_ROLE } from "../../../common/constants";
 import { useHistory } from "react-router-dom";
 import { t } from "i18next";
+import { RoleType } from "../../../interface/modelInterfaces";
 
 interface RejectRequestPopupProps {
   requestData?: any;
@@ -53,10 +54,10 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
 
   async function handleReject() {
     if (!isFormValid()) return;
-    
+
     setIsLoading(true);
     setError("");
-    
+
     try {
       if (!requestData || !requestData.id) {
         setError(t("Incomplete request data. Please try again.") || "Incomplete request data. Please try again.");
@@ -65,7 +66,19 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
       }
       const status = isTeacherOrPrincipal && selectedReason === WRONG_SCHOOL_SELECTED ? STATUS.FLAGGED : STATUS.REJECTED;
       const finalReason = getFinalReason();
-      
+      let userRoles: string[] = [];
+      try {
+        userRoles = JSON.parse(
+          localStorage.getItem(USER_ROLE) || "[]"
+        );
+      } catch (error) {
+        console.error("Failed to parse user roles from localStorage:", error);
+      }
+      // Only Super Admin and Operational Director can see the Flagged tab
+      const canSeeFlaggedTab =
+        userRoles.includes(RoleType.SUPER_ADMIN) ||
+        userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
+
       await api.respondToSchoolRequest(
         requestData.id,
         requestData.respondedBy.id,
@@ -74,11 +87,18 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
         finalReason
       );
       await api.updateSchoolStatus(requestData.school.id, status);
-      
+
       const targetTab = status === STATUS.FLAGGED ? REQUEST_TABS.FLAGGED : REQUEST_TABS.REJECTED;
-      history.push(
-        `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${targetTab}`
-      );
+      if (canSeeFlaggedTab) {
+        history.push(
+          `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${targetTab}`
+        );
+      }
+      else{
+           history.push(
+          `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${STATUS.ACTIVE}`
+        );
+      }
     } catch (err) {
       console.error("Error processing request:", err);
       setError(t("Failed to process request. Please try again.") || "Failed to process request. Please try again.");
@@ -182,11 +202,11 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
           <button className="reject-popup-cancel-btn" onClick={onClose}>
             {t("Cancel")}
           </button>
-          <button 
-            className={isTeacherOrPrincipal && selectedReason === WRONG_SCHOOL_SELECTED 
-              ? "reject-popup-flag-btn" 
+          <button
+            className={isTeacherOrPrincipal && selectedReason === WRONG_SCHOOL_SELECTED
+              ? "reject-popup-flag-btn"
               : "reject-popup-reject-btn"
-            } 
+            }
             onClick={handleReject}
             disabled={!isFormValid() || isLoading}
           >
