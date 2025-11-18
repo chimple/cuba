@@ -2177,4 +2177,15 @@ export interface ServiceApi {
   getActiveStudentsCountByClass(
     classId: string,
   ): Promise<string>;
+
+  /**
+   * Fetch active students count information for a given class ID.
+   * @param {string} studentId - The ID of the student to fetch.
+   * @param {string []} subjectIds - The ID of the subjects to fetch.
+   * @returns Promise resolving to an object with completed assignment count and subject id's.
+   */
+  getCompletedAssignmentsCountForSubjects(
+    studentId: string,
+    subjectIds: string[]
+  ): Promise<{ subject_id: string; completed_count: number }[]>;
 }
