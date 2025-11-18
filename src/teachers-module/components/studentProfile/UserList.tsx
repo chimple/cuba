@@ -27,8 +27,6 @@ const UserList: React.FC<{
     init();
   }, []);
   const DELETION_ALLOWED_ROLES = [
-    RoleType.PRINCIPAL,
-    RoleType.COORDINATOR,
     RoleType.SUPER_ADMIN,
     RoleType.OPERATIONAL_DIRECTOR,
     RoleType.PROGRAM_MANAGER,
@@ -126,7 +124,7 @@ const UserList: React.FC<{
                   />
                 </div>
 
-                {(canDelete) && (
+                {canDelete && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(teacher)}

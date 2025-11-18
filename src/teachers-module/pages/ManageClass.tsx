@@ -59,8 +59,6 @@ const ManageClass: React.FC = () => {
     localStorage.getItem(USER_ROLE) ?? "[]"
   );
   const CREATION_ALLOWED_ROLES = [
-    RoleType.PRINCIPAL,
-    RoleType.COORDINATOR,
     RoleType.SUPER_ADMIN,
     RoleType.OPERATIONAL_DIRECTOR,
     RoleType.PROGRAM_MANAGER,
