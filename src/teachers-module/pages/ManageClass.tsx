@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   CLASS,
   CLASSES,
@@ -35,31 +35,41 @@ const ManageClass: React.FC = () => {
   const tempClass = Util.getCurrentClass();
 
   const init = async () => {
-  try {
-    const user = await auth.getCurrentUser();
-    if (!user) return;
-    setCurrentUser(user);
-    const tempSchool = Util.getCurrentSchool();
-    if (tempSchool) {
-      setCurrentSchool(tempSchool);
-      const fetchedClasses = await api.getClassesForSchool(
-        tempSchool.id,
-        user.id
-      );
-      if (fetchedClasses) {
-        setAllClasses(fetchedClasses);
-        localStorage.setItem(CLASSES, JSON.stringify(fetchedClasses));
+    try {
+      const user = await auth.getCurrentUser();
+      if (!user) return;
+      setCurrentUser(user);
+      const tempSchool = Util.getCurrentSchool();
+      if (tempSchool) {
+        setCurrentSchool(tempSchool);
+        const fetchedClasses = await api.getClassesForSchool(
+          tempSchool.id,
+          user.id
+        );
+        if (fetchedClasses) {
+          setAllClasses(fetchedClasses);
+          localStorage.setItem(CLASSES, JSON.stringify(fetchedClasses));
+        }
       }
+    } catch (error) {
+      console.error("Error initializing data:", error);
     }
-  } catch (error) {
-    console.error("Error initializing data:", error);
-  }
-};
-
-function hasRole(...rolesToCheck: RoleType[]) {
-  const storedRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
-  return rolesToCheck.some((role) => storedRoles.includes(role));
-}
+  };
+  const storedRoles: string[] = JSON.parse(
+    localStorage.getItem(USER_ROLE) ?? "[]"
+  );
+  const CREATION_ALLOWED_ROLES = [
+    RoleType.PRINCIPAL,
+    RoleType.COORDINATOR,
+    RoleType.SUPER_ADMIN,
+    RoleType.OPERATIONAL_DIRECTOR,
+    RoleType.PROGRAM_MANAGER,
+    RoleType.FIELD_COORDINATOR,
+  ];
+  const canCreate = useMemo(
+    () => CREATION_ALLOWED_ROLES.some((role) => storedRoles.includes(role)),
+    [storedRoles]
+  );
   const onBackButtonClick = () => {
     history.replace(PAGES.HOME_PAGE, {
       tabValue: 0,
@@ -76,8 +86,8 @@ function hasRole(...rolesToCheck: RoleType[]) {
       // Right after the fetch, overwrite the one you just edited
       const updated = Util.getCurrentClass();
       if (updated) {
-        setAllClasses(prev =>
-          prev.map(c => c.id === updated.id ? updated : c)
+        setAllClasses((prev) =>
+          prev.map((c) => (c.id === updated.id ? updated : c))
         );
       }
     })();
@@ -102,10 +112,10 @@ function hasRole(...rolesToCheck: RoleType[]) {
           school={currentSchool}
         />
       </div>
-      {hasRole(RoleType.PRINCIPAL, RoleType.COORDINATOR) && (
+      {canCreate && (
         <AddButton
           onClick={() => {
-          history.replace(PAGES.ADD_CLASS, { origin: PAGES.MANAGE_CLASS });
+            history.replace(PAGES.ADD_CLASS, { origin: PAGES.MANAGE_CLASS });
           }}
         />
       )}

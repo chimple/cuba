@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "./UserList.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
 import { CLASS_USERS, TableTypes, USER_ROLE } from "../../../common/constants";
@@ -20,11 +20,25 @@ const UserList: React.FC<{
   const [selectedUser, setSelectedUser] = useState<TableTypes<"user"> | null>(
     null
   );
-  const currentUserRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+  const currentUserRoles: string[] = JSON.parse(
+    localStorage.getItem(USER_ROLE) ?? "[]"
+  );
   useEffect(() => {
     init();
   }, []);
-
+  const DELETION_ALLOWED_ROLES = [
+    RoleType.PRINCIPAL,
+    RoleType.COORDINATOR,
+    RoleType.SUPER_ADMIN,
+    RoleType.OPERATIONAL_DIRECTOR,
+    RoleType.PROGRAM_MANAGER,
+    RoleType.FIELD_COORDINATOR,
+  ];
+  const canDelete = useMemo(
+    () =>
+      DELETION_ALLOWED_ROLES.some((role) => currentUserRoles.includes(role)),
+    [currentUserRoles]
+  );
   const init = async () => {
     if (userType === CLASS_USERS.STUDENTS) {
       const studentsDoc = await api?.getStudentsForClass(classDoc.id);
@@ -112,8 +126,7 @@ const UserList: React.FC<{
                   />
                 </div>
 
-                {(currentUserRoles.includes(RoleType.PRINCIPAL) ||
-                  currentUserRoles.includes(RoleType.COORDINATOR)) && (
+                {(canDelete) && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(teacher)}
