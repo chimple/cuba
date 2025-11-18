@@ -29,6 +29,11 @@ const config: CapacitorConfig = {
       launchShowDuration: 5000,
       launchAutoHide: false,
     },
+    LiveUpdate: {
+      appId: process.env.REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID,
+      autoDeleteBundles: true,
+      readyTimeout: 10000,
+    }
   },
 };
 

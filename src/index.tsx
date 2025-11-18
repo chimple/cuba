@@ -30,6 +30,7 @@ import { IonLoading } from "@ionic/react";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
+import { LiveUpdate } from "@capawesome/capacitor-live-update";
 import { defineCustomElements, JSX as LocalJSX } from "lido-standalone/loader";
 import {
   SpeechSynthesis,
@@ -37,6 +38,7 @@ import {
 } from "./utility/WindowsSpeech";
 import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 import { Util } from "./utility/util";
+import { showUpdateAlert } from './utility/showUpdateAlert';
 import { CURRENT_USER, EVENTS, IS_OPS_USER } from "./common/constants";
 import { GbProvider } from "./growthbook/Growthbook";
 import { initializeFireBase } from "./services/Firebase";
@@ -92,7 +94,6 @@ if (typeof window !== "undefined") {
     (window as any).SpeechSynthesisUtterance = SpeechSynthesisUtterance;
   }
 }
-SplashScreen.hide();
 if (Capacitor.isNativePlatform()) {
   await ScreenOrientation.lock({ orientation: "landscape" });
 }
@@ -152,8 +153,41 @@ gb.init({
 const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
 const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
 
+    async function checkForUpdate() {
+      try {
+        if (Capacitor.isNativePlatform()) {
+          await LiveUpdate.ready();
+          console.log("LiveUpdate is ready🚀");
+          const { versionName } = await LiveUpdate.getVersionName();
+          const majorVersion = versionName.split(".")[0];
+          const { bundleId: currentBundleId } = await LiveUpdate.getCurrentBundle();
+          console.log(`Channel Name 🚀: ${process.env.REACT_APP_ENV}-${majorVersion}`);
+          const result = await LiveUpdate.fetchLatestBundle({ channel: `${process.env.REACT_APP_ENV}-${majorVersion}` });
+          console.log("LiveUpdate fetch latest bundle result 🚀", result);
+          if (result.bundleId && currentBundleId !== result.bundleId) {
+            await SplashScreen.hide();
+            const acceptUpdate = await showUpdateAlert();
+            if (acceptUpdate) {
+              await SplashScreen.show({ autoHide: false });
+              const downloadStart = performance.now();
+              await LiveUpdate.sync({channel: `${process.env.REACT_APP_ENV}-${majorVersion}`});
+              await LiveUpdate.reload();
+              const totalEnd = performance.now(); 
+              console.log(`🚀 LiveUpdate: Update applied successfully to bundle ${result.bundleId}`);
+              console.log(`⏱️ Total time from confirmation to reload: ${(totalEnd - downloadStart).toFixed(2)} ms`);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("LiveUpdate failed❌", err);
+      } finally {
+        await SplashScreen.hide();
+      }
+    }
+
 if (isOpsUser) {
   serviceInstance.switchMode(APIMode.SUPABASE);
+  await checkForUpdate();
   root.render(
     <GrowthBookProvider growthbook={gb}>
       <GbProvider>
@@ -161,11 +195,10 @@ if (isOpsUser) {
       </GbProvider>
     </GrowthBookProvider>
   );
-  SplashScreen.hide();
 } else {
-  SplashScreen.hide();
-  SqliteApi.getInstance().then(() => {
+  SqliteApi.getInstance().then(async () => {
     serviceInstance.switchMode(APIMode.SQLITE);
+    await checkForUpdate();
     root.render(
       <GrowthBookProvider growthbook={gb}>
         <GbProvider>
@@ -173,7 +206,6 @@ if (isOpsUser) {
         </GbProvider>
       </GrowthBookProvider>
     );
-    SplashScreen.hide();
   });
 }
 

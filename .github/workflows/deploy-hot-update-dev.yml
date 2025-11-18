@@ -1,0 +1,82 @@
+name: Deploy Live Update DEV
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Extract versionName
+        id: version
+        run: |
+          VERSION_NAME=$(grep versionName android/app/build.gradle | sed -E 's/.*"([0-9.]+)".*/\1/')
+          echo "versionName=$VERSION_NAME" >> $GITHUB_OUTPUT
+
+          # Extract major version (before first dot)
+          MAJOR_VERSION=$(echo "$VERSION_NAME" | cut -d '.' -f 1)
+          echo "majorVersion=$MAJOR_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Define Live Update Channel
+        id: channel
+        run: |
+          ENV_NAME="${{ vars.REACT_APP_ENV_DEV }}"   # dev OR prod
+          MAJOR="${{ steps.version.outputs.majorVersion }}"
+          CHANNEL_NAME="${ENV_NAME}-${MAJOR}"
+
+          echo "channelName=$CHANNEL_NAME" >> $GITHUB_OUTPUT
+          echo "Using channel: $CHANNEL_NAME"
+
+      - name: Build project
+        run: GENERATE_SOURCEMAP=false npx craco build && npm run copy-build && npx @capawesome/cli manifests:generate --path build
+
+      - name: Login to Capawesome Cloud
+        env:
+          CAPAWESOME_API_TOKEN: ${{ secrets.CAPAWESOME_API_TOKEN }}
+        run: npx @capawesome/cli login --token "$CAPAWESOME_API_TOKEN"
+
+      - name: Ensure live update channel exists
+        env:
+          REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID: ${{ secrets.REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID }}
+        run: |
+          CHANNEL="${{ steps.channel.outputs.channelName }}"
+          echo "Checking channel: $CHANNEL"
+
+          if npx @capawesome/cli apps:channels:list --appId "$REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID" | grep -q "$CHANNEL"; then
+            echo "Channel '$CHANNEL' exists."
+          else
+            echo "Channel '$CHANNEL' does not exist. Creating..."
+            npx @capawesome/cli apps:channels:create --appId "$REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID" --name "$CHANNEL"
+            echo "Channel '$CHANNEL' created."
+          fi
+
+      - name: Upload manifest-based bundle to Capawesome Cloud
+        env:
+          REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID: ${{ secrets.REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID }}
+        run: |
+          CHANNEL="${{ steps.channel.outputs.channelName }}"
+
+          npx @capawesome/cli apps:bundles:create \
+            --appId "$REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID" \
+            --path build \
+            --channel "$CHANNEL" \
+            --artifact-type manifest \
+            --commit-message "${{ github.event.head_commit.message || 'manual deploy' }}" \
+            --commit-ref "${{ github.ref }}" \
+            --commit-sha "${{ github.sha }}"
+
+      - name: Done
+        run: echo "Manifest-based bundle created and uploaded successfully."
