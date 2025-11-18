@@ -33,6 +33,7 @@
   align-items: center;
   justify-content: center;
   margin-top: -1vh;
+  z-index: 10;
 }
 
 .livequiz-badge-notification {

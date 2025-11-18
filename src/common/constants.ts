@@ -813,6 +813,8 @@ export enum EVENTS {
   ERROR_LOGS = "error_logs",
   PROFILE_CLICKS_ANALYTICS = "profile_clicks_analytics",
   REWARD_COLLECTED = "reward_collected",
+  HOMEWORK_PATHWAY_CREATED = "homework_pathway_created",
+  HOMEWORK_PATHWAY_COMPLETED = "homework_pathway_completed",
 }
 
 export const FCM_TOKENS = "fcmTokens";

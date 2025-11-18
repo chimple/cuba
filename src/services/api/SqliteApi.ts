@@ -6765,4 +6765,29 @@ order by
   async getActiveStudentsCountByClass(classId: string): Promise<string> {
     return await this._serverApi.getActiveStudentsCountByClass(classId);
   }
+  async getCompletedAssignmentsCountForSubjects(
+    studentId: string,
+    subjectIds: string[]
+  ): Promise<{ subject_id: string; completed_count: number }[]> {
+    if (!studentId || !subjectIds.length) return [];
+
+    const subjectIdsStr = subjectIds.map((id) => `'${id}'`).join(",");
+
+    const query = `
+    SELECT l.subject_id, COUNT(r.lesson_id) AS completed_count
+    FROM result r
+    JOIN lesson l ON r.lesson_id = l.id
+    WHERE r.student_id = ?
+      AND r.is_deleted = 0
+      AND l.subject_id IN (${subjectIdsStr})
+    GROUP BY l.subject_id;
+  `;
+    try {
+      const res = await this.executeQuery(query, [studentId]);
+      return res?.values ?? [];
+    } catch (err) {
+      console.error("Error fetching completed homework counts in SQLite:", err);
+      return [];
+    }
+  }
 }

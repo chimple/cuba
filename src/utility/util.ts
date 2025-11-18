@@ -2523,6 +2523,48 @@ export class Util {
       return {};
     }
   }
+  // In your utility/util.ts file
+
+  // ADD THIS ENTIRE NEW FUNCTION
+  // AFTER – takes an optional completedIndex
+  public static async updateHomeworkPath(completedIndex?: number) {
+    const pathKey = "homework_learning_path";
+
+    try {
+      const storedPath = sessionStorage.getItem(pathKey);
+      if (!storedPath) {
+        console.error(
+          "Could not find homework path in sessionStorage to update."
+        );
+        return;
+      }
+
+      const homeworkPath = JSON.parse(storedPath);
+
+      // If we know exactly which index was completed, use that as the base.
+      // Otherwise, fall back to "currentIndex + 1" like before.
+      const newCurrentIndex =
+        typeof completedIndex === "number"
+          ? completedIndex + 1
+          : homeworkPath.currentIndex + 1;
+
+      // Check if the 5-lesson path is now complete
+      if (newCurrentIndex >= homeworkPath.lessons.length) {
+        console.log("Homework set complete. Removing from sessionStorage.");
+        sessionStorage.removeItem(pathKey);
+      } else {
+        homeworkPath.currentIndex = newCurrentIndex;
+        sessionStorage.setItem(pathKey, JSON.stringify(homeworkPath));
+        console.log(
+          "Updated homework path. New currentIndex:",
+          newCurrentIndex
+        );
+      }
+    } catch (error) {
+      console.error("Failed to update homework path:", error);
+    }
+  }
+
   public static async updateLearningPath(
     currentStudent: TableTypes<"user">,
     isRewardLesson: boolean
