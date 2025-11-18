@@ -48,7 +48,7 @@ const DashBoard: React.FC = ({}) => {
     if (subjects.length > 0) {
       init();
     }
-  }, [selectedSubject, subjects]);
+  }, [selectedSubject]);
 
   useEffect(() => {
     initSubject();
@@ -100,7 +100,7 @@ const DashBoard: React.FC = ({}) => {
       setMappedSubjectOptions([]);
     }
     setSelectedSubject(
-      Util.getCurrentCourse(current_class?.id) ?? _subjects[0]
+      Util.getCurrentCourse(current_class?.id) ?? (ALL_SUBJECT as unknown as TableTypes<"course">)
     );
   };
 
