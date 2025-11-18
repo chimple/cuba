@@ -10,8 +10,12 @@ interface CourseDetails {
   grade?: TableTypes<"grade"> | null;
   curriculum?: TableTypes<"curriculum"> | null;
 }
+interface DropdownMenuProps {
+  disabled?: boolean;
+}
 
-const DropdownMenu: FC = () => {
+
+const DropdownMenu: FC<DropdownMenuProps> = ({ disabled = false }) => {
   const [expanded, setExpanded] = useState<boolean>(false);
   const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
   const [selected, setSelected] = useState<CourseDetails | null>(null);
@@ -159,6 +163,10 @@ const DropdownMenu: FC = () => {
     const parts = name.split(" ");
     return parts.length > 1 ? parts[1] : name;
   };
+  const handleToggleExpand = () => {
+    if (disabled) return;
+    setExpanded(prev => !prev);
+  }
 
   useEffect(() => {
     const preloadImage = (src: string) => {
@@ -186,10 +194,12 @@ const DropdownMenu: FC = () => {
   }, [expanded, selected, courseDetails]);
 
   return (
-    <div className="dropdown-main">
+    // <div className="dropdown-main">
+      <div className={`dropdown-main ${disabled ? 'dropdown-disabled' : ''}`}>
+
       <div
         className={`dropdown-container ${expanded ? "expanded" : ""}`}
-        onClick={() => setExpanded((prev) => !prev)}
+        onClick={handleToggleExpand}
       >
         <div className="dropdown-left">
           {!expanded && selected && (

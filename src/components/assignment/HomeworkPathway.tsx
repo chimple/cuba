@@ -5,6 +5,8 @@ import { v4 as uuidv4 } from "uuid";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import {
   EVENTS,
+  HOME_WORK_PATHWAY_DROPDOWN,
+  HOMEWORK_PATHWAY,
   LATEST_STARS,
   STARS_COUNT,
   TableTypes,
@@ -19,6 +21,9 @@ import Loading from "../Loading";
 import DropdownMenu from "../Home/DropdownMenu";
 import ChapterLessonBox from "../learningPathway/chapterLessonBox";
 import HomeworkPathwayStructure from "./HomeworkPathwayStructure";
+import PathwayModal from "../learningPathway/PathwayModal";
+import { t } from "i18next";
+import { useFeatureIsOn } from "@growthbook/growthbook-react";
 
 // Make sure this interface is defined at the top of your component file
 interface HomeworkPath {
@@ -37,6 +42,11 @@ const HomeworkPathway: React.FC = () => {
   const [to, setTo] = useState<number>(0);
   const currentStudent = Util.getCurrentStudent();
   const { setGbUpdated } = useGbContext();
+  // ✅ New state variables for dropdown logic
+  const [isDropdownDisabled, setIsDropdownDisabled] = useState<boolean>(true);
+  const [showDisabledDropdownModal, setShowDisabledDropdownModal] = useState<boolean>(false);
+    const isDropdownAlwaysEnabled = useFeatureIsOn(HOME_WORK_PATHWAY_DROPDOWN);
+
 
   useEffect(() => {
     if (!currentStudent?.id) {
@@ -45,7 +55,7 @@ const HomeworkPathway: React.FC = () => {
     }
     updateStarCount(currentStudent);
     fetchHomeworkPathway(currentStudent);
-  }, [currentStudent?.id]);
+  }, [currentStudent?.id, isDropdownAlwaysEnabled]);
 
   const updateStarCount = async (currentStudent: TableTypes<"user">) => {
     const storedStarsJson = localStorage.getItem(STARS_COUNT);
@@ -83,11 +93,40 @@ const HomeworkPathway: React.FC = () => {
     try {
       let pathData: HomeworkPath | null = null; 
 
-      const existingPath = sessionStorage.getItem("homework_learning_path");
+      const existingPath = sessionStorage.getItem(HOMEWORK_PATHWAY);
+      // ✅ Fetch ALL pending assignments to check the total count
+      const currClass = Util.getCurrentClass();
+      if (!currClass?.id) {
+        setLoading(false);
+        return;
+      }
+      const allPendingAssignments = await api.getPendingAssignments(currClass.id, student.id);
+       // ✅ --- MODIFIED LOGIC FOR DISABLING DROPDOWN ---
+      // Condition 1: Are there 5 or fewer total assignments? If so, it MUST be disabled.
+      const hasFewAssignments = !allPendingAssignments || allPendingAssignments.length <= 5;
+      
+      // Condition 2: Is the feature flag ON?
+      if (isDropdownAlwaysEnabled) {
+        // If the flag is ON, the dropdown is ONLY disabled if there are few assignments.
+        // The existence of a current path (`existingPath`) no longer matters.
+        setIsDropdownDisabled(hasFewAssignments);
+      } else {
+        // If the flag is OFF (original behavior), the dropdown is disabled if there are
+        // few assignments OR if a path is already in progress.
+        setIsDropdownDisabled(hasFewAssignments || !!existingPath);
+      }
+
+      // ✅ LOGIC TO DISABLE DROPDOWN
+      // Disable if a path is already active OR if there are 5 or fewer assignments in total.
+      if (existingPath || !allPendingAssignments || allPendingAssignments.length <= 5) {
+        setIsDropdownDisabled(true);
+      } else {
+        setIsDropdownDisabled(false);
+      }
       
       if (!existingPath) {
         console.log("No homework path found. Building a new one.");
-        pathData = await buildAndSaveInitialHomeworkPath(student); // Ensure this function returns the path object
+        pathData = await buildAndSaveInitialHomeworkPath(student, allPendingAssignments); // Ensure this function returns the path object
       } else {
         console.log("Found existing homework path in session storage.");
         pathData = JSON.parse(existingPath);
@@ -123,20 +162,9 @@ const HomeworkPathway: React.FC = () => {
   };
 
   const buildAndSaveInitialHomeworkPath = async (
-    student: TableTypes<"user">
+    student: TableTypes<"user">,
+    pendingAssignments: any[]
   ) => {
-    const currClass = Util.getCurrentClass();
-    if (!currClass?.id) {
-      console.log(
-        "No current class found for student. Cannot build homework path."
-      );
-      return null;
-    }
-
-    const pendingAssignments = await api.getPendingAssignments(
-      currClass.id,
-      student.id
-    );
     if (!pendingAssignments || pendingAssignments.length === 0) {
       console.log("No pending assignments found.");
       const emptyPath = { lessons: [], currentIndex: 0 };
@@ -190,7 +218,7 @@ const HomeworkPathway: React.FC = () => {
   };
 
   const saveHomeworkPath = async (student: TableTypes<"user">, path: any) => {
-    sessionStorage.setItem("homework_learning_path", JSON.stringify(path));
+    sessionStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(path));
 
     if (!path.lessons || path.lessons.length < 5) {
       console.log("Path has fewer than 5 lessons, not logging event.");
@@ -213,14 +241,22 @@ const HomeworkPathway: React.FC = () => {
     // ✅ Use the new, specific event name and remove the redundant property
     await Util.logEvent(EVENTS.HOMEWORK_PATHWAY_CREATED, eventData);
   };
+  // ✅ New handler for clicking the disabled dropdown wrapper
+  const handleDropdownWrapperClick = () => {
+    if (isDropdownDisabled) {
+      setShowDisabledDropdownModal(true);
+    }
+  }
 
   if (loading) return <Loading isLoading={loading} msg="Loading Homework" />;
 
   return (
     <div className="homework-pathway-container">
       <div className="homeworkpathway-pathway_section">
-        <div className="homework-dropdown-wrapper">
-          <DropdownMenu />
+        {/* ✅ Wrap DropdownMenu in a div with the new click handler */}
+        <div className="homework-dropdown-wrapper" onClick={handleDropdownWrapperClick}>
+          {/* ✅ Pass the disabled state as a prop */}
+          <DropdownMenu disabled={isDropdownDisabled} />
         </div>
         <HomeworkPathwayStructure />
       </div>
@@ -234,6 +270,14 @@ const HomeworkPathway: React.FC = () => {
           }}
         />
       </div>
+      {/* ✅ Render the modal when its state is true */}
+      {showDisabledDropdownModal && (
+        <PathwayModal
+          text={t("keep going finish these lesson to chose subjects")}
+          onClose={() => setShowDisabledDropdownModal(false)}
+          onConfirm={() => setShowDisabledDropdownModal(false)}
+        />
+      )}
     </div>
   );
 };

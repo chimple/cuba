@@ -108,7 +108,7 @@ const handleClick = async (event: MouseEvent) => {
 };
 
 export const initializeClickListener = () => {
-  document.addEventListener("click", handleClick);
+  // document.addEventListener("click", handleClick);
 
   return () => {
     document.removeEventListener("click", handleClick);

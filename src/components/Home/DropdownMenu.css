@@ -8,7 +8,7 @@
 }
 
 .homework-dropdown-wrapper .dropdown-main {
-  top: 175%;
+  top: 173%;
   bottom: 100%; /* Position the bottom of the menu at the top of the wrapper */
   left: 3vh; /* Or adjust as needed, e.g., 50% with a transform for centering */
 }
@@ -16,6 +16,11 @@
 .truncate-style {
   font-size: 10px;
   margin-top: -6px;
+}
+
+.dropdown-main.dropdown-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .dropdown-container {

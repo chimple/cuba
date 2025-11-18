@@ -59,17 +59,20 @@ import {
   // APP_LANG,
   BASE_NAME,
   CACHE_IMAGE,
+  CAN_ACCESS_HOMEWORK_REMOTE_ASSETS,
   CAN_ACCESS_REMOTE_ASSETS,
   CONTINUE,
   DOWNLOADING_CHAPTER_ID,
   DOWNLOAD_BUTTON_LOADING_STATUS,
   GAME_URL,
   HOMEHEADERLIST,
+  HOMEWORK_PATHWAY_ASSETS,
   IS_CUBA,
   LEARNING_PATH_ASSETS,
   MODES,
   PAGES,
   PortPlugin,
+  SHOULD_SHOW_HOMEWORK_REMOTE_ASSETS,
   SHOULD_SHOW_REMOTE_ASSETS,
 } from "./common/constants";
 import { Util } from "./utility/util";
@@ -192,7 +195,15 @@ const App: React.FC = () => {
   const [showToast, setShowToast] = useState<boolean>(false);
   const [isActive, setIsActive] = useState(true);
   const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
+  const shouldShowHomeworkRemoteAssets = useFeatureIsOn(
+    CAN_ACCESS_HOMEWORK_REMOTE_ASSETS
+  );
+
   const learningPathAssets: any = useFeatureValue(LEARNING_PATH_ASSETS, {});
+  const HomeworkPathwayAssets: any = useFeatureValue(
+    HOMEWORK_PATHWAY_ASSETS,
+    {}
+  );
 
   useEffect(() => {
     const cleanup = initializeClickListener();
@@ -261,14 +272,29 @@ const App: React.FC = () => {
     }
 
     if (shouldShowRemoteAssets) {
-      Util.DownloadLearningPathAssets(
+      Util.DownloadRemoteAssets(
         learningPathAssets?.asset_repo_url,
-        learningPathAssets?.uniqueId
+        learningPathAssets?.uniqueId,
+        "remoteAsset", // The destination folder
+        "Learning Path" // The asset type for logging
       );
     }
     localStorage.setItem(
       SHOULD_SHOW_REMOTE_ASSETS,
       JSON.stringify(shouldShowRemoteAssets)
+    );
+
+    if (shouldShowHomeworkRemoteAssets) {
+      Util.DownloadRemoteAssets(
+        HomeworkPathwayAssets?.asset_repo_url,
+        HomeworkPathwayAssets?.uniqueId,
+        "homeworkRemoteAsset", // The DIFFERENT destination folder
+        "Homework" // The asset type for logging
+      );
+    }
+    localStorage.setItem(
+      SHOULD_SHOW_HOMEWORK_REMOTE_ASSETS,
+      JSON.stringify(shouldShowHomeworkRemoteAssets)
     );
 
     Filesystem.mkdir({
