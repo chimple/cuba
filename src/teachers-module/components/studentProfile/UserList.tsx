@@ -1,7 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./UserList.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
-import { CLASS_USERS, TableTypes, USER_ROLE } from "../../../common/constants";
+import {
+  CLASS_USERS,
+  TableTypes,
+  USER_ROLE,
+  OPS_ROLES,
+} from "../../../common/constants";
 import UserDetail from "./UserDetail";
 import { IonAlert, IonIcon } from "@ionic/react";
 import { RoleType } from "../../../interface/modelInterfaces";
@@ -26,15 +31,9 @@ const UserList: React.FC<{
   useEffect(() => {
     init();
   }, []);
-  const DELETION_ALLOWED_ROLES = [
-    RoleType.SUPER_ADMIN,
-    RoleType.OPERATIONAL_DIRECTOR,
-    RoleType.PROGRAM_MANAGER,
-    RoleType.FIELD_COORDINATOR,
-  ];
+
   const canDelete = useMemo(
-    () =>
-      DELETION_ALLOWED_ROLES.some((role) => currentUserRoles.includes(role)),
+    () => OPS_ROLES.some((role) => currentUserRoles.includes(role)),
     [currentUserRoles]
   );
   const init = async () => {

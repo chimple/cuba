@@ -1,7 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./SchoolUserList.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
-import { SCHOOL_USERS, TableTypes, USER_ROLE } from "../../../common/constants";
+import {
+  SCHOOL_USERS,
+  TableTypes,
+  USER_ROLE,
+  OPS_ROLES,
+} from "../../../common/constants";
 import { IonIcon } from "@ionic/react";
 import { RoleType } from "../../../interface/modelInterfaces";
 import SchoolUserDetail from "./SchoolUserDetail";
@@ -99,16 +104,8 @@ const SchoolUserList: React.FC<{
     }
   };
 
-  const DELETION_ALLOWED_ROLES = [
-    RoleType.SUPER_ADMIN,
-    RoleType.OPERATIONAL_DIRECTOR,
-    RoleType.PROGRAM_MANAGER,
-    RoleType.FIELD_COORDINATOR,
-  ];
-
   const canDelete = useMemo(
-    () =>
-      DELETION_ALLOWED_ROLES.some((role) => currentUserRoles.includes(role)),
+    () => OPS_ROLES.some((role) => currentUserRoles.includes(role)),
     [currentUserRoles]
   );
 
@@ -126,7 +123,7 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {(canDelete) && (
+                {canDelete && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(principal)}
@@ -154,7 +151,7 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {(canDelete) && (
+                {canDelete && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(coordinator)}
@@ -182,7 +179,7 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {(canDelete) && (
+                {canDelete && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(sponsor)}

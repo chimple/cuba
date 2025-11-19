@@ -7,6 +7,7 @@ import {
   SCHOOL,
   TableTypes,
   USER_ROLE,
+  OPS_ROLES
 } from "../../common/constants";
 import { useHistory } from "react-router-dom";
 import { ServiceConfig } from "../../services/ServiceConfig";
@@ -58,14 +59,9 @@ const ManageClass: React.FC = () => {
   const storedRoles: string[] = JSON.parse(
     localStorage.getItem(USER_ROLE) ?? "[]"
   );
-  const CREATION_ALLOWED_ROLES = [
-    RoleType.SUPER_ADMIN,
-    RoleType.OPERATIONAL_DIRECTOR,
-    RoleType.PROGRAM_MANAGER,
-    RoleType.FIELD_COORDINATOR,
-  ];
+  
   const canCreate = useMemo(
-    () => CREATION_ALLOWED_ROLES.some((role) => storedRoles.includes(role)),
+    () => OPS_ROLES.some((role) => storedRoles.includes(role)),
     [storedRoles]
   );
   const onBackButtonClick = () => {
