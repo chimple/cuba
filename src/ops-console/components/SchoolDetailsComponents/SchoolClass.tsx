@@ -74,7 +74,7 @@ interface Props {
   schoolId: string;
   isMobile?: boolean;
   onGenerateCode?: (classId: string) => void;
-  onCreateClass?: (schoolId: string) => void;
+  refreshClasses?: () => void;
 }
 
 const StatusChip: React.FC<{ ok?: boolean }> = ({ ok }) => (
@@ -99,7 +99,7 @@ const SchoolClasses: React.FC<Props> = ({
   schoolId,
   isMobile,
   onGenerateCode,
-  onCreateClass,
+  refreshClasses
 }) => {
   const isSmall = useMediaQuery("(max-width: 768px)");
   const api = ServiceConfig.getI().apiHandler;
@@ -402,7 +402,7 @@ const SchoolClasses: React.FC<Props> = ({
         </Box>
       </Box>
 
-      {showForm && <ClassForm mode = {mode} classData={editingClass} schoolId={schoolId} onClose={() => setShowForm(false)} />}
+      {showForm && <ClassForm mode = {mode} classData={editingClass} schoolId={schoolId} onSaved={refreshClasses} onClose={() => setShowForm(false)} />}
 
       <div className="schoolclass-table-container">
         <DataTableBody

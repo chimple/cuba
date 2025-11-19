@@ -17,12 +17,14 @@ interface SchoolDetailsTabsComponentProps {
   data: any;
   isMobile: boolean;
   schoolId: string;
+  refreshClasses?: () => void;
 }
 
 const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
   data,
   isMobile,
   schoolId,
+  refreshClasses
 }) => {
   const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
 
@@ -46,7 +48,7 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
           <SchoolOverview data={data} isMobile={isMobile} />
         )}
         {activeTab === SchoolTabs.Classes && (
-          <SchoolClasses data={data} isMobile={isMobile} schoolId={schoolId} />
+          <SchoolClasses data={data} isMobile={isMobile} schoolId={schoolId} refreshClasses={refreshClasses} />
         )}
         {activeTab === SchoolTabs.Students && (
           <SchoolStudents data={data} isMobile={isMobile} schoolId={schoolId} />
