@@ -4354,6 +4354,29 @@ export class SupabaseApi implements ServiceApi {
       return null;
     }
   }
+  async getSchoolDataByUdise(udiseCode: string): Promise<any | null> {
+    if (!this.supabase) return null;
+
+    try {
+      const { data, error } = await this.supabase
+        .from("school_data")
+        .select("*")
+        .eq("udise_code", udiseCode)
+        .eq("is_deleted", false)
+        .single();
+
+      if (error || !data) {
+        console.error("Error fetching school_data record:", error);
+        return null;
+      }
+
+      return data; // return entire row
+    } catch (err) {
+      console.error("Unexpected error in getSchoolDataByUdise:", err);
+      return null;
+    }
+  }
+
 
   async getUserByDocId(
     studentId: string
@@ -8752,4 +8775,40 @@ export class SupabaseApi implements ServiceApi {
     }
     return (data ?? 0).toString();
   }
+  async getCompletedAssignmentsCountForSubjects(
+  studentId: string,
+  subjectIds: string[]
+): Promise<{ subject_id: string; completed_count: number }[]> {
+  if (!this.supabase) return [];
+
+  try {
+    // Query to get count of completed lessons per subject for the student for given subjects
+    const { data, error } = await this.supabase
+      .from('result')
+      .select('lesson:lesson_id(subject_id)')
+      .eq('student_id', studentId)
+      .in('lesson.subject_id', subjectIds)
+      .is('is_deleted', false);
+
+    if (error) {
+      console.error('Error fetching completed homework counts:', error);
+      return [];
+    }
+
+    // Aggregate counts by subject_id
+    const completedCountMap: { [key: string]: number } = {};
+    data.forEach((row: any) => {
+      const subjId = row.lesson.subject_id;
+      completedCountMap[subjId] = (completedCountMap[subjId] || 0) + 1;
+    });
+
+    return Object.entries(completedCountMap).map(([subject_id, completed_count]) => ({
+      subject_id,
+      completed_count,
+    }));
+  } catch (err) {
+    console.error('Exception in getCompletedHomeworkCountForSubjects:', err);
+    return [];
+  }
+}
 }

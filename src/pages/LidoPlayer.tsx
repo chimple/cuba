@@ -111,6 +111,9 @@ const LidoPlayer: FC = () => {
     avatarObj.weeklyPlayedLesson++;
     // Check if the game was played from `learning_pathway`
     const learning_path: string = state?.learning_path ?? false;
+    const is_homework: boolean = state?.isHomework ?? false; // Check for our new flag
+    const homeworkIndex: number | undefined = state?.homeworkIndex; // 👈 ADD THIS
+
     const isReward: boolean = state?.reward ?? false;
     if (isReward === true) {
       sessionStorage.setItem(REWARD_LESSON, "true");
@@ -131,6 +134,9 @@ const LidoPlayer: FC = () => {
     // Update the learning path
     if (learning_path) {
       await Util.updateLearningPath(currentStudent, isReward);
+    }else if (is_homework) {
+      // This handles our temporary homework path
+      await Util.updateHomeworkPath(homeworkIndex);
     }
     Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.id,

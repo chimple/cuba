@@ -30,6 +30,7 @@ import { IonLoading } from "@ionic/react";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { Capacitor } from "@capacitor/core";
+import { LiveUpdate } from "@capawesome/capacitor-live-update";
 import { defineCustomElements, JSX as LocalJSX } from "lido-standalone/loader";
 import {
   SpeechSynthesis,
@@ -152,6 +153,29 @@ gb.init({
 const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
 const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
 
+async function checkForUpdate() {
+  try {
+    if (Capacitor.isNativePlatform()) {
+      await LiveUpdate.ready();
+      console.log("🚀 LiveUpdate is ready.");
+      const { versionName } = await LiveUpdate.getVersionName();
+      const majorVersion = versionName.split(".")[0];
+      const { bundleId: currentBundleId } = await LiveUpdate.getCurrentBundle();
+      const result = await LiveUpdate.fetchLatestBundle({ channel: `${process.env.REACT_APP_ENV}-${majorVersion}` });
+      if (result.bundleId && currentBundleId !== result.bundleId) {
+          console.log("🚀 LiveUpdate fetch latest bundle result", result);
+          const start = performance.now();
+          await LiveUpdate.sync({channel: `${process.env.REACT_APP_ENV}-${majorVersion}`});
+          const totalEnd = performance.now(); 
+          console.log(`🚀 LiveUpdate: Update applied successfully to bundle ${result.bundleId}`);
+          console.log(`⏱️ Total time from confirmation to reload: ${(totalEnd - start).toFixed(2)} ms`);
+      }
+    }
+  } catch (err) {
+    console.error("LiveUpdate failed❌", err);
+  } 
+}
+
 if (isOpsUser) {
   serviceInstance.switchMode(APIMode.SUPABASE);
   root.render(
@@ -162,6 +186,9 @@ if (isOpsUser) {
     </GrowthBookProvider>
   );
   SplashScreen.hide();
+  setTimeout(() => {
+      checkForUpdate();
+  }, 500);
 } else {
   SplashScreen.hide();
   SqliteApi.getInstance().then(() => {
@@ -174,6 +201,9 @@ if (isOpsUser) {
       </GrowthBookProvider>
     );
     SplashScreen.hide();
+    setTimeout(() => {
+      checkForUpdate();
+    }, 500);
   });
 }
 
