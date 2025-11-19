@@ -57,6 +57,7 @@
   font-size: 18px;
   color: #182A4F;
   text-align: center;
+  white-space: pre-line;
 }
 
 /* Close button */

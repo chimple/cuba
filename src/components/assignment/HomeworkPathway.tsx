@@ -259,7 +259,8 @@ const HomeworkPathway: React.FC = () => {
       {/* ✅ Render the modal when its state is true */}
       {showDisabledDropdownModal && (
         <PathwayModal
-          text={t("keep going finish these lesson to chose subjects")}
+          // text={t("keep going finish these lesson to chose subjects")}
+          text={t("Keep going!\nFinish these lesson to choose subject")}
           onClose={() => setShowDisabledDropdownModal(false)}
           onConfirm={() => setShowDisabledDropdownModal(false)}
         />
