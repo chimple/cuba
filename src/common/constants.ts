@@ -935,8 +935,13 @@ export const ALL_SUBJECT = {
   subjectDetail: "All Grades",
 };
 export const CAN_ACCESS_REMOTE_ASSETS = "can_access_remote_assets";
+export const HOMEWORK_REMOTE_ASSETS_ENABLED = "homework_remote_assets_enabled";
 export const LEARNING_PATH_ASSETS = "learning_path_assets";
+export const HOMEWORK_PATHWAY_ASSETS = "homework_pathway_assets";
 export const SHOULD_SHOW_REMOTE_ASSETS = "shouldShowRemoteAssets";
+export const SHOULD_SHOW_HOMEWORK_REMOTE_ASSETS = "shouldShowHomeworkRemoteAssets";
+export const HOMEWORK_PATHWAY_DROPDOWN = "homework_pathway_dropdown";
+export const HOMEWORK_PATHWAY = "homework_pathway";
 export const CHIMPLE_ENGLISH = "63e40488-3c1a-47ab-aa8a-6f07ad21709f";
 export const CHIMPLE_MATHS = "9d2474bd-b9c6-43ea-8415-242668807ba0";
 export const CHIMPLE_DIGITAL_SKILLS = "19bb079f-bc69-44e4-bc1d-0b77f2683b6c";

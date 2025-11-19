@@ -8,9 +8,11 @@ import { Capacitor } from "@capacitor/core";
 import { useFeatureIsOn } from "@growthbook/growthbook-react";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import {
+  HOMEWORK_REMOTE_ASSETS_ENABLED,
   CAN_ACCESS_REMOTE_ASSETS,
   COCOS,
   CONTINUE,
+  HOMEWORK_PATHWAY,
   IS_REWARD_FEATURE_ON,
   LIDO,
   LIVE_QUIZ,
@@ -27,7 +29,7 @@ import PathwayModal from "../learningPathway/PathwayModal";
 import ChimpleRiveMascot from "../learningPathway/ChimpleRiveMascot";
 import RewardBox from "../learningPathway/RewardBox";
 import DailyRewardModal from "../learningPathway/DailyRewardModal";
-import HomeworkCompleteModal from "../learningPathway/HomeworkCompleteModal";
+import HomeworkCompleteModal from "./HomeworkCompleteModal";
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
@@ -80,9 +82,12 @@ const HomeworkPathwayStructure: React.FC = () => {
     "This lesson is locked. Play the current active lesson."
   );
   const rewardText = t("Complete these 5 lessons to earn rewards");
-  const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
+  const shouldShowHomeworkRemoteAssets = useFeatureIsOn(
+    HOMEWORK_REMOTE_ASSETS_ENABLED
+  );
+
   const isRewardFeatureOn: boolean =
-    localStorage.getItem("homework_learning_path") === "true";
+    localStorage.getItem(HOMEWORK_PATHWAY) === "true";
 
   const shouldAnimate = modalText === rewardText;
   const fetchLocalSVGGroup = async (
@@ -103,7 +108,7 @@ const HomeworkPathwayStructure: React.FC = () => {
     localPath: string,
     webPath: string
   ): Promise<string> => {
-    if (Capacitor.isNativePlatform() && shouldShowRemoteAssets) {
+    if (Capacitor.isNativePlatform() && shouldShowHomeworkRemoteAssets) {
       try {
         const file = await Filesystem.readFile({
           path: localPath,
@@ -123,7 +128,7 @@ const HomeworkPathwayStructure: React.FC = () => {
     webPath: string,
     name: string
   ) => {
-    if (Capacitor.isNativePlatform() && shouldShowRemoteAssets) {
+    if (Capacitor.isNativePlatform() && shouldShowHomeworkRemoteAssets) {
       try {
         return await fetchLocalSVGGroup(localPath, name);
       } catch {
@@ -176,7 +181,7 @@ const HomeworkPathwayStructure: React.FC = () => {
     path: string,
     webPath: string
   ): Promise<string> => {
-    if (shouldShowRemoteAssets && Capacitor.isNativePlatform()) {
+    if (shouldShowHomeworkRemoteAssets && Capacitor.isNativePlatform()) {
       try {
         const file = await Filesystem.readFile({
           path,
@@ -313,7 +318,7 @@ const HomeworkPathwayStructure: React.FC = () => {
 
       // ✅ 1. If we already have a homework path (with currentIndex),
       // just use that and DON'T recompute the 5 from API.
-      const existingPathStr = sessionStorage.getItem("homework_learning_path");
+      const existingPathStr = sessionStorage.getItem(HOMEWORK_PATHWAY);
       if (existingPathStr) {
         const existingPath = JSON.parse(existingPathStr);
         if (
@@ -406,10 +411,7 @@ const HomeworkPathwayStructure: React.FC = () => {
         currentIndex: 0, // A new path always starts at the beginning (index 0)
       };
 
-      sessionStorage.setItem(
-        "homework_learning_path",
-        JSON.stringify(newHomeworkPath)
-      );
+      sessionStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(newHomeworkPath));
 
       setHomeworkLessons(lessonsWithDetails);
     } catch (error) {
@@ -424,9 +426,7 @@ const HomeworkPathwayStructure: React.FC = () => {
 
     try {
       const startTime = performance.now();
-      const storedHomeworkPath = sessionStorage.getItem(
-        "homework_learning_path"
-      );
+      const storedHomeworkPath = sessionStorage.getItem(HOMEWORK_PATHWAY);
 
       if (!storedHomeworkPath) {
         console.log(
@@ -434,24 +434,18 @@ const HomeworkPathwayStructure: React.FC = () => {
         );
         return;
       }
-
-      // --- START OF CORRECTED DATA LOADING LOGIC ---
-
-      // 1. Parse the correct data structure from sessionStorage
       const homeworkPath = JSON.parse(storedHomeworkPath);
 
-      // 2. Define all necessary variables based on the homeworkPath object
-      const lessonsToRender = homeworkPath.lessons; // The array of assignment objects
+      const lessonsToRender = homeworkPath.lessons;
       const currentIndex = homeworkPath.currentIndex;
-      const startIndex = 0; // For a self-contained homework path, the start is always 0
-      const pathEndIndex = lessonsToRender.length - 1; // The end is the last item in the array
+      const startIndex = 0;
+      const pathEndIndex = lessonsToRender.length - 1;
 
       if (lessonsToRender.length === 0) {
         console.log("Homework path is empty. Nothing to render.");
         return;
       }
 
-      // 3. Fetch course and chapter data using info from the FIRST lesson in the path
       const firstHomeworkItem = lessonsToRender[0];
       const [courseData, chapterData] = await Promise.all([
         api.getCourse(firstHomeworkItem.course_id),
@@ -466,11 +460,7 @@ const HomeworkPathwayStructure: React.FC = () => {
       }
       setCurrentCourse(courseData);
       setCurrentChapter(chapterData);
-
-      // 4. Create the 'lessons' array that the rest of the function expects
       const lessons = lessonsToRender.map((item) => item.lesson);
-
-      // --- END OF CORRECTED DATA LOADING LOGIC ---
 
       const [
         svgContent,
@@ -483,37 +473,37 @@ const HomeworkPathwayStructure: React.FC = () => {
         haloPath,
       ] = await Promise.all([
         loadPathwayContent(
-          "remoteAsset/Pathway2.svg",
+          "homeworkRemoteAsset/Pathway2.svg",
           "/pathwayAssets/English/Pathway2.svg"
         ),
         tryFetchSVG(
-          "remoteAsset/ActiveFruit.svg",
+          "homeworkRemoteAsset/ActiveFruit.svg",
           "/pathwayAssets/English/ActiveFruit.svg",
           "fruitActive isSelected"
         ),
         fetchSVGGroup("/pathwayAssets/InactiveFruit.svg", "fruitInactive"),
         tryFetchSVG(
-          "remoteAsset/PlayedLessonFruit.svg",
+          "homeworkRemoteAsset/PlayedLessonFruit.svg",
           "/pathwayAssets/English/PlayedLessonFruit.svg",
           "playedLessonSVG"
         ),
         tryFetchSVG(
-          "remoteAsset/mysteryBox1.svg",
+          "homeworkRemoteAsset/mysteryBox1.svg",
           "/pathwayAssets/English/mysteryBox1.svg",
           "giftSVG"
         ),
         tryFetchSVG(
-          "remoteAsset/mysteryBox2.svg",
+          "homeworkRemoteAsset/mysteryBox2.svg",
           "/pathwayAssets/English/mysteryBox2.svg",
           "giftSVG2"
         ),
         tryFetchSVG(
-          "remoteAsset/mysteryBox3.svg",
+          "homeworkRemoteAsset/mysteryBox3.svg",
           "/pathwayAssets/English/mysteryBox3.svg",
           "giftSVG3"
         ),
         loadHaloAnimation(
-          "remoteAsset/halo.svg",
+          "homeworkRemoteAsset/halo.svg",
           "/pathwayAssets/English/halo.svg"
         ),
       ]);
@@ -538,7 +528,6 @@ const HomeworkPathwayStructure: React.FC = () => {
         const pathGroups = svg.querySelectorAll("g > path");
         const rawPaths = Array.from(pathGroups) as SVGPathElement[];
 
-        // Sort paths left-to-right by their bounding box x position
         const paths = rawPaths
           .map((p) => ({ path: p, x: p.getBBox().x }))
           .sort((a, b) => a.x - b.x)
@@ -548,32 +537,29 @@ const HomeworkPathwayStructure: React.FC = () => {
 
         const startPoint = paths[0].getPointAtLength(0);
         const xValues = [27, 155, 276, 387, 496];
-
         const fragment = document.createDocumentFragment();
 
-        lessonsToRender.forEach(({ lesson }, idx) => {
-          const path = paths[idx];
-          if (!path) return;
+        // ======================= MODIFICATION START =======================
+        // Calculate the offset to render lessons from the end of the pathway.
+        const totalSlots = 5;
+        const numLessons = lessonsToRender.length;
+        const startIndexOffset = totalSlots - numLessons;
+
+        // Loop through all 5 pathway slots
+        for (let pathIndex = 0; pathIndex < totalSlots; pathIndex++) {
+          const path = paths[pathIndex];
+          if (!path) continue;
+
           const point = path.getPointAtLength(0);
           const flowerX = point.x - 40;
           const flowerY = point.y - 40;
-
-          const isValidUrl = (url: string) =>
-            typeof url === "string" && /^(https?:\/\/|\/)/.test(url);
-          const lesson_image = isValidUrl(lesson.image)
-            ? lesson.image
-            : "assets/icons/DefaultIcon.png";
 
           const positionMappings = {
             playedLesson: {
               x: [flowerX - 5, flowerX - 10, flowerX - 7, flowerX, flowerX],
               y: [flowerY - 4, flowerY - 7, flowerY - 10, flowerY - 5, flowerY],
             },
-            // Use a consistent offset relative to this lesson’s path point
-            activeGroup: {
-              baseX: flowerX - 20,
-              baseY: flowerY - 23,
-            },
+            activeGroup: { baseX: flowerX - 20, baseY: flowerY - 23 },
             fruitInactive: {
               x: [flowerX - 20, flowerX, flowerX, flowerX + 5, flowerX + 10],
               y: [
@@ -586,7 +572,48 @@ const HomeworkPathwayStructure: React.FC = () => {
             },
           };
 
-          if (startIndex + idx < currentIndex) {
+          // If the current pathIndex is before the start of our lessons, render a locked/inactive fruit.
+          if (pathIndex < startIndexOffset) {
+            const lockedFruit = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "g"
+            );
+            lockedFruit.appendChild(
+              fruitInactive.cloneNode(true) as SVGGElement
+            );
+            lockedFruit.addEventListener("click", () => {
+              setModalOpen(true);
+              setModalText(inactiveText);
+            });
+            lockedFruit.setAttribute(
+              "style",
+              "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
+            );
+            const adjustedY =
+              (positionMappings.fruitInactive.y[pathIndex] ?? flowerY - 20) -
+              10;
+            placeElement(
+              lockedFruit as SVGGElement,
+              positionMappings.fruitInactive.x[pathIndex] ?? flowerX - 20,
+              adjustedY
+            );
+            fragment.appendChild(lockedFruit);
+            continue; // Go to the next slot
+          }
+
+          // This slot corresponds to a real lesson.
+          // Calculate the index for the lessonsToRender array.
+          const lessonIdx = pathIndex - startIndexOffset;
+          const { lesson } = lessonsToRender[lessonIdx];
+
+          const isValidUrl = (url: string) =>
+            typeof url === "string" && /^(https?:\/\/|\/)/.test(url);
+          const lesson_image = isValidUrl(lesson.image)
+            ? lesson.image
+            : "assets/icons/DefaultIcon.png";
+
+          // --- Render Played Lesson ---
+          if (lessonIdx < currentIndex) {
             const playedLesson = document.createElementNS(
               "http://www.w3.org/2000/svg",
               "g"
@@ -598,11 +625,13 @@ const HomeworkPathwayStructure: React.FC = () => {
             playedLesson.appendChild(lessonImage);
             placeElement(
               playedLesson as SVGGElement,
-              positionMappings.playedLesson.x[idx] ?? flowerX - 20,
-              positionMappings.playedLesson.y[idx] ?? flowerY - 20
+              positionMappings.playedLesson.x[pathIndex] ?? flowerX - 20,
+              positionMappings.playedLesson.y[pathIndex] ?? flowerY - 20
             );
             fragment.appendChild(playedLesson);
-          } else if (startIndex + idx === currentIndex) {
+
+            // --- Render Active Lesson ---
+          } else if (lessonIdx === currentIndex) {
             const activeGroup = document.createElementNS(
               "http://www.w3.org/2000/svg",
               "g"
@@ -620,7 +649,10 @@ const HomeworkPathwayStructure: React.FC = () => {
               60,
               80
             );
-            pointer.setAttribute("class", "homeworkpathway-structure-animated-pointer");
+            pointer.setAttribute(
+              "class",
+              "homeworkpathway-structure-animated-pointer"
+            );
             const lessonImage = createSVGImage(lesson_image, 30, 30, 40, 40);
 
             activeGroup.appendChild(halo);
@@ -642,7 +674,7 @@ const HomeworkPathwayStructure: React.FC = () => {
                   from: history.location.pathname + `?${CONTINUE}=true`,
                   course: JSON.stringify(courseData),
                   isHomework: true,
-                  homeworkIndex: idx,
+                  homeworkIndex: lessonIdx, // Use lessonIdx
                 });
               } else if (lesson.plugin_type === LIVE_QUIZ) {
                 history.replace(
@@ -652,8 +684,8 @@ const HomeworkPathwayStructure: React.FC = () => {
                     lesson: JSON.stringify(lesson),
                     from: history.location.pathname + `?${CONTINUE}=true`,
                     isHomework: true,
-                    homeworkIndex: idx,
-                  }
+                    homeworkIndex: lessonIdx,
+                  } // Use lessonIdx
                 );
               } else if (lesson.plugin_type === LIDO) {
                 const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
@@ -665,11 +697,13 @@ const HomeworkPathwayStructure: React.FC = () => {
                   chapter: JSON.stringify(chapterData),
                   from: history.location.pathname + `?${CONTINUE}=true`,
                   isHomework: true,
-                  homeworkIndex: idx,
+                  homeworkIndex: lessonIdx, // Use lessonIdx
                 });
               }
             });
             fragment.appendChild(activeGroup);
+
+            // --- Render Inactive (Future) Lesson ---
           } else {
             const flower_Inactive = document.createElementNS(
               "http://www.w3.org/2000/svg",
@@ -689,15 +723,17 @@ const HomeworkPathwayStructure: React.FC = () => {
               "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
             );
             const adjustedY =
-              (positionMappings.fruitInactive.y[idx] ?? flowerY - 20) - 10;
+              (positionMappings.fruitInactive.y[pathIndex] ?? flowerY - 20) -
+              10;
             placeElement(
               flower_Inactive as SVGGElement,
-              positionMappings.fruitInactive.x[idx] ?? flowerX - 20,
+              positionMappings.fruitInactive.x[pathIndex] ?? flowerX - 20,
               adjustedY
             );
             fragment.appendChild(flower_Inactive);
           }
-        });
+        }
+        // ======================= MODIFICATION END =======================
 
         const endPath = paths[paths.length - 1];
         if (endPath) {
@@ -718,7 +754,6 @@ const HomeworkPathwayStructure: React.FC = () => {
                 }
                 Gift_Svg.appendChild(newContent.cloneNode(true));
               };
-
               const animationSequence = [
                 { content: giftSVG2, delay: 300 },
                 { content: giftSVG3, delay: 500 },
@@ -733,7 +768,6 @@ const HomeworkPathwayStructure: React.FC = () => {
                   delay: 1100,
                 },
               ];
-
               animationSequence.forEach(({ content, callback, delay }) => {
                 setTimeout(() => {
                   if (content) replaceGiftContent(content);
@@ -758,8 +792,13 @@ const HomeworkPathwayStructure: React.FC = () => {
           if (currentLessonIndex < 0) return;
           const previousLessonIndex = currentLessonIndex - 1;
           if (previousLessonIndex < 0) return;
-          const fromX = xValues[previousLessonIndex] ?? 0;
-          const toX = xValues[currentLessonIndex] ?? 0;
+
+          // Apply offset to get correct path indices
+          const fromPathIndex = startIndexOffset + previousLessonIndex;
+          const toPathIndex = startIndexOffset + currentLessonIndex;
+
+          const fromX = xValues[fromPathIndex] ?? 0;
+          const toX = xValues[toPathIndex] ?? 0;
           chimple.setAttribute("x", `${toX - 87}`);
           chimple.setAttribute("y", `${startPoint.y + 15}`);
           chimple.style.display = "block";
@@ -786,8 +825,17 @@ const HomeworkPathwayStructure: React.FC = () => {
           const completedLessonIndex = lessons.findIndex(
             (_, idx) => startIndex + idx === currentIndex - 1
           );
+
+          // Apply offset for correct reward destination
+          const completedLessonPathIndex =
+            startIndexOffset + completedLessonIndex;
           const destinationX =
-            xValues[completedLessonIndex >= 0 ? completedLessonIndex : 0] ?? 0;
+            xValues[
+              completedLessonPathIndex >= startIndexOffset
+                ? completedLessonPathIndex
+                : 0
+            ] ?? 0;
+
           const rewardForeignObject = document.createElementNS(
             "http://www.w3.org/2000/svg",
             "foreignObject"
@@ -868,15 +916,35 @@ const HomeworkPathwayStructure: React.FC = () => {
         svg.appendChild(fragment);
 
         if (chimple) {
-          const idx = lessons.findIndex(
-            (_, idx) => startIndex + idx === currentIndex - 1
+          const currentLessonIdx = lessons.findIndex(
+            (_, idx) => startIndex + idx === currentIndex
           );
+          const lastCompletedLessonIdx = currentLessonIdx - 1;
           const chimpleXValues = [-60, 66, 360, 295, 412];
-          if (idx < 0 || newRewardId == null || !isRewardFeatureOn) {
-            chimple.setAttribute("x", `${xValues[idx + 1] - 190}`);
+
+          if (
+            lastCompletedLessonIdx < 0 ||
+            newRewardId == null ||
+            !isRewardFeatureOn
+          ) {
+            // Place near current active lesson, applying offset
+            const currentPathIndex = startIndexOffset + currentLessonIdx;
+            const safePathIndex = Math.min(
+              Math.max(currentPathIndex, 0),
+              xValues.length - 1
+            );
+            chimple.setAttribute("x", `${xValues[safePathIndex] - 190}`);
           } else {
-            chimple.setAttribute("x", `${chimpleXValues[idx]}`);
+            // Place using special coordinates based on last completed lesson's position, applying offset
+            const lastCompletedPathIndex =
+              startIndexOffset + lastCompletedLessonIdx;
+            const safePathIndex = Math.min(
+              Math.max(lastCompletedPathIndex, 0),
+              chimpleXValues.length - 1
+            );
+            chimple.setAttribute("x", `${chimpleXValues[safePathIndex]}`);
           }
+
           chimple.setAttribute("y", `${startPoint.y - 20}`);
           chimple.style.pointerEvents = "none";
           const riveDiv = document.createElement("div");
@@ -894,7 +962,7 @@ const HomeworkPathwayStructure: React.FC = () => {
       console.error("Failed to load SVG:", error);
     }
   };
-
+  // ... (The rest of the component remains unchanged)
   // Helper to place SVG elements
   const placeElement = (element: SVGGElement, x: number, y: number) => {
     element.setAttribute("transform", `translate(${x}, ${y})`);
@@ -1007,6 +1075,19 @@ const HomeworkPathwayStructure: React.FC = () => {
 
   return (
     <>
+      {showHomeworkCompleteModal && (
+        <HomeworkCompleteModal
+          text={t("Yay!! You have completed all the Homework!!")}
+          mascotSrc="/pathwayAssets/chimpleHomeworkMascot.svg"
+          borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
+          onClose={() => setShowHomeworkCompleteModal(false)}
+          onPlayMore={() => {
+            console.log("Play More clicked!");
+            setShowHomeworkCompleteModal(false);
+            // You could add navigation logic here, e.g., history.push('/some-other-page');
+          }}
+        />
+      )}
       {isModalOpen && (
         <PathwayModal
           text={modalText}

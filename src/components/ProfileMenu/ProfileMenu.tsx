@@ -5,6 +5,7 @@ import {
   AVATARS,
   CURRENT_MODE,
   HOMEHEADERLIST,
+  HOMEWORK_PATHWAY,
   LANG,
   LANGUAGE,
   LEADERBOARDHEADERLIST,
@@ -57,6 +58,8 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
   const onSwichUser = async () => {
     Util.setParentLanguagetoLocal();
+    sessionStorage.removeItem(HOMEWORK_PATHWAY);
+
     history.replace(PAGES.DISPLAY_STUDENT, {
       from: history.location.pathname,
     });
