@@ -4354,6 +4354,29 @@ export class SupabaseApi implements ServiceApi {
       return null;
     }
   }
+  async getSchoolDataByUdise(udiseCode: string): Promise<any | null> {
+    if (!this.supabase) return null;
+
+    try {
+      const { data, error } = await this.supabase
+        .from("school_data")
+        .select("*")
+        .eq("udise_code", udiseCode)
+        .eq("is_deleted", false)
+        .single();
+
+      if (error || !data) {
+        console.error("Error fetching school_data record:", error);
+        return null;
+      }
+
+      return data; // return entire row
+    } catch (err) {
+      console.error("Unexpected error in getSchoolDataByUdise:", err);
+      return null;
+    }
+  }
+
 
   async getUserByDocId(
     studentId: string

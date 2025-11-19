@@ -23,6 +23,7 @@ const ClassForm: React.FC<{
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     if (mode === "edit" && classData) {
@@ -94,7 +95,8 @@ const ClassForm: React.FC<{
 
       if (existing ) {
         console.error("Class name already exists.");
-        alert("Class name already exists.");
+        setErrorMessage("Class name already exists.");
+
         setSaving(false);
         return;
       }
@@ -163,7 +165,8 @@ const ClassForm: React.FC<{
 
           <div className="class-form-group">
             <label>
-              {t("Class Section")} <span className="class-form-required">*</span>
+              {t("Class Section")}{" "}
+              <span className="class-form-required">*</span>
             </label>
             <input
               name="section"
@@ -243,6 +246,12 @@ const ClassForm: React.FC<{
             placeholder={t("Enter WhatsApp Group ID") ?? ""}
           />
         </div>
+        {errorMessage && (
+          <div className="class-form-error">
+            {errorMessage}
+          </div>
+        )}
+
         <div className="class-form-button-row">
           <button className="class-form-cancel-btn" onClick={onClose}>
             {t("Cancel")}
