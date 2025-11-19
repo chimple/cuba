@@ -194,9 +194,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({ disabled = false }) => {
   }, [expanded, selected, courseDetails]);
 
   return (
-    // <div className="dropdown-main">
       <div className={`dropdown-main ${disabled ? 'dropdown-disabled' : ''}`}>
-
       <div
         className={`dropdown-container ${expanded ? "expanded" : ""}`}
         onClick={handleToggleExpand}

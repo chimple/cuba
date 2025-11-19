@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import {
   EVENTS,
-  HOME_WORK_PATHWAY_DROPDOWN,
+  HOMEWORK_PATHWAY_DROPDOWN,
   HOMEWORK_PATHWAY,
   LATEST_STARS,
   STARS_COUNT,
@@ -45,7 +45,7 @@ const HomeworkPathway: React.FC = () => {
   // ✅ New state variables for dropdown logic
   const [isDropdownDisabled, setIsDropdownDisabled] = useState<boolean>(true);
   const [showDisabledDropdownModal, setShowDisabledDropdownModal] = useState<boolean>(false);
-    const isDropdownAlwaysEnabled = useFeatureIsOn(HOME_WORK_PATHWAY_DROPDOWN);
+    const isDropdownAlwaysEnabled = useFeatureIsOn(HOMEWORK_PATHWAY_DROPDOWN);
 
 
   useEffect(() => {
@@ -115,20 +115,10 @@ const HomeworkPathway: React.FC = () => {
         // few assignments OR if a path is already in progress.
         setIsDropdownDisabled(hasFewAssignments || !!existingPath);
       }
-
-      // ✅ LOGIC TO DISABLE DROPDOWN
-      // Disable if a path is already active OR if there are 5 or fewer assignments in total.
-      if (existingPath || !allPendingAssignments || allPendingAssignments.length <= 5) {
-        setIsDropdownDisabled(true);
-      } else {
-        setIsDropdownDisabled(false);
-      }
       
       if (!existingPath) {
-        console.log("No homework path found. Building a new one.");
         pathData = await buildAndSaveInitialHomeworkPath(student, allPendingAssignments); // Ensure this function returns the path object
       } else {
-        console.log("Found existing homework path in session storage.");
         pathData = JSON.parse(existingPath);
       }
 
@@ -166,7 +156,6 @@ const HomeworkPathway: React.FC = () => {
     pendingAssignments: any[]
   ) => {
     if (!pendingAssignments || pendingAssignments.length === 0) {
-      console.log("No pending assignments found.");
       const emptyPath = { lessons: [], currentIndex: 0 };
       await saveHomeworkPath(student, emptyPath);
       return null;
@@ -221,7 +210,6 @@ const HomeworkPathway: React.FC = () => {
     sessionStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(path));
 
     if (!path.lessons || path.lessons.length < 5) {
-      console.log("Path has fewer than 5 lessons, not logging event.");
       return;
     }
 
@@ -253,9 +241,7 @@ const HomeworkPathway: React.FC = () => {
   return (
     <div className="homework-pathway-container">
       <div className="homeworkpathway-pathway_section">
-        {/* ✅ Wrap DropdownMenu in a div with the new click handler */}
         <div className="homework-dropdown-wrapper" onClick={handleDropdownWrapperClick}>
-          {/* ✅ Pass the disabled state as a prop */}
           <DropdownMenu disabled={isDropdownDisabled} />
         </div>
         <HomeworkPathwayStructure />

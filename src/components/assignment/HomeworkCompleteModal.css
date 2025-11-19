@@ -19,13 +19,7 @@
   
   box-shadow: 0 0.5rem 1.125rem rgba(0, 0, 0, 0.25); /* 0px 8px 18px */
   position: relative;
-
-  /* 
-    Correct SVG border path. 
-    It should be relative to the public folder root, not the CSS file.
-  */
-  background-image: url("../../../public/pathwayAssets/homeworkCelebration.svg");
-
+  /* background-image: url("../../../public/pathwayAssets/homeworkCelebration.svg"); */
   /* background-image: url("/pathwayAssets/homeworkCelebration.svg"); */
   background-size: 100% 100%;
   background-repeat: no-repeat;

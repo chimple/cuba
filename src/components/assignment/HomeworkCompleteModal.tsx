@@ -6,18 +6,21 @@ interface HomeworkCompleteModalProps {
   text: string;
   onClose: () => void;
   onPlayMore: () => void;
-  celebrationSrc: string;
   mascotSrc: string;
+  borderImageSrc: string; 
 }
 
 const HomeworkCompleteModal: React.FC<HomeworkCompleteModalProps> = ({
   text,
   onClose,
   onPlayMore,
-  celebrationSrc,
   mascotSrc,
+  borderImageSrc,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const cardStyle = {
+    backgroundImage: `url(${borderImageSrc})`,
+  };
 
   return (
     <div className="homework-completed-overlay" onClick={onClose}>
@@ -25,31 +28,24 @@ const HomeworkCompleteModal: React.FC<HomeworkCompleteModalProps> = ({
         className="homework-completed-card"
         ref={ref}
         onClick={(e) => e.stopPropagation()}
+        style={cardStyle}
       >
         <div className="homework-completed-inner">
           {/* LEFT MASCOT */}
           <div className="homework-completed-left">
-            <img src={mascotSrc} alt="mascot" className="hc-mascot" />
+            <img src={mascotSrc} alt="mascot" className="homework-completed-mascot" />
           </div>
 
           {/* MAIN CENTER BLOCK */}
           <div className="homework-completed-center">
             <img
-              src={celebrationSrc}
+              src={borderImageSrc}
               alt="celebration"
               className="homework-completed-celebration-top"
             />
 
             <p className="homework-completed-text">{text}</p>
 
-            {/* <button className="hc-play-btn" onClick={onPlayMore}>
-              <img
-                src="/pathwayAssets/homeworkPlayMoreIcon.svg"
-                alt="play"
-                className="hc-play-icon"
-              />
-              <span>{t("Play More")}</span>
-            </button> */}
           </div>
 
           {/* EMPTY RIGHT GAP (MATCH MOCKUP) */}
@@ -61,4 +57,3 @@ const HomeworkCompleteModal: React.FC<HomeworkCompleteModalProps> = ({
 };
 
 export default HomeworkCompleteModal;
-// background-image: url("../../../public/pathwayAssets/homeworkCelebration.svg");

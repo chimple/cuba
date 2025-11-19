@@ -2555,15 +2555,10 @@ public static async DownloadRemoteAssets(
 
       // Check if the 5-lesson path is now complete
       if (newCurrentIndex >= homeworkPath.lessons.length) {
-        console.log("Homework set complete. Removing from sessionStorage.");
         sessionStorage.removeItem(HOMEWORK_PATHWAY);
       } else {
         homeworkPath.currentIndex = newCurrentIndex;
         sessionStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(homeworkPath));
-        console.log(
-          "Updated homework path. New currentIndex:",
-          newCurrentIndex
-        );
       }
     } catch (error) {
       console.error("Failed to update homework path:", error);

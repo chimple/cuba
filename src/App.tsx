@@ -59,7 +59,7 @@ import {
   // APP_LANG,
   BASE_NAME,
   CACHE_IMAGE,
-  CAN_ACCESS_HOMEWORK_REMOTE_ASSETS,
+  HOMEWORK_REMOTE_ASSETS_ENABLED,
   CAN_ACCESS_REMOTE_ASSETS,
   CONTINUE,
   DOWNLOADING_CHAPTER_ID,
@@ -196,11 +196,11 @@ const App: React.FC = () => {
   const [isActive, setIsActive] = useState(true);
   const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
   const shouldShowHomeworkRemoteAssets = useFeatureIsOn(
-    CAN_ACCESS_HOMEWORK_REMOTE_ASSETS
+    HOMEWORK_REMOTE_ASSETS_ENABLED
   );
 
   const learningPathAssets: any = useFeatureValue(LEARNING_PATH_ASSETS, {});
-  const HomeworkPathwayAssets: any = useFeatureValue(
+  const homeworkPathwayAssets: any = useFeatureValue(
     HOMEWORK_PATHWAY_ASSETS,
     {}
   );
@@ -286,8 +286,8 @@ const App: React.FC = () => {
 
     if (shouldShowHomeworkRemoteAssets) {
       Util.DownloadRemoteAssets(
-        HomeworkPathwayAssets?.asset_repo_url,
-        HomeworkPathwayAssets?.uniqueId,
+        homeworkPathwayAssets?.asset_repo_url,
+        homeworkPathwayAssets?.uniqueId,
         "homeworkRemoteAsset", // The DIFFERENT destination folder
         "Homework" // The asset type for logging
       );
