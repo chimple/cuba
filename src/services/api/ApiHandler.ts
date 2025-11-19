@@ -478,7 +478,7 @@ export class ApiHandler implements ServiceApi {
   }
 
   public async updateResult(
-    studentId: string,
+    student: TableTypes<"user">,
     courseId: string | undefined,
     lessonId: string,
     score: number,
@@ -491,7 +491,7 @@ export class ApiHandler implements ServiceApi {
     schoolId: string | undefined
   ): Promise<TableTypes<"result">> {
     return await this.s.updateResult(
-      studentId,
+      student,
       courseId,
       lessonId,
       score,

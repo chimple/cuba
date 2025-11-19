@@ -432,7 +432,7 @@ export interface ServiceApi {
    * @returns {Result}} Updated result Object
    */
   updateResult(
-    studentId: string,
+    student: TableTypes<"user">,
     courseId: string | undefined,
     lessonId: string,
     score: number,
@@ -1157,7 +1157,11 @@ export interface ServiceApi {
    * @param {string} user user;
    * @return void.
    */
-  addTeacherToClass(schoolId:string,classId: string, user: TableTypes<"user">): Promise<void>;
+  addTeacherToClass(
+    schoolId: string,
+    classId: string,
+    user: TableTypes<"user">
+  ): Promise<void>;
 
   /**
    * Checks the user present in school or not.
@@ -2169,12 +2173,10 @@ export interface ServiceApi {
     rewardId: string,
     created_at?: string
   ): Promise<void>;
-   /**
+  /**
    * Fetch active students count information for a given class ID.
    * @param {string} classID - The ID of the school to fetch.
    * @returns Promise resolving to an object with student count.
    */
-  getActiveStudentsCountByClass(
-    classId: string,
-  ): Promise<string>;
+  getActiveStudentsCountByClass(classId: string): Promise<string>;
 }

@@ -2047,7 +2047,7 @@ export class SupabaseApi implements ServiceApi {
     return favorite;
   }
   async updateResult(
-    studentId: string,
+    student: TableTypes<"user">,
     courseId: string | undefined,
     lessonId: string,
     score: number,
@@ -2071,7 +2071,7 @@ export class SupabaseApi implements ServiceApi {
       lesson_id: lessonId,
       school_id: schoolId ?? null,
       score,
-      student_id: studentId,
+      student_id: student.id,
       time_spent: timeSpent,
       wrong_moves: wrongMoves,
       created_at: now,
@@ -2094,7 +2094,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     // ⭐ reward update
-    const currentUser = await this.getUserByDocId(studentId);
+    const currentUser = await this.getUserByDocId(student.id);
     const rewardLesson = sessionStorage.getItem(REWARD_LESSON);
     let newReward: { reward_id: string; timestamp: string } | null = null;
     let currentUserReward: { reward_id: string; timestamp: string } | null =
@@ -2134,7 +2134,7 @@ export class SupabaseApi implements ServiceApi {
 
     const previousStarsRaw = localStorage.getItem(STARS_COUNT);
     let currentStars = previousStarsRaw
-      ? JSON.parse(previousStarsRaw)[studentId]
+      ? JSON.parse(previousStarsRaw)[student.id]
       : 0;
     const totalStars = currentStars + starsEarned;
 
@@ -2144,14 +2144,14 @@ export class SupabaseApi implements ServiceApi {
     const { error: updateError } = await this.supabase
       .from("user")
       .update(updateData)
-      .eq("id", studentId);
+      .eq("id", student.id);
 
     if (updateError) {
       console.error("Error updating student stars:", updateError);
     }
 
     // Sync local student data
-    const updatedStudent = await this.getUserByDocId(studentId);
+    const updatedStudent = await this.getUserByDocId(student.id);
     if (updatedStudent) {
       Util.setCurrentStudent(updatedStudent);
     }

@@ -552,23 +552,23 @@ export class SqliteApi implements ServiceApi {
         console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
       }
     }
-    if(!isInitialFetch){
-     const new_school = data.get(TABLES.School);
-     if (new_school && new_school?.length > 0) {
-       await this.syncDbNow(Object.values(TABLES), [
-         TABLES.Assignment,
-         TABLES.Assignment_user,
-         TABLES.SchoolCourse,
-         TABLES.Class,
-         TABLES.ClassInvite_code,
-         TABLES.Result,
-         TABLES.User,
-         TABLES.ClassUser,
-         TABLES.SchoolUser,
-         TABLES.ClassCourse,
-       ]);
+    if (!isInitialFetch) {
+      const new_school = data.get(TABLES.School);
+      if (new_school && new_school?.length > 0) {
+        await this.syncDbNow(Object.values(TABLES), [
+          TABLES.Assignment,
+          TABLES.Assignment_user,
+          TABLES.SchoolCourse,
+          TABLES.Class,
+          TABLES.ClassInvite_code,
+          TABLES.Result,
+          TABLES.User,
+          TABLES.ClassUser,
+          TABLES.SchoolUser,
+          TABLES.ClassCourse,
+        ]);
       }
-   }
+    }
   }
 
   async getTableColumns(tableName: string): Promise<string[] | undefined> {
@@ -2063,7 +2063,7 @@ export class SqliteApi implements ServiceApi {
     return favoriteLesson;
   }
   async updateResult(
-    studentId: string,
+    student: TableTypes<"user">,
     courseId: string | undefined,
     lessonId: string,
     score: number,
@@ -2097,7 +2097,7 @@ export class SqliteApi implements ServiceApi {
       lesson_id: lessonId,
       school_id: schoolId ?? null,
       score: score,
-      student_id: studentId,
+      student_id: student.id,
       time_spent: timeSpent,
       wrong_moves: wrongMoves,
       created_at: new Date().toISOString(),
@@ -2134,7 +2134,7 @@ export class SqliteApi implements ServiceApi {
       ]
     );
     // ⭐ reward update
-    const currentUser = await this.getUserByDocId(studentId);
+    const currentUser = await this.getUserByDocId(student.id);
     const rewardLesson = sessionStorage.getItem(REWARD_LESSON);
     let newReward: { reward_id: string; timestamp: string } | null = null;
     let currentUserReward: { reward_id: string; timestamp: string } | null =
@@ -2172,9 +2172,9 @@ export class SqliteApi implements ServiceApi {
 
     const allStarsMap = localStorage.getItem(LATEST_STARS);
     const allStars = allStarsMap ? JSON.parse(allStarsMap) : {};
-    const currentLocalStars = allStars[studentId] ?? 0;
+    const currentLocalStars = allStars[student.id] ?? 0;
 
-    allStars[studentId] = currentLocalStars + starsEarned;
+    allStars[student.id] = currentLocalStars + starsEarned;
     localStorage.setItem(LATEST_STARS, JSON.stringify(allStars));
     let query = `UPDATE ${TABLES.User} SET `;
     let params: any[] = [];
@@ -2185,17 +2185,18 @@ export class SqliteApi implements ServiceApi {
     }
 
     query += `stars = COALESCE(stars, 0) + ? WHERE id = ?;`;
-    params.push(starsEarned, studentId);
+    params.push(starsEarned, student.id);
 
     await this.executeQuery(query, params);
 
-    const updatedStudent = await this.getUserByDocId(studentId);
+    const updatedStudent = await this.getUserByDocId(student.id);
     if (updatedStudent) {
+      updatedStudent.language_id = student.language_id;
       Util.setCurrentStudent(updatedStudent);
     }
     this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
     const pushData: any = {
-      id: studentId,
+      id: student.id,
       stars: updatedStudent?.stars,
     };
     if (newReward !== null && currentUser) {
