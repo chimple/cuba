@@ -26,8 +26,8 @@ const LidoPlayer: FC = () => {
   const history = useHistory();
   const [present] = useIonToast();
   const state = history.location.state as any;
-  const playedFrom = localStorage.getItem("currentHeader")
-  const assignmentType = state?.assignment?.type || 'self-played';
+  const playedFrom = localStorage.getItem("currentHeader");
+  const assignmentType = state?.assignment?.type || "self-played";
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [basePath, setBasePath] = useState<string>();
   const [xmlPath, setXmlPath] = useState<string>();
@@ -35,8 +35,7 @@ const LidoPlayer: FC = () => {
   const urlSearchParams = new URLSearchParams(window.location.search);
   const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
 
-  const onNextContainer = (e: any) => {
-  };
+  const onNextContainer = (e: any) => {};
 
   const gameCompleted = (e: any) => {
     push();
@@ -116,11 +115,11 @@ const LidoPlayer: FC = () => {
     const homeworkIndex: number | undefined = state?.homeworkIndex; // 👈 ADD THIS
 
     const isReward: boolean = state?.reward ?? false;
-    if (isReward===true){
+    if (isReward === true) {
       sessionStorage.setItem(REWARD_LESSON, "true");
     }
     const result = await api.updateResult(
-      currentStudent.id,
+      currentStudent,
       courseDocId,
       lesson.id,
       Math.round(data.score ?? 0),
@@ -283,12 +282,14 @@ const LidoPlayer: FC = () => {
 
   return (
     <IonPage>
-  <Loading isLoading={isLoading} />
-  {xmlPath || basePath
-    ? React.createElement('lido-standalone', { 'xml-path': xmlPath, 'base-url': basePath })
-    : null}
-</IonPage>
-
+      <Loading isLoading={isLoading} />
+      {xmlPath || basePath
+        ? React.createElement("lido-standalone", {
+            "xml-path": xmlPath,
+            "base-url": basePath,
+          })
+        : null}
+    </IonPage>
   );
 };
 

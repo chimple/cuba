@@ -257,7 +257,7 @@ const CocosGame: React.FC = () => {
     const homeworkIndex: number | undefined = state?.homeworkIndex; // 👈 ADD THIS
 
     const isReward: boolean = state?.reward ?? false;
-    if (isReward===true){
+    if (isReward === true) {
       sessionStorage.setItem(REWARD_LESSON, "true");
     }
 
@@ -271,7 +271,7 @@ const CocosGame: React.FC = () => {
     avatarObj.weeklyTimeSpent["sec"] = computeSec;
     avatarObj.weeklyPlayedLesson++;
     const result = await api.updateResult(
-      currentStudent.id,
+      currentStudent,
       courseDocId,
       lesson.id,
       data.score!,
