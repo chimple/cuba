@@ -38,7 +38,7 @@ import {
 } from "./utility/WindowsSpeech";
 import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 import { Util } from "./utility/util";
-import { CURRENT_USER, EVENTS, IS_OPS_USER } from "./common/constants";
+import { CAN_HOT_UPDATE, CURRENT_USER, EVENTS, IS_OPS_USER } from "./common/constants";
 import { GbProvider } from "./growthbook/Growthbook";
 import { initializeFireBase } from "./services/Firebase";
 import * as Sentry from "@sentry/capacitor";
@@ -155,7 +155,7 @@ const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
 
 async function checkForUpdate() {
   try {
-    if (Capacitor.isNativePlatform()) {
+    if (Capacitor.isNativePlatform() && gb.isOn(CAN_HOT_UPDATE)) {
       await LiveUpdate.ready();
       console.log("🚀 LiveUpdate is ready.");
       const { versionName } = await LiveUpdate.getVersionName();
