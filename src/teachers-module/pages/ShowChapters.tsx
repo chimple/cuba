@@ -78,7 +78,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
     const currUser = await auth.getCurrentUser();
     setCurrentUser(currUser);
     const chapter_res = await api.getChaptersForCourse(course.id);
-    const course_code = await api.getCourse(course.id);
+    const Course = await api.getCourse(course.id);
     const lesson_map: Map<string, TableTypes<"lesson">[]> = new Map();
     for (const chapter of chapter_res) {
       const lessons = await api.getLessonsForChapter(chapter.id);
@@ -111,7 +111,7 @@ const ShowChapters: React.FC<ShowChaptersProps> = ({}) => {
 
     setChapters(chapter_res);
     setLessons(lesson_map);
-    setCourseCode(course_code?.code ?? "");
+    setCourseCode(Course?.code ?? "");
   };
 
   const handleOnLessonClick = (lesson, chapter) => {
