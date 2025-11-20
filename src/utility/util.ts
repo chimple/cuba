@@ -1930,15 +1930,14 @@ export class Util {
     const slug = event.url.split(".cc").pop();
     // Determine target page for logging
     let destinationPage = "";
-
+    const newSearchParams = new URLSearchParams(url.search);
+    const currentParams = new URLSearchParams(window.location.search);
+    currentParams.set("classCode", newSearchParams.get("classCode") ?? "");
+    currentParams.set("page", PAGES.JOIN_CLASS);
+    const currentStudent = Util.getCurrentStudent();
     if (slug?.includes(PAGES.ASSIGNMENT)) {
       destinationPage = PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT;
     } else if (slug?.includes(PAGES.JOIN_CLASS)) {
-      const newSearchParams = new URLSearchParams(url.search);
-      const currentParams = new URLSearchParams(window.location.search);
-      currentParams.set("classCode", newSearchParams.get("classCode") ?? "");
-      currentParams.set("page", PAGES.JOIN_CLASS);
-      const currentStudent = Util.getCurrentStudent();
       destinationPage = currentStudent
         ? PAGES.HOME + "?" + currentParams.toString()
         : PAGES.DISPLAY_STUDENT + "?" + currentParams.toString();
@@ -1952,9 +1951,12 @@ export class Util {
       currentUser as TableTypes<"user">,
       destinationPage
     );
-
-    if (destinationPage && currentUser) {
+    if (destinationPage && currentStudent) {
       window.location.replace(destinationPage);
+    } else {
+      window.location.replace(
+        PAGES.DISPLAY_STUDENT + "?" + currentParams.toString()
+      );
     }
   }
   public static addRefreshTokenToLocalStorage(refreshToken: string) {

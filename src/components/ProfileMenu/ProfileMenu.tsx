@@ -4,6 +4,7 @@ import HeaderIcon from "../HeaderIcon";
 import {
   AVATARS,
   CURRENT_MODE,
+  CURRENT_STUDENT,
   HOMEHEADERLIST,
   LANG,
   LANGUAGE,
@@ -57,6 +58,8 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
   const onSwichUser = async () => {
     Util.setParentLanguagetoLocal();
+    localStorage.removeItem(CURRENT_STUDENT);
+    ServiceConfig.getI().apiHandler.currentStudent = undefined;
     history.replace(PAGES.DISPLAY_STUDENT, {
       from: history.location.pathname,
     });
@@ -118,7 +121,9 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
   return (
     <div
-      className={`profile-menu ${isClosing ? "slide-out-right" : "slide-in-right"}`}
+      className={`profile-menu ${
+        isClosing ? "slide-out-right" : "slide-in-right"
+      }`}
       onAnimationEnd={() => {
         if (isClosing) {
           onClose();
