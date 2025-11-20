@@ -175,6 +175,9 @@ const SideMenu: React.FC<{
   };
   const switchUser = async () => {
     schoolUtil.setCurrMode(MODES.PARENT);
+    setTimeout(() => {
+      Util.killCocosGame()
+    }, 1000);
     history.replace(PAGES.DISPLAY_STUDENT);
   };
 

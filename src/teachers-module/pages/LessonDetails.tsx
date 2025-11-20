@@ -7,20 +7,27 @@ import "./LessonDetails.css";
 import RemoveRedEyeOutlinedIcon from "@mui/icons-material/RemoveRedEyeOutlined";
 import SelectIcon from "../components/SelectIcon";
 import SelectIconImage from "../../components/displaySubjects/SelectIconImage";
-import { AssignmentSource, PAGES, TableTypes, belowGrade1, grade1 } from "../../common/constants";
+import { AssignmentSource, COCOS, CONTINUE, CocosCourseIdentifier, LIDO, LIVE_QUIZ, PAGES, TableTypes, belowGrade1, grade1 } from "../../common/constants";
 import { Util } from "../../utility/util";
 import AssigmentCount from "../components/library/AssignmentCount";
 import { Browser } from "@capacitor/browser";
-interface LessonDetailsProps {}
-const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
+import { Capacitor } from "@capacitor/core";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
+import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
+interface LessonDetailsProps { }
+const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
   const currentSchool = Util.getCurrentSchool();
   const history = useHistory();
+  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const course: TableTypes<"course"> = history.location.state?.[
     "course"
   ] as TableTypes<"course">;
   const lesson: TableTypes<"lesson"> = history.location.state?.[
     "lesson"
   ] as TableTypes<"lesson">;
+  const fromCocos: boolean = history.location.state?.[
+    "fromCocos"
+  ] as boolean;
   const [chapterId, setChapterId] = useState(
     history.location.state?.["chapterId"] as string
   );
@@ -50,16 +57,114 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     if (current_user?.id)
       await api.createOrUpdateAssignmentCart(current_user?.id, lesson);
   };
+  const COURSE_VALUES_SET = new Set(
+    (Object.values(CocosCourseIdentifier) as string[]).map((v) =>
+      v.toLowerCase()
+    )
+  );
+  const getCourseIdFromCocosLesson = (
+    rawLessonId: string | null,
+    subjectCode: string | null
+  ): string | null => {
+    if (!rawLessonId) {
+      return subjectCode;
+    }
+    const parts = rawLessonId
+      .trim()
+      .toLowerCase()
+      .split(/[^a-z]+/);
+    for (const part of parts) {
+      if (COURSE_VALUES_SET.has(part)) {
+        return part;
+      }
+    }
+    return subjectCode;
+  };
   const onPlayClick = async () => {
-    const baseUrl = "https://chimple.cc/microlink/";
-    const queryParams = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-    const urlToOpen = `${baseUrl}${queryParams}`;
+    // const baseUrl = "https://chimple.cc/microlink/";
+    // const queryParams = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+    // const urlToOpen = `${baseUrl}${queryParams}`;
 
-    try {
-      await Browser.open({ url: urlToOpen });
-    } catch (error) {
-      console.error("Error opening in-app browser:", error);
-      window.open(urlToOpen, '_blank');
+    // try {
+    //   await Browser.open({ url: urlToOpen });
+    // } catch (error) {
+    //   console.error("Error opening in-app browser:", error);
+    //   window.open(urlToOpen, '_blank');
+    // }
+    // if (lesson.plugin_type === COCOS) {
+    //   const courseId = getCourseIdFromCocosLesson(
+    //     lesson.cocos_lesson_id,
+    //     lesson.cocos_subject_code
+    //   );
+    //   const parmas = `?courseid=${courseId}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+    //   history.replace(PAGES.GAME + parmas, {
+    //     url: "chimple-lib/index.html" + parmas,
+    //     lessonId: lesson.cocos_lesson_id,
+    //     courseDocId:
+    //       course?.id,
+    //     course: JSON.stringify(course),
+    //     lesson: JSON.stringify(lesson),
+    //     chapterId: chapterId,
+    //     selectedLesson: selectedLesson,
+    //     from: history.location.pathname + `?${CONTINUE}=true`,
+    //   });
+    // }
+    if (lesson.plugin_type === COCOS) {
+      const courseId = getCourseIdFromCocosLesson(
+        lesson.cocos_lesson_id,
+        lesson.cocos_subject_code
+      );
+      const parmas = `?courseid=${courseId}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+      history.replace(PAGES.GAME + parmas, {
+        url: "chimple-lib/index.html" + parmas,
+        lessonId: lesson.cocos_lesson_id,
+        courseDocId:
+          course?.id,
+        course: JSON.stringify(course),
+        lesson: JSON.stringify(lesson),
+        chapterId: chapterId,
+        selectedLesson: selectedLessonMap,
+        from: history.location.pathname + `?${CONTINUE}=true`,
+      });
+    } else if (
+      // !!assignment?.id &&
+      lesson.plugin_type === LIVE_QUIZ
+    ) {
+      if (!online) {
+        presentToast({
+          message: t(`Device is offline`),
+          color: "danger",
+          duration: 3000,
+          position: "bottom",
+          buttons: [
+            {
+              text: "Dismiss",
+              role: "cancel",
+            },
+          ],
+        });
+        return;
+      }
+      history.replace(
+        PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
+        {
+          courseId: course?.id,
+          lesson: JSON.stringify(lesson),
+          selectedLesson: selectedLessonMap,
+          from: history.location.pathname + `?${CONTINUE}=true`,
+        }
+      );
+
+    } else if (lesson.plugin_type === LIDO) {
+      const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+      history.replace(PAGES.LIDO_PLAYER + parmas, {
+        lessonId: lesson.cocos_lesson_id,
+        courseDocId: course?.id,
+        course: JSON.stringify(course!),
+        lesson: JSON.stringify(lesson),
+        selectedLesson: selectedLessonMap,
+        from: history.location.pathname + `?${CONTINUE}=true`,
+      });
     }
   };
   useEffect(() => {
@@ -74,11 +179,11 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
         });
       } else if (typeof value === "object" && value !== null) {
         // New format
-      Object.keys(value).forEach((key) => {
-        if (key !== AssignmentSource.MANUAL && key !== AssignmentSource.QR_CODE) {
-          delete value[key];
-        }
-      });
+        Object.keys(value).forEach((key) => {
+          if (key !== AssignmentSource.MANUAL && key !== AssignmentSource.QR_CODE) {
+            delete value[key];
+          }
+        });
         class_sync_lesson.set(chapterId, value);
       }
     });
@@ -96,6 +201,16 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   }, [classSelectedLesson]);
 
   const init = async () => {
+    if (fromCocos) {
+      if (Capacitor.isNativePlatform()) {
+        await ScreenOrientation.lock({ orientation: "portrait" });
+      }
+      setTimeout(() => {
+        Util.killCocosGame();
+      }, 1000);
+
+    }
+
     const current_class = Util.getCurrentClass();
     setCurrentClass(current_class ?? null);
     if (!chapterId && current_class) {
@@ -103,15 +218,15 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
         lesson.id,
         current_class.id
       );
-    if (typeof fetched === "string") {
-      setChapterId(fetched);
+      if (typeof fetched === "string") {
+        setChapterId(fetched);
+      }
     }
-   }
   };
 
   const handleButtonClick = () => {
     const classId = current_class?.id ?? "";
-    const tmpselectedLesson = new Map(selectedLessonMap); 
+    const tmpselectedLesson = new Map(selectedLessonMap);
 
     const prevDataStr = tmpselectedLesson.get(classId) ?? "{}";
     const parsed = JSON.parse(prevDataStr);
@@ -150,11 +265,11 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
 
     // Serialize and store
     tmpselectedLesson.set(classId, JSON.stringify(parsed));
-    setSelectedLessonMap(tmpselectedLesson); 
+    setSelectedLessonMap(tmpselectedLesson);
 
     const totalSelectedLesson = JSON.stringify(Object.fromEntries(tmpselectedLesson));
     syncSelectedLesson(totalSelectedLesson);
-     };
+  };
   return (
     <div className="lesson-details-container">
       <Header
@@ -162,9 +277,9 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
         onButtonClick={() => {
           course
             ? history.replace(PAGES.SHOW_CHAPTERS, {
-                course: course,
-                chapterId: chapterId,
-              })
+              course: course,
+              chapterId: chapterId,
+            })
             : history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
         }}
         showSchool={true}
@@ -193,9 +308,9 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
               {isGrade1 ? `${t("Grade")} ${isGrade1 === true ? "1" : "2"}` : ""}
             </div>
             <div className="lesson-info-text">
-               {course && course.name === "ENGLISH"
-               ? lesson.name  // don’t translate
-                : t(lesson.name??"")}  {/* translate */}   
+              {course && course.name === "ENGLISH"
+                ? lesson.name  // don’t translate
+                : t(lesson.name ?? "")}  {/* translate */}
             </div>
             <div className="lesson-info-text">
               {" "}
@@ -208,7 +323,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
                 ([
                   ...(classSelectedLesson.get(chapterId)?.[AssignmentSource.MANUAL] ?? []),
                   ...(classSelectedLesson.get(chapterId)?.[AssignmentSource.QR_CODE] ?? [])
-                ].includes(lesson.id)??false)
+                ].includes(lesson.id) ?? false)
               }
               onClick={handleButtonClick}
             />
