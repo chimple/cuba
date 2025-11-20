@@ -1139,14 +1139,17 @@ export class SqliteApi implements ServiceApi {
     school_id?: string,
     class_id?: string
   ): Promise<void> {
+    if (!this._db) return;
+
     let query = `
     UPDATE ${TABLES.OpsRequests}
-    SET is_deleted = 1
+    SET is_deleted = 1,
+        updated_at = ?
     WHERE requested_by = ?
       AND is_deleted = 0
   `;
 
-    const params: any[] = [requested_by];
+    const params: any[] = [new Date().toISOString(), requested_by];
 
     if (school_id) {
       query += ` AND school_id = ?`;
@@ -1158,7 +1161,16 @@ export class SqliteApi implements ServiceApi {
       params.push(class_id);
     }
 
-    await this._db?.run(query, params);
+    // Execute the UPDATE
+    await this._db.run(query, params);
+
+    // Push sync mutation
+    await this.updatePushChanges(TABLES.OpsRequests, MUTATE_TYPES.UPDATE, {
+      requested_by,
+      school_id: school_id ?? null,
+      class_id: class_id ?? null,
+      is_deleted: 1,
+    });
   }
 
   async createStudentProfile(
