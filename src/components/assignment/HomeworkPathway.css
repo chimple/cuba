@@ -1,0 +1,28 @@
+.homework-dropdown-wrapper {
+  z-index: 10;
+
+}
+
+
+.homework-pathway-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.homeworkpathway-chapter-egg-container {
+  display: flex;
+  width: 100vw;
+  height: 20vh;
+  min-height: 64px;
+  max-height: 80px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.homeworkpathway-pathway_section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem; /* Add some space between the dropdown and the pathway */
+}

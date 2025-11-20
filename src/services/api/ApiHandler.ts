@@ -258,6 +258,18 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getExistingSchoolRequest(requested_by);
   }
 
+  public async deleteApprovedOpsRequestsForUser(
+    requested_by: string,
+    schoolId?: string,
+    classId?: string
+  ): Promise<void> {
+    return await this.s.deleteApprovedOpsRequestsForUser(
+      requested_by,
+      schoolId,
+      classId
+    );
+  }
+
   public async getSchoolsForUser(
     userId: string,
     options?: { page?: number; page_size?: number; search?: string }
@@ -478,7 +490,7 @@ export class ApiHandler implements ServiceApi {
   }
 
   public async updateResult(
-    studentId: string,
+    student: TableTypes<"user">,
     courseId: string | undefined,
     lessonId: string,
     score: number,
@@ -491,7 +503,7 @@ export class ApiHandler implements ServiceApi {
     schoolId: string | undefined
   ): Promise<TableTypes<"result">> {
     return await this.s.updateResult(
-      studentId,
+      student,
       courseId,
       lessonId,
       score,
@@ -1628,5 +1640,14 @@ export class ApiHandler implements ServiceApi {
   }
   public async getActiveStudentsCountByClass(classId): Promise<string> {
     return this.s.getActiveStudentsCountByClass(classId);
+  }
+  public async getCompletedAssignmentsCountForSubjects(
+    studentId,
+    subjectIds
+  ): Promise<{ subject_id: string; completed_count: number }[]> {
+    return this.s.getCompletedAssignmentsCountForSubjects(
+      studentId,
+      subjectIds
+    );
   }
 }

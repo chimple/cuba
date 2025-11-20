@@ -4,7 +4,9 @@ import HeaderIcon from "../HeaderIcon";
 import {
   AVATARS,
   CURRENT_MODE,
+  CURRENT_STUDENT,
   HOMEHEADERLIST,
+  HOMEWORK_PATHWAY,
   LANG,
   LANGUAGE,
   LEADERBOARDHEADERLIST,
@@ -57,6 +59,9 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
   const onSwichUser = async () => {
     Util.setParentLanguagetoLocal();
+    Util.setCurrentStudent(null);
+    sessionStorage.removeItem(HOMEWORK_PATHWAY);
+
     history.replace(PAGES.DISPLAY_STUDENT, {
       from: history.location.pathname,
     });
@@ -118,7 +123,9 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
   return (
     <div
-      className={`profile-menu ${isClosing ? "slide-out-right" : "slide-in-right"}`}
+      className={`profile-menu ${
+        isClosing ? "slide-out-right" : "slide-in-right"
+      }`}
       onAnimationEnd={() => {
         if (isClosing) {
           onClose();

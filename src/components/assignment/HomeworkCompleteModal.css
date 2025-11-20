@@ -1,0 +1,128 @@
+.homework-completed-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999999;
+}
+
+.homework-completed-card {
+  background-color: #fffcee;
+  /* Use clamp for fluid width: min, preferred, max */
+  width: clamp(320px, 80vw, 700px); /* fallback for clamp not supported, then vw, then max */
+  width: clamp(20rem, 80vw, 43.75rem); /* min 320px, preferred 80% viewport, max 700px */
+  
+  border-radius: clamp(1.5rem, 3vw, 2rem); /* Scales border radius */
+  padding: clamp(1.25rem, 5vw, 2.5rem); /* Fluid padding: min, preferred, max */
+  
+  box-shadow: 0 0.5rem 1.125rem rgba(0, 0, 0, 0.25); /* 0px 8px 18px */
+  position: relative;
+  /* background-image: url("../../../public/pathwayAssets/homeworkCelebration.svg"); */
+  /* background-image: url("/pathwayAssets/homeworkCelebration.svg"); */
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+/* 3-column layout (mascot – center – right spacing) */
+.homework-completed-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* LEFT MASCOT ALIGNMENT */
+.homework-completed-left {
+  /* Use flex-basis to define size in a flex container */
+  flex: 0 0 clamp(5rem, 15vw, 7.5rem); /* min 80px, preferred, max 120px */
+  display: flex;
+  justify-content: center;
+}
+
+.homework-completed-mascot {
+  width: 100%; /* Mascot will fill the .hc-left container */
+  max-width: 95px; /* Added for safety, converts to 5.9rem */
+  max-width: 5.9rem;
+}
+
+/* CENTER CONTENT */
+.homework-completed-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 2vw; /* Add some horizontal padding to prevent text touching mascot */
+}
+
+.homework-completed-celebration-top {
+  width: clamp(6.25rem, 18vw, 7.5rem); /* min 100px, preferred, max 120px */
+  margin-block: clamp(1rem, 3vh, 1.25rem); /* Fluid vertical margin */
+}
+
+.homework-completed-text {
+  /* Fluid typography: min font-size, preferred, max font-size */
+  font-size: clamp(1.1rem, 2.5vw, 1.375rem); /* min ~17.6px, preferred, max 22px */
+  font-weight: 600;
+  color: #223255;
+  text-align: center;
+  margin-bottom: clamp(1.5rem, 6vh, 2.5rem); /* Fluid bottom margin */
+}
+
+/* BUTTON */
+.homework-completed-play-btn {
+  /* Use clamp for the button width for perfect control */
+  width: clamp(9rem, 30vw, 10rem); /* min 144px, preferred, max 160px */
+  height: clamp(2.5rem, 7vh, 3rem); /* min 40px, preferred, max 48px */
+  
+  border-radius: 0.75rem; /* 12px */
+  border: none;
+  cursor: pointer;
+  background: #f34d08;
+  
+  border-bottom: 0.3125rem solid #8a2901; /* 5px */
+  color: #fff;
+  
+  font-size: clamp(1rem, 2.2vw, 1.25rem); /* min 16px, preferred, max 20px */
+  font-weight: 700;
+  text-transform: uppercase;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem; /* 8px */
+
+  position: relative;
+  /* Use rem for small, consistent transforms */
+  transform: translateY(0.125rem); /* 2px */
+
+  transition: transform 0.1s ease, border-bottom-width 0.1s ease;
+}
+
+.homework-completed-play-btn:active {
+  border-bottom: 0.125rem solid #8a2901 !important; /* 2px */
+  transform: translateY(0.25rem); /* 4px */
+}
+
+.homework-completed-play-icon {
+  width: clamp(1.25rem, 4vw, 1.625rem); /* min 20px, preferred, max 26px */
+  height: auto;
+}
+
+/* RIGHT EMPTY SPACE (mockup alignment) */
+.homework-completed-right {
+  /* Use flex-basis for sizing, same as the left column for symmetry */
+  flex: 0 0 clamp(5rem, 15vw, 7.5rem);
+}
+
+/* Add a media query for major layout shifts on very small screens */
+@media (max-width: 600px) {
+  .homework-completed-left,
+  .homework-completed-right {
+    /* Hide the mascot and side spacer on mobile for more room */
+    display: none;
+  }
+  .homework-completed-center {
+    padding: 0; /* Remove padding when side columns are gone */
+  }
+}

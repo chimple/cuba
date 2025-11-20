@@ -61,6 +61,7 @@ import {
   LOCAL_LESSON_BUNDLES_PATH,
   DAILY_USER_REWARD,
   REWARD_LEARNING_PATH,
+  HOMEWORK_PATHWAY,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -569,85 +570,95 @@ export class Util {
     throw new Error("Invalid data type — expected string or Blob");
   }
 
-  public static async DownloadLearningPathAssets(
-    zipUrl: string,
-    uniqueId: string
-  ): Promise<boolean> {
+ // In your Util.ts file
+
+// ✅ Renamed and made generic
+public static async DownloadRemoteAssets(
+  zipUrl: string,
+  uniqueId: string,
+  destinationPath: string, // e.g., 'remoteAsset'
+  assetType: string // e.g., 'Learning Path'
+): Promise<boolean> {
+  try {
+    if (!Capacitor.isNativePlatform()) return true;
+
+    const fs = createFilesystem(Filesystem, {
+      rootDir: "",
+      directory: Directory.External,
+    });
+    const androidPath = await this.getAndroidBundlePath();
+    
+    // ✅ Use the dynamic destinationPath parameter
+    const configPath = `${destinationPath}/config.json`;
+
+    // Logic for reading config.json
     try {
-      if (!Capacitor.isNativePlatform()) return true;
+      const res = await fetch(configPath); // ✅ Use dynamic path
+      const isExists = res.ok;
+      if (isExists) {
+        const configFile = await Filesystem.readFile({
+          path: configPath, // ✅ Use dynamic path
+          directory: Directory.External,
+        });
 
-      const fs = createFilesystem(Filesystem, {
-        rootDir: "",
-        directory: Directory.External,
-        // base64Alway: false, // property does not exist
-      });
-      const androidPath = await this.getAndroidBundlePath();
+        const base64Data = await this.blobToString(configFile.data);
+        const decoded = atob(base64Data);
+        const config = JSON.parse(decoded);
 
-      //logic for read config.json
-      try {
-        const res = await fetch("remoteAsset/config.json");
-        const isExists = res.ok;
-        if (isExists) {
-          const configFile = await Filesystem.readFile({
-            path: "remoteAsset/config.json",
-            directory: Directory.External,
-          });
-
-          const base64Data = await this.blobToString(configFile.data);
-
-          const decoded = atob(base64Data); // base64 → string
-          const config = JSON.parse(decoded); // string → object
-
-          if (config.uniqueId === uniqueId) {
-            this.setGameUrl(androidPath);
-            return true;
-          }
+        if (config.uniqueId === uniqueId) {
+          console.log(`✅ ${assetType} assets are already up to date.`);
+          this.setGameUrl(androidPath);
+          return true;
         }
-      } catch (err) {
-        console.error(`❌ Failed to read config for remoteAsset:`, err);
       }
-
-      // Download and unzip
-      const response = await CapacitorHttp.get({
-        url: zipUrl,
-        responseType: "blob",
-      });
-
-      if (!response?.data || response.status !== 200) return false;
-      const buffer = Uint8Array.from(atob(response.data), (c) =>
-        c.charCodeAt(0)
-      );
-      await unzip({
-        fs,
-        extractTo: "",
-        filepaths: ["."],
-        filter: (filepath: string) => !filepath.startsWith("dist/"),
-        onProgress: (event) => {
-          console.log("Unzipping LearningPath assets:", event.filename);
-        },
-        data: buffer,
-      });
-
-      // After unzip and extraction
-      const configFile = await Filesystem.readFile({
-        path: "remoteAsset/config.json",
-        directory: Directory.External,
-      });
-      const decoded = atob(await this.blobToString(configFile.data));
-      const config = JSON.parse(decoded);
-      if (typeof config.riveMax === "number") {
-        localStorage.setItem(
-          CHIMPLE_RIVE_STATE_MACHINE_MAX,
-          config.riveMax.toString()
-        );
-      }
-      this.setGameUrl(androidPath);
-      return true;
     } catch (err) {
-      console.error("Unexpected error in DownloadLearningPathAssets:", err);
-      return false;
+      console.warn(`Could not read existing config for ${assetType}, proceeding with download.`);
     }
+
+    // Download and unzip
+    const response = await CapacitorHttp.get({
+      url: zipUrl,
+      responseType: "blob",
+    });
+
+    if (!response?.data || response.status !== 200) return false;
+    const buffer = Uint8Array.from(atob(response.data), (c) =>
+      c.charCodeAt(0)
+    );
+    await unzip({
+      fs,
+      extractTo: "", // The zip file itself should contain the destination folder
+      filepaths: ["."],
+      filter: (filepath: string) => !filepath.startsWith("dist/"),
+      onProgress: (event) => {
+        // ✅ Use the dynamic assetType parameter for clearer logging
+        console.log(`Unzipping ${assetType} assets:`, event.filename);
+      },
+      data: buffer,
+    });
+
+    // After unzip and extraction
+    const configFile = await Filesystem.readFile({
+      path: configPath, // ✅ Use dynamic path
+      directory: Directory.External,
+    });
+    const decoded = atob(await this.blobToString(configFile.data));
+    const config = JSON.parse(decoded);
+
+    // Important Note: Decide if this logic applies to BOTH asset types
+    if (typeof config.riveMax === "number") {
+      localStorage.setItem(
+        CHIMPLE_RIVE_STATE_MACHINE_MAX,
+        config.riveMax.toString()
+      );
+    }
+    this.setGameUrl(androidPath);
+    return true;
+  } catch (err) {
+    console.error(`Unexpected error in DownloadRemoteAssets for ${assetType}:`, err);
+    return false;
   }
+}
 
   public static async deleteDownloadedLesson(
     lessonIds: string[]
@@ -1930,15 +1941,14 @@ export class Util {
     const slug = event.url.split(".cc").pop();
     // Determine target page for logging
     let destinationPage = "";
-
+    const newSearchParams = new URLSearchParams(url.search);
+    const currentParams = new URLSearchParams(window.location.search);
+    currentParams.set("classCode", newSearchParams.get("classCode") ?? "");
+    currentParams.set("page", PAGES.JOIN_CLASS);
+    const currentStudent = Util.getCurrentStudent();
     if (slug?.includes(PAGES.ASSIGNMENT)) {
       destinationPage = PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT;
     } else if (slug?.includes(PAGES.JOIN_CLASS)) {
-      const newSearchParams = new URLSearchParams(url.search);
-      const currentParams = new URLSearchParams(window.location.search);
-      currentParams.set("classCode", newSearchParams.get("classCode") ?? "");
-      currentParams.set("page", PAGES.JOIN_CLASS);
-      const currentStudent = Util.getCurrentStudent();
       destinationPage = currentStudent
         ? PAGES.HOME + "?" + currentParams.toString()
         : PAGES.DISPLAY_STUDENT + "?" + currentParams.toString();
@@ -1952,9 +1962,12 @@ export class Util {
       currentUser as TableTypes<"user">,
       destinationPage
     );
-
-    if (destinationPage && currentUser) {
+    if (destinationPage && currentStudent) {
       window.location.replace(destinationPage);
+    } else {
+      window.location.replace(
+        PAGES.DISPLAY_STUDENT + "?" + currentParams.toString()
+      );
     }
   }
   public static addRefreshTokenToLocalStorage(refreshToken: string) {
@@ -2523,6 +2536,37 @@ export class Util {
       return {};
     }
   }
+  public static async updateHomeworkPath(completedIndex?: number) {
+    try {
+      const storedPath = sessionStorage.getItem(HOMEWORK_PATHWAY);
+      if (!storedPath) {
+        console.error(
+          "Could not find homework path in sessionStorage to update."
+        );
+        return;
+      }
+
+      const homeworkPath = JSON.parse(storedPath);
+
+      // If we know exactly which index was completed, use that as the base.
+      // Otherwise, fall back to "currentIndex + 1" like before.
+      const newCurrentIndex =
+        typeof completedIndex === "number"
+          ? completedIndex + 1
+          : homeworkPath.currentIndex + 1;
+
+      // Check if the 5-lesson path is now complete
+      if (newCurrentIndex >= homeworkPath.lessons.length) {
+        sessionStorage.removeItem(HOMEWORK_PATHWAY);
+      } else {
+        homeworkPath.currentIndex = newCurrentIndex;
+        sessionStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(homeworkPath));
+      }
+    } catch (error) {
+      console.error("Failed to update homework path:", error);
+    }
+  }
+
   public static async updateLearningPath(
     currentStudent: TableTypes<"user">,
     isRewardLesson: boolean

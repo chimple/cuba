@@ -552,23 +552,23 @@ export class SqliteApi implements ServiceApi {
         console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
       }
     }
-    if(!isInitialFetch){
-     const new_school = data.get(TABLES.School);
-     if (new_school && new_school?.length > 0) {
-       await this.syncDbNow(Object.values(TABLES), [
-         TABLES.Assignment,
-         TABLES.Assignment_user,
-         TABLES.SchoolCourse,
-         TABLES.Class,
-         TABLES.ClassInvite_code,
-         TABLES.Result,
-         TABLES.User,
-         TABLES.ClassUser,
-         TABLES.SchoolUser,
-         TABLES.ClassCourse,
-       ]);
+    if (!isInitialFetch) {
+      const new_school = data.get(TABLES.School);
+      if (new_school && new_school?.length > 0) {
+        await this.syncDbNow(Object.values(TABLES), [
+          TABLES.Assignment,
+          TABLES.Assignment_user,
+          TABLES.SchoolCourse,
+          TABLES.Class,
+          TABLES.ClassInvite_code,
+          TABLES.Result,
+          TABLES.User,
+          TABLES.ClassUser,
+          TABLES.SchoolUser,
+          TABLES.ClassCourse,
+        ]);
       }
-   }
+    }
   }
 
   async getTableColumns(tableName: string): Promise<string[] | undefined> {
@@ -1132,6 +1132,45 @@ export class SqliteApi implements ServiceApi {
       WHERE requested_by = ? AND is_deleted = 0`;
     const res = await this._db?.query(query, [requested_by]);
     return res?.values?.length ? res.values[0] : null;
+  }
+
+  async deleteApprovedOpsRequestsForUser(
+    requested_by: string,
+    school_id?: string,
+    class_id?: string
+  ): Promise<void> {
+    if (!this._db) return;
+
+    let query = `
+    UPDATE ${TABLES.OpsRequests}
+    SET is_deleted = 1,
+        updated_at = ?
+    WHERE requested_by = ?
+      AND is_deleted = 0
+  `;
+
+    const params: any[] = [new Date().toISOString(), requested_by];
+
+    if (school_id) {
+      query += ` AND school_id = ?`;
+      params.push(school_id);
+    }
+
+    if (class_id) {
+      query += ` AND class_id = ?`;
+      params.push(class_id);
+    }
+
+    // Execute the UPDATE
+    await this._db.run(query, params);
+
+    // Push sync mutation
+    await this.updatePushChanges(TABLES.OpsRequests, MUTATE_TYPES.UPDATE, {
+      requested_by,
+      school_id: school_id ?? null,
+      class_id: class_id ?? null,
+      is_deleted: 1,
+    });
   }
 
   async createStudentProfile(
@@ -2063,7 +2102,7 @@ export class SqliteApi implements ServiceApi {
     return favoriteLesson;
   }
   async updateResult(
-    studentId: string,
+    student: TableTypes<"user">,
     courseId: string | undefined,
     lessonId: string,
     score: number,
@@ -2097,7 +2136,7 @@ export class SqliteApi implements ServiceApi {
       lesson_id: lessonId,
       school_id: schoolId ?? null,
       score: score,
-      student_id: studentId,
+      student_id: student.id,
       time_spent: timeSpent,
       wrong_moves: wrongMoves,
       created_at: new Date().toISOString(),
@@ -2134,7 +2173,7 @@ export class SqliteApi implements ServiceApi {
       ]
     );
     // ⭐ reward update
-    const currentUser = await this.getUserByDocId(studentId);
+    const currentUser = await this.getUserByDocId(student.id);
     const rewardLesson = sessionStorage.getItem(REWARD_LESSON);
     let newReward: { reward_id: string; timestamp: string } | null = null;
     let currentUserReward: { reward_id: string; timestamp: string } | null =
@@ -2172,9 +2211,9 @@ export class SqliteApi implements ServiceApi {
 
     const allStarsMap = localStorage.getItem(LATEST_STARS);
     const allStars = allStarsMap ? JSON.parse(allStarsMap) : {};
-    const currentLocalStars = allStars[studentId] ?? 0;
+    const currentLocalStars = allStars[student.id] ?? 0;
 
-    allStars[studentId] = currentLocalStars + starsEarned;
+    allStars[student.id] = currentLocalStars + starsEarned;
     localStorage.setItem(LATEST_STARS, JSON.stringify(allStars));
     let query = `UPDATE ${TABLES.User} SET `;
     let params: any[] = [];
@@ -2185,17 +2224,18 @@ export class SqliteApi implements ServiceApi {
     }
 
     query += `stars = COALESCE(stars, 0) + ? WHERE id = ?;`;
-    params.push(starsEarned, studentId);
+    params.push(starsEarned, student.id);
 
     await this.executeQuery(query, params);
 
-    const updatedStudent = await this.getUserByDocId(studentId);
+    const updatedStudent = await this.getUserByDocId(student.id);
     if (updatedStudent) {
+      updatedStudent.language_id = student.language_id;
       Util.setCurrentStudent(updatedStudent);
     }
     this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
     const pushData: any = {
-      id: studentId,
+      id: student.id,
       stars: updatedStudent?.stars,
     };
     if (newReward !== null && currentUser) {
@@ -6764,5 +6804,37 @@ order by
   }
   async getActiveStudentsCountByClass(classId: string): Promise<string> {
     return await this._serverApi.getActiveStudentsCountByClass(classId);
+  }
+  async getCompletedAssignmentsCountForSubjects(
+    studentId: string,
+    subjectIds: string[]
+  ): Promise<{ subject_id: string; completed_count: number }[]> {
+    if (!studentId || !subjectIds.length) {
+      return [];
+    }
+    // Generate a placeholder for each subjectId (e.g., "?,?,?").
+    const placeholders = subjectIds.map(() => "?").join(",");
+
+    const query = `
+    SELECT l.subject_id, COUNT(r.lesson_id) AS completed_count
+    FROM result r
+    JOIN lesson l ON r.lesson_id = l.id
+    WHERE r.student_id = ?
+      AND r.is_deleted = 0
+      AND l.subject_id IN (${placeholders})
+    GROUP BY l.subject_id;
+  `;
+
+    // Create a single array of parameters in the correct order.
+    const params = [studentId, ...subjectIds];
+
+    try {
+      // Execute the query with the safely bound parameters.
+      const res = await this.executeQuery(query, params);
+      return res?.values ?? [];
+    } catch (err) {
+      console.error("Error fetching completed homework counts in SQLite:", err);
+      return [];
+    }
   }
 }

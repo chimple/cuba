@@ -5,15 +5,24 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 
 interface ChapterLessonBoxProps {
   containerStyle?: React.CSSProperties;
+  chapterName?: string; 
+  lessonName?: string;
 }
 
 const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
   containerStyle,
+  chapterName,
+  lessonName,
 }) => {
   const api = ServiceConfig.getI().apiHandler;
   const [currentChapterName, setCurrentChapterName] = useState<string>("");
 
   useEffect(() => {
+      // SCENARIO 1: Props are provided (Homework Page)
+    if (chapterName && lessonName) {
+      setCurrentChapterName(`${chapterName} : ${lessonName}`);
+      return; // Stop here, don't do the API fetch
+    }
     const updateChapter = async (currentStudent: any) => {
       if (!currentStudent || !currentStudent.learning_path) return;
 
@@ -58,7 +67,7 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
     return () => {
       window.removeEventListener("courseChanged", syncHandleCourseChange);
     };
-  }, []);
+  }, [chapterName, lessonName]);
 
   return (
     <div

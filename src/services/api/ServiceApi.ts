@@ -140,6 +140,26 @@ export interface ServiceApi {
     udise_id?: string
   ): Promise<TableTypes<"req_new_school"> | null>;
 
+  /**
+   * Soft-deletes all approved ops requests for a specific user.
+   *
+   * This marks matching ops_requests records as `is_deleted = true` without
+   * removing them from the database. You can optionally limit the deletion
+   * to a specific school or class.
+   *
+   * @param {string} requested_by - The ID of the user whose ops requests should be deleted.
+   * @param {string} [schoolId] - (Optional) The school ID to filter requests by.
+   *                              If provided, only requests belonging to this school are deleted.
+   * @param {string} [classId] - (Optional) The class ID to filter requests by.
+   *                             If provided, only requests belonging to this class are deleted.
+   * @returns {Promise<void>} Resolves when the operation is complete.
+   */
+  deleteApprovedOpsRequestsForUser(
+    requested_by: string,
+    schoolId?: string,
+    classId?: string
+  ): Promise<void>;
+
   getExistingSchoolRequest(
     requested_by: string
   ): Promise<TableTypes<"ops_requests"> | null>;
@@ -432,7 +452,7 @@ export interface ServiceApi {
    * @returns {Result}} Updated result Object
    */
   updateResult(
-    studentId: string,
+    student: TableTypes<"user">,
     courseId: string | undefined,
     lessonId: string,
     score: number,
@@ -1157,7 +1177,11 @@ export interface ServiceApi {
    * @param {string} user user;
    * @return void.
    */
-  addTeacherToClass(schoolId:string,classId: string, user: TableTypes<"user">): Promise<void>;
+  addTeacherToClass(
+    schoolId: string,
+    classId: string,
+    user: TableTypes<"user">
+  ): Promise<void>;
 
   /**
    * Checks the user present in school or not.
@@ -2169,12 +2193,21 @@ export interface ServiceApi {
     rewardId: string,
     created_at?: string
   ): Promise<void>;
-   /**
+  /**
    * Fetch active students count information for a given class ID.
    * @param {string} classID - The ID of the school to fetch.
    * @returns Promise resolving to an object with student count.
    */
-  getActiveStudentsCountByClass(
-    classId: string,
-  ): Promise<string>;
+  getActiveStudentsCountByClass(classId: string): Promise<string>;
+
+  /**
+   * Fetch active students count information for a given class ID.
+   * @param {string} studentId - The ID of the student to fetch.
+   * @param {string []} subjectIds - The ID of the subjects to fetch.
+   * @returns Promise resolving to an object with completed assignment count and subject id's.
+   */
+  getCompletedAssignmentsCountForSubjects(
+    studentId: string,
+    subjectIds: string[]
+  ): Promise<{ subject_id: string; completed_count: number }[]>;
 }
