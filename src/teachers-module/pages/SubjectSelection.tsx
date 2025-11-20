@@ -524,6 +524,9 @@ const SubjectSelection: React.FC = () => {
     //     role: RoleType.PRINCIPAL,
     //   });
     // } else
+    if (isSelecting) {
+      return;
+    }
     if (navigationState?.stage === School_Creation_Stages.CLASS_COURSE) {
       Util.setNavigationState(School_Creation_Stages.CREATE_CLASS);
       history.replace(PAGES.EDIT_CLASS, {
@@ -562,9 +565,10 @@ const SubjectSelection: React.FC = () => {
         className={currentClass?.name}
         onBackButtonClick={onBackButtonClick}
         disableBackButton={
-          navigationState?.stage === School_Creation_Stages.SCHOOL_COURSE
+          isSelecting ||
+          (navigationState?.stage === School_Creation_Stages.SCHOOL_COURSE
             ? true
-            : false
+            : false)
         }
       />
       {!isSelecting ? (

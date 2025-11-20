@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { IonButton, IonIcon } from "@ionic/react";
 import { checkmarkCircle, ellipseOutline } from "ionicons/icons";
 import "./SubjectSelectionComponent.css";
 import { t } from "i18next";
-import { useHistory } from "react-router-dom";
 
 interface SubjectSelectionProps {
   curriculumsWithCourses: {
@@ -33,14 +32,6 @@ const SubjectSelectionComponent: React.FC<SubjectSelectionProps> = ({
   schoolId,
 }) => {
   const [loading, setLoading] = useState(false);
-  const history = useHistory();
-
-  useEffect(() => {
-    const unblock = history.block(() => false);
-    return () => {
-      unblock();
-    };
-  }, [history, selectedSubjects.length]);
 
   const handleConfirmClick = async () => {
     setLoading(true); // Disable the button while processing
