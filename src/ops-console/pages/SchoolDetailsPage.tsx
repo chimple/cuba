@@ -68,6 +68,8 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   });
 
   useEffect(() => {
+    fetchAll();
+  }, [id]);
     async function fetchAll() {
       setLoading(true);
       const api = ServiceConfig.getI().apiHandler;
@@ -200,8 +202,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       });
       setLoading(false);
     }
-    fetchAll();
-  }, [id]);
 
   if (loading) {
     return (
@@ -245,6 +245,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
           data={data}
           isMobile={isMobile}
           schoolId={id}
+          refreshClasses= {fetchAll}
         />
       </div>
       <div className="school-detail-columns-gap" />

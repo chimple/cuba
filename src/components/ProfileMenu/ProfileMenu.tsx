@@ -6,6 +6,7 @@ import {
   CURRENT_MODE,
   CURRENT_STUDENT,
   HOMEHEADERLIST,
+  HOMEWORK_PATHWAY,
   LANG,
   LANGUAGE,
   LEADERBOARDHEADERLIST,
@@ -60,6 +61,8 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     Util.setParentLanguagetoLocal();
     localStorage.removeItem(CURRENT_STUDENT);
     ServiceConfig.getI().apiHandler.currentStudent = undefined;
+    sessionStorage.removeItem(HOMEWORK_PATHWAY);
+
     history.replace(PAGES.DISPLAY_STUDENT, {
       from: history.location.pathname,
     });

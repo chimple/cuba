@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import "./ClassForm.css";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
-
 const ClassForm: React.FC<{
   onClose: () => void;
   mode: "create" | "edit";
   classData?: any;
   schoolId?: string;
-}> = ({ onClose, mode, classData, schoolId }) => {
+  onSaved?: () => void;
+}> = ({ onClose, mode, classData, schoolId, onSaved}) => {
   const [formValues, setFormValues] = useState<any>({
     grade: "",
     section: "",
@@ -21,7 +21,9 @@ const ClassForm: React.FC<{
   const [grades, setGrades] = useState<any[]>([]);
   const [curriculums, setCurriculums] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     if (mode === "edit" && classData) {
@@ -81,9 +83,25 @@ const ClassForm: React.FC<{
 
   const handleSubmit = async () => {
     if (!isFormValid) return;
+    if (!schoolId) {
+      console.error("School ID is required to create a class.");
+      return;
+    }
+    setSaving(true);
     try {
+      const classes = await api.getClassesBySchoolId(schoolId);
+      const className = formValues.grade + formValues.section;
+      const existing = classes.find((c: any) => c.name === className);
+
+      if (existing ) {
+        console.error("Class name already exists.");
+        setErrorMessage("Class name already exists.");
+
+        setSaving(false);
+        return;
+      }
+
       let classId = classData?.id;
-      console.log("classId", classId);
       if (mode === "edit") {
         if (!classId) {
           console.error("Class ID is missing.");
@@ -95,10 +113,6 @@ const ClassForm: React.FC<{
           formValues.groupId
         );
       } else if (mode === "create") {
-        if (!schoolId) {
-          console.error("School ID is required to create a class.");
-          return;
-        }
         const newClass = await api.createClass(
           schoolId,
           formValues.grade + formValues.section,
@@ -117,7 +131,10 @@ const ClassForm: React.FC<{
       );
     } catch (error) {
       console.error("Error creating/updating class:", error);
+    } finally {
+      setSaving(false);
     }
+    if(onSaved) onSaved();
     onClose();
   };
 
@@ -142,20 +159,21 @@ const ClassForm: React.FC<{
               max={10}
               value={formValues.grade || ""}
               onChange={handleChange}
-              placeholder={t("Enter Grade")??""} 
+              placeholder={t("Enter Grade") ?? ""}
             />
           </div>
 
           <div className="class-form-group">
             <label>
-              {t("Class Section")} <span className="class-form-required">*</span>
+              {t("Class Section")}{" "}
+              <span className="class-form-required">*</span>
             </label>
             <input
               name="section"
               type="text"
               value={formValues.section || ""}
               onChange={handleChange}
-              placeholder={t("Enter Class Section")??""} 
+              placeholder={t("Enter Class Section") ?? ""}
             />
           </div>
         </div>
@@ -225,20 +243,32 @@ const ClassForm: React.FC<{
             type="text"
             value={formValues.groupId || ""}
             onChange={handleChange}
-            placeholder={t("Enter WhatsApp Group ID")??""}
+            placeholder={t("Enter WhatsApp Group ID") ?? ""}
           />
         </div>
+        {errorMessage && (
+          <div className="class-form-error">
+            {errorMessage}
+          </div>
+        )}
+
         <div className="class-form-button-row">
           <button className="class-form-cancel-btn" onClick={onClose}>
             {t("Cancel")}
           </button>
-          <button
-            className="class-form-save-btn"
-            onClick={handleSubmit}
-            disabled={!isFormValid || loading}
-          >
-            {mode === "edit" ? t("Save") : t("Create Class")}
-          </button>
+          {saving ? (
+            <button className="class-form-save-btn" disabled>
+              {t("Saving...")}
+            </button>
+          ) : (
+            <button
+              className="class-form-save-btn"
+              onClick={handleSubmit}
+              disabled={!isFormValid || loading}
+            >
+              {mode === "edit" ? t("Save") : t("Create Class")}
+            </button>
+          )}
         </div>
       </div>
     </div>

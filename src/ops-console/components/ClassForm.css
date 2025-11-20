@@ -154,3 +154,12 @@
   border: none;
   cursor: not-allowed;
 }
+
+.class-form-error {
+  color: red;
+  margin-bottom: 5px;
+  padding: 0px 5px;
+  background: #ffe6e6;
+  border-radius: 6px;
+  font-size: 12px;
+}

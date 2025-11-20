@@ -255,7 +255,7 @@ const LoginScreen: React.FC = () => {
       setSentOtpLoading(true);
       setSpinnerLoading(true);
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
-
+      initSmsListner();
       let result = await authInstance.generateOtp(
         phoneNumberWithCountryCode,
         "Chimple"
@@ -325,7 +325,7 @@ const LoginScreen: React.FC = () => {
       setOtpErrorMessage(null); // Clear any previous errors
 
       let phoneNumberWithCountryCode = countryCode + phoneNumber;
-
+      
       const res = await authInstance.proceedWithVerificationCode(
         phoneNumberWithCountryCode,
         otp.trim()
@@ -676,12 +676,6 @@ const LoginScreen: React.FC = () => {
     initNumberSelectedListner();
   }, []);
 
-  useEffect(() => {
-    if (phoneNumber.length === 10) {
-      initSmsListner();
-    }
-  }, [phoneNumber]);
-
   const retriewPhoneNumber = async () => {
     const phoneNumber = await PortPlugin.numberRetrieve();
     if (phoneNumber.number) {
@@ -694,7 +688,7 @@ const LoginScreen: React.FC = () => {
 
   const otpEventListener = async (event: Event) => {
     const data = await PortPlugin.otpRetrieve();
-    if (data?.otp) {
+    if (data?.otp) {  
       setVerificationCode(data.otp.toString());
       // Auto verify when OTP is received
       handleOtpVerification(data.otp.toString());
@@ -807,7 +801,7 @@ const LoginScreen: React.FC = () => {
           </div>
           <div className="Loginscreen-login-header">
             {loginType === LOGIN_TYPES.OTP ||
-            loginType === LOGIN_TYPES.FORGET_PASS ? (
+              loginType === LOGIN_TYPES.FORGET_PASS ? (
               <button
                 className="Loginscreen-otp-back-button"
                 onClick={handleOtpBack}
@@ -836,11 +830,11 @@ const LoginScreen: React.FC = () => {
               style={
                 (loginType as string) !== LOGIN_TYPES.PHONE
                   ? {
-                      maxWidth: window.matchMedia("(orientation: landscape)")
-                        .matches
-                        ? "120px"
-                        : "138px",
-                    }
+                    maxWidth: window.matchMedia("(orientation: landscape)")
+                      .matches
+                      ? "120px"
+                      : "138px",
+                  }
                   : undefined
               }
             />
@@ -925,7 +919,7 @@ const LoginScreen: React.FC = () => {
             checkbox={checkbox}
             onCheckboxChange={setCheckbox}
             onResend={
-              loginType === LOGIN_TYPES.OTP ? handleResendOtp : () => {}
+              loginType === LOGIN_TYPES.OTP ? handleResendOtp : () => { }
             }
             showResendOtp={showResendOtp}
             counter={counter}

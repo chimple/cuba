@@ -23,7 +23,7 @@ const HeaderIcon: React.FC<{
   onHeaderIconClick,
 }) => {
   const isCurrentHeaderActive = currentHeader === headerConfig.headerList;
-  const isHomeworkPathwayOn = useFeatureIsOn("homework-learning-pathway");
+  const isHomeworkNotificationIconOn = useFeatureIsOn("homework_notification_icon");
 
   return (
     <div
@@ -45,17 +45,22 @@ const HeaderIcon: React.FC<{
       {headerConfig.headerList === HOMEHEADERLIST.ASSIGNMENT &&
         pendingAssignmentCount !== undefined &&
         pendingAssignmentCount > 0 && (
-          <div id="homework-notification">
-            {/* <IonBadge class="badge-notification">
-              {pendingAssignmentCount}
-            </IonBadge> */}
-            <img
-              src="/assets/icons/BellNotifyIcon.svg"
-              alt="Homework Notification"
-              className="badge-notification"
-            />
-          </div>
-        )}
+    <div id="homework-notification">
+      {isHomeworkNotificationIconOn ? (
+        // Show number badge
+        <IonBadge class="badge-notification">
+          {pendingAssignmentCount}
+        </IonBadge>
+      ) : (
+        // Show image icon
+        <img
+          src="/assets/icons/BellNotifyIcon.svg"
+          alt="Homework Notification"
+          className="badge-notification"
+        />
+      )}
+    </div>
+  )}
       {headerConfig.headerList == HOMEHEADERLIST.LIVEQUIZ &&
         !!pendingLiveQuizCount &&
         pendingLiveQuizCount > 0 && (

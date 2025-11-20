@@ -435,11 +435,11 @@ const LiveQuizQuestion: FC<{
     if (lessonId) {
       onTotalScoreChange(totalLessonScore);
       const classData = schoolUtil.getCurrentClass();
-      if (isReward===true) {
+      if (isReward === true) {
         sessionStorage.setItem(REWARD_LESSON, "true");
       }
       await api.updateResult(
-        student!.id,
+        student!,
         quizData.courseId,
         quizData.lessonid,
         Math.round(totalLessonScore),
@@ -470,7 +470,7 @@ const LiveQuizQuestion: FC<{
       }
       var _assignment = await api.getAssignmentById(roomDoc.assignment_id);
       await api.updateResult(
-        student!.id,
+        student!,
         roomDoc.course_id,
         roomDoc.lesson_id,
         Math.round(totalScore),
@@ -651,8 +651,8 @@ const LiveQuizQuestion: FC<{
                         ? option.isCorrect
                           ? "live-quiz-option-box-correct"
                           : selectedAnswerIndex === index
-                            ? "live-quiz-option-box-incorrect"
-                            : ""
+                          ? "live-quiz-option-box-incorrect"
+                          : ""
                         : "")
                     }
                   >
