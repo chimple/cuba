@@ -1087,3 +1087,4 @@ export const OPS_ROLES = [
   RoleType.PROGRAM_MANAGER,
   RoleType.FIELD_COORDINATOR,
 ];
+export const CAN_HOT_UPDATE = "can-Hot-Update";
