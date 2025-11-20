@@ -20,7 +20,9 @@ const UserList: React.FC<{
   const [selectedUser, setSelectedUser] = useState<TableTypes<"user"> | null>(
     null
   );
-  const currentUserRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+  const currentUserRoles: string[] = JSON.parse(
+    localStorage.getItem(USER_ROLE) ?? "[]"
+  );
   useEffect(() => {
     init();
   }, []);
@@ -44,11 +46,21 @@ const UserList: React.FC<{
     if (selectedUser) {
       try {
         if (userType === CLASS_USERS.STUDENTS) {
+          await api?.deleteApprovedOpsRequestsForUser(
+            selectedUser.id,
+            schoolDoc.id,
+            classDoc.id
+          );
           await api?.deleteUserFromClass(selectedUser.id, classDoc.id);
           setAllStudents((prev) =>
             prev?.filter((student) => student.id !== selectedUser.id)
           );
         } else if (userType === CLASS_USERS.TEACHERS) {
+          await api?.deleteApprovedOpsRequestsForUser(
+            selectedUser.id,
+            schoolDoc.id,
+            classDoc.id
+          );
           await api?.deleteTeacher(classDoc.id, selectedUser.id);
 
           await api.updateSchoolLastModified(schoolDoc.id);
@@ -57,6 +69,11 @@ const UserList: React.FC<{
 
           setAllTeachers((prev) =>
             prev?.filter((teacher) => teacher.id !== selectedUser.id)
+          );
+        } else {
+          await api?.deleteApprovedOpsRequestsForUser(
+            selectedUser.id,
+            schoolDoc.id
           );
         }
         setShowConfirm(false);

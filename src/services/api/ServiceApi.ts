@@ -140,6 +140,12 @@ export interface ServiceApi {
     udise_id?: string
   ): Promise<TableTypes<"req_new_school"> | null>;
 
+  deleteApprovedOpsRequestsForUser(
+    requested_by: string,
+    schoolId?: string,
+    classId?: string
+  ): Promise<void>;
+
   getExistingSchoolRequest(
     requested_by: string
   ): Promise<TableTypes<"ops_requests"> | null>;
@@ -1157,7 +1163,11 @@ export interface ServiceApi {
    * @param {string} user user;
    * @return void.
    */
-  addTeacherToClass(schoolId:string,classId: string, user: TableTypes<"user">): Promise<void>;
+  addTeacherToClass(
+    schoolId: string,
+    classId: string,
+    user: TableTypes<"user">
+  ): Promise<void>;
 
   /**
    * Checks the user present in school or not.
@@ -2169,14 +2179,12 @@ export interface ServiceApi {
     rewardId: string,
     created_at?: string
   ): Promise<void>;
-   /**
+  /**
    * Fetch active students count information for a given class ID.
    * @param {string} classID - The ID of the school to fetch.
    * @returns Promise resolving to an object with student count.
    */
-  getActiveStudentsCountByClass(
-    classId: string,
-  ): Promise<string>;
+  getActiveStudentsCountByClass(classId: string): Promise<string>;
 
   /**
    * Fetch active students count information for a given class ID.

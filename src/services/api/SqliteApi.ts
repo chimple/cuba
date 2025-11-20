@@ -552,23 +552,23 @@ export class SqliteApi implements ServiceApi {
         console.error("🚀 ~ pullChanges ~ Error executing batch:", error);
       }
     }
-    if(!isInitialFetch){
-     const new_school = data.get(TABLES.School);
-     if (new_school && new_school?.length > 0) {
-       await this.syncDbNow(Object.values(TABLES), [
-         TABLES.Assignment,
-         TABLES.Assignment_user,
-         TABLES.SchoolCourse,
-         TABLES.Class,
-         TABLES.ClassInvite_code,
-         TABLES.Result,
-         TABLES.User,
-         TABLES.ClassUser,
-         TABLES.SchoolUser,
-         TABLES.ClassCourse,
-       ]);
+    if (!isInitialFetch) {
+      const new_school = data.get(TABLES.School);
+      if (new_school && new_school?.length > 0) {
+        await this.syncDbNow(Object.values(TABLES), [
+          TABLES.Assignment,
+          TABLES.Assignment_user,
+          TABLES.SchoolCourse,
+          TABLES.Class,
+          TABLES.ClassInvite_code,
+          TABLES.Result,
+          TABLES.User,
+          TABLES.ClassUser,
+          TABLES.SchoolUser,
+          TABLES.ClassCourse,
+        ]);
       }
-   }
+    }
   }
 
   async getTableColumns(tableName: string): Promise<string[] | undefined> {
@@ -1132,6 +1132,33 @@ export class SqliteApi implements ServiceApi {
       WHERE requested_by = ? AND is_deleted = 0`;
     const res = await this._db?.query(query, [requested_by]);
     return res?.values?.length ? res.values[0] : null;
+  }
+
+  async deleteApprovedOpsRequestsForUser(
+    requested_by: string,
+    school_id?: string,
+    class_id?: string
+  ): Promise<void> {
+    let query = `
+    UPDATE ${TABLES.OpsRequests}
+    SET is_deleted = 1
+    WHERE requested_by = ?
+      AND is_deleted = 0
+  `;
+
+    const params: any[] = [requested_by];
+
+    if (school_id) {
+      query += ` AND school_id = ?`;
+      params.push(school_id);
+    }
+
+    if (class_id) {
+      query += ` AND class_id = ?`;
+      params.push(class_id);
+    }
+
+    await this._db?.run(query, params);
   }
 
   async createStudentProfile(
@@ -6769,9 +6796,11 @@ order by
     studentId: string,
     subjectIds: string[]
   ): Promise<{ subject_id: string; completed_count: number }[]> {
-    if (!studentId || !subjectIds.length) return [];
-
-    const subjectIdsStr = subjectIds.map((id) => `'${id}'`).join(",");
+    if (!studentId || !subjectIds.length) {
+      return [];
+    }
+    // Generate a placeholder for each subjectId (e.g., "?,?,?").
+    const placeholders = subjectIds.map(() => "?").join(",");
 
     const query = `
     SELECT l.subject_id, COUNT(r.lesson_id) AS completed_count
@@ -6779,11 +6808,16 @@ order by
     JOIN lesson l ON r.lesson_id = l.id
     WHERE r.student_id = ?
       AND r.is_deleted = 0
-      AND l.subject_id IN (${subjectIdsStr})
+      AND l.subject_id IN (${placeholders})
     GROUP BY l.subject_id;
   `;
+
+    // Create a single array of parameters in the correct order.
+    const params = [studentId, ...subjectIds];
+
     try {
-      const res = await this.executeQuery(query, [studentId]);
+      // Execute the query with the safely bound parameters.
+      const res = await this.executeQuery(query, params);
       return res?.values ?? [];
     } catch (err) {
       console.error("Error fetching completed homework counts in SQLite:", err);

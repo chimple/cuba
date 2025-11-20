@@ -8788,4 +8788,30 @@ export class SupabaseApi implements ServiceApi {
     return [];
   }
 }
+async deleteApprovedOpsRequestsForUser(
+  userId: string,
+  schoolId?: string,
+  classId?: string
+): Promise<void> {
+  if (!this.supabase) return;
+
+  let query = this.supabase
+    .from("ops_requests")
+    .update({
+      is_deleted: true,
+      updated_at: new Date().toISOString(),
+    })
+    .or(`requested_by.eq.${userId},requested_to.eq.${userId}`)
+    .eq("request_status", "approved")
+    .eq("is_deleted", false);
+
+  if (schoolId) query = query.eq("school_id", schoolId);
+  if (classId) query = query.eq("class_id", classId);
+
+  const { error } = await query;
+
+  if (error) {
+    console.error("Error deleting approved ops_requests:", error);
+  }
+}
 }

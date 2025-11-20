@@ -258,6 +258,18 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getExistingSchoolRequest(requested_by);
   }
 
+  public async deleteApprovedOpsRequestsForUser(
+    requested_by: string,
+    schoolId?: string,
+    classId?: string
+  ): Promise<void> {
+    return await this.s.deleteApprovedOpsRequestsForUser(
+      requested_by,
+      schoolId,
+      classId
+    );
+  }
+
   public async getSchoolsForUser(
     userId: string,
     options?: { page?: number; page_size?: number; search?: string }
