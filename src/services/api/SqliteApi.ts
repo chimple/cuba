@@ -1134,6 +1134,45 @@ export class SqliteApi implements ServiceApi {
     return res?.values?.length ? res.values[0] : null;
   }
 
+  async deleteApprovedOpsRequestsForUser(
+    requested_by: string,
+    school_id?: string,
+    class_id?: string
+  ): Promise<void> {
+    if (!this._db) return;
+
+    let query = `
+    UPDATE ${TABLES.OpsRequests}
+    SET is_deleted = 1,
+        updated_at = ?
+    WHERE requested_by = ?
+      AND is_deleted = 0
+  `;
+
+    const params: any[] = [new Date().toISOString(), requested_by];
+
+    if (school_id) {
+      query += ` AND school_id = ?`;
+      params.push(school_id);
+    }
+
+    if (class_id) {
+      query += ` AND class_id = ?`;
+      params.push(class_id);
+    }
+
+    // Execute the UPDATE
+    await this._db.run(query, params);
+
+    // Push sync mutation
+    await this.updatePushChanges(TABLES.OpsRequests, MUTATE_TYPES.UPDATE, {
+      requested_by,
+      school_id: school_id ?? null,
+      class_id: class_id ?? null,
+      is_deleted: 1,
+    });
+  }
+
   async createStudentProfile(
     name: string,
     age: number | undefined,
@@ -6770,9 +6809,11 @@ order by
     studentId: string,
     subjectIds: string[]
   ): Promise<{ subject_id: string; completed_count: number }[]> {
-    if (!studentId || !subjectIds.length) return [];
-
-    const subjectIdsStr = subjectIds.map((id) => `'${id}'`).join(",");
+    if (!studentId || !subjectIds.length) {
+      return [];
+    }
+    // Generate a placeholder for each subjectId (e.g., "?,?,?").
+    const placeholders = subjectIds.map(() => "?").join(",");
 
     const query = `
     SELECT l.subject_id, COUNT(r.lesson_id) AS completed_count
@@ -6780,11 +6821,16 @@ order by
     JOIN lesson l ON r.lesson_id = l.id
     WHERE r.student_id = ?
       AND r.is_deleted = 0
-      AND l.subject_id IN (${subjectIdsStr})
+      AND l.subject_id IN (${placeholders})
     GROUP BY l.subject_id;
   `;
+
+    // Create a single array of parameters in the correct order.
+    const params = [studentId, ...subjectIds];
+
     try {
-      const res = await this.executeQuery(query, [studentId]);
+      // Execute the query with the safely bound parameters.
+      const res = await this.executeQuery(query, params);
       return res?.values ?? [];
     } catch (err) {
       console.error("Error fetching completed homework counts in SQLite:", err);
