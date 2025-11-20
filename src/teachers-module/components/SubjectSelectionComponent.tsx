@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { IonButton,IonIcon } from "@ionic/react";
-import { checkmarkCircle, ellipseOutline } from 'ionicons/icons';
+import { IonButton, IonIcon } from "@ionic/react";
+import { checkmarkCircle, ellipseOutline } from "ionicons/icons";
 import "./SubjectSelectionComponent.css";
 import { t } from "i18next";
 
@@ -76,7 +76,9 @@ const SubjectSelectionComponent: React.FC<SubjectSelectionProps> = ({
                 </div>
                 <IonIcon
                   icon={isSelected ? checkmarkCircle : ellipseOutline}
-                  className={`subject-page-checkbox ${isSelected ? "selected" : ""}`}
+                  className={`subject-page-checkbox ${
+                    isSelected ? "selected" : ""
+                  }`}
                   onClick={() => onSubjectSelection(course.id)}
                 />
               </div>
