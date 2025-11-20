@@ -8803,7 +8803,7 @@ export class SupabaseApi implements ServiceApi {
         is_deleted: true,
         updated_at: new Date().toISOString(),
       })
-      .or(`requested_by.eq.${userId},requested_to.eq.${userId}`)
+      .eq("requested_by", userId)
       .eq("request_status", "approved")
       .eq("is_deleted", false);
 
