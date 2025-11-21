@@ -1,6 +1,9 @@
 name: Deploy Live Update DEV
 
 on:
+  push:
+    branches:
+      - dev-ng-hotupdate
   workflow_dispatch:
 
 jobs:
