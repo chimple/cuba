@@ -4,23 +4,28 @@ const webpack = require("webpack");
 module.exports = {
   webpack: {
     alias: {
-      "./workers/node": false, // your existing alias for lido-standalone
+      // your existing alias
+      "./workers/node": false,
+
+      // make 'process/browser' resolve to the actual JS file
+      "process/browser": require.resolve("process/browser"),
     },
+
     configure: (config) => {
-      // Ensure resolve exists
       config.resolve = config.resolve || {};
 
-      // Webpack 5: provide fallbacks for Node core modules
+      // Node core module fallbacks for Webpack 5
       config.resolve.fallback = {
         ...(config.resolve.fallback || {}),
         crypto: require.resolve("crypto-browserify"),
         path: require.resolve("path-browserify"),
         stream: require.resolve("stream-browserify"),
         buffer: require.resolve("buffer"),
-        fs: false, // no fs in browser
+        process: require.resolve("process/browser"),
+        fs: false, // no fs in the browser
       };
 
-      // Provide process & Buffer globals for libs that expect them
+      // Provide global process/Buffer for libs that expect them
       config.plugins = [
         ...(config.plugins || []),
         new webpack.ProvidePlugin({
