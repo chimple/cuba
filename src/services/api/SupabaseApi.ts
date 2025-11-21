@@ -326,7 +326,7 @@ export class SupabaseApi implements ServiceApi {
             .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-          []
+        []
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -399,38 +399,38 @@ export class SupabaseApi implements ServiceApi {
       };
       const fallbackChannel = uploadingUser
         ? supabase
-            .channel(`upload-fallback-${uploadingUser}`)
-            .on(
-              "postgres_changes",
-              {
-                event: "UPDATE",
-                schema: "public",
-                table: "upload_queue",
-                filter: `uploading_user=eq.${uploadingUser}`,
-              },
-              async (payload) => {
-                const status = payload.new?.status;
-                const id = payload.new?.id;
+          .channel(`upload-fallback-${uploadingUser}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "upload_queue",
+              filter: `uploading_user=eq.${uploadingUser}`,
+            },
+            async (payload) => {
+              const status = payload.new?.status;
+              const id = payload.new?.id;
+              console.log(
+                "🔄 [Fallback] Realtime update:",
+                status,
+                "ID:",
+                id
+              );
+              if (
+                (status === "success" || status === "failed") &&
+                !resolved
+              ) {
+                resolved = true;
+                await fallbackChannel?.unsubscribe();
                 console.log(
-                  "🔄 [Fallback] Realtime update:",
-                  status,
-                  "ID:",
-                  id
+                  `✅ / ❌ Fallback resolved with status: ${status}`
                 );
-                if (
-                  (status === "success" || status === "failed") &&
-                  !resolved
-                ) {
-                  resolved = true;
-                  await fallbackChannel?.unsubscribe();
-                  console.log(
-                    `✅ / ❌ Fallback resolved with status: ${status}`
-                  );
-                  resolve(status === "success");
-                }
+                resolve(status === "success");
               }
-            )
-            .subscribe()
+            }
+          )
+          .subscribe()
         : null;
       const { data, error: functionError } = await supabase.functions.invoke(
         "ops-data-insert",
@@ -726,8 +726,7 @@ export class SupabaseApi implements ServiceApi {
           });
           if (isInitialFetch) {
             throw new Error(
-              `Initial fetch failed for ${rpcName || tableName}: ${
-                res?.error?.message
+              `Initial fetch failed for ${rpcName || tableName}: ${res?.error?.message
               }`
             );
           }
@@ -970,7 +969,6 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase) return;
 
     const updatedAt = new Date().toISOString();
-
     try {
       const { error } = await this.supabase
         .from(TABLES.ClassUser)
@@ -2115,7 +2113,7 @@ export class SupabaseApi implements ServiceApi {
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
           new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
-            todaysTimestamp.split("T")[0];
+          todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -5425,6 +5423,7 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase) return;
 
     try {
+      const updatedAt = new Date().toISOString();
       // Step 1: Fetch class_user entry
       const { data: existingEntries, error: fetchError } = await this.supabase
         .from(TABLES.ClassUser)
@@ -5448,7 +5447,7 @@ export class SupabaseApi implements ServiceApi {
       // Step 2: Soft delete the class_user record
       const { error: updateError } = await this.supabase
         .from(TABLES.ClassUser)
-        .update({ is_deleted: true })
+        .update({ is_deleted: true, updated_at: updatedAt })
         .eq("id", entryToUpdate.id);
 
       if (updateError) {
@@ -7079,8 +7078,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
-              )
+              (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+            )
             : [];
         }
       }
@@ -7128,8 +7127,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
-              )
+              (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+            )
             : [];
         }
       }
@@ -8043,21 +8042,21 @@ export class SupabaseApi implements ServiceApi {
       const [schoolsResp, usersResp, classesResp] = await Promise.all([
         schoolIds.length
           ? this.supabase
-              .from(TABLES.School)
-              .select("id, name, udise, group1,group2, group3, country")
-              .in("id", schoolIds)
+            .from(TABLES.School)
+            .select("id, name, udise, group1,group2, group3, country")
+            .in("id", schoolIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         userIds.length
           ? this.supabase
-              .from(TABLES.User)
-              .select("id, name, email, phone")
-              .in("id", userIds)
+            .from(TABLES.User)
+            .select("id, name, email, phone")
+            .in("id", userIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         classIds.length
           ? this.supabase
-              .from(TABLES.Class)
-              .select("id, name, school_id")
-              .in("id", classIds)
+            .from(TABLES.Class)
+            .select("id, name, school_id")
+            .in("id", classIds)
           : Promise.resolve({ data: [] as any[], error: null }),
       ]);
       if (schoolsResp.error) throw schoolsResp.error;
