@@ -4,28 +4,33 @@ const webpack = require("webpack");
 module.exports = {
   webpack: {
     alias: {
-      // your existing alias
       "./workers/node": false,
-
-      // make 'process/browser' resolve to the actual JS file
       "process/browser": require.resolve("process/browser"),
     },
-
     configure: (config) => {
       config.resolve = config.resolve || {};
 
-      // Node core module fallbacks for Webpack 5
       config.resolve.fallback = {
         ...(config.resolve.fallback || {}),
         crypto: require.resolve("crypto-browserify"),
-        path: require.resolve("path-browserify"),
         stream: require.resolve("stream-browserify"),
         buffer: require.resolve("buffer"),
+        path: require.resolve("path-browserify"),
+        vm: require.resolve("vm-browserify"),
+        os: require.resolve("os-browserify/browser"),
+        assert: require.resolve("assert"),
+        http: require.resolve("stream-http"),
+        https: require.resolve("https-browserify"),
+        url: require.resolve("url"),
+        zlib: require.resolve("browserify-zlib"),
         process: require.resolve("process/browser"),
-        fs: false, // no fs in the browser
+
+        // Modules you definitely don’t have in the browser
+        fs: false,
+        net: false,
+        tls: false,
       };
 
-      // Provide global process/Buffer for libs that expect them
       config.plugins = [
         ...(config.plugins || []),
         new webpack.ProvidePlugin({

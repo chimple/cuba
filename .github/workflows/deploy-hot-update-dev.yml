@@ -47,7 +47,13 @@ jobs:
           echo "Using channel: $CHANNEL_NAME"
 
       - name: Build project
-        run: export GENERATE_SOURCEMAP=false && npx craco build && npm run copy-build && npx @capawesome/cli manifests:generate --path build
+        env:
+          CI: false
+        run: |
+          export GENERATE_SOURCEMAP=false
+          npx craco build
+          npm run copy-build
+          npx @capawesome/cli manifests:generate --path build
 
       - name: Login to Capawesome Cloud
         env:
