@@ -85,6 +85,9 @@ const DisplaySchools: FC = () => {
   const lockOrientation = () => {
     if (Capacitor.isNativePlatform()) {
       ScreenOrientation.lock({ orientation: "portrait" });
+       setTimeout(() => {
+        Util.killCocosGame()
+      }, 1000);
     }
   };
 
