@@ -49,7 +49,7 @@ const CocosGame: React.FC = () => {
   const courseDetail: TableTypes<"course"> = state.course
     ? JSON.parse(state.course)
     : undefined;
-  const selectedLesson: Map<string, string> = state.selectedLesson??undefined;
+  const selectedLesson: Map<string, string> = state.selectedLesson ?? undefined;
 
   const chapterDetail: TableTypes<"chapter"> = state.chapter
     ? JSON.parse(state.chapter)
@@ -75,7 +75,9 @@ const CocosGame: React.FC = () => {
   useEffect(() => {
     init();
     Util.checkingIfGameCanvasAvailable();
-    ScreenOrientation.lock({ orientation: "landscape" });
+    if (Capacitor.isNativePlatform()) {
+      ScreenOrientation.lock({ orientation: "landscape" });
+    }
     CapApp.addListener("appStateChange", handleAppStateChange);
     return () => {
       CapApp.removeAllListeners();
@@ -109,44 +111,44 @@ const CocosGame: React.FC = () => {
           lesson: lesson,
           chapterId: chapterDetail?.id,
           selectedLesson: selectedLesson,
-          fromCocos:true
+          fromCocos: true
         });
         // window.location.reload();
       } else {
-        history.replace(fromPath + "&isReload=false",{
+        history.replace(fromPath + "&isReload=false", {
           course: courseDetail,
           lesson: lesson,
           chapterId: chapterDetail?.id,
           selectedLesson: selectedLesson,
-          fromCocos:true
+          fromCocos: true
         });
       }
       setIsLoading(false);
     } else {
       if (!!urlParams.get("isReload")) {
         if (fromPath.includes("?"))
-          history.replace(fromPath + "&isReload=true",{
+          history.replace(fromPath + "&isReload=true", {
+            course: courseDetail,
+            lesson: lesson,
+            chapterId: chapterDetail?.id,
+            selectedLesson: selectedLesson,
+            fromCocos: true
+          });
+        else history.replace(fromPath + "?isReload=true", {
           course: courseDetail,
           lesson: lesson,
           chapterId: chapterDetail?.id,
           selectedLesson: selectedLesson,
-          fromCocos:true
-        });
-        else history.replace(fromPath + "?isReload=true",{
-          course: courseDetail,
-          lesson: lesson,
-          chapterId: chapterDetail?.id,
-          selectedLesson: selectedLesson,
-          fromCocos:true
+          fromCocos: true
         });
         window.location.reload();
       } else {
-        history.replace(fromPath,{
+        history.replace(fromPath, {
           course: courseDetail,
           lesson: lesson,
           chapterId: chapterDetail?.id,
           selectedLesson: selectedLesson,
-          fromCocos:true
+          fromCocos: true
         });
       }
     }
@@ -156,7 +158,7 @@ const CocosGame: React.FC = () => {
   const gameExit = async (e: any) => {
     const api = ServiceConfig.getI().apiHandler;
     const _currentUser =
-            await ServiceConfig.getI().authHandler.getCurrentUser();
+      await ServiceConfig.getI().authHandler.getCurrentUser();
     const data = e.detail as CocosLessonData;
 
     await Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
