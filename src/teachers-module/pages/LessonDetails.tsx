@@ -91,24 +91,6 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({ }) => {
     //   console.error("Error opening in-app browser:", error);
     //   window.open(urlToOpen, '_blank');
     // }
-    // if (lesson.plugin_type === COCOS) {
-    //   const courseId = getCourseIdFromCocosLesson(
-    //     lesson.cocos_lesson_id,
-    //     lesson.cocos_subject_code
-    //   );
-    //   const parmas = `?courseid=${courseId}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-    //   history.replace(PAGES.GAME + parmas, {
-    //     url: "chimple-lib/index.html" + parmas,
-    //     lessonId: lesson.cocos_lesson_id,
-    //     courseDocId:
-    //       course?.id,
-    //     course: JSON.stringify(course),
-    //     lesson: JSON.stringify(lesson),
-    //     chapterId: chapterId,
-    //     selectedLesson: selectedLesson,
-    //     from: history.location.pathname + `?${CONTINUE}=true`,
-    //   });
-    // }
     if (lesson.plugin_type === COCOS) {
       const courseId = getCourseIdFromCocosLesson(
         lesson.cocos_lesson_id,
