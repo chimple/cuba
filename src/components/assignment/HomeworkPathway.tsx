@@ -61,26 +61,6 @@ const HomeworkPathway: React.FC = () => {
     fetchHomeworkPathway(currentStudent);
   }, [currentStudent?.id, isDropdownAlwaysEnabled]);
 
-  useEffect(() => {
-    const handleCourseChange = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      const currentStudent = customEvent.detail.currentStudent;
-      // Refetch or update assignments/pathway for currentStudent
-      fetchHomeworkPathway(currentStudent);
-    };
-
-    window.addEventListener("courseChanged", handleCourseChange);
-
-    const currentStudent = Util.getCurrentStudent();
-    if (currentStudent) {
-      fetchHomeworkPathway(currentStudent);
-    }
-
-    return () => {
-      window.removeEventListener("courseChanged", handleCourseChange);
-    };
-  }, []);
-
   const updateStarCount = async (currentStudent: TableTypes<"user">) => {
     const storedStarsJson = localStorage.getItem(STARS_COUNT);
     const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
@@ -291,6 +271,12 @@ const HomeworkPathway: React.FC = () => {
           onClick={handleDropdownWrapperClick}
         >
           <DropdownMenu
+            onCourseChange={() => {
+              const currentStudent = Util.getCurrentStudent();
+              if (currentStudent) {
+                fetchHomeworkPathway(currentStudent);
+              }
+            }}
             disabled={isDropdownDisabled}
             hideArrow={isDropdownDisabled}
           />

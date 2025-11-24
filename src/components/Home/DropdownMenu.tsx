@@ -13,11 +13,13 @@ interface CourseDetails {
 interface DropdownMenuProps {
   disabled?: boolean;
   hideArrow?: boolean;
+  onCourseChange?: () => void;
 }
 
 const DropdownMenu: FC<DropdownMenuProps> = ({
   disabled = false,
   hideArrow = false,
+  onCourseChange,
 }) => {
   const [expanded, setExpanded] = useState<boolean>(false);
   const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
@@ -153,6 +155,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
       await Promise.all(updateOperations);
 
       // Dispatch event after all operations complete
+      if (onCourseChange) onCourseChange();
       window.dispatchEvent(
         new CustomEvent("courseChanged", { detail: { currentStudent } })
       );
