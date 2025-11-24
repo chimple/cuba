@@ -161,7 +161,7 @@ const HomeworkPathway: React.FC = () => {
       if (
         pathData &&
         pathData.lessons &&
-        pathData.currentIndex === pathData.lessons.length - 1
+        pathData.currentIndex === pathData.lessons.length
       ) {
         await awardStarsForPathCompletion(student, 10);
       }
