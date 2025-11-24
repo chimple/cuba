@@ -27,7 +27,6 @@ import LearningPathway from "../components/LearningPathway";
 import HomeworkPathway from "../components/assignment/HomeworkPathway";
 import { useFeatureIsOn } from "@growthbook/growthbook-react";
 
-
 // Extend props to accept a callback for new assignments.
 interface AssignmentPageProps {
   assignmentCount: any;
@@ -60,8 +59,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
   }>({});
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const isMounted = useRef(true);
-    const isHomeworkPathwayOn = useFeatureIsOn("homework-learning-pathway");
-
+  const isHomeworkPathwayOn = useFeatureIsOn("homework-learning-pathway");
 
   const updateLessonChapterAndCourseMaps = useCallback(
     async (assignments: TableTypes<"assignment">[]) => {
@@ -318,63 +316,61 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
             "header " + isInputFocus && !isLinked ? "scroll-header" : ""
           }
         >
-          <div className="assignment-header">
-            <div className="right-button"></div>
-            <div className="dowload-homework-button-container">
-              {isHomeworkPathwayOn && (
+          {isHomeworkPathwayOn && (
+            <div className="assignment-header">
+              <div className="right-button"></div>
+
+              <div className="dowload-homework-button-container">
                 <div className="school-class-header">
                   <div className="classname-header">{schoolName}</div>
                   <div className="classname-header">
                     {currentClass?.name ? currentClass?.name : ""}
                   </div>
                 </div>
+              </div>
+
+              {isLinked &&
+              showDownloadHomeworkButton &&
+              lessons.length > 0 &&
+              Capacitor.isNativePlatform() ? (
+                <IonButton
+                  size="small"
+                  color="white"
+                  shape="round"
+                  disabled={downloadButtonLoading}
+                  className="dowload-homework-button"
+                  onClick={() => {
+                    if (!online) {
+                      presentToast({
+                        message: t(`Device is offline.`),
+                        color: "danger",
+                        duration: 3000,
+                        position: "bottom",
+                        buttons: [{ text: "Dismiss", role: "cancel" }],
+                      });
+                      setLoading(false);
+                      return;
+                    }
+                    downloadAllHomeWork(lessons);
+                  }}
+                >
+                  <div className="download-homework-label">
+                    {downloadButtonLoading
+                      ? t("Downloading...")
+                      : t("Download all")}
+                  </div>
+
+                  {!downloadButtonLoading && (
+                    <div className="dowload-homework-icon-container">
+                      <TfiDownload className="dowload-homework-icon" />
+                    </div>
+                  )}
+                </IonButton>
+              ) : (
+                <div className="right-button"></div>
               )}
             </div>
-            {isLinked &&
-            showDownloadHomeworkButton &&
-            lessons.length > 0 &&
-            Capacitor.isNativePlatform() ? (
-              <IonButton
-                size="small"
-                color="white"
-                shape="round"
-                disabled={downloadButtonLoading}
-                className="dowload-homework-button"
-                onClick={() => {
-                  if (!online) {
-                    presentToast({
-                      message: t(`Device is offline.`),
-                      color: "danger",
-                      duration: 3000,
-                      position: "bottom",
-                      buttons: [
-                        {
-                          text: "Dismiss",
-                          role: "cancel",
-                        },
-                      ],
-                    });
-
-                    setLoading(false);
-                    return;
-                  } else downloadAllHomeWork(lessons);
-                }}
-              >
-                <div className="download-homework-label">
-                  {downloadButtonLoading
-                    ? t("Downloading...")
-                    : t("Download all")}
-                </div>
-                {!downloadButtonLoading ? (
-                  <div className="dowload-homework-icon-container">
-                    <TfiDownload className="dowload-homework-icon" />
-                  </div>
-                ) : null}
-              </IonButton>
-            ) : (
-              <div className="right-button"></div>
-            )}
-          </div>
+          )}
 
           {!loading && (
             <div
@@ -394,7 +390,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
                 <div>
                   {assignments.length > 0 ? (
                     // 3. Conditionally render based on the feature flag
-                      // If the feature is ON, show the original slider
+                    // If the feature is ON, show the original slider
                     isHomeworkPathwayOn ? (
                       <LessonSlider
                         key={assignments.length}
@@ -416,8 +412,6 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
                       // If the feature is OFF, show the new pathway
 
                       <HomeworkPathway />
-
-                      
                     )
                   ) : (
                     <div className="pending-assignment">

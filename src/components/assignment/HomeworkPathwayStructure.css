@@ -1,7 +1,7 @@
 .homeworkpathway-structure-div {
   position: absolute;
-  top: 40%;
-  left: 20%;
+  top: 70%;
+  left: 23%;
   height: 51vh;
   width: 100vw;
   display: flex;
@@ -9,8 +9,14 @@
   align-items: center;
 }
 
+@media (max-width: 1024px) and (orientation: landscape) {
+  .homeworkpathway-structure-div {
+    top: 30%;  /* Adjust for tablets and phones in landscape */
+  }
+}
+
 .homeworkpathway-structure-animated-pointer {
-  animation: diagonal-move 1.2s infinite ease-in-out;
+  animation: diagonal-move 1.4s infinite ease-in-out;
 }
 
 @keyframes diagonal-move {
@@ -18,7 +24,7 @@
     transform: translate(0, 0);
   }
   50% {
-    transform: translate(20px, 20px); /* adjust these values to your desired diagonal distance */
+    transform: translate(12px, 12px); /* adjust these values to your desired diagonal distance */
   }
   100% {
     transform: translate(0, 0);

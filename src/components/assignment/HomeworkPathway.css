@@ -25,4 +25,5 @@
   justify-content: center;
   align-items: center;
   gap: 1rem; /* Add some space between the dropdown and the pathway */
+  margin-left: 5vw;
 }
