@@ -10,6 +10,7 @@ import {
   LATEST_STARS,
   STARS_COUNT,
   TableTypes,
+  LIVE_QUIZ,
 } from "../../common/constants";
 import { Util } from "../../utility/util";
 import { schoolUtil } from "../../utility/schoolUtil";
@@ -32,11 +33,13 @@ interface HomeworkPath {
   currentIndex: number;
 }
 
-
 const HomeworkPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const [loading, setLoading] = useState<boolean>(true);
-    const [boxDetails, setBoxDetails] = useState<{ cName: string; lName: string } | null>(null); 
+  const [boxDetails, setBoxDetails] = useState<{
+    cName: string;
+    lName: string;
+  } | null>(null);
 
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
@@ -44,9 +47,10 @@ const HomeworkPathway: React.FC = () => {
   const { setGbUpdated } = useGbContext();
   // ✅ New state variables for dropdown logic
   const [isDropdownDisabled, setIsDropdownDisabled] = useState<boolean>(true);
-  const [showDisabledDropdownModal, setShowDisabledDropdownModal] = useState<boolean>(false);
-    const isDropdownAlwaysEnabled = useFeatureIsOn(HOMEWORK_PATHWAY_DROPDOWN);
-
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [showDisabledDropdownModal, setShowDisabledDropdownModal] =
+    useState<boolean>(false);
+  const isDropdownAlwaysEnabled = useFeatureIsOn(HOMEWORK_PATHWAY_DROPDOWN);
 
   useEffect(() => {
     if (!currentStudent?.id) {
@@ -88,10 +92,20 @@ const HomeworkPathway: React.FC = () => {
       await api.updateStudentStars(currentStudent.id, latestLocalStars);
     }
   };
+  async function awardStarsForPathCompletion(
+    student: TableTypes<"user">,
+    starsToAdd: number
+  ) {
+    const currentStars = student.stars || 0;
+    const newStarCount = currentStars + starsToAdd;
+
+    await api.updateStudentStars(student.id, newStarCount);
+    await updateStarCount(student);
+  }
 
   const fetchHomeworkPathway = async (student: TableTypes<"user">) => {
     try {
-      let pathData: HomeworkPath | null = null; 
+      let pathData: HomeworkPath | null = null;
 
       const existingPath = sessionStorage.getItem(HOMEWORK_PATHWAY);
       // ✅ Fetch ALL pending assignments to check the total count
@@ -100,11 +114,10 @@ const HomeworkPathway: React.FC = () => {
         setLoading(false);
         return;
       }
-      const allPendingAssignments = await api.getPendingAssignments(currClass.id, student.id);
-       // ✅ --- MODIFIED LOGIC FOR DISABLING DROPDOWN ---
-      // Condition 1: Are there 5 or fewer total assignments? If so, it MUST be disabled.
-      const hasFewAssignments = !allPendingAssignments || allPendingAssignments.length <= 5;
-      
+      const all = await api.getPendingAssignments(currClass.id, student.id);
+      const allPendingAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
+      const hasFewAssignments =
+        !allPendingAssignments || allPendingAssignments.length <= 5;
       // Condition 2: Is the feature flag ON?
       if (isDropdownAlwaysEnabled) {
         // If the flag is ON, the dropdown is ONLY disabled if there are few assignments.
@@ -115,35 +128,47 @@ const HomeworkPathway: React.FC = () => {
         // few assignments OR if a path is already in progress.
         setIsDropdownDisabled(hasFewAssignments || !!existingPath);
       }
-      
+
       if (!existingPath) {
-        pathData = await buildAndSaveInitialHomeworkPath(student, allPendingAssignments); // Ensure this function returns the path object
+        pathData = await buildAndSaveInitialHomeworkPath(
+          student,
+          allPendingAssignments
+        ); // Ensure this function returns the path object
       } else {
         pathData = JSON.parse(existingPath);
+      }
+
+      if (
+        pathData &&
+        pathData.lessons &&
+        pathData.currentIndex === pathData.lessons.length
+      ) {
+        await awardStarsForPathCompletion(student, 10);
       }
 
       // LOGIC TO GET NAMES FOR THE BOX
       if (pathData && pathData.lessons && pathData.lessons.length > 0) {
         const currentIndex = pathData.currentIndex || 0;
         const currentObj = pathData.lessons[currentIndex];
-        
+
         // We need the lesson name and chapter name
         // The lesson object is already nested in currentObj based on your previous code
         if (currentObj && currentObj.lesson) {
-             // We might need to fetch the Chapter Name if it's not in the saved object
-             let cName = "Chapter"; 
-             if(currentObj.lesson.chapter_id) {
-                 const chapter = await api.getChapterById(currentObj.lesson.chapter_id);
-                 cName = chapter?.name || "Chapter";
-             }
-             
-             setBoxDetails({
-                 cName: cName,
-                 lName: currentObj.lesson.name
-             });
+          // We might need to fetch the Chapter Name if it's not in the saved object
+          let cName = "Chapter";
+          if (currentObj.lesson.chapter_id) {
+            const chapter = await api.getChapterById(
+              currentObj.lesson.chapter_id
+            );
+            cName = chapter?.name || "Chapter";
+          }
+
+          setBoxDetails({
+            cName: cName,
+            lName: currentObj.lesson.name,
+          });
         }
       }
-
     } catch (error) {
       console.error("Error in fetchHomeworkPathway:", error);
     } finally {
@@ -234,22 +259,34 @@ const HomeworkPathway: React.FC = () => {
     if (isDropdownDisabled) {
       setShowDisabledDropdownModal(true);
     }
-  }
+  };
 
   if (loading) return <Loading isLoading={loading} msg="Loading Homework" />;
 
   return (
     <div className="homework-pathway-container">
       <div className="homeworkpathway-pathway_section">
-        <div className="homework-dropdown-wrapper" onClick={handleDropdownWrapperClick}>
-          <DropdownMenu disabled={isDropdownDisabled} />
+        <div
+          className="homework-dropdown-wrapper"
+          onClick={handleDropdownWrapperClick}
+        >
+          <DropdownMenu
+            onCourseChange={() => {
+              const currentStudent = Util.getCurrentStudent();
+              if (currentStudent) {
+                fetchHomeworkPathway(currentStudent);
+              }
+            }}
+            disabled={isDropdownDisabled}
+            hideArrow={isDropdownDisabled}
+          />
         </div>
         <HomeworkPathwayStructure />
       </div>
 
       <div className="homeworkpathway-chapter-egg-container">
         <ChapterLessonBox
-        chapterName={boxDetails?.cName || "Loading"}
+          chapterName={boxDetails?.cName || "Loading"}
           lessonName={boxDetails?.lName || "..."}
           containerStyle={{
             width: "35vw",

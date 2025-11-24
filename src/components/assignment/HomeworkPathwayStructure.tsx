@@ -331,10 +331,11 @@ const HomeworkPathwayStructure: React.FC = () => {
       }
 
       // Fetch all pending assignments for the student
-      const pendingAssignments = await api.getPendingAssignments(
+      const all = await api.getPendingAssignments(
         currClass?.id,
         currentStudent.id
       );
+      const pendingAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
 
       console.log("pendingAssignments", pendingAssignments);
 
@@ -589,9 +590,15 @@ const HomeworkPathwayStructure: React.FC = () => {
               "style",
               "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
             );
+            let yOffset = -10; 
+
+            if (pathIndex === 2 || pathIndex === 4) {
+              yOffset = 5; 
+            }
+
             const adjustedY =
-              (positionMappings.fruitInactive.y[pathIndex] ?? flowerY - 20) -
-              10;
+              (positionMappings.fruitInactive.y[pathIndex] ?? flowerY - 20) +
+              yOffset;
             placeElement(
               lockedFruit as SVGGElement,
               positionMappings.fruitInactive.x[pathIndex] ?? flowerX - 20,
@@ -722,9 +729,15 @@ const HomeworkPathwayStructure: React.FC = () => {
               "style",
               "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
             );
+            let yOffset = -10; 
+
+            if (pathIndex === 2 || pathIndex === 4) {
+              yOffset = 5; 
+            }
+
             const adjustedY =
-              (positionMappings.fruitInactive.y[pathIndex] ?? flowerY - 20) -
-              10;
+              (positionMappings.fruitInactive.y[pathIndex] ?? flowerY - 20) +
+              yOffset;
             placeElement(
               flower_Inactive as SVGGElement,
               positionMappings.fruitInactive.x[pathIndex] ?? flowerX - 20,
@@ -744,7 +757,7 @@ const HomeworkPathwayStructure: React.FC = () => {
           );
           Gift_Svg.setAttribute("style", "cursor: pointer;");
           Gift_Svg.appendChild(giftSVG.cloneNode(true));
-          placeElement(Gift_Svg, endPoint.x - 25, endPoint.y - 40);
+          placeElement(Gift_Svg, endPoint.x - 25, endPoint.y - 40 + 15);
 
           if (currentIndex < pathEndIndex + 1) {
             Gift_Svg.addEventListener("click", () => {
