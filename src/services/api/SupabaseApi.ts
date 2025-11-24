@@ -736,7 +736,6 @@ export class SupabaseApi implements ServiceApi {
         //   `Fetched ${JSON.stringify(res?.data)} records from ${tableName}`
         // );
         data.set(tableName, res?.data ?? []);
-        console.log("checking jkjkjk", tableName);
       });
 
       await Promise.all(fetchPromises);
@@ -8812,7 +8811,6 @@ export class SupabaseApi implements ServiceApi {
     if (classId) query = query.eq("class_id", classId);
 
     const { error } = await query;
-    console.log("triggered this function", schoolId, classId, error);
 
     if (error) {
       console.error("Error deleting approved ops_requests:", error);
