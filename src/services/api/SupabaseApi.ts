@@ -8926,9 +8926,6 @@ export class SupabaseApi implements ServiceApi {
       throw new Error("Supabase client is not initialized.");
     }
     const { name, phoneNumber, email, schoolId, role, classId } = params;
-    if (!schoolId) {
-      throw new Error("A schoolId is required to link a user to a school.");
-    }
     if (!role) {
       throw new Error("A role is required to link a user to a school.");
     }
@@ -8953,53 +8950,55 @@ export class SupabaseApi implements ServiceApi {
     };
     const isNewUser = message === "success-created";
     let schoolUser: any | null = null;
-    const { data: existingSchoolUser, error: existingSchoolUserError } =
-      await this.supabase
-        .from("school_user")
-        .select("*")
-        .eq("school_id", schoolId)
-        .eq("user_id", user.id)
-        .maybeSingle();
-    if (existingSchoolUserError) {
-      console.error("Failed to fetch school_user:", existingSchoolUserError);
-      throw existingSchoolUserError;
-    }
-    if (existingSchoolUser) {
-      const { data: updated, error: updateError } = await this.supabase
-        .from("school_user")
-        .update({
+    if (schoolId) {
+      const { data: existingSchoolUser, error: existingSchoolUserError } =
+        await this.supabase
+          .from("school_user")
+          .select("*")
+          .eq("school_id", schoolId)
+          .eq("user_id", user.id)
+          .maybeSingle();
+      if (existingSchoolUserError) {
+        console.error("Failed to fetch school_user:", existingSchoolUserError);
+        throw existingSchoolUserError;
+      }
+      if (existingSchoolUser) {
+        const { data: updated, error: updateError } = await this.supabase
+          .from("school_user")
+          .update({
+            role,
+            is_deleted: false,
+            updated_at: timestamp,
+          })
+          .eq("id", existingSchoolUser.id)
+          .select("*")
+          .maybeSingle();
+        if (updateError) {
+          console.error("Failed to update school_user:", updateError);
+          throw updateError;
+        }
+        schoolUser = updated ?? existingSchoolUser;
+      } else {
+        const schoolUserPayload = {
+          id: uuidv4(),
+          school_id: schoolId,
+          user_id: user.id,
           role,
           is_deleted: false,
+          created_at: timestamp,
           updated_at: timestamp,
-        })
-        .eq("id", existingSchoolUser.id)
-        .select("*")
-        .maybeSingle();
-      if (updateError) {
-        console.error("Failed to update school_user:", updateError);
-        throw updateError;
+        };
+        const { data: inserted, error: insertError } = await this.supabase
+          .from("school_user")
+          .insert([schoolUserPayload])
+          .select("*")
+          .maybeSingle();
+        if (insertError) {
+          console.error("Failed to insert school_user:", insertError);
+          throw insertError;
+        }
+        schoolUser = inserted;
       }
-      schoolUser = updated ?? existingSchoolUser;
-    } else {
-      const schoolUserPayload = {
-        id: uuidv4(),
-        school_id: schoolId,
-        user_id: user.id,
-        role,
-        is_deleted: false,
-        created_at: timestamp,
-        updated_at: timestamp,
-      };
-      const { data: inserted, error: insertError } = await this.supabase
-        .from("school_user")
-        .insert([schoolUserPayload])
-        .select("*")
-        .maybeSingle();
-      if (insertError) {
-        console.error("Failed to insert school_user:", insertError);
-        throw insertError;
-      }
-      schoolUser = inserted;
     }
     let classUser: any | null = null;
     if (classId) {

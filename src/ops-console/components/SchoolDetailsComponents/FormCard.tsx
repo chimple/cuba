@@ -89,10 +89,12 @@ const FormCard: React.FC<EntityModalProps> = ({
                 setOpenSelect(null);
               }}
             >
-              <option value="">{t("Select ")}{field.label}</option>
+              <option value="">
+                {t("Select ")} {t(field.label)}
+              </option>
               {field.options?.map((opt) => (
                 <option key={opt.value} value={opt.value}>
-                  {opt.label}
+                  {t(opt.label)}
                 </option>
               ))}
             </select>
@@ -166,7 +168,11 @@ const FormCard: React.FC<EntityModalProps> = ({
       <div className="formcard-modal">
         <div className="formcard-modal-header">
           <h2 className="formcard-title">{title}</h2>
-          <button type="button" className="formcard-close-button" onClick={onClose}>
+          <button
+            type="button"
+            className="formcard-close-button"
+            onClick={onClose}
+          >
             ✕
           </button>
         </div>
@@ -175,8 +181,10 @@ const FormCard: React.FC<EntityModalProps> = ({
             {fields.map((field) => (
               <div key={field.name} className={getFieldClassName(field)}>
                 <label htmlFor={field.name} className="formcard-label">
-                  {field.label}
-                  {field.required && <span className="formcard-required"> *</span>}
+                  {t(field.label)}
+                  {field.required && (
+                    <span className="formcard-required"> *</span>
+                  )}
                 </label>
                 {renderFieldInput(field)}
               </div>

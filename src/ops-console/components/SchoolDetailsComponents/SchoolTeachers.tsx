@@ -328,7 +328,6 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           name,
           phoneNumber: finalPhone || undefined,
           email: finalEmail || undefined,
-          schoolId,
           role: RoleType.TEACHER,
           classId,
         });
