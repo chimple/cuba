@@ -12,10 +12,15 @@ interface CourseDetails {
 }
 interface DropdownMenuProps {
   disabled?: boolean;
+  hideArrow?: boolean;
+  onCourseChange?: () => void;
 }
 
-
-const DropdownMenu: FC<DropdownMenuProps> = ({ disabled = false }) => {
+const DropdownMenu: FC<DropdownMenuProps> = ({
+  disabled = false,
+  hideArrow = false,
+  onCourseChange,
+}) => {
   const [expanded, setExpanded] = useState<boolean>(false);
   const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
   const [selected, setSelected] = useState<CourseDetails | null>(null);
@@ -150,6 +155,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({ disabled = false }) => {
       await Promise.all(updateOperations);
 
       // Dispatch event after all operations complete
+      if (onCourseChange) onCourseChange();
       window.dispatchEvent(
         new CustomEvent("courseChanged", { detail: { currentStudent } })
       );
@@ -164,9 +170,9 @@ const DropdownMenu: FC<DropdownMenuProps> = ({ disabled = false }) => {
     return parts.length > 1 ? parts[1] : name;
   };
   const handleToggleExpand = () => {
-    if (disabled) return;
-    setExpanded(prev => !prev);
-  }
+    if (hideArrow) return;
+    setExpanded((prev) => !prev);
+  };
 
   useEffect(() => {
     const preloadImage = (src: string) => {
@@ -194,7 +200,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({ disabled = false }) => {
   }, [expanded, selected, courseDetails]);
 
   return (
-      <div className={`dropdown-main ${disabled ? 'dropdown-disabled' : ''}`}>
+    <div className={`dropdown-main ${disabled ? "dropdown-disabled" : ""}`}>
       <div
         className={`dropdown-container ${expanded ? "expanded" : ""}`}
         onClick={handleToggleExpand}
@@ -252,15 +258,17 @@ const DropdownMenu: FC<DropdownMenuProps> = ({ disabled = false }) => {
             </div>
           )}
         </div>
-        <div className={`dropdown-arrow ${expanded ? "expanded-arrow" : ""}`}>
-          <SelectIconImage
-            defaultSrc={
-              expanded
-                ? "/assets/icons/ArrowDropUp.svg"
-                : "/assets/icons/ArrowDropDown.svg"
-            }
-          />
-        </div>
+        {!hideArrow && (
+          <div className={`dropdown-arrow ${expanded ? "expanded-arrow" : ""}`}>
+            <SelectIconImage
+              defaultSrc={
+                expanded
+                  ? "/assets/icons/ArrowDropUp.svg"
+                  : "/assets/icons/ArrowDropDown.svg"
+              }
+            />
+          </div>
+        )}
       </div>
 
       <div>
