@@ -845,33 +845,6 @@ export type Database = {
         }
         Relationships: []
       }
-      domain: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          is_deleted: boolean | null
-          name: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_deleted?: boolean | null
-          name: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_deleted?: boolean | null
-          name?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       error_logs: {
         Row: {
           created_at: string
