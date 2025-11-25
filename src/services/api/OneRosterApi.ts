@@ -237,6 +237,65 @@ interface IStatement {
   };
 }
 
+function extractSubjectAndGrade(courseId: string) {
+  let subject = courseId;
+  let grade: string | null = null;
+
+  if (courseId.includes("_g")) {
+    const parts = courseId.split("_g");
+    subject = parts[0];
+    grade = parts[1];
+  }
+  return { subject, grade };
+}
+
+function extractSuffix(pubSubjectCode: string, subject: string) {
+  if (pubSubjectCode.startsWith(subject)) {
+    return pubSubjectCode.slice(subject.length);
+  }
+  if (pubSubjectCode.length >= 2) {
+    return pubSubjectCode.slice(-2);
+  }
+  return "00";
+}
+
+
+function buildMetaId(subject: string, grade: string | null, suffix: string) {
+  return grade ? `${subject}${grade}_${suffix}` : `${subject}_${suffix}`;
+}
+
+
+function extractActivityId(identifier: string): string | null {
+  if (!identifier) return null;
+  const url = new URL(identifier);
+  return url.searchParams.get("activity_id");
+}
+
+
+function extractCocosCodes(imageHref: string) {
+  const match = imageHref.match(/\/icons\/(.+?)\.png/);
+  if (!match) return { lessonId: "", chapterId: "", subjectId: "" };
+
+  const lessonId = match[1];
+  return {
+    lessonId,
+    chapterId: lessonId.slice(0, -2),
+    subjectId: lessonId.slice(0, -4)
+  };
+}
+
+
+function computeSortIndex(courseId: string) {
+  switch (courseId) {
+    case "en_g1": return 1;
+    case "maths_g1": return 2;
+    case "en_g2": return 3;
+    case "maths_g2": return 4;
+    default: return 5;
+  }
+}
+
+
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -570,28 +629,11 @@ buildLessonFromCourseJson(
 
         const publications = courseJson?.publications || [];
         if (publications.length === 0) return undefined;
-
-        let subject = courseId;
-        let grade: string | null = null;
-
-        if (courseId.includes("_g")) {
-          const parts = courseId.split("_g");
-          subject = parts[0] ?? courseId;
-          grade = parts[1] ?? null;
-        }
-
+        
+        const { subject, grade } = extractSubjectAndGrade(courseId);
         const pubSubjectCode = courseJson?.publications[0]?.metadata?.subject?.[0]?.code || "";
-
-        let suffix = "";
-        if (pubSubjectCode && subject && pubSubjectCode.startsWith(subject)) {
-          suffix = pubSubjectCode.slice(subject.length);
-        } else if (pubSubjectCode.length >= 2) {
-          suffix = pubSubjectCode.slice(-2);
-        } else {
-          suffix = "00";
-        }
-
-        const metaId = grade ? `${subject}${grade}_${suffix}` : `${subject}_${suffix}`;
+        const suffix = extractSuffix(pubSubjectCode, subject);
+        const metaId = buildMetaId(subject, grade, suffix);
 
         let matchedPublication;
 
@@ -640,15 +682,10 @@ buildLessonFromCourseJson(
     } = { grades: [], courses: [] };
 
     const currentCourseJson = await this.loadCourseJson(course.id);
+
     const imgHref = currentCourseJson?.publications?.[0]?.images?.[0]?.href || "";
+    const { subjectId: subjectCode } = extractCocosCodes(imgHref);
 
-    let subjectCode = "";
-
-    const match = imgHref.match(/\/icons\/(.+?)\.png/);
-    if (match) {
-      const lessonId = match[1];           // en0000
-      subjectCode = lessonId.slice(0, -4); // remove last 4 → "en"
-    }
 
     const currentSubject = subjectCode;
     const currentCurriculum = "7d560737-746a-4931-a49f-02de1ca526bd";
@@ -1169,27 +1206,10 @@ buildLessonFromCourseJson(
         gradeCode = match[1];
       }
 
-      let subject = courseId;
-        let grade: string | null = null;
-
-        if (courseId.includes("_g")) {
-          const parts = courseId.split("_g");
-          subject = parts[0] ?? courseId;
-          grade = parts[1] ?? null;
-        }
-
-        const pubSubjectCode = courseJson?.publications[0]?.metadata?.subject?.[0]?.code || "";
-
-        let suffix = "";
-        if (pubSubjectCode && subject && pubSubjectCode.startsWith(subject)) {
-          suffix = pubSubjectCode.slice(subject.length);
-        } else if (pubSubjectCode.length >= 2) {
-          suffix = pubSubjectCode.slice(-2);
-        } else {
-          suffix = "00";
-        }
-
-        const metaId = grade ? `${subject}${grade}_${suffix}` : `${subject}_${suffix}`;
+      const { subject, grade } = extractSubjectAndGrade(courseId);
+      const pubSubjectCode = courseJson?.publications?.[0]?.metadata?.subject?.[0]?.code || "";
+      const suffix = extractSuffix(pubSubjectCode, subject);
+      const metaId = buildMetaId(subject, grade, suffix);
 
       let defaultCourse: TableTypes<"course"> = {
         code: gradeCode,
@@ -1211,29 +1231,12 @@ buildLessonFromCourseJson(
 
       if (!courseJson?.publications) return [];
       const chapters: TableTypes<"chapter">[] = courseJson.publications.map((pub: any) => {
-      let subject = courseId;
-      let grade: string | null = null;
 
-      if (courseId.includes("_g")) {
-        const parts = courseId.split("_g");
-        subject = parts[0] ?? courseId;
-        grade = parts[1] ?? null;
-      }
+      const { subject, grade } = extractSubjectAndGrade(courseId);
+      const pubSubjectCode = courseJson?.publications?.[0]?.metadata?.subject?.[0]?.code || "";
+      const suffix = extractSuffix(pubSubjectCode, subject);
+      const metaId = buildMetaId(subject, grade, suffix);
 
-      const pubSubjectCode = pub.metadata?.subject?.[0]?.code || "";
-
-      let suffix = "";
-      if (pubSubjectCode && subject && pubSubjectCode.startsWith(subject)) {
-        suffix = pubSubjectCode.slice(subject.length);
-      } else if (pubSubjectCode.length >= 2) {
-        suffix = pubSubjectCode.slice(-2);
-      } else {
-        suffix = "00";
-      }
-
-      const metaId = grade
-        ? `${subject}${grade}_${suffix}`
-        : `${subject}_${suffix}`;
 
       return {
         id: metaId,
@@ -1268,30 +1271,11 @@ buildLessonFromCourseJson(
 
         for (const pub of courseJson?.publications ?? []) {
 
-          let subject = courseId;
-          let grade: string | null = null;
-
-          if (courseId.includes("_g")) {
-            const parts = courseId.split("_g");
-            subject = parts[0] ?? courseId;
-            grade = parts[1] ?? null;
-          }
-
+          const { subject, grade } = extractSubjectAndGrade(courseId);
           const pubSubjectCode = pub.metadata?.subject?.[0]?.code || "";
+          const suffix = extractSuffix(pubSubjectCode, subject);
+          const metaId = buildMetaId(subject, grade, suffix);
 
-          let suffix = "";
-
-          if (pubSubjectCode && subject && pubSubjectCode.startsWith(subject)) {
-            suffix = pubSubjectCode.slice(subject.length);
-          } else if (pubSubjectCode.length >= 2) {
-            suffix = pubSubjectCode.slice(-2);
-          } else {
-            suffix = "00";
-          }
-
-          const metaId = grade
-            ? `${subject}${grade}_${suffix}`
-            : `${subject}_${suffix}`;
 
           if (metaId !== chapterId) continue;
 
@@ -1299,16 +1283,8 @@ buildLessonFromCourseJson(
           const url = new URL(identifier);
           const activityId = url.searchParams.get("activity_id") || "";
 
-          let cocosLessonId = "";
-          const imgHref = pub.images?.[0]?.href ?? "";
-          const imgMatch = imgHref.match(/\/icons\/(.+?)\.png/);
-
-          if (imgMatch) {
-            cocosLessonId = imgMatch[1];
-          }
-
-          const cocosChapterId = cocosLessonId.substring(0, cocosLessonId.length - 2);
-          const cocosSubjectId = cocosLessonId.substring(0, cocosLessonId.length - 4);
+          const { lessonId: cocosLessonId, chapterId: cocosChapterId, subjectId: cocosSubjectId } =
+           extractCocosCodes(pub.images?.[0]?.href ?? "");
 
           resultLessons.push({
             id: activityId,
@@ -1406,12 +1382,8 @@ buildLessonFromCourseJson(
       for (let i = 0; i < this.studentAvailableCourseIds.length; i++) {
         const courseId = this.studentAvailableCourseIds[i];
         try {
-          let sortIndex;
-          if(courseId == "en_g1") sortIndex = 1;
-          else if(courseId == "en_g2") sortIndex = 3;
-          else if(courseId == "maths_g1") sortIndex = 2;
-          else if(courseId == "maths_g2") sortIndex = 4;
-          else sortIndex = 5;
+          const sortIndex = computeSortIndex(courseId);
+
           const courseJson = await this.loadCourseJson(courseId);
           const href = courseJson?.links?.[0]?.href || "";
           let gradeCode = "";
@@ -1638,12 +1610,8 @@ buildLessonFromCourseJson(
           gradeCode = match[1];   // en_g1
       }
 
-      let sortIndex;
-      if(id == "en_g1") sortIndex = 1;
-      else if(id == "en_g2") sortIndex = 3;
-      else if(id == "maths_g1") sortIndex = 2;
-      else if(id == "maths_g2") sortIndex = 4;
-      else sortIndex = 5;
+      const sortIndex = computeSortIndex(id);
+
 
 
       let tCourse: TableTypes<"course"> = {
@@ -2808,12 +2776,8 @@ buildLessonFromCourseJson(
           gradeCode = match[1];   // en_g1
       }
 
-      let sortIndex;
-      if(courseId == "en_g1") sortIndex = 1;
-      else if(courseId == "en_g2") sortIndex = 3;
-      else if(courseId == "maths_g1") sortIndex = 2;
-      else if(courseId == "maths_g2") sortIndex = 4;
-      else sortIndex = 5;
+        const sortIndex = computeSortIndex(courseId);
+
 
         if (foundLesson) {
           const metaC = courseJson?.metadata;
@@ -2960,8 +2924,7 @@ buildLessonFromCourseJson(
 
         if (!identifier) continue;
 
-        const url = new URL(identifier);
-        const activityId = url.searchParams.get("activity_id");
+        const activityId = extractActivityId(identifier);
 
         if (activityId === lessonId) {
           return activityId;   // found the lesson
@@ -2975,6 +2938,8 @@ buildLessonFromCourseJson(
       return undefined;
     }
   }
+
+  
   public async getChapterByLessonID(
     lessonId: string
   ): Promise<TableTypes<"chapter"> | undefined> {
@@ -2984,31 +2949,11 @@ buildLessonFromCourseJson(
 
         for (const pub of courseJson?.publications ?? []) {
 
-          let subject = courseId;
-          let grade: string | null = null;
-
-          if (courseId.includes("_g")) {
-            const parts = courseId.split("_g");
-            subject = parts[0] ?? courseId;
-            grade = parts[1] ?? null;
-          }
-
+          const { subject, grade } = extractSubjectAndGrade(courseId);
           const pubSubjectCode = pub.metadata?.subject?.[0]?.code || "";
-
-          let suffix = "";
-          if (pubSubjectCode && subject && pubSubjectCode.startsWith(subject)) {
-            suffix = pubSubjectCode.slice(subject.length);
-          } else if (pubSubjectCode.length >= 2) {
-            suffix = pubSubjectCode.slice(-2);
-          } else {
-            suffix = "00";
-          }
-
-          const metaId = grade ? `${subject}${grade}_${suffix}` : `${subject}_${suffix}`;
-
-          const identifier = pub.metadata?.identifier || "";
-          const url = new URL(identifier);
-          const activityId = url.searchParams.get("activity_id");
+          const suffix = extractSuffix(pubSubjectCode, subject);
+          const metaId = buildMetaId(subject, grade, suffix);
+          const activityId = extractActivityId(pub.metadata.identifier);
 
           if (activityId === lessonId) {
 
