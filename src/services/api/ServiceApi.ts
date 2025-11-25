@@ -71,8 +71,8 @@ export interface ServiceApi {
    * @param {string} name - Name of the school.
    * @param {string} group1 - State of the school.
    * @param {string} group2 - District of the school.
-   * @param {string} group3 - City of the school.
-   * @param {string | null} group4 - Additional grouping, if any.
+   * @param {string} group3 - Block of the school.
+   * @param {string | null} group4 - Additional grouping, if any. eg: Cluster.
    * @param {File | null} image - Optional image file for the school.
    * @param {string | null} program_id - Linked program ID if any.
    * @param {string | null} udise - School's UDISE code (11 digits).
@@ -2018,6 +2018,13 @@ export interface ServiceApi {
   getSchoolDetailsByUdise(
     udiseCode: string
   ): Promise<{ studentLoginType: string; schoolModel: string } | null>;
+
+  /**
+   * Fetch SchoolData by UDISE code.
+   * @param {string} udiseCode - UDISE code of the school.
+   * @returns SchoolData row 
+   */
+  getSchoolDataByUdise(udiseCode: string): Promise<TableTypes<"school_data">| null> ;
   /**
    * Fetches chapters by chapterIDs array.
    * @param {string[]} chapterIds - Array of chapter IDs to fetch.
@@ -2210,4 +2217,20 @@ export interface ServiceApi {
     studentId: string,
     subjectIds: string[]
   ): Promise<{ subject_id: string; completed_count: number }[]>;
+
+
+/**
+   * Update school model to at_school or at_home.
+   * Update location link and key contacts if provided.
+   * @param schoolId School ID
+   * @param schoolMode mode of school
+   * @param locationLink url link of school location
+   * @param keyContacts provide contact details of key contacts
+   */
+  insertSchoolDetails(
+    schoolId: string,
+    schoolModel: string,
+    locationLink?: string,
+    keyContacts?: any
+  ): Promise<void> ;
 }

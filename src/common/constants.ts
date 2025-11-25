@@ -502,6 +502,7 @@ export enum PAGES {
   CREATE_SCHOOL = "/create-school",
   POST_SUCCESS = "/post-success",
   SCAN_REDIRECT = "/scan-redirect",
+  ADD_SCHOOL_PAGE = "/add-school-page",
 }
 
 export const enum ASSIGNMENT_TYPE {
