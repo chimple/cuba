@@ -6856,11 +6856,6 @@ order by
     locationLink?: string,
     keyContacts?: any
   ): Promise<void> {
-    if (!this._db) {
-      console.warn("Database not initialized.");
-      return;
-    }
-
     try {
       let fields = "model = ?";
       const values: any[] = [schoolModel];
@@ -6872,23 +6867,38 @@ order by
 
       if (keyContacts) {
         fields += ", key_contacts = ?";
-        values.push(JSON.stringify(keyContacts)); // stored as JSON string
+        values.push(JSON.stringify(keyContacts));
       }
 
+      const timestamp = new Date().toISOString();
       fields += ", updated_at = ?";
-      values.push(new Date().toISOString());
+      values.push(timestamp);
 
       values.push(schoolId);
 
       const query = `
-        UPDATE school 
+        UPDATE school
         SET ${fields}
-        WHERE id = ? AND is_deleted = 0
+        WHERE id = ? AND is_deleted = 0;
       `;
+      await this.executeQuery(query, values);
 
-      await this._db.query(query, values);
+      const pushObject = {
+        id: schoolId,
+        model: schoolModel,
+        location_link: locationLink ?? null,
+        key_contacts: keyContacts ?? null,
+        updated_at: timestamp
+      };
+
+      await this.updatePushChanges(
+        TABLES.School,
+        MUTATE_TYPES.UPDATE,
+        pushObject
+      );
+
     } catch (error) {
-      console.error("SQLite: Error inserting school details:", error);
+      console.error("❌ Error inserting school details:", error);
     }
   }
 

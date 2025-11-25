@@ -45,18 +45,18 @@ const AddSchoolPage: React.FC = () => {
   const [isBlocksLoading, setBlocksLoading] = useState(false);
   const [contacts, setContacts] = useState([
     {
-      subheader: "Contact 1",
+      subheader: t("Contact")+ " 1",
       required: true,
       fields: [
-        { label: "Name", name: "name", value: "", required: true },
-        { label: "Phone Number", name: "phone", value: "", required: true },
+        { label: t("Name"), name: "name", value: "", required: true },
+        { label: t("Phone Number"), name: "phone", value: "", required: true },
       ],
     },
     {
-      subheader: "Contact 2",
+      subheader: t("Contact")+ " 1",
       fields: [
-        { label: "Name", name: "name", value: "" },
-        { label: "Phone Number", name: "phone", value: "" },
+        { label: t("Name"), name: "name", value: "" },
+        { label: t("Phone Number"), name: "phone", value: "" },
       ],
     },
   ]);
@@ -262,11 +262,11 @@ const AddSchoolPage: React.FC = () => {
         <Breadcrumb
           crumbs={[
             {
-              label: "Schools",
+              label: t("Schools"),
               onClick: () =>
                 history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`),
             },
-            { label: "Add School" },
+            { label: t("Add School") },
           ]}
         />
       </div>
@@ -297,13 +297,14 @@ const AddSchoolPage: React.FC = () => {
                 fullWidth
                 size="small"
                 value={schoolName}
+                placeholder={t("School Name")??""}
                 onChange={(e) => setSchoolName(e.target.value)}
               />
             </Grid>
 
             <Grid size={{ xs: 12, md: 4.5 }}>
               <FormLabel sx={{ color: "#111827" }}>
-                {t("School UDISE")} <span style={{ color: "red" }}>*</span>
+                {t("School ID (UDISE)")} <span style={{ color: "red" }}>*</span>
               </FormLabel>
               <TextField
                 fullWidth
@@ -314,22 +315,22 @@ const AddSchoolPage: React.FC = () => {
                   inputMode: "numeric",
                   pattern: "[0-9]*",
                 }}
-                placeholder="Enter 11 digit udise code"
+                placeholder={t("Enter 11 digit UDISE code")??""}
                 onChange={(e) => handleUdiseChange(e.target.value)}
               />
             </Grid>
 
             <Grid size={{ xs: 12, md: 3 }}>
               <DropdownField
-                label={t("School Model")}
+                label={t("School") + " " + t("Model")}
                 required
                 value={schoolModel}
                 onChange={setSchoolModel}
                 placeholder={t("Select Model") ?? ""}
                 options={[
-                  { label: "At Home", value: "at_home" },
-                  { label: "At School", value: "at_school" },
-                  { label: "Hybrid", value: "hybrid" },
+                  { label: t("At Home"), value: "at_home" },
+                  { label: t("At School"), value: "at_school" },
+                  { label: t("Hybrid"), value: "hybrid" },
                 ]}
                 openDirection="down"
               />
@@ -400,11 +401,11 @@ const AddSchoolPage: React.FC = () => {
               <FormLabel
                 sx={{ fontSize: "1rem", color: "#111827", fontWeight: 500 }}
               >
-                Cluster
+                {t("Cluster")}
               </FormLabel>
               <TextField
                 fullWidth
-                placeholder="Enter Cluster"
+                placeholder={t("Enter Cluster")??""}
                 value={address.cluster}
                 onChange={(e) => handleAddressChange("cluster", e.target.value)}
                 variant="outlined"
@@ -416,7 +417,7 @@ const AddSchoolPage: React.FC = () => {
               <FormLabel
                 sx={{ fontSize: "1rem", color: "#111827", fontWeight: 500 }}
               >
-                Location link
+                {t("Location link")}
               </FormLabel>
               <TextField
                 fullWidth

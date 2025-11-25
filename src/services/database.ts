@@ -717,50 +717,7 @@ export type Database = {
           },
         ]
       }
-      competency: {
-        Row: {
-          code: string
-          created_at: string
-          description: string | null
-          domain_id: string
-          id: string
-          is_deleted: boolean | null
-          name: string
-          sort_index: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          code: string
-          created_at?: string
-          description?: string | null
-          domain_id: string
-          id?: string
-          is_deleted?: boolean | null
-          name: string
-          sort_index?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          code?: string
-          created_at?: string
-          description?: string | null
-          domain_id?: string
-          id?: string
-          is_deleted?: boolean | null
-          name?: string
-          sort_index?: number | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "public_competency_domain_id_fkey"
-            columns: ["domain_id"]
-            isOneToOne: false
-            referencedRelation: "domain"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+
       connector_users: {
         Row: {
           created_at: string | null
@@ -848,51 +805,6 @@ export type Database = {
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subject"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      course_domain: {
-        Row: {
-          course_id: string
-          created_at: string
-          domain_id: string
-          id: string
-          is_deleted: boolean | null
-          sort_index: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          course_id: string
-          created_at?: string
-          domain_id: string
-          id?: string
-          is_deleted?: boolean | null
-          sort_index?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          course_id?: string
-          created_at?: string
-          domain_id?: string
-          id?: string
-          is_deleted?: boolean | null
-          sort_index?: number | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "public_course_domain_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "course"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "public_course_domain_domain_id_fkey"
-            columns: ["domain_id"]
-            isOneToOne: false
-            referencedRelation: "domain"
             referencedColumns: ["id"]
           },
         ]
@@ -1183,184 +1095,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
-      }
-      learning_indicator: {
-        Row: {
-          code: string
-          created_at: string
-          description: string | null
-          difficulty: number
-          id: string
-          is_deleted: boolean | null
-          learning_outcome_id: string
-          name: string
-          sort_index: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          code: string
-          created_at?: string
-          description?: string | null
-          difficulty?: number
-          id?: string
-          is_deleted?: boolean | null
-          learning_outcome_id: string
-          name: string
-          sort_index?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          code?: string
-          created_at?: string
-          description?: string | null
-          difficulty?: number
-          id?: string
-          is_deleted?: boolean | null
-          learning_outcome_id?: string
-          name?: string
-          sort_index?: number | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "public_learning_indicator_learning_outcome_id_fkey"
-            columns: ["learning_outcome_id"]
-            isOneToOne: false
-            referencedRelation: "learning_outcome"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      learning_indicator_lesson: {
-        Row: {
-          created_at: string
-          id: string
-          is_deleted: boolean | null
-          learning_indicator_id: string
-          lesson_id: string
-          sort_index: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_deleted?: boolean | null
-          learning_indicator_id: string
-          lesson_id: string
-          sort_index?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_deleted?: boolean | null
-          learning_indicator_id?: string
-          lesson_id?: string
-          sort_index?: number | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "public_learning_indicator_lesson_learning_indicator_id_fkey"
-            columns: ["learning_indicator_id"]
-            isOneToOne: false
-            referencedRelation: "learning_indicator"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "public_learning_indicator_lesson_lesson_id_fkey"
-            columns: ["lesson_id"]
-            isOneToOne: false
-            referencedRelation: "lesson"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      learning_indicator_relation: {
-        Row: {
-          created_at: string
-          id: string
-          is_deleted: boolean | null
-          source_indicator_id: string
-          target_indicator_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_deleted?: boolean | null
-          source_indicator_id: string
-          target_indicator_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_deleted?: boolean | null
-          source_indicator_id?: string
-          target_indicator_id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "learning_indicator_relation_source_indicator_id_fkey"
-            columns: ["source_indicator_id"]
-            isOneToOne: false
-            referencedRelation: "learning_indicator"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "learning_indicator_relation_target_indicator_id_fkey"
-            columns: ["target_indicator_id"]
-            isOneToOne: false
-            referencedRelation: "learning_indicator"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      learning_outcome: {
-        Row: {
-          code: string
-          competency_id: string
-          created_at: string
-          description: string | null
-          id: string
-          is_deleted: boolean | null
-          name: string
-          sort_index: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          code: string
-          competency_id: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_deleted?: boolean | null
-          name: string
-          sort_index?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          code?: string
-          competency_id?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_deleted?: boolean | null
-          name?: string
-          sort_index?: number | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "public_learning_outcome_competency_id_fkey"
-            columns: ["competency_id"]
-            isOneToOne: false
-            referencedRelation: "competency"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       lesson: {
         Row: {
@@ -2351,140 +2085,6 @@ export type Database = {
           },
         ]
       }
-      school_visit: {
-        Row: {
-          channel: Database["public"]["Enums"]["visit_channel"]
-          class_id: string | null
-          created_at: string
-          id: string
-          is_deleted: boolean
-          notes: string | null
-          school_id: string
-          status_tag: string | null
-          target_type: Database["public"]["Enums"]["visit_target_type"]
-          target_user_id: string
-          updated_at: string
-          visited_at: string
-          visited_by: string
-        }
-        Insert: {
-          channel: Database["public"]["Enums"]["visit_channel"]
-          class_id?: string | null
-          created_at?: string
-          id?: string
-          is_deleted?: boolean
-          notes?: string | null
-          school_id: string
-          status_tag?: string | null
-          target_type: Database["public"]["Enums"]["visit_target_type"]
-          target_user_id: string
-          updated_at?: string
-          visited_at: string
-          visited_by: string
-        }
-        Update: {
-          channel?: Database["public"]["Enums"]["visit_channel"]
-          class_id?: string | null
-          created_at?: string
-          id?: string
-          is_deleted?: boolean
-          notes?: string | null
-          school_id?: string
-          status_tag?: string | null
-          target_type?: Database["public"]["Enums"]["visit_target_type"]
-          target_user_id?: string
-          updated_at?: string
-          visited_at?: string
-          visited_by?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "school_visit_class_id_fkey"
-            columns: ["class_id"]
-            isOneToOne: false
-            referencedRelation: "class"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "school_visit_school_id_fkey"
-            columns: ["school_id"]
-            isOneToOne: false
-            referencedRelation: "school"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "school_visit_target_user_id_fkey"
-            columns: ["target_user_id"]
-            isOneToOne: false
-            referencedRelation: "user"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "school_visit_visited_by_fkey"
-            columns: ["visited_by"]
-            isOneToOne: false
-            referencedRelation: "user"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      school_visit_answer: {
-        Row: {
-          answer_bool: boolean | null
-          answer_json: Json | null
-          answer_number: number | null
-          answer_text: string | null
-          answer_type: Database["public"]["Enums"]["visit_answer_type"]
-          created_at: string
-          id: string
-          is_deleted: boolean
-          question_id: string
-          updated_at: string
-          visit_id: string
-        }
-        Insert: {
-          answer_bool?: boolean | null
-          answer_json?: Json | null
-          answer_number?: number | null
-          answer_text?: string | null
-          answer_type: Database["public"]["Enums"]["visit_answer_type"]
-          created_at?: string
-          id?: string
-          is_deleted?: boolean
-          question_id: string
-          updated_at?: string
-          visit_id: string
-        }
-        Update: {
-          answer_bool?: boolean | null
-          answer_json?: Json | null
-          answer_number?: number | null
-          answer_text?: string | null
-          answer_type?: Database["public"]["Enums"]["visit_answer_type"]
-          created_at?: string
-          id?: string
-          is_deleted?: boolean
-          question_id?: string
-          updated_at?: string
-          visit_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "school_visit_answer_question_id_fkey"
-            columns: ["question_id"]
-            isOneToOne: false
-            referencedRelation: "visit_question"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "school_visit_answer_visit_id_fkey"
-            columns: ["visit_id"]
-            isOneToOne: false
-            referencedRelation: "school_visit"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       special_users: {
         Row: {
           created_at: string
@@ -2947,45 +2547,7 @@ export type Database = {
           },
         ]
       }
-      visit_question: {
-        Row: {
-          answer_type: Database["public"]["Enums"]["visit_answer_type"]
-          category: string | null
-          code: string
-          created_at: string
-          display_order: number
-          id: string
-          is_deleted: boolean
-          label: string
-          target_type: Database["public"]["Enums"]["visit_target_type"]
-          updated_at: string
-        }
-        Insert: {
-          answer_type: Database["public"]["Enums"]["visit_answer_type"]
-          category?: string | null
-          code: string
-          created_at?: string
-          display_order?: number
-          id?: string
-          is_deleted?: boolean
-          label: string
-          target_type: Database["public"]["Enums"]["visit_target_type"]
-          updated_at?: string
-        }
-        Update: {
-          answer_type?: Database["public"]["Enums"]["visit_answer_type"]
-          category?: string | null
-          code?: string
-          created_at?: string
-          display_order?: number
-          id?: string
-          is_deleted?: boolean
-          label?: string
-          target_type?: Database["public"]["Enums"]["visit_target_type"]
-          updated_at?: string
-        }
-        Relationships: []
-      }
+      
     }
     Views: {
       get_leaderboard_generic_data: {
@@ -4484,10 +4046,7 @@ export type Database = {
         }
         Returns: undefined
       }
-      update_queue_visibility_time: {
-        Args: { interval_days?: number; msg_id: number; queue_name: string }
-        Returns: undefined
-      }
+      
       update_school_firebase_trigger: {
         Args: {
           p_course_firebase_ids: string[]
@@ -4573,27 +4132,6 @@ export type Database = {
         | "program_manager"
         | "field_coordinator"
       status: "active" | "rejected" | "requested" | "migrated"
-      visit_answer_type:
-        | "text"
-        | "long_text"
-        | "number"
-        | "boolean"
-        | "single_choice"
-        | "multi_choice"
-        | "rating"
-      visit_channel:
-        | "call"
-        | "in_person"
-        | "video_call"
-        | "whatsapp"
-        | "sms"
-        | "other"
-      visit_target_type:
-        | "student"
-        | "teacher"
-        | "principal"
-        | "parent"
-        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4748,24 +4286,6 @@ export const Constants = {
         "field_coordinator",
       ],
       status: ["active", "rejected", "requested", "migrated"],
-      visit_answer_type: [
-        "text",
-        "long_text",
-        "number",
-        "boolean",
-        "single_choice",
-        "multi_choice",
-        "rating",
-      ],
-      visit_channel: [
-        "call",
-        "in_person",
-        "video_call",
-        "whatsapp",
-        "sms",
-        "other",
-      ],
-      visit_target_type: ["student", "teacher", "principal", "parent", "other"],
     },
   },
 } as const
