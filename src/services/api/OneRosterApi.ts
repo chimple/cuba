@@ -456,16 +456,12 @@ export class OneRosterApi implements ServiceApi {
 buildLessonFromCourseJson(
   lessonId: string,
   courseJson: CourseJson
-): TableTypes<"lesson"> | null {
+): TableTypes<"lesson"> | null{
   if (!courseJson?.publications) return null;
 
   // Find matching publication
   const pub = courseJson.publications.find((p) => {
-    return (
-      p.metadata.identifier.includes(lessonId) ||
-      p.links.some((l) => l.href.includes(lessonId))
-    );
-  });
+    return (p.metadata.identifier.includes(lessonId));});
 
   if (!pub) return null;
 
@@ -546,11 +542,15 @@ buildLessonFromCourseJson(
   }
   async getLesson(id: string): Promise<TableTypes<"lesson"> | undefined> {
     try {
+      let lesson: TableTypes<"lesson"> | undefined;
       for (let i = 0; i < this.studentAvailableCourseIds.length; i++) {
         const element = this.studentAvailableCourseIds[i];
         const courseJson = await this.loadCourseJson(element);
 
-        return this.buildLessonFromCourseJson(id, courseJson!) || undefined;
+        lesson = this.buildLessonFromCourseJson(id, courseJson!) || undefined;
+        if(lesson !== undefined && lesson !== null){
+          return lesson;
+        }
 
       }
       return undefined;
@@ -564,7 +564,6 @@ buildLessonFromCourseJson(
   }
   async getChapterById(id: string): Promise<TableTypes<"chapter"> | undefined> {
     try {
-      console.log("[Anuj] getChapterById called with id:", id);
       for (const courseId of this.studentAvailableCourseIds) {
         const courseJson = await this.loadCourseJson(courseId);
 
@@ -1243,7 +1242,7 @@ buildLessonFromCourseJson(
         sub_topics: null,
         course_id: courseId,
         created_at: "",
-        updated_at: null,                
+        updated_at: null,
         is_deleted: null,
       } as TableTypes<"chapter">;
     });
@@ -1257,7 +1256,6 @@ buildLessonFromCourseJson(
   async getLessonsForChapter(
     chapterId: string
   ): Promise<TableTypes<"lesson">[]> {
-    console.log("[Anuj] getLessonsForChapter chapterId:", chapterId);
 
   const resultLessons: TableTypes<"lesson">[] = [];
 
