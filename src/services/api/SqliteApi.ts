@@ -75,6 +75,10 @@ import { Util } from "../../utility/util";
 import { Table } from "@mui/material";
 import { create } from "domain";
 import { error } from "console";
+import {
+  UserSchoolClassParams,
+  UserSchoolClassResult,
+} from "../../ops-console/pages/NewUserPageOps";
 
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
@@ -6836,5 +6840,10 @@ order by
       console.error("Error fetching completed homework counts in SQLite:", err);
       return [];
     }
+  }
+  public async getOrcreateschooluser(
+    params: UserSchoolClassParams
+  ): Promise<UserSchoolClassResult> {
+    return this._serverApi.getOrcreateschooluser(params);
   }
 }

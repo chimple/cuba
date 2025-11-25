@@ -22,6 +22,9 @@ import {
   filterBySearchAndFilters,
   sortSchoolTeachers,
 } from "../../OpsUtility/SearchFilterUtility";
+import FormCard, { FieldConfig } from "./FormCard";
+import { RoleType } from "../../../interface/modelInterfaces";
+import { emailRegex, normalizePhone10 } from "../../pages/NewUserPageOps";
 
 interface DisplayTeacher {
   id: string;
@@ -70,6 +73,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     section: [],
   });
   const [isFilterSliderOpen, setIsFilterSliderOpen] = useState(false);
+  const [isAddTeacherModalOpen, setIsAddTeacherModalOpen] = useState(false);
+  const api = ServiceConfig.getI().apiHandler;
 
   const fetchTeachers = useMemo(() => {
     let debounceTimer: NodeJS.Timeout | null = null;
@@ -259,7 +264,9 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     searchTerm.trim() !== "" ||
     Object.values(filters).some((f) => f.length > 0);
 
-  const handleAddNewTeacher = useCallback(() => {}, [history]);
+  const handleAddNewTeacher = useCallback(() => {
+    setIsAddTeacherModalOpen(true);
+  }, []);
   const handleFilterIconClick = useCallback(() => {
     setTempFilters(filters);
     setIsFilterSliderOpen(true);
@@ -273,6 +280,119 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   const handleCancelFilters = useCallback(
     () => setIsFilterSliderOpen(false),
     []
+  );
+
+  const handleCloseAddTeacherModal = () => {
+    setIsAddTeacherModalOpen(false);
+  };
+
+  const handleTeacherSubmit = useCallback(
+    async (values: Record<string, string>) => {
+      try {
+        const name = (values.name ?? "").toString().trim();
+        const classId = (values.class ?? "").toString().trim();
+        const rawEmail = (values.email ?? "").toString().trim();
+        const rawPhone = (values.phoneNumber ?? "").toString();
+        if (!name) {
+          alert("Teacher name is required.");
+          return;
+        }
+        if (!classId) {
+          alert("Class is required.");
+          return;
+        }
+        const email = rawEmail.toLowerCase();
+        const normalizedPhone = normalizePhone10(rawPhone);
+        const hasEmail = !!email;
+        const hasPhone = !hasEmail && !!normalizedPhone;
+        if (!hasEmail && !hasPhone) {
+          alert("Please provide either an email or a phone number.");
+          return;
+        }
+        let finalEmail = "";
+        let finalPhone = "";
+        if (hasEmail) {
+          if (!emailRegex.test(email)) {
+            alert("Please enter a valid email address.");
+            return;
+          }
+          finalEmail = email;
+        } else {
+          if (normalizedPhone.length !== 10) {
+            alert("Phone number must be 10 digits.");
+            return;
+          }
+          finalPhone = normalizedPhone;
+        }
+        await api.getOrcreateschooluser({
+          name,
+          phoneNumber: finalPhone || undefined,
+          email: finalEmail || undefined,
+          schoolId,
+          role: RoleType.TEACHER,
+          classId,
+        });
+        setIsAddTeacherModalOpen(false);
+        setPage(1);
+        fetchTeachers(1, "");
+      } catch (e) {
+        console.error("Failed to add teacher:", e);
+      }
+    },
+    [schoolId, fetchTeachers]
+  );
+
+  const classOptions = useMemo(() => {
+    if (!normalizedTeachers || normalizedTeachers.length === 0) return []
+    const classMap = new Map<string, string>();
+    normalizedTeachers.forEach((teacher: any) => {
+      const classInfo = teacher.classWithidname;
+      if (!classInfo || !classInfo.id || !classInfo.name) return;
+      if (!classMap.has(classInfo.id)) {
+        classMap.set(classInfo.id, classInfo.name);
+      }
+    });
+
+    return Array.from(classMap.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [normalizedTeachers]);
+
+  const teacherFormFields: FieldConfig[] = useMemo(
+    () => [
+      {
+        name: "name",
+        label: "Teacher Name",
+        kind: "text",
+        required: true,
+        placeholder: "Enter teacher name",
+        column: 2,
+      },
+      {
+        name: "class",
+        label: "Class",
+        kind: "select",
+        required: true,
+        column: 0,
+        options: classOptions,
+      },
+      {
+        name: "phoneNumber",
+        label: "Phone Number",
+        kind: "phone",
+        required: true,
+        placeholder: "Enter phone number",
+        column: 2,
+      },
+      {
+        name: "email",
+        label: "Email",
+        kind: "email",
+        placeholder: "Enter email address",
+        column: 2,
+      },
+    ],
+    [classOptions]
   );
 
   const columns: Column<DisplayTeacher>[] = [
@@ -420,6 +540,15 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           )}
         </Box>
       )}
+
+      <FormCard
+        open={isAddTeacherModalOpen}
+        title={t("Add New Teacher")}
+        submitLabel={t("Add Teacher")}
+        fields={teacherFormFields}
+        onClose={handleCloseAddTeacherModal}
+        onSubmit={handleTeacherSubmit}
+      />
     </div>
   );
 };

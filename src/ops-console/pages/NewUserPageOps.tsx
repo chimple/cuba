@@ -26,15 +26,32 @@ import { ServiceConfig } from "../../services/ServiceConfig";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
 import { PhoneInput } from "react-international-phone";
 import "react-international-phone/style.css";
+import { RoleType } from "../../interface/modelInterfaces";
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export type UserSchoolClassParams = {
+  name?: string;
+  phoneNumber?: string;
+  email?: string;
+  schoolId?: string;
+  role?: RoleType.TEACHER | RoleType.PRINCIPAL;
+  classId?: string;
+};
+
+export type UserSchoolClassResult = {
+  user: any;
+  schoolUser: any | null;
+  classUser: any | null;
+  isNewUser: boolean;
+};
+
+export const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const roles = [
   { label: "Program Manager", value: "program_manager" },
   { label: "Field Coordinator", value: "field_coordinator" },
 ];
 
-const normalizePhone10 = (raw: string): string => {
+export const normalizePhone10 = (raw: string): string => {
   let digits = (raw || "").replace(/\D/g, "");
   if (digits.startsWith("91") && digits.length > 10) digits = digits.slice(2);
   if (digits.startsWith("0") && digits.length > 10) digits = digits.slice(1);
@@ -241,7 +258,7 @@ const NewUserPage: React.FC = () => {
                 disableCountryGuess
                 className="new-user-page-phone-input"
                 inputClassName="w-full"
-                disabled={!!form.email} 
+                disabled={!!form.email}
                 inputProps={{
                   onKeyDown: (e) => {
                     const input = e.currentTarget as HTMLInputElement;
