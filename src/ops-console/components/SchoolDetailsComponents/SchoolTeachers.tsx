@@ -294,11 +294,11 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         const rawEmail = (values.email ?? "").toString().trim();
         const rawPhone = (values.phoneNumber ?? "").toString();
         if (!name) {
-          alert("Teacher name is required.");
+          console.warn("Teacher name is required.");
           return;
         }
         if (!classId) {
-          alert("Class is required.");
+          console.warn("Class is required.");
           return;
         }
         const email = rawEmail.toLowerCase();
@@ -306,20 +306,20 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         const hasEmail = !!email;
         const hasPhone = !hasEmail && !!normalizedPhone;
         if (!hasEmail && !hasPhone) {
-          alert("Please provide either an email or a phone number.");
+          console.warn("Please provide either an email or a phone number.");
           return;
         }
         let finalEmail = "";
         let finalPhone = "";
         if (hasEmail) {
           if (!emailRegex.test(email)) {
-            alert("Please enter a valid email address.");
+            console.warn("Please enter a valid email address.");
             return;
           }
           finalEmail = email;
         } else {
           if (normalizedPhone.length !== 10) {
-            alert("Phone number must be 10 digits.");
+            console.warn("Phone number must be 10 digits.");
             return;
           }
           finalPhone = normalizedPhone;

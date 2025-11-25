@@ -8957,6 +8957,7 @@ export class SupabaseApi implements ServiceApi {
           .select("*")
           .eq("school_id", schoolId)
           .eq("user_id", user.id)
+          .eq("is_deleted", false)
           .maybeSingle();
       if (existingSchoolUserError) {
         console.error("Failed to fetch school_user:", existingSchoolUserError);
@@ -9008,6 +9009,7 @@ export class SupabaseApi implements ServiceApi {
           .select("*")
           .eq("class_id", classId)
           .eq("user_id", user.id)
+          .eq("is_deleted", false)
           .maybeSingle();
       if (existingClassUserError) {
         console.error("Failed to fetch class_user:", existingClassUserError);
