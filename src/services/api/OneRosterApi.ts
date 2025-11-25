@@ -144,6 +144,46 @@ interface course {
   updated_at: string | null;
 }
 
+interface CourseJson {
+  metadata: {
+    title: string;
+  };
+
+  links: {
+    rel: string;
+    href: string;
+    type: string;
+  }[];
+
+  publications: {
+    metadata: {
+      title: string;
+      author: string;
+      identifier: string;
+      language: string;
+      modified: string;
+      subject: {
+        name: string;
+        scheme: string;
+        code: string;
+      }[];
+    };
+
+    links: {
+      rel: string;
+      href: string;
+      type: string;
+    }[];
+
+    images: {
+      href: string;
+      type: string;
+      height: number;
+      width: number;
+    }[];
+  }[];
+}
+
 interface IStatement {
   id?: string;
   actor?: {
@@ -238,6 +278,7 @@ export class OneRosterApi implements ServiceApi {
     updated_at: null
   };
   public allCoursesJson: { [key: string]: TableTypes<"course"> } = {};
+  public allRespectCourses: { [key: string]: CourseJson } = {};
 
   public studentAvailableCourseIds = ["en_g1", "en_g2", "maths_g1", "maths_g2", "puzzle"]; //Later get all available courses
   private favoriteLessons: { [userId: string]: string[] } = {};
@@ -263,11 +304,11 @@ export class OneRosterApi implements ServiceApi {
   }
 
 
-  public async loadCourseJson(courseId: string) {
+  public async loadCourseJson(courseId: string): Promise<CourseJson | undefined> {
 
     try {
-      if (this.allCoursesJson[courseId] !== undefined)
-        return this.allCoursesJson[courseId];
+      if (this.allRespectCourses[courseId] !== undefined)
+        return this.allRespectCourses[courseId];
 
       const jsonUrl = `https://chimple-respectify.web.app/grades/${courseId}.json`;
 
@@ -278,7 +319,7 @@ export class OneRosterApi implements ServiceApi {
 
       const jsonData = await response.json();
 
-      this.allCoursesJson[courseId] = jsonData;
+      this.allRespectCourses[courseId] = jsonData;
       return jsonData;
 
     } catch (error) {
@@ -412,6 +453,75 @@ export class OneRosterApi implements ServiceApi {
     }
   }
 
+buildLessonFromCourseJson(
+  lessonId: string,
+  courseJson: CourseJson
+): TableTypes<"lesson"> | null {
+  if (!courseJson?.publications) return null;
+
+  // Find matching publication
+  const pub = courseJson.publications.find((p) => {
+    return (
+      p.metadata.identifier.includes(lessonId) ||
+      p.links.some((l) => l.href.includes(lessonId))
+    );
+  });
+
+  if (!pub) return null;
+
+  // Extract activityId
+  let activityId = "";
+  if (pub.metadata.identifier) {
+    const url = new URL(pub.metadata.identifier);
+    activityId = url.searchParams.get("activity_id") || "";
+  }
+
+  // Extract cocosLessonId from image
+  let cocosLessonId = activityId; // fallback
+  const imageHref = pub.images?.[0]?.href || "";
+  const match = imageHref.match(/\/icons\/(.+?)\.png/);
+  if (match) {
+    cocosLessonId = match[1];
+  }
+
+  const cocosChapterId = cocosLessonId.slice(0, -2);
+  const cocosSubjectId = cocosLessonId.slice(0, -4);
+
+  // Build Lesson Object
+  const lesson: TableTypes<"lesson"> = {
+    id: activityId,
+    name: pub.metadata.title || "",
+
+    cocos_chapter_code: cocosChapterId,
+    cocos_lesson_id: cocosLessonId,
+    cocos_subject_code: cocosSubjectId,
+
+    color: null,
+    created_at: "",
+    created_by: null,
+
+    image: Util.getThumbnailUrl({
+      subjectCode: cocosSubjectId,
+      lessonCode: cocosLessonId
+    }),
+
+    is_deleted: null,
+    language_id: `/Language/${cocosSubjectId}`,
+
+    outcome: "",
+    plugin_type: "cocos",
+    status: "approved",
+    subject_id: `/Subject/${cocosSubjectId}`,
+
+    target_age_from: 3,
+    target_age_to: 8,
+
+    updated_at: null
+  };
+
+  return lesson;
+}
+
 
 
   getCoursesForClassStudent(classId: string): Promise<TableTypes<"course">[]> {
@@ -426,70 +536,8 @@ export class OneRosterApi implements ServiceApi {
       const courseJson = await this.loadCourseJson(
         this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0]
       );
-      const lessonwithCocosLessonIds = courseJson.groups;
 
-      for (const group of lessonwithCocosLessonIds) {
-      for (const lesson of group.navigation) {
-        if (lesson.cocosChapterCode === lessonId) {
-
-          const pub = courseJson.publications.find((p) => {
-            return (
-              p.metadata.identifier.includes(lesson.id) ||
-              p.links.some((l) => l.href.includes(lesson.id))
-            );
-          });
-
-          let activityId = "";
-          if (pub?.metadata.identifier) {
-            const url = new URL(pub.metadata.identifier);
-            activityId = url.searchParams.get("activity_id") || "";
-          }
-
-          let cocosLessonId = lesson.cocosLessonCode; // fallback
-          const imageHref = pub?.images?.[0]?.href || "";
-          const match = imageHref.match(/\/icons\/(.+?)\.png/);
-          if (match) {
-            cocosLessonId = match[1];
-          }
-
-          const cocosChapterId = cocosLessonId.substring(0, cocosLessonId.length - 2);
-          const cocosSubjectId = cocosLessonId.substring(0, cocosLessonId.length - 4);
-
-          return {
-            id: activityId,
-            name: pub?.metadata.title || "",
-
-            cocos_chapter_code: cocosChapterId,
-            cocos_lesson_id: cocosLessonId,
-            cocos_subject_code: cocosSubjectId,
-
-            color: null,
-            created_at: "",
-            created_by: null,
-
-            image: Util.getThumbnailUrl({
-              subjectCode: cocosSubjectId,
-              lessonCode: cocosLessonId
-            }),
-
-            is_deleted: null,
-            language_id: `/Language/${cocosSubjectId}`,
-
-            outcome: "",
-            plugin_type: "cocos",
-            status: "approved",
-            subject_id: `/Subject/${cocosSubjectId}`,
-
-            target_age_from: 3,
-            target_age_to: 8,
-
-            updated_at: null
-          };
-        }
-      }
-    }
-
-      return null;
+      return this.buildLessonFromCourseJson(lessonId, courseJson!);
 
     } catch (error) {
       console.error("Error in getLessonWithCocosLessonId:", error);
@@ -502,61 +550,7 @@ export class OneRosterApi implements ServiceApi {
         const element = this.studentAvailableCourseIds[i];
         const courseJson = await this.loadCourseJson(element);
 
-        const getLessonData = courseJson.publications
-
-        const publication = courseJson.publications.find((pub: any) => {
-          return pub.metadata.identifier.includes(id)
-        });
-
-        if (!publication) return undefined;
-
-        let activityId = "";
-        if (publication.metadata.identifier) {
-          const url = new URL(publication.metadata.identifier);
-          activityId = url.searchParams.get("activity_id") || "";
-        }
-
-        let cocosLessonId = "";
-        const imgHref = publication.images?.[0]?.href ?? "";
-        const imgMatch = imgHref.match(/\/icons\/(.+?)\.png/);
-
-        if (imgMatch) {
-          cocosLessonId = imgMatch[1];
-        }
-
-        const cocosChapterId = cocosLessonId.substring(0, cocosLessonId.length - 2);
-        const cocosSubjectId = cocosLessonId.substring(0, cocosLessonId.length - 4);
-
-        return {
-          id: activityId,
-          name: publication.metadata.title || "",
-
-          cocos_chapter_code: cocosChapterId,
-          cocos_lesson_id: cocosLessonId,
-          cocos_subject_code: cocosSubjectId,
-
-          color: null,
-          created_at: "",
-          created_by: null,
-
-          image: Util.getThumbnailUrl({
-            subjectCode: cocosSubjectId,
-            lessonCode: cocosLessonId
-          }),
-
-          is_deleted: null,
-          language_id: `/Language/${cocosSubjectId}`,
-
-          outcome: "",
-          plugin_type: "cocos",
-          status: "approved",
-          subject_id: `/Subject/${cocosSubjectId}`,
-
-          target_age_from: 3,
-          target_age_to: 8,
-
-          updated_at: null
-        };
+        return this.buildLessonFromCourseJson(id, courseJson!) || undefined;
 
       }
       return undefined;
@@ -574,7 +568,7 @@ export class OneRosterApi implements ServiceApi {
       for (const courseId of this.studentAvailableCourseIds) {
         const courseJson = await this.loadCourseJson(courseId);
 
-        const publications = courseJson.publications || [];
+        const publications = courseJson?.publications || [];
         if (publications.length === 0) return undefined;
 
         let subject = courseId;
@@ -586,7 +580,7 @@ export class OneRosterApi implements ServiceApi {
           grade = parts[1] ?? null;
         }
 
-        const pubSubjectCode = publications.metadata?.subject?.[0]?.code || "";
+        const pubSubjectCode = courseJson?.publications[0]?.metadata?.subject?.[0]?.code || "";
 
         let suffix = "";
         if (pubSubjectCode && subject && pubSubjectCode.startsWith(subject)) {
@@ -615,7 +609,7 @@ export class OneRosterApi implements ServiceApi {
 
         return {
           id: metaId,
-          name: matchedPublication.metadata?.title || courseJson.metadata?.title || "",
+          name: matchedPublication.metadata?.title || courseJson?.metadata?.title || "",
           image: Util.getThumbnailUrl({ id: metaId }),
           course_id: courseId,
           created_at: "",
@@ -623,7 +617,7 @@ export class OneRosterApi implements ServiceApi {
           is_deleted: null,
           sort_index: null,
           sub_topics: null
-        };
+        } as TableTypes<"chapter">;
       }
       return undefined;
     } catch (error) {
@@ -646,7 +640,7 @@ export class OneRosterApi implements ServiceApi {
     } = { grades: [], courses: [] };
 
     const currentCourseJson = await this.loadCourseJson(course.id);
-    const imgHref = currentCourseJson.publications?.[0]?.images?.[0]?.href || "";
+    const imgHref = currentCourseJson?.publications?.[0]?.images?.[0]?.href || "";
 
     let subjectCode = "";
 
@@ -663,7 +657,7 @@ export class OneRosterApi implements ServiceApi {
     for (const c of allCourses) {
       try {
         const courseJson = await this.loadCourseJson(c.id);
-        const imgHrefFiltered = courseJson.publications?.[0]?.images?.[0]?.href || "";
+        const imgHrefFiltered = courseJson?.publications?.[0]?.images?.[0]?.href || "";
 
         let subjectCodeFiltered = "";
 
@@ -1166,7 +1160,7 @@ export class OneRosterApi implements ServiceApi {
     try {
       const courseJson = await this.loadCourseJson(courseId);
       console.log("courseId id ---> ", courseId);
-      const href = courseJson.links?.[0]?.href || "";
+      const href = courseJson?.links?.[0]?.href || "";
 
       let gradeCode = "";
 
@@ -1175,27 +1169,7 @@ export class OneRosterApi implements ServiceApi {
         gradeCode = match[1];
       }
 
-      let defaultCourse: TableTypes<"course"> = {
-        code: gradeCode,
-        color: null,
-        created_at: "",
-        curriculum_id: null,
-        description: null,
-        grade_id: null,
-        id: "",
-        image: null,
-        is_deleted: null,
-        name: "",
-        sort_index: null,
-        subject_id: null,
-        updated_at: null,
-        firebase_id: null
-      };
-      this.currentCourse.set('default', defaultCourse);
-
-      if (!courseJson.publications) return [];
-      const chapters: TableTypes<"chapter">[] = courseJson.publications.map((pub: any) => {
-        let subject = courseId;
+      let subject = courseId;
         let grade: string | null = null;
 
         if (courseId.includes("_g")) {
@@ -1204,7 +1178,7 @@ export class OneRosterApi implements ServiceApi {
           grade = parts[1] ?? null;
         }
 
-        const pubSubjectCode = pub.metadata?.subject?.[0]?.code || "";
+        const pubSubjectCode = courseJson?.publications[0]?.metadata?.subject?.[0]?.code || "";
 
         let suffix = "";
         if (pubSubjectCode && subject && pubSubjectCode.startsWith(subject)) {
@@ -1217,19 +1191,64 @@ export class OneRosterApi implements ServiceApi {
 
         const metaId = grade ? `${subject}${grade}_${suffix}` : `${subject}_${suffix}`;
 
-        return {
-          id: metaId,
-          name: pub.metadata?.title || "",
-          image: Util.getThumbnailUrl({ id: metaId }),
+      let defaultCourse: TableTypes<"course"> = {
+        code: gradeCode,
+        color: null,
+        created_at: "",
+        curriculum_id: null,
+        description: null,
+        grade_id: null,
+        id: metaId,
+        image: Util.getThumbnailUrl({ id: metaId }),
+        is_deleted: null,
+        name: "",
+        sort_index: null,
+        subject_id: null,
+        updated_at: null,
+        firebase_id: null
+      };
+      this.currentCourse.set('default', defaultCourse);
 
-          course_id: courseId,
-          created_at: null,
-          updated_at: null,
-          is_deleted: null,
-        };
-      });
+      if (!courseJson?.publications) return [];
+      const chapters: TableTypes<"chapter">[] = courseJson.publications.map((pub: any) => {
+      let subject = courseId;
+      let grade: string | null = null;
 
-      return chapters;
+      if (courseId.includes("_g")) {
+        const parts = courseId.split("_g");
+        subject = parts[0] ?? courseId;
+        grade = parts[1] ?? null;
+      }
+
+      const pubSubjectCode = pub.metadata?.subject?.[0]?.code || "";
+
+      let suffix = "";
+      if (pubSubjectCode && subject && pubSubjectCode.startsWith(subject)) {
+        suffix = pubSubjectCode.slice(subject.length);
+      } else if (pubSubjectCode.length >= 2) {
+        suffix = pubSubjectCode.slice(-2);
+      } else {
+        suffix = "00";
+      }
+
+      const metaId = grade
+        ? `${subject}${grade}_${suffix}`
+        : `${subject}_${suffix}`;
+
+      return {
+        id: metaId,
+        name: pub.metadata?.title || null,
+        image: Util.getThumbnailUrl({ id: metaId }),
+        sort_index: null,
+        sub_topics: null,
+        course_id: courseId,
+        created_at: "",
+        updated_at: null,                
+        is_deleted: null,
+      } as TableTypes<"chapter">;
+    });
+
+    return chapters;
     } catch (error) {
       console.error("Error in getChaptersForCourse:", error);
       return [];
@@ -1247,7 +1266,7 @@ export class OneRosterApi implements ServiceApi {
 
         const courseJson = await this.loadCourseJson(courseId);
 
-        for (const pub of courseJson.publications ?? []) {
+        for (const pub of courseJson?.publications ?? []) {
 
           let subject = courseId;
           let grade: string | null = null;
@@ -1394,7 +1413,7 @@ export class OneRosterApi implements ServiceApi {
           else if(courseId == "maths_g2") sortIndex = 4;
           else sortIndex = 5;
           const courseJson = await this.loadCourseJson(courseId);
-          const href = courseJson.links?.[0]?.href || "";
+          const href = courseJson?.links?.[0]?.href || "";
           let gradeCode = "";
 
           const match = href.match(/\/grades\/(.+?)\.json/);
@@ -1419,7 +1438,7 @@ export class OneRosterApi implements ServiceApi {
               subject_id: `/Subject/${subjectId}`,
               updated_at: null,
               firebase_id: null
-            };
+            } as TableTypes<"course">;
             console.log("localCourse ---> ", localCourse);
             res.push(localCourse);
           }
@@ -1610,8 +1629,8 @@ export class OneRosterApi implements ServiceApi {
   async getCourse(id: string): Promise<TableTypes<"course"> | undefined> {
     try {
       const courseJson = await this.loadCourseJson(id);
-      const metaC = courseJson.metadata;
-      const href = courseJson.links?.[0]?.href || "";
+      const metaC = courseJson?.metadata;
+      const href = courseJson?.links?.[0]?.href || "";
         let gradeCode = "";
 
         const match = href.match(/\/grades\/(.+?)\.json/);
@@ -1637,12 +1656,12 @@ export class OneRosterApi implements ServiceApi {
         id: gradeCode,
         image: Util.getThumbnailUrl({ courseCode: gradeCode }),
         is_deleted: null,
-        name: metaC.title,
+        name: metaC?.title || "",
         sort_index: sortIndex,
-        subject_id: metaC.subject,
+        subject_id: "",
         updated_at: null,
         firebase_id: null
-      };
+      } as TableTypes<"course">;
 
       // Add the course to the Map instead of assigning it directly
       this.currentCourse.set(id, tCourse);
@@ -2773,7 +2792,7 @@ export class OneRosterApi implements ServiceApi {
         const courseJson = await this.loadCourseJson(courseId);
 
         // Check if any lesson in the course matches the given lesson ID
-        const foundLesson = courseJson.publications.some((pub: any) => {
+        const foundLesson = courseJson?.publications.some((pub: any) => {
           const identifier = pub.metadata?.identifier || "";
           const url = new URL(identifier);
           const activityId = url.searchParams.get("activity_id");
@@ -2781,7 +2800,7 @@ export class OneRosterApi implements ServiceApi {
           return activityId === lessonId;
         });
 
-        const href = courseJson.links?.[0]?.href || "";
+        const href = courseJson?.links?.[0]?.href || "";
         let gradeCode = "";
 
         const match = href.match(/\/grades\/(.+?)\.json/);
@@ -2797,10 +2816,10 @@ export class OneRosterApi implements ServiceApi {
       else sortIndex = 5;
 
         if (foundLesson) {
-          const metaC = courseJson.metadata;
+          const metaC = courseJson?.metadata;
           courses.push({
             code: gradeCode,
-            color: metaC.color,
+            color: null,
             created_at: "",
             curriculum_id:"7d560737-746a-4931-a49f-02de1ca526bd",
             description: null,
@@ -2808,12 +2827,12 @@ export class OneRosterApi implements ServiceApi {
             id: courseId,
             image: Util.getThumbnailUrl({ courseCode: gradeCode }),
             is_deleted: null,
-            name: metaC.title,
+            name: metaC?.title || "",
             sort_index: sortIndex,
-            subject_id: metaC.subject,
+            subject_id: "",
             updated_at: null,
             firebase_id: null
-          });
+          } as TableTypes<"course">);
         }
       }
 
@@ -2887,7 +2906,7 @@ export class OneRosterApi implements ServiceApi {
               target_age_to: 8,
 
               updated_at: null,
-            });
+            }as TableTypes<"lesson">);
           }
         } catch (error) {
           console.error(`Error processing course ${course.id}:`, error);
@@ -2933,18 +2952,24 @@ export class OneRosterApi implements ServiceApi {
     try {
 
       for (const courseId of this.studentAvailableCourseIds) {
-        const courseJson = await this.loadCourseJson(courseId);
+      const courseJson = await this.loadCourseJson(courseId);
 
-        for (const group of courseJson.groups) {
-          for (const lesson of group.navigation) {
-            if (lesson.id === lessonId) {
-              return lesson.id;
-            }
-          }
+      // publications now contain lessons
+      for (const pub of courseJson?.publications || []) {
+        const identifier = pub?.metadata?.identifier || "";
+
+        if (!identifier) continue;
+
+        const url = new URL(identifier);
+        const activityId = url.searchParams.get("activity_id");
+
+        if (activityId === lessonId) {
+          return activityId;   // found the lesson
         }
       }
+    }
 
-      return undefined;
+    return undefined;
     } catch (error) {
       console.error("Error fetching chapter by lesson:", error);
       return undefined;
@@ -2957,7 +2982,7 @@ export class OneRosterApi implements ServiceApi {
       for (const courseId of this.studentAvailableCourseIds) {
         const courseJson = await this.loadCourseJson(courseId);
 
-        for (const pub of courseJson.publications ?? []) {
+        for (const pub of courseJson?.publications ?? []) {
 
           let subject = courseId;
           let grade: string | null = null;
@@ -2997,7 +3022,7 @@ export class OneRosterApi implements ServiceApi {
               is_deleted: null,
               sort_index: null,
               sub_topics: null,
-            };
+            } as TableTypes<"chapter">;
           }
         }
       }
@@ -3048,7 +3073,7 @@ export class OneRosterApi implements ServiceApi {
         this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0]
       );
 
-      if (!courseJson.groups) return [];
+      if (!courseJson?.publications) return [];
 
       const lessons: TableTypes<"lesson">[] = courseJson.publications
         .filter((pub: any) => {
@@ -3067,7 +3092,7 @@ export class OneRosterApi implements ServiceApi {
           const cocosLessonId = match ? match[1] : "";
 
           const chapterId = cocosLessonId.slice(0, -2);
-          const subjectId = cocosLessonId.slice(0, -4); 
+          const subjectId = cocosLessonId.slice(0, -4);
 
           const href = courseJson.links?.[0]?.href || "";
           const hrematch = href.match(/grades\/(.+)\.json$/);
@@ -3093,29 +3118,35 @@ export class OneRosterApi implements ServiceApi {
             suffix = "00";
           }
 
-          const metaId = grade ? `${subject}${grade}_${suffix}` : `${subject}_${suffix}`;
+          const metaId = grade
+            ? `${subject}${grade}_${suffix}`
+            : `${subject}_${suffix}`;
 
-          return {
+          const lesson: TableTypes<"lesson"> = {
             id: activityId,
-            name: pub.metadata?.title || "",
-            chapter_id: metaId,
+            name: pub.metadata?.title || null,
+            language_id: `/Language/${subjectId}`,
+            target_age_from: 3,
+            target_age_to: 8,
             subject_id: `/Subject/${subjectId}`,
-
-            outcome: "",
             status: "approved",
-            type: "lesson",
-
-            thumbnail: Util.getThumbnailUrl({
+            outcome: "",
+            image: Util.getThumbnailUrl({
               subjectCode: subjectId,
-              lessonCode: cocosLessonId
+              lessonCode: cocosLessonId,
             }),
-
             plugin_type: "cocos",
+            cocos_chapter_code: metaId,
+            cocos_lesson_id: cocosLessonId,
+            cocos_subject_code: subjectId,
+            color: null,
+            created_at: "",
+            updated_at: null,
+            created_by: null,
+            is_deleted: null,
+          } as TableTypes<"lesson">;
 
-            created_at: "null",
-            updated_at: "null",
-            is_deleted: null
-          };
+          return lesson;
         });
 
       return lessons;
