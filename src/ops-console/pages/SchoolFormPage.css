@@ -1,4 +1,4 @@
-.school-form-main-container {
+/* .school-form-main-container {
   height: 100vh;
   width: 100%;          
   overflow-y: auto;
@@ -60,9 +60,7 @@
   font-size: 1rem;
 }
 
-/* .school-form-dropdown-required {
-  color: red;
-} */
+
 
 .school-form-dropdown-placeholder {
   color: #9ca3af;
@@ -99,4 +97,4 @@
   background-color: #ccc;
   cursor: not-allowed;
   opacity: 0.7;
-}
+} */

@@ -839,6 +839,7 @@ export class SupabaseApi implements ServiceApi {
       status: null,
       key_contacts: null,
       country: null,
+      location_link: null,
     };
 
     const { error } = await this.supabase
@@ -1052,6 +1053,7 @@ export class SupabaseApi implements ServiceApi {
       status: STATUS.REQUESTED,
       key_contacts: null,
       country: country ?? null,
+      location_link:null,
     };
 
     // Insert school
@@ -4352,7 +4354,7 @@ export class SupabaseApi implements ServiceApi {
       return null;
     }
   }
-  async getSchoolDataByUdise(udiseCode: string): Promise<any | null> {
+  async getSchoolDataByUdise(udiseCode: string): Promise<TableTypes<"school_data"> | null> {
     if (!this.supabase) return null;
 
     try {
@@ -4360,7 +4362,6 @@ export class SupabaseApi implements ServiceApi {
         .from("school_data")
         .select("*")
         .eq("udise_code", udiseCode)
-        .eq("is_deleted", false)
         .single();
 
       if (error || !data) {
@@ -8838,4 +8839,35 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error deleting approved ops_requests:", error);
     }
   }
+  async insertSchoolDetails(
+    schoolId: string,
+    schoolModel: string,
+    locationLink?: string,
+    keyContacts?: any
+  ): Promise<void> {
+    if (!this.supabase) return;
+    const insertPayload: any = {
+      model: schoolModel,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (locationLink !== undefined && locationLink !== null) {
+      insertPayload.location_link = locationLink;
+    }
+
+    if (keyContacts) {
+      insertPayload.key_contacts = keyContacts;
+    }
+
+    const { error } = await this.supabase
+      .from("school")
+      .update(insertPayload)
+      .eq("id", schoolId)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error inserting school details:", error);
+    }
+  }
+
 }

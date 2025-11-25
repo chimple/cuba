@@ -1115,6 +1115,9 @@ export class ApiHandler implements ServiceApi {
   } | null> {
     return this.s.getSchoolDetailsByUdise(udiseCode);
   }
+  async getSchoolDataByUdise(udiseCode: string): Promise<TableTypes<"school_data">| null> {
+    return this.s.getSchoolDataByUdise(udiseCode);
+  }
   async deleteUserFromSchool(
     schoolId: string,
     userId: string,
@@ -1649,5 +1652,13 @@ export class ApiHandler implements ServiceApi {
       studentId,
       subjectIds
     );
+  }
+  public async insertSchoolDetails(
+    schoolId: string,
+    schoolModel: string,
+    locationLink?: string,
+    keyContacts?: any
+  ): Promise<void> {
+    return this.s.insertSchoolDetails(schoolId, schoolModel, locationLink, keyContacts);
   }
 }

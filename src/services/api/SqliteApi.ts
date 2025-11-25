@@ -916,6 +916,7 @@ export class SqliteApi implements ServiceApi {
       status: STATUS.REQUESTED,
       key_contacts: null,
       country: country,
+      location_link:null,
     };
     if (oSchool) {
       await this.executeQuery(
@@ -1030,6 +1031,7 @@ export class SqliteApi implements ServiceApi {
       status: null,
       key_contacts: null,
       country: null,
+      location_link: null,
     };
     const updatedSchoolQuery = `
     UPDATE school
@@ -6475,6 +6477,17 @@ order by
       schoolModel: model || "",
     };
   }
+  async getSchoolDataByUdise(udiseCode: string): Promise<TableTypes<"school_data">| null> {
+   const schoolRes = await this.executeQuery(
+      `SELECT * FROM school_data WHERE udise = ?`,
+      [udiseCode]
+    );
+    if (!schoolRes?.values?.length) {
+      return null;
+    }
+    return schoolRes.values[0];
+  }
+
   async getChaptersByIds(
     chapterIds: string[]
   ): Promise<TableTypes<"chapter">[]> {
@@ -6837,4 +6850,46 @@ order by
       return [];
     }
   }
+  async insertSchoolDetails(
+    schoolId: string,
+    schoolModel: string,
+    locationLink?: string,
+    keyContacts?: any
+  ): Promise<void> {
+    if (!this._db) {
+      console.warn("Database not initialized.");
+      return;
+    }
+
+    try {
+      let fields = "model = ?";
+      const values: any[] = [schoolModel];
+
+      if (locationLink !== undefined && locationLink !== null) {
+        fields += ", location_link = ?";
+        values.push(locationLink);
+      }
+
+      if (keyContacts) {
+        fields += ", key_contacts = ?";
+        values.push(JSON.stringify(keyContacts)); // stored as JSON string
+      }
+
+      fields += ", updated_at = ?";
+      values.push(new Date().toISOString());
+
+      values.push(schoolId);
+
+      const query = `
+        UPDATE school 
+        SET ${fields}
+        WHERE id = ? AND is_deleted = 0
+      `;
+
+      await this._db.query(query, values);
+    } catch (error) {
+      console.error("SQLite: Error inserting school details:", error);
+    }
+  }
+
 }
