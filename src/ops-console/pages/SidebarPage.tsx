@@ -34,6 +34,7 @@ import PrincipalTeacherPendingRequest from "./PrincipalTeacherPendingRequest";
 import OpsRejectedRequestDetails from "./OpsRejectedRequestDetails";
 import OpsApprovedRequestDetails from "./OpsApprovedRequestDetails";
 import OpsFlaggedRequestDetails from "./OpsFlaggedRequestDetails";
+import AddSchoolPage from "./AddSchoolPage";
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
@@ -192,6 +193,12 @@ const SidebarPage: React.FC = () => {
               exact={true}
             >
               <UserDetailsPage />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`}
+              exact={true}
+            >
+              <AddSchoolPage />
             </ProtectedRoute>
           </Switch>
         </div>

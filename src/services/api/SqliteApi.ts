@@ -920,6 +920,7 @@ export class SqliteApi implements ServiceApi {
       status: STATUS.REQUESTED,
       key_contacts: null,
       country: country,
+      location_link:null,
     };
     if (oSchool) {
       await this.executeQuery(
@@ -1034,6 +1035,7 @@ export class SqliteApi implements ServiceApi {
       status: null,
       key_contacts: null,
       country: null,
+      location_link: null,
     };
     const updatedSchoolQuery = `
     UPDATE school
@@ -6479,6 +6481,17 @@ order by
       schoolModel: model || "",
     };
   }
+  async getSchoolDataByUdise(udiseCode: string): Promise<TableTypes<"school_data">| null> {
+   const schoolRes = await this.executeQuery(
+      `SELECT * FROM school_data WHERE udise = ?`,
+      [udiseCode]
+    );
+    if (!schoolRes?.values?.length) {
+      return null;
+    }
+    return schoolRes.values[0];
+  }
+
   async getChaptersByIds(
     chapterIds: string[]
   ): Promise<TableTypes<"chapter">[]> {
@@ -6846,4 +6859,56 @@ order by
   ): Promise<UserSchoolClassResult> {
     return this._serverApi.getOrcreateschooluser(params);
   }
+  async insertSchoolDetails(
+    schoolId: string,
+    schoolModel: string,
+    locationLink?: string,
+    keyContacts?: any
+  ): Promise<void> {
+    try {
+      let fields = "model = ?";
+      const values: any[] = [schoolModel];
+
+      if (locationLink !== undefined && locationLink !== null) {
+        fields += ", location_link = ?";
+        values.push(locationLink);
+      }
+
+      if (keyContacts) {
+        fields += ", key_contacts = ?";
+        values.push(JSON.stringify(keyContacts));
+      }
+
+      const timestamp = new Date().toISOString();
+      fields += ", updated_at = ?";
+      values.push(timestamp);
+
+      values.push(schoolId);
+
+      const query = `
+        UPDATE school
+        SET ${fields}
+        WHERE id = ? AND is_deleted = 0;
+      `;
+      await this.executeQuery(query, values);
+
+      const pushObject = {
+        id: schoolId,
+        model: schoolModel,
+        location_link: locationLink ?? null,
+        key_contacts: keyContacts ?? null,
+        updated_at: timestamp
+      };
+
+      await this.updatePushChanges(
+        TABLES.School,
+        MUTATE_TYPES.UPDATE,
+        pushObject
+      );
+
+    } catch (error) {
+      console.error("❌ Error inserting school details:", error);
+    }
+  }
+
 }

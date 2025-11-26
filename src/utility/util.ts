@@ -2682,4 +2682,31 @@ public static async DownloadRemoteAssets(
       console.error("Error updating learning path:", error);
     }
   }
+
+  // In Util.ts or your utility file
+
+public static async fetchCurrentClassAndSchool() : Promise<{ className: string, schoolName: string }> {
+  const currentStudent = Util.getCurrentStudent();
+  let className = "";
+  let schoolName = "";
+  if (currentStudent?.id) {
+    try {
+      const api = ServiceConfig.getI().apiHandler;
+      const linkedData = await api.getStudentClassesAndSchools(currentStudent.id);
+      if (linkedData && linkedData.classes.length > 0) {
+        const classDoc = linkedData.classes[0];
+        className = classDoc.name || "";
+
+        const schoolDoc = linkedData.schools.find(
+          (s: any) => s.id === classDoc.school_id
+        );
+        schoolName = schoolDoc?.name || "";
+      }
+    } catch (error) {
+      console.error("Error fetching class/school details:", error);
+    }
+  }
+  return { className, schoolName };
+}
+
 }

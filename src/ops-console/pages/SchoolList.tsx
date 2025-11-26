@@ -18,7 +18,7 @@ import SearchAndFilter from "../components/SearchAndFilter";
 import FilterSlider from "../components/FilterSlider";
 import SelectedFilters from "../components/SelectedFilters";
 import FileUpload from "../components/FileUpload";
-import { FileUploadOutlined } from "@mui/icons-material";
+import { FileUploadOutlined, Add } from "@mui/icons-material";
 import { BsFillBellFill } from "react-icons/bs";
 import { useLocation, useHistory } from "react-router";
 
@@ -327,6 +327,33 @@ const SchoolList: React.FC = () => {
             </div>
 
             <div className="school-list-button-and-search-filter">
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  history.push({
+                    pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`
+                  });
+                }}
+
+                sx={{
+                  borderColor: "#e0e0e0",
+                  border: "1px solid",
+                  borderRadius: 20,
+                  boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.1)",
+                  height: "36px",
+                  minWidth: isSmallScreen ? "48px" : "auto",
+                  padding: isSmallScreen ? 0 : "6px 16px",
+                  textTransform: "none",
+                }}
+              >
+                <Add className="school-list-upload-icon" />
+                
+                {!isSmallScreen && (
+                  <span className="school-list-upload-text1">
+                    {t("Add School")}
+                  </span>
+                )}
+              </Button>
               <Button
                 variant="outlined"
                 onClick={() => setShowUploadPage(true)}

@@ -1,18 +1,13 @@
 import { useEffect, useState } from "react";
 import "./ProfileMenu.css";
-import HeaderIcon from "../HeaderIcon";
 import {
   AVATARS,
   CURRENT_MODE,
-  CURRENT_STUDENT,
   HOMEHEADERLIST,
   HOMEWORK_PATHWAY,
-  LANG,
-  LANGUAGE,
   LEADERBOARDHEADERLIST,
   MODES,
   PAGES,
-  STAGES,
   TableTypes,
 } from "../../common/constants";
 import { useHistory } from "react-router";
@@ -21,10 +16,7 @@ import { AvatarObj } from "../animation/Avatar";
 import ParentalLock from "../parent/ParentalLock";
 import { t } from "i18next";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import i18n from "../../i18n";
-import auth from "../../models/auth";
 
-// const ProfileMenu: React.FC = ( ) => {
 type ProfileMenuProps = {
   onClose: () => void;
 };
@@ -32,21 +24,29 @@ type ProfileMenuProps = {
 const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const history = useHistory();
   const [student, setStudent] = useState<TableTypes<"user">>();
+  const [className, setClassName] = useState<string>("");
+  const [schoolName, setSchoolName] = useState<string>("");
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [isClosing, setIsClosing] = useState(false);
 
-  const currentHeader = HOMEHEADERLIST.PROFILE;
+  const currentMode = localStorage.getItem(CURRENT_MODE);
+
+  useEffect(() => {
+    loadProfileData();
+  }, []);
+  const loadProfileData = async () => {
+    setStudent(Util.getCurrentStudent());
+    const { className, schoolName } = await Util.fetchCurrentClassAndSchool();
+    setClassName(className);
+    setSchoolName(schoolName);
+  };
 
   const onEdit = async () => {
-    history.replace(PAGES.EDIT_STUDENT, {
-      from: history.location.pathname,
-    });
+    history.replace(PAGES.EDIT_STUDENT, { from: history.location.pathname });
   };
 
   const onLeaderboard = () => {
-    history.replace(PAGES.LEADERBOARD, {
-      from: history.location.pathname,
-    });
+    history.replace(PAGES.LEADERBOARD, { from: history.location.pathname });
   };
 
   const onReward = () => {
@@ -61,13 +61,8 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     Util.setParentLanguagetoLocal();
     Util.setCurrentStudent(null);
     sessionStorage.removeItem(HOMEWORK_PATHWAY);
-
-    history.replace(PAGES.DISPLAY_STUDENT, {
-      from: history.location.pathname,
-    });
+    history.replace(PAGES.DISPLAY_STUDENT, { from: history.location.pathname });
   };
-
-  const currentMode = localStorage.getItem(CURRENT_MODE);
 
   const allMenuItems = [
     {
@@ -116,20 +111,13 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
         : item
     );
 
-  useEffect(() => {
-    const student = Util.getCurrentStudent();
-    setStudent(student);
-  }, []);
-
   return (
     <div
       className={`profile-menu ${
         isClosing ? "slide-out-right" : "slide-in-right"
       }`}
       onAnimationEnd={() => {
-        if (isClosing) {
-          onClose();
-        }
+        if (isClosing) onClose();
       }}
     >
       <div
@@ -141,35 +129,60 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
         }}
       >
         <div
-          className={`profile-header-content ${
-            (student?.name?.length ?? 0) < 12
-              ? "profile-header-center"
-              : "profile-header-left"
-          }`}
+          className="profile-header-content"
           onClick={() => {
-            if (currentMode !== MODES.SCHOOL) {
-              onEdit();
-            }
+            if (currentMode !== MODES.SCHOOL) onEdit();
           }}
         >
-          <img
-            src={
-              student?.image ||
-              `/assets/avatars/${student?.avatar ?? AVATARS[0]}.png`
-            }
-            alt="Profile"
-          />
-          <span className="profile-header-name">
-            {student?.name ?? "Profile"}
-          </span>
+          {/* Profile Image with fixed gap */}
+          <div className="profile-image-container">
+            <img
+              src={
+                student?.image ||
+                `/assets/avatars/${student?.avatar ?? AVATARS[0]}.png`
+              }
+              alt="Profile"
+              className="profile-avatar-img"
+            />
+          </div>
+
+          {/* Details Section */}
+          <div className="profile-details">
+            <span className="profile-header-name text-truncate">
+              {student?.name ?? "Profile"}
+            </span>
+
+            {className && (
+              <div className="profile-sub-info">
+                <img
+                  src="/assets/icons/classIcon.svg"
+                  alt="class"
+                  className="info-icon"
+                  onError={(e) => (e.currentTarget.style.display = "none")}
+                />
+                <span className="sub-text text-truncate">{className}</span>
+              </div>
+            )}
+
+            {schoolName && (
+              <div className="profile-sub-info">
+                <img
+                  src="/assets/icons/scholarIcon.svg"
+                  alt="school"
+                  className="info-icon"
+                  onError={(e) => (e.currentTarget.style.display = "none")}
+                />
+                <span className="sub-text text-truncate">{schoolName}</span>
+              </div>
+            )}
+          </div>
         </div>
+
         <img
           src="/assets/icons/CrossIcon.svg"
           alt="Close"
           className="profile-menu-close-icon"
-          onClick={() => {
-            setIsClosing(true);
-          }}
+          onClick={() => setIsClosing(true)}
         />
       </div>
 
@@ -188,17 +201,14 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
           </div>
         ))}
       </div>
-      {showDialogBox ? (
+
+      {showDialogBox && (
         <ParentalLock
           showDialogBox={showDialogBox}
-          handleClose={() => {
-            setShowDialogBox(true);
-          }}
-          onHandleClose={() => {
-            setShowDialogBox(false);
-          }}
-        ></ParentalLock>
-      ) : null}
+          handleClose={() => setShowDialogBox(true)}
+          onHandleClose={() => setShowDialogBox(false)}
+        />
+      )}
     </div>
   );
 };
