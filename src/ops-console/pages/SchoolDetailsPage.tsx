@@ -66,6 +66,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     active_teacher_percentage: 0,
     avg_weekly_time_minutes: 0,
   });
+  const [goToClassesTab, setGoToClassesTab] = useState(false);
 
   useEffect(() => {
     fetchAll();
@@ -245,7 +246,11 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
           data={data}
           isMobile={isMobile}
           schoolId={id}
-          refreshClasses= {fetchAll}
+          refreshClasses={() => {
+              fetchAll();
+              setGoToClassesTab(true);
+            }}
+          goToClassesTab={goToClassesTab}
         />
       </div>
       <div className="school-detail-columns-gap" />

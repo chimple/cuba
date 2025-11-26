@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./SchoolDetailsTabs.css";
 import "../../pages/SchoolDetailsPage.css";
 import { t } from "i18next";
@@ -18,15 +18,24 @@ interface SchoolDetailsTabsComponentProps {
   isMobile: boolean;
   schoolId: string;
   refreshClasses?: () => void;
+  goToClassesTab?: boolean;
 }
 
 const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
   data,
   isMobile,
   schoolId,
-  refreshClasses
+  refreshClasses,
+  goToClassesTab
 }) => {
   const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
+  
+  useEffect(() => {
+    if (goToClassesTab) {
+      setActiveTab(SchoolTabs.Classes);
+    }
+  }, [goToClassesTab]);
+
 
   return (
     <div className="school-detail-role-tabs-wrapper">

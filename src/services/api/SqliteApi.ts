@@ -6901,5 +6901,74 @@ order by
       console.error("❌ Error inserting school details:", error);
     }
   }
+  async getCoursesByCurriculumAndGrade(
+    curriculumId: string,
+    gradeId: string
+  ): Promise<TableTypes<"course">[]> {
+    if (!this._db) return [];
+
+    const res = await this._db.query(
+      `SELECT * FROM ${TABLES.Course} 
+      WHERE curriculum_id = ? AND grade_id = ? AND is_deleted = 0
+      ORDER BY name ASC`,
+      [curriculumId, gradeId]
+    );
+
+    console.log("🚀 ~ SqliteApi ~ getCoursesByCurriculumAndGrade ~ res:", res);
+    return res?.values ?? [];
+  }
+
+  async updateClassCourses(
+    classId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> {
+    try {
+      const timestamp = new Date().toISOString();
+      const deleteQuery = `
+        UPDATE class_course
+        SET is_deleted = 1, updated_at = ?
+        WHERE class_id = ? AND is_deleted = 0;
+      `;
+      await this.executeQuery(deleteQuery, [timestamp, classId]);
+      for (const courseId of selectedCourseIds) {
+        const id = uuidv4();
+
+        const insertQuery = `
+          INSERT INTO class_course (
+            id,
+            class_id,
+            course_id,
+            created_at,
+            updated_at,
+            is_deleted
+          )
+          VALUES (?, ?, ?, ?, ?, 0);
+        `;
+
+        await this.executeQuery(insertQuery, [
+          id,
+          classId,
+          courseId,
+          timestamp,
+          timestamp
+        ]);
+        await this.updatePushChanges(
+          TABLES.ClassCourse,
+          MUTATE_TYPES.INSERT,
+          {
+            id,
+            class_id: classId,
+            course_id: courseId,
+            created_at: timestamp,
+            updated_at: timestamp,
+            is_deleted: 0
+          }
+        );
+      }
+
+    } catch (error) {
+      console.error("❌ Error replacing class courses:", error);
+    }
+  }
 
 }

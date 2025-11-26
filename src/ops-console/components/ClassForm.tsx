@@ -8,7 +8,7 @@ const ClassForm: React.FC<{
   classData?: any;
   schoolId?: string;
   onSaved?: () => void;
-}> = ({ onClose, mode, classData, schoolId, onSaved}) => {
+}> = ({ onClose, mode, classData, schoolId, onSaved }) => {
   const [formValues, setFormValues] = useState<any>({
     grade: "",
     section: "",
@@ -68,6 +68,39 @@ const ClassForm: React.FC<{
     fetchDropdownData();
   }, []);
 
+  useEffect(() => {
+    const fetchCourses = async () => {
+      setErrorMessage(""); 
+
+      if (!formValues.curriculum || !formValues.subjectGrade) {
+        return;
+      }
+      try {
+        const allCourse = await api.getCoursesByCurriculumAndGrade(
+          formValues.curriculum,
+          formValues.subjectGrade
+        );
+
+        console.log("Fetched courses:😁😁", allCourse);
+
+        if (!allCourse || allCourse.length === 0) {
+          console.error(
+            "No subjects are available for the selected grade and curriculum."
+          );
+          setErrorMessage(
+            "No subjects are available for the selected grade and curriculum."
+          );
+        } else {
+          setErrorMessage("");
+        }
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      }
+    };
+
+    fetchCourses();
+  }, [formValues.curriculum, formValues.subjectGrade]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -89,18 +122,6 @@ const ClassForm: React.FC<{
     }
     setSaving(true);
     try {
-      const classes = await api.getClassesBySchoolId(schoolId);
-      const className = formValues.grade + formValues.section;
-      const existing = classes.find((c: any) => c.name === className);
-
-      if (existing ) {
-        console.error("Class name already exists.");
-        setErrorMessage("Class name already exists.");
-
-        setSaving(false);
-        return;
-      }
-
       let classId = classData?.id;
       if (mode === "edit") {
         if (!classId) {
@@ -113,6 +134,17 @@ const ClassForm: React.FC<{
           formValues.groupId
         );
       } else if (mode === "create") {
+        const classes = await api.getClassesBySchoolId(schoolId);
+        const className = formValues.grade + formValues.section;
+        const existing = classes.find((c: any) => c.name === className);
+
+        if (existing) {
+          console.error("Class name already exists.");
+          setErrorMessage("Class name already exists.");
+
+          setSaving(false);
+          return;
+        }
         const newClass = await api.createClass(
           schoolId,
           formValues.grade + formValues.section,
@@ -125,7 +157,9 @@ const ClassForm: React.FC<{
         formValues.subjectGrade,
         formValues.curriculum
       );
-      await api.updateClassCourseSelection(
+      // await api.updateClassCourseSelection(
+        //   classId,
+        //   allCourse.map((c: any) => c.id)
         classId,
         allCourse.map((c: any) => c.id)
       );
@@ -134,7 +168,7 @@ const ClassForm: React.FC<{
     } finally {
       setSaving(false);
     }
-    if(onSaved) onSaved();
+    if (onSaved) onSaved();
     onClose();
   };
 
@@ -180,35 +214,6 @@ const ClassForm: React.FC<{
 
         <div className="class-form-group class-form-full-width">
           <label>
-            {t("Subject Grade")} <span className="class-form-required">*</span>
-          </label>
-          <div className="class-form-select-wrapper">
-            <select
-              name="subjectGrade"
-              value={formValues.subjectGrade || ""}
-              onChange={handleChange}
-              disabled={loading}
-            >
-              <option value="" disabled>
-                {t("Select Subject Grade")}
-              </option>
-              {grades.map((g: any) => (
-                <option key={g.id} value={g.id}>
-                  {g.name ?? g.value}
-                </option>
-              ))}
-            </select>
-
-            <img
-              src="/assets/loginAssets/DropDownArrow.svg"
-              alt="Dropdown"
-              className="class-form-dropdown-icon"
-            />
-          </div>
-        </div>
-
-        <div className="class-form-group class-form-full-width">
-          <label>
             {t("Curriculum")} <span className="class-form-required">*</span>
           </label>
           <div className="class-form-select-wrapper">
@@ -237,6 +242,35 @@ const ClassForm: React.FC<{
         </div>
 
         <div className="class-form-group class-form-full-width">
+          <label>
+            {t("Subject Grade")} <span className="class-form-required">*</span>
+          </label>
+          <div className="class-form-select-wrapper">
+            <select
+              name="subjectGrade"
+              value={formValues.subjectGrade || ""}
+              onChange={handleChange}
+              disabled={loading}
+            >
+              <option value="" disabled>
+                {t("Select Subject Grade")}
+              </option>
+              {grades.map((g: any) => (
+                <option key={g.id} value={g.id}>
+                  {g.name ?? g.value}
+                </option>
+              ))}
+            </select>
+
+            <img
+              src="/assets/loginAssets/DropDownArrow.svg"
+              alt="Dropdown"
+              className="class-form-dropdown-icon"
+            />
+          </div>
+        </div>
+
+        <div className="class-form-group class-form-full-width">
           <label>WhatsApp Group ID</label>
           <input
             name="groupId"
@@ -246,11 +280,7 @@ const ClassForm: React.FC<{
             placeholder={t("Enter WhatsApp Group ID") ?? ""}
           />
         </div>
-        {errorMessage && (
-          <div className="class-form-error">
-            {errorMessage}
-          </div>
-        )}
+        {errorMessage && <div className="class-form-error">{errorMessage}</div>}
 
         <div className="class-form-button-row">
           <button className="class-form-cancel-btn" onClick={onClose}>
