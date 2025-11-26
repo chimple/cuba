@@ -31,6 +31,10 @@ import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { RoleType } from "../../interface/modelInterfaces";
 import { image, school } from "ionicons/icons";
+import {
+  UserSchoolClassParams,
+  UserSchoolClassResult,
+} from "../../ops-console/pages/NewUserPageOps";
 
 export class ApiHandler implements ServiceApi {
   public static i: ApiHandler;
@@ -1652,6 +1656,11 @@ export class ApiHandler implements ServiceApi {
       studentId,
       subjectIds
     );
+  }
+  public async getOrcreateschooluser(
+    params: UserSchoolClassParams
+  ): Promise<UserSchoolClassResult> {
+    return await this.s.getOrcreateschooluser(params);
   }
   public async insertSchoolDetails(
     schoolId: string,

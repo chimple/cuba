@@ -1,0 +1,267 @@
+.formcard-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1250;
+}
+
+.formcard-modal {
+  background: #ffffff;
+  border-radius: 5px;
+  width: 475px;
+  max-width: 90vw;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  padding: 20px 24px 18px;
+}
+
+.formcard-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.formcard-title {
+  margin: 0;
+  font-size: 23px;
+  font-weight: 600;
+  color: #202124;
+}
+
+.formcard-close-button {
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  color: #000000;
+  padding: 4px;
+  font-weight: 500;
+}
+
+.formcard-modal-body {
+  margin-bottom: 20px;
+}
+
+.formcard-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 15px;
+  row-gap: 15px;
+}
+
+.formcard-form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.formcard-col-left {
+  grid-column: 1 / 2;
+}
+
+.formcard-col-right {
+  grid-column: 2 / 3;
+}
+
+.formcard-col-full {
+  grid-column: 1 / 3;
+}
+
+.formcard-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3c4043;
+  margin-bottom: 5px;
+}
+
+.formcard-required {
+  color: #d93025;
+}
+
+.formcard-form-group input,
+.formcard-form-group select {
+  border-radius: 4px;
+  border: 1px solid #dadce0;
+  background-color: #ffffff;
+  color: #000000;
+  padding: 0px 12px;
+  font-size: 14px;
+  height: 38px;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.formcard-form-group input::placeholder,
+.formcard-form-group select::placeholder {
+  color: #9aa0a6;
+}
+
+.formcard-form-group input:focus,
+.formcard-form-group select:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 1px rgba(26, 115, 232, 0.15);
+}
+
+.formcard-select-wrapper {
+  position: relative;
+}
+
+.formcard-select-wrapper select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 100%;
+}
+
+.formcard-select-arrow-flipper {
+  position: absolute;
+  right: 10px;
+  top: 55%;
+  width: 12px;
+  height: 20px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-in-out;
+}
+
+.formcard-arrow-down,
+.formcard-arrow-up {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  color: #5f6368;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.formcard-arrow-up {
+  transform: rotateX(180deg);
+}
+
+.formcard-select-wrapper.formcard-select-open .formcard-select-arrow-flipper {
+  transform: translateY(-50%) rotateX(180deg);
+}
+
+.formcard-phone-input {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  border-radius: 4px;
+  border: 1px solid #dadce0;
+  height: 44px;
+}
+
+.formcard-country-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  background: #ffffff;
+  border: none;
+  border-right: 1px solid #dadce0;
+  cursor: pointer;
+  font-size: 13px;
+  color: #3c4043;
+}
+
+.formcard-flag {
+  font-size: 16px;
+}
+
+.formcard-country-code-text {
+  white-space: nowrap;
+}
+
+.formcard-phone-input .formcard-select-arrow {
+  position: static;
+}
+
+.formcard-phone-input input {
+  border: none;
+  padding: 0 12px;
+  font-size: 14px;
+  outline: none;
+  height: 100%;
+}
+
+.formcard-phone-input input::placeholder {
+  color: #9aa0a6;
+}
+
+.formcard-form-group
+  .react-international-phone-input-container:focus-within
+  .react-international-phone-country-selector-button,
+.formcard-form-group
+  .react-international-phone-input-container:focus-within
+  input.react-international-phone-input {
+  border-color: #1a73e8;
+}
+
+.formcard-form-group
+  .react-international-phone-input-container:focus-within
+  .react-international-phone-country-selector-button {
+  border-right-color: #dadce0;
+}
+
+.formcard-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 15px;
+  margin-top: 35px;
+}
+
+.formcard-btn {
+  border-radius: 4px;
+  padding: 8px 22px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.formcard-btn-text {
+  background: transparent;
+  color: #1a73e8;
+}
+
+.formcard-btn-primary {
+  background: #1a73e8;
+  color: #ffffff;
+}
+
+.formcard-phone-input {
+  width: 100%;
+  height: 100%;
+  border: none !important;
+}
+
+.formcard-phone-input-inner {
+  width: 100%;
+  height: 40px;
+  font-size: 14px;
+}
+
+.formcard-phone-input .react-international-phone-input-container {
+  width: 100%;
+}
+
+.formcard-phone-input
+  .react-international-phone-input-container
+  .react-international-phone-country-selector {
+  border-radius: 4px 0 0 4px;
+}
+
+.formcard-phone-input
+  .react-international-phone-input-container
+  input.react-international-phone-input {
+  border-radius: 0 4px 4px 0;
+}
