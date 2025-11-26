@@ -59,6 +59,7 @@ import {
   IS_OPS_USER,
   CHIMPLE_RIVE_STATE_MACHINE_MAX,
   USER_DATA,
+  LOCAL_LESSON_BUNDLES_PATH,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -611,20 +612,14 @@ export class Util {
                   `[LessonDownloader] Lesson ${lessonId} not found at Android path`
                 );
               }
-
               const localBundlePath =
-                LOCAL_BUNDLES_PATH + `${lessonId}/config.json`;
+                LOCAL_LESSON_BUNDLES_PATH + `${lessonId}/config.json`;
               try {
-                const file = await Filesystem.readFile({
-                  path: localBundlePath,
-                  directory: Directory.External,
-                });
-                const decoded =
-                  typeof file.data === "string"
-                    ? atob(file.data)
-                    : await this.blobToString(file.data as Blob);
-                this.setGameUrl(LOCAL_BUNDLES_PATH);
-                return true;
+                const response = await fetch(localBundlePath);
+                if (response.ok) {
+                  this.setGameUrl(LOCAL_BUNDLES_PATH);
+                  return true;
+                }
               } catch {
                 console.error(
                   `[LessonDownloader] Lesson ${lessonId} not found at local bundle path`
@@ -898,6 +893,22 @@ export class Util {
       return false;
     }
   }
+
+  public static async lessonExistsInLocal(folderName: string): Promise<boolean> {
+    try {
+      await Filesystem.readdir({
+        path: folderName,
+        directory: Directory.External,
+      });
+      return true;
+    } catch (error: any) {
+      if (error.message?.includes('does not exist') || error.message?.includes('NOT_FOUND')) {
+        return false;
+      }
+      console.error('Error checking folder:', error);
+      throw error;
+    }
+  };
 
   public static async checkDownloadedLessonsFromLocal() {
     const storedLastRendered = localStorage.getItem(LAST_FUNCTION_CALL);
@@ -2352,7 +2363,7 @@ export class Util {
       const PortPlugin = registerPlugin<any>("Port");
       const data = await PortPlugin.isAppInstalledCheck();
       console.log("data isRespect data--> ", JSON.stringify(data));
-      localStorage.setItem(isRespectMode, data.isRespect);  
+      localStorage.setItem(isRespectMode, data.isRespect);
       return data.isRespect;
     } catch (error) {
       console.log("error isRespect data--> ", JSON.stringify(error));

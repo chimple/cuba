@@ -160,6 +160,7 @@ import SearchSchool from "./teachers-module/pages/SearchSchool";
 import JoinSchool from "./pages/JoinSchool";
 import CreateSchool from "./teachers-module/pages/CreateSchool";
 import ScanRedirect from "./teachers-module/components/homePage/assignment/ScanRedirect";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 import {
   Dialog,
   DialogTitle,
@@ -204,52 +205,84 @@ const App: React.FC = () => {
   const handleLessonClick = useHandleLessonClick(customHistory);
 
   const sendLaunch = async () => {
-    const currentAPIMode = ServiceConfig.getI().mode;
-    // If not ONEROSTER, log out and switch mode
-    if (currentAPIMode !== APIMode.ONEROSTER) {
-      try {
-        const isUserLoggedIn = await ServiceConfig.getI().authHandler.isUserLoggedIn();
-        if(isUserLoggedIn){
-          await ServiceConfig.getI().authHandler.logOut();
-        }
-        ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
-      } catch (error) {
-        console.error("Error during logout and mode switch:", error);
-        return;
-      }
-    }
-    localStorage.setItem(isRespectMode, "true");
-    localStorage.setItem(LANGUAGE, LANG.ENGLISH);  //for deeplink default is English - change according to requirement
-    try{
-      await i18n.changeLanguage(LANG.ENGLISH);
-    } catch(e){
-      console.error(`Failed to change language to ${LANG.ENGLISH}`, e);
-    }
+    const portPlugin = registerPlugin<PortPlugin>("Port");
+    const data = await portPlugin.sendLaunchData();
 
-    const authHandler = ServiceConfig.getI().authHandler;
-    const isUserLoggedIn = await authHandler.isUserLoggedIn();
-      try {
-        handleLessonClick(null,true,undefined,true);
-      } catch (e) {
-        console.error("Failed to fetch deeplink params or lesson/course", e);
-      }
-      if (!isUserLoggedIn) {
-      Util.isDeepLinkPending = true;
-      await ServiceConfig.getI().apiHandler.createDeeplinkUser();
-      await Toast.show({
-        text: t("User not logged in. Logging in the user..."),
-        duration: "long",
-      });
-      }
-      else{
-        if(!Util.getCurrentStudent()?.id){
-          const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-          if(currentUser){
-            await Util.setCurrentStudent(currentUser);
+    const ensureOneRosterMode = async () => {
+      const currentAPIMode = ServiceConfig.getI().mode;
+      // If not ONEROSTER, log out and switch mode
+      if (currentAPIMode !== APIMode.ONEROSTER) {
+        try {
+          const isUserLoggedIn = await ServiceConfig.getI().authHandler.isUserLoggedIn();
+          if(isUserLoggedIn){
+            await ServiceConfig.getI().authHandler.logOut();
           }
+          ServiceConfig.getI().switchMode(APIMode.ONEROSTER);
+        } catch (error) {
+          console.error("Error during logout and mode switch:", error);
+          throw error;
         }
       }
-  };
+    };
+
+    const setupLanguage = async () => {
+      localStorage.setItem(isRespectMode, "true");
+      localStorage.setItem(LANGUAGE, LANG.ENGLISH);  //for deeplink default is English - change according to requirement
+      try{
+        await i18n.changeLanguage(LANG.ENGLISH);
+      } catch(e){
+        console.error(`Failed to change language to ${LANG.ENGLISH}`, e);
+      }
+    };
+
+    const handleLesson = async () => {
+      const authHandler = ServiceConfig.getI().authHandler;
+      const isUserLoggedIn = await authHandler.isUserLoggedIn();
+        try {
+          const lesson = await ServiceConfig.getI().apiHandler.getLesson(data.lessonId);
+          const lessonPath = `${lesson?.cocos_lesson_id}`;
+          const lessonFlag = await Util.lessonExistsInLocal(lessonPath);
+          if(online == false && lessonFlag == false){
+            await Toast.show({
+              text: t("Lesson Assets not available, please connect to internet to download the assets."),
+              duration: 'short',
+            });
+
+            await new Promise(resolve => setTimeout(resolve, 10000));
+            CapApp.exitApp();
+            return;
+          }
+          handleLessonClick(null,true,undefined,true);
+        } catch (e) {
+          console.error("Failed to fetch deeplink params or lesson/course", e);
+        }
+        if (!isUserLoggedIn) {
+        Util.isDeepLinkPending = true;
+        await ServiceConfig.getI().apiHandler.createDeeplinkUser();
+        await Toast.show({
+          text: t("User not logged in. Logging in the user..."),
+          duration: "long",
+        });
+        }
+        else{
+          if(!Util.getCurrentStudent()?.id){
+            const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+            if(currentUser){
+              await Util.setCurrentStudent(currentUser);
+            }
+          }
+      }
+    };
+
+    try {
+      await ensureOneRosterMode();
+      await setupLanguage();
+      await handleLesson();
+    } catch (error) {
+      console.error("Error in sendLaunch:", error);
+    }
+};
+
   const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
   const learningPathAssets: any = useFeatureValue(LEARNING_PATH_ASSETS, {});
 
@@ -260,6 +293,9 @@ const App: React.FC = () => {
       document.addEventListener(TRIGGER_DEEPLINK, sendLaunch);
       const data = await portPlugin.sendLaunchData();
       if (data.lessonId) {
+        if (Capacitor.isNativePlatform()) {
+          ScreenOrientation.lock({ orientation: "landscape" });
+        }
         document.dispatchEvent(new Event(TRIGGER_DEEPLINK));
       } else if (Util.isRespectMode === true) {
         ServiceConfig.getI().switchMode(APIMode.ONEROSTER);

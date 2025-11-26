@@ -3,32 +3,182 @@
     {
       "public": "build",
       "site": "cuba-stage-dev",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        {
+          "source": "**/*.js",
+          "destination": "**/*.js"
+        },
+        {
+          "source": "**/*.jsc",
+          "destination": "**/*.jsc"
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**/*.jsc",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/javascript"
+            }
+          ]
+        }
+      ]
     },
     {
       "public": "build",
       "site": "cuba-stage",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        {
+          "source": "**/*.js",
+          "destination": "**/*.js"
+        },
+        {
+          "source": "**/*.jsc",
+          "destination": "**/*.jsc"
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**/*.jsc",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/javascript"
+            }
+          ]
+        }
+      ]
     },
     {
       "public": "build",
       "site": "chimple-prod",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        {
+          "source": "**/*.js",
+          "destination": "**/*.js"
+        },
+        {
+          "source": "**/*.jsc",
+          "destination": "**/*.jsc"
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**/*.jsc",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/javascript"
+            }
+          ]
+        }
+      ]
     },
     {
       "public": "build",
       "site": "chimple-prod-hot-update-beta",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        {
+          "source": "**/*.js",
+          "destination": "**/*.js"
+        },
+        {
+          "source": "**/*.jsc",
+          "destination": "**/*.jsc"
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**/*.jsc",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/javascript"
+            }
+          ]
+        }
+      ]
     },
     {
       "public": "build",
       "site": "cuba-stage-supabase",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        {
+          "source": "**/*.js",
+          "destination": "**/*.js"
+        },
+        {
+          "source": "**/*.jsc",
+          "destination": "**/*.jsc"
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**/*.jsc",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/javascript"
+            }
+          ]
+        }
+      ]
     },
     {
       "public": "build",
       "site": "cuba-stage-supabase-prod",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        {
+          "source": "**/*.js",
+          "destination": "**/*.js"
+        },
+        {
+          "source": "**/*.jsc",
+          "destination": "**/*.jsc"
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**/*.jsc",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/javascript"
+            }
+          ]
+        }
+      ]
     },
     {
       "public": "build",
@@ -38,7 +188,32 @@
     {
       "public": "build",
       "site": "cuba-stage-dev-supabase",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        {
+          "source": "**/*.js",
+          "destination": "**/*.js"
+        },
+        {
+          "source": "**/*.jsc",
+          "destination": "**/*.jsc"
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**/*.jsc",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/javascript"
+            }
+          ]
+        }
+      ]
     },
     {
       "public": "build",

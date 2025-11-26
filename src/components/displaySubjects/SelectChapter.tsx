@@ -3,7 +3,7 @@ import "./SelectChapter.css";
 import SelectIconImage from "./SelectIconImage";
 import DownloadLesson from "../DownloadChapterAndLesson";
 import { t } from "i18next";
-import { TableTypes } from "../../common/constants";
+import { COURSES, TableTypes } from "../../common/constants";
 import { Util } from "../../utility/util";
 
 const SelectChapter: FC<{
@@ -61,7 +61,11 @@ const SelectChapter: FC<{
                     imageHeight={"auto"}
                   />
                 </div>
-                <div>{t(chapter.name ?? "")}</div>
+                <div>
+                  {course?.code === COURSES.ENGLISH
+                    ? chapter?.name
+                    : t(chapter?.name ?? "")}
+                </div>
                 <div className="chapter-download">
                   <DownloadLesson chapter={chapter} />
                 </div>
