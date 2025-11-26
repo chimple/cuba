@@ -90,7 +90,11 @@ import {
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { getFunctions, httpsCallable } from "firebase/functions";
 // import { CollectionIds } from "../common/courseConstants";
-import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
+import {
+  REMOTE_CONFIG_DEFAULTS,
+  REMOTE_CONFIG_KEYS,
+  RemoteConfig,
+} from "../services/RemoteConfig";
 import { schoolUtil } from "./schoolUtil";
 import { TextToSpeech } from "@capacitor-community/text-to-speech";
 import { URLOpenListenerEvent } from "@capacitor/app";
@@ -434,11 +438,33 @@ export class Util {
                   `[LessonDownloader] Lesson ${lessonId} not found at local bundle path`
                 );
               }
-              const bundleZipUrls: string[] = await RemoteConfig.getJSON(
-                REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS
-              );
-              if (!bundleZipUrls || bundleZipUrls.length < 1) {
-                console.error("[LessonDownloader] No remote ZIP URLs found");
+
+              const defaultBundleZipUrls =
+                (REMOTE_CONFIG_DEFAULTS[
+                  REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS
+                ] as string[]) || [];
+              let bundleZipUrlsFromRc: any;
+              try {
+                bundleZipUrlsFromRc = await RemoteConfig.getJSON(
+                  REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS
+                );
+              } catch (err) {
+                console.warn(
+                  "[LessonDownloader] Remote config for bundle_zip_urls missing or invalid, using defaults:",
+                  err
+                );
+              }
+              let bundleZipUrls: string[] =
+                Array.isArray(bundleZipUrlsFromRc) &&
+                bundleZipUrlsFromRc.length > 0
+                  ? bundleZipUrlsFromRc.filter(
+                      (u): u is string => typeof u === "string" && !!u
+                    )
+                  : defaultBundleZipUrls.filter(Boolean);
+              if (!bundleZipUrls.length) {
+                console.error(
+                  "[LessonDownloader] No remote ZIP URLs found (even after applying defaults)"
+                );
                 return false;
               }
 
