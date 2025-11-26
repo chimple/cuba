@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./ClassForm.css";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
+import { CHIMPLE_DIGITAL_SKILLS } from "../../common/constants";
 const ClassForm: React.FC<{
   onClose: () => void;
   mode: "create" | "edit";
@@ -24,6 +25,7 @@ const ClassForm: React.FC<{
   const [saving, setSaving] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
   const [errorMessage, setErrorMessage] = useState("");
+  const [allCourse, setAllCourse] = useState<any[]>([]);
 
   useEffect(() => {
     if (mode === "edit" && classData) {
@@ -70,7 +72,7 @@ const ClassForm: React.FC<{
 
   useEffect(() => {
     const fetchCourses = async () => {
-      setErrorMessage(""); 
+      setErrorMessage("");
 
       if (!formValues.curriculum || !formValues.subjectGrade) {
         return;
@@ -80,7 +82,7 @@ const ClassForm: React.FC<{
           formValues.curriculum,
           formValues.subjectGrade
         );
-
+        
         if (!allCourse || allCourse.length === 0) {
           console.error(
             "No subjects are available for the selected grade and curriculum."
@@ -90,6 +92,7 @@ const ClassForm: React.FC<{
           );
         } else {
           setErrorMessage("");
+          setAllCourse(allCourse);
         }
       } catch (error) {
         console.error("Error fetching courses:", error);
@@ -139,7 +142,6 @@ const ClassForm: React.FC<{
         if (existing) {
           console.error("Class name already exists.");
           setErrorMessage("Class name already exists.");
-
           setSaving(false);
           return;
         }
@@ -150,14 +152,14 @@ const ClassForm: React.FC<{
         );
         classId = newClass.id;
       }
-      const allCourse = await api.getCourseByUserGradeId(
-        formValues.subjectGrade,
-        formValues.curriculum
-      );
-      await api.updateClassCourses(
-        classId,
-        allCourse.map((c: any) => c.id)
-      );
+
+      const courseIds = allCourse.map((c: any) => c.id);
+
+      if (!courseIds.includes(CHIMPLE_DIGITAL_SKILLS)) {
+        courseIds.push(CHIMPLE_DIGITAL_SKILLS);
+      }
+      await api.updateClassCourses(classId, courseIds);
+
     } catch (error) {
       console.error("Error creating/updating class:", error);
     } finally {
@@ -264,6 +266,7 @@ const ClassForm: React.FC<{
             />
           </div>
         </div>
+        {errorMessage && <div className="class-form-error">{errorMessage}</div>}
 
         <div className="class-form-group class-form-full-width">
           <label>WhatsApp Group ID</label>
@@ -275,7 +278,6 @@ const ClassForm: React.FC<{
             placeholder={t("Enter WhatsApp Group ID") ?? ""}
           />
         </div>
-        {errorMessage && <div className="class-form-error">{errorMessage}</div>}
 
         <div className="class-form-button-row">
           <button className="class-form-cancel-btn" onClick={onClose}>
