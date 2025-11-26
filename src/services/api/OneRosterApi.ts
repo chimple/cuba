@@ -144,6 +144,46 @@ interface course {
   updated_at: string | null;
 }
 
+interface CourseJson {
+  metadata: {
+    title: string;
+  };
+
+  links: {
+    rel: string;
+    href: string;
+    type: string;
+  }[];
+
+  publications: {
+    metadata: {
+      title: string;
+      author: string;
+      identifier: string;
+      language: string;
+      modified: string;
+      subject: {
+        name: string;
+        scheme: string;
+        code: string;
+      }[];
+    };
+
+    links: {
+      rel: string;
+      href: string;
+      type: string;
+    }[];
+
+    images: {
+      href: string;
+      type: string;
+      height: number;
+      width: number;
+    }[];
+  }[];
+}
+
 interface IStatement {
   id?: string;
   actor?: {
@@ -197,6 +237,65 @@ interface IStatement {
   };
 }
 
+function extractSubjectAndGrade(courseId: string) {
+  let subject = courseId;
+  let grade: string | null = null;
+
+  if (courseId.includes("_g")) {
+    const parts = courseId.split("_g");
+    subject = parts[0];
+    grade = parts[1];
+  }
+  return { subject, grade };
+}
+
+function extractSuffix(pubSubjectCode: string, subject: string) {
+  if (pubSubjectCode.startsWith(subject)) {
+    return pubSubjectCode.slice(subject.length);
+  }
+  if (pubSubjectCode.length >= 2) {
+    return pubSubjectCode.slice(-2);
+  }
+  return "00";
+}
+
+
+function buildMetaId(subject: string, grade: string | null, suffix: string) {
+  return grade ? `${subject}${grade}_${suffix}` : `${subject}_${suffix}`;
+}
+
+
+function extractActivityId(identifier: string): string | null {
+  if (!identifier) return null;
+  const url = new URL(identifier);
+  return url.searchParams.get("activity_id");
+}
+
+
+function extractCocosCodes(imageHref: string) {
+  const match = imageHref.match(/\/icons\/(.+?)\.png/);
+  if (!match) return { lessonId: "", chapterId: "", subjectId: "" };
+
+  const lessonId = match[1];
+  return {
+    lessonId,
+    chapterId: lessonId.slice(0, -2),
+    subjectId: lessonId.slice(0, -4)
+  };
+}
+
+
+function computeSortIndex(courseId: string) {
+  switch (courseId) {
+    case "en_g1": return 1;
+    case "maths_g1": return 2;
+    case "en_g2": return 3;
+    case "maths_g2": return 4;
+    default: return 5;
+  }
+}
+
+
 
 export class OneRosterApi implements ServiceApi {
   public static i: OneRosterApi;
@@ -238,6 +337,8 @@ export class OneRosterApi implements ServiceApi {
     updated_at: null
   };
   public allCoursesJson: { [key: string]: TableTypes<"course"> } = {};
+  public allRespectCourses: { [key: string]: CourseJson } = {};
+
   public studentAvailableCourseIds = ["en_g1", "en_g2", "maths_g1", "maths_g2", "puzzle"]; //Later get all available courses
   private favoriteLessons: { [userId: string]: string[] } = {};
   private FAVORITE_LESSONS_STORAGE_KEY = "favorite_lessons";
@@ -261,14 +362,25 @@ export class OneRosterApi implements ServiceApi {
     return { agentEmail, queryStatement };
   }
 
-  public async loadCourseJson(courseId: string) {
+
+  public async loadCourseJson(courseId: string): Promise<CourseJson | undefined> {
+
     try {
-      if (this.allCoursesJson[courseId] != undefined) return this.allCoursesJson[courseId]
-      const jsonFile = "assets/courses/" + courseId + ".json";
-      const res = await Util.loadJson(jsonFile)
-      // Store the loaded JSON in the allCoursesJson object
-      this.allCoursesJson[courseId] = res;
-      return res;
+      if (this.allRespectCourses[courseId] !== undefined)
+        return this.allRespectCourses[courseId];
+
+      const jsonUrl = `https://chimple-respectify.web.app/grades/${courseId}.json`;
+
+      const response = await fetch(jsonUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const jsonData = await response.json();
+
+      this.allRespectCourses[courseId] = jsonData;
+      return jsonData;
+
     } catch (error) {
       console.error(`Failed to load ${courseId}:`, error);
     }
@@ -400,6 +512,71 @@ export class OneRosterApi implements ServiceApi {
     }
   }
 
+buildLessonFromCourseJson(
+  lessonId: string,
+  courseJson: CourseJson
+): TableTypes<"lesson"> | null{
+  if (!courseJson?.publications) return null;
+
+  // Find matching publication
+  const pub = courseJson.publications.find((p) => {
+    return (p.metadata.identifier.includes(lessonId));});
+
+  if (!pub) return null;
+
+  // Extract activityId
+  let activityId = "";
+  if (pub.metadata.identifier) {
+    const url = new URL(pub.metadata.identifier);
+    activityId = url.searchParams.get("activity_id") || "";
+  }
+
+  // Extract cocosLessonId from image
+  let cocosLessonId = activityId; // fallback
+  const imageHref = pub.images?.[0]?.href || "";
+  const match = imageHref.match(/\/icons\/(.+?)\.png/);
+  if (match) {
+    cocosLessonId = match[1];
+  }
+
+  const cocosChapterId = cocosLessonId.slice(0, -2);
+  const cocosSubjectId = cocosLessonId.slice(0, -4);
+
+  // Build Lesson Object
+  const lesson: TableTypes<"lesson"> = {
+    id: activityId,
+    name: pub.metadata.title || "",
+
+    cocos_chapter_code: cocosChapterId,
+    cocos_lesson_id: cocosLessonId,
+    cocos_subject_code: cocosSubjectId,
+
+    color: null,
+    created_at: "",
+    created_by: null,
+
+    image: Util.getThumbnailUrl({
+      subjectCode: cocosSubjectId,
+      lessonCode: cocosLessonId
+    }),
+
+    is_deleted: null,
+    language_id: `/Language/${cocosSubjectId}`,
+
+    outcome: "",
+    plugin_type: "cocos",
+    status: "approved",
+    subject_id: `/Subject/${cocosSubjectId}`,
+
+    target_age_from: 3,
+    target_age_to: 8,
+
+    updated_at: null
+  };
+
+  return lesson;
+}
+
 
 
   getCoursesForClassStudent(classId: string): Promise<TableTypes<"course">[]> {
@@ -414,36 +591,8 @@ export class OneRosterApi implements ServiceApi {
       const courseJson = await this.loadCourseJson(
         this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0]
       );
-      const lessonwithCocosLessonIds = courseJson.groups;
 
-      for (const group of lessonwithCocosLessonIds) {
-        for (const lesson of group.navigation) {
-          if (lesson.cocosChapterCode === lessonId) {
-            return {
-              id: lesson.id,
-              name: lesson.title,
-              cocos_chapter_code: lesson.cocosChapterCode,
-              cocos_lesson_id: lesson.cocosLessonCode,
-              cocos_subject_code: lesson.cocosSubjectCode,
-              color: null,
-              created_at: "",
-              created_by: null,
-              image: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
-              is_deleted: null,
-              language_id: null,
-              outcome: lesson.outcome,
-              plugin_type: lesson.pluginType,
-              status: lesson.status,
-              subject_id: lesson.subject,
-              target_age_from: null,
-              target_age_to: null,
-              updated_at: null
-            };
-          }
-        }
-      }
-
-      return null; // Return null if lesson not found
+      return this.buildLessonFromCourseJson(lessonId, courseJson!);
 
     } catch (error) {
       console.error("Error in getLessonWithCocosLessonId:", error);
@@ -452,38 +601,16 @@ export class OneRosterApi implements ServiceApi {
   }
   async getLesson(id: string): Promise<TableTypes<"lesson"> | undefined> {
     try {
+      let lesson: TableTypes<"lesson"> | undefined;
       for (let i = 0; i < this.studentAvailableCourseIds.length; i++) {
         const element = this.studentAvailableCourseIds[i];
         const courseJson = await this.loadCourseJson(element);
 
-        const getLessonData = courseJson.groups
-
-        for (const group of getLessonData) {
-          for (const lesson of group.navigation) {
-            if (lesson.id === id) {
-              return {
-                id: lesson.id,
-                name: lesson.title,
-                cocos_chapter_code: lesson.cocosChapterCode,
-                cocos_lesson_id: lesson.cocosLessonCode,
-                cocos_subject_code: lesson.cocosSubjectCode,
-                color: lesson.color || null,
-                created_at: "",
-                created_by: null,
-                image: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
-                is_deleted: null,
-                language_id: lesson.language || null,
-                outcome: lesson.outcome,
-                plugin_type: lesson.pluginType,
-                status: lesson.status,
-                subject_id: lesson.subject,
-                target_age_from: lesson.targetAgeFrom || null,
-                target_age_to: lesson.targetAgeTo || null,
-                updated_at: null
-              };
-            }
-          }
+        lesson = this.buildLessonFromCourseJson(id, courseJson!) || undefined;
+        if(lesson !== undefined && lesson !== null){
+          return lesson;
         }
+
       }
       return undefined;
     } catch (error) {
@@ -498,20 +625,40 @@ export class OneRosterApi implements ServiceApi {
     try {
       for (const courseId of this.studentAvailableCourseIds) {
         const courseJson = await this.loadCourseJson(courseId);
-        const group = courseJson.groups.find((g: any) => g.metadata.id === id);
-        if (group) {
-          return {
-            id: group.metadata.id,
-            name: group.metadata.title,
-            image: Util.getThumbnailUrl({ id: group.metadata.id }),
-            course_id: courseId,
-            created_at: "",
-            updated_at: null,
-            is_deleted: null,
-            sort_index: null,
-            sub_topics: null
-          };
+
+        const publications = courseJson?.publications || [];
+        if (publications.length === 0) return undefined;
+        
+        const { subject, grade } = extractSubjectAndGrade(courseId);
+        const pubSubjectCode = courseJson?.publications[0]?.metadata?.subject?.[0]?.code || "";
+        const suffix = extractSuffix(pubSubjectCode, subject);
+        const metaId = buildMetaId(subject, grade, suffix);
+
+        let matchedPublication;
+
+        for (const pub of publications) {
+          const pubSubjectCode = pub.metadata?.subject?.[0]?.code || "";
+          const pubSuffix = pubSubjectCode.slice(2);
+
+          if (pubSuffix === suffix) {
+            matchedPublication = pub;
+            break;
+          }
         }
+
+        if (!matchedPublication) return undefined;
+
+        return {
+          id: metaId,
+          name: matchedPublication.metadata?.title || courseJson?.metadata?.title || "",
+          image: Util.getThumbnailUrl({ id: metaId }),
+          course_id: courseId,
+          created_at: "",
+          updated_at: null,
+          is_deleted: null,
+          sort_index: null,
+          sub_topics: null
+        } as TableTypes<"chapter">;
       }
       return undefined;
     } catch (error) {
@@ -533,18 +680,29 @@ export class OneRosterApi implements ServiceApi {
       courses: TableTypes<"course">[];
     } = { grades: [], courses: [] };
 
-    // Get the current course's metadata to use for filtering
     const currentCourseJson = await this.loadCourseJson(course.id);
-    const currentSubject = currentCourseJson.metadata.subject;
-    const currentCurriculum = currentCourseJson.metadata.curriculum;
 
-    // Filter courses by matching subject and curriculum in their metadata
+    const imgHref = currentCourseJson?.publications?.[0]?.images?.[0]?.href || "";
+    const { subjectId: subjectCode } = extractCocosCodes(imgHref);
+
+
+    const currentSubject = subjectCode;
+    const currentCurriculum = "7d560737-746a-4931-a49f-02de1ca526bd";
+
     const filteredCourses: TableTypes<"course">[] = [];
     for (const c of allCourses) {
       try {
         const courseJson = await this.loadCourseJson(c.id);
-        if (courseJson.metadata.subject === currentSubject &&
-          courseJson.metadata.curriculum === currentCurriculum) {
+        const imgHrefFiltered = courseJson?.publications?.[0]?.images?.[0]?.href || "";
+
+        let subjectCodeFiltered = "";
+
+        const match = imgHrefFiltered.match(/\/icons\/(.+?)\.png/);
+        if (match) {
+          const lessonId = match[1];
+          subjectCodeFiltered = lessonId.slice(0, -4);
+        }
+        if (subjectCodeFiltered === currentSubject) {
           filteredCourses.push(c);
         }
       } catch (error) {
@@ -1038,16 +1196,29 @@ export class OneRosterApi implements ServiceApi {
     try {
       const courseJson = await this.loadCourseJson(courseId);
       console.log("courseId id ---> ", courseId);
+      const href = courseJson?.links?.[0]?.href || "";
+
+      let gradeCode = "";
+
+      const match = href.match(/\/grades\/(.+?)\.json/);
+      if (match) {
+        gradeCode = match[1];
+      }
+
+      const { subject, grade } = extractSubjectAndGrade(courseId);
+      const pubSubjectCode = courseJson?.publications?.[0]?.metadata?.subject?.[0]?.code || "";
+      const suffix = extractSuffix(pubSubjectCode, subject);
+      const metaId = buildMetaId(subject, grade, suffix);
 
       let defaultCourse: TableTypes<"course"> = {
-        code: courseJson.metadata.courseCode,
+        code: gradeCode,
         color: null,
         created_at: "",
         curriculum_id: null,
         description: null,
         grade_id: null,
-        id: "",
-        image: null,
+        id: metaId,
+        image: Util.getThumbnailUrl({ id: metaId }),
         is_deleted: null,
         name: "",
         sort_index: null,
@@ -1057,69 +1228,96 @@ export class OneRosterApi implements ServiceApi {
       };
       this.currentCourse.set('default', defaultCourse);
 
-      if (!courseJson.groups) return [];
+      if (!courseJson?.publications) return [];
+      const chapters: TableTypes<"chapter">[] = courseJson.publications.map((pub: any) => {
 
-      const chapters: TableTypes<"chapter">[] = courseJson.groups.map(
-        (group: any) => ({
-          id: group.metadata.id,
-          name: group.metadata.title,
-          image: Util.getThumbnailUrl({ id: group.metadata.id }),
-          course_id: courseId,
-          created_at: null,
-          updated_at: null,
-          is_deleted: null,
-        })
-      );
+      const { subject, grade } = extractSubjectAndGrade(courseId);
+      const pubSubjectCode = courseJson?.publications?.[0]?.metadata?.subject?.[0]?.code || "";
+      const suffix = extractSuffix(pubSubjectCode, subject);
+      const metaId = buildMetaId(subject, grade, suffix);
 
-      return chapters;
+
+      return {
+        id: metaId,
+        name: pub.metadata?.title || null,
+        image: Util.getThumbnailUrl({ id: metaId }),
+        sort_index: null,
+        sub_topics: null,
+        course_id: courseId,
+        created_at: "",
+        updated_at: null,
+        is_deleted: null,
+      } as TableTypes<"chapter">;
+    });
+
+    return chapters;
     } catch (error) {
       console.error("Error in getChaptersForCourse:", error);
-      return []; // Return empty array on error
+      return [];
     }
   }
   async getLessonsForChapter(
     chapterId: string
   ): Promise<TableTypes<"lesson">[]> {
+
+  const resultLessons: TableTypes<"lesson">[] = [];
+
     try {
-      // Search all available courses for the chapter
       for (const courseId of this.studentAvailableCourseIds) {
+
         const courseJson = await this.loadCourseJson(courseId);
-        const chapter = courseJson.groups.find(
-          (group: any) => group.metadata.id === chapterId
-        );
-        if (chapter && chapter.navigation) {
-          const lessons: TableTypes<"lesson">[] = chapter.navigation.map(
-            (lesson: any) => ({
-              cocos_chapter_code: lesson.cocosChapterCode,
-              cocos_lesson_id: lesson.cocosLessonCode,
-              cocos_subject_code: lesson.cocosSubjectCode,
-              color: lesson.color,
-              created_at: null,
-              created_by: null,
-              id: lesson.id,
-              image: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
-              is_deleted: null,
-              language_id: lesson.language,
-              name: lesson.title,
-              outcome: lesson.outcome || null,
-              plugin_type: lesson.pluginType,
-              status: lesson.status,
-              chapter_id: chapterId,
-              subject_id: lesson.subject,
-              target_age_from: lesson.targetAgeFrom || null,
-              target_age_to: lesson.targetAgeTo || null,
-            })
-          );
-          return lessons;
+
+        for (const pub of courseJson?.publications ?? []) {
+
+          const { subject, grade } = extractSubjectAndGrade(courseId);
+          const pubSubjectCode = pub.metadata?.subject?.[0]?.code || "";
+          const suffix = extractSuffix(pubSubjectCode, subject);
+          const metaId = buildMetaId(subject, grade, suffix);
+
+
+          if (metaId !== chapterId) continue;
+
+          const identifier = pub.metadata?.identifier || "";
+          const url = new URL(identifier);
+          const activityId = url.searchParams.get("activity_id") || "";
+
+          const { lessonId: cocosLessonId, chapterId: cocosChapterId, subjectId: cocosSubjectId } =
+           extractCocosCodes(pub.images?.[0]?.href ?? "");
+
+          resultLessons.push({
+            id: activityId,
+            cocos_chapter_code: cocosChapterId,
+            cocos_lesson_id: cocosLessonId,
+            cocos_subject_code: cocosSubjectId,
+            color: null,
+            created_at: "",
+            created_by: null,
+            updated_at: null,
+            image: Util.getThumbnailUrl({
+              subjectCode: cocosSubjectId,
+              lessonCode: cocosLessonId
+            }),
+            is_deleted: null,
+            language_id: `/Language/${cocosSubjectId}`,
+            name: pub.metadata?.title || "",
+            outcome: null,
+            plugin_type: "cocos",
+            status: "approved",
+            subject_id: `/Subject/${cocosSubjectId}`,
+            target_age_from: null,
+            target_age_to: null,
+            chapter_id: chapterId
+          } as any);
         }
       }
-      // If not found in any course
-      return [];
+
+      return resultLessons;
+
     } catch (error) {
       console.error("Error in getLessonsForChapter:", error);
-      return []; // Return empty array on error
+      return [];
     }
-  }
+}
 
   updateRewardsForStudent(
     studentId: string,
@@ -1182,25 +1380,35 @@ export class OneRosterApi implements ServiceApi {
       for (let i = 0; i < this.studentAvailableCourseIds.length; i++) {
         const courseId = this.studentAvailableCourseIds[i];
         try {
+          const sortIndex = computeSortIndex(courseId);
+
           const courseJson = await this.loadCourseJson(courseId);
+          const href = courseJson?.links?.[0]?.href || "";
+          let gradeCode = "";
+
+          const match = href.match(/\/grades\/(.+?)\.json/);
+          if (match) {
+            gradeCode = match[1];   // en_g1
+          }
+          const subjectId = gradeCode.split("_")[0];
           if (courseJson?.metadata) {
             const metaC = courseJson.metadata;
             const localCourse: TableTypes<"course"> = {
-              id: metaC.courseId || courseId,
+              id: courseId,
               name: metaC.title || courseId,
-              code: metaC.courseCode,
-              color: metaC.color,
+              code: gradeCode,
+              color: "#0090D3",
               created_at: "",
-              curriculum_id: metaC.curriculum,
+              curriculum_id: "7d560737-746a-4931-a49f-02de1ca526bd",
               description: null,
-              grade_id: metaC.grade,
-              image: Util.getThumbnailUrl({ courseCode: metaC.courseCode }),
+              grade_id: "c802dce7-0840-4baf-b374-ef6cb4272a76",
+              image: Util.getThumbnailUrl({ courseCode: gradeCode }),
               is_deleted: false,
-              sort_index: metaC.sortIndex,
-              subject_id: metaC.subjectId,
+              sort_index: sortIndex,
+              subject_id: `/Subject/${subjectId}`,
               updated_at: null,
               firebase_id: null
-            };
+            } as TableTypes<"course">;
             console.log("localCourse ---> ", localCourse);
             res.push(localCourse);
           }
@@ -1391,25 +1599,35 @@ export class OneRosterApi implements ServiceApi {
   async getCourse(id: string): Promise<TableTypes<"course"> | undefined> {
     try {
       const courseJson = await this.loadCourseJson(id);
-      const metaC = courseJson.metadata;
+      const metaC = courseJson?.metadata;
+      const href = courseJson?.links?.[0]?.href || "";
+        let gradeCode = "";
+
+        const match = href.match(/\/grades\/(.+?)\.json/);
+        if (match) {
+          gradeCode = match[1];   // en_g1
+      }
+
+      const sortIndex = computeSortIndex(id);
+
 
 
       let tCourse: TableTypes<"course"> = {
-        code: metaC.courseCode,
-        color: metaC.color,
+        code: gradeCode,
+        color: "",
         created_at: "",
-        curriculum_id: metaC.curriculum,
+        curriculum_id: "7d560737-746a-4931-a49f-02de1ca526bd",
         description: null,
-        grade_id: metaC.grade,
-        id: metaC.courseCode,
-        image: Util.getThumbnailUrl({ courseCode: metaC.courseCode }),
+        grade_id: "c802dce7-0840-4baf-b374-ef6cb4272a76",
+        id: gradeCode,
+        image: Util.getThumbnailUrl({ courseCode: gradeCode }),
         is_deleted: null,
-        name: metaC.title,
-        sort_index: metaC.sortIndex,
-        subject_id: metaC.subject,
+        name: metaC?.title || "",
+        sort_index: sortIndex,
+        subject_id: "",
         updated_at: null,
         firebase_id: null
-      };
+      } as TableTypes<"course">;
 
       // Add the course to the Map instead of assigning it directly
       this.currentCourse.set(id, tCourse);
@@ -2540,28 +2758,43 @@ export class OneRosterApi implements ServiceApi {
         const courseJson = await this.loadCourseJson(courseId);
 
         // Check if any lesson in the course matches the given lesson ID
-        const foundLesson = courseJson.groups.some((group: any) =>
-          group.navigation.some((lesson: any) => lesson.id === lessonId)
-        );
+        const foundLesson = courseJson?.publications.some((pub: any) => {
+          const identifier = pub.metadata?.identifier || "";
+          const url = new URL(identifier);
+          const activityId = url.searchParams.get("activity_id");
+
+          return activityId === lessonId;
+        });
+
+        const href = courseJson?.links?.[0]?.href || "";
+        let gradeCode = "";
+
+        const match = href.match(/\/grades\/(.+?)\.json/);
+        if (match) {
+          gradeCode = match[1];   // en_g1
+      }
+
+        const sortIndex = computeSortIndex(courseId);
+
 
         if (foundLesson) {
-          const metaC = courseJson.metadata;
+          const metaC = courseJson?.metadata;
           courses.push({
-            code: metaC.courseCode,
-            color: metaC.color,
+            code: gradeCode,
+            color: null,
             created_at: "",
-            curriculum_id: metaC.curriculum,
+            curriculum_id:"7d560737-746a-4931-a49f-02de1ca526bd",
             description: null,
-            grade_id: metaC.grade,
+            grade_id:"c802dce7-0840-4baf-b374-ef6cb4272a76",
             id: courseId,
-            image: Util.getThumbnailUrl({ courseCode: metaC.courseCode }),
+            image: Util.getThumbnailUrl({ courseCode: gradeCode }),
             is_deleted: null,
-            name: metaC.title,
-            sort_index: metaC.sortIndex,
-            subject_id: metaC.subject,
+            name: metaC?.title || "",
+            sort_index: sortIndex,
+            subject_id: "",
             updated_at: null,
             firebase_id: null
-          });
+          } as TableTypes<"course">);
         }
       }
 
@@ -2585,45 +2818,57 @@ export class OneRosterApi implements ServiceApi {
       for (const course of courses) {
         try {
           const courseJson = await this.loadCourseJson(course.id);
-          if (!courseJson?.groups) continue;
+          if (!courseJson?.publications) continue;
 
-          const lessons = courseJson.groups.flatMap((group: any) => ({
-            lessons: group.navigation,
-            groupId: group.metadata.id,
-            groupTitle: group.metadata.title
-          }));
+          for (const pub of courseJson.publications) {
+            const title = (pub.metadata?.title || "").toLowerCase();
 
-          for (const { lessons: groupLessons, groupId } of lessons) {
-            for (const lesson of groupLessons) {
-              const title = (lesson.title || '').toLowerCase();
-
-              // Dictionary style matching
-              if (title.startsWith(searchTerm) || title.includes(` ${searchTerm}`)) {
-                allLessons.push({
-                  id: lesson.id,
-                  name: lesson.title,
-                  cocos_chapter_code: lesson.cocosChapterCode,
-                  cocos_lesson_id: lesson.cocosLessonCode,
-                  cocos_subject_code: lesson.cocosSubjectCode,
-                  color: lesson.color || null,
-                  created_at: new Date().toISOString(),
-                  created_by: null,
-                  image: Util.getThumbnailUrl({
-                    subjectCode: lesson.cocosSubjectCode,
-                    lessonCode: lesson.cocosLessonCode
-                  }),
-                  is_deleted: null,
-                  language_id: lesson.language || null,
-                  outcome: lesson.outcome,
-                  plugin_type: lesson.pluginType,
-                  status: lesson.status,
-                  subject_id: lesson.subject,
-                  target_age_from: lesson.targetAgeFrom || null,
-                  target_age_to: lesson.targetAgeTo || null,
-                  updated_at: null,
-                });
-              }
+            // Dictionary search style
+            if (!(title.startsWith(searchTerm) || title.includes(` ${searchTerm}`))) {
+              continue;
             }
+
+            const identifier = pub.metadata?.identifier || "";
+            const url = new URL(identifier);
+            const activityId = url.searchParams.get("activity_id") || "";
+
+            const imgHref = pub.images?.[0]?.href || "";
+            const match = imgHref.match(/\/icons\/(.+?)\.png/);
+            const cocosLessonId = match ? match[1] : "";
+
+            const cocosChapterId = cocosLessonId.slice(0, -2);
+            const cocosSubjectId = cocosLessonId.slice(0, -4);
+
+            allLessons.push({
+              id: activityId,
+              name: pub.metadata?.title || "",
+
+              cocos_chapter_code: cocosChapterId,
+              cocos_lesson_id: cocosLessonId,
+              cocos_subject_code: cocosSubjectId,
+
+              color: null,
+              created_at: '',
+              created_by: null,
+
+              image: Util.getThumbnailUrl({
+                subjectCode: cocosSubjectId,
+                lessonCode: cocosLessonId
+              }),
+
+              is_deleted: null,
+              language_id: `/Language/${cocosSubjectId}`,
+
+              outcome: "",
+              plugin_type: "cocos",
+              status: "approved",
+              subject_id: `/Subject/${cocosSubjectId}`,
+
+              target_age_from: 3,
+              target_age_to: 8,
+
+              updated_at: null,
+            }as TableTypes<"lesson">);
           }
         } catch (error) {
           console.error(`Error processing course ${course.id}:`, error);
@@ -2669,23 +2914,30 @@ export class OneRosterApi implements ServiceApi {
     try {
 
       for (const courseId of this.studentAvailableCourseIds) {
-        const courseJson = await this.loadCourseJson(courseId);
+      const courseJson = await this.loadCourseJson(courseId);
 
-        for (const group of courseJson.groups) {
-          for (const lesson of group.navigation) {
-            if (lesson.id === lessonId) {
-              return lesson.id;
-            }
-          }
+      // publications now contain lessons
+      for (const pub of courseJson?.publications || []) {
+        const identifier = pub?.metadata?.identifier || "";
+
+        if (!identifier) continue;
+
+        const activityId = extractActivityId(identifier);
+
+        if (activityId === lessonId) {
+          return activityId;   // found the lesson
         }
       }
+    }
 
-      return undefined;
+    return undefined;
     } catch (error) {
       console.error("Error fetching chapter by lesson:", error);
       return undefined;
     }
   }
+
+  
   public async getChapterByLessonID(
     lessonId: string
   ): Promise<TableTypes<"chapter"> | undefined> {
@@ -2693,21 +2945,27 @@ export class OneRosterApi implements ServiceApi {
       for (const courseId of this.studentAvailableCourseIds) {
         const courseJson = await this.loadCourseJson(courseId);
 
-        for (const group of courseJson.groups) {
-          for (const lesson of group.navigation) {
-            if (lesson.id === lessonId) {
-              return {
-                id: group.metadata.id,
-                name: group.metadata.title,
-                image: Util.getThumbnailUrl({ id: group.metadata.id }),
-                course_id: courseId,
-                created_at: "",
-                updated_at: null,
-                is_deleted: null,
-                sort_index: null,
-                sub_topics: null
-              };
-            }
+        for (const pub of courseJson?.publications ?? []) {
+
+          const { subject, grade } = extractSubjectAndGrade(courseId);
+          const pubSubjectCode = pub.metadata?.subject?.[0]?.code || "";
+          const suffix = extractSuffix(pubSubjectCode, subject);
+          const metaId = buildMetaId(subject, grade, suffix);
+          const activityId = extractActivityId(pub.metadata.identifier);
+
+          if (activityId === lessonId) {
+
+            return {
+              id: metaId,
+              name: pub.metadata.title || "",
+              image: Util.getThumbnailUrl({ id: metaId }),
+              course_id: courseId,
+              created_at: "",
+              updated_at: null,
+              is_deleted: null,
+              sort_index: null,
+              sub_topics: null,
+            } as TableTypes<"chapter">;
           }
         }
       }
@@ -2758,24 +3016,81 @@ export class OneRosterApi implements ServiceApi {
         this.currentCourse.get('default')?.code || this.studentAvailableCourseIds[0]
       );
 
-      if (!courseJson.groups) return [];
+      if (!courseJson?.publications) return [];
 
-      const lessons: TableTypes<"lesson">[] = courseJson.groups.flatMap(group =>
-        group.navigation.filter(lesson => lessonIds.includes(lesson.id)).map((lesson: any) => ({
-          id: lesson.id,
-          name: lesson.title,
-          chapter_id: group.metadata.id,
-          subject_id: group.subject,
-          outcome: lesson.outcome,
-          status: lesson.status,
-          type: lesson.type,
-          thumbnail: Util.getThumbnailUrl({ subjectCode: lesson.cocosSubjectCode, lessonCode: lesson.cocosLessonCode }),
-          plugin_type: lesson.pluginType,
-          created_at: "null",
-          updated_at: "null",
-          is_deleted: null
-        }))
-      );
+      const lessons: TableTypes<"lesson">[] = courseJson.publications
+        .filter((pub: any) => {
+          const identifier = pub.metadata?.identifier || "";
+          const url = new URL(identifier);
+          const activityId = url.searchParams.get("activity_id") || "";
+          return lessonIds.includes(activityId);
+        })
+        .map((pub: any) => {
+          const identifier = pub.metadata?.identifier || "";
+          const url = new URL(identifier);
+          const activityId = url.searchParams.get("activity_id") || "";
+
+          const imgHref = pub.images?.[0]?.href || "";
+          const match = imgHref.match(/\/icons\/(.+?)\.png/);
+          const cocosLessonId = match ? match[1] : "";
+
+          const chapterId = cocosLessonId.slice(0, -2);
+          const subjectId = cocosLessonId.slice(0, -4);
+
+          const href = courseJson.links?.[0]?.href || "";
+          const hrematch = href.match(/grades\/(.+)\.json$/);
+          const courseId = hrematch ? hrematch[1] : "";
+
+          let subject = courseId;
+          let grade: string | null = null;
+
+          if (courseId.includes("_g")) {
+            const parts = courseId.split("_g");
+            subject = parts[0] ?? courseId;
+            grade = parts[1] ?? null;
+          }
+
+          const pubSubjectCode = pub.metadata?.subject?.[0]?.code || "";
+
+          let suffix = "";
+          if (pubSubjectCode && subject && pubSubjectCode.startsWith(subject)) {
+            suffix = pubSubjectCode.slice(subject.length);
+          } else if (pubSubjectCode.length >= 2) {
+            suffix = pubSubjectCode.slice(-2);
+          } else {
+            suffix = "00";
+          }
+
+          const metaId = grade
+            ? `${subject}${grade}_${suffix}`
+            : `${subject}_${suffix}`;
+
+          const lesson: TableTypes<"lesson"> = {
+            id: activityId,
+            name: pub.metadata?.title || null,
+            language_id: `/Language/${subjectId}`,
+            target_age_from: 3,
+            target_age_to: 8,
+            subject_id: `/Subject/${subjectId}`,
+            status: "approved",
+            outcome: "",
+            image: Util.getThumbnailUrl({
+              subjectCode: subjectId,
+              lessonCode: cocosLessonId,
+            }),
+            plugin_type: "cocos",
+            cocos_chapter_code: metaId,
+            cocos_lesson_id: cocosLessonId,
+            cocos_subject_code: subjectId,
+            color: null,
+            created_at: "",
+            updated_at: null,
+            created_by: null,
+            is_deleted: null,
+          } as TableTypes<"lesson">;
+
+          return lesson;
+        });
 
       return lessons;
     } catch (error) {
