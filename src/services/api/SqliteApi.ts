@@ -6913,8 +6913,6 @@ order by
       ORDER BY name ASC`,
       [curriculumId, gradeId]
     );
-
-    console.log("🚀 ~ SqliteApi ~ getCoursesByCurriculumAndGrade ~ res:", res);
     return res?.values ?? [];
   }
 

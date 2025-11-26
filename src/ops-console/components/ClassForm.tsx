@@ -81,8 +81,6 @@ const ClassForm: React.FC<{
           formValues.subjectGrade
         );
 
-        console.log("Fetched courses:😁😁", allCourse);
-
         if (!allCourse || allCourse.length === 0) {
           console.error(
             "No subjects are available for the selected grade and curriculum."
@@ -152,14 +150,11 @@ const ClassForm: React.FC<{
         );
         classId = newClass.id;
       }
-
       const allCourse = await api.getCourseByUserGradeId(
         formValues.subjectGrade,
         formValues.curriculum
       );
-      // await api.updateClassCourseSelection(
-        //   classId,
-        //   allCourse.map((c: any) => c.id)
+      await api.updateClassCourses(
         classId,
         allCourse.map((c: any) => c.id)
       );
