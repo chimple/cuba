@@ -9,7 +9,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
+import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS, USER_ROLE } from "../../common/constants";
 import "./SchoolList.css";
 import DataTablePagination from "../components/DataTablePagination";
 import DataTableBody, { Column } from "../components/DataTableBody";
@@ -21,6 +21,7 @@ import FileUpload from "../components/FileUpload";
 import { FileUploadOutlined, Add } from "@mui/icons-material";
 import { BsFillBellFill } from "react-icons/bs";
 import { useLocation, useHistory } from "react-router";
+import { RoleType } from "../../interface/modelInterfaces";
 
 const filterConfigsForSchool = [
   { key: "partner", label: t("Select Partner") },
@@ -98,6 +99,18 @@ const SchoolList: React.FC = () => {
   const [pageSize] = useState(DEFAULT_PAGE_SIZE);
 
   const isSmallScreen = useMediaQuery("(max-width: 900px)");
+
+  const userRoles = JSON.parse(
+    localStorage.getItem(USER_ROLE) || "[]"
+  );
+  const rolesWithAccess = [
+    RoleType.SUPER_ADMIN,
+    RoleType.OPERATIONAL_DIRECTOR,
+    RoleType.PROGRAM_MANAGER,
+  ];
+  const haveAccess = userRoles.some((role) =>
+    rolesWithAccess.includes(role as RoleType)
+  );
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -327,6 +340,7 @@ const SchoolList: React.FC = () => {
             </div>
 
             <div className="school-list-button-and-search-filter">
+              {haveAccess &&
               <Button
                 variant="outlined"
                 onClick={() => {
@@ -354,6 +368,7 @@ const SchoolList: React.FC = () => {
                   </span>
                 )}
               </Button>
+              }
               <Button
                 variant="outlined"
                 onClick={() => setShowUploadPage(true)}
