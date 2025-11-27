@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import "./ClassForm.css";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { t } from "i18next";
-import { CHIMPLE_DIGITAL_SKILLS } from "../../common/constants";
 const ClassForm: React.FC<{
   onClose: () => void;
   mode: "create" | "edit";
@@ -25,7 +24,6 @@ const ClassForm: React.FC<{
   const [saving, setSaving] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
   const [errorMessage, setErrorMessage] = useState("");
-  const [allCourse, setAllCourse] = useState<any[]>([]);
 
   useEffect(() => {
     if (mode === "edit" && classData) {
@@ -82,7 +80,6 @@ const ClassForm: React.FC<{
           formValues.curriculum,
           formValues.subjectGrade
         );
-        
         if (!allCourse || allCourse.length === 0) {
           console.error(
             "No subjects are available for the selected grade and curriculum."
@@ -92,7 +89,6 @@ const ClassForm: React.FC<{
           );
         } else {
           setErrorMessage("");
-          setAllCourse(allCourse);
         }
       } catch (error) {
         console.error("Error fetching courses:", error);
@@ -153,13 +149,14 @@ const ClassForm: React.FC<{
         classId = newClass.id;
       }
 
-      const courseIds = allCourse.map((c: any) => c.id);
-
-      if (!courseIds.includes(CHIMPLE_DIGITAL_SKILLS)) {
-        courseIds.push(CHIMPLE_DIGITAL_SKILLS);
-      }
-      await api.updateClassCourses(classId, courseIds);
-
+      const allCourse = await api.getCourseByUserGradeId(
+        formValues.subjectGrade,
+        formValues.curriculum
+      );
+      await api.updateClassCourses(
+        classId,
+        allCourse.map((c: any) => c.id)
+      );
     } catch (error) {
       console.error("Error creating/updating class:", error);
     } finally {
