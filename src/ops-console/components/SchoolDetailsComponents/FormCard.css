@@ -265,3 +265,36 @@
   input.react-international-phone-input {
   border-radius: 0 4px 4px 0;
 }
+
+.formcard-message {
+  padding: 5px 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.formcard-message-error {
+  background-color: #fce8e6;
+  color: #c5221f;
+  border: 1px solid #f6aea9;
+}
+
+.formcard-message-warning {
+  background-color: #fef7e0;
+  color: #b06000;
+  border: 1px solid #f9dda5;
+}
+
+.formcard-message-info {
+  background-color: #e8eaed;
+  color: #3c4043;
+  border: 1px solid #dadce0;
+}
+
+.formcard-message-success {
+  background-color: #e6f4ea;
+  color: #137333;
+  border: 1px solid #a8dab5;
+}

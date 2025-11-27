@@ -22,7 +22,7 @@ import {
   filterBySearchAndFilters,
   sortSchoolTeachers,
 } from "../../OpsUtility/SearchFilterUtility";
-import FormCard, { FieldConfig } from "./FormCard";
+import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
 import { RoleType } from "../../../interface/modelInterfaces";
 import { emailRegex, normalizePhone10 } from "../../pages/NewUserPageOps";
 
@@ -74,6 +74,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   });
   const [isFilterSliderOpen, setIsFilterSliderOpen] = useState(false);
   const [isAddTeacherModalOpen, setIsAddTeacherModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<MessageConfig | undefined>();
   const api = ServiceConfig.getI().apiHandler;
 
   const fetchTeachers = useMemo(() => {
@@ -265,6 +266,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     Object.values(filters).some((f) => f.length > 0);
 
   const handleAddNewTeacher = useCallback(() => {
+    setErrorMessage(undefined);
     setIsAddTeacherModalOpen(true);
   }, []);
   const handleFilterIconClick = useCallback(() => {
@@ -284,6 +286,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
 
   const handleCloseAddTeacherModal = () => {
     setIsAddTeacherModalOpen(false);
+    setErrorMessage(undefined);
   };
 
   const handleTeacherSubmit = useCallback(
@@ -294,11 +297,11 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         const rawEmail = (values.email ?? "").toString().trim();
         const rawPhone = (values.phoneNumber ?? "").toString();
         if (!name) {
-          console.warn("Teacher name is required.");
+          setErrorMessage({ text: "Teacher name is required.", type: "error" });
           return;
         }
         if (!classId) {
-          console.warn("Class is required.");
+          setErrorMessage({ text: "Class is required.", type: "error" });
           return;
         }
         const email = rawEmail.toLowerCase();
@@ -306,20 +309,29 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         const hasEmail = !!email;
         const hasPhone = !hasEmail && !!normalizedPhone;
         if (!hasEmail && !hasPhone) {
-          console.warn("Please provide either an email or a phone number.");
+          setErrorMessage({
+            text: "Please provide either an email or a phone number.",
+            type: "error",
+          });
           return;
         }
         let finalEmail = "";
         let finalPhone = "";
         if (hasEmail) {
           if (!emailRegex.test(email)) {
-            console.warn("Please enter a valid email address.");
+            setErrorMessage({
+              text: "Please enter a valid email address.",
+              type: "error",
+            });
             return;
           }
           finalEmail = email;
         } else {
           if (normalizedPhone.length !== 10) {
-            console.warn("Phone number must be 10 digits.");
+            setErrorMessage({
+              text: "Phone number must be 10 digits.",
+              type: "error",
+            });
             return;
           }
           finalPhone = normalizedPhone;
@@ -342,7 +354,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   );
 
   const classOptions = useMemo(() => {
-    if (!normalizedTeachers || normalizedTeachers.length === 0) return []
+    if (!normalizedTeachers || normalizedTeachers.length === 0) return [];
     const classMap = new Map<string, string>();
     normalizedTeachers.forEach((teacher: any) => {
       const classInfo = teacher.classWithidname;
@@ -547,6 +559,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         fields={teacherFormFields}
         onClose={handleCloseAddTeacherModal}
         onSubmit={handleTeacherSubmit}
+        message={errorMessage}
       />
     </div>
   );
