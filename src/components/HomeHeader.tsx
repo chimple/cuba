@@ -157,7 +157,7 @@ const HomeHeader: React.FC<{
           <StarsCounter starsCount={starsCount} />
           <HeaderIcon
             headerConfig={{
-              displayName: student?.name ?? "Profile",
+              displayName: (student?.name) || t("Name"),
               iconSrc:
                 (studentMode === MODES.SCHOOL && student?.image) ||
                 `assets/avatars/${student?.avatar ?? AVATARS[0]}.png`,
