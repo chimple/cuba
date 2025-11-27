@@ -77,5 +77,91 @@
       "ALTER TABLE user ADD COLUMN reward TEXT;",
       "CREATE TABLE IF NOT EXISTS rive_reward (id TEXT PRIMARY KEY, accessory_name TEXT, state_machine TEXT, state_number_input INTEGER, animation_name TEXT, is_deleted BOOLEAN, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), state_input_name TEXT), type TEXT, max_state_value INTEGER;"
     ]
+  },
+  "7": {
+    "toVersion": 7,
+    "statements": [
+      "CREATE INDEX IF NOT EXISTS idx_user_language_id ON user(language_id);",
+      "CREATE INDEX IF NOT EXISTS idx_user_grade_id ON user(grade_id);",
+      "CREATE INDEX IF NOT EXISTS idx_user_curriculum_id ON user(curriculum_id);",
+      "CREATE INDEX IF NOT EXISTS idx_user_name ON user(name);",
+      "CREATE INDEX IF NOT EXISTS idx_user_is_deleted ON user(is_deleted);",
+
+
+      "CREATE INDEX IF NOT EXISTS idx_class_user_user_id ON class_user(user_id);",
+      "CREATE INDEX IF NOT EXISTS idx_class_user_class_id ON class_user(class_id);",
+      "CREATE INDEX IF NOT EXISTS idx_class_user_user_class_role ON class_user(user_id, class_id, role);",
+      "CREATE INDEX IF NOT EXISTS idx_class_user_user_updated_at ON class_user(user_id, updated_at);",
+
+      "CREATE INDEX IF NOT EXISTS idx_class_course_class_id ON class_course(class_id);",
+      "CREATE INDEX IF NOT EXISTS idx_class_course_course_id ON class_course(course_id);",
+
+      "CREATE INDEX IF NOT EXISTS idx_assignment_class_id ON assignment(class_id);",
+      "CREATE INDEX IF NOT EXISTS idx_assignment_created_by ON assignment(created_by);",
+      "CREATE INDEX IF NOT EXISTS idx_assignment_lesson_id ON assignment(lesson_id);",
+      "CREATE INDEX IF NOT EXISTS idx_assignment_created_at ON assignment(created_at);",
+      "CREATE INDEX IF NOT EXISTS idx_assignment_class_created_at ON assignment(class_id, created_at);",
+      "CREATE INDEX IF NOT EXISTS idx_assignment_created_by_class ON assignment(created_by, class_id);",
+
+      "CREATE INDEX IF NOT EXISTS idx_assignment_user_assignment_id ON assignment_user(assignment_id);",
+      "CREATE INDEX IF NOT EXISTS idx_assignment_user_user_id ON assignment_user(user_id);",
+
+      "CREATE INDEX IF NOT EXISTS idx_result_student_id ON result(student_id);",
+      "CREATE INDEX IF NOT EXISTS idx_result_assignment_id ON result(assignment_id);",
+      "CREATE INDEX IF NOT EXISTS idx_result_lesson_id ON result(lesson_id);",
+
+      "CREATE INDEX IF NOT EXISTS idx_result_student_created_at ON result(student_id, created_at);",
+      "CREATE INDEX IF NOT EXISTS idx_result_student_class_course ON result(student_id, class_id, course_id);",
+      "CREATE INDEX IF NOT EXISTS idx_result_chapter_course_class ON result(chapter_id, course_id, class_id);",
+      "CREATE INDEX IF NOT EXISTS idx_result_lesson_updated_at ON result(lesson_id, updated_at);",
+
+      "CREATE INDEX IF NOT EXISTS idx_lesson_cocos_lesson_id ON lesson(cocos_lesson_id);",
+      "CREATE INDEX IF NOT EXISTS idx_lesson_name ON lesson(name);",
+
+      "CREATE INDEX IF NOT EXISTS idx_chapter_course_id ON chapter(course_id);",
+      "CREATE INDEX IF NOT EXISTS idx_chapter_course_deleted ON chapter(course_id, is_deleted);",
+
+      "CREATE INDEX IF NOT EXISTS idx_chapter_lesson_lesson_id ON chapter_lesson(lesson_id);",
+      "CREATE INDEX IF NOT EXISTS idx_chapter_lesson_chapter_id ON chapter_lesson(chapter_id);",
+      "CREATE INDEX IF NOT EXISTS idx_chapter_lesson_chapter_deleted ON chapter_lesson(chapter_id, is_deleted);",
+
+      "CREATE INDEX IF NOT EXISTS idx_course_subject_id ON course(subject_id);",
+      "CREATE INDEX IF NOT EXISTS idx_course_grade_id ON course(grade_id);",
+      "CREATE INDEX IF NOT EXISTS idx_course_curriculum_id ON course(curriculum_id);",
+      "CREATE INDEX IF NOT EXISTS idx_course_sort_index ON course(sort_index);",
+
+      "CREATE INDEX IF NOT EXISTS idx_school_udise ON school(udise);",      
+      "CREATE INDEX IF NOT EXISTS idx_class_school_id ON class(school_id);",
+      "CREATE INDEX IF NOT EXISTS idx_school_user_school_id ON school_user(school_id);",
+      "CREATE INDEX IF NOT EXISTS idx_school_user_user_id ON school_user(user_id);",
+      "CREATE INDEX IF NOT EXISTS idx_school_user_user_school_role ON school_user(user_id, school_id, role);",
+      "CREATE INDEX IF NOT EXISTS idx_school_course_school_id ON school_course(school_id);",
+      "CREATE INDEX IF NOT EXISTS idx_school_course_course_id ON school_course(course_id);",
+
+      "CREATE INDEX IF NOT EXISTS idx_parent_user_student_id ON parent_user(student_id);",
+      "CREATE INDEX IF NOT EXISTS idx_parent_user_parent_id ON parent_user(parent_id);",
+      "CREATE INDEX IF NOT EXISTS idx_parent_user_student_deleted ON parent_user(student_id, is_deleted);",
+
+      "CREATE INDEX IF NOT EXISTS idx_favorite_lesson_user_id ON favorite_lesson(user_id);",
+      "CREATE INDEX IF NOT EXISTS idx_favorite_lesson_user_created ON favorite_lesson(user_id, created_at);",
+
+      "CREATE INDEX IF NOT EXISTS idx_user_course_user_id ON user_course(user_id);",
+      "CREATE INDEX IF NOT EXISTS idx_user_course_course_id ON user_course(course_id);",
+      "CREATE INDEX IF NOT EXISTS idx_user_course_user_deleted ON user_course(user_id, is_deleted);",
+
+      "CREATE INDEX IF NOT EXISTS idx_ops_requests_requested_by ON ops_requests(requested_by);",
+      "CREATE INDEX IF NOT EXISTS idx_ops_requests_class_id ON ops_requests(class_id);",
+      "CREATE INDEX IF NOT EXISTS idx_ops_requests_requested_deleted ON ops_requests(requested_by, is_deleted);",
+
+      "CREATE INDEX IF NOT EXISTS idx_debug_info_parent_updated ON debug_info(parent_id, updated_at);",
+
+      "CREATE INDEX IF NOT EXISTS idx_pull_sync_info_table_name ON pull_sync_info(table_name);",
+      "CREATE INDEX IF NOT EXISTS idx_push_sync_info_table_name ON push_sync_info(table_name);",
+
+      "CREATE INDEX IF NOT EXISTS idx_class_invite_code_class_id ON class_invite_code(class_id);",
+
+      "CREATE INDEX IF NOT EXISTS idx_rive_reward_type ON rive_reward(type);",
+      "CREATE INDEX IF NOT EXISTS idx_assignment_cart_id ON assignment_cart(id);"
+    ]
   }
 }
