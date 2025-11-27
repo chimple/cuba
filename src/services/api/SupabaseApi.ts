@@ -49,6 +49,7 @@ import {
   GeoDataParams,
   School,
   REWARD_LESSON,
+  OPS_ROLES,
 } from "../../common/constants";
 import { Constants } from "../database"; // adjust the path as per your project
 import { StudentLessonResult } from "../../common/courseConstants";
@@ -70,6 +71,10 @@ import { Util } from "../../utility/util";
 import { v4 as uuidv4 } from "uuid";
 import { ServiceConfig } from "../ServiceConfig";
 import { SqliteApi } from "./SqliteApi";
+import {
+  UserSchoolClassParams,
+  UserSchoolClassResult,
+} from "../../ops-console/pages/NewUserPageOps";
 export class SupabaseApi implements ServiceApi {
   private _assignmetRealTime?: RealtimeChannel;
   private _assignmentUserRealTime?: RealtimeChannel;
@@ -326,7 +331,7 @@ export class SupabaseApi implements ServiceApi {
             .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-        []
+          []
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -399,38 +404,38 @@ export class SupabaseApi implements ServiceApi {
       };
       const fallbackChannel = uploadingUser
         ? supabase
-          .channel(`upload-fallback-${uploadingUser}`)
-          .on(
-            "postgres_changes",
-            {
-              event: "UPDATE",
-              schema: "public",
-              table: "upload_queue",
-              filter: `uploading_user=eq.${uploadingUser}`,
-            },
-            async (payload) => {
-              const status = payload.new?.status;
-              const id = payload.new?.id;
-              console.log(
-                "🔄 [Fallback] Realtime update:",
-                status,
-                "ID:",
-                id
-              );
-              if (
-                (status === "success" || status === "failed") &&
-                !resolved
-              ) {
-                resolved = true;
-                await fallbackChannel?.unsubscribe();
+            .channel(`upload-fallback-${uploadingUser}`)
+            .on(
+              "postgres_changes",
+              {
+                event: "UPDATE",
+                schema: "public",
+                table: "upload_queue",
+                filter: `uploading_user=eq.${uploadingUser}`,
+              },
+              async (payload) => {
+                const status = payload.new?.status;
+                const id = payload.new?.id;
                 console.log(
-                  `✅ / ❌ Fallback resolved with status: ${status}`
+                  "🔄 [Fallback] Realtime update:",
+                  status,
+                  "ID:",
+                  id
                 );
-                resolve(status === "success");
+                if (
+                  (status === "success" || status === "failed") &&
+                  !resolved
+                ) {
+                  resolved = true;
+                  await fallbackChannel?.unsubscribe();
+                  console.log(
+                    `✅ / ❌ Fallback resolved with status: ${status}`
+                  );
+                  resolve(status === "success");
+                }
               }
-            }
-          )
-          .subscribe()
+            )
+            .subscribe()
         : null;
       const { data, error: functionError } = await supabase.functions.invoke(
         "ops-data-insert",
@@ -726,7 +731,8 @@ export class SupabaseApi implements ServiceApi {
           });
           if (isInitialFetch) {
             throw new Error(
-              `Initial fetch failed for ${rpcName || tableName}: ${res?.error?.message
+              `Initial fetch failed for ${rpcName || tableName}: ${
+                res?.error?.message
               }`
             );
           }
@@ -839,6 +845,7 @@ export class SupabaseApi implements ServiceApi {
       status: null,
       key_contacts: null,
       country: null,
+      location_link: null,
     };
 
     const { error } = await this.supabase
@@ -1052,6 +1059,7 @@ export class SupabaseApi implements ServiceApi {
       status: STATUS.REQUESTED,
       key_contacts: null,
       country: country ?? null,
+      location_link:null,
     };
 
     // Insert school
@@ -2113,7 +2121,7 @@ export class SupabaseApi implements ServiceApi {
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
           new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
-          todaysTimestamp.split("T")[0];
+            todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -3361,6 +3369,7 @@ export class SupabaseApi implements ServiceApi {
         user,
         grade: grade,
         classSection: section,
+        classWithidname: cls,
       };
     });
 
@@ -4352,7 +4361,7 @@ export class SupabaseApi implements ServiceApi {
       return null;
     }
   }
-  async getSchoolDataByUdise(udiseCode: string): Promise<any | null> {
+  async getSchoolDataByUdise(udiseCode: string): Promise<TableTypes<"school_data"> | null> {
     if (!this.supabase) return null;
 
     try {
@@ -4360,7 +4369,6 @@ export class SupabaseApi implements ServiceApi {
         .from("school_data")
         .select("*")
         .eq("udise_code", udiseCode)
-        .eq("is_deleted", false)
         .single();
 
       if (error || !data) {
@@ -4374,7 +4382,6 @@ export class SupabaseApi implements ServiceApi {
       return null;
     }
   }
-
 
   async getUserByDocId(
     studentId: string
@@ -7078,8 +7085,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-              (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
-            )
+                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+              )
             : [];
         }
       }
@@ -7127,8 +7134,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-              (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
-            )
+                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+              )
             : [];
         }
       }
@@ -7154,21 +7161,95 @@ export class SupabaseApi implements ServiceApi {
     message?: string;
     error?: string;
   }> {
-    if (!this.supabase)
+    if (!this.supabase) {
       return { success: false, error: "Supabase not initialized" };
+    }
     try {
       const { data, error: functionError } =
-        await this.supabase.functions.invoke("ops_adding_and_creating_user", {
-          body: payload,
+        await this.supabase.functions.invoke("get_or_create_user", {
+          body: {
+            name: payload.name,
+            email: payload.email || undefined,
+            phone: payload.phone || undefined,
+          },
         });
+      if (functionError) {
+        const body = data as any;
+        const errorCode = body?.message || "unknown-error";
+        const errorDetail = body?.error || functionError.message;
+        return {
+          success: false,
+          message: errorCode,
+          error: errorDetail || "Unexpected error occurred",
+        };
+      }
+      const body = data as any;
+      const user = body?.user;
+      const isNew = body?.is_new === true;
+      if (!user || !user.id) {
+        return {
+          success: false,
+          message: "unexpected-error",
+          error: "Invalid response from ops_adding_and_creating_user",
+        };
+      }
+      const userId: string = user.id as string;
+      const { data: existingSpecial, error: specialError } = await this.supabase
+        .from("special_users")
+        .select("id, role")
+        .eq("user_id", userId)
+        .eq("is_deleted", false);
+      if (specialError) {
+        return {
+          success: false,
+          message: "db-role-check-failed",
+          error: specialError.message,
+        };
+      }
+      const rolesToBlock: RoleType[] = [
+        RoleType.PROGRAM_MANAGER,
+        RoleType.FIELD_COORDINATOR,
+      ];
+      const hasBlockedRole =
+        existingSpecial?.some((entry) =>
+          rolesToBlock.includes(entry.role as RoleType)
+        ) ?? false;
+      if (hasBlockedRole) {
+        return {
+          success: true,
+          user_id: userId,
+          message: "success-user-already-exists",
+        };
+      }
+      const roleForInsert = OPS_ROLES.find((r) => r === payload.role) as
+        | RoleType
+        | any;
+      const { error: insertSpecialError } = await this.supabase
+        .from("special_users")
+        .insert({
+          user_id: userId,
+          role: roleForInsert,
+          is_deleted: false,
+        });
+      if (insertSpecialError) {
+        return {
+          success: false,
+          message: "insert-role-failed",
+          error: insertSpecialError.message,
+        };
+      }
+      const successMessage = isNew
+        ? "success-created"
+        : "success-added-to-special_users";
       return {
         success: true,
-        user_id: data?.user_id,
-        message: data?.message,
+        user_id: userId,
+        message: successMessage,
       };
     } catch (err: any) {
       return {
         success: false,
+        message: "unexpected-error",
         error: err?.message || "Unexpected error occurred",
       };
     }
@@ -8042,21 +8123,21 @@ export class SupabaseApi implements ServiceApi {
       const [schoolsResp, usersResp, classesResp] = await Promise.all([
         schoolIds.length
           ? this.supabase
-            .from(TABLES.School)
-            .select("id, name, udise, group1,group2, group3, country")
-            .in("id", schoolIds)
+              .from(TABLES.School)
+              .select("id, name, udise, group1,group2, group3, country")
+              .in("id", schoolIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         userIds.length
           ? this.supabase
-            .from(TABLES.User)
-            .select("id, name, email, phone")
-            .in("id", userIds)
+              .from(TABLES.User)
+              .select("id, name, email, phone")
+              .in("id", userIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         classIds.length
           ? this.supabase
-            .from(TABLES.Class)
-            .select("id, name, school_id")
-            .in("id", classIds)
+              .from(TABLES.Class)
+              .select("id, name, school_id")
+              .in("id", classIds)
           : Promise.resolve({ data: [] as any[], error: null }),
       ]);
       if (schoolsResp.error) throw schoolsResp.error;
@@ -8838,4 +8919,179 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error deleting approved ops_requests:", error);
     }
   }
+
+  async getOrcreateschooluser(
+    params: UserSchoolClassParams
+  ): Promise<UserSchoolClassResult> {
+    if (!this.supabase) {
+      throw new Error("Supabase client is not initialized.");
+    }
+    const { name, phoneNumber, email, schoolId, role, classId } = params;
+    if (!role) {
+      throw new Error("A role is required to link a user to a school.");
+    }
+    const timestamp = new Date().toISOString();
+    const { data, error } = await this.supabase.functions.invoke(
+      "get_or_create_user",
+      {
+        body: { name, phone: phoneNumber, email },
+      }
+    );
+    if (error) {
+      console.error("user-upsert failed:", error);
+      throw error;
+    }
+    if (!data || !data.user) {
+      console.error("Invalid response from user-upsert:", data);
+      throw new Error("Invalid response from user-upsert");
+    }
+    const { message, user } = data as {
+      message: string;
+      user: { id: string; [key: string]: any };
+    };
+    const isNewUser = message === "success-created";
+    let schoolUser: any | null = null;
+    if (schoolId) {
+      const { data: existingSchoolUser, error: existingSchoolUserError } =
+        await this.supabase
+          .from("school_user")
+          .select("*")
+          .eq("school_id", schoolId)
+          .eq("user_id", user.id)
+          .eq("is_deleted", false)
+          .maybeSingle();
+      if (existingSchoolUserError) {
+        console.error("Failed to fetch school_user:", existingSchoolUserError);
+        throw existingSchoolUserError;
+      }
+      if (existingSchoolUser) {
+        const { data: updated, error: updateError } = await this.supabase
+          .from("school_user")
+          .update({
+            role,
+            is_deleted: false,
+            updated_at: timestamp,
+          })
+          .eq("id", existingSchoolUser.id)
+          .select("*")
+          .maybeSingle();
+        if (updateError) {
+          console.error("Failed to update school_user:", updateError);
+          throw updateError;
+        }
+        schoolUser = updated ?? existingSchoolUser;
+      } else {
+        const schoolUserPayload = {
+          id: uuidv4(),
+          school_id: schoolId,
+          user_id: user.id,
+          role,
+          is_deleted: false,
+          created_at: timestamp,
+          updated_at: timestamp,
+        };
+        const { data: inserted, error: insertError } = await this.supabase
+          .from("school_user")
+          .insert([schoolUserPayload])
+          .select("*")
+          .maybeSingle();
+        if (insertError) {
+          console.error("Failed to insert school_user:", insertError);
+          throw insertError;
+        }
+        schoolUser = inserted;
+      }
+    }
+    let classUser: any | null = null;
+    if (classId) {
+      const { data: existingClassUser, error: existingClassUserError } =
+        await this.supabase
+          .from("class_user")
+          .select("*")
+          .eq("class_id", classId)
+          .eq("user_id", user.id)
+          .eq("is_deleted", false)
+          .maybeSingle();
+      if (existingClassUserError) {
+        console.error("Failed to fetch class_user:", existingClassUserError);
+        throw existingClassUserError;
+      }
+      if (existingClassUser) {
+        const { data: updatedClass, error: updateClassError } =
+          await this.supabase
+            .from("class_user")
+            .update({
+              role,
+              is_deleted: false,
+              updated_at: timestamp,
+            })
+            .eq("id", existingClassUser.id)
+            .select("*")
+            .maybeSingle();
+        if (updateClassError) {
+          console.error("Failed to update class_user:", updateClassError);
+          throw updateClassError;
+        }
+        classUser = updatedClass ?? existingClassUser;
+      } else {
+        const classUserPayload = {
+          id: uuidv4(),
+          class_id: classId,
+          user_id: user.id,
+          role,
+          is_deleted: false,
+          created_at: timestamp,
+          updated_at: timestamp,
+        };
+        const { data: insertedClass, error: insertClassError } =
+          await this.supabase
+            .from("class_user")
+            .insert([classUserPayload])
+            .select("*")
+            .maybeSingle();
+        if (insertClassError) {
+          console.error("Failed to insert class_user:", insertClassError);
+          throw insertClassError;
+        }
+        classUser = insertedClass;
+      }
+    }
+    return {
+      user,
+      schoolUser,
+      classUser,
+      isNewUser,
+    };
+  }
+  async insertSchoolDetails(
+    schoolId: string,
+    schoolModel: string,
+    locationLink?: string,
+    keyContacts?: any
+  ): Promise<void> {
+    if (!this.supabase) return;
+    const insertPayload: any = {
+      model: schoolModel,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (locationLink !== undefined && locationLink !== null) {
+      insertPayload.location_link = locationLink;
+    }
+
+    if (keyContacts) {
+      insertPayload.key_contacts = keyContacts;
+    }
+
+    const { error } = await this.supabase
+      .from("school")
+      .update(insertPayload)
+      .eq("id", schoolId)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Error inserting school details:", error);
+    }
+  }
+
 }

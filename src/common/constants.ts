@@ -502,6 +502,7 @@ export enum PAGES {
   CREATE_SCHOOL = "/create-school",
   POST_SUCCESS = "/post-success",
   SCAN_REDIRECT = "/scan-redirect",
+  ADD_SCHOOL_PAGE = "/add-school-page",
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -815,6 +816,9 @@ export enum EVENTS {
   REWARD_COLLECTED = "reward_collected",
   HOMEWORK_PATHWAY_CREATED = "homework_pathway_created",
   HOMEWORK_PATHWAY_COMPLETED = "homework_pathway_completed",
+  LIVE_UPDATE_APPLIED = "live_update_applied",
+  LIVE_UPDATE_STARTED = "live_update_started",
+  LIVE_UPDATE_ERROR = "live_update_error",
 }
 
 export const FCM_TOKENS = "fcmTokens";

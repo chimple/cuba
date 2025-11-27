@@ -67,6 +67,7 @@
       "ALTER TABLE school ADD COLUMN status TEXT;",
       "ALTER TABLE school ADD COLUMN key_contacts TEXT;",
       "ALTER TABLE school ADD COLUMN country TEXT;",
+      "ALTER TABLE school ADD COLUMN location_link TEXT;",
       "CREATE TABLE IF NOT EXISTS ops_requests ( id TEXT PRIMARY KEY, class_id TEXT, created_at TEXT DEFAULT (datetime('now')), is_deleted INTEGER DEFAULT 0, rejected_reason_description TEXT, rejected_reason_type TEXT, request_ends_at TEXT, request_id TEXT, request_status TEXT, request_type TEXT, requested_by TEXT, requested_to TEXT, responded_by TEXT, school_id TEXT, updated_at TEXT DEFAULT (datetime('now')) );"
     ]
   },
