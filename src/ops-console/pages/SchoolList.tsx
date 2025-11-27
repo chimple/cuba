@@ -176,7 +176,6 @@ const SchoolList: React.FC = () => {
         order_dir: orderDir,
         search: searchTerm,
       });
-
       const data = response?.data || [];
       setTotal(response?.total || 0);
 
@@ -199,7 +198,11 @@ const SchoolList: React.FC = () => {
                 color="text.secondary"
                 fontSize={"12px"}
               >
-                {school.district || ""}
+                {school.udise_code || school.district
+                  ? `${school.udise_code ?? ""} - ${
+                      school.district ?? ""
+                    }`.trim()
+                  : ""}
               </Typography>
             </Box>
           ),
@@ -345,10 +348,9 @@ const SchoolList: React.FC = () => {
                 variant="outlined"
                 onClick={() => {
                   history.push({
-                    pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`
+                    pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
                   });
                 }}
-
                 sx={{
                   borderColor: "#e0e0e0",
                   border: "1px solid",
@@ -361,7 +363,7 @@ const SchoolList: React.FC = () => {
                 }}
               >
                 <Add className="school-list-upload-icon" />
-                
+
                 {!isSmallScreen && (
                   <span className="school-list-upload-text1">
                     {t("Add School")}
