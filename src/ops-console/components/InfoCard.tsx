@@ -9,23 +9,36 @@ interface InfoCardProps {
   items?: DetailItemProps[];
   children?: React.ReactNode;
   className?: string;
+  showEditIcon?: boolean; 
+  onEditClick?: () => void;
 }
 
-const InfoCard = ({ title, items, children, className }: InfoCardProps) => (
+const InfoCard = ({ title, items, children, className, showEditIcon, onEditClick }: InfoCardProps) => (
   <Card
     variant="outlined"
     className={`info-card${className ? " " + className : ""}`}
   >
     <CardContent className="info-card-content">
-      <Typography
-        variant="subtitle1"
-        className="info-card-title"
-        gutterBottom
-        align="left"
-        style={{ fontWeight: "bold" }}  
-      >
-        {title}
-      </Typography>
+      <Box display="flex" alignItems="center" justifyContent="space-between">
+        <Typography
+          variant="subtitle1"
+          className="info-card-title"
+          gutterBottom
+          align="left"
+          style={{ fontWeight: "bold" }}
+        >
+          {title}
+        </Typography>
+
+        {showEditIcon && (
+          <img
+            src="/assets/icons/EditIcon2.svg"
+            alt="editIcon"
+            onClick={onEditClick}
+            style={{ cursor: "pointer" }}
+          />
+        )}
+      </Box>
       <Divider className="info-card-divider" />
 
       {items && items.length > 0 ? (
