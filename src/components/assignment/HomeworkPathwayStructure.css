@@ -11,7 +11,7 @@
 
 @media (max-width: 1024px) and (orientation: landscape) {
   .homeworkpathway-structure-div {
-    top: 30%;  /* Adjust for tablets and phones in landscape */
+    top: 30%; /* Adjust for tablets and phones in landscape */
   }
 }
 
@@ -24,11 +24,12 @@
     transform: translate(0, 0);
   }
   50% {
-    transform: translate(12px, 12px); /* adjust these values to your desired diagonal distance */
+    transform: translate(
+      5px,
+      5px
+    ); /* adjust these values to your desired diagonal distance */
   }
   100% {
     transform: translate(0, 0);
   }
 }
-
-

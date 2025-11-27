@@ -26,13 +26,18 @@ import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErro
 import LearningPathway from "../components/LearningPathway";
 import HomeworkPathway from "../components/assignment/HomeworkPathway";
 import { useFeatureIsOn } from "@growthbook/growthbook-react";
+import HomeworkCompleteModal from "../components/assignment/HomeworkCompleteModal";
 
 // Extend props to accept a callback for new assignments.
 interface AssignmentPageProps {
   assignmentCount: any;
+  onPlayMoreHomework?: () => void;
 }
 
-const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
+const AssignmentPage: React.FC<AssignmentPageProps> = ({
+  assignmentCount,
+  onPlayMoreHomework, // ✅ grab it from props
+}) => {
   const [loading, setLoading] = useState(true);
   const [isLinked, setIsLinked] = useState(true);
   const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
@@ -57,6 +62,8 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
   const [assignmentLessonCourseMap, setAssignmentLessonCourseMap] = useState<{
     [lessonId: string]: { course_id: string };
   }>({});
+  const [showHomeworkCompleteModal, setShowHomeworkCompleteModal] =
+    useState(false);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const isMounted = useRef(true);
   const isHomeworkPathwayOn = useFeatureIsOn("homework-learning-pathway");
@@ -143,6 +150,12 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
 
         setAssignments(updatedAssignments);
         assignmentCount(updatedAssignments.length);
+
+        if (updatedAssignments.length === 0) {
+          setShowHomeworkCompleteModal(true);
+        } else {
+          setShowHomeworkCompleteModal(false);
+        }
 
         await updateLessonChapterAndCourseMaps(updatedAssignments);
 
@@ -310,6 +323,19 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
   }, []);
   return !loading ? (
     <div>
+      {showHomeworkCompleteModal && (
+        <HomeworkCompleteModal
+          text={t("Yay!! You have completed all the Homework!!")}
+          borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
+          onClose={() => setShowHomeworkCompleteModal(false)}
+          onPlayMore={() => {
+            setShowHomeworkCompleteModal(false);
+            if (onPlayMoreHomework) {
+              onPlayMoreHomework(); 
+            }
+          }}
+        />
+      )}
       <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
         <div
           className={
@@ -410,8 +436,9 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
                       />
                     ) : (
                       // If the feature is OFF, show the new pathway
-
-                      <HomeworkPathway />
+                      <HomeworkPathway
+                        onPlayMoreHomework={onPlayMoreHomework}
+                      />
                     )
                   ) : (
                     <div className="pending-assignment">

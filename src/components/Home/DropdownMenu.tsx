@@ -13,13 +13,17 @@ interface CourseDetails {
 interface DropdownMenuProps {
   disabled?: boolean;
   hideArrow?: boolean;
-  onCourseChange?: () => void;
+  onCourseChange?: () => void; // You can keep this if needed separately
+  onSubjectChange?: (subjectId: string) => void; // Required callback for subject change
+  selectedSubject?: string | null; // To track current selection externally
 }
 
 const DropdownMenu: FC<DropdownMenuProps> = ({
   disabled = false,
   hideArrow = false,
   onCourseChange,
+  onSubjectChange,
+  selectedSubject = null,
 }) => {
   const [expanded, setExpanded] = useState<boolean>(false);
   const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
@@ -30,6 +34,15 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
   useEffect(() => {
     fetchLearningPathCourseDetails();
   }, []);
+
+  useEffect(() => {
+    if (selectedSubject) {
+      const matched = courseDetails.find(
+        (detail) => detail.course.id === selectedSubject
+      );
+      if (matched) setSelected(matched);
+    }
+  }, [selectedSubject, courseDetails]);
 
   const fetchLearningPathCourseDetails = async () => {
     try {
@@ -96,6 +109,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
   };
 
   const handleSelect = async (subject: CourseDetails, index: number) => {
+    if (disabled) return;
     try {
       setSelected(subject);
       setExpanded(false);
@@ -153,7 +167,9 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
 
       // Execute all async operations in parallel
       await Promise.all(updateOperations);
-
+      if (onSubjectChange) {
+        onSubjectChange(subject.course.id);
+      }
       // Dispatch event after all operations complete
       if (onCourseChange) onCourseChange();
       window.dispatchEvent(
