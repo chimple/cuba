@@ -920,7 +920,7 @@ export class SqliteApi implements ServiceApi {
       status: STATUS.REQUESTED,
       key_contacts: null,
       country: country,
-      location_link:null,
+      location_link: null,
     };
     if (oSchool) {
       await this.executeQuery(
@@ -6481,8 +6481,10 @@ order by
       schoolModel: model || "",
     };
   }
-  async getSchoolDataByUdise(udiseCode: string): Promise<TableTypes<"school_data">| null> {
-   const schoolRes = await this.executeQuery(
+  async getSchoolDataByUdise(
+    udiseCode: string
+  ): Promise<TableTypes<"school_data"> | null> {
+    const schoolRes = await this.executeQuery(
       `SELECT * FROM school_data WHERE udise = ?`,
       [udiseCode]
     );
@@ -6897,7 +6899,7 @@ order by
         model: schoolModel,
         location_link: locationLink ?? null,
         key_contacts: keyContacts ?? null,
-        updated_at: timestamp
+        updated_at: timestamp,
       };
 
       await this.updatePushChanges(
@@ -6905,10 +6907,20 @@ order by
         MUTATE_TYPES.UPDATE,
         pushObject
       );
-
     } catch (error) {
       console.error("❌ Error inserting school details:", error);
     }
   }
-
+  public async addStudentWithParentValidation(params: {
+    phone: string;
+    name: string;
+    gender: string;
+    age: string;
+    classId: string;
+    schoolId?: string;
+    parentName?: string;
+    email?: string;
+  }): Promise<{ success: boolean; message: string; data?: any }> {
+    return this._serverApi.addStudentWithParentValidation(params);
+  }
 }
