@@ -31,9 +31,17 @@ import RewardBox from "../learningPathway/RewardBox";
 import DailyRewardModal from "../learningPathway/DailyRewardModal";
 import HomeworkCompleteModal from "./HomeworkCompleteModal";
 
+interface HomeworkPathwayStructureProps {
+  selectedSubject?: string | null;
+  onPlayMoreHomework?: () => void;
+}
+
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-const HomeworkPathwayStructure: React.FC = () => {
+const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
+  selectedSubject,
+  onPlayMoreHomework,
+}) => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -90,6 +98,7 @@ const HomeworkPathwayStructure: React.FC = () => {
     localStorage.getItem(HOMEWORK_PATHWAY) === "true";
 
   const shouldAnimate = modalText === rewardText;
+
   const fetchLocalSVGGroup = async (
     path: string,
     className?: string
@@ -104,6 +113,7 @@ const HomeworkPathwayStructure: React.FC = () => {
     if (className) group.setAttribute("class", className);
     return group;
   };
+
   const loadHaloAnimation = async (
     localPath: string,
     webPath: string
@@ -177,6 +187,7 @@ const HomeworkPathwayStructure: React.FC = () => {
     };
     return image;
   };
+
   const loadPathwayContent = async (
     path: string,
     webPath: string
@@ -197,6 +208,7 @@ const HomeworkPathwayStructure: React.FC = () => {
       return await res.text();
     }
   };
+
   // Cache lesson data in memory and sessionStorage
   const lessonCache = new Map<string, any>();
   const getCachedLesson = async (lessonId: string): Promise<any> => {
@@ -312,25 +324,33 @@ const HomeworkPathwayStructure: React.FC = () => {
   // pick 5 lessons per homework logic, then set state
   const fetchHomeworkLessons = async () => {
     try {
+      // ✅ FIRST: respect whatever path HomeworkPathway has already written.
+      const existingPathStr = sessionStorage.getItem(HOMEWORK_PATHWAY);
+      if (existingPathStr) {
+        try {
+          const existingPath = JSON.parse(existingPathStr);
+          const hasLessons =
+            Array.isArray(existingPath.lessons) &&
+            existingPath.lessons.length > 0;
+
+          if (hasLessons) {
+            setHomeworkLessons(existingPath.lessons);
+            return; // ⬅️ Do NOT recompute from API, so we don't move last-slot lessons to first
+          }
+        } catch (err) {
+          console.warn(
+            "Invalid cached homework path in sessionStorage, rebuilding...",
+            err
+          );
+          // fallthrough to rebuild
+        }
+      }
+
+      // ✅ FALLBACK: only if there is no valid path in sessionStorage
       const currentStudent = Util.getCurrentStudent();
       const currClass = Util.getCurrentClass();
       if (!currentStudent?.id || !currClass?.id) return;
 
-      // ✅ 1. If we already have a homework path (with currentIndex),
-      // just use that and DON'T recompute the 5 from API.
-      const existingPathStr = sessionStorage.getItem(HOMEWORK_PATHWAY);
-      if (existingPathStr) {
-        const existingPath = JSON.parse(existingPathStr);
-        if (
-          Array.isArray(existingPath.lessons) &&
-          existingPath.lessons.length > 0
-        ) {
-          setHomeworkLessons(existingPath.lessons);
-          return;
-        }
-      }
-
-      // Fetch all pending assignments for the student
       const all = await api.getPendingAssignments(
         currClass?.id,
         currentStudent.id
@@ -396,7 +416,6 @@ const HomeworkPathwayStructure: React.FC = () => {
         completedCountBySubject
       );
 
-      console.log("selected assignments", selected);
 
       // Fetch full lesson details for selected assignments
       const lessonsWithDetails = await Promise.all(
@@ -406,7 +425,6 @@ const HomeworkPathwayStructure: React.FC = () => {
         })
       );
 
-      console.log("lessons with details", lessonsWithDetails);
       const newHomeworkPath = {
         lessons: lessonsWithDetails,
         currentIndex: 0, // A new path always starts at the beginning (index 0)
@@ -590,10 +608,10 @@ const HomeworkPathwayStructure: React.FC = () => {
               "style",
               "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
             );
-            let yOffset = -10; 
+            let yOffset = -10;
 
             if (pathIndex === 2 || pathIndex === 4) {
-              yOffset = 5; 
+              yOffset = 5;
             }
 
             const adjustedY =
@@ -643,9 +661,20 @@ const HomeworkPathwayStructure: React.FC = () => {
               "http://www.w3.org/2000/svg",
               "g"
             );
+            let activeYOffset = -10;
+
+            if (pathIndex === 1 || pathIndex === 3) {
+              activeYOffset = 20;
+            }
+            if (pathIndex === 0) {
+              activeYOffset = -10;
+            }
+
             activeGroup.setAttribute(
               "transform",
-              `translate(${positionMappings.activeGroup.baseX}, ${positionMappings.activeGroup.baseY})`
+              `translate(${positionMappings.activeGroup.baseX}, ${
+                positionMappings.activeGroup.baseY + activeYOffset
+              })`
             );
 
             const halo = createSVGImage(haloPath, 140, 140, -15, -12);
@@ -653,8 +682,8 @@ const HomeworkPathwayStructure: React.FC = () => {
               "/pathwayAssets/touchpointer.svg",
               30,
               30,
-              60,
-              80
+              70,
+              90
             );
             pointer.setAttribute(
               "class",
@@ -729,10 +758,13 @@ const HomeworkPathwayStructure: React.FC = () => {
               "style",
               "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
             );
-            let yOffset = -10; 
+            let yOffset = -10;
 
             if (pathIndex === 2 || pathIndex === 4) {
-              yOffset = 5; 
+              yOffset = 5;
+            }
+            if (pathIndex === 0) {
+              yOffset = -10;
             }
 
             const adjustedY =
@@ -975,7 +1007,7 @@ const HomeworkPathwayStructure: React.FC = () => {
       console.error("Failed to load SVG:", error);
     }
   };
-  // ... (The rest of the component remains unchanged)
+
   // Helper to place SVG elements
   const placeElement = (element: SVGGElement, x: number, y: number) => {
     element.setAttribute("transform", `translate(${x}, ${y})`);
@@ -999,7 +1031,6 @@ const HomeworkPathwayStructure: React.FC = () => {
       showModalIfNeeded();
     }
   }, []);
-
   const updateMascotToNormalState = async (rewardId: string) => {
     const rewardRecord = await api.getRewardById(rewardId);
     if (rewardRecord && rewardRecord.type === "normal") {
@@ -1091,13 +1122,13 @@ const HomeworkPathwayStructure: React.FC = () => {
       {showHomeworkCompleteModal && (
         <HomeworkCompleteModal
           text={t("Yay!! You have completed all the Homework!!")}
-          mascotSrc="/pathwayAssets/chimpleHomeworkMascot.svg"
           borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
           onClose={() => setShowHomeworkCompleteModal(false)}
           onPlayMore={() => {
-            console.log("Play More clicked!");
             setShowHomeworkCompleteModal(false);
-            // You could add navigation logic here, e.g., history.push('/some-other-page');
+            if (onPlayMoreHomework) {
+              onPlayMoreHomework();
+            }
           }}
         />
       )}

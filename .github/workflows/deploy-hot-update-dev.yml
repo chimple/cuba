@@ -58,7 +58,8 @@ jobs:
           CHANNEL="${{ steps.channel.outputs.channelName }}"
           echo "Checking channel: $CHANNEL"
 
-          if npx @capawesome/cli apps:channels:list --appId "$REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID" | grep -q "$CHANNEL"; then
+          CHANNELS=$(npx @capawesome/cli apps:channels:list --appId "$REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID")
+          if echo "$CHANNELS" | grep -q "$CHANNEL"; then
             echo "Channel '$CHANNEL' exists."
           else
             echo "Channel '$CHANNEL' does not exist. Creating..."

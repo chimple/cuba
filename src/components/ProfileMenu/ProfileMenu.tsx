@@ -110,6 +110,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
           }
         : item
     );
+  const hasDetails = !!(className || schoolName);
 
   return (
     <div
@@ -148,7 +149,9 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
           {/* Details Section */}
           <div className="profile-details">
-            <span className="profile-header-name text-truncate">
+            <span className="profile-header-name text-truncate"
+            style={{ marginBottom: hasDetails ? "8px" : "40px" }} 
+            >
               {student?.name ?? "Profile"}
             </span>
 

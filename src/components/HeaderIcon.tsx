@@ -56,7 +56,7 @@ const HeaderIcon: React.FC<{
         <img
           src="/assets/icons/BellNotifyIcon.svg"
           alt="Homework Notification"
-          className="badge-notification"
+          className="headericon-bell-notification"
         />
       )}
     </div>
