@@ -64,10 +64,8 @@ const AddSchoolPage: React.FC = () => {
     },
   ]);
 
-
-
   useEffect(() => {
-    if (!editData) return; // when adding new school, skip
+    if (!editData) return;
 
     const school = editData.schoolData;
 
@@ -112,8 +110,6 @@ const AddSchoolPage: React.FC = () => {
       );
     }
 
-    console.log("programData.name", editData.programData);
-
     setProgram(editData.programData);
 
     async function fetch() {
@@ -141,7 +137,8 @@ const AddSchoolPage: React.FC = () => {
       if (name === "district") {
         updated.block = "";
         updated.cluster = "";
-      }      if (name === "block") {
+      }
+      if (name === "block") {
         updated.cluster = "";
       }
       return updated;
@@ -333,7 +330,13 @@ const AddSchoolPage: React.FC = () => {
           address.link,
           keyContacts
         );
-
+        if (!lockDropdowns) {
+          await api.addUserToSchool(
+            editData.schoolData.id,
+            fieldCoordinator,
+            RoleType.FIELD_COORDINATOR
+          );
+        }
       } else {
         const school = await api.createSchool(
           schoolName,
@@ -421,7 +424,7 @@ const AddSchoolPage: React.FC = () => {
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, md: 4.5 }}>
               <FormLabel sx={{ color: "#111827" }}>
-                {t("School Name")} <span style={{ color: "red" }}>*</span>
+                {t("School Name")} <span className="add-school-requird">*</span>
               </FormLabel>
               <TextField
                 fullWidth
@@ -434,7 +437,8 @@ const AddSchoolPage: React.FC = () => {
 
             <Grid size={{ xs: 12, md: 4.5 }}>
               <FormLabel sx={{ color: "#111827" }}>
-                {t("School ID (UDISE)")} <span style={{ color: "red" }}>*</span>
+                {t("School ID (UDISE)")}{" "}
+                <span className="add-school-requird">*</span>
               </FormLabel>
               <TextField
                 fullWidth

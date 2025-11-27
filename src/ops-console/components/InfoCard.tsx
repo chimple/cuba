@@ -25,7 +25,6 @@ const InfoCard = ({ title, items, children, className, showEditIcon, onEditClick
           className="info-card-title"
           gutterBottom
           align="left"
-          style={{ fontWeight: "bold" }}
         >
           {title}
         </Typography>
@@ -33,9 +32,9 @@ const InfoCard = ({ title, items, children, className, showEditIcon, onEditClick
         {showEditIcon && (
           <img
             src="/assets/icons/EditIcon2.svg"
+            className="info-card-edit-icon"
             alt="editIcon"
             onClick={onEditClick}
-            style={{ cursor: "pointer" }}
           />
         )}
       </Box>
