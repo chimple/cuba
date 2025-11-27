@@ -1,6 +1,7 @@
 import { Capacitor, CapacitorHttp, registerPlugin } from "@capacitor/core";
 import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
 import { Toast } from "@capacitor/toast";
+import { Preferences } from "@capacitor/preferences";
 import createFilesystem from "capacitor-fs";
 import { unzip } from "zip2";
 import {
@@ -62,6 +63,7 @@ import {
   DAILY_USER_REWARD,
   REWARD_LEARNING_PATH,
   HOMEWORK_PATHWAY,
+  VERSION_KEY,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -98,6 +100,7 @@ import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 import CryptoJS from "crypto-js";
 import { InAppReview } from "@capacitor-community/in-app-review";
+import { LiveUpdate } from "@capawesome/capacitor-live-update";
 declare global {
   interface Window {
     cc: any;
@@ -2708,5 +2711,103 @@ public static async fetchCurrentClassAndSchool() : Promise<{ className: string, 
   }
   return { className, schoolName };
 }
+
+  public static async checkForUpdate(
+    userId: string,
+    isHotUpdateEnabled: boolean
+  ) {
+    let majorVersion = "0";
+    try {
+      if (Capacitor.isNativePlatform() && isHotUpdateEnabled) {
+        const { versionName } = await LiveUpdate.getVersionName();
+        majorVersion = versionName.split(".")[0];
+        const { bundleId: currentBundleId } =
+        await LiveUpdate.getCurrentBundle();
+        const result = await LiveUpdate.fetchLatestBundle({
+          channel: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+        });
+        let isUpdateAllowed = false;
+        if (result.customProperties && result.customProperties.version) {
+          isUpdateAllowed = Util.isVersionAllowed(result.customProperties.version, versionName);
+        }
+        if (result.bundleId && currentBundleId !== result.bundleId && isUpdateAllowed) {
+          console.log("🚀 LiveUpdate fetch latest bundle result", result);
+          Util.logEvent(EVENTS.LIVE_UPDATE_STARTED, {
+            user_id: userId,
+            current_bundle_id: currentBundleId,
+            new_bundle_id: result.bundleId,
+            timestamp: new Date().toISOString(),
+            channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+            app_version: versionName,
+            update_type: result.artifactType,
+          });
+          const start = performance.now();
+          await LiveUpdate.sync({
+            channel: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+          });
+          const totalEnd = performance.now();
+          Util.logEvent(EVENTS.LIVE_UPDATE_APPLIED, {
+            user_id: userId,
+            previous_bundle_id: currentBundleId,
+            new_bundle_id: result.bundleId,
+            timestamp: new Date().toISOString(),
+            time_taken_ms: (totalEnd - start).toFixed(2),
+            channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+            app_version: versionName,
+            update_type: result.artifactType,
+          });
+          console.log(
+            `🚀 LiveUpdate: Update applied successfully to bundle ${result.bundleId}`
+          );
+          console.log(
+            `⏱️ Total time taken to download and set nextBundle ID: ${(
+              totalEnd - start
+            ).toFixed(2)} ms`
+          );
+        } else {
+          console.log(
+            "🚀 LiveUpdate: No new update available, Current applied bundleID: ",
+            currentBundleId
+          );
+        }
+      }
+    } catch (err) {
+      console.error("LiveUpdate failed❌", err);
+      Util.logEvent(EVENTS.LIVE_UPDATE_ERROR, {
+        user_id: userId,
+        timestamp: new Date().toISOString(),
+        channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+        error: JSON.stringify(err),
+      });
+    }
+  }
+  // This function checks if the native version has changed, sets new version in preferences and resets the hot update bundle.
+  public static async checkNativeVersionAndReset() {
+    const { versionName } = await LiveUpdate.getVersionName();
+    const { value: storedVersion } = await Preferences.get({
+      key: VERSION_KEY,
+    });
+    if (versionName !== storedVersion) {
+      console.log("⚠️ APK version changed → clearing old hot update bundle");
+      // reset the hot update bundle
+      await LiveUpdate.reset();
+      // store new version
+      await Preferences.set({ key: VERSION_KEY, value: versionName });
+    }
+  }
+  public static isVersionAllowed(upto: string, current: string): boolean {
+    const u = upto.split('.').map(n => parseInt(n, 10));
+    const c = current.split('.').map(n => parseInt(n, 10));
+
+    for (let i = 0; i < Math.max(u.length, c.length); i++) {
+      const nu = u[i] || 0;
+      const nc = c[i] || 0;
+
+      if (nu > nc) return true;
+      if (nu < nc) return false;
+    }
+
+    return true;
+  }
 
 }

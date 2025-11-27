@@ -83,7 +83,12 @@ try {
 if (userId) Sentry.setUser({ id: userId });
 
 if (Capacitor.isNativePlatform()) {
-   LiveUpdate.ready().catch(console.error);
+  try {
+    await Util.checkNativeVersionAndReset();
+    await LiveUpdate.ready();
+  } catch (error) {
+    console.error("Error in checkNativeVersionAndReset() or LiveUpdate.ready()", error);
+  }
 }
 
 // Extend React's JSX namespace to include Stencil components
@@ -164,55 +169,7 @@ gb.init({
 });
 const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
 const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
-
-async function checkForUpdate() {
-  let majorVersion = "0";
-  try {
-    if (Capacitor.isNativePlatform() && gb.isOn(CAN_HOT_UPDATE)) {
-      const { versionName } = await LiveUpdate.getVersionName();
-      majorVersion = versionName.split(".")[0];
-      const { bundleId: currentBundleId } = await LiveUpdate.getCurrentBundle();
-      const result = await LiveUpdate.fetchLatestBundle({ channel: `${process.env.REACT_APP_ENV}-${majorVersion}` });
-      if (result.bundleId && currentBundleId !== result.bundleId) {
-        console.log("🚀 LiveUpdate fetch latest bundle result", result);
-        Util.logEvent(EVENTS.LIVE_UPDATE_STARTED, {
-          user_id: userId,
-          current_bundle_id: currentBundleId,
-          new_bundle_id: result.bundleId,
-          timestamp: new Date().toISOString(),
-          channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
-          app_version: versionName,
-          update_type: result.artifactType,
-        });
-        const start = performance.now();
-        await LiveUpdate.sync({channel: `${process.env.REACT_APP_ENV}-${majorVersion}`});
-        const totalEnd = performance.now();
-        Util.logEvent(EVENTS.LIVE_UPDATE_APPLIED, {
-          user_id: userId,
-          previous_bundle_id: currentBundleId,
-          new_bundle_id: result.bundleId,
-          timestamp: new Date().toISOString(),
-          time_taken_ms: (totalEnd - start).toFixed(2),
-          channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
-          app_version: versionName,
-          update_type: result.artifactType,
-        });
-        console.log(`🚀 LiveUpdate: Update applied successfully to bundle ${ result.bundleId}`);
-        console.log(`⏱️ Total time taken to download and set nextBundle ID: ${( totalEnd - start ).toFixed(2)} ms`);;
-      } else {
-        console.log("🚀 LiveUpdate: No new update available, Current applied bundleID: ", currentBundleId);
-      }
-    }
-  } catch (err) {
-    console.error("LiveUpdate failed❌", err);
-    Util.logEvent(EVENTS.LIVE_UPDATE_ERROR, {
-      user_id: userId,
-      timestamp: new Date().toISOString(),
-      channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
-      error: JSON.stringify(err),
-    });
-  } 
-}
+const isHotUpdateEnabled = gb.isOn(CAN_HOT_UPDATE);
 
 if (isOpsUser) {
   serviceInstance.switchMode(APIMode.SUPABASE);
@@ -225,7 +182,7 @@ if (isOpsUser) {
   );
   SplashScreen.hide();
   setTimeout(() => {
-      checkForUpdate();
+      Util.checkForUpdate(userId, isHotUpdateEnabled);
   }, 500);
 } else {
   SplashScreen.hide();
@@ -240,7 +197,7 @@ if (isOpsUser) {
     );
     SplashScreen.hide();
     setTimeout(() => {
-      checkForUpdate();
+      Util.checkForUpdate(userId, isHotUpdateEnabled);
     }, 500);
   });
 }

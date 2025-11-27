@@ -1092,3 +1092,4 @@ export const OPS_ROLES = [
   RoleType.FIELD_COORDINATOR,
 ];
 export const CAN_HOT_UPDATE = "can-Hot-Update";
+export const VERSION_KEY = "last_native_version";
