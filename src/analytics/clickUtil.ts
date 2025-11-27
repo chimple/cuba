@@ -104,7 +104,7 @@ const handleClick = async (event: MouseEvent) => {
     action_type: event.type,
   };
 
-  // Util.logEvent(EVENTS.CLICKS_ANALYTICS, eventData);
+  Util.logEvent(EVENTS.CLICKS_ANALYTICS, eventData);
 };
 
 export const initializeClickListener = () => {
