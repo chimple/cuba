@@ -82,11 +82,19 @@ const AddSchoolPage: React.FC = () => {
       link: school?.location_link || "",
     });
 
-    if (school?.key_contacts) {
-      const contactsArray = [
-        school.key_contacts[0] || {},
-        school.key_contacts[1] || {},
-      ];
+    const rawKeyContacts = school?.key_contacts;
+    let parsedKeyContacts = [];
+    if (rawKeyContacts) {
+      try {
+        parsedKeyContacts = typeof rawKeyContacts === "string" ? JSON.parse(rawKeyContacts) : rawKeyContacts;
+        if (!Array.isArray(parsedKeyContacts)) parsedKeyContacts = [];
+      } catch (e) {
+        parsedKeyContacts = [];
+      }
+    }
+
+    if (parsedKeyContacts.length) {
+      const contactsArray = [parsedKeyContacts[0] || {}, parsedKeyContacts[1] || {}];
 
       setContacts(
         contactsArray.map((c: any, i: number) => ({
