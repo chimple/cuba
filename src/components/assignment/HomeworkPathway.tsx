@@ -50,6 +50,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
   const [to, setTo] = useState<number>(0);
   const currentStudent = Util.getCurrentStudent();
   const { setGbUpdated } = useGbContext();
+
   // ✅ New state variables for dropdown logic
   const [isDropdownDisabled, setIsDropdownDisabled] = useState<boolean>(true);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
@@ -66,6 +67,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     }
     updateStarCount(currentStudent);
     fetchHomeworkPathway(currentStudent);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStudent?.id, isDropdownAlwaysEnabled]);
 
   const updateStarCount = async (currentStudent: TableTypes<"user">) => {
@@ -83,6 +85,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     );
     const dbStars = currentStudent.stars || 0;
     const studentStars = Math.max(latestLocalStars, dbStars);
+
     if (localStorageStars < studentStars) {
       storedStarsMap[currentStudent.id] = studentStars;
       localStorage.setItem(STARS_COUNT, JSON.stringify(storedStarsMap));
@@ -92,6 +95,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
       setFrom(studentStars);
       setTo(studentStars);
     }
+
     if (latestLocalStars <= dbStars) {
       latestStarsMap[currentStudent.id] = dbStars;
       localStorage.setItem(LATEST_STARS, JSON.stringify(latestStarsMap));
@@ -127,7 +131,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
   ) => {
     try {
       let pathData: HomeworkPath | null = null;
-      const existingPath = sessionStorage.getItem(HOMEWORK_PATHWAY);
+      const existingPathStr = sessionStorage.getItem(HOMEWORK_PATHWAY);
 
       // Fetch the current class
       const currClass = Util.getCurrentClass();
@@ -142,41 +146,143 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
 
       // 2. If a subjectId filter is provided, filter assignments by that subject
       if (subjectId) {
-        // ✅ Filter directly using course_id from the assignment object
+        // Filter directly using course_id from the assignment object
         allPendingAssignments = allPendingAssignments.filter(
           (assignment) => String(assignment.course_id) === String(subjectId)
         );
 
-        // ✅ NEW: if this subject has no pending assignments anymore,
+        // If this subject has no pending assignments anymore,
         // fallback to global homework path (no subject filter)
         if (!allPendingAssignments.length) {
           setSelectedSubject(null); // reset dropdown selection
-          // Re-run without subjectId to use the global 5-lesson logic
           return fetchHomeworkPathway(student);
         }
       }
 
-      // 3. Check if assignments are few (kept as in your code, even if unused)
-      const hasFewAssignments =
-        !allPendingAssignments || allPendingAssignments.length <= 5;
-
-      // 5. DETERMINE PATH DATA
-      // Only use existing path if we are NOT filtering by a specific subject
-      if (existingPath && !subjectId) {
-        pathData = JSON.parse(existingPath);
-      } else {
+      // 3. Decide how to determine pathData
+      if (existingPathStr && !subjectId) {
+        // ⬅️ Reuse existing global path if we’re not filtering by subject
+        pathData = JSON.parse(existingPathStr) as HomeworkPath;
+      } else if (subjectId) {
+        // ⬅️ SUBJECT-SPECIFIC PATH (when user changes dropdown)
         pathData = await buildAndSaveInitialHomeworkPath(
           student,
           allPendingAssignments
         );
+      } else {
+        // ⬅️ GLOBAL PATH ON FIRST LOAD: use Util.pickFiveHomeworkLessons
+        if (!allPendingAssignments.length) {
+          const emptyPath: HomeworkPath = {
+            path_id: uuidv4(),
+            lessons: [],
+            currentIndex: 0,
+          };
+          await saveHomeworkPath(student, emptyPath);
+          pathData = emptyPath;
+        } else {
+          // enrich assignments with lesson + subject_id
+          const assignmentsWithSubject: any[] = [];
+          const pendingBySubject: { [key: string]: any[] } = {};
+
+          for (const assignment of allPendingAssignments) {
+            const lesson = await api.getLesson(assignment.lesson_id);
+            if (!lesson || !lesson.subject_id) continue;
+
+            const enriched = {
+              ...assignment,
+              lesson,
+              subject_id: lesson.subject_id,
+            };
+
+            assignmentsWithSubject.push(enriched);
+
+            if (!pendingBySubject[lesson.subject_id]) {
+              pendingBySubject[lesson.subject_id] = [];
+            }
+            pendingBySubject[lesson.subject_id].push(enriched);
+          }
+
+          if (!assignmentsWithSubject.length) {
+            const emptyPath: HomeworkPath = {
+              path_id: uuidv4(),
+              lessons: [],
+              currentIndex: 0,
+            };
+            await saveHomeworkPath(student, emptyPath);
+            pathData = emptyPath;
+          } else {
+            // find subjects with max pending (for tie-breaking)
+            let maxPending = 0;
+            let subjectsWithMaxPending: string[] = [];
+
+            Object.keys(pendingBySubject).forEach((subject) => {
+              const length = pendingBySubject[subject].length;
+              if (length > maxPending) {
+                maxPending = length;
+                subjectsWithMaxPending = [subject];
+              } else if (length === maxPending) {
+                subjectsWithMaxPending.push(subject);
+              }
+            });
+
+            let completedCountBySubject: { [key: string]: number } = {};
+
+            if (subjectsWithMaxPending.length > 1) {
+              const completedCounts =
+                await api.getCompletedAssignmentsCountForSubjects(
+                  student.id,
+                  subjectsWithMaxPending
+                );
+              completedCountBySubject = completedCounts.reduce(
+                (acc, { subject_id, completed_count }) => {
+                  acc[subject_id] = completed_count;
+                  return acc;
+                },
+                {} as { [key: string]: number }
+              );
+            }
+
+            const selectedAssignments = Util.pickFiveHomeworkLessons(
+              assignmentsWithSubject,
+              completedCountBySubject
+            );
+
+            const lessonsWithDetails = selectedAssignments.map(
+              (assignment: any) => ({
+                ...assignment,
+                lesson: assignment.lesson,
+              })
+            );
+
+            const newHomeworkPath: HomeworkPath = {
+              path_id: uuidv4(),
+              lessons: lessonsWithDetails,
+              currentIndex: 0,
+            };
+
+            await saveHomeworkPath(student, newHomeworkPath);
+            pathData = newHomeworkPath;
+          }
+        }
       }
 
-      // Parse existingPath to check current index logic
+      // 4. Set dropdown default subject when there is no subject filter
+      if (
+        !subjectId &&
+        pathData &&
+        pathData.lessons &&
+        pathData.lessons.length > 0
+      ) {
+        const firstCourseId = String(pathData.lessons[0].course_id);
+        setSelectedSubject(firstCourseId);
+      }
+
+      // 5. Determine effective current index
       let effectiveCurrentIndex = 0;
       if (pathData) {
         effectiveCurrentIndex = pathData.currentIndex || 0;
-      } else if (existingPath) {
-        const parsedPath = JSON.parse(existingPath);
+      } else if (existingPathStr) {
+        const parsedPath = JSON.parse(existingPathStr) as HomeworkPath;
         effectiveCurrentIndex = parsedPath.currentIndex || 0;
       }
 
@@ -186,7 +292,6 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         // Disable dropdown only if user is beyond first assignment
         setIsDropdownDisabled(effectiveCurrentIndex > 0);
       }
-
       // 6. Award stars if path complete
       if (
         pathData &&
@@ -217,7 +322,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         }
       }
 
-      // Update the key to force re-render of child component
+      // 8. Force re-render of child structure component
       setRefreshKey((prev) => prev + 1);
     } catch (error) {
       console.error("Error in fetchHomeworkPathway:", error);
@@ -226,17 +331,25 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     }
   };
 
+  /**
+   * SUBJECT-SPECIFIC path builder, used when dropdown subject is chosen.
+   */
   const buildAndSaveInitialHomeworkPath = async (
     student: TableTypes<"user">,
     pendingAssignments: any[]
   ) => {
     if (!pendingAssignments || pendingAssignments.length === 0) {
-      const emptyPath = { lessons: [], currentIndex: 0 };
+      const emptyPath: HomeworkPath = {
+        path_id: uuidv4(),
+        lessons: [],
+        currentIndex: 0,
+      };
       await saveHomeworkPath(student, emptyPath);
-      return null;
+      return emptyPath;
     }
 
     const pendingBySubject: { [key: string]: any[] } = {};
+
     for (const assignment of pendingAssignments) {
       const lesson = await api.getLesson(assignment.lesson_id);
       if (lesson && lesson.subject_id) {
@@ -259,7 +372,6 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     });
 
     const bestSubject = subjectsWithMaxPending[0];
-
     const assignmentsForSubject = pendingBySubject[bestSubject] || [];
 
     assignmentsForSubject.sort((a, b) => {
@@ -281,7 +393,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
       })
     );
 
-    const newHomeworkPath = {
+    const newHomeworkPath: HomeworkPath = {
       path_id: uuidv4(),
       lessons: lessonsWithDetails,
       currentIndex: 0,
@@ -291,7 +403,10 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     return newHomeworkPath;
   };
 
-  const saveHomeworkPath = async (student: TableTypes<"user">, path: any) => {
+  const saveHomeworkPath = async (
+    student: TableTypes<"user">,
+    path: HomeworkPath
+  ) => {
     sessionStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(path));
 
     if (!path.lessons || path.lessons.length < 5) {
@@ -311,7 +426,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
       path_lesson_five: path.lessons[4].lesson_id,
     };
 
-    // ✅ Use the new, specific event name and remove the redundant property
+    // Use the new, specific event name
     await Util.logEvent(EVENTS.HOMEWORK_PATHWAY_CREATED, eventData);
   };
 
@@ -322,7 +437,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     }
   };
 
-  if (loading) return <Loading isLoading={loading} msg="Loading Homework" />;
+  if (loading) return <Loading isLoading={loading} />;
 
   return (
     <div className="homework-pathway-container">
@@ -342,6 +457,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
             }}
             disabled={isDropdownDisabled}
             hideArrow={isDropdownDisabled}
+            syncWithLearningPath={false}
           />
         </div>
         <HomeworkPathwayStructure
@@ -360,10 +476,10 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
           }}
         />
       </div>
+
       {/* ✅ Render the modal when its state is true */}
       {showDisabledDropdownModal && (
         <PathwayModal
-          // text={t("keep going finish these lesson to chose subjects")}
           text={t("Keep going!\nFinish these lesson to choose subject")}
           onClose={() => setShowDisabledDropdownModal(false)}
           onConfirm={() => setShowDisabledDropdownModal(false)}

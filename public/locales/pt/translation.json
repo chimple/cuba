@@ -862,5 +862,7 @@
     "Your data has been successfully checked, and no errors were found.": "Os seus dados foram verificados com sucesso e não foram encontrados erros.",
     "Your profile is not registered to any school.": "O seu perfil não está registado em nenhuma escola.",
     "Your progress stays synced and consistent across all devices.": "O seu progresso permanece sincronizado e consistente em todos os dispositivos.",
-    "Zebra": "Zebra"
+    "Zebra": "Zebra",
+    "This lesson is locked. Play the current active lesson.": "Esta lição está bloqueada. Reproduza a lição ativa atual."
+
 }
