@@ -23,7 +23,7 @@
 
 @media (max-width: 1024px) and (orientation: landscape) {
   .homeworkpathway-mascot-wrapper {
-    transform: scale(0.7); /* slightly smaller on small screens */
+    transform: scale(0.8); /* slightly smaller on small screens */
   }
 }
 
