@@ -8,14 +8,14 @@
 }
 
 .homework-dropdown-wrapper .dropdown-main {
-  top: 180%;
+  top: 170%;
   bottom: 100%; /* Position the bottom of the menu at the top of the wrapper */
   left: 5%; /* Or adjust as needed, e.g., 50% with a transform for centering */
 }
 /* Tablet and mobile landscape */
 @media (max-width: 1024px) and (orientation: landscape) {
   .homework-dropdown-wrapper .dropdown-main {
-    top: 88%;  
+    top: 85%;  
   }
 }
 .truncate-style {

@@ -1,51 +1,80 @@
+/* === RESPONSIVE BOTTOM BANNER (NON-BLOCKING) === */
 .homework-completed-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  left: 50%;
+  bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 999999;
+
+  width: 100%;
+  max-width: 100%;
+  padding: 0 clamp(0.5rem, 4vw, 2rem);
+
   display: flex;
   justify-content: center;
-  align-items: center;
-  z-index: 999999;
+  align-items: flex-end;
+
+  background: transparent;
+  pointer-events: none;
+}
+.homework-completed-mascot {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  /* INCREASED SIZE: Make it wider than the column allows */
+  width: clamp(11rem, 30vw, 20rem);
+  max-width: none;
+
+  height: auto;
+  object-fit: contain;
+  user-select: none;
+  transform: translateX(-46%) translateY(51%);
 }
 
+.homework-completed-banner {
+  width: 150%;
+  height: 150%;
+}
+/* === CARD === */
 .homework-completed-card {
+  pointer-events: auto;
   background-color: #fffcee;
-  width: clamp(20rem, 80vw, 43.75rem);
+  width: 100%;
+  max-width: 43.75rem;
 
-  border-radius: clamp(1.5rem, 3vw, 2rem);
-  padding: clamp(1.25rem, 1vw, 2.5rem) clamp(1rem, 2vw, 2rem)
-    clamp(0.5rem, 1vw, 1rem);
+  border-radius: clamp(1.25rem, 2.5vw, 2rem);
+  padding: clamp(1.2rem, 2vw, 2rem);
 
   box-shadow: 0 0.5rem 1.125rem rgba(0, 0, 0, 0.25);
-  position: relative;
 
-  background-size: 95% 98%;
-  background-position: top center;
+  background-size: clamp(90%, 90%, 150%) auto;
+  background-position: center;
   background-repeat: no-repeat;
 }
 
-/* 3-column layout (mascot – center – right spacing) */
+/* LAYOUT */
 .homework-completed-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-top: 4%;
 }
 
-/* LEFT MASCOT ALIGNMENT */
+/* Mascot column */
 .homework-completed-left {
-  flex: 0 0 clamp(7rem, 19vw, 9.5rem);
+  flex: 0 0 clamp(6rem, 16vw, 9.5rem);
+  position: relative;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-end;
 }
 
-/* Wrapper that controls the Rive mascot size */
 .homework-completed-mascot-rive {
-  width: clamp(8rem, 22vw, 13rem); /* ↑ Bigger */
-  height: clamp(9rem, 26vw, 15rem); /* ↑ Bigger */
+  width: clamp(6.5rem, 18vw, 11.5rem);
+  height: clamp(7rem, 22vw, 14rem);
 }
 
-/* Let whatever Rive renders (canvas/svg/div) fill the wrapper */
 .homework-completed-mascot-rive canvas,
 .homework-completed-mascot-rive svg,
 .homework-completed-mascot-rive > div {
@@ -53,92 +82,74 @@
   height: 100%;
 }
 
-/* CENTER CONTENT */
+/* Center text + button */
 .homework-completed-center {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 2rem;
-}
-
-.homework-completed-celebration-top {
-  width: clamp(6.25rem, 18vw, 7.5rem); /* min 100px, preferred, max 120px */
-  margin-block: clamp(1rem, 3vh, 1.25rem); /* Fluid vertical margin */
+  padding-bottom: clamp(1rem, 2vh, 2rem);
 }
 
 .homework-completed-text {
-  /* Fluid typography: min font-size, preferred, max font-size */
-  font-size: clamp(
-    1.1rem,
-    2.5vw,
-    1.375rem
-  ); /* min ~17.6px, preferred, max 22px */
-  font-weight: 500;
+  font-size: clamp(1rem, 2vw, 1.375rem);
+  font-weight: 550;
   color: #223255;
   text-align: center;
-  margin-bottom: clamp(1.5rem, 3vh, 2.5rem); /* Fluid bottom margin */
-  white-space: normal; /* ⬅️ Prevent line-breaks */
-  overflow: hidden; /* Optional: hide overflow if screen too small */
-  text-overflow: ellipsis; /* Optional: … if super small screen */
-  width: 100%;
+  margin-bottom: clamp(0.9rem, 2vh, 1.5rem);
+
+  /* --- IMPORTANT FIXES --- */
+  white-space: nowrap; /* 🚀 force single line */
+  overflow: hidden; /* hide overflow if screen is too small */
+  text-overflow: ellipsis; /* show ... if too long */
+
+  max-width: 100%;
+  line-height: 1.3;
+  margin-top: 6%;
 }
 
-/* BUTTON */
+/* CTA Button */
 .homework-completed-play-btn {
-  /* Use clamp for the button width for perfect control */
-  width: clamp(9rem, 30vw, 10rem); /* min 144px, preferred, max 160px */
-  height: clamp(2.5rem, 7vh, 3rem); /* min 40px, preferred, max 48px */
+  width: clamp(8rem, 26vw, 10rem);
+  height: clamp(3rem, 7vh, 3rem);
 
-  border-radius: 0.75rem; /* 12px */
+  /* border-radius: 0.75rem; */
+  border-radius: 10px;
   border: none;
   cursor: pointer;
   background: #f34d08;
 
-  border-bottom: 0.3125rem solid #8a2901; /* 5px */
+  border-bottom: 0.25rem solid #8a2901;
   color: #fff;
 
-  font-size: clamp(1rem, 2.2vw, 1.25rem); /* min 16px, preferred, max 20px */
-  font-weight: 700;
-  text-transform: uppercase;
-
-  display: flex;
+  font-size: clamp(1.3rem, 5vw, 1.1rem);
+  font-weight: 600;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem; /* 8px */
-
-  position: relative;
-  /* Use rem for small, consistent transforms */
-  transform: translateY(0.125rem); /* 2px */
-
+  gap: 0.2rem;
+  margin-right: 14%;
   transition: transform 0.1s ease, border-bottom-width 0.1s ease;
-  right: 14%;
 }
 
 .homework-completed-play-btn:active {
-  border-bottom: 0.125rem solid #8a2901 !important; /* 2px */
-  transform: translateY(0.25rem); /* 4px */
+  border-bottom-width: 0.125rem;
+  transform: translateY(0.25rem);
 }
 
 .homework-completed-play-icon {
-  width: clamp(1.25rem, 4vw, 1.625rem); /* min 20px, preferred, max 26px */
-  height: auto;
+  width: clamp(1.1rem, 3vw, 1.5rem);
+  height: 60%;
 }
 
-/* RIGHT EMPTY SPACE (mockup alignment) */
+/* Empty right column placeholder (keeps layout symmetrical) */
 .homework-completed-right {
-  /* Use flex-basis for sizing, same as the left column for symmetry */
-  flex: 0 0 clamp(5rem, 15vw, 7.5rem);
+  flex: 0 0 clamp(4rem, 12vw, 7rem);
 }
 
-/* Add a media query for major layout shifts on very small screens */
-@media (max-width: 600px) {
-  .homework-completed-left,
-  .homework-completed-right {
-    /* Hide the mascot and side spacer on mobile for more room */
-    display: none;
-  }
-  .homework-completed-center {
-    padding: 0; /* Remove padding when side columns are gone */
+/* Larger desktops */
+@media (min-width: 1200px) {
+  .homework-completed-card {
+    max-width: 720px;
   }
 }

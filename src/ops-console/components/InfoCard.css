@@ -20,3 +20,7 @@
   gap: 8px; /* approx gap:1 */
   padding-top: 10px;
 }
+
+.info-card-edit-icon{
+  cursor: pointer;
+}

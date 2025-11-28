@@ -21,35 +21,17 @@ const HomeworkCompleteModal: React.FC<HomeworkCompleteModalProps> = ({
   const cardStyle = {
     backgroundImage: `url(${borderImageSrc})`,
   };
-
-  const chimpleRiveStateMachineName = "State Machine 3";
-  const chimpleRiveInputName = "Number 2";
-  const chimpleRiveStateValue = 1;
-  const chimpleRiveAnimationName = "";
-
   return (
-    <div
-      className="homework-completed-overlay"
-      // sonClick={onClose}
-    >
-      <div
-        className="homework-completed-card"
-        ref={ref}
-        onClick={(e) => e.stopPropagation()}
-        style={cardStyle}
-      >
+    <div className="homework-completed-banner">
+      <div className="homework-completed-card" ref={ref} style={cardStyle}>
         <div className="homework-completed-inner">
-          {/* LEFT MASCOT - Rive in a sized wrapper */}
+          {/* LEFT MASCOT */}
           <div className="homework-completed-left">
-            <div className="homework-completed-mascot-rive">
-              <ChimpleRiveMascot
-                key="mascot-idle"
-                stateMachine={chimpleRiveStateMachineName}
-                inputName={chimpleRiveInputName}
-                stateValue={chimpleRiveStateValue}
-                animationName={chimpleRiveAnimationName}
-              />
-            </div>
+            <img
+              src="/assets/icons/ChimpleCelebration.gif"
+              alt="Celebration Mascot"
+              className="homework-completed-mascot"
+            />
           </div>
 
           {/* MAIN CENTER BLOCK */}
