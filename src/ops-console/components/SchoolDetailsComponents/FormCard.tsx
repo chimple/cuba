@@ -184,7 +184,7 @@ const FormCard: React.FC<EntityModalProps> = ({
 
     return (
       <div className={`formcard-message formcard-message-${messageType}`}>
-        {messageConfig.text}
+        {t(messageConfig.text)}
       </div>
     );
   };
@@ -203,7 +203,6 @@ const FormCard: React.FC<EntityModalProps> = ({
           </button>
         </div>
         <form onSubmit={handleSubmit} className="formcard-modal-body">
-          {renderMessage()}
           <div className="formcard-form-grid">
             {fields.map((field) => (
               <div key={field.name} className={getFieldClassName(field)}>
@@ -229,6 +228,7 @@ const FormCard: React.FC<EntityModalProps> = ({
               {submitLabel}
             </button>
           </div>
+          {renderMessage()}
         </form>
       </div>
     </div>
