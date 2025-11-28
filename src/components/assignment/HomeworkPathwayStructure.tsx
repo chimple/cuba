@@ -31,9 +31,17 @@ import RewardBox from "../learningPathway/RewardBox";
 import DailyRewardModal from "../learningPathway/DailyRewardModal";
 import HomeworkCompleteModal from "./HomeworkCompleteModal";
 
+interface HomeworkPathwayStructureProps {
+  selectedSubject?: string | null;
+  onPlayMoreHomework?: () => void;
+}
+
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-const HomeworkPathwayStructure: React.FC = () => {
+const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
+  selectedSubject,
+  onPlayMoreHomework,
+}) => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -90,6 +98,7 @@ const HomeworkPathwayStructure: React.FC = () => {
     localStorage.getItem(HOMEWORK_PATHWAY) === "true";
 
   const shouldAnimate = modalText === rewardText;
+
   const fetchLocalSVGGroup = async (
     path: string,
     className?: string
@@ -104,6 +113,7 @@ const HomeworkPathwayStructure: React.FC = () => {
     if (className) group.setAttribute("class", className);
     return group;
   };
+
   const loadHaloAnimation = async (
     localPath: string,
     webPath: string
@@ -177,6 +187,7 @@ const HomeworkPathwayStructure: React.FC = () => {
     };
     return image;
   };
+
   const loadPathwayContent = async (
     path: string,
     webPath: string
@@ -197,6 +208,7 @@ const HomeworkPathwayStructure: React.FC = () => {
       return await res.text();
     }
   };
+
   // Cache lesson data in memory and sessionStorage
   const lessonCache = new Map<string, any>();
   const getCachedLesson = async (lessonId: string): Promise<any> => {
@@ -234,103 +246,37 @@ const HomeworkPathwayStructure: React.FC = () => {
     );
   };
 
-  // Homework 5-lesson selection logic implementation (pickFiveLessons)
-  // Apply the rules:
-  // - Pick subject with max pending assignments
-  // - Tie-break by fewer completed
-  // - Fill until 5 lessons total, FIFO order
-  const pickFiveLessons = (
-    assignments: any[],
-    completedCountBySubject: { [key: string]: number } = {}
-  ) => {
-    const pendingBySubject: { [key: string]: any[] } = {};
-
-    // Group pending & completed assignments per subject
-    assignments.forEach((a) => {
-      if (!a.completed) {
-        if (!pendingBySubject[a.subject_id])
-          pendingBySubject[a.subject_id] = [];
-        pendingBySubject[a.subject_id].push(a);
-      }
-    });
-
-    // Find subjects with max pending
-    let maxPending = 0;
-    let subjectsWithMaxPending: string[] = [];
-    Object.keys(pendingBySubject).forEach((subject) => {
-      const length = pendingBySubject[subject].length;
-      if (length > maxPending) {
-        maxPending = length;
-        subjectsWithMaxPending = [subject];
-      } else if (length === maxPending) {
-        subjectsWithMaxPending.push(subject);
-      }
-    });
-
-    let bestSubject: string | null = null;
-    if (subjectsWithMaxPending.length === 1) {
-      bestSubject = subjectsWithMaxPending[0];
-    } else if (subjectsWithMaxPending.length > 1) {
-      // tie-break by fewer completed using the external completed count map
-      let minCompleted = Number.MAX_SAFE_INTEGER;
-      subjectsWithMaxPending.forEach((subject) => {
-        const completedCount = completedCountBySubject[subject] ?? 0;
-        if (completedCount < minCompleted) {
-          minCompleted = completedCount;
-          bestSubject = subject;
-        }
-      });
-    }
-
-    let result: any[] = [];
-    if (bestSubject && maxPending >= 5) {
-      result = pendingBySubject[bestSubject].slice(0, 5);
-    } else if (bestSubject && maxPending < 5) {
-      result = [...(pendingBySubject[bestSubject] || [])];
-      const remaining = 5 - result.length;
-      const otherSubjects = Object.keys(pendingBySubject)
-        .filter((s) => s !== bestSubject)
-        .sort(
-          (a, b) =>
-            (pendingBySubject[b]?.length || 0) -
-            (pendingBySubject[a]?.length || 0)
-        );
-      for (const subj of otherSubjects) {
-        if (result.length >= 5) break;
-        const toTake = Math.min(
-          5 - result.length,
-          pendingBySubject[subj].length
-        );
-        result = result.concat(pendingBySubject[subj].slice(0, toTake));
-      }
-    }
-    console.log("result", result);
-    return result;
-  };
-
   // Fetch all pending assignments for the current student,
   // pick 5 lessons per homework logic, then set state
   const fetchHomeworkLessons = async () => {
     try {
+      // ✅ FIRST: respect whatever path HomeworkPathway has already written.
+      const existingPathStr = sessionStorage.getItem(HOMEWORK_PATHWAY);
+      if (existingPathStr) {
+        try {
+          const existingPath = JSON.parse(existingPathStr);
+          const hasLessons =
+            Array.isArray(existingPath.lessons) &&
+            existingPath.lessons.length > 0;
+
+          if (hasLessons) {
+            setHomeworkLessons(existingPath.lessons);
+            return; // ⬅️ Do NOT recompute from API, so we don't move last-slot lessons to first
+          }
+        } catch (err) {
+          console.warn(
+            "Invalid cached homework path in sessionStorage, rebuilding...",
+            err
+          );
+          // fallthrough to rebuild
+        }
+      }
+
+      // ✅ FALLBACK: only if there is no valid path in sessionStorage
       const currentStudent = Util.getCurrentStudent();
       const currClass = Util.getCurrentClass();
       if (!currentStudent?.id || !currClass?.id) return;
 
-      // ✅ 1. If we already have a homework path (with currentIndex),
-      // just use that and DON'T recompute the 5 from API.
-      const existingPathStr = sessionStorage.getItem(HOMEWORK_PATHWAY);
-      if (existingPathStr) {
-        const existingPath = JSON.parse(existingPathStr);
-        if (
-          Array.isArray(existingPath.lessons) &&
-          existingPath.lessons.length > 0
-        ) {
-          setHomeworkLessons(existingPath.lessons);
-          return;
-        }
-      }
-
-      // Fetch all pending assignments for the student
       const all = await api.getPendingAssignments(
         currClass?.id,
         currentStudent.id
@@ -391,12 +337,10 @@ const HomeworkPathwayStructure: React.FC = () => {
       }
 
       // Pick 5 lessons passing completed counts to tie break subjects with the same max pending
-      const selected = pickFiveLessons(
+      const selected = Util.pickFiveHomeworkLessons(
         pendingAssignments,
         completedCountBySubject
       );
-
-      console.log("selected assignments", selected);
 
       // Fetch full lesson details for selected assignments
       const lessonsWithDetails = await Promise.all(
@@ -406,7 +350,6 @@ const HomeworkPathwayStructure: React.FC = () => {
         })
       );
 
-      console.log("lessons with details", lessonsWithDetails);
       const newHomeworkPath = {
         lessons: lessonsWithDetails,
         currentIndex: 0, // A new path always starts at the beginning (index 0)
@@ -590,22 +533,31 @@ const HomeworkPathwayStructure: React.FC = () => {
               "style",
               "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
             );
-            let yOffset = -10; 
+            let yOffset = -10;
 
-            if (pathIndex === 2 || pathIndex === 4) {
-              yOffset = 5; 
+            if (pathIndex === 4) {
+              yOffset = 5;
             }
 
-            const adjustedY =
+            if (pathIndex === 2) {
+              yOffset += 15;
+            }
+
+            let xPos =
+              positionMappings.fruitInactive.x[pathIndex] ?? flowerX - 20;
+            let yPos =
               (positionMappings.fruitInactive.y[pathIndex] ?? flowerY - 20) +
               yOffset;
-            placeElement(
-              lockedFruit as SVGGElement,
-              positionMappings.fruitInactive.x[pathIndex] ?? flowerX - 20,
-              adjustedY
-            );
+
+            // 👉 move first locked fruit (leftmost) a bit right & down
+            if (pathIndex === 0) {
+              xPos += 21;
+              yPos += 15;
+            }
+
+            placeElement(lockedFruit as SVGGElement, xPos, yPos);
             fragment.appendChild(lockedFruit);
-            continue; // Go to the next slot
+            continue;
           }
 
           // This slot corresponds to a real lesson.
@@ -630,22 +582,55 @@ const HomeworkPathwayStructure: React.FC = () => {
               playedLessonSVG.cloneNode(true) as SVGGElement
             );
             playedLesson.appendChild(lessonImage);
-            placeElement(
-              playedLesson as SVGGElement,
-              positionMappings.playedLesson.x[pathIndex] ?? flowerX - 20,
-              positionMappings.playedLesson.y[pathIndex] ?? flowerY - 20
-            );
-            fragment.appendChild(playedLesson);
 
-            // --- Render Active Lesson ---
+            // base position
+            let xPos =
+              positionMappings.playedLesson.x[pathIndex] ?? flowerX - 20;
+            let yPos =
+              positionMappings.playedLesson.y[pathIndex] ?? flowerY - 20;
+
+            // ⬆️ move the FIRST played mango slightly up
+            if (pathIndex === 0) {
+              yPos -= 12;
+            } else if (pathIndex === 2) {
+              yPos += 7;
+            } else if (pathIndex === 3) {
+              yPos -= 5;
+            }
+
+            placeElement(playedLesson as SVGGElement, xPos, yPos);
+            fragment.appendChild(playedLesson);
           } else if (lessonIdx === currentIndex) {
             const activeGroup = document.createElementNS(
               "http://www.w3.org/2000/svg",
               "g"
             );
+
+            let activeYOffset = -10;
+            let activeXOffset = 0;
+
+            if (pathIndex === 1) {
+              activeYOffset = 5;
+              activeXOffset += 8;
+            } else if (pathIndex === 2) {
+              activeYOffset += 12;
+              activeXOffset += 8;
+            } else if (pathIndex === 3) {
+              activeYOffset += 15;
+              activeXOffset += 8;
+            } else if (pathIndex === 0) {
+              activeYOffset = -10;
+              activeXOffset = 10; // tweak this value until it looks perfect
+            } else if (pathIndex === 4) {
+              activeYOffset = -1;
+              activeXOffset = 12;
+            }
+
             activeGroup.setAttribute(
               "transform",
-              `translate(${positionMappings.activeGroup.baseX}, ${positionMappings.activeGroup.baseY})`
+              `translate(${
+                positionMappings.activeGroup.baseX + activeXOffset
+              }, ${positionMappings.activeGroup.baseY + activeYOffset})`
             );
 
             const halo = createSVGImage(haloPath, 140, 140, -15, -12);
@@ -653,8 +638,8 @@ const HomeworkPathwayStructure: React.FC = () => {
               "/pathwayAssets/touchpointer.svg",
               30,
               30,
-              60,
-              80
+              70,
+              90
             );
             pointer.setAttribute(
               "class",
@@ -716,36 +701,65 @@ const HomeworkPathwayStructure: React.FC = () => {
               "http://www.w3.org/2000/svg",
               "g"
             );
+
             const lessonImage = createSVGImage(lesson_image, 30, 30, 27, 29);
             flower_Inactive.appendChild(
               fruitInactive.cloneNode(true) as SVGGElement
             );
             flower_Inactive.appendChild(lessonImage);
+
             flower_Inactive.addEventListener("click", () => {
               setModalOpen(true);
               setModalText(inactiveText);
             });
+
             flower_Inactive.setAttribute(
               "style",
               "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
             );
-            let yOffset = -10; 
 
-            if (pathIndex === 2 || pathIndex === 4) {
-              yOffset = 5; 
+            // Base offset
+            let yOffset = -10;
+            if (pathIndex === 4) yOffset = 5;
+
+            if (pathIndex === 2) yOffset = 4;
+
+            // FIRST inactive → a bit right + down
+            let extraX = 0;
+            let extraY = 0;
+            if (pathIndex === 0) {
+              extraX = 15; // right
+              extraY -= 100; // down
             }
 
-            const adjustedY =
+            // THIRD inactive → slightly up
+            if (pathIndex === 2) {
+              yOffset += 1;
+            }
+
+            let xPos =
+              positionMappings.fruitInactive.x[pathIndex] ?? flowerX - 20;
+            let yPos =
               (positionMappings.fruitInactive.y[pathIndex] ?? flowerY - 20) +
               yOffset;
-            placeElement(
-              flower_Inactive as SVGGElement,
-              positionMappings.fruitInactive.x[pathIndex] ?? flowerX - 20,
-              adjustedY
-            );
+
+            // Place element at base position
+            placeElement(flower_Inactive as SVGGElement, xPos, yPos);
+
+            // Then add the fine‑tuning shift for first inactive
+            if (pathIndex === 0) {
+              const prevTransform =
+                flower_Inactive.getAttribute("transform") || "";
+              flower_Inactive.setAttribute(
+                "transform",
+                `${prevTransform} translate(${extraX}, ${extraY})`.trim()
+              );
+            }
+
             fragment.appendChild(flower_Inactive);
           }
         }
+
         // ======================= MODIFICATION END =======================
 
         const endPath = paths[paths.length - 1];
@@ -812,8 +826,13 @@ const HomeworkPathwayStructure: React.FC = () => {
 
           const fromX = xValues[fromPathIndex] ?? 0;
           const toX = xValues[toPathIndex] ?? 0;
-          chimple.setAttribute("x", `${toX - 87}`);
-          chimple.setAttribute("y", `${startPoint.y + 15}`);
+          chimple.setAttribute("x", `${toX - 72}`);
+          let chimpleAnimY = startPoint.y + 18;
+          if (window.innerWidth <= 1024) {
+            chimpleAnimY -= 12; // same upward shift
+          }
+          chimple.setAttribute("y", `${chimpleAnimY}`);
+
           chimple.style.display = "block";
           (chimple.style as any).transformBox = "fill-box";
           chimple.style.transformOrigin = "0 0";
@@ -946,7 +965,7 @@ const HomeworkPathwayStructure: React.FC = () => {
               Math.max(currentPathIndex, 0),
               xValues.length - 1
             );
-            chimple.setAttribute("x", `${xValues[safePathIndex] - 190}`);
+            chimple.setAttribute("x", `${xValues[safePathIndex] - 175}`);
           } else {
             // Place using special coordinates based on last completed lesson's position, applying offset
             const lastCompletedPathIndex =
@@ -958,13 +977,26 @@ const HomeworkPathwayStructure: React.FC = () => {
             chimple.setAttribute("x", `${chimpleXValues[safePathIndex]}`);
           }
 
-          chimple.setAttribute("y", `${startPoint.y - 20}`);
+          // chimple.setAttribute("y", `${startPoint.y - 20}`);
+          let chimpleBaseY = startPoint.y - 12;
+          if (window.innerWidth <= 1024) {
+            chimpleBaseY -= 12; // move up on small screens
+          }
+          chimple.setAttribute("y", `${chimpleBaseY}`);
           chimple.style.pointerEvents = "none";
+          const riveWrapper = document.createElement("div");
+          riveWrapper.className = "homeworkpathway-mascot-wrapper";
+          riveWrapper.style.width = "100%";
+          riveWrapper.style.height = "100%";
+
           const riveDiv = document.createElement("div");
           riveDiv.style.width = "100%";
           riveDiv.style.height = "100%";
-          chimple.appendChild(riveDiv);
+
+          riveWrapper.appendChild(riveDiv);
+          chimple.appendChild(riveWrapper);
           svg.appendChild(chimple);
+
           setRiveContainer(riveDiv);
         }
 
@@ -975,7 +1007,7 @@ const HomeworkPathwayStructure: React.FC = () => {
       console.error("Failed to load SVG:", error);
     }
   };
-  // ... (The rest of the component remains unchanged)
+
   // Helper to place SVG elements
   const placeElement = (element: SVGGElement, x: number, y: number) => {
     element.setAttribute("transform", `translate(${x}, ${y})`);
@@ -999,7 +1031,6 @@ const HomeworkPathwayStructure: React.FC = () => {
       showModalIfNeeded();
     }
   }, []);
-
   const updateMascotToNormalState = async (rewardId: string) => {
     const rewardRecord = await api.getRewardById(rewardId);
     if (rewardRecord && rewardRecord.type === "normal") {
@@ -1085,19 +1116,18 @@ const HomeworkPathwayStructure: React.FC = () => {
       console.error("Error in playLesson:", error);
     }
   };
-
   return (
     <>
       {showHomeworkCompleteModal && (
         <HomeworkCompleteModal
           text={t("Yay!! You have completed all the Homework!!")}
-          mascotSrc="/pathwayAssets/chimpleHomeworkMascot.svg"
           borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
           onClose={() => setShowHomeworkCompleteModal(false)}
           onPlayMore={() => {
-            console.log("Play More clicked!");
             setShowHomeworkCompleteModal(false);
-            // You could add navigation logic here, e.g., history.push('/some-other-page');
+            if (onPlayMoreHomework) {
+              onPlayMoreHomework();
+            }
           }}
         />
       )}
@@ -1112,13 +1142,15 @@ const HomeworkPathwayStructure: React.FC = () => {
       <div className="homeworkpathway-structure-div" ref={containerRef}></div>
       {riveContainer &&
         ReactDOM.createPortal(
-          <ChimpleRiveMascot
-            key={mascotKey}
-            stateMachine={chimpleRiveStateMachineName}
-            inputName={chimpleRiveInputName}
-            stateValue={chimpleRiveStateValue}
-            animationName={chimpleRiveAnimationName}
-          />,
+          <div className="homeworkpathway-mascot-wrapper">
+            <ChimpleRiveMascot
+              key={mascotKey}
+              stateMachine={chimpleRiveStateMachineName}
+              inputName={chimpleRiveInputName}
+              stateValue={chimpleRiveStateValue}
+              animationName={chimpleRiveAnimationName}
+            />
+          </div>,
           riveContainer
         )}
 

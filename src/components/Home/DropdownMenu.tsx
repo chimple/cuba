@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef, useState } from "react";
 import "./DropdownMenu.css";
-import { EVENTS, TableTypes } from "../../common/constants";
+import { EVENTS, HOMEWORK_PATHWAY, TableTypes } from "../../common/constants";
 import SelectIconImage from "../displaySubjects/SelectIconImage";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
@@ -10,16 +10,23 @@ interface CourseDetails {
   grade?: TableTypes<"grade"> | null;
   curriculum?: TableTypes<"curriculum"> | null;
 }
+
 interface DropdownMenuProps {
   disabled?: boolean;
   hideArrow?: boolean;
-  onCourseChange?: () => void;
+  onCourseChange?: () => void; // used by LearningPathway
+  onSubjectChange?: (subjectId: string) => void; // used by HomeworkPathway & LP
+  selectedSubject?: string | null; // external controlled value (Homework)
+  syncWithLearningPath?: boolean;
 }
 
 const DropdownMenu: FC<DropdownMenuProps> = ({
   disabled = false,
   hideArrow = false,
   onCourseChange,
+  onSubjectChange,
+  selectedSubject = null,
+  syncWithLearningPath = true,
 }) => {
   const [expanded, setExpanded] = useState<boolean>(false);
   const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
@@ -31,31 +38,121 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
     fetchLearningPathCourseDetails();
   }, []);
 
+  useEffect(() => {
+    // For HomeworkPathway: keep internal "selected" in sync with selectedSubject
+    if (!syncWithLearningPath && selectedSubject && courseDetails.length) {
+      const matched = courseDetails.find(
+        (detail) => String(detail.course.id) === String(selectedSubject)
+      );
+      if (matched) {
+        setSelected(matched);
+      }
+    }
+  }, [selectedSubject, courseDetails, syncWithLearningPath]);
+
   const fetchLearningPathCourseDetails = async () => {
     try {
       const currentStudent = await Util.getCurrentStudent();
+
+      // 🔹 HOMEWORK MODE: don't depend on learning_path
+      if (!syncWithLearningPath) {
+        const pathStr = sessionStorage.getItem(HOMEWORK_PATHWAY);
+
+        if (!pathStr) {
+          // no homework path yet → safe fallback
+          setCourseDetails([]);
+          return;
+        }
+
+        const homeworkPath = JSON.parse(pathStr);
+        const lessons = homeworkPath.lessons || [];
+
+        // ✅ get unique course_ids from current homework path as string[]
+        const uniqueCourseIds: string[] = Array.from(
+          new Set(
+            lessons
+              .map((l: any) => l.course_id as string | undefined)
+              .filter((id): id is string => !!id)
+          )
+        );
+
+        if (!uniqueCourseIds.length) {
+          setCourseDetails([]);
+          return;
+        }
+
+        // ✅ let TS infer courseId type from uniqueCourseIds: string[]
+        const coursePromises: Promise<CourseDetails | null>[] =
+          uniqueCourseIds.map(async (courseId) => {
+            try {
+              const course = await api.getCourse(courseId);
+              if (!course) return null;
+
+              const [gradeDoc, curriculumDoc] = await Promise.all([
+                course.grade_id
+                  ? api.getGradeById(course.grade_id)
+                  : Promise.resolve(null),
+                course.curriculum_id
+                  ? api.getCurriculumById(course.curriculum_id)
+                  : Promise.resolve(null),
+              ]);
+
+              return { course, grade: gradeDoc, curriculum: curriculumDoc };
+            } catch (err) {
+              console.error(
+                "Failed to fetch course for homework dropdown",
+                err
+              );
+              return null;
+            }
+          });
+
+        const detailedCourses = (await Promise.all(coursePromises)).filter(
+          Boolean
+        ) as CourseDetails[];
+
+        setCourseDetails(detailedCourses);
+
+        // initial selection in homework mode
+        setSelected((prev) => {
+          if (prev) return prev;
+
+          if (selectedSubject) {
+            const matched = detailedCourses.find(
+              (detail) => String(detail.course.id) === String(selectedSubject)
+            );
+            if (matched) return matched;
+          }
+
+          return detailedCourses[0] || null;
+        });
+
+        return; // ⬅️ don't fall through to learning_path logic
+      }
+
+      // 🔹 LEARNING PATHWAY MODE (original behaviour)
+      if (!currentStudent?.learning_path) {
+        console.error("No learning path found for the user");
+        return;
+      }
 
       if (!currentStudent?.learning_path) {
         console.error("No learning path found for the user");
         return;
       }
 
-      // Parse learning path only once
       const learningPath = JSON.parse(currentStudent.learning_path);
       const { courseList } = learningPath.courses;
       const currentIndex = learningPath.courses.currentCourseIndex ?? 0;
 
-      // Pre-allocate array for better performance
       const coursePromises: Promise<CourseDetails | null>[] = [];
 
-      // Prepare all promises first (no await in loop)
       for (const entry of courseList) {
         const promise = (async () => {
           try {
             const course = await api.getCourse(entry.course_id);
             if (!course) return null;
 
-            // Parallelize these requests
             const [gradeDoc, curriculumDoc] = await Promise.all([
               course.grade_id
                 ? api.getGradeById(course.grade_id)
@@ -82,45 +179,67 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         coursePromises.push(promise);
       }
 
-      // Wait for all promises to settle
       const detailedCourses = (await Promise.all(coursePromises)).filter(
         Boolean
       ) as CourseDetails[];
 
-      // Update state in one batch if possible
       setCourseDetails(detailedCourses);
-      setSelected((prev) => prev || detailedCourses[currentIndex] || null);
+
+      // INITIAL SELECTION LOGIC
+      setSelected((prev) => {
+        if (prev) return prev;
+
+        // Homework: don't follow learning_path index, use selectedSubject if provided
+        if (!syncWithLearningPath) {
+          if (selectedSubject) {
+            const matched = detailedCourses.find(
+              (detail) => String(detail.course.id) === String(selectedSubject)
+            );
+            if (matched) return matched;
+          }
+          // fallback: first course
+          return detailedCourses[0] || null;
+        }
+
+        // LearningPathway: follow learning_path.currentCourseIndex as before
+        return detailedCourses[currentIndex] || detailedCourses[0] || null;
+      });
     } catch (error) {
       console.error("Error in fetchLearningPathCourseDetails:", error);
     }
   };
 
   const handleSelect = async (subject: CourseDetails, index: number) => {
+    if (disabled) return;
     try {
       setSelected(subject);
       setExpanded(false);
 
+      // 🔹 HOMEWORK MODE: DO NOT touch learning_path, only notify subject change
+      if (!syncWithLearningPath) {
+        if (onSubjectChange) {
+          onSubjectChange(subject.course.id);
+        }
+        return;
+      }
+
+      // 🔹 LEARNING PATHWAY MODE (original behaviour)
       const currentStudent = await Util.getCurrentStudent();
       if (!currentStudent?.learning_path) return;
 
-      // Parse learning path once
       const learningPath = JSON.parse(currentStudent.learning_path);
       const { courseList, currentCourseIndex } = learningPath.courses;
 
-      // Get previous course info more efficiently
       const prevCourse = courseList[currentCourseIndex];
       const prevPathItem = prevCourse?.path?.[prevCourse.currentIndex];
 
-      // Extract previous IDs
       const prevCourseId = prevCourse?.course_id;
       const prevLessonId = prevPathItem?.lesson_id;
       const prevChapterId = prevPathItem?.chapter_id;
       const prevPathId = prevCourse?.path_id;
 
-      // Update learning path index
       learningPath.courses.currentCourseIndex = index;
 
-      // Prepare all async operations first
       const updateOperations = [
         api.updateLearningPath(currentStudent, JSON.stringify(learningPath)),
         Util.setCurrentStudent(
@@ -129,11 +248,9 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         ),
       ];
 
-      // Get current course info after update
       const currentCourse = courseList[index];
       const currentPathItem = currentCourse?.path?.[currentCourse.currentIndex];
 
-      // Prepare event data
       const eventData = {
         user_id: currentStudent.id,
         current_path_id: currentCourse?.path_id,
@@ -146,22 +263,22 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         prev_chapter_id: prevChapterId,
       };
 
-      // Add event logging to operations
       updateOperations.push(
         Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, eventData)
       );
 
-      // Execute all async operations in parallel
       await Promise.all(updateOperations);
 
-      // Dispatch event after all operations complete
+      if (onSubjectChange) {
+        onSubjectChange(subject.course.id);
+      }
       if (onCourseChange) onCourseChange();
+
       window.dispatchEvent(
         new CustomEvent("courseChanged", { detail: { currentStudent } })
       );
     } catch (error) {
       console.error("Error in handleSelect:", error);
-      // Consider adding error handling UI feedback here
     }
   };
 
@@ -169,6 +286,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
     const parts = name.split(" ");
     return parts.length > 1 ? parts[1] : name;
   };
+
   const handleToggleExpand = () => {
     if (hideArrow) return;
     setExpanded((prev) => !prev);
@@ -242,7 +360,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
                   onClick={() => handleSelect(detail, index)}
                 >
                   <SelectIconImage
-                    key={detail.course.id} // Important for cache invalidation
+                    key={detail.course.id}
                     localSrc={`courses/chapter_icons/${detail.course.code}.webp`}
                     defaultSrc="assets/icons/DefaultIcon.png"
                     webSrc={

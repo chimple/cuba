@@ -29,6 +29,7 @@ import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { RoleType } from "../../interface/modelInterfaces";
+import { UserSchoolClassParams, UserSchoolClassResult } from "../../ops-console/pages/NewUserPageOps";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -2217,6 +2218,12 @@ export interface ServiceApi {
     studentId: string,
     subjectIds: string[]
   ): Promise<{ subject_id: string; completed_count: number }[]>;
+  /**
+   * Get or create a user and link them to a school (and optionally a class).
+   */
+  getOrcreateschooluser(
+    params: UserSchoolClassParams
+  ): Promise<UserSchoolClassResult>;
 
 
 /**
