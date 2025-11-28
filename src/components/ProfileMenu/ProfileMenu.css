@@ -74,7 +74,7 @@
   padding-right: 35px;
   gap: 15px;
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 3px;
 }
 
 /* --- PROFILE IMAGE FIX --- */
@@ -103,11 +103,14 @@
 .profile-details {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;  /* no vertical centering */
   flex: 1;
   min-width: 0;
-  padding-top: 2px;
+
+  /* 👇 this is the main change: move all three lines slightly down */
+  padding-top: 10px;            /* try 8–12px to match exactly */
 }
+
 
 .text-truncate {
   white-space: nowrap;
@@ -120,20 +123,22 @@
 /* User Name Styling */
 .profile-header-name {
   font-size: clamp(18px, 2.6vh, 25px);
-  font-weight: 500;
+  font-weight: 580;
   color: #182a4f;
   line-height: 1.1;
   letter-spacing: 0.3px;
+  margin-bottom: 6px;
 }
 
 /* Row Container for Icon + Text */
 .profile-sub-info {
   display: flex;
   align-items: center;
-  gap: 8px; /* Space between icon and text */
-  margin-bottom: 12px; /* Gap between Class and School */
+  gap: 8px;
+  margin-bottom: 8px;  /* was 12px – tighter like mockup */
   width: 100%;
 }
+
 
 .info-icon {
   width: 16px; /* Slightly larger icons */

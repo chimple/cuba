@@ -2709,4 +2709,82 @@ public static async fetchCurrentClassAndSchool() : Promise<{ className: string, 
   return { className, schoolName };
 }
 
+public static pickFiveHomeworkLessons(
+  assignments: any[],
+  completedCountBySubject: { [key: string]: number } = {}
+): any[] {
+  const pendingBySubject: { [key: string]: any[] } = {};
+
+  // Group pending (not completed) assignments per subject
+  assignments.forEach((a) => {
+    if (!a.completed) {
+      if (!pendingBySubject[a.subject_id]) {
+        pendingBySubject[a.subject_id] = [];
+      }
+      pendingBySubject[a.subject_id].push(a);
+    }
+  });
+
+  // Find subjects with max pending
+  let maxPending = 0;
+  let subjectsWithMaxPending: string[] = [];
+
+  Object.keys(pendingBySubject).forEach((subject) => {
+    const length = pendingBySubject[subject].length;
+    if (length > maxPending) {
+      maxPending = length;
+      subjectsWithMaxPending = [subject];
+    } else if (length === maxPending) {
+      subjectsWithMaxPending.push(subject);
+    }
+  });
+
+  let bestSubject: string | null = null;
+
+  if (subjectsWithMaxPending.length === 1) {
+    bestSubject = subjectsWithMaxPending[0];
+  } else if (subjectsWithMaxPending.length > 1) {
+    // tie-break by fewer completed using the external completed count map
+    let minCompleted = Number.MAX_SAFE_INTEGER;
+    subjectsWithMaxPending.forEach((subject) => {
+      const completedCount = completedCountBySubject[subject] ?? 0;
+      if (completedCount < minCompleted) {
+        minCompleted = completedCount;
+        bestSubject = subject;
+      }
+    });
+  }
+
+  let result: any[] = [];
+
+  if (bestSubject && maxPending >= 5) {
+    // If one subject alone has >= 5 pending, take first 5 from that subject
+    result = pendingBySubject[bestSubject].slice(0, 5);
+  } else if (bestSubject && maxPending < 5) {
+    // Otherwise fill from bestSubject first, then other subjects with more pending
+    result = [...(pendingBySubject[bestSubject] || [])];
+    const remaining = 5 - result.length;
+
+    const otherSubjects = Object.keys(pendingBySubject)
+      .filter((s) => s !== bestSubject)
+      .sort(
+        (a, b) =>
+          (pendingBySubject[b]?.length || 0) -
+          (pendingBySubject[a]?.length || 0)
+      );
+
+    for (const subj of otherSubjects) {
+      if (result.length >= 5) break;
+      const toTake = Math.min(
+        5 - result.length,
+        pendingBySubject[subj].length
+      );
+      result = result.concat(pendingBySubject[subj].slice(0, toTake));
+    }
+  }
+
+  return result;
+}
+
+
 }

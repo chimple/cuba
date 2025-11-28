@@ -151,11 +151,6 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
         setAssignments(updatedAssignments);
         assignmentCount(updatedAssignments.length);
 
-        if (updatedAssignments.length === 0) {
-          setShowHomeworkCompleteModal(true);
-        } else {
-          setShowHomeworkCompleteModal(false);
-        }
 
         await updateLessonChapterAndCourseMaps(updatedAssignments);
 
@@ -196,6 +191,14 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       }
     }, 1000);
   }, [init]);
+
+  useEffect(() => {
+  // Only decide banner visibility AFTER loading is finished
+  if (!loading) {
+    setShowHomeworkCompleteModal(assignments.length === 0);
+  }
+}, [loading, assignments.length]);
+
 
   // --- Listener setup ---
   useEffect(() => {
@@ -323,19 +326,6 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
   }, []);
   return !loading ? (
     <div>
-      {showHomeworkCompleteModal && (
-        <HomeworkCompleteModal
-          text={t("Yay!! You have completed all the Homework!!")}
-          borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
-          onClose={() => setShowHomeworkCompleteModal(false)}
-          onPlayMore={() => {
-            setShowHomeworkCompleteModal(false);
-            if (onPlayMoreHomework) {
-              onPlayMoreHomework(); 
-            }
-          }}
-        />
-      )}
       <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
         <div
           className={
@@ -442,7 +432,21 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                     )
                   ) : (
                     <div className="pending-assignment">
-                      {t("You don't have any pending assignments.")}
+                      {showHomeworkCompleteModal && (
+                        <HomeworkCompleteModal
+                          text={t(
+                            "Yay!! You have completed all the Homework!!"
+                          )}
+                          borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
+                          onClose={() => setShowHomeworkCompleteModal(false)}
+                          onPlayMore={() => {
+                            setShowHomeworkCompleteModal(false);
+                            if (onPlayMoreHomework) {
+                              onPlayMoreHomework();
+                            }
+                          }}
+                        />
+                      )}
                     </div>
                   )}
                 </div>
