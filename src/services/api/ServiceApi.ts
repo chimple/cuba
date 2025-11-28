@@ -29,7 +29,10 @@ import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { RoleType } from "../../interface/modelInterfaces";
-import { UserSchoolClassParams, UserSchoolClassResult } from "../../ops-console/pages/NewUserPageOps";
+import {
+  UserSchoolClassParams,
+  UserSchoolClassResult,
+} from "../../ops-console/pages/NewUserPageOps";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -2023,9 +2026,11 @@ export interface ServiceApi {
   /**
    * Fetch SchoolData by UDISE code.
    * @param {string} udiseCode - UDISE code of the school.
-   * @returns SchoolData row 
+   * @returns SchoolData row
    */
-  getSchoolDataByUdise(udiseCode: string): Promise<TableTypes<"school_data">| null> ;
+  getSchoolDataByUdise(
+    udiseCode: string
+  ): Promise<TableTypes<"school_data"> | null>;
   /**
    * Fetches chapters by chapterIDs array.
    * @param {string[]} chapterIds - Array of chapter IDs to fetch.
@@ -2225,8 +2230,7 @@ export interface ServiceApi {
     params: UserSchoolClassParams
   ): Promise<UserSchoolClassResult>;
 
-
-/**
+  /**
    * Update school model to at_school or at_home.
    * Update location link and key contacts if provided.
    * @param schoolId School ID
@@ -2239,5 +2243,30 @@ export interface ServiceApi {
     schoolModel: string,
     locationLink?: string,
     keyContacts?: any
-  ): Promise<void> ;
+  ): Promise<void>;
+
+  /**
+   * Add a student with parent validation and class linking
+   *
+   * @param params - Object containing student details
+   * @param params.phone - Parent phone number (10 digits)
+   * @param params.name - Student name
+   * @param params.gender - Student gender
+   * @param params.age - Student age
+   * @param params.classId - Class ID to add the student to
+   * @param params.schoolId - School ID to fetch language from
+   * @param params.parentName - Parent name (optional)
+   * @param params.email - Parent email (optional)
+   * @returns Object with success status and message
+   */
+  addStudentWithParentValidation(params: {
+    phone: string;
+    name: string;
+    gender: string;
+    age: string;
+    classId: string;
+    schoolId?: string;
+    parentName?: string;
+    email?: string;
+  }): Promise<{ success: boolean; message: string; data?: any }>;
 }
