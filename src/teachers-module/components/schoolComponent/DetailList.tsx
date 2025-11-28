@@ -57,6 +57,13 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
 
   return (
     <div className="main-list">
+
+      <div className="detail-header-row">
+      <span className="header-empty"></span>
+      <span className="header-users">Users</span>
+      <span className="header-subjects">Subjects</span>
+      </div>
+
       {data.map((item) => {
         const name =
           type === IconType.SCHOOL

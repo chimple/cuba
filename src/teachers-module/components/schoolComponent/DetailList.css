@@ -118,3 +118,21 @@
   overflow: hidden;
   text-overflow: ellipsis; /* show ... if too long */
 }
+
+.detail-header-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 80px;
+  padding: 8px 0;
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 6px;
+}
+
+.header-empty {
+  /* empty left column for alignment */
+}
+
+.header-users,
+.header-subjects {
+  text-align: center;
+}
