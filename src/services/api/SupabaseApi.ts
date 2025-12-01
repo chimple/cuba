@@ -8665,7 +8665,7 @@ export class SupabaseApi implements ServiceApi {
     if (address?.address !== undefined) updatePayload.group4 = address.address;
 
     if (keyContacts) {
-      updatePayload.key_contacts = keyContacts; // jsonb column
+      updatePayload.key_contacts = JSON.stringify(keyContacts); 
     }
     const { error } = await this.supabase
       .from("school")
@@ -9083,7 +9083,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     if (keyContacts) {
-      insertPayload.key_contacts = keyContacts;
+      insertPayload.key_contacts = JSON.stringify(keyContacts);
     }
 
     const { error } = await this.supabase

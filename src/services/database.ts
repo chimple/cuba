@@ -1786,7 +1786,7 @@ export type Database = {
           is_deleted: boolean | null
           is_firebase: boolean | null
           is_ops: boolean | null
-          key_contacts: Json | null
+          key_contacts: string | null
           language: string | null
           location_link: string | null
           model: Database["public"]["Enums"]["program_model"] | null
@@ -1813,7 +1813,7 @@ export type Database = {
           is_deleted?: boolean | null
           is_firebase?: boolean | null
           is_ops?: boolean | null
-          key_contacts?: Json | null
+          key_contacts?: string | null
           language?: string | null
           location_link?: string | null
           model?: Database["public"]["Enums"]["program_model"] | null
@@ -1840,7 +1840,7 @@ export type Database = {
           is_deleted?: boolean | null
           is_firebase?: boolean | null
           is_ops?: boolean | null
-          key_contacts?: Json | null
+          key_contacts?: string | null
           language?: string | null
           location_link?: string | null
           model?: Database["public"]["Enums"]["program_model"] | null
@@ -3795,7 +3795,7 @@ export type Database = {
           is_deleted: boolean | null
           is_firebase: boolean | null
           is_ops: boolean | null
-          key_contacts: Json | null
+          key_contacts: string | null
           language: string | null
           location_link: string | null
           model: Database["public"]["Enums"]["program_model"] | null

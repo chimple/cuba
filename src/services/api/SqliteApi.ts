@@ -6896,7 +6896,7 @@ order by
         id: schoolId,
         model: schoolModel,
         location_link: locationLink ?? null,
-        key_contacts: keyContacts ?? null,
+        key_contacts: JSON.stringify(keyContacts) ?? null,
         updated_at: timestamp
       };
 
