@@ -163,3 +163,11 @@
   padding-top: 3vh;
   font-size: large;
 }
+.school-list-no-schools {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.25rem;
+  color: var(--text-color);
+}
