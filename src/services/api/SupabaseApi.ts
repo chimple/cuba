@@ -9093,26 +9093,6 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error inserting school details:", error);
     }
   }
-  async getCoursesByCurriculumAndGrade(
-    curriculumId: string,
-    gradeId: string
-  ): Promise<TableTypes<"course">[]> {
-    if (!this.supabase) return [];
-
-    const { data, error } = await this.supabase
-      .from("course")
-      .select("*")
-      .eq("curriculum_id", curriculumId)
-      .eq("grade_id", gradeId)
-      .eq("is_deleted", false);
-
-    if (error) {
-      console.error("Error fetching courses:", error);
-      throw error;
-    }
-
-    return data || [];
-  }
   async updateClassCourses(
     classId: string,
     selectedCourseIds: string[]

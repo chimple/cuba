@@ -1670,12 +1670,6 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return this.s.insertSchoolDetails(schoolId, schoolModel, locationLink, keyContacts);
   }
-  public async getCoursesByCurriculumAndGrade(
-    curriculumId: string,
-    gradeId: string
-  ): Promise<TableTypes<"course">[]> {
-    return this.s.getCoursesByCurriculumAndGrade(curriculumId, gradeId);
-  }
   public async updateClassCourses(
     classId: string,
     selectedCourseIds: string[]

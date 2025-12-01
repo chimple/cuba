@@ -6910,20 +6910,6 @@ order by
       console.error("❌ Error inserting school details:", error);
     }
   }
-  async getCoursesByCurriculumAndGrade(
-    curriculumId: string,
-    gradeId: string
-  ): Promise<TableTypes<"course">[]> {
-    if (!this._db) return [];
-
-    const res = await this._db.query(
-      `SELECT * FROM ${TABLES.Course} 
-      WHERE curriculum_id = ? AND grade_id = ? AND is_deleted = 0
-      ORDER BY name ASC`,
-      [curriculumId, gradeId]
-    );
-    return res?.values ?? [];
-  }
 
   async updateClassCourses(
     classId: string,

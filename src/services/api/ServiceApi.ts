@@ -2241,15 +2241,6 @@ export interface ServiceApi {
     keyContacts?: any
   ): Promise<void> ;
   /**
-   * Fetch all courses belongs to that curriculum and grade
-   * @param {string } curriculumId - curriculum id
-   * @param {string } gradeId - subject grade id
-   */
-  getCoursesByCurriculumAndGrade(
-    curriculumId: string,
-    gradeId: string
-  ): Promise<TableTypes<"course">[]> ;
-  /**
    * Update class courses belongs to that curriculum and grade
    * @param {string } classId - class id
    * @param {string } selectedCourseIds - array of courseIds
