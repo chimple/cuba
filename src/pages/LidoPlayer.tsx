@@ -235,7 +235,6 @@ const LidoPlayer: FC = () => {
       //   setCurrentIndex(e.detail.index);
     });
     return () => {
-      CapApp.addListener("appUrlOpen", Util.onAppUrlOpen);
       window.removeEventListener(LidoGameExitKey, onGameExit);
       window.removeEventListener(LidoNextContainerKey, onNextContainer);
       window.removeEventListener(LidoGameCompletedKey, gameCompleted);
