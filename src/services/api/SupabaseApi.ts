@@ -9096,6 +9096,48 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error inserting school details:", error);
     }
   }
+  async updateClassCourses(
+    classId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> {
+    if (!this.supabase) return;
+
+    const now = new Date().toISOString();
+
+    // Delete all existing course for this class
+    const { error: deleteError } = await this.supabase
+      .from("class_course")
+      .update({ is_deleted: true, updated_at: now })
+      .eq("class_id", classId)
+      .eq("is_deleted", false);
+
+    if (deleteError) {
+      console.error("Error removing old class_course entries:", deleteError);
+      throw deleteError;
+    }
+
+    // Insert the new course
+    if (selectedCourseIds.length > 0) {
+      const newEntries = selectedCourseIds.map((courseId) => ({
+        id: uuidv4(),
+        class_id: classId,
+        course_id: courseId,
+        created_at: now,
+        updated_at: now,
+        is_deleted: false,
+      }));
+
+      const { error: insertError } = await this.supabase
+        .from("class_course")
+        .insert(newEntries);
+
+      if (insertError) {
+        console.error("Error inserting new class_course entries:", insertError);
+        throw insertError;
+      }
+    }
+  }
+
 
   async addStudentWithParentValidation(params: {
     phone: string;

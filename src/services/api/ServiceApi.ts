@@ -2269,4 +2269,13 @@ export interface ServiceApi {
     parentName?: string;
     email?: string;
   }): Promise<{ success: boolean; message: string; data?: any }>;
+  /**
+   * Update class courses belongs to that curriculum and grade
+   * @param {string } classId - class id
+   * @param {string } selectedCourseIds - array of courseIds
+   */
+  updateClassCourses(
+    classId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> ;
 }
