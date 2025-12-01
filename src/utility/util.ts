@@ -368,14 +368,33 @@ export class Util {
 
     localStorage.setItem(lessonIdStorageKey, JSON.stringify(updatedItems));
   };
+  public static async getLessonPath({ lessonId }): Promise<string | null> {
+    const gameUrl = localStorage.getItem("gameUrl");
 
-  public static async getLessonPath(lessonId: string): Promise<string> {
-    const path =
-      (localStorage.getItem("gameUrl") ??
-        "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-      lessonId +
-      "/";
-    return path;
+    const exists = async (path: string) => {
+      try {
+        const res = await fetch(path);
+        return res.ok;
+      } catch {
+        return false;
+      }
+    };
+    if (gameUrl?.startsWith(LOCAL_BUNDLES_PATH)) {
+      const path = `/assets/lessonBundles/${lessonId}/index.xml`;
+      if (await exists(path)) return `/assets/lessonBundles/${lessonId}/`;
+    }
+
+    if (await exists(`/assets/lessonBundles/${lessonId}/index.xml`)) {
+      return `/assets/lessonBundles/${lessonId}/`;
+    }
+
+    const androidBase = await this.getAndroidBundlePath();
+    if (androidBase && (await exists(`${androidBase}${lessonId}/index.xml`))) {
+      return `${androidBase}${lessonId}/`;
+    }
+
+    console.error("Lesson bundle not found :", lessonId);
+    return null;
   }
 
   public static async downloadZipBundle(
@@ -570,95 +589,100 @@ export class Util {
     throw new Error("Invalid data type — expected string or Blob");
   }
 
- // In your Util.ts file
+  // In your Util.ts file
 
-// ✅ Renamed and made generic
-public static async DownloadRemoteAssets(
-  zipUrl: string,
-  uniqueId: string,
-  destinationPath: string, // e.g., 'remoteAsset'
-  assetType: string // e.g., 'Learning Path'
-): Promise<boolean> {
-  try {
-    if (!Capacitor.isNativePlatform()) return true;
-
-    const fs = createFilesystem(Filesystem, {
-      rootDir: "",
-      directory: Directory.External,
-    });
-    const androidPath = await this.getAndroidBundlePath();
-    
-    // ✅ Use the dynamic destinationPath parameter
-    const configPath = `${destinationPath}/config.json`;
-
-    // Logic for reading config.json
+  // ✅ Renamed and made generic
+  public static async DownloadRemoteAssets(
+    zipUrl: string,
+    uniqueId: string,
+    destinationPath: string, // e.g., 'remoteAsset'
+    assetType: string // e.g., 'Learning Path'
+  ): Promise<boolean> {
     try {
-      const res = await fetch(configPath); // ✅ Use dynamic path
-      const isExists = res.ok;
-      if (isExists) {
-        const configFile = await Filesystem.readFile({
-          path: configPath, // ✅ Use dynamic path
-          directory: Directory.External,
-        });
+      if (!Capacitor.isNativePlatform()) return true;
 
-        const base64Data = await this.blobToString(configFile.data);
-        const decoded = atob(base64Data);
-        const config = JSON.parse(decoded);
+      const fs = createFilesystem(Filesystem, {
+        rootDir: "",
+        directory: Directory.External,
+      });
+      const androidPath = await this.getAndroidBundlePath();
 
-        if (config.uniqueId === uniqueId) {
-          console.log(`✅ ${assetType} assets are already up to date.`);
-          this.setGameUrl(androidPath);
-          return true;
+      // ✅ Use the dynamic destinationPath parameter
+      const configPath = `${destinationPath}/config.json`;
+
+      // Logic for reading config.json
+      try {
+        const res = await fetch(configPath); // ✅ Use dynamic path
+        const isExists = res.ok;
+        if (isExists) {
+          const configFile = await Filesystem.readFile({
+            path: configPath, // ✅ Use dynamic path
+            directory: Directory.External,
+          });
+
+          const base64Data = await this.blobToString(configFile.data);
+          const decoded = atob(base64Data);
+          const config = JSON.parse(decoded);
+
+          if (config.uniqueId === uniqueId) {
+            console.log(`✅ ${assetType} assets are already up to date.`);
+            this.setGameUrl(androidPath);
+            return true;
+          }
         }
+      } catch (err) {
+        console.warn(
+          `Could not read existing config for ${assetType}, proceeding with download.`
+        );
       }
-    } catch (err) {
-      console.warn(`Could not read existing config for ${assetType}, proceeding with download.`);
-    }
 
-    // Download and unzip
-    const response = await CapacitorHttp.get({
-      url: zipUrl,
-      responseType: "blob",
-    });
+      // Download and unzip
+      const response = await CapacitorHttp.get({
+        url: zipUrl,
+        responseType: "blob",
+      });
 
-    if (!response?.data || response.status !== 200) return false;
-    const buffer = Uint8Array.from(atob(response.data), (c) =>
-      c.charCodeAt(0)
-    );
-    await unzip({
-      fs,
-      extractTo: "", // The zip file itself should contain the destination folder
-      filepaths: ["."],
-      filter: (filepath: string) => !filepath.startsWith("dist/"),
-      onProgress: (event) => {
-        // ✅ Use the dynamic assetType parameter for clearer logging
-        console.log(`Unzipping ${assetType} assets:`, event.filename);
-      },
-      data: buffer,
-    });
-
-    // After unzip and extraction
-    const configFile = await Filesystem.readFile({
-      path: configPath, // ✅ Use dynamic path
-      directory: Directory.External,
-    });
-    const decoded = atob(await this.blobToString(configFile.data));
-    const config = JSON.parse(decoded);
-
-    // Important Note: Decide if this logic applies to BOTH asset types
-    if (typeof config.riveMax === "number") {
-      localStorage.setItem(
-        CHIMPLE_RIVE_STATE_MACHINE_MAX,
-        config.riveMax.toString()
+      if (!response?.data || response.status !== 200) return false;
+      const buffer = Uint8Array.from(atob(response.data), (c) =>
+        c.charCodeAt(0)
       );
+      await unzip({
+        fs,
+        extractTo: "", // The zip file itself should contain the destination folder
+        filepaths: ["."],
+        filter: (filepath: string) => !filepath.startsWith("dist/"),
+        onProgress: (event) => {
+          // ✅ Use the dynamic assetType parameter for clearer logging
+          console.log(`Unzipping ${assetType} assets:`, event.filename);
+        },
+        data: buffer,
+      });
+
+      // After unzip and extraction
+      const configFile = await Filesystem.readFile({
+        path: configPath, // ✅ Use dynamic path
+        directory: Directory.External,
+      });
+      const decoded = atob(await this.blobToString(configFile.data));
+      const config = JSON.parse(decoded);
+
+      // Important Note: Decide if this logic applies to BOTH asset types
+      if (typeof config.riveMax === "number") {
+        localStorage.setItem(
+          CHIMPLE_RIVE_STATE_MACHINE_MAX,
+          config.riveMax.toString()
+        );
+      }
+      this.setGameUrl(androidPath);
+      return true;
+    } catch (err) {
+      console.error(
+        `Unexpected error in DownloadRemoteAssets for ${assetType}:`,
+        err
+      );
+      return false;
     }
-    this.setGameUrl(androidPath);
-    return true;
-  } catch (err) {
-    console.error(`Unexpected error in DownloadRemoteAssets for ${assetType}:`, err);
-    return false;
   }
-}
 
   public static async deleteDownloadedLesson(
     lessonIds: string[]
@@ -2685,29 +2709,34 @@ public static async DownloadRemoteAssets(
 
   // In Util.ts or your utility file
 
-public static async fetchCurrentClassAndSchool() : Promise<{ className: string, schoolName: string }> {
-  const currentStudent = Util.getCurrentStudent();
-  let className = "";
-  let schoolName = "";
-  if (currentStudent?.id) {
-    try {
-      const api = ServiceConfig.getI().apiHandler;
-      const linkedData = await api.getStudentClassesAndSchools(currentStudent.id);
-      if (linkedData && linkedData.classes.length > 0) {
-        const classDoc = linkedData.classes[0];
-        className = classDoc.name || "";
-
-        const schoolDoc = linkedData.schools.find(
-          (s: any) => s.id === classDoc.school_id
+  public static async fetchCurrentClassAndSchool(): Promise<{
+    className: string;
+    schoolName: string;
+  }> {
+    const currentStudent = Util.getCurrentStudent();
+    let className = "";
+    let schoolName = "";
+    if (currentStudent?.id) {
+      try {
+        const api = ServiceConfig.getI().apiHandler;
+        const linkedData = await api.getStudentClassesAndSchools(
+          currentStudent.id
         );
-        schoolName = schoolDoc?.name || "";
+        if (linkedData && linkedData.classes.length > 0) {
+          const classDoc = linkedData.classes[0];
+          className = classDoc.name || "";
+
+          const schoolDoc = linkedData.schools.find(
+            (s: any) => s.id === classDoc.school_id
+          );
+          schoolName = schoolDoc?.name || "";
+        }
+      } catch (error) {
+        console.error("Error fetching class/school details:", error);
       }
-    } catch (error) {
-      console.error("Error fetching class/school details:", error);
     }
+    return { className, schoolName };
   }
-  return { className, schoolName };
-}
   public static isVersionAllowed(upto: string, current: string): boolean {
     const u = upto.split('.').map(n => parseInt(n, 10));
     const c = current.split('.').map(n => parseInt(n, 10));
@@ -2722,83 +2751,80 @@ public static async fetchCurrentClassAndSchool() : Promise<{ className: string, 
 
     return true;
   }
+  public static pickFiveHomeworkLessons(
+    assignments: any[],
+    completedCountBySubject: { [key: string]: number } = {}
+  ): any[] {
+    const pendingBySubject: { [key: string]: any[] } = {};
 
-public static pickFiveHomeworkLessons(
-  assignments: any[],
-  completedCountBySubject: { [key: string]: number } = {}
-): any[] {
-  const pendingBySubject: { [key: string]: any[] } = {};
-
-  // Group pending (not completed) assignments per subject
-  assignments.forEach((a) => {
-    if (!a.completed) {
-      if (!pendingBySubject[a.subject_id]) {
-        pendingBySubject[a.subject_id] = [];
-      }
-      pendingBySubject[a.subject_id].push(a);
-    }
-  });
-
-  // Find subjects with max pending
-  let maxPending = 0;
-  let subjectsWithMaxPending: string[] = [];
-
-  Object.keys(pendingBySubject).forEach((subject) => {
-    const length = pendingBySubject[subject].length;
-    if (length > maxPending) {
-      maxPending = length;
-      subjectsWithMaxPending = [subject];
-    } else if (length === maxPending) {
-      subjectsWithMaxPending.push(subject);
-    }
-  });
-
-  let bestSubject: string | null = null;
-
-  if (subjectsWithMaxPending.length === 1) {
-    bestSubject = subjectsWithMaxPending[0];
-  } else if (subjectsWithMaxPending.length > 1) {
-    // tie-break by fewer completed using the external completed count map
-    let minCompleted = Number.MAX_SAFE_INTEGER;
-    subjectsWithMaxPending.forEach((subject) => {
-      const completedCount = completedCountBySubject[subject] ?? 0;
-      if (completedCount < minCompleted) {
-        minCompleted = completedCount;
-        bestSubject = subject;
+    // Group pending (not completed) assignments per subject
+    assignments.forEach((a) => {
+      if (!a.completed) {
+        if (!pendingBySubject[a.subject_id]) {
+          pendingBySubject[a.subject_id] = [];
+        }
+        pendingBySubject[a.subject_id].push(a);
       }
     });
-  }
 
-  let result: any[] = [];
+    // Find subjects with max pending
+    let maxPending = 0;
+    let subjectsWithMaxPending: string[] = [];
 
-  if (bestSubject && maxPending >= 5) {
-    // If one subject alone has >= 5 pending, take first 5 from that subject
-    result = pendingBySubject[bestSubject].slice(0, 5);
-  } else if (bestSubject && maxPending < 5) {
-    // Otherwise fill from bestSubject first, then other subjects with more pending
-    result = [...(pendingBySubject[bestSubject] || [])];
-    const remaining = 5 - result.length;
+    Object.keys(pendingBySubject).forEach((subject) => {
+      const length = pendingBySubject[subject].length;
+      if (length > maxPending) {
+        maxPending = length;
+        subjectsWithMaxPending = [subject];
+      } else if (length === maxPending) {
+        subjectsWithMaxPending.push(subject);
+      }
+    });
 
-    const otherSubjects = Object.keys(pendingBySubject)
-      .filter((s) => s !== bestSubject)
-      .sort(
-        (a, b) =>
-          (pendingBySubject[b]?.length || 0) -
-          (pendingBySubject[a]?.length || 0)
-      );
+    let bestSubject: string | null = null;
 
-    for (const subj of otherSubjects) {
-      if (result.length >= 5) break;
-      const toTake = Math.min(
-        5 - result.length,
-        pendingBySubject[subj].length
-      );
-      result = result.concat(pendingBySubject[subj].slice(0, toTake));
+    if (subjectsWithMaxPending.length === 1) {
+      bestSubject = subjectsWithMaxPending[0];
+    } else if (subjectsWithMaxPending.length > 1) {
+      // tie-break by fewer completed using the external completed count map
+      let minCompleted = Number.MAX_SAFE_INTEGER;
+      subjectsWithMaxPending.forEach((subject) => {
+        const completedCount = completedCountBySubject[subject] ?? 0;
+        if (completedCount < minCompleted) {
+          minCompleted = completedCount;
+          bestSubject = subject;
+        }
+      });
     }
+
+    let result: any[] = [];
+
+    if (bestSubject && maxPending >= 5) {
+      // If one subject alone has >= 5 pending, take first 5 from that subject
+      result = pendingBySubject[bestSubject].slice(0, 5);
+    } else if (bestSubject && maxPending < 5) {
+      // Otherwise fill from bestSubject first, then other subjects with more pending
+      result = [...(pendingBySubject[bestSubject] || [])];
+      const remaining = 5 - result.length;
+
+      const otherSubjects = Object.keys(pendingBySubject)
+        .filter((s) => s !== bestSubject)
+        .sort(
+          (a, b) =>
+            (pendingBySubject[b]?.length || 0) -
+            (pendingBySubject[a]?.length || 0)
+        );
+
+      for (const subj of otherSubjects) {
+        if (result.length >= 5) break;
+        const toTake = Math.min(
+          5 - result.length,
+          pendingBySubject[subj].length
+        );
+        result = result.concat(pendingBySubject[subj].slice(0, toTake));
+      }
+    }
+
+    return result;
   }
-
-  return result;
-}
-
-
 }

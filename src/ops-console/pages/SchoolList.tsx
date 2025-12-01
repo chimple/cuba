@@ -456,23 +456,25 @@ const SchoolList: React.FC = () => {
             filterConfigs={filterConfigsForSchool}
           />
         </div>
+        <div
+          className={`school-list-table-container ${
+            !isLoading && schools.length === 0 ? "school-list-no-schools" : ""
+          }`}
+        >
+          {!isLoading && schools.length > 0 && (
+            <DataTableBody
+              columns={columns}
+              rows={schools}
+              orderBy={orderBy}
+              order={orderDir}
+              onSort={handleSort}
+              loading={isLoading}
+            />
+          )}
 
-        <div className="school-list-table-container">
-          <DataTableBody
-            columns={columns}
-            rows={schools}
-            orderBy={orderBy}
-            order={orderDir}
-            onSort={handleSort}
-            loading={isLoading}
-          />
+          {!isLoading && schools.length === 0 && t("No schools found.")}
         </div>
 
-        {!isLoading && schools.length === 0 && (
-          <Typography align="center" sx={{ mt: 4 }}>
-            {t("No schools found.")}
-          </Typography>
-        )}
         {!isLoading && schools.length > 0 && (
           <div className="school-list-footer">
             <DataTablePagination
