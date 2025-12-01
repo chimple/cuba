@@ -8,7 +8,7 @@ import { ServiceConfig } from "../../../services/ServiceConfig";
 import { PrincipalInfo } from "../../../common/constants";
 import { Button as MuiButton } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import FormCard, { FieldConfig } from "./FormCard";
+import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
 import { RoleType } from "../../../interface/modelInterfaces";
 import { emailRegex, normalizePhone10 } from "../../pages/NewUserPageOps";
 
@@ -47,6 +47,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
   const [orderBy, setOrderBy] = useState<string>("name");
   const [order, setOrder] = useState<"asc" | "desc">("asc");
   const [isAddPrincipalModalOpen, setIsAddPrincipalModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<MessageConfig | undefined>();
   const api = ServiceConfig.getI().apiHandler;
 
   const fetchPrincipals = useCallback(
@@ -133,11 +134,13 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
   const pageCount = Math.ceil(totalCount / ROWS_PER_PAGE);
   const isDataPresent = displayPrincipals.length > 0;
   const handleAddNewPrincipal = useCallback(() => {
+    setErrorMessage(undefined);
     setIsAddPrincipalModalOpen(true);
   }, []);
 
   const handleCloseAddTeacherModal = () => {
     setIsAddPrincipalModalOpen(false);
+    setErrorMessage(undefined);
   };
 
   const handlePrincipalSubmit = useCallback(
@@ -147,7 +150,10 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         const rawEmail = (values.email ?? "").toString().trim();
         const rawPhone = (values.phoneNumber ?? "").toString();
         if (!name) {
-          console.warn("Principal name is required.");
+          setErrorMessage({
+            text: "Principal name is required.",
+            type: "error",
+          });
           return;
         }
         const email = rawEmail.toLowerCase();
@@ -155,20 +161,29 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         const hasEmail = !!email;
         const hasPhone = !hasEmail && !!normalizedPhone;
         if (!hasEmail && !hasPhone) {
-          console.warn("Please provide either an email or a phone number.");
+          setErrorMessage({
+            text: "Please provide either an email or a phone number.",
+            type: "error",
+          });
           return;
         }
         let finalEmail = "";
         let finalPhone = "";
         if (hasEmail) {
           if (!emailRegex.test(email)) {
-            console.warn("Please enter a valid email address.");
+            setErrorMessage({
+              text: "Please enter a valid email address.",
+              type: "error",
+            });
             return;
           }
           finalEmail = email;
         } else {
           if (normalizedPhone.length !== 10) {
-            console.warn("Phone number must be 10 digits.");
+            setErrorMessage({
+              text: "Phone number must be 10 digits.",
+              type: "error",
+            });
             return;
           }
           finalPhone = normalizedPhone;
@@ -326,6 +341,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         fields={teacherFormFields}
         onClose={handleCloseAddTeacherModal}
         onSubmit={handlePrincipalSubmit}
+        message={errorMessage}
       />
     </div>
   );

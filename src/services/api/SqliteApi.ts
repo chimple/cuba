@@ -920,7 +920,7 @@ export class SqliteApi implements ServiceApi {
       status: STATUS.REQUESTED,
       key_contacts: null,
       country: country,
-      location_link:null,
+      location_link: null,
     };
     if (oSchool) {
       await this.executeQuery(
@@ -6481,8 +6481,10 @@ order by
       schoolModel: model || "",
     };
   }
-  async getSchoolDataByUdise(udiseCode: string): Promise<TableTypes<"school_data">| null> {
-   const schoolRes = await this.executeQuery(
+  async getSchoolDataByUdise(
+    udiseCode: string
+  ): Promise<TableTypes<"school_data"> | null> {
+    const schoolRes = await this.executeQuery(
       `SELECT * FROM school_data WHERE udise = ?`,
       [udiseCode]
     );
@@ -6897,7 +6899,7 @@ order by
         model: schoolModel,
         location_link: locationLink ?? null,
         key_contacts: keyContacts ?? null,
-        updated_at: timestamp
+        updated_at: timestamp,
       };
 
       await this.updatePushChanges(
@@ -6905,62 +6907,8 @@ order by
         MUTATE_TYPES.UPDATE,
         pushObject
       );
-
     } catch (error) {
       console.error("❌ Error inserting school details:", error);
-    }
-  }
-
-  async updateClassCourses(
-    classId: string,
-    selectedCourseIds: string[]
-  ): Promise<void> {
-    try {
-      const timestamp = new Date().toISOString();
-      const deleteQuery = `
-        UPDATE class_course
-        SET is_deleted = 1, updated_at = ?
-        WHERE class_id = ? AND is_deleted = 0;
-      `;
-      await this.executeQuery(deleteQuery, [timestamp, classId]);
-      for (const courseId of selectedCourseIds) {
-        const id = uuidv4();
-
-        const insertQuery = `
-          INSERT INTO class_course (
-            id,
-            class_id,
-            course_id,
-            created_at,
-            updated_at,
-            is_deleted
-          )
-          VALUES (?, ?, ?, ?, ?, 0);
-        `;
-
-        await this.executeQuery(insertQuery, [
-          id,
-          classId,
-          courseId,
-          timestamp,
-          timestamp
-        ]);
-        this.updatePushChanges(
-          TABLES.ClassCourse,
-          MUTATE_TYPES.INSERT,
-          {
-            id,
-            class_id: classId,
-            course_id: courseId,
-            created_at: timestamp,
-            updated_at: timestamp,
-            is_deleted: 0
-          }
-        );
-      }
-
-    } catch (error) {
-      console.error("❌ Error replacing class courses:", error);
     }
   }
 

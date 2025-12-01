@@ -17,6 +17,13 @@ export interface FieldConfig {
   column?: FieldColumn;
 }
 
+export type MessageType = "error" | "warning" | "info" | "success";
+
+export interface MessageConfig {
+  text: string;
+  type?: MessageType;
+}
+
 interface EntityModalProps {
   open: boolean;
   title: string;
@@ -24,6 +31,7 @@ interface EntityModalProps {
   fields: FieldConfig[];
   onClose: () => void;
   onSubmit: (values: Record<string, string>) => void;
+  message?: MessageConfig | string;
 }
 
 const FormCard: React.FC<EntityModalProps> = ({
@@ -33,6 +41,7 @@ const FormCard: React.FC<EntityModalProps> = ({
   fields,
   onClose,
   onSubmit,
+  message,
 }) => {
   const [values, setValues] = useState<Record<string, string>>({});
   const [openSelect, setOpenSelect] = useState<string | null>(null);
@@ -90,7 +99,9 @@ const FormCard: React.FC<EntityModalProps> = ({
               }}
             >
               <option value="">
-                {t("Select ")} {t(field.label)}
+                {field.placeholder
+                  ? t(field.placeholder)
+                  : `${t("Select ")} ${t(field.label)}`}
               </option>
               {field.options?.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -163,6 +174,21 @@ const FormCard: React.FC<EntityModalProps> = ({
     return "formcard-form-group formcard-col-full";
   };
 
+  const renderMessage = () => {
+    if (!message) return null;
+
+    const messageConfig: MessageConfig =
+      typeof message === "string" ? { text: message, type: "info" } : message;
+
+    const messageType = messageConfig.type || "info";
+
+    return (
+      <div className={`formcard-message formcard-message-${messageType}`}>
+        {t(messageConfig.text)}
+      </div>
+    );
+  };
+
   return (
     <div className="formcard-modal-backdrop">
       <div className="formcard-modal">
@@ -202,6 +228,7 @@ const FormCard: React.FC<EntityModalProps> = ({
               {submitLabel}
             </button>
           </div>
+          {renderMessage()}
         </form>
       </div>
     </div>
