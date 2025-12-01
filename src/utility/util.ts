@@ -372,14 +372,33 @@ export class Util {
 
     localStorage.setItem(lessonIdStorageKey, JSON.stringify(updatedItems));
   };
+  public static async getLessonPath({ lessonId }): Promise<string | null> {
+    const gameUrl = localStorage.getItem("gameUrl");
 
-  public static async getLessonPath(lessonId: string): Promise<string> {
-    const path =
-      (localStorage.getItem("gameUrl") ??
-        "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-      lessonId +
-      "/";
-    return path;
+    const exists = async (path: string) => {
+      try {
+        const res = await fetch(path);
+        return res.ok;
+      } catch {
+        return false;
+      }
+    };
+    if (gameUrl?.startsWith(LOCAL_BUNDLES_PATH)) {
+      const path = `/assets/lessonBundles/${lessonId}/index.xml`;
+      if (await exists(path)) return `/assets/lessonBundles/${lessonId}/`;
+    }
+
+    if (await exists(`/assets/lessonBundles/${lessonId}/index.xml`)) {
+      return `/assets/lessonBundles/${lessonId}/`;
+    }
+
+    const androidBase = await this.getAndroidBundlePath();
+    if (androidBase && (await exists(`${androidBase}${lessonId}/index.xml`))) {
+      return `${androidBase}${lessonId}/`;
+    }
+
+    console.error("Lesson bundle not found :", lessonId);
+    return null;
   }
 
   public static async downloadZipBundle(
@@ -2736,94 +2755,91 @@ export class Util {
           const classDoc = linkedData.classes[0];
           className = classDoc.name || "";
 
-        const schoolDoc = linkedData.schools.find(
-          (s: any) => s.id === classDoc.school_id
-        );
-        schoolName = schoolDoc?.name || "";
+          const schoolDoc = linkedData.schools.find(
+            (s: any) => s.id === classDoc.school_id
+          );
+          schoolName = schoolDoc?.name || "";
+        }
+      } catch (error) {
+        console.error("Error fetching class/school details:", error);
       }
-    } catch (error) {
-      console.error("Error fetching class/school details:", error);
     }
+    return { className, schoolName };
   }
-  return { className, schoolName };
-}
+  public static pickFiveHomeworkLessons(
+    assignments: any[],
+    completedCountBySubject: { [key: string]: number } = {}
+  ): any[] {
+    const pendingBySubject: { [key: string]: any[] } = {};
 
-public static pickFiveHomeworkLessons(
-  assignments: any[],
-  completedCountBySubject: { [key: string]: number } = {}
-): any[] {
-  const pendingBySubject: { [key: string]: any[] } = {};
-
-  // Group pending (not completed) assignments per subject
-  assignments.forEach((a) => {
-    if (!a.completed) {
-      if (!pendingBySubject[a.subject_id]) {
-        pendingBySubject[a.subject_id] = [];
-      }
-      pendingBySubject[a.subject_id].push(a);
-    }
-  });
-
-  // Find subjects with max pending
-  let maxPending = 0;
-  let subjectsWithMaxPending: string[] = [];
-
-  Object.keys(pendingBySubject).forEach((subject) => {
-    const length = pendingBySubject[subject].length;
-    if (length > maxPending) {
-      maxPending = length;
-      subjectsWithMaxPending = [subject];
-    } else if (length === maxPending) {
-      subjectsWithMaxPending.push(subject);
-    }
-  });
-
-  let bestSubject: string | null = null;
-
-  if (subjectsWithMaxPending.length === 1) {
-    bestSubject = subjectsWithMaxPending[0];
-  } else if (subjectsWithMaxPending.length > 1) {
-    // tie-break by fewer completed using the external completed count map
-    let minCompleted = Number.MAX_SAFE_INTEGER;
-    subjectsWithMaxPending.forEach((subject) => {
-      const completedCount = completedCountBySubject[subject] ?? 0;
-      if (completedCount < minCompleted) {
-        minCompleted = completedCount;
-        bestSubject = subject;
+    // Group pending (not completed) assignments per subject
+    assignments.forEach((a) => {
+      if (!a.completed) {
+        if (!pendingBySubject[a.subject_id]) {
+          pendingBySubject[a.subject_id] = [];
+        }
+        pendingBySubject[a.subject_id].push(a);
       }
     });
-  }
 
-  let result: any[] = [];
+    // Find subjects with max pending
+    let maxPending = 0;
+    let subjectsWithMaxPending: string[] = [];
 
-  if (bestSubject && maxPending >= 5) {
-    // If one subject alone has >= 5 pending, take first 5 from that subject
-    result = pendingBySubject[bestSubject].slice(0, 5);
-  } else if (bestSubject && maxPending < 5) {
-    // Otherwise fill from bestSubject first, then other subjects with more pending
-    result = [...(pendingBySubject[bestSubject] || [])];
-    const remaining = 5 - result.length;
+    Object.keys(pendingBySubject).forEach((subject) => {
+      const length = pendingBySubject[subject].length;
+      if (length > maxPending) {
+        maxPending = length;
+        subjectsWithMaxPending = [subject];
+      } else if (length === maxPending) {
+        subjectsWithMaxPending.push(subject);
+      }
+    });
 
-    const otherSubjects = Object.keys(pendingBySubject)
-      .filter((s) => s !== bestSubject)
-      .sort(
-        (a, b) =>
-          (pendingBySubject[b]?.length || 0) -
-          (pendingBySubject[a]?.length || 0)
-      );
+    let bestSubject: string | null = null;
 
-    for (const subj of otherSubjects) {
-      if (result.length >= 5) break;
-      const toTake = Math.min(
-        5 - result.length,
-        pendingBySubject[subj].length
-      );
-      result = result.concat(pendingBySubject[subj].slice(0, toTake));
+    if (subjectsWithMaxPending.length === 1) {
+      bestSubject = subjectsWithMaxPending[0];
+    } else if (subjectsWithMaxPending.length > 1) {
+      // tie-break by fewer completed using the external completed count map
+      let minCompleted = Number.MAX_SAFE_INTEGER;
+      subjectsWithMaxPending.forEach((subject) => {
+        const completedCount = completedCountBySubject[subject] ?? 0;
+        if (completedCount < minCompleted) {
+          minCompleted = completedCount;
+          bestSubject = subject;
+        }
+      });
     }
+
+    let result: any[] = [];
+
+    if (bestSubject && maxPending >= 5) {
+      // If one subject alone has >= 5 pending, take first 5 from that subject
+      result = pendingBySubject[bestSubject].slice(0, 5);
+    } else if (bestSubject && maxPending < 5) {
+      // Otherwise fill from bestSubject first, then other subjects with more pending
+      result = [...(pendingBySubject[bestSubject] || [])];
+      const remaining = 5 - result.length;
+
+      const otherSubjects = Object.keys(pendingBySubject)
+        .filter((s) => s !== bestSubject)
+        .sort(
+          (a, b) =>
+            (pendingBySubject[b]?.length || 0) -
+            (pendingBySubject[a]?.length || 0)
+        );
+
+      for (const subj of otherSubjects) {
+        if (result.length >= 5) break;
+        const toTake = Math.min(
+          5 - result.length,
+          pendingBySubject[subj].length
+        );
+        result = result.concat(pendingBySubject[subj].slice(0, toTake));
+      }
+    }
+
+    return result;
   }
-
-  return result;
-}
-
-
 }

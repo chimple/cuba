@@ -1670,6 +1670,12 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return this.s.insertSchoolDetails(schoolId, schoolModel, locationLink, keyContacts);
   }
+  public async updateClassCourses(
+    classId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> {
+    return this.s.updateClassCourses(classId, selectedCourseIds)
+  }
   public async addStudentWithParentValidation(params: {
     phone: string;
     name: string;
