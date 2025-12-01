@@ -6945,7 +6945,7 @@ order by
           timestamp,
           timestamp
         ]);
-        await this.updatePushChanges(
+        this.updatePushChanges(
           TABLES.ClassCourse,
           MUTATE_TYPES.INSERT,
           {
