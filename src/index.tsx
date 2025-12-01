@@ -82,22 +82,23 @@ try {
   console.error("Error retrieving user ID for Sentry:", error);
 }
 if (userId) Sentry.setUser({ id: userId });
+const isNativePlatform = Capacitor.isNativePlatform();
   // This function checks if the native version has changed, sets new version in preferences and resets the hot update bundle.
-async function checkNativeVersionAndReset() {
-  const { versionName } = await LiveUpdate.getVersionName();
-  const { value: storedVersion } = await Preferences.get({
-    key: VERSION_KEY,
-  });
-  if (versionName !== storedVersion) {
-    console.log("⚠️ APK version changed → clearing old hot update bundle");
-    // reset the hot update bundle
-    await LiveUpdate.reset();
-    // store new version
-    await Preferences.set({ key: VERSION_KEY, value: versionName });
-  }
-}
-if (Capacitor.isNativePlatform()) {
+if (isNativePlatform) {
   try {
+    async function checkNativeVersionAndReset() {
+      const { versionName } = await LiveUpdate.getVersionName();
+      const { value: storedVersion } = await Preferences.get({
+        key: VERSION_KEY,
+      });
+      if (versionName !== storedVersion) {
+        console.log("⚠️ APK version changed → clearing old hot update bundle");
+        // reset the hot update bundle
+        await LiveUpdate.reset();
+        // store new version
+        await Preferences.set({ key: VERSION_KEY, value: versionName });
+      }
+    }
     await checkNativeVersionAndReset();
     await LiveUpdate.ready();
   } catch (error) {
@@ -187,7 +188,7 @@ const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
 async function checkForUpdate() {
   let majorVersion = "0";
   try {
-    if (Capacitor.isNativePlatform() && gb.isOn(CAN_HOT_UPDATE)) {
+    if (isNativePlatform && gb.isOn(CAN_HOT_UPDATE)) {
       const { versionName } = await LiveUpdate.getVersionName();
       majorVersion = versionName.split(".")[0];
       const { bundleId: currentBundleId } =
@@ -251,7 +252,9 @@ if (isOpsUser) {
   );
   SplashScreen.hide();
   setTimeout(() => {
+    if(isNativePlatform){
       checkForUpdate();
+    }
   }, 500);
 } else {
   SplashScreen.hide();
@@ -266,7 +269,9 @@ if (isOpsUser) {
     );
     SplashScreen.hide();
     setTimeout(() => {
+    if(isNativePlatform){
       checkForUpdate();
+    }
     }, 500);
   });
 }
