@@ -16,13 +16,15 @@ import FilterSlider from "../FilterSlider";
 import SelectedFilters from "../SelectedFilters";
 import "./SchoolStudents.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
-import { StudentInfo } from "../../../common/constants";
+import { AGE_OPTIONS, GENDER, StudentInfo } from "../../../common/constants";
 import {
   getGradeOptions,
   filterBySearchAndFilters,
   sortSchoolTeachers,
   paginateSchoolTeachers,
 } from "../../OpsUtility/SearchFilterUtility";
+import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
+import { normalizePhone10 } from "../../pages/NewUserPageOps";
 
 type ApiStudentData = StudentInfo;
 
@@ -94,6 +96,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   });
   const [isFilterSliderOpen, setIsFilterSliderOpen] = useState(false);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>("");
+  const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<MessageConfig | undefined>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -322,7 +327,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     searchTerm.trim() !== "" ||
     Object.values(filters).some((f) => f.length > 0);
 
-  const handleAddNewStudent = useCallback(() => {}, [history]);
   const handleFilterIconClick = useCallback(() => {
     setTempFilters(filters);
     setIsFilterSliderOpen(true);
@@ -368,9 +372,205 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     { key: "phoneNumber", label: t("Phone Number") },
   ];
 
+  const classOptions = useMemo(() => {
+    if (!baseStudents || baseStudents.length === 0) return [];
+    const classMap = new Map<string, string>();
+    baseStudents.forEach((student: any) => {
+      const classInfo = student.classWithidname;
+      if (!classInfo || !classInfo.id || !classInfo.name) return;
+      if (!classMap.has(classInfo.id)) {
+        classMap.set(classInfo.id, classInfo.name);
+      }
+    });
+
+    return Array.from(classMap.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [baseStudents]);
+
+  const currentClass = useMemo(() => {
+    if (
+      !issTotal &&
+      optionalGrade !== undefined &&
+      optionalSection !== undefined
+    ) {
+      const matchingStudent = baseStudents.find((student: any) => {
+        const classInfo = student.classWithidname;
+        return (
+          student.grade === optionalGrade &&
+          sameSection(student.classSection, optionalSection) &&
+          classInfo?.id &&
+          classInfo?.name
+        );
+      });
+      return matchingStudent?.classWithidname || null;
+    }
+    return null;
+  }, [issTotal, optionalGrade, optionalSection, baseStudents]);
+
+  const addStudentFields: FieldConfig[] = useMemo(() => {
+    const fields: FieldConfig[] = [
+      {
+        name: "studentName",
+        label: "Student Name",
+        kind: "text" as const,
+        required: true,
+        placeholder: "Enter Student Name",
+        column: 2 as const,
+      },
+      {
+        name: "gender",
+        label: "Gender",
+        kind: "select" as const,
+        required: true,
+        column: 0 as const,
+        options: [
+          { label: t("GIRL"), value: GENDER.GIRL },
+          { label: t("BOY"), value: GENDER.BOY },
+          {
+            label: t("UNSPECIFIED"),
+            value: GENDER.OTHER,
+          },
+        ],
+      },
+      {
+        name: "ageGroup",
+        label: "Age",
+        kind: "select" as const,
+        required: true,
+        placeholder: "Select Age Group",
+        column: 1 as const,
+        options: [
+          {
+            value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
+            label: `≤${t("4 years")}`,
+          },
+          { value: AGE_OPTIONS.FIVE, label: t("5 years") },
+          { value: AGE_OPTIONS.SIX, label: t("6 years") },
+          { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
+          { value: AGE_OPTIONS.EIGHT, label: t("8 years") },
+          { value: AGE_OPTIONS.NINE, label: t("9 years") },
+          {
+            value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
+            label: `≥${t("10 years")}`,
+          },
+        ],
+      },
+      {
+        name: "phone",
+        label: "Phone Number",
+        kind: "phone" as const,
+        required: true,
+        placeholder: "Enter phone number",
+        column: 2 as const,
+      },
+    ];
+
+    if (issTotal) {
+      fields.splice(3, 0, {
+        name: "class",
+        label: "Class",
+        kind: "select" as const,
+        required: true,
+        column: 0 as const,
+        options: classOptions,
+      });
+    }
+
+    return fields;
+  }, [baseStudents, issTotal, classOptions]);
+
+  const handleAddNewStudent = useCallback(() => {
+    setIsAddStudentModalOpen(true);
+    setErrorMessage(undefined);
+  }, [history]);
+
+  const handleCloseAddStudentModal = useCallback(() => {
+    setIsAddStudentModalOpen(false);
+    setErrorMessage(undefined);
+    setIsSubmitting(false);
+  }, []);
+
+  const handleSubmitAddStudentModal = useCallback(
+    async (formValues: Record<string, string>) => {
+      setIsSubmitting(true);
+      setErrorMessage(undefined);
+
+      const normalizedPhone = normalizePhone10(
+        (formValues.phone ?? "").toString()
+      );
+
+      if (normalizedPhone.length !== 10) {
+        setErrorMessage({
+          text: "Phone number must be 10 digits.",
+          type: "error",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const classId = issTotal ? formValues.class : currentClass?.id;
+
+      if (!classId) {
+        setErrorMessage({
+          text: "Please select a class.",
+          type: "error",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      try {
+        const api = ServiceConfig.getI().apiHandler;
+        const result = await api.addStudentWithParentValidation({
+          phone: normalizedPhone,
+          name: formValues.studentName || "",
+          gender: formValues.gender || "",
+          age: formValues.ageGroup || "",
+          classId: classId,
+          schoolId: schoolId,
+        });
+
+        if (result.success) {
+          setIsAddStudentModalOpen(false);
+          setErrorMessage(undefined);
+          setPage(1);
+          fetchStudents(1, debouncedSearchTerm);
+        } else {
+          setErrorMessage({
+            text: result.message,
+            type: "error",
+          });
+        }
+      } catch (error) {
+        console.error("Error adding student:", error);
+        setErrorMessage({
+          text: "An unexpected error occurred. Please try again.",
+          type: "error",
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [schoolId, fetchStudents, debouncedSearchTerm, issTotal, currentClass]
+  );
+
   const filterConfigsForSchool = [{ key: "grade", label: "Grade" }];
   return (
     <div className="schoolStudents-pageContainer">
+      <FormCard
+        open={isAddStudentModalOpen}
+        title={
+          !issTotal && currentClass
+            ? `${t("Add New Student")} - ${currentClass.name}`
+            : t("Add New Student")
+        }
+        submitLabel={isSubmitting ? t("Adding...") : t("Add Student")}
+        fields={addStudentFields}
+        onClose={handleCloseAddStudentModal}
+        onSubmit={handleSubmitAddStudentModal}
+        message={errorMessage}
+      />
       <Box className="schoolStudents-headerActionsRow">
         <Box className="schoolStudents-titleArea">
           <Typography variant="h5" className="schoolStudents-titleHeading">
@@ -413,7 +613,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         onClose={() => setIsFilterSliderOpen(false)}
         filters={tempFilters}
         filterOptions={{
-          grade: getGradeOptions(baseStudents), 
+          grade: getGradeOptions(baseStudents),
         }}
         onFilterChange={handleSliderFilterChange}
         onApply={handleApplyFilters}

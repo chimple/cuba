@@ -150,7 +150,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
           {/* Details Section */}
           <div className="profile-details">
             <span className="profile-header-name text-truncate"
-            style={{ marginBottom: hasDetails ? "8px" : "40px" }} 
+            style={{ marginBottom: hasDetails ? "8px" : "60px" }} 
             >
               {student?.name ?? "Profile"}
             </span>

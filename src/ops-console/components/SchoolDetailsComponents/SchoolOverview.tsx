@@ -8,7 +8,8 @@ import InfoCard from "../InfoCard";
 import DetailItem from "../DetailItem";
 import ContactCard from "../ContactCard";
 import { BsBoxArrowUpRight } from "react-icons/bs";
-import { PROGRAM_TAB_LABELS } from "../../../common/constants";
+import { PAGES, PROGRAM_TAB_LABELS } from "../../../common/constants";
+import { useHistory } from "react-router";
 
 interface SchoolOverviewProps {
   data: any;
@@ -81,6 +82,8 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
     { label: "Active Teachers", value: `${activeTeachers}%` },
   ].filter((item) => item.value !== undefined && item.value !== null);
 
+  const history = useHistory();
+
   return (
     <div className="school">
       {isMobile ? (
@@ -139,6 +142,13 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             title={t("School Details")}
             className="school-detail-infocard school-card"
             items={schoolDetailsItems}
+            showEditIcon={true}
+            onEditClick={() =>
+              history.replace(
+                `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
+                data
+              )
+            }
           />
           {/* <Box position="relative" width="100%">
             <InfoCard title={t("Address & Location")} className="address-card">
@@ -206,6 +216,13 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                 title={t("School Details")}
                 className="school-detail-infocard school-card"
                 items={schoolDetailsItems}
+                showEditIcon={true}
+                onEditClick={() =>
+                  history.replace(
+                    `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
+                    data
+                  )
+                }
               />
               {/* <Box position="relative" width="100%">
                 <InfoCard
