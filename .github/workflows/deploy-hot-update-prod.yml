@@ -78,6 +78,7 @@ jobs:
             --path build \
             --channel "$CHANNEL" \
             --artifact-type manifest \
+            --custom-property version="${{ steps.version.outputs.versionName }}" \
             --commit-message "${{ github.event.head_commit.message || 'manual deploy' }}" \
             --commit-ref "${{ github.ref }}" \
             --commit-sha "${{ github.sha }}"

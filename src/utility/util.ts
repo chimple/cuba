@@ -2737,6 +2737,20 @@ export class Util {
     }
     return { className, schoolName };
   }
+  public static isVersionAllowed(upto: string, current: string): boolean {
+    const u = upto.split('.').map(n => parseInt(n, 10));
+    const c = current.split('.').map(n => parseInt(n, 10));
+
+    for (let i = 0; i < Math.max(u.length, c.length); i++) {
+      const nu = u[i] || 0;
+      const nc = c[i] || 0;
+
+      if (nu > nc) return true;
+      if (nu < nc) return false;
+    }
+
+    return true;
+  }
   public static pickFiveHomeworkLessons(
     assignments: any[],
     completedCountBySubject: { [key: string]: number } = {}
