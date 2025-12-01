@@ -36,6 +36,7 @@ const AddSchoolPage: React.FC = () => {
   const [isStatesLoading, setStatesLoading] = useState(false);
   const [isDistrictsLoading, setDistrictsLoading] = useState(false);
   const [isBlocksLoading, setBlocksLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [address, setAddress] = useState({
     state: "",
@@ -311,6 +312,7 @@ const AddSchoolPage: React.FC = () => {
       .filter((c) => Object.values(c).some((v) => v));
 
     try {
+      setIsSaving(true);
       if (editData) {
         await api.updateSchoolProfile(
           editData.schoolData,
@@ -369,6 +371,8 @@ const AddSchoolPage: React.FC = () => {
       history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`);
     } catch (err) {
       console.error("Save error:", err);
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -627,9 +631,9 @@ const AddSchoolPage: React.FC = () => {
           <button
             className="add-school-save-btn"
             onClick={handleApprove}
-            disabled={isSaveDisabled()}
+            disabled={isSaveDisabled() || isSaving}
           >
-            {t("Save")}
+            {isSaving ? t("Saving")+"..." : t("Save")}
           </button>
         </div>
       </div>
