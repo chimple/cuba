@@ -168,12 +168,18 @@ const ClassDetailsPage: React.FC<Props> = ({
         }}
       >
         <SchoolStudents
-          data={{ students: initialStudents, totalStudentCount: initialTotal }}
+          data={{
+            students: initialStudents,
+            totalStudentCount: initialTotal,
+            classdata: classRow ? [classRow] : undefined,
+          }}
           schoolId={schoolId}
           isMobile={isMobile}
           isTotal={false}
           isFilter={false}
-          customTitle="Students in Class"
+          customTitle={
+            classNameSt ? `Students in ${classNameSt}` : "Students in Class"
+          }
           optionalGrade={parsedGrade}
           optionalSection={parsedSection}
         />
