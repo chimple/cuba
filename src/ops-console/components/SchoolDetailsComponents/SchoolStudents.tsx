@@ -23,6 +23,7 @@ import {
   GENDER,
   PerformanceLevel,
   StudentInfo,
+  BANDS,
 } from "../../../common/constants";
 import {
   getGradeOptions,
@@ -33,6 +34,7 @@ import {
 import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
 import { normalizePhone10 } from "../../pages/NewUserPageOps";
 import { ClassRow } from "./SchoolClass";
+import { ClassUtil } from "../../../utility/classUtil";
 
 type ApiStudentData = StudentInfo;
 
@@ -342,7 +344,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         return;
       }
       setIsPerformanceLoading(true);
-      const api = ServiceConfig.getI().apiHandler;
       const performanceMap = new Map<string, string>();
       const currentClass = Array.isArray(data.classdata)
         ? data.classdata[0]
@@ -358,71 +359,27 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           setStudentPerformanceMap(performanceMap);
           return;
         }
-        const currentDate = new Date();
-        const adjustedCurrentDate = new Date(currentDate);
-        adjustedCurrentDate.setDate(adjustedCurrentDate.getDate() + 1);
-        const adjustedOneWeekBack = new Date(currentDate);
-        adjustedOneWeekBack.setDate(adjustedOneWeekBack.getDate() - 7);
-        const currentDateTimeStamp = adjustedCurrentDate
-          .toISOString()
-          .replace("T", " ")
-          .replace("Z", "+00");
-        const oneWeekBackTimeStamp = adjustedOneWeekBack
-          .toISOString()
-          .replace("T", " ")
-          .replace("Z", "+00");
-        const assignments = await api.getAssignmentOrLiveQuizByClassByDate(
-          classId,
-          courseIds,
-          currentDateTimeStamp,
-          oneWeekBackTimeStamp,
-          true,
-          false,
-          true
-        );
-        const assignmentIds =
-          assignments?.map((asgmt) => asgmt.id).slice(0, 5) || [];
-        await Promise.all(
-          sortedStudents.map(async (student) => {
-            try {
-              const results = await api.getStudentLastTenResults(
-                student.user.id,
-                courseIds,
-                assignmentIds,
-                classId
-              );
-              const selfPlayedLength = results.filter(
-                (result) => result.assignment_id === null
-              ).length;
-              if (
-                results.length === 0 ||
-                results[0].created_at <= oneWeekBackTimeStamp
-              ) {
-                performanceMap.set(student.user.id, "Not Tracked");
-              } else {
-                const totalScore = results.reduce(
-                  (acc, result) => acc + (result.score ?? 0),
-                  0
-                );
-                const averageScore =
-                  totalScore / (selfPlayedLength + assignmentIds.length);
-                if (averageScore >= 70) {
-                  performanceMap.set(student.user.id, "Doing Good");
-                } else if (averageScore <= 49) {
-                  performanceMap.set(student.user.id, "Need Help");
-                } else {
-                  performanceMap.set(student.user.id, "Still Learning");
-                }
+
+        const _classUtil = new ClassUtil();
+        const groups = await _classUtil.divideStudents(classId, courseIds);
+
+        const processGroup = (band: string, status: string) => {
+          const group = groups.get(band);
+          if (group && Array.isArray(group)) {
+            group.forEach((item: any) => {
+              const student = item.get("student");
+              if (student && student.id) {
+                performanceMap.set(student.id, status);
               }
-            } catch (error) {
-              console.error(
-                `Error fetching performance for student ${student.user.id}:`,
-                error
-              );
-              performanceMap.set(student.user.id, "Not Tracked");
-            }
-          })
-        );
+            });
+          }
+        };
+
+        processGroup(BANDS.GREENGROUP, "Doing Good");
+        processGroup(BANDS.YELLOWGROUP, "Still Learning");
+        processGroup(BANDS.REDGROUP, "Need Help");
+        processGroup(BANDS.GREYGROUP, "Not Tracked");
+
         setStudentPerformanceMap(performanceMap);
       } catch (error) {
         console.error("Error fetching student performance data:", error);
