@@ -634,7 +634,8 @@ export class SqliteApi implements ServiceApi {
   async syncDbNow(
     tableNames: TABLES[] = Object.values(TABLES),
     refreshTables: TABLES[] = [],
-    isFirstSync?: boolean
+    isFirstSync?: boolean,
+    is_sync_immediate?: boolean
   ) {
     if (!this._db) return;
     const refresh_tables = "'" + refreshTables.join("', '") + "'";
@@ -652,23 +653,22 @@ export class SqliteApi implements ServiceApi {
     const now = new Date();
     const diffMs = now.getTime() - lastUserUpdated.getTime();
     const diffMinutes = diffMs / (1000 * 60);
-    if (diffMinutes > 5) {
+    if (diffMinutes > 5 || is_sync_immediate) {
       await this.pullChanges(tableNames, isFirstSync);
+      const res = await this.pushChanges(tableNames);
       const tables = "'" + tableNames.join("', '") + "'";
       // console.log("logs to check synced tables1", JSON.stringify(tables));
-
       const currentTimestamp = new Date();
       const reducedTimestamp = new Date(currentTimestamp); // clone it
       reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
       const formattedTimestamp = reducedTimestamp.toISOString();
-
       this.executeQuery(
         `UPDATE pull_sync_info SET last_pulled = '${formattedTimestamp}'  WHERE table_name IN (${tables})`
       );
+      return res;
     }
-    const res = await this.pushChanges(tableNames);
     // console.log("logs to check synced tables2", JSON.stringify(tables));
-    return res;
+
   }
 
   private async createSyncTables() {
@@ -691,7 +691,8 @@ export class SqliteApi implements ServiceApi {
   private async updatePushChanges(
     tableName: TABLES,
     mutateType: MUTATE_TYPES,
-    data: { [key: string]: any }
+    data: { [key: string]: any },
+    is_sync_immediate?: boolean
   ) {
     if (!this._db) return;
     data["updated_at"] = new Date().toISOString();
@@ -703,7 +704,7 @@ export class SqliteApi implements ServiceApi {
       JSON.stringify(data),
     ];
     await this.executeQuery(stmt, variables);
-    return await this.syncDbNow([tableName]);
+    return await this.syncDbNow([tableName], undefined, undefined, is_sync_immediate);
   }
 
   async createProfile(
@@ -3940,7 +3941,8 @@ export class SqliteApi implements ServiceApi {
       this.updatePushChanges(
         TABLES.Assignment,
         MUTATE_TYPES.INSERT,
-        assignment_data
+        assignment_data,
+        true
       );
 
       // If the assignment is not class-wide, assign it to individual students
@@ -3974,7 +3976,8 @@ export class SqliteApi implements ServiceApi {
           this.updatePushChanges(
             TABLES.Assignment_user,
             MUTATE_TYPES.INSERT,
-            newAssignmentUser
+            newAssignmentUser,
+            true
           );
         }
       }
