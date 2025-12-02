@@ -8724,7 +8724,7 @@ export class SupabaseApi implements ServiceApi {
     if (address?.address !== undefined) updatePayload.group4 = address.address;
 
     if (keyContacts) {
-      updatePayload.key_contacts = JSON.stringify(keyContacts); 
+      updatePayload.key_contacts = JSON.stringify(keyContacts);
     }
     const { error } = await this.supabase
       .from("school")
@@ -8992,6 +8992,12 @@ export class SupabaseApi implements ServiceApi {
     if (!role) {
       throw new Error("A role is required to link a user to a school.");
     }
+    const classIds = classId
+      ? Array.isArray(classId)
+        ? classId
+        : [classId]
+      : [];
+
     const timestamp = new Date().toISOString();
     const { data, error } = await this.supabase.functions.invoke(
       "get_or_create_user",
@@ -9064,13 +9070,14 @@ export class SupabaseApi implements ServiceApi {
         schoolUser = inserted;
       }
     }
-    let classUser: any | null = null;
-    if (classId) {
+
+    const classUsers: any[] = [];
+    for (const classIdItem of classIds) {
       const { data: existingClassUser, error: existingClassUserError } =
         await this.supabase
           .from("class_user")
           .select("*")
-          .eq("class_id", classId)
+          .eq("class_id", classIdItem)
           .eq("user_id", user.id)
           .eq("is_deleted", false)
           .maybeSingle();
@@ -9094,11 +9101,11 @@ export class SupabaseApi implements ServiceApi {
           console.error("Failed to update class_user:", updateClassError);
           throw updateClassError;
         }
-        classUser = updatedClass ?? existingClassUser;
+        classUsers.push(updatedClass ?? existingClassUser);
       } else {
         const classUserPayload = {
           id: uuidv4(),
-          class_id: classId,
+          class_id: classIdItem,
           user_id: user.id,
           role,
           is_deleted: false,
@@ -9115,13 +9122,14 @@ export class SupabaseApi implements ServiceApi {
           console.error("Failed to insert class_user:", insertClassError);
           throw insertClassError;
         }
-        classUser = insertedClass;
+        classUsers.push(insertedClass);
       }
     }
+
     return {
       user,
       schoolUser,
-      classUser,
+      classUsers,
       isNewUser,
     };
   }
@@ -9197,7 +9205,6 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-
   async addStudentWithParentValidation(params: {
     phone: string;
     name: string;
@@ -9206,22 +9213,14 @@ export class SupabaseApi implements ServiceApi {
     classId: string;
     schoolId?: string;
     parentName?: string;
-    email?:string;
+    email?: string;
   }): Promise<{ success: boolean; message: string; data?: any }> {
     if (!this.supabase) {
       return { success: false, message: "Supabase client is not initialized" };
     }
 
-    const {
-      phone,
-      name,
-      gender,
-      age,
-      classId,
-      schoolId,
-      parentName,
-      email,
-    } = params;
+    const { phone, name, gender, age, classId, schoolId, parentName, email } =
+      params;
     const timestamp = new Date().toISOString();
     const finalAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)];
     try {
@@ -9243,7 +9242,11 @@ export class SupabaseApi implements ServiceApi {
 
       const { data: userData, error: userError } =
         await this.supabase.functions.invoke("get_or_create_user", {
-          body: { name: parentName || "Parent", phone: phone, email: email || "" },
+          body: {
+            name: parentName || "Parent",
+            phone: phone,
+            email: email || "",
+          },
         });
 
       if (userError) {

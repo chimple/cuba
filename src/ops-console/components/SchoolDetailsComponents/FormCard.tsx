@@ -3,6 +3,7 @@ import "./FormCard.css";
 import { PhoneInput } from "react-international-phone";
 import "react-international-phone/style.css";
 import { t } from "i18next";
+import CheckIcon from "@mui/icons-material/Check";
 
 export type FieldKind = "text" | "email" | "phone" | "select";
 export type FieldColumn = 0 | 1 | 2; // 0 = left, 1 = right, 2 = full row
@@ -15,6 +16,7 @@ export interface FieldConfig {
   placeholder?: string;
   options?: { value: string; label: string }[];
   column?: FieldColumn;
+  multi?: boolean;
 }
 
 export type MessageType = "error" | "warning" | "info" | "success";
@@ -79,6 +81,163 @@ const FormCard: React.FC<EntityModalProps> = ({
     switch (field.kind) {
       case "select":
         const isThisSelectOpen = openSelect === field.name;
+
+        if (field.multi) {
+          const currentVal = values[field.name] || "";
+          const selectedIds = currentVal
+            ? currentVal.split(",").filter(Boolean)
+            : [];
+          const displayText = selectedIds
+            .map((id) => {
+              const opt = field.options?.find((o) => o.value === id);
+              return opt ? t(opt.label) : id;
+            })
+            .join(", ");
+
+          return (
+            <div
+              className={`formcard-select-wrapper ${
+                isThisSelectOpen ? "formcard-select-open" : ""
+              }`}
+            >
+              <div
+                className="formcard-multiselect-trigger"
+                onClick={() =>
+                  setOpenSelect(isThisSelectOpen ? null : field.name)
+                }
+                tabIndex={0}
+                onBlur={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                    setOpenSelect(null);
+                  }
+                }}
+              >
+                {displayText ? (
+                  <span
+                    className="formcard-multiselect-trigger-text"
+                    title={displayText}
+                  >
+                    {displayText}
+                  </span>
+                ) : (
+                  <span className="formcard-multiselect-trigger-text formcard-multiselect-trigger-placeholder">
+                    {field.placeholder
+                      ? t(field.placeholder)
+                      : `${t("Select ")} ${t(field.label)}`}
+                  </span>
+                )}
+                <span className="formcard-select-arrow-flipper">
+                  <span className="formcard-arrow-down">▾</span>
+                  <span className="formcard-arrow-up">▴</span>
+                </span>
+              </div>
+              {isThisSelectOpen && (
+                <div className="formcard-multiselect-dropdown">
+                  {field.options?.map((opt) => {
+                    const isSelected = selectedIds.includes(opt.value);
+                    return (
+                      <div
+                        key={opt.value}
+                        className={`formcard-multiselect-option ${
+                          isSelected ? "selected" : ""
+                        }`}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          const newSelected = isSelected
+                            ? selectedIds.filter((id) => id !== opt.value)
+                            : [...selectedIds, opt.value];
+                          handleChange(field.name, newSelected.join(","));
+                        }}
+                      >
+                        <div className="formcard-multiselect-checkbox">
+                          {isSelected && (
+                            <CheckIcon
+                              style={{ fontSize: 12, color: "white" }}
+                            />
+                          )}
+                        </div>
+                        {t(opt.label)}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        const shouldUseCustomDropdown = (field.options?.length || 0) > 3;
+
+        if (shouldUseCustomDropdown) {
+          const currentValue = values[field.name] || "";
+          const selectedOption = field.options?.find(
+            (o) => o.value === currentValue
+          );
+          const displayText = selectedOption ? t(selectedOption.label) : "";
+
+          return (
+            <div
+              className={`formcard-select-wrapper ${
+                isThisSelectOpen ? "formcard-select-open" : ""
+              }`}
+            >
+              <div
+                className="formcard-multiselect-trigger"
+                onClick={() =>
+                  setOpenSelect(isThisSelectOpen ? null : field.name)
+                }
+                tabIndex={0}
+                onBlur={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                    setOpenSelect(null);
+                  }
+                }}
+              >
+                {displayText ? (
+                  <span
+                    className="formcard-multiselect-trigger-text"
+                    title={displayText}
+                  >
+                    {displayText}
+                  </span>
+                ) : (
+                  <span className="formcard-multiselect-trigger-text formcard-multiselect-trigger-placeholder">
+                    {field.placeholder
+                      ? t(field.placeholder)
+                      : `${t("Select ")} ${t(field.label)}`}
+                  </span>
+                )}
+                <span className="formcard-select-arrow-flipper">
+                  <span className="formcard-arrow-down">▾</span>
+                  <span className="formcard-arrow-up">▴</span>
+                </span>
+              </div>
+              {isThisSelectOpen && (
+                <div className="formcard-multiselect-dropdown">
+                  {field.options?.map((opt) => {
+                    const isSelected = currentValue === opt.value;
+                    return (
+                      <div
+                        key={opt.value}
+                        className={`formcard-multiselect-option ${
+                          isSelected ? "selected" : ""
+                        }`}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleChange(field.name, opt.value);
+                          setOpenSelect(null);
+                        }}
+                      >
+                        {t(opt.label)}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        }
+
         return (
           <div
             className={`formcard-select-wrapper ${

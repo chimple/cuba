@@ -41,6 +41,7 @@ interface SchoolTeachersProps {
   data: {
     teachers?: TeacherInfo[];
     totalTeacherCount?: number;
+    classData?: { id: string; name: string }[];
   };
   isMobile: boolean;
   schoolId: string;
@@ -293,15 +294,30 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     async (values: Record<string, string>) => {
       try {
         const name = (values.name ?? "").toString().trim();
-        const classId = (values.class ?? "").toString().trim();
+        const classIdsString = (values.class ?? "").toString().trim();
         const rawEmail = (values.email ?? "").toString().trim();
         const rawPhone = (values.phoneNumber ?? "").toString();
         if (!name) {
           setErrorMessage({ text: "Teacher name is required.", type: "error" });
           return;
         }
-        if (!classId) {
-          setErrorMessage({ text: "Class is required.", type: "error" });
+        if (!classIdsString) {
+          setErrorMessage({
+            text: "At least one class is required.",
+            type: "error",
+          });
+          return;
+        }
+        const classIds = classIdsString
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean);
+
+        if (classIds.length === 0) {
+          setErrorMessage({
+            text: "At least one class is required.",
+            type: "error",
+          });
           return;
         }
         const email = rawEmail.toLowerCase();
@@ -341,33 +357,28 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           phoneNumber: finalPhone || undefined,
           email: finalEmail || undefined,
           role: RoleType.TEACHER,
-          classId,
+          classId: classIds,
         });
         setIsAddTeacherModalOpen(false);
         setPage(1);
         fetchTeachers(1, "");
       } catch (e) {
         console.error("Failed to add teacher:", e);
+        setErrorMessage({
+          text: "Failed to add teacher. Please try again.",
+          type: "error",
+        });
       }
     },
-    [schoolId, fetchTeachers]
+    [schoolId, fetchTeachers, api]
   );
 
   const classOptions = useMemo(() => {
-    if (!normalizedTeachers || normalizedTeachers.length === 0) return [];
-    const classMap = new Map<string, string>();
-    normalizedTeachers.forEach((teacher: any) => {
-      const classInfo = teacher.classWithidname;
-      if (!classInfo || !classInfo.id || !classInfo.name) return;
-      if (!classMap.has(classInfo.id)) {
-        classMap.set(classInfo.id, classInfo.name);
-      }
-    });
-
-    return Array.from(classMap.entries())
-      .map(([value, label]) => ({ value, label }))
+    if (!data.classData || data.classData.length === 0) return [];
+    return data.classData
+      .map((c) => ({ value: c.id, label: c.name }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [normalizedTeachers]);
+  }, [data.classData]);
 
   const teacherFormFields: FieldConfig[] = useMemo(
     () => [
@@ -386,6 +397,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         required: true,
         column: 0,
         options: classOptions,
+        multi: true,
       },
       {
         name: "phoneNumber",
