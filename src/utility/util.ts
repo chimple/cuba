@@ -62,6 +62,8 @@ import {
   DAILY_USER_REWARD,
   REWARD_LEARNING_PATH,
   HOMEWORK_PATHWAY,
+  STARS_COUNT,
+  LATEST_STARS,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -2562,7 +2564,7 @@ export class Util {
   }
   public static async updateHomeworkPath(completedIndex?: number) {
     try {
-      const storedPath = sessionStorage.getItem(HOMEWORK_PATHWAY);
+      const storedPath = localStorage.getItem(HOMEWORK_PATHWAY);
       if (!storedPath) {
         console.error(
           "Could not find homework path in sessionStorage to update."
@@ -2581,10 +2583,10 @@ export class Util {
 
       // Check if the 5-lesson path is now complete
       if (newCurrentIndex >= homeworkPath.lessons.length) {
-        sessionStorage.removeItem(HOMEWORK_PATHWAY);
+        localStorage.removeItem(HOMEWORK_PATHWAY);
       } else {
         homeworkPath.currentIndex = newCurrentIndex;
-        sessionStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(homeworkPath));
+        localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(homeworkPath));
       }
     } catch (error) {
       console.error("Failed to update homework path:", error);
@@ -2709,6 +2711,34 @@ export class Util {
 
   // In Util.ts or your utility file
 
+  public static getLocalStarsForStudent(
+    studentId: string,
+    fallback: number = 0
+  ): number {
+    try {
+      const storedStarsJson = localStorage.getItem(STARS_COUNT);
+      const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
+      const localStarsRaw = storedStarsMap[studentId];
+
+      const latestStarsJson = localStorage.getItem(LATEST_STARS);
+      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
+      const latestStarsRaw = latestStarsMap[studentId];
+
+      const localStars = Number.isFinite(+localStarsRaw)
+        ? parseInt(localStarsRaw, 10)
+        : 0;
+      const latestStars = Number.isFinite(+latestStarsRaw)
+        ? parseInt(latestStarsRaw, 10)
+        : 0;
+
+      const bestLocal = Math.max(localStars, latestStars, fallback);
+      return bestLocal;
+    } catch (e) {
+      console.warn("[Util.getLocalStarsForStudent] failed, using fallback", e);
+      return fallback;
+    }
+  }
+
   public static async fetchCurrentClassAndSchool(): Promise<{
     className: string;
     schoolName: string;
@@ -2737,19 +2767,48 @@ export class Util {
     }
     return { className, schoolName };
   }
-  public static isVersionAllowed(upto: string, current: string): boolean {
-    const u = upto.split('.').map(n => parseInt(n, 10));
-    const c = current.split('.').map(n => parseInt(n, 10));
 
-    for (let i = 0; i < Math.max(u.length, c.length); i++) {
-      const nu = u[i] || 0;
-      const nc = c[i] || 0;
+  // Write a specific star count into BOTH STARS_COUNT and LATEST_STARS
+  public static setLocalStarsForStudent(
+    studentId: string,
+    stars: number
+  ): void {
+    try {
+      const storedStarsJson = localStorage.getItem(STARS_COUNT);
+      const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
+      storedStarsMap[studentId] = stars;
+      localStorage.setItem(STARS_COUNT, JSON.stringify(storedStarsMap));
 
-      if (nu > nc) return true;
-      if (nu < nc) return false;
+      const latestStarsJson = localStorage.getItem(LATEST_STARS);
+      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
+      latestStarsMap[studentId] = stars;
+      localStorage.setItem(LATEST_STARS, JSON.stringify(latestStarsMap));
+    } catch (e) {
+      console.warn("[Util.setLocalStarsForStudent] failed", e);
+    }
+  }
+
+  // Add delta to local stars and fire a DOM event so React screens can react immediately
+  public static bumpLocalStarsForStudent(
+    studentId: string,
+    delta: number,
+    fallback: number = 0
+  ): number {
+    const current = Util.getLocalStarsForStudent(studentId, fallback);
+    const next = current + delta;
+    Util.setLocalStarsForStudent(studentId, next);
+
+    try {
+      window.dispatchEvent(
+        new CustomEvent("starsUpdated", {
+          detail: { studentId, newStars: next },
+        })
+      );
+    } catch (e) {
+      console.warn("[Util.bumpLocalStarsForStudent] event dispatch failed", e);
     }
 
-    return true;
+    return next;
   }
   public static pickFiveHomeworkLessons(
     assignments: any[],

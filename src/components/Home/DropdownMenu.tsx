@@ -56,7 +56,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
 
       // 🔹 HOMEWORK MODE: don't depend on learning_path
       if (!syncWithLearningPath) {
-        const pathStr = sessionStorage.getItem(HOMEWORK_PATHWAY);
+        const pathStr = localStorage.getItem(HOMEWORK_PATHWAY);
 
         if (!pathStr) {
           // no homework path yet → safe fallback

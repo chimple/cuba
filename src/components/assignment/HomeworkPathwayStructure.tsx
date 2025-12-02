@@ -9,11 +9,9 @@ import { useFeatureIsOn } from "@growthbook/growthbook-react";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import {
   HOMEWORK_REMOTE_ASSETS_ENABLED,
-  CAN_ACCESS_REMOTE_ASSETS,
   COCOS,
   CONTINUE,
   HOMEWORK_PATHWAY,
-  IS_REWARD_FEATURE_ON,
   LIDO,
   LIVE_QUIZ,
   PAGES,
@@ -33,22 +31,19 @@ import HomeworkCompleteModal from "./HomeworkCompleteModal";
 
 interface HomeworkPathwayStructureProps {
   selectedSubject?: string | null;
-  onPlayMoreHomework?: () => void;
+  onHomeworkComplete?: () => void; 
 }
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   selectedSubject,
-  onPlayMoreHomework,
+  onHomeworkComplete, 
 }) => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setModalOpen] = useState(false);
-  const [showHomeworkCompleteModal, setShowHomeworkCompleteModal] =
-    useState(false);
-
   const [modalText, setModalText] = useState("");
   const [riveContainer, setRiveContainer] = useState<HTMLDivElement | null>(
     null
@@ -161,7 +156,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     return group;
   };
 
-  // Utility: Create SVG image element with fallback
   const createSVGImage = (
     href: string,
     width?: number,
@@ -209,7 +203,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     }
   };
 
-  // Cache lesson data in memory and sessionStorage
   const lessonCache = new Map<string, any>();
   const getCachedLesson = async (lessonId: string): Promise<any> => {
     if (lessonCache.has(lessonId)) return lessonCache.get(lessonId);
@@ -220,10 +213,15 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       lessonCache.set(lessonId, parsed);
       return parsed;
     }
-    const lesson = await api.getLesson(lessonId);
-    lessonCache.set(lessonId, lesson);
-    sessionStorage.setItem(key, JSON.stringify(lesson));
-    return lesson;
+    try {
+      const lesson = await api.getLesson(lessonId);
+      lessonCache.set(lessonId, lesson);
+      sessionStorage.setItem(key, JSON.stringify(lesson));
+      return lesson;
+    } catch (e) {
+      console.warn("Could not fetch lesson details (offline)", e);
+      return {};
+    }
   };
 
   const preloadImage = (src: string): Promise<void> =>
@@ -231,7 +229,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       const img = new Image();
       img.src = src;
       img.onload = () => resolve();
-      img.onerror = () => resolve();
+      img.onerror = () => resolve(); // Resolve even on error to not block
     });
 
   const preloadAllLessonImages = async (lessons: any[]) => {
@@ -246,33 +244,38 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     );
   };
 
-  // Fetch all pending assignments for the current student,
-  // pick 5 lessons per homework logic, then set state
   const fetchHomeworkLessons = async () => {
     try {
-      // ✅ FIRST: respect whatever path HomeworkPathway has already written.
-      const existingPathStr = sessionStorage.getItem(HOMEWORK_PATHWAY);
+      const existingPathStr = localStorage.getItem(HOMEWORK_PATHWAY);
       if (existingPathStr) {
         try {
-          const existingPath = JSON.parse(existingPathStr);
-          const hasLessons =
-            Array.isArray(existingPath.lessons) &&
-            existingPath.lessons.length > 0;
+          const existingPath = JSON.parse(existingPathStr) as {
+            lessons?: any[];
+            currentIndex?: number;
+          };
 
-          if (hasLessons) {
-            setHomeworkLessons(existingPath.lessons);
-            return; // ⬅️ Do NOT recompute from API, so we don't move last-slot lessons to first
+          const lessons = existingPath.lessons ?? []; // 👈 safe fallback
+
+          const hasLessons = lessons.length > 0;
+          const notFinished =
+            typeof existingPath.currentIndex === "number" &&
+            existingPath.currentIndex < lessons.length;
+
+          if (hasLessons && notFinished) {
+            // ✅ Use only if path is unfinished
+            setHomeworkLessons(lessons);
+            return;
           }
+
+          // ❌ Path empty or finished → remove it
+          localStorage.removeItem(HOMEWORK_PATHWAY);
         } catch (err) {
-          console.warn(
-            "Invalid cached homework path in sessionStorage, rebuilding...",
-            err
-          );
-          // fallthrough to rebuild
+          console.warn("Invalid cached path, rebuilding...", err);
+          localStorage.removeItem(HOMEWORK_PATHWAY);
         }
       }
 
-      // ✅ FALLBACK: only if there is no valid path in sessionStorage
+      // If offline and no local storage, this API call will fail, which is expected.
       const currentStudent = Util.getCurrentStudent();
       const currClass = Util.getCurrentClass();
       if (!currentStudent?.id || !currClass?.id) return;
@@ -283,30 +286,21 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       );
       const pendingAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
 
-      console.log("pendingAssignments", pendingAssignments);
-
       if (!pendingAssignments || pendingAssignments.length === 0) {
         setHomeworkLessons([]);
-        console.log("No pending assignments found for student.");
-        setShowHomeworkCompleteModal(true); // Show "homework complete" modal if no assignments
+        onHomeworkComplete?.(); 
         return;
-      } else {
-        setShowHomeworkCompleteModal(false);
       }
 
-      // Group pending assignments by subject
+      // Grouping logic...
       const pendingBySubject: { [key: string]: any[] } = {};
-
       for (const assignment of pendingAssignments) {
-        // Get the lesson object (assumes lesson already fetched and attached)
         const lesson = await getCachedLesson(assignment.lesson_id);
         const subjectId = lesson.subject_id;
-
         if (!pendingBySubject[subjectId]) pendingBySubject[subjectId] = [];
         pendingBySubject[subjectId].push(assignment);
       }
 
-      // Find subjects with maximum pending assignments
       let maxPending = 0;
       let subjectsWithMaxPending: string[] = [];
       Object.keys(pendingBySubject).forEach((subject) => {
@@ -319,30 +313,31 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         }
       });
 
-      // Fetch completed counts only for tied subjects (if tie exists)
       let completedCountBySubject: { [key: string]: number } = {};
       if (subjectsWithMaxPending.length > 1) {
-        const completedCounts =
-          await api.getCompletedAssignmentsCountForSubjects(
-            currentStudent.id,
-            subjectsWithMaxPending
+        try {
+          const completedCounts =
+            await api.getCompletedAssignmentsCountForSubjects(
+              currentStudent.id,
+              subjectsWithMaxPending
+            );
+          completedCountBySubject = completedCounts.reduce(
+            (acc, { subject_id, completed_count }) => {
+              acc[subject_id] = completed_count;
+              return acc;
+            },
+            {} as { [key: string]: number }
           );
-        completedCountBySubject = completedCounts.reduce(
-          (acc, { subject_id, completed_count }) => {
-            acc[subject_id] = completed_count;
-            return acc;
-          },
-          {} as { [key: string]: number }
-        );
+        } catch (e) {
+          console.warn("Could not fetch completed counts (offline)", e);
+        }
       }
 
-      // Pick 5 lessons passing completed counts to tie break subjects with the same max pending
       const selected = Util.pickFiveHomeworkLessons(
         pendingAssignments,
         completedCountBySubject
       );
 
-      // Fetch full lesson details for selected assignments
       const lessonsWithDetails = await Promise.all(
         selected.map(async (assignment) => {
           const lesson = await getCachedLesson(assignment.lesson_id);
@@ -352,11 +347,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       const newHomeworkPath = {
         lessons: lessonsWithDetails,
-        currentIndex: 0, // A new path always starts at the beginning (index 0)
+        currentIndex: 0,
       };
 
-      sessionStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(newHomeworkPath));
-
+      localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(newHomeworkPath));
       setHomeworkLessons(lessonsWithDetails);
     } catch (error) {
       console.error("Failed to fetch homework lessons:", error);
@@ -364,46 +358,66 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     }
   };
 
-  // Overriding loadSVG method to load homework lessons and render pathway
   const loadSVG = async (updatedStudent?: any) => {
     if (!containerRef.current) return;
 
     try {
       const startTime = performance.now();
-      const storedHomeworkPath = sessionStorage.getItem(HOMEWORK_PATHWAY);
+      let storedHomeworkPath = localStorage.getItem(HOMEWORK_PATHWAY);
 
       if (!storedHomeworkPath) {
         console.log(
-          "No active homework path found in session storage. Aborting render."
+          "[HomeworkPathwayStructure] No HOMEWORK_PATHWAY found → not drawing SVG yet"
         );
         return;
       }
       const homeworkPath = JSON.parse(storedHomeworkPath);
-
       const lessonsToRender = homeworkPath.lessons;
       const currentIndex = homeworkPath.currentIndex;
-      const startIndex = 0;
       const pathEndIndex = lessonsToRender.length - 1;
+      const startIndex = 0;
 
       if (lessonsToRender.length === 0) {
-        console.log("Homework path is empty. Nothing to render.");
         return;
       }
 
       const firstHomeworkItem = lessonsToRender[0];
-      const [courseData, chapterData] = await Promise.all([
-        api.getCourse(firstHomeworkItem.course_id),
-        api.getChapterById(firstHomeworkItem.chapter_id),
-      ]);
 
-      if (!courseData || !chapterData) {
-        console.error(
-          "Could not find required course or chapter data. Aborting render."
+      let fetchedCourse: TableTypes<"course"> | undefined;
+      let fetchedChapter: TableTypes<"chapter"> | undefined;
+
+      try {
+        const [cData, chData] = await Promise.all([
+          api.getCourse(firstHomeworkItem.course_id),
+          api.getChapterById(firstHomeworkItem.chapter_id),
+        ]);
+        fetchedCourse = cData;
+        fetchedChapter = chData;
+      } catch (err) {
+        console.warn(
+          "Offline: Could not fetch Course/Chapter metadata. Using fallbacks."
         );
-        return;
+        // Create minimal fallbacks so the UI doesn't crash
+        fetchedCourse = {
+          id: firstHomeworkItem.course_id,
+          name: "Course",
+          subject_id: "unknown",
+        } as any;
+        fetchedChapter = {
+          id: firstHomeworkItem.chapter_id,
+          name: "Chapter",
+        } as any;
       }
-      setCurrentCourse(courseData);
-      setCurrentChapter(chapterData);
+
+      if (!fetchedCourse || !fetchedChapter) {
+        console.error("Could not determine course/chapter data.");
+        fetchedCourse = { id: firstHomeworkItem.course_id } as any;
+        fetchedChapter = { id: firstHomeworkItem.chapter_id } as any;
+      }
+
+      setCurrentCourse(fetchedCourse);
+      setCurrentChapter(fetchedChapter);
+
       const lessons = lessonsToRender.map((item) => item.lesson);
 
       const [
@@ -483,13 +497,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         const xValues = [27, 155, 276, 387, 496];
         const fragment = document.createDocumentFragment();
 
-        // ======================= MODIFICATION START =======================
-        // Calculate the offset to render lessons from the end of the pathway.
         const totalSlots = 5;
         const numLessons = lessonsToRender.length;
         const startIndexOffset = totalSlots - numLessons;
 
-        // Loop through all 5 pathway slots
         for (let pathIndex = 0; pathIndex < totalSlots; pathIndex++) {
           const path = paths[pathIndex];
           if (!path) continue;
@@ -516,7 +527,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             },
           };
 
-          // If the current pathIndex is before the start of our lessons, render a locked/inactive fruit.
           if (pathIndex < startIndexOffset) {
             const lockedFruit = document.createElementNS(
               "http://www.w3.org/2000/svg",
@@ -525,43 +535,31 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             lockedFruit.appendChild(
               fruitInactive.cloneNode(true) as SVGGElement
             );
-            lockedFruit.addEventListener("click", () => {
-              setModalOpen(true);
-              setModalText(inactiveText);
-            });
+            // lockedFruit.addEventListener("click", () => {
+            //   setModalOpen(true);
+            //   setModalText(inactiveText);
+            // });
             lockedFruit.setAttribute(
               "style",
               "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
             );
             let yOffset = -10;
-
-            if (pathIndex === 4) {
-              yOffset = 5;
-            }
-
-            if (pathIndex === 2) {
-              yOffset += 15;
-            }
-
+            if (pathIndex === 4) yOffset = 5;
+            if (pathIndex === 2) yOffset += 15;
             let xPos =
               positionMappings.fruitInactive.x[pathIndex] ?? flowerX - 20;
             let yPos =
               (positionMappings.fruitInactive.y[pathIndex] ?? flowerY - 20) +
               yOffset;
-
-            // 👉 move first locked fruit (leftmost) a bit right & down
             if (pathIndex === 0) {
               xPos += 21;
               yPos += 15;
             }
-
             placeElement(lockedFruit as SVGGElement, xPos, yPos);
             fragment.appendChild(lockedFruit);
             continue;
           }
 
-          // This slot corresponds to a real lesson.
-          // Calculate the index for the lessonsToRender array.
           const lessonIdx = pathIndex - startIndexOffset;
           const { lesson } = lessonsToRender[lessonIdx];
 
@@ -571,7 +569,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             ? lesson.image
             : "assets/icons/DefaultIcon.png";
 
-          // --- Render Played Lesson ---
           if (lessonIdx < currentIndex) {
             const playedLesson = document.createElementNS(
               "http://www.w3.org/2000/svg",
@@ -583,13 +580,11 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             );
             playedLesson.appendChild(lessonImage);
 
-            // base position
             let xPos =
               positionMappings.playedLesson.x[pathIndex] ?? flowerX - 20;
             let yPos =
               positionMappings.playedLesson.y[pathIndex] ?? flowerY - 20;
 
-            // ⬆️ move the FIRST played mango slightly up
             if (pathIndex === 0) {
               yPos -= 12;
             } else if (pathIndex === 2) {
@@ -620,7 +615,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               activeXOffset += 8;
             } else if (pathIndex === 0) {
               activeYOffset = -10;
-              activeXOffset = 10; // tweak this value until it looks perfect
+              activeXOffset = 10;
             } else if (pathIndex === 4) {
               activeYOffset = -1;
               activeXOffset = 12;
@@ -654,48 +649,45 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             activeGroup.setAttribute("style", "cursor: pointer;");
 
             activeGroup.addEventListener("click", () => {
-              console.log("lesson clicked", lesson, courseData);
               if (lesson.plugin_type === COCOS) {
                 const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
                 history.replace(PAGES.GAME + params, {
                   url: "chimple-lib/index.html" + params,
                   lessonId: lesson.cocos_lesson_id,
-                  courseDocId: courseData.id,
+                  courseDocId: fetchedCourse?.id,
                   lesson: JSON.stringify(lesson),
-                  chapter: JSON.stringify(chapterData),
+                  chapter: JSON.stringify(fetchedChapter),
                   from: history.location.pathname + `?${CONTINUE}=true`,
-                  course: JSON.stringify(courseData),
+                  course: JSON.stringify(fetchedCourse),
                   isHomework: true,
-                  homeworkIndex: lessonIdx, // Use lessonIdx
+                  homeworkIndex: lessonIdx,
                 });
               } else if (lesson.plugin_type === LIVE_QUIZ) {
                 history.replace(
                   PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
                   {
-                    courseId: courseData.id,
+                    courseId: fetchedCourse?.id,
                     lesson: JSON.stringify(lesson),
                     from: history.location.pathname + `?${CONTINUE}=true`,
                     isHomework: true,
                     homeworkIndex: lessonIdx,
-                  } // Use lessonIdx
+                  }
                 );
               } else if (lesson.plugin_type === LIDO) {
                 const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
                 history.replace(PAGES.LIDO_PLAYER + params, {
                   lessonId: lesson.cocos_lesson_id,
-                  courseDocId: courseData.id,
-                  course: JSON.stringify(courseData),
+                  courseDocId: fetchedCourse?.id,
+                  course: JSON.stringify(fetchedCourse),
                   lesson: JSON.stringify(lesson),
-                  chapter: JSON.stringify(chapterData),
+                  chapter: JSON.stringify(fetchedChapter),
                   from: history.location.pathname + `?${CONTINUE}=true`,
                   isHomework: true,
-                  homeworkIndex: lessonIdx, // Use lessonIdx
+                  homeworkIndex: lessonIdx,
                 });
               }
             });
             fragment.appendChild(activeGroup);
-
-            // --- Render Inactive (Future) Lesson ---
           } else {
             const flower_Inactive = document.createElementNS(
               "http://www.w3.org/2000/svg",
@@ -718,35 +710,24 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
             );
 
-            // Base offset
             let yOffset = -10;
             if (pathIndex === 4) yOffset = 5;
-
             if (pathIndex === 2) yOffset = 4;
-
-            // FIRST inactive → a bit right + down
             let extraX = 0;
             let extraY = 0;
             if (pathIndex === 0) {
-              extraX = 15; // right
-              extraY -= 100; // down
+              extraX = 15;
+              extraY -= 100;
             }
-
-            // THIRD inactive → slightly up
             if (pathIndex === 2) {
               yOffset += 1;
             }
-
             let xPos =
               positionMappings.fruitInactive.x[pathIndex] ?? flowerX - 20;
             let yPos =
               (positionMappings.fruitInactive.y[pathIndex] ?? flowerY - 20) +
               yOffset;
-
-            // Place element at base position
             placeElement(flower_Inactive as SVGGElement, xPos, yPos);
-
-            // Then add the fine‑tuning shift for first inactive
             if (pathIndex === 0) {
               const prevTransform =
                 flower_Inactive.getAttribute("transform") || "";
@@ -755,12 +736,9 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                 `${prevTransform} translate(${extraX}, ${extraY})`.trim()
               );
             }
-
             fragment.appendChild(flower_Inactive);
           }
         }
-
-        // ======================= MODIFICATION END =======================
 
         const endPath = paths[paths.length - 1];
         if (endPath) {
@@ -820,7 +798,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           const previousLessonIndex = currentLessonIndex - 1;
           if (previousLessonIndex < 0) return;
 
-          // Apply offset to get correct path indices
           const fromPathIndex = startIndexOffset + previousLessonIndex;
           const toPathIndex = startIndexOffset + currentLessonIndex;
 
@@ -829,7 +806,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           chimple.setAttribute("x", `${toX - 72}`);
           let chimpleAnimY = startPoint.y + 18;
           if (window.innerWidth <= 1024) {
-            chimpleAnimY -= 12; // same upward shift
+            chimpleAnimY -= 12;
           }
           chimple.setAttribute("y", `${chimpleAnimY}`);
 
@@ -851,92 +828,107 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         };
 
         const runRewardAnimation = async (newRewardId: string) => {
-          const rewardRecord = await api.getRewardById(newRewardId);
-          if (!rewardRecord) return;
-          setHasTodayReward(false);
-          const completedLessonIndex = lessons.findIndex(
-            (_, idx) => startIndex + idx === currentIndex - 1
-          );
+          // If offline, this might fail, wrap in try/catch or skip if no internet
+          try {
+            const rewardRecord = await api.getRewardById(newRewardId);
+            if (!rewardRecord) return;
+            setHasTodayReward(false);
+            const completedLessonIndex = lessons.findIndex(
+              (_, idx) => startIndex + idx === currentIndex - 1
+            );
 
-          // Apply offset for correct reward destination
-          const completedLessonPathIndex =
-            startIndexOffset + completedLessonIndex;
-          const destinationX =
-            xValues[
-              completedLessonPathIndex >= startIndexOffset
-                ? completedLessonPathIndex
-                : 0
-            ] ?? 0;
+            const completedLessonPathIndex =
+              startIndexOffset + completedLessonIndex;
+            const destinationX =
+              xValues[
+                completedLessonPathIndex >= startIndexOffset
+                  ? completedLessonPathIndex
+                  : 0
+              ] ?? 0;
 
-          const rewardForeignObject = document.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "foreignObject"
-          );
-          rewardForeignObject.setAttribute("width", "140");
-          rewardForeignObject.setAttribute("height", "140");
-          rewardForeignObject.setAttribute("x", "0");
-          rewardForeignObject.setAttribute("y", "0");
-          rewardForeignObject.style.display = "block";
-          (rewardForeignObject.style as any).transformBox = "fill-box";
-          rewardForeignObject.style.transformOrigin = "0 0";
-          rewardForeignObject.style.willChange = "transform";
-          rewardForeignObject.style.backfaceVisibility = "hidden";
-          (rewardForeignObject.style as any).contain = "layout paint style";
-          const fromX = 570,
-            fromY = 110;
-          const toX = destinationX - 27,
-            toY = startPoint.y - 69;
-          const controlX = (fromX + toX) / 2,
-            controlY = Math.min(fromY, toY) - 150;
-          const duration = 4000;
-          const start = performance.now();
-          const animateBezier = (now: number) => {
-            let t = (now - start) / duration;
-            if (t > 1) t = 1;
-            const easeInOutCubic = (val: number) =>
-              val < 0.5
-                ? 4 * val * val * val
-                : 1 - Math.pow(-2 * val + 2, 3) / 2;
-            const bezier = (tVal: number, p0: number, p1: number, p2: number) =>
-              (1 - tVal) ** 2 * p0 +
-              2 * (1 - tVal) * tVal * p1 +
-              tVal ** 2 * p2;
-            const easedT = easeInOutCubic(t);
-            const x = bezier(easedT, fromX, controlX, toX);
-            const y = bezier(easedT, fromY, controlY, toY);
-            rewardForeignObject.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-            if (t < 1) {
-              requestAnimationFrame(animateBezier);
-            } else {
-              onBoxArrival();
-            }
-          };
-          const onBoxArrival = async () => {
-            setRewardRiveState(RewardBoxState.BLAST);
-            await delay(2000);
-            setChimpleRiveStateMachineName("State Machine 2");
-            setChimpleRiveInputName("Number 1");
-            setChimpleRiveStateValue(rewardRecord.state_number_input || 1);
-            setChimpleRiveAnimationName(undefined);
-            setMascotKey((prev) => prev + 1);
-            await delay(500);
-            rewardForeignObject.style.display = "none";
-            await delay(1000);
-            await updateMascotToNormalState(newRewardId);
-            await delay(500);
-            animateChimpleMovement();
-          };
-          const rewardDiv = document.createElement("div");
-          rewardDiv.style.width = "100%";
-          rewardDiv.style.height = "100%";
-          rewardForeignObject.appendChild(rewardDiv);
-          svg.appendChild(rewardForeignObject);
-          setRewardRiveContainer(rewardDiv);
-          requestAnimationFrame(animateBezier);
-          await Util.updateUserReward();
+            const rewardForeignObject = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "foreignObject"
+            );
+            rewardForeignObject.setAttribute("width", "140");
+            rewardForeignObject.setAttribute("height", "140");
+            rewardForeignObject.setAttribute("x", "0");
+            rewardForeignObject.setAttribute("y", "0");
+            rewardForeignObject.style.display = "block";
+            (rewardForeignObject.style as any).transformBox = "fill-box";
+            rewardForeignObject.style.transformOrigin = "0 0";
+            rewardForeignObject.style.willChange = "transform";
+            rewardForeignObject.style.backfaceVisibility = "hidden";
+            (rewardForeignObject.style as any).contain = "layout paint style";
+            const fromX = 570,
+              fromY = 110;
+            const toX = destinationX - 27,
+              toY = startPoint.y - 69;
+            const controlX = (fromX + toX) / 2,
+              controlY = Math.min(fromY, toY) - 150;
+            const duration = 4000;
+            const start = performance.now();
+            const animateBezier = (now: number) => {
+              let t = (now - start) / duration;
+              if (t > 1) t = 1;
+              const easeInOutCubic = (val: number) =>
+                val < 0.5
+                  ? 4 * val * val * val
+                  : 1 - Math.pow(-2 * val + 2, 3) / 2;
+              const bezier = (
+                tVal: number,
+                p0: number,
+                p1: number,
+                p2: number
+              ) =>
+                (1 - tVal) ** 2 * p0 +
+                2 * (1 - tVal) * tVal * p1 +
+                tVal ** 2 * p2;
+              const easedT = easeInOutCubic(t);
+              const x = bezier(easedT, fromX, controlX, toX);
+              const y = bezier(easedT, fromY, controlY, toY);
+              rewardForeignObject.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+              if (t < 1) {
+                requestAnimationFrame(animateBezier);
+              } else {
+                onBoxArrival();
+              }
+            };
+            const onBoxArrival = async () => {
+              setRewardRiveState(RewardBoxState.BLAST);
+              await delay(2000);
+              setChimpleRiveStateMachineName("State Machine 2");
+              setChimpleRiveInputName("Number 1");
+              setChimpleRiveStateValue(rewardRecord.state_number_input || 1);
+              setChimpleRiveAnimationName(undefined);
+              setMascotKey((prev) => prev + 1);
+              await delay(500);
+              rewardForeignObject.style.display = "none";
+              await delay(1000);
+              await updateMascotToNormalState(newRewardId);
+              await delay(500);
+              animateChimpleMovement();
+            };
+            const rewardDiv = document.createElement("div");
+            rewardDiv.style.width = "100%";
+            rewardDiv.style.height = "100%";
+            rewardForeignObject.appendChild(rewardDiv);
+            svg.appendChild(rewardForeignObject);
+            setRewardRiveContainer(rewardDiv);
+            requestAnimationFrame(animateBezier);
+            await Util.updateUserReward();
+          } catch (e) {
+            console.warn("Reward animation failed offline", e);
+          }
         };
 
-        const newRewardId = await checkAndUpdateReward();
+        let newRewardId: string | null = null;
+        try {
+          newRewardId = await checkAndUpdateReward();
+        } catch (e) {
+          console.warn("Check Reward failed offline", e);
+        }
+
         if (
           newRewardId !== null &&
           typeof newRewardId === "string" &&
@@ -959,7 +951,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             newRewardId == null ||
             !isRewardFeatureOn
           ) {
-            // Place near current active lesson, applying offset
             const currentPathIndex = startIndexOffset + currentLessonIdx;
             const safePathIndex = Math.min(
               Math.max(currentPathIndex, 0),
@@ -967,7 +958,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             );
             chimple.setAttribute("x", `${xValues[safePathIndex] - 175}`);
           } else {
-            // Place using special coordinates based on last completed lesson's position, applying offset
             const lastCompletedPathIndex =
               startIndexOffset + lastCompletedLessonIdx;
             const safePathIndex = Math.min(
@@ -977,10 +967,9 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             chimple.setAttribute("x", `${chimpleXValues[safePathIndex]}`);
           }
 
-          // chimple.setAttribute("y", `${startPoint.y - 20}`);
           let chimpleBaseY = startPoint.y - 12;
           if (window.innerWidth <= 1024) {
-            chimpleBaseY -= 12; // move up on small screens
+            chimpleBaseY -= 12;
           }
           chimple.setAttribute("y", `${chimpleBaseY}`);
           chimple.style.pointerEvents = "none";
@@ -1008,42 +997,55 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     }
   };
 
-  // Helper to place SVG elements
   const placeElement = (element: SVGGElement, x: number, y: number) => {
     element.setAttribute("transform", `translate(${x}, ${y})`);
   };
+
   useEffect(() => {
     fetchHomeworkLessons();
   }, [isRewardPathLoaded]);
 
   useEffect(() => {
-    if (homeworkLessons) {
+    if (homeworkLessons.length > 0) {
       loadSVG();
+    } else {
+      if (containerRef.current) {
+        containerRef.current.innerHTML = "";
+      }
     }
   }, [homeworkLessons]);
 
   useEffect(() => {
     const showModalIfNeeded = async () => {
-      const showModal = await shouldShowDailyRewardModal();
-      setRewardModalOpen(showModal);
+      try {
+        const showModal = await shouldShowDailyRewardModal();
+        setRewardModalOpen(showModal);
+      } catch (e) {
+        console.warn("Reward Modal Check failed offline");
+      }
     };
     if (isRewardFeatureOn) {
       showModalIfNeeded();
     }
   }, []);
+
   const updateMascotToNormalState = async (rewardId: string) => {
-    const rewardRecord = await api.getRewardById(rewardId);
-    if (rewardRecord && rewardRecord.type === "normal") {
-      setChimpleRiveStateMachineName(
-        rewardRecord.state_machine || "State Machine 3"
-      );
-      setChimpleRiveInputName(rewardRecord.state_input_name || "Number 2");
-      setChimpleRiveStateValue(rewardRecord.state_number_input || 1);
-      setChimpleRiveAnimationName(undefined);
-      setMascotKey((prev) => prev + 1);
-    } else {
-      setChimpleRiveAnimationName("id");
-      setMascotKey((prev) => prev + 1);
+    try {
+      const rewardRecord = await api.getRewardById(rewardId);
+      if (rewardRecord && rewardRecord.type === "normal") {
+        setChimpleRiveStateMachineName(
+          rewardRecord.state_machine || "State Machine 3"
+        );
+        setChimpleRiveInputName(rewardRecord.state_input_name || "Number 2");
+        setChimpleRiveStateValue(rewardRecord.state_number_input || 1);
+        setChimpleRiveAnimationName(undefined);
+        setMascotKey((prev) => prev + 1);
+      } else {
+        setChimpleRiveAnimationName("id");
+        setMascotKey((prev) => prev + 1);
+      }
+    } catch (e) {
+      console.warn("Update mascot failed offline", e);
     }
   };
 
@@ -1116,21 +1118,9 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       console.error("Error in playLesson:", error);
     }
   };
+
   return (
     <>
-      {showHomeworkCompleteModal && (
-        <HomeworkCompleteModal
-          text={t("Yay!! You have completed all the Homework!!")}
-          borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
-          onClose={() => setShowHomeworkCompleteModal(false)}
-          onPlayMore={() => {
-            setShowHomeworkCompleteModal(false);
-            if (onPlayMoreHomework) {
-              onPlayMoreHomework();
-            }
-          }}
-        />
-      )}
       {isModalOpen && (
         <PathwayModal
           text={modalText}
