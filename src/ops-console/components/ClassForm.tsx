@@ -114,7 +114,14 @@ const ClassForm: React.FC<{
   };
 
   const isFormValid =
-    formValues.grade.trim() !== "" && formValues.section.trim() !== "";
+    formValues.grade.trim() !== "" &&
+    formValues.section.trim() !== "" &&
+    !(
+      mode === "edit" &&
+      classData?.name === formValues.grade + formValues.section &&
+      JSON.stringify(classData?.courses?.map((c: any) => c.id)) ===
+        JSON.stringify(selectedCourse)
+    );
 
   const placeholder =
     selectedCourse.length > 0
@@ -228,7 +235,8 @@ const ClassForm: React.FC<{
                 .sort(
                   (a, b) =>
                     a.curriculum_name.localeCompare(b.curriculum_name) ||
-                    a.grade_name.localeCompare(b.grade_name)
+                    a.grade_name.localeCompare(b.grade_name) ||
+                    a.name.localeCompare(b.name)
                 )
                 .map((course: any) => (
                   <label key={course.id} className="class-form-multi-option">
