@@ -38,11 +38,12 @@ import {
 } from "./utility/WindowsSpeech";
 import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 import { Util } from "./utility/util";
-import { CAN_HOT_UPDATE, CURRENT_USER, EVENTS, IS_OPS_USER } from "./common/constants";
+import { CAN_HOT_UPDATE, CURRENT_USER, EVENTS, IS_OPS_USER, VERSION_KEY } from "./common/constants";
 import { GbProvider } from "./growthbook/Growthbook";
 import { initializeFireBase } from "./services/Firebase";
 import * as Sentry from "@sentry/capacitor";
 import * as SentryReact from "@sentry/react";
+import { Preferences } from "@capacitor/preferences";
 
 Sentry.init(
   {
@@ -81,9 +82,28 @@ try {
   console.error("Error retrieving user ID for Sentry:", error);
 }
 if (userId) Sentry.setUser({ id: userId });
-
-if (Capacitor.isNativePlatform()) {
-   LiveUpdate.ready().catch(console.error);
+const isNativePlatform = Capacitor.isNativePlatform();
+  // This function checks if the native version has changed, sets new version in preferences and resets the hot update bundle.
+if (isNativePlatform) {
+  try {
+    async function checkNativeVersionAndReset() {
+      const { versionName } = await LiveUpdate.getVersionName();
+      const { value: storedVersion } = await Preferences.get({
+        key: VERSION_KEY,
+      });
+      if (versionName !== storedVersion) {
+        console.log("⚠️ APK version changed → clearing old hot update bundle");
+        // reset the hot update bundle
+        await LiveUpdate.reset();
+        // store new version
+        await Preferences.set({ key: VERSION_KEY, value: versionName });
+      }
+    }
+    await checkNativeVersionAndReset();
+    await LiveUpdate.ready();
+  } catch (error) {
+    console.error("Error in checkNativeVersionAndReset() or LiveUpdate.ready()", error);
+  }
 }
 
 // Extend React's JSX namespace to include Stencil components
@@ -168,12 +188,19 @@ const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
 async function checkForUpdate() {
   let majorVersion = "0";
   try {
-    if (Capacitor.isNativePlatform() && gb.isOn(CAN_HOT_UPDATE)) {
+    if (isNativePlatform && gb.isOn(CAN_HOT_UPDATE)) {
       const { versionName } = await LiveUpdate.getVersionName();
       majorVersion = versionName.split(".")[0];
-      const { bundleId: currentBundleId } = await LiveUpdate.getCurrentBundle();
-      const result = await LiveUpdate.fetchLatestBundle({ channel: `${process.env.REACT_APP_ENV}-${majorVersion}` });
-      if (result.bundleId && currentBundleId !== result.bundleId) {
+      const { bundleId: currentBundleId } =
+      await LiveUpdate.getCurrentBundle();
+      const result = await LiveUpdate.fetchLatestBundle({
+        channel: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+      });
+      let isUpdateAllowed = false;
+      if (result.customProperties && result.customProperties.version) {
+        isUpdateAllowed = Util.isVersionAllowed(result.customProperties.version, versionName);
+      }
+      if (result.bundleId && currentBundleId !== result.bundleId && isUpdateAllowed) {
         console.log("🚀 LiveUpdate fetch latest bundle result", result);
         Util.logEvent(EVENTS.LIVE_UPDATE_STARTED, {
           user_id: userId,
@@ -225,7 +252,9 @@ if (isOpsUser) {
   );
   SplashScreen.hide();
   setTimeout(() => {
+    if(isNativePlatform){
       checkForUpdate();
+    }
   }, 500);
 } else {
   SplashScreen.hide();
@@ -240,7 +269,9 @@ if (isOpsUser) {
     );
     SplashScreen.hide();
     setTimeout(() => {
+    if(isNativePlatform){
       checkForUpdate();
+    }
     }, 500);
   });
 }

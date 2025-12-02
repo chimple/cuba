@@ -11,7 +11,7 @@
 .class-form-container {
   background: #fff;
   width: 460px;
-  height: 480px;
+  height: 370px;
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
@@ -39,7 +39,9 @@
   flex: 1;
   margin-bottom: 16px;
   color: #000;
+  position: relative; /* ✅ Add this */
 }
+
 
 .class-form-full-width {
   width: 100%;
@@ -48,7 +50,7 @@
 .class-form-group label {
   font-size: 14px;
   font-weight: 500;
-  margin-bottom: 6px;
+  /* margin-bottom: 6px; */
   color: #000;
 }
 
@@ -162,4 +164,62 @@
   background: #ffe6e6;
   border-radius: 6px;
   font-size: 12px;
+}
+
+.multi-select-input {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #fff;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+}
+/* Fix the dropdown width to match trigger */
+.class-form-multi-dropdown {
+  position: absolute;
+  top: calc(100% + 4px); /* ⬇ Drop-down below input */
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 1000;
+}
+
+.class-form-multi-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 0px 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.class-option-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column; /* ⬅ ensures stacked text */
+  min-width: 0;
+}
+
+.class-form-subject {
+  font-weight: 600;
+}
+
+.class-form-sub {
+  font-size: 12px;
+  color: #666;
+  white-space: normal; 
+}
+.class-form-checkbox {
+  flex-shrink: 0;
+  margin-top: 10px;
+}
+.rotate {
+  transform: rotate(180deg);
 }

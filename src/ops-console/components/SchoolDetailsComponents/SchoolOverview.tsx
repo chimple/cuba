@@ -8,7 +8,8 @@ import InfoCard from "../InfoCard";
 import DetailItem from "../DetailItem";
 import ContactCard from "../ContactCard";
 import { BsBoxArrowUpRight } from "react-icons/bs";
-import { PROGRAM_TAB_LABELS } from "../../../common/constants";
+import { PAGES, PROGRAM_TAB_LABELS } from "../../../common/constants";
+import { useHistory } from "react-router";
 
 interface SchoolOverviewProps {
   data: any;
@@ -22,8 +23,8 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
     { label: "School ID (UDISE)", value: data.schoolData?.udise },
     { label: "State", value: data.schoolData?.group1 },
     { label: "District", value: data.schoolData?.group2 },
-    { label: "Cluster", value: data.schoolData?.group4 },
     { label: "Block", value: data.schoolData?.group3 },
+    { label: "Cluster", value: data.schoolData?.group4 },
   ].filter((item) => item.value !== undefined && item.value !== null);
 
   // school address details
@@ -81,6 +82,18 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
     { label: "Active Teachers", value: `${activeTeachers}%` },
   ].filter((item) => item.value !== undefined && item.value !== null);
 
+  const history = useHistory();
+  let keyContacts: Array<any> = [];
+  const rawKeyContacts = data?.schoolData?.key_contacts;
+  if (rawKeyContacts) {
+    try {
+      keyContacts = typeof rawKeyContacts === "string" ? JSON.parse(rawKeyContacts) : rawKeyContacts;
+      if (!Array.isArray(keyContacts)) keyContacts = [];
+    } catch (e) {
+      keyContacts = [];
+    }
+  }
+
   return (
     <div className="school">
       {isMobile ? (
@@ -116,22 +129,36 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             title={t("Key Contacts")}
             children={
               <Box className="principal-list">
-                {data.principals?.map((principal, idx) => (
-                  <ContactCard
-                    key={idx}
-                    name={principal.name}
-                    role={"Principal"}
-                    phone={principal.phone || principal.email}
-                  />
-                ))}
-                {data.coordinators?.map((coordinator, idx) => (
-                  <ContactCard
-                    key={idx}
-                    name={coordinator.name}
-                    role={"Coordinator"}
-                    phone={coordinator.phone || coordinator.email}
-                  />
-                ))}
+            {(() => {
+                  const contactsToShow =
+                    keyContacts && keyContacts.length
+                      ? keyContacts.map((c: any) => ({
+                          name: c.name,
+                          phone: c.phone || c.email,
+                          role: c.role || t("Key Contact"),
+                        }))
+                      : [
+                          ...(data.principals?.map((p: any) => ({
+                            name: p.name,
+                            phone: p.phone || p.email,
+                            role: t("Principal"),
+                          })) || []),
+                          ...(data.coordinators?.map((c: any) => ({
+                            name: c.name,
+                            phone: c.phone || c.email,
+                            role: t("Coordinator"),
+                          })) || []),
+                        ];
+
+                  return contactsToShow.map((contact: any, idx: number) => (
+                    <ContactCard
+                      key={idx}
+                      name={contact.name}
+                      role={contact.role}
+                      phone={contact.phone}
+                    />
+                  ));
+                })()}
               </Box>
             }
           />
@@ -139,6 +166,13 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             title={t("School Details")}
             className="school-detail-infocard school-card"
             items={schoolDetailsItems}
+            showEditIcon={true}
+            onEditClick={() =>
+              history.replace(
+                `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
+                data
+              )
+            }
           />
           {/* <Box position="relative" width="100%">
             <InfoCard title={t("Address & Location")} className="address-card">
@@ -206,6 +240,13 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                 title={t("School Details")}
                 className="school-detail-infocard school-card"
                 items={schoolDetailsItems}
+                showEditIcon={true}
+                onEditClick={() =>
+                  history.replace(
+                    `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
+                    data
+                  )
+                }
               />
               {/* <Box position="relative" width="100%">
                 <InfoCard
@@ -246,22 +287,37 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                 title={t("Key Contacts")}
                 children={
                   <Box className="principal-list">
-                    {data.principals?.map((principal, idx) => (
-                      <ContactCard
-                        key={idx}
-                        name={principal.name}
-                        role={"Principal"}
-                        phone={principal.phone || principal.email}
-                      />
-                    ))}
-                    {data.coordinators?.map((coordinator, idx) => (
-                      <ContactCard
-                        key={idx}
-                        name={coordinator.name}
-                        role={"Coordinator"}
-                        phone={coordinator.phone || coordinator.email}
-                      />
-                    ))}
+                   {(() => {
+                      const contactsToShow =
+                        keyContacts && keyContacts.length
+                          ? keyContacts.map((c: any) => ({
+                              name: c.name,
+                              phone: c.phone || c.email,
+                              role: c.role || t("Key Contact"),
+                            }))
+                          : 
+                          [
+                              ...(data.principals?.map((p: any) => ({
+                                name: p.name,
+                                phone: p.phone || p.email,
+                                role: t("Principal"),
+                              })) || []),
+                              ...(data.coordinators?.map((c: any) => ({
+                                name: c.name,
+                                phone: c.phone || c.email,
+                                role: t("Coordinator"),
+                              })) || []),
+                            ];
+
+                      return contactsToShow.map((contact: any, idx: number) => (
+                        <ContactCard
+                          key={idx}
+                          name={contact.name}
+                          role={contact.role}
+                          phone={contact.phone}
+                        />
+                      ));
+                    })()}
                   </Box>
                 }
               />

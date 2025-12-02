@@ -943,7 +943,8 @@ export const HOMEWORK_REMOTE_ASSETS_ENABLED = "homework_remote_assets_enabled";
 export const LEARNING_PATH_ASSETS = "learning_path_assets";
 export const HOMEWORK_PATHWAY_ASSETS = "homework_pathway_assets";
 export const SHOULD_SHOW_REMOTE_ASSETS = "shouldShowRemoteAssets";
-export const SHOULD_SHOW_HOMEWORK_REMOTE_ASSETS = "shouldShowHomeworkRemoteAssets";
+export const SHOULD_SHOW_HOMEWORK_REMOTE_ASSETS =
+  "shouldShowHomeworkRemoteAssets";
 export const HOMEWORK_PATHWAY_DROPDOWN = "homework_pathway_dropdown";
 export const HOMEWORK_PATHWAY = "homework_pathway";
 export const CHIMPLE_ENGLISH = "63e40488-3c1a-47ab-aa8a-6f07ad21709f";
@@ -1003,6 +1004,10 @@ export interface StudentInfo {
   grade: number;
   classSection: string;
   parent: TableTypes<"user"> | null;
+  classWithidname?: {
+    id: string;
+    name: string;
+  };
 }
 export interface StudentAPIResponse {
   data: StudentInfo[];
@@ -1092,3 +1097,4 @@ export const OPS_ROLES = [
   RoleType.FIELD_COORDINATOR,
 ];
 export const CAN_HOT_UPDATE = "can-Hot-Update";
+export const VERSION_KEY = "last_native_version";

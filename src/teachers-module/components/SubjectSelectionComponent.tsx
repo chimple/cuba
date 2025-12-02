@@ -76,6 +76,7 @@ const SubjectSelectionComponent: React.FC<SubjectSelectionProps> = ({
                 </div>
                 <IonIcon
                   icon={isSelected ? checkmarkCircle : ellipseOutline}
+                  id="checkbox-sub"
                   className={`subject-page-checkbox ${
                     isSelected ? "selected" : ""
                   }`}

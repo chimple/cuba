@@ -56,7 +56,7 @@ const ContactFormSection: React.FC<ContactFormSectionProps> = ({
                 textAlign: "left",
               }}
             >
-              {contact.subheader} {contact.required ? "*" : ""}
+              {contact.subheader} {contact.required ? <span style={{ color: "red" }}>*</span> : ""}
             </Typography>
 
             <Grid container spacing={2}>
@@ -72,7 +72,7 @@ const ContactFormSection: React.FC<ContactFormSectionProps> = ({
                       textAlign: "left",
                     }}
                   >
-                    {field.label} {field.required ? "*" : ""}
+                    {field.label}
                   </Typography>
                   <TextField
                     fullWidth

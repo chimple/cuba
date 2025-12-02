@@ -9,7 +9,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS } from "../../common/constants";
+import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS, USER_ROLE } from "../../common/constants";
 import "./SchoolList.css";
 import DataTablePagination from "../components/DataTablePagination";
 import DataTableBody, { Column } from "../components/DataTableBody";
@@ -21,6 +21,7 @@ import FileUpload from "../components/FileUpload";
 import { FileUploadOutlined, Add } from "@mui/icons-material";
 import { BsFillBellFill } from "react-icons/bs";
 import { useLocation, useHistory } from "react-router";
+import { RoleType } from "../../interface/modelInterfaces";
 
 const filterConfigsForSchool = [
   { key: "partner", label: t("Select Partner") },
@@ -99,6 +100,18 @@ const SchoolList: React.FC = () => {
 
   const isSmallScreen = useMediaQuery("(max-width: 900px)");
 
+  const userRoles = JSON.parse(
+    localStorage.getItem(USER_ROLE) || "[]"
+  );
+  const rolesWithAccess = [
+    RoleType.SUPER_ADMIN,
+    RoleType.OPERATIONAL_DIRECTOR,
+    RoleType.PROGRAM_MANAGER,
+  ];
+  const haveAccess = userRoles.some((role) =>
+    rolesWithAccess.includes(role as RoleType)
+  );
+
   useEffect(() => {
     const params = new URLSearchParams();
     if (selectedTab !== PROGRAM_TAB.ALL) params.set("tab", String(selectedTab));
@@ -163,7 +176,6 @@ const SchoolList: React.FC = () => {
         order_dir: orderDir,
         search: searchTerm,
       });
-
       const data = response?.data || [];
       setTotal(response?.total || 0);
 
@@ -186,7 +198,11 @@ const SchoolList: React.FC = () => {
                 color="text.secondary"
                 fontSize={"12px"}
               >
-                {school.district || ""}
+                {school.udise_code || school.district
+                  ? `${school.udise_code ?? ""} - ${
+                      school.district ?? ""
+                    }`.trim()
+                  : ""}
               </Typography>
             </Box>
           ),
@@ -327,14 +343,14 @@ const SchoolList: React.FC = () => {
             </div>
 
             <div className="school-list-button-and-search-filter">
+              {haveAccess &&
               <Button
                 variant="outlined"
                 onClick={() => {
                   history.push({
-                    pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`
+                    pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
                   });
                 }}
-
                 sx={{
                   borderColor: "#e0e0e0",
                   border: "1px solid",
@@ -347,13 +363,14 @@ const SchoolList: React.FC = () => {
                 }}
               >
                 <Add className="school-list-upload-icon" />
-                
+
                 {!isSmallScreen && (
                   <span className="school-list-upload-text1">
                     {t("Add School")}
                   </span>
                 )}
               </Button>
+              }
               <Button
                 variant="outlined"
                 onClick={() => setShowUploadPage(true)}
@@ -439,23 +456,25 @@ const SchoolList: React.FC = () => {
             filterConfigs={filterConfigsForSchool}
           />
         </div>
+        <div
+          className={`school-list-table-container ${
+            !isLoading && schools.length === 0 ? "school-list-no-schools" : ""
+          }`}
+        >
+          {!isLoading && schools.length > 0 && (
+            <DataTableBody
+              columns={columns}
+              rows={schools}
+              orderBy={orderBy}
+              order={orderDir}
+              onSort={handleSort}
+              loading={isLoading}
+            />
+          )}
 
-        <div className="school-list-table-container">
-          <DataTableBody
-            columns={columns}
-            rows={schools}
-            orderBy={orderBy}
-            order={orderDir}
-            onSort={handleSort}
-            loading={isLoading}
-          />
+          {!isLoading && schools.length === 0 && t("No schools found.")}
         </div>
 
-        {!isLoading && schools.length === 0 && (
-          <Typography align="center" sx={{ mt: 4 }}>
-            {t("No schools found.")}
-          </Typography>
-        )}
         {!isLoading && schools.length > 0 && (
           <div className="school-list-footer">
             <DataTablePagination

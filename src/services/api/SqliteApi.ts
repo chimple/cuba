@@ -85,7 +85,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = "db_issue10";
-  private DB_VERSION = 6;
+  private DB_VERSION = 7;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<"user"> | undefined;
@@ -6896,7 +6896,7 @@ order by
         id: schoolId,
         model: schoolModel,
         location_link: locationLink ?? null,
-        key_contacts: keyContacts ?? null,
+        key_contacts: JSON.stringify(keyContacts) ?? null,
         updated_at: timestamp
       };
 
@@ -6909,6 +6909,71 @@ order by
     } catch (error) {
       console.error("❌ Error inserting school details:", error);
     }
+  }
+
+  async updateClassCourses(
+    classId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> {
+    try {
+      const timestamp = new Date().toISOString();
+      const deleteQuery = `
+        UPDATE class_course
+        SET is_deleted = 1, updated_at = ?
+        WHERE class_id = ? AND is_deleted = 0;
+      `;
+      await this.executeQuery(deleteQuery, [timestamp, classId]);
+      for (const courseId of selectedCourseIds) {
+        const id = uuidv4();
+
+        const insertQuery = `
+          INSERT INTO class_course (
+            id,
+            class_id,
+            course_id,
+            created_at,
+            updated_at,
+            is_deleted
+          )
+          VALUES (?, ?, ?, ?, ?, 0);
+        `;
+
+        await this.executeQuery(insertQuery, [
+          id,
+          classId,
+          courseId,
+          timestamp,
+          timestamp
+        ]);
+        this.updatePushChanges(
+          TABLES.ClassCourse,
+          MUTATE_TYPES.INSERT,
+          {
+            id,
+            class_id: classId,
+            course_id: courseId,
+            created_at: timestamp,
+            updated_at: timestamp,
+            is_deleted: 0
+          }
+        );
+      }
+
+    } catch (error) {
+      console.error("❌ Error replacing class courses:", error);
+    }
+  }
+  public async addStudentWithParentValidation(params: {
+    phone: string;
+    name: string;
+    gender: string;
+    age: string;
+    classId: string;
+    schoolId?: string;
+    parentName?: string;
+    email?: string;
+  }): Promise<{ success: boolean; message: string; data?: any }> {
+    return this._serverApi.addStudentWithParentValidation(params);
   }
 
 }

@@ -370,14 +370,33 @@ export class Util {
 
     localStorage.setItem(lessonIdStorageKey, JSON.stringify(updatedItems));
   };
+  public static async getLessonPath({ lessonId }): Promise<string | null> {
+    const gameUrl = localStorage.getItem("gameUrl");
 
-  public static async getLessonPath(lessonId: string): Promise<string> {
-    const path =
-      (localStorage.getItem("gameUrl") ??
-        "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-      lessonId +
-      "/";
-    return path;
+    const exists = async (path: string) => {
+      try {
+        const res = await fetch(path);
+        return res.ok;
+      } catch {
+        return false;
+      }
+    };
+    if (gameUrl?.startsWith(LOCAL_BUNDLES_PATH)) {
+      const path = `/assets/lessonBundles/${lessonId}/index.xml`;
+      if (await exists(path)) return `/assets/lessonBundles/${lessonId}/`;
+    }
+
+    if (await exists(`/assets/lessonBundles/${lessonId}/index.xml`)) {
+      return `/assets/lessonBundles/${lessonId}/`;
+    }
+
+    const androidBase = await this.getAndroidBundlePath();
+    if (androidBase && (await exists(`${androidBase}${lessonId}/index.xml`))) {
+      return `${androidBase}${lessonId}/`;
+    }
+
+    console.error("Lesson bundle not found :", lessonId);
+    return null;
   }
 
   public static async downloadZipBundle(
