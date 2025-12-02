@@ -4000,6 +4000,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      sql_sync_all: {
+          Args: { p_tables?: string[]; p_updated_at?: Json }
+          Returns: Json
+      }
       update_class_firebase_trigger: {
         Args: {
           p_course_firebase_ids: string[]
