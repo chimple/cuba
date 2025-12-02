@@ -3656,7 +3656,7 @@ export class SupabaseApi implements ServiceApi {
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw new Error("User is not Logged in");
 
-    const updateData: any = { name: className };
+    const updateData: any = { name: className, updated_at: new Date().toISOString()};
     if (groupId !== undefined) updateData.group_id = groupId;
 
     const { error } = await this.supabase

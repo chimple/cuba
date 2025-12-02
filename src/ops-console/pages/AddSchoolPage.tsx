@@ -37,6 +37,7 @@ const AddSchoolPage: React.FC = () => {
   const [isDistrictsLoading, setDistrictsLoading] = useState(false);
   const [isBlocksLoading, setBlocksLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [initialData, setInitialData] = useState<any>(null);
 
   const [address, setAddress] = useState({
     state: "",
@@ -87,7 +88,10 @@ const AddSchoolPage: React.FC = () => {
     let parsedKeyContacts = [];
     if (rawKeyContacts) {
       try {
-        parsedKeyContacts = typeof rawKeyContacts === "string" ? JSON.parse(rawKeyContacts) : rawKeyContacts;
+        parsedKeyContacts =
+          typeof rawKeyContacts === "string"
+            ? JSON.parse(rawKeyContacts)
+            : rawKeyContacts;
         if (!Array.isArray(parsedKeyContacts)) parsedKeyContacts = [];
       } catch (e) {
         parsedKeyContacts = [];
@@ -95,7 +99,10 @@ const AddSchoolPage: React.FC = () => {
     }
 
     if (parsedKeyContacts.length) {
-      const contactsArray = [parsedKeyContacts[0] || {}, parsedKeyContacts[1] || {}];
+      const contactsArray = [
+        parsedKeyContacts[0] || {},
+        parsedKeyContacts[1] || {},
+      ];
 
       setContacts(
         contactsArray.map((c: any, i: number) => ({
@@ -133,6 +140,46 @@ const AddSchoolPage: React.FC = () => {
     }
     fetch();
   }, [editData]);
+  useEffect(() => {
+    if (!editData) return;
+    if (!program) return;
+    if (fieldCoordinator === null) return;
+    if (initialData) return; // Prevent reset once initialized
+
+    const school = editData.schoolData;
+
+    setInitialData({
+      schoolName: school?.name || "",
+      udise: school?.udise || "",
+      schoolModel: school?.model || "",
+      address: {
+        state: school?.group1 || "",
+        district: school?.group2 || "",
+        block: school?.group3 || "",
+        cluster: school?.group4 || "",
+        address: school?.address || "",
+        link: school?.location_link || "",
+      },
+      programId: editData.programData?.id || null,
+      fieldCoordinatorId: fieldCoordinator?.id || null,
+      contacts: contacts.map((c) => c.fields.map((f) => f.value || "")),
+    });
+  }, [editData, program, fieldCoordinator]);
+
+  const hasChanges = () => {
+    if (!initialData) return false;
+    const currentData = {
+      schoolName,
+      udise,
+      schoolModel,
+      address,
+      programId: program?.id,
+      fieldCoordinatorId: fieldCoordinator?.id,
+      contacts: contacts.map((c) => c.fields.map((f) => f.value || "")),
+    };
+
+    return JSON.stringify(initialData) !== JSON.stringify(currentData);
+  };
 
   const handleAddressChange = (name: string, value: string) => {
     setAddress((prev) => {
@@ -169,19 +216,21 @@ const AddSchoolPage: React.FC = () => {
   };
 
   const isSaveDisabled = () => {
-    return (
-      !schoolName ||
-      !udise ||
-      !schoolModel ||
-      !address.state ||
-      !address.district ||
-      !program ||
-      !fieldCoordinator ||
-      !contacts[0].fields[0].value ||
-      !contacts[0].fields[1].value ||
-      errorMessage !== ""
-    );
+    const isFormValid =
+      !!schoolName &&
+      !!udise &&
+      !!schoolModel &&
+      !!address.state &&
+      !!address.district &&
+      !!program &&
+      !!fieldCoordinator &&
+      !!contacts[0].fields[0].value &&
+      !!contacts[0].fields[1].value &&
+      !errorMessage;
+
+    return editData ? !isFormValid || !hasChanges() : !isFormValid;
   };
+
   const handleUdiseChange = async (value: string) => {
     value = value.replace(/\D/g, "").slice(0, 11);
     setUdise(value);
@@ -641,7 +690,7 @@ const AddSchoolPage: React.FC = () => {
             onClick={handleApprove}
             disabled={isSaveDisabled() || isSaving}
           >
-            {isSaving ? t("Saving")+"..." : t("Save")}
+            {isSaving ? t("Saving") + "..." : t("Save")}
           </button>
         </div>
       </div>
