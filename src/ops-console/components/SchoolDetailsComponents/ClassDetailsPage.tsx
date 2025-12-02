@@ -171,7 +171,7 @@ const ClassDetailsPage: React.FC<Props> = ({
           data={{
             students: initialStudents,
             totalStudentCount: initialTotal,
-            classdata: classRow ? [classRow] : undefined,
+            classData: classRow ? [classRow] : undefined,
           }}
           schoolId={schoolId}
           isMobile={isMobile}
