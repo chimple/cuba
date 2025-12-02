@@ -187,6 +187,7 @@ const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
 
 async function checkForUpdate() {
   let majorVersion = "0";
+  const maxRetries = 5;
   try {
     if (isNativePlatform && gb.isOn(CAN_HOT_UPDATE)) {
       const { versionName } = await LiveUpdate.getVersionName();
@@ -211,6 +212,16 @@ async function checkForUpdate() {
           app_version: versionName,
           update_type: result.artifactType,
         });
+        let attempt = 0;
+        let success = false;
+
+        while (attempt < maxRetries && !success) {
+        attempt++;
+
+        try {
+        // Check online/offline
+        if (!navigator.onLine)  return;
+        console.log(`🔁 LiveUpdate SYNC attempt ${attempt}/${maxRetries}`);
         const start = performance.now();
         await LiveUpdate.sync({channel: `${process.env.REACT_APP_ENV}-${majorVersion}`});
         const totalEnd = performance.now();
@@ -225,7 +236,28 @@ async function checkForUpdate() {
           update_type: result.artifactType,
         });
         console.log(`🚀 LiveUpdate: Update applied successfully to bundle ${ result.bundleId}`);
-        console.log(`⏱️ Total time taken to download and set nextBundle ID: ${( totalEnd - start ).toFixed(2)} ms`);;
+        console.log(`⏱️ Total time taken to download and set nextBundle ID: ${( totalEnd - start ).toFixed(2)} ms`);
+        success = true;
+        } catch (err: any) {
+            const msg = (err?.message || "").toLowerCase();
+            console.error(`❌ Sync attempt ${attempt} failed`, err);
+
+
+            if (attempt === maxRetries) {
+              console.error("❌ All retry attempts failed");
+              Util.logEvent(EVENTS.LIVE_UPDATE_ERROR, {
+                user_id: userId,
+                timestamp: new Date().toISOString(),
+                channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+                error: JSON.stringify(err),
+                retries: attempt,
+            });
+            } else {
+              // Wait before retry
+              await new Promise((res) => setTimeout(res, 3000));
+            }
+          }
+        }
       } else {
         console.log("🚀 LiveUpdate: No new update available, Current applied bundleID: ", currentBundleId);
       }
