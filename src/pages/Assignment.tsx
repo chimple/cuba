@@ -114,6 +114,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     [api]
   );
 
+  
   const init = useCallback(
     async (fromCache: boolean = true, fullRefresh: boolean = true) => {
       if (fullRefresh) setLoading(true);
@@ -123,119 +124,63 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
         history.replace(PAGES.SELECT_MODE);
         return;
       }
-
-      let resolvedClass: TableTypes<"class"> | null = null;
-      let resolvedSchoolName = "";
-
-      // -----------------------------------------
-      // 1️⃣ Try to load class from localStorage first
-      // -----------------------------------------
-      const cachedClassStr = localStorage.getItem(CURRENT_CLASS);
-      const cachedSchoolStr = localStorage.getItem(CURRENT_SCHOOL);
-
-      if (cachedClassStr) {
-        try {
-          const cachedClass = JSON.parse(cachedClassStr);
-
-          resolvedClass = cachedClass;
-        } catch (err) {
-          console.error("Error parsing cached class:", err);
-        }
-      }
-
-      if (cachedSchoolStr) {
-        try {
-          const cachedSchool = JSON.parse(cachedSchoolStr);
-
-          resolvedSchoolName =
-            typeof cachedSchool === "string"
-              ? cachedSchool
-              : cachedSchool.name || "";
-        } catch (err) {
-          console.error("Error parsing cached school:", err);
-        }
-      }
-
-      // -----------------------------------------
-      // 2️⃣ If no class in localStorage → call API
-      // -----------------------------------------
-      if (!resolvedClass) {
-        try {
-          const linkedData = await api.getStudentClassesAndSchools(student.id);
-
-          if (linkedData?.classes?.length) {
-            const classDoc = linkedData.classes[0];
-            const schoolNameFromApi =
-              linkedData.schools.find((s) => s.id === classDoc.school_id)
-                ?.name || "";
-
-            resolvedClass = classDoc;
-            resolvedSchoolName = schoolNameFromApi;
-
-            // Store for future offline use
-            localStorage.setItem("CURRENT_CLASS", JSON.stringify(classDoc));
-            localStorage.setItem(
-              "CURRENT_SCHOOL",
-              JSON.stringify({ name: schoolNameFromApi })
-            );
-          }
-        } catch (err) {
-          console.warn("API unreachable (offline probably)", err);
-        }
-      }
-
-      // -----------------------------------------
-      // 3️⃣ If STILL no class → user not linked
-      // -----------------------------------------
-      if (!resolvedClass) {
+      const linkedData = await api.getStudentClassesAndSchools(student.id);
+      if (!linkedData?.classes.length) {
         setIsLinked(false);
         setLoading(false);
         return;
       }
-
-      // -----------------------------------------
-      // 4️⃣ Class found → treat as linked
-      // -----------------------------------------
-      setIsLinked(true);
-      setCurrentClass(resolvedClass);
-      setSchoolName(resolvedSchoolName);
-
-      // Continue with loading assignments like before
-      const classId = resolvedClass.id;
+      const classDoc = linkedData.classes[0];
+      setCurrentClass(classDoc);
+      setSchoolName(
+        linkedData.schools.find((s) => s.id === classDoc.school_id)?.name || ""
+      );
+      const classId = classDoc.id;
       const studentId = student.id;
-
+      // Fetch assignments
+      let allAssignments: TableTypes<"assignment">[] = [];
       try {
         const all = await api.getPendingAssignments(classId, studentId);
-        const finalAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
-
-        setAssignments(finalAssignments);
-        assignmentCount(finalAssignments.length);
-
-        await updateLessonChapterAndCourseMaps(finalAssignments);
-
-        const lessonData = await Promise.all(
-          finalAssignments.map((a) => api.getLesson(a.lesson_id))
+        const allAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
+        // Update only if length or content has changed
+        const assignmentIds = assignments.map((a) => a.id);
+        const newAssignments = allAssignments.filter(
+          (a) => !assignmentIds.includes(a.id)
         );
+        const updatedAssignments = fullRefresh
+          ? allAssignments
+          : [...assignments, ...newAssignments];
 
-        const filteredLessons = lessonData.filter(
+        setAssignments(updatedAssignments);
+        assignmentCount(updatedAssignments.length);
+
+
+        await updateLessonChapterAndCourseMaps(updatedAssignments);
+
+        const lessonPromises = newAssignments.map(async (assignment) => {
+          return await api.getLesson(assignment.lesson_id);
+        });
+        const lessonList = await Promise.all(lessonPromises);
+        const filteredLessons = lessonList.filter(
           (lesson): lesson is TableTypes<"lesson"> => lesson !== undefined
         );
-
-        setLessons(filteredLessons);
+        const mergedLessons = fullRefresh
+          ? filteredLessons
+          : [...lessons, ...filteredLessons];
+        setLessons(mergedLessons);
       } catch (error) {
-        console.error("Failed to load assignments:", error);
+        console.error("Failed to load pending assignments:", error);
+        if (fullRefresh) {
+          setAssignments([]);
+          assignmentCount(0);
+          setLessonChapterMap({});
+          setAssignmentLessonCourseMap({});
+        }
       }
-
       setLoading(false);
+      setIsLinked(true);
     },
-    [
-      api,
-      history,
-      assignmentCount,
-      updateLessonChapterAndCourseMaps,
-      assignments,
-      lessons,
-    ]
+    [api, history, assignmentCount, updateLessonChapterAndCourseMaps]
   );
 
   // --- Debounced handler for assignment updates ---
