@@ -53,14 +53,15 @@ interface DisplayStudent {
 }
 
 const getPerformanceChipClass = (performance: string): string => {
-  switch (performance) {
-    case "Doing Good":
+  const normalizedPerf = performance.toLowerCase().replace(/ /g, "_");
+  switch (normalizedPerf) {
+    case PerformanceLevel.DOING_GOOD:
       return "performance-chip-doing-good";
-    case "Need Help":
+    case PerformanceLevel.NEED_HELP:
       return "performance-chip-need-help";
-    case "Still Learning":
+    case PerformanceLevel.STILL_LEARNING:
       return "performance-chip-still-learning";
-    case "Not Tracked":
+    case PerformanceLevel.NOT_TRACKED:
     default:
       return "performance-chip-not-tracked";
   }
@@ -70,7 +71,7 @@ interface SchoolStudentsProps {
   data: {
     students?: ApiStudentData[];
     totalStudentCount?: number;
-    classdata?: ClassRow[];
+    classData?: ClassRow[];
   };
   isMobile: boolean;
   schoolId: string;
@@ -345,8 +346,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       }
       setIsPerformanceLoading(true);
       const performanceMap = new Map<string, string>();
-      const currentClass = Array.isArray(data.classdata)
-        ? data.classdata[0]
+      const currentClass = Array.isArray(data.classData)
+        ? data.classData[0]
         : undefined;
       const classId = currentClass?.id ?? "";
       try {
@@ -575,20 +576,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   }, [issTotal]);
 
   const classOptions = useMemo(() => {
-    if (!baseStudents || baseStudents.length === 0) return [];
-    const classMap = new Map<string, string>();
-    baseStudents.forEach((student: any) => {
-      const classInfo = student.classWithidname;
-      if (!classInfo || !classInfo.id || !classInfo.name) return;
-      if (!classMap.has(classInfo.id)) {
-        classMap.set(classInfo.id, classInfo.name);
-      }
-    });
-
-    return Array.from(classMap.entries())
-      .map(([value, label]) => ({ value, label }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }, [baseStudents]);
+    const classes = data.classData || (data as any).classdata || [];
+    console.log("SchoolStudents classData:", classes);
+    if (!classes || classes.length === 0) return [];
+    return classes
+      .map((c: any) => ({ value: c.id, label: c.name }))
+      .filter((opt: any) => opt.value && opt.label)
+      .sort((a: any, b: any) => a.label.localeCompare(b.label));
+  }, [data.classData, (data as any).classdata]);
 
   const currentClass = useMemo(() => {
     if (
