@@ -200,9 +200,7 @@ const JoinClass: FC<{
   return (
     <div className="join-class-parent-container">
       <div
-        className={`assignment-join-class-container-scroll ${
-          isInputFocus ? "shift-up" : ""
-        }`}
+        className={`assignment-join-class-container-scroll`}
         ref={containerRef}
       >
         <h2>{t("Join a Class by entering the details below")}</h2>
