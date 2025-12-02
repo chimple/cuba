@@ -62,6 +62,8 @@ import {
   DAILY_USER_REWARD,
   REWARD_LEARNING_PATH,
   HOMEWORK_PATHWAY,
+  STARS_COUNT,
+  LATEST_STARS,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -570,95 +572,100 @@ export class Util {
     throw new Error("Invalid data type — expected string or Blob");
   }
 
- // In your Util.ts file
+  // In your Util.ts file
 
-// ✅ Renamed and made generic
-public static async DownloadRemoteAssets(
-  zipUrl: string,
-  uniqueId: string,
-  destinationPath: string, // e.g., 'remoteAsset'
-  assetType: string // e.g., 'Learning Path'
-): Promise<boolean> {
-  try {
-    if (!Capacitor.isNativePlatform()) return true;
-
-    const fs = createFilesystem(Filesystem, {
-      rootDir: "",
-      directory: Directory.External,
-    });
-    const androidPath = await this.getAndroidBundlePath();
-    
-    // ✅ Use the dynamic destinationPath parameter
-    const configPath = `${destinationPath}/config.json`;
-
-    // Logic for reading config.json
+  // ✅ Renamed and made generic
+  public static async DownloadRemoteAssets(
+    zipUrl: string,
+    uniqueId: string,
+    destinationPath: string, // e.g., 'remoteAsset'
+    assetType: string // e.g., 'Learning Path'
+  ): Promise<boolean> {
     try {
-      const res = await fetch(configPath); // ✅ Use dynamic path
-      const isExists = res.ok;
-      if (isExists) {
-        const configFile = await Filesystem.readFile({
-          path: configPath, // ✅ Use dynamic path
-          directory: Directory.External,
-        });
+      if (!Capacitor.isNativePlatform()) return true;
 
-        const base64Data = await this.blobToString(configFile.data);
-        const decoded = atob(base64Data);
-        const config = JSON.parse(decoded);
+      const fs = createFilesystem(Filesystem, {
+        rootDir: "",
+        directory: Directory.External,
+      });
+      const androidPath = await this.getAndroidBundlePath();
 
-        if (config.uniqueId === uniqueId) {
-          console.log(`✅ ${assetType} assets are already up to date.`);
-          this.setGameUrl(androidPath);
-          return true;
+      // ✅ Use the dynamic destinationPath parameter
+      const configPath = `${destinationPath}/config.json`;
+
+      // Logic for reading config.json
+      try {
+        const res = await fetch(configPath); // ✅ Use dynamic path
+        const isExists = res.ok;
+        if (isExists) {
+          const configFile = await Filesystem.readFile({
+            path: configPath, // ✅ Use dynamic path
+            directory: Directory.External,
+          });
+
+          const base64Data = await this.blobToString(configFile.data);
+          const decoded = atob(base64Data);
+          const config = JSON.parse(decoded);
+
+          if (config.uniqueId === uniqueId) {
+            console.log(`✅ ${assetType} assets are already up to date.`);
+            this.setGameUrl(androidPath);
+            return true;
+          }
         }
+      } catch (err) {
+        console.warn(
+          `Could not read existing config for ${assetType}, proceeding with download.`
+        );
       }
-    } catch (err) {
-      console.warn(`Could not read existing config for ${assetType}, proceeding with download.`);
-    }
 
-    // Download and unzip
-    const response = await CapacitorHttp.get({
-      url: zipUrl,
-      responseType: "blob",
-    });
+      // Download and unzip
+      const response = await CapacitorHttp.get({
+        url: zipUrl,
+        responseType: "blob",
+      });
 
-    if (!response?.data || response.status !== 200) return false;
-    const buffer = Uint8Array.from(atob(response.data), (c) =>
-      c.charCodeAt(0)
-    );
-    await unzip({
-      fs,
-      extractTo: "", // The zip file itself should contain the destination folder
-      filepaths: ["."],
-      filter: (filepath: string) => !filepath.startsWith("dist/"),
-      onProgress: (event) => {
-        // ✅ Use the dynamic assetType parameter for clearer logging
-        console.log(`Unzipping ${assetType} assets:`, event.filename);
-      },
-      data: buffer,
-    });
-
-    // After unzip and extraction
-    const configFile = await Filesystem.readFile({
-      path: configPath, // ✅ Use dynamic path
-      directory: Directory.External,
-    });
-    const decoded = atob(await this.blobToString(configFile.data));
-    const config = JSON.parse(decoded);
-
-    // Important Note: Decide if this logic applies to BOTH asset types
-    if (typeof config.riveMax === "number") {
-      localStorage.setItem(
-        CHIMPLE_RIVE_STATE_MACHINE_MAX,
-        config.riveMax.toString()
+      if (!response?.data || response.status !== 200) return false;
+      const buffer = Uint8Array.from(atob(response.data), (c) =>
+        c.charCodeAt(0)
       );
+      await unzip({
+        fs,
+        extractTo: "", // The zip file itself should contain the destination folder
+        filepaths: ["."],
+        filter: (filepath: string) => !filepath.startsWith("dist/"),
+        onProgress: (event) => {
+          // ✅ Use the dynamic assetType parameter for clearer logging
+          console.log(`Unzipping ${assetType} assets:`, event.filename);
+        },
+        data: buffer,
+      });
+
+      // After unzip and extraction
+      const configFile = await Filesystem.readFile({
+        path: configPath, // ✅ Use dynamic path
+        directory: Directory.External,
+      });
+      const decoded = atob(await this.blobToString(configFile.data));
+      const config = JSON.parse(decoded);
+
+      // Important Note: Decide if this logic applies to BOTH asset types
+      if (typeof config.riveMax === "number") {
+        localStorage.setItem(
+          CHIMPLE_RIVE_STATE_MACHINE_MAX,
+          config.riveMax.toString()
+        );
+      }
+      this.setGameUrl(androidPath);
+      return true;
+    } catch (err) {
+      console.error(
+        `Unexpected error in DownloadRemoteAssets for ${assetType}:`,
+        err
+      );
+      return false;
     }
-    this.setGameUrl(androidPath);
-    return true;
-  } catch (err) {
-    console.error(`Unexpected error in DownloadRemoteAssets for ${assetType}:`, err);
-    return false;
   }
-}
 
   public static async deleteDownloadedLesson(
     lessonIds: string[]
@@ -2538,7 +2545,7 @@ public static async DownloadRemoteAssets(
   }
   public static async updateHomeworkPath(completedIndex?: number) {
     try {
-      const storedPath = sessionStorage.getItem(HOMEWORK_PATHWAY);
+      const storedPath = localStorage.getItem(HOMEWORK_PATHWAY);
       if (!storedPath) {
         console.error(
           "Could not find homework path in sessionStorage to update."
@@ -2557,10 +2564,10 @@ public static async DownloadRemoteAssets(
 
       // Check if the 5-lesson path is now complete
       if (newCurrentIndex >= homeworkPath.lessons.length) {
-        sessionStorage.removeItem(HOMEWORK_PATHWAY);
+        localStorage.removeItem(HOMEWORK_PATHWAY);
       } else {
         homeworkPath.currentIndex = newCurrentIndex;
-        sessionStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(homeworkPath));
+        localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(homeworkPath));
       }
     } catch (error) {
       console.error("Failed to update homework path:", error);
@@ -2685,106 +2692,179 @@ public static async DownloadRemoteAssets(
 
   // In Util.ts or your utility file
 
-public static async fetchCurrentClassAndSchool() : Promise<{ className: string, schoolName: string }> {
-  const currentStudent = Util.getCurrentStudent();
-  let className = "";
-  let schoolName = "";
-  if (currentStudent?.id) {
+  public static getLocalStarsForStudent(
+    studentId: string,
+    fallback: number = 0
+  ): number {
     try {
-      const api = ServiceConfig.getI().apiHandler;
-      const linkedData = await api.getStudentClassesAndSchools(currentStudent.id);
-      if (linkedData && linkedData.classes.length > 0) {
-        const classDoc = linkedData.classes[0];
-        className = classDoc.name || "";
+      const storedStarsJson = localStorage.getItem(STARS_COUNT);
+      const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
+      const localStarsRaw = storedStarsMap[studentId];
 
-        const schoolDoc = linkedData.schools.find(
-          (s: any) => s.id === classDoc.school_id
-        );
-        schoolName = schoolDoc?.name || "";
-      }
-    } catch (error) {
-      console.error("Error fetching class/school details:", error);
+      const latestStarsJson = localStorage.getItem(LATEST_STARS);
+      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
+      const latestStarsRaw = latestStarsMap[studentId];
+
+      const localStars = Number.isFinite(+localStarsRaw)
+        ? parseInt(localStarsRaw, 10)
+        : 0;
+      const latestStars = Number.isFinite(+latestStarsRaw)
+        ? parseInt(latestStarsRaw, 10)
+        : 0;
+
+      const bestLocal = Math.max(localStars, latestStars, fallback);
+      return bestLocal;
+    } catch (e) {
+      console.warn("[Util.getLocalStarsForStudent] failed, using fallback", e);
+      return fallback;
     }
   }
-  return { className, schoolName };
-}
 
-public static pickFiveHomeworkLessons(
-  assignments: any[],
-  completedCountBySubject: { [key: string]: number } = {}
-): any[] {
-  const pendingBySubject: { [key: string]: any[] } = {};
+  public static async fetchCurrentClassAndSchool(): Promise<{
+    className: string;
+    schoolName: string;
+  }> {
+    const currentStudent = Util.getCurrentStudent();
+    let className = "";
+    let schoolName = "";
+    if (currentStudent?.id) {
+      try {
+        const api = ServiceConfig.getI().apiHandler;
+        const linkedData = await api.getStudentClassesAndSchools(
+          currentStudent.id
+        );
+        if (linkedData && linkedData.classes.length > 0) {
+          const classDoc = linkedData.classes[0];
+          className = classDoc.name || "";
 
-  // Group pending (not completed) assignments per subject
-  assignments.forEach((a) => {
-    if (!a.completed) {
-      if (!pendingBySubject[a.subject_id]) {
-        pendingBySubject[a.subject_id] = [];
+          const schoolDoc = linkedData.schools.find(
+            (s: any) => s.id === classDoc.school_id
+          );
+          schoolName = schoolDoc?.name || "";
+        }
+      } catch (error) {
+        console.error("Error fetching class/school details:", error);
       }
-      pendingBySubject[a.subject_id].push(a);
     }
-  });
+    return { className, schoolName };
+  }
 
-  // Find subjects with max pending
-  let maxPending = 0;
-  let subjectsWithMaxPending: string[] = [];
+  // Write a specific star count into BOTH STARS_COUNT and LATEST_STARS
+  public static setLocalStarsForStudent(
+    studentId: string,
+    stars: number
+  ): void {
+    try {
+      const storedStarsJson = localStorage.getItem(STARS_COUNT);
+      const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
+      storedStarsMap[studentId] = stars;
+      localStorage.setItem(STARS_COUNT, JSON.stringify(storedStarsMap));
 
-  Object.keys(pendingBySubject).forEach((subject) => {
-    const length = pendingBySubject[subject].length;
-    if (length > maxPending) {
-      maxPending = length;
-      subjectsWithMaxPending = [subject];
-    } else if (length === maxPending) {
-      subjectsWithMaxPending.push(subject);
+      const latestStarsJson = localStorage.getItem(LATEST_STARS);
+      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
+      latestStarsMap[studentId] = stars;
+      localStorage.setItem(LATEST_STARS, JSON.stringify(latestStarsMap));
+    } catch (e) {
+      console.warn("[Util.setLocalStarsForStudent] failed", e);
     }
-  });
+  }
 
-  let bestSubject: string | null = null;
+  // Add delta to local stars and fire a DOM event so React screens can react immediately
+  public static bumpLocalStarsForStudent(
+    studentId: string,
+    delta: number,
+    fallback: number = 0
+  ): number {
+    const current = Util.getLocalStarsForStudent(studentId, fallback);
+    const next = current + delta;
+    Util.setLocalStarsForStudent(studentId, next);
 
-  if (subjectsWithMaxPending.length === 1) {
-    bestSubject = subjectsWithMaxPending[0];
-  } else if (subjectsWithMaxPending.length > 1) {
-    // tie-break by fewer completed using the external completed count map
-    let minCompleted = Number.MAX_SAFE_INTEGER;
-    subjectsWithMaxPending.forEach((subject) => {
-      const completedCount = completedCountBySubject[subject] ?? 0;
-      if (completedCount < minCompleted) {
-        minCompleted = completedCount;
-        bestSubject = subject;
+    try {
+      window.dispatchEvent(
+        new CustomEvent("starsUpdated", {
+          detail: { studentId, newStars: next },
+        })
+      );
+    } catch (e) {
+      console.warn("[Util.bumpLocalStarsForStudent] event dispatch failed", e);
+    }
+
+    return next;
+  }
+  public static pickFiveHomeworkLessons(
+    assignments: any[],
+    completedCountBySubject: { [key: string]: number } = {}
+  ): any[] {
+    const pendingBySubject: { [key: string]: any[] } = {};
+
+    // Group pending (not completed) assignments per subject
+    assignments.forEach((a) => {
+      if (!a.completed) {
+        if (!pendingBySubject[a.subject_id]) {
+          pendingBySubject[a.subject_id] = [];
+        }
+        pendingBySubject[a.subject_id].push(a);
       }
     });
-  }
 
-  let result: any[] = [];
+    // Find subjects with max pending
+    let maxPending = 0;
+    let subjectsWithMaxPending: string[] = [];
 
-  if (bestSubject && maxPending >= 5) {
-    // If one subject alone has >= 5 pending, take first 5 from that subject
-    result = pendingBySubject[bestSubject].slice(0, 5);
-  } else if (bestSubject && maxPending < 5) {
-    // Otherwise fill from bestSubject first, then other subjects with more pending
-    result = [...(pendingBySubject[bestSubject] || [])];
-    const remaining = 5 - result.length;
+    Object.keys(pendingBySubject).forEach((subject) => {
+      const length = pendingBySubject[subject].length;
+      if (length > maxPending) {
+        maxPending = length;
+        subjectsWithMaxPending = [subject];
+      } else if (length === maxPending) {
+        subjectsWithMaxPending.push(subject);
+      }
+    });
 
-    const otherSubjects = Object.keys(pendingBySubject)
-      .filter((s) => s !== bestSubject)
-      .sort(
-        (a, b) =>
-          (pendingBySubject[b]?.length || 0) -
-          (pendingBySubject[a]?.length || 0)
-      );
+    let bestSubject: string | null = null;
 
-    for (const subj of otherSubjects) {
-      if (result.length >= 5) break;
-      const toTake = Math.min(
-        5 - result.length,
-        pendingBySubject[subj].length
-      );
-      result = result.concat(pendingBySubject[subj].slice(0, toTake));
+    if (subjectsWithMaxPending.length === 1) {
+      bestSubject = subjectsWithMaxPending[0];
+    } else if (subjectsWithMaxPending.length > 1) {
+      // tie-break by fewer completed using the external completed count map
+      let minCompleted = Number.MAX_SAFE_INTEGER;
+      subjectsWithMaxPending.forEach((subject) => {
+        const completedCount = completedCountBySubject[subject] ?? 0;
+        if (completedCount < minCompleted) {
+          minCompleted = completedCount;
+          bestSubject = subject;
+        }
+      });
     }
+
+    let result: any[] = [];
+
+    if (bestSubject && maxPending >= 5) {
+      // If one subject alone has >= 5 pending, take first 5 from that subject
+      result = pendingBySubject[bestSubject].slice(0, 5);
+    } else if (bestSubject && maxPending < 5) {
+      // Otherwise fill from bestSubject first, then other subjects with more pending
+      result = [...(pendingBySubject[bestSubject] || [])];
+      const remaining = 5 - result.length;
+
+      const otherSubjects = Object.keys(pendingBySubject)
+        .filter((s) => s !== bestSubject)
+        .sort(
+          (a, b) =>
+            (pendingBySubject[b]?.length || 0) -
+            (pendingBySubject[a]?.length || 0)
+        );
+
+      for (const subj of otherSubjects) {
+        if (result.length >= 5) break;
+        const toTake = Math.min(
+          5 - result.length,
+          pendingBySubject[subj].length
+        );
+        result = result.concat(pendingBySubject[subj].slice(0, toTake));
+      }
+    }
+
+    return result;
   }
-
-  return result;
-}
-
-
 }

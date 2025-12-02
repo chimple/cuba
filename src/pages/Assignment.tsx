@@ -4,6 +4,8 @@ import "./Assignment.css";
 import { useCallback, useEffect, useState, useRef } from "react";
 import {
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+  CURRENT_CLASS,
+  CURRENT_SCHOOL,
   DOWNLOADED_LESSON_ID,
   DOWNLOAD_BUTTON_LOADING_STATUS,
   HOMEHEADERLIST,
@@ -121,63 +123,119 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
         history.replace(PAGES.SELECT_MODE);
         return;
       }
-      const linkedData = await api.getStudentClassesAndSchools(student.id);
-      if (!linkedData?.classes.length) {
+
+      let resolvedClass: TableTypes<"class"> | null = null;
+      let resolvedSchoolName = "";
+
+      // -----------------------------------------
+      // 1️⃣ Try to load class from localStorage first
+      // -----------------------------------------
+      const cachedClassStr = localStorage.getItem(CURRENT_CLASS);
+      const cachedSchoolStr = localStorage.getItem(CURRENT_SCHOOL);
+
+      if (cachedClassStr) {
+        try {
+          const cachedClass = JSON.parse(cachedClassStr);
+
+          resolvedClass = cachedClass;
+        } catch (err) {
+          console.error("Error parsing cached class:", err);
+        }
+      }
+
+      if (cachedSchoolStr) {
+        try {
+          const cachedSchool = JSON.parse(cachedSchoolStr);
+
+          resolvedSchoolName =
+            typeof cachedSchool === "string"
+              ? cachedSchool
+              : cachedSchool.name || "";
+        } catch (err) {
+          console.error("Error parsing cached school:", err);
+        }
+      }
+
+      // -----------------------------------------
+      // 2️⃣ If no class in localStorage → call API
+      // -----------------------------------------
+      if (!resolvedClass) {
+        try {
+          const linkedData = await api.getStudentClassesAndSchools(student.id);
+
+          if (linkedData?.classes?.length) {
+            const classDoc = linkedData.classes[0];
+            const schoolNameFromApi =
+              linkedData.schools.find((s) => s.id === classDoc.school_id)
+                ?.name || "";
+
+            resolvedClass = classDoc;
+            resolvedSchoolName = schoolNameFromApi;
+
+            // Store for future offline use
+            localStorage.setItem("CURRENT_CLASS", JSON.stringify(classDoc));
+            localStorage.setItem(
+              "CURRENT_SCHOOL",
+              JSON.stringify({ name: schoolNameFromApi })
+            );
+          }
+        } catch (err) {
+          console.warn("API unreachable (offline probably)", err);
+        }
+      }
+
+      // -----------------------------------------
+      // 3️⃣ If STILL no class → user not linked
+      // -----------------------------------------
+      if (!resolvedClass) {
         setIsLinked(false);
         setLoading(false);
         return;
       }
-      const classDoc = linkedData.classes[0];
-      setCurrentClass(classDoc);
-      setSchoolName(
-        linkedData.schools.find((s) => s.id === classDoc.school_id)?.name || ""
-      );
-      const classId = classDoc.id;
+
+      // -----------------------------------------
+      // 4️⃣ Class found → treat as linked
+      // -----------------------------------------
+      setIsLinked(true);
+      setCurrentClass(resolvedClass);
+      setSchoolName(resolvedSchoolName);
+
+      // Continue with loading assignments like before
+      const classId = resolvedClass.id;
       const studentId = student.id;
-      // Fetch assignments
-      let allAssignments: TableTypes<"assignment">[] = [];
+
       try {
         const all = await api.getPendingAssignments(classId, studentId);
-        const allAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
-        // Update only if length or content has changed
-        const assignmentIds = assignments.map((a) => a.id);
-        const newAssignments = allAssignments.filter(
-          (a) => !assignmentIds.includes(a.id)
+        const finalAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
+
+        setAssignments(finalAssignments);
+        assignmentCount(finalAssignments.length);
+
+        await updateLessonChapterAndCourseMaps(finalAssignments);
+
+        const lessonData = await Promise.all(
+          finalAssignments.map((a) => api.getLesson(a.lesson_id))
         );
-        const updatedAssignments = fullRefresh
-          ? allAssignments
-          : [...assignments, ...newAssignments];
 
-        setAssignments(updatedAssignments);
-        assignmentCount(updatedAssignments.length);
-
-
-        await updateLessonChapterAndCourseMaps(updatedAssignments);
-
-        const lessonPromises = newAssignments.map(async (assignment) => {
-          return await api.getLesson(assignment.lesson_id);
-        });
-        const lessonList = await Promise.all(lessonPromises);
-        const filteredLessons = lessonList.filter(
+        const filteredLessons = lessonData.filter(
           (lesson): lesson is TableTypes<"lesson"> => lesson !== undefined
         );
-        const mergedLessons = fullRefresh
-          ? filteredLessons
-          : [...lessons, ...filteredLessons];
-        setLessons(mergedLessons);
+
+        setLessons(filteredLessons);
       } catch (error) {
-        console.error("Failed to load pending assignments:", error);
-        if (fullRefresh) {
-          setAssignments([]);
-          assignmentCount(0);
-          setLessonChapterMap({});
-          setAssignmentLessonCourseMap({});
-        }
+        console.error("Failed to load assignments:", error);
       }
+
       setLoading(false);
-      setIsLinked(true);
     },
-    [api, history, assignmentCount, updateLessonChapterAndCourseMaps]
+    [
+      api,
+      history,
+      assignmentCount,
+      updateLessonChapterAndCourseMaps,
+      assignments,
+      lessons,
+    ]
   );
 
   // --- Debounced handler for assignment updates ---
@@ -193,12 +251,11 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
   }, [init]);
 
   useEffect(() => {
-  // Only decide banner visibility AFTER loading is finished
-  if (!loading) {
-    setShowHomeworkCompleteModal(assignments.length === 0);
-  }
-}, [loading, assignments.length]);
-
+    // Only decide banner visibility AFTER loading is finished
+    if (!loading && isHomeworkPathwayOn) {
+      setShowHomeworkCompleteModal(assignments.length === 0);
+    }
+  }, [loading, assignments.length]);
 
   // --- Listener setup ---
   useEffect(() => {
@@ -280,7 +337,6 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       checkAllHomeworkDownloaded
     );
   };
-
   async function downloadAllHomeWork(lessons: TableTypes<"lesson">[]) {
     setDownloadButtonLoading(true);
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(true));
@@ -324,14 +380,22 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       });
     }
   }, []);
+
+  // ⬆ inside AssignmentPage component, before JSX:
+  const bodyClass = !isLinked
+    ? "lesson-body"
+    : isHomeworkPathwayOn
+    ? // 🔹 Flag ON → Slider flow (keep old behaviour)
+      lessons.length < 1
+      ? "lesson-body"
+      : "assignment-body"
+    : // 🔹 Flag OFF → HomeworkPathway flow → always use assignment layout
+      "assignment-body";
+
   return !loading ? (
     <div>
       <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
-        <div
-          className={
-            "header " + isInputFocus && !isLinked ? "scroll-header" : ""
-          }
-        >
+        <div className={bodyClass}>
           {isHomeworkPathwayOn && (
             <div className="assignment-header">
               <div className="right-button"></div>
@@ -404,7 +468,50 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                 />
               ) : (
                 <div>
-                  {assignments.length > 0 ? (
+                  {isHomeworkPathwayOn ? (
+                    // ✅ Flag ON → old LessonSlider flow
+                    assignments.length > 0 ? (
+                      <LessonSlider
+                        key={assignments.length}
+                        lessonData={lessons}
+                        isHome={true}
+                        course={undefined}
+                        lessonsScoreMap={lessonResultMap || {}}
+                        startIndex={0}
+                        showSubjectName={true}
+                        showChapterName={true}
+                        assignments={assignments}
+                        downloadButtonLoading={downloadButtonLoading}
+                        showDate={true}
+                        onDownloadOrDelete={checkAllHomeworkDownloaded}
+                        lessonChapterMap={lessonChapterMap}
+                        lessonCourseMap={assignmentLessonCourseMap}
+                      />
+                    ) : (
+                      <div className="pending-assignment">
+                        {showHomeworkCompleteModal && (
+                          <HomeworkCompleteModal
+                            text={t(
+                              "Yay!! You have completed all the Homework!!"
+                            )}
+                            borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
+                            onClose={() => setShowHomeworkCompleteModal(false)}
+                            onPlayMore={() => {
+                              setShowHomeworkCompleteModal(false);
+                              if (onPlayMoreHomework) {
+                                onPlayMoreHomework();
+                              }
+                            }}
+                          />
+                        )}
+                      </div>
+                    )
+                  ) : (
+                    // ✅ Flag OFF → ALWAYS render HomeworkPathway, even if assignments[] is empty or API failed.
+                    <HomeworkPathway onPlayMoreHomework={onPlayMoreHomework} />
+                  )}
+
+                  {/* {assignments.length > 0 ? (
                     // 3. Conditionally render based on the feature flag
                     // If the feature is ON, show the original slider
                     isHomeworkPathwayOn ? (
@@ -448,7 +555,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                         />
                       )}
                     </div>
-                  )}
+                  )} */}
                 </div>
               )}
             </div>
