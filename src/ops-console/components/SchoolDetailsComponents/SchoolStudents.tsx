@@ -42,18 +42,18 @@ interface DisplayStudent {
   id: string;
   studentIdDisplay: string;
   name: string;
-  interact?: string;
+  schstudents_interact?: string;
   gender: string;
   grade: number;
   classSection: string;
   phoneNumber: string;
   class: string;
-  performance?: string;
-  actions?: string;
+  schstudents_performance?: string;
+  schstudents_actions?: string;
 }
 
-const getPerformanceChipClass = (performance: string): string => {
-  const normalizedPerf = performance.toLowerCase().replace(/ /g, "_");
+const getPerformanceChipClass = (schstudents_performance: string): string => {
+  const normalizedPerf = schstudents_performance.toLowerCase().replace(/ /g, "_");
   switch (normalizedPerf) {
     case PerformanceLevel.DOING_GOOD:
       return "performance-chip-doing-good";
@@ -406,13 +406,13 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         classSection: s_api.classSection ?? "N/A",
         phoneNumber: s_api.parent?.phone ?? "N/A",
         class: (s_api.grade ?? 0) + (s_api.classSection ?? ""),
-        performance: studentPerformanceMap.get(s_api.user.id) ?? "Not Tracked",
+        schstudents_performance: studentPerformanceMap.get(s_api.user.id) ?? "Not Tracked",
       })
     );
     // Filter by performance if not "all"
     if (performanceFilter !== PerformanceLevel.ALL) {
       filtered = filtered.filter((student) => {
-        const perf = student.performance?.toLowerCase().replace(" ", "_");
+        const perf = student.schstudents_performance?.toLowerCase().replace(" ", "_");
         return perf === performanceFilter;
       });
     }
@@ -471,7 +471,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       return [
         ...commonColumns,
         {
-          key: "interact",
+          key: "schstudents_interact",
           label: t("Interact"),
           sortable: false,
           render: (s) => (
@@ -509,15 +509,15 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           ),
         },
         {
-          key: "performance",
+          key: "schstudents_performance",
           label: t("Performance"),
           sortable: false,
           render: (s) => (
             <Chip
-              label={t(s.performance || "Not Tracked")}
+              label={t(s.schstudents_performance || "Not Tracked")}
               size="small"
               className={getPerformanceChipClass(
-                s.performance || "Not Tracked"
+                s.schstudents_performance || "Not Tracked"
               )}
               sx={{
                 fontWeight: 500,
@@ -529,7 +529,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           ),
         },
         {
-          key: "actions",
+          key: "schstudents_actions",
           label: "",
           sortable: false,
           render: (s) => (
