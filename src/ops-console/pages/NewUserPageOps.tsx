@@ -34,13 +34,13 @@ export type UserSchoolClassParams = {
   email?: string;
   schoolId?: string;
   role?: RoleType.TEACHER | RoleType.PRINCIPAL;
-  classId?: string;
+  classId?: string | string[];
 };
 
 export type UserSchoolClassResult = {
   user: any;
   schoolUser: any | null;
-  classUser: any | null;
+  classUsers: any[];
   isNewUser: boolean;
 };
 
