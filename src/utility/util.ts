@@ -453,7 +453,7 @@ export class Util {
                 }
               } catch {
                 console.error(
-                  `[LessonDownloader] Lesson ${lessonId} not found at local bundle path`
+                  `[LessonDownloader] Lesson ${lessonId} not found at local bundle path - Starting download...`
                 );
               }
               const bundleZipUrls: string[] = await RemoteConfig.getJSON(
@@ -466,18 +466,42 @@ export class Util {
 
               let zip: any;
               let downloadAttempts = 0;
+              let downloadSuccessful = false;
 
-              while (downloadAttempts < MAX_DOWNLOAD_LESSON_ATTEMPTS) {
+              while (
+                downloadAttempts < MAX_DOWNLOAD_LESSON_ATTEMPTS &&
+                !downloadSuccessful
+              ) {
                 for (const bundleUrl of bundleZipUrls) {
                   const zipUrl = bundleUrl + lessonId + ".zip";
                   try {
-                    zip = await CapacitorHttp.get({
+                    console.log(
+                      `[LessonDownloader] Attempting download from: ${zipUrl}`
+                    );
+                    const downloadPromise = await CapacitorHttp.get({
                       url: zipUrl,
                       responseType: "blob",
                       headers: {},
+                      readTimeout: 10000,
+                      connectTimeout: 10000,
                     });
+                    const timeoutPromise = new Promise((_, reject) =>
+                      setTimeout(
+                        () => reject(new Error("Download timeout after 20s")),
+                        10000
+                      )
+                    );
+                    zip = await Promise.race([downloadPromise, timeoutPromise]);
                     if (zip && zip.data && zip.status === 200) {
+                      console.log(
+                        `[LessonDownloader] Successfully downloaded ${lessonId} from ${zipUrl}`
+                      );
+                      downloadSuccessful = true;
                       break;
+                    } else {
+                      console.warn(
+                        `[LessonDownloader] Download returned status ${zip?.status} for ${zipUrl}`
+                      );
                     }
                   } catch (err) {
                     console.error(
@@ -486,7 +510,12 @@ export class Util {
                     );
                   }
                 }
-                downloadAttempts++;
+                if (!downloadSuccessful) {
+                  downloadAttempts++;
+                  console.warn(
+                    `[LessonDownloader] Attempt ${downloadAttempts}/${MAX_DOWNLOAD_LESSON_ATTEMPTS} failed for ${lessonId}`
+                  );
+                }
               }
 
               if (!zip || !zip.data || zip.status !== 200) {
