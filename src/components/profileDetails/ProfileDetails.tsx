@@ -64,7 +64,12 @@ const ProfileDetails = () => {
     isEdit
       ? currentStudent?.avatar ?? AVATARS[randomIndex]
       : AVATARS[randomIndex]
-  )
+  );
+
+  // New State for Class and School
+  const [className, setClassName] = useState<string>("");
+  const [schoolName, setSchoolName] = useState<string>("");
+
   const [age, setAge] = useState<number | undefined>(
     isEdit
       ? !!currentStudent?.age
@@ -123,7 +128,6 @@ const ProfileDetails = () => {
     setHasChanges(changed);
   }, [fullName, age, gender, languageId]);
 
-
   useEffect(() => {
     if (labelRef.current) {
       setLabelWidth(labelRef.current.offsetWidth);
@@ -143,17 +147,26 @@ const ProfileDetails = () => {
     initializeFireBase();
     lockOrientation();
     Util.loadBackgroundImage();
+
     const loadLanguages = async () => {
       const langs = await api.getAllLanguages();
       setLanguages(langs);
     };
     loadLanguages();
+
     const isParentHasStudent = async () => {
       const student = await api.getParentStudentProfiles();
       setParentHasStudent(student.length > 0);
-    }
+    };
     isParentHasStudent();
-   }, []);
+    loadProfileData();
+  }, []);
+
+  const loadProfileData = async () => {
+    const { className, schoolName } = await Util.fetchCurrentClassAndSchool();
+    setClassName(className);
+    setSchoolName(schoolName);
+  };
 
   const lockOrientation = () => {
     if (Capacitor.isNativePlatform()) {
@@ -165,13 +178,13 @@ const ProfileDetails = () => {
     mode === FORM_MODES.ALL_REQUIRED
       ? fullName && age && languageId && gender
       : mode === FORM_MODES.NAME_REQUIRED
-        ? fullName
-        : true;
+      ? fullName
+      : true;
 
   const shouldShowSkip = mode === FORM_MODES.ALL_OPTIONAL;
 
   const isSaveEnabled =
-    (mode === FORM_MODES.ALL_REQUIRED || mode === FORM_MODES.NAME_REQUIRED)
+    mode === FORM_MODES.ALL_REQUIRED || mode === FORM_MODES.NAME_REQUIRED
       ? isFormComplete && hasChanges
       : hasChanges;
 
@@ -244,13 +257,11 @@ const ProfileDetails = () => {
           tmpPath === PAGES.HOME ? true : false
         );
       }
-      // Util.setCurrentStudent(null);
-      // localStorage.removeItem(CURRENT_STUDENT);
       history.replace(PAGES.HOME);
-      setIsCreatingProfile(false)
+      setIsCreatingProfile(false);
     } catch (err) {
       console.error("Error saving profile:", err);
-      setIsCreatingProfile(false)
+      setIsCreatingProfile(false);
     } finally {
       setIsCreatingProfile(false);
     }
@@ -294,13 +305,15 @@ const ProfileDetails = () => {
   };
 
   return (
-
-    <div ref={profileRef} className="profiledetails-container" 
-        onClick={(e) => {
+    <div
+      ref={profileRef}
+      className="profiledetails-container"
+      onClick={(e) => {
         logProfileClick(e).catch((err) =>
           console.error("Error in logProfileClick", err)
         );
-      }}>
+      }}
+    >
       {parentHasStudent && (
         <button
           className="profiledetails-back-button"
@@ -311,10 +324,7 @@ const ProfileDetails = () => {
           aria-label="Back"
           id="click_on_profile_details_back_button"
         >
-          <img
-            src="/assets/icons/BackButtonIcon.svg"
-            alt="BackButtonIcon"
-          />
+          <img src="/assets/icons/BackButtonIcon.svg" alt="BackButtonIcon" />
         </button>
       )}
       <div className="profiledetails-avatar-form">
@@ -326,11 +336,38 @@ const ProfileDetails = () => {
         </div>
 
         <div className="profiledetails-form-fields">
-          {mode !== FORM_MODES.ALL_OPTIONAL && (
+          {/* Header Info: Class Name | School Name */}
+          {(className || schoolName) && (
+            <div className="profiledetails-header-info">
+              {className && (
+                <div className="pd-info-item">
+                  <img
+                    src="/assets/icons/classIcon.svg"
+                    alt="class"
+                    onError={(e) => (e.currentTarget.style.display = "none")}
+                  />
+                  <span>{className}</span>
+                </div>
+              )}
+              {className && schoolName && <span className="pd-divider">|</span>}
+              {schoolName && (
+                <div className="pd-info-item">
+                  <img
+                    src="/assets/icons/scholarIcon.svg"
+                    alt="school"
+                    onError={(e) => (e.currentTarget.style.display = "none")}
+                  />
+                  <span>{schoolName}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* {mode !== FORM_MODES.ALL_OPTIONAL && (
             <div className="profiledetails-required-indicator">
               {`* ${t("Indicates Required Information")}`}
             </div>
-          )}
+          )} */}
 
           <div className="profiledetails-full-name">
             <InputWithIcons
@@ -340,10 +377,10 @@ const ProfileDetails = () => {
               value={fullName ?? ""}
               setValue={setFullName}
               icon="/assets/icons/BusinessCard.svg"
-              required={
-                mode === FORM_MODES.ALL_REQUIRED ||
-                mode === FORM_MODES.NAME_REQUIRED
-              }
+              // required={
+              //   mode === FORM_MODES.ALL_REQUIRED ||
+              //   mode === FORM_MODES.NAME_REQUIRED
+              // }
             />
           </div>
 
@@ -357,18 +394,21 @@ const ProfileDetails = () => {
                 icon="/assets/icons/age.svg"
                 optionId={`click_on_profile_details_age_option_${age}`}
                 options={[
-                  { value: AGE_OPTIONS.LESS_THAN_EQUAL_4, label: `≤${t('4 years')}` },
-                  { value: AGE_OPTIONS.FIVE, label: t('5 years') },
-                  { value: AGE_OPTIONS.SIX, label: t('6 years') },
-                  { value: AGE_OPTIONS.SEVEN, label: t('7 years') },
-                  { value: AGE_OPTIONS.EIGHT, label: t('8 years') },
-                  { value: AGE_OPTIONS.NINE, label: t('9 years') },
+                  {
+                    value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
+                    label: `≤${t("4 years")}`,
+                  },
+                  { value: AGE_OPTIONS.FIVE, label: t("5 years") },
+                  { value: AGE_OPTIONS.SIX, label: t("6 years") },
+                  { value: AGE_OPTIONS.SEVEN, label: t("7 years") },
+                  { value: AGE_OPTIONS.EIGHT, label: t("8 years") },
+                  { value: AGE_OPTIONS.NINE, label: t("9 years") },
                   {
                     value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
-                    label: `≥${t('10 years')}`,
+                    label: `≥${t("10 years")}`,
                   },
                 ]}
-                required={mode === FORM_MODES.ALL_REQUIRED}
+                // required={mode === FORM_MODES.ALL_REQUIRED}
               />
             </div>
 
@@ -380,13 +420,14 @@ const ProfileDetails = () => {
                 setValue={setLanguageId}
                 icon="/assets/icons/language.svg"
                 optionId={
-                  `click_on_profile_details_language_option_` + (languageId || "")
+                  `click_on_profile_details_language_option_` +
+                  (languageId || "")
                 }
                 options={languages.map((lang) => ({
                   value: lang.id,
                   label: t(lang.name),
                 }))}
-                required={mode === FORM_MODES.ALL_REQUIRED}
+                // required={mode === FORM_MODES.ALL_REQUIRED}
               />
             </div>
           </div>
@@ -395,16 +436,20 @@ const ProfileDetails = () => {
             <legend className="profiledetails-gender-label">
               <div className="profiledetails-gender-label-text" ref={labelRef}>
                 {t("Gender")}
-                {mode === FORM_MODES.ALL_REQUIRED && (
+                {/* {mode === FORM_MODES.ALL_REQUIRED && (
                   <span className="profiledetails-required">*</span>
-                )}
+                )} */}
               </div>
             </legend>
             <div className="profiledetails-gender-buttons">
               {[
-                { label: t("GIRL"), value: GENDER.GIRL, name: 'GIRL' },
-                { label: t("BOY"), value: GENDER.BOY, name: 'BOY' },
-                { label: t("UNSPECIFIED"), value: GENDER.OTHER, name: 'UNSPECIFIED' },
+                { label: t("GIRL"), value: GENDER.GIRL, name: "GIRL" },
+                { label: t("BOY"), value: GENDER.BOY, name: "BOY" },
+                {
+                  label: t("UNSPECIFIED"),
+                  value: GENDER.OTHER,
+                  name: "UNSPECIFIED",
+                },
               ].map(({ label, value, name }) => {
                 const isSelected = gender === value;
                 const iconName = isSelected
@@ -416,7 +461,9 @@ const ProfileDetails = () => {
                     key={label}
                     id={`click_on_profile_details_gender_${label.toLowerCase()}`}
                     type="button"
-                    className={`profiledetails-gender-btn ${isSelected ? "selected" : ""}`}
+                    className={`profiledetails-gender-btn ${
+                      isSelected ? "selected" : ""
+                    }`}
                     onClick={() => setGender(value)}
                   >
                     <img
@@ -451,9 +498,8 @@ const ProfileDetails = () => {
           </div>
         </div>
       </div>
-       <Loading isLoading={isCreatingProfile} />
+      <Loading isLoading={isCreatingProfile} />
     </div>
-         
   );
 };
 

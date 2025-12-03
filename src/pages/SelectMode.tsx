@@ -20,6 +20,7 @@ import {
   CURRENT_CLASS,
   CURRENT_SCHOOL,
   IS_OPS_USER,
+  USER_DATA,
 } from "../common/constants";
 import SelectModeButton from "../components/selectMode/SelectModeButton";
 import { IoMdPeople } from "react-icons/io";
@@ -134,6 +135,7 @@ const SelectMode: FC = () => {
 
     const currUser = await auth.getCurrentUser();
     if (!currUser) return;
+    localStorage.setItem(USER_DATA, JSON.stringify(currUser));
     const allSchool = await api.getSchoolsForUser(currUser.id);
     // Extract school IDs from schoolList
     const schoolIds = allSchool.map((school) => school.school.id);

@@ -39,9 +39,9 @@ const SchoolDetailsCard: React.FC<SchoolDetailsCardProps> = ({
           className="school-details-field-stack"
           style={{ flex: 1, marginRight: "1rem" }}
         >
-          <div className="school-details-label">{t("City")}</div>
+          <div className="school-details-label">{t("Block")}</div>
           <div className="school-details-value">
-            {requestData.school.group2 || "-"}
+            {requestData.school.group3 || "-"}
           </div>
         </div>
         <div className="school-details-field-stack" style={{ flex: 1 }}>
@@ -55,7 +55,7 @@ const SchoolDetailsCard: React.FC<SchoolDetailsCardProps> = ({
       <div className="school-details-field-stack">
         <div className="school-details-label">{t("District")}</div>
         <div className="school-details-value">
-          {requestData.school.group3 || "-"}
+          {requestData.school.group2 || "-"}
         </div>
       </div>
       <div className="school-details-field-stack">

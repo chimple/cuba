@@ -14,6 +14,7 @@ import {
   PAGES,
   REQUEST_TABS,
   RequestTypes,
+  USER_ROLE,
 } from "../../common/constants";
 import DataTablePagination from "../components/DataTablePagination";
 import DataTableBody, { Column } from "../components/DataTableBody";
@@ -25,23 +26,56 @@ import { BsFillBellFill } from "react-icons/bs";
 import { useLocation, useHistory } from "react-router";
 import "./RequestList.css";
 import { Constants } from "../../services/database";
+import { RoleType } from "../../interface/modelInterfaces";
 
 const filterConfigsForRequests = [
-  { key: "request_type", label: t("Request Type") },
   { key: "school", label: t("Select School") },
+  { key: "request_type", label: t("Request Type") },
 ];
 
 type Filters = Record<string, string[]>;
+
+type FilterOptions = {
+  request_type: string[];
+  school: Array<{ id: string; name: string }>;
+};
 
 const INITIAL_FILTERS: Filters = {
   request_type: [],
   school: [],
 };
 
-const tabOptions = Object.entries(REQUEST_TABS).map(([key, val]) => ({
-  label: val,
-  value: val,
-}));
+const INITIAL_FILTER_OPTIONS: FilterOptions = {
+  request_type: [],
+  school: [],
+};
+
+const getTabOptions = () => {
+  let userRoles: string[] = [];
+  try {
+    userRoles = JSON.parse(
+      localStorage.getItem(USER_ROLE) || "[]"
+    );
+  } catch (error) {
+    console.error("Failed to parse user roles from localStorage:", error);
+  }
+  // Only Super Admin and Operational Director can see the Flagged tab
+  const canSeeFlaggedTab = 
+    userRoles.includes(RoleType.SUPER_ADMIN) ||
+    userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
+  
+  const allTabs = Object.entries(REQUEST_TABS).map(([key, val]) => ({
+    label: val,
+    value: val,
+  }));
+  
+  // Filter out FLAGGED tab for users who don't have permission
+  if (!canSeeFlaggedTab) {
+    return allTabs.filter((tab) => tab.value !== REQUEST_TABS.FLAGGED);
+  }
+  
+  return allTabs;
+};
 
 const RequestList: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -50,6 +84,7 @@ const RequestList: React.FC = () => {
   const history = useHistory();
   const qs = new URLSearchParams(location.search);
   const tableScrollRef = React.useRef<HTMLDivElement>(null);
+  const tabOptions = useMemo(() => getTabOptions(), []);
 
   function parseJSONParam<T>(param: string | null, fallback: T): T {
     try {
@@ -65,6 +100,7 @@ const RequestList: React.FC = () => {
       : REQUEST_TABS.PENDING;
   });
   const [searchTerm, setSearchTerm] = useState(() => qs.get("search") || "");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
   const [filters, setFilters] = useState<Filters>(() =>
     parseJSONParam(qs.get("filters"), INITIAL_FILTERS)
   );
@@ -84,23 +120,37 @@ const RequestList: React.FC = () => {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [tempFilters, setTempFilters] = useState<Filters>(INITIAL_FILTERS);
-  const [filterOptions, setFilterOptions] = useState<Filters>(INITIAL_FILTERS);
-  const [orderBy, setOrderBy] = useState("");
+  const [filterOptions, setFilterOptions] = useState(INITIAL_FILTER_OPTIONS);
+  const [schoolNameToIdMap, setSchoolNameToIdMap] = useState<Map<string, string>>(new Map());
+  const [orderBy, setOrderBy] = useState("school_name");
   const [orderDir, setOrderDir] = useState<"asc" | "desc">("asc");
   const [pageSize] = useState(DEFAULT_PAGE_SIZE);
 
   const isSmallScreen = useMediaQuery("(max-width: 900px)");
 
   useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearchTerm, filters]);
+
+  useEffect(() => {
     const params = new URLSearchParams();
     if (selectedTab !== REQUEST_TABS.PENDING)
       params.set("tab", String(selectedTab));
-    if (searchTerm) params.set("search", searchTerm);
+    if (debouncedSearchTerm) params.set("search", debouncedSearchTerm);
     if (Object.values(filters).some((arr) => arr.length))
       params.set("filters", JSON.stringify(filters));
     if (page !== 1) params.set("page", String(page));
     history.replace({ search: params.toString() });
-  }, [selectedTab, searchTerm, filters, page, history]);
+  }, [selectedTab, debouncedSearchTerm, filters, page, history]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -112,6 +162,12 @@ const RequestList: React.FC = () => {
             request_type: data.requestType || [],
             school: data.school || [],
           });
+          
+          const nameToIdMap = new Map<string, string>();
+          (data.school || []).forEach((school: { id: string; name: string }) => {
+            nameToIdMap.set(school.name, school.id);
+          });
+          setSchoolNameToIdMap(nameToIdMap);
         }
       } catch (error) {
         console.error("Failed to fetch filter options", error);
@@ -123,115 +179,158 @@ const RequestList: React.FC = () => {
     fetchFilterOptions();
   }, [api]);
 
-  const fetchData = useCallback(async () => {
-    setIsDataLoading(true);
-    try {
-      const tempTab: EnumType<"ops_request_status"> =
-        selectedTab === REQUEST_TABS.PENDING
-          ? Constants.public.Enums.ops_request_status[0]
-          : selectedTab === REQUEST_TABS.APPROVED
-            ? Constants.public.Enums.ops_request_status[2]
-            : Constants.public.Enums.ops_request_status[1];
-      const cleanedFilters = Object.fromEntries(
-        Object.entries({ ...filters }).filter(
-          ([_, v]) => Array.isArray(v) && v.length > 0
-        )
-      );
-      const orderByMapping = {
-        approved_date: "updated_at",
-        rejected_date: "updated_at",
-        requested_date: "created_at",
-      };
-      const backendOrderBy = orderByMapping[orderBy] || orderBy;
-      const { data, total } = await api.getOpsRequests(
-        tempTab,
-        page,
-        pageSize,
-        backendOrderBy,
-        orderDir,
-        cleanedFilters,
-        searchTerm
-      );
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsDataLoading(true);
+      try {
+        let tempTab: EnumType<"ops_request_status">;
+        switch (selectedTab) {
+          case REQUEST_TABS.PENDING:
+            tempTab = Constants.public.Enums.ops_request_status[0];
+            break;
+          case REQUEST_TABS.APPROVED:
+            tempTab = Constants.public.Enums.ops_request_status[2];
+            break;
+          case REQUEST_TABS.REJECTED:
+            tempTab = Constants.public.Enums.ops_request_status[1];
+            break;
+          case REQUEST_TABS.FLAGGED:
+            tempTab = Constants.public.Enums.ops_request_status[3];
+            break;
+          default:
+            tempTab = Constants.public.Enums.ops_request_status[0];
+        }
 
-      setRawRequestData(data || []);
-      let mappedData: any[] = [];
+        const filtersWithSchoolIds = {
+          ...filters,
+          school: filters.school.map((name) => schoolNameToIdMap.get(name) || name).filter(Boolean),
+        };
 
-      switch (selectedTab) {
-        case REQUEST_TABS.APPROVED:
-          mappedData = (data || []).map((req) => ({
-            request_id: req.request_id,
-            request_type: req.request_type,
-            school_name: req.school?.name || "-",
-            class: req.classInfo?.name || "-",
-            from: req.requestedBy?.name || "-",
-            approved_date: formatDateOnly(req.updated_at),
-            approved_by: req.respondedBy?.name || "-",
-          }));
-          break;
+        const cleanedFilters = Object.fromEntries(
+          Object.entries(filtersWithSchoolIds).filter(
+            ([_, v]) => Array.isArray(v) && v.length > 0
+          )
+        );
 
-        case REQUEST_TABS.REJECTED:
-          mappedData = (data || []).map((req) => ({
-            request_id: req.request_id,
-            request_type: req.request_type,
-            school_name: req.school?.name || "-",
-            class: req.classInfo?.name || "-",
-            from: req.requestedBy?.name || "-",
-            rejected_date: formatDateOnly(req.updated_at),
-            rejected_reason: req.rejected_reason_type || "-",
-            rejected_by: req.respondedBy?.name || "-",
-          }));
-          break;
+        const orderByMapping = {
+          approved_date: "updated_at",
+          rejected_date: "updated_at",
+          requested_date: "created_at",
+          flagged_date: "updated_at",
+          school_name: "school(name)",
+        };
+        
+        const backendOrderBy = orderByMapping[orderBy] || orderBy;
 
-        case REQUEST_TABS.PENDING:
-        default:
-          mappedData = (data || []).map((req) => {
-            const requestedDate = new Date(req.created_at).toLocaleString(
-              "en-IN",
-              {
-                timeZone: "Asia/Kolkata",
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-                hour12: true,
-              }
-            );
-            return {
+        // console.log("🚀 MAKING API CALL WITH:", {
+        //   status: tempTab,
+        //   page: page,
+        //   pageSize: pageSize,
+        //   orderBy: backendOrderBy,
+        //   orderDir: orderDir,
+        //   filters: cleanedFilters,
+        //   search: debouncedSearchTerm,
+        // });
+
+        const { data, total } = await api.getOpsRequests(
+          tempTab,
+          page,
+          pageSize,
+          backendOrderBy,
+          orderDir,
+          cleanedFilters,
+          debouncedSearchTerm
+        );
+
+        setRawRequestData(data || []);
+        let mappedData: any[] = [];
+        switch (selectedTab) {
+          case REQUEST_TABS.APPROVED:
+            mappedData = (data || []).map((req) => ({
               request_id: req.request_id,
               request_type: req.request_type,
               school_name: req.school?.name || "-",
               class: req.classInfo?.name || "-",
               from: req.requestedBy?.name || "-",
-              requested_date: requestedDate,
-            };
-          });
-          break;
-      }
-      setRequestData(mappedData);
-      setTotal(total || 0);
-    } catch (error) {
-      console.error("Failed to fetch requests:", error);
-      setRequestData([]);
-      setTotal(0);
-    } finally {
-      setIsDataLoading(false);
-    }
-  }, [
-    api,
-    filters,
-    page,
-    pageSize,
-    searchTerm,
-    selectedTab,
-    orderBy,
-    orderDir,
-  ]);
+              approved_date: formatDateOnly(req.updated_at),
+              approved_by: req.respondedBy?.name || "-",
+            }));
+            break;
 
-  useEffect(() => {
+          case REQUEST_TABS.REJECTED:
+            mappedData = (data || []).map((req) => ({
+              request_id: req.request_id,
+              request_type: req.request_type,
+              school_name: req.school?.name || "-",
+              class: req.classInfo?.name || "-",
+              from: req.requestedBy?.name || "-",
+              rejected_date: formatDateOnly(req.updated_at),
+              rejected_reason: req.rejected_reason_type || "-",
+              rejected_by: req.respondedBy?.name || "-",
+            }));
+            break;
+
+          case REQUEST_TABS.FLAGGED:
+            mappedData = (data || []).map((req) => ({
+              request_id: req.request_id,
+              request_type: req.request_type,
+              school_name: req.school?.name || "-",
+              class: req.classInfo?.name || "-",
+              from: req.requestedBy?.name || "-",
+              flagged_date: formatDateOnly(req.updated_at),
+              flagged_by: req.respondedBy?.name || "-",
+            }));
+            break;
+
+          case REQUEST_TABS.PENDING:
+          default:
+            mappedData = (data || []).map((req) => {
+              const requestedDate = new Date(req.created_at).toLocaleString(
+                "en-IN",
+                {
+                  timeZone: "Asia/Kolkata",
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                }
+              );
+              return {
+                request_id: req.request_id,
+                request_type: req.request_type,
+                school_name: req.school?.name || "-",
+                class: req.classInfo?.name || "-",
+                from: req.requestedBy?.name || "-",
+                requested_date: requestedDate,
+              };
+            });
+            break;
+        }
+        setRequestData(mappedData);
+        setTotal(total || 0);
+      } catch (error) {
+        console.error("Failed to fetch requests:", error);
+        setRequestData([]);
+        setTotal(0);
+      } finally {
+        setIsDataLoading(false);
+      }
+    };
     fetchData();
     tableScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-  }, [fetchData, orderBy, orderDir]);
+  }, [
+    api,
+    selectedTab,
+    page,
+    pageSize,
+    orderBy,
+    orderDir,
+    filters,
+    debouncedSearchTerm,
+    schoolNameToIdMap,
+  ]);
 
   const formatDateOnly = (dateStr?: string) => {
     if (!dateStr) return "-";
@@ -369,24 +468,67 @@ const RequestList: React.FC = () => {
       orderBy: "rejected_date",
     },
     {
-      key: "rejected_reason",
-      label: t("Reason"),
+      key: "rejected_by",
+      label: t("Rejected By"),
+      width: "20%",
+      sortable: false,
+    },
+  ];
+  const flaggedColumns: Column<Record<string, any>>[] = [
+    {
+      key: "request_id",
+      label: t("Request ID"),
       width: "10%",
       sortable: false,
     },
     {
-      key: "rejected_by",
-      label: t("Rejected By"),
+      key: "request_type",
+      label: t("Request Type"),
+      width: "15%",
+      sortable: false,
+    },
+    {
+      key: "school_name",
+      label: t("School Name"),
+      width: "15%",
+      sortable: true,
+      orderBy: "school_name",
+    },
+    {
+      key: "class",
+      label: t("Class"),
+      width: "10%",
+      sortable: false,
+    },
+    {
+      key: "from",
+      label: t("From"),
+      width: "15%",
+      sortable: false,
+    },
+    {
+      key: "flagged_date",
+      label: t("Flagged Date"),
+      width: "15%",
+      sortable: true,
+      orderBy: "flagged_date",
+    },
+    {
+      key: "flagged_by",
+      label: t("Flagged By"),
       width: "10%",
       sortable: false,
     },
   ];
+
   const columns = useMemo(() => {
     switch (selectedTab) {
       case REQUEST_TABS.APPROVED:
         return approvedColumns;
       case REQUEST_TABS.REJECTED:
         return rejectedColumns;
+      case REQUEST_TABS.FLAGGED:
+        return flaggedColumns;
       case REQUEST_TABS.PENDING:
       default:
         return pendingColumns;
@@ -412,6 +554,11 @@ const RequestList: React.FC = () => {
     setPage(1);
   };
   const pageCount = Math.ceil(total / pageSize);
+  
+  const filterOptionsForSlider: Record<string, string[]> = {
+    request_type: filterOptions.request_type,
+    school: filterOptions.school.map((s) => s.name),
+  };
 
   const handleRowClick = (id: string | number, row: any) => {
     // Ensure request_type exists and is a string
@@ -452,16 +599,19 @@ const RequestList: React.FC = () => {
         [REQUEST_TABS.PENDING]: PAGES.STUDENT_PENDING_REQUEST,
         [REQUEST_TABS.APPROVED]: PAGES.OPS_APPROVED_REQUEST,
         [REQUEST_TABS.REJECTED]: PAGES.OPS_REJECTED_REQUEST,
+        [REQUEST_TABS.FLAGGED]: PAGES.OPS_REJECTED_FLAGGED,
       },
       ops: {
         [REQUEST_TABS.PENDING]: PAGES.PRINCIPAL_TEACHER_PENDING_REQUEST, // can also be PRINCIPAL_PENDING_REQUEST if needed
         [REQUEST_TABS.APPROVED]: PAGES.OPS_APPROVED_REQUEST,
         [REQUEST_TABS.REJECTED]: PAGES.OPS_REJECTED_REQUEST,
+        [REQUEST_TABS.FLAGGED]: PAGES.OPS_REJECTED_FLAGGED,
       },
       school: {
         [REQUEST_TABS.PENDING]: PAGES.SCHOOL_PENDING_REQUEST,
         [REQUEST_TABS.APPROVED]: PAGES.SCHOOL_APPROVED_REQUEST,
         [REQUEST_TABS.REJECTED]: PAGES.SCHOOL_REJECTED_REQUEST,
+        [REQUEST_TABS.FLAGGED]: PAGES.OPS_REJECTED_FLAGGED,
       },
     };
 
@@ -526,7 +676,6 @@ const RequestList: React.FC = () => {
                 searchTerm={searchTerm}
                 onSearchChange={(e) => {
                   setSearchTerm(e.target.value);
-                  setPage(1);
                 }}
                 filters={filters}
                 onFilterClick={() => setIsFilterOpen(true)}
@@ -557,7 +706,7 @@ const RequestList: React.FC = () => {
               setTempFilters(filters);
             }}
             filters={tempFilters}
-            filterOptions={filterOptions}
+            filterOptions={filterOptionsForSlider}
             onFilterChange={(name, value) =>
               setTempFilters((prev) => ({ ...prev, [name]: value }))
             }

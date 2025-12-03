@@ -77,6 +77,7 @@ export enum TABLES {
   SpecialUsers = "special_users",
   OpsRequests = "ops_requests",
   GeoLocations = "geo_locations",
+  RiveReward = "rive_reward",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -495,10 +496,13 @@ export enum PAGES {
   STUDENT_PENDING_REQUEST = "/student-pending-request",
   OPS_APPROVED_REQUEST = "/student-approved-request",
   OPS_REJECTED_REQUEST = "/student-rejected-request",
+  OPS_REJECTED_FLAGGED = "/student-flagged-request",
   PRINCIPAL_TEACHER_PENDING_REQUEST = "/principal-teacher-pending-request",
   SEARCH_SCHOOL = "/search-school",
   CREATE_SCHOOL = "/create-school",
+  POST_SUCCESS = "/post-success",
   SCAN_REDIRECT = "/scan-redirect",
+  ADD_SCHOOL_PAGE = "/add-school-page",
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -553,6 +557,7 @@ export enum REQUEST_TABS {
   PENDING = "Pending",
   APPROVED = "Approved",
   REJECTED = "Rejected",
+  FLAGGED = "Flagged",
 }
 export enum STATUS {
   ACTIVE = "active",
@@ -560,6 +565,7 @@ export enum STATUS {
   APPROVED = "approved",
   REJECTED = "rejected",
   MIGRATED = "migrated",
+  FLAGGED = "flagged",
 }
 
 export interface SchoolWithRole {
@@ -807,6 +813,12 @@ export enum EVENTS {
   DEEPLINK_CLICKED = "deeplink_clicked",
   ERROR_LOGS = "error_logs",
   PROFILE_CLICKS_ANALYTICS = "profile_clicks_analytics",
+  REWARD_COLLECTED = "reward_collected",
+  HOMEWORK_PATHWAY_CREATED = "homework_pathway_created",
+  HOMEWORK_PATHWAY_COMPLETED = "homework_pathway_completed",
+  LIVE_UPDATE_APPLIED = "live_update_applied",
+  LIVE_UPDATE_STARTED = "live_update_started",
+  LIVE_UPDATE_ERROR = "live_update_error",
 }
 
 export const FCM_TOKENS = "fcmTokens";
@@ -927,8 +939,14 @@ export const ALL_SUBJECT = {
   subjectDetail: "All Grades",
 };
 export const CAN_ACCESS_REMOTE_ASSETS = "can_access_remote_assets";
+export const HOMEWORK_REMOTE_ASSETS_ENABLED = "homework_remote_assets_enabled";
 export const LEARNING_PATH_ASSETS = "learning_path_assets";
+export const HOMEWORK_PATHWAY_ASSETS = "homework_pathway_assets";
 export const SHOULD_SHOW_REMOTE_ASSETS = "shouldShowRemoteAssets";
+export const SHOULD_SHOW_HOMEWORK_REMOTE_ASSETS =
+  "shouldShowHomeworkRemoteAssets";
+export const HOMEWORK_PATHWAY_DROPDOWN = "homework_pathway_dropdown";
+export const HOMEWORK_PATHWAY = "homework_pathway";
 export const CHIMPLE_ENGLISH = "63e40488-3c1a-47ab-aa8a-6f07ad21709f";
 export const CHIMPLE_MATHS = "9d2474bd-b9c6-43ea-8415-242668807ba0";
 export const CHIMPLE_DIGITAL_SKILLS = "19bb079f-bc69-44e4-bc1d-0b77f2683b6c";
@@ -986,6 +1004,10 @@ export interface StudentInfo {
   grade: number;
   classSection: string;
   parent: TableTypes<"user"> | null;
+  classWithidname?: {
+    id: string;
+    name: string;
+  };
 }
 export interface StudentAPIResponse {
   data: StudentInfo[];
@@ -1056,3 +1078,31 @@ export const CACHE_TABLES_TO_CLEAR = [
   "program",
 ] as const;
 export type CACHETABLES = (typeof CACHE_TABLES_TO_CLEAR)[number];
+export const REWARD_MODAL_SHOWN_DATE = "RewardModalShownDate";
+export const DAILY_USER_REWARD = "DailyUserReward";
+export const IDLE_REWARD_ID = "5dfa8e34-14a3-42de-ae3a-977862712b1e";
+export const REWARD_LESSON = "RewardLesson";
+export const REWARD_LEARNING_PATH = "RewardLearningPath";
+export enum RewardBoxState {
+  IDLE = "idle",
+  SHAKING = "shaking",
+  BLAST = "blast",
+}
+export const IS_REWARD_FEATURE_ON = "isRewardFeatureOn";
+
+export const OPS_ROLES = [
+  RoleType.SUPER_ADMIN,
+  RoleType.OPERATIONAL_DIRECTOR,
+  RoleType.PROGRAM_MANAGER,
+  RoleType.FIELD_COORDINATOR,
+];
+export const CAN_HOT_UPDATE = "can-Hot-Update";
+export const VERSION_KEY = "last_native_version";
+
+export enum PerformanceLevel {
+  ALL = "all",
+  NEED_HELP = "need_help",
+  DOING_GOOD = "doing_good",
+  STILL_LEARNING = "still_learning",
+  NOT_TRACKED = "not_tracked",
+}

@@ -8,7 +8,7 @@ import LiveQuiz, {
 import "./LiveQuizQuestion.css";
 import { Capacitor } from "@capacitor/core";
 import { Util } from "../../utility/util";
-import { PAGES, TableTypes } from "../../common/constants";
+import { PAGES, REWARD_LESSON, TableTypes } from "../../common/constants";
 import { useHistory } from "react-router";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { HiSpeakerWave } from "react-icons/hi2";
@@ -34,6 +34,8 @@ const LiveQuizQuestion: FC<{
   lessonId?: string;
   quizData?: any;
   onTotalScoreChange?;
+  isLearningPathway?: boolean;
+  isReward?: boolean;
 }> = ({
   roomDoc,
   onNewQuestionChange,
@@ -47,6 +49,8 @@ const LiveQuizQuestion: FC<{
   lessonId,
   quizData,
   onTotalScoreChange,
+  isLearningPathway,
+  isReward = false,
 }) => {
   const quizPath =
     (localStorage.getItem("gameUrl") ??
@@ -431,9 +435,11 @@ const LiveQuizQuestion: FC<{
     if (lessonId) {
       onTotalScoreChange(totalLessonScore);
       const classData = schoolUtil.getCurrentClass();
-
+      if (isReward === true) {
+        sessionStorage.setItem(REWARD_LESSON, "true");
+      }
       await api.updateResult(
-        student!.id,
+        student!,
         quizData.courseId,
         quizData.lessonid,
         Math.round(totalLessonScore),
@@ -448,6 +454,11 @@ const LiveQuizQuestion: FC<{
       totalLessonScore = 0;
       totalLessonTimeSpent = 0;
       lessonCorrectMoves = 0;
+      // Update the learning path
+      if (isLearningPathway) {
+        const currentStudent = Util.getCurrentStudent() as TableTypes<"user">;
+        await Util.updateLearningPath(currentStudent, isReward);
+      }
     } else {
       if (!roomDoc?.results) return;
       for (let result of roomDoc.results[student!.id]) {
@@ -459,7 +470,7 @@ const LiveQuizQuestion: FC<{
       }
       var _assignment = await api.getAssignmentById(roomDoc.assignment_id);
       await api.updateResult(
-        student!.id,
+        student!,
         roomDoc.course_id,
         roomDoc.lesson_id,
         Math.round(totalScore),
@@ -640,8 +651,8 @@ const LiveQuizQuestion: FC<{
                         ? option.isCorrect
                           ? "live-quiz-option-box-correct"
                           : selectedAnswerIndex === index
-                            ? "live-quiz-option-box-incorrect"
-                            : ""
+                          ? "live-quiz-option-box-incorrect"
+                          : ""
                         : "")
                     }
                   >

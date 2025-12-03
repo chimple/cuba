@@ -52,3 +52,41 @@
   justify-content: flex-end; 
   z-index: 999; 
 }
+/* StarsCounter */
+.home-header-stars-counter{
+    position: fixed;
+    top: 2.5vh;
+    right: 12%;
+}
+
+.home-header-stars-counter .home-header-star-icon{
+    display: block;
+    width: 10vw;;
+}
+
+.home-header-stars-counter > span{
+    position: absolute;
+    left: 32%; /* roughly over the white badge area on the left */
+    top: 49%;
+    transform: translate(-50%, -50%);
+    color: var(--text-color);
+    font-weight: 400;
+    font-size: 2vw;
+}
+
+ .headericon-bell-notification {
+  background-color: green;
+  border-radius: 50%;
+  height: 3.5vh;
+  width: 3.5vh;
+  padding: 0.4vh;        /* Increase this value to make the Bell smaller */
+  box-sizing: border-box; /* Important! Keeps the total width at 3vh even with padding */
+  object-fit: contain;    /* Ensures the bell icon scales nicely inside the padding */
+  margin-left: 7vh;
+  margin-bottom: -3vh;
+  margin-top: -1vh;
+  z-index: 10;
+  display: flex; 
+  align-items: center;
+  justify-content: center;
+}

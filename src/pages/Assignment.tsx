@@ -4,6 +4,8 @@ import "./Assignment.css";
 import { useCallback, useEffect, useState, useRef } from "react";
 import {
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+  CURRENT_CLASS,
+  CURRENT_SCHOOL,
   DOWNLOADED_LESSON_ID,
   DOWNLOAD_BUTTON_LOADING_STATUS,
   HOMEHEADERLIST,
@@ -23,13 +25,21 @@ import { Capacitor } from "@capacitor/core";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { TfiDownload } from "react-icons/tfi";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
+import LearningPathway from "../components/LearningPathway";
+import HomeworkPathway from "../components/assignment/HomeworkPathway";
+import { useFeatureIsOn } from "@growthbook/growthbook-react";
+import HomeworkCompleteModal from "../components/assignment/HomeworkCompleteModal";
 
 // Extend props to accept a callback for new assignments.
 interface AssignmentPageProps {
-  assignmentCount: any
+  assignmentCount: any;
+  onPlayMoreHomework?: () => void;
 }
 
-const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
+const AssignmentPage: React.FC<AssignmentPageProps> = ({
+  assignmentCount,
+  onPlayMoreHomework, // ✅ grab it from props
+}) => {
   const [loading, setLoading] = useState(true);
   const [isLinked, setIsLinked] = useState(true);
   const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
@@ -54,51 +64,60 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
   const [assignmentLessonCourseMap, setAssignmentLessonCourseMap] = useState<{
     [lessonId: string]: { course_id: string };
   }>({});
+  const [showHomeworkCompleteModal, setShowHomeworkCompleteModal] =
+    useState(false);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const isMounted = useRef(true);
+  const isHomeworkPathwayOn = useFeatureIsOn("homework-learning-pathway");
 
-  const updateLessonChapterAndCourseMaps = useCallback(async (assignments: TableTypes<"assignment">[]) => {
-    // Update lessonChapterMap
-    const chapterIds = Array.from(
-      new Set(
-        assignments
-          .map(assignment => assignment.chapter_id)
-          .filter((id): id is string => !!id) // Filter out any null or undefined ids
-      )
-    );
+  const updateLessonChapterAndCourseMaps = useCallback(
+    async (assignments: TableTypes<"assignment">[]) => {
+      // Update lessonChapterMap
+      const chapterIds = Array.from(
+        new Set(
+          assignments
+            .map((assignment) => assignment.chapter_id)
+            .filter((id): id is string => !!id) // Filter out any null or undefined ids
+        )
+      );
 
-    const chapters = await api.getChaptersByIds(chapterIds);
+      const chapters = await api.getChaptersByIds(chapterIds);
 
-    const chapterIdMap = chapters.reduce((acc, chapter) => {
-      acc[chapter.id] = chapter;
-      return acc;
-    }, {} as { [id: string]: TableTypes<"chapter"> });
+      const chapterIdMap = chapters.reduce((acc, chapter) => {
+        acc[chapter.id] = chapter;
+        return acc;
+      }, {} as { [id: string]: TableTypes<"chapter"> });
 
-    // Build the final lessonChapterMap by iterating through assignments
-    const chapterMap: { [lessonId: string]: TableTypes<"chapter"> } = {};
-    assignments.forEach((assignment) => {
-      if (assignment.lesson_id && assignment.chapter_id) {
-        const chapter = chapterIdMap[assignment.chapter_id];
-        if (chapter) {
-          chapterMap[assignment.lesson_id] = chapter;
+      // Build the final lessonChapterMap by iterating through assignments
+      const chapterMap: { [lessonId: string]: TableTypes<"chapter"> } = {};
+      assignments.forEach((assignment) => {
+        if (assignment.lesson_id && assignment.chapter_id) {
+          const chapter = chapterIdMap[assignment.chapter_id];
+          if (chapter) {
+            chapterMap[assignment.lesson_id] = chapter;
+          }
         }
-      }
-    });
-    setLessonChapterMap(chapterMap);
+      });
+      setLessonChapterMap(chapterMap);
 
-    // Update assignmentLessonCourseMap
-    const lessonCourseMap: { [lessonId: string]: { course_id: string } } = {};
-    assignments.forEach((assignment) => {
-      if (assignment.lesson_id && assignment.course_id) {
-        lessonCourseMap[assignment.lesson_id] = { course_id: assignment.course_id };
-      }
-    });
-    setAssignmentLessonCourseMap(lessonCourseMap);
-  }, [api]);
+      // Update assignmentLessonCourseMap
+      const lessonCourseMap: { [lessonId: string]: { course_id: string } } = {};
+      assignments.forEach((assignment) => {
+        if (assignment.lesson_id && assignment.course_id) {
+          lessonCourseMap[assignment.lesson_id] = {
+            course_id: assignment.course_id,
+          };
+        }
+      });
+      setAssignmentLessonCourseMap(lessonCourseMap);
+    },
+    [api]
+  );
 
+  
   const init = useCallback(
     async (fromCache: boolean = true, fullRefresh: boolean = true) => {
-      if (fullRefresh) setLoading(true); 
+      if (fullRefresh) setLoading(true);
 
       const student = Util.getCurrentStudent();
       if (!student) {
@@ -123,16 +142,18 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
       try {
         const all = await api.getPendingAssignments(classId, studentId);
         const allAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
-
         // Update only if length or content has changed
-        const assignmentIds = assignments.map(a => a.id);
-        const newAssignments = allAssignments.filter(a => !assignmentIds.includes(a.id));
+        const assignmentIds = assignments.map((a) => a.id);
+        const newAssignments = allAssignments.filter(
+          (a) => !assignmentIds.includes(a.id)
+        );
         const updatedAssignments = fullRefresh
           ? allAssignments
           : [...assignments, ...newAssignments];
 
         setAssignments(updatedAssignments);
         assignmentCount(updatedAssignments.length);
+
 
         await updateLessonChapterAndCourseMaps(updatedAssignments);
 
@@ -174,6 +195,13 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
     }, 1000);
   }, [init]);
 
+  useEffect(() => {
+    // Only decide banner visibility AFTER loading is finished
+    if (!loading && isHomeworkPathwayOn) {
+      setShowHomeworkCompleteModal(assignments.length === 0);
+    }
+  }, [loading, assignments.length]);
+
   // --- Listener setup ---
   useEffect(() => {
     isMounted.current = true;
@@ -189,7 +217,9 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
 
     api.assignmentUserListner(student.id, async (assignmentUser) => {
       if (assignmentUser) {
-        const assignment = await api.getAssignmentById(assignmentUser.assignment_id);
+        const assignment = await api.getAssignmentById(
+          assignmentUser.assignment_id
+        );
         if (isMounted.current && assignment && assignment.type !== LIVE_QUIZ) {
           await updateLessonChapterAndCourseMaps([...assignments, assignment]);
           handleAssignmentUpdate();
@@ -204,18 +234,25 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
       }
       api.removeAssignmentChannel();
     };
-  }, [currentClass, api, handleAssignmentUpdate, assignments, updateLessonChapterAndCourseMaps]);
+  }, [
+    currentClass,
+    api,
+    handleAssignmentUpdate,
+    assignments,
+    updateLessonChapterAndCourseMaps,
+  ]);
 
   useEffect(() => {
     Util.loadBackgroundImage();
     init(false, true);
 
-    api.syncDB(Object.values(TABLES))
+    api
+      .syncDB(Object.values(TABLES))
       .then(() => {
-         init(false, false);
+        init(false, false);
       })
       .catch((error) => {
-        console.error('Error syncing assignments:', error);
+        console.error("Error syncing assignments:", error);
       });
   }, []);
 
@@ -245,7 +282,6 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
       checkAllHomeworkDownloaded
     );
   };
-
   async function downloadAllHomeWork(lessons: TableTypes<"lesson">[]) {
     setDownloadButtonLoading(true);
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(true));
@@ -289,69 +325,77 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
       });
     }
   }, []);
+
+  // ⬆ inside AssignmentPage component, before JSX:
+  const bodyClass = !isLinked
+    ? "lesson-body"
+    : isHomeworkPathwayOn
+    ? // 🔹 Flag ON → Slider flow (keep old behaviour)
+      lessons.length < 1
+      ? "lesson-body"
+      : "assignment-body"
+    : // 🔹 Flag OFF → HomeworkPathway flow → always use assignment layout
+      "assignment-body";
+
   return !loading ? (
     <div>
       <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
-        <div
-          className={
-            "header " + isInputFocus && !isLinked ? "scroll-header" : ""
-          }
-        >
-          <div className="assignment-header">
-            <div className="right-button"></div>
-            <div className="dowload-homework-button-container">
-              <div className="school-class-header">
-                <div className="classname-header">{schoolName}</div>
-                <div className="classname-header">
-                  {currentClass?.name ? currentClass?.name : ""}
+        <div className={bodyClass}>
+          {isHomeworkPathwayOn && (
+            <div className="assignment-header">
+              <div className="right-button"></div>
+
+              <div className="dowload-homework-button-container">
+                <div className="school-class-header">
+                  <div className="classname-header">{schoolName}</div>
+                  <div className="classname-header">
+                    {currentClass?.name ? currentClass?.name : ""}
+                  </div>
                 </div>
               </div>
-            </div>
-            {isLinked &&
-            showDownloadHomeworkButton &&
-            lessons.length > 0 &&
-            Capacitor.isNativePlatform() ? (
-              <IonButton
-                size="small"
-                color="white"
-                shape="round"
-                disabled={downloadButtonLoading}
-                className="dowload-homework-button"
-                onClick={() => {
-                  if (!online) {
-                    presentToast({
-                      message: t(`Device is offline.`),
-                      color: "danger",
-                      duration: 3000,
-                      position: "bottom",
-                      buttons: [
-                        {
-                          text: "Dismiss",
-                          role: "cancel",
-                        },
-                      ],
-                    });
 
-                    setLoading(false);
-                    return;
-                  } else downloadAllHomeWork(lessons);
-                }}
-              >
-                <div className="download-homework-label">
-                  {downloadButtonLoading
-                    ? t("Downloading...")
-                    : t("Download all")}
-                </div>
-                {!downloadButtonLoading ? (
-                  <div className="dowload-homework-icon-container">
-                    <TfiDownload className="dowload-homework-icon" />
+              {isLinked &&
+              showDownloadHomeworkButton &&
+              lessons.length > 0 &&
+              Capacitor.isNativePlatform() ? (
+                <IonButton
+                  size="small"
+                  color="white"
+                  shape="round"
+                  disabled={downloadButtonLoading}
+                  className="dowload-homework-button"
+                  onClick={() => {
+                    if (!online) {
+                      presentToast({
+                        message: t(`Device is offline.`),
+                        color: "danger",
+                        duration: 3000,
+                        position: "bottom",
+                        buttons: [{ text: "Dismiss", role: "cancel" }],
+                      });
+                      setLoading(false);
+                      return;
+                    }
+                    downloadAllHomeWork(lessons);
+                  }}
+                >
+                  <div className="download-homework-label">
+                    {downloadButtonLoading
+                      ? t("Downloading...")
+                      : t("Download all")}
                   </div>
-                ) : null}
-              </IonButton>
-            ) : (
-              <div className="right-button"></div>
-            )}
-          </div>
+
+                  {!downloadButtonLoading && (
+                    <div className="dowload-homework-icon-container">
+                      <TfiDownload className="dowload-homework-icon" />
+                    </div>
+                  )}
+                </IonButton>
+              ) : (
+                <div className="right-button"></div>
+              )}
+            </div>
+          )}
 
           {!loading && (
             <div
@@ -369,28 +413,94 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
                 />
               ) : (
                 <div>
-                  {assignments.length > 0 ? (
-                    <LessonSlider
-                      key={assignments.length}
-                      lessonData={lessons}
-                      isHome={true}
-                      course={undefined}
-                      lessonsScoreMap={lessonResultMap || {}}
-                      startIndex={0}
-                      showSubjectName={true}
-                      showChapterName={true}
-                      assignments={assignments}
-                      downloadButtonLoading={downloadButtonLoading}
-                      showDate={true}
-                      onDownloadOrDelete={checkAllHomeworkDownloaded}
-                      lessonChapterMap={lessonChapterMap}
-                      lessonCourseMap={assignmentLessonCourseMap}
-                    />
+                  {isHomeworkPathwayOn ? (
+                    // ✅ Flag ON → old LessonSlider flow
+                    assignments.length > 0 ? (
+                      <LessonSlider
+                        key={assignments.length}
+                        lessonData={lessons}
+                        isHome={true}
+                        course={undefined}
+                        lessonsScoreMap={lessonResultMap || {}}
+                        startIndex={0}
+                        showSubjectName={true}
+                        showChapterName={true}
+                        assignments={assignments}
+                        downloadButtonLoading={downloadButtonLoading}
+                        showDate={true}
+                        onDownloadOrDelete={checkAllHomeworkDownloaded}
+                        lessonChapterMap={lessonChapterMap}
+                        lessonCourseMap={assignmentLessonCourseMap}
+                      />
+                    ) : (
+                      <div className="pending-assignment">
+                        {showHomeworkCompleteModal && (
+                          <HomeworkCompleteModal
+                            text={t(
+                              "Yay!! You have completed all the Homework!!"
+                            )}
+                            borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
+                            onClose={() => setShowHomeworkCompleteModal(false)}
+                            onPlayMore={() => {
+                              setShowHomeworkCompleteModal(false);
+                              if (onPlayMoreHomework) {
+                                onPlayMoreHomework();
+                              }
+                            }}
+                          />
+                        )}
+                      </div>
+                    )
+                  ) : (
+                    // ✅ Flag OFF → ALWAYS render HomeworkPathway, even if assignments[] is empty or API failed.
+                    <HomeworkPathway onPlayMoreHomework={onPlayMoreHomework} />
+                  )}
+
+                  {/* {assignments.length > 0 ? (
+                    // 3. Conditionally render based on the feature flag
+                    // If the feature is ON, show the original slider
+                    isHomeworkPathwayOn ? (
+                      <LessonSlider
+                        key={assignments.length}
+                        lessonData={lessons}
+                        isHome={true}
+                        course={undefined}
+                        lessonsScoreMap={lessonResultMap || {}}
+                        startIndex={0}
+                        showSubjectName={true}
+                        showChapterName={true}
+                        assignments={assignments}
+                        downloadButtonLoading={downloadButtonLoading}
+                        showDate={true}
+                        onDownloadOrDelete={checkAllHomeworkDownloaded}
+                        lessonChapterMap={lessonChapterMap}
+                        lessonCourseMap={assignmentLessonCourseMap}
+                      />
+                    ) : (
+                      // If the feature is OFF, show the new pathway
+                      <HomeworkPathway
+                        onPlayMoreHomework={onPlayMoreHomework}
+                      />
+                    )
                   ) : (
                     <div className="pending-assignment">
-                      {t("You don't have any pending assignments.")}
+                      {showHomeworkCompleteModal && (
+                        <HomeworkCompleteModal
+                          text={t(
+                            "Yay!! You have completed all the Homework!!"
+                          )}
+                          borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
+                          onClose={() => setShowHomeworkCompleteModal(false)}
+                          onPlayMore={() => {
+                            setShowHomeworkCompleteModal(false);
+                            if (onPlayMoreHomework) {
+                              onPlayMoreHomework();
+                            }
+                          }}
+                        />
+                      )}
                     </div>
-                  )}
+                  )} */}
                 </div>
               )}
             </div>

@@ -1,0 +1,78 @@
+.classinfocard-cic-card {
+  border-radius: 5px !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
+  border: 1px solid #e5e7eb !important;
+}
+.classinfocard-cic-card-content {
+  padding: 24px !important;
+}
+.classinfocard-cic-title {
+  margin-bottom: 16px !important;
+  text-align: left;
+}
+
+.classinfocard-cic-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: 48px;
+  row-gap: 20px;
+  align-items: start;
+}
+@media (min-width: 600px) {
+  .classinfocard-cic-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.classinfocard-cic-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  min-height: 48px;
+  text-align: left;
+}
+.classinfocard-cic-label {
+  display: block;
+  line-height: 1;
+  margin-bottom: 4px;
+  text-align: left;
+}
+.classinfocard-cic-value {
+  font-weight: 700 !important;
+  line-height: 1.25;
+  text-align: left;
+}
+
+.classinfocard-cic-full {
+  grid-column: 1 / -1;
+}
+.classinfocard-cic-code {
+  display: block;
+  width: 100%;
+  background: #f3f4f6; 
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.classinfocard-cic-grid > * {
+  min-width: 0;
+}
+
+.classinfocard-cic-ellipsis {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+
+.classinfocard-cic-tooltip-anchor {
+  display: inline-block;
+  max-width: 100%;
+}

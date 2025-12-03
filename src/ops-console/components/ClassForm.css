@@ -1,0 +1,225 @@
+.class-form-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.class-form-container {
+  background: #fff;
+  width: 460px;
+  height: 370px;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #000;
+}
+
+.class-form-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #000;
+}
+
+.class-form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.class-form-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  margin-bottom: 16px;
+  color: #000;
+  position: relative; /* ✅ Add this */
+}
+
+
+.class-form-full-width {
+  width: 100%;
+}
+
+.class-form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  /* margin-bottom: 6px; */
+  color: #000;
+}
+
+.class-form-required {
+  color: red;
+}
+
+.class-form-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.class-form-select-wrapper select {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 36px 8px 10px;
+  font-size: 14px;
+  background-color: #fff;
+  color: #000;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+}
+
+.class-form-select-wrapper select:focus {
+  border-color: #007bff;
+}
+
+.class-form-dropdown-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.class-form-group input,
+.class-form-group select {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 14px;
+  outline: none;
+  background-color: #fff!important;
+  color: #000;
+}
+
+.class-form-group input:disabled {
+  background-color: #fff !important;
+  color: #000 !important;
+  opacity: 1 !important;
+}
+
+.class-form-group input:focus {
+  border-color: #007bff;
+}
+
+/* Buttons */
+.class-form-button-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.class-form-cancel-btn,
+.class-form-save-btn {
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Cancel button: blue border + text */
+.class-form-cancel-btn {
+  background-color: #fff;
+  color: #007bff;
+  border-color: #007bff;
+}
+
+.class-form-cancel-btn:hover {
+  background-color: #e6f0ff;
+}
+
+/* Save button: solid blue */
+.class-form-save-btn {
+  background-color: #007bff;
+  color: #fff;
+  border-color: #007bff;
+}
+
+.class-form-save-btn:hover {
+  background-color: #0056cc;
+}
+.class-form-save-btn:disabled{
+  background-color: #ccc;
+  border: none;
+  cursor: not-allowed;
+}
+
+.class-form-error {
+  color: red;
+  margin-bottom: 5px;
+  padding: 0px 5px;
+  background: #ffe6e6;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.multi-select-input {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #fff;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+}
+/* Fix the dropdown width to match trigger */
+.class-form-multi-dropdown {
+  position: absolute;
+  top: calc(100% + 4px); /* ⬇ Drop-down below input */
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 1000;
+}
+
+.class-form-multi-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 0px 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.class-option-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column; /* ⬅ ensures stacked text */
+  min-width: 0;
+}
+
+.class-form-subject {
+  font-weight: 600;
+}
+
+.class-form-sub {
+  font-size: 12px;
+  color: #666;
+  white-space: normal; 
+}
+.class-form-checkbox {
+  flex-shrink: 0;
+  margin-top: 10px;
+}
+.rotate {
+  transform: rotate(180deg);
+}

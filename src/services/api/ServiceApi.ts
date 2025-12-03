@@ -29,6 +29,10 @@ import { AvatarObj } from "../../components/animation/Avatar";
 import { DocumentData, Unsubscribe } from "firebase/firestore";
 import LiveQuizRoomObject from "../../models/liveQuizRoom";
 import { RoleType } from "../../interface/modelInterfaces";
+import {
+  UserSchoolClassParams,
+  UserSchoolClassResult,
+} from "../../ops-console/pages/NewUserPageOps";
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
@@ -71,8 +75,8 @@ export interface ServiceApi {
    * @param {string} name - Name of the school.
    * @param {string} group1 - State of the school.
    * @param {string} group2 - District of the school.
-   * @param {string} group3 - City of the school.
-   * @param {string | null} group4 - Additional grouping, if any.
+   * @param {string} group3 - Block of the school.
+   * @param {string | null} group4 - Additional grouping, if any. eg: Cluster.
    * @param {File | null} image - Optional image file for the school.
    * @param {string | null} program_id - Linked program ID if any.
    * @param {string | null} udise - School's UDISE code (11 digits).
@@ -91,6 +95,8 @@ export interface ServiceApi {
     udise: string | null,
     address: string | null,
     country: string | null,
+    onlySchool?: boolean,
+    onlySchoolUser?: boolean
   ): Promise<TableTypes<"school">>;
   /**
    * Updates the school details and returns the updated school object.
@@ -138,9 +144,29 @@ export interface ServiceApi {
     udise_id?: string
   ): Promise<TableTypes<"req_new_school"> | null>;
 
+  /**
+   * Soft-deletes all approved ops requests for a specific user.
+   *
+   * This marks matching ops_requests records as `is_deleted = true` without
+   * removing them from the database. You can optionally limit the deletion
+   * to a specific school or class.
+   *
+   * @param {string} requested_by - The ID of the user whose ops requests should be deleted.
+   * @param {string} [schoolId] - (Optional) The school ID to filter requests by.
+   *                              If provided, only requests belonging to this school are deleted.
+   * @param {string} [classId] - (Optional) The class ID to filter requests by.
+   *                             If provided, only requests belonging to this class are deleted.
+   * @returns {Promise<void>} Resolves when the operation is complete.
+   */
+  deleteApprovedOpsRequestsForUser(
+    requested_by: string,
+    schoolId?: string,
+    classId?: string
+  ): Promise<void>;
+
   getExistingSchoolRequest(
-    userId: string
-  ): Promise<TableTypes<"req_new_school"> | null>;
+    requested_by: string
+  ): Promise<TableTypes<"ops_requests"> | null>;
   /**
    * Adds a school profile image and returns the school profile image URL.
    * @param {string} id - The unique identifier of the school.
@@ -430,7 +456,7 @@ export interface ServiceApi {
    * @returns {Result}} Updated result Object
    */
   updateResult(
-    studentId: string,
+    student: TableTypes<"user">,
     courseId: string | undefined,
     lessonId: string,
     score: number,
@@ -582,7 +608,7 @@ export interface ServiceApi {
    */
   getSchoolsForUser(
     userId: string,
-    options?: { page?: number; page_size?: number ; search?: string }
+    options?: { page?: number; page_size?: number; search?: string }
   ): Promise<{ school: TableTypes<"school">; role: RoleType }[]>;
 
   /**
@@ -950,7 +976,11 @@ export interface ServiceApi {
    *          - `false` if there were any errors or if no synchronization was necessary.
    */
 
-  syncDB(tableNames: TABLES[], refreshTables: TABLES[], isFirstSync?: boolean): Promise<boolean>;
+  syncDB(
+    tableNames: TABLES[],
+    refreshTables: TABLES[],
+    isFirstSync?: boolean
+  ): Promise<boolean>;
 
   /**
    * Function to get Recommended Lessons.
@@ -1042,18 +1072,21 @@ export interface ServiceApi {
    * Creates a class for the given school
    * @param schoolId
    * @param className
+   * @param groupId - Whatsapp group id
    * @returns {TableTypes<"class">} Class Object
    */
   createClass(
     schoolId: string,
-    className: string
+    className: string,
+    groupId?: string
   ): Promise<TableTypes<"class">>;
   /**
    * Updates a class name for given classId
    * @param classId
    * @param className
+   * @param groupId
    */
-  updateClass(classId: string, className: string);
+  updateClass(classId: string, className: string, groupId?: string);
   /**
    * Deletes a class
    * @param classId
@@ -1066,6 +1099,16 @@ export interface ServiceApi {
    */
   getResultByAssignmentIds(
     assignmentIds: string[]
+  ): Promise<TableTypes<"result">[] | undefined>;
+
+  /**
+   * Get results by assignment ids for students currently in the specified class
+   * @param assignmentIds
+   * @param classId
+   */
+  getResultByAssignmentIdsForCurrentClassMembers(
+    assignmentIds: string[],
+    classId: string
   ): Promise<TableTypes<"result">[] | undefined>;
 
   /**
@@ -1138,7 +1181,11 @@ export interface ServiceApi {
    * @param {string} user user;
    * @return void.
    */
-  addTeacherToClass(classId: string, user: TableTypes<"user">): Promise<void>;
+  addTeacherToClass(
+    schoolId: string,
+    classId: string,
+    user: TableTypes<"user">
+  ): Promise<void>;
 
   /**
    * Checks the user present in school or not.
@@ -1727,6 +1774,19 @@ export interface ServiceApi {
   getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>>;
 
   /**
+   * Fetch filter options for schools within a specific program.
+   * Returns an object where keys are filter categories (e.g., 'state', 'district')
+   * and values are arrays of filter option strings specific to that program.
+   *
+   * @param programId - The ID of the program to get filter options for
+   * @returns Promise resolving to an object where keys are filter categories
+   * and values are arrays of filter option strings.
+   */
+  getSchoolFilterOptionsForProgram(
+    programId: string
+  ): Promise<Record<string, string[]>>;
+
+  /**
    * Fetch a list of schools filtered by given criteria, with pagination, sorting, and search.
    *
    * @param params - An object containing filters (keys as categories and values as selected options),
@@ -1962,6 +2022,15 @@ export interface ServiceApi {
   getSchoolDetailsByUdise(
     udiseCode: string
   ): Promise<{ studentLoginType: string; schoolModel: string } | null>;
+
+  /**
+   * Fetch SchoolData by UDISE code.
+   * @param {string} udiseCode - UDISE code of the school.
+   * @returns SchoolData row
+   */
+  getSchoolDataByUdise(
+    udiseCode: string
+  ): Promise<TableTypes<"school_data"> | null>;
   /**
    * Fetches chapters by chapterIDs array.
    * @param {string[]} chapterIds - Array of chapter IDs to fetch.
@@ -2042,13 +2111,15 @@ export interface ServiceApi {
    * @param requestId unique id of ops_request table
    * @param respondedBy user who responded or reviewed
    * @param status "approved" | "rejected"
-   * @param rejectionReason reason for rejection (if status is "rejected")
+   * @param rejectedReasonType type/category of rejection (for teacher/principal requests)
+   * @param rejectedReasonDescription detailed reason for rejection
    */
   respondToSchoolRequest(
     requestId: string,
     respondedBy: string,
     status: (typeof STATUS)[keyof typeof STATUS],
-    rejectionReason?: string
+    rejectedReasonType?: string,
+    rejectedReasonDescription?: string
   ): Promise<TableTypes<"ops_requests"> | undefined>;
 
   /**
@@ -2116,4 +2187,95 @@ export interface ServiceApi {
    * @param {string} schoolId - school Id
    */
   getAllClassesBySchoolId(schoolId: string): Promise<TableTypes<"class">[]>;
+  /**
+   * Fetch reward by rewardId
+   * @param rewardId reward ID
+   */
+  getRewardById(
+    rewardId: string
+  ): Promise<TableTypes<"rive_reward"> | undefined>;
+  /**
+   * Fetch all rive_rewards
+   */
+  getAllRewards(): Promise<TableTypes<"rive_reward">[] | []>;
+  /**
+   * update user reward by userId and rewardId
+   */
+  updateUserReward(
+    userId: string,
+    rewardId: string,
+    created_at?: string
+  ): Promise<void>;
+  /**
+   * Fetch active students count information for a given class ID.
+   * @param {string} classID - The ID of the school to fetch.
+   * @returns Promise resolving to an object with student count.
+   */
+  getActiveStudentsCountByClass(classId: string): Promise<string>;
+
+  /**
+   * Fetch active students count information for a given class ID.
+   * @param {string} studentId - The ID of the student to fetch.
+   * @param {string []} subjectIds - The ID of the subjects to fetch.
+   * @returns Promise resolving to an object with completed assignment count and subject id's.
+   */
+  getCompletedAssignmentsCountForSubjects(
+    studentId: string,
+    subjectIds: string[]
+  ): Promise<{ subject_id: string; completed_count: number }[]>;
+  /**
+   * Get or create a user and link them to a school (and optionally a class).
+   */
+  getOrcreateschooluser(
+    params: UserSchoolClassParams
+  ): Promise<UserSchoolClassResult>;
+
+  /**
+   * Update school model to at_school or at_home.
+   * Update location link and key contacts if provided.
+   * @param schoolId School ID
+   * @param schoolMode mode of school
+   * @param locationLink url link of school location
+   * @param keyContacts provide contact details of key contacts
+   */
+  insertSchoolDetails(
+    schoolId: string,
+    schoolModel: string,
+    locationLink?: string,
+    keyContacts?: any
+  ): Promise<void>;
+
+  /**
+   * Add a student with parent validation and class linking
+   *
+   * @param params - Object containing student details
+   * @param params.phone - Parent phone number (10 digits)
+   * @param params.name - Student name
+   * @param params.gender - Student gender
+   * @param params.age - Student age
+   * @param params.classId - Class ID to add the student to
+   * @param params.schoolId - School ID to fetch language from
+   * @param params.parentName - Parent name (optional)
+   * @param params.email - Parent email (optional)
+   * @returns Object with success status and message
+   */
+  addStudentWithParentValidation(params: {
+    phone: string;
+    name: string;
+    gender: string;
+    age: string;
+    classId: string;
+    schoolId?: string;
+    parentName?: string;
+    email?: string;
+  }): Promise<{ success: boolean; message: string; data?: any }>;
+  /**
+   * Update class courses belongs to that curriculum and grade
+   * @param {string } classId - class id
+   * @param {string } selectedCourseIds - array of courseIds
+   */
+  updateClassCourses(
+    classId: string,
+    selectedCourseIds: string[]
+  ): Promise<void> ;
 }

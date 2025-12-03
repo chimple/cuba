@@ -21,6 +21,7 @@ const CommonToggle: React.FC<CommonToggleProps> = ({
       )}
       <IonToggle
         className="common-toggle-custom-rounded-toggle"
+        id="toggle"
         checked={checked}
         onIonChange={onChange}
       />

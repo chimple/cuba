@@ -119,6 +119,7 @@
 .schoolStudents-table-container .student-name-data.MuiTypography-root {
   font-weight: 500 !important;
   color: #1d2939 !important;
+  text-align: left !important;
 }
 
 .schoolStudents-footer {
@@ -162,6 +163,83 @@
 
 .schoolStudents-emptyStateAddButton-icon.MuiSvgIcon-root {
   color: #1976d2 !important;
+}
+
+/* Performance Chip Styles */
+.performance-chip-doing-good {
+  background-color: #dcfce7 !important;
+  color: #008236 !important;
+}
+
+.performance-chip-need-help {
+  background-color: #ffe2e2 !important;
+  color: #c10007 !important;
+}
+
+.performance-chip-still-learning {
+  background-color: #ffedd4 !important;
+  color: #ca3500 !important;
+}
+
+.performance-chip-not-tracked {
+  background-color: #f3f4f6 !important;
+  color: #364153 !important;
+}
+
+/* Performance Filter Pills - Inactive State */
+.performance-filter-pill {
+  background-color: #f3f4f6 !important;
+  color: #6b7280 !important;
+}
+
+.performance-filter-pill:hover {
+  background-color: #e5e7eb !important;
+}
+
+/* Performance Filter Pills - Active States */
+.performance-filter-pill-active-all {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+}
+
+.performance-filter-pill-active-all:hover {
+  background-color: #bfdbfe !important;
+}
+
+.performance-filter-pill-active-doing-good {
+  background-color: #dcfce7 !important;
+  color: #008236 !important;
+}
+
+.performance-filter-pill-active-doing-good:hover {
+  background-color: #c6f6d5 !important;
+}
+
+.performance-filter-pill-active-need-help {
+  background-color: #ffe2e2 !important;
+  color: #c10007 !important;
+}
+
+.performance-filter-pill-active-need-help:hover {
+  background-color: #fed7d7 !important;
+}
+
+.performance-filter-pill-active-still-learning {
+  background-color: #ffedd4 !important;
+  color: #ca3500 !important;
+}
+
+.performance-filter-pill-active-still-learning:hover {
+  background-color: #fed7aa !important;
+}
+
+.performance-filter-pill-active-not-tracked {
+  background-color: #f3f4f6 !important;
+  color: #364153 !important;
+}
+
+.performance-filter-pill-active-not-tracked:hover {
+  background-color: #e5e7eb !important;
 }
 
 @media (max-width: 768px) {

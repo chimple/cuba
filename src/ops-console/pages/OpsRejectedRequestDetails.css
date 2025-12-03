@@ -93,6 +93,7 @@
   font-size: 1.07rem;
   font-family: inherit;
   font-weight: 500;
+  margin-top: 0.6rem;
 }
 .ops-rejected-request-details-label-row span:first-child {
   color: #606072;
@@ -136,6 +137,12 @@
   color: #b12424 !important;
   font-family: inherit;
   font-weight: 600;
+}
+.ops-rejected-request-details-message-box {
+    background: white;
+    padding: 8px;
+    border: 2px solid #b12424;
+    border-radius: 8px;
 }
 
 @media (max-width: 1200px) {

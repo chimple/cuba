@@ -1,0 +1,243 @@
+
+.ops-flagged-request-details-layout {
+  padding: 24px 20px;
+  background: #f9fafb;
+  min-height: 100vh;
+}
+.ops-flagged-request-details-page-title {
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-size: 24px;
+}
+.ops-flagged-request-details-breadcrumbs {
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #6b7280;
+}
+.ops-flagged-request-details-link {
+  color: #1976d2;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.ops-flagged-request-details-active {
+  color: #333;
+  font-weight: 600;
+}
+
+.ops-flagged-request-details-main-content-row {
+  margin-top: 0;
+}
+.ops-flagged-request-details-card {
+  padding: 20px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+  border: 1px solid #e5e7eb;
+}
+.ops-flagged-request-details-card-title {
+  font-weight: 700 !important;
+  font-style: italic;
+  font-size: 16px !important;
+  line-height: 100%;
+  letter-spacing: 0%;
+  color: #333333 !important;
+  margin-bottom: 8px !important;
+}
+.ops-flagged-request-details-divider {
+  margin: 12px 0 !important;
+}
+.ops-flagged-request-details-field-stack {
+  margin-bottom: 12px;
+  margin-top: 18px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.ops-flagged-request-details-field-row-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  margin-top: 12px;
+  gap: 12px;
+}
+.ops-flagged-request-details-field-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.ops-flagged-request-details-field-column .ops-flagged-request-details-label {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+  white-space: normal;
+  flex: unset;
+  min-width: unset;
+  margin-bottom: 4px;
+}
+.ops-flagged-request-details-value {
+  font-size: 14px;
+  color: #111827;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.ops-flagged-request-details-dropdown {
+  flex: 0 0 60%;
+  min-width: 180px;
+  max-width: 300px;
+}
+.ops-flagged-request-details-textfield {
+  flex: 0 0 60%;
+  min-width: 180px;
+  max-width: 300px;
+}
+.ops-flagged-request-details-textfield-small {
+  width: 100%;
+}
+.ops-flagged-request-details-label {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+  white-space: nowrap;
+  flex: 0 0 35%;
+  min-width: 120px;
+}
+.ops-flagged-request-details-flex-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.ops-flagged-request-details-mr {
+  margin-right: 0;
+}
+.ops-flagged-request-details-label-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.ops-flagged-request-details-flagged-card {
+  background: #fff;
+  margin-top: 0;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+.ops-flagged-request-details-centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+.ops-flagged-request-details-action-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 24px;
+}
+.ops-flagged-request-details-cancel-btn {
+  border: 1px solid #E93445 !important;
+  color: #E93445 !important;
+  background: #fff !important;
+  font-weight: 600 !important;
+  min-width: 140px;
+  height: 44px;
+  font-size: 16px;
+  border-radius: 6px;
+  text-transform: none !important;
+  transition: all 0.2s ease-in-out !important;
+}
+.ops-flagged-request-details-cancel-btn:hover {
+  background: #fef2f2 !important;
+  border-color: #dc2626 !important;
+  color: #dc2626 !important;
+}
+.ops-flagged-request-details-approve-btn {
+  background: #1CC487 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  min-width: 140px;
+  height: 44px;
+  font-size: 16px;
+  border-radius: 6px;
+  box-shadow: none !important;
+  text-transform: none !important;
+  transition: all 0.2s ease-in-out !important;
+}
+.ops-flagged-request-details-approve-btn:hover {
+  background: #17a36f !important;
+  box-shadow: 0 2px 8px rgba(28, 196, 135, 0.3) !important;
+  transform: translateY(-1px);
+}
+
+/* TextField and Select/Dropdown Styling */
+.ops-flagged-request-details-textfield .MuiOutlinedInput-root,
+.ops-flagged-request-details-dropdown .MuiOutlinedInput-root {
+  border-radius: 6px;
+  height: 40px;
+  padding: 0;
+}
+
+.ops-flagged-request-details-dropdown .MuiSelect-select {
+  padding: 8px 14px !important;
+  height: auto;
+  display: flex;
+  align-items: center;
+}
+
+.ops-flagged-request-details-textfield .MuiOutlinedInput-input {
+  padding: 8px 14px;
+  height: auto;
+}
+
+.ops-flagged-request-details-textfield .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline,
+.ops-flagged-request-details-dropdown .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+  border-color: #3b82f6;
+  border-width: 1px;
+}
+
+.ops-flagged-request-details-textfield .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline,
+.ops-flagged-request-details-dropdown .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #2563eb;
+}
+
+.ops-flagged-request-details-textfield .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline,
+.ops-flagged-request-details-dropdown .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #3b82f6;
+  border-width: 2px;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.ops-flagged-request-details-textfield .MuiOutlinedInput-root,
+.ops-flagged-request-details-dropdown .MuiOutlinedInput-root {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+}
+
+.ops-flagged-request-details-textfield .MuiOutlinedInput-root.Mui-disabled,
+.ops-flagged-request-details-dropdown .MuiOutlinedInput-root.Mui-disabled {
+  background-color: #f9fafb;
+  box-shadow: none;
+}
+
+.ops-flagged-request-details-textfield .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline,
+.ops-flagged-request-details-dropdown .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline {
+  border-color: #e5e7eb;
+}
+
+@media (max-width: 900px) {
+  .ops-flagged-request-details-main-content-row {
+    flex-direction: column;
+  }
+  .ops-flagged-request-details-card {
+    margin-bottom: 16px;
+  }
+  .ops-flagged-request-details-action-row {
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+  }
+}

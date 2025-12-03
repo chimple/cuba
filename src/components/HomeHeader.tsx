@@ -20,6 +20,25 @@ import { schoolUtil } from "../utility/schoolUtil";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
 import ProfileMenu from "./ProfileMenu/ProfileMenu";
 
+// Define the Props for StarsCounter
+interface StarsCounterProps {
+  starsCount: number;
+}
+
+// StarsCounter Component
+const StarsCounter: React.FC<StarsCounterProps> = ({ starsCount }) => {
+  return (
+    <div className="home-header-stars-counter">
+      <span>{starsCount}</span>
+      <img
+        src="assets/StarsCounter.svg"
+        alt="Stars"
+        className="home-header-star-icon"
+      />
+    </div>
+  );
+};
+
 const HomeHeader: React.FC<{
   currentHeader: string;
   onHeaderIconClick: Function;
@@ -38,12 +57,27 @@ const HomeHeader: React.FC<{
 
   const history = useHistory();
   const [student, setStudent] = useState<TableTypes<"user">>();
+  const studentRef = useRef<TableTypes<"user"> | null>(null); 
+
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
   const [isProfileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [starsCount, setStarsCount] = useState<number>(0); // State for stars count
 
   const [isLinked, setIsLinked] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
+  // 🔹 helper to always read the latest local-first stars
+  const refreshStarsFromLocal = () => {
+    const curr = studentRef.current || Util.getCurrentStudent();
+    if (!curr?.id) {
+      setStarsCount(0);
+      return;
+    }
+
+    const dbStars = curr.stars || 0;
+    const localStars = Util.getLocalStarsForStudent(curr.id, dbStars);
+    setStarsCount(localStars);
+  };
   const init = async (fromCache: boolean = true) => {
     try {
       const [canShowAvatarValue, student, currMode] = await Promise.all([
@@ -58,6 +92,17 @@ const HomeHeader: React.FC<{
       const linked = await api.isStudentLinked(student.id, fromCache);
       setIsLinked(linked);
       setStudentMode(currMode);
+
+      // Fetch stars count for the current student
+      const currentStudent = Util.getCurrentStudent();
+      setStarsCount(currentStudent?.stars || 0);
+
+      // 🔹 store student in state + ref
+      setStudent(student);
+      studentRef.current = student;
+
+      // 🔹 initial stars: LOCAL-FIRST
+      refreshStarsFromLocal();
 
       DEFAULT_HEADER_ICON_CONFIGS.forEach(async (element) => {
         if (
@@ -90,6 +135,29 @@ const HomeHeader: React.FC<{
     window.removeEventListener("JoinClassListner", handleJoinClassListner);
   };
   // const student =await Util.getCurrentStudent();
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const custom = e as CustomEvent<{ studentId: string; newStars: number }>;
+      const curr = studentRef.current || Util.getCurrentStudent();
+      if (!curr?.id) return;
+
+      // if event has studentId, ignore for other profiles
+      if (custom.detail?.studentId && custom.detail.studentId !== curr.id) {
+        return;
+      }
+
+      // EITHER use detail.newStars, OR recompute from local
+      // setStarsCount(custom.detail.newStars);
+      refreshStarsFromLocal();
+    };
+
+    window.addEventListener("starsUpdated", handler);
+    return () => {
+      window.removeEventListener("starsUpdated", handler);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return (
     <div id="home-header-icons">
       <div className="home-header-outer-icon">
@@ -134,9 +202,10 @@ const HomeHeader: React.FC<{
       </div>
 
       <div className="home-header-outer-icon">
+        <StarsCounter starsCount={starsCount} />
         <HeaderIcon
           headerConfig={{
-            displayName: student?.name ?? "Profile",
+            displayName: student?.name || t("Name"),
             iconSrc:
               (studentMode === MODES.SCHOOL && student?.image) ||
               `assets/avatars/${student?.avatar ?? AVATARS[0]}.png`,
@@ -146,12 +215,15 @@ const HomeHeader: React.FC<{
           pendingAssignmentCount={0}
           pendingLiveQuizCount={0}
           onHeaderIconClick={() => {
-            setProfileMenuOpen(true)
+            setProfileMenuOpen(true);
           }}
         />
       </div>
       {isProfileMenuOpen && (
-        <div className="home-header-menu-overlay" onClick={() => setProfileMenuOpen(false)}>
+        <div
+          className="home-header-menu-overlay"
+          onClick={() => setProfileMenuOpen(false)}
+        >
           <div onClick={(e) => e.stopPropagation()}>
             <ProfileMenu onClose={() => setProfileMenuOpen(false)} />
           </div>
