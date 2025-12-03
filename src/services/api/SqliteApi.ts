@@ -3189,6 +3189,7 @@ export class SqliteApi implements ServiceApi {
     if (groupId !== undefined) {
       updatedClassQuery += `, group_id = "${groupId}"`;
     }
+    updatedClassQuery += `, updated_at = "${new Date().toISOString()}"`;
     updatedClassQuery += ` WHERE id = "${classId}";`;
 
     const res = await this.executeQuery(updatedClassQuery);

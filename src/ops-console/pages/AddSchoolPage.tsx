@@ -226,6 +226,8 @@ const AddSchoolPage: React.FC = () => {
       !!fieldCoordinator &&
       !!contacts[0].fields[0].value &&
       !!contacts[0].fields[1].value &&
+      (contacts[0].fields[1].value?.length === 10) &&
+      (contacts[1].fields[1].value?.length === 0 || contacts[1].fields[1].value?.length === 10)&&
       !errorMessage;
 
     return editData ? !isFormValid || !hasChanges() : !isFormValid;
@@ -238,12 +240,12 @@ const AddSchoolPage: React.FC = () => {
 
     if (value.length === 11) {
       try {
-        const res = await api.getSchoolDataByUdise(value);
-        if (res && res.id && !editData) {
+        const exist = await api.getSchoolDetailsByUdise(value);
+        if (exist &&  (!editData || editData.schoolData.udise !== value)) {
           setErrorMessage("A school with this UDISE code already exists.");
-          console.log("Existing school data:", res, res.id);
           return;
         }
+        const res = await api.getSchoolDataByUdise(value);
         if (res) {
           if (res.school_name) setSchoolName(res.school_name);
 
