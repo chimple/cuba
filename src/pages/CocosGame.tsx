@@ -41,6 +41,7 @@ const CocosGame: React.FC = () => {
   const assignmentType = location?.assignment?.type || "self-played";
   const state = history.location.state as any;
   const iFrameUrl = state?.url;
+  const isLastLessonInPath: boolean = !!state?.lastLessonInPath;
   const [isLoading, setIsLoading] = useState<any>();
   const [present] = useIonToast();
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -196,6 +197,7 @@ const CocosGame: React.FC = () => {
       quiz_time_spent: data.quizTimeSpent,
       played_from: playedFrom,
       assignment_type: assignmentType,
+      last_lesson_in_path: isLastLessonInPath,
     });
 
     setTimeout(() => {
@@ -343,6 +345,9 @@ const CocosGame: React.FC = () => {
     avatarObj.weeklyTimeSpent["sec"] = computeSec;
     avatarObj.weeklyPlayedLesson++;
 
+    console.log('*********************LastLessonInPath',isLastLessonInPath)
+      console.log('*********************ShouldGiveHomeworkBonus',shouldGiveHomeworkBonus)
+
     const result = await api.updateResult(
       currentStudent,
       courseDocId,
@@ -354,7 +359,8 @@ const CocosGame: React.FC = () => {
       assignmentId,
       chapterDetail?.id ?? chapter_id?.toString() ?? undefined,
       classId,
-      schoolId
+      schoolId,
+      shouldGiveHomeworkBonus || isLastLessonInPath
     );
 
     // Update the learning path / homework path

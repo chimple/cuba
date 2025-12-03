@@ -466,7 +466,8 @@ export interface ServiceApi {
     assignmentId: string | undefined,
     chapterId: string,
     classId: string | undefined,
-    schoolId: string | undefined
+    schoolId: string | undefined,
+    isImediateSync?:boolean
   ): Promise<TableTypes<"result">>;
 
   /**

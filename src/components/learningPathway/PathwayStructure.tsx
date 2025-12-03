@@ -254,6 +254,7 @@ const PathwayStructure: React.FC = () => {
         const currentCourseIndex = learningPath?.courses.currentCourseIndex;
         const course = learningPath?.courses.courseList[currentCourseIndex];
         const { startIndex, currentIndex, pathEndIndex } = course;
+        console.log('startIndex, currentIndex, pathEndIndexstartIndex, currentIndex, pathEndIndex',startIndex, currentIndex, pathEndIndex)
         const [courseData, chapterData] = await Promise.all([
             api.getCourse(course.id),
             api.getChapterById(course.path[currentIndex].chapter_id)
@@ -339,7 +340,8 @@ const PathwayStructure: React.FC = () => {
           const xValues = [27, 155, 276, 387, 496];
 
           const fragment = document.createDocumentFragment();
-
+          const isLastLessonInPath = currentIndex >= pathEndIndex;
+          console.log('***************************IslastLess',isLastLessonInPath)
           lessons.forEach((lesson, idx) => {
             const path = paths[idx];
             const point = path.getPointAtLength(0);
@@ -444,6 +446,7 @@ const PathwayStructure: React.FC = () => {
                     from: history.location.pathname + `?${CONTINUE}=true`,
                     course: JSON.stringify(currentCourse),
                     learning_path: true,
+                    lastLessonInPath: isLastLessonInPath
                   });
                 } else if(lesson.plugin_type === LIVE_QUIZ){
                   history.replace(
@@ -836,8 +839,9 @@ const PathwayStructure: React.FC = () => {
       const learningPath = JSON.parse(currentStudent.learning_path);
       const currentCourseIndex = learningPath?.courses.currentCourseIndex;
       const course = learningPath?.courses.courseList[currentCourseIndex];
-      const { currentIndex } = course;
-
+      const { currentIndex, pathEndIndex } = course;
+      const isLastLessonInPath = currentIndex >= pathEndIndex;
+      console.log('***************************IslastLess',isLastLessonInPath)
       const lesson = await api.getLesson(course.path[currentIndex].lesson_id);
  
       if (!lesson) return;
@@ -854,6 +858,7 @@ const PathwayStructure: React.FC = () => {
           from: history.location.pathname + `?${CONTINUE}=true`,
           learning_path: true,
           reward: true,
+          lastLessonInPath: isLastLessonInPath,
         });
       } else if (lesson.plugin_type === LIVE_QUIZ) {
         history.replace(

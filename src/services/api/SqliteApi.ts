@@ -2131,10 +2131,11 @@ export class SqliteApi implements ServiceApi {
     assignmentId: string | undefined,
     chapterId: string,
     classId: string | undefined,
-    schoolId: string | undefined
+    schoolId: string | undefined,
+    isImediateSync:boolean = false
   ): Promise<TableTypes<"result">> {
     let resultId = uuidv4();
-
+    console.log('**********************ISLASTTTTTTTTTTTTTTTTTTTTTTTTTTPlayes',isImediateSync)
     // Ensure unique ID
     let isDuplicate = true;
     while (isDuplicate) {
@@ -2252,7 +2253,7 @@ export class SqliteApi implements ServiceApi {
       updatedStudent.language_id = student.language_id;
       Util.setCurrentStudent(updatedStudent);
     }
-    this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
+    this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult,isImediateSync);
     const pushData: any = {
       id: student.id,
       stars: updatedStudent?.stars,
