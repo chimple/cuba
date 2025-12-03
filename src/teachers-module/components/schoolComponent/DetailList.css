@@ -128,11 +128,11 @@
   margin-bottom: 6px;
 }
 
-.header-empty {
+.detail-header-empty {
   /* empty left column for alignment */
 }
 
-.header-users,
-.header-subjects {
+.detail-header-users,
+.detail-header-subjects {
   text-align: center;
 }

@@ -59,9 +59,9 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
     <div className="main-list">
 
       <div className="detail-header-row">
-      <span className="header-empty"></span>
-      <span className="header-users">Users</span>
-      <span className="header-subjects">Subjects</span>
+      <span className="detail-header-empty"></span>
+      <span className="detail-header-users">{t("Users")}</span>
+      <span className="detail-header-subjects">{t("Subjects")}</span>
       </div>
 
       {data.map((item) => {
