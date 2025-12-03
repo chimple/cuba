@@ -20,6 +20,7 @@ import { t } from "i18next";
 import { Util } from "../utility/util";
 import { Keyboard } from "@capacitor/keyboard";
 import { Capacitor } from "@capacitor/core";
+import { schoolUtil } from "../utility/schoolUtil";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { TfiDownload } from "react-icons/tfi";
 import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
@@ -122,6 +123,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({ assignmentCount }) => {
       }
       const classDoc = linkedData.classes[0];
       setCurrentClass(classDoc);
+      schoolUtil.setCurrentClass(classDoc);
       setSchoolName(
         linkedData.schools.find((s) => s.id === classDoc.school_id)?.name || ""
       );
