@@ -1078,7 +1078,9 @@ export class SupabaseApi implements ServiceApi {
     program_id: string | null,
     udise: string | null,
     address: string | null,
-    country: string | null
+    country: string | null,
+    onlySchool?: boolean,
+    onlySchoolUser?: boolean
   ): Promise<TableTypes<"school">> {
     if (!this.supabase) return {} as TableTypes<"school">;
     const _currentUser =
@@ -1087,13 +1089,17 @@ export class SupabaseApi implements ServiceApi {
 
     const schoolId = uuidv4();
     const timestamp = new Date().toISOString();
+    const oSchool = onlySchool ?? true;
+    const oSchoolUser = onlySchoolUser ?? true;
 
-    // Handle optional image upload
+    let newSchool;
+
+  if (oSchool) {
     const result = image
       ? await this.addProfileImages(schoolId, image, PROFILETYPE.SCHOOL)
       : null;
 
-    const newSchool: TableTypes<"school"> = {
+    newSchool = {
       id: schoolId,
       name,
       group1: group1 ?? null,
@@ -1121,7 +1127,6 @@ export class SupabaseApi implements ServiceApi {
       location_link: null,
     };
 
-    // Insert school
     const { error: schoolError } = await this.supabase
       .from(TABLES.School)
       .insert([newSchool]);
@@ -1130,8 +1135,9 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error inserting into school:", schoolError);
       throw schoolError;
     }
-
-    // Create school_user entry
+  }
+  
+  if (oSchoolUser) {
     const newSchoolUser: TableTypes<"school_user"> = {
       id: uuidv4(),
       school_id: schoolId,

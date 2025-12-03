@@ -8,8 +8,9 @@ import InfoCard from "../InfoCard";
 import DetailItem from "../DetailItem";
 import ContactCard from "../ContactCard";
 import { BsBoxArrowUpRight } from "react-icons/bs";
-import { PAGES, PROGRAM_TAB_LABELS } from "../../../common/constants";
+import { PAGES, PROGRAM_TAB_LABELS, USER_ROLE } from "../../../common/constants";
 import { useHistory } from "react-router";
+import { RoleType } from "../../../interface/modelInterfaces";
 
 interface SchoolOverviewProps {
   data: any;
@@ -94,6 +95,18 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
     }
   }
 
+  const userRoles = JSON.parse(
+      localStorage.getItem(USER_ROLE) || "[]"
+    );
+    const rolesWithAccess = [
+      RoleType.SUPER_ADMIN,
+      RoleType.OPERATIONAL_DIRECTOR,
+      RoleType.PROGRAM_MANAGER,
+    ];
+    const haveAccess = userRoles.some((role) =>
+      rolesWithAccess.includes(role as RoleType)
+    );
+
   return (
     <div className="school">
       {isMobile ? (
@@ -166,7 +179,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             title={t("School Details")}
             className="school-detail-infocard school-card"
             items={schoolDetailsItems}
-            showEditIcon={true}
+            showEditIcon={haveAccess}
             onEditClick={() =>
               history.replace(
                 `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
@@ -240,7 +253,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                 title={t("School Details")}
                 className="school-detail-infocard school-card"
                 items={schoolDetailsItems}
-                showEditIcon={true}
+                showEditIcon={haveAccess}
                 onEditClick={() =>
                   history.replace(
                     `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
