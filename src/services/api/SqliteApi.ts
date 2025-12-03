@@ -635,7 +635,7 @@ export class SqliteApi implements ServiceApi {
     tableNames: TABLES[] = Object.values(TABLES),
     refreshTables: TABLES[] = [],
     isFirstSync?: boolean,
-    is_sync_immediate?: boolean
+    is_sync_immediate: boolean = true
   ) {
     if (!this._db) return;
     const refresh_tables = "'" + refreshTables.join("', '") + "'";
@@ -3943,7 +3943,6 @@ export class SqliteApi implements ServiceApi {
         TABLES.Assignment,
         MUTATE_TYPES.INSERT,
         assignment_data,
-        true
       );
 
       // If the assignment is not class-wide, assign it to individual students
@@ -3978,7 +3977,6 @@ export class SqliteApi implements ServiceApi {
             TABLES.Assignment_user,
             MUTATE_TYPES.INSERT,
             newAssignmentUser,
-            true
           );
         }
       }
