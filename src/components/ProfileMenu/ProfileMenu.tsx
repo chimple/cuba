@@ -60,7 +60,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   const onSwichUser = async () => {
     Util.setParentLanguagetoLocal();
     Util.setCurrentStudent(null);
-    sessionStorage.removeItem(HOMEWORK_PATHWAY);
+    localStorage.removeItem(HOMEWORK_PATHWAY);
     history.replace(PAGES.DISPLAY_STUDENT, { from: history.location.pathname });
   };
 

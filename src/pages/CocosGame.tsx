@@ -316,7 +316,6 @@ const CocosGame: React.FC = () => {
           };
 
           const lessonsLen = path.lessons?.length ?? 0;
-
           const isLastLessonInPath =
             lessonsLen > 0 &&
             typeof homeworkIndex === "number" &&
@@ -373,8 +372,8 @@ const CocosGame: React.FC = () => {
           const BASE_HOMEWORK_STARS = 3; // adjust if your rule changes
           const newLocalStarsAfterLesson = Util.bumpLocalStarsForStudent(
             student.id,
-            BASE_HOMEWORK_STARS,
-            student.stars || 0
+            BASE_HOMEWORK_STARS
+            // student.stars || 0
           );
 
           // Try to keep backend in sync, but UI doesn't depend on it

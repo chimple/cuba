@@ -119,9 +119,13 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
   };
 
   const onSubjectChange = async (subjectId: string) => {
+    if (subjectId === selectedSubject) {
+      return;
+    }
     const currentStudent = Util.getCurrentStudent();
+    localStorage.removeItem(HOMEWORK_PATHWAY);
+    setIsDropdownDisabled(false); // allow switching again until they start playing
     if (currentStudent) {
-      console.log("dropdown subjectid", subjectId, currentStudent);
       await fetchHomeworkPathway(currentStudent, subjectId);
     }
     setSelectedSubject(subjectId);
@@ -132,7 +136,6 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     starsToAdd: number
   ) {
     if (!student?.id) return;
-
     // 1) Local-first bump (this will also fire "starsUpdated")
     const newLocalStars = Util.bumpLocalStarsForStudent(
       student.id,

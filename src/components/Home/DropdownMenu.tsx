@@ -1,6 +1,11 @@
 import { FC, useEffect, useRef, useState } from "react";
 import "./DropdownMenu.css";
-import { EVENTS, HOMEWORK_PATHWAY, TableTypes } from "../../common/constants";
+import {
+  EVENTS,
+  HOMEWORK_PATHWAY,
+  LIVE_QUIZ,
+  TableTypes,
+} from "../../common/constants";
 import SelectIconImage from "../displaySubjects/SelectIconImage";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
@@ -54,34 +59,35 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
     try {
       const currentStudent = await Util.getCurrentStudent();
 
-      // 🔹 HOMEWORK MODE: don't depend on learning_path
+      // 🔹 HOMEWORK MODE: don't depend on HOMEWORK_PATHWAY at all
       if (!syncWithLearningPath) {
-        const pathStr = localStorage.getItem(HOMEWORK_PATHWAY);
-
-        if (!pathStr) {
-          // no homework path yet → safe fallback
+        const currClass = Util.getCurrentClass();
+        if (!currentStudent?.id || !currClass?.id) {
           setCourseDetails([]);
           return;
         }
 
-        const homeworkPath = JSON.parse(pathStr);
-        const lessons = homeworkPath.lessons || [];
+        // 👉 Get ALL pending assignments for this class & student
+        const all = await api.getPendingAssignments(
+          currClass.id,
+          currentStudent.id
+        );
+        const pendingAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
 
-        // ✅ get unique course_ids from current homework path as string[]
+        if (!pendingAssignments.length) {
+          setCourseDetails([]);
+          return;
+        }
+
+        // 👉 Collect unique course ids from pending assignments
         const uniqueCourseIds: string[] = Array.from(
           new Set(
-            lessons
-              .map((l: any) => l.course_id as string | undefined)
+            pendingAssignments
+              .map((a: any) => a.course_id as string | undefined)
               .filter((id): id is string => !!id)
           )
         );
 
-        if (!uniqueCourseIds.length) {
-          setCourseDetails([]);
-          return;
-        }
-
-        // ✅ let TS infer courseId type from uniqueCourseIds: string[]
         const coursePromises: Promise<CourseDetails | null>[] =
           uniqueCourseIds.map(async (courseId) => {
             try {
@@ -99,10 +105,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
 
               return { course, grade: gradeDoc, curriculum: curriculumDoc };
             } catch (err) {
-              console.error(
-                "Failed to fetch course for homework dropdown",
-                err
-              );
+              console.error("Failed to fetch homework course", err);
               return null;
             }
           });
@@ -127,7 +130,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
           return detailedCourses[0] || null;
         });
 
-        return; // ⬅️ don't fall through to learning_path logic
+        return;
       }
 
       // 🔹 LEARNING PATHWAY MODE (original behaviour)
