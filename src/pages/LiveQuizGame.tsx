@@ -34,6 +34,9 @@ const LiveQuizGame: FC = () => {
   const [quizData, setQuizData] = useState<any>();
   const [scoreData, setScoreData] = useState<any>();
   let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
+  // Check if the game was played from `learning_pathway`
+  const learning_path: boolean = state?.learning_path ?? false;
+  const isReward: boolean = state?.reward ?? false;
 
   useEffect(() => {
     if (!paramLiveRoomId && !paramLessonId) {
@@ -143,33 +146,20 @@ const LiveQuizGame: FC = () => {
                   setScoreData(scoreData);
                 }}
                 onQuizEnd={handleQuizEnd}
+                isLearningPathway={learning_path}
+                isReward={isReward}
               />
             )}
           </div>
           <IonContent>
             {showScoreCard ? (
               <ScoreCard
-                title={t("🎉Congratulations🎊")}
                 score={scoreData ?? 0}
                 message={t("You Completed the Lesson:")}
                 showDialogBox={showDialogBox}
-                yesText={t("Like the Game")}
                 lessonName={lesson?.name ?? ""}
                 noText={t("Continue Playing")}
                 handleClose={() => setShowDialogBox(true)}
-                onYesButtonClicked={() => {
-                  setShowDialogBox(false);
-                  saveLikedStatus();
-                  if (initialCount >= 5) {
-                    Util.showInAppReview();
-                    initialCount = 0;
-                    localStorage.setItem(
-                      LESSONS_PLAYED_COUNT,
-                      initialCount.toString()
-                    );
-                  }
-                  push();
-                }}
                 onContinueButtonClicked={() => {
                   setShowDialogBox(false);
                   if (initialCount >= 5) {

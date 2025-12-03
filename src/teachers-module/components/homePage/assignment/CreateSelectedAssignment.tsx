@@ -7,6 +7,7 @@ import {
   chevronUpOutline,
 } from "ionicons/icons";
 import {
+  ALL_SUBJECT,
   ASSIGNMENT_TYPE,
   AssignmentSource,
   BANDS,
@@ -85,12 +86,15 @@ const CreateSelectedAssignment = ({
       return;
     }
 
-    const classCourses = await api.getCoursesByClassId(current_class.id);
-
-    const _studentProgress = await _classUtil.divideStudents(current_class.id, [
-      classCourses[0].course_id,
-    ]);
-
+     const classCourses = await api.getCoursesForClassStudent(current_class.id);
+    const selectedSubject = Util.getCurrentCourse(current_class?.id)
+    const subject_ids = classCourses.map((item) => item.id);
+    const selectedsubjectIds: string[] =
+      selectedSubject?.id === ALL_SUBJECT.id || !selectedSubject?.id
+        ? subject_ids
+        : [selectedSubject.id];
+    
+    const _studentProgress = await _classUtil.divideStudents(current_class.id, selectedsubjectIds);
     let _studentList =
       await _classUtil.groupStudentsByCategoryInList(_studentProgress);
 
@@ -553,7 +557,7 @@ const CreateSelectedAssignment = ({
 
   return !isLoading ? (
     <div className="assignments-container">
-      <div>
+      <div id="assignment-success-dialog">
         <CommonDialogBox
           header={t("Assignments are assigned Successfully.") ?? ""}
           message={t("Would you like to share the assignments?")}

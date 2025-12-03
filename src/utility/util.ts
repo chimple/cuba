@@ -59,6 +59,12 @@ import {
   CHIMPLE_RIVE_STATE_MACHINE_MAX,
   USER_DATA,
   LOCAL_LESSON_BUNDLES_PATH,
+  DAILY_USER_REWARD,
+  REWARD_LEARNING_PATH,
+  HOMEWORK_PATHWAY,
+  STARS_COUNT,
+  LATEST_STARS,
+  CURRENT_CLASS,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -365,14 +371,33 @@ export class Util {
 
     localStorage.setItem(lessonIdStorageKey, JSON.stringify(updatedItems));
   };
+  public static async getLessonPath({ lessonId }): Promise<string | null> {
+    const gameUrl = localStorage.getItem("gameUrl");
 
-  public static async getLessonPath(lessonId: string): Promise<string> {
-    const path =
-      (localStorage.getItem("gameUrl") ??
-        "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-      lessonId +
-      "/";
-    return path;
+    const exists = async (path: string) => {
+      try {
+        const res = await fetch(path);
+        return res.ok;
+      } catch {
+        return false;
+      }
+    };
+    if (gameUrl?.startsWith(LOCAL_BUNDLES_PATH)) {
+      const path = `/assets/lessonBundles/${lessonId}/index.xml`;
+      if (await exists(path)) return `/assets/lessonBundles/${lessonId}/`;
+    }
+
+    if (await exists(`/assets/lessonBundles/${lessonId}/index.xml`)) {
+      return `/assets/lessonBundles/${lessonId}/`;
+    }
+
+    const androidBase = await this.getAndroidBundlePath();
+    if (androidBase && (await exists(`${androidBase}${lessonId}/index.xml`))) {
+      return `${androidBase}${lessonId}/`;
+    }
+
+    console.error("Lesson bundle not found :", lessonId);
+    return null;
   }
 
   public static async downloadZipBundle(
@@ -567,9 +592,14 @@ export class Util {
     throw new Error("Invalid data type — expected string or Blob");
   }
 
-  public static async DownloadLearningPathAssets(
+  // In your Util.ts file
+
+  // ✅ Renamed and made generic
+  public static async DownloadRemoteAssets(
     zipUrl: string,
-    uniqueId: string
+    uniqueId: string,
+    destinationPath: string, // e.g., 'remoteAsset'
+    assetType: string // e.g., 'Learning Path'
   ): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform()) return true;
@@ -577,32 +607,36 @@ export class Util {
       const fs = createFilesystem(Filesystem, {
         rootDir: "",
         directory: Directory.External,
-        // base64Alway: false, // property does not exist
       });
       const androidPath = await this.getAndroidBundlePath();
 
-      //logic for read config.json
+      // ✅ Use the dynamic destinationPath parameter
+      const configPath = `${destinationPath}/config.json`;
+
+      // Logic for reading config.json
       try {
-        const res = await fetch("remoteAsset/config.json");
+        const res = await fetch(configPath); // ✅ Use dynamic path
         const isExists = res.ok;
         if (isExists) {
           const configFile = await Filesystem.readFile({
-            path: "remoteAsset/config.json",
+            path: configPath, // ✅ Use dynamic path
             directory: Directory.External,
           });
 
           const base64Data = await this.blobToString(configFile.data);
-
-          const decoded = atob(base64Data); // base64 → string
-          const config = JSON.parse(decoded); // string → object
+          const decoded = atob(base64Data);
+          const config = JSON.parse(decoded);
 
           if (config.uniqueId === uniqueId) {
+            console.log(`✅ ${assetType} assets are already up to date.`);
             this.setGameUrl(androidPath);
             return true;
           }
         }
       } catch (err) {
-        console.error(`❌ Failed to read config for remoteAsset:`, err);
+        console.warn(
+          `Could not read existing config for ${assetType}, proceeding with download.`
+        );
       }
 
       // Download and unzip
@@ -617,22 +651,25 @@ export class Util {
       );
       await unzip({
         fs,
-        extractTo: "",
+        extractTo: "", // The zip file itself should contain the destination folder
         filepaths: ["."],
         filter: (filepath: string) => !filepath.startsWith("dist/"),
         onProgress: (event) => {
-          console.log("Unzipping LearningPath assets:", event.filename);
+          // ✅ Use the dynamic assetType parameter for clearer logging
+          console.log(`Unzipping ${assetType} assets:`, event.filename);
         },
         data: buffer,
       });
 
       // After unzip and extraction
       const configFile = await Filesystem.readFile({
-        path: "remoteAsset/config.json",
+        path: configPath, // ✅ Use dynamic path
         directory: Directory.External,
       });
       const decoded = atob(await this.blobToString(configFile.data));
       const config = JSON.parse(decoded);
+
+      // Important Note: Decide if this logic applies to BOTH asset types
       if (typeof config.riveMax === "number") {
         localStorage.setItem(
           CHIMPLE_RIVE_STATE_MACHINE_MAX,
@@ -642,7 +679,10 @@ export class Util {
       this.setGameUrl(androidPath);
       return true;
     } catch (err) {
-      console.error("Unexpected error in DownloadLearningPathAssets:", err);
+      console.error(
+        `Unexpected error in DownloadRemoteAssets for ${assetType}:`,
+        err
+      );
       return false;
     }
   }
@@ -1928,15 +1968,14 @@ export class Util {
     const slug = event.url.split(".cc").pop();
     // Determine target page for logging
     let destinationPage = "";
-
+    const newSearchParams = new URLSearchParams(url.search);
+    const currentParams = new URLSearchParams(window.location.search);
+    currentParams.set("classCode", newSearchParams.get("classCode") ?? "");
+    currentParams.set("page", PAGES.JOIN_CLASS);
+    const currentStudent = Util.getCurrentStudent();
     if (slug?.includes(PAGES.ASSIGNMENT)) {
       destinationPage = PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT;
     } else if (slug?.includes(PAGES.JOIN_CLASS)) {
-      const newSearchParams = new URLSearchParams(url.search);
-      const currentParams = new URLSearchParams(window.location.search);
-      currentParams.set("classCode", newSearchParams.get("classCode") ?? "");
-      currentParams.set("page", PAGES.JOIN_CLASS);
-      const currentStudent = Util.getCurrentStudent();
       destinationPage = currentStudent
         ? PAGES.HOME + "?" + currentParams.toString()
         : PAGES.DISPLAY_STUDENT + "?" + currentParams.toString();
@@ -1950,9 +1989,12 @@ export class Util {
       currentUser as TableTypes<"user">,
       destinationPage
     );
-
-    if (destinationPage && currentUser) {
+    if (destinationPage && currentStudent) {
       window.location.replace(destinationPage);
+    } else {
+      window.location.replace(
+        PAGES.DISPLAY_STUDENT + "?" + currentParams.toString()
+      );
     }
   }
   public static addRefreshTokenToLocalStorage(refreshToken: string) {
@@ -1994,7 +2036,11 @@ export class Util {
   public static getCurrentClass(): TableTypes<"class"> | undefined {
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentClass) return api.currentClass;
-    const temp = localStorage.getItem(CLASS);
+    // 🔹 Try CLASS first, then CURRENT_CLASS as fallback
+    let temp = localStorage.getItem(CLASS);
+    if ((!temp || temp === "undefined") && CURRENT_CLASS) {
+      temp = localStorage.getItem(CURRENT_CLASS) || null;
+    }
     if (!temp || temp === "undefined") return;
 
     try {
@@ -2352,6 +2398,9 @@ export class Util {
           "background-image",
           "url(/pathwayAssets/pathwayBackground.svg)"
         );
+        body?.style.setProperty("background-repeat", "no-repeat");
+        body?.style.setProperty("background-size", "cover");
+        body?.style.setProperty("background-position", "center center");
         console.error("Failed to load remote background image:", e);
       }
     } else {
@@ -2359,6 +2408,9 @@ export class Util {
         "background-image",
         "url(/pathwayAssets/pathwayBackground.svg)"
       );
+      body?.style.setProperty("background-repeat", "no-repeat");
+      body?.style.setProperty("background-size", "cover");
+      body?.style.setProperty("background-position", "center center");
     }
   }
   public static async handleDeeplinkClick(
@@ -2430,5 +2482,478 @@ export class Util {
     } catch (error) {
       console.error("Failed to update user language:", error);
     }
+  }
+  public static async fetchTodaysReward() {
+    try {
+      const allRewards = await ServiceConfig.getI().apiHandler.getAllRewards();
+      if (allRewards.length === 0) return;
+      const today = new Date();
+      const day = today.getDate();
+      let chimpleRiveMaxState = allRewards[0].max_state_value ?? 8;
+      if (localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === "true") {
+        chimpleRiveMaxState =
+          parseInt(
+            localStorage.getItem(CHIMPLE_RIVE_STATE_MACHINE_MAX) as string
+          ) ?? chimpleRiveMaxState;
+      }
+
+      const mappedState = ((day - 1) % chimpleRiveMaxState) + 1;
+      const todaysReward = allRewards.find(
+        (reward) =>
+          reward.state_number_input === mappedState && reward.type === "normal"
+      );
+      return todaysReward;
+    } catch (error) {
+      console.error("Error fetching Chimple Rive config:", error);
+    }
+  }
+  public static async updateUserReward() {
+    try {
+      // Get daily user reward from localStorage
+      const dailyUserReward = JSON.parse(
+        localStorage.getItem(DAILY_USER_REWARD) ?? "{}"
+      );
+
+      const currentStudent = Util.getCurrentStudent();
+      if (!currentStudent) return;
+      // Fetch current reward
+      const currentReward = currentStudent.reward
+        ? JSON.parse(currentStudent.reward as string)
+        : null;
+      if (!currentReward) return;
+
+      // Initialize student's reward object if it doesn't exist
+      if (!dailyUserReward[currentStudent.id]) {
+        dailyUserReward[currentStudent.id] = {};
+      }
+
+      if (
+        !dailyUserReward[currentStudent.id].timestamp ||
+        new Date(dailyUserReward[currentStudent.id].timestamp)
+          .toISOString()
+          .split("T")[0] !== new Date().toISOString().split("T")[0] ||
+        dailyUserReward[currentStudent.id].reward_id !==
+          currentReward?.reward_id
+      ) {
+        // Update localStorage
+        dailyUserReward[currentStudent.id].reward_id = currentReward.reward_id;
+        dailyUserReward[currentStudent.id].timestamp = currentReward.timestamp;
+        localStorage.setItem(
+          DAILY_USER_REWARD,
+          JSON.stringify(dailyUserReward)
+        );
+      }
+    } catch (error) {
+      console.error("Error updating student reward:", error);
+    }
+  }
+  public static retrieveUserReward() {
+    const currentStudent = Util.getCurrentStudent();
+    if (!currentStudent) return {};
+    const studentId = currentStudent.id;
+    try {
+      const allRewards = JSON.parse(
+        localStorage.getItem(DAILY_USER_REWARD) || "{}"
+      );
+
+      if (!allRewards[studentId]) {
+        allRewards[studentId] = {};
+      }
+      const currentReward = allRewards[studentId];
+
+      return currentReward;
+    } catch (error) {
+      console.error("Error managing daily user reward in localStorage:", error);
+      return {};
+    }
+  }
+  public static async updateHomeworkPath(completedIndex?: number) {
+    try {
+      const storedPath = localStorage.getItem(HOMEWORK_PATHWAY);
+      if (!storedPath) {
+        console.error(
+          "Could not find homework path in sessionStorage to update."
+        );
+        return;
+      }
+
+      const homeworkPath = JSON.parse(storedPath);
+
+      // If we know exactly which index was completed, use that as the base.
+      // Otherwise, fall back to "currentIndex + 1" like before.
+      const newCurrentIndex =
+        typeof completedIndex === "number"
+          ? completedIndex + 1
+          : homeworkPath.currentIndex + 1;
+
+      // Check if the 5-lesson path is now complete
+      if (newCurrentIndex >= homeworkPath.lessons.length) {
+        localStorage.removeItem(HOMEWORK_PATHWAY);
+      } else {
+        homeworkPath.currentIndex = newCurrentIndex;
+        localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(homeworkPath));
+      }
+    } catch (error) {
+      console.error("Failed to update homework path:", error);
+    }
+  }
+
+  public static async updateLearningPath(
+    currentStudent: TableTypes<"user">,
+    isRewardLesson: boolean
+  ) {
+    if (!currentStudent) return;
+    const learningPath = currentStudent.learning_path
+      ? JSON.parse(currentStudent.learning_path)
+      : null;
+
+    if (!learningPath) return;
+
+    try {
+      const { courses } = learningPath;
+      const currentCourse = courses.courseList[courses.currentCourseIndex];
+
+      const prevLessonId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path[
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].currentIndex
+        ].lesson_id;
+      const prevChapterId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path[
+          learningPath.courses.courseList[
+            learningPath.courses.currentCourseIndex
+          ].currentIndex
+        ].chapter_id;
+      const prevCourseId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .course_id;
+      const prevPathId =
+        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path_id;
+      // Update currentIndex
+      currentCourse.currentIndex += 1;
+
+      // Check if currentIndex exceeds pathEndIndex
+      if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
+        if (isRewardLesson) {
+          sessionStorage.setItem(
+            REWARD_LEARNING_PATH,
+            JSON.stringify(learningPath)
+          );
+        }
+        currentCourse.startIndex = currentCourse.currentIndex;
+        currentCourse.pathEndIndex += 5;
+
+        // Ensure pathEndIndex does not exceed the path length
+        if (currentCourse.pathEndIndex > currentCourse.path.length) {
+          currentCourse.pathEndIndex = currentCourse.path.length - 1;
+        }
+
+        // Move to the next course
+        courses.currentCourseIndex += 1;
+
+        await ServiceConfig.getI().apiHandler.setStarsForStudents(
+          currentStudent.id,
+          10
+        );
+        // Loop back to the first course if at the last course
+        if (courses.currentCourseIndex >= courses.courseList.length) {
+          courses.currentCourseIndex = 0;
+        }
+        const pathwayEndData = {
+          user_id: currentStudent.id,
+          current_path_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path_id,
+          current_course_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].course_id,
+          current_lesson_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path[
+              learningPath.courses.courseList[
+                learningPath.courses.currentCourseIndex
+              ].currentIndex
+            ].lesson_id,
+          current_chapter_id:
+            learningPath.courses.courseList[
+              learningPath.courses.currentCourseIndex
+            ].path[
+              learningPath.courses.courseList[
+                learningPath.courses.currentCourseIndex
+              ].currentIndex
+            ].chapter_id,
+          prev_path_id: prevPathId,
+          prev_course_id: prevCourseId,
+          prev_lesson_id: prevLessonId,
+          prev_chapter_id: prevChapterId,
+        };
+        await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
+        await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
+      }
+
+      // Update the learning path in the database
+      await ServiceConfig.getI().apiHandler.updateLearningPath(
+        currentStudent,
+        JSON.stringify(learningPath)
+      );
+      // Update the current student object
+      const updatedStudent =
+        await ServiceConfig.getI().apiHandler.getUserByDocId(currentStudent.id);
+      if (updatedStudent) {
+        Util.setCurrentStudent(updatedStudent);
+      }
+    } catch (error) {
+      console.error("Error updating learning path:", error);
+    }
+  }
+
+  // In Util.ts or your utility file
+  public static getLocalStarsForStudent(
+    studentId: string,
+    fallback: number = 0
+  ): number {
+    try {
+      const storedStarsJson = localStorage.getItem(STARS_COUNT);
+      const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
+      const localStarsRaw = storedStarsMap[studentId];
+
+      const latestStarsJson = localStorage.getItem(LATEST_STARS);
+      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
+      const latestStarsRaw = latestStarsMap[studentId];
+
+      const localStars = Number.isFinite(+localStarsRaw)
+        ? parseInt(localStarsRaw, 10)
+        : 0;
+      const latestStars = Number.isFinite(+latestStarsRaw)
+        ? parseInt(latestStarsRaw, 10)
+        : 0;
+
+      // ✅ FIXED: Prioritize local > latest > fallback, seed local if needed
+      let bestLocal = Math.max(localStars, latestStars);
+
+      if (bestLocal === 0 && fallback > 0) {
+        // First load: seed localStorage with DB value
+        bestLocal = fallback;
+        Util.setLocalStarsForStudent(studentId, bestLocal);
+        console.log(
+          `[Stars] Seeded localStorage for ${studentId} with DB fallback: ${bestLocal}`
+        );
+      }
+
+      console.log("Testing 8", bestLocal, localStars, latestStars, fallback);
+      return bestLocal;
+    } catch (e) {
+      console.warn("[Util.getLocalStarsForStudent] failed, using fallback", e);
+      return fallback;
+    }
+  }
+
+  public static async fetchCurrentClassAndSchool(): Promise<{
+    className: string;
+    schoolName: string;
+  }> {
+    const currentStudent = Util.getCurrentStudent();
+    let className = "";
+    let schoolName = "";
+    if (currentStudent?.id) {
+      try {
+        const api = ServiceConfig.getI().apiHandler;
+        const linkedData = await api.getStudentClassesAndSchools(
+          currentStudent.id
+        );
+        if (linkedData && linkedData.classes.length > 0) {
+          const classDoc = linkedData.classes[0];
+          className = classDoc.name || "";
+
+          const schoolDoc = linkedData.schools.find(
+            (s: any) => s.id === classDoc.school_id
+          );
+          schoolName = schoolDoc?.name || "";
+        }
+      } catch (error) {
+        console.error("Error fetching class/school details:", error);
+      }
+    }
+    return { className, schoolName };
+  }
+
+  // Write a specific star count into BOTH STARS_COUNT and LATEST_STARS
+  public static setLocalStarsForStudent(
+    studentId: string,
+    stars: number
+  ): void {
+    try {
+      const storedStarsJson = localStorage.getItem(STARS_COUNT);
+      const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
+      storedStarsMap[studentId] = stars;
+      localStorage.setItem(STARS_COUNT, JSON.stringify(storedStarsMap));
+
+      const latestStarsJson = localStorage.getItem(LATEST_STARS);
+      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
+      latestStarsMap[studentId] = stars;
+      localStorage.setItem(LATEST_STARS, JSON.stringify(latestStarsMap));
+    } catch (e) {
+      console.warn("[Util.setLocalStarsForStudent] failed", e);
+    }
+  }
+
+  // Add delta to local stars and fire a DOM event so React screens can react immediately
+  public static bumpLocalStarsForStudent(
+    studentId: string,
+    delta: number,
+    fallback: number = 0
+  ): number {
+    const current = Util.getLocalStarsForStudent(studentId, fallback);
+    const next = current + delta;
+    Util.setLocalStarsForStudent(studentId, next);
+
+    try {
+      window.dispatchEvent(
+        new CustomEvent("starsUpdated", {
+          detail: { studentId, newStars: next },
+        })
+      );
+    } catch (e) {
+      console.warn("[Util.bumpLocalStarsForStudent] event dispatch failed", e);
+    }
+
+    return next;
+  }
+
+  public static isVersionAllowed(upto: string, current: string): boolean {
+    const u = upto.split(".").map((n) => parseInt(n, 10));
+    const c = current.split(".").map((n) => parseInt(n, 10));
+
+    for (let i = 0; i < Math.max(u.length, c.length); i++) {
+      const nu = u[i] || 0;
+      const nc = c[i] || 0;
+
+      if (nu > nc) return true;
+      if (nu < nc) return false;
+    }
+
+    return true;
+  }
+
+  public static pickFiveHomeworkLessons(
+    assignments: any[],
+    completedCountBySubject: { [key: string]: number } = {}
+  ): any[] {
+    // 1️⃣ Only work with pending assignments
+    const pending = assignments.filter((a) => !a.completed);
+
+    // 2️⃣ Split manual vs non-manual
+    const manualPending = pending.filter((a) => a.source === "manual");
+    const otherPending = pending.filter((a) => a.source !== "manual");
+
+    // 3️⃣ Core subject-balancing selector (your old logic, refactored)
+    const pickFiveFrom = (sourceAssignments: any[]): any[] => {
+      const pendingBySubject: { [key: string]: any[] } = {};
+
+      sourceAssignments.forEach((a) => {
+        const subjectId = a.subject_id;
+        if (!subjectId) return;
+        if (!pendingBySubject[subjectId]) {
+          pendingBySubject[subjectId] = [];
+        }
+        pendingBySubject[subjectId].push(a);
+      });
+
+      if (Object.keys(pendingBySubject).length === 0) {
+        return [];
+      }
+
+      // Find subjects with max pending
+      let maxPending = 0;
+      let subjectsWithMaxPending: string[] = [];
+
+      Object.keys(pendingBySubject).forEach((subject) => {
+        const length = pendingBySubject[subject].length;
+        if (length > maxPending) {
+          maxPending = length;
+          subjectsWithMaxPending = [subject];
+        } else if (length === maxPending) {
+          subjectsWithMaxPending.push(subject);
+        }
+      });
+
+      let bestSubject: string | null = null;
+
+      if (subjectsWithMaxPending.length === 1) {
+        bestSubject = subjectsWithMaxPending[0];
+      } else if (subjectsWithMaxPending.length > 1) {
+        // tie-break by fewer completed using completedCountBySubject
+        let minCompleted = Number.MAX_SAFE_INTEGER;
+        subjectsWithMaxPending.forEach((subject) => {
+          const completedCount = completedCountBySubject[subject] ?? 0;
+          if (completedCount < minCompleted) {
+            minCompleted = completedCount;
+            bestSubject = subject;
+          }
+        });
+      }
+
+      if (!bestSubject) {
+        return [];
+      }
+
+      let result: any[] = [];
+
+      const bestSubjectPending = pendingBySubject[bestSubject] || [];
+
+      if (bestSubjectPending.length >= 5) {
+        // If one subject alone has >= 5 pending, take first 5 from that subject
+        result = bestSubjectPending.slice(0, 5);
+      } else {
+        // Otherwise fill from bestSubject first, then other subjects with more pending
+        result = [...bestSubjectPending];
+        const remaining = 5 - result.length;
+
+        const otherSubjects = Object.keys(pendingBySubject)
+          .filter((s) => s !== bestSubject)
+          .sort(
+            (a, b) =>
+              (pendingBySubject[b]?.length || 0) -
+              (pendingBySubject[a]?.length || 0)
+          );
+
+        for (const subj of otherSubjects) {
+          if (result.length >= 5) break;
+          const bucket = pendingBySubject[subj] || [];
+          const toTake = Math.min(5 - result.length, bucket.length);
+          result = result.concat(bucket.slice(0, toTake));
+        }
+      }
+
+      return result;
+    };
+
+    let result: any[] = [];
+
+    // 4️⃣ First priority: MANUAL assignments
+    if (manualPending.length > 0) {
+      result = pickFiveFrom(manualPending);
+    }
+
+    // 5️⃣ If less than 5 manuals, fill remaining with non-manual
+    if (result.length < 5 && otherPending.length > 0) {
+      const remainingSlots = 5 - result.length;
+      const othersPicked = pickFiveFrom(otherPending)
+        // Avoid duplicates, just in case
+        .filter((a) => !result.some((r) => r.id === a.id))
+        .slice(0, remainingSlots);
+
+      result = result.concat(othersPicked);
+    }
+
+    // Ensure we never return more than 5
+    return result.slice(0, 5);
   }
 }

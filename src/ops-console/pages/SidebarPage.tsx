@@ -33,6 +33,8 @@ import StudentApprovedRequestDetails from "./OpsApprovedRequestDetails";
 import PrincipalTeacherPendingRequest from "./PrincipalTeacherPendingRequest";
 import OpsRejectedRequestDetails from "./OpsRejectedRequestDetails";
 import OpsApprovedRequestDetails from "./OpsApprovedRequestDetails";
+import OpsFlaggedRequestDetails from "./OpsFlaggedRequestDetails";
+import AddSchoolPage from "./AddSchoolPage";
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
@@ -131,6 +133,12 @@ const SidebarPage: React.FC = () => {
               <OpsRejectedRequestDetails />
             </ProtectedRoute>
             <ProtectedRoute
+              path={`${path}${PAGES.REQUEST_LIST}${PAGES.OPS_REJECTED_FLAGGED}/:id`}
+              exact={true}
+            >
+              <OpsFlaggedRequestDetails />
+            </ProtectedRoute>
+            <ProtectedRoute
               path={`${path}${PAGES.REQUEST_LIST}${PAGES.PRINCIPAL_TEACHER_PENDING_REQUEST}/:id`}
               exact={true}
             >
@@ -185,6 +193,12 @@ const SidebarPage: React.FC = () => {
               exact={true}
             >
               <UserDetailsPage />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`}
+              exact={true}
+            >
+              <AddSchoolPage />
             </ProtectedRoute>
           </Switch>
         </div>

@@ -44,21 +44,25 @@
 }
 
 .profiledetails-full-name .with-icon-input-box {
-    height: 55px;
+  height: 55px;
 }
 
 .profiledetails-full-name .with-icon-text-input {
-    font-size: 24px;
+  font-size: 24px;
 }
 
 .profiledetails-full-name .with-icon-input-label {
-    font-size: 14px;
-    color: #182a4f;
-    z-index: 100;
+  font-size: 14px;
+  color: #182a4f;
+  z-index: 100;
 }
 
 .profiledetails-full-name .with-icon-text-input::placeholder {
   font-size: 24px;
+}
+
+.profiledetails-full-name .with-icon-input-wrapper {
+  margin: 5px auto 20px auto;
 }
 
 .profiledetails-row-group {
@@ -122,7 +126,7 @@
 }
 
 .profiledetails-save-button:enabled {
-  background: #F35D08;
+  background: #f35d08;
   color: white;
   border-bottom: 5px solid #8a2901;
   cursor: pointer;
@@ -131,11 +135,8 @@
 
 .profiledetails-save-button:enabled:active {
   border-bottom: 3px solid #8a2901;
-  transition:
-    background 0.1s,
-    color 0.1s;
+  transition: background 0.1s, color 0.1s;
 }
-
 
 .profiledetails-gender-fieldset {
   border: 1px solid #182a4f;
@@ -163,10 +164,10 @@
 
 .profiledetails-gender-btn {
   box-sizing: border-box;
-  flex: 0 0 140px;           
-  height: 45px;             
-  padding: 0 16px;           
-  white-space: nowrap;      
+  flex: 0 0 140px;
+  height: 45px;
+  padding: 0 16px;
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -183,10 +184,9 @@
 }
 
 .profiledetails-gender-btn.selected {
-  color: #5D44BD;
-  border-color: #F35D08;     /* only color changes, size stays fixed */
+  color: #5d44bd;
+  border-color: #f35d08; /* only color changes, size stays fixed */
 }
-
 
 .profiledetails-button-group {
   display: flex;
@@ -199,25 +199,22 @@
   width: 220px;
   height: 60px;
   border-radius: 10px;
-  border-bottom: 5px solid #CA3AE6;
-  background-color: #C094EF;
-  color: #300D37;
+  border-bottom: 5px solid #ca3ae6;
+  background-color: #c094ef;
+  color: #300d37;
   font-size: 26px;
   font-weight: 600;
   cursor: pointer;
-  transition:
-    background 0.1s,
-    color 0.1s;
+  transition: background 0.1s, color 0.1s;
 }
 
 .profiledetails-skip-button:active {
-  border-bottom: 3px solid #CA3AE6;
+  border-bottom: 3px solid #ca3ae6;
 }
 
-
-.profiledetails-required-indicator{
-    font-size: 12px;
-    color: #182A4F;
+.profiledetails-required-indicator {
+  font-size: 12px;
+  color: #182a4f;
 }
 
 .profiledetails-back-button {
@@ -234,7 +231,7 @@
   z-index: 10;
 }
 
-.profiledetails-back-button img{
+.profiledetails-back-button img {
   width: 60px;
   height: 35px;
 }
@@ -246,7 +243,6 @@
   position: relative;
   margin-left: 10px;
 }
-
 
 .profiledetails-gender-label-text {
   position: relative;
@@ -268,4 +264,67 @@
   background-color: white;
   z-index: -1;
   border-radius: 2px;
+}
+
+.profiledetails-header-info {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.8vw;
+  margin-bottom: 0.3rem;
+  color: #182a4f;
+  font-family: sans-serif;
+  font-size: clamp(0.8rem, 1.1vw, 1.2rem);
+  font-weight: 600;
+  width: 96%;
+  padding-left: 5%;
+}
+
+.pd-info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.pd-info-item img {
+  width: 1.1rem;
+  height: 1.1rem;
+  object-fit: contain;
+}
+
+.pd-divider {
+  color: #889bb5;
+  font-weight: 400;
+}
+
+.profiledetails-required-indicator {
+  font-size: 0.85rem;
+  color: #182a4f;
+  text-align: left;
+  margin-top: 0.3rem;
+}
+
+.pd-info-item span {
+  max-width: 23rem;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: top;
+}
+.info-icon {
+  color: #182a4f;
+}
+
+@media (max-width: 768px) {
+  .profiledetails-header-info {
+    font-size: clamp(0.9rem, 1.2vw, 1rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .profiledetails-header-info {
+    font-size: 0.9rem;
+  }
 }
