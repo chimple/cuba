@@ -577,7 +577,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   const classOptions = useMemo(() => {
     const classes = data.classData || (data as any).classdata || [];
-    console.log("SchoolStudents classData:", classes);
     if (!classes || classes.length === 0) return [];
     return classes
       .map((c: any) => ({ value: c.id, label: c.name }))

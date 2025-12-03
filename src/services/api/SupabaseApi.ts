@@ -1092,7 +1092,7 @@ export class SupabaseApi implements ServiceApi {
     const oSchool = onlySchool ?? true;
     const oSchoolUser = onlySchoolUser ?? true;
 
-    let newSchool;
+    let newSchool: TableTypes<"school"> | null = null;
 
   if (oSchool) {
     const result = image
@@ -1136,7 +1136,7 @@ export class SupabaseApi implements ServiceApi {
       throw schoolError;
     }
   }
-  
+
   if (oSchoolUser) {
     const newSchoolUser: TableTypes<"school_user"> = {
       id: uuidv4(),
@@ -1159,8 +1159,9 @@ export class SupabaseApi implements ServiceApi {
       console.error("Error inserting into school_user:", userError);
       throw userError;
     }
+  }
 
-    return newSchool;
+    return newSchool ?? ({} as TableTypes<"school">);
   }
 
   async requestNewSchool(
