@@ -23,7 +23,6 @@ const JoinClass: FC<{
   const [codeResult, setCodeResult] = useState();
   const [error, setError] = useState("");
   const [schoolName, setSchoolName] = useState<string>();
-  const [isInputFocus, setIsInputFocus] = useState(false);
   const scrollToRef = useRef<null | HTMLDivElement>(null);
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
@@ -151,12 +150,8 @@ const JoinClass: FC<{
     if (Capacitor.isNativePlatform()) {
       Keyboard.setScroll({ isDisabled: true });
 
-      const handleKeyboardShow = () => {
-        setIsInputFocus(true);
-      };
 
       const handleKeyboardHide = () => {
-        setIsInputFocus(false);
         window.scrollTo({
           top: 0,
           behavior: "smooth",
@@ -168,10 +163,6 @@ const JoinClass: FC<{
 
       // Use an async IIFE to await the subscriptions
       (async () => {
-        showSub = await Keyboard.addListener(
-          "keyboardWillShow",
-          handleKeyboardShow
-        );
         hideSub = await Keyboard.addListener(
           "keyboardWillHide",
           handleKeyboardHide
@@ -179,7 +170,6 @@ const JoinClass: FC<{
       })();
 
       return () => {
-        showSub?.remove();
         hideSub?.remove();
       };
     }
