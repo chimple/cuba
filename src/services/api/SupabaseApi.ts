@@ -7894,6 +7894,31 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
+async getFcUserFormDetails(visitId: string) {
+  if (!this.supabase) {
+      console.error("Supabase client not initialized.");
+      return;
+    }
+  try {
+    const { data, error } = await this.supabase
+      .from("fc_user_forms" as any)
+      .select("*")
+      .eq("visit_id", visitId)
+      .eq("is_deleted", false);
+
+    if (error) {
+      console.error("Supabase error:", error.message);
+      return null;
+    }
+
+    return data;
+  } catch (e) {
+    console.error("Unexpected error:", e);
+    return null;
+  }
+}
+
+
   async updateProgramUserRole(userId: string, role: string): Promise<void> {
     if (!this.supabase) {
       console.error("Supabase client not initialized.");

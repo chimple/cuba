@@ -20,8 +20,9 @@ import SelectedFilters from "../components/SelectedFilters";
 import FileUpload from "../components/FileUpload";
 import { FileUploadOutlined, Add } from "@mui/icons-material";
 import { BsFillBellFill } from "react-icons/bs";
-import { useLocation, useHistory } from "react-router";
+import { useLocation, useHistory } from "react-router"
 import { RoleType } from "../../interface/modelInterfaces";
+import FcActivityDetailsPanel from "./FcActivityDetailsPanel";
 
 const filterConfigsForSchool = [
   { key: "partner", label: t("Select Partner") },
@@ -99,6 +100,9 @@ const SchoolList: React.FC = () => {
   const [pageSize] = useState(DEFAULT_PAGE_SIZE);
 
   const isSmallScreen = useMediaQuery("(max-width: 900px)");
+  const [openDetails, setOpenDetails] = useState(false);
+  const [visitId, setVisitId] = useState<string | null>(null);
+
 
   const userRoles = JSON.parse(
     localStorage.getItem(USER_ROLE) || "[]"
@@ -199,8 +203,7 @@ const SchoolList: React.FC = () => {
                 fontSize={"12px"}
               >
                 {school.udise_code || school.district
-                  ? `${school.udise_code ?? ""} - ${
-                      school.district ?? ""
+                  ? `${school.udise_code ?? ""} - ${school.district ?? ""
                     }`.trim()
                   : ""}
               </Typography>
@@ -344,32 +347,32 @@ const SchoolList: React.FC = () => {
 
             <div className="school-list-button-and-search-filter">
               {haveAccess &&
-              <Button
-                variant="outlined"
-                onClick={() => {
-                  history.push({
-                    pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
-                  });
-                }}
-                sx={{
-                  borderColor: "#e0e0e0",
-                  border: "1px solid",
-                  borderRadius: 20,
-                  boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.1)",
-                  height: "36px",
-                  minWidth: isSmallScreen ? "48px" : "auto",
-                  padding: isSmallScreen ? 0 : "6px 16px",
-                  textTransform: "none",
-                }}
-              >
-                <Add className="school-list-upload-icon" />
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    history.push({
+                      pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
+                    });
+                  }}
+                  sx={{
+                    borderColor: "#e0e0e0",
+                    border: "1px solid",
+                    borderRadius: 20,
+                    boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.1)",
+                    height: "36px",
+                    minWidth: isSmallScreen ? "48px" : "auto",
+                    padding: isSmallScreen ? 0 : "6px 16px",
+                    textTransform: "none",
+                  }}
+                >
+                  <Add className="school-list-upload-icon" />
 
-                {!isSmallScreen && (
-                  <span className="school-list-upload-text1">
-                    {t("Add School")}
-                  </span>
-                )}
-              </Button>
+                  {!isSmallScreen && (
+                    <span className="school-list-upload-text1">
+                      {t("Add School")}
+                    </span>
+                  )}
+                </Button>
               }
               <Button
                 variant="outlined"
@@ -392,6 +395,34 @@ const SchoolList: React.FC = () => {
                   </span>
                 )}
               </Button>
+
+<Button
+  variant="outlined"
+  onClick={() => {
+    setVisitId("b29c852a-80e7-465a-b015-aad01d08940c");
+    setOpenDetails(true);
+  }}
+  sx={{
+    borderColor: "#e0e0e0",
+    border: "1px solid",
+    borderRadius: 20,
+    boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.1)",
+    height: "36px",
+    minWidth: isSmallScreen ? "48px" : "auto",
+    padding: isSmallScreen ? 0 : "6px 16px",
+    textTransform: "none",
+    display: "flex",
+    alignItems: "center",
+    gap: 1,
+  }}
+>
+  {/* You can use an icon here if you want, e.g. <PersonOutline /> */}
+  {!isSmallScreen && (
+    <span className="school-list-upload-text1">
+      {t("User Details")}
+    </span>
+  )}
+</Button>
 
               <SearchAndFilter
                 searchTerm={searchTerm}
@@ -457,9 +488,8 @@ const SchoolList: React.FC = () => {
           />
         </div>
         <div
-          className={`school-list-table-container ${
-            !isLoading && schools.length === 0 ? "school-list-no-schools" : ""
-          }`}
+          className={`school-list-table-container ${!isLoading && schools.length === 0 ? "school-list-no-schools" : ""
+            }`}
         >
           {!isLoading && schools.length > 0 && (
             <DataTableBody
@@ -484,6 +514,13 @@ const SchoolList: React.FC = () => {
             />
           </div>
         )}
+
+        <FcActivityDetailsPanel
+          open={openDetails}
+          onClose={() => setOpenDetails(false)}
+          visitId={visitId}
+        />
+
       </div>
     </div>
   );

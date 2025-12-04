@@ -6835,6 +6835,11 @@ order by
       console.error("❌ Error updating user reward:", error);
     }
   }
+
+  async getFcUserFormDetails(visitId: string): Promise<any> {
+  return await this._serverApi.getFcUserFormDetails(visitId);
+}
+
   async getActiveStudentsCountByClass(classId: string): Promise<string> {
     return await this._serverApi.getActiveStudentsCountByClass(classId);
   }
