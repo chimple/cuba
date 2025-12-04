@@ -369,20 +369,30 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         );
         const currentObj = pathData.lessons[idx];
 
-        if (currentObj && currentObj.lesson) {
-          let cName = "Chapter";
-          if (currentObj.lesson.chapter_id) {
-            const chapter = await api.getChapterById(
-              currentObj.lesson.chapter_id
-            );
-            cName = chapter?.name || "Chapter";
-          }
+        if (!currentObj) return;
 
-          setBoxDetails({
-            cName,
-            lName: currentObj.lesson.name,
-          });
+        const lessonName = currentObj.lesson?.name || "Lesson";
+        let chapterName = "Chapter";
+
+        try {
+          if (currentObj.chapter_id) {
+            const chapter = await api.getChapterById(currentObj.chapter_id);
+            chapterName = chapter?.name || chapterName;
+          }
+        } catch (error) {
+          console.warn("Failed fetching chapter details", error);
         }
+
+        console.log("ChapterLessonBox data", {
+          chapterName,
+          lessonName,
+          currentObj,
+        });
+
+        setBoxDetails({
+          cName: chapterName,
+          lName: lessonName,
+        });
       }
 
       // 8️⃣ Notify structure to re-render
@@ -561,7 +571,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
       {/* ✅ Render the modal when its state is true */}
       {showDisabledDropdownModal && (
         <PathwayModal
-          text={t("Keep going!\nFinish these lesson to choose subject")}
+          text={t("Keep going!\nFinish these lesson to change the subject")}
           onClose={() => setShowDisabledDropdownModal(false)}
           onConfirm={() => setShowDisabledDropdownModal(false)}
         />

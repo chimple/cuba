@@ -84,7 +84,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   const inactiveText = t(
     "This lesson is locked. Play the current active lesson."
   );
-  const rewardText = t("Complete these 5 lessons to earn rewards");
+  const rewardText = t("Complete these lessons to earn rewards.");
   const shouldShowHomeworkRemoteAssets = useFeatureIsOn(
     HOMEWORK_REMOTE_ASSETS_ENABLED
   );
@@ -533,16 +533,13 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               "g"
             );
             lockedFruit.appendChild(
-              fruitInactive.cloneNode(true) as SVGGElement
+              playedLessonSVG.cloneNode(true) as SVGGElement
             );
             // lockedFruit.addEventListener("click", () => {
             //   setModalOpen(true);
             //   setModalText(inactiveText);
             // });
-            lockedFruit.setAttribute(
-              "style",
-              "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
-            );
+            lockedFruit.setAttribute("style", "cursor: default;");
             let yOffset = -10;
             if (pathIndex === 4) yOffset = 5;
             if (pathIndex === 2) yOffset += 15;
