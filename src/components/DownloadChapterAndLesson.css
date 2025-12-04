@@ -20,6 +20,7 @@
   border-top-color: #007bff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+  margin-top: 20px;
 }
 @keyframes spin {
   to {
