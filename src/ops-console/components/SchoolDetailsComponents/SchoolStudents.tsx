@@ -35,6 +35,9 @@ import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
 import { normalizePhone10 } from "../../pages/NewUserPageOps";
 import { ClassRow } from "./SchoolClass";
 import { ClassUtil } from "../../../utility/classUtil";
+import ActionMenu from "./ActionMenu";
+import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutlined";
+import BorderColorIcon from "@mui/icons-material/BorderColor";
 
 type ApiStudentData = StudentInfo;
 
@@ -53,7 +56,9 @@ interface DisplayStudent {
 }
 
 const getPerformanceChipClass = (schstudents_performance: string): string => {
-  const normalizedPerf = schstudents_performance.toLowerCase().replace(/ /g, "_");
+  const normalizedPerf = schstudents_performance
+    .toLowerCase()
+    .replace(/ /g, "_");
   switch (normalizedPerf) {
     case PerformanceLevel.DOING_GOOD:
       return "performance-chip-doing-good";
@@ -143,8 +148,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   }, [searchTerm]);
 
   const fetchStudents = useCallback(
-    async (currentPage: number, search: string) => {
-      setIsLoading(true);
+    async (currentPage: number, search: string, silent = false) => {
+      if (!silent) {
+        setIsLoading(true);
+      }
       const api = ServiceConfig.getI().apiHandler;
       try {
         let response;
@@ -181,17 +188,19 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   useEffect(() => {
     // Don't fetch on the initial render for page 1, because we already have the data from props.
-    if (
+    const isInitial =
       page === 1 &&
       !debouncedSearchTerm &&
       filters.grade.length === 0 &&
-      filters.section.length === 0
-    ) {
+      filters.section.length === 0;
+
+    if (isInitial) {
       setStudents(data.students || []);
       setTotalCount(data.totalStudentCount || 0);
-      return;
+      fetchStudents(page, debouncedSearchTerm, true);
+    } else {
+      fetchStudents(page, debouncedSearchTerm);
     }
-    fetchStudents(page, debouncedSearchTerm);
   }, [
     page,
     debouncedSearchTerm,
@@ -240,15 +249,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     const sectionOn =
       optionalSection !== undefined && String(optionalSection).trim() !== "";
     if (!gradeOn && !sectionOn) return students;
-
-    const filtered = students.filter((row: any) => {
+    return students.filter((row: any) => {
       const gradeOk = !gradeOn || String(row.grade) === String(optionalGrade);
       const sectionOk =
         !sectionOn || sameSection(row.classSection, optionalSection);
       return gradeOk && sectionOk;
     });
-
-    return filtered.length > 0 ? filtered : students;
   }, [students, optionalGrade, optionalSection]);
 
   const normalizedStudents = useMemo(
@@ -406,13 +412,16 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         classSection: s_api.classSection ?? "N/A",
         phoneNumber: s_api.parent?.phone ?? "N/A",
         class: (s_api.grade ?? 0) + (s_api.classSection ?? ""),
-        schstudents_performance: studentPerformanceMap.get(s_api.user.id) ?? "Not Tracked",
+        schstudents_performance:
+          studentPerformanceMap.get(s_api.user.id) ?? "Not Tracked",
       })
     );
     // Filter by performance if not "all"
     if (performanceFilter !== PerformanceLevel.ALL) {
       filtered = filtered.filter((student) => {
-        const perf = student.schstudents_performance?.toLowerCase().replace(" ", "_");
+        const perf = student.schstudents_performance
+          ?.toLowerCase()
+          .replace(" ", "_");
         return perf === performanceFilter;
       });
     }
@@ -540,16 +549,33 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                 alignItems: "center",
               }}
             >
-              <IconButton
-                size="small"
-                onClick={() => console.log("More actions for student:", s.id)}
-                sx={{
-                  color: "#6B7280",
-                  "&:hover": { bgcolor: "#F3F4F6" },
-                }}
-              >
-                <MoreHoriz sx={{ fontSize: 20, fontWeight: 800 }} />
-              </IconButton>
+              <ActionMenu
+                items={[
+                  {
+                    name: t("Send Message"),
+                    icon: <ChatBubbleOutlineOutlined fontSize="small" />,
+                  },
+                  {
+                    name: t("Edit Details"),
+                    icon: <BorderColorIcon fontSize="small" />,
+                  },
+                ]}
+                renderTrigger={(open) => (
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      open(e);
+                    }}
+                    sx={{
+                      color: "#6B7280",
+                      "&:hover": { bgcolor: "#F3F4F6" },
+                    }}
+                  >
+                    <MoreHoriz sx={{ fontSize: 20, fontWeight: 800 }} />
+                  </IconButton>
+                )}
+              />
             </Box>
           ),
         },
@@ -728,8 +754,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         });
 
         if (result.success) {
-          setIsAddStudentModalOpen(false);
-          setErrorMessage(undefined);
+          setErrorMessage({
+            text: "Student added successfully.",
+            type: "success",
+          });
+          setTimeout(() => {
+            setIsAddStudentModalOpen(false);
+            setErrorMessage(undefined);
+          }, 2000);
           setPage(1);
           fetchStudents(1, debouncedSearchTerm);
         } else {
@@ -910,6 +942,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
               ? t("No student data found for the selected filter")
               : isFilteringOrSearching
               ? t("No students found matching your criteria.")
+              : !issTotal &&
+                optionalGrade != null &&
+                String(optionalSection ?? "").trim() !== ""
+              ? t("No students found for your class.")
               : t("No students data found for the selected school")}
           </Typography>
           {!isFilteringOrSearching &&
