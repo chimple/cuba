@@ -132,6 +132,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       }
       const classDoc = linkedData.classes[0];
       setCurrentClass(classDoc);
+      Util.setCurrentClass(classDoc);
       setSchoolName(
         linkedData.schools.find((s) => s.id === classDoc.school_id)?.name || ""
       );

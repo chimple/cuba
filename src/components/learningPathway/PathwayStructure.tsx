@@ -313,7 +313,7 @@ const PathwayStructure: React.FC = () => {
           ),
         ]);
 
-        await preloadAllLessonImages(lessons);
+        preloadAllLessonImages(lessons);
 
         // Declare chimple here to be accessible in different scopes
         let chimple: SVGForeignObjectElement | null = null;
