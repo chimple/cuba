@@ -375,6 +375,7 @@ const FormCard: React.FC<EntityModalProps> = ({
               </div>
             ))}
           </div>
+          {renderMessage()}
           <div className="formcard-modal-footer">
             <button
               type="button"
@@ -387,7 +388,6 @@ const FormCard: React.FC<EntityModalProps> = ({
               {submitLabel}
             </button>
           </div>
-          {renderMessage()}
         </form>
       </div>
     </div>
