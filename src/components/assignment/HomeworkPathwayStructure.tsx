@@ -466,7 +466,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         ),
       ]);
 
-      await preloadAllLessonImages(lessons);
+      preloadAllLessonImages(lessons);
 
       let chimple: SVGForeignObjectElement | null = null;
       chimple = document.createElementNS(
