@@ -355,6 +355,7 @@ const ProfileDetails = () => {
                   <img
                     src="/assets/icons/scholarIcon.svg"
                     alt="school"
+                    className="profiledetails-info-icon"
                     onError={(e) => (e.currentTarget.style.display = "none")}
                   />
                   <span>{schoolName}</span>
