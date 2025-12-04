@@ -344,10 +344,6 @@ const CocosGame: React.FC = () => {
     avatarObj.weeklyTimeSpent["min"] = computeMinutes;
     avatarObj.weeklyTimeSpent["sec"] = computeSec;
     avatarObj.weeklyPlayedLesson++;
-
-    console.log('*********************LastLessonInPath',isLastLessonInPath)
-      console.log('*********************ShouldGiveHomeworkBonus',shouldGiveHomeworkBonus)
-
     const result = await api.updateResult(
       currentStudent,
       courseDocId,
@@ -360,7 +356,7 @@ const CocosGame: React.FC = () => {
       chapterDetail?.id ?? chapter_id?.toString() ?? undefined,
       classId,
       schoolId,
-      shouldGiveHomeworkBonus || isLastLessonInPath
+      false || shouldGiveHomeworkBonus
     );
 
     // Update the learning path / homework path

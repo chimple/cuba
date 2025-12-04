@@ -2132,11 +2132,9 @@ export class SqliteApi implements ServiceApi {
     chapterId: string,
     classId: string | undefined,
     schoolId: string | undefined,
-    isImediateSync:boolean = false
+    isImediateSync: boolean = false
   ): Promise<TableTypes<"result">> {
     let resultId = uuidv4();
-    console.log('**********************ISLASTTTTTTTTTTTTTTTTTTTTTTTTTTPlayes',isImediateSync)
-    // Ensure unique ID
     let isDuplicate = true;
     while (isDuplicate) {
       const check = await this.executeQuery(
@@ -2253,7 +2251,7 @@ export class SqliteApi implements ServiceApi {
       updatedStudent.language_id = student.language_id;
       Util.setCurrentStudent(updatedStudent);
     }
-    this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult,isImediateSync);
+    this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult, isImediateSync);
     const pushData: any = {
       id: student.id,
       stars: updatedStudent?.stars,
@@ -2286,7 +2284,7 @@ export class SqliteApi implements ServiceApi {
         stars_earned: starsEarned,
       });
     }
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushData);
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushData, isImediateSync);
     return newResult;
   }
 
@@ -4639,7 +4637,8 @@ order by
     await this.updatePushChanges(
       TABLES.ClassUser,
       MUTATE_TYPES.INSERT,
-      classUser
+      classUser,
+      false
     );
     // var user_doc = await this._serverApi.getUserByDocId(userId);
     if (user) {
@@ -5248,7 +5247,8 @@ order by
     this.updatePushChanges(TABLES.Class, MUTATE_TYPES.UPDATE, {
       id: classId,
       updated_at: updatedAt,
-    });
+    },
+      false);
   }
 
   async updateUserLastModified(userId: string): Promise<void> {
@@ -5260,7 +5260,8 @@ order by
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       id: userId,
       updated_at: updatedAt,
-    });
+    },
+      false);
   }
   async validateParentAndStudentInClass(
     phoneNumber: string,
@@ -5404,7 +5405,8 @@ order by
   }
   async setStarsForStudents(
     studentId: string,
-    starsCount: number
+    starsCount: number,
+    is_immediate_sync?: boolean
   ): Promise<void> {
     if (!studentId) return;
     try {
@@ -5425,7 +5427,7 @@ order by
       this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
         id: studentId,
         stars: updatedStudent?.stars,
-      });
+      }, is_immediate_sync);
     } catch (error) {
       console.error("Error setting stars for student:", error);
     }
@@ -5445,7 +5447,8 @@ order by
   }
   async updateLearningPath(
     student: TableTypes<"user">,
-    learningPath: string
+    learningPath: string,
+    is_immediate_sync?: boolean
   ): Promise<TableTypes<"user">> {
     try {
       const updateUserQuery = `UPDATE ${TABLES.User}
@@ -5456,7 +5459,7 @@ order by
       this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
         id: student.id,
         learning_path: learningPath,
-      });
+      }, is_immediate_sync);
     } catch (error) {
       console.error("Error updating learning path:", error);
     }

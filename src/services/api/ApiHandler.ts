@@ -1208,9 +1208,10 @@ export class ApiHandler implements ServiceApi {
   }
   public async setStarsForStudents(
     studentId: string,
-    starsCount: number
+    starsCount: number,
+    is_immediate_sync?: boolean
   ): Promise<void> {
-    return this.s.setStarsForStudents(studentId, starsCount);
+    return this.s.setStarsForStudents(studentId, starsCount,is_immediate_sync);
   }
   public async countAllPendingPushes(): Promise<number> {
     return this.s.countAllPendingPushes();
@@ -1230,9 +1231,10 @@ export class ApiHandler implements ServiceApi {
   }
   public async updateLearningPath(
     student: TableTypes<"user">,
-    learning_path: string // New parameter for learning_path
+    learning_path: string ,// New parameter for learning_path
+    is_immediate_sync?: boolean
   ): Promise<TableTypes<"user">> {
-    return await this.s.updateLearningPath(student, learning_path);
+    return await this.s.updateLearningPath(student, learning_path,is_immediate_sync);
   }
 
   public async getProgramFilterOptions(): Promise<Record<string, string[]>> {
