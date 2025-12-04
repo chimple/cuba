@@ -331,7 +331,7 @@ export class SupabaseApi implements ServiceApi {
             .from("profile-images")
             .list(`${profileType}/${folderName}`, { limit: 2 })
         )?.data?.map((file) => `${profileType}/${folderName}/${file.name}`) ||
-        []
+          []
       );
     // Convert File to Blob (necessary for renaming)
     const renamedFile = new File([file], newName, { type: file.type });
@@ -404,38 +404,38 @@ export class SupabaseApi implements ServiceApi {
       };
       const fallbackChannel = uploadingUser
         ? supabase
-          .channel(`upload-fallback-${uploadingUser}`)
-          .on(
-            "postgres_changes",
-            {
-              event: "UPDATE",
-              schema: "public",
-              table: "upload_queue",
-              filter: `uploading_user=eq.${uploadingUser}`,
-            },
-            async (payload) => {
-              const status = payload.new?.status;
-              const id = payload.new?.id;
-              console.log(
-                "🔄 [Fallback] Realtime update:",
-                status,
-                "ID:",
-                id
-              );
-              if (
-                (status === "success" || status === "failed") &&
-                !resolved
-              ) {
-                resolved = true;
-                await fallbackChannel?.unsubscribe();
+            .channel(`upload-fallback-${uploadingUser}`)
+            .on(
+              "postgres_changes",
+              {
+                event: "UPDATE",
+                schema: "public",
+                table: "upload_queue",
+                filter: `uploading_user=eq.${uploadingUser}`,
+              },
+              async (payload) => {
+                const status = payload.new?.status;
+                const id = payload.new?.id;
                 console.log(
-                  `✅ / ❌ Fallback resolved with status: ${status}`
+                  "🔄 [Fallback] Realtime update:",
+                  status,
+                  "ID:",
+                  id
                 );
-                resolve(status === "success");
+                if (
+                  (status === "success" || status === "failed") &&
+                  !resolved
+                ) {
+                  resolved = true;
+                  await fallbackChannel?.unsubscribe();
+                  console.log(
+                    `✅ / ❌ Fallback resolved with status: ${status}`
+                  );
+                  resolve(status === "success");
+                }
               }
-            }
-          )
-          .subscribe()
+            )
+            .subscribe()
         : null;
       const { data, error: functionError } = await supabase.functions.invoke(
         "ops-data-insert",
@@ -469,7 +469,7 @@ export class SupabaseApi implements ServiceApi {
     });
   }
 
- async getTablesData(
+  async getTablesData(
     tableNames: TABLES[] = Object.values(TABLES),
     tablesLastModifiedTime: Map<string, string> = new Map(),
     isInitialFetch = false
@@ -490,8 +490,7 @@ export class SupabaseApi implements ServiceApi {
       if (res == null || res.error || !res.data) {
         let parent_user;
         try {
-          parent_user =
-            await ServiceConfig.getI().authHandler.getCurrentUser();
+          parent_user = await ServiceConfig.getI().authHandler.getCurrentUser();
         } catch (error: any) {
           console.error("User Error", error);
         }
@@ -508,7 +507,7 @@ export class SupabaseApi implements ServiceApi {
       }
       tableNames.map(async (tableName) => {
         data.set(tableName, res?.data?.[tableName] ?? []);
-      })
+      });
       return data;
     } catch (err: any) {
       let parent_user;
@@ -1094,72 +1093,72 @@ export class SupabaseApi implements ServiceApi {
 
     let newSchool: TableTypes<"school"> | null = null;
 
-  if (oSchool) {
-    const result = image
-      ? await this.addProfileImages(schoolId, image, PROFILETYPE.SCHOOL)
-      : null;
+    if (oSchool) {
+      const result = image
+        ? await this.addProfileImages(schoolId, image, PROFILETYPE.SCHOOL)
+        : null;
 
-    newSchool = {
-      id: schoolId,
-      name,
-      group1: group1 ?? null,
-      group2: group2 ?? null,
-      group3: group3 ?? null,
-      image: result ?? null,
-      group4: group4 ?? null,
-      program_id: program_id ?? null,
-      udise: udise ?? null,
-      address: address ?? null,
-      created_at: timestamp,
-      updated_at: timestamp,
-      is_deleted: false,
-      model: null,
-      academic_year: null,
-      firebase_id: null,
-      is_firebase: null,
-      is_ops: null,
-      language: null,
-      ops_created_by: null,
-      student_login_type: null,
-      status: STATUS.REQUESTED,
-      key_contacts: null,
-      country: country ?? null,
-      location_link: null,
-    };
+      newSchool = {
+        id: schoolId,
+        name,
+        group1: group1 ?? null,
+        group2: group2 ?? null,
+        group3: group3 ?? null,
+        image: result ?? null,
+        group4: group4 ?? null,
+        program_id: program_id ?? null,
+        udise: udise ?? null,
+        address: address ?? null,
+        created_at: timestamp,
+        updated_at: timestamp,
+        is_deleted: false,
+        model: null,
+        academic_year: null,
+        firebase_id: null,
+        is_firebase: null,
+        is_ops: null,
+        language: null,
+        ops_created_by: null,
+        student_login_type: null,
+        status: STATUS.REQUESTED,
+        key_contacts: null,
+        country: country ?? null,
+        location_link: null,
+      };
 
-    const { error: schoolError } = await this.supabase
-      .from(TABLES.School)
-      .insert([newSchool]);
+      const { error: schoolError } = await this.supabase
+        .from(TABLES.School)
+        .insert([newSchool]);
 
-    if (schoolError) {
-      console.error("Error inserting into school:", schoolError);
-      throw schoolError;
+      if (schoolError) {
+        console.error("Error inserting into school:", schoolError);
+        throw schoolError;
+      }
     }
-  }
 
-  if (oSchoolUser) {
-    const newSchoolUser: TableTypes<"school_user"> = {
-      id: uuidv4(),
-      school_id: schoolId,
-      user_id: _currentUser.id,
-      role: RoleType.PRINCIPAL,
-      created_at: timestamp,
-      updated_at: timestamp,
-      is_deleted: false,
-      is_firebase: null,
-      is_ops: null,
-      ops_created_by: null,
-    };
+    if (oSchoolUser) {
+      const newSchoolUser: TableTypes<"school_user"> = {
+        id: uuidv4(),
+        school_id: schoolId,
+        user_id: _currentUser.id,
+        role: RoleType.PRINCIPAL,
+        created_at: timestamp,
+        updated_at: timestamp,
+        is_deleted: false,
+        is_firebase: null,
+        is_ops: null,
+        ops_created_by: null,
+      };
 
-    const { error: userError } = await this.supabase
-      .from(TABLES.SchoolUser)
-      .insert([newSchoolUser]);
+      const { error: userError } = await this.supabase
+        .from(TABLES.SchoolUser)
+        .insert([newSchoolUser]);
 
-    if (userError) {
-      console.error("Error inserting into school_user:", userError);
-      throw userError;
+      if (userError) {
+        console.error("Error inserting into school_user:", userError);
+        throw userError;
+      }
     }
-  }
 
     return newSchool ?? ({} as TableTypes<"school">);
   }
@@ -2187,7 +2186,7 @@ export class SupabaseApi implements ServiceApi {
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
           new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
-          todaysTimestamp.split("T")[0];
+            todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -3663,7 +3662,10 @@ export class SupabaseApi implements ServiceApi {
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw new Error("User is not Logged in");
 
-    const updateData: any = { name: className, updated_at: new Date().toISOString()};
+    const updateData: any = {
+      name: className,
+      updated_at: new Date().toISOString(),
+    };
     if (groupId !== undefined) updateData.group_id = groupId;
 
     const { error } = await this.supabase
@@ -7154,8 +7156,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-              (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
-            )
+                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+              )
             : [];
         }
       }
@@ -7203,8 +7205,8 @@ export class SupabaseApi implements ServiceApi {
           const val = data[key];
           parsed[key] = Array.isArray(val)
             ? val.filter(
-              (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
-            )
+                (v) => typeof v === "string" && v.trim() !== "" && v !== "null"
+              )
             : [];
         }
       }
@@ -8192,21 +8194,21 @@ export class SupabaseApi implements ServiceApi {
       const [schoolsResp, usersResp, classesResp] = await Promise.all([
         schoolIds.length
           ? this.supabase
-            .from(TABLES.School)
-            .select("id, name, udise, group1,group2, group3, country")
-            .in("id", schoolIds)
+              .from(TABLES.School)
+              .select("id, name, udise, group1,group2, group3, country")
+              .in("id", schoolIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         userIds.length
           ? this.supabase
-            .from(TABLES.User)
-            .select("id, name, email, phone")
-            .in("id", userIds)
+              .from(TABLES.User)
+              .select("id, name, email, phone")
+              .in("id", userIds)
           : Promise.resolve({ data: [] as any[], error: null }),
         classIds.length
           ? this.supabase
-            .from(TABLES.Class)
-            .select("id, name, school_id")
-            .in("id", classIds)
+              .from(TABLES.Class)
+              .select("id, name, school_id")
+              .in("id", classIds)
           : Promise.resolve({ data: [] as any[], error: null }),
       ]);
       if (schoolsResp.error) throw schoolsResp.error;
@@ -9022,9 +9024,59 @@ export class SupabaseApi implements ServiceApi {
     }
     const { message, user } = data as {
       message: string;
-      user: { id: string;[key: string]: any };
+      user: { id: string; [key: string]: any };
     };
     const isNewUser = message === "success-created";
+    const isPrincipalRole = role === RoleType.PRINCIPAL;
+    const isTeacherRole = role === RoleType.TEACHER;
+    if (isPrincipalRole) {
+      const { data: teacherClassUser, error: teacherClassUserError } =
+        await this.supabase
+          .from("class_user")
+          .select("id, class_id, role")
+          .eq("user_id", user.id)
+          .eq("is_deleted", false)
+          .eq("role", RoleType.TEACHER || "teacher")
+          .limit(1)
+          .maybeSingle();
+      if (teacherClassUserError) {
+        console.error(
+          "Failed to check teacher role in class_user:",
+          teacherClassUserError
+        );
+        throw teacherClassUserError;
+      }
+      if (teacherClassUser) {
+        throw new Error(
+          "This user is already assigned as a Teacher in a class and cannot be made Principal."
+        );
+      }
+    }
+
+    if (isTeacherRole && schoolId) {
+      const { data: principalSchoolUser, error: principalSchoolUserError } =
+        await this.supabase
+          .from("school_user")
+          .select("id, role")
+          .eq("school_id", schoolId)
+          .eq("user_id", user.id)
+          .eq("is_deleted", false)
+          .eq("role", RoleType.PRINCIPAL || "principal")
+          .maybeSingle();
+      if (principalSchoolUserError) {
+        console.error(
+          "Failed to check principal role in school_user:",
+          principalSchoolUserError
+        );
+        throw principalSchoolUserError;
+      }
+      if (principalSchoolUser) {
+        throw new Error(
+          "This user is already assigned as Principal in this school and cannot be added as Teacher."
+        );
+      }
+    }
+
     let schoolUser: any | null = null;
     if (schoolId) {
       const { data: existingSchoolUser, error: existingSchoolUserError } =
