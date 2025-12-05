@@ -149,8 +149,9 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
           {/* Details Section */}
           <div className="profile-details">
-            <span className="profile-header-name text-truncate"
-            style={{ marginBottom: hasDetails ? "8px" : "60px" }} 
+            <span
+              className="profile-header-name text-truncate"
+              style={{ marginBottom: hasDetails ? "8px" : "60px" }}
             >
               {student?.name ?? "Profile"}
             </span>
@@ -170,7 +171,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
             {schoolName && (
               <div className="profile-sub-info">
                 <img
-                  src="/assets/icons/scholarIcon.svg"
+                  src="/assets/icons/schoolIcon.svg"
                   alt="school"
                   className="info-icon"
                   onError={(e) => (e.currentTarget.style.display = "none")}
@@ -210,6 +211,9 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
           showDialogBox={showDialogBox}
           handleClose={() => setShowDialogBox(true)}
           onHandleClose={() => setShowDialogBox(false)}
+          onUnlock={() => {
+            localStorage.removeItem(HOMEWORK_PATHWAY);
+          }}
         />
       )}
     </div>

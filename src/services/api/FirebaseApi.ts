@@ -858,7 +858,8 @@ export class FirebaseApi implements ServiceApi {
     assignmentId: string | undefined,
     chapterId: string,
     classId: string | undefined,
-    schoolId: string | undefined
+    schoolId: string | undefined,
+    isImediateSync?:boolean
   ): Promise<TableTypes<"result">> {
     const courseRef = courseId
       ? doc(this._db, CollectionIds.COURSE, courseId)
