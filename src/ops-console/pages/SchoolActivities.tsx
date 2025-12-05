@@ -304,7 +304,7 @@ const SchoolActivities: React.FC = () => {
   };
 
   return (
-    <div className="school-act-container">
+    <div className="school-act-container" id="school-act">
       <Box className="school-act-header">
         <Box className="school-act-header-top">
           {isMobile ? (
@@ -313,7 +313,7 @@ const SchoolActivities: React.FC = () => {
               <Typography className="school-act-title-mobile">
                 {t("Schools")}
               </Typography>
-              <IconButton className="school-act-icon-button">
+              <IconButton className="school-act-icon-button" id="notify-btn">
                 <NotificationsIcon />
               </IconButton>
             </>
@@ -322,14 +322,14 @@ const SchoolActivities: React.FC = () => {
               <Typography className="school-act-title">
                 {t("Schools")}
               </Typography>
-              <IconButton className="school-act-icon-button">
+              <IconButton className="school-act-icon-button" id="notify-btn">
                 <NotificationsIcon />
               </IconButton>
             </>
           )}
         </Box>
 
-        <Box className="school-act-header-row">
+        <Box className="school-act-header-row" id="school-act-breadcrumb">
           {!isMobile && (
             <Breadcrumb
               crumbs={[
@@ -379,7 +379,7 @@ const SchoolActivities: React.FC = () => {
         />
       </Box>
 
-      <div className="school-act-table-container">
+      <div className="school-act-table-container" id="school-act-table">
         {!loadingData && activities.length === 0 ? (
           <Box
             display="flex"
@@ -403,7 +403,7 @@ const SchoolActivities: React.FC = () => {
       </div>
 
       {activities.length > 0 && (
-        <div className="school-act-footer">
+        <div className="school-act-footer" id="school-act-footer">
           <DataTablePagination
             page={page}
             pageCount={pageCount}

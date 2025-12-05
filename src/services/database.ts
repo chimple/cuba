@@ -50,113 +50,6 @@ export type Database = {
         }
         Relationships: []
       }
-      assessment_result: {
-        Row: {
-          abilities: string | null
-          activity_scores: string | null
-          class_id: string | null
-          course_id: string | null
-          created_at: string
-          framework_id: string | null
-          id: string
-          is_deleted: boolean | null
-          lesson_id: string | null
-          li_scores: string | null
-          school_id: string | null
-          student_id: string
-          subject_id: string
-          time_spent: number | null
-          trace_is: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          abilities?: string | null
-          activity_scores?: string | null
-          class_id?: string | null
-          course_id?: string | null
-          created_at?: string
-          framework_id?: string | null
-          id?: string
-          is_deleted?: boolean | null
-          lesson_id?: string | null
-          li_scores?: string | null
-          school_id?: string | null
-          student_id: string
-          subject_id: string
-          time_spent?: number | null
-          trace_is?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          abilities?: string | null
-          activity_scores?: string | null
-          class_id?: string | null
-          course_id?: string | null
-          created_at?: string
-          framework_id?: string | null
-          id?: string
-          is_deleted?: boolean | null
-          lesson_id?: string | null
-          li_scores?: string | null
-          school_id?: string | null
-          student_id?: string
-          subject_id?: string
-          time_spent?: number | null
-          trace_is?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "assessment_result_class_id_fkey"
-            columns: ["class_id"]
-            isOneToOne: false
-            referencedRelation: "class"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "assessment_result_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "course"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "assessment_result_framework_id_fkey"
-            columns: ["framework_id"]
-            isOneToOne: false
-            referencedRelation: "framework"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "assessment_result_lesson_fkey"
-            columns: ["lesson_id"]
-            isOneToOne: false
-            referencedRelation: "lesson"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "assessment_result_school_id_fkey"
-            columns: ["school_id"]
-            isOneToOne: false
-            referencedRelation: "school"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "assessment_result_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "user"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "assessment_result_subject_id_fkey"
-            columns: ["subject_id"]
-            isOneToOne: false
-            referencedRelation: "subject"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       assignment: {
         Row: {
           batch_id: string | null
@@ -824,50 +717,6 @@ export type Database = {
           },
         ]
       }
-      competency: {
-        Row: {
-          code: string
-          created_at: string
-          description: string | null
-          domain_id: string
-          id: string
-          is_deleted: boolean | null
-          name: string
-          sort_index: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          code: string
-          created_at?: string
-          description?: string | null
-          domain_id: string
-          id?: string
-          is_deleted?: boolean | null
-          name: string
-          sort_index?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          code?: string
-          created_at?: string
-          description?: string | null
-          domain_id?: string
-          id?: string
-          is_deleted?: boolean | null
-          name?: string
-          sort_index?: number | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "public_competency_domain_id_fkey"
-            columns: ["domain_id"]
-            isOneToOne: false
-            referencedRelation: "domain"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       connector_users: {
         Row: {
           created_at: string | null
@@ -1005,54 +854,6 @@ export type Database = {
         }
         Relationships: []
       }
-      domain: {
-        Row: {
-          created_at: string
-          description: string | null
-          framework_id: string
-          id: string
-          is_deleted: boolean | null
-          name: string
-          subject_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          framework_id: string
-          id?: string
-          is_deleted?: boolean | null
-          name: string
-          subject_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          framework_id?: string
-          id?: string
-          is_deleted?: boolean | null
-          name?: string
-          subject_id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "domain_framework_id_fkey"
-            columns: ["framework_id"]
-            isOneToOne: false
-            referencedRelation: "framework"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "domain_subject_id_fkey"
-            columns: ["subject_id"]
-            isOneToOne: false
-            referencedRelation: "subject"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       error_logs: {
         Row: {
           created_at: string
@@ -1126,42 +927,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      fc_question: {
-        Row: {
-          created_at: string
-          id: string
-          is_active: boolean
-          is_deleted: boolean
-          question_text: string
-          sort_order: number
-          target_type: Database["public"]["Enums"]["fc_engagement_target"]
-          type: Database["public"]["Enums"]["fc_support_level"] | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          is_deleted?: boolean
-          question_text: string
-          sort_order?: number
-          target_type: Database["public"]["Enums"]["fc_engagement_target"]
-          type?: Database["public"]["Enums"]["fc_support_level"] | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          is_deleted?: boolean
-          question_text?: string
-          sort_order?: number
-          target_type?: Database["public"]["Enums"]["fc_engagement_target"]
-          type?: Database["public"]["Enums"]["fc_support_level"] | null
-          updated_at?: string
-        }
-        Relationships: []
       }
       fc_school_visit: {
         Row: {
@@ -1326,39 +1091,7 @@ export type Database = {
           },
         ]
       }
-      framework: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          image: string | null
-          is_deleted: boolean | null
-          name: string
-          sort_index: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          image?: string | null
-          is_deleted?: boolean | null
-          name: string
-          sort_index?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          image?: string | null
-          is_deleted?: boolean | null
-          name?: string
-          sort_index?: number | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
+
       gb_response: {
         Row: {
           content: Json | null
@@ -2589,64 +2322,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
-      }
-      subject_lesson: {
-        Row: {
-          created_at: string
-          framework_id: string | null
-          id: string
-          is_deleted: boolean | null
-          lesson_id: string
-          set_number: number | null
-          sort_index: number | null
-          subject_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string
-          framework_id?: string | null
-          id?: string
-          is_deleted?: boolean | null
-          lesson_id: string
-          set_number?: number | null
-          sort_index?: number | null
-          subject_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string
-          framework_id?: string | null
-          id?: string
-          is_deleted?: boolean | null
-          lesson_id?: string
-          set_number?: number | null
-          sort_index?: number | null
-          subject_id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "subject_lesson_chaptersubject_id_fkey"
-            columns: ["subject_id"]
-            isOneToOne: false
-            referencedRelation: "subject"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "subject_lesson_framework_id_fkey"
-            columns: ["framework_id"]
-            isOneToOne: false
-            referencedRelation: "framework"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "subject_lesson_lesson_id_fkey"
-            columns: ["lesson_id"]
-            isOneToOne: false
-            referencedRelation: "lesson"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       upload_queue: {
         Row: {

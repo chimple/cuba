@@ -192,11 +192,11 @@ const ActivitiesPage: React.FC = () => {
   const pageCount = Math.ceil(total / DEFAULT_PAGE_SIZE);
 
   return (
-    <div className="activities-container">
+    <div className="activities-container" id="act-container">
       <div className="activities-header">
         <SchoolNameHeaderComponent schoolName={"Activities"} />
       </div>
-      <div className="activities-secondary-header">
+      <div className="activities-secondary-header" id="act-breadcrumb">
         <Breadcrumb
           crumbs={[
             {
@@ -215,7 +215,7 @@ const ActivitiesPage: React.FC = () => {
         />
       </div>
 
-      <div className="activities-table-container">
+      <div className="activities-table-container" id="act-table">
         {!loadingData && activities.length === 0 ? (
           <Box
             display="flex"
@@ -238,7 +238,7 @@ const ActivitiesPage: React.FC = () => {
         )}
       </div>
       {!loadingData && activities.length > 0 && (
-        <div className="activities-footer">
+        <div className="activities-footer" id="act-footer">
           <DataTablePagination
             pageCount={pageCount}
             page={page}
