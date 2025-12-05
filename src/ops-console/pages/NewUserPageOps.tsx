@@ -280,6 +280,7 @@ const NewUserPage: React.FC = () => {
               />
             </Grid>
 
+
             <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
               <Typography className="ops-new-user-form_label">
                 {t("Email ID")}
