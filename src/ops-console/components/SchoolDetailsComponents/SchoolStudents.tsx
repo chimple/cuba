@@ -238,6 +238,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             id: s.parent_id ?? undefined,
             name: s.parent_name ?? "",
             phone: s.phone ?? undefined,
+            email: s.email ?? undefined,
           },
         };
       }),
@@ -312,7 +313,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         gender: s_api.user.gender ?? "N/A",
         grade: s_api.grade ?? 0,
         classSection: s_api.classSection ?? "N/A",
-        phoneNumber: s_api.parent?.phone ?? "N/A",
+        phoneNumber: s_api.parent?.phone || s_api.parent?.email || "N/A", //here
         class: (s_api.grade ?? 0) + (s_api.classSection ?? ""),
       })
     );
@@ -369,7 +370,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         </Typography>
       ),
     },
-    { key: "phoneNumber", label: t("Phone Number") },
+    { key: "phoneNumber", label: t("Phone Number / Email") },
   ];
 
   const classOptions = useMemo(() => {
