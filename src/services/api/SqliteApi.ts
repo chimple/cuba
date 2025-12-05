@@ -6602,7 +6602,6 @@ order by
   async getRequestFilterOptions() {
     throw new Error("Method not implemented.");
   }
-
   async searchStudentsInSchool(
     schoolId: string,
     searchTerm: string,
@@ -7038,6 +7037,15 @@ order by
     email?: string;
   }): Promise<{ success: boolean; message: string; data?: any }> {
     return this._serverApi.addStudentWithParentValidation(params);
+  }
+  public async getActivitiesBySchoolId(schoolId: string): Promise<TableTypes<"fc_user_forms">[]> {
+    return this._serverApi.getActivitiesBySchoolId(schoolId);
+  }
+  public async getSchoolVisitById(visitId: string): Promise<TableTypes<"fc_school_visit"> | null> {
+    return this._serverApi.getSchoolVisitById(visitId);
+  }
+  async getActivitiesFilterOptions() {
+    throw new Error("Method not implemented.");
   }
 
 }

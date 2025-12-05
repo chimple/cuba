@@ -9449,4 +9449,70 @@ export class SupabaseApi implements ServiceApi {
       };
     }
   }
+   async getActivitiesBySchoolId(schoolId: string): Promise<TableTypes<"fc_user_forms">[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from("fc_user_forms")
+      .select("*")
+      .eq("school_id",schoolId)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching user forms:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+  async getSchoolVisitById(
+    visitId: string
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from("fc_school_visit")
+      .select("*")
+      .eq("id", visitId)
+      .eq("is_deleted", false)
+      .single();
+
+    if (error) {
+      console.error("Error fetching visit:", error);
+      return null;
+    }
+
+    return data;
+  }
+
+  async getActivitiesFilterOptions() {
+    try {
+      if (!this.supabase) return null;
+
+      const { data, error } = await this.supabase
+        .from("fc_user_forms")
+        .select("contact_target, support_level")
+        .eq("is_deleted", false);
+
+      if (error) throw error;
+
+      const forms = data || [];
+
+      const contactTypes = [...new Set(forms.map(f => f.contact_target).filter(Boolean))];
+      const performance = [...new Set(forms.map(f => f.support_level).filter(Boolean))];
+
+      return {
+        contactType: contactTypes,
+        performance: performance,
+      };
+
+    } catch (error) {
+      console.error("Error in getActivitiesFilterOptions:", error);
+      throw error;
+    }
+  }
+
 }
+
+
