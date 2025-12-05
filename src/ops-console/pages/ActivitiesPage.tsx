@@ -200,7 +200,7 @@ const ActivitiesPage: React.FC = () => {
         <Breadcrumb
           crumbs={[
             {
-              label: "Schools",
+              label: t("Schools"),
               onClick: () =>
                 history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`),
             },
@@ -209,7 +209,7 @@ const ActivitiesPage: React.FC = () => {
               onClick: () => history.goBack(),
             },
             {
-              label: "Activities",
+              label: t("Activities")
             },
           ]}
         />
