@@ -2814,10 +2814,10 @@ export class SupabaseApi implements ServiceApi {
       .eq("is_deleted", false)
       .single();
 
-    if (specialError) {
-      console.error("Error fetching special_users:", specialError);
-    } else if (specialUser) {
-      const role = specialUser.role as RoleType;
+  if (specialError) {
+    console.error("Error fetching special_users:", specialError);
+  } else if (specialUser) {
+    const role = specialUser.role as RoleType;
 
       // --- SUPER ADMIN / OPERATIONAL DIRECTOR ---
       if (
@@ -2958,8 +2958,9 @@ export class SupabaseApi implements ServiceApi {
       }
     }
 
-    return finalData;
-  }
+  return finalData;
+}
+
 
   public set currentMode(value: MODES) {
     this._currentMode = value;
