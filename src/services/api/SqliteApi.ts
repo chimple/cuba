@@ -694,7 +694,6 @@ export class SqliteApi implements ServiceApi {
     data: { [key: string]: any },
     is_sync_immediate?: boolean
   ) {
-    console.log("************updatePushChanges", data, tableName, mutateType, is_sync_immediate);
     if (!this._db) return;
     data["updated_at"] = new Date().toISOString();
     const stmt = `INSERT OR REPLACE INTO push_sync_info (id, table_name, change_type, data) VALUES (?, ?, ?, ?)`;

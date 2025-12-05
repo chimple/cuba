@@ -835,7 +835,7 @@ const PathwayStructure: React.FC = () => {
       const learningPath = JSON.parse(currentStudent.learning_path);
       const currentCourseIndex = learningPath?.courses.currentCourseIndex;
       const course = learningPath?.courses.courseList[currentCourseIndex];
-      const { currentIndex, pathEndIndex } = course;
+      const { currentIndex } = course;
       const lesson = await api.getLesson(course.path[currentIndex].lesson_id);
  
       if (!lesson) return;
