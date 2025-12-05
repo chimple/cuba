@@ -313,7 +313,7 @@ const PathwayStructure: React.FC = () => {
           ),
         ]);
 
-        await preloadAllLessonImages(lessons);
+        preloadAllLessonImages(lessons);
 
         // Declare chimple here to be accessible in different scopes
         let chimple: SVGForeignObjectElement | null = null;
@@ -339,7 +339,6 @@ const PathwayStructure: React.FC = () => {
           const xValues = [27, 155, 276, 387, 496];
 
           const fragment = document.createDocumentFragment();
-
           lessons.forEach((lesson, idx) => {
             const path = paths[idx];
             const point = path.getPointAtLength(0);
@@ -443,7 +442,7 @@ const PathwayStructure: React.FC = () => {
                     chapter: JSON.stringify(currentChapter),
                     from: history.location.pathname + `?${CONTINUE}=true`,
                     course: JSON.stringify(currentCourse),
-                    learning_path: true,
+                    learning_path: true
                   });
                 } else if(lesson.plugin_type === LIVE_QUIZ){
                   history.replace(
@@ -837,7 +836,6 @@ const PathwayStructure: React.FC = () => {
       const currentCourseIndex = learningPath?.courses.currentCourseIndex;
       const course = learningPath?.courses.courseList[currentCourseIndex];
       const { currentIndex } = course;
-
       const lesson = await api.getLesson(course.path[currentIndex].lesson_id);
  
       if (!lesson) return;

@@ -342,7 +342,6 @@ const CocosGame: React.FC = () => {
     avatarObj.weeklyTimeSpent["min"] = computeMinutes;
     avatarObj.weeklyTimeSpent["sec"] = computeSec;
     avatarObj.weeklyPlayedLesson++;
-
     const result = await api.updateResult(
       currentStudent,
       courseDocId,
@@ -354,7 +353,8 @@ const CocosGame: React.FC = () => {
       assignmentId,
       chapterDetail?.id ?? chapter_id?.toString() ?? undefined,
       classId,
-      schoolId
+      schoolId,
+      shouldGiveHomeworkBonus
     );
 
     // Update the learning path / homework path

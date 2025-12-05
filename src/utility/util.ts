@@ -453,7 +453,7 @@ export class Util {
                 }
               } catch {
                 console.error(
-                  `[LessonDownloader] Lesson ${lessonId} not found at local bundle path`
+                  `[LessonDownloader] Lesson ${lessonId} not found at local bundle path - Starting download...`
                 );
               }
               const bundleZipUrls: string[] = await RemoteConfig.getJSON(
@@ -466,18 +466,42 @@ export class Util {
 
               let zip: any;
               let downloadAttempts = 0;
+              let downloadSuccessful = false;
 
-              while (downloadAttempts < MAX_DOWNLOAD_LESSON_ATTEMPTS) {
+              while (
+                downloadAttempts < MAX_DOWNLOAD_LESSON_ATTEMPTS &&
+                !downloadSuccessful
+              ) {
                 for (const bundleUrl of bundleZipUrls) {
                   const zipUrl = bundleUrl + lessonId + ".zip";
                   try {
-                    zip = await CapacitorHttp.get({
+                    console.log(
+                      `[LessonDownloader] Attempting download from: ${zipUrl}`
+                    );
+                    const downloadPromise = await CapacitorHttp.get({
                       url: zipUrl,
                       responseType: "blob",
                       headers: {},
+                      readTimeout: 10000,
+                      connectTimeout: 10000,
                     });
+                    const timeoutPromise = new Promise((_, reject) =>
+                      setTimeout(
+                        () => reject(new Error("Download timeout after 20s")),
+                        10000
+                      )
+                    );
+                    zip = await Promise.race([downloadPromise, timeoutPromise]);
                     if (zip && zip.data && zip.status === 200) {
+                      console.log(
+                        `[LessonDownloader] Successfully downloaded ${lessonId} from ${zipUrl}`
+                      );
+                      downloadSuccessful = true;
                       break;
+                    } else {
+                      console.warn(
+                        `[LessonDownloader] Download returned status ${zip?.status} for ${zipUrl}`
+                      );
                     }
                   } catch (err) {
                     console.error(
@@ -486,7 +510,12 @@ export class Util {
                     );
                   }
                 }
-                downloadAttempts++;
+                if (!downloadSuccessful) {
+                  downloadAttempts++;
+                  console.warn(
+                    `[LessonDownloader] Attempt ${downloadAttempts}/${MAX_DOWNLOAD_LESSON_ATTEMPTS} failed for ${lessonId}`
+                  );
+                }
               }
 
               if (!zip || !zip.data || zip.status !== 200) {
@@ -2070,7 +2099,7 @@ export class Util {
           url: url,
           imageFile: imageFile, // Pass the File object for Android
         })
-        .then(() => {})
+        .then(() => { })
         .catch((error) => console.error("Error sharing content:", error));
     } else {
       // Web sharing
@@ -2083,7 +2112,7 @@ export class Util {
 
       await navigator
         .share(shareData)
-        .then(() => {})
+        .then(() => { })
         .catch((error) => console.error("Error sharing content:", error));
     }
   }
@@ -2533,7 +2562,7 @@ export class Util {
           .toISOString()
           .split("T")[0] !== new Date().toISOString().split("T")[0] ||
         dailyUserReward[currentStudent.id].reward_id !==
-          currentReward?.reward_id
+        currentReward?.reward_id
       ) {
         // Update localStorage
         dailyUserReward[currentStudent.id].reward_id = currentReward.reward_id;
@@ -2635,7 +2664,7 @@ export class Util {
           .path_id;
       // Update currentIndex
       currentCourse.currentIndex += 1;
-
+      const is_immediate_sync = currentCourse.currentIndex >= currentCourse.pathEndIndex;
       // Check if currentIndex exceeds pathEndIndex
       if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
         if (isRewardLesson) {
@@ -2657,7 +2686,8 @@ export class Util {
 
         await ServiceConfig.getI().apiHandler.setStarsForStudents(
           currentStudent.id,
-          10
+          10,
+          false
         );
         // Loop back to the first course if at the last course
         if (courses.currentCourseIndex >= courses.courseList.length) {
@@ -2697,11 +2727,11 @@ export class Util {
         await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
         await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
       }
-
       // Update the learning path in the database
       await ServiceConfig.getI().apiHandler.updateLearningPath(
         currentStudent,
-        JSON.stringify(learningPath)
+        JSON.stringify(learningPath),
+        is_immediate_sync
       );
       // Update the current student object
       const updatedStudent =
