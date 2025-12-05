@@ -396,33 +396,33 @@ const SchoolList: React.FC = () => {
                 )}
               </Button>
 
-<Button
-  variant="outlined"
-  onClick={() => {
-    setVisitId("b29c852a-80e7-465a-b015-aad01d08940c");
-    setOpenDetails(true);
-  }}
-  sx={{
-    borderColor: "#e0e0e0",
-    border: "1px solid",
-    borderRadius: 20,
-    boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.1)",
-    height: "36px",
-    minWidth: isSmallScreen ? "48px" : "auto",
-    padding: isSmallScreen ? 0 : "6px 16px",
-    textTransform: "none",
-    display: "flex",
-    alignItems: "center",
-    gap: 1,
-  }}
->
-  {/* You can use an icon here if you want, e.g. <PersonOutline /> */}
-  {!isSmallScreen && (
-    <span className="school-list-upload-text1">
-      {t("User Details")}
-    </span>
-  )}
-</Button>
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setVisitId("ebb613a2-6825-412b-aadb-a6d644f9fcc3");
+                  setOpenDetails(true);
+                }}
+                sx={{
+                  borderColor: "#e0e0e0",
+                  border: "1px solid",
+                  borderRadius: 20,
+                  boxShadow: "0px 2px 6px rgba(0, 0, 0, 0.1)",
+                  height: "36px",
+                  minWidth: isSmallScreen ? "48px" : "auto",
+                  padding: isSmallScreen ? 0 : "6px 16px",
+                  textTransform: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+                {/* You can use an icon here if you want, e.g. <PersonOutline /> */}
+                {!isSmallScreen && (
+                  <span className="school-list-upload-text1">
+                    {t("User Details")}
+                  </span>
+                )}
+              </Button>
 
               <SearchAndFilter
                 searchTerm={searchTerm}
@@ -518,7 +518,6 @@ const SchoolList: React.FC = () => {
         <FcActivityDetailsPanel
           open={openDetails}
           onClose={() => setOpenDetails(false)}
-          visitId={visitId}
         />
 
       </div>

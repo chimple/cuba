@@ -943,8 +943,6 @@ export interface ServiceApi {
     studentId: string
   ): Promise<TableTypes<"assignment"> | undefined>;
 
-  getFcUserFormDetails(visitId: string): Promise<any>;
-
   /**
    * Retrieves Array of Favourite lessons for the specified user
    * @param user_id The unique identifier of the user

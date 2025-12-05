@@ -358,11 +358,6 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getSchoolById(id);
   }
 
-  public async getFcUserFormDetails(visitId: string) {
-  return await this.s.getFcUserFormDetails(visitId);
-}
-
-
   public async getDataByInviteCode(inviteCode: number): Promise<any> {
     return await this.s.getDataByInviteCode(inviteCode);
   }
