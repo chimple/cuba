@@ -22,7 +22,6 @@ import { FileUploadOutlined, Add } from "@mui/icons-material";
 import { BsFillBellFill } from "react-icons/bs";
 import { useLocation, useHistory } from "react-router"
 import { RoleType } from "../../interface/modelInterfaces";
-import FcActivityDetailsPanel from "./FcActivityDetailsPanel";
 
 const filterConfigsForSchool = [
   { key: "partner", label: t("Select Partner") },
@@ -514,12 +513,6 @@ const SchoolList: React.FC = () => {
             />
           </div>
         )}
-
-        <FcActivityDetailsPanel
-          open={openDetails}
-          onClose={() => setOpenDetails(false)}
-        />
-
       </div>
     </div>
   );
