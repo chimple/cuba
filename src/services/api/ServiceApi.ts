@@ -2278,4 +2278,28 @@ export interface ServiceApi {
     classId: string,
     selectedCourseIds: string[]
   ): Promise<void> ;
+
+    /**
+   * Fetch all activities created by FC users for a given school ID.
+   * @param {string} schoolId - The ID of the school to fetch activities for.
+   * @returns Promise resolving to a list of activities.
+   */
+  getActivitiesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"fc_user_forms">[]>;
+
+  /**
+   * Fetch school visit details for a given visit ID.
+   * @param {string} visitId - The ID of the visit to fetch.
+   * @returns Promise resolving to school visit details or null if not found.
+   */
+  getSchoolVisitById(
+    visitId: string
+  ): Promise<TableTypes<"fc_school_visit"> | null>;
+
+  /**
+   * Fetch filter options for FC activities.
+   */
+  getActivitiesFilterOptions();
+
 }

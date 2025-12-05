@@ -116,10 +116,11 @@ const ClassForm: React.FC<{
   const isFormValid =
     formValues.grade.trim() !== "" &&
     formValues.section.trim() !== "" &&
+    selectedCourse.length > 0 &&
     !(
       mode === "edit" &&
       classData?.name === formValues.grade + formValues.section &&
-      formValues.groupId === classData?.group_id &&
+      (formValues.groupId ?? "") === (classData?.group_id ?? "") &&
       JSON.stringify(classData?.courses?.map((c: any) => c.id)) ===
         JSON.stringify(selectedCourse)
     );
