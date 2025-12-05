@@ -743,7 +743,6 @@ export type Database = {
           curriculum_id: string | null
           description: string | null
           firebase_id: string | null
-          framework_id: string | null
           grade_id: string | null
           id: string
           image: string | null
@@ -760,7 +759,6 @@ export type Database = {
           curriculum_id?: string | null
           description?: string | null
           firebase_id?: string | null
-          framework_id?: string | null
           grade_id?: string | null
           id?: string
           image?: string | null
@@ -777,7 +775,6 @@ export type Database = {
           curriculum_id?: string | null
           description?: string | null
           firebase_id?: string | null
-          framework_id?: string | null
           grade_id?: string | null
           id?: string
           image?: string | null
@@ -788,13 +785,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "course_framework_id_fkey"
-            columns: ["framework_id"]
-            isOneToOne: false
-            referencedRelation: "framework"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "public_course_curriculum_id_fkey"
             columns: ["curriculum_id"]
@@ -3652,7 +3642,6 @@ export type Database = {
           curriculum_id: string | null
           description: string | null
           firebase_id: string | null
-          framework_id: string | null
           grade_id: string | null
           id: string
           image: string | null
