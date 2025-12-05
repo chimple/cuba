@@ -480,7 +480,6 @@ export class SupabaseAuth implements ServiceAuth {
     verificationCode: string
   ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean } | undefined> {
     try {
-      console.log('**************************proceedWithVerificationCode')
       if (!this._auth) return;
       const api = ServiceConfig.getI().apiHandler;
 
@@ -559,13 +558,11 @@ export class SupabaseAuth implements ServiceAuth {
           isFirstSync
         );
       }
-      console.log('**************************updateFCM')
       try {
         await api.updateFcmToken(user.user?.id ?? "");
       } catch (err) {
 
       }
-      console.log('**************************Beforrrrrrrrrrrrrr')
       if (isUserExist) await api.subscribeToClassTopic();
 
       return { user, isUserExist: !!isUserExist, isSpl };

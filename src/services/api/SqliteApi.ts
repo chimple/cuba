@@ -786,7 +786,7 @@ export class SqliteApi implements ServiceApi {
       ]
     );
 
-    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
+    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent, false);
     await this.updatePushChanges(TABLES.ParentUser, MUTATE_TYPES.INSERT, {
       id: parentUserId,
       parent_id: _currentUser.id,
@@ -794,31 +794,40 @@ export class SqliteApi implements ServiceApi {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
-    });
+    }, false);
     let courses: TableTypes<"course">[] = [];
     if (gradeDocId && boardDocId) {
       courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
-      for (const course of courses) {
+      for (let idx = 0; idx < courses.length; idx++) {
+        const course = courses[idx];
+        const isLast = idx === courses.length - 1; // ✅ true only for last
+
+        const now = new Date().toISOString();
+
         const newUserCourse: TableTypes<"user_course"> = {
           course_id: course.id,
-          created_at: new Date().toISOString(),
+          created_at: now,
           id: uuidv4(),
           is_deleted: false,
-          updated_at: new Date().toISOString(),
+          updated_at: now,
           user_id: studentId,
           is_firebase: null,
         };
+
         await this.executeQuery(
           `
       INSERT INTO user_course (id, user_id, course_id)
-    VALUES (?, ?, ?);
-  `,
+      VALUES (?, ?, ?);
+    `,
           [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
         );
+
+        // 🔥 Pass isLast here
         this.updatePushChanges(
           TABLES.UserCourse,
           MUTATE_TYPES.INSERT,
-          newUserCourse
+          newUserCourse,
+          isLast
         );
       }
     } else {
@@ -846,29 +855,37 @@ export class SqliteApi implements ServiceApi {
         langCourse,
         digitalSkillsCourse,
       ].filter(Boolean);
-      for (const course of coursesToAdd) {
+      for (let idx = 0; idx < coursesToAdd.length; idx++) {
+        const course = coursesToAdd[idx];
+        const isLast = idx === coursesToAdd.length - 1; // ✅ true only for last
+        const now = new Date().toISOString();
+
         const newUserCourse: TableTypes<"user_course"> = {
           course_id: course.id,
-          created_at: new Date().toISOString(),
+          created_at: now,
           id: uuidv4(),
           is_deleted: false,
-          updated_at: new Date().toISOString(),
+          updated_at: now,
           user_id: studentId,
           is_firebase: null,
         };
+
         await this.executeQuery(
           `
       INSERT INTO user_course (id, user_id, course_id)
-    VALUES (?, ?, ?);
-  `,
+      VALUES (?, ?, ?);
+    `,
           [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
         );
+
         this.updatePushChanges(
           TABLES.UserCourse,
           MUTATE_TYPES.INSERT,
-          newUserCourse
+          newUserCourse,
+          isLast // 🔥 false for all except last
         );
       }
+
     }
     return newStudent;
   }
@@ -2456,7 +2473,8 @@ export class SqliteApi implements ServiceApi {
           this.updatePushChanges(
             TABLES.UserCourse,
             MUTATE_TYPES.INSERT,
-            newUserCourse
+            newUserCourse,
+            false
           );
         }
       }
