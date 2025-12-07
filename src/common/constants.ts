@@ -78,6 +78,10 @@ export enum TABLES {
   OpsRequests = "ops_requests",
   GeoLocations = "geo_locations",
   RiveReward = "rive_reward",
+  Domain = "domain",
+  Competency = "competency",
+  Outcome = "outcome",
+  Skill = "skill",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",

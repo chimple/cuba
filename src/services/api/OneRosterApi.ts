@@ -314,6 +314,34 @@ export class OneRosterApi implements ServiceApi {
     throw new Error("Method not implemented.");
   }
 
+  getDomainsBySubjectAndFramework(
+    subjectId: string,
+    frameworkId: string
+  ): Promise<TableTypes<"domain">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getCompetenciesByDomainIds(
+    domainIds: string[]
+  ): Promise<TableTypes<"competency">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getOutcomesByCompetencyIds(
+    competencyIds: string[]
+  ): Promise<TableTypes<"outcome">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getSkillsByOutcomeIds(
+    outcomeIds: string[]
+  ): Promise<TableTypes<"skill">[]> {
+    throw new Error("Method not implemented.");
+  }
+  getResultsBySkillIds(
+    studentId: string,
+    skillIds: string[]
+  ): Promise<TableTypes<"result">[]> {
+    throw new Error("Method not implemented.");
+  }
+
   deleteProfile(studentId: string) {
     throw new Error("Method not implemented.");
   }

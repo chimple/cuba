@@ -542,6 +542,43 @@ export interface ServiceApi {
   getCourses(courseIds: string[]): Promise<TableTypes<"course">[]>;
 
   /**
+   * Fetches domains for a given subject and framework.
+   */
+  getDomainsBySubjectAndFramework(
+    subjectId: string,
+    frameworkId: string
+  ): Promise<TableTypes<"domain">[]>;
+
+  /**
+   * Fetches competencies linked to the given domain ids.
+   */
+  getCompetenciesByDomainIds(
+    domainIds: string[]
+  ): Promise<TableTypes<"competency">[]>;
+
+  /**
+   * Fetches outcomes linked to the given competency ids.
+   */
+  getOutcomesByCompetencyIds(
+    competencyIds: string[]
+  ): Promise<TableTypes<"outcome">[]>;
+
+  /**
+   * Fetches skills linked to the given outcome ids.
+   */
+  getSkillsByOutcomeIds(
+    outcomeIds: string[]
+  ): Promise<TableTypes<"skill">[]>;
+
+  /**
+   * Fetches results for the given student and skill ids.
+   */
+  getResultsBySkillIds(
+    studentId: string,
+    skillIds: string[]
+  ): Promise<TableTypes<"result">[]>;
+
+  /**
    * Gives StudentProfile for given a Student firebase doc Id
    * @param {string} id - Student firebase doc id
    * @param {boolean} fromCache - If true, it will try to fetch the data from the cache. If the data is not found in the cache, it will look in the database.

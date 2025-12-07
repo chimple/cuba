@@ -2620,6 +2620,108 @@ export class SupabaseApi implements ServiceApi {
     return data ?? [];
   }
 
+  async getDomainsBySubjectAndFramework(
+    subjectId: string,
+    frameworkId: string
+  ): Promise<TableTypes<"domain">[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from("domain")
+      .select("*")
+      .eq("subject_id", subjectId)
+      .eq("framework_id", frameworkId)
+      .or("is_deleted.is.null,is_deleted.eq.false");
+
+    if (error) {
+      console.error("Error fetching domains:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+
+  async getCompetenciesByDomainIds(
+    domainIds: string[]
+  ): Promise<TableTypes<"competency">[]> {
+    if (!this.supabase || !domainIds || domainIds.length === 0) return [];
+
+    const { data, error } = await this.supabase
+      .from("competency")
+      .select("*")
+      .in("domain_id", domainIds)
+      .or("is_deleted.is.null,is_deleted.eq.false");
+
+    if (error) {
+      console.error("Error fetching competencies:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+
+  async getOutcomesByCompetencyIds(
+    competencyIds: string[]
+  ): Promise<TableTypes<"outcome">[]> {
+    if (!this.supabase || !competencyIds || competencyIds.length === 0)
+      return [];
+
+    const { data, error } = await this.supabase
+      .from("outcome")
+      .select("*")
+      .in("competency_id", competencyIds)
+      .or("is_deleted.is.null,is_deleted.eq.false");
+
+    if (error) {
+      console.error("Error fetching outcomes:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+
+  async getSkillsByOutcomeIds(
+    outcomeIds: string[]
+  ): Promise<TableTypes<"skill">[]> {
+    if (!this.supabase || !outcomeIds || outcomeIds.length === 0) return [];
+
+    const { data, error } = await this.supabase
+      .from("skill")
+      .select("*")
+      .in("outcome_id", outcomeIds)
+      .or("is_deleted.is.null,is_deleted.eq.false");
+
+    if (error) {
+      console.error("Error fetching skills:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+
+  async getResultsBySkillIds(
+    studentId: string,
+    skillIds: string[]
+  ): Promise<TableTypes<"result">[]> {
+    if (!this.supabase || !skillIds || skillIds.length === 0) return [];
+
+    const { data, error } = await this.supabase
+      .from("result")
+      .select("*")
+      .eq("student_id", studentId)
+      .in("skill_id", skillIds)
+      .or("is_deleted.is.null,is_deleted.eq.false")
+      .order("updated_at", { ascending: false })
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching results by skills:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+
   async getStudentResult(
     studentId: string,
     fromCache?: boolean
@@ -9514,5 +9616,4 @@ export class SupabaseApi implements ServiceApi {
   }
 
 }
-
 

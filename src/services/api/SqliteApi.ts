@@ -2682,6 +2682,66 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
+  async getDomainsBySubjectAndFramework(
+    subjectId: string,
+    frameworkId: string
+  ): Promise<TableTypes<"domain">[]> {
+    const res = await this._db?.query(
+      `select * from ${TABLES.Domain} where subject_id = ? and framework_id = ? and (is_deleted = 0 or is_deleted is null)`,
+      [subjectId, frameworkId]
+    );
+    return res?.values ?? [];
+  }
+
+  async getCompetenciesByDomainIds(
+    domainIds: string[]
+  ): Promise<TableTypes<"competency">[]> {
+    if (!domainIds || domainIds.length === 0) return [];
+    const placeholders = domainIds.map(() => "?").join(",");
+    const res = await this._db?.query(
+      `select * from ${TABLES.Competency} where domain_id in (${placeholders}) and (is_deleted = 0 or is_deleted is null)`,
+      domainIds
+    );
+    return res?.values ?? [];
+  }
+
+  async getOutcomesByCompetencyIds(
+    competencyIds: string[]
+  ): Promise<TableTypes<"outcome">[]> {
+    if (!competencyIds || competencyIds.length === 0) return [];
+    const placeholders = competencyIds.map(() => "?").join(",");
+    const res = await this._db?.query(
+      `select * from ${TABLES.Outcome} where competency_id in (${placeholders}) and (is_deleted = 0 or is_deleted is null)`,
+      competencyIds
+    );
+    return res?.values ?? [];
+  }
+
+  async getSkillsByOutcomeIds(
+    outcomeIds: string[]
+  ): Promise<TableTypes<"skill">[]> {
+    if (!outcomeIds || outcomeIds.length === 0) return [];
+    const placeholders = outcomeIds.map(() => "?").join(",");
+    const res = await this._db?.query(
+      `select * from ${TABLES.Skill} where outcome_id in (${placeholders}) and (is_deleted = 0 or is_deleted is null)`,
+      outcomeIds
+    );
+    return res?.values ?? [];
+  }
+
+  async getResultsBySkillIds(
+    studentId: string,
+    skillIds: string[]
+  ): Promise<TableTypes<"result">[]> {
+    if (!skillIds || skillIds.length === 0) return [];
+    const placeholders = skillIds.map(() => "?").join(",");
+    const res = await this._db?.query(
+      `select * from ${TABLES.Result} where student_id = ? and skill_id in (${placeholders}) and (is_deleted = 0 or is_deleted is null)`,
+      [studentId, ...skillIds]
+    );
+    return res?.values ?? [];
+  }
+
   async getStudentResult(
     studentId: string,
     fromCache?: boolean

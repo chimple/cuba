@@ -763,6 +763,33 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"course">[]> {
     return await this.s.getCourses(courseIds);
   }
+  public async getDomainsBySubjectAndFramework(
+    subjectId: string,
+    frameworkId: string
+  ): Promise<TableTypes<"domain">[]> {
+    return this.s.getDomainsBySubjectAndFramework(subjectId, frameworkId);
+  }
+  public async getCompetenciesByDomainIds(
+    domainIds: string[]
+  ): Promise<TableTypes<"competency">[]> {
+    return this.s.getCompetenciesByDomainIds(domainIds);
+  }
+  public async getOutcomesByCompetencyIds(
+    competencyIds: string[]
+  ): Promise<TableTypes<"outcome">[]> {
+    return this.s.getOutcomesByCompetencyIds(competencyIds);
+  }
+  public async getSkillsByOutcomeIds(
+    outcomeIds: string[]
+  ): Promise<TableTypes<"skill">[]> {
+    return this.s.getSkillsByOutcomeIds(outcomeIds);
+  }
+  public async getResultsBySkillIds(
+    studentId: string,
+    skillIds: string[]
+  ): Promise<TableTypes<"result">[]> {
+    return this.s.getResultsBySkillIds(studentId, skillIds);
+  }
 
   public async getLeaderboardResults(
     sectionId: string,

@@ -1044,6 +1044,53 @@ export class FirebaseApi implements ServiceApi {
     }
   }
 
+  async getDomainsBySubjectAndFramework(
+    subjectId: string,
+    frameworkId: string
+  ): Promise<TableTypes<"domain">[]> {
+    console.warn(
+      "getDomainsBySubjectAndFramework is not supported for FirebaseApi. Returning empty list."
+    );
+    return [];
+  }
+
+  async getCompetenciesByDomainIds(
+    domainIds: string[]
+  ): Promise<TableTypes<"competency">[]> {
+    console.warn(
+      "getCompetenciesByDomainIds is not supported for FirebaseApi. Returning empty list."
+    );
+    return [];
+  }
+
+  async getOutcomesByCompetencyIds(
+    competencyIds: string[]
+  ): Promise<TableTypes<"outcome">[]> {
+    console.warn(
+      "getOutcomesByCompetencyIds is not supported for FirebaseApi. Returning empty list."
+    );
+    return [];
+  }
+
+  async getSkillsByOutcomeIds(
+    outcomeIds: string[]
+  ): Promise<TableTypes<"skill">[]> {
+    console.warn(
+      "getSkillsByOutcomeIds is not supported for FirebaseApi. Returning empty list."
+    );
+    return [];
+  }
+
+  async getResultsBySkillIds(
+    studentId: string,
+    skillIds: string[]
+  ): Promise<TableTypes<"result">[]> {
+    console.warn(
+      "getResultsBySkillIds is not supported for FirebaseApi. Returning empty list."
+    );
+    return [];
+  }
+
   async getDataByInviteCode(inviteCode: number): Promise<any> {
     const functions = getFunctions();
     const generateInviteCode = httpsCallable(functions, "GetDataByInviteCode");

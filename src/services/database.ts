@@ -1975,6 +1975,7 @@ export type Database = {
           skill_ability: number | null
           skill_id: string | null
           student_id: string
+          subject_ability: number | null
           subject_id: string | null
           time_spent: number | null
           updated_at: string | null
@@ -2003,6 +2004,7 @@ export type Database = {
           skill_ability?: number | null
           skill_id?: string | null
           student_id: string
+          subject_ability?: number | null
           subject_id?: string | null
           time_spent?: number | null
           updated_at?: string | null
@@ -2031,6 +2033,7 @@ export type Database = {
           skill_ability?: number | null
           skill_id?: string | null
           student_id?: string
+          subject_ability?: number | null
           subject_id?: string | null
           time_spent?: number | null
           updated_at?: string | null
@@ -3382,6 +3385,7 @@ export type Database = {
           skill_ability: number | null
           skill_id: string | null
           student_id: string
+          subject_ability: number | null
           subject_id: string | null
           time_spent: number | null
           updated_at: string | null
@@ -4360,6 +4364,7 @@ export type Database = {
           skill_ability: number | null
           skill_id: string | null
           student_id: string
+          subject_ability: number | null
           subject_id: string | null
           time_spent: number | null
           updated_at: string | null
