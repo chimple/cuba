@@ -1091,6 +1091,15 @@ export class FirebaseApi implements ServiceApi {
     return [];
   }
 
+  async getSkillRelationsByTargetIds(
+    targetSkillIds: string[]
+  ): Promise<TableTypes<"skill_relation">[]> {
+    console.warn(
+      "getSkillRelationsByTargetIds is not supported for FirebaseApi. Returning empty list."
+    );
+    return [];
+  }
+
   async getDataByInviteCode(inviteCode: number): Promise<any> {
     const functions = getFunctions();
     const generateInviteCode = httpsCallable(functions, "GetDataByInviteCode");

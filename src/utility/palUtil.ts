@@ -1,5 +1,6 @@
 import {
   AbilityState,
+  DependencyGraph,
   createEmptyAbilityState,
 } from "@chimple/palau-recommendation";
 import { TableTypes } from "../common/constants";
@@ -17,45 +18,70 @@ type ResultAbilityMap = {
 };
 
 export class palUtil {
-  public static async buildAbilityStateForCourse(
+  public static async buildAbilityStateAndGraphForCourse(
     studentId: string,
     courseId: string
-  ): Promise<AbilityState> {
+  ): Promise<{
+    abilityState: AbilityState;
+    graph: DependencyGraph | undefined;
+  }> {
     const api = ServiceConfig.getI().apiHandler;
     const emptyState = createEmptyAbilityState();
     const course = await api.getCourse(courseId);
 
     if (!course?.subject_id || !course?.framework_id) {
-      return emptyState;
+      return { abilityState: emptyState, graph: undefined };
     }
 
     const domains = await api.getDomainsBySubjectAndFramework(
       course.subject_id,
       course.framework_id
     );
-    if (!domains.length) return emptyState;
+    if (!domains.length) return { abilityState: emptyState, graph: undefined };
 
     const competencies = await api.getCompetenciesByDomainIds(
       domains.map((domain) => domain.id)
     );
-    if (!competencies.length) return emptyState;
+    if (!competencies.length) {
+      return { abilityState: emptyState, graph: undefined };
+    }
 
     const outcomes = await api.getOutcomesByCompetencyIds(
       competencies.map((competency) => competency.id)
     );
-    if (!outcomes.length) return emptyState;
+    if (!outcomes.length) {
+      return { abilityState: emptyState, graph: undefined };
+    }
 
     const skills = await api.getSkillsByOutcomeIds(
       outcomes.map((outcome) => outcome.id)
     );
-    if (!skills.length) return emptyState;
+    if (!skills.length) {
+      return { abilityState: emptyState, graph: undefined };
+    }
+
+    const skillRelations = await api.getSkillRelationsByTargetIds(
+      skills.map((skill) => skill.id)
+    );
+
+    const graph = this.composeGraph(
+      course.subject_id,
+      domains,
+      competencies,
+      outcomes,
+      skills,
+      skillRelations
+    );
 
     const results = await api.getResultsBySkillIds(
       studentId,
       skills.map((skill) => skill.id)
     );
 
-    return this.composeAbilityState(course.subject_id, results);
+    return {
+      abilityState: this.composeAbilityState(course.subject_id, results),
+      graph,
+    };
   }
 
   private static composeAbilityState(
@@ -114,6 +140,93 @@ export class palUtil {
     state.subject = this.mapToRecord(abilityMaps.subject);
 
     return state;
+  }
+
+  private static composeGraph(
+    subjectId: string,
+    domains: TableTypes<"domain">[],
+    competencies: TableTypes<"competency">[],
+    outcomes: TableTypes<"outcome">[],
+    skills: TableTypes<"skill">[],
+    relations: TableTypes<"skill_relation">[]
+  ): DependencyGraph {
+    const domainMap = new Map(
+      domains.map((domain) => [
+        domain.id,
+        {
+          id: domain.id,
+          label: domain.name,
+          subjectId: domain.subject_id ?? subjectId,
+        },
+      ])
+    );
+
+    const competencyMap = new Map(
+      competencies.map((competency) => {
+        const domain = domainMap.get(competency.domain_id);
+        return [
+          competency.id,
+          {
+            id: competency.id,
+            label: competency.name,
+            subjectId: domain?.subjectId ?? subjectId,
+            domainId: domain?.id ?? "",
+          },
+        ];
+      })
+    );
+
+    const outcomeMap = new Map(
+      outcomes.map((outcome) => {
+        const competency = competencyMap.get(outcome.competency_id);
+        return [
+          outcome.id,
+          {
+            id: outcome.id,
+            label: outcome.name,
+            competencyId: competency?.id ?? "",
+            domainId: competency?.domainId ?? "",
+            subjectId,
+          },
+        ];
+      })
+    );
+
+    const prerequisitesBySkill: Record<string, string[]> = {};
+    relations.forEach((rel) => {
+      if (!rel.target_skill_id || rel.is_deleted) return;
+      if (!prerequisitesBySkill[rel.target_skill_id]) {
+        prerequisitesBySkill[rel.target_skill_id] = [];
+      }
+      if (rel.source_skill_id) {
+        prerequisitesBySkill[rel.target_skill_id].push(rel.source_skill_id);
+      }
+    });
+
+    const skillList = skills.map((skill) => {
+      const outcome = outcomeMap.get(skill.outcome_id);
+      const competency = outcome ? competencyMap.get(outcome.competencyId) : undefined;
+      const domain = competency ? domainMap.get(competency.domainId) : undefined;
+      return {
+        id: skill.id,
+        label: skill.name,
+        outcomeId: outcome?.id ?? "",
+        competencyId: competency?.id ?? "",
+        domainId: domain?.id ?? "",
+        subjectId: domain?.subjectId ?? subjectId,
+        difficulty: skill.difficulty ?? 0,
+        prerequisites: prerequisitesBySkill[skill.id] ?? [],
+      };
+    });
+
+    return {
+      skills: skillList,
+      outcomes: Array.from(outcomeMap.values()),
+      competencies: Array.from(competencyMap.values()),
+      domains: Array.from(domainMap.values()),
+      subjects: [{ id: subjectId, label: subjectId }],
+      startSkillId: skillList[0]?.id ?? "",
+    };
   }
 
   private static upsertAbility(

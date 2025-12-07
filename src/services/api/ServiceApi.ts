@@ -579,6 +579,13 @@ export interface ServiceApi {
   ): Promise<TableTypes<"result">[]>;
 
   /**
+   * Fetches prerequisite relations where target skill is in the provided list.
+   */
+  getSkillRelationsByTargetIds(
+    targetSkillIds: string[]
+  ): Promise<TableTypes<"skill_relation">[]>;
+
+  /**
    * Gives StudentProfile for given a Student firebase doc Id
    * @param {string} id - Student firebase doc id
    * @param {boolean} fromCache - If true, it will try to fetch the data from the cache. If the data is not found in the cache, it will look in the database.

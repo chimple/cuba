@@ -2722,6 +2722,26 @@ export class SupabaseApi implements ServiceApi {
     return data ?? [];
   }
 
+  async getSkillRelationsByTargetIds(
+    targetSkillIds: string[]
+  ): Promise<TableTypes<"skill_relation">[]> {
+    if (!this.supabase || !targetSkillIds || targetSkillIds.length === 0)
+      return [];
+
+    const { data, error } = await this.supabase
+      .from("skill_relation")
+      .select("*")
+      .in("target_skill_id", targetSkillIds)
+      .or("is_deleted.is.null,is_deleted.eq.false");
+
+    if (error) {
+      console.error("Error fetching skill relations:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+
   async getStudentResult(
     studentId: string,
     fromCache?: boolean
@@ -9616,4 +9636,3 @@ export class SupabaseApi implements ServiceApi {
   }
 
 }
-

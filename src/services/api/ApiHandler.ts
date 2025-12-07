@@ -790,6 +790,11 @@ export class ApiHandler implements ServiceApi {
   ): Promise<TableTypes<"result">[]> {
     return this.s.getResultsBySkillIds(studentId, skillIds);
   }
+  public async getSkillRelationsByTargetIds(
+    targetSkillIds: string[]
+  ): Promise<TableTypes<"skill_relation">[]> {
+    return this.s.getSkillRelationsByTargetIds(targetSkillIds);
+  }
 
   public async getLeaderboardResults(
     sectionId: string,
