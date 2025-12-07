@@ -717,6 +717,50 @@ export type Database = {
           },
         ]
       }
+      competency: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          domain_id: string
+          id: string
+          is_deleted: boolean | null
+          name: string
+          sort_index: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          domain_id: string
+          id?: string
+          is_deleted?: boolean | null
+          name: string
+          sort_index?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          domain_id?: string
+          id?: string
+          is_deleted?: boolean | null
+          name?: string
+          sort_index?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_competency_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domain"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       connector_users: {
         Row: {
           created_at: string | null
@@ -743,6 +787,7 @@ export type Database = {
           curriculum_id: string | null
           description: string | null
           firebase_id: string | null
+          framework_id: string | null
           grade_id: string | null
           id: string
           image: string | null
@@ -759,6 +804,7 @@ export type Database = {
           curriculum_id?: string | null
           description?: string | null
           firebase_id?: string | null
+          framework_id?: string | null
           grade_id?: string | null
           id?: string
           image?: string | null
@@ -775,6 +821,7 @@ export type Database = {
           curriculum_id?: string | null
           description?: string | null
           firebase_id?: string | null
+          framework_id?: string | null
           grade_id?: string | null
           id?: string
           image?: string | null
@@ -785,6 +832,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "course_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: false
+            referencedRelation: "framework"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "public_course_curriculum_id_fkey"
             columns: ["curriculum_id"]
@@ -843,6 +897,54 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      domain: {
+        Row: {
+          created_at: string
+          description: string | null
+          framework_id: string
+          id: string
+          is_deleted: boolean | null
+          name: string
+          subject_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          framework_id: string
+          id?: string
+          is_deleted?: boolean | null
+          name: string
+          subject_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          framework_id?: string
+          id?: string
+          is_deleted?: boolean | null
+          name?: string
+          subject_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: false
+            referencedRelation: "framework"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "domain_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subject"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       error_logs: {
         Row: {
@@ -917,6 +1019,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      fc_question: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          is_deleted: boolean
+          question_text: string
+          sort_order: number
+          target_type: Database["public"]["Enums"]["fc_engagement_target"]
+          type: Database["public"]["Enums"]["fc_support_level"] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_deleted?: boolean
+          question_text: string
+          sort_order?: number
+          target_type: Database["public"]["Enums"]["fc_engagement_target"]
+          type?: Database["public"]["Enums"]["fc_support_level"] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_deleted?: boolean
+          question_text?: string
+          sort_order?: number
+          target_type?: Database["public"]["Enums"]["fc_engagement_target"]
+          type?: Database["public"]["Enums"]["fc_support_level"] | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       fc_school_visit: {
         Row: {
@@ -995,10 +1133,11 @@ export type Database = {
           question_response: string | null
           school_id: string
           support_level: Database["public"]["Enums"]["fc_support_level"] | null
+          tech_issue_comment: string | null
           tech_issues_reported: boolean
           updated_at: string
           user_id: string
-          visit_id: string
+          visit_id: string | null
         }
         Insert: {
           call_status?: Database["public"]["Enums"]["fc_call_result"] | null
@@ -1013,10 +1152,11 @@ export type Database = {
           question_response?: string | null
           school_id: string
           support_level?: Database["public"]["Enums"]["fc_support_level"] | null
+          tech_issue_comment?: string | null
           tech_issues_reported?: boolean
           updated_at?: string
           user_id: string
-          visit_id: string
+          visit_id?: string | null
         }
         Update: {
           call_status?: Database["public"]["Enums"]["fc_call_result"] | null
@@ -1031,10 +1171,11 @@ export type Database = {
           question_response?: string | null
           school_id?: string
           support_level?: Database["public"]["Enums"]["fc_support_level"] | null
+          tech_issue_comment?: string | null
           tech_issues_reported?: boolean
           updated_at?: string
           user_id?: string
-          visit_id?: string
+          visit_id?: string | null
         }
         Relationships: [
           {
@@ -1081,7 +1222,39 @@ export type Database = {
           },
         ]
       }
-
+      framework: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          sort_index: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          is_deleted?: boolean | null
+          name: string
+          sort_index?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          is_deleted?: boolean | null
+          name?: string
+          sort_index?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       gb_response: {
         Row: {
           content: Json | null
@@ -1244,6 +1417,7 @@ export type Database = {
           image: string | null
           is_deleted: boolean | null
           language_id: string | null
+          metadata: string | null
           name: string | null
           outcome: string | null
           plugin_type: string | null
@@ -1264,6 +1438,7 @@ export type Database = {
           image?: string | null
           is_deleted?: boolean | null
           language_id?: string | null
+          metadata?: string | null
           name?: string | null
           outcome?: string | null
           plugin_type?: string | null
@@ -1284,6 +1459,7 @@ export type Database = {
           image?: string | null
           is_deleted?: boolean | null
           language_id?: string | null
+          metadata?: string | null
           name?: string | null
           outcome?: string | null
           plugin_type?: string | null
@@ -1483,6 +1659,60 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "school"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      outcome: {
+        Row: {
+          code: string
+          competency_id: string
+          created_at: string
+          description: string | null
+          grade_id: string
+          id: string
+          is_deleted: boolean | null
+          name: string
+          sort_index: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          competency_id: string
+          created_at?: string
+          description?: string | null
+          grade_id: string
+          id?: string
+          is_deleted?: boolean | null
+          name: string
+          sort_index?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          competency_id?: string
+          created_at?: string
+          description?: string | null
+          grade_id?: string
+          id?: string
+          is_deleted?: boolean | null
+          name?: string
+          sort_index?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outcome_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "competency"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outcome_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "grade"
             referencedColumns: ["id"]
           },
         ]
@@ -1726,17 +1956,26 @@ export type Database = {
           assignment_id: string | null
           chapter_id: string | null
           class_id: string | null
+          competency_ability: number | null
+          competency_id: string | null
           correct_moves: number | null
           course_id: string | null
           created_at: string
+          domain_ability: number | null
+          domain_id: string | null
           firebase_id: string | null
           id: string
           is_deleted: boolean | null
           is_firebase: boolean | null
           lesson_id: string | null
+          outcome_ability: number | null
+          outcome_id: string | null
           school_id: string | null
           score: number | null
+          skill_ability: number | null
+          skill_id: string | null
           student_id: string
+          subject_id: string | null
           time_spent: number | null
           updated_at: string | null
           wrong_moves: number | null
@@ -1745,17 +1984,26 @@ export type Database = {
           assignment_id?: string | null
           chapter_id?: string | null
           class_id?: string | null
+          competency_ability?: number | null
+          competency_id?: string | null
           correct_moves?: number | null
           course_id?: string | null
           created_at?: string
+          domain_ability?: number | null
+          domain_id?: string | null
           firebase_id?: string | null
           id?: string
           is_deleted?: boolean | null
           is_firebase?: boolean | null
           lesson_id?: string | null
+          outcome_ability?: number | null
+          outcome_id?: string | null
           school_id?: string | null
           score?: number | null
+          skill_ability?: number | null
+          skill_id?: string | null
           student_id: string
+          subject_id?: string | null
           time_spent?: number | null
           updated_at?: string | null
           wrong_moves?: number | null
@@ -1764,17 +2012,26 @@ export type Database = {
           assignment_id?: string | null
           chapter_id?: string | null
           class_id?: string | null
+          competency_ability?: number | null
+          competency_id?: string | null
           correct_moves?: number | null
           course_id?: string | null
           created_at?: string
+          domain_ability?: number | null
+          domain_id?: string | null
           firebase_id?: string | null
           id?: string
           is_deleted?: boolean | null
           is_firebase?: boolean | null
           lesson_id?: string | null
+          outcome_ability?: number | null
+          outcome_id?: string | null
           school_id?: string | null
           score?: number | null
+          skill_ability?: number | null
+          skill_id?: string | null
           student_id?: string
+          subject_id?: string | null
           time_spent?: number | null
           updated_at?: string | null
           wrong_moves?: number | null
@@ -1815,8 +2072,13 @@ export type Database = {
             referencedRelation: "class"
             referencedColumns: ["id"]
           },
-          
-
+          {
+            foreignKeyName: "result_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "competency"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "result_course_id_fkey"
             columns: ["course_id"]
@@ -1824,12 +2086,39 @@ export type Database = {
             referencedRelation: "course"
             referencedColumns: ["id"]
           },
-          
+          {
+            foreignKeyName: "result_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domain"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_outcome_id_fkey"
+            columns: ["outcome_id"]
+            isOneToOne: false
+            referencedRelation: "outcome"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skill"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "result_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subject"
             referencedColumns: ["id"]
           },
         ]
@@ -1954,6 +2243,7 @@ export type Database = {
           student_login_type: Database["public"]["Enums"]["login_type"] | null
           udise: string | null
           updated_at: string | null
+          whatsapp_bot_number: string | null
         }
         Insert: {
           academic_year?: string | null
@@ -1981,6 +2271,7 @@ export type Database = {
           student_login_type?: Database["public"]["Enums"]["login_type"] | null
           udise?: string | null
           updated_at?: string | null
+          whatsapp_bot_number?: string | null
         }
         Update: {
           academic_year?: string | null
@@ -2008,6 +2299,7 @@ export type Database = {
           student_login_type?: Database["public"]["Enums"]["login_type"] | null
           udise?: string | null
           updated_at?: string | null
+          whatsapp_bot_number?: string | null
         }
         Relationships: [
           {
@@ -2215,6 +2507,140 @@ export type Database = {
           },
         ]
       }
+      skill: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          difficulty: number
+          id: string
+          is_deleted: boolean | null
+          name: string
+          outcome_id: string
+          sort_index: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          difficulty: number
+          id?: string
+          is_deleted?: boolean | null
+          name: string
+          outcome_id: string
+          sort_index?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          difficulty?: number
+          id?: string
+          is_deleted?: boolean | null
+          name?: string
+          outcome_id?: string
+          sort_index?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_outcome_id_fkey"
+            columns: ["outcome_id"]
+            isOneToOne: false
+            referencedRelation: "outcome"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      skill_lesson: {
+        Row: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          lesson_id: string
+          skill_id: string
+          sort_index: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          lesson_id: string
+          skill_id: string
+          sort_index?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          lesson_id?: string
+          skill_id?: string
+          sort_index?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_lesson_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lesson"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_lesson_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skill"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      skill_relation: {
+        Row: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          source_skill_id: string
+          target_skill_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          source_skill_id: string
+          target_skill_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          source_skill_id?: string
+          target_skill_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_relation_source_skill_id_fkey"
+            columns: ["source_skill_id"]
+            isOneToOne: false
+            referencedRelation: "skill"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_relation_target_skill_id_fkey"
+            columns: ["target_skill_id"]
+            isOneToOne: false
+            referencedRelation: "skill"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       special_users: {
         Row: {
           created_at: string
@@ -2312,6 +2738,64 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      subject_lesson: {
+        Row: {
+          created_at: string
+          framework_id: string | null
+          id: string
+          is_deleted: boolean | null
+          lesson_id: string
+          set_number: number | null
+          sort_index: number | null
+          subject_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          framework_id?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          lesson_id: string
+          set_number?: number | null
+          sort_index?: number | null
+          subject_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          framework_id?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          lesson_id?: string
+          set_number?: number | null
+          sort_index?: number | null
+          subject_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subject_lesson_chaptersubject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subject"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subject_lesson_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: false
+            referencedRelation: "framework"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subject_lesson_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lesson"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       upload_queue: {
         Row: {
@@ -2879,19 +3363,26 @@ export type Database = {
           assignment_id: string | null
           chapter_id: string | null
           class_id: string | null
+          competency_ability: number | null
+          competency_id: string | null
           correct_moves: number | null
           course_id: string | null
           created_at: string
+          domain_ability: number | null
+          domain_id: string | null
           firebase_id: string | null
           id: string
           is_deleted: boolean | null
           is_firebase: boolean | null
-          learning_indicator_id: string | null
-          learning_outcome_id: string | null
           lesson_id: string | null
+          outcome_ability: number | null
+          outcome_id: string | null
           school_id: string | null
           score: number | null
+          skill_ability: number | null
+          skill_id: string | null
           student_id: string
+          subject_id: string | null
           time_spent: number | null
           updated_at: string | null
           wrong_moves: number | null
@@ -2971,7 +3462,11 @@ export type Database = {
         Args: { p_query: string; p_secret: string }
         Returns: Json
       }
-
+      get_query_metadata: { Args: { p_query_id: string }; Returns: Json }
+      get_query_metadata_v2: {
+        Args: { p_query: string; p_secret: string }
+        Returns: Json
+      }
       get_results_by_assignment: {
         Args: { _assignment_id: string }
         Returns: {
@@ -3642,6 +4137,7 @@ export type Database = {
           curriculum_id: string | null
           description: string | null
           firebase_id: string | null
+          framework_id: string | null
           grade_id: string | null
           id: string
           image: string | null
@@ -3751,6 +4247,7 @@ export type Database = {
           image: string | null
           is_deleted: boolean | null
           language_id: string | null
+          metadata: string | null
           name: string | null
           outcome: string | null
           plugin_type: string | null
@@ -3844,17 +4341,26 @@ export type Database = {
           assignment_id: string | null
           chapter_id: string | null
           class_id: string | null
+          competency_ability: number | null
+          competency_id: string | null
           correct_moves: number | null
           course_id: string | null
           created_at: string
+          domain_ability: number | null
+          domain_id: string | null
           firebase_id: string | null
           id: string
           is_deleted: boolean | null
           is_firebase: boolean | null
           lesson_id: string | null
+          outcome_ability: number | null
+          outcome_id: string | null
           school_id: string | null
           score: number | null
+          skill_ability: number | null
+          skill_id: string | null
           student_id: string
+          subject_id: string | null
           time_spent: number | null
           updated_at: string | null
           wrong_moves: number | null
@@ -3954,6 +4460,7 @@ export type Database = {
           student_login_type: Database["public"]["Enums"]["login_type"] | null
           udise: string | null
           updated_at: string | null
+          whatsapp_bot_number: string | null
         }[]
         SetofOptions: {
           from: "*"
@@ -4149,8 +4656,16 @@ export type Database = {
         }
       }
       sql_sync_all: {
-          Args: { p_tables?: string[]; p_updated_at?: Json }
-          Returns: Json
+        Args: { p_tables?: string[]; p_updated_at?: Json }
+        Returns: Json
+      }
+      sql_sync_all_2: {
+        Args: { p_tables?: string[]; p_updated_at?: Json }
+        Returns: Json
+      }
+      sql_sync_all_reserarc: {
+        Args: { p_tables?: string[]; p_updated_at?: Json }
+        Returns: Json
       }
       update_class_firebase_trigger: {
         Args: {
