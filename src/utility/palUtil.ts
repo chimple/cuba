@@ -1,7 +1,9 @@
 import {
   AbilityState,
   DependencyGraph,
+  RecommendationContext,
   createEmptyAbilityState,
+  recommendNextSkill,
 } from "@chimple/palau-recommendation";
 import { TableTypes } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -18,6 +20,27 @@ type ResultAbilityMap = {
 };
 
 export class palUtil {
+  private static abilityGraphCache: Map<
+    string,
+    { abilityState: AbilityState; graph: DependencyGraph | undefined }
+  > = new Map();
+
+  public static async getAbilityStateAndGraph(
+    studentId: string,
+    courseId: string
+  ): Promise<{ abilityState: AbilityState; graph: DependencyGraph | undefined }> {
+    const cacheKey = `${studentId}:${courseId}`;
+    const cached = this.abilityGraphCache.get(cacheKey);
+    if (cached) return cached;
+
+    const built = await this.buildAbilityStateAndGraphForCourse(
+      studentId,
+      courseId
+    );
+    this.abilityGraphCache.set(cacheKey, built);
+    return built;
+  }
+
   public static async buildAbilityStateAndGraphForCourse(
     studentId: string,
     courseId: string
@@ -226,6 +249,90 @@ export class palUtil {
       domains: Array.from(domainMap.values()),
       subjects: [{ id: subjectId, label: subjectId }],
       startSkillId: skillList[0]?.id ?? "",
+    };
+  }
+
+  public static async getRecommendedLessonForCourse(
+    studentId: string,
+    courseId: string
+  ): Promise<{
+    lesson: TableTypes<"lesson"> | undefined;
+    skillId?: string;
+    recommendation?: RecommendationContext;
+  }> {
+    const api = ServiceConfig.getI().apiHandler;
+    const { abilityState, graph } = await this.getAbilityStateAndGraph(
+      studentId,
+      courseId
+    );
+    if (!graph) return { lesson: undefined };
+
+    const subjectId = graph.subjects[0]?.id ?? "";
+    const recommendation = recommendNextSkill({
+      graph,
+      abilities: abilityState,
+      subjectId,
+    });
+
+    const skillId = recommendation?.candidateId;
+    if (!skillId) {
+      return { lesson: undefined, recommendation };
+    }
+
+    const skillLessons = await api.getSkillLessonsBySkillIds([skillId]);
+    const sortedSkillLessons = [...skillLessons].sort((a, b) => {
+      const aIndex = a.sort_index ?? Number.MAX_SAFE_INTEGER;
+      const bIndex = b.sort_index ?? Number.MAX_SAFE_INTEGER;
+      return aIndex - bIndex;
+    });
+
+    const lessonIds = sortedSkillLessons
+      .map((sl) => sl.lesson_id)
+      .filter((id): id is string => !!id);
+
+    if (!lessonIds.length) {
+      return { lesson: undefined, skillId, recommendation };
+    }
+
+    const lessonResultsMap = await api.getStudentResultInMap(studentId);
+    const lessonsData =
+      (await api.getLessonsBylessonIds(lessonIds))?.reduce(
+        (acc, lesson) => {
+          if (lesson?.id) acc[lesson.id] = lesson;
+          return acc;
+        },
+        {} as Record<string, TableTypes<"lesson">>
+      ) ?? {};
+
+    let nextLessonId: string | undefined;
+    for (const sl of sortedSkillLessons) {
+      if (sl.lesson_id && !lessonResultsMap[sl.lesson_id]) {
+        nextLessonId = sl.lesson_id;
+        break;
+      }
+    }
+
+    if (!nextLessonId) {
+      let earliestId: string | undefined;
+      let earliestTime = Number.POSITIVE_INFINITY;
+      for (const sl of sortedSkillLessons) {
+        const result = sl.lesson_id
+          ? lessonResultsMap[sl.lesson_id]
+          : undefined;
+        if (!result) continue;
+        const t = this.getTimestamp(result);
+        if (t < earliestTime) {
+          earliestTime = t;
+          earliestId = sl.lesson_id;
+        }
+      }
+      nextLessonId = earliestId ?? lessonIds[0];
+    }
+
+    return {
+      lesson: nextLessonId ? lessonsData[nextLessonId] : undefined,
+      skillId,
+      recommendation,
     };
   }
 

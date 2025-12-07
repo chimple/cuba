@@ -2742,6 +2742,18 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
+  async getSkillLessonsBySkillIds(
+    skillIds: string[]
+  ): Promise<TableTypes<"skill_lesson">[]> {
+    if (!skillIds || skillIds.length === 0) return [];
+    const placeholders = skillIds.map(() => "?").join(",");
+    const res = await this._db?.query(
+      `select * from ${TABLES.SkillLesson} where skill_id in (${placeholders}) and (is_deleted = 0 or is_deleted is null) order by sort_index asc`,
+      skillIds
+    );
+    return res?.values ?? [];
+  }
+
   async getSkillRelationsByTargetIds(
     targetSkillIds: string[]
   ): Promise<TableTypes<"skill_relation">[]> {

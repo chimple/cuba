@@ -83,6 +83,7 @@ export enum TABLES {
   Outcome = "outcome",
   Skill = "skill",
   SkillRelation = "skill_relation",
+  SkillLesson = "skill_lesson",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
