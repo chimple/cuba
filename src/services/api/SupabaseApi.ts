@@ -297,7 +297,7 @@ export class SupabaseApi implements ServiceApi {
     return SupabaseApi.i;
   }
 
-  private init() {
+  protected init() {
     this.supabaseUrl = process.env.REACT_APP_SUPABASE_URL ?? "";
     this.supabaseKey = process.env.REACT_APP_SUPABASE_KEY ?? "";
     this.supabase = createClient<Database>(this.supabaseUrl, this.supabaseKey);

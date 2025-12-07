@@ -7,12 +7,14 @@ import { FirebaseAuth } from "./auth/FirebaseAuth";
 import { OneRosterAuth } from "./auth/OneRosterAuth";
 import { SupabaseAuth } from "./auth/SupabaseAuth";
 import { SupabaseApi } from "./api/SupabaseApi";
+import { PowersyncApi } from "./api/PowersyncApi";
 
 export enum APIMode {
   ONEROSTER,
   FIREBASE,
   SQLITE,
   SUPABASE,
+  POWERSYNC,
 }
 
 export class ServiceConfig {
@@ -60,6 +62,9 @@ export class ServiceConfig {
       case APIMode.SUPABASE:
         this.initializeSupabase();
         break;
+      case APIMode.POWERSYNC:
+        this.initializePowersync();
+        break;
       default:
         this.initializeFireBase();
         break;
@@ -86,6 +91,11 @@ export class ServiceConfig {
 
   private initializeSupabase() {
     this._apiHandler = ApiHandler.getInstance(SupabaseApi.getInstance());
+    this._authHandler = AuthHandler.getInstance(SupabaseAuth.getInstance());
+  }
+
+  private initializePowersync() {
+    this._apiHandler = ApiHandler.getInstance(PowersyncApi.getInstance());
     this._authHandler = AuthHandler.getInstance(SupabaseAuth.getInstance());
   }
 
