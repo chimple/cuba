@@ -78,6 +78,9 @@ export enum TABLES {
   OpsRequests = "ops_requests",
   GeoLocations = "geo_locations",
   RiveReward = "rive_reward",
+  FcQuestion = "fc_question",
+  FcSchoolVisit = "fc_school_visit",
+  FcUserForms = "fc_user_forms",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -1100,6 +1103,12 @@ export const OPS_ROLES = [
 ];
 export const CAN_HOT_UPDATE = "can-Hot-Update";
 export const VERSION_KEY = "last_native_version";
+export enum SupportLevelMap {
+  "Doing Good" = "doing_good",
+  "Still Learning" = "still_learning",
+  "Need Help" = "need_help",
+  "Not Tracked" = "not_tracked",
+}
 
 export enum PerformanceLevel {
   ALL = "all",
@@ -1110,7 +1119,7 @@ export enum PerformanceLevel {
   NOT_ASSIGNING_PER_MONTH = "not_assigning_per_month",
   ONCE_A_MONTH = "once_a_month",
   ONCE_A_WEEK = "once_a_week",
-  TWO_PLUS_PER_WEEK = "two_plus_per_week"
+  TWO_PLUS_PER_WEEK = "two_plus_per_week",
 }
 export enum ContactTarget {
   STUDENT = "student",
