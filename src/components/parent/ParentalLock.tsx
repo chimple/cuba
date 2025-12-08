@@ -45,6 +45,7 @@ const ParentalLock: React.FC<{
         onUnlock?.();
         await Util.setParentLanguagetoLocal();
         Util.setPathToBackButton(PAGES.PARENT, history);
+        Util.setCurrentStudent(null);
       }
     };
 
