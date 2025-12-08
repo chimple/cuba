@@ -478,29 +478,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     setIsFilterSliderOpen(false);
   }, []);
 
-  const columns: Column<DisplayStudent>[] = [
-    { key: "studentIdDisplay", label: t("Student ID") },
-    {
-      key: "name",
-      label: t("Student Name"),
-      renderCell: (s) => (
-        <Typography variant="body2" className="student-name-data">
-          {s.name}
-        </Typography>
-      ),
-    },
-    { key: "gender", label: t("Gender") },
-    {
-      key: "class",
-      label: t("Class Name"),
-      renderCell: (s) => (
-        <Typography variant="body2" className="student-name-data">
-          {s.class}
-        </Typography>
-      ),
-    },
-    { key: "phoneNumber", label: t("Phone Number / Email") },
-  ];
   const columns: Column<DisplayStudent>[] = useMemo(() => {
     const commonColumns: Column<DisplayStudent>[] = [
       {
@@ -650,7 +627,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             </Typography>
           ),
         },
-        { key: "phoneNumber", label: t("Phone Number") },
+        { key: "phoneNumber", label: t("Phone Number / Email") },
         { key: "class", label: t("Class") },
       ];
     }
