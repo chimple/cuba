@@ -1,3 +1,5 @@
+
+
 {
     " OFF ": "DESLIGADO",
     " ON ": "LIGADO",
@@ -210,7 +212,7 @@
     "Comparison Of Numbers": "Comparação de Números",
     "Comparison": "Comparação",
     "Complete these 5 lessons to earn rewards": "Complete estas 5 lições para ganhar recompensas",
-    "Complete these lessons to earn rewards": "Conclua estas lições para ganhar prémios",
+    "Complete these lessons to earn rewards.": "Conclua estas lições para ganhar recompensas.",
     "Completion Score": "Pontuação de Conclusão",
     "Confirm": "Confirmar",
     "Congratulations on earning the x1!": "Parabéns por ganhar o x1!",
@@ -410,7 +412,7 @@
     "Joined on": "Aderiu em",
     "Joining...": "A aderir...",
     "Karnataka State Board": "Conselho Estadual de Karnataka",
-    "Keep going!\nFinish these lesson to choose subject": "Continue!\nTermine estas lições para escolher outra matéria.",
+    "Keep going!\nFinish these lessons to change the subject.": "Continue!\nTermine estas lições para escolher outra matéria.",
     "Keep learning!": "Continue aprendendo!",
     "Language": "Idioma",
     "Leaderboard": " Tabela de Classificação",
@@ -781,6 +783,7 @@
     "Teachers": "Professores",
     "The Subject you have chosen is the last one left and cannot be deleted": "A disciplina que escolheu é a última que resta e não pode ser apagada",
     "These are the recommended assignments based on the previous assignments": "Estes são os trabalhos recomendados com base nos trabalhos anteriores",
+    "This lesson is locked. Play the current active lesson.": "Esta lição está bloqueada. Reproduza a lição ativa atual.",
     "This Month's Reward": "Prémio deste Mês",
     "This subject is linked to the following class and cannot be removed:": "Esta disciplina está ligada à seguinte turma e não pode ser removida:",
     "This Week's Reward": "Prémio desta Semana",
@@ -863,6 +866,9 @@
     "Your profile is not registered to any school.": "O seu perfil não está registado em nenhuma escola.",
     "Your progress stays synced and consistent across all devices.": "O seu progresso permanece sincronizado e consistente em todos os dispositivos.",
     "Zebra": "Zebra",
-    "This lesson is locked. Play the current active lesson.": "Esta lição está bloqueada. Reproduza a lição ativa atual."
-
+    "Name Surname": "Nome Sobrenome",
+    "Parents Section":"Seção Pais",
+    "Rewards": "Recompensas",
+    "Select one": "Selecione um",
+    "SKIP FOR NOW": "PULAR"
 }

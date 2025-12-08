@@ -80,10 +80,12 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
 
   const fetchTeachers = useMemo(() => {
     let debounceTimer: NodeJS.Timeout | null = null;
-    return (currentPage: number, search: string) => {
+    return (currentPage: number, search: string, silent = false) => {
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(async () => {
-        setIsLoading(true);
+        if (!silent) {
+          setIsLoading(true);
+        }
         const api = ServiceConfig.getI().apiHandler;
         try {
           let response;
@@ -115,17 +117,19 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   }, [schoolId]);
 
   useEffect(() => {
-    if (
+    const isInitial =
       page === 1 &&
       !searchTerm &&
       filters.grade.length === 0 &&
-      filters.section.length === 0
-    ) {
+      filters.section.length === 0;
+
+    if (isInitial) {
       setTeachers(data.teachers || []);
       setTotalCount(data.totalTeacherCount || 0);
-      return;
+      fetchTeachers(page, searchTerm, true);
+    } else {
+      fetchTeachers(page, searchTerm);
     }
-    fetchTeachers(page, searchTerm);
   }, [
     page,
     fetchTeachers,
@@ -358,16 +362,18 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           email: finalEmail || undefined,
           role: RoleType.TEACHER,
           classId: classIds,
+          schoolId: schoolId,
         });
         setIsAddTeacherModalOpen(false);
         setPage(1);
         fetchTeachers(1, "");
-      } catch (e) {
-        console.error("Failed to add teacher:", e);
+      } catch (e: any) {
+        const message = e instanceof Error ? e.message : String(e);
         setErrorMessage({
-          text: "Failed to add teacher. Please try again.",
+          text: message,
           type: "error",
         });
+        console.error("Failed to add teacher:", e);
       }
     },
     [schoolId, fetchTeachers, api]

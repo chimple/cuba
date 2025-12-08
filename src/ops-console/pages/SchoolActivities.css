@@ -1,0 +1,112 @@
+.school-act-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: white;
+  overflow: hidden;
+}
+
+.school-act-header {
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+  background: white;
+  padding: 25px 32px 16px 32px;
+  box-sizing: border-box;
+}
+
+.school-act-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.school-act-title-mobile {
+  font-size: 21px !important;
+  font-weight: 700 !important;
+  text-align: center;
+}
+
+.school-act-icon-button {
+  color: black !important;
+  width: 40px;
+  height: 40px;
+}
+
+.school-act-title {
+  font-size: 30px !important;
+  font-weight: 700 !important;
+}
+
+.school-act-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-right: 0px;
+}
+
+.school-act-container-two {
+  flex: 1;
+  min-width: 250px;
+}
+
+.school-act-header-and-search-filter {
+  min-width: 300px;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 0px;
+}
+
+.school-act-button-and-search-filter {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.school-act-table-container {
+  flex-grow: 1;
+  overflow-y: hidden;
+  padding: 0 32px;
+  background-color: white;
+}
+
+.school-act-footer {
+  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  background-color: white;
+  z-index: 100;
+}
+
+@media screen and (orientation: portrait) {
+  .school-act-header {
+    padding: 16px 20px !important;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .search-filter-container-SearchAndFilter {
+    width: 100%;
+    justify-content: space-between;
+    display: flex;
+    flex-direction: row;
+  }
+  .school-act-button-and-search-filter {
+    padding-right: 0px !important;
+    padding-left: 0px !important;
+  }
+  .school-act-header-and-search-filter {
+    padding-right: 0px !important;
+    padding-left: 7px !important;
+  }
+}

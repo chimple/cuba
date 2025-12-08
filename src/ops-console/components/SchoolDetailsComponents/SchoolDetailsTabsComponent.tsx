@@ -26,16 +26,15 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
   isMobile,
   schoolId,
   refreshClasses,
-  goToClassesTab
+  goToClassesTab,
 }) => {
   const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
-  
+
   useEffect(() => {
     if (goToClassesTab) {
       setActiveTab(SchoolTabs.Classes);
     }
   }, [goToClassesTab]);
-
 
   return (
     <div className="school-detail-role-tabs-wrapper">
@@ -57,7 +56,12 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
           <SchoolOverview data={data} isMobile={isMobile} />
         )}
         {activeTab === SchoolTabs.Classes && (
-          <SchoolClasses data={data} isMobile={isMobile} schoolId={schoolId} refreshClasses={refreshClasses} />
+          <SchoolClasses
+            data={data}
+            isMobile={isMobile}
+            schoolId={schoolId}
+            refreshClasses={refreshClasses}
+          />
         )}
         {activeTab === SchoolTabs.Students && (
           <SchoolStudents data={data} isMobile={isMobile} schoolId={schoolId} />

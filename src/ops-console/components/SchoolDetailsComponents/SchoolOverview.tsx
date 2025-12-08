@@ -456,6 +456,20 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                 {t("View Detailed Analytics")}
               </Button>
             </InfoCard>
+            <Button
+              fullWidth
+              className="full-width-button"
+              variant="contained"
+              sx={{ mt: 2 }}
+              onClick={() =>
+                history.replace(
+                  `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}`,
+                  data.schoolData
+                )
+              }
+            >
+              {t("Activities")}
+            </Button>
           </Grid>
         </Grid>
       )}
