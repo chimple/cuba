@@ -8,15 +8,23 @@ import {
   Box,
   useMediaQuery,
   CircularProgress,
+  Chip,
+  IconButton,
 } from "@mui/material";
-import { Add as AddIcon } from "@mui/icons-material";
+import { Add as AddIcon, MoreHoriz } from "@mui/icons-material";
 import { t } from "i18next";
 import SearchAndFilter from "../SearchAndFilter";
 import FilterSlider from "../FilterSlider";
 import SelectedFilters from "../SelectedFilters";
 import "./SchoolStudents.css";
 import { ServiceConfig } from "../../../services/ServiceConfig";
-import { AGE_OPTIONS, GENDER, StudentInfo } from "../../../common/constants";
+import {
+  AGE_OPTIONS,
+  GENDER,
+  PerformanceLevel,
+  StudentInfo,
+  BANDS,
+} from "../../../common/constants";
 import {
   getGradeOptions,
   filterBySearchAndFilters,
@@ -25,6 +33,11 @@ import {
 } from "../../OpsUtility/SearchFilterUtility";
 import FormCard, { FieldConfig, MessageConfig } from "./FormCard";
 import { normalizePhone10 } from "../../pages/NewUserPageOps";
+import { ClassRow } from "./SchoolClass";
+import { ClassUtil } from "../../../utility/classUtil";
+import ActionMenu from "./ActionMenu";
+import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutlined";
+import BorderColorIcon from "@mui/icons-material/BorderColor";
 
 type ApiStudentData = StudentInfo;
 
@@ -32,17 +45,38 @@ interface DisplayStudent {
   id: string;
   studentIdDisplay: string;
   name: string;
+  schstudents_interact?: string;
   gender: string;
   grade: number;
   classSection: string;
   phoneNumber: string;
   class: string;
+  schstudents_performance?: string;
+  schstudents_actions?: string;
 }
+
+const getPerformanceChipClass = (schstudents_performance: string): string => {
+  const normalizedPerf = schstudents_performance
+    .toLowerCase()
+    .replace(/ /g, "_");
+  switch (normalizedPerf) {
+    case PerformanceLevel.DOING_GOOD:
+      return "performance-chip-doing-good";
+    case PerformanceLevel.NEED_HELP:
+      return "performance-chip-need-help";
+    case PerformanceLevel.STILL_LEARNING:
+      return "performance-chip-still-learning";
+    case PerformanceLevel.NOT_TRACKED:
+    default:
+      return "performance-chip-not-tracked";
+  }
+};
 
 interface SchoolStudentsProps {
   data: {
     students?: ApiStudentData[];
     totalStudentCount?: number;
+    classData?: ClassRow[];
   };
   isMobile: boolean;
   schoolId: string;
@@ -99,6 +133,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<MessageConfig | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [performanceFilter, setPerformanceFilter] = useState<PerformanceLevel>(
+    PerformanceLevel.ALL
+  );
+  const [isPerformanceLoading, setIsPerformanceLoading] = useState(false);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -110,8 +148,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   }, [searchTerm]);
 
   const fetchStudents = useCallback(
-    async (currentPage: number, search: string) => {
-      setIsLoading(true);
+    async (currentPage: number, search: string, silent = false) => {
+      if (!silent) {
+        setIsLoading(true);
+      }
       const api = ServiceConfig.getI().apiHandler;
       try {
         let response;
@@ -148,17 +188,19 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   useEffect(() => {
     // Don't fetch on the initial render for page 1, because we already have the data from props.
-    if (
+    const isInitial =
       page === 1 &&
       !debouncedSearchTerm &&
       filters.grade.length === 0 &&
-      filters.section.length === 0
-    ) {
+      filters.section.length === 0;
+
+    if (isInitial) {
       setStudents(data.students || []);
       setTotalCount(data.totalStudentCount || 0);
-      return;
+      fetchStudents(page, debouncedSearchTerm, true);
+    } else {
+      fetchStudents(page, debouncedSearchTerm);
     }
-    fetchStudents(page, debouncedSearchTerm);
   }, [
     page,
     debouncedSearchTerm,
@@ -207,15 +249,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     const sectionOn =
       optionalSection !== undefined && String(optionalSection).trim() !== "";
     if (!gradeOn && !sectionOn) return students;
-
-    const filtered = students.filter((row: any) => {
+    return students.filter((row: any) => {
       const gradeOk = !gradeOn || String(row.grade) === String(optionalGrade);
       const sectionOk =
         !sectionOn || sameSection(row.classSection, optionalSection);
       return gradeOk && sectionOk;
     });
-
-    return filtered.length > 0 ? filtered : students;
   }, [students, optionalGrade, optionalSection]);
 
   const normalizedStudents = useMemo(
@@ -304,8 +343,67 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     });
   }, [filteredStudents, orderBy, order]);
 
+  const [studentPerformanceMap, setStudentPerformanceMap] = useState<
+    Map<string, string>
+  >(new Map());
+  useEffect(() => {
+    const fetchStudentPerformance = async () => {
+      if (optionalGrade == null || optionalSection == null || issTotal) {
+        return;
+      }
+      setIsPerformanceLoading(true);
+      const performanceMap = new Map<string, string>();
+      const currentClass = Array.isArray(data.classData)
+        ? data.classData[0]
+        : undefined;
+      const classId = currentClass?.id ?? "";
+      try {
+        const courseIds =
+          currentClass?.courses?.map((course) => course.id) ?? [];
+        if (courseIds.length === 0) {
+          sortedStudents.forEach((student) => {
+            performanceMap.set(student.user.id, "Not Tracked");
+          });
+          setStudentPerformanceMap(performanceMap);
+          return;
+        }
+
+        const _classUtil = new ClassUtil();
+        const groups = await _classUtil.divideStudents(classId, courseIds);
+
+        const processGroup = (band: string, status: string) => {
+          const group = groups.get(band);
+          if (group && Array.isArray(group)) {
+            group.forEach((item: any) => {
+              const student = item.get("student");
+              if (student && student.id) {
+                performanceMap.set(student.id, status);
+              }
+            });
+          }
+        };
+
+        processGroup(BANDS.GREENGROUP, "Doing Good");
+        processGroup(BANDS.YELLOWGROUP, "Still Learning");
+        processGroup(BANDS.REDGROUP, "Need Help");
+        processGroup(BANDS.GREYGROUP, "Not Tracked");
+
+        setStudentPerformanceMap(performanceMap);
+      } catch (error) {
+        console.error("Error fetching student performance data:", error);
+        sortedStudents.forEach((student) => {
+          performanceMap.set(student.user.id, "Not Tracked");
+        });
+        setStudentPerformanceMap(performanceMap);
+      } finally {
+        setIsPerformanceLoading(false);
+      }
+    };
+    fetchStudentPerformance();
+  }, [sortedStudents, optionalGrade, optionalSection, issTotal, baseStudents]);
+
   const studentsForCurrentPage = useMemo((): DisplayStudent[] => {
-    return sortedStudents.map(
+    let filtered = sortedStudents.map(
       (s_api): DisplayStudent => ({
         id: s_api.user.id,
         studentIdDisplay: s_api.user.student_id ?? "N/A",
@@ -315,9 +413,21 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         classSection: s_api.classSection ?? "N/A",
         phoneNumber: s_api.parent?.phone || s_api.parent?.email || "N/A", //here
         class: (s_api.grade ?? 0) + (s_api.classSection ?? ""),
+        schstudents_performance:
+          studentPerformanceMap.get(s_api.user.id) ?? "Not Tracked",
       })
     );
-  }, [sortedStudents]);
+    // Filter by performance if not "all"
+    if (performanceFilter !== PerformanceLevel.ALL) {
+      filtered = filtered.filter((student) => {
+        const perf = student.schstudents_performance
+          ?.toLowerCase()
+          .replace(" ", "_");
+        return perf === performanceFilter;
+      });
+    }
+    return filtered;
+  }, [sortedStudents, performanceFilter, studentPerformanceMap]);
 
   const pageCount = useMemo(() => {
     return Math.ceil(totalCount / ROWS_PER_PAGE);
@@ -372,22 +482,157 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     },
     { key: "phoneNumber", label: t("Phone Number / Email") },
   ];
+  const columns: Column<DisplayStudent>[] = useMemo(() => {
+    const commonColumns: Column<DisplayStudent>[] = [
+      {
+        key: "studentIdDisplay",
+        label: t("Student ID"),
+        sortable: !issTotal ? false : undefined,
+      },
+      {
+        key: "name",
+        label: t("Student Name"),
+        align: "left",
+        render: (s) => (
+          <Typography variant="body2" className="student-name-data">
+            {s.name}
+          </Typography>
+        ),
+      },
+    ];
+    if (!issTotal) {
+      return [
+        ...commonColumns,
+        {
+          key: "schstudents_interact",
+          label: t("Interact"),
+          sortable: false,
+          render: (s) => (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "left",
+                alignItems: "left",
+              }}
+            >
+              <IconButton
+                size="small"
+                onClick={() => console.log("Engage with student:", s.id)}
+              >
+                <img
+                  src="/assets/icons/Interact.svg"
+                  alt="Interact"
+                  style={{ width: 30, height: 30 }}
+                />
+              </IconButton>
+            </Box>
+          ),
+        },
+        {
+          key: "gender",
+          label: t("Gender"),
+          sortable: false,
+          render: (s) => (
+            <Typography variant="body2" className="student-name-data">
+              {s.gender
+                ? s.gender.charAt(0).toUpperCase() +
+                  s.gender.slice(1).toLowerCase()
+                : ""}
+            </Typography>
+          ),
+        },
+        {
+          key: "schstudents_performance",
+          label: t("Performance"),
+          sortable: false,
+          render: (s) => (
+            <Chip
+              label={t(s.schstudents_performance || "Not Tracked")}
+              size="small"
+              className={getPerformanceChipClass(
+                s.schstudents_performance || "Not Tracked"
+              )}
+              sx={{
+                fontWeight: 500,
+                fontSize: "0.75rem",
+                height: 24,
+                borderRadius: "4px",
+              }}
+            />
+          ),
+        },
+        {
+          key: "schstudents_actions",
+          label: "",
+          sortable: false,
+          render: (s) => (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <ActionMenu
+                items={[
+                  {
+                    name: t("Send Message"),
+                    icon: <ChatBubbleOutlineOutlined fontSize="small" />,
+                  },
+                  {
+                    name: t("Edit Details"),
+                    icon: <BorderColorIcon fontSize="small" />,
+                  },
+                ]}
+                renderTrigger={(open) => (
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      open(e);
+                    }}
+                    sx={{
+                      color: "#6B7280",
+                      "&:hover": { bgcolor: "#F3F4F6" },
+                    }}
+                  >
+                    <MoreHoriz sx={{ fontSize: 20, fontWeight: 800 }} />
+                  </IconButton>
+                )}
+              />
+            </Box>
+          ),
+        },
+      ];
+    } else {
+      return [
+        ...commonColumns,
+        {
+          key: "gender",
+          label: t("Gender"),
+          render: (s) => (
+            <Typography variant="body2" className="student-name-data">
+              {s.gender
+                ? s.gender.charAt(0).toUpperCase() +
+                  s.gender.slice(1).toLowerCase()
+                : ""}
+            </Typography>
+          ),
+        },
+        { key: "phoneNumber", label: t("Phone Number") },
+        { key: "class", label: t("Class") },
+      ];
+    }
+  }, [issTotal]);
 
   const classOptions = useMemo(() => {
-    if (!baseStudents || baseStudents.length === 0) return [];
-    const classMap = new Map<string, string>();
-    baseStudents.forEach((student: any) => {
-      const classInfo = student.classWithidname;
-      if (!classInfo || !classInfo.id || !classInfo.name) return;
-      if (!classMap.has(classInfo.id)) {
-        classMap.set(classInfo.id, classInfo.name);
-      }
-    });
-
-    return Array.from(classMap.entries())
-      .map(([value, label]) => ({ value, label }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }, [baseStudents]);
+    const classes = data.classData || (data as any).classdata || [];
+    if (!classes || classes.length === 0) return [];
+    return classes
+      .map((c: any) => ({ value: c.id, label: c.name }))
+      .filter((opt: any) => opt.value && opt.label)
+      .sort((a: any, b: any) => a.label.localeCompare(b.label));
+  }, [data.classData, (data as any).classdata]);
 
   const currentClass = useMemo(() => {
     if (
@@ -533,8 +778,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         });
 
         if (result.success) {
-          setIsAddStudentModalOpen(false);
-          setErrorMessage(undefined);
+          setErrorMessage({
+            text: "Student added successfully.",
+            type: "success",
+          });
+          setTimeout(() => {
+            setIsAddStudentModalOpen(false);
+            setErrorMessage(undefined);
+          }, 2000);
           setPage(1);
           fetchStudents(1, debouncedSearchTerm);
         } else {
@@ -557,6 +808,15 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   );
 
   const filterConfigsForSchool = [{ key: "grade", label: "Grade" }];
+
+  const performanceFilters = [
+    { key: PerformanceLevel.ALL, label: t("All") },
+    { key: PerformanceLevel.NEED_HELP, label: t("Need Help") },
+    { key: PerformanceLevel.DOING_GOOD, label: t("Doing Good") },
+    { key: PerformanceLevel.STILL_LEARNING, label: t("Still Learning") },
+    { key: PerformanceLevel.NOT_TRACKED, label: t("Not Tracked") },
+  ];
+
   return (
     <div className="schoolStudents-pageContainer">
       <FormCard
@@ -603,6 +863,49 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         </Box>
       </Box>
 
+      {!issTotal && (
+        <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
+          {performanceFilters.map((filter) => {
+            const isActive = performanceFilter === filter.key;
+
+            let className = "performance-filter-pill";
+            if (isActive) {
+              switch (filter.key) {
+                case PerformanceLevel.ALL:
+                  className = "performance-filter-pill-active-all";
+                  break;
+                case PerformanceLevel.DOING_GOOD:
+                  className = "performance-filter-pill-active-doing-good";
+                  break;
+                case PerformanceLevel.NEED_HELP:
+                  className = "performance-filter-pill-active-need-help";
+                  break;
+                case PerformanceLevel.STILL_LEARNING:
+                  className = "performance-filter-pill-active-still-learning";
+                  break;
+                case PerformanceLevel.NOT_TRACKED:
+                  className = "performance-filter-pill-active-not-tracked";
+                  break;
+              }
+            }
+
+            return (
+              <Chip
+                key={filter.key}
+                label={filter.label}
+                onClick={() => setPerformanceFilter(filter.key)}
+                className={className}
+                sx={{
+                  fontWeight: isActive ? 600 : 400,
+                  height: "26px",
+                  cursor: "pointer",
+                }}
+              />
+            );
+          })}
+        </Box>
+      )}
+
       {Object.values(filters).some((arr) => arr.length > 0) && (
         <SelectedFilters
           filters={filters}
@@ -622,7 +925,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         filterConfigs={filterConfigsForSchool}
       />
 
-      {isLoading ? (
+      {isLoading || isPerformanceLoading ? (
         <Box
           display="flex"
           justifyContent="center"
@@ -659,22 +962,29 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             {t(custoomTitle)}
           </Typography>
           <Typography className="schoolStudents-emptyStateMessage">
-            {isFilteringOrSearching
+            {performanceFilter !== PerformanceLevel.ALL
+              ? t("No student data found for the selected filter")
+              : isFilteringOrSearching
               ? t("No students found matching your criteria.")
+              : !issTotal &&
+                optionalGrade != null &&
+                String(optionalSection ?? "").trim() !== ""
+              ? t("No students found for your class.")
               : t("No students data found for the selected school")}
           </Typography>
-          {!isFilteringOrSearching && (
-            <MuiButton
-              variant="text"
-              onClick={handleAddNewStudent}
-              className="schoolStudents-emptyStateAddButton"
-              startIcon={
-                <AddIcon className="schoolStudents-emptyStateAddButton-icon" />
-              }
-            >
-              {t("Add Student")}
-            </MuiButton>
-          )}
+          {!isFilteringOrSearching &&
+            performanceFilter === PerformanceLevel.ALL && (
+              <MuiButton
+                variant="text"
+                onClick={handleAddNewStudent}
+                className="schoolStudents-emptyStateAddButton"
+                startIcon={
+                  <AddIcon className="schoolStudents-emptyStateAddButton-icon" />
+                }
+              >
+                {t("Add Student")}
+              </MuiButton>
+            )}
         </Box>
       )}
     </div>

@@ -23,7 +23,7 @@ const ClassForm: React.FC<{
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
   const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
@@ -114,7 +114,16 @@ const ClassForm: React.FC<{
   };
 
   const isFormValid =
-    formValues.grade.trim() !== "" && formValues.section.trim() !== "";
+    formValues.grade.trim() !== "" &&
+    formValues.section.trim() !== "" &&
+    selectedCourse.length > 0 &&
+    !(
+      mode === "edit" &&
+      classData?.name === formValues.grade + formValues.section &&
+      (formValues.groupId ?? "") === (classData?.group_id ?? "") &&
+      JSON.stringify(classData?.courses?.map((c: any) => c.id)) ===
+        JSON.stringify(selectedCourse)
+    );
 
   const placeholder =
     selectedCourse.length > 0
@@ -158,6 +167,17 @@ const ClassForm: React.FC<{
     if (onSaved) onSaved();
     onClose();
   };
+  useEffect(() => {
+    const handleClickOutside = (event: any) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="class-form-overlay">
@@ -194,7 +214,10 @@ const ClassForm: React.FC<{
           </div>
         </div>
 
-        <div className="class-form-group class-form-full-width">
+        <div
+          className="class-form-group class-form-full-width"
+          ref={dropdownRef}
+        >
           <label>{t("Courses")} *</label>
 
           <div
@@ -210,22 +233,29 @@ const ClassForm: React.FC<{
 
           {dropdownOpen && (
             <div className="class-form-multi-dropdown">
-              {AllCourses.map((course: any) => (
-                <label key={course.id} className="class-form-multi-option">
-                  <div className="class-option-text">
-                    <span className="class-form-subject">{course.name}</span>
-                    <span className="class-form-sub">
-                      {course.curriculum_name} – {course.grade_name}
-                    </span>
-                  </div>
-                  <input
-                    type="checkbox"
-                    className="class-form-checkbox"
-                    checked={selectedCourse.includes(course.id)}
-                    onChange={() => handleSelectCourse(course.id)}
-                  />
-                </label>
-              ))}
+              {[...AllCourses]
+                .sort(
+                  (a, b) =>
+                    a.curriculum_name.localeCompare(b.curriculum_name) ||
+                    a.grade_name.localeCompare(b.grade_name) ||
+                    a.name.localeCompare(b.name)
+                )
+                .map((course: any) => (
+                  <label key={course.id} className="class-form-multi-option">
+                    <div className="class-option-text">
+                      <span className="class-form-subject">{course.name}</span>
+                      <span className="class-form-sub">
+                        {course.curriculum_name} – {course.grade_name}
+                      </span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      className="class-form-checkbox"
+                      checked={selectedCourse.includes(course.id)}
+                      onChange={() => handleSelectCourse(course.id)}
+                    />
+                  </label>
+                ))}
             </div>
           )}
         </div>
@@ -252,7 +282,7 @@ const ClassForm: React.FC<{
             disabled={!isFormValid || loading || saving}
           >
             {saving
-              ? t("Saving...")
+              ? t("Saving") + "..."
               : mode === "edit"
               ? t("Save")
               : t("Create Class")}

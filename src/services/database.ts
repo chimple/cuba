@@ -717,7 +717,6 @@ export type Database = {
           },
         ]
       }
-
       connector_users: {
         Row: {
           created_at: string | null
@@ -919,6 +918,170 @@ export type Database = {
           },
         ]
       }
+      fc_school_visit: {
+        Row: {
+          check_in_at: string
+          check_in_lat: number | null
+          check_in_lng: number | null
+          check_out_at: string | null
+          check_out_lat: number | null
+          check_out_lng: number | null
+          created_at: string
+          id: string
+          is_deleted: boolean
+          notes: string | null
+          school_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          check_in_at: string
+          check_in_lat?: number | null
+          check_in_lng?: number | null
+          check_out_at?: string | null
+          check_out_lat?: number | null
+          check_out_lng?: number | null
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          notes?: string | null
+          school_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          check_in_at?: string
+          check_in_lat?: number | null
+          check_in_lng?: number | null
+          check_out_at?: string | null
+          check_out_lat?: number | null
+          check_out_lng?: number | null
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          notes?: string | null
+          school_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fc_visit_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fc_visit_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fc_user_forms: {
+        Row: {
+          call_status: Database["public"]["Enums"]["fc_call_result"] | null
+          class_id: string | null
+          comment: string | null
+          contact_method: Database["public"]["Enums"]["fc_contact_method"]
+          contact_target: Database["public"]["Enums"]["fc_engagement_target"]
+          contact_user_id: string | null
+          created_at: string
+          id: string
+          is_deleted: boolean
+          question_response: string | null
+          school_id: string
+          support_level: Database["public"]["Enums"]["fc_support_level"] | null
+          tech_issues_reported: boolean
+          updated_at: string
+          user_id: string
+          visit_id: string
+        }
+        Insert: {
+          call_status?: Database["public"]["Enums"]["fc_call_result"] | null
+          class_id?: string | null
+          comment?: string | null
+          contact_method: Database["public"]["Enums"]["fc_contact_method"]
+          contact_target: Database["public"]["Enums"]["fc_engagement_target"]
+          contact_user_id?: string | null
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          question_response?: string | null
+          school_id: string
+          support_level?: Database["public"]["Enums"]["fc_support_level"] | null
+          tech_issues_reported?: boolean
+          updated_at?: string
+          user_id: string
+          visit_id: string
+        }
+        Update: {
+          call_status?: Database["public"]["Enums"]["fc_call_result"] | null
+          class_id?: string | null
+          comment?: string | null
+          contact_method?: Database["public"]["Enums"]["fc_contact_method"]
+          contact_target?: Database["public"]["Enums"]["fc_engagement_target"]
+          contact_user_id?: string | null
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          question_response?: string | null
+          school_id?: string
+          support_level?: Database["public"]["Enums"]["fc_support_level"] | null
+          tech_issues_reported?: boolean
+          updated_at?: string
+          user_id?: string
+          visit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fc_user_forms_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_contact_user_id_fkey"
+            columns: ["contact_user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_fc_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "fc_school_visit"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+
       gb_response: {
         Row: {
           content: Json | null
@@ -1563,11 +1726,9 @@ export type Database = {
           assignment_id: string | null
           chapter_id: string | null
           class_id: string | null
-          
           correct_moves: number | null
           course_id: string | null
           created_at: string
-          
           firebase_id: string | null
           id: string
           is_deleted: boolean | null
@@ -1591,8 +1752,6 @@ export type Database = {
           id?: string
           is_deleted?: boolean | null
           is_firebase?: boolean | null
-          
-          
           lesson_id?: string | null
           school_id?: string | null
           score?: number | null
@@ -1605,17 +1764,13 @@ export type Database = {
           assignment_id?: string | null
           chapter_id?: string | null
           class_id?: string | null
-          
           correct_moves?: number | null
           course_id?: string | null
           created_at?: string
-          
           firebase_id?: string | null
           id?: string
           is_deleted?: boolean | null
           is_firebase?: boolean | null
-          
-          
           lesson_id?: string | null
           school_id?: string | null
           score?: number | null
@@ -1660,6 +1815,8 @@ export type Database = {
             referencedRelation: "class"
             referencedColumns: ["id"]
           },
+          
+
           {
             foreignKeyName: "result_course_id_fkey"
             columns: ["course_id"]
@@ -1667,7 +1824,7 @@ export type Database = {
             referencedRelation: "course"
             referencedColumns: ["id"]
           },
-
+          
           {
             foreignKeyName: "result_student_id_fkey"
             columns: ["student_id"]
@@ -2520,7 +2677,6 @@ export type Database = {
           },
         ]
       }
-      
     }
     Views: {
       get_leaderboard_generic_data: {
@@ -2723,11 +2879,9 @@ export type Database = {
           assignment_id: string | null
           chapter_id: string | null
           class_id: string | null
-          
           correct_moves: number | null
           course_id: string | null
           created_at: string
-          
           firebase_id: string | null
           id: string
           is_deleted: boolean | null
@@ -2817,11 +2971,7 @@ export type Database = {
         Args: { p_query: string; p_secret: string }
         Returns: Json
       }
-      get_query_metadata: { Args: { p_query_id: string }; Returns: Json }
-      get_query_metadata_v2: {
-        Args: { p_query: string; p_secret: string }
-        Returns: Json
-      }
+
       get_results_by_assignment: {
         Args: { _assignment_id: string }
         Returns: {
@@ -3130,7 +3280,9 @@ export type Database = {
         Args: { p_school_user_id: string; p_user_id: string }
         Returns: boolean
       }
-      is_program_manager_or_field_coordinator: { Args: never; Returns: boolean }
+      is_program_manager_or_field_coordinator:
+        | { Args: { p_user_id: string }; Returns: boolean }
+        | { Args: never; Returns: boolean }
       is_special_or_program_user: { Args: never; Returns: boolean }
       is_special_user_privileged: { Args: never; Returns: boolean }
       is_student_already_in_class: {
@@ -3692,17 +3844,13 @@ export type Database = {
           assignment_id: string | null
           chapter_id: string | null
           class_id: string | null
-          
           correct_moves: number | null
           course_id: string | null
           created_at: string
-          
           firebase_id: string | null
           id: string
           is_deleted: boolean | null
           is_firebase: boolean | null
-          learning_indicator_id: string | null
-          learning_outcome_id: string | null
           lesson_id: string | null
           school_id: string | null
           score: number | null
@@ -4000,6 +4148,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      sql_sync_all: {
+          Args: { p_tables?: string[]; p_updated_at?: Json }
+          Returns: Json
+      }
       update_class_firebase_trigger: {
         Args: {
           p_course_firebase_ids: string[]
@@ -4019,7 +4171,10 @@ export type Database = {
         }
         Returns: undefined
       }
-      
+      update_queue_visibility_time: {
+        Args: { interval_days?: number; msg_id: number; queue_name: string }
+        Returns: undefined
+      }
       update_school_firebase_trigger: {
         Args: {
           p_course_firebase_ids: string[]
@@ -4081,6 +4236,24 @@ export type Database = {
     }
     Enums: {
       assignment_source: "manual" | "recommended" | "qr_code" | "chatbot"
+      fc_call_result: "call_picked" | "call_later" | "call_not_reachable"
+      fc_contact_method: "call" | "in_person"
+      fc_engagement_target:
+        | "student"
+        | "teacher"
+        | "principal"
+        | "parent"
+        | "school"
+        | "class"
+      fc_support_level:
+        | "need_help"
+        | "still_learning"
+        | "doing_good"
+        | "not_tracked"
+        | "not_assigning_per_month"
+        | "once_a_month"
+        | "once_a_week"
+        | "two_plus_per_week"
       login_type: "student_id" | "parent_phone_number"
       ops_request_status: "requested" | "rejected" | "approved" | "flagged"
       ops_request_type: "student" | "teacher" | "principal" | "school"
@@ -4233,6 +4406,26 @@ export const Constants = {
   public: {
     Enums: {
       assignment_source: ["manual", "recommended", "qr_code", "chatbot"],
+      fc_call_result: ["call_picked", "call_later", "call_not_reachable"],
+      fc_contact_method: ["call", "in_person"],
+      fc_engagement_target: [
+        "student",
+        "teacher",
+        "principal",
+        "parent",
+        "school",
+        "class",
+      ],
+      fc_support_level: [
+        "need_help",
+        "still_learning",
+        "doing_good",
+        "not_tracked",
+        "not_assigning_per_month",
+        "once_a_month",
+        "once_a_week",
+        "two_plus_per_week",
+      ],
       login_type: ["student_id", "parent_phone_number"],
       ops_request_status: ["requested", "rejected", "approved", "flagged"],
       ops_request_type: ["student", "teacher", "principal", "school"],

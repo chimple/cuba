@@ -269,7 +269,8 @@
 .formcard-message {
   padding: 5px 10px;
   border-radius: 4px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
+  margin-top: 10px;
   font-size: 12px;
   font-weight: 500;
   line-height: 1.4;
@@ -297,4 +298,92 @@
   background-color: #e6f4ea;
   color: #137333;
   border: 1px solid #a8dab5;
+}
+
+.formcard-multiselect-trigger {
+  border: 1px solid #dadce0;
+  background-color: #ffffff;
+  color: #000000;
+  padding: 0px 12px;
+  font-size: 14px;
+  height: 38px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  width: 100%;
+  outline: none;
+  border-radius: 4px;
+}
+
+.formcard-multiselect-trigger:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 1px rgba(26, 115, 232, 0.15);
+}
+
+.formcard-multiselect-trigger-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 20px;
+  color: #3c4043;
+}
+
+.formcard-multiselect-trigger-placeholder {
+  color: #9aa0a6;
+}
+
+.formcard-multiselect-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #dadce0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  max-height: 115px;
+  overflow-y: auto;
+}
+
+.formcard-multiselect-option {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #3c4043;
+}
+
+.formcard-multiselect-option:hover {
+  background-color: #f1f3f4;
+}
+
+.formcard-multiselect-option.selected {
+  background-color: #e8f0fe;
+  color: #1967d2;
+}
+
+.formcard-multiselect-checkbox {
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #dadce0;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #ffffff;
+}
+
+.formcard-multiselect-option.selected .formcard-multiselect-checkbox {
+  background-color: #1a73e8;
+  border-color: #1a73e8;
+}
+
+.formcard-multiselect-option.selected .formcard-multiselect-checkbox::after {
+  content: none;
 }

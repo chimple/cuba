@@ -476,274 +476,38 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<Map<string, any[]>> {
     try {
       const data = new Map<string, any[]>();
-
-      const fetchPromises = tableNames.map(async (tableName) => {
-        const lastModifiedDate =
-          tablesLastModifiedTime.get(tableName) ?? "2024-01-01T00:00:00.000Z";
-        let rpcName;
-        let res;
-        switch (tableName) {
-          case TABLES.Assignment: {
-            rpcName = "sql_get_assignments";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Assignment_cart: {
-            rpcName = "sql_get_assignment_cart";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Assignment_user: {
-            rpcName = "sql_get_assignment_users";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Badge: {
-            rpcName = "sql_get_badge";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Chapter: {
-            rpcName = "sql_get_chapter";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.ChapterLesson: {
-            rpcName = "sql_get_chapter_lesson";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Class: {
-            rpcName = "sql_get_class";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.ClassCourse: {
-            rpcName = "sql_get_class_course";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.ClassInvite_code: {
-            rpcName = "sql_get_class_invite_codes";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.ClassUser: {
-            rpcName = "sql_get_class_user";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.OpsRequests: {
-            rpcName = "sql_get_ops_requests";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Course: {
-            rpcName = "sql_get_course";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Curriculum: {
-            rpcName = "sql_get_curriculum";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.FavoriteLesson: {
-            rpcName = "sql_get_favorite_lessons";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Grade: {
-            rpcName = "sql_get_grade";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Language: {
-            rpcName = "sql_get_language";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Lesson: {
-            rpcName = "sql_get_lessons";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.ParentUser: {
-            rpcName = "sql_get_parent_users";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-
-          case TABLES.Result: {
-            rpcName = "sql_get_results";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Reward: {
-            rpcName = "sql_get_reward";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.School: {
-            rpcName = "sql_get_schools";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.SchoolCourse: {
-            rpcName = "sql_get_school_courses";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.SchoolUser: {
-            rpcName = "sql_get_school_user";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Sticker: {
-            rpcName = "sql_get_sticker";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Subject: {
-            rpcName = "sql_get_subject";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.User: {
-            rpcName = "sql_get_users";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.UserBadge: {
-            rpcName = "sql_get_user_badges";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.UserBonus: {
-            rpcName = "sql_get_user_bonus";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.UserCourse: {
-            rpcName = "sql_get_user_courses";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.UserSticker: {
-            rpcName = "sql_get_user_stickers";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          case TABLES.Live_quiz_room: {
-            rpcName = "sql_get_live_quiz_rooms";
-            res = await this.supabase?.rpc(rpcName, {
-              p_updated_at: lastModifiedDate,
-            });
-            break;
-          }
-          default:
-            res = await this.supabase
-              ?.from(tableName)
-              .select("*")
-              .gte("updated_at", lastModifiedDate);
-            data.set(tableName, res?.data ?? []);
-        }
-
-        if (res == null || res.error || !res.data) {
-          let parent_user;
-          try {
-            parent_user =
-              await ServiceConfig.getI().authHandler.getCurrentUser();
-          } catch (error: any) {
-            console.error("User Error", error);
-          }
-          Util.logEvent(EVENTS.SYNCHING_ERROR, {
-            user_name: parent_user?.name || null,
-            user_id: parent_user?.id || null,
-            user_username: parent_user?.email || null,
-            rpc_fn_name: rpcName || "not found",
-            table_name: tableName || "not found",
-            last_modified_date: lastModifiedDate || "not found",
-            error_code: res?.error?.code || null,
-            error_deatils: res?.error?.details || null,
-            error_hint: res?.error?.hint || null,
-            error_message: res?.error?.message || null,
-          });
-          if (isInitialFetch) {
-            throw new Error(
-              `Initial fetch failed for ${rpcName || tableName}: ${
-                res?.error?.message
-              }`
-            );
-          }
-        }
-        // console.log(
-        //   `Fetched ${JSON.stringify(res?.data)} records from ${tableName}`
-        // );
-        data.set(tableName, res?.data ?? []);
+      const DEFAULT_LAST_MODIFIED = "2024-01-01T00:00:00.000Z";
+      const updatedAtPayload: Record<string, string> = {};
+      for (const tableName of tableNames) {
+        // TABLES.User -> "user", TABLES.Class -> "class", etc.
+        updatedAtPayload[tableName] =
+          tablesLastModifiedTime.get(tableName) ?? DEFAULT_LAST_MODIFIED;
+      }
+      const res = await this.supabase?.rpc("sql_sync_all", {
+        p_updated_at: updatedAtPayload,
+        p_tables: tableNames, // TABLES[] should be string[] under the hood
       });
-
-      await Promise.all(fetchPromises);
+      if (res == null || res.error || !res.data) {
+        let parent_user;
+        try {
+          parent_user = await ServiceConfig.getI().authHandler.getCurrentUser();
+        } catch (error: any) {
+          console.error("User Error", error);
+        }
+        Util.logEvent(EVENTS.SYNCHING_ERROR, {
+          user_name: parent_user?.name || null,
+          user_id: parent_user?.id || null,
+          user_username: parent_user?.email || null,
+          last_modified_date: updatedAtPayload || "not found",
+          error_code: res?.error?.code || null,
+          error_deatils: res?.error?.details || null,
+          error_hint: res?.error?.hint || null,
+          error_message: res?.error?.message || null,
+        });
+      }
+      tableNames.map(async (tableName) => {
+        data.set(tableName, res?.data?.[tableName] ?? []);
+      });
       return data;
     } catch (err: any) {
       let parent_user;
@@ -756,15 +520,309 @@ export class SupabaseApi implements ServiceApi {
         user_name: parent_user?.name || null,
         user_id: parent_user?.id || null,
         user_username: parent_user?.email || null,
-        rpc_fn_name: "not found",
-        table_name: "not found",
         last_modified_date: "not found",
         error_message: err || "Unknown error",
       });
-      console.error("🚀 ~ Api ~ getTablesData ~ error:", err);
+      console.error(":rocket: ~ Api ~ getTablesData ~ error:", err);
       throw err;
     }
   }
+  // async getTablesData(
+  //   tableNames: TABLES[] = Object.values(TABLES),
+  //   tablesLastModifiedTime: Map<string, string> = new Map(),
+  //   isInitialFetch = false
+  // ): Promise<Map<string, any[]>> {
+  //   try {
+  //     const data = new Map<string, any[]>();
+
+  //     const fetchPromises = tableNames.map(async (tableName) => {
+  //       const lastModifiedDate =
+  //         tablesLastModifiedTime.get(tableName) ?? "2024-01-01T00:00:00.000Z";
+  //       let rpcName;
+  //       let res;
+  //       switch (tableName) {
+  //         case TABLES.Assignment: {
+  //           rpcName = "sql_get_assignments";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Assignment_cart: {
+  //           rpcName = "sql_get_assignment_cart";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Assignment_user: {
+  //           rpcName = "sql_get_assignment_users";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Badge: {
+  //           rpcName = "sql_get_badge";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Chapter: {
+  //           rpcName = "sql_get_chapter";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.ChapterLesson: {
+  //           rpcName = "sql_get_chapter_lesson";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Class: {
+  //           rpcName = "sql_get_class";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.ClassCourse: {
+  //           rpcName = "sql_get_class_course";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.ClassInvite_code: {
+  //           rpcName = "sql_get_class_invite_codes";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.ClassUser: {
+  //           rpcName = "sql_get_class_user";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.OpsRequests: {
+  //           rpcName = "sql_get_ops_requests";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Course: {
+  //           rpcName = "sql_get_course";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Curriculum: {
+  //           rpcName = "sql_get_curriculum";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.FavoriteLesson: {
+  //           rpcName = "sql_get_favorite_lessons";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Grade: {
+  //           rpcName = "sql_get_grade";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Language: {
+  //           rpcName = "sql_get_language";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Lesson: {
+  //           rpcName = "sql_get_lessons";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.ParentUser: {
+  //           rpcName = "sql_get_parent_users";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+
+  //         case TABLES.Result: {
+  //           rpcName = "sql_get_results";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Reward: {
+  //           rpcName = "sql_get_reward";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.School: {
+  //           rpcName = "sql_get_schools";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.SchoolCourse: {
+  //           rpcName = "sql_get_school_courses";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.SchoolUser: {
+  //           rpcName = "sql_get_school_user";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Sticker: {
+  //           rpcName = "sql_get_sticker";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Subject: {
+  //           rpcName = "sql_get_subject";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.User: {
+  //           rpcName = "sql_get_users";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.UserBadge: {
+  //           rpcName = "sql_get_user_badges";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.UserBonus: {
+  //           rpcName = "sql_get_user_bonus";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.UserCourse: {
+  //           rpcName = "sql_get_user_courses";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.UserSticker: {
+  //           rpcName = "sql_get_user_stickers";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         case TABLES.Live_quiz_room: {
+  //           rpcName = "sql_get_live_quiz_rooms";
+  //           res = await this.supabase?.rpc(rpcName, {
+  //             p_updated_at: lastModifiedDate,
+  //           });
+  //           break;
+  //         }
+  //         default:
+  //           res = await this.supabase
+  //             ?.from(tableName)
+  //             .select("*")
+  //             .gte("updated_at", lastModifiedDate);
+  //           data.set(tableName, res?.data ?? []);
+  //       }
+
+  //       if (res == null || res.error || !res.data) {
+  //         let parent_user;
+  //         try {
+  //           parent_user =
+  //             await ServiceConfig.getI().authHandler.getCurrentUser();
+  //         } catch (error: any) {
+  //           console.error("User Error", error);
+  //         }
+  //         Util.logEvent(EVENTS.SYNCHING_ERROR, {
+  //           user_name: parent_user?.name || null,
+  //           user_id: parent_user?.id || null,
+  //           user_username: parent_user?.email || null,
+  //           rpc_fn_name: rpcName || "not found",
+  //           table_name: tableName || "not found",
+  //           last_modified_date: lastModifiedDate || "not found",
+  //           error_code: res?.error?.code || null,
+  //           error_deatils: res?.error?.details || null,
+  //           error_hint: res?.error?.hint || null,
+  //           error_message: res?.error?.message || null,
+  //         });
+  //         if (isInitialFetch) {
+  //           throw new Error(
+  //             `Initial fetch failed for ${rpcName || tableName}: ${
+  //               res?.error?.message
+  //             }`
+  //           );
+  //         }
+  //       }
+  //       // console.log(
+  //       //   `Fetched ${JSON.stringify(res?.data)} records from ${tableName}`
+  //       // );
+  //       data.set(tableName, res?.data ?? []);
+  //     });
+
+  //     await Promise.all(fetchPromises);
+  //     return data;
+  //   } catch (err: any) {
+  //     let parent_user;
+  //     try {
+  //       parent_user = await ServiceConfig.getI().authHandler.getCurrentUser();
+  //     } catch (error: any) {
+  //       console.error("User Error", error);
+  //     }
+  //     Util.logEvent(EVENTS.SYNCHING_ERROR, {
+  //       user_name: parent_user?.name || null,
+  //       user_id: parent_user?.id || null,
+  //       user_username: parent_user?.email || null,
+  //       rpc_fn_name: "not found",
+  //       table_name: "not found",
+  //       last_modified_date: "not found",
+  //       error_message: err || "Unknown error",
+  //     });
+  //     console.error("🚀 ~ Api ~ getTablesData ~ error:", err);
+  //     throw err;
+  //   }
+  // }
 
   async mutate(
     mutateType: MUTATE_TYPES,
@@ -1019,7 +1077,9 @@ export class SupabaseApi implements ServiceApi {
     program_id: string | null,
     udise: string | null,
     address: string | null,
-    country: string | null
+    country: string | null,
+    onlySchool?: boolean,
+    onlySchoolUser?: boolean
   ): Promise<TableTypes<"school">> {
     if (!this.supabase) return {} as TableTypes<"school">;
     const _currentUser =
@@ -1028,74 +1088,79 @@ export class SupabaseApi implements ServiceApi {
 
     const schoolId = uuidv4();
     const timestamp = new Date().toISOString();
+    const oSchool = onlySchool ?? true;
+    const oSchoolUser = onlySchoolUser ?? true;
 
-    // Handle optional image upload
-    const result = image
-      ? await this.addProfileImages(schoolId, image, PROFILETYPE.SCHOOL)
-      : null;
+    let newSchool: TableTypes<"school"> | null = null;
 
-    const newSchool: TableTypes<"school"> = {
-      id: schoolId,
-      name,
-      group1: group1 ?? null,
-      group2: group2 ?? null,
-      group3: group3 ?? null,
-      image: result ?? null,
-      group4: group4 ?? null,
-      program_id: program_id ?? null,
-      udise: udise ?? null,
-      address: address ?? null,
-      created_at: timestamp,
-      updated_at: timestamp,
-      is_deleted: false,
-      model: null,
-      academic_year: null,
-      firebase_id: null,
-      is_firebase: null,
-      is_ops: null,
-      language: null,
-      ops_created_by: null,
-      student_login_type: null,
-      status: STATUS.REQUESTED,
-      key_contacts: null,
-      country: country ?? null,
-      location_link: null,
-    };
+    if (oSchool) {
+      const result = image
+        ? await this.addProfileImages(schoolId, image, PROFILETYPE.SCHOOL)
+        : null;
 
-    // Insert school
-    const { error: schoolError } = await this.supabase
-      .from(TABLES.School)
-      .insert([newSchool]);
+      newSchool = {
+        id: schoolId,
+        name,
+        group1: group1 ?? null,
+        group2: group2 ?? null,
+        group3: group3 ?? null,
+        image: result ?? null,
+        group4: group4 ?? null,
+        program_id: program_id ?? null,
+        udise: udise ?? null,
+        address: address ?? null,
+        created_at: timestamp,
+        updated_at: timestamp,
+        is_deleted: false,
+        model: null,
+        academic_year: null,
+        firebase_id: null,
+        is_firebase: null,
+        is_ops: null,
+        language: null,
+        ops_created_by: null,
+        student_login_type: null,
+        status: STATUS.REQUESTED,
+        key_contacts: null,
+        country: country ?? null,
+        location_link: null,
+      };
 
-    if (schoolError) {
-      console.error("Error inserting into school:", schoolError);
-      throw schoolError;
+      const { error: schoolError } = await this.supabase
+        .from(TABLES.School)
+        .insert([newSchool]);
+
+      if (schoolError) {
+        console.error("Error inserting into school:", schoolError);
+        throw schoolError;
+      }
     }
 
-    // Create school_user entry
-    const newSchoolUser: TableTypes<"school_user"> = {
-      id: uuidv4(),
-      school_id: schoolId,
-      user_id: _currentUser.id,
-      role: RoleType.PRINCIPAL,
-      created_at: timestamp,
-      updated_at: timestamp,
-      is_deleted: false,
-      is_firebase: null,
-      is_ops: null,
-      ops_created_by: null,
-    };
+    if (oSchoolUser) {
+      const newSchoolUser: TableTypes<"school_user"> = {
+        id: uuidv4(),
+        school_id: schoolId,
+        user_id: _currentUser.id,
+        role: RoleType.PRINCIPAL,
+        created_at: timestamp,
+        updated_at: timestamp,
+        is_deleted: false,
+        is_firebase: null,
+        is_ops: null,
+        ops_created_by: null,
+      };
 
-    const { error: userError } = await this.supabase
-      .from(TABLES.SchoolUser)
-      .insert([newSchoolUser]);
+      const { error: userError } = await this.supabase
+        .from(TABLES.SchoolUser)
+        .insert([newSchoolUser]);
 
-    if (userError) {
-      console.error("Error inserting into school_user:", userError);
-      throw userError;
+      if (userError) {
+        console.error("Error inserting into school_user:", userError);
+        throw userError;
+      }
     }
 
-    return newSchool;
+    return newSchool ?? ({} as TableTypes<"school">);
   }
 
   async requestNewSchool(
@@ -2749,10 +2814,10 @@ export class SupabaseApi implements ServiceApi {
       .eq("is_deleted", false)
       .single();
 
-    if (specialError) {
-      console.error("Error fetching special_users:", specialError);
-    } else if (specialUser) {
-      const role = specialUser.role as RoleType;
+  if (specialError) {
+    console.error("Error fetching special_users:", specialError);
+  } else if (specialUser) {
+    const role = specialUser.role as RoleType;
 
       // --- SUPER ADMIN / OPERATIONAL DIRECTOR ---
       if (
@@ -2893,8 +2958,9 @@ export class SupabaseApi implements ServiceApi {
       }
     }
 
-    return finalData;
-  }
+  return finalData;
+}
+
 
   public set currentMode(value: MODES) {
     this._currentMode = value;
@@ -3597,7 +3663,10 @@ export class SupabaseApi implements ServiceApi {
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw new Error("User is not Logged in");
 
-    const updateData: any = { name: className };
+    const updateData: any = {
+      name: className,
+      updated_at: new Date().toISOString(),
+    };
     if (groupId !== undefined) updateData.group_id = groupId;
 
     const { error } = await this.supabase
@@ -8665,7 +8734,7 @@ export class SupabaseApi implements ServiceApi {
     if (address?.address !== undefined) updatePayload.group4 = address.address;
 
     if (keyContacts) {
-      updatePayload.key_contacts = JSON.stringify(keyContacts); 
+      updatePayload.key_contacts = JSON.stringify(keyContacts);
     }
     const { error } = await this.supabase
       .from("school")
@@ -8933,6 +9002,12 @@ export class SupabaseApi implements ServiceApi {
     if (!role) {
       throw new Error("A role is required to link a user to a school.");
     }
+    const classIds = classId
+      ? Array.isArray(classId)
+        ? classId
+        : [classId]
+      : [];
+
     const timestamp = new Date().toISOString();
     const { data, error } = await this.supabase.functions.invoke(
       "get_or_create_user",
@@ -8953,6 +9028,56 @@ export class SupabaseApi implements ServiceApi {
       user: { id: string; [key: string]: any };
     };
     const isNewUser = message === "success-created";
+    const isPrincipalRole = role === RoleType.PRINCIPAL;
+    const isTeacherRole = role === RoleType.TEACHER;
+    if (isPrincipalRole) {
+      const { data: teacherClassUser, error: teacherClassUserError } =
+        await this.supabase
+          .from("class_user")
+          .select("id, class_id, role")
+          .eq("user_id", user.id)
+          .eq("is_deleted", false)
+          .eq("role", RoleType.TEACHER || "teacher")
+          .limit(1)
+          .maybeSingle();
+      if (teacherClassUserError) {
+        console.error(
+          "Failed to check teacher role in class_user:",
+          teacherClassUserError
+        );
+        throw teacherClassUserError;
+      }
+      if (teacherClassUser) {
+        throw new Error(
+          "This user is already assigned as a Teacher in a class and cannot be made Principal."
+        );
+      }
+    }
+
+    if (isTeacherRole && schoolId) {
+      const { data: principalSchoolUser, error: principalSchoolUserError } =
+        await this.supabase
+          .from("school_user")
+          .select("id, role")
+          .eq("school_id", schoolId)
+          .eq("user_id", user.id)
+          .eq("is_deleted", false)
+          .eq("role", RoleType.PRINCIPAL || "principal")
+          .maybeSingle();
+      if (principalSchoolUserError) {
+        console.error(
+          "Failed to check principal role in school_user:",
+          principalSchoolUserError
+        );
+        throw principalSchoolUserError;
+      }
+      if (principalSchoolUser) {
+        throw new Error(
+          "This user is already assigned as Principal in this school and cannot be added as Teacher."
+        );
+      }
+    }
+
     let schoolUser: any | null = null;
     if (schoolId) {
       const { data: existingSchoolUser, error: existingSchoolUserError } =
@@ -9005,13 +9130,14 @@ export class SupabaseApi implements ServiceApi {
         schoolUser = inserted;
       }
     }
-    let classUser: any | null = null;
-    if (classId) {
+
+    const classUsers: any[] = [];
+    for (const classIdItem of classIds) {
       const { data: existingClassUser, error: existingClassUserError } =
         await this.supabase
           .from("class_user")
           .select("*")
-          .eq("class_id", classId)
+          .eq("class_id", classIdItem)
           .eq("user_id", user.id)
           .eq("is_deleted", false)
           .maybeSingle();
@@ -9035,11 +9161,11 @@ export class SupabaseApi implements ServiceApi {
           console.error("Failed to update class_user:", updateClassError);
           throw updateClassError;
         }
-        classUser = updatedClass ?? existingClassUser;
+        classUsers.push(updatedClass ?? existingClassUser);
       } else {
         const classUserPayload = {
           id: uuidv4(),
-          class_id: classId,
+          class_id: classIdItem,
           user_id: user.id,
           role,
           is_deleted: false,
@@ -9056,13 +9182,14 @@ export class SupabaseApi implements ServiceApi {
           console.error("Failed to insert class_user:", insertClassError);
           throw insertClassError;
         }
-        classUser = insertedClass;
+        classUsers.push(insertedClass);
       }
     }
+
     return {
       user,
       schoolUser,
-      classUser,
+      classUsers,
       isNewUser,
     };
   }
@@ -9138,7 +9265,6 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-
   async addStudentWithParentValidation(params: {
     phone: string;
     name: string;
@@ -9147,22 +9273,14 @@ export class SupabaseApi implements ServiceApi {
     classId: string;
     schoolId?: string;
     parentName?: string;
-    email?:string;
+    email?: string;
   }): Promise<{ success: boolean; message: string; data?: any }> {
     if (!this.supabase) {
       return { success: false, message: "Supabase client is not initialized" };
     }
 
-    const {
-      phone,
-      name,
-      gender,
-      age,
-      classId,
-      schoolId,
-      parentName,
-      email,
-    } = params;
+    const { phone, name, gender, age, classId, schoolId, parentName, email } =
+      params;
     const timestamp = new Date().toISOString();
     const finalAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)];
     try {
@@ -9184,7 +9302,11 @@ export class SupabaseApi implements ServiceApi {
 
       const { data: userData, error: userError } =
         await this.supabase.functions.invoke("get_or_create_user", {
-          body: { name: parentName || "Parent", phone: phone, email: email || "" },
+          body: {
+            name: parentName || "Parent",
+            phone: phone,
+            email: email || "",
+          },
         });
 
       if (userError) {
@@ -9327,4 +9449,70 @@ export class SupabaseApi implements ServiceApi {
       };
     }
   }
+   async getActivitiesBySchoolId(schoolId: string): Promise<TableTypes<"fc_user_forms">[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from("fc_user_forms")
+      .select("*")
+      .eq("school_id",schoolId)
+      .eq("is_deleted", false)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching user forms:", error);
+      return [];
+    }
+
+    return data ?? [];
+  }
+  async getSchoolVisitById(
+    visitId: string
+  ): Promise<TableTypes<"fc_school_visit"> | null> {
+    if (!this.supabase) return null;
+
+    const { data, error } = await this.supabase
+      .from("fc_school_visit")
+      .select("*")
+      .eq("id", visitId)
+      .eq("is_deleted", false)
+      .single();
+
+    if (error) {
+      console.error("Error fetching visit:", error);
+      return null;
+    }
+
+    return data;
+  }
+
+  async getActivitiesFilterOptions() {
+    try {
+      if (!this.supabase) return null;
+
+      const { data, error } = await this.supabase
+        .from("fc_user_forms")
+        .select("contact_target, support_level")
+        .eq("is_deleted", false);
+
+      if (error) throw error;
+
+      const forms = data || [];
+
+      const contactTypes = [...new Set(forms.map(f => f.contact_target).filter(Boolean))];
+      const performance = [...new Set(forms.map(f => f.support_level).filter(Boolean))];
+
+      return {
+        contactType: contactTypes,
+        performance: performance,
+      };
+
+    } catch (error) {
+      console.error("Error in getActivitiesFilterOptions:", error);
+      throw error;
+    }
+  }
+
 }
+
+

@@ -29,18 +29,19 @@ export class OpsUtil {
 
     return {
       valid: true,
-      internationalFormat: phone.formatInternational(),     //'+91 98765 43210'
-      nationalFormat: phone.formatNational(),               // '098765 43210'
-      e164Format: phone.format("E.164"),                    //'+919876543210'
+      internationalFormat: phone.formatInternational(), //'+91 98765 43210'
+      nationalFormat: phone.formatNational(), // '098765 43210'
+      e164Format: phone.format("E.164"), //'+919876543210'
       countryCode: phone.country,
       type: phone.getType(),
-      nationalWithoutZero: phone.nationalNumber.replace(/^0/, ""),    //'9876543210'
+      nationalWithoutZero: phone.nationalNumber.replace(/^0/, ""), //'9876543210'
     };
   }
 
-  public static parseClassName(
-    className: string
-  ): { grade: number; section: string } {
+  public static parseClassName(className: string): {
+    grade: number;
+    section: string;
+  } {
     const cleanedName = className.trim();
     if (!cleanedName) {
       return { grade: 0, section: "" };
@@ -71,7 +72,7 @@ export class OpsUtil {
     return { grade: 0, section: cleanedName };
   }
 
-  public static formatDT(dateString: string): string {
+  public static formatDT(dateString: string): string {     // Example: "22 Nov 2025, 10:10 am"
     if (!dateString) return "-";
     const date = new Date(dateString);
     return date.toLocaleString("en-IN", {
@@ -81,5 +82,37 @@ export class OpsUtil {
       hour: "2-digit",
       minute: "2-digit",
     });
+  }
+  public static formatTimeToIST(utcTime: string | null): string {      // Example: "10:10 AM"
+    if (!utcTime) return "--";
+
+    const date = new Date(utcTime);
+
+    const formatted = date.toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "Asia/Kolkata",
+    });
+
+    return formatted.replace(/am|pm/i, (match) => match.toUpperCase());
+  }
+
+  public static formatDateToDDMMMyyyy(utcDate: string | null): string {     // Example: "22-Nov-2025"
+    if (!utcDate) return "--";
+
+    const date = new Date(utcDate);
+
+    const options: Intl.DateTimeFormatOptions = {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      timeZone: "Asia/Kolkata",
+    };
+
+    // Example: "22 Nov 2025"
+    const formatted = date.toLocaleDateString("en-IN", options);
+
+    return formatted.replace(/ /g, "-");
   }
 }

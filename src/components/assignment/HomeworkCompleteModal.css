@@ -21,16 +21,20 @@
   position: absolute;
   bottom: 0;
   left: 50%;
-  transform: translateX(-50%);
-  /* INCREASED SIZE: Make it wider than the column allows */
+
+  /* same transform as you had (this controls the exact visual position) */
+  transform: translateX(-46%) translateY(51%);
+
+  /* same size as before */
   width: clamp(11rem, 30vw, 20rem);
   max-width: none;
-
   height: auto;
-  object-fit: contain;
+
   user-select: none;
-  transform: translateX(-46%) translateY(51%);
+  pointer-events: none; /* so clicks go through to card/buttons */
+  /* object-fit is not needed anymore, it was for <img> */
 }
+
 
 .homework-completed-banner {
   width: 150%;
@@ -71,9 +75,14 @@
 }
 
 .homework-completed-mascot-rive {
-  width: clamp(6.5rem, 18vw, 11.5rem);
-  height: clamp(7rem, 22vw, 14rem);
+  width: clamp(9rem, 26vw, 18rem);
+  height: clamp(10rem, 30vw, 20rem);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
 
 .homework-completed-mascot-rive canvas,
 .homework-completed-mascot-rive svg,
@@ -81,6 +90,7 @@
   width: 100%;
   height: 100%;
 }
+
 
 /* Center text + button */
 .homework-completed-center {
@@ -110,7 +120,7 @@
 
 /* CTA Button */
 .homework-completed-play-btn {
-  width: clamp(8rem, 26vw, 10rem);
+  width: clamp(9rem, 27vw, 11rem);
   height: clamp(3rem, 7vh, 3rem);
 
   /* border-radius: 0.75rem; */

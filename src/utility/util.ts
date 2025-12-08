@@ -62,6 +62,9 @@ import {
   DAILY_USER_REWARD,
   REWARD_LEARNING_PATH,
   HOMEWORK_PATHWAY,
+  STARS_COUNT,
+  LATEST_STARS,
+  CURRENT_CLASS,
 } from "../common/constants";
 import {
   Chapter as curriculamInterfaceChapter,
@@ -450,7 +453,7 @@ export class Util {
                 }
               } catch {
                 console.error(
-                  `[LessonDownloader] Lesson ${lessonId} not found at local bundle path`
+                  `[LessonDownloader] Lesson ${lessonId} not found at local bundle path - Starting download...`
                 );
               }
               const bundleZipUrls: string[] = await RemoteConfig.getJSON(
@@ -463,18 +466,42 @@ export class Util {
 
               let zip: any;
               let downloadAttempts = 0;
+              let downloadSuccessful = false;
 
-              while (downloadAttempts < MAX_DOWNLOAD_LESSON_ATTEMPTS) {
+              while (
+                downloadAttempts < MAX_DOWNLOAD_LESSON_ATTEMPTS &&
+                !downloadSuccessful
+              ) {
                 for (const bundleUrl of bundleZipUrls) {
                   const zipUrl = bundleUrl + lessonId + ".zip";
                   try {
-                    zip = await CapacitorHttp.get({
+                    console.log(
+                      `[LessonDownloader] Attempting download from: ${zipUrl}`
+                    );
+                    const downloadPromise = await CapacitorHttp.get({
                       url: zipUrl,
                       responseType: "blob",
                       headers: {},
+                      readTimeout: 10000,
+                      connectTimeout: 10000,
                     });
+                    const timeoutPromise = new Promise((_, reject) =>
+                      setTimeout(
+                        () => reject(new Error("Download timeout after 20s")),
+                        10000
+                      )
+                    );
+                    zip = await Promise.race([downloadPromise, timeoutPromise]);
                     if (zip && zip.data && zip.status === 200) {
+                      console.log(
+                        `[LessonDownloader] Successfully downloaded ${lessonId} from ${zipUrl}`
+                      );
+                      downloadSuccessful = true;
                       break;
+                    } else {
+                      console.warn(
+                        `[LessonDownloader] Download returned status ${zip?.status} for ${zipUrl}`
+                      );
                     }
                   } catch (err) {
                     console.error(
@@ -483,7 +510,12 @@ export class Util {
                     );
                   }
                 }
-                downloadAttempts++;
+                if (!downloadSuccessful) {
+                  downloadAttempts++;
+                  console.warn(
+                    `[LessonDownloader] Attempt ${downloadAttempts}/${MAX_DOWNLOAD_LESSON_ATTEMPTS} failed for ${lessonId}`
+                  );
+                }
               }
 
               if (!zip || !zip.data || zip.status !== 200) {
@@ -2033,7 +2065,11 @@ export class Util {
   public static getCurrentClass(): TableTypes<"class"> | undefined {
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentClass) return api.currentClass;
-    const temp = localStorage.getItem(CLASS);
+    // 🔹 Try CLASS first, then CURRENT_CLASS as fallback
+    let temp = localStorage.getItem(CLASS);
+    if ((!temp || temp === "undefined") && CURRENT_CLASS) {
+      temp = localStorage.getItem(CURRENT_CLASS) || null;
+    }
     if (!temp || temp === "undefined") return;
 
     try {
@@ -2063,7 +2099,7 @@ export class Util {
           url: url,
           imageFile: imageFile, // Pass the File object for Android
         })
-        .then(() => {})
+        .then(() => { })
         .catch((error) => console.error("Error sharing content:", error));
     } else {
       // Web sharing
@@ -2076,7 +2112,7 @@ export class Util {
 
       await navigator
         .share(shareData)
-        .then(() => {})
+        .then(() => { })
         .catch((error) => console.error("Error sharing content:", error));
     }
   }
@@ -2526,7 +2562,7 @@ export class Util {
           .toISOString()
           .split("T")[0] !== new Date().toISOString().split("T")[0] ||
         dailyUserReward[currentStudent.id].reward_id !==
-          currentReward?.reward_id
+        currentReward?.reward_id
       ) {
         // Update localStorage
         dailyUserReward[currentStudent.id].reward_id = currentReward.reward_id;
@@ -2562,7 +2598,7 @@ export class Util {
   }
   public static async updateHomeworkPath(completedIndex?: number) {
     try {
-      const storedPath = sessionStorage.getItem(HOMEWORK_PATHWAY);
+      const storedPath = localStorage.getItem(HOMEWORK_PATHWAY);
       if (!storedPath) {
         console.error(
           "Could not find homework path in sessionStorage to update."
@@ -2581,10 +2617,10 @@ export class Util {
 
       // Check if the 5-lesson path is now complete
       if (newCurrentIndex >= homeworkPath.lessons.length) {
-        sessionStorage.removeItem(HOMEWORK_PATHWAY);
+        localStorage.removeItem(HOMEWORK_PATHWAY);
       } else {
         homeworkPath.currentIndex = newCurrentIndex;
-        sessionStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(homeworkPath));
+        localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(homeworkPath));
       }
     } catch (error) {
       console.error("Failed to update homework path:", error);
@@ -2628,7 +2664,7 @@ export class Util {
           .path_id;
       // Update currentIndex
       currentCourse.currentIndex += 1;
-
+      const is_immediate_sync = currentCourse.currentIndex >= currentCourse.pathEndIndex;
       // Check if currentIndex exceeds pathEndIndex
       if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
         if (isRewardLesson) {
@@ -2650,7 +2686,8 @@ export class Util {
 
         await ServiceConfig.getI().apiHandler.setStarsForStudents(
           currentStudent.id,
-          10
+          10,
+          false
         );
         // Loop back to the first course if at the last course
         if (courses.currentCourseIndex >= courses.courseList.length) {
@@ -2690,11 +2727,11 @@ export class Util {
         await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
         await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
       }
-
       // Update the learning path in the database
       await ServiceConfig.getI().apiHandler.updateLearningPath(
         currentStudent,
-        JSON.stringify(learningPath)
+        JSON.stringify(learningPath),
+        is_immediate_sync
       );
       // Update the current student object
       const updatedStudent =
@@ -2708,6 +2745,45 @@ export class Util {
   }
 
   // In Util.ts or your utility file
+  public static getLocalStarsForStudent(
+    studentId: string,
+    fallback: number = 0
+  ): number {
+    try {
+      const storedStarsJson = localStorage.getItem(STARS_COUNT);
+      const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
+      const localStarsRaw = storedStarsMap[studentId];
+
+      const latestStarsJson = localStorage.getItem(LATEST_STARS);
+      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
+      const latestStarsRaw = latestStarsMap[studentId];
+
+      const localStars = Number.isFinite(+localStarsRaw)
+        ? parseInt(localStarsRaw, 10)
+        : 0;
+      const latestStars = Number.isFinite(+latestStarsRaw)
+        ? parseInt(latestStarsRaw, 10)
+        : 0;
+
+      // ✅ FIXED: Prioritize local > latest > fallback, seed local if needed
+      let bestLocal = Math.max(localStars, latestStars);
+
+      if (bestLocal === 0 && fallback > 0) {
+        // First load: seed localStorage with DB value
+        bestLocal = fallback;
+        Util.setLocalStarsForStudent(studentId, bestLocal);
+        console.log(
+          `[Stars] Seeded localStorage for ${studentId} with DB fallback: ${bestLocal}`
+        );
+      }
+
+      console.log("Testing 8", bestLocal, localStars, latestStars, fallback);
+      return bestLocal;
+    } catch (e) {
+      console.warn("[Util.getLocalStarsForStudent] failed, using fallback", e);
+      return fallback;
+    }
+  }
 
   public static async fetchCurrentClassAndSchool(): Promise<{
     className: string;
@@ -2737,9 +2813,53 @@ export class Util {
     }
     return { className, schoolName };
   }
+
+  // Write a specific star count into BOTH STARS_COUNT and LATEST_STARS
+  public static setLocalStarsForStudent(
+    studentId: string,
+    stars: number
+  ): void {
+    try {
+      const storedStarsJson = localStorage.getItem(STARS_COUNT);
+      const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
+      storedStarsMap[studentId] = stars;
+      localStorage.setItem(STARS_COUNT, JSON.stringify(storedStarsMap));
+
+      const latestStarsJson = localStorage.getItem(LATEST_STARS);
+      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
+      latestStarsMap[studentId] = stars;
+      localStorage.setItem(LATEST_STARS, JSON.stringify(latestStarsMap));
+    } catch (e) {
+      console.warn("[Util.setLocalStarsForStudent] failed", e);
+    }
+  }
+
+  // Add delta to local stars and fire a DOM event so React screens can react immediately
+  public static bumpLocalStarsForStudent(
+    studentId: string,
+    delta: number,
+    fallback: number = 0
+  ): number {
+    const current = Util.getLocalStarsForStudent(studentId, fallback);
+    const next = current + delta;
+    Util.setLocalStarsForStudent(studentId, next);
+
+    try {
+      window.dispatchEvent(
+        new CustomEvent("starsUpdated", {
+          detail: { studentId, newStars: next },
+        })
+      );
+    } catch (e) {
+      console.warn("[Util.bumpLocalStarsForStudent] event dispatch failed", e);
+    }
+
+    return next;
+  }
+
   public static isVersionAllowed(upto: string, current: string): boolean {
-    const u = upto.split('.').map(n => parseInt(n, 10));
-    const c = current.split('.').map(n => parseInt(n, 10));
+    const u = upto.split(".").map((n) => parseInt(n, 10));
+    const c = current.split(".").map((n) => parseInt(n, 10));
 
     for (let i = 0; i < Math.max(u.length, c.length); i++) {
       const nu = u[i] || 0;
@@ -2751,80 +2871,119 @@ export class Util {
 
     return true;
   }
+
   public static pickFiveHomeworkLessons(
     assignments: any[],
     completedCountBySubject: { [key: string]: number } = {}
   ): any[] {
-    const pendingBySubject: { [key: string]: any[] } = {};
+    // 1️⃣ Only work with pending assignments
+    const pending = assignments.filter((a) => !a.completed);
 
-    // Group pending (not completed) assignments per subject
-    assignments.forEach((a) => {
-      if (!a.completed) {
-        if (!pendingBySubject[a.subject_id]) {
-          pendingBySubject[a.subject_id] = [];
+    // 2️⃣ Split manual vs non-manual
+    const manualPending = pending.filter((a) => a.source === "manual");
+    const otherPending = pending.filter((a) => a.source !== "manual");
+
+    // 3️⃣ Core subject-balancing selector (your old logic, refactored)
+    const pickFiveFrom = (sourceAssignments: any[]): any[] => {
+      const pendingBySubject: { [key: string]: any[] } = {};
+
+      sourceAssignments.forEach((a) => {
+        const subjectId = a.subject_id;
+        if (!subjectId) return;
+        if (!pendingBySubject[subjectId]) {
+          pendingBySubject[subjectId] = [];
         }
-        pendingBySubject[a.subject_id].push(a);
+        pendingBySubject[subjectId].push(a);
+      });
+
+      if (Object.keys(pendingBySubject).length === 0) {
+        return [];
       }
-    });
 
-    // Find subjects with max pending
-    let maxPending = 0;
-    let subjectsWithMaxPending: string[] = [];
+      // Find subjects with max pending
+      let maxPending = 0;
+      let subjectsWithMaxPending: string[] = [];
 
-    Object.keys(pendingBySubject).forEach((subject) => {
-      const length = pendingBySubject[subject].length;
-      if (length > maxPending) {
-        maxPending = length;
-        subjectsWithMaxPending = [subject];
-      } else if (length === maxPending) {
-        subjectsWithMaxPending.push(subject);
-      }
-    });
-
-    let bestSubject: string | null = null;
-
-    if (subjectsWithMaxPending.length === 1) {
-      bestSubject = subjectsWithMaxPending[0];
-    } else if (subjectsWithMaxPending.length > 1) {
-      // tie-break by fewer completed using the external completed count map
-      let minCompleted = Number.MAX_SAFE_INTEGER;
-      subjectsWithMaxPending.forEach((subject) => {
-        const completedCount = completedCountBySubject[subject] ?? 0;
-        if (completedCount < minCompleted) {
-          minCompleted = completedCount;
-          bestSubject = subject;
+      Object.keys(pendingBySubject).forEach((subject) => {
+        const length = pendingBySubject[subject].length;
+        if (length > maxPending) {
+          maxPending = length;
+          subjectsWithMaxPending = [subject];
+        } else if (length === maxPending) {
+          subjectsWithMaxPending.push(subject);
         }
       });
-    }
+
+      let bestSubject: string | null = null;
+
+      if (subjectsWithMaxPending.length === 1) {
+        bestSubject = subjectsWithMaxPending[0];
+      } else if (subjectsWithMaxPending.length > 1) {
+        // tie-break by fewer completed using completedCountBySubject
+        let minCompleted = Number.MAX_SAFE_INTEGER;
+        subjectsWithMaxPending.forEach((subject) => {
+          const completedCount = completedCountBySubject[subject] ?? 0;
+          if (completedCount < minCompleted) {
+            minCompleted = completedCount;
+            bestSubject = subject;
+          }
+        });
+      }
+
+      if (!bestSubject) {
+        return [];
+      }
+
+      let result: any[] = [];
+
+      const bestSubjectPending = pendingBySubject[bestSubject] || [];
+
+      if (bestSubjectPending.length >= 5) {
+        // If one subject alone has >= 5 pending, take first 5 from that subject
+        result = bestSubjectPending.slice(0, 5);
+      } else {
+        // Otherwise fill from bestSubject first, then other subjects with more pending
+        result = [...bestSubjectPending];
+        const remaining = 5 - result.length;
+
+        const otherSubjects = Object.keys(pendingBySubject)
+          .filter((s) => s !== bestSubject)
+          .sort(
+            (a, b) =>
+              (pendingBySubject[b]?.length || 0) -
+              (pendingBySubject[a]?.length || 0)
+          );
+
+        for (const subj of otherSubjects) {
+          if (result.length >= 5) break;
+          const bucket = pendingBySubject[subj] || [];
+          const toTake = Math.min(5 - result.length, bucket.length);
+          result = result.concat(bucket.slice(0, toTake));
+        }
+      }
+
+      return result;
+    };
 
     let result: any[] = [];
 
-    if (bestSubject && maxPending >= 5) {
-      // If one subject alone has >= 5 pending, take first 5 from that subject
-      result = pendingBySubject[bestSubject].slice(0, 5);
-    } else if (bestSubject && maxPending < 5) {
-      // Otherwise fill from bestSubject first, then other subjects with more pending
-      result = [...(pendingBySubject[bestSubject] || [])];
-      const remaining = 5 - result.length;
-
-      const otherSubjects = Object.keys(pendingBySubject)
-        .filter((s) => s !== bestSubject)
-        .sort(
-          (a, b) =>
-            (pendingBySubject[b]?.length || 0) -
-            (pendingBySubject[a]?.length || 0)
-        );
-
-      for (const subj of otherSubjects) {
-        if (result.length >= 5) break;
-        const toTake = Math.min(
-          5 - result.length,
-          pendingBySubject[subj].length
-        );
-        result = result.concat(pendingBySubject[subj].slice(0, toTake));
-      }
+    // 4️⃣ First priority: MANUAL assignments
+    if (manualPending.length > 0) {
+      result = pickFiveFrom(manualPending);
     }
 
-    return result;
+    // 5️⃣ If less than 5 manuals, fill remaining with non-manual
+    if (result.length < 5 && otherPending.length > 0) {
+      const remainingSlots = 5 - result.length;
+      const othersPicked = pickFiveFrom(otherPending)
+        // Avoid duplicates, just in case
+        .filter((a) => !result.some((r) => r.id === a.id))
+        .slice(0, remainingSlots);
+
+      result = result.concat(othersPicked);
+    }
+
+    // Ensure we never return more than 5
+    return result.slice(0, 5);
   }
 }

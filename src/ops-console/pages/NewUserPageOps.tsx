@@ -34,13 +34,13 @@ export type UserSchoolClassParams = {
   email?: string;
   schoolId?: string;
   role?: RoleType.TEACHER | RoleType.PRINCIPAL;
-  classId?: string;
+  classId?: string | string[];
 };
 
 export type UserSchoolClassResult = {
   user: any;
   schoolUser: any | null;
-  classUser: any | null;
+  classUsers: any[];
   isNewUser: boolean;
 };
 
@@ -279,6 +279,7 @@ const NewUserPage: React.FC = () => {
                 }}
               />
             </Grid>
+
 
             <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
               <Typography className="ops-new-user-form_label">
