@@ -83,6 +83,7 @@ interface SchoolStudentsProps {
 }
 
 const ROWS_PER_PAGE = 20;
+const FETCHING_UPPER_BOUND = 1000000  ;
 
 const sameSection = (a?: string, b?: string) =>
   String(a ?? "")
@@ -160,8 +161,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         } else {
           response = await api.getStudentInfoBySchoolId(
             schoolId,
-            currentPage,
-            ROWS_PER_PAGE
+            1,
+            FETCHING_UPPER_BOUND
           );
           setStudents(response.data);
           setTotalCount(response.total);
@@ -395,6 +396,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     fetchStudentPerformance();
   }, [sortedStudents, optionalGrade, optionalSection, issTotal, baseStudents]);
 
+  const paginate = (list: DisplayStudent[], page: number, limit: number) => {
+    const start = (page - 1) * limit;
+    return list.slice(start, start + limit);
+  };
+
   const studentsForCurrentPage = useMemo((): DisplayStudent[] => {
     let filtered = sortedStudents.map(
       (s_api): DisplayStudent => ({
@@ -416,12 +422,13 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         return perf === performanceFilter;
       });
     }
-    return filtered;
-  }, [sortedStudents, performanceFilter, studentPerformanceMap]);
+    return paginate(filtered, page, ROWS_PER_PAGE);
+  }, [sortedStudents, performanceFilter, studentPerformanceMap,page]);
 
   const pageCount = useMemo(() => {
-    return Math.ceil(totalCount / ROWS_PER_PAGE);
-  }, [totalCount, filters, searchTerm, filteredStudents.length]);
+
+    return Math.ceil(sortedStudents.length / ROWS_PER_PAGE);
+  }, [sortedStudents]);
 
   const isDataPresent = studentsForCurrentPage.length > 0;
   const isFilteringOrSearching =
