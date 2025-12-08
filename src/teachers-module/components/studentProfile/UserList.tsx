@@ -33,7 +33,10 @@ const UserList: React.FC<{
   }, []);
 
   const canDelete = useMemo(
-    () => OPS_ROLES.some((role) => currentUserRoles.includes(role)),
+    () =>
+      OPS_ROLES.some((role) => currentUserRoles.includes(role)) ||
+      currentUserRoles.includes(RoleType.PRINCIPAL) ||
+      currentUserRoles.includes(RoleType.COORDINATOR),
     [currentUserRoles]
   );
   const init = async () => {

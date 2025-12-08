@@ -105,9 +105,13 @@ const SchoolUserList: React.FC<{
   };
 
   const canDelete = useMemo(
-    () => OPS_ROLES.some((role) => currentUserRoles.includes(role)),
-    [currentUserRoles]
-  );
+  () =>
+    OPS_ROLES.some((role) => currentUserRoles.includes(role)) ||
+    currentUserRoles.includes(RoleType.PRINCIPAL) ||
+    currentUserRoles.includes(RoleType.COORDINATOR),
+  [currentUserRoles]
+);
+
 
   return (
     <div>
@@ -123,7 +127,7 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {canDelete && (
+                {canDelete && index !== 0 && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(principal)}
