@@ -80,15 +80,30 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     : "";
 
   const [localQuestions, setLocalQuestions] = useState<Q[]>([]);
-  if (!studentData) {
-    return null;
-  }
-  const { user, parent, classSection, grade } = studentData;
 
-  const name = user?.name ?? "";
-  const phone = user?.phone ?? parent?.phone ?? "";
-  const email = user?.email ?? parent?.email ?? "";
-  const className = classSection ?? grade ?? "";
+  let name = "";
+  let phone = "";
+  let email = "";
+  let className = "";
+
+  if (studentData) {
+    const { user, parent, classSection, grade } = studentData;
+
+    name = user?.name ?? "";
+    phone = user?.phone ?? parent?.phone ?? "";
+    email = user?.email ?? parent?.email ?? "";
+    className = classSection ?? grade ?? "";
+  } else if (teacherData) {
+    const { user, grade, classSection } = teacherData;
+    name = user?.name ?? "";
+    phone = user?.phone ?? "";
+    email = user?.email ?? "";
+    className = classSection || grade?.toString() || "";
+  } else if (principalData) {
+    name = principalData?.name ?? "";
+    phone = principalData?.phone ?? "";
+    email = principalData?.email ?? "";
+  }
 
   useEffect(() => {
     let mounted = true;
