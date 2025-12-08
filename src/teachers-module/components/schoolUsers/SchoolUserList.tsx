@@ -127,7 +127,7 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {canDelete && index !== 0 && (
+                {canDelete && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(principal)}
