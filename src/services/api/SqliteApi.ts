@@ -635,7 +635,7 @@ export class SqliteApi implements ServiceApi {
     tableNames: TABLES[] = Object.values(TABLES),
     refreshTables: TABLES[] = [],
     isFirstSync?: boolean,
-    is_sync_immediate?: boolean
+    is_sync_immediate: boolean = true
   ) {
     if (!this._db) return;
     const refresh_tables = "'" + refreshTables.join("', '") + "'";
@@ -653,7 +653,7 @@ export class SqliteApi implements ServiceApi {
     const now = new Date();
     const diffMs = now.getTime() - lastUserUpdated.getTime();
     const diffMinutes = diffMs / (1000 * 60);
-    if (diffMinutes > 5 || is_sync_immediate) {
+    if (diffMinutes > 5 || is_sync_immediate || refreshTables.length > 0) {
       await this.pullChanges(tableNames, isFirstSync);
       const res = await this.pushChanges(tableNames);
       const tables = "'" + tableNames.join("', '") + "'";
@@ -789,7 +789,7 @@ export class SqliteApi implements ServiceApi {
       ]
     );
 
-    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
+    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent, false);
     await this.updatePushChanges(TABLES.ParentUser, MUTATE_TYPES.INSERT, {
       id: parentUserId,
       parent_id: _currentUser.id,
@@ -797,31 +797,40 @@ export class SqliteApi implements ServiceApi {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       is_deleted: false,
-    });
+    }, false);
     let courses: TableTypes<"course">[] = [];
     if (gradeDocId && boardDocId) {
       courses = await this.getCourseByUserGradeId(gradeDocId, boardDocId);
-      for (const course of courses) {
+      for (let idx = 0; idx < courses.length; idx++) {
+        const course = courses[idx];
+        const isLast = idx === courses.length - 1; // ✅ true only for last
+
+        const now = new Date().toISOString();
+
         const newUserCourse: TableTypes<"user_course"> = {
           course_id: course.id,
-          created_at: new Date().toISOString(),
+          created_at: now,
           id: uuidv4(),
           is_deleted: false,
-          updated_at: new Date().toISOString(),
+          updated_at: now,
           user_id: studentId,
           is_firebase: null,
         };
+
         await this.executeQuery(
           `
       INSERT INTO user_course (id, user_id, course_id)
-    VALUES (?, ?, ?);
-  `,
+      VALUES (?, ?, ?);
+    `,
           [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
         );
+
+        // 🔥 Pass isLast here
         this.updatePushChanges(
           TABLES.UserCourse,
           MUTATE_TYPES.INSERT,
-          newUserCourse
+          newUserCourse,
+          isLast
         );
       }
     } else {
@@ -849,29 +858,37 @@ export class SqliteApi implements ServiceApi {
         langCourse,
         digitalSkillsCourse,
       ].filter(Boolean);
-      for (const course of coursesToAdd) {
+      for (let idx = 0; idx < coursesToAdd.length; idx++) {
+        const course = coursesToAdd[idx];
+        const isLast = idx === coursesToAdd.length - 1; // ✅ true only for last
+        const now = new Date().toISOString();
+
         const newUserCourse: TableTypes<"user_course"> = {
           course_id: course.id,
-          created_at: new Date().toISOString(),
+          created_at: now,
           id: uuidv4(),
           is_deleted: false,
-          updated_at: new Date().toISOString(),
+          updated_at: now,
           user_id: studentId,
           is_firebase: null,
         };
+
         await this.executeQuery(
           `
       INSERT INTO user_course (id, user_id, course_id)
-    VALUES (?, ?, ?);
-  `,
+      VALUES (?, ?, ?);
+    `,
           [newUserCourse.id, newUserCourse.user_id, newUserCourse.course_id]
         );
+
         this.updatePushChanges(
           TABLES.UserCourse,
           MUTATE_TYPES.INSERT,
-          newUserCourse
+          newUserCourse,
+          isLast // 🔥 false for all except last
         );
       }
+
     }
     return newStudent;
   }
@@ -1263,7 +1280,7 @@ export class SqliteApi implements ServiceApi {
         newStudent.student_id,
       ]
     );
-    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent);
+    await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent, false);
     // Insert into class_user table
     const classUserId = uuidv4();
     const newClassUser: TableTypes<"class_user"> = {
@@ -1304,7 +1321,10 @@ export class SqliteApi implements ServiceApi {
   ): Promise<void> {
     const currentDate = new Date().toISOString();
 
-    for (const courseId of selectedCourseIds) {
+    for (let idx = 0; idx < selectedCourseIds.length; idx++) {
+      const courseId = selectedCourseIds[idx];
+      const isLast = idx === selectedCourseIds.length - 1; // ✅ last index check
+
       // Check if the course is already assigned to the school
       const isExist = await this._db?.query(
         `SELECT * FROM school_course WHERE school_id = ? AND course_id = ?;`,
@@ -1320,12 +1340,12 @@ export class SqliteApi implements ServiceApi {
           course_id: courseId,
           created_at: currentDate,
           updated_at: currentDate,
-          is_deleted: false, // New entry should have is_deleted set to false
+          is_deleted: false,
         };
 
         await this.executeQuery(
           `INSERT INTO school_course (id, school_id, course_id, created_at, updated_at, is_deleted)
-           VALUES (?, ?, ?, ?, ?, ?);`,
+       VALUES (?, ?, ?, ?, ?, ?);`,
           [
             newSchoolCourseEntry.id,
             newSchoolCourseEntry.school_id,
@@ -1336,11 +1356,12 @@ export class SqliteApi implements ServiceApi {
           ]
         );
 
-        // Trigger change notification for the new entry
+        // If not last index → isLast = false, otherwise true
         this.updatePushChanges(
           TABLES.SchoolCourse,
           MUTATE_TYPES.INSERT,
-          newSchoolCourseEntry
+          newSchoolCourseEntry,
+          isLast
         );
       } else {
         // Case 2: Course is already assigned
@@ -1353,12 +1374,16 @@ export class SqliteApi implements ServiceApi {
             [currentDate, existingEntry.id]
           );
 
-          // Trigger change notification for the re-activation
-          this.updatePushChanges(TABLES.SchoolCourse, MUTATE_TYPES.UPDATE, {
-            id: existingEntry.id,
-            is_deleted: false,
-            updated_at: currentDate,
-          });
+          this.updatePushChanges(
+            TABLES.SchoolCourse,
+            MUTATE_TYPES.UPDATE,
+            {
+              id: existingEntry.id,
+              is_deleted: false,
+              updated_at: currentDate,
+            },
+            isLast // false for all except last index
+          );
         } else {
           // Case 2b: Course is already active, update the updated_at field
           await this.executeQuery(
@@ -1366,14 +1391,19 @@ export class SqliteApi implements ServiceApi {
             [currentDate, existingEntry.id]
           );
 
-          // Trigger change notification for the updated timestamp
-          this.updatePushChanges(TABLES.SchoolCourse, MUTATE_TYPES.UPDATE, {
-            id: existingEntry.id,
-            updated_at: currentDate,
-          });
+          this.updatePushChanges(
+            TABLES.SchoolCourse,
+            MUTATE_TYPES.UPDATE,
+            {
+              id: existingEntry.id,
+              updated_at: currentDate,
+            },
+            isLast // false for all except last index
+          );
         }
       }
     }
+
   }
 
   async updateClassCourseSelection(
@@ -1381,8 +1411,10 @@ export class SqliteApi implements ServiceApi {
     selectedCourseIds: string[]
   ): Promise<void> {
     const currentDate = new Date().toISOString();
+    for (let idx = 0; idx < selectedCourseIds.length; idx++) {
+      const courseId = selectedCourseIds[idx];
+      const isLast = idx === selectedCourseIds.length - 1; // ✅ last item check
 
-    for (const courseId of selectedCourseIds) {
       // Check if the course is already assigned to the class
       const isExist = await this._db?.query(
         `SELECT * FROM class_course WHERE class_id = ? AND course_id = ?;`,
@@ -1398,60 +1430,72 @@ export class SqliteApi implements ServiceApi {
           course_id: courseId,
           created_at: currentDate,
           updated_at: currentDate,
-          is_deleted: false, // New entry should have is_deleted set to false
+          is_deleted: false,
         };
 
         await this.executeQuery(
           `INSERT INTO class_course (id, class_id, course_id, created_at, updated_at, is_deleted)
-        VALUES (?, ?, ?, ?, ?, ?);`,
+       VALUES (?, ?, ?, ?, ?, ?);`,
           [
             newClassCourseEntry.id,
             newClassCourseEntry.class_id,
             newClassCourseEntry.course_id,
             newClassCourseEntry.created_at,
             newClassCourseEntry.updated_at,
-            newClassCourseEntry.is_deleted, // always false for new entries
+            newClassCourseEntry.is_deleted,
           ]
         );
 
-        // Trigger change notification for the new entry
+        // Insert notification — pass isLast
         this.updatePushChanges(
           TABLES.ClassCourse,
           MUTATE_TYPES.INSERT,
-          newClassCourseEntry
+          newClassCourseEntry,
+          isLast
         );
+
       } else {
         // Case 2: Course is already assigned
         const existingEntry = isExist.values[0];
 
         if (existingEntry.is_deleted) {
-          // Case 2a: Course was marked as deleted, reactivate it
+          // Case 2a: Reactivate deleted course
           await this.executeQuery(
             `UPDATE class_course SET is_deleted = 0, updated_at = ? WHERE id = ?;`,
             [currentDate, existingEntry.id]
           );
 
-          // Trigger change notification for the re-activation
-          this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.UPDATE, {
-            id: existingEntry.id,
-            is_deleted: false,
-            updated_at: currentDate,
-          });
+          this.updatePushChanges(
+            TABLES.ClassCourse,
+            MUTATE_TYPES.UPDATE,
+            {
+              id: existingEntry.id,
+              is_deleted: false,
+              updated_at: currentDate,
+            },
+            isLast
+          );
+
         } else {
-          // Case 2b: Course is already active, update the updated_at field
+          // Case 2b: Course already active, just update timestamp
           await this.executeQuery(
             `UPDATE class_course SET updated_at = ? WHERE id = ?;`,
             [currentDate, existingEntry.id]
           );
 
-          // Trigger change notification for the updated timestamp
-          this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.UPDATE, {
-            id: existingEntry.id,
-            updated_at: currentDate,
-          });
+          this.updatePushChanges(
+            TABLES.ClassCourse,
+            MUTATE_TYPES.UPDATE,
+            {
+              id: existingEntry.id,
+              updated_at: currentDate,
+            },
+            isLast
+          );
         }
       }
     }
+
   }
 
   // async deleteProfile(studentId: string) {
@@ -2135,11 +2179,10 @@ export class SqliteApi implements ServiceApi {
     assignmentId: string | undefined,
     chapterId: string,
     classId: string | undefined,
-    schoolId: string | undefined
+    schoolId: string | undefined,
+    isImediateSync: boolean = false
   ): Promise<TableTypes<"result">> {
     let resultId = uuidv4();
-
-    // Ensure unique ID
     let isDuplicate = true;
     while (isDuplicate) {
       const check = await this.executeQuery(
@@ -2256,7 +2299,7 @@ export class SqliteApi implements ServiceApi {
       updatedStudent.language_id = student.language_id;
       Util.setCurrentStudent(updatedStudent);
     }
-    this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult);
+    this.updatePushChanges(TABLES.Result, MUTATE_TYPES.INSERT, newResult, isImediateSync);
     const pushData: any = {
       id: student.id,
       stars: updatedStudent?.stars,
@@ -2289,7 +2332,7 @@ export class SqliteApi implements ServiceApi {
         stars_earned: starsEarned,
       });
     }
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushData);
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushData, isImediateSync);
     return newResult;
   }
 
@@ -2433,7 +2476,8 @@ export class SqliteApi implements ServiceApi {
           this.updatePushChanges(
             TABLES.UserCourse,
             MUTATE_TYPES.INSERT,
-            newUserCourse
+            newUserCourse,
+            false
           );
         }
       }
@@ -3015,7 +3059,8 @@ export class SqliteApi implements ServiceApi {
         id: userData.id,
         is_deleted: true,
         updated_at: updatedAt,
-      });
+      },
+        false);
 
       await this.executeQuery(
         `UPDATE ops_requests SET is_deleted = 1, updated_at = ? WHERE requested_by = ? AND class_id = ? AND is_deleted = 0`,
@@ -3947,7 +3992,6 @@ export class SqliteApi implements ServiceApi {
         TABLES.Assignment,
         MUTATE_TYPES.INSERT,
         assignment_data,
-        true
       );
 
       // If the assignment is not class-wide, assign it to individual students
@@ -3982,7 +4026,6 @@ export class SqliteApi implements ServiceApi {
             TABLES.Assignment_user,
             MUTATE_TYPES.INSERT,
             newAssignmentUser,
-            true
           );
         }
       }
@@ -4644,7 +4687,8 @@ order by
     await this.updatePushChanges(
       TABLES.ClassUser,
       MUTATE_TYPES.INSERT,
-      classUser
+      classUser,
+      false
     );
     // var user_doc = await this._serverApi.getUserByDocId(userId);
     if (user) {
@@ -5253,7 +5297,8 @@ order by
     this.updatePushChanges(TABLES.Class, MUTATE_TYPES.UPDATE, {
       id: classId,
       updated_at: updatedAt,
-    });
+    },
+      false);
   }
 
   async updateUserLastModified(userId: string): Promise<void> {
@@ -5265,7 +5310,8 @@ order by
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       id: userId,
       updated_at: updatedAt,
-    });
+    },
+      false);
   }
   async validateParentAndStudentInClass(
     phoneNumber: string,
@@ -5409,7 +5455,8 @@ order by
   }
   async setStarsForStudents(
     studentId: string,
-    starsCount: number
+    starsCount: number,
+    is_immediate_sync?: boolean
   ): Promise<void> {
     if (!studentId) return;
     try {
@@ -5430,7 +5477,7 @@ order by
       this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
         id: studentId,
         stars: updatedStudent?.stars,
-      });
+      }, is_immediate_sync);
     } catch (error) {
       console.error("Error setting stars for student:", error);
     }
@@ -5450,7 +5497,8 @@ order by
   }
   async updateLearningPath(
     student: TableTypes<"user">,
-    learningPath: string
+    learningPath: string,
+    is_immediate_sync?: boolean
   ): Promise<TableTypes<"user">> {
     try {
       const updateUserQuery = `UPDATE ${TABLES.User}
@@ -5461,7 +5509,7 @@ order by
       this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
         id: student.id,
         learning_path: learningPath,
-      });
+      }, is_immediate_sync);
     } catch (error) {
       console.error("Error updating learning path:", error);
     }
@@ -6560,7 +6608,6 @@ order by
   async getRequestFilterOptions() {
     throw new Error("Method not implemented.");
   }
-
   async searchStudentsInSchool(
     schoolId: string,
     searchTerm: string,
@@ -7020,4 +7067,14 @@ order by
   ): Promise<string | null> {
     throw new Error("Method not implemented.");
   }
+  public async getActivitiesBySchoolId(schoolId: string): Promise<TableTypes<"fc_user_forms">[]> {
+    return this._serverApi.getActivitiesBySchoolId(schoolId);
+  }
+  public async getSchoolVisitById(visitId: string): Promise<TableTypes<"fc_school_visit"> | null> {
+    return this._serverApi.getSchoolVisitById(visitId);
+  }
+  async getActivitiesFilterOptions() {
+    throw new Error("Method not implemented.");
+  }
+
 }

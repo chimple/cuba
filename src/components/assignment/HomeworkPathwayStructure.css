@@ -27,9 +27,9 @@
   }
 }
 
-@media (max-width: 1024px) and (orientation: landscape) {
+@media (orientation: landscape) and (max-height: 450px) {
   .homeworkpathway-structure-div {
-    top: 22%; /* Adjust for tablets and phones in landscape */
+    top: 30%;
     z-index: 1;
   }
 }

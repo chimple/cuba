@@ -466,7 +466,8 @@ export interface ServiceApi {
     assignmentId: string | undefined,
     chapterId: string,
     classId: string | undefined,
-    schoolId: string | undefined
+    schoolId: string | undefined,
+    isImediateSync?:boolean
   ): Promise<TableTypes<"result">>;
 
   /**
@@ -1579,7 +1580,7 @@ export interface ServiceApi {
    * @param {string } studentId - student id
    * @param {string } starsCount - count of stars
    */
-  setStarsForStudents(studentId: string, starsCount: number): Promise<void>;
+  setStarsForStudents(studentId: string, starsCount: number,is_immediate_sync?:boolean): Promise<void>;
 
   /**
    * count all pending row changes to be pushed in the sqlite
@@ -1608,7 +1609,8 @@ export interface ServiceApi {
    */
   updateLearningPath(
     student: TableTypes<"user">,
-    learning_path: string
+    learning_path: string,
+    is_immediate_sync?: boolean
   ): Promise<TableTypes<"user">>;
 
   /**
@@ -2337,4 +2339,28 @@ export interface ServiceApi {
    * @returns Promise that resolves to a string representing today's visit ID or null if no visit exists.
    */
   getTodayVisitId(userId: string, schoolId: string): Promise<string | null>;
+
+    /**
+   * Fetch all activities created by FC users for a given school ID.
+   * @param {string} schoolId - The ID of the school to fetch activities for.
+   * @returns Promise resolving to a list of activities.
+   */
+  getActivitiesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"fc_user_forms">[]>;
+
+  /**
+   * Fetch school visit details for a given visit ID.
+   * @param {string} visitId - The ID of the visit to fetch.
+   * @returns Promise resolving to school visit details or null if not found.
+   */
+  getSchoolVisitById(
+    visitId: string
+  ): Promise<TableTypes<"fc_school_visit"> | null>;
+
+  /**
+   * Fetch filter options for FC activities.
+   */
+  getActivitiesFilterOptions();
+
 }

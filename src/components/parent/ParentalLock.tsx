@@ -13,10 +13,12 @@ const ParentalLock: React.FC<{
   showDialogBox: boolean;
   handleClose: (event: CustomEvent<OverlayEventDetail<any>>) => void;
   onHandleClose: React.MouseEventHandler<HTMLDivElement | HTMLImageElement>;
+  onUnlock?: () => void;
 }> = ({
   showDialogBox,
   handleClose,
   onHandleClose,
+  onUnlock,
 }) => {
     enum FourSides {
       LEFT = "LEFT",
@@ -40,8 +42,10 @@ const ParentalLock: React.FC<{
 
     const checkSwipeDirection = async (swipeDirection: FourSides) => {
       if (swipeDirection.length > 0 && userDirection === swipeDirection) {
+        onUnlock?.();
         await Util.setParentLanguagetoLocal();
         Util.setPathToBackButton(PAGES.PARENT, history);
+        Util.setCurrentStudent(null);
       }
     };
 

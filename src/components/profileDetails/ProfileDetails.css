@@ -271,7 +271,7 @@
   justify-content: flex-end;
   align-items: center;
   gap: 0.8vw;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.4rem;
   color: #182a4f;
   font-family: sans-serif;
   font-size: clamp(0.8rem, 1.1vw, 1.2rem);

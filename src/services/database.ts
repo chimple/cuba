@@ -717,7 +717,6 @@ export type Database = {
           },
         ]
       }
-
       connector_users: {
         Row: {
           created_at: string | null
@@ -919,42 +918,6 @@ export type Database = {
           },
         ]
       }
-      fc_question: {
-        Row: {
-          created_at: string
-          id: string
-          is_active: boolean
-          is_deleted: boolean
-          question_text: string
-          sort_order: number
-          target_type: Database["public"]["Enums"]["fc_engagement_target"]
-          type: Database["public"]["Enums"]["fc_support_level"] | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          is_deleted?: boolean
-          question_text: string
-          sort_order?: number
-          target_type: Database["public"]["Enums"]["fc_engagement_target"]
-          type?: Database["public"]["Enums"]["fc_support_level"] | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          is_deleted?: boolean
-          question_text?: string
-          sort_order?: number
-          target_type?: Database["public"]["Enums"]["fc_engagement_target"]
-          type?: Database["public"]["Enums"]["fc_support_level"] | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
       fc_school_visit: {
         Row: {
           check_in_at: string
@@ -1032,11 +995,10 @@ export type Database = {
           question_response: string | null
           school_id: string
           support_level: Database["public"]["Enums"]["fc_support_level"] | null
-          tech_issue_comment: string | null
           tech_issues_reported: boolean
           updated_at: string
           user_id: string
-          visit_id: string | null
+          visit_id: string
         }
         Insert: {
           call_status?: Database["public"]["Enums"]["fc_call_result"] | null
@@ -1051,11 +1013,10 @@ export type Database = {
           question_response?: string | null
           school_id: string
           support_level?: Database["public"]["Enums"]["fc_support_level"] | null
-          tech_issue_comment?: string | null
           tech_issues_reported?: boolean
           updated_at?: string
           user_id: string
-          visit_id?: string | null
+          visit_id: string
         }
         Update: {
           call_status?: Database["public"]["Enums"]["fc_call_result"] | null
@@ -1070,11 +1031,10 @@ export type Database = {
           question_response?: string | null
           school_id?: string
           support_level?: Database["public"]["Enums"]["fc_support_level"] | null
-          tech_issue_comment?: string | null
           tech_issues_reported?: boolean
           updated_at?: string
           user_id?: string
-          visit_id?: string | null
+          visit_id?: string
         }
         Relationships: [
           {
@@ -1120,39 +1080,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      framework: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          image: string | null
-          is_deleted: boolean | null
-          name: string
-          sort_index: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          image?: string | null
-          is_deleted?: boolean | null
-          name: string
-          sort_index?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          image?: string | null
-          is_deleted?: boolean | null
-          name?: string
-          sort_index?: number | null
-          updated_at?: string | null
-        }
-        Relationships: []
       }
       gb_response: {
         Row: {
@@ -1887,6 +1814,8 @@ export type Database = {
             referencedRelation: "class"
             referencedColumns: ["id"]
           },
+          
+
           {
             foreignKeyName: "result_course_id_fkey"
             columns: ["course_id"]
@@ -1894,27 +1823,7 @@ export type Database = {
             referencedRelation: "course"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "result_domain_id_fkey"
-            columns: ["domain_id"]
-            isOneToOne: false
-            referencedRelation: "domain"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "result_learning_indicator_id_fkey"
-            columns: ["learning_indicator_id"]
-            isOneToOne: false
-            referencedRelation: "learning_indicator"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "result_learning_outcome_id_fkey"
-            columns: ["learning_outcome_id"]
-            isOneToOne: false
-            referencedRelation: "learning_outcome"
-            referencedColumns: ["id"]
-          },
+          
           {
             foreignKeyName: "result_student_id_fkey"
             columns: ["student_id"]
@@ -3119,11 +3028,7 @@ export type Database = {
         Args: { p_query: string; p_secret: string }
         Returns: Json
       }
-      get_query_metadata: { Args: { p_query_id: string }; Returns: Json }
-      get_query_metadata_v2: {
-        Args: { p_query: string; p_secret: string }
-        Returns: Json
-      }
+
       get_results_by_assignment: {
         Args: { _assignment_id: string }
         Returns: {
@@ -4005,8 +3910,6 @@ export type Database = {
           id: string
           is_deleted: boolean | null
           is_firebase: boolean | null
-          learning_indicator_id: string | null
-          learning_outcome_id: string | null
           lesson_id: string | null
           school_id: string | null
           score: number | null
