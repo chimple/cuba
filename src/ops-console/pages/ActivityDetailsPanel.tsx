@@ -8,46 +8,82 @@ import {
   Divider,
   Drawer,
 } from "@mui/material";
+
 import CloseIcon from "@mui/icons-material/Close";
 import { PERFORMANCE_UI, PerformanceLevel } from "../../common/constants";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
 
-interface ActivityDetailsPanelProps {
-  activity: any; // row passed from SchoolActivities
+/* -------------------------------------------------------
+   INLINE LABEL + VALUE  →  Name: Thilak
+--------------------------------------------------------*/
+const InfoRow = ({ label, value }: { label: string; value: any }) => {
+  return (
+    <Box sx={{ display: "flex", mb: 1 }}>
+      <Typography
+        sx={{
+          fontSize: "14px",
+          fontWeight: 500,
+          color: "text.secondary",
+          minWidth: "120px",
+        }}
+      >
+        {label}:
+      </Typography>
+
+      <Typography
+        sx={{
+          fontSize: "14px",
+          fontWeight: 600,
+          color: "text.primary",
+        }}
+      >
+        {value}
+      </Typography>
+    </Box>
+  );
+};
+
+/* -------------------------------------------------------
+   SECTION BOX WITH TITLE + GREY PAPER CONTENT
+--------------------------------------------------------*/
+const DetailSection = ({ label, text }: { label: string; text: string }) => {
+  return (
+    <Box sx={{ mb: 3 }}>
+      <Typography
+        sx={{
+          fontWeight: 600,
+          fontSize: "15px",
+          mb: 1,
+          textAlign: "left",
+        }}
+      >
+        {label}
+      </Typography>
+
+      <Paper
+        elevation={0}
+        sx={{
+          p: 2,
+          borderRadius: 2,
+          border: "1px solid #e0e0e0",
+          bgcolor: "#fafafa",
+          fontSize: "14px",
+          whiteSpace: "pre-line",
+        }}
+      >
+        {text || "--"}
+      </Paper>
+    </Box>
+  );
+};
+
+/* -------------------------------------------------------
+   MAIN PANEL
+--------------------------------------------------------*/
+interface Props {
+  activity: any; // Later from backend
   onClose: () => void;
 }
-
-const InfoItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <Box mb={1}>
-    <Typography variant="caption" color="text.secondary">
-      {label}
-    </Typography>
-    <Typography variant="body2" fontWeight={600}>
-      {value}
-    </Typography>
-  </Box>
-);
-
-const DetailSection = ({ label, text }: { label: string; text: string }) => (
-  <Box mb={3}>
-    <Typography fontWeight={600} mb={1}>
-      {label}
-    </Typography>
-
-    <Paper
-      elevation={0}
-      sx={{
-        p: 2,
-        borderRadius: 2,
-        border: "1px solid #e0e0e0",
-        bgcolor: "#f9f9f9",
-        whiteSpace: "pre-line",
-      }}
-    >
-      {text || "--"}
-    </Paper>
-  </Box>
-);
 
 const CALL_STATUS_LABEL: Record<string, string> = {
   call_picked: "Call Attended",
@@ -55,43 +91,36 @@ const CALL_STATUS_LABEL: Record<string, string> = {
   call_not_reachable: "Call Not Reachable",
 };
 
-const ActivityDetailsPanel: React.FC<ActivityDetailsPanelProps> = ({
-  activity,
-  onClose,
-}) => {
+const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
+  if (!activity) return null;
+
   const { raw, user, classInfo } = activity;
 
   const perf = PERFORMANCE_UI[raw.support_level as PerformanceLevel];
 
   const contactType =
-    raw.contact_target.charAt(0).toUpperCase() + raw.contact_target.slice(1);
+    raw.contact_target.charAt(0).toUpperCase() +
+    raw.contact_target.slice(1);
 
   const callOutcome =
-    CALL_STATUS_LABEL[raw.call_status as string] || raw.call_status || "NA";
-  const comment = raw.comment || "";
-  const questionResponse = raw.question_response || "";
+    CALL_STATUS_LABEL[raw.call_status] || raw.call_status || "--";
 
-  // For now, we use simple mapping – adjust when you have structured data:
-  const challenges = questionResponse || comment || "No Comment";
-  const howHelped = "--";
-  const otherComments = "--";
+  const challenges = raw.question_response || "--";
+  const howHelped = raw.how_helped || "--";
+  const otherComments = raw.comment || "--";
   const techIssueDetails = raw.tech_issues_reported ? "Yes" : "No";
 
   return (
     <Drawer
       anchor="right"
-      open={true} // component is only mounted when selectedActivity is truthy
+      open={true}
       onClose={onClose}
       PaperProps={{
         sx: {
           width: 520,
-          boxSizing: "border-box",
           p: 3,
           bgcolor: "#ffffff",
         },
-      }}
-      ModalProps={{
-        keepMounted: true,
       }}
     >
       {/* HEADER */}
@@ -107,7 +136,7 @@ const ActivityDetailsPanel: React.FC<ActivityDetailsPanelProps> = ({
 
       <Divider sx={{ my: 2 }} />
 
-      {/* TOP INFORMATION CARD */}
+      {/* TOP INFO CARD */}
       <Paper
         elevation={0}
         sx={{
@@ -119,20 +148,20 @@ const ActivityDetailsPanel: React.FC<ActivityDetailsPanelProps> = ({
         }}
       >
         <Box display="flex" justifyContent="space-between">
-          {/* LEFT SIDE */}
+          {/* LEFT */}
           <Box>
-            <InfoItem label="Name" value={user?.name ?? "--"} />
-            <InfoItem label="Grade" value={classInfo?.name ?? "--"} />
-            <InfoItem label="Contact Type" value={contactType} />
+            <InfoRow label="Name" value={user?.name ?? "--"} />
+            <InfoRow label="Grade" value={classInfo?.name ?? "--"} />
+            <InfoRow label="Contact Type" value={contactType} />
           </Box>
 
-          {/* RIGHT SIDE */}
+          {/* RIGHT */}
           <Box textAlign="right">
-            <InfoItem
+            <InfoRow
               label="Profile Status"
               value={
                 <Chip
-                  label={perf?.label ?? "Not Tracked"}
+                  label={perf?.label ?? "NA"}
                   size="small"
                   sx={{
                     bgcolor: perf?.bgColor,
@@ -143,12 +172,12 @@ const ActivityDetailsPanel: React.FC<ActivityDetailsPanelProps> = ({
               }
             />
 
-            <InfoItem
+            <InfoRow
               label="Time"
               value={OpsUtil.formatTimeToIST(raw.created_at)}
             />
 
-            <InfoItem
+            <InfoRow
               label="Tech Issues"
               value={
                 raw.tech_issues_reported ? (
@@ -170,7 +199,7 @@ const ActivityDetailsPanel: React.FC<ActivityDetailsPanelProps> = ({
         </Box>
       </Paper>
 
-      {/* MAIN SECTIONS */}
+      {/* SECTIONS */}
       <DetailSection label="Call Outcome" text={callOutcome} />
 
       <DetailSection
@@ -193,4 +222,4 @@ const ActivityDetailsPanel: React.FC<ActivityDetailsPanelProps> = ({
   );
 };
 
-export default ActivityDetailsPanel;
+export default FcActivityDetailsPanel;
