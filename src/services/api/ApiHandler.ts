@@ -1527,6 +1527,9 @@ export class ApiHandler implements ServiceApi {
   public async getRequestFilterOptions() {
     return this.s.getRequestFilterOptions();
   }
+  public async getActivitiesFilterOptions() {
+    return this.s.getActivitiesFilterOptions();
+  }
 
   public async searchStudentsInSchool(
     schoolId: string,
@@ -1690,5 +1693,11 @@ export class ApiHandler implements ServiceApi {
     email?:string;
   }): Promise<{ success: boolean; message: string; data?: any }> {
     return this.s.addStudentWithParentValidation(params);
+  }
+  public async getActivitiesBySchoolId(schoolId: string): Promise<TableTypes<"fc_user_forms">[]> {
+    return await this.s.getActivitiesBySchoolId(schoolId);
+  }
+  public async getSchoolVisitById(visitId: string): Promise<TableTypes<"fc_school_visit"> | null> {
+    return await this.s.getSchoolVisitById(visitId);
   }
 }

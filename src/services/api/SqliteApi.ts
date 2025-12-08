@@ -585,7 +585,7 @@ export class SqliteApi implements ServiceApi {
     if (!this._db) return false;
     const tables = "'" + tableNames.join("', '") + "'";
 
-    const tablePushSync = `SELECT * FROM push_sync_info WHERE table_name IN (${tables}) ORDER BY created_at;`;
+    const tablePushSync = `SELECT * FROM push_sync_info ORDER BY created_at;`;
     let res: any[] = [];
     try {
       res = (await this._db.query(tablePushSync)).values ?? [];
@@ -595,7 +595,7 @@ export class SqliteApi implements ServiceApi {
     } catch (error) {
       console.error("🚀 ~ Api ~ syncDB ~ error:", error);
       await this.createSyncTables();
-    }
+    } 
     if (res && res.length) {
       for (const data of res) {
         const newData = JSON.parse(data.data);
@@ -605,7 +605,6 @@ export class SqliteApi implements ServiceApi {
           newData,
           newData.id
         );
-        console.log("🚀 ~ Api ~ pushChanges ~ isMutated:", mutate);
         if (!mutate || mutate.error) {
           const _currentUser =
             await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -655,7 +654,7 @@ export class SqliteApi implements ServiceApi {
     const diffMinutes = diffMs / (1000 * 60);
     if (diffMinutes > 5 || is_sync_immediate || refreshTables.length > 0) {
       await this.pullChanges(tableNames, isFirstSync);
-      const res = await this.pushChanges(tableNames);
+      const res = await this.pushChanges(Object.values(TABLES));
       const tables = "'" + tableNames.join("', '") + "'";
       // console.log("logs to check synced tables1", JSON.stringify(tables));
       const currentTimestamp = new Date();
@@ -784,7 +783,6 @@ export class SqliteApi implements ServiceApi {
         new Date().toISOString(),
       ]
     );
-
     await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, newStudent, false);
     await this.updatePushChanges(TABLES.ParentUser, MUTATE_TYPES.INSERT, {
       id: parentUserId,
@@ -6602,7 +6600,6 @@ order by
   async getRequestFilterOptions() {
     throw new Error("Method not implemented.");
   }
-
   async searchStudentsInSchool(
     schoolId: string,
     searchTerm: string,
@@ -7038,6 +7035,15 @@ order by
     email?: string;
   }): Promise<{ success: boolean; message: string; data?: any }> {
     return this._serverApi.addStudentWithParentValidation(params);
+  }
+  public async getActivitiesBySchoolId(schoolId: string): Promise<TableTypes<"fc_user_forms">[]> {
+    return this._serverApi.getActivitiesBySchoolId(schoolId);
+  }
+  public async getSchoolVisitById(visitId: string): Promise<TableTypes<"fc_school_visit"> | null> {
+    return this._serverApi.getSchoolVisitById(visitId);
+  }
+  async getActivitiesFilterOptions() {
+    throw new Error("Method not implemented.");
   }
 
 }

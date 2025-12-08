@@ -248,7 +248,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     init(false, true);
 
     api
-      .syncDB(Object.values(TABLES))
+      .syncDB([TABLES.Assignment])
       .then(() => {
         init(false, false);
       })
