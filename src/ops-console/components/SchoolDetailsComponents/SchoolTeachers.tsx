@@ -77,7 +77,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   const [isAddTeacherModalOpen, setIsAddTeacherModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<MessageConfig | undefined>();
   const api = ServiceConfig.getI().apiHandler;
-  let teacherData: TeacherInfo[] = [];
+
   const fetchTeachers = useMemo(() => {
     let debounceTimer: NodeJS.Timeout | null = null;
     return (currentPage: number, search: string, silent = false) => {
@@ -96,7 +96,6 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
               currentPage,
               ROWS_PER_PAGE
             );
-            teacherData = result.data;
             setTeachers(result.data);
             setTotalCount(result.total);
           } else {
@@ -105,7 +104,6 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
               currentPage,
               ROWS_PER_PAGE
             );
-            teacherData = response.data;
             setTeachers(response.data);
             setTotalCount(response.total);
           }
