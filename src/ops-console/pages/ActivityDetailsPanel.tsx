@@ -16,32 +16,44 @@ import { OpsUtil } from "../OpsUtility/OpsUtil";
 /* -------------------------------------------------------
    INLINE LABEL + VALUE  →  Name: Thilak
 --------------------------------------------------------*/
-const InfoRow = ({ label, value }: { label: string; value: any }) => {
-  return (
-    <Box sx={{ display: "flex", mb: 1 }}>
-      <Typography
-        sx={{
-          fontSize: "14px",
-          fontWeight: 500,
-          color: "text.secondary",
-          minWidth: "120px",
-        }}
-      >
-        {label}:
-      </Typography>
+const InfoRow = ({ label, value }: { label: string; value: any }) => (
+  <Box
+    sx={{
+      display: "flex",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 1,
+      mb: 1,
+    }}
+  >
+    {/* FIXED LABEL WIDTH — THIS FIXES THE ALIGNMENT */}
+    <Typography
+      sx={{
+        fontSize: "14px",
+        fontWeight: 500,
+        color: "text.secondary",
+        width: "120px", // FIX WIDTH
+        textAlign: "left",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {label}:
+    </Typography>
 
-      <Typography
-        sx={{
-          fontSize: "14px",
-          fontWeight: 600,
-          color: "text.primary",
-        }}
-      >
-        {value}
-      </Typography>
-    </Box>
-  );
-};
+    <Typography
+      sx={{
+        fontSize: "14px",
+        fontWeight: 600,
+        color: "text.primary",
+        textAlign: "left",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {value}
+    </Typography>
+  </Box>
+);
+
 
 /* -------------------------------------------------------
    SECTION BOX WITH TITLE + GREY PAPER CONTENT
