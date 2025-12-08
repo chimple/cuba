@@ -88,7 +88,6 @@ interface SchoolStudentsProps {
 }
 
 const ROWS_PER_PAGE = 20;
-const STUDENTS_UPPER_BOUND = 10000000;
 
 const sameSection = (a?: string, b?: string) =>
   String(a ?? "")
@@ -168,8 +167,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         } else {
           response = await api.getStudentInfoBySchoolId(
             schoolId,
-            1,
-            STUDENTS_UPPER_BOUND
+            currentPage,
+            ROWS_PER_PAGE
           );
           setStudents(response.data);
           setTotalCount(response.total);
@@ -426,13 +425,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         return perf === performanceFilter;
       });
     }
-    const start = (page - 1) * ROWS_PER_PAGE;
-    return filtered.slice(start, start + ROWS_PER_PAGE);
+    return filtered;
   }, [sortedStudents, performanceFilter, studentPerformanceMap]);
 
   const pageCount = useMemo(() => {
-    return Math.ceil(sortedStudents.length / ROWS_PER_PAGE);
-  }, [sortedStudents]);
+    return Math.ceil(totalCount / ROWS_PER_PAGE);
+  }, [totalCount, filters, searchTerm, filteredStudents.length]);
 
   const isDataPresent = studentsForCurrentPage.length > 0;
   const isFilteringOrSearching =
