@@ -49,7 +49,6 @@ type FcInteractPopUpProps = {
   status?: EnumType<"fc_support_level">;
   onClose: () => void;
   initialUserType: EnumType<"fc_engagement_target">;
-  fetchQuestions?: (target: EnumType<"fc_engagement_target">) => Promise<Q[]>;
 };
 
 const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
@@ -81,8 +80,10 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     : "";
 
   const [localQuestions, setLocalQuestions] = useState<Q[]>([]);
-
-  const { user, parent, classSection, grade } = studentData!;
+  if (!studentData) {
+    return null;
+  }
+  const { user, parent, classSection, grade } = studentData;
 
   const name = user?.name ?? "";
   const phone = user?.phone ?? parent?.phone ?? "";
@@ -187,8 +188,16 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
 
   return (
     <div className="fc-interact-popup-overlay">
-      <div className="fc-interact-popup-modal fc-interact-popup-interact-popup" role="dialog" aria-modal>
-        <button className="fc-interact-popup-close" onClick={onClose} aria-label="Close">
+      <div
+        className="fc-interact-popup-modal fc-interact-popup-interact-popup"
+        role="dialog"
+        aria-modal
+      >
+        <button
+          className="fc-interact-popup-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
           <IoClose size={22} />
         </button>
 
@@ -206,7 +215,9 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                 </div>
 
                 {normalizedStatus && (
-                  <div className="fc-interact-popup-status-badge">{normalizedStatus}</div>
+                  <div className="fc-interact-popup-status-badge">
+                    {normalizedStatus}
+                  </div>
                 )}
               </div>
 
@@ -216,7 +227,9 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                     className="fc-interact-popup-contact-line"
                     onClick={() => (window.location.href = `tel:${phone}`)}
                   >
-                    <span className="fc-interact-popup-contact-text">+91 {phone}</span>
+                    <span className="fc-interact-popup-contact-text">
+                      +91 {phone}
+                    </span>
                     <LaunchRounded style={{ fontSize: 16 }} />
                   </div>
                 ) : (
@@ -224,7 +237,9 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                     className="fc-interact-popup-contact-line"
                     onClick={() => (window.location.href = `mailto:${email}`)}
                   >
-                    <span className="fc-interact-popup-contact-text">{email}</span>
+                    <span className="fc-interact-popup-contact-text">
+                      {email}
+                    </span>
                     <EmailRounded style={{ fontSize: 16 }} />
                   </div>
                 )}
@@ -234,7 +249,9 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
 
               {/* Mode */}
               <div className="fc-interact-popup-section">
-                <div className="fc-interact-popup-label">{t("Mode of Interaction")}</div>
+                <div className="fc-interact-popup-label">
+                  {t("Mode of Interaction")}
+                </div>
                 <div className="fc-interact-popup-radio-group">
                   <label className="fc-interact-popup-radio-item">
                     <input
@@ -263,7 +280,9 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
               {/* Call outcome (if call) */}
               {mode === "call" && (
                 <div className="fc-interact-popup-section">
-                  <div className="fc-interact-popup-label">{t("Select call outcome")}</div>
+                  <div className="fc-interact-popup-label">
+                    {t("Select call outcome")}
+                  </div>
                   <select
                     className="fc-interact-popup-select"
                     value={callOutcome}
@@ -292,7 +311,10 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
 
                   <div className="fc-interact-popup-radio-group">
                     {engagementTargetOptions.map((option) => (
-                      <label key={option.value} className="fc-interact-popup-radio-item">
+                      <label
+                        key={option.value}
+                        className="fc-interact-popup-radio-item"
+                      >
                         <input
                           type="radio"
                           name="spokeWith"
@@ -342,7 +364,9 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                     <span className="fc-interact-popup-badge">
                       {mandatoryQuestions.length + idx + 1}
                     </span>
-                    <div className="fc-interact-popup-question-text">{q.question}</div>
+                    <div className="fc-interact-popup-question-text">
+                      {q.question}
+                    </div>
                   </div>
                   <textarea
                     className="fc-interact-popup-textarea-input"
