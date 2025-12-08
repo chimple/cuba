@@ -25,6 +25,7 @@ import {
   StudentInfo,
   BANDS,
   EnumType,
+  SupportLevelMap,
 } from "../../../common/constants";
 import {
   getGradeOptions,
@@ -155,22 +156,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       clearTimeout(handler);
     };
   }, [searchTerm]);
-  const mapSupportLevel = (
-    label: string
-  ): EnumType<"fc_support_level"> | null => {
-    switch (label) {
-      case "Doing Good":
-        return "doing_good";
-      case "Still Learning":
-        return "still_learning";
-      case "Need Help":
-        return "need_help";
-      case "Not Tracked":
-        return "not_tracked";
-      default:
-        return null; 
-    }
-  };
 
   const fetchStudents = useCallback(
     async (currentPage: number, search: string, silent = false) => {
@@ -530,10 +515,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                 onClick={async () => {
                   const fullStudent = getStudentInfoById(s.id);
                   if (!fullStudent) return;
-
-                  const mappedType = mapSupportLevel(
-                    s.schstudents_performance!
-                  );
+                  const mappedType = s.schstudents_performance
+                    ? SupportLevelMap[
+                        s.schstudents_performance as keyof typeof SupportLevelMap
+                      ]
+                    : null;
 
                   setStudentData(fullStudent);
                   setStudentStatus(mappedType!);
