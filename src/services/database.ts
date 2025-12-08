@@ -919,6 +919,241 @@ export type Database = {
           },
         ]
       }
+      fc_question: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          is_deleted: boolean
+          question_text: string
+          sort_order: number
+          target_type: Database["public"]["Enums"]["fc_engagement_target"]
+          type: Database["public"]["Enums"]["fc_support_level"] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_deleted?: boolean
+          question_text: string
+          sort_order?: number
+          target_type: Database["public"]["Enums"]["fc_engagement_target"]
+          type?: Database["public"]["Enums"]["fc_support_level"] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_deleted?: boolean
+          question_text?: string
+          sort_order?: number
+          target_type?: Database["public"]["Enums"]["fc_engagement_target"]
+          type?: Database["public"]["Enums"]["fc_support_level"] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fc_school_visit: {
+        Row: {
+          check_in_at: string
+          check_in_lat: number | null
+          check_in_lng: number | null
+          check_out_at: string | null
+          check_out_lat: number | null
+          check_out_lng: number | null
+          created_at: string
+          id: string
+          is_deleted: boolean
+          notes: string | null
+          school_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          check_in_at: string
+          check_in_lat?: number | null
+          check_in_lng?: number | null
+          check_out_at?: string | null
+          check_out_lat?: number | null
+          check_out_lng?: number | null
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          notes?: string | null
+          school_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          check_in_at?: string
+          check_in_lat?: number | null
+          check_in_lng?: number | null
+          check_out_at?: string | null
+          check_out_lat?: number | null
+          check_out_lng?: number | null
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          notes?: string | null
+          school_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fc_visit_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fc_visit_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fc_user_forms: {
+        Row: {
+          call_status: Database["public"]["Enums"]["fc_call_result"] | null
+          class_id: string | null
+          comment: string | null
+          contact_method: Database["public"]["Enums"]["fc_contact_method"]
+          contact_target: Database["public"]["Enums"]["fc_engagement_target"]
+          contact_user_id: string | null
+          created_at: string
+          id: string
+          is_deleted: boolean
+          question_response: string | null
+          school_id: string
+          support_level: Database["public"]["Enums"]["fc_support_level"] | null
+          tech_issue_comment: string | null
+          tech_issues_reported: boolean
+          updated_at: string
+          user_id: string
+          visit_id: string | null
+        }
+        Insert: {
+          call_status?: Database["public"]["Enums"]["fc_call_result"] | null
+          class_id?: string | null
+          comment?: string | null
+          contact_method: Database["public"]["Enums"]["fc_contact_method"]
+          contact_target: Database["public"]["Enums"]["fc_engagement_target"]
+          contact_user_id?: string | null
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          question_response?: string | null
+          school_id: string
+          support_level?: Database["public"]["Enums"]["fc_support_level"] | null
+          tech_issue_comment?: string | null
+          tech_issues_reported?: boolean
+          updated_at?: string
+          user_id: string
+          visit_id?: string | null
+        }
+        Update: {
+          call_status?: Database["public"]["Enums"]["fc_call_result"] | null
+          class_id?: string | null
+          comment?: string | null
+          contact_method?: Database["public"]["Enums"]["fc_contact_method"]
+          contact_target?: Database["public"]["Enums"]["fc_engagement_target"]
+          contact_user_id?: string | null
+          created_at?: string
+          id?: string
+          is_deleted?: boolean
+          question_response?: string | null
+          school_id?: string
+          support_level?: Database["public"]["Enums"]["fc_support_level"] | null
+          tech_issue_comment?: string | null
+          tech_issues_reported?: boolean
+          updated_at?: string
+          user_id?: string
+          visit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fc_user_forms_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_contact_user_id_fkey"
+            columns: ["contact_user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_fc_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "school"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fc_user_forms_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "fc_school_visit"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      framework: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          is_deleted: boolean | null
+          name: string
+          sort_index: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          is_deleted?: boolean | null
+          name: string
+          sort_index?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          is_deleted?: boolean | null
+          name?: string
+          sort_index?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       gb_response: {
         Row: {
           content: Json | null
@@ -1563,11 +1798,9 @@ export type Database = {
           assignment_id: string | null
           chapter_id: string | null
           class_id: string | null
-          
           correct_moves: number | null
           course_id: string | null
           created_at: string
-          
           firebase_id: string | null
           id: string
           is_deleted: boolean | null
@@ -1591,8 +1824,6 @@ export type Database = {
           id?: string
           is_deleted?: boolean | null
           is_firebase?: boolean | null
-          
-          
           lesson_id?: string | null
           school_id?: string | null
           score?: number | null
@@ -1605,17 +1836,13 @@ export type Database = {
           assignment_id?: string | null
           chapter_id?: string | null
           class_id?: string | null
-          
           correct_moves?: number | null
           course_id?: string | null
           created_at?: string
-          
           firebase_id?: string | null
           id?: string
           is_deleted?: boolean | null
           is_firebase?: boolean | null
-          
-          
           lesson_id?: string | null
           school_id?: string | null
           score?: number | null
@@ -1667,14 +1894,34 @@ export type Database = {
             referencedRelation: "course"
             referencedColumns: ["id"]
           },
-
+          {
+            foreignKeyName: "result_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domain"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_learning_indicator_id_fkey"
+            columns: ["learning_indicator_id"]
+            isOneToOne: false
+            referencedRelation: "learning_indicator"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_learning_outcome_id_fkey"
+            columns: ["learning_outcome_id"]
+            isOneToOne: false
+            referencedRelation: "learning_outcome"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "result_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "user"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
       reward: {
@@ -2156,6 +2403,64 @@ export type Database = {
         }
         Relationships: []
       }
+      subject_lesson: {
+        Row: {
+          created_at: string
+          framework_id: string | null
+          id: string
+          is_deleted: boolean | null
+          lesson_id: string
+          set_number: number | null
+          sort_index: number | null
+          subject_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          framework_id?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          lesson_id: string
+          set_number?: number | null
+          sort_index?: number | null
+          subject_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          framework_id?: string | null
+          id?: string
+          is_deleted?: boolean | null
+          lesson_id?: string
+          set_number?: number | null
+          sort_index?: number | null
+          subject_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subject_lesson_chaptersubject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subject"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subject_lesson_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: false
+            referencedRelation: "framework"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subject_lesson_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lesson"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upload_queue: {
         Row: {
           batch_number: number | null
@@ -2520,7 +2825,6 @@ export type Database = {
           },
         ]
       }
-      
     }
     Views: {
       get_leaderboard_generic_data: {
@@ -2723,11 +3027,9 @@ export type Database = {
           assignment_id: string | null
           chapter_id: string | null
           class_id: string | null
-          
           correct_moves: number | null
           course_id: string | null
           created_at: string
-          
           firebase_id: string | null
           id: string
           is_deleted: boolean | null
@@ -3130,7 +3432,9 @@ export type Database = {
         Args: { p_school_user_id: string; p_user_id: string }
         Returns: boolean
       }
-      is_program_manager_or_field_coordinator: { Args: never; Returns: boolean }
+      is_program_manager_or_field_coordinator:
+        | { Args: { p_user_id: string }; Returns: boolean }
+        | { Args: never; Returns: boolean }
       is_special_or_program_user: { Args: never; Returns: boolean }
       is_special_user_privileged: { Args: never; Returns: boolean }
       is_student_already_in_class: {
@@ -3490,6 +3794,7 @@ export type Database = {
           curriculum_id: string | null
           description: string | null
           firebase_id: string | null
+          framework_id: string | null
           grade_id: string | null
           id: string
           image: string | null
@@ -3599,6 +3904,7 @@ export type Database = {
           image: string | null
           is_deleted: boolean | null
           language_id: string | null
+          metadata: string | null
           name: string | null
           outcome: string | null
           plugin_type: string | null
@@ -3692,11 +3998,9 @@ export type Database = {
           assignment_id: string | null
           chapter_id: string | null
           class_id: string | null
-          
           correct_moves: number | null
           course_id: string | null
           created_at: string
-          
           firebase_id: string | null
           id: string
           is_deleted: boolean | null
@@ -3806,6 +4110,7 @@ export type Database = {
           student_login_type: Database["public"]["Enums"]["login_type"] | null
           udise: string | null
           updated_at: string | null
+          whatsapp_bot_number: string | null
         }[]
         SetofOptions: {
           from: "*"
@@ -4001,8 +4306,8 @@ export type Database = {
         }
       }
       sql_sync_all: {
-          Args: { p_tables?: string[]; p_updated_at?: Json }
-          Returns: Json
+        Args: { p_tables?: string[]; p_updated_at?: Json }
+        Returns: Json
       }
       update_class_firebase_trigger: {
         Args: {
@@ -4023,7 +4328,10 @@ export type Database = {
         }
         Returns: undefined
       }
-      
+      update_queue_visibility_time: {
+        Args: { interval_days?: number; msg_id: number; queue_name: string }
+        Returns: undefined
+      }
       update_school_firebase_trigger: {
         Args: {
           p_course_firebase_ids: string[]
@@ -4085,6 +4393,24 @@ export type Database = {
     }
     Enums: {
       assignment_source: "manual" | "recommended" | "qr_code" | "chatbot"
+      fc_call_result: "call_picked" | "call_later" | "call_not_reachable"
+      fc_contact_method: "call" | "in_person"
+      fc_engagement_target:
+        | "student"
+        | "teacher"
+        | "principal"
+        | "parent"
+        | "school"
+        | "class"
+      fc_support_level:
+        | "need_help"
+        | "still_learning"
+        | "doing_good"
+        | "not_tracked"
+        | "not_assigning_per_month"
+        | "once_a_month"
+        | "once_a_week"
+        | "two_plus_per_week"
       login_type: "student_id" | "parent_phone_number"
       ops_request_status: "requested" | "rejected" | "approved" | "flagged"
       ops_request_type: "student" | "teacher" | "principal" | "school"
@@ -4237,6 +4563,26 @@ export const Constants = {
   public: {
     Enums: {
       assignment_source: ["manual", "recommended", "qr_code", "chatbot"],
+      fc_call_result: ["call_picked", "call_later", "call_not_reachable"],
+      fc_contact_method: ["call", "in_person"],
+      fc_engagement_target: [
+        "student",
+        "teacher",
+        "principal",
+        "parent",
+        "school",
+        "class",
+      ],
+      fc_support_level: [
+        "need_help",
+        "still_learning",
+        "doing_good",
+        "not_tracked",
+        "not_assigning_per_month",
+        "once_a_month",
+        "once_a_week",
+        "two_plus_per_week",
+      ],
       login_type: ["student_id", "parent_phone_number"],
       ops_request_status: ["requested", "rejected", "approved", "flagged"],
       ops_request_type: ["student", "teacher", "principal", "school"],

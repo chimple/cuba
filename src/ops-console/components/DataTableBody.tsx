@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef, useState } from "react";
 import {
   Table,
   TableBody,
@@ -11,7 +11,13 @@ import {
 } from "@mui/material";
 import "./DataTableBody.css";
 import { useHistory } from "react-router";
-import { PAGES } from "../../common/constants";
+import {
+  EnumType,
+  PAGES,
+  StudentInfo,
+  TeacherInfo,
+} from "../../common/constants";
+import FcInteractPopUp from "./fcInteractComponents/FcInteractPopUp";
 
 export interface Column<T> {
   key: keyof T;
@@ -31,6 +37,7 @@ interface Props {
   detailPageRouteBase?: string;
   onRowClick?: (id: string | number, row: any) => void;
   loading?: boolean;
+  fcInteractFormData?: any;
 }
 
 function TableSkeleton({
@@ -82,16 +89,21 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
       detailPageRouteBase,
       onRowClick,
       loading,
+      fcInteractFormData,
     },
     ref
   ) => {
     const history = useHistory();
+    const [selectedUser, setSelectedUser] = useState<any | null>(null);
+    const [showFcPopup, setShowFcPopup] = useState(false);
     const handleRowClick = (row: any) => {
       if (onRowClick) {
         const id = row.request_id || row.id;
         onRowClick(id, row);
         return;
       }
+      setSelectedUser(row.fcInteractFormData?.studentData ?? row);
+      setShowFcPopup(true);
 
       const id = row.id;
       if (!id) {
@@ -104,7 +116,6 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
           `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/${row["id"]}`
         );
       } else if (detailPageRouteBase === "users") {
-
         history.push({
           pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.USERS}${PAGES.USER_DETAILS}`,
           state: { userData: row },
@@ -121,6 +132,16 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
+              {showFcPopup && selectedUser && (
+                <>
+                  {/* <FcInteractPopUp
+                  teacherData={selectedUser as TeacherInfo}
+                  schoolId="school_123"
+                  initialUserType={"teacher" as EnumType <"fc_engagement_target">}
+          onClose={() => setShowFcPopup(false)}
+        /> */}
+                </>
+              )}
               {columns.map((col) => (
                 <TableCell
                   key={col.key}

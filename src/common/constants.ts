@@ -78,6 +78,9 @@ export enum TABLES {
   OpsRequests = "ops_requests",
   GeoLocations = "geo_locations",
   RiveReward = "rive_reward",
+  FcQuestion = "fc_question",
+  FcSchoolVisit = "fc_school_visit",
+  FcUserForms = "fc_user_forms",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",

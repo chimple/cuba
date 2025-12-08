@@ -24,6 +24,7 @@ import {
   PerformanceLevel,
   StudentInfo,
   BANDS,
+  EnumType,
 } from "../../../common/constants";
 import {
   getGradeOptions,
@@ -38,6 +39,7 @@ import { ClassUtil } from "../../../utility/classUtil";
 import ActionMenu from "./ActionMenu";
 import ChatBubbleOutlineOutlined from "@mui/icons-material/ChatBubbleOutlineOutlined";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
+import FcInteractPopUp from "../fcInteractComponents/FcInteractPopUp";
 
 type ApiStudentData = StudentInfo;
 
@@ -107,6 +109,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   optionalGrade,
   optionalSection,
 }) => {
+  const [openPopup, setOpenPopup] = useState(false);
   const history = useHistory();
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const [students, setStudents] = useState<ApiStudentData[]>(
@@ -137,6 +140,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     PerformanceLevel.ALL
   );
   const [isPerformanceLoading, setIsPerformanceLoading] = useState(false);
+  const [studentData, setStudentData] = useState<StudentInfo>();
+  const [studentStatus, setStudentStatus] =
+    useState<EnumType<"fc_support_level">>();
+
+  let baseStudentData: StudentInfo[] = [];
+  const api = ServiceConfig.getI().apiHandler;
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -146,6 +155,22 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       clearTimeout(handler);
     };
   }, [searchTerm]);
+  const mapSupportLevel = (
+    label: string
+  ): EnumType<"fc_support_level"> | null => {
+    switch (label) {
+      case "Doing Good":
+        return "doing_good";
+      case "Still Learning":
+        return "still_learning";
+      case "Need Help":
+        return "need_help";
+      case "Not Tracked":
+        return "not_tracked";
+      default:
+        return null; 
+    }
+  };
 
   const fetchStudents = useCallback(
     async (currentPage: number, search: string, silent = false) => {
@@ -170,6 +195,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             currentPage,
             ROWS_PER_PAGE
           );
+          baseStudentData = response.data;
           setStudents(response.data);
           setTotalCount(response.total);
         }
@@ -400,6 +426,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     };
     fetchStudentPerformance();
   }, [sortedStudents, optionalGrade, optionalSection, issTotal, baseStudents]);
+  const getStudentInfoById = useCallback(
+    (id: string): StudentInfo | null => {
+      if (!Array.isArray(baseStudentData)) return null;
+      const full = baseStudentData.find((x) => x.user.id === id);
+      return baseStudentData.find((stu) => stu.user?.id === id) || null;
+    },
+    [baseStudentData]
+  );
 
   const studentsForCurrentPage = useMemo((): DisplayStudent[] => {
     let filtered = sortedStudents.map(
@@ -493,7 +527,18 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             >
               <IconButton
                 size="small"
-                onClick={() => console.log("Engage with student:", s.id)}
+                onClick={async () => {
+                  const fullStudent = getStudentInfoById(s.id);
+                  if (!fullStudent) return;
+
+                  const mappedType = mapSupportLevel(
+                    s.schstudents_performance!
+                  );
+
+                  setStudentData(fullStudent);
+                  setStudentStatus(mappedType!);
+                  setOpenPopup(true);
+                }}
               >
                 <img
                   src="/assets/icons/Interact.svg"
@@ -743,7 +788,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       }
 
       try {
-        const api = ServiceConfig.getI().apiHandler;
         const result = await api.addStudentWithParentValidation({
           phone: normalizedPhone,
           name: formValues.studentName || "",
@@ -808,6 +852,16 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         onSubmit={handleSubmitAddStudentModal}
         message={errorMessage}
       />
+      {openPopup && studentData && (
+        <FcInteractPopUp
+          studentData={studentData}
+          schoolId={schoolId}
+          status={studentStatus}
+          onClose={() => setOpenPopup(false)}
+          initialUserType={"student"}
+        />
+      )}
+
       <Box className="schoolStudents-headerActionsRow">
         <Box className="schoolStudents-titleArea">
           <Typography variant="h5" className="schoolStudents-titleHeading">

@@ -9448,4 +9448,107 @@ export class SupabaseApi implements ServiceApi {
       };
     }
   }
+
+  async getFilteredFcQuestions(
+    type: EnumType<"fc_support_level"> | null,
+    targetType: EnumType<"fc_engagement_target">
+  ): Promise<TableTypes<"fc_question">[] | []> {
+    if (!this.supabase) {
+      return [];
+    }
+
+    let query = this.supabase
+      .from(TABLES.FcQuestion)
+      .select("*")
+      .eq("target_type", targetType)
+      .eq("is_deleted", false)
+      .eq("is_active", true);
+
+    if (type !== null) {
+      query = query.eq("type", type);
+    } else {
+      query = query.is("type", null);
+    }
+
+    const { data, error } = await query.order("sort_order", {
+      ascending: true,
+    });
+
+    if (error) {
+      console.error("Error fetching FC Questions:", error);
+      return [];
+    }
+
+    return data;
+  }
+  async saveFcUserForm(payload: {
+    visitId?: string | null;
+    userId: string;
+    schoolId: string;
+    classId?: string | null;
+    contactUserId?: string | null;
+    contactTarget: EnumType<"fc_engagement_target">;
+    contactMethod: EnumType<"fc_contact_method">;
+    callStatus?: EnumType<"fc_call_result"> | null;
+    supportLevel?: EnumType<"fc_support_level"> | null;
+    questionResponse: Record<string, string>;
+    techIssuesReported: boolean;
+    comment?: string | null;
+    techIssueComment?: string | null;
+  }) {
+    if (!this.supabase) {
+      return { data: null, error: new Error("Supabase not initialized") };
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.FcUserForms)
+      .insert({
+        visit_id: payload.visitId ?? null,
+        user_id: payload.userId,
+        school_id: payload.schoolId,
+        class_id: payload.classId ?? null,
+        contact_user_id: payload.contactUserId ?? null,
+        contact_target: payload.contactTarget,
+        contact_method: payload.contactMethod,
+        call_status: payload.callStatus ?? null,
+        support_level: payload.supportLevel ?? null,
+        question_response: JSON.stringify(payload.questionResponse),
+        tech_issues_reported: payload.techIssuesReported,
+        comment: payload.comment ?? null,
+        tech_issue_comment: payload.techIssueComment ?? null,
+      })
+      .select()
+      .single();
+
+    return { data, error };
+  }
+  async getTodayVisitId(
+    userId: string,
+    schoolId: string
+  ): Promise<string | null> {
+    if (!this.supabase) {
+      return null;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayISO = today.toISOString().split("T")[0];
+
+    const { data, error } = await this.supabase
+      .from(TABLES.FcSchoolVisit)
+      .select("id")
+      .eq("user_id", userId)
+      .eq("school_id", schoolId)
+      .filter("is_deleted", "eq", false)
+      .filter("check_out_at", "is", null)
+      .gte("check_in_at", `${todayISO}T00:00:00.000Z`)
+      .maybeSingle();
+
+    if (error) return null;
+
+    // No valid visit found
+    if (!data) return null;
+
+    return data.id;
+  }
 }

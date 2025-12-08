@@ -287,7 +287,7 @@ export class SqliteApi implements ServiceApi {
           if (
             row.last_pulled &&
             new Date(this._syncTableData[row.table_name]) >
-            new Date(row.last_pulled)
+              new Date(row.last_pulled)
           ) {
             this._syncTableData[row.table_name] = row.last_pulled;
           }
@@ -356,7 +356,7 @@ export class SqliteApi implements ServiceApi {
         try {
           if (overlay && overlay.parentElement)
             overlay.parentElement.removeChild(overlay);
-        } catch { }
+        } catch {}
         if (timeoutId) window.clearTimeout(timeoutId);
         resolve(val);
       };
@@ -647,7 +647,7 @@ export class SqliteApi implements ServiceApi {
       `SELECT * FROM pull_sync_info WHERE table_name = '${TABLES.User}';`
     );
     const lastUserUpdatedStr =
-      tablePullSync?.values?.[0]?.last_pulled ?? '2024-01-01 00:00:00';
+      tablePullSync?.values?.[0]?.last_pulled ?? "2024-01-01 00:00:00";
 
     const lastUserUpdated = new Date(lastUserUpdatedStr);
     const now = new Date();
@@ -668,7 +668,6 @@ export class SqliteApi implements ServiceApi {
       return res;
     }
     // console.log("logs to check synced tables2", JSON.stringify(tables));
-
   }
 
   private async createSyncTables() {
@@ -704,7 +703,12 @@ export class SqliteApi implements ServiceApi {
       JSON.stringify(data),
     ];
     await this.executeQuery(stmt, variables);
-    return await this.syncDbNow([tableName], undefined, undefined, is_sync_immediate);
+    return await this.syncDbNow(
+      [tableName],
+      undefined,
+      undefined,
+      is_sync_immediate
+    );
   }
 
   async createProfile(
@@ -2213,7 +2217,7 @@ export class SqliteApi implements ServiceApi {
           currentUserReward &&
           currentUserReward.reward_id === todaysReward.id &&
           new Date(currentUserReward.timestamp).toISOString().split("T")[0] ===
-          todaysTimestamp.split("T")[0];
+            todaysTimestamp.split("T")[0];
 
         if (!alreadyGiven) {
           newReward = {
@@ -5954,33 +5958,33 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-          id: parent_id,
-          name: parent_name,
-          email: parent_email,
-          phone: parent_phone,
-          age: null,
-          avatar: null,
-          created_at: new Date().toISOString(),
-          curriculum_id: null,
-          fcm_token: null,
-          firebase_id: null,
-          gender: null,
-          grade_id: null,
-          image: null,
-          is_deleted: false,
-          is_firebase: false,
-          is_ops: false,
-          is_tc_accepted: false,
-          language_id: null,
-          learning_path: null,
-          music_off: false,
-          ops_created_by: null,
-          reward: null,
-          sfx_off: false,
-          stars: null,
-          student_id: null,
-          updated_at: null,
-        }
+            id: parent_id,
+            name: parent_name,
+            email: parent_email,
+            phone: parent_phone,
+            age: null,
+            avatar: null,
+            created_at: new Date().toISOString(),
+            curriculum_id: null,
+            fcm_token: null,
+            firebase_id: null,
+            gender: null,
+            grade_id: null,
+            image: null,
+            is_deleted: false,
+            is_firebase: false,
+            is_ops: false,
+            is_tc_accepted: false,
+            language_id: null,
+            learning_path: null,
+            music_off: false,
+            ops_created_by: null,
+            reward: null,
+            sfx_off: false,
+            stars: null,
+            student_id: null,
+            updated_at: null,
+          }
         : null;
 
       return {
@@ -6066,33 +6070,33 @@ order by
       const { grade, section } = this.parseClassName(class_name || "");
       const parentObject: TableTypes<"user"> | null = parent_id
         ? {
-          id: parent_id,
-          name: parent_name,
-          email: parent_email,
-          phone: parent_phone,
-          age: null, // Assuming these fields are nullable or have default values in your User table type
-          avatar: null,
-          created_at: new Date().toISOString(), // Example, adjust if you fetch this
-          curriculum_id: null,
-          fcm_token: null,
-          firebase_id: null,
-          gender: null,
-          grade_id: null,
-          image: null,
-          is_deleted: false,
-          is_firebase: false,
-          is_ops: false,
-          is_tc_accepted: false,
-          language_id: null,
-          learning_path: null,
-          music_off: false,
-          ops_created_by: null,
-          reward: null,
-          sfx_off: false,
-          stars: null,
-          student_id: null,
-          updated_at: null,
-        }
+            id: parent_id,
+            name: parent_name,
+            email: parent_email,
+            phone: parent_phone,
+            age: null, // Assuming these fields are nullable or have default values in your User table type
+            avatar: null,
+            created_at: new Date().toISOString(), // Example, adjust if you fetch this
+            curriculum_id: null,
+            fcm_token: null,
+            firebase_id: null,
+            gender: null,
+            grade_id: null,
+            image: null,
+            is_deleted: false,
+            is_firebase: false,
+            is_ops: false,
+            is_tc_accepted: false,
+            language_id: null,
+            learning_path: null,
+            music_off: false,
+            ops_created_by: null,
+            reward: null,
+            sfx_off: false,
+            stars: null,
+            student_id: null,
+            updated_at: null,
+          }
         : null;
 
       return {
@@ -6497,7 +6501,9 @@ order by
       schoolModel: model || "",
     };
   }
-  async getSchoolDataByUdise(udiseCode: string): Promise<TableTypes<"school_data"> | null> {
+  async getSchoolDataByUdise(
+    udiseCode: string
+  ): Promise<TableTypes<"school_data"> | null> {
     const schoolRes = await this.executeQuery(
       `SELECT * FROM school_data WHERE udise = ?`,
       [udiseCode]
@@ -6913,7 +6919,7 @@ order by
         model: schoolModel,
         location_link: locationLink ?? null,
         key_contacts: JSON.stringify(keyContacts) ?? null,
-        updated_at: timestamp
+        updated_at: timestamp,
       };
 
       await this.updatePushChanges(
@@ -6921,7 +6927,6 @@ order by
         MUTATE_TYPES.UPDATE,
         pushObject
       );
-
     } catch (error) {
       console.error("❌ Error inserting school details:", error);
     }
@@ -6959,22 +6964,17 @@ order by
           classId,
           courseId,
           timestamp,
-          timestamp
+          timestamp,
         ]);
-        this.updatePushChanges(
-          TABLES.ClassCourse,
-          MUTATE_TYPES.INSERT,
-          {
-            id,
-            class_id: classId,
-            course_id: courseId,
-            created_at: timestamp,
-            updated_at: timestamp,
-            is_deleted: 0
-          }
-        );
+        this.updatePushChanges(TABLES.ClassCourse, MUTATE_TYPES.INSERT, {
+          id,
+          class_id: classId,
+          course_id: courseId,
+          created_at: timestamp,
+          updated_at: timestamp,
+          is_deleted: 0,
+        });
       }
-
     } catch (error) {
       console.error("❌ Error replacing class courses:", error);
     }
@@ -6991,5 +6991,33 @@ order by
   }): Promise<{ success: boolean; message: string; data?: any }> {
     return this._serverApi.addStudentWithParentValidation(params);
   }
-
+  public async getFilteredFcQuestions(
+    type: EnumType<"fc_support_level"> | null,
+    targetType: EnumType<"fc_engagement_target">
+  ): Promise<TableTypes<"fc_question">[] | []> {
+    throw new Error("Method not implemented.");
+  }
+  public async saveFcUserForm(payload: {
+    visitId?: string | null;
+    userId: string;
+    schoolId: string;
+    classId?: string | null;
+    contactUserId?: string | null;
+    contactTarget: EnumType<"fc_engagement_target">;
+    contactMethod: EnumType<"fc_contact_method">;
+    callStatus?: EnumType<"fc_call_result"> | null;
+    supportLevel?: EnumType<"fc_support_level"> | null;
+    questionResponse: Record<string, string>;
+    techIssuesReported: boolean;
+    comment?: string | null;
+    techIssueComment?: string | null;
+  }) {
+    throw new Error("Method not implemented.");
+  }
+  public async getTodayVisitId(
+    userId: string,
+    schoolId: string
+  ): Promise<string | null> {
+    throw new Error("Method not implemented.");
+  }
 }
