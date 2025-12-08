@@ -2814,10 +2814,10 @@ export class SupabaseApi implements ServiceApi {
       .eq("is_deleted", false)
       .single();
 
-  if (specialError) {
-    console.error("Error fetching special_users:", specialError);
-  } else if (specialUser) {
-    const role = specialUser.role as RoleType;
+    if (specialError) {
+      console.error("Error fetching special_users:", specialError);
+    } else if (specialUser) {
+      const role = specialUser.role as RoleType;
 
       // --- SUPER ADMIN / OPERATIONAL DIRECTOR ---
       if (
@@ -2958,9 +2958,8 @@ export class SupabaseApi implements ServiceApi {
       }
     }
 
-  return finalData;
-}
-
+    return finalData;
+  }
 
   public set currentMode(value: MODES) {
     this._currentMode = value;
@@ -9012,7 +9011,7 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase.functions.invoke(
       "get_or_create_user",
       {
-        body: { name, phone: phoneNumber, email },
+        body: { name, phone: phoneNumber, email: email },
       }
     );
     if (error) {
@@ -9079,7 +9078,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     let schoolUser: any | null = null;
-    if (schoolId) {
+    if (schoolId && role === RoleType.PRINCIPAL) {
       const { data: existingSchoolUser, error: existingSchoolUserError } =
         await this.supabase
           .from("school_user")
@@ -9305,7 +9304,7 @@ export class SupabaseApi implements ServiceApi {
           body: {
             name: parentName || "Parent",
             phone: phone,
-            email: email || "",
+            email: email,
           },
         });
 

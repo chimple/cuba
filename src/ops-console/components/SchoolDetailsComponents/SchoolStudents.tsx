@@ -718,6 +718,15 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       setIsSubmitting(true);
       setErrorMessage(undefined);
 
+      if (!/^[A-Za-z ]+$/.test(formValues.studentName)) {
+        setErrorMessage({
+          text: "Student name must contain only letters and spaces.",
+          type: "error",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       const normalizedPhone = normalizePhone10(
         (formValues.phone ?? "").toString()
       );
