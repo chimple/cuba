@@ -652,8 +652,8 @@ export class SqliteApi implements ServiceApi {
     const now = new Date();
     const diffMs = now.getTime() - lastUserUpdated.getTime();
     const diffMinutes = diffMs / (1000 * 60);
-    if (diffMinutes > 5 || is_sync_immediate) {
-      await this.pullChanges(tableNames, isFirstSync);
+    if (diffMinutes > 5 || is_sync_immediate || refreshTables.length > 0) {
+      await this.pullChanges(tableNames, isFirstSync,);
       const res = await this.pushChanges(Object.values(TABLES));
       const tables = "'" + tableNames.join("', '") + "'";
       // console.log("logs to check synced tables1", JSON.stringify(tables));
