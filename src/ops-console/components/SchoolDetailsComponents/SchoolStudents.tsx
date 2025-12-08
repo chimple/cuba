@@ -277,6 +277,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             id: s.parent_id ?? undefined,
             name: s.parent_name ?? "",
             phone: s.phone ?? undefined,
+            email: s.email ?? undefined,
           },
         };
       }),
@@ -410,7 +411,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         gender: s_api.user.gender ?? "N/A",
         grade: s_api.grade ?? 0,
         classSection: s_api.classSection ?? "N/A",
-        phoneNumber: s_api.parent?.phone ?? "N/A",
+        phoneNumber: s_api.parent?.phone || s_api.parent?.email || "N/A", //here
         class: (s_api.grade ?? 0) + (s_api.classSection ?? ""),
         schstudents_performance:
           studentPerformanceMap.get(s_api.user.id) ?? "Not Tracked",
@@ -458,6 +459,29 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     setIsFilterSliderOpen(false);
   }, []);
 
+  const columns: Column<DisplayStudent>[] = [
+    { key: "studentIdDisplay", label: t("Student ID") },
+    {
+      key: "name",
+      label: t("Student Name"),
+      renderCell: (s) => (
+        <Typography variant="body2" className="student-name-data">
+          {s.name}
+        </Typography>
+      ),
+    },
+    { key: "gender", label: t("Gender") },
+    {
+      key: "class",
+      label: t("Class Name"),
+      renderCell: (s) => (
+        <Typography variant="body2" className="student-name-data">
+          {s.class}
+        </Typography>
+      ),
+    },
+    { key: "phoneNumber", label: t("Phone Number / Email") },
+  ];
   const columns: Column<DisplayStudent>[] = useMemo(() => {
     const commonColumns: Column<DisplayStudent>[] = [
       {
