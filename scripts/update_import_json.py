@@ -27,12 +27,35 @@ def parse_csv_value(value, column_name):
     
     return value
 
-def format_timestamp(value):
-    if not isinstance(value, str):
+def to_iso_string(value):
+    """
+    Converts value (string or datetime) to ISO 8601 string with +00:00 suffix.
+    Format: YYYY-MM-DDTHH:MM:SS.mmmmmm+00:00
+    """
+    if isinstance(value, str):
+        # Strip whitespace and quotes
+        value = value.strip().strip("'").strip('"')
+        
+        # Transformation: 2025-03-27 06:35:10.629219+00 -> 2025-03-27T06:35:10.629219+00:00
+        if ' ' in value and value.endswith('+00'):
+            value = value.replace(' ', 'T').replace('+00', '+00:00')
+        
+        # Handle Z suffix -> +00:00
+        if value.endswith('Z'):
+            return value[:-1] + '+00:00'
+            
+        # Ensure +00:00 suffix
+        if not value.endswith('+00:00'):
+             if 'T' in value:
+                 return value + '+00:00'
+             # If it doesn't have T (unlikely given previous logic, but just in case)
+             # return value + '+00:00' 
         return value
-    # Transformation: 2025-03-27 06:35:10.629219+00 -> 2025-03-27T06:35:10.629219+00:00
-    if ' ' in value and value.endswith('+00'):
-        return value.replace(' ', 'T').replace('+00', '+00:00')
+        
+    if hasattr(value, 'strftime'):
+        # datetime object
+        return value.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + '+00:00'
+        
     return value
 
 def get_column_type_map(table_schema):
@@ -75,14 +98,17 @@ def process_table(table_node, csv_path):
                 val = cast_value(val, col_type_map.get(col, 'TEXT'))
                 
                 if col in ['created_at', 'updated_at']:
-                    val = format_timestamp(val)
+                    # Debug print for first few rows
+                    # if len(new_values) < 1: 
+                    #     print(f"  Formatting {col}: {val} -> {to_iso_string(val)}")
+                    val = to_iso_string(val)
 
                 row_values.append(val)
             new_values.append(row_values)
             
     table_node['values'] = new_values
     print(f"  Updated {len(new_values)} rows.")
-    return table_name # Return the name of the processed table
+    return table_name
 
 def main():
     if not os.path.exists(IMPORT_JSON_PATH):
@@ -127,18 +153,12 @@ def main():
         from datetime import datetime, timezone, timedelta
         
         # SqliteApi.ts logic: "now - 1 minute"
-        # const currentTimestamp = new Date();
-        # const reducedTimestamp = new Date(currentTimestamp);
-        # reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
+        # User manually changed to "days=1" - preserving "now - 1 day" as per recent edit
         
         now = datetime.now(timezone.utc)
-        sync_time  = now - timedelta(days=1)
+        sync_time  = now - timedelta(days=1) 
         
-        # Format: 2025-12-09T10:22:19.977Z (ISO 8601 with Z suffix)
-        def get_formatted_time(dt):
-             return dt.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
-
-        sync_time_str = get_formatted_time(sync_time)
+        sync_time_str = to_iso_string(sync_time)
 
         for row in sync_table.get('values', []):
             t_name = row[0]
