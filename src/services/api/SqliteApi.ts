@@ -2284,7 +2284,7 @@ export class SqliteApi implements ServiceApi {
     if (score > 50) starsEarned++;
     if (score > 75) starsEarned++;
 
-    if (!isHomework && starsEarned > 0) {
+    if (starsEarned > 0) {
       const allStarsMap = localStorage.getItem(LATEST_STARS);
       const allStars = allStarsMap ? JSON.parse(allStarsMap) : {};
       const currentLocalStars = allStars[student.id] ?? 0;
@@ -2310,7 +2310,7 @@ export class SqliteApi implements ServiceApi {
     if (updatedStudent) {
       updatedStudent.language_id = student.language_id;
       Util.setCurrentStudent(updatedStudent);
-      // Util.setLocalStarsForStudent(updatedStudent.id, updatedStudent.stars || 0);
+      Util.setLocalStarsForStudent(updatedStudent.id, updatedStudent.stars || 0);
     }
     this.updatePushChanges(
       TABLES.Result,
