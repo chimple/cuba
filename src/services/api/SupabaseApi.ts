@@ -2203,11 +2203,7 @@ export class SupabaseApi implements ServiceApi {
     if (score > 50) starsEarned++;
     if (score > 75) starsEarned++;
 
-    const previousStarsRaw = localStorage.getItem(STARS_COUNT);
-    let currentStars = previousStarsRaw
-      ? JSON.parse(previousStarsRaw)[student.id]
-      : 0;
-    const totalStars = currentStars + starsEarned;
+    const totalStars = Util.bumpLocalStarsForStudent(student.id, starsEarned);
 
     const updateData: any = { stars: totalStars };
     if (newReward) updateData.reward = JSON.stringify(newReward);
@@ -2814,10 +2810,10 @@ export class SupabaseApi implements ServiceApi {
       .eq("is_deleted", false)
       .single();
 
-  if (specialError) {
-    console.error("Error fetching special_users:", specialError);
-  } else if (specialUser) {
-    const role = specialUser.role as RoleType;
+    if (specialError) {
+      console.error("Error fetching special_users:", specialError);
+    } else if (specialUser) {
+      const role = specialUser.role as RoleType;
 
       // --- SUPER ADMIN / OPERATIONAL DIRECTOR ---
       if (
@@ -2958,9 +2954,8 @@ export class SupabaseApi implements ServiceApi {
       }
     }
 
-  return finalData;
-}
-
+    return finalData;
+  }
 
   public set currentMode(value: MODES) {
     this._currentMode = value;
@@ -9449,13 +9444,15 @@ export class SupabaseApi implements ServiceApi {
       };
     }
   }
-   async getActivitiesBySchoolId(schoolId: string): Promise<TableTypes<"fc_user_forms">[]> {
+  async getActivitiesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"fc_user_forms">[]> {
     if (!this.supabase) return [];
 
     const { data, error } = await this.supabase
       .from("fc_user_forms")
       .select("*")
-      .eq("school_id",schoolId)
+      .eq("school_id", schoolId)
       .eq("is_deleted", false)
       .order("created_at", { ascending: true });
 
@@ -9499,20 +9496,20 @@ export class SupabaseApi implements ServiceApi {
 
       const forms = data || [];
 
-      const contactTypes = [...new Set(forms.map(f => f.contact_target).filter(Boolean))];
-      const performance = [...new Set(forms.map(f => f.support_level).filter(Boolean))];
+      const contactTypes = [
+        ...new Set(forms.map((f) => f.contact_target).filter(Boolean)),
+      ];
+      const performance = [
+        ...new Set(forms.map((f) => f.support_level).filter(Boolean)),
+      ];
 
       return {
         contactType: contactTypes,
         performance: performance,
       };
-
     } catch (error) {
       console.error("Error in getActivitiesFilterOptions:", error);
       throw error;
     }
   }
-
 }
-
-
