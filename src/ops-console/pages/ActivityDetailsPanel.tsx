@@ -16,10 +16,20 @@ import { t } from "i18next";
 import { FcActivity } from "../../interface/modelInterfaces";
 
 /* -------------------------------------------------------
-   INLINE LABEL + VALUE  →  Name: Thilak
+   INLINE LABEL + VALUE  →  Name: Thilak  (with ID)
 --------------------------------------------------------*/
-const InfoRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
+const InfoRow = ({
+  id,
+  label,
+  value,
+}: {
+  id: string;
+  label: string;
+  value: React.ReactNode;
+}) => (
   <Box
+    id={id}
+    data-testid={id}
     sx={{
       display: "flex",
       flexDirection: "row",
@@ -28,13 +38,12 @@ const InfoRow = ({ label, value }: { label: string; value: React.ReactNode }) =>
       mb: 1,
     }}
   >
-    {/* FIXED LABEL WIDTH — THIS FIXES THE ALIGNMENT */}
     <Typography
       sx={{
         fontSize: "14px",
         fontWeight: 500,
         color: "text.secondary",
-        width: "120px", // FIX WIDTH
+        width: "120px",
         textAlign: "left",
         whiteSpace: "nowrap",
       }}
@@ -56,13 +65,20 @@ const InfoRow = ({ label, value }: { label: string; value: React.ReactNode }) =>
   </Box>
 );
 
-
 /* -------------------------------------------------------
-   SECTION BOX WITH TITLE + GREY PAPER CONTENT
+   SECTION BOX WITH TITLE + GREY PAPER CONTENT  (with ID)
 --------------------------------------------------------*/
-const DetailSection = ({ label, text }: { label: string; text: string }) => {
+const DetailSection = ({
+  id,
+  label,
+  text,
+}: {
+  id: string;
+  label: string;
+  text: string;
+}) => {
   return (
-    <Box sx={{ mb: 3 }}>
+    <Box id={id} data-testid={id} sx={{ mb: 3 }}>
       <Typography
         sx={{
           fontWeight: 600,
@@ -138,12 +154,18 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
       }}
     >
       {/* HEADER */}
-      <Box display="flex" justifyContent="space-between" alignItems="center">
+      <Box
+        id="fc-header"
+        data-testid="fc-header"
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+      >
         <Typography variant="h6" fontWeight={600}>
           {t("Details")}
         </Typography>
 
-        <IconButton onClick={onClose}>
+        <IconButton id="fc-close-btn" data-testid="fc-close-btn" onClick={onClose}>
           <CloseIcon />
         </IconButton>
       </Box>
@@ -152,6 +174,8 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
 
       {/* TOP INFO CARD */}
       <Paper
+        id="fc-top-info-card"
+        data-testid="fc-top-info-card"
         elevation={0}
         sx={{
           border: "1px solid #e0e0e0",
@@ -164,14 +188,19 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
         <Box display="flex" justifyContent="space-between">
           {/* LEFT */}
           <Box>
-            <InfoRow label={t("Name")} value={user?.name ?? "--"} />
-            <InfoRow label={t("Grade")} value={classInfo?.name ?? "--"} />
-            <InfoRow label={t("Contact Type")} value={contactType} />
+            <InfoRow id="fc-name" label={t("Name")} value={user?.name ?? "--"} />
+            <InfoRow id="fc-grade" label={t("Grade")} value={classInfo?.name ?? "--"} />
+            <InfoRow
+              id="fc-contact-type"
+              label={t("Contact Type")}
+              value={contactType}
+            />
           </Box>
 
           {/* RIGHT */}
           <Box textAlign="right">
             <InfoRow
+              id="fc-profile-status"
               label={t("Profile Status")}
               value={
                 <Chip
@@ -187,11 +216,13 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
             />
 
             <InfoRow
+              id="fc-time"
               label={t("Time")}
               value={OpsUtil.formatTimeToIST(raw.created_at)}
             />
 
             <InfoRow
+              id="fc-tech-issues"
               label={t("Tech Issues")}
               value={
                 raw.tech_issues_reported ? (
@@ -214,24 +245,35 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
       </Paper>
 
       {/* SECTIONS */}
-      <DetailSection label={t("Call Outcome")} text={callOutcome} />
+      <DetailSection
+        id="fc-call-outcome"
+        label={t("Call Outcome")}
+        text={callOutcome}
+      />
 
       <DetailSection
+        id="fc-challenges"
         label={t("What challenges did they mention while using the app?")}
         text={challenges}
       />
 
       <DetailSection
+        id="fc-how-helped"
         label={t("How did you help them understand its use?")}
         text={howHelped}
       />
 
       <DetailSection
+        id="fc-other-comments"
         label={t("Any other questions or comments?")}
         text={otherComments}
       />
 
-      <DetailSection label={t("Tech Issue Reported")} text={techIssueDetails} />
+      <DetailSection
+        id="fc-tech-issue-reported"
+        label={t("Tech Issue Reported")}
+        text={techIssueDetails}
+      />
     </Drawer>
   );
 };
