@@ -54,8 +54,8 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
-        FirebaseApp.initializeApp(/*context=*/ this);
         initializeActivityLauncher();
+        FirebaseApp.initializeApp(/*context=*/ this);
 
         // --- ✅ Initialize WebGL Monitor ---
         if (this.bridge != null && this.bridge.getWebView() != null) {
