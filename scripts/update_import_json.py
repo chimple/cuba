@@ -27,6 +27,14 @@ def parse_csv_value(value, column_name):
     
     return value
 
+def format_timestamp(value):
+    if not isinstance(value, str):
+        return value
+    # Transformation: 2025-03-27 06:35:10.629219+00 -> 2025-03-27T06:35:10.629219+00:00
+    if ' ' in value and value.endswith('+00'):
+        return value.replace(' ', 'T').replace('+00', '+00:00')
+    return value
+
 def get_column_type_map(table_schema):
     col_map = {}
     for col in table_schema:
@@ -66,6 +74,9 @@ def process_table(table_node, csv_path):
                 val = parse_csv_value(val, col)
                 val = cast_value(val, col_type_map.get(col, 'TEXT'))
                 
+                if col in ['created_at', 'updated_at']:
+                    val = format_timestamp(val)
+
                 row_values.append(val)
             new_values.append(row_values)
             
