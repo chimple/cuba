@@ -1,6 +1,7 @@
 import { FC, useEffect, useRef, useState } from "react";
 import "./DropdownMenu.css";
 import {
+  COURSE_CHANGED,
   EVENTS,
   HOMEWORK_PATHWAY,
   LIVE_QUIZ,
@@ -15,6 +16,7 @@ interface CourseDetails {
   grade?: TableTypes<"grade"> | null;
   curriculum?: TableTypes<"curriculum"> | null;
 }
+const ImageUrlCache: Record<string, string> = {};
 
 interface DropdownMenuProps {
   disabled?: boolean;
@@ -243,13 +245,13 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
 
       learningPath.courses.currentCourseIndex = index;
 
-      const updateOperations = [
-        api.updateLearningPath(currentStudent, JSON.stringify(learningPath)),
-        Util.setCurrentStudent(
-          { ...currentStudent, learning_path: JSON.stringify(learningPath) },
-          undefined
-        ),
-      ];
+      Util.setCurrentStudent(
+        { ...currentStudent, learning_path: JSON.stringify(learningPath) },
+        undefined
+      )
+      window.dispatchEvent(
+        new CustomEvent(COURSE_CHANGED)
+      );
 
       const currentCourse = courseList[index];
       const currentPathItem = currentCourse?.path?.[currentCourse.currentIndex];
@@ -266,20 +268,14 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         prev_chapter_id: prevChapterId,
       };
 
-      updateOperations.push(
-        Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, eventData)
-      );
+      Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, eventData)
 
-      await Promise.all(updateOperations);
+      await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
 
       if (onSubjectChange) {
         onSubjectChange(subject.course.id);
       }
       if (onCourseChange) onCourseChange();
-
-      window.dispatchEvent(
-        new CustomEvent("courseChanged", { detail: { currentStudent } })
-      );
     } catch (error) {
       console.error("Error in handleSelect:", error);
     }
@@ -292,7 +288,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
 
   const handleToggleExpand = () => {
     if (hideArrow) return;
-    setExpanded((prev) => !prev);
+    requestAnimationFrame(() => setExpanded((prev) => !prev));
   };
 
   useEffect(() => {
@@ -311,14 +307,31 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         detail.course.image || "",
       ].filter(Boolean);
 
-      await Promise.any(sources.map(preloadImage));
+      Promise.any(sources.map(preloadImage));
     });
+  }, [courseDetails]);
 
-    if (expanded && selected) {
-      const selectedRef = itemRefs.current[selected.course.id];
-      selectedRef?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [expanded, selected, courseDetails]);
+  useEffect(() => {
+    if (!expanded || !selected) return;
+    requestAnimationFrame(() => {
+      const ref = itemRefs.current[selected.course.id];
+      ref?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }, [expanded]);
+
+const getCachedImageUrl = (course: any) => {
+  const key = course.id;
+
+  // Already cached → return
+  if (ImageUrlCache[key]) return ImageUrlCache[key];
+
+  // Missing → store immediately (public URLs are static)
+  const url = course.image || "";
+  ImageUrlCache[key] = url;
+
+  return url;
+};
+
 
   return (
     <div className={`dropdown-main ${disabled ? "dropdown-disabled" : ""}`}>
@@ -328,26 +341,24 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
       >
         <div className="dropdown-left">
           {!expanded && selected && (
-            <>
               <div className="menu-selected">
                 <div className="selected-icon">
                   <SelectIconImage
                     localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
                     defaultSrc={"assets/icons/DefaultIcon.png"}
                     webSrc={
-                      selected.course.image || "assets/icons/DefaultIcon.png"
+                      getCachedImageUrl(selected.course) || "assets/icons/DefaultIcon.png"
                     }
                     imageWidth="10vh"
                     imageHeight="auto"
                   />
                 </div>
               </div>
-            </>
           )}
-          {expanded && (
             <div
-              className="dropdown-items"
+              className={`dropdown-items ${expanded ? "open" : "closed"}`}  
               onClick={(e) => e.stopPropagation()}
+              aria-hidden={!expanded}
             >
               {courseDetails.map((detail, index) => (
                 <div
@@ -367,7 +378,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
                     localSrc={`courses/chapter_icons/${detail.course.code}.webp`}
                     defaultSrc="assets/icons/DefaultIcon.png"
                     webSrc={
-                      detail.course.image || "assets/icons/DefaultIcon.png"
+                      getCachedImageUrl(detail.course) || "assets/icons/DefaultIcon.png"
                     }
                     imageWidth="85%"
                   />
@@ -377,7 +388,6 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
                 </div>
               ))}
             </div>
-          )}
         </div>
         {!hideArrow && (
           <div className={`dropdown-arrow ${expanded ? "expanded-arrow" : ""}`}>

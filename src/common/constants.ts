@@ -1179,3 +1179,4 @@ export const PERFORMANCE_UI: Record<
     textColor: "#6ec5e7ff",
   },
 };
+export const COURSE_CHANGED = "courseChanged";

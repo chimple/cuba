@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./chpaterLessonBox.css";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
+import { COURSE_CHANGED } from "../../common/constants";
 
 interface ChapterLessonBoxProps {
   containerStyle?: React.CSSProperties;
@@ -62,10 +63,10 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
       );
     };
 
-    window.addEventListener("courseChanged", syncHandleCourseChange);
+    window.addEventListener(COURSE_CHANGED, syncHandleCourseChange);
 
     return () => {
-      window.removeEventListener("courseChanged", syncHandleCourseChange);
+      window.removeEventListener(COURSE_CHANGED, syncHandleCourseChange);
     };
   }, [chapterName, lessonName]);
 
