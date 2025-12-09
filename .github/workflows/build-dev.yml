@@ -27,6 +27,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "24.4.0"
+          cache: "npm"
+          cache-dependency-path: |
+            package-lock.json
+            **/package-lock.json
 
       - name: Install app dependencies
         run: npm install
@@ -56,8 +60,20 @@ jobs:
           REACT_APP_GROWTHBOOK_ID: ${{ secrets.REACT_APP_GROWTHBOOK_ID_DEV }}
           REACT_APP_ENCRYPTION_KEY: ${{ secrets.REACT_APP_ENCRYPTION_KEY }}
           REACT_APP_SENTRY_DSN: ${{ secrets.REACT_APP_SENTRY_DSN }}
+          REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID: ${{ secrets.REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID }}
+          REACT_APP_ENV: ${{vars.REACT_APP_ENV_DEV}}
 
         run: npm run build
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Make gradlew executable
         working-directory: ./android/
