@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "21.x"
+          java-version: "25.x"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
