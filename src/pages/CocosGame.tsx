@@ -354,7 +354,8 @@ const CocosGame: React.FC = () => {
       chapterDetail?.id ?? chapter_id?.toString() ?? undefined,
       classId,
       schoolId,
-      shouldGiveHomeworkBonus
+      shouldGiveHomeworkBonus,
+      is_homework,
     );
 
     // Update the learning path / homework path
