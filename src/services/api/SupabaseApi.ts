@@ -3075,12 +3075,10 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: 0 };
     }
 
-      let totalCount = 0;
-
       const students = Array.isArray(data) ? data : [];
+      const totalCount = students[0]?.totalcount ?? 0;
       const studentInfoList: StudentInfo[] = students.map((row: any) => {
-      const { totalcount,user, class: cls } = row;
-      totalCount = totalcount;
+      const { user, class: cls } = row;
 
       const className = cls?.name || "";
       const { grade, section } = this.parseClassName(className);
