@@ -82,6 +82,7 @@ def process_table(table_node, csv_path):
             
     table_node['values'] = new_values
     print(f"  Updated {len(new_values)} rows.")
+    return table_name # Return the name of the processed table
 
 def main():
     if not os.path.exists(IMPORT_JSON_PATH):
@@ -99,6 +100,7 @@ def main():
         print(f"No CSV files found in {IMPORT_DATA_DIR}")
         return
 
+    processed_tables = []
     for csv_file in csv_files:
         filename = os.path.basename(csv_file)
         # Assuming filename is tablename_rows.csv
@@ -112,10 +114,38 @@ def main():
         if table_name in table_map:
             try:
                 process_table(table_map[table_name], csv_file)
+                processed_tables.append(table_name)
             except Exception as e:
                 print(f"Error processing {table_name}: {e}")
         else:
             print(f"Warning: Table '{table_name}' from {filename} not found in import.json")
+
+    # Update pull_sync_info
+    sync_table = next((t for t in data['tables'] if t['name'] == 'pull_sync_info'), None)
+    if sync_table:
+        print("Updating pull_sync_info dates...")
+        from datetime import datetime, timezone, timedelta
+        
+        now = datetime.now(timezone.utc)
+        yesterday = now - timedelta(days=1)
+        
+        # Format: 2025-12-09T10:22:19.977Z
+        def get_formatted_time(dt):
+             return dt.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+
+        now_str = get_formatted_time(now)
+        yesterday_str = get_formatted_time(yesterday)
+
+        for row in sync_table.get('values', []):
+            t_name = row[0]
+            
+            # Update 'chapter_links' if found in values of pull_sync_info
+            if t_name == 'chapter_links' and ('chapter_links' in processed_tables):
+                 row[1] = yesterday_str
+                 print(f"  Updated sync date for {t_name}")
+            elif t_name in processed_tables:
+                 row[1] = now_str
+                 print(f"  Updated sync date for {t_name}")
 
     save_json(IMPORT_JSON_PATH, data)
     print("Done. import.json updated.")
