@@ -12,6 +12,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import { PERFORMANCE_UI, PerformanceLevel } from "../../common/constants";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
+import { t } from "i18next";
 
 /* -------------------------------------------------------
    INLINE LABEL + VALUE  →  Name: Thilak
@@ -162,15 +163,15 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
         <Box display="flex" justifyContent="space-between">
           {/* LEFT */}
           <Box>
-            <InfoRow label="Name" value={user?.name ?? "--"} />
-            <InfoRow label="Grade" value={classInfo?.name ?? "--"} />
-            <InfoRow label="Contact Type" value={contactType} />
+            <InfoRow label={t("Name")} value={user?.name ?? "--"} />
+            <InfoRow label={t("Grade")} value={classInfo?.name ?? "--"} />
+            <InfoRow label={t("Contact Type")} value={contactType} />
           </Box>
 
           {/* RIGHT */}
           <Box textAlign="right">
             <InfoRow
-              label="Profile Status"
+              label={t("Profile Status")}
               value={
                 <Chip
                   label={perf?.label ?? "NA"}
@@ -185,12 +186,12 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
             />
 
             <InfoRow
-              label="Time"
+              label={t("Time")}
               value={OpsUtil.formatTimeToIST(raw.created_at)}
             />
 
             <InfoRow
-              label="Tech Issues"
+              label={t("Tech Issues")}
               value={
                 raw.tech_issues_reported ? (
                   <Chip
@@ -212,24 +213,24 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
       </Paper>
 
       {/* SECTIONS */}
-      <DetailSection label="Call Outcome" text={callOutcome} />
+      <DetailSection label={t("Call Outcome")} text={callOutcome} />
 
       <DetailSection
-        label="What challenges did they mention while using the app?"
+        label={t("What challenges did they mention while using the app?")}
         text={challenges}
       />
 
       <DetailSection
-        label="How did you help them understand its use?"
+        label={t("How did you help them understand its use?")}
         text={howHelped}
       />
 
       <DetailSection
-        label="Any other questions or comments?"
+        label={t("Any other questions or comments?")}
         text={otherComments}
       />
 
-      <DetailSection label="Tech Issue Reported" text={techIssueDetails} />
+      <DetailSection label={t("Tech Issue Reported")} text={techIssueDetails} />
     </Drawer>
   );
 };
