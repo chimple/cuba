@@ -126,25 +126,26 @@ def main():
         print("Updating pull_sync_info dates...")
         from datetime import datetime, timezone, timedelta
         
-        now = datetime.now(timezone.utc)
-        yesterday = now - timedelta(days=1)
+        # SqliteApi.ts logic: "now - 1 minute"
+        # const currentTimestamp = new Date();
+        # const reducedTimestamp = new Date(currentTimestamp);
+        # reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
         
-        # Format: 2025-12-09T10:22:19.977Z
+        now = datetime.now(timezone.utc)
+        sync_time  = now - timedelta(days=1)
+        
+        # Format: 2025-12-09T10:22:19.977Z (ISO 8601 with Z suffix)
         def get_formatted_time(dt):
              return dt.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
 
-        now_str = get_formatted_time(now)
-        yesterday_str = get_formatted_time(yesterday)
+        sync_time_str = get_formatted_time(sync_time)
 
         for row in sync_table.get('values', []):
             t_name = row[0]
             
-            # Update 'chapter_links' if found in values of pull_sync_info
-            if t_name == 'chapter_links' and ('chapter_links' in processed_tables):
-                 row[1] = yesterday_str
-                 print(f"  Updated sync date for {t_name}")
-            elif t_name in processed_tables:
-                 row[1] = now_str
+            # Update date for all processed tables
+            if t_name in processed_tables:
+                 row[1] = sync_time_str
                  print(f"  Updated sync date for {t_name}")
 
     save_json(IMPORT_JSON_PATH, data)
