@@ -4,6 +4,7 @@ import {
   RecommendationContext,
   createEmptyAbilityState,
   recommendNextSkill,
+  updateAbilities,
 } from "@chimple/palau-recommendation";
 import { TableTypes } from "../common/constants";
 import { ServiceConfig } from "../services/ServiceConfig";
@@ -364,5 +365,75 @@ export class palUtil {
       record[key] = value.ability;
     });
     return record;
+  }
+
+  public static async updateAndGetAbilities(params: {
+    studentId: string;
+    courseId: string;
+    skillId: string;
+    outcomes: boolean[];
+  }): Promise<{
+    skill_id?: string;
+    skill_ability?: number;
+    outcome_id?: string;
+    outcome_ability?: number;
+    competency_id?: string;
+    competency_ability?: number;
+    domain_id?: string;
+    domain_ability?: number;
+    subject_id?: string;
+    subject_ability?: number;
+  }> {
+    const { studentId, courseId, skillId, outcomes } = params;
+    const cacheKey = `${studentId}:${courseId}`;
+    const { abilityState, graph } = await this.getAbilityStateAndGraph(
+      studentId,
+      courseId
+    );
+
+    if (!graph) {
+      return {};
+    }
+
+    const subjectId = graph.subjects[0]?.id ?? "";
+    const updated = updateAbilities({
+      graph,
+      abilities: abilityState,
+      subjectId,
+      skillId,
+      outcomes,
+    });
+
+    const newAbilityState = updated?.abilities ?? abilityState;
+    this.abilityGraphCache.set(cacheKey, {
+      abilityState: newAbilityState,
+      graph,
+    });
+
+    const skillNode = graph.skills.find((s) => s.id === skillId);
+    const outcomeId = skillNode?.outcomeId;
+    const competencyId = skillNode?.competencyId;
+    const domainId = skillNode?.domainId;
+
+    return {
+      skill_id: skillId,
+      skill_ability: newAbilityState.skill?.[skillId],
+      outcome_id: outcomeId,
+      outcome_ability: outcomeId
+        ? newAbilityState.outcome?.[outcomeId]
+        : undefined,
+      competency_id: competencyId,
+      competency_ability: competencyId
+        ? newAbilityState.competency?.[competencyId]
+        : undefined,
+      domain_id: domainId,
+      domain_ability: domainId
+        ? newAbilityState.domain?.[domainId]
+        : undefined,
+      subject_id: subjectId,
+      subject_ability: subjectId
+        ? newAbilityState.subject?.[subjectId]
+        : undefined,
+    };
   }
 }

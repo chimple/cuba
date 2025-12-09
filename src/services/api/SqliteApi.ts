@@ -2176,7 +2176,17 @@ export class SqliteApi implements ServiceApi {
     chapterId: string,
     classId: string | undefined,
     schoolId: string | undefined,
-    isImediateSync: boolean = false
+    isImediateSync: boolean = false,
+    skill_id?: string | undefined,
+    skill_ability?: number | undefined,
+    outcome_id?: string | undefined,
+    outcome_ability?: number | undefined,
+    competency_id?: string | undefined,
+    competency_ability?: number | undefined,
+    domain_id?: string | undefined,
+    domain_ability?: number | undefined,
+    subject_id?: string | undefined,
+    subject_ability?: number | undefined
   ): Promise<TableTypes<"result">> {
     let resultId = uuidv4();
     let isDuplicate = true;
@@ -2209,12 +2219,22 @@ export class SqliteApi implements ServiceApi {
       class_id: classId ?? null,
       firebase_id: null,
       is_firebase: null,
+      skill_id: skill_id ?? null,
+      skill_ability: skill_ability ?? null,
+      outcome_id: outcome_id ?? null,
+      outcome_ability: outcome_ability ?? null,
+      competency_id: competency_id ?? null,
+      competency_ability: competency_ability ?? null,
+      domain_id: domain_id ?? null,
+      domain_ability: domain_ability ?? null,
+      subject_id: subject_id ?? null,
+      subject_ability: subject_ability ?? null,
     };
 
     const res = await this.executeQuery(
       `
-    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id , class_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id , class_id, skill_id, skill_ability, outcome_id, outcome_ability, competency_id, competency_ability, domain_id, domain_ability, subject_id, subject_ability)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `,
       [
         newResult.id,
@@ -2232,6 +2252,16 @@ export class SqliteApi implements ServiceApi {
         newResult.course_id,
         newResult.chapter_id,
         newResult.class_id,
+        newResult.skill_id,
+        newResult.skill_ability,
+        newResult.outcome_id,
+        newResult.outcome_ability,
+        newResult.competency_id,
+        newResult.competency_ability,
+        newResult.domain_id,
+        newResult.domain_ability,
+        newResult.subject_id,
+        newResult.subject_ability,
       ]
     );
     // ⭐ reward update

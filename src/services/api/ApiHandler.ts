@@ -505,7 +505,17 @@ export class ApiHandler implements ServiceApi {
     chapterId: string,
     classId: string | undefined,
     schoolId: string | undefined,
-    isImediateSync?:boolean
+    isImediateSync?: boolean,
+    skill_id?: string | undefined,
+    skill_ability?: number | undefined,
+    outcome_id?: string | undefined,
+    outcome_ability?: number | undefined,
+    competency_id?: string | undefined,
+    competency_ability?: number | undefined,
+    domain_id?: string | undefined,
+    domain_ability?: number | undefined,
+    subject_id?: string | undefined,
+    subject_ability?: number | undefined
   ): Promise<TableTypes<"result">> {
     return await this.s.updateResult(
       student,
@@ -518,7 +528,18 @@ export class ApiHandler implements ServiceApi {
       assignmentId,
       chapterId,
       classId,
-      schoolId
+      schoolId,
+      isImediateSync,
+      skill_id,
+      skill_ability,
+      outcome_id,
+      outcome_ability,
+      competency_id,
+      competency_ability,
+      domain_id,
+      domain_ability,
+      subject_id,
+      subject_ability
     );
   }
 

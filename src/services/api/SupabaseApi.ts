@@ -2128,7 +2128,18 @@ export class SupabaseApi implements ServiceApi {
     assignmentId: string | undefined,
     chapterId: string,
     classId: string | undefined,
-    schoolId: string | undefined
+    schoolId: string | undefined,
+    isImediateSync?: boolean,
+    skill_id?: string | undefined,
+    skill_ability?: number | undefined,
+    outcome_id?: string | undefined,
+    outcome_ability?: number | undefined,
+    competency_id?: string | undefined,
+    competency_ability?: number | undefined,
+    domain_id?: string | undefined,
+    domain_ability?: number | undefined,
+    subject_id?: string | undefined,
+    subject_ability?: number | undefined
   ): Promise<TableTypes<"result">> {
     if (!this.supabase) return {} as TableTypes<"result">;
 
@@ -2153,6 +2164,16 @@ export class SupabaseApi implements ServiceApi {
       class_id: classId ?? null,
       firebase_id: null,
       is_firebase: null,
+      skill_id: skill_id ?? null,
+      skill_ability: skill_ability ?? null,
+      outcome_id: outcome_id ?? null,
+      outcome_ability: outcome_ability ?? null,
+      competency_id: competency_id ?? null,
+      competency_ability: competency_ability ?? null,
+      domain_id: domain_id ?? null,
+      domain_ability: domain_ability ?? null,
+      subject_id: subject_id ?? null,
+      subject_ability: subject_ability ?? null,
     };
 
     const { error: insertError } = await this.supabase

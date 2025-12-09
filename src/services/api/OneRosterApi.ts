@@ -430,7 +430,21 @@ export class OneRosterApi implements ServiceApi {
     correctMoves: number,
     wrongMoves: number,
     timeSpent: number,
-    isImediateSync?:boolean
+    assignmentId: string | undefined,
+    chapterId: string,
+    classId: string | undefined,
+    schoolId: string | undefined,
+    isImediateSync?: boolean,
+    skill_id?: string | undefined,
+    skill_ability?: number | undefined,
+    outcome_id?: string | undefined,
+    outcome_ability?: number | undefined,
+    competency_id?: string | undefined,
+    competency_ability?: number | undefined,
+    domain_id?: string | undefined,
+    domain_ability?: number | undefined,
+    subject_id?: string | undefined,
+    subject_ability?: number | undefined
   ): Promise<Result> {
     throw new Error("Method not implemented.");
   }
