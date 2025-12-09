@@ -29,6 +29,8 @@ import FilterSlider from "../components/FilterSlider";
 import SelectedFilters from "../components/SelectedFilters";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
 import ActivityDetailsPanel from "./ActivityDetailsPanel";
+import { FcActivity } from "../../interface/modelInterfaces";
+
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -54,7 +56,7 @@ const SchoolActivities: React.FC = () => {
   const [orderBy, setOrderBy] = useState("");
   const [orderDir, setOrderDir] = useState<"asc" | "desc">("asc");
   const [total, setTotal] = useState(0);
-  const [selectedActivity, setSelectedActivity] = useState<any | null>(null);
+  const [selectedActivity, setSelectedActivity] = useState<FcActivity | null>(null);
 
   useEffect(() => {
     const fetchActivitiesWithMeta = async () => {
@@ -294,7 +296,7 @@ const SchoolActivities: React.FC = () => {
     [filterOptions]
   );
 
- const handleRowClick = (id: string | number, row: any) => {
+ const handleRowClick = (id: string | number, row: FcActivity) => {
   setSelectedActivity(row);
 };
 

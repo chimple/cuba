@@ -91,3 +91,22 @@ export enum SchoolTabs {
   Principals = "Principals",
   Coordinators = "Coordinators",
 }
+
+export interface FcActivity {
+  raw: {
+    created_at: string;
+    contact_target: string;
+    call_status: string;
+    support_level: string;
+    tech_issues_reported: boolean;
+    question_response?: string;
+    comment?: string;
+  };
+  user: {
+    name: string;
+  } | null;
+  classInfo: {
+    name: string;
+  } | null;
+}
+
