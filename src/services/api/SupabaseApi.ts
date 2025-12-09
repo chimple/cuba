@@ -3064,37 +3064,23 @@ export class SupabaseApi implements ServiceApi {
 
     const offset = (page - 1) * limit;
 
-    const { data, error, count } = await this.supabase
-      .from("class_user")
-      .select(
-        `
-      class:class_id!inner (
-        id,
-        name 
-      ),
-      user:user_id (
-        *,
-        parent_links:parent_user!student_id (
-          parent:parent_id (
-            * 
-          )
-        )
-      )
-    `,
-        { count: "exact" }
-      )
-      .eq("role", "student")
-      .eq("is_deleted", false)
-      .eq("class.school_id", schoolId)
-      .range(offset, offset + limit - 1);
+    const { data, error } = await this.supabase.rpc("get_sorted_students", {
+      p_limit: limit,
+      p_offset: offset,
+      p_school_id: schoolId,
+  });
 
     if (error) {
       console.error("Error fetching student info:", error);
       return { data: [], total: 0 };
     }
 
-    const studentInfoList: StudentInfo[] = (data || []).map((row: any) => {
-      const { user, class: cls } = row;
+      let totalCount = 0;
+
+      const students = Array.isArray(data) ? data : [];
+      const studentInfoList: StudentInfo[] = students.map((row: any) => {
+      const { totalcount,user, class: cls } = row;
+      totalCount = totalcount;
 
       const className = cls?.name || "";
       const { grade, section } = this.parseClassName(className);
@@ -3112,9 +3098,10 @@ export class SupabaseApi implements ServiceApi {
 
     return {
       data: studentInfoList,
-      total: count ?? 0,
+      total: totalCount,
     };
   }
+
   async getStudentsAndParentsByClassId(
     classId: string,
     page: number = 1,
@@ -3133,13 +3120,13 @@ export class SupabaseApi implements ServiceApi {
         `
       class:class_id!inner (
         id,
-        name 
+        name
       ),
       user:user_id (
         *,
         parent_links:parent_user!student_id (
           parent:parent_id (
-            * 
+            *
           )
         )
       )

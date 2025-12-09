@@ -1815,7 +1815,7 @@ export type Database = {
             referencedRelation: "class"
             referencedColumns: ["id"]
           },
-          
+
 
           {
             foreignKeyName: "result_course_id_fkey"
@@ -1824,7 +1824,7 @@ export type Database = {
             referencedRelation: "course"
             referencedColumns: ["id"]
           },
-          
+
           {
             foreignKeyName: "result_student_id_fkey"
             columns: ["student_id"]
@@ -2826,6 +2826,41 @@ export type Database = {
           type: string
         }[]
       }
+      get_sorted_students: {
+        Args: {
+          p_limit: number;
+          p_offset: number;
+          p_school_id: string; // UUID as string
+        };
+        Returns: {
+          totalcount: number;
+          class: {
+            id: string;
+            name: string;
+          };
+          user: {
+            id: string;
+            name: string;
+            age?: number;
+            email?: string;
+            gender?: string;
+            avatar?: string;
+            created_at?: string;
+            updated_at?: string;
+            image?: string;
+            phone?: string;
+            fcm_token?: string;
+            student_id?: string;
+            parent_links: {
+              id: string;
+              name: string;
+              email?: string;
+              phone?: string;
+              avatar?: string;
+            }[];
+          };
+        }[];
+      };
       get_classes_by_school_id: {
         Args: { school_id_input: string }
         Returns: {
