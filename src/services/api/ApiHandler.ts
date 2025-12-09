@@ -505,7 +505,8 @@ export class ApiHandler implements ServiceApi {
     chapterId: string,
     classId: string | undefined,
     schoolId: string | undefined,
-    isImediateSync?:boolean
+    isImediateSync?:boolean,
+    isHomework?: boolean 
   ): Promise<TableTypes<"result">> {
     return await this.s.updateResult(
       student,
@@ -518,7 +519,9 @@ export class ApiHandler implements ServiceApi {
       assignmentId,
       chapterId,
       classId,
-      schoolId
+      schoolId,
+      isImediateSync,
+      isHomework
     );
   }
 
