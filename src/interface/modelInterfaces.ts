@@ -101,6 +101,7 @@ export interface FcActivity {
     tech_issues_reported: boolean;
     question_response?: string;
     comment?: string;
+    how_helped? : string;
   };
   user: {
     name: string;

@@ -13,11 +13,12 @@ import CloseIcon from "@mui/icons-material/Close";
 import { PERFORMANCE_UI, PerformanceLevel } from "../../common/constants";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
 import { t } from "i18next";
+import { FcActivity } from "../../interface/modelInterfaces";
 
 /* -------------------------------------------------------
    INLINE LABEL + VALUE  →  Name: Thilak
 --------------------------------------------------------*/
-const InfoRow = ({ label, value }: { label: string; value: any }) => (
+const InfoRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <Box
     sx={{
       display: "flex",
@@ -94,14 +95,14 @@ const DetailSection = ({ label, text }: { label: string; text: string }) => {
    MAIN PANEL
 --------------------------------------------------------*/
 interface Props {
-  activity: any; // Later from backend
+  activity: FcActivity;
   onClose: () => void;
 }
 
 const CALL_STATUS_LABEL: Record<string, string> = {
-  call_picked: "Call Attended",
-  call_later: "Call Later",
-  call_not_reachable: "Call Not Reachable",
+  call_picked: t("Call Attended"),
+  call_later: t("Call Later"),
+  call_not_reachable: t("Call Not Reachable"),
 };
 
 const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
@@ -139,7 +140,7 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
       {/* HEADER */}
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Typography variant="h6" fontWeight={600}>
-          Details
+          {t("Details")}
         </Typography>
 
         <IconButton onClick={onClose}>
@@ -174,7 +175,7 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
               label={t("Profile Status")}
               value={
                 <Chip
-                  label={perf?.label ?? "NA"}
+                  label={perf?.label ?? t("NA")}
                   size="small"
                   sx={{
                     bgcolor: perf?.bgColor,
@@ -195,7 +196,7 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
               value={
                 raw.tech_issues_reported ? (
                   <Chip
-                    label="Yes"
+                    label={t("Yes")}
                     size="small"
                     sx={{
                       bgcolor: "#fff3cd",
