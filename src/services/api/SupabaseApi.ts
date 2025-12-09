@@ -9011,7 +9011,7 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase.functions.invoke(
       "get_or_create_user",
       {
-        body: { name, phone: phoneNumber, email },
+        body: { name, phone: phoneNumber, email: email },
       }
     );
     if (error) {
@@ -9078,7 +9078,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     let schoolUser: any | null = null;
-    if (schoolId) {
+    if (schoolId && role === RoleType.PRINCIPAL) {
       const { data: existingSchoolUser, error: existingSchoolUserError } =
         await this.supabase
           .from("school_user")
@@ -9304,7 +9304,7 @@ export class SupabaseApi implements ServiceApi {
           body: {
             name: parentName || "Parent",
             phone: phone,
-            email: email || "",
+            email: email,
           },
         });
 

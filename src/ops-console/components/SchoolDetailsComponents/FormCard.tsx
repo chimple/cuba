@@ -100,6 +100,14 @@ const FormCard: React.FC<EntityModalProps> = ({
                 isThisSelectOpen ? "formcard-select-open" : ""
               }`}
             >
+              <input
+                className="formcard-placeholder-validator"
+                value={values[field.name] || ""}
+                required={field.required}
+                onChange={() => {}}
+                tabIndex={-1}
+              />
+
               <div
                 className="formcard-multiselect-trigger"
                 onClick={() =>
@@ -181,6 +189,17 @@ const FormCard: React.FC<EntityModalProps> = ({
                 isThisSelectOpen ? "formcard-select-open" : ""
               }`}
             >
+              <input
+                className="formcard-placeholder-validator"
+                value={values[field.name] || ""}
+                required={field.required}
+                onChange={() => {}}
+                tabIndex={-1}
+                onInvalid={(e) => {
+                  (e.target as HTMLInputElement).focus();
+                }}
+              />
+
               <div
                 className="formcard-multiselect-trigger"
                 onClick={() =>
