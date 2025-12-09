@@ -101,6 +101,7 @@ import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 import CryptoJS from "crypto-js";
 import { InAppReview } from "@capacitor-community/in-app-review";
+import { v4 as uuidv4 } from "uuid";
 declare global {
   interface Window {
     cc: any;
@@ -2662,6 +2663,9 @@ export class Util {
       const prevPathId =
         learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
           .path_id;
+      let path_id = 
+         learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
+          .path_id;
       // Update currentIndex
       currentCourse.currentIndex += 1;
       const is_immediate_sync = currentCourse.currentIndex >= currentCourse.pathEndIndex;
@@ -2675,6 +2679,8 @@ export class Util {
         }
         currentCourse.startIndex = currentCourse.currentIndex;
         currentCourse.pathEndIndex += 5;
+        currentCourse.path_id = uuidv4();
+        path_id = currentCourse.path_id;
 
         // Ensure pathEndIndex does not exceed the path length
         if (currentCourse.pathEndIndex > currentCourse.path.length) {
@@ -2695,7 +2701,8 @@ export class Util {
         }
         const pathwayEndData = {
           user_id: currentStudent.id,
-          current_path_id:
+          path_id: path_id,
+          current_path_id: 
             learningPath.courses.courseList[
               learningPath.courses.currentCourseIndex
             ].path_id,
