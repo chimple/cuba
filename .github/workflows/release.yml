@@ -55,7 +55,7 @@ jobs:
 
       - name: Build
         env:
-          CI: false
+         CI: false
           REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY_PROD }}
           REACT_APP_AUTH_DOMAIN: ${{ secrets.REACT_APP_AUTH_DOMAIN_PROD }}
           REACT_APP_PROJECT_ID: ${{ secrets.REACT_APP_PROJECT_ID_PROD }}
@@ -65,12 +65,16 @@ jobs:
           REACT_APP_MEASUREMENT_ID: ${{ secrets.REACT_APP_MEASUREMENT_ID_PROD}}
           REACT_APP_ALGOLIA_APP_ID: ${{ secrets.REACT_APP_ALGOLIA_APP_ID }}
           REACT_APP_ALGOLIA_API_KEY: ${{ secrets.REACT_APP_ALGOLIA_API_KEY }}
-          REACT_APP_HOT_UPDATE_SERVER: ${{ env.HOT_UPDATE_SERVER }}
+          REACT_APP_HOT_UPDATE_SERVER: ${{ secrets.HOT_UPDATE_SERVER }}
           REACT_APP_ALGOLIA_INDEX_NAME: ${{ secrets.REACT_APP_ALGOLIA_INDEX_NAME_PROD}}
+          REACT_APP_SUPABASE_URL: ${{ secrets.REACT_APP_PROD_SUPABASE_URL}}
+          REACT_APP_SUPABASE_KEY: ${{ secrets.REACT_APP_PROD_SUPABASE_KEY}}
+          REACT_APP_CLIENT_ID: ${{ secrets.REACT_APP_PROD_CLIENT_ID}}
           REACT_APP_RAPIDAPI_KEY: ${{ secrets.REACT_APP_RAPIDAPI_KEY }}
           REACT_APP_ENCRYPTION_KEY: ${{ secrets.REACT_APP_ENCRYPTION_KEY }}
+          REACT_APP_GROWTHBOOK_ID: ${{ secrets.REACT_APP_GROWTHBOOK_ID_PROD }}
           REACT_APP_SENTRY_DSN: ${{ secrets.REACT_APP_SENTRY_DSN }}
-
+          
         run: echo REACT_APP_HOT_UPDATE_SERVER ${REACT_APP_HOT_UPDATE_SERVER} && npm run build
 
       - name: Deploy to Firebase
