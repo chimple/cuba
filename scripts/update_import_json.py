@@ -12,7 +12,7 @@ def load_json(path):
 
 def save_json(path, data):
     with open(path, 'w', encoding='utf-8') as f:
-        json.dump(data, f)
+        json.dump(data, f, ensure_ascii=False)
 
 def parse_csv_value(value, column_name):
     # Handle booleans for integer columns (like is_deleted)
