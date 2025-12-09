@@ -172,7 +172,6 @@ const DataTableBody = forwardRef<HTMLDivElement, Props>(
                   key={idx}
                   hover
                   onClick={() => {
-                    console.log("ROW CLICKED", row);
                     handleRowClick(row);
                   }}
                   sx={{ cursor: "pointer", height: "48px" }}
