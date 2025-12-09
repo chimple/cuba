@@ -6886,7 +6886,6 @@ order by
       console.error("❌ Error updating user reward:", error);
     }
   }
-
   async getActiveStudentsCountByClass(classId: string): Promise<string> {
     return await this._serverApi.getActiveStudentsCountByClass(classId);
   }

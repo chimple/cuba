@@ -7896,8 +7896,6 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-
-
   async updateProgramUserRole(userId: string, role: string): Promise<void> {
     if (!this.supabase) {
       console.error("Supabase client not initialized.");
