@@ -562,7 +562,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
           (l: any) => l.assignment_id ?? null
         ),
         changed_at: new Date().toISOString(),
-        reason: subjectId ? "subject_changed" : "subject_specific",
+        reason: subjectId ? "subject_changed" : "default_pathway",
       };
       await Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COURSE_CHANGED, changedEvent);
     } catch (err) {
