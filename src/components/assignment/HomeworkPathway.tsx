@@ -156,6 +156,22 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     // 3) Optional: re-run updateStarCount in case header / other logic depends on it
     await updateStarCount(student);
   }
+  const normalizeAssignment = async (assignment: any) => {
+    // if assignment already has .lesson, keep it; otherwise fetch
+    const lesson =
+      assignment.lesson ??
+      (assignment.lesson_id ? await api.getLesson(assignment.lesson_id) : null);
+
+    return {
+      assignment_id: assignment.assignment_id ?? assignment.id ?? null,
+      lesson_id: assignment.lesson_id ?? lesson?.id ?? null,
+      chapter_id: assignment.chapter_id ?? lesson?.chapter_id ?? null,
+      course_id: assignment.course_id ?? lesson?.course_id ?? null,
+      lesson: lesson ?? null,
+      raw_assignment: assignment,
+    };
+  };
+
   const fetchHomeworkPathway = async (
     student: TableTypes<"user">,
     subjectId?: string
@@ -303,10 +319,9 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
                   completedCountBySubject
                 );
 
-                const lessonsWithDetails = selectedAssignments.map(
-                  (assignment: any) => ({
-                    ...assignment,
-                    lesson: assignment.lesson,
+                const lessonsWithDetails = await Promise.all(
+                  selectedAssignments.map(async (assignment) => {
+                    return await normalizeAssignment(assignment);
                   })
                 );
 
@@ -317,6 +332,35 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
                 };
 
                 await saveHomeworkPath(student, newHomeworkPath);
+                // ▶️ Log HOMEWORK_PATHWAY_CHANGED for the newly created path
+                try {
+                  const changedEvent = {
+                    user_id: student.id,
+                    new_path_id: newHomeworkPath.path_id,
+                    new_course_id:
+                      newHomeworkPath.lessons?.[0]?.course_id || null,
+                    new_lesson_id:
+                      newHomeworkPath.lessons?.[0]?.lesson_id || null,
+                    new_chapter_id:
+                      newHomeworkPath.lessons?.[0]?.chapter_id || null,
+                    total_lessons_in_path: newHomeworkPath.lessons?.length || 0,
+                    changed_at: new Date().toISOString(),
+                    reason: subjectId
+                      ? "subject_changed"
+                      : "path_completed_rebuild",
+                    subject_id: subjectId || null,
+                  };
+                  await Util.logEvent(
+                    EVENTS.HOMEWORK_PATHWAY_COURSE_CHANGED,
+                    changedEvent
+                  );
+                } catch (err) {
+                  console.warn(
+                    "[HomeworkPathway] Failed to log HOMEWORK_PATHWAY_CHANGED event",
+                    err
+                  );
+                }
+
                 pathData = newHomeworkPath;
               }
             }
@@ -324,7 +368,8 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
             // ⭐ SUBJECT-SPECIFIC path when dropdown is used
             pathData = await buildAndSaveInitialHomeworkPath(
               student,
-              allPendingAssignments
+              allPendingAssignments,
+              subjectId
             );
           }
         }
@@ -357,7 +402,32 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         pathData.lessons.length > 0 &&
         pathData.currentIndex >= pathData.lessons.length
       ) {
-        await awardStarsForPathCompletion(student, 10);
+        // 2️⃣ Log: HOMEWORK_PATHWAY_COMPLETED
+        try {
+          const prevIndex = Math.max(pathData.currentIndex - 1, 0);
+          const prev = pathData.lessons[prevIndex];
+
+          const completedEvent = {
+            user_id: student.id,
+            completed_path_id: pathData.path_id,
+            completed_course_id: prev?.course_id || null,
+            completed_lesson_id: prev?.lesson_id || prev?.lesson?.id || null,
+            assignment_id: prev?.assignment_id || null,
+            completed_chapter_id: prev?.chapter_id || null,
+            total_lessons_in_path: pathData.lessons.length,
+            completed_at: new Date().toISOString(),
+          };
+
+          await Util.logEvent(
+            EVENTS.HOMEWORK_PATHWAY_COMPLETED,
+            completedEvent
+          );
+        } catch (err) {
+          console.warn(
+            "[HomeworkPathway] Failed to log pathway-completed event",
+            err
+          );
+        }
         localStorage.removeItem(HOMEWORK_PATHWAY);
       }
 
@@ -409,7 +479,8 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
    */
   const buildAndSaveInitialHomeworkPath = async (
     student: TableTypes<"user">,
-    pendingAssignments: any[]
+    pendingAssignments: any[],
+    subjectId?: string
   ) => {
     if (!pendingAssignments || pendingAssignments.length === 0) {
       const emptyPath: HomeworkPath = {
@@ -461,8 +532,8 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
 
     const lessonsWithDetails = await Promise.all(
       selectedAssignments.map(async (assignment) => {
-        const lesson = await api.getLesson(assignment.lesson_id);
-        return { ...assignment, lesson };
+        // use normalizeAssignment which ensures lesson is present
+        return await normalizeAssignment(assignment);
       })
     );
 
@@ -473,6 +544,34 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     };
 
     await saveHomeworkPath(student, newHomeworkPath);
+    // ▶️ Log HOMEWORK_PATHWAY_CHANGED for the newly created path
+    if (subjectId) setSelectedSubject(subjectId);
+    try {
+      const changedEvent = {
+        user_id: student.id,
+        new_path_id: newHomeworkPath.path_id,
+        subject_id: subjectId ?? null,
+        new_course_id: newHomeworkPath.lessons?.[0]?.course_id ?? null,
+        new_lesson_id: newHomeworkPath.lessons?.[0]?.lesson_id ?? null,
+        assignment_id: newHomeworkPath.lessons?.[0]?.assignment_id ?? null,
+        total_lessons_in_path: newHomeworkPath.lessons?.length ?? 0,
+        lesson_ids: newHomeworkPath.lessons.map(
+          (l: any) => l.lesson_id ?? null
+        ),
+        assignment_ids: newHomeworkPath.lessons.map(
+          (l: any) => l.assignment_id ?? null
+        ),
+        changed_at: new Date().toISOString(),
+        reason: subjectId ? "subject_changed" : "subject_specific",
+      };
+      await Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COURSE_CHANGED, changedEvent);
+    } catch (err) {
+      console.warn(
+        "[HomeworkPathway] Failed to log HOMEWORK_PATHWAY_CHANGED event",
+        err
+      );
+    }
+
     return newHomeworkPath;
   };
 
@@ -486,20 +585,29 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
       return;
     }
 
+    const assignmentIds = (path.lessons || []).map(
+      (l: any) => l.assignment_id ?? null
+    );
+
+    // Build compact list of up to 5 assignment ids with explicit keys (assignment_id_1 .. 5)
+    const assignmentSlots: any = {};
+    for (let i = 0; i < 5; i++) {
+      assignmentSlots[`assignment_id_${i + 1}`] = assignmentIds[i] ?? null;
+    }
+
     const eventData = {
       user_id: student.id,
       path_id: path.path_id,
-      current_course_id: path.lessons[0].course_id,
-      current_lesson_id: path.lessons[0].lesson_id,
-      current_chapter_id: path.lessons[0].chapter_id,
-      path_lesson_one: path.lessons[0].lesson_id,
-      path_lesson_two: path.lessons[1].lesson_id,
-      path_lesson_three: path.lessons[2].lesson_id,
-      path_lesson_four: path.lessons[3].lesson_id,
-      path_lesson_five: path.lessons[4].lesson_id,
+      current_course_id: path.lessons?.[0]?.course_id ?? null,
+      current_lesson_id: path.lessons?.[0]?.lesson_id ?? null,
+      current_chapter_id: path.lessons?.[0]?.chapter_id ?? null,
+      total_lessons_in_path: path.lessons?.length ?? 0,
+      lesson_ids: path.lessons?.map((l: any) => l.lesson_id ?? null) ?? [],
+      assignment_ids: assignmentIds,
+      created_at: new Date().toISOString(),
+      ...assignmentSlots,
     };
 
-    // Use the new, specific event name
     await Util.logEvent(EVENTS.HOMEWORK_PATHWAY_CREATED, eventData);
   };
 

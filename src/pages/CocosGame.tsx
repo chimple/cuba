@@ -358,6 +358,54 @@ const CocosGame: React.FC = () => {
       is_homework
     );
 
+    try {
+      // dedupe: local set of completed assignment ids per student
+      const completedKey = ASSIGNMENT_COMPLETED_IDS;
+      const temp = localStorage.getItem(completedKey);
+      const completedMap = temp ? JSON.parse(temp) : {};
+      const studentCompleted = completedMap[currentStudent.id] || [];
+
+      const assignmentIdToLog = assignmentId ?? null;
+      if (assignmentIdToLog && !studentCompleted.includes(assignmentIdToLog)) {
+        const pathStr = localStorage.getItem(HOMEWORK_PATHWAY);
+        const homeworkPath = pathStr ? JSON.parse(pathStr) : null;
+
+        const payload = {
+          user_id: currentStudent.id,
+          student_id: currentStudent.id,
+          path_id: homeworkPath?.path_id ?? null,
+          assignment_id: assignmentIdToLog,
+          lesson_id: lesson.id,
+          chapter_id: chapterDetail?.id ?? chapter_id ?? null,
+          course_id: courseDocId ?? null,
+          index_in_path:
+            typeof homeworkIndex === "number" ? homeworkIndex : null,
+          result_id: result?.id ?? null,
+          score: data.score ?? null,
+          time_spent: data.timeSpent ?? null,
+          correct_moves: data.correctMoves ?? null,
+          wrong_moves: data.wrongMoves ?? null,
+          completed_at: new Date().toISOString(),
+          played_from: playedFrom,
+          assignment_type: assignmentType,
+        };
+        await Util.logEvent(
+          EVENTS.HOMEWORK_PATHWAY_ASSIGNMENT_COMPLETED,
+          payload
+        );
+
+        // mark as logged locally
+        studentCompleted.push(assignmentIdToLog);
+        completedMap[currentStudent.id] = studentCompleted;
+        localStorage.setItem(completedKey, JSON.stringify(completedMap));
+      }
+    } catch (e) {
+      console.warn(
+        "[Analytics] Failed to log HOMEWORK_ASSIGNMENT_COMPLETED",
+        e
+      );
+    }
+
     // Update the learning path / homework path
     if (learning_path) {
       await Util.updateLearningPath(currentStudent, isReward);
