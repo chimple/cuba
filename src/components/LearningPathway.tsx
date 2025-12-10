@@ -16,6 +16,7 @@ import {
   TableTypes,
 } from "../common/constants";
 import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
+import { palUtil } from "../utility/palUtil";
 
 const LearningPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -81,15 +82,26 @@ const LearningPathway: React.FC = () => {
         ? JSON.parse(student.learning_path)
         : null;
 
-      if (!learningPath || !learningPath.courses?.courseList?.length) {
+      const hasFrameworkCourse = userCourses.some(
+        (course) => course?.framework_id || course?.frameworkId
+      );
+      const isPalLearningPath =
+        learningPath?.type === "pal" || learningPath?.courses?.type === "pal";
+
+      if (
+        !learningPath ||
+        !learningPath.courses?.courseList?.length ||
+        (hasFrameworkCourse && isPalLearningPath)
+      ) {
         setLoading(true);
-        learningPath = await buildInitialLearningPath(userCourses);
+        learningPath = await buildInitialLearningPath(userCourses, student.id);
         await saveLearningPath(student, learningPath);
         setLoading(false);
       } else {
         const updated = await updateLearningPathIfNeeded(
           learningPath,
-          userCourses
+          userCourses,
+          student.id
         );
 
         let total_learning_path_completed = 0;
@@ -113,17 +125,23 @@ const LearningPathway: React.FC = () => {
     }
   };
 
-  const buildInitialLearningPath = async (courses: any[]) => {
+  const buildInitialLearningPath = async (
+    courses: any[],
+    studentId: string
+  ) => {
     const courseList = await Promise.all(
-      courses.map(async (course) => ({
-        path_id: uuidv4(),
-        course_id: course.id,
-        subject_id: course.subject_id,
-        path: await buildLessonPath(course.id),
-        startIndex: 0,
-        currentIndex: 0,
-        pathEndIndex: 4,
-      }))
+      courses.map(async (course) => {
+        const path = await buildLessonPath(course, studentId);
+        return {
+          path_id: uuidv4(),
+          course_id: course.id,
+          subject_id: course.subject_id,
+          path,
+          startIndex: 0,
+          currentIndex: 0,
+          pathEndIndex: Math.max(path.length - 1, 0),
+        };
+      })
     );
 
     return {
@@ -136,7 +154,8 @@ const LearningPathway: React.FC = () => {
 
   const updateLearningPathIfNeeded = async (
     learningPath: any,
-    userCourses: any[]
+    userCourses: any[],
+    studentId: string
   ) => {
     const oldCourseList = learningPath.courses?.courseList || [];
 
@@ -155,7 +174,10 @@ const LearningPathway: React.FC = () => {
     }
 
     // If path_id is missing or courses mismatch, rebuild everything
-    const newLearningPath = await buildInitialLearningPath(userCourses);
+    const newLearningPath = await buildInitialLearningPath(
+      userCourses,
+      studentId
+    );
     learningPath.courses.courseList = newLearningPath.courses.courseList;
 
     // Dispatch event to notify that course has changed
@@ -167,8 +189,25 @@ const LearningPathway: React.FC = () => {
     return true;
   };
 
-  const buildLessonPath = async (courseId: string) => {
-    const chapters = await api.getChaptersForCourse(courseId);
+  const buildLessonPath = async (course: any, studentId: string) => {
+    const frameworkId = course?.framework_id;
+    if (frameworkId) {
+      const recommended = await palUtil.getRecommendedLessonForCourse(
+        studentId,
+        course.id
+      );
+      if (recommended?.lesson?.id) {
+        return [
+          {
+            lesson_id: recommended.lesson.id,
+            skill_id: recommended.skillId,
+            chapter_id: recommended.chapterId,
+          },
+        ];
+      }
+    }
+
+    const chapters = await api.getChaptersForCourse(course.id);
     const lessons = await Promise.all(
       chapters.map(async (chapter) => {
         const lessons = await api.getLessonsForChapter(chapter.id);
@@ -200,6 +239,19 @@ const LearningPathway: React.FC = () => {
 
     // Extract lesson IDs
     const LessonIds = LessonSlice.map((item: any) => item.lesson_id);
+    const [
+      pathLessonOne,
+      pathLessonTwo,
+      pathLessonThree,
+      pathLessonFour,
+      pathLessonFive,
+    ] = [
+      LessonIds[0],
+      LessonIds[1],
+      LessonIds[2],
+      LessonIds[3],
+      LessonIds[4],
+    ];
 
     const eventData = {
       user_id: student.id,
@@ -214,11 +266,11 @@ const LearningPathway: React.FC = () => {
         path.courses.courseList[path.courses.currentCourseIndex].path[
           path.courses.courseList[path.courses.currentCourseIndex].currentIndex
         ].chapter_id,
-      path_lesson_one: LessonIds[0],
-      path_lesson_two: LessonIds[1],
-      path_lesson_three: LessonIds[2],
-      path_lesson_four: LessonIds[3],
-      path_lesson_five: LessonIds[4],
+      path_lesson_one: pathLessonOne,
+      path_lesson_two: pathLessonTwo,
+      path_lesson_three: pathLessonThree,
+      path_lesson_four: pathLessonFour,
+      path_lesson_five: pathLessonFive,
     };
     await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
   };

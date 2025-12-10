@@ -259,6 +259,7 @@ export class palUtil {
   ): Promise<{
     lesson: TableTypes<"lesson"> | undefined;
     skillId?: string;
+    chapterId?: string;
     recommendation?: RecommendationContext;
   }> {
     const api = ServiceConfig.getI().apiHandler;
@@ -266,7 +267,7 @@ export class palUtil {
       studentId,
       courseId
     );
-    if (!graph) return { lesson: undefined };
+    if (!graph) return { lesson: undefined, chapterId: undefined };
 
     const subjectId = graph.subjects[0]?.id ?? "";
     const recommendation = recommendNextSkill({
@@ -277,7 +278,7 @@ export class palUtil {
 
     const skillId = recommendation?.candidateId;
     if (!skillId) {
-      return { lesson: undefined, recommendation };
+      return { lesson: undefined, chapterId: undefined, recommendation };
     }
 
     const skillLessons = await api.getSkillLessonsBySkillIds([skillId]);
@@ -292,7 +293,7 @@ export class palUtil {
       .filter((id): id is string => !!id);
 
     if (!lessonIds.length) {
-      return { lesson: undefined, skillId, recommendation };
+      return { lesson: undefined, skillId, chapterId: undefined, recommendation };
     }
 
     const lessonResultsMap = await api.getStudentResultInMap(studentId);
@@ -330,11 +331,34 @@ export class palUtil {
       nextLessonId = earliestId ?? lessonIds[0];
     }
 
+    const chapterId = nextLessonId
+      ? await this.getChapterIdForLessonInCourse(courseId, nextLessonId)
+      : undefined;
+
     return {
       lesson: nextLessonId ? lessonsData[nextLessonId] : undefined,
       skillId,
+      chapterId,
       recommendation,
     };
+  }
+
+  private static async getChapterIdForLessonInCourse(
+    courseId: string,
+    lessonId: string
+  ): Promise<string | undefined> {
+    const api = ServiceConfig.getI().apiHandler;
+    const chapters = await api.getChaptersForCourse(courseId);
+
+    for (const chapter of chapters) {
+      if (!chapter.id) continue;
+      const lessons = await api.getLessonsForChapter(chapter.id);
+      if (lessons.some((lesson) => lesson.id === lessonId)) {
+        return chapter.id;
+      }
+    }
+
+    return undefined;
   }
 
   private static upsertAbility(
