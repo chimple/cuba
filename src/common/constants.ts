@@ -807,11 +807,11 @@ export enum EVENTS {
   EXPERIMENT_VIEWED = "experiment_viewed",
   PATHWAY_CREATED = "pathway_created",
   PATHWAY_COMPLETED = "pathway_completed",
+  PATHWAY_LESSON_END = "pathway_lesson_end",
   PATHWAY_COURSE_CHANGED = "pathway_course_changed",
   SYNCHING_ERROR = "synching_error",
   PROFILE_CREATED = "profile_created",
   PROFILE_UPDATED = "profile_updated",
-  PROFILE_SKIPPED = "profile_skipped",
   DEEPLINK_CLICKED = "deeplink_clicked",
   ERROR_LOGS = "error_logs",
   PROFILE_CLICKS_ANALYTICS = "profile_clicks_analytics",
@@ -967,11 +967,11 @@ export const FORM_MODES = {
 };
 
 export const PROFILE_DETAILS_GROWTHBOOK_VARIATION = {
-  AFTER_LOGIN_ONBOARDING: "after-login-onboarding",
-  AFTER_LOGIN_CONTROL: "after_login_control",
-  AFTER_LOGIN_V1: "after_login_v1",
-  AFTER_LOGIN_V2: "after_login_v2",
-  AFTER_LOGIN_V3: "after_login_v3",
+  ONBOARDING: "student-profile-creation-flow",
+  CONTROL: "create_student_profile_v",
+  VARIANT_1: "create_student_profile_v1",
+  VARIANT_2: "create_student_profile_v2",
+  VARIANT_3: "create_student_profile_v3",
 };
 
 export const ACTION_TYPES = {
@@ -1112,7 +1112,7 @@ export enum PerformanceLevel {
   NOT_ASSIGNING_PER_MONTH = "not_assigning_per_month",
   ONCE_A_MONTH = "once_a_month",
   ONCE_A_WEEK = "once_a_week",
-  TWO_PLUS_PER_WEEK = "two_plus_per_week"
+  TWO_PLUS_PER_WEEK = "two_plus_per_week",
 }
 export enum ContactTarget {
   STUDENT = "student",
