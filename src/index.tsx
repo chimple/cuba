@@ -250,7 +250,7 @@ async function checkForUpdate() {
 
           try {
             // Check online/offline
-            if (!navigator.onLine) return;
+            if (!navigator.onLine)throw new Error("Device is offline");
             console.log(`🔁 LiveUpdate SYNC attempt ${attempt}/${maxRetries}`);
             const start = performance.now();
             await LiveUpdate.sync({
@@ -277,7 +277,6 @@ async function checkForUpdate() {
             );
             success = true;
           } catch (err: any) {
-            const msg = (err?.message || "").toLowerCase();
             console.error(`❌ Sync attempt ${attempt} failed`, err);
 
             if (attempt === maxRetries) {
