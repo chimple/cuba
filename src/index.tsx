@@ -251,7 +251,7 @@ async function checkForUpdate() {
 
           try {
             // Check online/offline
-            if (!navigator.onLine)throw new Error("Device is offline");
+            if (!navigator.onLine) throw new Error("Device is offline");
             console.log(`🔁 LiveUpdate SYNC attempt ${attempt}/${maxRetries}`);
             const start = performance.now();
             await LiveUpdate.sync({
@@ -327,7 +327,7 @@ if (isOpsUser) {
     if (isNativePlatform && userData) {
       checkForUpdate();
     }
-  }, 1000);
+  }, 60000);
 } else {
   SplashScreen.hide();
   SqliteApi.getInstance().then(() => {
@@ -344,7 +344,7 @@ if (isOpsUser) {
       if (isNativePlatform && userData) {
         checkForUpdate();
       }
-    }, 1000);
+    }, 60000);
   });
 }
 
