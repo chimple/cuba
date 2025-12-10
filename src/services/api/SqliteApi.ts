@@ -636,6 +636,8 @@ export class SqliteApi implements ServiceApi {
     isFirstSync?: boolean,
     is_sync_immediate: boolean = true
   ) {
+    console.log("sync db started...",tableNames.map(ss=>ss),isFirstSync,is_sync_immediate,refreshTables.map(rr=>rr));
+    
     if (!this._db) return;
     const refresh_tables = "'" + refreshTables.join("', '") + "'";
     console.log("logs to check synced tables", JSON.stringify(refresh_tables));
