@@ -28,6 +28,9 @@ import SearchAndFilter from "../components/SearchAndFilter";
 import FilterSlider from "../components/FilterSlider";
 import SelectedFilters from "../components/SelectedFilters";
 import { OpsUtil } from "../OpsUtility/OpsUtil";
+import ActivityDetailsPanel from "./ActivityDetailsPanel";
+import { FcActivity } from "../../interface/modelInterfaces";
+
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -53,6 +56,7 @@ const SchoolActivities: React.FC = () => {
   const [orderBy, setOrderBy] = useState("");
   const [orderDir, setOrderDir] = useState<"asc" | "desc">("asc");
   const [total, setTotal] = useState(0);
+  const [selectedActivity, setSelectedActivity] = useState<FcActivity | null>(null);
 
   useEffect(() => {
     const fetchActivitiesWithMeta = async () => {
@@ -167,7 +171,12 @@ const SchoolActivities: React.FC = () => {
   }, [filters, searchTerm, orderBy, orderDir, page, activityData.activities]);
 
   const columns: Column<any>[] = [
-    { key: "name", label: t("Name"), sortable: true, orderBy: "name" },
+    { 
+    key: "name",
+    label: t("Name"),
+    sortable: true,
+    onCellClick: true
+  },
     { key: "contactType", label: t("Contact Type"), sortable: true },
     { key: "performance", label: t("Performance"), sortable: true },
     { key: "class", label: t("Class"), sortable: true },
@@ -287,21 +296,9 @@ const SchoolActivities: React.FC = () => {
     [filterOptions]
   );
 
-  const handleRowClick = (id: string | number, row: any) => {
-    const sendData = {
-      schoolName: activityData.schoolName,
-      date: activityData.date,
-      activity: row.raw,
-      user: row.user,
-      classInfo: row.classInfo,
-      visitDetails: row.visitDetails,
-    };
-
-    // history.push(
-    //   `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}`, replace this to move to next page
-    //   sendData
-    // );
-  };
+ const handleRowClick = (id: string | number, row: FcActivity) => {
+  setSelectedActivity(row);
+};
 
   return (
     <div className="school-act-container" id="school-act">
@@ -400,6 +397,13 @@ const SchoolActivities: React.FC = () => {
             onRowClick={handleRowClick}
           />
         )}
+
+         {selectedActivity && (
+    <ActivityDetailsPanel
+      activity={selectedActivity}
+      onClose={() => setSelectedActivity(null)}
+    />
+  )}
       </div>
 
       {activities.length > 0 && (
