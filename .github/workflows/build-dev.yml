@@ -17,17 +17,29 @@ jobs:
           submodules: true
           token: ${{ secrets.ACCESS_TOKEN }}
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21.0.8"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "24.4.0"
           cache: "npm"
-          cache-dependency-path: |
-            package-lock.json
-            **/package-lock.json
 
       - name: Install app dependencies
-        run: npm ci
+        run: npm install
+
+      - name: Create Google Services JSON File and key.jks
+        working-directory: ./android/app/
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          SHA_KEY: ${{ secrets.SHA_KEY }}
+        run: |
+          echo $GOOGLE_SERVICES_JSON | base64 -di > google-services.json
+          echo $SHA_KEY | base64 -di > key.jks
 
       - name: Build
         env:
@@ -49,31 +61,6 @@ jobs:
           REACT_APP_ENV: ${{vars.REACT_APP_ENV_DEV}}
 
         run: npm run build
-
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21.0.8"
-
-      - name: Create Google Services JSON File and key.jks
-        working-directory: ./android/app/
-        env:
-          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-          SHA_KEY: ${{ secrets.SHA_KEY }}
-        run: |
-          echo $GOOGLE_SERVICES_JSON | base64 -di > google-services.json
-          echo $SHA_KEY | base64 -di > key.jks
 
       - name: Make gradlew executable
         working-directory: ./android/

@@ -90,28 +90,30 @@ try {
 if (userId) Sentry.setUser({ id: userId });
 const isNativePlatform = Capacitor.isNativePlatform();
 // This function checks if the native version has changed, sets new version in preferences and resets the hot update bundle.
-async function checkNativeVersionAndReset() {
-  const { versionName } = await LiveUpdate.getVersionName();
-  const { value: storedVersion } = await Preferences.get({
-    key: VERSION_KEY,
-  });
-
-  if (versionName !== storedVersion) {
-    console.log("⚠️ APK version changed → clearing old hot update bundle");
-    await LiveUpdate.reset();
-    await Preferences.set({ key: VERSION_KEY, value: versionName });
-  }
-
-  return versionName;
-}
 if (isNativePlatform) {
-  (async () => {
-    try {
-      await checkNativeVersionAndReset();
-    } catch (error) {
-      console.error("Error in checkNativeVersionAndReset()", error);
+  console.log("line 93");
+  try {
+    async function checkNativeVersionAndReset() {
+      const { versionName } = await LiveUpdate.getVersionName();
+      const { value: storedVersion } = await Preferences.get({
+        key: VERSION_KEY,
+      });
+      if (versionName !== storedVersion) {
+        console.log("⚠️ APK version changed → clearing old hot update bundle");
+        // reset the hot update bundle
+        await LiveUpdate.reset();
+        // store new version
+        await Preferences.set({ key: VERSION_KEY, value: versionName });
+      }
     }
-  })();
+    await checkNativeVersionAndReset();
+    await LiveUpdate.ready();
+  } catch (error) {
+    console.error(
+      "Error in checkNativeVersionAndReset() or LiveUpdate.ready()",
+      error
+    );
+  }
 }
 
 // Extend React's JSX namespace to include Stencil components
@@ -192,25 +194,17 @@ gb.init({
 });
 const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
 const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
+const authHandler = ServiceConfig.getI()?.authHandler;
+const currentUser = await authHandler?.getCurrentUser();
 
 async function checkForUpdate() {
+  console.log("line 199");
   let majorVersion = "0";
   const maxRetries = 5;
   try {
     if (isNativePlatform && gb.isOn(CAN_HOT_UPDATE)) {
-      const versionName =
-        (await Preferences.get({ key: VERSION_KEY })).value ||
-        (await LiveUpdate.getVersionName()).versionName;
+      const { versionName } = await LiveUpdate.getVersionName();
       majorVersion = versionName.split(".")[0];
-      const READY_TIMEOUT_MS = 3000;
-      try {
-        await Promise.race([
-          LiveUpdate.ready(),
-          new Promise((resolve) => setTimeout(resolve, READY_TIMEOUT_MS)),
-        ]);
-      } catch (e) {
-        console.warn("LiveUpdate.ready() failed, continuing without it", e);
-      }
       const { bundleId: currentBundleId } = await LiveUpdate.getCurrentBundle();
       const result = await LiveUpdate.fetchLatestBundle({
         channel: `${process.env.REACT_APP_ENV}-${majorVersion}`,
@@ -319,10 +313,14 @@ if (isOpsUser) {
   );
   SplashScreen.hide();
   setTimeout(() => {
-    if (isNativePlatform) {
+    if (
+      isNativePlatform &&
+      typeof currentUser?.id === "string" &&
+      currentUser.id.trim() !== ""
+    ) {
       checkForUpdate();
     }
-  }, 500);
+  }, 60000);
 } else {
   SplashScreen.hide();
   SqliteApi.getInstance().then(() => {
@@ -336,10 +334,14 @@ if (isOpsUser) {
     );
     SplashScreen.hide();
     setTimeout(() => {
-      if (isNativePlatform) {
+      if (
+        isNativePlatform &&
+        typeof currentUser?.id === "string" &&
+        currentUser.id.trim() !== ""
+      ) {
         checkForUpdate();
       }
-    }, 500);
+    }, 60000);
   });
 }
 
