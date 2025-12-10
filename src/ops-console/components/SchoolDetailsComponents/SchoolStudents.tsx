@@ -323,9 +323,16 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         case "name":
           aValue = a.user.name || "";
           bValue = b.user.name || "";
-          return order === "asc"
-            ? aValue.localeCompare(bValue)
-            : bValue.localeCompare(aValue);
+
+          if (order === "asc") {
+            if (aValue > bValue) return 1;
+            if (aValue < bValue) return -1;
+            return 0;
+          } else {
+            if (aValue < bValue) return 1;
+            if (aValue > bValue) return -1;
+            return 0;
+          }
         case "gender":
           aValue = a.user.gender || "";
           bValue = b.user.gender || "";
