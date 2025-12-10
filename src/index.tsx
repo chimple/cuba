@@ -78,10 +78,11 @@ Sentry.init(
   SentryReact.init
 );
 let userId: string = "anonymous";
+let userData;
 try {
   const data = localStorage.getItem(CURRENT_USER);
   if (data) {
-    const userData = JSON.parse(data);
+    userData = JSON.parse(data);
     userId = userData?.user?.id ?? userData?.id ?? "anonymous";
   }
 } catch (error) {
@@ -323,10 +324,10 @@ if (isOpsUser) {
   );
   SplashScreen.hide();
   setTimeout(() => {
-    if (isNativePlatform) {
+    if (isNativePlatform && userData) {
       checkForUpdate();
     }
-  }, 500);
+  }, 1000);
 } else {
   SplashScreen.hide();
   SqliteApi.getInstance().then(() => {
@@ -340,10 +341,10 @@ if (isOpsUser) {
     );
     SplashScreen.hide();
     setTimeout(() => {
-      if (isNativePlatform) {
+      if (isNativePlatform && userData) {
         checkForUpdate();
       }
-    }, 500);
+    }, 1000);
   });
 }
 
