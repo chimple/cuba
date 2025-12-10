@@ -807,6 +807,7 @@ export enum EVENTS {
   EXPERIMENT_VIEWED = "experiment_viewed",
   PATHWAY_CREATED = "pathway_created",
   PATHWAY_COMPLETED = "pathway_completed",
+  PATHWAY_LESSON_END = "pathway_lesson_end",
   PATHWAY_COURSE_CHANGED = "pathway_course_changed",
   SYNCHING_ERROR = "synching_error",
   PROFILE_CREATED = "profile_created",

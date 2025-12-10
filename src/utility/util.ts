@@ -2643,29 +2643,19 @@ export class Util {
       const { courses } = learningPath;
       const currentCourse = courses.courseList[courses.currentCourseIndex];
 
-      const prevLessonId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .path[
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].currentIndex
-        ].lesson_id;
-      const prevChapterId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .path[
-          learningPath.courses.courseList[
-            learningPath.courses.currentCourseIndex
-          ].currentIndex
-        ].chapter_id;
-      const prevCourseId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .course_id;
-      const prevPathId =
-        learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .path_id;
-      let path_id = 
-         learningPath.courses.courseList[learningPath.courses.currentCourseIndex]
-          .path_id;
+      let activeCourse = courses.courseList[courses.currentCourseIndex];
+      let activePathItem = activeCourse.path[activeCourse.currentIndex];
+
+      const prevData = {
+        pathId: activeCourse.path_id,
+        courseId: activeCourse.course_id,
+        lessonId: activePathItem.lesson_id,
+        chapterId: activePathItem.chapter_id,
+        prevPath_id: activeCourse.path_id,
+      };
+      
+      // Determine which events to log
+      const eventsToLog: string[] = [];
       // Update currentIndex
       currentCourse.currentIndex += 1;
       const is_immediate_sync = currentCourse.currentIndex >= currentCourse.pathEndIndex;
@@ -2680,7 +2670,7 @@ export class Util {
         currentCourse.startIndex = currentCourse.currentIndex;
         currentCourse.pathEndIndex += 5;
         currentCourse.path_id = uuidv4();
-        path_id = currentCourse.path_id;
+        prevData.prevPath_id = currentCourse.path_id;
 
         // Ensure pathEndIndex does not exceed the path length
         if (currentCourse.pathEndIndex > currentCourse.path.length) {
@@ -2699,47 +2689,38 @@ export class Util {
         if (courses.currentCourseIndex >= courses.courseList.length) {
           courses.currentCourseIndex = 0;
         }
-        const pathwayEndData = {
-          user_id: currentStudent.id,
-          path_id: path_id,
-          current_path_id: 
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].path_id,
-          current_course_id:
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].course_id,
-          current_lesson_id:
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].path[
-              learningPath.courses.courseList[
-                learningPath.courses.currentCourseIndex
-              ].currentIndex
-            ].lesson_id,
-          current_chapter_id:
-            learningPath.courses.courseList[
-              learningPath.courses.currentCourseIndex
-            ].path[
-              learningPath.courses.courseList[
-                learningPath.courses.currentCourseIndex
-              ].currentIndex
-            ].chapter_id,
-          prev_path_id: prevPathId,
-          prev_course_id: prevCourseId,
-          prev_lesson_id: prevLessonId,
-          prev_chapter_id: prevChapterId,
-        };
-        await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
-        await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
+        eventsToLog.push(EVENTS.PATHWAY_COMPLETED, EVENTS.PATHWAY_COURSE_CHANGED);
       }
+      eventsToLog.push(EVENTS.PATHWAY_LESSON_END)
+      
+      const newCourse = courses.courseList[courses.currentCourseIndex];
+      const newPathItem = newCourse.path[newCourse.currentIndex] || newCourse.path[0]; // Fallback safety
+      const eventPayload = {
+        user_id: currentStudent.id,
+
+        current_path_id: newCourse.path_id,
+        current_course_id: newCourse.course_id,
+        current_lesson_id: newPathItem.lesson_id,
+        current_chapter_id: newPathItem.chapter_id,
+
+        path_id: prevData.pathId,
+        prev_path_id: prevData.prevPath_id,
+        prev_course_id: prevData.courseId,
+        lesson_id: prevData.lessonId,
+        prev_chapter_id: prevData.chapterId,
+        timestamp: new Date().toISOString(),
+      };
       // Update the learning path in the database
-      await ServiceConfig.getI().apiHandler.updateLearningPath(
-        currentStudent,
-        JSON.stringify(learningPath),
-        is_immediate_sync
-      );
+      await Promise.all([
+        ServiceConfig.getI().apiHandler.updateLearningPath(
+          currentStudent,
+          JSON.stringify(learningPath),
+          is_immediate_sync
+        ),
+        ...eventsToLog.map((eventName) =>
+          Util.logEvent(eventName as EVENTS, eventPayload)
+        ),
+      ]);
       // Update the current student object
       const updatedStudent =
         await ServiceConfig.getI().apiHandler.getUserByDocId(currentStudent.id);
