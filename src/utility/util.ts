@@ -2645,17 +2645,11 @@ export class Util {
                 chapter_id: completedLesson?.chapter_id ?? null,
                 course_id: completedLesson?.course_id ?? null,
                 index_in_path: completedIndex,
-                result_id: null,
-                score: null,
-                time_spent: null,
-                correct_moves: null,
-                wrong_moves: null,
                 completed_at: new Date().toISOString(),
-                played_from: null,
-                assignment_type: null,
               };
 
               try {
+                console.log("fssfddfdf", assignmentPayload);
                 await Util.logEvent(
                   EVENTS.HOMEWORK_PATHWAY_ASSIGNMENT_COMPLETED,
                   assignmentPayload
