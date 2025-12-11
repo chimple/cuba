@@ -278,6 +278,7 @@ async function checkForUpdate() {
             );
             success = true;
           } catch (err: any) {
+            const msg = err instanceof Error ? err.message : String(err);
             console.error(`❌ Sync attempt ${attempt} failed`, err);
 
             if (attempt === maxRetries) {
@@ -286,7 +287,7 @@ async function checkForUpdate() {
                 user_id: userId,
                 timestamp: new Date().toISOString(),
                 channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
-                error: JSON.stringify(err),
+                error: msg || "All attempts to apply update failed, Device offline",
                 retries: attempt,
               });
             } else {
@@ -303,12 +304,13 @@ async function checkForUpdate() {
       }
     }
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
     console.error("LiveUpdate failed❌", err);
     Util.logEvent(EVENTS.LIVE_UPDATE_ERROR, {
       user_id: userId,
       timestamp: new Date().toISOString(),
       channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
-      error: JSON.stringify(err),
+      error: msg || "LiveUpdate failed",
     });
   }
 }
