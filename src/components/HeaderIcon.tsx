@@ -46,7 +46,7 @@ const HeaderIcon: React.FC<{
         pendingAssignmentCount !== undefined &&
         pendingAssignmentCount > 0 && (
     <div id="homework-notification">
-      {isHomeworkNotificationIconOn ? (
+      {!isHomeworkNotificationIconOn ? (
         // Show number badge
         <IonBadge class="badge-notification">
           {pendingAssignmentCount}
