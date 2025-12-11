@@ -24,7 +24,8 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
       setCurrentChapterName(`${chapterName} : ${lessonName}`);
       return; // Stop here, don't do the API fetch
     }
-    const updateChapter = async (currentStudent: any) => {
+    const updateChapter = async () => {
+      const currentStudent = Util.getCurrentStudent();
       if (!currentStudent || !currentStudent.learning_path) return;
 
       const learningPath = JSON.parse(currentStudent.learning_path);
@@ -45,20 +46,15 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
       setCurrentChapterName(chapterName || "Default Chapter");
     };
 
-    const handleCourseChange = async (event: CustomEvent) => {
-      const currentStudent = event.detail.currentStudent;
-      await updateChapter(currentStudent);
-    };
 
     // Fetch the initial chapter on component mount
     (async () => {
-      const currentStudent = await Util.getCurrentStudent();
-      await updateChapter(currentStudent);
+      await updateChapter();
     })();
 
     // Listen for course changes
     const syncHandleCourseChange = (event: Event) => {
-      handleCourseChange(event as CustomEvent).catch((err) =>
+      updateChapter().catch((err) =>
         console.error("Error handling course change:", err)
       );
     };
