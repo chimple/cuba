@@ -114,7 +114,6 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     [api]
   );
 
-  
   const init = useCallback(
     async (fromCache: boolean = true, fullRefresh: boolean = true) => {
       if (fullRefresh) setLoading(true);
@@ -154,7 +153,6 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
 
         setAssignments(updatedAssignments);
         assignmentCount(updatedAssignments.length);
-
 
         await updateLessonChapterAndCourseMaps(updatedAssignments);
 
@@ -198,7 +196,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
 
   useEffect(() => {
     // Only decide banner visibility AFTER loading is finished
-    if (!loading && isHomeworkPathwayOn) {
+    if (!loading && !isHomeworkPathwayOn) {
       setShowHomeworkCompleteModal(assignments.length === 0);
     }
   }, [loading, assignments.length]);
@@ -329,20 +327,17 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
 
   // ⬆ inside AssignmentPage component, before JSX:
   const bodyClass = !isLinked
-    ? "lesson-body"
-    : isHomeworkPathwayOn
-    ? // 🔹 Flag ON → Slider flow (keep old behaviour)
-      lessons.length < 1
-      ? "lesson-body"
-      : "assignment-body"
-    : // 🔹 Flag OFF → HomeworkPathway flow → always use assignment layout
-      "assignment-body";
+  ? "lesson-body"
+  : !isHomeworkPathwayOn
+  ? (lessons.length < 1 ? "lesson-body" : "assignment-body slider-mode")
+  : "assignment-body";
+
 
   return !loading ? (
     <div>
       <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
         <div className={bodyClass}>
-          {isHomeworkPathwayOn && (
+          {!isHomeworkPathwayOn && (
             <div className="assignment-header">
               <div className="right-button"></div>
 
@@ -356,7 +351,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
               </div>
 
               {isLinked &&
-              showDownloadHomeworkButton &&
+              !showDownloadHomeworkButton &&
               lessons.length > 0 &&
               Capacitor.isNativePlatform() ? (
                 <IonButton
@@ -399,13 +394,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
           )}
 
           {!loading && (
-            <div
-              className={
-                !isLinked || lessons.length < 1
-                  ? "lesson-body"
-                  : "assignment-body"
-              }
-            >
+            <div className={bodyClass}>
               {!isLinked ? (
                 <JoinClass
                   onClassJoin={() => {
@@ -414,7 +403,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                 />
               ) : (
                 <div>
-                  {isHomeworkPathwayOn ? (
+                  {!isHomeworkPathwayOn ? (
                     // ✅ Flag ON → old LessonSlider flow
                     assignments.length > 0 ? (
                       <LessonSlider
