@@ -636,8 +636,6 @@ export class SqliteApi implements ServiceApi {
     isFirstSync?: boolean,
     is_sync_immediate: boolean = true
   ) {
-    console.log("sync db started...",tableNames.map(ss=>ss),isFirstSync,is_sync_immediate,refreshTables.map(rr=>rr));
-    
     if (!this._db) return;
     const refresh_tables = "'" + refreshTables.join("', '") + "'";
     console.log("logs to check synced tables", JSON.stringify(refresh_tables));
@@ -2190,8 +2188,7 @@ export class SqliteApi implements ServiceApi {
     chapterId: string,
     classId: string | undefined,
     schoolId: string | undefined,
-    isImediateSync: boolean = false,
-    isHomework: boolean = false
+    isImediateSync: boolean = false
   ): Promise<TableTypes<"result">> {
     let resultId = uuidv4();
     let isDuplicate = true;
@@ -2286,15 +2283,12 @@ export class SqliteApi implements ServiceApi {
     if (score > 50) starsEarned++;
     if (score > 75) starsEarned++;
 
-    if (starsEarned > 0) {
-      const allStarsMap = localStorage.getItem(LATEST_STARS);
-      const allStars = allStarsMap ? JSON.parse(allStarsMap) : {};
-      const currentLocalStars = allStars[student.id] ?? 0;
+    const allStarsMap = localStorage.getItem(LATEST_STARS);
+    const allStars = allStarsMap ? JSON.parse(allStarsMap) : {};
+    const currentLocalStars = allStars[student.id] ?? 0;
 
-      allStars[student.id] = currentLocalStars + starsEarned;
-      localStorage.setItem(LATEST_STARS, JSON.stringify(allStars));
-    }
-
+    allStars[student.id] = currentLocalStars + starsEarned;
+    localStorage.setItem(LATEST_STARS, JSON.stringify(allStars));
     let query = `UPDATE ${TABLES.User} SET `;
     let params: any[] = [];
 
@@ -2312,7 +2306,6 @@ export class SqliteApi implements ServiceApi {
     if (updatedStudent) {
       updatedStudent.language_id = student.language_id;
       Util.setCurrentStudent(updatedStudent);
-      Util.setLocalStarsForStudent(updatedStudent.id, updatedStudent.stars || 0);
     }
     this.updatePushChanges(
       TABLES.Result,
@@ -3518,8 +3511,8 @@ export class SqliteApi implements ServiceApi {
       if (assignmet) {
         await this.executeQuery(
           `
-          INSERT INTO assignment (id, created_by, starts_at,ends_at,is_class_wise,class_id,school_id,lesson_id,type,created_at,updated_at,is_deleted,chapter_id,course_id, source)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+          INSERT INTO assignment (id, created_by, starts_at,ends_at,is_class_wise,class_id,school_id,lesson_id,type,created_at,updated_at,is_deleted,chapter_id,course_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
           [
             assignmet.id,
@@ -3536,7 +3529,6 @@ export class SqliteApi implements ServiceApi {
             assignmet.is_deleted,
             assignmet.chapter_id,
             assignmet.course_id,
-            assignmet.source,
           ]
         );
         onDataChange(assignmet);
@@ -5504,8 +5496,6 @@ order by
       const currentLocalStars = allStars[studentId] ?? 0;
 
       allStars[studentId] = currentLocalStars + starsCount;
-      console.log("zuzu 2", allStars);
-
       localStorage.setItem(LATEST_STARS, JSON.stringify(allStars));
 
       await this.executeQuery(
