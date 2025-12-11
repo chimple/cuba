@@ -334,15 +334,15 @@ const getCachedImageUrl = (course: any) => {
 
 
   return (
-    <div className={`dropdown-main ${disabled ? "dropdown-disabled" : ""}`}>
+    <div className={`dropdownmenu-dropdown-main ${disabled ? "dropdownmenu-dropdown-disabled" : ""}`}>
       <div
-        className={`dropdown-container ${expanded ? "expanded" : ""}`}
+        className={`dropdownmenu-dropdown-container ${expanded ? "dropdownmenu-expanded" : ""}`}
         onClick={handleToggleExpand}
       >
-        <div className="dropdown-left">
+        <div className="dropdownmenu-dropdown-left">
           {!expanded && selected && (
-              <div className="menu-selected">
-                <div className="selected-icon">
+              <div className="dropdownmenu-menu-selected">
+                <div className="dropdownmenu-selected-icon">
                   <SelectIconImage
                     localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
                     defaultSrc={"assets/icons/DefaultIcon.png"}
@@ -356,7 +356,7 @@ const getCachedImageUrl = (course: any) => {
               </div>
           )}
             <div
-              className={`dropdown-items ${expanded ? "open" : "closed"}`}  
+              className={`dropdownmenu-dropdown-items ${expanded ? "dropdownmenu-open" : "dropdownmenu-closed"}`}  
               onClick={(e) => e.stopPropagation()}
               aria-hidden={!expanded}
             >
@@ -365,9 +365,9 @@ const getCachedImageUrl = (course: any) => {
                   ref={(el) => {
                     itemRefs.current[detail.course.id] = el;
                   }}
-                  className={`menu-item ${
+                  className={`dropdownmenu-menu-item ${
                     selected?.course.id === detail.course.id
-                      ? "selected-expanded"
+                      ? "dropdownmenu-selected-expanded"
                       : ""
                   }`}
                   key={detail.course.id}
@@ -382,7 +382,7 @@ const getCachedImageUrl = (course: any) => {
                     }
                     imageWidth="85%"
                   />
-                  <div className="truncate-style">
+                  <div className="dropdownmenu-truncate-style">
                     {truncateName(detail.course.name)}
                   </div>
                 </div>
@@ -390,7 +390,7 @@ const getCachedImageUrl = (course: any) => {
             </div>
         </div>
         {!hideArrow && (
-          <div className={`dropdown-arrow ${expanded ? "expanded-arrow" : ""}`}>
+          <div className={`dropdownmenu-dropdown-arrow ${expanded ? "dropdownmenu-expanded-arrow" : ""}`}>
             <SelectIconImage
               defaultSrc={
                 expanded
@@ -404,7 +404,7 @@ const getCachedImageUrl = (course: any) => {
 
       <div>
         {!expanded && selected && (
-          <div className="dropdown-label">{selected.course.name}</div>
+          <div className=" dropdownmenu-dropdown-label">{selected.course.name}</div>
         )}
       </div>
     </div>
