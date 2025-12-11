@@ -310,7 +310,7 @@ async function checkForUpdate() {
       user_id: userId,
       timestamp: new Date().toISOString(),
       channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
-      error: msg || "LiveUpdate failed",
+      error: msg || "LiveUpdate failed unknown error",
     });
   }
 }
