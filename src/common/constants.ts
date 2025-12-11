@@ -1107,6 +1107,11 @@ export const OPS_ROLES = [
 export const CAN_HOT_UPDATE = "can-Hot-Update";
 export const VERSION_KEY = "last_native_version";
 
+export enum RECOMMENDATION_TYPE {
+  FRAMEWORK = "framework",
+  CHAPTER = "chapter"
+}
+
 export enum PerformanceLevel {
   ALL = "all",
   NEED_HELP = "need_help",

@@ -14,6 +14,7 @@ import {
   LATEST_STARS,
   STARS_COUNT,
   TableTypes,
+  RECOMMENDATION_TYPE
 } from "../common/constants";
 import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 import { palUtil } from "../utility/palUtil";
@@ -83,15 +84,14 @@ const LearningPathway: React.FC = () => {
         : null;
 
       const hasFrameworkCourse = userCourses.some(
-        (course) => course?.framework_id || course?.frameworkId
+        (course) => course?.framework_id
       );
-      const isPalLearningPath =
-        learningPath?.type === "pal" || learningPath?.courses?.type === "pal";
+      const isFrameworkPath = learningPath?.type === RECOMMENDATION_TYPE.FRAMEWORK;
 
       if (
         !learningPath ||
         !learningPath.courses?.courseList?.length ||
-        (hasFrameworkCourse && isPalLearningPath)
+        (hasFrameworkCourse && !isFrameworkPath)
       ) {
         setLoading(true);
         learningPath = await buildInitialLearningPath(userCourses, student.id);
@@ -140,8 +140,13 @@ const LearningPathway: React.FC = () => {
           startIndex: 0,
           currentIndex: 0,
           pathEndIndex: Math.max(path.length - 1, 0),
+          type: course?.framework_id ? RECOMMENDATION_TYPE.FRAMEWORK : RECOMMENDATION_TYPE.CHAPTER
         };
       })
+    );
+
+    const hasFrameworkCourse = courses.some(
+      (course) => course?.framework_id
     );
 
     return {
@@ -149,6 +154,7 @@ const LearningPathway: React.FC = () => {
         courseList,
         currentCourseIndex: 0,
       },
+      type: hasFrameworkCourse ? RECOMMENDATION_TYPE.FRAMEWORK : RECOMMENDATION_TYPE.CHAPTER
     };
   };
 
