@@ -197,13 +197,12 @@ const LearningPathway: React.FC = () => {
         course.id
       );
       if (recommended?.lesson?.id) {
-        return [
-          {
-            lesson_id: recommended.lesson.id,
-            skill_id: recommended.skillId,
-            chapter_id: recommended.chapterId,
-          },
-        ];
+        const entry = {
+          lesson_id: recommended.lesson.id,
+          skill_id: recommended.skillId,
+          chapter_id: recommended.chapterId,
+        };
+        return Array.from({ length: 5 }, () => ({ ...entry }));
       }
     }
 
