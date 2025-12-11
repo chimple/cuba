@@ -31,7 +31,7 @@ export class SupabaseAuth implements ServiceAuth {
   private _supabaseDb: SupabaseClient<Database> | undefined;
   // private _auth = getAuth();
 
-  private constructor() { }
+  private constructor() {}
   public static getInstance(): SupabaseAuth {
     if (!SupabaseAuth.i) {
       SupabaseAuth.i = new SupabaseAuth();
@@ -422,9 +422,30 @@ async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
       console.log(`${TAG} user stored & returned`);
       return this._currentUser;
     } else {
-      console.error(`${TAG} user not found, signing out`);
-      await this._auth?.signOut();
-      return;
+      // await this.doRefreshSession();
+      const authData = await this._auth?.getSession();
+      if (!authData || !authData.data.session?.user?.id) return;
+
+      const api = ServiceConfig.getI().apiHandler;
+      const userRole = await api.getUserSpecialRoles(
+        authData.data.session?.user.id
+      );
+      console.log("user role from curr user....", userRole);
+
+      if (userRole.length > 0) {
+        localStorage.setItem(USER_ROLE, JSON.stringify(userRole));
+      }
+      let user = await api.getUserByDocId(authData.data.session?.user.id);
+      if (user) {
+        console.log("uuuuu from curr user....", user.id);
+
+        localStorage.setItem(USER_DATA, JSON.stringify(user));
+        this._currentUser = user;
+        return this._currentUser;
+      } else {
+        this._auth?.signOut();
+        return;
+      }
     }
   } catch (err) {
     console.error(`${TAG} error`, err);
@@ -562,7 +583,7 @@ async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
     max = 5
   ): Promise<T> {
     let attempt = 1;
-    for (; ;) {
+    for (;;) {
       try {
         const { data, error } = await fn();
         if (error) throw error;
@@ -573,7 +594,8 @@ async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
         if (nextAttempt > max) throw err;
         const backoff = Math.min(2000 * (burn ? attempt : 1), 8000);
         console.warn(
-          `RPC attempt ${attempt}/${max} failed${burn ? "" : " (not counting)"
+          `RPC attempt ${attempt}/${max} failed${
+            burn ? "" : " (not counting)"
           }; retrying in ${backoff}ms`,
           err
         );
@@ -668,9 +690,7 @@ async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
       }
       try {
         await api.updateFcmToken(user.user?.id ?? "");
-      } catch (err) {
-
-      }
+      } catch (err) {}
       if (isUserExist) await api.subscribeToClassTopic();
 
       return { user, isUserExist: !!isUserExist, isSpl };
