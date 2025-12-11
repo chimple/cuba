@@ -3048,7 +3048,7 @@ export class SupabaseApi implements ServiceApi {
     return users || [];
   }
 
-  async getStudentInfoBySchoolId(
+    async getStudentInfoBySchoolId(
     schoolId: string,
     page: number = 1,
     limit: number = 20
@@ -3060,31 +3060,58 @@ export class SupabaseApi implements ServiceApi {
 
     const offset = (page - 1) * limit;
 
-    const { data, error, count } = await this.supabase
-      .from("class_user")
-      .select(
-        `
+    let query = this.supabase
+  .from("class_user")
+  .select(
+    `
       class:class_id!inner (
         id,
-        name 
+        class_name:name
       ),
-      user:user_id (
-        *,
+      user:user_id!inner (
+          age,
+          avatar,
+          created_at,
+          curriculum_id,
+          fcm_token,
+          firebase_id,
+        grade_id,
+      image,
+      is_deleted,
+      is_firebase,
+      is_ops,
+     language_id,
+     is_tc_accepted,
+     student_id,
+     reward,
+     updated_at,
+      learning_path,
+        id,
+        name,
+        phone,
+        gender,
+        email,
         parent_links:parent_user!student_id (
           parent:parent_id (
-            * 
+            id,
+            parent_name:name,
+            phone,
+            email
           )
         )
       )
     `,
-        { count: "exact" }
-      )
-      .eq("role", "student")
-      .eq("is_deleted", false)
-      .eq("class.school_id", schoolId)
-      .range(offset, offset + limit - 1);
+    { count: "exact" }
+  )
+  .eq("role", "student")
+  .eq("is_deleted", false)
+  .eq("class.school_id", schoolId);
 
-    if (error) {
+const { data, error, count } = await query
+  .order("user(name)", { ascending: true })
+  .range(offset, offset + limit - 1);
+
+  if (error) {
       console.error("Error fetching student info:", error);
       return { data: [], total: 0 };
     }
@@ -3092,7 +3119,7 @@ export class SupabaseApi implements ServiceApi {
     const studentInfoList: StudentInfo[] = (data || []).map((row: any) => {
       const { user, class: cls } = row;
 
-      const className = cls?.name || "";
+      const className = cls?.class_name || "";
       const { grade, section } = this.parseClassName(className);
 
       const parent = user?.parent_links?.[0]?.parent || null;
@@ -3129,13 +3156,13 @@ export class SupabaseApi implements ServiceApi {
         `
       class:class_id!inner (
         id,
-        name 
+        name
       ),
       user:user_id (
         *,
         parent_links:parent_user!student_id (
           parent:parent_id (
-            * 
+            *
           )
         )
       )
