@@ -4149,7 +4149,7 @@ export type Database = {
         }
       }
       sql_sync_all: {
-          Args: { p_tables?: string[]; p_updated_at?: Json }
+          Args: { p_tables?: string[]; p_updated_at?: Json,p_is_first_time?: boolean }
           Returns: Json
       }
       update_class_firebase_trigger: {
