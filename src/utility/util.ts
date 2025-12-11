@@ -101,6 +101,7 @@ import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 import CryptoJS from "crypto-js";
 import { InAppReview } from "@capacitor-community/in-app-review";
+import { ASSIGNMENT_COMPLETED_IDS } from "../common/courseConstants";
 import { v4 as uuidv4 } from "uuid";
 declare global {
   interface Window {
@@ -2100,7 +2101,7 @@ export class Util {
           url: url,
           imageFile: imageFile, // Pass the File object for Android
         })
-        .then(() => { })
+        .then(() => {})
         .catch((error) => console.error("Error sharing content:", error));
     } else {
       // Web sharing
@@ -2113,7 +2114,7 @@ export class Util {
 
       await navigator
         .share(shareData)
-        .then(() => { })
+        .then(() => {})
         .catch((error) => console.error("Error sharing content:", error));
     }
   }
@@ -2563,7 +2564,7 @@ export class Util {
           .toISOString()
           .split("T")[0] !== new Date().toISOString().split("T")[0] ||
         dailyUserReward[currentStudent.id].reward_id !==
-        currentReward?.reward_id
+          currentReward?.reward_id
       ) {
         // Update localStorage
         dailyUserReward[currentStudent.id].reward_id = currentReward.reward_id;
@@ -2602,25 +2603,176 @@ export class Util {
       const storedPath = localStorage.getItem(HOMEWORK_PATHWAY);
       if (!storedPath) {
         console.error(
-          "Could not find homework path in sessionStorage to update."
+          "Could not find homework path in localStorage to update."
         );
         return;
       }
 
-      const homeworkPath = JSON.parse(storedPath);
+      // Snapshot path early to avoid races
+      const homeworkPath = JSON.parse(storedPath) as {
+        path_id?: string;
+        lessons?: any[];
+        currentIndex?: number;
+      };
 
-      // If we know exactly which index was completed, use that as the base.
-      // Otherwise, fall back to "currentIndex + 1" like before.
-      const newCurrentIndex =
-        typeof completedIndex === "number"
-          ? completedIndex + 1
-          : homeworkPath.currentIndex + 1;
+      const student = Util.getCurrentStudent();
+      const studentId = student?.id ?? null;
 
-      // Check if the 5-lesson path is now complete
-      if (newCurrentIndex >= homeworkPath.lessons.length) {
+      // If caller provided which index completed, use that
+      if (typeof completedIndex === "number") {
+        const lessons = homeworkPath.lessons ?? [];
+        const completedLesson = lessons[completedIndex] ?? null;
+
+        // --- 1) LOG ASSIGNMENT COMPLETED (deduped locally) ---
+        try {
+          const assignmentId = completedLesson?.assignment_id ?? null;
+          if (assignmentId && studentId) {
+            const completedKey = ASSIGNMENT_COMPLETED_IDS;
+            const temp = localStorage.getItem(completedKey);
+            const completedMap = temp ? JSON.parse(temp) : {};
+            const studentCompleted = completedMap[studentId] || [];
+
+            if (!studentCompleted.includes(assignmentId)) {
+              const assignmentPayload = {
+                user_id: studentId,
+                student_id: studentId,
+                path_id: homeworkPath.path_id ?? null,
+                assignment_id: assignmentId,
+                lesson_id:
+                  completedLesson?.lesson_id ??
+                  completedLesson?.lesson?.id ??
+                  null,
+                chapter_id: completedLesson?.chapter_id ?? null,
+                course_id: completedLesson?.course_id ?? null,
+                index_in_path: completedIndex,
+                completed_at: new Date().toISOString(),
+              };
+
+              try {
+                Util.logEvent(
+                  EVENTS.HOMEWORK_PATHWAY_ASSIGNMENT_COMPLETED,
+                  assignmentPayload
+                );
+              } catch (e) {
+                console.warn(
+                  "[Analytics] Failed to log HOMEWORK_PATHWAY_ASSIGNMENT_COMPLETED",
+                  e
+                );
+              }
+
+              // mark as logged locally
+              studentCompleted.push(assignmentId);
+              completedMap[studentId] = studentCompleted;
+              localStorage.setItem(completedKey, JSON.stringify(completedMap));
+            }
+          }
+        } catch (e) {
+          console.warn("[Analytics] assignment-completed block failed", e);
+        }
+
+        // --- 2) Decide if this was the last lesson in the path ---
+        const lessonsLen = homeworkPath.lessons?.length ?? 0;
+        const newCurrentIndex = completedIndex + 1;
+        const isNowComplete = newCurrentIndex >= lessonsLen;
+
+        if (isNowComplete) {
+          // Build and log pathway completed event (using snapshot)
+          try {
+            const prevIndex = Math.max(completedIndex, 0); // the lesson just completed
+            const prev = homeworkPath.lessons?.[prevIndex] ?? null;
+
+            const lessonIds = (homeworkPath.lessons ?? []).map(
+              (l: any) => l.lesson_id ?? l.lesson?.id ?? null
+            );
+            const assignmentIds = (homeworkPath.lessons ?? []).map(
+              (l: any) => l.assignment_id ?? l.id ?? null
+            );
+
+            const completedEvent = {
+              user_id: studentId,
+              student_id: studentId,
+              completed_path_id: homeworkPath.path_id ?? null,
+              completed_course_id: prev?.course_id ?? null,
+              completed_lesson_id: prev?.lesson_id ?? prev?.lesson?.id ?? null,
+              assignment_id: prev?.assignment_id ?? null,
+              completed_chapter_id: prev?.chapter_id ?? null,
+              total_lessons_in_path: lessonsLen,
+              lesson_ids: lessonIds,
+              assignment_ids: assignmentIds,
+              completed_at: new Date().toISOString(),
+              source: "updateHomeworkPath",
+            };
+
+            try {
+              Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COMPLETED, completedEvent);
+            } catch (e) {
+              console.warn(
+                "[Analytics] Failed to log HOMEWORK_PATHWAY_COMPLETED",
+                e
+              );
+            }
+          } catch (e) {
+            console.warn("[Analytics] pathway-completed block failed", e);
+          }
+
+          // finally remove the path from storage
+          localStorage.removeItem(HOMEWORK_PATHWAY);
+        } else {
+          // Not complete → advance index and persist
+          homeworkPath.currentIndex = newCurrentIndex;
+          localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(homeworkPath));
+        }
+
+        return; // finished handling completedIndex case
+      }
+
+      // --- fallback: no completedIndex provided — preserve existing behaviour ---
+      const newCurrentIndexFallback = (homeworkPath.currentIndex ?? 0) + 1;
+      if (newCurrentIndexFallback >= (homeworkPath.lessons?.length ?? 0)) {
+        // path finished
+        try {
+          // log completed event similar to above (best-effort)
+          const lessons = homeworkPath.lessons ?? [];
+          const prevIndex = Math.max((homeworkPath.currentIndex ?? 0) - 1, 0);
+          const prev = lessons[prevIndex] ?? null;
+
+          const lessonIds = lessons.map(
+            (l: any) => l.lesson_id ?? l.lesson?.id ?? null
+          );
+          const assignmentIds = lessons.map(
+            (l: any) => l.assignment_id ?? l.id ?? null
+          );
+
+          const completedEvent = {
+            user_id: studentId,
+            student_id: studentId,
+            completed_path_id: homeworkPath.path_id ?? null,
+            completed_course_id: prev?.course_id ?? null,
+            completed_lesson_id: prev?.lesson_id ?? prev?.lesson?.id ?? null,
+            assignment_id: prev?.assignment_id ?? null,
+            completed_chapter_id: prev?.chapter_id ?? null,
+            total_lessons_in_path: lessons.length,
+            lesson_ids: lessonIds,
+            assignment_ids: assignmentIds,
+            completed_at: new Date().toISOString(),
+            source: "updateHomeworkPath",
+          };
+
+          try {
+            Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COMPLETED, completedEvent);
+          } catch (e) {
+            console.warn(
+              "[Analytics] Failed to log HOMEWORK_PATHWAY_COMPLETED (fallback)",
+              e
+            );
+          }
+        } catch (e) {
+          console.warn("[Analytics] pathway completed (fallback) failed", e);
+        }
+
         localStorage.removeItem(HOMEWORK_PATHWAY);
       } else {
-        homeworkPath.currentIndex = newCurrentIndex;
+        homeworkPath.currentIndex = newCurrentIndexFallback;
         localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(homeworkPath));
       }
     } catch (error) {
@@ -2653,12 +2805,13 @@ export class Util {
         chapterId: activePathItem.chapter_id,
         prevPath_id: activeCourse.path_id,
       };
-      
+
       // Determine which events to log
       const eventsToLog: string[] = [];
       // Update currentIndex
       currentCourse.currentIndex += 1;
-      const is_immediate_sync = currentCourse.currentIndex >= currentCourse.pathEndIndex;
+      const is_immediate_sync =
+        currentCourse.currentIndex >= currentCourse.pathEndIndex;
       // Check if currentIndex exceeds pathEndIndex
       if (currentCourse.currentIndex > currentCourse.pathEndIndex) {
         if (isRewardLesson) {
@@ -2689,12 +2842,16 @@ export class Util {
         if (courses.currentCourseIndex >= courses.courseList.length) {
           courses.currentCourseIndex = 0;
         }
-        eventsToLog.push(EVENTS.PATHWAY_COMPLETED, EVENTS.PATHWAY_COURSE_CHANGED);
+        eventsToLog.push(
+          EVENTS.PATHWAY_COMPLETED,
+          EVENTS.PATHWAY_COURSE_CHANGED
+        );
       }
-      eventsToLog.push(EVENTS.PATHWAY_LESSON_END)
-      
+      eventsToLog.push(EVENTS.PATHWAY_LESSON_END);
+
       const newCourse = courses.courseList[courses.currentCourseIndex];
-      const newPathItem = newCourse.path[newCourse.currentIndex] || newCourse.path[0]; // Fallback safety
+      const newPathItem =
+        newCourse.path[newCourse.currentIndex] || newCourse.path[0]; // Fallback safety
       const eventPayload = {
         user_id: currentStudent.id,
 
@@ -2760,12 +2917,7 @@ export class Util {
         // First load: seed localStorage with DB value
         bestLocal = fallback;
         Util.setLocalStarsForStudent(studentId, bestLocal);
-        console.log(
-          `[Stars] Seeded localStorage for ${studentId} with DB fallback: ${bestLocal}`
-        );
       }
-
-      console.log("Testing 8", bestLocal, localStars, latestStars, fallback);
       return bestLocal;
     } catch (e) {
       console.warn("[Util.getLocalStarsForStudent] failed, using fallback", e);

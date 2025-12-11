@@ -821,6 +821,8 @@ export enum EVENTS {
   REWARD_COLLECTED = "reward_collected",
   HOMEWORK_PATHWAY_CREATED = "homework_pathway_created",
   HOMEWORK_PATHWAY_COMPLETED = "homework_pathway_completed",
+  HOMEWORK_PATHWAY_COURSE_CHANGED = "homework_pathway_course_changed",
+  HOMEWORK_PATHWAY_ASSIGNMENT_COMPLETED = "homework_pathway_assignment_completed",
   LIVE_UPDATE_APPLIED = "live_update_applied",
   LIVE_UPDATE_STARTED = "live_update_started",
   LIVE_UPDATE_ERROR = "live_update_error",
