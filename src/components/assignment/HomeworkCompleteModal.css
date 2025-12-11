@@ -55,6 +55,7 @@
   background-size: clamp(90%, 90%, 150%) auto;
   background-position: center;
   background-repeat: no-repeat;
+  margin: auto;
 }
 
 /* LAYOUT */

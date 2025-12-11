@@ -2204,11 +2204,7 @@ export class SupabaseApi implements ServiceApi {
     if (score > 50) starsEarned++;
     if (score > 75) starsEarned++;
 
-    const previousStarsRaw = localStorage.getItem(STARS_COUNT);
-    let currentStars = previousStarsRaw
-      ? JSON.parse(previousStarsRaw)[student.id]
-      : 0;
-    const totalStars = currentStars + starsEarned;
+    const totalStars = Util.bumpLocalStarsForStudent(student.id, starsEarned);
 
     const updateData: any = { stars: totalStars };
     if (newReward) updateData.reward = JSON.stringify(newReward);
@@ -9449,6 +9445,9 @@ export class SupabaseApi implements ServiceApi {
       };
     }
   }
+  async getActivitiesBySchoolId(
+    schoolId: string
+  ): Promise<TableTypes<"fc_user_forms">[]> {
 
   async getFilteredFcQuestions(
     type: EnumType<"fc_support_level"> | null,
@@ -9560,7 +9559,7 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from("fc_user_forms")
       .select("*")
-      .eq("school_id", schoolId)
+      .eq("school_id",  schoolId)
       .eq("is_deleted", false)
       .order("created_at", { ascending: true });
 
