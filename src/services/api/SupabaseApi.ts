@@ -485,7 +485,8 @@ export class SupabaseApi implements ServiceApi {
       }
       const res = await this.supabase?.rpc("sql_sync_all", {
         p_updated_at: updatedAtPayload,
-        p_tables: tableNames, // TABLES[] should be string[] under the hood
+        p_tables: tableNames,
+        p_is_first_time:isInitialFetch // TABLES[] should be string[] under the hood
       });
       if (res == null || res.error || !res.data) {
         let parent_user;
