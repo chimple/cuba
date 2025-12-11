@@ -402,32 +402,6 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         pathData.lessons.length > 0 &&
         pathData.currentIndex >= pathData.lessons.length
       ) {
-        // 2️⃣ Log: HOMEWORK_PATHWAY_COMPLETED
-        try {
-          const prevIndex = Math.max(pathData.currentIndex - 1, 0);
-          const prev = pathData.lessons[prevIndex];
-
-          const completedEvent = {
-            user_id: student.id,
-            completed_path_id: pathData.path_id,
-            completed_course_id: prev?.course_id || null,
-            completed_lesson_id: prev?.lesson_id || prev?.lesson?.id || null,
-            assignment_id: prev?.assignment_id || null,
-            completed_chapter_id: prev?.chapter_id || null,
-            total_lessons_in_path: pathData.lessons.length,
-            completed_at: new Date().toISOString(),
-          };
-
-          await Util.logEvent(
-            EVENTS.HOMEWORK_PATHWAY_COMPLETED,
-            completedEvent
-          );
-        } catch (err) {
-          console.warn(
-            "[HomeworkPathway] Failed to log pathway-completed event",
-            err
-          );
-        }
         localStorage.removeItem(HOMEWORK_PATHWAY);
       }
 
