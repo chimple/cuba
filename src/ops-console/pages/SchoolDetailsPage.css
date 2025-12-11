@@ -24,6 +24,24 @@
   align-items: center;
 }
 
+.add-note-button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #4F46E5;
+  background: white;
+  color: #4F46E5;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  margin-right: 24px;
+  width: auto;
+  max-width: max-content;
+}
+
+.add-note-button:hover {
+  background: #f6f6ff;
+}
+
 .school-detail-secondary-header {
   width: calc(100% - 32px);
   margin: 0 auto;

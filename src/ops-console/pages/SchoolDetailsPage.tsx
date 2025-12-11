@@ -10,6 +10,9 @@ import Breadcrumb from "../components/Breadcrumb";
 import SchoolDetailsTabsComponent from "../components/SchoolDetailsComponents/SchoolDetailsTabsComponent";
 import { SupabaseApi } from "../../services/api/SupabaseApi";
 import { TableTypes } from "../../common/constants";
+import AddNoteModal from "../components/SchoolDetailsComponents/AddNoteModal";
+import { SchoolTabs } from "../../interface/modelInterfaces";
+
 
 interface SchoolDetailComponentProps {
   id: string;
@@ -41,6 +44,12 @@ export type ClassWithDetails = TableTypes<"class"> & {
   studentCount?: number;
 };
 
+const handleAddNoteHeader = (data: any) => {
+  console.log("Header note added:", data);
+  // Later we will plug API + refresh Notes tab
+};
+
+
 const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const [data, setData] = useState<{
     schoolData?: any;
@@ -67,6 +76,8 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     avg_weekly_time_minutes: 0,
   });
   const [goToClassesTab, setGoToClassesTab] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
 
   useEffect(() => {
     fetchAll();
@@ -226,7 +237,16 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         {schoolName && <SchoolNameHeaderComponent schoolName={schoolName} />}
       </div>
       {!isMobile && schoolName && (
-        <div className="school-detail-secondary-header">
+        <div
+          className="school-detail-secondary-header"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "100%",
+          }}
+        >
+          {/* Left Side: Breadcrumb */}
           <Breadcrumb
             crumbs={[
               {
@@ -238,8 +258,26 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
               },
             ]}
           />
+
+          {activeTab == SchoolTabs.Overview && (
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="add-note-button"
+            >
+              + {t("add note")}
+            </button>
+          )}
         </div>
+
       )}
+      {/* Modal outside the header */}
+      <AddNoteModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleAddNoteHeader}
+        source="school"
+      />
+
       <div className="school-detail-tertiary-gap" />
       <div className="school-detail-tertiary-header">
         <SchoolDetailsTabsComponent
@@ -251,7 +289,9 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
             setGoToClassesTab(true);
           }}
           goToClassesTab={goToClassesTab}
+          onTabChange={(tab) => setActiveTab(tab)}  // new prop
         />
+
       </div>
       <div className="school-detail-columns-gap" />
     </div>

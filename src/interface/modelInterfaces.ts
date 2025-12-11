@@ -90,6 +90,7 @@ export enum SchoolTabs {
   Teachers = "Teachers",
   Principals = "Principals",
   Coordinators = "Coordinators",
+  Notes = "Notes"
 }
 
 export interface FcActivity {
@@ -110,4 +111,3 @@ export interface FcActivity {
     name: string;
   } | null;
 }
-
