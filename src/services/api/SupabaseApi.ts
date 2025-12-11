@@ -3132,7 +3132,7 @@ const { data, error, count } = await query
         grade,
         classSection: section,
         parent,
-        classWithidname: { id: cls.id, name: cls.class_name}
+        classWithidname: cls,
       };
     });
 
