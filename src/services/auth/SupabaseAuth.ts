@@ -180,66 +180,65 @@ export class SupabaseAuth implements ServiceAuth {
     return true;
   }
 async googleSign(): Promise<{ success: boolean; isSpl: boolean }> {
-  try {
-    console.log("[GOOGLE_AUTH] googleSign() started");
+  console.log("googleSign: start", JSON.stringify(null));
 
+  try {
+    console.log("googleSign: this._auth", JSON.stringify(this._auth));
     if (!this._auth) {
-      console.error("[GOOGLE_AUTH] Auth not initialized");
-      return { success: false, isSpl: false };
+      const res = { success: false, isSpl: false };
+      console.log("googleSign: _auth missing, returning", JSON.stringify(res));
+      return res;
     }
 
     const api = ServiceConfig.getI().apiHandler;
-    let response;
+    console.log("googleSign: api handler", JSON.stringify(api));
 
-    console.log(
-      "[GOOGLE_AUTH] Is native platform:",
-      Capacitor.isNativePlatform()
-    );
+    let response: any;
+    console.log("googleSign: response initial", JSON.stringify(response));
 
-    if (Capacitor.isNativePlatform()) {
-      console.log("[GOOGLE_AUTH] Triggering native Google login");
+    const isNative = Capacitor.isNativePlatform();
+    console.log("googleSign: isNativePlatform", JSON.stringify(isNative));
 
+    if (isNative) {
       response = await SocialLogin.login({
         provider: "google",
-        options: {
-          scopes: ["profile", "email"],
-          forceRefreshToken: true,
-        },
+        options: { scopes: ["profile", "email"], forceRefreshToken: true },
       });
+      console.log("googleSign: response after native login", JSON.stringify(response));
     } else {
-      console.log("[GOOGLE_AUTH] Triggering web Google login");
-
       response = await SocialLogin.login({
         provider: "google",
-        options: {
-          scopes: ["profile", "email"],
-        },
+        options: { scopes: ["profile", "email"] },
       });
+      console.log("googleSign: response after web login", JSON.stringify(response));
     }
 
-    console.log("[GOOGLE_AUTH] Login response:", response);
+    console.log("googleSign: response.result", JSON.stringify(response?.result));
 
     if (response.result?.responseType !== "online") {
-      console.warn(
-        "[GOOGLE_AUTH] Invalid responseType:",
-        response.result?.responseType
-      );
-      return { success: false, isSpl: false };
+      const res = { success: false, isSpl: false };
+      console.log("googleSign: responseType not online", JSON.stringify(res));
+      return res;
     }
 
     const authentication = response.result;
-    const authUser = authentication.profile;
+    console.log("googleSign: authentication", JSON.stringify(authentication));
 
-    console.log("[GOOGLE_AUTH] Auth profile:", authUser);
-    console.log("[GOOGLE_AUTH] idToken present:", !!authentication.idToken);
+    const authUser = authentication.profile;
+    console.log("googleSign: authUser", JSON.stringify(authUser));
+
+    console.log("googleSign: authentication.idToken", JSON.stringify(authentication.idToken));
+    console.log("googleSign: authUser.email", JSON.stringify(authUser.email));
+    console.log("googleSign: authUser.id", JSON.stringify(authUser.id));
 
     if (
       authentication.idToken === null ||
       authUser.email === null ||
       authUser.id === null
     ) {
-      console.error("[GOOGLE_AUTH] Missing required auth fields");
-      return { success: false, isSpl: false };
+      const res = { success: false, isSpl: false };
+      console.log("googleSign: missing token/email/id", JSON.stringify(res));
+      return res;
     }
 
     const { data, error } = await this._auth.signInWithIdToken({
@@ -248,34 +247,33 @@ async googleSign(): Promise<{ success: boolean; isSpl: boolean }> {
       access_token: authentication.accessToken?.token,
     });
 
-    console.log("[GOOGLE_AUTH] Supabase signIn result:", data.user?.id);
-    if (error) console.error("[GOOGLE_AUTH] Supabase signIn error:", error);
+    console.log("googleSign: signInWithIdToken data", JSON.stringify(data));
+    console.log("googleSign: signInWithIdToken error", JSON.stringify(error));
 
     if (data.session?.refresh_token) {
-      console.log("[GOOGLE_AUTH] Saving refresh token",data.session?.refresh_token);
-      Util.addRefreshTokenToLocalStorage(data.session?.refresh_token);
+      console.log("googleSign: refresh_token", JSON.stringify(data.session.refresh_token));
+      Util.addRefreshTokenToLocalStorage(data.session.refresh_token);
+      console.log("googleSign: refresh_token stored", JSON.stringify(null));
     }
-
-    console.log("[GOOGLE_AUTH] Checking if user exists");
 
     const rpcRes = await this.rpcRetry<boolean>(async () => {
       const { data, error } = await this._supabaseDb!
-        .rpc("isUserExists", {
-          user_email: authUser.email!,
-          user_phone: "",
-        })
+        .rpc("isUserExists", { user_email: authUser.email!, user_phone: "" })
         .maybeSingle();
 
-      console.log("[GOOGLE_AUTH] isUserExists rpc data:", data);
-      if (error) console.error("[GOOGLE_AUTH] isUserExists rpc error:", error);
+      console.log("isUserExists rpc data", JSON.stringify(data));
+      console.log("isUserExists rpc error", JSON.stringify(error));
 
       return { data: !!data, error };
     });
 
-    console.log("[GOOGLE_AUTH] User exists:", rpcRes);
+    console.log("googleSign: rpcRes (isUserExists)", JSON.stringify(rpcRes));
 
     if (!rpcRes) {
-      console.log("[GOOGLE_AUTH] Creating new user");
+      console.log(
+        "googleSign: creating new user",
+        JSON.stringify({ idData: data.user?.id, idAuth: authUser.id })
+      );
 
       const createdUser = await api.createUserDoc({
         age: null,
@@ -306,61 +304,64 @@ async googleSign(): Promise<{ success: boolean; isSpl: boolean }> {
         stars: null,
       });
 
-      console.log("[GOOGLE_AUTH] User created:", createdUser?.id,createdUser?.name);
-      this._currentUser = createdUser;
-    }
+      console.log("googleSign: createdUser", JSON.stringify(createdUser));
 
-    console.log("[GOOGLE_AUTH] Checking special / program user");
+      this._currentUser = createdUser;
+      console.log("googleSign: _currentUser set", JSON.stringify(this._currentUser));
+    } else {
+      console.log("googleSign: user exists already", JSON.stringify(rpcRes));
+    }
 
     const isSpl = await this.rpcRetry<boolean>(async () => {
       const { data, error } = await this._supabaseDb!
         .rpc("is_special_or_program_user")
         .maybeSingle();
 
-      console.log(
-        "[GOOGLE_AUTH] is_special_or_program_user rpc data:",
-        data
-      );
-      if (error)
-        console.error(
-          "[GOOGLE_AUTH] is_special_or_program_user rpc error:",
-          error
-        );
+      console.log("is_special_or_program_user data", JSON.stringify(data));
+      console.log("is_special_or_program_user error", JSON.stringify(error));
 
-      return { data: !!data, error } as { data: boolean; error: any };
+      return { data: !!data, error };
     });
 
-    console.log("[GOOGLE_AUTH] isSpl:", isSpl);
+    console.log("googleSign: isSpl result", JSON.stringify(isSpl));
 
     if (isSpl) {
-      console.log("[GOOGLE_AUTH] Switching to SUPABASE mode");
+      console.log("googleSign: switching API mode → SUPABASE", JSON.stringify(null));
       ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
     } else {
-      console.log("[GOOGLE_AUTH] Syncing local DB");
       let isFirstSync = true;
-      await api.syncDB(
-        Object.values(TABLES),
-        REFRESH_TABLES_ON_LOGIN,
-        isFirstSync
+      console.log(
+        "googleSign: syncDB starting",
+        JSON.stringify({ tables: Object.values(TABLES), refresh: REFRESH_TABLES_ON_LOGIN, isFirstSync })
       );
+
+      await api.syncDB(Object.values(TABLES), REFRESH_TABLES_ON_LOGIN, isFirstSync);
+
+      console.log("googleSign: syncDB done", JSON.stringify(null));
     }
 
-    console.log("[GOOGLE_AUTH] Updating FCM token");
-    await api.updateFcmToken(data.user?.id ?? authUser.id);
+    const userIdForFcm = data.user?.id ?? authUser.id;
+    console.log("googleSign: userIdForFcm", JSON.stringify(userIdForFcm));
+
+    await api.updateFcmToken(userIdForFcm);
+    console.log("googleSign: updateFcmToken done", JSON.stringify(userIdForFcm));
 
     if (rpcRes) {
-      console.log("[GOOGLE_AUTH] Subscribing to class topic");
       await api.subscribeToClassTopic();
+      console.log("googleSign: subscribeToClassTopic done", JSON.stringify(null));
     }
 
-    console.log("[GOOGLE_AUTH] googleSign() SUCCESS");
-    return { success: true, isSpl: isSpl };
+    const finalRes = { success: true, isSpl: isSpl };
+    console.log("googleSign: final return", JSON.stringify(finalRes));
+    return finalRes;
+
   } catch (error: any) {
-    console.error(
-      "[GOOGLE_AUTH] googleSign() ERROR:",
-      error?.stack || error
-    );
-    return { success: false, isSpl: false };
+    console.error("🚀 ~ SupabaseAuth ~ googleSign ~ error:", error?.stack || error);
+    console.log("googleSign: caught error", JSON.stringify(error?.stack || error));
+
+    const res = { success: false, isSpl: false };
+    console.log("googleSign: returning after error", JSON.stringify(res));
+    return res;
   }
 }
 
