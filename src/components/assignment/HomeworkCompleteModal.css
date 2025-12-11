@@ -40,11 +40,13 @@
   width: 150%;
   height: 150%;
 }
-/* === CARD === */
+/* === CARD === */  
 .homework-completed-card {
   pointer-events: auto;
   background-color: #fffcee;
-  width: 100%;
+  /* width: 100%; */
+  width: 80vw;
+
   max-width: 43.75rem;
 
   border-radius: clamp(1.25rem, 2.5vw, 2rem);
