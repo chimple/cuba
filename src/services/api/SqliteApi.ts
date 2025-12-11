@@ -2310,7 +2310,10 @@ export class SqliteApi implements ServiceApi {
     if (updatedStudent) {
       updatedStudent.language_id = student.language_id;
       Util.setCurrentStudent(updatedStudent);
-      Util.setLocalStarsForStudent(updatedStudent.id, updatedStudent.stars || 0);
+      Util.setLocalStarsForStudent(
+        updatedStudent.id,
+        updatedStudent.stars || 0
+      );
     }
     this.updatePushChanges(
       TABLES.Result,
