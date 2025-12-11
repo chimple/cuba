@@ -2603,7 +2603,7 @@ export class Util {
       const storedPath = localStorage.getItem(HOMEWORK_PATHWAY);
       if (!storedPath) {
         console.error(
-          "Could not find homework path in sessionStorage to update."
+          "Could not find homework path in localStorage to update."
         );
         return;
       }
@@ -2649,8 +2649,7 @@ export class Util {
               };
 
               try {
-                console.log("fssfddfdf", assignmentPayload);
-                await Util.logEvent(
+                Util.logEvent(
                   EVENTS.HOMEWORK_PATHWAY_ASSIGNMENT_COMPLETED,
                   assignmentPayload
                 );
@@ -2705,10 +2704,7 @@ export class Util {
             };
 
             try {
-              await Util.logEvent(
-                EVENTS.HOMEWORK_PATHWAY_COMPLETED,
-                completedEvent
-              );
+              Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COMPLETED, completedEvent);
             } catch (e) {
               console.warn(
                 "[Analytics] Failed to log HOMEWORK_PATHWAY_COMPLETED",
@@ -2763,10 +2759,7 @@ export class Util {
           };
 
           try {
-            await Util.logEvent(
-              EVENTS.HOMEWORK_PATHWAY_COMPLETED,
-              completedEvent
-            );
+            Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COMPLETED, completedEvent);
           } catch (e) {
             console.warn(
               "[Analytics] Failed to log HOMEWORK_PATHWAY_COMPLETED (fallback)",
@@ -2812,7 +2805,7 @@ export class Util {
         chapterId: activePathItem.chapter_id,
         prevPath_id: activeCourse.path_id,
       };
-      
+
       // Determine which events to log
       const eventsToLog: string[] = [];
       // Update currentIndex
@@ -2849,12 +2842,16 @@ export class Util {
         if (courses.currentCourseIndex >= courses.courseList.length) {
           courses.currentCourseIndex = 0;
         }
-        eventsToLog.push(EVENTS.PATHWAY_COMPLETED, EVENTS.PATHWAY_COURSE_CHANGED);
+        eventsToLog.push(
+          EVENTS.PATHWAY_COMPLETED,
+          EVENTS.PATHWAY_COURSE_CHANGED
+        );
       }
-      eventsToLog.push(EVENTS.PATHWAY_LESSON_END)
-      
+      eventsToLog.push(EVENTS.PATHWAY_LESSON_END);
+
       const newCourse = courses.courseList[courses.currentCourseIndex];
-      const newPathItem = newCourse.path[newCourse.currentIndex] || newCourse.path[0]; // Fallback safety
+      const newPathItem =
+        newCourse.path[newCourse.currentIndex] || newCourse.path[0]; // Fallback safety
       const eventPayload = {
         user_id: currentStudent.id,
 
@@ -2920,12 +2917,7 @@ export class Util {
         // First load: seed localStorage with DB value
         bestLocal = fallback;
         Util.setLocalStarsForStudent(studentId, bestLocal);
-        console.log(
-          `[Stars] Seeded localStorage for ${studentId} with DB fallback: ${bestLocal}`
-        );
       }
-
-      console.log("Testing 8", bestLocal, localStars, latestStars, fallback);
       return bestLocal;
     } catch (e) {
       console.warn("[Util.getLocalStarsForStudent] failed, using fallback", e);

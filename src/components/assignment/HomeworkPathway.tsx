@@ -350,7 +350,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
                       : "path_completed_rebuild",
                     subject_id: subjectId || null,
                   };
-                  await Util.logEvent(
+                  Util.logEvent(
                     EVENTS.HOMEWORK_PATHWAY_COURSE_CHANGED,
                     changedEvent
                   );
@@ -426,12 +426,6 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         } catch (error) {
           console.warn("Failed fetching chapter details", error);
         }
-
-        console.log("ChapterLessonBox data", {
-          chapterName,
-          lessonName,
-          currentObj,
-        });
 
         setBoxDetails({
           cName: chapterName,
@@ -538,7 +532,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         changed_at: new Date().toISOString(),
         reason: subjectId ? "subject_changed" : "default_pathway",
       };
-      await Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COURSE_CHANGED, changedEvent);
+      Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COURSE_CHANGED, changedEvent);
     } catch (err) {
       console.warn(
         "[HomeworkPathway] Failed to log HOMEWORK_PATHWAY_CHANGED event",
@@ -582,7 +576,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
       ...assignmentSlots,
     };
 
-    await Util.logEvent(EVENTS.HOMEWORK_PATHWAY_CREATED, eventData);
+    Util.logEvent(EVENTS.HOMEWORK_PATHWAY_CREATED, eventData);
   };
 
   // ✅ New handler for clicking the disabled dropdown wrapper

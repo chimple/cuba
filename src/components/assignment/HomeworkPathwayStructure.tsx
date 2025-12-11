@@ -31,14 +31,14 @@ import HomeworkCompleteModal from "./HomeworkCompleteModal";
 
 interface HomeworkPathwayStructureProps {
   selectedSubject?: string | null;
-  onHomeworkComplete?: () => void; 
+  onHomeworkComplete?: () => void;
 }
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   selectedSubject,
-  onHomeworkComplete, 
+  onHomeworkComplete,
 }) => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
@@ -288,7 +288,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       if (!pendingAssignments || pendingAssignments.length === 0) {
         setHomeworkLessons([]);
-        onHomeworkComplete?.(); 
+        onHomeworkComplete?.();
         return;
       }
 
@@ -366,9 +366,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       let storedHomeworkPath = localStorage.getItem(HOMEWORK_PATHWAY);
 
       if (!storedHomeworkPath) {
-        console.log(
-          "[HomeworkPathwayStructure] No HOMEWORK_PATHWAY found → not drawing SVG yet"
-        );
         return;
       }
       const homeworkPath = JSON.parse(storedHomeworkPath);
@@ -987,7 +984,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         }
 
         const endTime = performance.now();
-        console.log(`SVG loaded in ${(endTime - startTime).toFixed(2)}ms`);
       });
     } catch (error) {
       console.error("Failed to load SVG:", error);
