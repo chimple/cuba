@@ -343,6 +343,24 @@ export class palUtil {
     };
   }
 
+  public static async getPalLessonPathForCourse(courseId: string, studentId: string): Promise<
+    { lesson_id: string; skill_id?: string; chapter_id?: string }[] | undefined
+  > {
+    const recommended = await this.getRecommendedLessonForCourse(
+      studentId,
+      courseId
+    );
+    if (!recommended?.lesson?.id) return undefined;
+
+    const entry = {
+      lesson_id: recommended.lesson.id,
+      skill_id: recommended.skillId,
+      chapter_id: recommended.chapterId,
+    };
+
+    return Array.from({ length: 5 }, () => ({ ...entry }));
+  }
+
   private static async getChapterIdForLessonInCourse(
     courseId: string,
     lessonId: string

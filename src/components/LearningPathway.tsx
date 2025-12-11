@@ -196,21 +196,11 @@ const LearningPathway: React.FC = () => {
   };
 
   const buildLessonPath = async (course: any, studentId: string) => {
-    const frameworkId = course?.framework_id;
-    if (frameworkId) {
-      const recommended = await palUtil.getRecommendedLessonForCourse(
-        studentId,
-        course.id
-      );
-      if (recommended?.lesson?.id) {
-        const entry = {
-          lesson_id: recommended.lesson.id,
-          skill_id: recommended.skillId,
-          chapter_id: recommended.chapterId,
-        };
-        return Array.from({ length: 5 }, () => ({ ...entry }));
-      }
-    }
+    const palPath = await palUtil.getPalLessonPathForCourse(
+      course.id,
+      studentId
+    );
+    if (palPath) return palPath;
 
     const chapters = await api.getChaptersForCourse(course.id);
     const lessons = await Promise.all(
@@ -235,11 +225,21 @@ const LearningPathway: React.FC = () => {
 
     const currentCourse =
       path.courses.courseList[path.courses.currentCourseIndex];
-    const currentPath = currentCourse.path;
+    const currentPath = currentCourse.path ?? [];
+    if (!currentPath.length) return;
+
+    const cappedEndIndex = Math.min(
+      currentCourse.pathEndIndex ?? 0,
+      currentPath.length - 1
+    );
+    const currentIndex = Math.min(
+      currentCourse.currentIndex ?? 0,
+      currentPath.length - 1
+    );
 
     const LessonSlice = currentPath.slice(
       currentCourse.startIndex,
-      currentCourse.pathEndIndex + 1
+      cappedEndIndex + 1
     );
 
     // Extract lesson IDs
@@ -264,13 +264,13 @@ const LearningPathway: React.FC = () => {
       current_course_id:
         path.courses.courseList[path.courses.currentCourseIndex].course_id,
       current_lesson_id:
-        path.courses.courseList[path.courses.currentCourseIndex].path[
-          path.courses.courseList[path.courses.currentCourseIndex].currentIndex
-        ].lesson_id,
+        path.courses.courseList[path.courses.currentCourseIndex].path?.[
+          currentIndex
+        ]?.lesson_id,
       current_chapter_id:
-        path.courses.courseList[path.courses.currentCourseIndex].path[
-          path.courses.courseList[path.courses.currentCourseIndex].currentIndex
-        ].chapter_id,
+        path.courses.courseList[path.courses.currentCourseIndex].path?.[
+          currentIndex
+        ]?.chapter_id,
       path_lesson_one: pathLessonOne,
       path_lesson_two: pathLessonTwo,
       path_lesson_three: pathLessonThree,

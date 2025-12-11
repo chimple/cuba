@@ -65,7 +65,9 @@ import {
   STARS_COUNT,
   LATEST_STARS,
   CURRENT_CLASS,
+  RECOMMENDATION_TYPE,
 } from "../common/constants";
+import { palUtil } from "./palUtil";
 import {
   Chapter as curriculamInterfaceChapter,
   Course as curriculamInterfaceCourse,
@@ -101,6 +103,8 @@ import { t } from "i18next";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 import CryptoJS from "crypto-js";
 import { InAppReview } from "@capacitor-community/in-app-review";
+import { v4 as uuidv4 } from "uuid";
+
 declare global {
   interface Window {
     cc: any;
@@ -2673,12 +2677,26 @@ export class Util {
             JSON.stringify(learningPath)
           );
         }
-        currentCourse.startIndex = currentCourse.currentIndex;
-        currentCourse.pathEndIndex += 5;
+        if(learningPath.courses.courseList[learningPath.courses.currentCourseIndex].type === RECOMMENDATION_TYPE.CHAPTER) {
+          currentCourse.startIndex = currentCourse.currentIndex;
+          currentCourse.pathEndIndex += 5;
 
-        // Ensure pathEndIndex does not exceed the path length
-        if (currentCourse.pathEndIndex > currentCourse.path.length) {
-          currentCourse.pathEndIndex = currentCourse.path.length - 1;
+          // Ensure pathEndIndex does not exceed the path length
+          if (currentCourse.pathEndIndex > currentCourse.path.length) {
+            currentCourse.pathEndIndex = currentCourse.path.length - 1;
+          }
+        } else {
+          const palPath = await palUtil.getPalLessonPathForCourse(
+            currentCourse.course_id,
+            currentStudent.id,
+          );
+          if (palPath?.length) {
+            currentCourse.path_id = uuidv4();
+            currentCourse.path = palPath;
+            currentCourse.startIndex = 0;
+            currentCourse.currentIndex = 0;
+            currentCourse.pathEndIndex = palPath.length - 1;
+          }
         }
 
         // Move to the next course
@@ -2726,6 +2744,20 @@ export class Util {
         };
         await Util.logEvent(EVENTS.PATHWAY_COMPLETED, pathwayEndData);
         await Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, pathwayEndData);
+      } else {
+        // Within current path: refresh the slot with latest PAL recommendation if available
+        const recommended = await palUtil.getRecommendedLessonForCourse(
+          currentStudent.id,
+          currentCourse.course_id
+        );
+        if (recommended?.lesson?.id) {
+          currentCourse.path[currentCourse.currentIndex] = {
+            ...currentCourse.path[currentCourse.currentIndex],
+            lesson_id: recommended.lesson.id,
+            chapter_id: recommended.chapterId,
+            skill_id: recommended.skillId,
+          };
+        }
       }
       // Update the learning path in the database
       await ServiceConfig.getI().apiHandler.updateLearningPath(
