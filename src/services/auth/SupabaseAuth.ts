@@ -307,7 +307,7 @@ export class SupabaseAuth implements ServiceAuth {
 
   async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
     if (this._currentUser){
-      console.log("user from curr user....", this._currentUser);
+      console.log("user from curr user....", this._currentUser.id);
 return this._currentUser;
     } 
     if (!navigator.onLine) {
@@ -315,7 +315,7 @@ return this._currentUser;
       let user = localStorage.getItem(USER_DATA);
       console.log("USER_DATA from curr user....", user);
       if (user) this._currentUser = JSON.parse(user) as TableTypes<"user">;
-      console.log("returning this user from curr user....", this._currentUser);
+      console.log("returning this user from curr user....", this._currentUser?.id!);
 
       return this._currentUser;
     } else {
