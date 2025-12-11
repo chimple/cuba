@@ -327,17 +327,20 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
 
   // ⬆ inside AssignmentPage component, before JSX:
   const bodyClass = !isLinked
-  ? "lesson-body"
-  : !isHomeworkPathwayOn
-  ? (lessons.length < 1 ? "lesson-body" : "assignment-body slider-mode")
-  : "assignment-body";
-
+    ? "lesson-body"
+    : !isHomeworkPathwayOn
+    ? // 🔹 Flag ON → Slider flow (keep old behaviour)
+      lessons.length < 1
+      ? "lesson-body"
+      : "assignment-body"
+    : // 🔹 Flag OFF → HomeworkPathway flow → always use assignment layout
+      "assignment-body";
 
   return !loading ? (
     <div>
       <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
-        <div className={bodyClass}>
-          {!isHomeworkPathwayOn && (
+        <div>
+          {!isHomeworkPathwayOn && !showHomeworkCompleteModal && (
             <div className="assignment-header">
               <div className="right-button"></div>
 
