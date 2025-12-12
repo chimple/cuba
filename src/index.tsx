@@ -214,7 +214,7 @@ async function checkForUpdate() {
   let majorVersion = "0";
   const maxRetries = 5;
   try {
-    if (isNativePlatform && gb.isOn(CAN_HOT_UPDATE)) {
+    if (isNativePlatform && gb.isOn(CAN_HOT_UPDATE) && process.env.REACT_IS_HOT_UPDATE_ENABLED === "true") {
       const { versionName } = await LiveUpdate.getVersionName();
       majorVersion = versionName.split(".")[0];
       const { bundleId: currentBundleId } = await LiveUpdate.getCurrentBundle();
