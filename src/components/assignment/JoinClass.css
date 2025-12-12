@@ -1,4 +1,7 @@
 .join-class-parent-container {
+  width: 100%;
+  min-height: 100%;
+  height: auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -66,13 +69,12 @@
 }
 
 .assignment-join-class-container-scroll {
+  overflow-y: auto;
+  height: auto;
   transition: transform  0.3s ease-in-out;
   position: relative;
 }
 
-.assignment-join-class-container-scroll.shift-up {
-  transform: translateY(-46%);
-}
 
 
 

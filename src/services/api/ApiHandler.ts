@@ -504,7 +504,8 @@ export class ApiHandler implements ServiceApi {
     assignmentId: string | undefined,
     chapterId: string,
     classId: string | undefined,
-    schoolId: string | undefined
+    schoolId: string | undefined,
+    isImediateSync?:boolean
   ): Promise<TableTypes<"result">> {
     return await this.s.updateResult(
       student,
@@ -1119,7 +1120,9 @@ export class ApiHandler implements ServiceApi {
   } | null> {
     return this.s.getSchoolDetailsByUdise(udiseCode);
   }
-  async getSchoolDataByUdise(udiseCode: string): Promise<TableTypes<"school_data">| null> {
+  async getSchoolDataByUdise(
+    udiseCode: string
+  ): Promise<TableTypes<"school_data"> | null> {
     return this.s.getSchoolDataByUdise(udiseCode);
   }
   async deleteUserFromSchool(
@@ -1207,9 +1210,10 @@ export class ApiHandler implements ServiceApi {
   }
   public async setStarsForStudents(
     studentId: string,
-    starsCount: number
+    starsCount: number,
+    is_immediate_sync?: boolean
   ): Promise<void> {
-    return this.s.setStarsForStudents(studentId, starsCount);
+    return this.s.setStarsForStudents(studentId, starsCount,is_immediate_sync);
   }
   public async countAllPendingPushes(): Promise<number> {
     return this.s.countAllPendingPushes();
@@ -1229,9 +1233,10 @@ export class ApiHandler implements ServiceApi {
   }
   public async updateLearningPath(
     student: TableTypes<"user">,
-    learning_path: string // New parameter for learning_path
+    learning_path: string ,// New parameter for learning_path
+    is_immediate_sync?: boolean
   ): Promise<TableTypes<"user">> {
-    return await this.s.updateLearningPath(student, learning_path);
+    return await this.s.updateLearningPath(student, learning_path,is_immediate_sync);
   }
 
   public async getProgramFilterOptions(): Promise<Record<string, string[]>> {
@@ -1524,6 +1529,9 @@ export class ApiHandler implements ServiceApi {
   public async getRequestFilterOptions() {
     return this.s.getRequestFilterOptions();
   }
+  public async getActivitiesFilterOptions() {
+    return this.s.getActivitiesFilterOptions();
+  }
 
   public async searchStudentsInSchool(
     schoolId: string,
@@ -1668,13 +1676,18 @@ export class ApiHandler implements ServiceApi {
     locationLink?: string,
     keyContacts?: any
   ): Promise<void> {
-    return this.s.insertSchoolDetails(schoolId, schoolModel, locationLink, keyContacts);
+    return this.s.insertSchoolDetails(
+      schoolId,
+      schoolModel,
+      locationLink,
+      keyContacts
+    );
   }
   public async updateClassCourses(
     classId: string,
     selectedCourseIds: string[]
   ): Promise<void> {
-    return this.s.updateClassCourses(classId, selectedCourseIds)
+    return this.s.updateClassCourses(classId, selectedCourseIds);
   }
   public async addStudentWithParentValidation(params: {
     phone: string;
@@ -1684,8 +1697,43 @@ export class ApiHandler implements ServiceApi {
     classId: string;
     schoolId?: string;
     parentName?: string;
-    email?:string;
+    email?: string;
   }): Promise<{ success: boolean; message: string; data?: any }> {
     return this.s.addStudentWithParentValidation(params);
+  }
+  public async getFilteredFcQuestions(
+    type: EnumType<"fc_support_level"> | null,
+    targetType: EnumType<"fc_engagement_target">
+  ): Promise<TableTypes<"fc_question">[] | []> {
+    return this.s.getFilteredFcQuestions(type, targetType);
+  }
+  public async saveFcUserForm(payload: {
+    visitId?: string | null;
+    userId: string;
+    schoolId: string;
+    classId?: string | null;
+    contactUserId?: string | null;
+    contactTarget: EnumType<"fc_engagement_target">;
+    contactMethod: EnumType<"fc_contact_method">;
+    callStatus?: EnumType<"fc_call_result"> | null;
+    supportLevel?: EnumType<"fc_support_level"> | null;
+    questionResponse: Record<string, string>;
+    techIssuesReported: boolean;
+    comment?: string | null;
+    techIssueComment?: string | null;
+  }) {
+    return this.s.saveFcUserForm(payload);
+  }
+  public async getTodayVisitId(
+    userId: string,
+    schoolId: string
+  ): Promise<string | null> {
+    return this.s.getTodayVisitId(userId, schoolId);
+  }
+  public async getActivitiesBySchoolId(schoolId: string): Promise<TableTypes<"fc_user_forms">[]> {
+    return await this.s.getActivitiesBySchoolId(schoolId);
+  }
+  public async getSchoolVisitById(visitId: string): Promise<TableTypes<"fc_school_visit"> | null> {
+    return await this.s.getSchoolVisitById(visitId);
   }
 }

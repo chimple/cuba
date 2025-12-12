@@ -118,3 +118,21 @@
   overflow: hidden;
   text-overflow: ellipsis; /* show ... if too long */
 }
+
+.detail-list-header-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 80px;
+  padding: 8px 0;
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 6px;
+}
+
+.detail-list-header-empty {
+  /* empty left column for alignment */
+}
+
+.detail-list-header-users,
+.detail-list-header-subjects {
+  text-align: center;
+}

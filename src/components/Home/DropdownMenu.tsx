@@ -1,6 +1,12 @@
 import { FC, useEffect, useRef, useState } from "react";
 import "./DropdownMenu.css";
-import { EVENTS, HOMEWORK_PATHWAY, TableTypes } from "../../common/constants";
+import {
+  COURSE_CHANGED,
+  EVENTS,
+  HOMEWORK_PATHWAY,
+  LIVE_QUIZ,
+  TableTypes,
+} from "../../common/constants";
 import SelectIconImage from "../displaySubjects/SelectIconImage";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
@@ -10,6 +16,7 @@ interface CourseDetails {
   grade?: TableTypes<"grade"> | null;
   curriculum?: TableTypes<"curriculum"> | null;
 }
+const ImageUrlCache: Record<string, string> = {};
 
 interface DropdownMenuProps {
   disabled?: boolean;
@@ -54,34 +61,35 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
     try {
       const currentStudent = await Util.getCurrentStudent();
 
-      // 🔹 HOMEWORK MODE: don't depend on learning_path
+      // 🔹 HOMEWORK MODE: don't depend on HOMEWORK_PATHWAY at all
       if (!syncWithLearningPath) {
-        const pathStr = sessionStorage.getItem(HOMEWORK_PATHWAY);
-
-        if (!pathStr) {
-          // no homework path yet → safe fallback
+        const currClass = Util.getCurrentClass();
+        if (!currentStudent?.id || !currClass?.id) {
           setCourseDetails([]);
           return;
         }
 
-        const homeworkPath = JSON.parse(pathStr);
-        const lessons = homeworkPath.lessons || [];
+        // 👉 Get ALL pending assignments for this class & student
+        const all = await api.getPendingAssignments(
+          currClass.id,
+          currentStudent.id
+        );
+        const pendingAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
 
-        // ✅ get unique course_ids from current homework path as string[]
+        if (!pendingAssignments.length) {
+          setCourseDetails([]);
+          return;
+        }
+
+        // 👉 Collect unique course ids from pending assignments
         const uniqueCourseIds: string[] = Array.from(
           new Set(
-            lessons
-              .map((l: any) => l.course_id as string | undefined)
+            pendingAssignments
+              .map((a: any) => a.course_id as string | undefined)
               .filter((id): id is string => !!id)
           )
         );
 
-        if (!uniqueCourseIds.length) {
-          setCourseDetails([]);
-          return;
-        }
-
-        // ✅ let TS infer courseId type from uniqueCourseIds: string[]
         const coursePromises: Promise<CourseDetails | null>[] =
           uniqueCourseIds.map(async (courseId) => {
             try {
@@ -99,10 +107,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
 
               return { course, grade: gradeDoc, curriculum: curriculumDoc };
             } catch (err) {
-              console.error(
-                "Failed to fetch course for homework dropdown",
-                err
-              );
+              console.error("Failed to fetch homework course", err);
               return null;
             }
           });
@@ -127,7 +132,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
           return detailedCourses[0] || null;
         });
 
-        return; // ⬅️ don't fall through to learning_path logic
+        return;
       }
 
       // 🔹 LEARNING PATHWAY MODE (original behaviour)
@@ -240,13 +245,13 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
 
       learningPath.courses.currentCourseIndex = index;
 
-      const updateOperations = [
-        api.updateLearningPath(currentStudent, JSON.stringify(learningPath)),
-        Util.setCurrentStudent(
-          { ...currentStudent, learning_path: JSON.stringify(learningPath) },
-          undefined
-        ),
-      ];
+      Util.setCurrentStudent(
+        { ...currentStudent, learning_path: JSON.stringify(learningPath) },
+        undefined
+      )
+      window.dispatchEvent(
+        new CustomEvent(COURSE_CHANGED)
+      );
 
       const currentCourse = courseList[index];
       const currentPathItem = currentCourse?.path?.[currentCourse.currentIndex];
@@ -263,20 +268,14 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         prev_chapter_id: prevChapterId,
       };
 
-      updateOperations.push(
-        Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, eventData)
-      );
+      Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, eventData)
 
-      await Promise.all(updateOperations);
+      await api.updateLearningPath(currentStudent, JSON.stringify(learningPath));
 
       if (onSubjectChange) {
         onSubjectChange(subject.course.id);
       }
       if (onCourseChange) onCourseChange();
-
-      window.dispatchEvent(
-        new CustomEvent("courseChanged", { detail: { currentStudent } })
-      );
     } catch (error) {
       console.error("Error in handleSelect:", error);
     }
@@ -289,7 +288,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
 
   const handleToggleExpand = () => {
     if (hideArrow) return;
-    setExpanded((prev) => !prev);
+    requestAnimationFrame(() => setExpanded((prev) => !prev));
   };
 
   useEffect(() => {
@@ -308,52 +307,67 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         detail.course.image || "",
       ].filter(Boolean);
 
-      await Promise.any(sources.map(preloadImage));
+      Promise.any(sources.map(preloadImage));
     });
+  }, [courseDetails]);
 
-    if (expanded && selected) {
-      const selectedRef = itemRefs.current[selected.course.id];
-      selectedRef?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-  }, [expanded, selected, courseDetails]);
+  useEffect(() => {
+    if (!expanded || !selected) return;
+    requestAnimationFrame(() => {
+      const ref = itemRefs.current[selected.course.id];
+      ref?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }, [expanded]);
+
+const getCachedImageUrl = (course: any) => {
+  const key = course.id;
+
+  // Already cached → return
+  if (ImageUrlCache[key]) return ImageUrlCache[key];
+
+  // Missing → store immediately (public URLs are static)
+  const url = course.image || "";
+  ImageUrlCache[key] = url;
+
+  return url;
+};
+
 
   return (
-    <div className={`dropdown-main ${disabled ? "dropdown-disabled" : ""}`}>
+    <div className={`dropdownmenu-dropdown-main ${disabled ? "dropdownmenu-dropdown-disabled" : ""}`}>
       <div
-        className={`dropdown-container ${expanded ? "expanded" : ""}`}
+        className={`dropdownmenu-dropdown-container ${expanded ? "dropdownmenu-expanded" : ""}`}
         onClick={handleToggleExpand}
       >
-        <div className="dropdown-left">
+        <div className="dropdownmenu-dropdown-left">
           {!expanded && selected && (
-            <>
-              <div className="menu-selected">
-                <div className="selected-icon">
+              <div className="dropdownmenu-menu-selected">
+                <div className="dropdownmenu-selected-icon">
                   <SelectIconImage
                     localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
                     defaultSrc={"assets/icons/DefaultIcon.png"}
                     webSrc={
-                      selected.course.image || "assets/icons/DefaultIcon.png"
+                      getCachedImageUrl(selected.course) || "assets/icons/DefaultIcon.png"
                     }
                     imageWidth="10vh"
                     imageHeight="auto"
                   />
                 </div>
               </div>
-            </>
           )}
-          {expanded && (
             <div
-              className="dropdown-items"
+              className={`dropdownmenu-dropdown-items ${expanded ? "dropdownmenu-open" : "dropdownmenu-closed"}`}  
               onClick={(e) => e.stopPropagation()}
+              aria-hidden={!expanded}
             >
               {courseDetails.map((detail, index) => (
                 <div
                   ref={(el) => {
                     itemRefs.current[detail.course.id] = el;
                   }}
-                  className={`menu-item ${
+                  className={`dropdownmenu-menu-item ${
                     selected?.course.id === detail.course.id
-                      ? "selected-expanded"
+                      ? "dropdownmenu-selected-expanded"
                       : ""
                   }`}
                   key={detail.course.id}
@@ -364,20 +378,19 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
                     localSrc={`courses/chapter_icons/${detail.course.code}.webp`}
                     defaultSrc="assets/icons/DefaultIcon.png"
                     webSrc={
-                      detail.course.image || "assets/icons/DefaultIcon.png"
+                      getCachedImageUrl(detail.course) || "assets/icons/DefaultIcon.png"
                     }
                     imageWidth="85%"
                   />
-                  <div className="truncate-style">
+                  <div className="dropdownmenu-truncate-style">
                     {truncateName(detail.course.name)}
                   </div>
                 </div>
               ))}
             </div>
-          )}
         </div>
         {!hideArrow && (
-          <div className={`dropdown-arrow ${expanded ? "expanded-arrow" : ""}`}>
+          <div className={`dropdownmenu-dropdown-arrow ${expanded ? "dropdownmenu-expanded-arrow" : ""}`}>
             <SelectIconImage
               defaultSrc={
                 expanded
@@ -391,7 +404,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
 
       <div>
         {!expanded && selected && (
-          <div className="dropdown-label">{selected.course.name}</div>
+          <div className=" dropdownmenu-dropdown-label">{selected.course.name}</div>
         )}
       </div>
     </div>

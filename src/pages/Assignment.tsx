@@ -4,6 +4,8 @@ import "./Assignment.css";
 import { useCallback, useEffect, useState, useRef } from "react";
 import {
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+  CURRENT_CLASS,
+  CURRENT_SCHOOL,
   DOWNLOADED_LESSON_ID,
   DOWNLOAD_BUTTON_LOADING_STATUS,
   HOMEHEADERLIST,
@@ -112,6 +114,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     [api]
   );
 
+  
   const init = useCallback(
     async (fromCache: boolean = true, fullRefresh: boolean = true) => {
       if (fullRefresh) setLoading(true);
@@ -129,6 +132,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       }
       const classDoc = linkedData.classes[0];
       setCurrentClass(classDoc);
+      Util.setCurrentClass(classDoc);
       setSchoolName(
         linkedData.schools.find((s) => s.id === classDoc.school_id)?.name || ""
       );
@@ -193,12 +197,11 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
   }, [init]);
 
   useEffect(() => {
-  // Only decide banner visibility AFTER loading is finished
-  if (!loading) {
-    setShowHomeworkCompleteModal(assignments.length === 0);
-  }
-}, [loading, assignments.length]);
-
+    // Only decide banner visibility AFTER loading is finished
+    if (!loading && isHomeworkPathwayOn) {
+      setShowHomeworkCompleteModal(assignments.length === 0);
+    }
+  }, [loading, assignments.length]);
 
   // --- Listener setup ---
   useEffect(() => {
@@ -245,7 +248,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     init(false, true);
 
     api
-      .syncDB(Object.values(TABLES))
+      .syncDB([TABLES.Assignment])
       .then(() => {
         init(false, false);
       })
@@ -280,7 +283,6 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       checkAllHomeworkDownloaded
     );
   };
-
   async function downloadAllHomeWork(lessons: TableTypes<"lesson">[]) {
     setDownloadButtonLoading(true);
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(true));
@@ -324,14 +326,22 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       });
     }
   }, []);
+
+  // ⬆ inside AssignmentPage component, before JSX:
+  const bodyClass = !isLinked
+    ? "lesson-body"
+    : isHomeworkPathwayOn
+    ? // 🔹 Flag ON → Slider flow (keep old behaviour)
+      lessons.length < 1
+      ? "lesson-body"
+      : "assignment-body"
+    : // 🔹 Flag OFF → HomeworkPathway flow → always use assignment layout
+      "assignment-body";
+
   return !loading ? (
     <div>
       <div className={`assignment-main${isLinked ? "" : "-join-class"}`}>
-        <div
-          className={
-            "header " + isInputFocus && !isLinked ? "scroll-header" : ""
-          }
-        >
+        <div className={bodyClass}>
           {isHomeworkPathwayOn && (
             <div className="assignment-header">
               <div className="right-button"></div>
@@ -404,7 +414,50 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                 />
               ) : (
                 <div>
-                  {assignments.length > 0 ? (
+                  {isHomeworkPathwayOn ? (
+                    // ✅ Flag ON → old LessonSlider flow
+                    assignments.length > 0 ? (
+                      <LessonSlider
+                        key={assignments.length}
+                        lessonData={lessons}
+                        isHome={true}
+                        course={undefined}
+                        lessonsScoreMap={lessonResultMap || {}}
+                        startIndex={0}
+                        showSubjectName={true}
+                        showChapterName={true}
+                        assignments={assignments}
+                        downloadButtonLoading={downloadButtonLoading}
+                        showDate={true}
+                        onDownloadOrDelete={checkAllHomeworkDownloaded}
+                        lessonChapterMap={lessonChapterMap}
+                        lessonCourseMap={assignmentLessonCourseMap}
+                      />
+                    ) : (
+                      <div className="pending-assignment">
+                        {showHomeworkCompleteModal && (
+                          <HomeworkCompleteModal
+                            text={t(
+                              "Yay!! You have completed all the Homework!!"
+                            )}
+                            borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
+                            onClose={() => setShowHomeworkCompleteModal(false)}
+                            onPlayMore={() => {
+                              setShowHomeworkCompleteModal(false);
+                              if (onPlayMoreHomework) {
+                                onPlayMoreHomework();
+                              }
+                            }}
+                          />
+                        )}
+                      </div>
+                    )
+                  ) : (
+                    // ✅ Flag OFF → ALWAYS render HomeworkPathway, even if assignments[] is empty or API failed.
+                    <HomeworkPathway onPlayMoreHomework={onPlayMoreHomework} />
+                  )}
+
+                  {/* {assignments.length > 0 ? (
                     // 3. Conditionally render based on the feature flag
                     // If the feature is ON, show the original slider
                     isHomeworkPathwayOn ? (
@@ -448,7 +501,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                         />
                       )}
                     </div>
-                  )}
+                  )} */}
                 </div>
               )}
             </div>

@@ -41,6 +41,7 @@ interface SchoolTeachersProps {
   data: {
     teachers?: TeacherInfo[];
     totalTeacherCount?: number;
+    classData?: { id: string; name: string }[];
   };
   isMobile: boolean;
   schoolId: string;
@@ -79,10 +80,12 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
 
   const fetchTeachers = useMemo(() => {
     let debounceTimer: NodeJS.Timeout | null = null;
-    return (currentPage: number, search: string) => {
+    return (currentPage: number, search: string, silent = false) => {
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(async () => {
-        setIsLoading(true);
+        if (!silent) {
+          setIsLoading(true);
+        }
         const api = ServiceConfig.getI().apiHandler;
         try {
           let response;
@@ -114,17 +117,19 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   }, [schoolId]);
 
   useEffect(() => {
-    if (
+    const isInitial =
       page === 1 &&
       !searchTerm &&
       filters.grade.length === 0 &&
-      filters.section.length === 0
-    ) {
+      filters.section.length === 0;
+
+    if (isInitial) {
       setTeachers(data.teachers || []);
       setTotalCount(data.totalTeacherCount || 0);
-      return;
+      fetchTeachers(page, searchTerm, true);
+    } else {
+      fetchTeachers(page, searchTerm);
     }
-    fetchTeachers(page, searchTerm);
   }, [
     page,
     fetchTeachers,
@@ -293,21 +298,36 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     async (values: Record<string, string>) => {
       try {
         const name = (values.name ?? "").toString().trim();
-        const classId = (values.class ?? "").toString().trim();
+        const classIdsString = (values.class ?? "").toString().trim();
         const rawEmail = (values.email ?? "").toString().trim();
         const rawPhone = (values.phoneNumber ?? "").toString();
         if (!name) {
           setErrorMessage({ text: "Teacher name is required.", type: "error" });
           return;
         }
-        if (!classId) {
-          setErrorMessage({ text: "Class is required.", type: "error" });
+        if (!classIdsString) {
+          setErrorMessage({
+            text: "At least one class is required.",
+            type: "error",
+          });
+          return;
+        }
+        const classIds = classIdsString
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean);
+
+        if (classIds.length === 0) {
+          setErrorMessage({
+            text: "At least one class is required.",
+            type: "error",
+          });
           return;
         }
         const email = rawEmail.toLowerCase();
         const normalizedPhone = normalizePhone10(rawPhone);
         const hasEmail = !!email;
-        const hasPhone = !hasEmail && !!normalizedPhone;
+        const hasPhone = !!normalizedPhone;
         if (!hasEmail && !hasPhone) {
           setErrorMessage({
             text: "Please provide either an email or a phone number.",
@@ -326,7 +346,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
             return;
           }
           finalEmail = email;
-        } else {
+        }
+        if (hasPhone) {
           if (normalizedPhone.length !== 10) {
             setErrorMessage({
               text: "Phone number must be 10 digits.",
@@ -341,33 +362,30 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           phoneNumber: finalPhone || undefined,
           email: finalEmail || undefined,
           role: RoleType.TEACHER,
-          classId,
+          classId: classIds,
+          schoolId: schoolId,
         });
         setIsAddTeacherModalOpen(false);
         setPage(1);
         fetchTeachers(1, "");
-      } catch (e) {
+      } catch (e: any) {
+        const message = e instanceof Error ? e.message : String(e);
+        setErrorMessage({
+          text: message,
+          type: "error",
+        });
         console.error("Failed to add teacher:", e);
       }
     },
-    [schoolId, fetchTeachers]
+    [schoolId, fetchTeachers, api]
   );
 
   const classOptions = useMemo(() => {
-    if (!normalizedTeachers || normalizedTeachers.length === 0) return [];
-    const classMap = new Map<string, string>();
-    normalizedTeachers.forEach((teacher: any) => {
-      const classInfo = teacher.classWithidname;
-      if (!classInfo || !classInfo.id || !classInfo.name) return;
-      if (!classMap.has(classInfo.id)) {
-        classMap.set(classInfo.id, classInfo.name);
-      }
-    });
-
-    return Array.from(classMap.entries())
-      .map(([value, label]) => ({ value, label }))
+    if (!data.classData || data.classData.length === 0) return [];
+    return data.classData
+      .map((c) => ({ value: c.id, label: c.name }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [normalizedTeachers]);
+  }, [data.classData]);
 
   const teacherFormFields: FieldConfig[] = useMemo(
     () => [
@@ -386,6 +404,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         required: true,
         column: 0,
         options: classOptions,
+        multi: true,
       },
       {
         name: "phoneNumber",

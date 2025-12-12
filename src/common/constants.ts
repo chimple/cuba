@@ -78,6 +78,9 @@ export enum TABLES {
   OpsRequests = "ops_requests",
   GeoLocations = "geo_locations",
   RiveReward = "rive_reward",
+  FcQuestion = "fc_question",
+  FcSchoolVisit = "fc_school_visit",
+  FcUserForms = "fc_user_forms",
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
@@ -503,6 +506,8 @@ export enum PAGES {
   POST_SUCCESS = "/post-success",
   SCAN_REDIRECT = "/scan-redirect",
   ADD_SCHOOL_PAGE = "/add-school-page",
+  ACTIVITIES_PAGE = "/activities-page",
+  SCHOOL_ACTIVITIES = "/school-activities",
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -1098,3 +1103,80 @@ export const OPS_ROLES = [
 ];
 export const CAN_HOT_UPDATE = "can-Hot-Update";
 export const VERSION_KEY = "last_native_version";
+export enum SupportLevelMap {
+  "Doing Good" = "doing_good",
+  "Still Learning" = "still_learning",
+  "Need Help" = "need_help",
+  "Not Tracked" = "not_tracked",
+}
+
+export enum PerformanceLevel {
+  ALL = "all",
+  NEED_HELP = "need_help",
+  DOING_GOOD = "doing_good",
+  STILL_LEARNING = "still_learning",
+  NOT_TRACKED = "not_tracked",
+  NOT_ASSIGNING_PER_MONTH = "not_assigning_per_month",
+  ONCE_A_MONTH = "once_a_month",
+  ONCE_A_WEEK = "once_a_week",
+  TWO_PLUS_PER_WEEK = "two_plus_per_week",
+}
+export enum ContactTarget {
+  STUDENT = "student",
+  TEACHER = "teacher",
+  PRINCIPAL = "principal",
+  PARENT = "parent",
+  SCHOOL = "school",
+  CLASS = "class",
+}
+export const PERFORMANCE_UI: Record<
+  PerformanceLevel,
+  { label: string; bgColor: string; textColor: string }
+> = {
+  [PerformanceLevel.NEED_HELP]: {
+    label: "Need Help",
+    bgColor: "#FFE2E2",
+    textColor: "#C10007",
+  },
+  [PerformanceLevel.STILL_LEARNING]: {
+    label: "Still Learning",
+    bgColor: "#FFEDD4",
+    textColor: "#CA3500",
+  },
+  [PerformanceLevel.DOING_GOOD]: {
+    label: "Doing Good",
+    bgColor: "#DCFCE7",
+    textColor: "#008236",
+  },
+  [PerformanceLevel.NOT_TRACKED]: {
+    label: "Not Tracked",
+    bgColor: "#F3F4F6",
+    textColor: "#364153",
+  },
+  [PerformanceLevel.NOT_ASSIGNING_PER_MONTH]: {
+    label: "Not Assigning",
+    bgColor: "#F3F4F6",
+    textColor: "#364153",
+  },
+  [PerformanceLevel.ONCE_A_MONTH]: {
+    label: "Once/Month",
+    bgColor: "#FFEDD4",
+    textColor: "#CA3500",
+  },
+  [PerformanceLevel.ONCE_A_WEEK]: {
+    label: "Once a Week",
+    bgColor: "#DCFCE7",
+    textColor: "#008236",
+  },
+  [PerformanceLevel.TWO_PLUS_PER_WEEK]: {
+    label: "2+/Week",
+    bgColor: "#DCFCE7",
+    textColor: "#008236",
+  },
+  [PerformanceLevel.ALL]: {
+    label: "All",
+    bgColor: "#DCFCE7",
+    textColor: "#6ec5e7ff",
+  },
+};
+export const COURSE_CHANGED = "courseChanged";

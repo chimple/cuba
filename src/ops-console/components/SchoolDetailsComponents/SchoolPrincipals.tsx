@@ -51,8 +51,10 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
   const api = ServiceConfig.getI().apiHandler;
 
   const fetchPrincipals = useCallback(
-    async (currentPage: number) => {
-      setIsLoading(true);
+    async (currentPage: number, silent = false) => {
+      if (!silent) {
+        setIsLoading(true);
+      }
       const api = ServiceConfig.getI().apiHandler;
       try {
         const response = await api.getPrincipalsForSchoolPaginated(
@@ -72,12 +74,13 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
   );
 
   useEffect(() => {
-    if (page === 1) {
+    const isInitial = page === 1;
+    if (isInitial) {
       setPrincipals(data.principals || []);
-      setTotalCount(data.totalPrincipalCount || 0);
-      return;
+      fetchPrincipals(page, true);
+    } else {
+      fetchPrincipals(page);
     }
-    fetchPrincipals(page);
   }, [page, fetchPrincipals, data.principals, data.totalPrincipalCount]);
 
   const handlePageChange = (newPage: number) => setPage(newPage);
@@ -159,7 +162,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         const email = rawEmail.toLowerCase();
         const normalizedPhone = normalizePhone10(rawPhone);
         const hasEmail = !!email;
-        const hasPhone = !hasEmail && !!normalizedPhone;
+        const hasPhone = !!normalizedPhone;
         if (!hasEmail && !hasPhone) {
           setErrorMessage({
             text: "Please provide either an email or a phone number.",
@@ -178,7 +181,8 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
             return;
           }
           finalEmail = email;
-        } else {
+        }
+        if (hasPhone) {
           if (normalizedPhone.length !== 10) {
             setErrorMessage({
               text: "Phone number must be 10 digits.",
@@ -198,7 +202,12 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         setIsAddPrincipalModalOpen(false);
         setPage(1);
         await fetchPrincipals(1);
-      } catch (e) {
+      } catch (e: any) {
+        const message = e instanceof Error ? e.message : String(e);
+        setErrorMessage({
+          text: message,
+          type: "error",
+        });
         console.error("Failed to add principal:", e);
       }
     },

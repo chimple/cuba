@@ -18,20 +18,31 @@ const HomeworkCompleteModal: React.FC<HomeworkCompleteModalProps> = ({
   borderImageSrc,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
+
   const cardStyle = {
     backgroundImage: `url(${borderImageSrc})`,
   };
+
   return (
-    <div className="homework-completed-banner">
-      <div className="homework-completed-card" ref={ref} style={cardStyle}>
+    <div className="homework-completed-banner" onClick={onClose}>
+      <div
+        className="homework-completed-card"
+        ref={ref}
+        style={cardStyle}
+        onClick={(e) => e.stopPropagation()} // prevent closing when clicking card
+      >
         <div className="homework-completed-inner">
-          {/* LEFT MASCOT */}
+          {/* LEFT MASCOT - RIVE */}
           <div className="homework-completed-left">
-            <img
-              src="/assets/icons/ChimpleCelebration.gif"
-              alt="Celebration Mascot"
-              className="homework-completed-mascot"
-            />
+            <div className="homework-completed-mascot homework-completed-mascot-rive">
+              <ChimpleRiveMascot
+                // you can tweak these to use your “celebration” state
+                stateMachine="State Machine 1"
+                inputName="Number 1"
+                stateValue={1}
+                animationName={"win"}
+              />
+            </div>
           </div>
 
           {/* MAIN CENTER BLOCK */}

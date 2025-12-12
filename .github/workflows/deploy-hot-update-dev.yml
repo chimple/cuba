@@ -10,7 +10,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+        with:
+          submodules: true    
+          
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -44,6 +46,30 @@ jobs:
           echo "Using channel: $CHANNEL_NAME"
 
       - name: Build project
+        env:
+          CI: false
+          REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
+          REACT_APP_AUTH_DOMAIN: ${{ secrets.REACT_APP_AUTH_DOMAIN }}
+          REACT_APP_PROJECT_ID: ${{ secrets.REACT_APP_PROJECT_ID }}
+          REACT_APP_STORAGE_BUCKET: ${{ secrets.REACT_APP_STORAGE_BUCKET }}
+          REACT_APP_MESSAGING_SENDER_ID: ${{ secrets.REACT_APP_MESSAGING_SENDER_ID }}
+          REACT_APP_APP_ID: ${{ secrets.REACT_APP_APP_ID }}
+          REACT_APP_MEASUREMENT_ID: ${{ secrets.REACT_APP_MEASUREMENT_ID}}
+          REACT_APP_ALGOLIA_APP_ID: ${{ secrets.REACT_APP_ALGOLIA_APP_ID }}
+          REACT_APP_ALGOLIA_API_KEY: ${{ secrets.REACT_APP_ALGOLIA_API_KEY }}
+          REACT_APP_HOT_UPDATE_SERVER: ${{ secrets.SUPABASE_DEV_HOT_UPDATE_SERVER }}
+          REACT_APP_ALGOLIA_INDEX_NAME: ${{ secrets.REACT_APP_ALGOLIA_INDEX_NAME}}
+          REACT_APP_SUPABASE_URL: ${{ secrets.REACT_APP_SUPABASE_URL}}
+          REACT_APP_SUPABASE_KEY: ${{ secrets.REACT_APP_SUPABASE_KEY}}
+          REACT_APP_CLIENT_ID: ${{ secrets.REACT_APP_CLIENT_ID}}
+          REACT_APP_GROWTHBOOK_ID: ${{ secrets.REACT_APP_GROWTHBOOK_ID_DEV }}
+          REACT_APP_RAPIDAPI_KEY: ${{ secrets.REACT_APP_RAPIDAPI_KEY }}
+          REACT_APP_ENCRYPTION_KEY: ${{ secrets.REACT_APP_ENCRYPTION_KEY }}
+          REACT_APP_SENTRY_DSN: ${{ secrets.REACT_APP_SENTRY_DSN }}
+          REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID: ${{ secrets.REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID }}
+          REACT_APP_ENV: ${{vars.REACT_APP_ENV_DEV}}
+          REACT_IS_HOT_UPDATE_ENABLED: ${{vars.REACT_IS_HOT_UPDATE_ENABLED}}
+                
         run: export GENERATE_SOURCEMAP=false && npx craco build && npm run copy-build && npx @capawesome/cli manifests:generate --path build
 
       - name: Login to Capawesome Cloud

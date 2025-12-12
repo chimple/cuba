@@ -31,7 +31,7 @@ export class SupabaseAuth implements ServiceAuth {
   private _supabaseDb: SupabaseClient<Database> | undefined;
   // private _auth = getAuth();
 
-  private constructor() {}
+  private constructor() { }
   public static getInstance(): SupabaseAuth {
     if (!SupabaseAuth.i) {
       SupabaseAuth.i = new SupabaseAuth();
@@ -454,7 +454,7 @@ export class SupabaseAuth implements ServiceAuth {
     max = 5
   ): Promise<T> {
     let attempt = 1;
-    for (;;) {
+    for (; ;) {
       try {
         const { data, error } = await fn();
         if (error) throw error;
@@ -465,8 +465,7 @@ export class SupabaseAuth implements ServiceAuth {
         if (nextAttempt > max) throw err;
         const backoff = Math.min(2000 * (burn ? attempt : 1), 8000);
         console.warn(
-          `RPC attempt ${attempt}/${max} failed${
-            burn ? "" : " (not counting)"
+          `RPC attempt ${attempt}/${max} failed${burn ? "" : " (not counting)"
           }; retrying in ${backoff}ms`,
           err
         );
@@ -559,8 +558,11 @@ export class SupabaseAuth implements ServiceAuth {
           isFirstSync
         );
       }
+      try {
+        await api.updateFcmToken(user.user?.id ?? "");
+      } catch (err) {
 
-      await api.updateFcmToken(user?.user?.id ?? "");
+      }
       if (isUserExist) await api.subscribeToClassTopic();
 
       return { user, isUserExist: !!isUserExist, isSpl };

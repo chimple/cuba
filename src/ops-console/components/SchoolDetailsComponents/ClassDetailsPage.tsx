@@ -36,18 +36,15 @@ function parseGradeSection(
 ): { grade?: number | string; section?: string } {
   if (!name) return { grade: fallbackGrade, section: fallbackSection };
   const s = name.trim();
-  const patterns = [
-    /^(\d+)\s*[- ]?\s*([A-Za-z])?$/, // "1" or "1 A"
-    /^(\d+)([A-Za-z])$/, // "1A"
-  ];
-  for (const re of patterns) {
-    const m = s.match(re);
-    if (m) {
-      const g = m[1];
-      const sec = (m[2] || "").toUpperCase();
+  const match = s.match(/^(\d{1,2})(.*)$/);
+  if (match) {
+    const gradeNum = parseInt(match[1], 10);
+    let sectionRaw = match[2];
+    if (gradeNum >= 0 && gradeNum <= 10) {
+      let sectionClean = sectionRaw.trim().replace(/^[-]\s*/, "");
       return {
-        grade: g ? Number(g) || g : fallbackGrade,
-        section: sec || fallbackSection,
+        grade: gradeNum,
+        section: sectionClean || fallbackSection,
       };
     }
   }
@@ -168,12 +165,18 @@ const ClassDetailsPage: React.FC<Props> = ({
         }}
       >
         <SchoolStudents
-          data={{ students: initialStudents, totalStudentCount: initialTotal }}
+          data={{
+            students: initialStudents,
+            totalStudentCount: initialTotal,
+            classData: classRow ? [classRow] : undefined,
+          }}
           schoolId={schoolId}
           isMobile={isMobile}
           isTotal={false}
           isFilter={false}
-          customTitle="Students in Class"
+          customTitle={
+            classNameSt ? `Students in ${classNameSt}` : "Students in Class"
+          }
           optionalGrade={parsedGrade}
           optionalSection={parsedSection}
         />
