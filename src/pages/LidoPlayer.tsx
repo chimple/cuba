@@ -279,9 +279,8 @@ const LidoPlayer: FC = () => {
         return;
       }
     } else {
-      const path =
-        "https://raw.githubusercontent.com/chimple/lido-player/refs/heads/main/src/components/root/assets/xmlData.xml";
-      setXmlPath(path);
+      const path =`/assets/lessonBundles/${lessonId}/`
+      setBasePath(path);
     }
     setIsLoading(false);
   }
@@ -311,7 +310,8 @@ const LidoPlayer: FC = () => {
       {xmlPath || basePath
         ? React.createElement("lido-standalone", {
             "xml-path": xmlPath,
-            "base-url": basePath,
+            "base-url": basePath, 
+            "code-folder-path": "/code_versions"
           })
         : null}
     </IonPage>
@@ -319,3 +319,4 @@ const LidoPlayer: FC = () => {
 };
 
 export default LidoPlayer;
+    
