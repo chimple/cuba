@@ -8,8 +8,8 @@
   z-index: 1;
 }
 
-.homework-dropdown-wrapper .dropdownmenu-dropdown-main {
-  top: 170%;
+.homework-dropdown-wrapper .dropdown-main {
+  top: 143%;
   bottom: 100%; /* Position the bottom of the menu at the top of the wrapper */
   left: 5%; /* Or adjust as needed, e.g., 50% with a transform for centering */
 }

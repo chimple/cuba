@@ -3136,114 +3136,106 @@ public static getCurrentSchool(): TableTypes<"school"> | undefined {
     assignments: any[],
     completedCountBySubject: { [key: string]: number } = {}
   ): any[] {
-    // 1️⃣ Only work with pending assignments
-    const pending = assignments.filter((a) => !a.completed);
-
-    // 2️⃣ Split manual vs non-manual
-    const manualPending = pending.filter((a) => a.source === "manual");
-    const otherPending = pending.filter((a) => a.source !== "manual");
-
-    // 3️⃣ Core subject-balancing selector (your old logic, refactored)
-    const pickFiveFrom = (sourceAssignments: any[]): any[] => {
-      const pendingBySubject: { [key: string]: any[] } = {};
-
-      sourceAssignments.forEach((a) => {
-        const subjectId = a.subject_id;
-        if (!subjectId) return;
-        if (!pendingBySubject[subjectId]) {
-          pendingBySubject[subjectId] = [];
-        }
-        pendingBySubject[subjectId].push(a);
-      });
-
-      if (Object.keys(pendingBySubject).length === 0) {
-        return [];
-      }
-
-      // Find subjects with max pending
-      let maxPending = 0;
-      let subjectsWithMaxPending: string[] = [];
-
-      Object.keys(pendingBySubject).forEach((subject) => {
-        const length = pendingBySubject[subject].length;
-        if (length > maxPending) {
-          maxPending = length;
-          subjectsWithMaxPending = [subject];
-        } else if (length === maxPending) {
-          subjectsWithMaxPending.push(subject);
-        }
-      });
-
-      let bestSubject: string | null = null;
-
-      if (subjectsWithMaxPending.length === 1) {
-        bestSubject = subjectsWithMaxPending[0];
-      } else if (subjectsWithMaxPending.length > 1) {
-        // tie-break by fewer completed using completedCountBySubject
-        let minCompleted = Number.MAX_SAFE_INTEGER;
-        subjectsWithMaxPending.forEach((subject) => {
-          const completedCount = completedCountBySubject[subject] ?? 0;
-          if (completedCount < minCompleted) {
-            minCompleted = completedCount;
-            bestSubject = subject;
-          }
-        });
-      }
-
-      if (!bestSubject) {
-        return [];
-      }
-
-      let result: any[] = [];
-
-      const bestSubjectPending = pendingBySubject[bestSubject] || [];
-
-      if (bestSubjectPending.length >= 5) {
-        // If one subject alone has >= 5 pending, take first 5 from that subject
-        result = bestSubjectPending.slice(0, 5);
-      } else {
-        // Otherwise fill from bestSubject first, then other subjects with more pending
-        result = [...bestSubjectPending];
-        const remaining = 5 - result.length;
-
-        const otherSubjects = Object.keys(pendingBySubject)
-          .filter((s) => s !== bestSubject)
-          .sort(
-            (a, b) =>
-              (pendingBySubject[b]?.length || 0) -
-              (pendingBySubject[a]?.length || 0)
-          );
-
-        for (const subj of otherSubjects) {
-          if (result.length >= 5) break;
-          const bucket = pendingBySubject[subj] || [];
-          const toTake = Math.min(5 - result.length, bucket.length);
-          result = result.concat(bucket.slice(0, toTake));
-        }
-      }
-
-      return result;
+    // Helper: timestamp (oldest = smaller)
+    const getTs = (a: any) => {
+      const v =
+        a.assigned_at ?? a.created_at ?? a.createdAt ?? a.timestamp ?? null;
+      const t = v ? new Date(v).getTime() : 0;
+      return isNaN(t) ? 0 : t;
     };
 
-    let result: any[] = [];
+    // 1) Only pending
+    const pending = assignments.filter((a) => !a.completed);
+    if (!pending.length) return [];
 
-    // 4️⃣ First priority: MANUAL assignments
-    if (manualPending.length > 0) {
-      result = pickFiveFrom(manualPending);
+    // 2) Global FIFO sort (oldest first). This guarantees FIFO within buckets.
+    const pendingSorted = [...pending].sort((a, b) => getTs(a) - getTs(b));
+
+    // 3) Group by subject, maintaining FIFO order inside manual & other buckets
+    const bySubject: {
+      [sid: string]: {
+        manual: any[];
+        other: any[];
+        total: number;
+        manualCount: number;
+      };
+    } = {};
+
+    for (const a of pendingSorted) {
+      const sid = a.subject_id;
+      if (!sid) continue;
+      if (!bySubject[sid])
+        bySubject[sid] = { manual: [], other: [], total: 0, manualCount: 0 };
+      if (a.source === "manual") {
+        bySubject[sid].manual.push(a);
+        bySubject[sid].manualCount++;
+      } else {
+        bySubject[sid].other.push(a);
+      }
+      bySubject[sid].total++;
     }
 
-    // 5️⃣ If less than 5 manuals, fill remaining with non-manual
-    if (result.length < 5 && otherPending.length > 0) {
-      const remainingSlots = 5 - result.length;
-      const othersPicked = pickFiveFrom(otherPending)
-        // Avoid duplicates, just in case
-        .filter((a) => !result.some((r) => r.id === a.id))
-        .slice(0, remainingSlots);
+    const subjectIds = Object.keys(bySubject);
+    if (subjectIds.length === 0) return [];
 
-      result = result.concat(othersPicked);
+    // NOTE: Removed mixed-case return for totalPendingAll <= 5.
+    // We will ALWAYS pick one subject only (manual priority + tie-breaks) and
+    // return up to 5 assignments from that subject only.
+
+    // 4) Choose single subject according to your rules:
+    //    a) highest manualCount (manual priority)
+    //    b) tie -> higher total pending
+    //    c) tie -> smaller completedCountBySubject (played less)
+    //    d) final deterministic fallback: subject id (string compare)
+    let bestSubject: string | null = null;
+    let bestManual = -1;
+    let bestTotal = -1;
+    let bestCompleted = Number.MAX_SAFE_INTEGER;
+
+    for (const sid of subjectIds) {
+      const { manualCount, total } = bySubject[sid];
+      const completed = completedCountBySubject[sid] ?? 0;
+
+      if (manualCount > bestManual) {
+        bestSubject = sid;
+        bestManual = manualCount;
+        bestTotal = total;
+        bestCompleted = completed;
+      } else if (manualCount === bestManual) {
+        if (total > bestTotal) {
+          bestSubject = sid;
+          bestTotal = total;
+          bestCompleted = completed;
+        } else if (total === bestTotal) {
+          if (completed < bestCompleted) {
+            bestSubject = sid;
+            bestCompleted = completed;
+          } else if (completed === bestCompleted) {
+            if (bestSubject === null || String(sid) < String(bestSubject)) {
+              bestSubject = sid;
+            }
+          }
+        }
+      }
     }
 
-    // Ensure we never return more than 5
+    if (!bestSubject) return [];
+
+    // 5) Take up to 5 from chosen subject ONLY:
+    //    - manual FIFO first, then other FIFO (both already FIFO due to earlier sort)
+    const result: any[] = [];
+    const manualBucket = bySubject[bestSubject].manual || [];
+    const otherBucket = bySubject[bestSubject].other || [];
+
+    for (const a of manualBucket) {
+      if (result.length >= 5) break;
+      result.push(a);
+    }
+    for (const a of otherBucket) {
+      if (result.length >= 5) break;
+      result.push(a);
+    }
+
     return result.slice(0, 5);
   }
 }
