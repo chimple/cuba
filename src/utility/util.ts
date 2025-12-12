@@ -2048,7 +2048,6 @@ export class Util {
     localStorage.setItem(USER_ROLE, JSON.stringify([role]));
   };
 public static getCurrentSchool(): TableTypes<"school"> | undefined {
-  console.log("Getting current school...🙌🙌🙌🙌🙌🙌");
   const api = ServiceConfig.getI().apiHandler;
 
   const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
