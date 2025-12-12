@@ -321,8 +321,12 @@ const Parent: React.FC = () => {
               title={"Switch to Teacher's Mode"}
               layout="vertical"
               onIonChangeClick={async () => {
+                if (!currentUser?.name || currentUser.name.trim() === "") {
+                  history.replace(PAGES.ADD_TEACHER_NAME);
+                }else {
                 schoolUtil.setCurrMode(MODES.TEACHER);
                 history.replace(PAGES.DISPLAY_SCHOOLS);
+                }
               }}
             />
           </div>
